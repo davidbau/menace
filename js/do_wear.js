@@ -49,7 +49,7 @@ import {
     setworn,
     setnotworn,
 } from './worn.js';
-import { useup, renderOverlayMenuUntilDismiss, silly_thing } from './invent.js';
+import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing } from './invent.js';
 import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
 import { retouch_object } from './artifact.js';
@@ -2175,33 +2175,62 @@ async function handleWear(player, display, game = null) {
     const wearPrompt = wearChoices.length > 0
         ? `What do you want to wear? [${wearChoices} or ?*] `
         : 'What do you want to wear? [*] ';
+    const allInvLetters = (player.inventory || [])
+        .filter((o) => o && o.invlet)
+        .map((o) => o.invlet)
+        .join('');
+    const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+    const showWearHelpList = async () => {
+        resetTopline(display);
+        const lines = buildInventoryOverlayLines(player);
+        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+    };
     resetTopline(display);
     await display.putstr_message(wearPrompt);
-    const ch = await awaitInput(game, nhgetch(), {
-        site: 'do_wear.handleWear.select',
-    });
-    const c = String.fromCharCode(ch);
+    while (true) {
+        const ch = await awaitInput(game, nhgetch(), {
+            site: 'do_wear.handleWear.select',
+        });
+        let c = String.fromCharCode(ch);
 
-    const selected = (player.inventory || []).find((o) => o.invlet === c);
-    if (!selected) {
-        resetTopline(display);
-        await display.putstr_message('Never mind.');
-        updateLastPlineMessage('Never mind.');
-        return { moved: false, tookTime: false };
+        if (isDismissKey(ch)) {
+            resetTopline(display);
+            await display.putstr_message('Never mind.');
+            updateLastPlineMessage('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (c === '?' || c === '*') {
+            const menuSelection = await showWearHelpList();
+            if (menuSelection) {
+                c = menuSelection;
+            } else {
+                resetTopline(display);
+                await display.putstr_message(wearPrompt);
+                continue;
+            }
+        }
+
+        const selected = (player.inventory || []).find((o) => o.invlet === c);
+        if (!selected) {
+            resetTopline(display);
+            await display.putstr_message('Never mind.');
+            updateLastPlineMessage('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (!isAccessoryOrArmorItem(selected)) {
+            resetTopline(display);
+            await display.putstr_message('That is a silly thing to wear.');
+            updateLastPlineMessage('That is a silly thing to wear.');
+            return { moved: false, tookTime: false };
+        }
+        if (isAlreadyWornAccessoryOrArmor(player, selected)) {
+            resetTopline(display);
+            await display.putstr_message('You are already wearing that!');
+            updateLastPlineMessage('You are already wearing that!');
+            return { moved: false, tookTime: false };
+        }
+        return await putOnSelectedItem(player, display, game, selected);
     }
-    if (!isAccessoryOrArmorItem(selected)) {
-        resetTopline(display);
-        await display.putstr_message('That is a silly thing to wear.');
-        updateLastPlineMessage('That is a silly thing to wear.');
-        return { moved: false, tookTime: false };
-    }
-    if (isAlreadyWornAccessoryOrArmor(player, selected)) {
-        resetTopline(display);
-        await display.putstr_message('You are already wearing that!');
-        updateLastPlineMessage('You are already wearing that!');
-        return { moved: false, tookTime: false };
-    }
-    return await putOnSelectedItem(player, display, game, selected);
 }
 
 // cf. do_wear.c doputon() — P command: put on ring or amulet
@@ -2224,36 +2253,63 @@ async function handlePutOn(player, display, game = null) {
 
     // C getobj parity: 'P' suggests accessories and downplays armor.
     const suggested = putOnCandidates.filter((o) => o.oclass !== ARMOR_CLASS);
-    {
-        const choices = suggested.map((r) => r.invlet).join('');
-        const putOnPrompt = choices.length > 0
-            ? `What do you want to put on? [${choices} or ?*] `
-            : 'What do you want to put on? [*] ';
+    const putOnChoices = suggested.map((r) => r.invlet).join('');
+    const putOnPrompt = putOnChoices.length > 0
+        ? `What do you want to put on? [${putOnChoices} or ?*] `
+        : 'What do you want to put on? [*] ';
+    const allInvLetters = (player.inventory || [])
+        .filter((o) => o && o.invlet)
+        .map((o) => o.invlet)
+        .join('');
+    const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+    const showPutOnHelpList = async () => {
         resetTopline(display);
-        await display.putstr_message(putOnPrompt);
-    }
-    const ch = await awaitInput(game, nhgetch(), {
-        site: 'do_wear.handlePutOn.select',
-    });
-    const c = String.fromCharCode(ch);
+        const lines = buildInventoryOverlayLines(player);
+        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+    };
+    resetTopline(display);
+    await display.putstr_message(putOnPrompt);
+    while (true) {
+        const ch = await awaitInput(game, nhgetch(), {
+            site: 'do_wear.handlePutOn.select',
+        });
+        let c = String.fromCharCode(ch);
 
-    const selected = (player.inventory || []).find((o) => o.invlet === c);
-    if (!selected) {
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        resetTopline(display);
-        await display.putstr_message('Never mind.');
-        return { moved: false, tookTime: false };
-    }
-    if (!putOnCandidates.includes(selected)) {
-        resetTopline(display);
-        if (isAccessoryOrArmorItem(selected) && isAlreadyWornAccessoryOrArmor(player, selected)) {
-            await display.putstr_message('You are already wearing that!');
-        } else {
-            await display.putstr_message('That is a silly thing to put on.');
+        if (isDismissKey(ch)) {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            resetTopline(display);
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
         }
-        return { moved: false, tookTime: false };
+        if (c === '?' || c === '*') {
+            const menuSelection = await showPutOnHelpList();
+            if (menuSelection) {
+                c = menuSelection;
+            } else {
+                resetTopline(display);
+                await display.putstr_message(putOnPrompt);
+                continue;
+            }
+        }
+
+        const selected = (player.inventory || []).find((o) => o.invlet === c);
+        if (!selected) {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            resetTopline(display);
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (!putOnCandidates.includes(selected)) {
+            resetTopline(display);
+            if (isAccessoryOrArmorItem(selected) && isAlreadyWornAccessoryOrArmor(player, selected)) {
+                await display.putstr_message('You are already wearing that!');
+            } else {
+                await display.putstr_message('That is a silly thing to put on.');
+            }
+            return { moved: false, tookTime: false };
+        }
+        return await putOnSelectedItem(player, display, game, selected);
     }
-    return await putOnSelectedItem(player, display, game, selected);
 }
 
 // cf. do_wear.c dotakeoff() — T command: take off a piece of armor
@@ -2271,23 +2327,45 @@ async function handleTakeOff(player, display, game = null) {
     if (armorCount === 1 && lastArmor) {
         item = lastArmor;
     } else {
-        {
-            const choices = wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join('');
+        const takeOffChoices = wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join('');
+        const takeOffPrompt = takeOffChoices.length > 1
+            ? `What do you want to take off? [${takeOffChoices} or ?*] `
+            : 'What do you want to take off? [*] ';
+        const wornLetters = wornAll.map((a) => a.invlet).join('');
+        const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+        const showTakeOffHelpList = async () => {
             resetTopline(display);
-            await display.putstr_message(
-                choices.length > 1
-                    ? `What do you want to take off? [${choices} or ?*] `
-                    : 'What do you want to take off? [*] '
-            );
-        }
-        const ch = await awaitInput(game, nhgetch(), {
-            site: 'do_wear.handleTakeOff.select',
-        });
-        const c = String.fromCharCode(ch);
-        item = wornAll.find((a) => a.invlet === c);
-        if (!item) {
-            await display.putstr_message('Never mind.');
-            return { moved: false, tookTime: false };
+            const lines = buildInventoryOverlayLines(player);
+            return await renderOverlayMenuUntilDismiss(display, lines, wornLetters);
+        };
+        resetTopline(display);
+        await display.putstr_message(takeOffPrompt);
+        while (true) {
+            const ch = await awaitInput(game, nhgetch(), {
+                site: 'do_wear.handleTakeOff.select',
+            });
+            let c = String.fromCharCode(ch);
+
+            if (isDismissKey(ch)) {
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            if (c === '?' || c === '*') {
+                const menuSelection = await showTakeOffHelpList();
+                if (menuSelection) {
+                    c = menuSelection;
+                } else {
+                    resetTopline(display);
+                    await display.putstr_message(takeOffPrompt);
+                    continue;
+                }
+            }
+            item = wornAll.find((a) => a.invlet === c);
+            if (!item) {
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            break;
         }
     }
 
@@ -2309,23 +2387,45 @@ async function handleRemove(player, display, game = null) {
     if (accessoryCount === 1 && lastAccessory) {
         item = lastAccessory;
     } else {
-        {
-            const choices = wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join('');
+        const removeChoices = wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join('');
+        const removePrompt = removeChoices.length > 1
+            ? `What do you want to remove? [${removeChoices} or ?*] `
+            : 'What do you want to remove? [*] ';
+        const wornLetters = wornAll.map((a) => a.invlet).join('');
+        const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+        const showRemoveHelpList = async () => {
             resetTopline(display);
-            await display.putstr_message(
-                choices.length > 1
-                    ? `What do you want to remove? [${choices} or ?*] `
-                    : 'What do you want to remove? [*] '
-            );
-        }
-        const ch = await awaitInput(game, nhgetch(), {
-            site: 'do_wear.handleRemove.select',
-        });
-        const c = String.fromCharCode(ch);
-        item = wornAll.find((a) => a.invlet === c);
-        if (!item) {
-            await display.putstr_message('Never mind.');
-            return { moved: false, tookTime: false };
+            const lines = buildInventoryOverlayLines(player);
+            return await renderOverlayMenuUntilDismiss(display, lines, wornLetters);
+        };
+        resetTopline(display);
+        await display.putstr_message(removePrompt);
+        while (true) {
+            const ch = await awaitInput(game, nhgetch(), {
+                site: 'do_wear.handleRemove.select',
+            });
+            let c = String.fromCharCode(ch);
+
+            if (isDismissKey(ch)) {
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            if (c === '?' || c === '*') {
+                const menuSelection = await showRemoveHelpList();
+                if (menuSelection) {
+                    c = menuSelection;
+                } else {
+                    resetTopline(display);
+                    await display.putstr_message(removePrompt);
+                    continue;
+                }
+            }
+            item = wornAll.find((a) => a.invlet === c);
+            if (!item) {
+                await display.putstr_message('Never mind.');
+                return { moved: false, tookTime: false };
+            }
+            break;
         }
     }
 
