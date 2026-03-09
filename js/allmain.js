@@ -528,10 +528,7 @@ export async function run_command(game, ch, opts = {}) {
         : (game?.multi === 0 ? 'fresh_cmd' : 'other');
     const runstepKeyarg = game?.multi > 0 ? (game?.cmdKey | 0) : 0;
     const runstepCmd = game?.multi > 0 ? (game?.cmdKey | 0) : chCode;
-    const deferFreshRunstep = runstepPath === 'fresh_cmd';
-    if (!deferFreshRunstep) {
-        emitRunstep(game, runstepKeyarg, runstepPath, runstepCmd);
-    }
+    emitRunstep(game, runstepKeyarg, runstepPath, runstepCmd);
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: game?.getInputBoundaryState?.() || null,
@@ -968,9 +965,6 @@ export async function run_command(game, ch, opts = {}) {
         }
     }
 
-    if (deferFreshRunstep) {
-        emitRunstep(game, 0, 'fresh_cmd', game?.cmdKey | 0);
-    }
     return result;
     } finally {
         endCommandExec(game, execToken, { site: 'run_command', key: chCode });
