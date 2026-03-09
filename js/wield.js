@@ -618,7 +618,7 @@ async function handleQuiver(player, display) {
     await display.putstr_message(prompt);
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, nhgetch_raw(), {
             site: 'wield.handleQuiver.select',
         });
         let c = String.fromCharCode(ch);
