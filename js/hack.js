@@ -2071,7 +2071,14 @@ export async function dotravel_target(game) {
     player.last_str_turn = 0;
 
     // First travel step — domove_core will call findtravelpath internally.
-    return domove([0, 0], player, map, display, game);
+    // C ref: cmd.c dotravel_target() returns ECMD_TIME unconditionally once
+    // destination validation passes, even if domove() doesn't move (for
+    // example no reachable path from the selected cursor point).
+    const moveResult = await domove([0, 0], player, map, display, game);
+    return {
+        moved: !!(moveResult && moveResult.moved),
+        tookTime: true,
+    };
 }
 
 // Wait/search safety warning and execution helpers for rhack()

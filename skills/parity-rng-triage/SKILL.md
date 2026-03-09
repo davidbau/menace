@@ -82,6 +82,13 @@ Use this for session parity failures where gameplay diverges between C and JS:
 ## Quick Triage Heuristics
 - If RNG diverges first: find the first branch/function-call mismatch and fix that root cause.
 - If RNG/events match but screen diverges: inspect message timing/capture boundaries, animation boundaries, and display-state updates.
+- If one step is short and the next step has a matching surplus in the same
+  event families, treat it as **cross-step boundary drift** first:
+  - Compare per-step counts with `node scripts/comparison-window.mjs <session> --step-summary --step-from <N> --step-to <M>`.
+  - Confirm conservation by event family (for example, `test_move`, `movemon_turn`,
+    `dog_*`, `runstep`) across adjacent steps.
+  - If conserved, avoid changing gameplay logic first; adjust capture timing and
+    rerecord with a targeted pause at the boundary key.
 - If RNG/events match 100% but mapdump section M fails with mhp=0 entries on
   the session side: C's `fmon` list retains dead/failed monsters until
   `dmonsfree()`, which runs after `harness_auto_mapdump()`. This is a C harness
@@ -101,6 +108,16 @@ Run after any core JS change and after every `git pull`:
 ## Debug Mapdump Notes
 - `dbgmapdump` captures replay-time compact mapdumps without mutating fixtures.
 - For syntax and interpretation details, see `docs/DBGMAPDUMP_TOOL.md`.
+
+## Rerecord Timing Advisory
+- When capture timing needs to wait for C to finish a complex key (for example
+  `_` travel confirmation at `.`), encode the pause in-session:
+  - per-step: `steps[i].capture.key_delay_s`
+  - or global regen override: `regen.key_delays_s` (1-based gameplay step map)
+- Then rerecord via:
+  - `python3 test/comparison/c-harness/rerecord.py <session.json>`
+- Keep this for true capture-boundary timing only; do not use it to mask core
+  gameplay logic mismatches.
 
 ## Done Criteria
 - First divergence is eliminated or moved later with evidence.
