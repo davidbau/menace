@@ -21,6 +21,7 @@ import { engr_at, can_reach_floor } from './engrave.js';
 import { objectData, STRANGE_OBJECT } from './objects.js';
 import { visctrl } from './hacklib.js';
 import { terrainSymbol, wallIsVisible } from './render.js';
+import { dealloc_obj } from './mkobj.js';
 
 // -----------------------------------------------------------------------
 // Look / whatis core (merged from look.js)

@@ -90,7 +90,7 @@ function clear_hitmsg_state() {
 
 // cf. mhitu.c:30 hitmsg() — monster hits hero message.
 // Prints the appropriate hit verb for the attack type.
-async function hitmsg(monster, attack, display, suppressHitMsg) {
+export async function hitmsg(monster, attack, display, suppressHitMsg) {
     if (suppressHitMsg) return;
     let verb;
     const attackIdx = Number.isInteger(attack?._attackIndex) ? attack._attackIndex : -1;

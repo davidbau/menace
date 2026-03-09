@@ -26,7 +26,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          STRANGE_OBJECT, GEMSTONE, GLASS,
          CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { isObjectNameKnown } from './o_init.js';
-import { doname, xname, splitobj, next_ident, weight, Is_container, add_to_minv } from './mkobj.js';
+import { doname, xname, splitobj, next_ident, weight, Is_container, add_to_minv, dealloc_obj } from './mkobj.js';
 import { currency, o_on } from './invent.js';
 import { greetingForRole, Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';

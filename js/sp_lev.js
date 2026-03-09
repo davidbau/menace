@@ -3897,7 +3897,15 @@ function objectClassToType(classChar) {
     }
 }
 
-function get_table_objclass(opts = {}) {
+// cf. sp_lev.c:206 — reset_xystart_size(): reset map fragment coordinates to full level
+export function reset_xystart_size() {
+    levelState.xstart = 1;
+    levelState.ystart = 0;
+    levelState.xsize = COLNO - 1;
+    levelState.ysize = ROWNO;
+}
+
+export function get_table_objclass(opts = {}) {
     const value = opts?.class;
     if (typeof value === 'string' && value.length === 1) return value;
     return -1;
@@ -3909,7 +3917,7 @@ function find_objtype(_ctx, name, oclass = -1) {
     return objectNameToType(name, filter);
 }
 
-function get_table_objtype(opts = {}) {
+export function get_table_objtype(opts = {}) {
     const id = opts?.id;
     const oclass = get_table_objclass(opts);
     return find_objtype(null, id, oclass);

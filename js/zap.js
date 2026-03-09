@@ -5,7 +5,7 @@
 
 import { rn2, rnd, d, c_d, rn1, rne, rnz } from './rng.js';
 import {
-    isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX,
+    isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
     TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE,
@@ -42,7 +42,10 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          SCR_FIRE, BAG_OF_HOLDING,
          SCR_MAGIC_MAPPING,
          ROCK, DWARVISH_CLOAK, CHEST, LARGE_BOX, TIN,
-         SPE_DIG } from './objects.js';
+         SPE_DIG,
+         RIN_GAIN_STRENGTH, RIN_GAIN_CONSTITUTION, RIN_ADORNMENT,
+         RIN_INCREASE_ACCURACY, RIN_INCREASE_DAMAGE, RIN_PROTECTION,
+         HELM_OF_BRILLIANCE, GAUNTLETS_OF_DEXTERITY } from './objects.js';
 import { mons, G_FREQ, MZ_TINY, MZ_HUMAN, M1_NOEYES,
          M2_NEUTER, M2_MALE, M2_FEMALE, M2_UNDEAD, M2_DEMON,
          MR_FIRE, MR_COLD, MR_SLEEP, MR_ELEC, MR_POISON, MR_ACID, MR_DISINT,
@@ -50,12 +53,13 @@ import { mons, G_FREQ, MZ_TINY, MZ_HUMAN, M1_NOEYES,
          PM_IRON_GOLEM, PM_STONE_GOLEM, PM_FLESH_GOLEM, PM_WOOD_GOLEM,
          PM_LEATHER_GOLEM, PM_ROPE_GOLEM, PM_SKELETON, PM_GOLD_GOLEM,
          PM_GLASS_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM,
-         PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC } from './monsters.js';
+         PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC,
+         AD_DRLI } from './monsters.js';
 import {
   rndmonnum, makemon,
 } from './makemon.js';
 import { NO_MINVENT } from './const.js';
-import { next_ident, mksobj, mkobj, weight } from './mkobj.js';
+import { next_ident, mksobj, mkobj, weight, costly_alteration } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { corpse_chance } from './mon.js';
 import { xkilled, killed, monkilled,
@@ -78,11 +82,13 @@ import {
 } from './worn.js';
 import { erode_obj } from './trap.js';
 import { game as _gstate } from './gstate.js';
-import { ERODE_BURN, EF_GREASE, W_ART } from './const.js';
+import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
 import { display_minventory, sobj_at, update_inventory } from './invent.js';
 import { obj_resists } from './objdata.js';
+import { defends, defends_when_carried } from './artifact.js';
+import { is_weptool } from './objnam.js';
 import { splitobj, Is_container } from './mkobj.js';
 import { delobj } from './invent.js';
 import { useupall } from './invent.js';
@@ -815,7 +821,7 @@ export function cancel_monst(mon, obj, youattack, allow_cancel_kill, self_cancel
 }
 
 // Helper: cancel_item — cancel an object's magical properties
-function cancel_item(obj) {
+export function cancel_item(obj) {
   if (!obj) return;
   // C ref: zap.c — cancel items: remove charges from wands, remove
   // enchantment from weapons/armor, etc.
@@ -827,6 +833,57 @@ function cancel_item(obj) {
     obj.spe = 0;
   }
   obj.oerodeproof = false;
+}
+
+// cf. zap.c:1380 — drain_item(): drain enchantment/charges from an object
+export function drain_item(obj, by_you) {
+  const player = globalThis.gs?.player;
+  if (!obj
+      || (!objectData[obj.otyp].oc_charged && obj.oclass !== WEAPON_CLASS
+          && obj.oclass !== ARMOR_CLASS && !is_weptool(obj))
+      || obj.spe <= 0)
+    return false;
+  if (defends(AD_DRLI, obj) || defends_when_carried(AD_DRLI, obj)
+      || obj_resists(obj, 10, 90))
+    return false;
+  if (by_you) costly_alteration(obj, COST_DRAIN);
+  obj.spe--;
+  const u_ring = player && ((obj === player.leftRing) || (obj === player.rightRing));
+  let botl = false;
+  switch (obj.otyp) {
+  case RIN_GAIN_STRENGTH:
+    if ((obj.owornmask & W_RING) && u_ring) { player.abon[A_STR]--; botl = true; }
+    break;
+  case RIN_GAIN_CONSTITUTION:
+    if ((obj.owornmask & W_RING) && u_ring) { player.abon[A_CON]--; botl = true; }
+    break;
+  case RIN_ADORNMENT:
+    if ((obj.owornmask & W_RING) && u_ring) { player.abon[A_CHA]--; botl = true; }
+    break;
+  case RIN_INCREASE_ACCURACY:
+    if ((obj.owornmask & W_RING) && u_ring && player) player.uhitinc--;
+    break;
+  case RIN_INCREASE_DAMAGE:
+    if ((obj.owornmask & W_RING) && u_ring && player) player.udaminc--;
+    break;
+  case RIN_PROTECTION:
+    if (u_ring) botl = true;
+    break;
+  case HELM_OF_BRILLIANCE:
+    if ((obj.owornmask & W_ARMH) && player && obj === player.helmet) {
+      player.abon[A_INT]--; player.abon[A_WIS]--; botl = true;
+    }
+    break;
+  case GAUNTLETS_OF_DEXTERITY:
+    if ((obj.owornmask & W_ARMG) && player && obj === player.gloves) {
+      player.abon[A_DEX]--; botl = true;
+    }
+    break;
+  default: break;
+  }
+  // C: if (disp.botl) bot(); if (carried(obj)) update_inventory();
+  if (botl && globalThis.gs?.display) globalThis.gs.display.botl = true;
+  return true;
 }
 
 // ============================================================

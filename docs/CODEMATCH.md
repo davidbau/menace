@@ -163,7 +163,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | worm.c | worm.js | Long worm mechanics. All 28 C functions implemented (31 JS exports): get_wormno, initworm, worm_move, worm_nomove, wormgone, wormhitu, cutworm, see_wsegs, detect_wsegs, place_wsegs, place_worm_tail_randomly, size_wseg, count_wsegs, create_worm_tail, worm_known, worm_cross, wseg_at, flip_worm_segs_*, save_worm, rest_worm etc. |
 | `[a]` | worn.c | worn.js | Equipment slot management. setworn, setnotworn, allunworn, wearmask_to_obj, wearslot, wornmask_to_armcat, armcat_to_wornmask, update_mon_extrinsics, mon_set_minvis, mon_adjust_speed, extract_from_minvent, m_lose_armor, mon_break_armor, extra_pref, racial_exception, m_dowear, m_dowear_type, find_mac, bypass stubs (bypass_obj, clear_bypasses, nxt_unbypassed_obj/loot) implemented. check_wornmask_slots/which_armor/recalc_telepat_range TODO |
 | `[a]` | write.c | write.js | Writing on scrolls. cost, write_ok, new_book_description implemented; dowrite TODO |
-| `[a]` | zap.c | zap.js | Wand beam effects. 78/81 C functions present (96%): dozap/zappable/weffects/zapsetup/zapwrapup/zapyourself/zap_steed/buzz/dobuzz/zhitm/zhitu/bhitm/bhito/bhitpile/zap_over_floor/cancel_monst/probe_monster/probe_objchain/spell_hit_bonus/resists_stun/break_wand/backfire/do_osshock etc. Core beam animation uses async tmp_at + nh_delay_output. Remaining parity: edge-depth in effect matrices and terrain interactions |
+| `[a]` | zap.c | zap.js | Wand beam effects. 80/81 C functions present (98%): dozap/zappable/weffects/zapsetup/zapwrapup/zapyourself/zap_steed/buzz/dobuzz/zhitm/zhitu/bhitm/bhito/bhitpile/zap_over_floor/cancel_monst/cancel_item/drain_item/probe_monster/probe_objchain/spell_hit_bonus/resists_stun/break_wand/backfire/do_osshock etc. Core beam animation uses async tmp_at + nh_delay_output. Remaining parity: edge-depth in effect matrices and terrain interactions |
 
 ### Summary
 
@@ -4896,6 +4896,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1885 | `pm_to_humidity` | sp_lev.js:5955| Aligned |
 | 4575 | `random_wdir` | sp_lev.js:7814 | Aligned |
 | 1017 | `remove_boundary_syms` | sp_lev.js:6092 | Aligned |
+| 206 | `reset_xystart_size` | sp_lev.js:reset_xystart_size | Implemented: resets map fragment coords to full level dimensions |
 | 1149 | `rnddoor` | sp_lev.js:5089 | Aligned |
 | 1160 | `rndtrap` | sp_lev.js:7819 | Aligned |
 | 2485 | `search_door` | sp_lev.js:4846| Aligned |

@@ -1853,6 +1853,9 @@ export function dealloc_obj_real(obj) {
   // C: *obj = cg.zeroobj; free(obj); — JS garbage collects
 }
 
+// cf. mkobj.c — dealloc_obj() is a C macro wrapping dealloc_obj_real()
+export const dealloc_obj = dealloc_obj_real;
+
 
 // C ref: MON_WEP(mon) — wielded weapon (local copy to avoid circular import with muse.js)
 function MON_WEP(mon) {
