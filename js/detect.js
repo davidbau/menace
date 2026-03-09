@@ -53,9 +53,6 @@ const OTRAP_THERE = 2;
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otrapped);
 }
-function helpless(mon) {
-    return !!mon && monHelpless(mon);
-}
 function u_at(player, x, y) {
     return player.x === x && player.y === y;
 }
@@ -500,7 +497,7 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
             if (!mclass || mdat.mlet === mclass
                 || (mdat.mndx === PM_LONG_WORM && mclass === S_WORM_TAIL))
                 map_monst(mtmp, true);
-            if (otmp && otmp.cursed && helpless(mtmp)) {
+            if (otmp && otmp.cursed && monHelpless(mtmp)) {
                 mtmp.msleeping = 0;
                 mtmp.sleeping = false;
                 mtmp.mfrozen = 0;

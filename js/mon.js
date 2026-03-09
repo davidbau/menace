@@ -30,7 +30,8 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          BOLT_LIM, LS_MONSTER,
          IS_ALTAR,
          STRAT_WAITMASK, A_CHAOTIC, A_NONE, NORMAL_SPEED } from './const.js';
-import { M2_COLLECT, MS_NEMESIS, MS_GUARDIAN } from './monsters.js';
+import { M2_COLLECT, MS_NEMESIS, MS_GUARDIAN, MR_ACID, MR_STONE,
+         PM_KILLER_BEE, PM_SCORPION } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
          GRAY_DRAGON_SCALES, UNICORN_HORN, WORM_TOOTH,
          IRON_CHAIN, ROCK as OBJ_ROCK, FIRST_GLASS_GEM, NUM_GLASS_GEMS,
@@ -42,7 +43,8 @@ import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
 import { which_armor, mon_adjust_speed } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,
          is_flyer, is_floater,
-         likes_lava, cant_drown, can_teleport, vegan as vegan_mondata,
+         likes_lava, cant_drown, can_teleport, control_teleport, telepathic,
+         vegan as vegan_mondata,
          mon_hates_silver, touch_petrifies, flesh_petrifies,
          is_male, is_female, is_neuter,
          dmgtype, attacktype, DEADMONSTER } from './mondata.js';
@@ -72,7 +74,9 @@ import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_golem, is_rider, is_mplayer, canseemon } from './mondata.js';
 import { y_monnam, locomotion, Monnam, is_watch } from './mondata.js';
 import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_MINOTAUR, PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER, PM_GHOUL, PM_SKELETON, PM_DEATH, PM_PESTILENCE, PM_FAMINE, PM_LIZARD, PM_VLAD_THE_IMPALER, PM_DISPLACER_BEAST, PM_KOBOLD, PM_DWARF, PM_GNOME, PM_ORC, PM_ELF, PM_HUMAN, PM_GIANT, PM_ETTIN, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_KOBOLD_ZOMBIE, PM_DWARF_ZOMBIE, PM_GNOME_ZOMBIE, PM_ORC_ZOMBIE, PM_ELF_ZOMBIE, PM_HUMAN_ZOMBIE, PM_GIANT_ZOMBIE, PM_ETTIN_ZOMBIE, PM_KOBOLD_MUMMY, PM_DWARF_MUMMY, PM_GNOME_MUMMY, PM_ORC_MUMMY, PM_ELF_MUMMY, PM_HUMAN_MUMMY, PM_GIANT_MUMMY, PM_ETTIN_MUMMY, PM_STUDENT, PM_CHIEFTAIN, PM_NEANDERTHAL, PM_ATTENDANT, PM_PAGE, PM_ABBOT, PM_ACOLYTE, PM_HUNTER, PM_THUG, PM_ROSHI, PM_GUIDE, PM_WARRIOR, PM_APPRENTICE, PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER, PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE, PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD, PM_IRON_GOLEM, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_WOOD_GOLEM, PM_ROPE_GOLEM, PM_LEATHER_GOLEM, PM_GOLD_GOLEM, PM_PAPER_GOLEM, PM_GREMLIN, PM_GELATINOUS_CUBE, PM_RUST_MONSTER, PM_STALKER, PM_GREEN_SLIME, PM_GRAY_DRAGON, PM_GOLD_DRAGON, PM_SILVER_DRAGON, PM_RED_DRAGON, PM_ORANGE_DRAGON, PM_WHITE_DRAGON, PM_BLACK_DRAGON, PM_BLUE_DRAGON, PM_GREEN_DRAGON, PM_YELLOW_DRAGON, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_LONG_WORM, PM_GRAY_OOZE, PM_BROWN_PUDDING, PM_BLACK_PUDDING, PM_STEAM_VORTEX, NUMMONS, mons, AT_NONE, AT_BOOM, AT_ENGL, AT_HUGS, AD_PHYS, AD_ACID, AD_ENCH, AD_STCK, M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_WALLWALK, M1_BREATHLESS, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID, MZ_TINY, MZ_MEDIUM, MZ_LARGE, MZ_HUMAN, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, G_FREQ, G_NOCORPSE, G_UNIQ, S_EYE, S_LIGHT, S_EEL, S_PIERCER, S_MIMIC, S_UNICORN, S_ZOMBIE, S_LICH, S_KOBOLD, S_ORC, S_GIANT, S_HUMANOID, S_GNOME, S_KOP, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, S_VAMPIRE, PM_FLESH_GOLEM, PM_STONE_GOLEM, PM_ERINYS } from './monsters.js';
-import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER, TAINT_AGE, NON_PM } from './const.js';
+import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER, TAINT_AGE, NON_PM,
+         FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES,
+         ACID_RES, STONE_RES, TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP } from './const.js';
 import { S_poisoncloud } from './symbols.js';
 import { m_harmless_trap } from './trap.js';
 import { dist2, distmin } from './hacklib.js';
@@ -1905,12 +1909,17 @@ function intrinsic_possible(type, ptr) {
     if (!ptr) return false;
     const mr2 = ptr.mconveys || 0;
     switch (type) {
-    case 1: return !!(mr2 & MR_FIRE);     // FIRE_RES
-    case 2: return !!(mr2 & MR_COLD);     // COLD_RES
-    case 3: return !!(mr2 & MR_SLEEP);    // SLEEP_RES
-    case 4: return !!(mr2 & MR_DISINT);   // DISINT_RES
-    case 5: return !!(mr2 & MR_ELEC);     // SHOCK_RES
-    case 6: return !!(mr2 & MR_POISON);   // POISON_RES
+    case FIRE_RES:          return !!(mr2 & MR_FIRE);
+    case COLD_RES:          return !!(mr2 & MR_COLD);
+    case SLEEP_RES:         return !!(mr2 & MR_SLEEP);
+    case DISINT_RES:        return !!(mr2 & MR_DISINT);
+    case SHOCK_RES:         return !!(mr2 & MR_ELEC);
+    case POISON_RES:        return !!(mr2 & MR_POISON);
+    case ACID_RES:          return !!(mr2 & MR_ACID);
+    case STONE_RES:         return !!(mr2 & MR_STONE);
+    case TELEPORT:          return can_teleport(ptr);
+    case TELEPORT_CONTROL:  return control_teleport(ptr);
+    case TELEPAT:           return telepathic(ptr);
     default: return false;
     }
 }
@@ -1920,9 +1929,22 @@ function should_givit(type, ptr) {
     if (!ptr) return false;
     let chance;
     switch (type) {
-    case 6: // POISON_RES
-        // C ref: killer bee/scorpion special case
-        chance = 15;
+    case POISON_RES:
+        // C ref: killer bee/scorpion special case — 25% chance of guaranteed grant
+        if ((ptr === mons[PM_KILLER_BEE] || ptr === mons[PM_SCORPION])
+            && !rn2(4))
+            chance = 1;
+        else
+            chance = 15;
+        break;
+    case TELEPORT:
+        chance = 10;
+        break;
+    case TELEPORT_CONTROL:
+        chance = 12;
+        break;
+    case TELEPAT:
+        chance = 1;
         break;
     default:
         chance = 15;
@@ -1942,9 +1964,8 @@ function corpse_intrinsic(ptr) {
         count = 1;
         prop = -1; // fake prop index for STR
     }
-    // C ref: LAST_PROP scan — we only check the 6 resistance props
-    // that monsters can gain (FIRE_RES=1 through POISON_RES=6)
-    for (let i = 1; i <= 6; i++) {
+    // C ref: LAST_PROP scan — check all props that intrinsic_possible handles
+    for (let i = 1; i <= LAST_PROP; i++) {
         if (!intrinsic_possible(i, ptr)) continue;
         ++count;
         if (!rn2(count)) {
@@ -1962,15 +1983,16 @@ export function mon_give_prop(mon, prop) {
     if (!mon) return;
     let intrinsic = 0;
     // Map prop number to MR_ constant
-    // Using worn.js res_to_mr logic: (1 << (prop - 1))
     switch (prop) {
-    case 1: intrinsic = MR_FIRE; break;     // FIRE_RES
-    case 2: intrinsic = MR_COLD; break;     // COLD_RES
-    case 3: intrinsic = MR_SLEEP; break;    // SLEEP_RES
-    case 4: intrinsic = MR_DISINT; break;   // DISINT_RES
-    case 5: intrinsic = MR_ELEC; break;     // SHOCK_RES
-    case 6: intrinsic = MR_POISON; break;   // POISON_RES
-    default: return; // can't give it
+    case FIRE_RES:    intrinsic = MR_FIRE; break;
+    case COLD_RES:    intrinsic = MR_COLD; break;
+    case SLEEP_RES:   intrinsic = MR_SLEEP; break;
+    case DISINT_RES:  intrinsic = MR_DISINT; break;
+    case SHOCK_RES:   intrinsic = MR_ELEC; break;
+    case POISON_RES:  intrinsic = MR_POISON; break;
+    case ACID_RES:    intrinsic = MR_ACID; break;
+    case STONE_RES:   intrinsic = MR_STONE; break;
+    default: return; // TELEPORT/TELEPAT/etc. — monsters can't gain these from eating
     }
     if (intrinsic)
         mon.mintrinsics = (mon.mintrinsics || 0) | intrinsic;

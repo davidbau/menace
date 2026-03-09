@@ -109,12 +109,6 @@ function metallivorous(mptr) {
 // resists_magm and defended imported from mondata.js
 
 
-// C ref: helpless(mon) — mon is asleep/paralyzed/etc
-function helpless(mon) {
-    if (!mon) return false;
-    return monHelpless(mon);
-}
-
 // C ref: is_pit() helper
 function is_pit(ttyp) { return ttyp === PIT || ttyp === SPIKED_PIT; }
 
@@ -446,7 +440,7 @@ function trapeffect_bear_trap_mon(mon, trap, map, player) {
 
 function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
     const mdat = mons[mon.mndx] || {};
-    if (!resists_sleep(mon) && !breathless(mdat) && !helpless(mon)) {
+    if (!resists_sleep(mon) && !breathless(mdat) && !monHelpless(mon)) {
         // C ref: trap.c:1568-1574 — seetrap only if sleep_monst() returns true AND in_sight
         const in_sight = canseemon(mon, player, fov);
         if (sleep_monst(mon, rnd(25), -1) && in_sight) {
@@ -1567,7 +1561,7 @@ export function into_vs_onto(traptype) {
 export async function reward_untrap(ttmp, mtmp, game, player) {
   if (!ttmp.madeby_u) {
     const _mdata = mtmp.data || mtmp.type || mons[mtmp.mndx]; // C: mon->data alias
-    if (rnl(10) < 8 && !mtmp.mpeaceful && !helpless(mtmp) && !mtmp.mfrozen && !mindless(_mdata) && !unique_corpstat(_mdata) && _mdata.mlet !== S_HUMAN) {
+    if (rnl(10) < 8 && !mtmp.mpeaceful && !monHelpless(mtmp) && !mtmp.mfrozen && !mindless(_mdata) && !unique_corpstat(_mdata) && _mdata.mlet !== S_HUMAN) {
       mtmp.mpeaceful = 1;
       set_malign(mtmp);
       await pline("%s is grateful.", Monnam(mtmp));
@@ -1964,7 +1958,7 @@ async function steedintrap(trap, otmp, player, game, map) {
         break;
     case SLP_GAS_TRAP:
         if (!resists_sleep(steed) && !breathless(mons[steed.mndx] || {})
-                && !helpless(steed)) {
+                && !monHelpless(steed)) {
             if (sleep_monst(steed, rnd(25), -1))
                 await pline('%s suddenly falls asleep!', Monnam(steed));
         }

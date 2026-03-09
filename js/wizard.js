@@ -148,9 +148,6 @@ function inhistemple(/*mtmp*/) { return false; }
 // inhishop — simplified check
 function inhishop(mtmp) { return !!(mtmp.isshk && mtmp.shoproom); }
 
-// helpless — is monster unable to act?
-function helpless(mtmp) { return monHelpless(mtmp); }
-
 // ptr accessor for monster data
 function mptr(mtmp) { return mtmp.data || mtmp.type || {}; }
 
@@ -581,7 +578,7 @@ export function has_aggravatables(mon, map, player) {
         if (mtmp.dead) continue;
         if (in_w_tower !== In_W_tower(mtmp.mx, mtmp.my))
             continue;
-        if (((mtmp.mstrategy || 0) & STRAT_WAITFORU) !== 0 || helpless(mtmp))
+        if (((mtmp.mstrategy || 0) & STRAT_WAITFORU) !== 0 || monHelpless(mtmp))
             return true;
     }
     return false;

@@ -22,7 +22,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear, verbalize } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
-import { mondead, monnear } from './mon.js';
+import { mondead, monnear, helpless as monHelpless } from './mon.js';
 import { mpickobj, mdrop_obj } from './steal.js';
 import { newsym, map_invisible, canSpotMonsterForMap } from './display.js';
 import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
@@ -228,9 +228,6 @@ const MUSE_MISC_BAG = 10;
 // Local helpers — small utility functions used by multiple muse functions
 // ========================================================================
 
-
-// C ref: helpless(mon) — asleep, frozen, paralyzed, can't move
-function helpless(mon) { return !!(mon.sleeping || mon.msleeping || mon.mfrozen || mon.mcanmove === false || mon.mcanmove === 0); }
 
 // C ref: mindless(ptr) — M1_MINDLESS
 function mindless(ptr) { return is_mindless(ptr); }
@@ -676,7 +673,7 @@ export function m_sees_sleepy_soldier(mtmp, map) {
             const mon2 = m_at(xx, yy, map);
             if (mon2 && is_mercenary(mon2.data || mon2.type || {})
                 && mon2.mndx !== PM_GUARD
-                && helpless(mon2)) {
+                && monHelpless(mon2)) {
                 return true;
             }
         }
@@ -2452,7 +2449,7 @@ export async function ureflects(fmt, str, player) {
 export async function munstone(mon, by_you) {
   let obj, tinok;
   if (resists_ston(mon)) return false;
-  if (mon.meating || helpless(mon)) return false;
+  if (mon.meating || monHelpless(mon)) return false;
   mon.mstrategy &= ~STRAT_WAITFORU;
   tinok = mcould_eat_tin(mon);
   for (obj = mon.minvent; obj; obj = obj.nobj) {
@@ -2469,7 +2466,7 @@ export async function munslime(mon, by_you, map, player) {
 
     // slimeproof check
     if (mptr.mflags3 && (mptr.mflags3 & 0x00002000)) return false; // MH_SLIME
-    if (mon.meating || helpless(mon)) return false;
+    if (mon.meating || monHelpless(mon)) return false;
     mon.mstrategy = (mon.mstrategy || 0) & ~0x08000000;
 
     // Fire breath on self

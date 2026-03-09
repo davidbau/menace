@@ -194,15 +194,10 @@ function mhim(shkp) {
     return shkp?.female ? 'her' : 'him';
 }
 
-// C ref: helpless(shkp) -- check if monster is helpless (sleeping/paralyzed)
-function helpless(shkp) {
-    return monHelpless(shkp);
-}
-
 // C ref: muteshk(shkp) -- check if shk is unable to speak
 function muteshk(shkp) {
     const mdat = shkp?.data || shkp?.type;
-    return helpless(shkp) || (mdat?.msound !== undefined && mdat.msound <= 1);
+    return monHelpless(shkp) || (mdat?.msound !== undefined && mdat.msound <= 1);
 }
 
 // C ref: canspotmon -- can hero see or sense the monster
@@ -882,7 +877,7 @@ export function pacify_shk(shkp, clear_surcharge) {
 // C ref: shk.c rouse_shk() -- wake up shopkeeper
 // Autotranslated from shk.c:1321
 export async function rouse_shk(shkp, verbosely) {
-  if (helpless(shkp)) {
+  if (monHelpless(shkp)) {
     if (verbosely && canspotmon(shkp)) await pline("%s %s.", Shknam(shkp), shkp.msleeping ? "wakes up" : "can move again");
     shkp.msleeping = 0;
     shkp.sleeping = false;
@@ -1037,7 +1032,7 @@ export function set_residency(shkp, zero_out, map) {
 export function shk_impaired(shkp, map) {
     if (!shkp || !shkp.isshk) return true;
     if (map && !inhishop(shkp, map)) return true;
-    if (helpless(shkp) || shkp.following) return true;
+    if (monHelpless(shkp) || shkp.following) return true;
     return false;
 }
 
@@ -1685,7 +1680,7 @@ export async function dopay(game) {
     if (robbed || Number(shkp.billct || 0) || Number(shkp.debit || 0)) {
         rouse_shk(shkp, true);
     }
-    if (helpless(shkp)) {
+    if (monHelpless(shkp)) {
         await pline("%s %s.", Shknam(shkp), rn2(2) ? "seems to be napping" : "doesn't respond");
         return 0;
     }
@@ -2292,7 +2287,7 @@ export async function block_door(x, y, map, player) {
 
     if (shkp.shk && shkp.mx === shkp.shk.x && shkp.my === shkp.shk.y
         && shkp.shd && shkp.shd.x === x && shkp.shd.y === y
-        && !helpless(shkp)
+        && !monHelpless(shkp)
         && ((shkp.debit || 0) > 0 || (shkp.billct || 0) > 0 || (shkp.robbed || 0) > 0)) {
         await pline("%s blocks your way!", Shknam(shkp));
         return true;
@@ -2310,7 +2305,7 @@ export async function block_entry(x, y, map, player) {
 
     if (shkp.shd && shkp.shd.x === player.x && shkp.shd.y === player.y
         && shkp.shk && shkp.mx === shkp.shk.x && shkp.my === shkp.shk.y
-        && !helpless(shkp)) {
+        && !monHelpless(shkp)) {
         await pline("%s blocks your way!", Shknam(shkp));
         return true;
     }
@@ -2980,7 +2975,7 @@ function kops_gone(silent) {
 // Export internal utilities used by other modules
 // ============================================================
 
-export { shop_keeper, findShopkeeper, in_rooms, get_cost, helpless as shk_helpless, muteshk };
+export { shop_keeper, findShopkeeper, in_rooms, get_cost, monHelpless as shk_helpless, muteshk };
 
 // Autotranslated from shk.c:388
 export function clear_no_charge_pets(shkp, map) {

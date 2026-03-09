@@ -25,7 +25,7 @@ import { COIN_CLASS, GOLD_PIECE } from './objects.js';
 import { move_special } from './monmove.js';
 import { newemin, bribe } from './minion.js';
 import { makemon } from './makemon.js';
-import { monnear, mondead, wakeup, setmangry, mongone } from './mon.js';
+import { monnear, mondead, wakeup, setmangry, mongone, helpless as monHelpless } from './mon.js';
 import { exercise } from './attrib_exercise.js';
 import { s_suffix, sgn } from './hacklib.js';
 import { body_part } from './polyself.js';
@@ -286,9 +286,7 @@ function m_canseeu(mon, player) {
     if (!mon || !player) return false;
     return mon.mcansee !== false && !mon.blind;
 }
-function helpless(mon) {
-    return !!(mon.mfrozen || mon.msleeping || mon.mcanmove === false || mon.mcanmove === 0);
-}
+// helpless: use monHelpless from mon.js
 // resist_conflict imported from mondata.js
 function mapseen_temple(/*priest*/) { /* stub */ }
 function nomul(player, turns) {
@@ -396,7 +394,7 @@ export async function intemple(roomno, map, player, display, fov) {
         const shrined = has_shrine(priest, map);
         const sanctum = (priest.mndx === PM_HIGH_CLERIC || (priest.data || priest.type) === mons[PM_HIGH_CLERIC])
             && (Is_sanctum() || In_endgame());
-        const can_speak = !helpless(priest);
+        const can_speak = !monHelpless(priest);
         const moves = player.turns || 0;
 
         if (can_speak && !player.deaf && moves >= (epri_p.intone_time || 0)) {
@@ -550,14 +548,14 @@ export async function priest_talk(priest, map, player, display) {
     }
 
     // priests don't chat unless peaceful and in their own temple
-    if (!inhistemple(priest, map) || !priest.mpeaceful || helpless(priest)) {
+    if (!inhistemple(priest, map) || !priest.mpeaceful || monHelpless(priest)) {
         const cranky_msg = [
             "Thou wouldst have words, eh?  I'll give thee a word or two!",
             "Talk?  Here is what I have to say!",
             "Pilgrim, I would speak no longer with thee.",
         ];
 
-        if (helpless(priest)) {
+        if (monHelpless(priest)) {
             await pline("%s breaks out of %s reverie!", Monnam(priest),
                   priest.female ? "her" : "his");
             priest.mfrozen = 0;
