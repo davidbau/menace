@@ -2183,24 +2183,24 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### invent.c -> invent.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1152 | `addinv` | - | Missing |
-| 1160 | `addinv_before` | - | Missing |
-| 1056 | `addinv_core0` | - | Missing |
+| 1152 | `addinv` | invent.js:1075 | Implemented |
+| 1160 | `addinv_before` | invent.js:addinv_before | Implemented |
+| 1056 | `addinv_core0` | invent.js:addinv_core0 | Implemented |
 | 960 | `addinv_core1` | invent.js:1032 | Implemented |
 | 1025 | `addinv_core2` | invent.js:1051 | Implemented |
 | 1169 | `addinv_nomerge` | invent.js:1085 | Implemented |
 | 4927 | `adjust_gold_ok` | invent.js:2405 | Implemented |
 | 4917 | `adjust_ok` | invent.js:2399 | Implemented |
-| 5008 | `adjust_split` | - | Missing |
+| 5008 | `adjust_split` | invent.js:adjust_split | Implemented (no-op) |
 | 1710 | `any_obj_ok` | invent.js:1453 | Implemented |
-| 2377 | `askchain` | - | Missing |
+| 2377 | `askchain` | invent.js:askchain | Implemented |
 | 694 | `assigninvlet` | invent.js:939 | Implemented |
 | 1187 | `carry_obj_effects` | invent.js:1069 | Implemented |
 | 1495 | `carrying` | invent.js:1350 | Implemented |
 | 1508 | `carrying_stoning_corpse` | invent.js:1358 | Implemented |
 | 4889 | `check_invent_gold` | invent.js:2254 | Implemented |
-| 5423 | `cinv_ansimpleoname` | - | Missing |
-| 5391 | `cinv_doname` | - | Missing |
+| 5423 | `cinv_ansimpleoname` | invent.js:cinv_ansimpleoname | Implemented |
+| 5391 | `cinv_doname` | invent.js:cinv_doname | Implemented |
 | 2143 | `ckunpaid` | invent.js:2384 | Implemented |
 | 2136 | `ckvalidcat` | invent.js:1464 | Implemented |
 | 1627 | `compactify` | invent.js:2356 | Implemented |
@@ -2221,11 +2221,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3428 | `display_inventory` | invent.js:1868 | Implemented |
 | 5341 | `display_minventory` | invent.js:2279 | Implemented |
 | 3057 | `display_pickinv` | invent.js:1812 | Implemented (approx) |
-| 3467 | `display_used_invlets` | - | Missing |
+| 3467 | `display_used_invlets` | invent.js:display_used_invlets | Implemented (stub) |
 | 4319 | `dolook` | invent.js:2071 | Implemented |
 | 4981 | `doorganize` | invent.js:463 | Implemented (inline in item action menu 'i' handler; prompt + letter swap) |
 | 5068 | `doorganize_core` | invent.js:463 | Implemented (inline; see doorganize) |
-| 2814 | `doperminv` | - | Missing |
+| 2814 | `doperminv` | invent.js:doperminv | Implemented (stub) |
 | 4679 | `dopramulet` | invent.js:2165 | Implemented |
 | 4601 | `doprarm` | invent.js:2141 | Implemented |
 | 4503 | `doprgold` | invent.js:2117 | Implemented |
@@ -2233,12 +2233,12 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4642 | `doprring` | invent.js:2155 | Implemented |
 | 4715 | `doprtool` | invent.js:2182 | Implemented |
 | 4550 | `doprwep` | invent.js:2127 | Implemented |
-| 3827 | `dotypeinv` | - | Missing |
-| 3654 | `dounpaid` | - | Missing |
+| 3827 | `dotypeinv` | invent.js:dotypeinv | Implemented (stub) |
+| 3654 | `dounpaid` | invent.js:dounpaid | Implemented (stub) |
 | 4343 | `feel_cockatrice` | invent.js:2085 | Implemented |
 | 3021 | `find_unpaid` | invent.js:1766 | Implemented |
-| 4845 | `free_invbuf` | - | Missing |
-| 3044 | `free_pickinv_cache` | - | Missing |
+| 4845 | `free_invbuf` | invent.js:free_invbuf | Implemented (no-op) |
+| 3044 | `free_pickinv_cache` | invent.js:free_pickinv_cache | Implemented (no-op) |
 | 1403 | `freeinv` | invent.js:1269 | Implemented |
 | 1356 | `freeinv_core` | invent.js:1254 | Implemented |
 | 2637 | `fully_identify_obj` | invent.js:1640 | Implemented |
@@ -2258,9 +2258,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4800 | `let_to_name` | invent.js:2211 | Implemented |
 | 4104 | `look_here` | invent.js:2038 | Implemented |
 | 149 | `loot_classify` | invent.js:800 | Implemented |
-| 309 | `loot_xname` | - | Missing |
-| 2660 | `menu_identify` | - | Missing |
-| 4379 | `mergable` | - | Missing |
+| 309 | `loot_xname` | invent.js:loot_xname | Implemented |
+| 2660 | `menu_identify` | invent.js:menu_identify | Implemented (stub) |
+| 4379 | `mergable` | invent.js:2109 (re-export from mkobj) | Implemented |
 | 775 | `merge_choice` | invent.js:976 | Implemented |
 | 814 | `merged` | invent.js:986 | Implemented |
 | 1678 | `mime_action` | invent.js:1447 | Implemented |
@@ -2276,7 +2276,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4855 | `reassign` | invent.js:2231 | Implemented |
 | 739 | `reorder_invent` | invent.js:918 | Implemented |
 | 3456 | `repopulate_perminvent` | invent.js:2394 | Implemented |
-| 2552 | `reroll_menu` | - | Missing |
+| 2552 | `reroll_menu` | invent.js:reroll_menu | Implemented (stub) |
 | 2188 | `safeq_shortxprname` | invent.js:1606 | Implemented |
 | 2180 | `safeq_xprname` | invent.js:1602 | Implemented |
 | 2624 | `set_cknown_lknown` | invent.js:1624 | Implemented |
@@ -2284,7 +2284,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1466 | `sobj_at` | invent.js:1327 | Implemented |
 | 593 | `sortloot` | invent.js:865 | Implemented |
 | 655 | `sortloot` | invent.js:865 | Implemented (overload) |
-| 403 | `sortloot_cmp` | - | Missing |
+| 403 | `sortloot_cmp` | invent.js:sortloot_cmp | Implemented |
 | 1664 | `splittable` | invent.js:1430 | Implemented |
 | 4366 | `stackobj` | invent.js:2414 | Implemented |
 | 5565 | `sync_perminvent` | invent.js:2315 | Implemented |

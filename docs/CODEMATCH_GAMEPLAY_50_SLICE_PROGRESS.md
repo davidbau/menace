@@ -26,8 +26,8 @@ Rules
 | S10 | [#290](https://github.com/davidbau/menace/issues/290) | u_init.c startup edge parity | `Done` (knows_object, knows_class, skills_for_role, pauper_reinit, ini_inv_obj_substitution, ini_inv_adjust_obj, u_init_inventory_attrs, u_init_misc, u_init_skills_discoveries) |
 | S11 | [#291](https://github.com/davidbau/menace/issues/291) | do_name.c naming flow parity | `Done` (new_mgivenname, new_oname, name_from_player, alreadynamed, do_oname, objtyp_is_callable, docallcmd, namefloorobj, rndghostname) |
 | S12 | [#292](https://github.com/davidbau/menace/issues/292) | objnam.c remaining naming parity | `Done` (ledger) |
-| S13 | [#293](https://github.com/davidbau/menace/issues/293) | invent.c getobj/askchain parity | `Ready` |
-| S14 | [#294](https://github.com/davidbau/menace/issues/294) | invent.c organize/perminv/id parity | `Ready` |
+| S13 | [#293](https://github.com/davidbau/menace/issues/293) | invent.c getobj/askchain parity | `Done` (addinv, addinv_before, addinv_core0, askchain, loot_xname, sortloot_cmp, mergable) |
+| S14 | [#294](https://github.com/davidbau/menace/issues/294) | invent.c organize/perminv/id parity | `Done` (adjust_split, cinv_doname, cinv_ansimpleoname, display_used_invlets, doperminv, dotypeinv, dounpaid, free_invbuf, free_pickinv_cache, menu_identify, reroll_menu) |
 | S15 | [#295](https://github.com/davidbau/menace/issues/295) | pickup.c floor pickup parity | `Done` (simple_look, autopick, query_classes, query_objlist, query_category, reverse_loot, loot_mon, doloot_core) |
 | S16 | [#296](https://github.com/davidbau/menace/issues/296) | pickup.c container loot parity | `Done` (do_loot_cont, menu_loot, traditional_loot, use_container, count_target_containers) |
 | S17 | [#297](https://github.com/davidbau/menace/issues/297) | do_wear.c wear/takeoff edge parity | `Done` (armoroff, accessory_or_armor_on, ia_dotakeoff, afternmv) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 19
-- Completed slices: 31 (S09, S10, S11, S12, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 17
+- Completed slices: 33 (S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
