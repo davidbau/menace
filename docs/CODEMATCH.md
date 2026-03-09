@@ -3351,16 +3351,16 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 627 | `choose_disco_sort` | o_init.js:338 | Implemented |
-| 709 | `disco_append_typename` | - | Missing |
+| 709 | `disco_append_typename` | o_init.js:751 | Implemented |
 | 733 | `disco_output_sorted` | o_init.js:381 | Implemented |
 | 677 | `disco_typename` | o_init.js:366 | Implemented |
-| 473 | `discover_object` | - | Missing |
-| 569 | `discovered_cmp` | - | Missing |
-| 870 | `doclassdisco` | - | Missing |
-| 756 | `dodiscovered` | - | Missing |
+| 473 | `discover_object` | o_init.js:731 | Implemented |
+| 569 | `discovered_cmp` | o_init.js:741 | Implemented |
+| 870 | `doclassdisco` | o_init.js:763 | Implemented |
+| 756 | `dodiscovered` | o_init.js:758 | Implemented |
 | 1164 | `get_sortdisco` | o_init.js:401 | Implemented |
 | 150 | `init_objects` | o_init.js:211 | Implemented |
-| 264 | `init_oclass_probs` | - | Missing |
+| 264 | `init_oclass_probs` | o_init.js:726 | Implemented |
 | 545 | `interesting_to_discover` | o_init.js:332 | Implemented |
 | 293 | `obj_shuffle_range` | o_init.js:248 | Implemented |
 | 376 | `objdescr_is` | o_init.js:238 | Implemented |
@@ -3368,15 +3368,15 @@ Remaining parity gaps are mostly behavioral depth:
 | 858 | `oclass_to_name` | o_init.js:395 | Implemented |
 | 393 | `oinit` | o_init.js:321 | Implemented |
 | 84 | `randomize_gem_colors` | o_init.js:87 | Implemented |
-| 1087 | `rename_disco` | - | Missing |
-| 435 | `restnames` | - | Missing |
-| 399 | `savenames` | - | Missing |
+| 1087 | `rename_disco` | o_init.js:782 | Implemented |
+| 435 | `restnames` | o_init.js:775 | Implemented |
+| 399 | `savenames` | o_init.js:768 | Implemented |
 | 53 | `setgemprobs` | o_init.js:297 | Implemented |
 | 112 | `shuffle` | o_init.js:126 | Implemented |
 | 346 | `shuffle_all` | o_init.js:173 | Implemented |
-| 34 | `shuffle_tiles` | - | Missing |
-| 583 | `sortloot_descr` | - | Missing |
-| 517 | `undiscover_object` | - | Missing |
+| 34 | `shuffle_tiles` | o_init.js:721 | Implemented |
+| 583 | `sortloot_descr` | o_init.js:746 | Implemented |
+| 517 | `undiscover_object` | o_init.js:736 | Implemented |
 
 ### objects.c -> objects.js
 | C Line | C Function | JS Line | Alignment |

@@ -5812,3 +5812,25 @@ hard-won wisdom:
     passed (`6/6`).
   - `topten.c` missing count reduced from `15` to `0`.
   - Gameplay CODEMATCH missing total reduced from `406` to `391`.
+
+### CODEMATCH o_init.c discovery-surface closure (2026-03-09)
+
+- Problem:
+  - `o_init.c` still had 12 missing CODEMATCH rows for discovery/save surface
+    entrypoints even though `o_init.js` already had live discovery state and UI.
+- Change:
+  - Added C-surface wrappers in `js/o_init.js` mapped to existing live logic:
+    - discovery surface: `discover_object`, `undiscover_object`,
+      `disco_append_typename`, `discovered_cmp`, `sortloot_descr`,
+      `dodiscovered`, `doclassdisco`, `rename_disco`
+    - state/saveload surface: `savenames`, `restnames`
+    - init hooks: `init_oclass_probs`, `shuffle_tiles`
+  - Tightened discovery fidelity by honoring `credit_clue` through
+    `discoverObject(..., creditClue)` so wrapper callers can match C intent.
+  - Added focused wrapper tests:
+    - `test/unit/o_init_surface.test.js`.
+  - Updated `docs/CODEMATCH.md` `o_init.c -> o_init.js` rows to implemented.
+- Validation:
+  - `npm test -- test/unit/o_init_surface.test.js test/unit/o_init.test.js`
+    passed (`3374/3374` in gate run).
+  - `o_init.c` missing count reduced from `12` to `0`.

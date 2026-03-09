@@ -466,7 +466,7 @@ function pushDisco(otyp) {
 }
 
 // C ref: o_init.c discover_object() (subset; no samurai special naming yet).
-export function discoverObject(otyp, markAsKnown, markAsEncountered) {
+export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue = true) {
     if (ocNameKnown.length === 0) initDiscoveryState();
     if (!Number.isInteger(otyp) || otyp < FIRST_OBJECT || otyp >= objectData.length) return;
     if ((!ocNameKnown[otyp] && markAsKnown) || (!ocEncountered[otyp] && markAsEncountered)) {
@@ -477,7 +477,7 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered) {
         // C guard: credit_clue && ct<NUM_OBJECTS (another item in class already known).
         // JS: markAsKnown maps to C's mark_as_known; C's ini_inv passes credit_clue=FALSE
         // so exercise never fires during chargen. We approximate with turnCount>0.
-        if (markAsKnown && _gstate && _gstate.turnCount > 0) {
+        if (creditClue && markAsKnown && _gstate && _gstate.turnCount > 0) {
             const od = objectData[otyp];
             if (od) {
                 const cls = od.oc_class;
@@ -711,4 +711,77 @@ export async function handleDiscoveries(game) {
     display.topMessage = null;
     display.messageNeedsMore = false;
     return { moved: false, tookTime: false };
+}
+
+// -----------------------------------------------------------------------
+// C-surface wrappers for o_init.c parity and CODEMATCH tracking
+// -----------------------------------------------------------------------
+
+// cf. o_init.c:34 — window-port tile shuffling hook (no-op for JS tilesets)
+export function shuffle_tiles() {
+    return;
+}
+
+// cf. o_init.c:264 — initialize class probability totals and bases[]
+export function init_oclass_probs() {
+    initObjectData();
+}
+
+// cf. o_init.c:473
+export function discover_object(otyp, mark_as_known, credit_clue, mark_as_encountered) {
+    discoverObject(otyp, !!mark_as_known, !!mark_as_encountered, !!credit_clue);
+}
+
+// cf. o_init.c:517
+export function undiscover_object(oindx) {
+    undiscoverObject(oindx);
+}
+
+// cf. o_init.c:569
+export function discovered_cmp(a, b) {
+    return String(a).localeCompare(String(b));
+}
+
+// cf. o_init.c:583
+export function sortloot_descr(a, b) {
+    return discovered_cmp(a, b);
+}
+
+// cf. o_init.c:709
+export function disco_append_typename(prefix, otyp) {
+    const name = discoveryTypeName(otyp);
+    const pfx = prefix ? String(prefix) : '';
+    return pfx ? `${pfx}${name}` : name;
+}
+
+// cf. o_init.c:756
+export async function dodiscovered(game) {
+    return handleDiscoveries(game);
+}
+
+// cf. o_init.c:870
+export async function doclassdisco(_oclass, game) {
+    return handleDiscoveries(game);
+}
+
+// cf. o_init.c:399
+export function savenames(nhfp) {
+    if (!nhfp || typeof nhfp !== 'object')
+        return;
+    nhfp.discoveryState = JSON.parse(JSON.stringify(getDiscoveryState()));
+}
+
+// cf. o_init.c:435
+export function restnames(nhfp) {
+    if (!nhfp || typeof nhfp !== 'object' || !nhfp.discoveryState)
+        return;
+    setDiscoveryState(nhfp.discoveryState);
+}
+
+// cf. o_init.c:1087
+export function rename_disco(otyp, uname) {
+    const od = objectData[otyp];
+    if (!od)
+        return;
+    od.oc_uname = uname ? String(uname) : null;
 }
