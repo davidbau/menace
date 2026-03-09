@@ -1045,7 +1045,7 @@ export async function getspell(prompt, player, display) {
 
     // Wait for a valid spell letter
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, nhgetch_raw(), {
             site: 'spell.getspell.select',
         });
         if (ch === 27 || ch === 32) { // ESC or space = cancel
