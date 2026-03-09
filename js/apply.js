@@ -520,7 +520,7 @@ function rub_ok(obj) {
 }
 
 // cf. apply.c:1781 -- STUB: dorub
-async function dorub() { await pline("You rub... but nothing special happens."); }
+export async function dorub() { await pline("You rub... but nothing special happens."); }
 
 // Jump trajectory constants (cf. apply.c:1855)
 const jAny = 0, jHorz = 1, jVert = 2, jDiag = 3;
@@ -837,7 +837,7 @@ function set_trap(game, player, map, display) {
 }
 
 // cf. apply.c:2951 -- STUB: use_whip
-async function use_whip() { await pline("Snap!"); }
+export async function use_whip() { await pline("Snap!"); }
 
 // cf. apply.c:3279 -- STUB: find_poleable_mon
 function find_poleable_mon() { return false; }

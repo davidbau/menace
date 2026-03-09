@@ -15,7 +15,7 @@ import {
     EF_NONE, EF_GREASE, EF_DESTROY, EF_VERBOSE, EF_PAY,
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
-import { rn2, rnd, rnl, d, c_d, rn1 } from './rng.js';
+import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
 import { is_mindless, touch_petrifies, resists_ston,
          amorphous, is_whirly, unsolid, is_clinger, passes_walls,
          webmaker, grounded, is_flyer, is_floater, breathless,
@@ -34,7 +34,7 @@ import { mtele_trap, mlevel_tele_trap,
 import { rloco } from './teleport.js';
 import { resist, burnarmor } from './zap.js';
 import { dmgval } from './weapon.js';
-import { deltrap } from './dungeon.js';
+import { deltrap, In_sokoban } from './dungeon.js';
 import { mons, PM_IRON_GOLEM, PM_RUST_MONSTER, PM_XORN, PM_PIT_FIEND, PM_PIT_VIPER, PM_OWLBEAR, PM_BUGBEAR, PM_GREMLIN, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_WOOD_GOLEM, PM_LEATHER_GOLEM, PM_PURPLE_WORM, PM_JABBERWOCK, PM_BALROG, PM_KRAKEN, PM_MASTODON, PM_ORION, PM_NORN, PM_CYCLOPS, PM_LORD_SURTUR, PM_TITANOTHERE, PM_BALUCHITHERIUM, PM_STONE_GOLEM, M1_FLY, M1_AMORPHOUS, M1_CLING, MR_FIRE, MR_SLEEP, MZ_SMALL, MZ_HUGE, S_EYE, S_LIGHT, S_PIERCER, S_GIANT, S_DRAGON, S_SPIDER, AT_MAGC, AT_BREA, AD_PHYS, AD_FIRE, AD_RUST, AD_MAGM, AD_SLEE, AD_RBRE } from './monsters.js';
 import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          BEAR_TRAP, LANDMINE, ROLLING_BOULDER_TRAP,
@@ -42,7 +42,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          PIT, SPIKED_PIT, HOLE, TRAPDOOR,
          TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL,
          WEB, STATUE_TRAP, MAGIC_TRAP, ANTI_MAGIC,
-         POLY_TRAP, VIBRATING_SQUARE
+         POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
          is_crackable, erosion_matters, mksobj, weight, place_object } from './mkobj.js';
@@ -62,11 +62,14 @@ import { LEVITATION, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned, acurr } from './attrib.js';
+import { poisoned, acurr, change_luck } from './attrib.js';
 import { sgn } from './hacklib.js';
 import { wake_nearby } from './mon.js';
 import { set_wounded_legs } from './do.js';
 import { rndcolor } from './do_name.js';
+import { defsyms, trap_to_defsym } from './symbols.js';
+import { roles } from './role.js';
+import { rank_of } from './botl.js';
 
 // C ref: trap.c static string arrays
 const a_your = ['a', 'your'];
@@ -2817,4 +2820,123 @@ export async function dotrap(trap, trflags, player, game, map) {
         mon_learns_traps(player.usteed, ttype);
 
     await trapeffect_selector_you(trap, trflags, player, game, map);
+}
+
+// cf. trap.c:6685 — unconscious(): is hero unconscious (sleeping/knocked out)?
+export function unconscious() {
+    const player = globalThis.gs?.player;
+    const game = globalThis.gs?.game;
+    if ((game?.multi ?? 0) >= 0) return false;
+    return !!(player?.usleep
+        || (game?.nomovemsg
+            && (game.nomovemsg.startsWith("You awake")
+                || game.nomovemsg.startsWith("You regain con")
+                || game.nomovemsg.startsWith("You are consci"))));
+}
+
+// cf. trap.c:3163 — launch_in_progress(): is a rolling boulder launch active?
+export function launch_in_progress() {
+    return !!(globalThis.gs?.launchplace?.obj);
+}
+
+// cf. trap.c:6948 — sokoban_guilt(): penalize Sokoban cheating
+export function sokoban_guilt() {
+    const player = globalThis.gs?.player;
+    const map = globalThis.gs?.map;
+    if (In_sokoban(map)) {
+        if (!player.uconduct) player.uconduct = {};
+        player.uconduct.sokocheat = (player.uconduct.sokocheat || 0) + 1;
+        change_luck(-1, player);
+    }
+}
+
+// cf. trap.c:5110 — drain_en(n, max_already_drained): drain hero's magical energy
+export async function drain_en(n, max_already_drained) {
+    const player = globalThis.gs?.player;
+    let mesg;
+    const punct = max_already_drained ? '!' : '.';
+
+    if ((player.pwmax || 0) < 1) {
+        if (player.pw || player.pwmax) {
+            player.pw = player.pwmax = 0;
+        }
+        mesg = "momentarily lethargic";
+    } else {
+        if (n > ((player.pw || 0) + (player.pwmax || 0)) / 3)
+            n = rnd(n);
+        mesg = "your magical energy drain away";
+        let actualPunct = punct;
+        if (n > (player.pw || 0))
+            actualPunct = '!';
+
+        player.pw = (player.pw || 0) - n;
+        if (player.pw < 0) {
+            player.pwmax = (player.pwmax || 0) - rnd(-player.pw);
+            if (player.pwmax < 0) player.pwmax = 0;
+            player.pw = 0;
+        } else if (player.pw > (player.pwmax || 0)) {
+            player.pw = player.pwmax || 0;
+        }
+        await You_feel("%s%s", mesg, actualPunct);
+        return;
+    }
+    await You_feel("%s%s", mesg, punct);
+}
+
+// cf. trap.c:7009 — trapname(ttyp, override): return name of trap type
+export function trapname(ttyp, override) {
+    const player = globalThis.gs?.player;
+    const halu_trapnames = [
+        "bottomless pit", "polymorphism trap", "devil teleporter",
+        "falling boulder trap", "anti-anti-magic field", "weeping gas trap",
+        "queasy board", "electrified web", "owlbear trap", "sand mine",
+        "vacillating triangle",
+        "death trap", "disintegration trap", "ice trap", "monochrome trap",
+        "axeblade trap", "pool of boiling oil", "pool of quicksand",
+        "field of caltrops", "buzzsaw trap", "spiked floor", "revolving wall",
+        "uneven floor", "finger trap", "jack-in-a-box", "yellow snow",
+        "booby trap", "rat trap", "poisoned nail", "snare", "whirlpool",
+        "trip wire", "roach motel (tm)",
+        "negative space", "tensor field", "singularity", "imperial fleet",
+        "black hole", "thermal detonator", "event horizon",
+        "entoptic phenomenon",
+        "sweet-smelling gas vent", "phone booth", "exploding runes",
+        "never-ending elevator", "slime pit", "warp zone", "illusory floor",
+        "pile of poo", "honey trap", "tourist trap",
+    ];
+
+    if (player?.Hallucination && !override) {
+        const total_names = TRAPNUM + halu_trapnames.length;
+        let nameidx = rn2_on_display_rng(total_names + 1);
+        if (nameidx === total_names) {
+            // role-based trap name
+            const fem = player.Upolyd ? player.mfemale : player.flags?.female;
+            const role = roles.find(r => r.mnum === player.roleMnum) || roles[0];
+            let base = rn2(3)
+                ? ((fem && role.namef) ? role.namef : role.name)
+                : rank_of(player.ulevel || 1, player.roleMnum, fem);
+            return (base + " trap").toLowerCase();
+        } else if (nameidx >= TRAPNUM) {
+            return halu_trapnames[nameidx - TRAPNUM];
+        }
+        if (nameidx !== 0) ttyp = nameidx;
+    }
+    return defsyms[trap_to_defsym(ttyp)]?.explanation || "trap";
+}
+
+// cf. trap.c:3170 — force_launch_placement(): place boulder at launch origin if launch aborted
+export function force_launch_placement() {
+    const lp = globalThis.gs?.launchplace;
+    if (lp?.obj) {
+        lp.obj.otrapped = 0;
+        place_object(lp.obj, lp.x, lp.y);
+    }
+}
+
+// cf. trap.c:594 — clamp_hole_destination(dlev): ensure hole doesn't go below bottom
+export function clamp_hole_destination(dlev) {
+    const player = globalThis.gs?.player;
+    const bottom = dng_bottom(dlev, player);
+    dlev.dlevel = Math.min(dlev.dlevel, bottom);
+    return dlev;
 }

@@ -1527,7 +1527,7 @@ async function seffects(sobj, player, display, game) {
     }
 }
 
-export { handleRead, tshirt_text, hawaiian_motif, hawaiian_design, candy_wrapper_text, stripspe, bcsign, blessorcurse, uncurse, some_armor, useup_scroll, seffects };
+export { handleRead, tshirt_text, hawaiian_motif, hawaiian_design, candy_wrapper_text, stripspe, bcsign, blessorcurse, uncurse, some_armor, useup_scroll, seffects, litroom };
 
 // Autotranslated from read.c:68
 export function learnscroll(sobj) {

@@ -574,7 +574,7 @@ async function newuhs(player, incr) {
 }
 
 // cf. eat.c:1796-1804 Hear_again() — chance to cure deafness
-async function Hear_again(player) {
+export async function Hear_again(player) {
     const game = _gstate;
     if (!rn2(2)) {
         // C: make_deaf(0L, FALSE) — clear deafness
