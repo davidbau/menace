@@ -603,7 +603,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 744 | `bot_via_windowport` | - | Missing |
 | 422 | `botl_score` | - | Missing |
 | 43 | `check_gold_symbol` | - | Missing |
-| 3094 | `clear_status_hilites` | - | Missing |
+| 3094 | `clear_status_hilites` | botl.js:389 | Implemented |
 | 1556 | `compare_blstats` | - | Missing |
 | 1086 | `cond_cmp` | botl.js:623 | Implemented |
 | 1129 | `cond_menu` | - | Missing |
@@ -639,7 +639,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2490 | `query_arrayvalue` | botl.js:291 | Implemented |
 | 2852 | `query_conditions` | botl.js:331 | Implemented |
 | 364 | `rank` | botl.js:120 | Implemented |
-| 335 | `rank_of` | - | Missing |
+| 335 | `rank_of` | role.js:362 rankOf | Implemented |
 | 318 | `rank_to_xlev` | botl.js:115 | Implemented |
 | 1913 | `repad_with_dashes` | - | Missing |
 | 2064 | `reset_status_hilites` | - | Missing |
