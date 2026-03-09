@@ -3920,9 +3920,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 2200 | `dip_ok` | potion.js:1261 | Implemented |
 | 2403 | `dip_potion_explosion` | potion.js:1313 | Implemented |
 | 2801 | `djinni_from_bottle` | potion.js:1437 | Implemented |
-| 2253 | `dodip` | - | Missing |
-| 526 | `dodrink` | - | Missing |
-| 618 | `dopotion` | - | Missing |
+| 2253 | `dodip` | potion.js:1287 | Implemented (internal) |
+| 526 | `dodrink` | potion.js:389 handleQuaff | Implemented |
+| 618 | `dopotion` | potion.js:peffects (inlined) | Implemented (dispatcher at peffects) |
 | 505 | `drink_ok` | potion.js:380 | Implemented |
 | 481 | `ghost_from_bottle` | potion.js:364 | Implemented |
 | 1424 | `healup` | 324 | Full: heal HP, max HP increase, cure blindness, cure sickness |
@@ -3942,12 +3942,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 107 | `make_stunned` | 85 | Full: Unaware check, stagger message, botl flag. Missing: u.usteed wobble |
 | 243 | `make_vomiting` | 167 | Full: Unaware check, message on clear, botl flag |
 | 2108 | `mixtype` | potion.js:1190 | Implemented |
-| 2782 | `mongrantswish` | - | Missing |
+| 2782 | `mongrantswish` | potion.js:1413 | Implemented |
 | 1293 | `peffect_acid` | 510 | Acid_resistance check, damage, exercise |
 | 1069 | `peffect_blindness` | 352 | Blessed cure, cursed extension |
 | 768 | `peffect_booze` | 560 | Confusion from booze |
 | 1010 | `peffect_confusion` | 337 | Blessed cure, cursed extension |
-| 792 | `peffect_enlightenment` | - | Missing |
+| 792 | `peffect_enlightenment` | potion.js:peffects default case | Stub (enlightenment messages not ported, RNG consumed inline) |
 | 1124 | `peffect_extra_healing` | 456 | Heal + max HP, cure hallucination, exercise |
 | 1140 | `peffect_full_healing` | 469 | Full heal, cure hallucination, exercise |
 | 1026 | `peffect_gain_ability` | 546 | Simplified: random attr +1. Missing: blessed=all attrs, proper adjattrib |
@@ -3956,29 +3956,29 @@ Remaining parity gaps are mostly behavioral depth:
 | 693 | `peffect_hallucination` | 433 | Blessed cure, cursed extension |
 | 1115 | `peffect_healing` | 445 | Heal, cure blindness, exercise |
 | 808 | `peffect_invisibility` | 521 | Timed invisibility via incr_itimeout |
-| 1161 | `peffect_levitation` | - | Missing |
-| 910 | `peffect_monster_detection` | - | Missing |
-| 951 | `peffect_object_detection` | - | Missing |
-| 1256 | `peffect_oil` | - | Missing |
+| 1161 | `peffect_levitation` | potion.js:1535 | Implemented |
+| 910 | `peffect_monster_detection` | potion.js:1502 | Implemented |
+| 951 | `peffect_object_detection` | potion.js:1528 | Implemented |
+| 1256 | `peffect_oil` | potion.js:peffects default | Stub (oil quaff has no special effect in C either, falls through to "tasted like water") |
 | 877 | `peffect_paralysis` | 396 | FREE_ACTION check, confusion-aware message |
-| 1314 | `peffect_polymorph` | - | Missing |
+| 1314 | `peffect_polymorph` | potion.js:1565 | Implemented |
 | 646 | `peffect_restore_ability` | 539 | Stub: no attribute restoration yet |
 | 838 | `peffect_see_invisible` | 532 | Timed see_invis via incr_itimeout |
 | 960 | `peffect_sickness` | 416 | Blessed cure, cursed illness, uncursed vomiting |
 | 897 | `peffect_sleeping` | 380 | FREE_ACTION check, blessed wake, sleep mechanism |
 | 1048 | `peffect_speed` | 364 | Speed up with incr_itimeout. Missing: full speed_up() |
-| 714 | `peffect_water` | - | Missing |
+| 714 | `peffect_water` | potion.js:peffects default | Implemented (handled by default "tasted like water" case) |
 | 1329 | `peffects` | 577 | Dispatcher for 18 potion types |
 | 2394 | `poof` | potion.js:1304 | Implemented |
-| 2428 | `potion_dip` | - | Missing |
-| 1918 | `potionbreathe` | - | Missing |
-| 1621 | `potionhit` | - | Missing |
-| 471 | `self_invis_message` | - | Missing |
+| 2428 | `potion_dip` | potion.js:1331 | Implemented (internal) |
+| 1918 | `potionbreathe` | potion.js:1063 | Implemented (internal) |
+| 1621 | `potionhit` | potion.js:940 | Implemented (internal) |
+| 471 | `self_invis_message` | potion.js:354 | Implemented |
 | 75 | `set_itimeout` | 46 | Full match |
-| 2905 | `speed_up` | - | Missing (peffect_speed uses incr_itimeout directly) |
-| 2859 | `split_mon` | - | Missing |
-| 1457 | `strange_feeling` | - | Missing |
-| 336 | `toggle_blindness` | - | Missing |
+| 2905 | `speed_up` | potion.js:338 | Implemented |
+| 2859 | `split_mon` | potion.js:1478 | Implemented (internal) |
+| 1457 | `strange_feeling` | potion.js:833 | Implemented |
+| 336 | `toggle_blindness` | potion.js:make_blinded (inlined) | Stub (vision recalc deferred to mark_vision_dirty) |
 
 ### pray.c -> pray.js
 | C Line | C Function | JS Line | Alignment |

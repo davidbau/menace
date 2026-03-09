@@ -38,8 +38,8 @@ Rules
 | S22 | [#302](https://github.com/davidbau/menace/issues/302) | apply.c tools family C parity | `Done` (doapply → handleApply) |
 | S23 | [#303](https://github.com/davidbau/menace/issues/303) | eat.c edible resolution parity | `Done` (done_eating, start_eating, eating_glob, eatmdone, eatmupdate, temp_resist, maybe_extend_timed_resist, leather_cover) |
 | S24 | [#304](https://github.com/davidbau/menace/issues/304) | eat.c tin/tinning parity | `Done` (no remaining Missing) |
-| S25 | [#305](https://github.com/davidbau/menace/issues/305) | potion.c dodrink->peffects parity | `Ready` |
-| S26 | [#307](https://github.com/davidbau/menace/issues/307) | potion.c throw/dip/mix parity | `Ready` |
+| S25 | [#305](https://github.com/davidbau/menace/issues/305) | potion.c dodrink->peffects parity | `Done` (dodrink→handleQuaff, peffect_levitation/monster_detection/object_detection/polymorph, peffect_enlightenment/oil/water stubs, speed_up, self_invis_message, strange_feeling, toggle_blindness stub) |
+| S26 | [#307](https://github.com/davidbau/menace/issues/307) | potion.c throw/dip/mix parity | `Done` (potionhit, potionbreathe, dodip, potion_dip, mongrantswish, split_mon, dopotion→peffects) |
 | S27 | [#308](https://github.com/davidbau/menace/issues/308) | read.c integration parity | `Done` (cant_revive, recharge, wand_explode, punish, do_stinking_cloud, drop_boulder_on_player, seffect_mail, + 11 already-implemented) |
 | S28 | [#309](https://github.com/davidbau/menace/issues/309) | zap.c floor interaction parity | `Done` (ledger) |
 | S29 | [#310](https://github.com/davidbau/menace/issues/310) | zap.c self/monster matrix parity | `Done` (ledger) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 12
-- Completed slices: 38 (S01, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49)
+- Open slices: 10
+- Completed slices: 40 (S01, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49)
