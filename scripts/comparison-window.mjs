@@ -212,6 +212,37 @@ function renderWindow(artifact, channel, center, windowSize) {
         console.log(`${marker}   C(step=${cStep}) ${cVal}`);
         console.log(`${marker}      raw#${cRawIdx ?? '-'} ${cRaw}`);
     }
+
+    const jsRawWin = js?.rawWindow;
+    const cRawWin = c?.rawWindow;
+    if (jsRawWin && Array.isArray(jsRawWin.entries)) {
+        console.log('');
+        console.log(`raw-window JS: [${jsRawWin.start}..${(jsRawWin.end || jsRawWin.start + jsRawWin.entries.length) - 1}]`);
+        const rawCenter = Number.isInteger(js?.firstDivergence?.rawIndex)
+            ? js.firstDivergence.rawIndex
+            : jsRawWin.start;
+        const rawStart = Math.max(jsRawWin.start, rawCenter - windowSize);
+        const rawEnd = Math.min((jsRawWin.end || (jsRawWin.start + jsRawWin.entries.length)) - 1, rawCenter + windowSize);
+        for (let r = rawStart; r <= rawEnd; r++) {
+            const rel = r - jsRawWin.start;
+            const marker = r === rawCenter ? '>>' : '  ';
+            console.log(`${marker}[${r}] ${jsRawWin.entries[rel] ?? '(missing)'}`);
+        }
+    }
+    if (cRawWin && Array.isArray(cRawWin.entries)) {
+        console.log('');
+        console.log(`raw-window C : [${cRawWin.start}..${(cRawWin.end || cRawWin.start + cRawWin.entries.length) - 1}]`);
+        const rawCenter = Number.isInteger(c?.firstDivergence?.rawIndex)
+            ? c.firstDivergence.rawIndex
+            : cRawWin.start;
+        const rawStart = Math.max(cRawWin.start, rawCenter - windowSize);
+        const rawEnd = Math.min((cRawWin.end || (cRawWin.start + cRawWin.entries.length)) - 1, rawCenter + windowSize);
+        for (let r = rawStart; r <= rawEnd; r++) {
+            const rel = r - cRawWin.start;
+            const marker = r === rawCenter ? '>>' : '  ';
+            console.log(`${marker}[${r}] ${cRawWin.entries[rel] ?? '(missing)'}`);
+        }
+    }
 }
 
 function stepCountFromEnds(stepEnds) {
