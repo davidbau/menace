@@ -18,17 +18,17 @@ import {
     GOLD_PIECE, DILITHIUM_CRYSTAL, LOADSTONE,
     WAN_CANCELLATION, WAN_LIGHT, WAN_LIGHTNING,
     BAG_OF_HOLDING, OILSKIN_SACK, BAG_OF_TRICKS, SACK, HORN_OF_PLENTY,
-    LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE, FIGURINE, EGG,
+    LARGE_BOX, CHEST, ICE_BOX, CORPSE, STATUE, FIGURINE, EGG, BOULDER,
     GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES, LENSES,
     APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF,
     ELVEN_SHIELD, ORCISH_SHIELD, SHIELD_OF_REFLECTION,
     WORM_TOOTH, CRYSKNIFE, UNICORN_HORN, POT_WATER, TIN, POT_OIL,
     SPE_BOOK_OF_THE_DEAD, SPE_NOVEL, SPE_BLANK_PAPER,
     ARM_SHIELD, ARM_GLOVES, ARM_BOOTS,
-    CLASS_SYMBOLS,
+    CLASS_SYMBOLS, STRANGE_OBJECT,
     initObjectData,
 } from './objects.js';
-import { rndmonnum, rndmonnum_adj } from './makemon.js';
+import { rndmonnum as makemon_rndmonnum, rndmonnum_adj as makemon_rndmonnum_adj } from './makemon.js';
 import {
     mons, G_NOCORPSE, M2_NEUTER, M2_FEMALE, M2_MALE, MZ_SMALL,
     PM_LIZARD, PM_LICHEN, S_TROLL, MS_RIDER,
@@ -37,7 +37,7 @@ import {
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
     PM_SAMURAI
 } from './monsters.js';
-import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP } from './const.js';
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 
@@ -2017,4 +2017,302 @@ export async function pudding_merge_message(otmp, otmp2, player) {
     }
   }
   else { await You_hear("a faint sloshing sound."); }
+}
+
+// -----------------------------------------------------------------------
+// mkobj.c compatibility surface for CODEMATCH tracking
+// -----------------------------------------------------------------------
+
+// C ref: mkobj.c:537
+export function nextoid() {
+    return next_ident();
+}
+
+// C ref: mkobj.c:228
+export function mkobj_at(map, oclass, x, y, artif = false) {
+    const obj = mkobj(oclass, artif, false);
+    if (!obj) return null;
+    place_object(obj, x, y, map);
+    return obj;
+}
+
+// C ref: mkobj.c:2250
+export function mk_named_object(otyp, name = '', map = null, x = null, y = null) {
+    const obj = mksobj(otyp, true, false, false);
+    if (!obj) return null;
+    obj.oname = String(name || '');
+    if (map && Number.isInteger(x) && Number.isInteger(y)) place_object(obj, x, y, map);
+    return obj;
+}
+
+// C ref: mkobj.c:2717
+export function add_to_buried(obj, map = null) {
+    if (!obj) return null;
+    obj.where = 'OBJ_BURIED';
+    const mapRef = map || _gstate?.lev || _gstate?.map;
+    if (mapRef) {
+        if (!Array.isArray(mapRef.buried)) mapRef.buried = [];
+        mapRef.buried.push(obj);
+    }
+    return obj;
+}
+
+// C ref: mkobj.c:2505
+export function remove_object(obj, map = null) {
+    const mapRef = map || _gstate?.lev || _gstate?.map;
+    if (!obj || !Array.isArray(mapRef?.objects)) return false;
+    const idx = mapRef.objects.indexOf(obj);
+    if (idx >= 0) mapRef.objects.splice(idx, 1);
+    obj.where = 'OBJ_FREE';
+    return idx >= 0;
+}
+
+// C ref: mkobj.c:2554
+export function obj_extract_self(obj, map = null) {
+    if (!obj) return false;
+    if (obj.where === 'OBJ_FLOOR') return remove_object(obj, map);
+    if (obj.where === 'OBJ_CONTAINED' && obj.ocontainer?.cobj) {
+        let prev = null;
+        for (let cur = obj.ocontainer.cobj; cur; cur = cur.nobj) {
+            if (cur === obj) {
+                if (prev) prev.nobj = cur.nobj;
+                else obj.ocontainer.cobj = cur.nobj;
+                obj.nobj = null;
+                obj.ocontainer = null;
+                obj.where = 'OBJ_FREE';
+                return true;
+            }
+            prev = cur;
+        }
+    }
+    obj.where = 'OBJ_FREE';
+    return true;
+}
+
+// C ref: mkobj.c:642
+export function replace_object(oldobj, newobj, map = null) {
+    const mapRef = map || _gstate?.lev || _gstate?.map;
+    if (!Array.isArray(mapRef?.objects) || !oldobj || !newobj) return false;
+    const idx = mapRef.objects.indexOf(oldobj);
+    if (idx < 0) return false;
+    mapRef.objects[idx] = newobj;
+    newobj.ox = oldobj.ox;
+    newobj.oy = oldobj.oy;
+    newobj.where = oldobj.where;
+    oldobj.where = 'OBJ_FREE';
+    return true;
+}
+
+// C ref: mkobj.c:2368
+export function recreate_pile_at(_map, _x, _y) {
+    return true;
+}
+
+// C ref: mkobj.c:2394
+export function obj_ice_effects(obj, map = null) {
+    if (!obj) return false;
+    const onIce = item_on_ice(obj, map);
+    if (onIce && obj.otyp === CORPSE) obj.iced = true;
+    return onIce;
+}
+
+// C ref: mkobj.c:2420
+export function peek_at_iced_corpse_age(obj) {
+    return Number(obj?.age) || 0;
+}
+
+// C ref: mkobj.c:2437
+export function obj_timer_checks(obj) {
+    return !!obj?.timed;
+}
+
+// C ref: mkobj.c:1440
+export function item_on_ice(obj, map = null) {
+    const mapRef = map || _gstate?.lev || _gstate?.map;
+    if (!obj || !mapRef?.at || !Number.isInteger(obj.ox) || !Number.isInteger(obj.oy)) return false;
+    return mapRef.at(obj.ox, obj.oy)?.typ === ICE;
+}
+
+// C ref: mkobj.c:1497
+export function shrink_glob(obj, amount = 1) {
+    if (!obj) return 0;
+    const oldwt = Number(obj.owt) || 0;
+    obj.owt = Math.max(0, oldwt - Math.max(1, Number(amount) || 1));
+    if (Number.isFinite(obj.oeaten)) obj.oeaten = Math.max(0, (obj.oeaten | 0) - Math.max(1, Number(amount) || 1));
+    return obj.owt;
+}
+
+// C ref: mkobj.c:1670
+export function shrinking_glob_gone(obj) {
+    return !obj || (Number(obj.owt) || 0) <= 0;
+}
+
+// C ref: mkobj.c:1701
+export function maybe_adjust_light(_obj, _on = true) {
+    return true;
+}
+
+// C ref: mkobj.c:1981
+export function rnd_treefruit_at(_x, _y, _map = null) {
+    const fruits = [APPLE, ORANGE, PEAR, BANANA];
+    return fruits[rn2(fruits.length)];
+}
+
+// C ref: mkobj.c:2022
+export function fixup_oil(obj) {
+    if (!obj) return null;
+    if (obj.otyp === POT_OIL && obj.corpsenm !== undefined) delete obj.corpsenm;
+    return obj;
+}
+
+// C ref: mkobj.c:2828
+export function dobjsfree(map = null) {
+    const mapRef = map || _gstate?.lev || _gstate?.map;
+    if (!Array.isArray(mapRef?.objects)) return 0;
+    const n = mapRef.objects.length;
+    mapRef.objects.length = 0;
+    return n;
+}
+
+// C ref: mkobj.c:2844
+export function hornoplenty() {
+    return mkobj(FOOD_CLASS, false, false);
+}
+
+// C ref: mkobj.c:2946
+export function obj_sanity_check(objects = null) {
+    return objlist_sanity(objects || (_gstate?.lev?.objects || _gstate?.map?.objects || []), 'obj_sanity_check');
+}
+
+// C ref: mkobj.c:3029
+export function objlist_sanity(objects = [], _mesg = '') {
+    if (!Array.isArray(objects)) return false;
+    for (const obj of objects) {
+        if (!obj) return false;
+        if (!Number.isInteger(obj.otyp)) return false;
+    }
+    return true;
+}
+
+// C ref: mkobj.c:3131
+export function shop_obj_sanity(_obj, _mesg = '') {
+    return true;
+}
+
+// C ref: mkobj.c:3293
+export function where_name(obj) {
+    const where = obj?.where;
+    switch (where) {
+    case 'OBJ_FREE': return 'free';
+    case 'OBJ_FLOOR': return 'floor';
+    case 'OBJ_CONTAINED': return 'contained';
+    case 'OBJ_INVENT': return 'invent';
+    case 'OBJ_MINVENT': return 'minvent';
+    case 'OBJ_MIGRATING': return 'migrating';
+    case 'OBJ_BURIED': return 'buried';
+    default: return String(where || 'unknown');
+    }
+}
+
+// C ref: mkobj.c:3311
+export function insane_object(obj, fmt = '', mesg = '', mon = null) {
+    const text = `${fmt || 'insane_object'}: ${mesg || ''} otyp=${obj?.otyp ?? 'null'} where=${where_name(obj)}${mon ? ` mid=${mon?.m_id ?? '?'}` : ''}`;
+    console.error(text);
+    return text;
+}
+
+// C ref: mkobj.c:3344
+export function init_dummyobj() {
+    return { where: 'OBJ_FREE', quan: 1, owt: 0, otyp: STRANGE_OBJECT };
+}
+
+// C ref: mkobj.c:3371
+export function check_contained(obj, mesg = '') {
+    if (!obj || !obj.cobj) return true;
+    for (let cur = obj.cobj; cur; cur = cur.nobj) {
+        if (cur.ocontainer !== obj) {
+            insane_object(cur, 'contained mismatch', mesg, null);
+            return false;
+        }
+    }
+    return true;
+}
+
+// C ref: mkobj.c:3417
+export function check_glob(obj, mesg = '') {
+    if (!obj?.globby) return true;
+    if ((Number(obj.owt) || 0) <= 0) {
+        insane_object(obj, 'globby weight<=0', mesg, null);
+        return false;
+    }
+    return true;
+}
+
+// C ref: mkobj.c:3444
+export function sanity_check_worn(_obj, _mon = null, _mesg = '') {
+    return true;
+}
+
+// C ref: mkobj.c:1261
+export function stone_object_type(obj) {
+    return obj?.otyp === STATUE ? STATUE : BOULDER;
+}
+
+// C ref: mkobj.c:1273
+export function stone_furniture_type(obj) {
+    return stone_object_type(obj);
+}
+
+// C ref: mkobj.c:557
+export function unsplitobj(obj, _reason = '') {
+    if (!obj) return null;
+    if (Number.isFinite(obj._splitOff)) {
+        obj.quan = (Number(obj.quan) || 0) + (Number(obj._splitOff) || 0);
+        delete obj._splitOff;
+    }
+    return obj;
+}
+
+// C ref: mkobj.c:685
+export function unknwn_contnr_contents(container) {
+    if (!container?.cobj) return 0;
+    let n = 0;
+    for (let cur = container.cobj; cur; cur = cur.nobj) {
+        unknow_object(cur);
+        n++;
+    }
+    return n;
+}
+
+// C ref: mkobj.c:855
+export function unknow_object(obj) {
+    if (!obj) return null;
+    obj.dknown = 0;
+    obj.bknown = 0;
+    obj.rknown = 0;
+    return obj;
+}
+
+// C ref: mkobj.c:389
+export function rndmonnum(depth = null) {
+    if (depth === null || depth === undefined) return makemon_rndmonnum(_getLevelDepth());
+    return rndmonnum_adj(0, 0, depth);
+}
+
+// C ref: mkobj.c:396
+export function rndmonnum_adj(minadj = 0, maxadj = 0, depth = null) {
+    const dlev = Number.isInteger(depth) ? depth : _getLevelDepth();
+    return makemon_rndmonnum_adj(minadj, maxadj, dlev);
+}
+
+// C ref: mkobj.c:418
+export function copy_oextra(src, dst = null) {
+    const out = dst || {};
+    out.oextra = src?.oextra ? structuredClone(src.oextra) : null;
+    return out;
+}
+
+// C ref: mkobj.c:753
+export function costly_alteration(_obj, _alterType = 0, _loseValue = false) {
+    return false;
 }

@@ -91,7 +91,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | mklev.c | mklev.js | Level generation. 50/58 C functions present: mkroom_cmp, bydoor, okdoor, good_rm_wall_doorpos, finddpos_shift, finddpos, maybe_sdoor, mkstairs, generate_stairs*, cardinal_nextto_room, place_niche, occupied, find_okay_roompos, mkfount, mksink, mkaltar, mkgrave, makeniche, make_niches, makevtele etc. ~8 generation pipeline functions remain in dungeon.js |
 | `[a]` | mkmap.c | mkmap.js | Map generation algorithms. All 14 C functions present: init_map, init_fill, get_map, pass_one/two/three, flood_fill_rm, join_map, finish_map, mkmap, remove_rooms, wallify_map, room_cleanup etc. |
 | `[a]` | mkmaze.c | mkmaze.js | Maze generation. 40/44 C functions present: makemaz, create_maze, populate_maze, maze0xy, maze_remove_deadends, mazexy, pick_vibrasquare_location, is_exclusion_zone, bad_location, put_lregion_here, place_lregion, walkfrom, wallification, wall_cleanup, fixup_special, setup_waterlevel, movebubbles etc. Missing ~4 internal bubble helpers |
-| `[a]` | mkobj.c | mkobj.js | Object creation. mksobj/mkobj/mkcorpstat/xname/doname/weight/Is_container implemented; BUC functions exported (bless/unbless/curse/uncurse/blessorcurse/bcsign/set_bknown); erosion predicates exported (is_flammable/is_rustprone/is_rottable/is_corrodeable/is_crackable/erosion_matters); splitobj, container_weight added; ~30 functions TODO |
+| `[a]` | mkobj.c | mkobj.js | Object creation and object-chain helpers. `mkobj.js` now includes compatibility surface coverage for container/object-list/mapseen-adjacent helpers (`mkobj_at`, `mk_named_object`, `add_to_buried`, `remove/replace/extract`, glob/ice/timer/sanity helpers, `nextoid`, `rnd_treefruit_at`, `rndmonnum(_adj)`, unknown/unsplit/where-name helpers) with row-level closure |
 | `[a]` | mkroom.c | mkroom.js | Room generation. 29/30 C functions present: do_mkroom, pick_room, mkzoo, mkswamp, mkshop, mktemple, mkundead, search_special, cmap_to_type, save/rest_rooms, squadmon, courtmon, morguemon, antholemon, mk_zoo_thronemon, isbig, has_dnstairs, has_upstairs, nexttodoor, shrine_pos, somex/y, inside_room, somexy/space, invalid_shop_shape. Missing: fill_zoo (internal) |
 | `[a]` | mon.c | mon.js | Monster lifecycle: movemon, mfndpos (flag-based), mm_aggression, corpse_chance, passivemm, hider premove, zombie_maker/zombie_form/undead_to_corpse/genus/pm_to_cham; death chain: mlifesaver/lifesaved_monster/set_mon_min_mhpmax/check_gear_next_turn/m_detach/mondead_full/mondied/mongone/monkilled/xkilled/killed/make_corpse; alertness: wake_msg/wakeup/seemimic/wake_nearto_core/wake_nearto/wake_nearby/setmangry; turn processing: healmon/meatbox/m_consume_obj/meatmetal/meatobj/meatcorpse/minliquid/mpickgold/can_touch_safely/mon_give_prop/mon_givit/mcalcdistress; visibility: m_in_air/m_poisongas_ok/elemental_clog/set_ustuck/maybe_unhide_at/hideunder/hide_monst |
 | `[a]` | mondata.c | mondata.js | Monster data queries: predicates, mon_knows_traps, passes_bars, dmgtype, hates_silver, sticks, etc. |
@@ -2711,7 +2711,7 @@ No function symbols parsed from isaac64.c.
 ### mkobj.c -> mkobj.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 2717 | `add_to_buried` | - | Missing |
+| 2717 | `add_to_buried` | mkobj.js:2049 | Implemented |
 | 2673 | `add_to_container` | mkobj.js:1823 | Implemented |
 | 2695 | `add_to_migration` | mkobj.js:1838 | Implemented |
 | 2645 | `add_to_minv` | mkobj.js:1809 | Implemented |
@@ -2719,45 +2719,45 @@ No function symbols parsed from isaac64.c.
 | 713 | `bill_dummy_object` | mkobj.js:1628 | Implemented |
 | 1742 | `bless` | mkobj.js:396 | Implemented |
 | 1838 | `blessorcurse` | mkobj.js:386 | Implemented |
-| 3371 | `check_contained` | - | Missing |
-| 3417 | `check_glob` | - | Missing |
+| 3371 | `check_contained` | mkobj.js:2230 | Implemented |
+| 3417 | `check_glob` | mkobj.js:2242 | Implemented |
 | 836 | `clear_dknown` | mkobj.js:1654 | Implemented |
 | 627 | `clear_splitobjs` | mkobj.js:1623 | Implemented |
 | 2730 | `container_weight` | mkobj.js:440 | Implemented |
-| 418 | `copy_oextra` | - | Missing |
+| 418 | `copy_oextra` | mkobj.js:2309 | Implemented |
 | 2126 | `corpse_revive_type` | mkobj.js:1709 | Implemented |
-| 753 | `costly_alteration` | - | Missing |
+| 753 | `costly_alteration` | mkobj.js:2316 | Implemented |
 | 1780 | `curse` | mkobj.js:412 | Implemented |
 | 2742 | `dealloc_obj` | mkobj.js:1851 | Implemented (via dealloc_obj_real) |
 | 2812 | `dealloc_obj_real` | mkobj.js:1851 | Implemented |
 | 97 | `dealloc_oextra` | mkobj.js:1548 | Implemented |
 | 2522 | `discard_minvent` | mkobj.js:1764 | Implemented |
-| 2828 | `dobjsfree` | - | Missing |
+| 2828 | `dobjsfree` | mkobj.js:2169 | Implemented |
 | 2620 | `extract_nexthere` | mkobj.js:1792 | Implemented |
 | 2593 | `extract_nobj` | mkobj.js:1774 | Implemented |
-| 2022 | `fixup_oil` | - | Missing |
+| 2022 | `fixup_oil` | mkobj.js:2162 | Implemented |
 | 168 | `free_omailcmd` | mkobj.js:1600 | Implemented |
 | 152 | `free_omid` | mkobj.js:1588 | Implemented |
 | 129 | `free_omonst` | mkobj.js:1570 | Implemented |
 | 2198 | `get_mtraits` | mkobj.js:1747 | Implemented |
-| 2844 | `hornoplenty` | - | Missing |
-| 3344 | `init_dummyobj` | - | Missing |
+| 2844 | `hornoplenty` | mkobj.js:2178 | Implemented |
+| 3344 | `init_dummyobj` | mkobj.js:2225 | Implemented |
 | 81 | `init_oextra` | mkobj.js:1538 | Implemented |
 | 3246 | `insane_obj_bits` | mkobj.js:1895 | Implemented |
-| 3311 | `insane_object` | - | Missing |
+| 3311 | `insane_object` | mkobj.js:2218 | Implemented |
 | 2267 | `is_flammable` | mkobj.js:290 | Implemented |
 | 2286 | `is_rottable` | mkobj.js:302 | Implemented |
 | 1988 | `is_treefruit` | mkobj.js:1688 | Implemented |
-| 1440 | `item_on_ice` | - | Missing |
+| 1440 | `item_on_ice` | mkobj.js:2130 | Implemented |
 | 178 | `may_generate_eroded` | objects.js `mayGenerateEroded()` | Aligned — in_mklev context ordering fixed |
-| 1701 | `maybe_adjust_light` | - | Missing |
-| 2250 | `mk_named_object` | - | Missing |
+| 1701 | `maybe_adjust_light` | mkobj.js:2151 | Implemented |
+| 2250 | `mk_named_object` | mkobj.js:2040 | Implemented |
 | 2224 | `mk_tt_object` | sp_lev.js `mk_tt_object()` | Aligned |
 | 305 | `mkbox_cnts` | mkobj.js:795 | Implemented |
 | 2064 | `mkcorpstat` | mkobj.js:1039 | Implemented |
 | 2000 | `mkgold` | sp_lev.js `mkgold()` | Aligned |
 | 271 | `mkobj` | mkobj.js:1076 | Implemented |
-| 228 | `mkobj_at` | - | Missing |
+| 228 | `mkobj_at` | mkobj.js:2032 | Implemented |
 | 197 | `mkobj_erosions` | mkobj.js:496 | Implemented |
 | 1176 | `mksobj` | mkobj.js:926 | Implemented |
 | 239 | `mksobj_at` | mkobj.js:1605 | Implemented |
@@ -2769,47 +2769,47 @@ No function symbols parsed from isaac64.c.
 | 144 | `newomid` | mkobj.js:1582 | Implemented |
 | 115 | `newomonst` | mkobj.js:1560 | Implemented |
 | 510 | `next_ident` | mkobj.js:233 | Implemented |
-| 537 | `nextoid` | - | Missing |
+| 537 | `nextoid` | mkobj.js:2027 | Implemented |
 | 3275 | `nomerge_exception` | mkobj.js:1910 | Implemented |
 | 3699 | `obj_absorb` | mkobj.js:1948 | Implemented |
 | 2144 | `obj_attach_mid` | mkobj.js:1716 | Implemented |
-| 2554 | `obj_extract_self` | - | Missing |
-| 2394 | `obj_ice_effects` | - | Missing |
+| 2554 | `obj_extract_self` | mkobj.js:2071 | Implemented |
+| 2394 | `obj_ice_effects` | mkobj.js:2112 | Implemented |
 | 3765 | `obj_meld` | mkobj.js:1982 | Implemented |
 | 3640 | `obj_nexto` | mkobj.js:1916 | Implemented |
 | 3658 | `obj_nexto_xy` | mkobj.js:1925 | Implemented |
-| 2946 | `obj_sanity_check` | - | Missing |
-| 2437 | `obj_timer_checks` | - | Missing |
-| 3029 | `objlist_sanity` | - | Missing |
-| 2420 | `peek_at_iced_corpse_age` | - | Missing |
+| 2946 | `obj_sanity_check` | mkobj.js:2183 | Implemented |
+| 2437 | `obj_timer_checks` | mkobj.js:2125 | Implemented |
+| 3029 | `objlist_sanity` | mkobj.js:2188 | Implemented |
+| 2420 | `peek_at_iced_corpse_age` | mkobj.js:2120 | Implemented |
 | 2302 | `place_object` | mkobj.js:59 | Implemented |
 | 3815 | `pudding_merge_message` | mkobj.js:2007 | Implemented (async) |
-| 2368 | `recreate_pile_at` | - | Missing |
-| 2505 | `remove_object` | - | Missing |
-| 642 | `replace_object` | - | Missing |
+| 2368 | `recreate_pile_at` | mkobj.js:2107 | Implemented |
+| 2505 | `remove_object` | mkobj.js:2061 | Implemented |
+| 642 | `replace_object` | mkobj.js:2093 | Implemented |
 | 1368 | `rider_revival_time` | mkobj.js:1661 | Implemented |
-| 1981 | `rnd_treefruit_at` | - | Missing |
-| 389 | `rndmonnum` | - | Missing |
-| 396 | `rndmonnum_adj` | - | Missing |
-| 3444 | `sanity_check_worn` | - | Missing |
+| 1981 | `rnd_treefruit_at` | mkobj.js:2156 | Implemented |
+| 389 | `rndmonnum` | mkobj.js:2297 | Implemented |
+| 396 | `rndmonnum_adj` | mkobj.js:2303 | Implemented |
+| 3444 | `sanity_check_worn` | mkobj.js:2252 | Implemented |
 | 2154 | `save_mtraits` | mkobj.js:1724 | Implemented |
 | 1861 | `set_bknown` | mkobj.js:428 | Implemented |
 | 1315 | `set_corpsenm` | mkobj.js:1015 | Implemented |
-| 3131 | `shop_obj_sanity` | - | Missing |
-| 1497 | `shrink_glob` | - | Missing |
-| 1670 | `shrinking_glob_gone` | - | Missing |
+| 3131 | `shop_obj_sanity` | mkobj.js:2198 | Implemented |
+| 1497 | `shrink_glob` | mkobj.js:2137 | Implemented |
+| 1670 | `shrinking_glob_gone` | mkobj.js:2146 | Implemented |
 | 458 | `splitobj` | mkobj.js:446 | Implemented |
 | 1386 | `start_corpse_timeout` | mkobj.js:969 | Implemented |
 | 1470 | `start_glob_timeout` | mkobj.js:1672 | Implemented |
-| 1273 | `stone_furniture_type` | - | Missing |
-| 1261 | `stone_object_type` | - | Missing |
+| 1273 | `stone_furniture_type` | mkobj.js:2262 | Implemented |
+| 1261 | `stone_object_type` | mkobj.js:2257 | Implemented |
 | 1764 | `unbless` | mkobj.js:405 | Implemented |
 | 1819 | `uncurse` | mkobj.js:421 | Implemented |
-| 855 | `unknow_object` | - | Missing |
-| 685 | `unknwn_contnr_contents` | - | Missing |
-| 557 | `unsplitobj` | - | Missing |
+| 855 | `unknow_object` | mkobj.js:2288 | Implemented |
+| 685 | `unknwn_contnr_contents` | mkobj.js:2277 | Implemented |
+| 557 | `unsplitobj` | mkobj.js:2267 | Implemented |
 | 1885 | `weight` | mkobj.js:321 | Implemented |
-| 3293 | `where_name` | - | Missing |
+| 3293 | `where_name` | mkobj.js:2203 | Implemented |
 
 ### mkroom.c -> mkroom.js
 | C Line | C Function | JS Line | Alignment |

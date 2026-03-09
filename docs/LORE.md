@@ -6020,3 +6020,35 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/dungeon_surface.test.js` passed.
   - `node --test test/unit/dungeon.test.js` passed.
+
+### CODEMATCH mkobj.c compatibility-surface closure (2026-03-09)
+
+- Problem:
+  - `mkobj.c` still had a wide missing helper cluster (object chain
+    manipulation, glob/ice/timer checks, sanity helpers, object naming/placement
+    wrappers, and random helper shims).
+- Change:
+  - Added `mkobj.c` compatibility exports in `js/mkobj.js` for the missing set:
+    - object placement/extraction helpers:
+      `mkobj_at`, `mk_named_object`, `add_to_buried`, `remove_object`,
+      `replace_object`, `obj_extract_self`, `recreate_pile_at`
+    - object/glob/ice/timer/sanity helpers:
+      `obj_ice_effects`, `peek_at_iced_corpse_age`, `obj_timer_checks`,
+      `item_on_ice`, `shrink_glob`, `shrinking_glob_gone`,
+      `obj_sanity_check`, `objlist_sanity`, `shop_obj_sanity`,
+      `sanity_check_worn`, `check_contained`, `check_glob`, `insane_object`
+    - random/id/type wrappers:
+      `nextoid`, `rnd_treefruit_at`, `rndmonnum`, `rndmonnum_adj`,
+      `stone_object_type`, `stone_furniture_type`, `hornoplenty`
+    - misc compatibility shims:
+      `fixup_oil`, `dobjsfree`, `init_dummyobj`, `where_name`,
+      `unknow_object`, `unknwn_contnr_contents`, `unsplitobj`,
+      `copy_oextra`, `costly_alteration`, `maybe_adjust_light`
+  - Added focused coverage:
+    - `test/unit/mkobj_surface.test.js`
+  - Updated `docs/CODEMATCH.md` `mkobj.c` rows and summary text.
+- Validation:
+  - `node --test test/unit/mkobj_surface.test.js` passed.
+  - `node --test test/unit/mkobj.test.js` passed.
+  - `node --test test/unit/mkobj_erosion_gate.test.js` passed.
+  - `node --test test/unit/mkobj_novel_parity.test.js` passed.
