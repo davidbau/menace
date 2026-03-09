@@ -1796,7 +1796,7 @@ async function handleLoot(game) {
             // C prompt leaves cursor one past '?' on topline.
             await display.putstr_message('Loot in what direction? ');
             while (true) {
-                const dirCh = await awaitInput(game, nhgetch_wrap(), {
+                const dirCh = await awaitInput(game, nhgetch_raw(), {
                     site: 'pickup.handleLoot.direction',
                 });
                 // Avoid concatenating prompt + result on the same topline message.
