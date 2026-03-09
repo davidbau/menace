@@ -807,6 +807,12 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 // C getpos(force=FALSE) can leave these two plines pending at
                 // --More-- before returning to normal command flow.
                 if (hadUnknownDirection && display?.messageNeedsMore) {
+                    // Headless morePrompt omits renderMoreMarker(); render it
+                    // explicitly so the "--More--" text and cursor position
+                    // match C's screen capture at this point.
+                    if (typeof display.renderMoreMarker === 'function') {
+                        display.renderMoreMarker();
+                    }
                     await awaitDisplayMorePrompt(null, display, () => nhgetch(), {
                         site: 'getpos.forcefalse.unknown.more',
                     });
