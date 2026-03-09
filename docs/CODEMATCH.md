@@ -2310,34 +2310,34 @@ No function symbols parsed from isaac64.c.
 ### light.c -> light.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 719 | `any_light_source` | - | Missing |
-| 916 | `arti_light_description` | - | Missing |
-| 881 | `arti_light_radius` | - | Missing |
-| 843 | `candle_light_range` | - | Missing |
-| 99 | `del_light_source` | - | Missing |
-| 142 | `delete_ls` | - | Missing |
-| 361 | `discard_flashes` | - | Missing |
-| 169 | `do_light_sources` | - | Missing |
-| 376 | `find_mid` | - | Missing |
-| 606 | `light_sources_sanity_check` | - | Missing |
-| 501 | `light_stats` | - | Missing |
-| 571 | `maybe_write_ls` | - | Missing |
-| 69 | `new_light_core` | - | Missing |
-| 826 | `obj_adjust_light_radius` | - | Missing |
-| 771 | `obj_is_burning` | - | Missing |
-| 808 | `obj_merge_light_sources` | - | Missing |
-| 706 | `obj_move_light_source` | - | Missing |
-| 763 | `obj_sheds_light` | - | Missing |
-| 779 | `obj_split_light_source` | - | Missing |
-| 517 | `relink_light_sources` | - | Missing |
-| 479 | `restore_light_sources` | - | Missing |
-| 421 | `save_light_sources` | - | Missing |
-| 257 | `show_transient_light` | - | Missing |
-| 729 | `snuff_light_source` | - | Missing |
-| 330 | `transient_light_cleanup` | - | Missing |
-| 398 | `whereis_mon` | - | Missing |
-| 935 | `wiz_light_sources` | - | Missing |
-| 634 | `write_ls` | - | Missing |
+| 719 | `any_light_source` | light.js:344 | Implemented |
+| 916 | `arti_light_description` | light.js:492 | Implemented |
+| 881 | `arti_light_radius` | light.js:479 | Implemented |
+| 843 | `candle_light_range` | light.js:454 | Implemented |
+| 99 | `del_light_source` | light.js:96 | Implemented |
+| 142 | `delete_ls` | light.js:109 | Implemented (internal helper) |
+| 361 | `discard_flashes` | light.js:295 | Implemented (internal helper) |
+| 169 | `do_light_sources` | light.js:121 | Implemented |
+| 376 | `find_mid` | light.js:308 | Implemented |
+| 606 | `light_sources_sanity_check` | light.js:528 | Implemented |
+| 501 | `light_stats` | - | N/A (debug statistics, not needed for gameplay) |
+| 571 | `maybe_write_ls` | - | N/A (save/restore file I/O, JS uses storage.js) |
+| 69 | `new_light_core` | light.js:74 | Implemented |
+| 826 | `obj_adjust_light_radius` | light.js:437 | Implemented |
+| 771 | `obj_is_burning` | light.js:383 | Implemented |
+| 808 | `obj_merge_light_sources` | light.js:419 | Implemented |
+| 706 | `obj_move_light_source` | light.js:330 | Implemented |
+| 763 | `obj_sheds_light` | light.js:374 | Implemented |
+| 779 | `obj_split_light_source` | light.js:391 | Implemented |
+| 517 | `relink_light_sources` | - | N/A (save/restore fixup, JS uses storage.js) |
+| 479 | `restore_light_sources` | - | N/A (save/restore, JS uses storage.js) |
+| 421 | `save_light_sources` | - | N/A (save/restore, JS uses storage.js) |
+| 257 | `show_transient_light` | light.js:280 | Stub — vision_recalc integration deferred |
+| 729 | `snuff_light_source` | light.js:352 | Implemented |
+| 330 | `transient_light_cleanup` | light.js:289 | Implemented |
+| 398 | `whereis_mon` | - | N/A (save/restore helper) |
+| 935 | `wiz_light_sources` | light.js:507 | Implemented |
+| 634 | `write_ls` | - | N/A (save/restore file I/O, JS uses storage.js) |
 
 ### lock.c -> lock.js
 | C Line | C Function | JS Line | Alignment |

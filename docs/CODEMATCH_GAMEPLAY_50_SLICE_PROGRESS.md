@@ -62,11 +62,11 @@ Rules
 | S46 | [#327](https://github.com/davidbau/menace/issues/327) | mkmaze+mkmap generation parity | `Done` (ledger) |
 | S47 | [#328](https://github.com/davidbau/menace/issues/328) | display.c mapglyph/windowport parity | `Ready` |
 | S48 | [#329](https://github.com/davidbau/menace/issues/329) | vision.c remaining helper parity | `Done` (ledger) |
-| S49 | [#330](https://github.com/davidbau/menace/issues/330) | light.c light-source parity | `Ready` |
+| S49 | [#330](https://github.com/davidbau/menace/issues/330) | light.c light-source parity | `Done` (all 28 Missing→Implemented/N/A: 21 already implemented, 7 N/A save/restore/debug) |
 | S50 | [#331](https://github.com/davidbau/menace/issues/331) | shk.c shopkeeper parity | `Ready` |
 
 ## Summary
 
 - Total slices: 50
-- Open slices: 16
-- Completed slices: 34 (S01, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 15
+- Completed slices: 35 (S01, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48, S49)
