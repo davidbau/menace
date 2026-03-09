@@ -32,14 +32,22 @@ equivalent of C's single thread of execution. Concretely:
 - When the await resolves, the command resumes from exactly where it left off.
 - `endCommandExec()` closes the epoch.
 
-The existing `exec_guard.js` enforces this at the command level. Every `await`
-also participates in the origin tracking system (see below), so diagnostics
-can report both *which command* is suspended and *why*.
+### Game State Singleton (`gstate.js`)
+
+All runtime tracking lives in `gstate.js`: the game instance reference,
+command epoch tracking (currently `exec_guard.js`), and origin await
+bookkeeping (currently `suspend.js`). This consolidation means:
+
+- Origin primitives (`nhgetch`, `display_sync`, etc.) are zero-argument —
+  they read `game` from `gstate.js` internally rather than requiring callers
+  to pass it.
+- `exec_guard.js` and `suspend.js` are folded into `gstate.js` and deleted.
+- One module, one source of truth for runtime state.
 
 ### Origin Primitives
 
 Every `await` in gameplay code must flow through one of these primitives.
-Each primitive registers itself with `exec_guard.js` before suspending and
+Each primitive registers itself with `gstate.js` before suspending and
 unregisters when it resumes. This is where suspension tracking lives — not
 at callsites, not in wrappers, but inside the small number of functions that
 actually create Promises.
@@ -57,14 +65,22 @@ That's 6 primitives. Every other `await` in gameplay code is a function that
 internally calls one of these. The registration happens once, inside the
 primitive, not at each of the dozens of callsites.
 
+All primitives are zero-argument (except `nh_delay_output(ms)`,
+`nhimport(specifier)`, `nhfetch(url, opts)`, and `nhload(key)` which take
+their operational parameters). None take `game` — they read it from `gstate`.
+
+**Rule**: All pre-game imports must be static. `nhimport` is only for
+lazy-cold-path imports during gameplay when `game` is guaranteed to exist in
+`gstate`.
+
 ### Functions That Use Primitives (Not Origins Themselves)
 
 These functions `await` but only because they call `nhgetch()` internally:
 
-- **`more(display)`** — shows "--More--", loops `nhgetch()` until a dismiss
-  key (space, escape, enter). Replaces the current `display.morePrompt()` /
+- **`more()`** — shows "--More--", loops `nhgetch()` until a dismiss key
+  (space, escape, enter). Replaces the current `display.morePrompt()` /
   `awaitDisplayMorePrompt()` / `nhgetch_wrap` --More-- paths. Matches C's
-  `more()` / `xwaitforspace()`.
+  `more()` / `xwaitforspace()`. Zero-argument (reads display from `gstate`).
 - **`ynFunction()`** — shows a yes/no/count prompt, reads via `nhgetch()`.
 - **`getdir()`** — direction prompt via `nhgetch()`.
 - **`getpos_async()`** — targeting cursor loop via `nhgetch()`.
@@ -108,12 +124,12 @@ already provides natural call-stack routing:
 document.onkeydown = (e) => game.input.pushInput(charCode);
 
 // Game loop — simple pull loop, like C:
-async function gameLoop(game) {
+async function gameLoop() {
     while (!game.gameOver) {
         const ch = await nhgetch();          // suspends until pushInput
-        const result = await rhack(ch, game);
-        if (result.tookTime) await moveloop_core(game);
-        await display_sync(game);
+        const result = await rhack(ch);
+        if (result.tookTime) await moveloop_core();
+        await display_sync();
     }
 }
 ```
@@ -125,7 +141,7 @@ exactly like C's synchronous call stack — no boundary dispatch needed.
 The entire boundary stack — `withInputBoundary`, `clearInputBoundary`,
 `peekInputBoundary`, the `'more'`/`'prompt'`/custom owner system,
 `handleMoreBoundaryKey`, the prompt boundary setter, `pendingPrompt`,
-`getAllInputBoundaryState` — is targeted for removal in Phase 5.
+`getAllInputBoundaryState` — is targeted for removal in Phase 3.
 
 ### display_sync: Why It Exists
 
@@ -134,14 +150,19 @@ In C, the terminal paints automatically whenever the program blocks on input
 
 In JS/browser, writes go to a virtual display buffer and the browser only
 paints when JS yields the event loop. During multi-step commands (travel,
-repeated actions), `run_command` processes many game turns without yielding.
-Without `display_sync`, the player would see only the final position, not
+repeated actions), the game processes many turns without yielding. Without
+`display_sync`, the player would see only the final position, not
 intermediate frames.
 
 `display_sync()` flushes the display state (FOV, map, status, cursor) and
 yields via `setTimeout(0)` so the browser can paint. It's skippable in
 headless mode (no browser to paint for). It has no C equivalent — it exists
 purely to compensate for the browser's asynchronous rendering model.
+
+`display_sync()` is callable both from the outer game loop (after
+`moveloop_core`) and from inside multi-step commands (travel, repeated
+actions) that need intermediate frame rendering. Commands like travel call
+`display_sync()` in their inner loop to show each step.
 
 ## Current State vs Target State
 
@@ -185,6 +206,10 @@ unnecessary complexity:
   yield for browser repaint. This is display plumbing threaded through the
   command API.
 
+- **Scattered runtime tracking**: Command epoch tracking lives in
+  `exec_guard.js`, suspension type tracking in `suspend.js`, game state in
+  `gstate.js` — three modules for one concern.
+
 - **Cycle-breaker dynamic imports**: 10 `await import()` calls existed solely
   to break circular module dependencies. **Now resolved** — all converted to
   static imports (ES module circular imports work fine for hoisted function
@@ -208,21 +233,22 @@ unnecessary complexity:
 - **One `nhgetch()`**: `nhgetch_raw` is renamed to `nhgetch`. `nhgetch_wrap`
   is eliminated. It registers itself as an `input` origin internally.
 
-- **`more(display)`**: A simple function that shows "--More--" and loops
-  `nhgetch()` until a dismiss key. Replaces `awaitDisplayMorePrompt`,
+- **`more()`**: A simple zero-argument function that shows "--More--" and
+  loops `nhgetch()` until a dismiss key. Replaces `awaitDisplayMorePrompt`,
   `display.morePrompt()`, `consumePendingMore`, and the nhgetch_wrap
   auto-more path. Matches C's `more()`.
 
 - **No `awaitInput`/`awaitMore`/`awaitAnim`**: These wrappers are eliminated.
   Callsites `await` primitives directly.
 
-- **`display_sync(game)`**: Replaces the `onTimedTurn` callback. Called
-  directly after `moveloop_core` when the browser needs to repaint.
-  Registers as a `display_sync` origin.
+- **`display_sync()`**: Replaces the `onTimedTurn` callback. Called after
+  `moveloop_core` and inside multi-step command loops (travel, repeated
+  actions). Registers as a `display_sync` origin. Zero-argument.
 
 - **`nhimport(specifier)`**: Thin wrapper around `import()` that registers as
   an `import` origin. Replaces bare `await import()` at the 13 remaining
-  dynamic import sites.
+  dynamic import sites. Only used during gameplay (pre-game imports are
+  static).
 
 - **`nhfetch(url, opts)`**: Thin wrapper around `fetch()` that registers as a
   `fetch` origin. Replaces bare `await fetch()` at the 3 fetch sites.
@@ -230,8 +256,9 @@ unnecessary complexity:
 - **`nhload(key)`**: Wrapper for IndexedDB reads that registers as a `load`
   origin. Save operations are fire-and-forget (write-only, no need to await).
 
-- **`suspend.js`**: Shrinks to just `beginOriginAwait`/`endOriginAwait`
-  bookkeeping, or gets folded into `exec_guard.js` entirely.
+- **Unified `gstate.js`**: All runtime tracking consolidated — game instance,
+  command epochs, origin await bookkeeping. `exec_guard.js` and `suspend.js`
+  are deleted.
 
 ## Cleanup Plan
 
@@ -257,206 +284,159 @@ now correctly imported from `const.js`.
 
 **Gate**: All 3421 tests pass. All 34 gameplay sessions pass.
 
-### Phase 2: Add origin registration to exec_guard.js
+### Phase 2: Origin primitives (expand–migrate–contract)
 
-**Relationship to current state**: `exec_guard.js` currently tracks command
-epochs (`beginCommandExec`/`endCommandExec`) and typed suspensions
-(`beforeTypedSuspend`/`afterTypedSuspend`). But it doesn't know *which
-primitive* caused the suspension. This phase adds that.
+This phase uses the **expand–migrate–contract** pattern so that every
+intermediate state passes tests. New primitives are created alongside old
+ones, callsites are migrated one file at a time, then old mechanisms are
+deleted.
 
-**What's new**: Add `beginOriginAwait(game, type, meta)` and
-`endOriginAwait(game, token)` to `exec_guard.js`. These record the origin
-type (`input`, `delay`, `display_sync`, `import`, `fetch`, `load`) in the
-per-game state alongside the existing command token.
+#### Phase 2a: Consolidate runtime tracking into gstate.js
 
-**What stays the same**: `beginCommandExec`/`endCommandExec` are unchanged.
-Command-level tracking continues to work exactly as before.
+**Relationship to current state**: Command epoch tracking lives in
+`exec_guard.js`, suspension type tracking in `suspend.js`, game state in
+`gstate.js`. These are three modules for one concern.
 
-**What goes away**: Nothing yet. This phase is additive.
+**What changes**:
+- Move `beginCommandExec`/`endCommandExec` from `exec_guard.js` into
+  `gstate.js`.
+- Move `beforeTypedSuspend`/`afterTypedSuspend` from `suspend.js` into
+  `gstate.js`.
+- Add `beginOriginAwait(type, meta)` and `endOriginAwait(token)` to
+  `gstate.js`. These record the origin type (`input`, `delay`,
+  `display_sync`, `import`, `fetch`, `load`). No `game` parameter — they
+  read it from `gstate`.
+- Re-export from `exec_guard.js` and `suspend.js` temporarily for backwards
+  compatibility during migration.
 
-**Deliverable**: `exec_guard.js` exports `beginOriginAwait` /
-`endOriginAwait`. When `WEBHACK_STRICT_SINGLE_THREAD=warn`, the log shows
-origin type for every suspension.
+**What goes away** (eventually): `exec_guard.js` and `suspend.js` as
+separate modules.
 
-**Gate**: All 3421 tests pass. All 34 gameplay sessions pass. Verify with
-`WEBHACK_STRICT_SINGLE_THREAD=warn` that no new warnings appear.
+**Gate**: All tests pass. All gameplay sessions pass.
 
 **QC check**: `grep -r 'beginOriginAwait\|endOriginAwait' js/` shows only
-`exec_guard.js` (definition) and `suspend.js` (initial consumer). No
-gameplay files import it directly yet.
+`gstate.js` (definition) and temporary re-exports.
 
-### Phase 3: Create origin primitives and `more()`
+#### Phase 2b: Create new primitives (expand)
 
-This is the core phase. Each primitive gets internal origin registration, and
-`more()` replaces the --More-- subsystem.
+Create all new primitives alongside old ones. Nothing changes for existing
+callsites.
 
-**3a: `nhgetch()`**
+**What's created**:
 
-- **Currently**: `nhgetch_raw()` in `input.js` calls `game.input.nhgetch()`
-  directly with no origin registration. `nhgetch_wrap()` adds auto-dismissal
-  of pending --More-- before returning. ~79 `nhgetch_raw` callsites, ~25
-  `nhgetch_wrap` callsites.
-- **Change**: Rename `nhgetch_raw` → `nhgetch`. Add `beginOriginAwait` /
-  `endOriginAwait` with type `'input'` inside it.
-- **What goes away**: `nhgetch_wrap` is deleted. Its --More-- auto-dismissal
-  is replaced by explicit `await more()` calls at the ~12 sites that need it.
-  `nhgetch_raw` name is retired.
-- **Gate**: All tests pass. All gameplay sessions pass.
-- **QC check**: `grep -r 'nhgetch_raw\|nhgetch_wrap' js/` returns zero hits.
-  `grep -r 'nhgetch' js/ | grep -v node_modules` shows only `nhgetch()`.
+1. **`nhgetch()` origin registration**: Add `beginOriginAwait`/
+   `endOriginAwait` with type `'input'` inside the existing `nhgetch_raw`.
+   No rename yet — `nhgetch_raw` keeps its name, `nhgetch_wrap` is untouched.
 
-**3b: `more(display)`**
+2. **`more()`**: New function matching C's `more()`:
+   ```javascript
+   export async function more() {
+       const display = gstate.game?.display;
+       if (display) display.showMore();
+       while (true) {
+           const ch = await nhgetch_raw();
+           if (isMoreDismissKey(ch)) {
+               if (display) display.clearMore();
+               return ch;
+           }
+       }
+   }
+   ```
+   Coexists with `display.morePrompt()` and `awaitDisplayMorePrompt()`.
 
-- **Currently**: --More-- is handled by three mechanisms:
-  (1) `display.morePrompt()` in `display.js` — async method with internal
-      key-reading closure.
-  (2) `awaitDisplayMorePrompt()` in `suspend.js` — wrapper that constructs a
-      `readMoreKey` closure and calls `display.morePrompt()`. 11 callsites.
-  (3) `consumePendingMore()` in `more_keys.js` — called by `nhgetch_wrap` to
-      auto-dismiss before returning a command key.
-  Plus the boundary-stack path in `run_command` (`handleMoreBoundaryKey`).
-- **Change**: Create `more(display)` that matches C's `more()`:
-  ```javascript
-  async function more(display) {
-      display.showMore();
-      while (true) {
-          const ch = await nhgetch();
-          if (isMoreDismissKey(ch)) {
-              display.clearMore();
-              return ch;
-          }
-      }
-  }
-  ```
-- **What goes away**: `display.morePrompt()`, `awaitDisplayMorePrompt()`,
-  `consumePendingMore()`, the `nhgetch_wrap` auto-more path (already gone
-  from 3a). The boundary-stack --More-- path in `run_command` is simplified
-  to call `more()`.
-- **Gate**: All tests pass. All gameplay sessions pass. Verify --More--
-  dismissal works in browser (space, escape, enter dismiss; other keys
-  ignored).
-- **QC check**: `grep -r 'awaitDisplayMorePrompt\|display\.morePrompt\|consumePendingMore' js/`
-  returns zero hits.
+3. **`nh_delay_output(ms)` origin registration**: Add
+   `beginOriginAwait`/`endOriginAwait` with type `'delay'` inside the
+   existing function. Callsites unchanged.
 
-**3c: `nh_delay_output(ms)` origin registration**
+4. **`display_sync()`**: New function:
+   ```javascript
+   export async function display_sync() {
+       const game = gstate.game;
+       if (game?.display) {
+           game.fov.compute(game.map, game.player.x, game.player.y);
+           game.display.renderMap(game.map, game.player, game.fov, game.flags);
+           game.display.renderStatus(game.player);
+           game.display.cursorOnPlayer(game.player);
+       }
+       if (!game?.headless) {
+           const token = beginOriginAwait('display_sync');
+           try { await new Promise(r => setTimeout(r, 0)); }
+           finally { endOriginAwait(token); }
+       }
+   }
+   ```
+   Coexists with `onTimedTurn` callback.
 
-- **Currently**: `nh_delay_output` in `animation.js` does
-  `await new Promise(r => setTimeout(r, ms))` with no origin registration.
-  28 callsites call it directly (no wrapper).
-- **Change**: Add `beginOriginAwait`/`endOriginAwait` with type `'delay'`
-  inside `nh_delay_output`.
-- **What goes away**: Nothing. Callsites are unchanged.
-- **Gate**: All tests pass. All gameplay sessions pass.
-- **QC check**: With `WEBHACK_STRICT_SINGLE_THREAD=warn`, verify delay
-  suspensions are logged with origin type.
+5. **`nhimport(specifier)`**, **`nhfetch(url, opts)`**, **`nhload(key)`**:
+   Thin wrappers with origin registration. Coexist with bare
+   `await import()`/`await fetch()`.
 
-**3d: `display_sync(game)`**
+**Gate**: All tests pass. All gameplay sessions pass. New primitives exist
+but are not yet used by any callsite.
 
-- **Currently**: Browser game loop passes an `onTimedTurn` callback to
-  `run_command` that recomputes FOV, renders, and does `setTimeout(0)`.
-  2 callsites in `_gameLoopStep`, wrapped in `awaitAnim`.
-- **Change**: Create `display_sync(game)`:
-  ```javascript
-  async function display_sync(game) {
-      if (game?.display) {
-          game.fov.compute(game.map, game.player.x, game.player.y);
-          game.display.renderMap(game.map, game.player, game.fov, game.flags);
-          game.display.renderStatus(game.player);
-          game.display.cursorOnPlayer(game.player);
-      }
-      if (!game?.headless) {
-          const token = beginOriginAwait(game, 'display_sync');
-          try { await new Promise(r => setTimeout(r, 0)); }
-          finally { endOriginAwait(game, token); }
-      }
-  }
-  ```
-  Call `display_sync` directly inside `run_command` after `moveloop_core`.
-- **What goes away**: `onTimedTurn` callback parameter from `run_command` API.
-  `awaitAnim` wrapper (2 callsites). The `onTimedTurn` lambda in
-  `_gameLoopStep`.
-- **Gate**: All tests pass. All gameplay sessions pass. Verify in browser
-  that travel and multi-step commands render intermediate frames (not just
-  the final position).
-- **QC check**: `grep -r 'onTimedTurn\|awaitAnim' js/` returns zero hits.
+**QC check**: Each new primitive has at least one unit test verifying origin
+registration fires.
 
-**3e: `nhimport(specifier)`, `nhfetch(url, opts)`, `nhload(key)`**
+#### Phase 2c: Migrate callsites (migrate)
 
-- **Currently**: 13 bare `await import()`, 3 bare `await fetch()`, 1 bare
-  `await` IndexedDB read. All uninstrumented.
-- **Change**: Create thin wrappers with origin registration:
-  ```javascript
-  async function nhimport(specifier) {
-      const token = beginOriginAwait(game, 'import', { specifier });
-      try { return await import(specifier); }
-      finally { endOriginAwait(game, token); }
-  }
-  ```
-  Similarly for `nhfetch` (type `'fetch'`) and `nhload` (type `'load'`).
-- **What goes away**: Bare `await import()` / `await fetch()` in gameplay
-  code. Save await in `storage.js` becomes fire-and-forget.
-- **Gate**: All tests pass. All gameplay sessions pass.
-- **QC check**: `grep -r 'await import(' js/ | grep -v nhimport` returns only
-  non-gameplay files (test harnesses, build scripts).
-  `grep -r 'await fetch(' js/ | grep -v nhfetch` returns zero gameplay hits.
+Convert callsites from old wrappers to new primitives, one file at a time.
+Tests pass after each file.
 
-### Phase 4: Collapse suspend.js wrappers
+**Migration rules**:
 
-**Relationship to current state**: After Phase 3, all origin primitives
-register themselves internally. The `awaitInput`/`awaitMore` wrappers in
-`suspend.js` are now redundant — they add a second layer of registration
-around primitives that already register themselves.
-
-**What changes**: Replace all wrapper callsites with direct `await` of the
-primitive:
-
-| Before | After | Count |
-|---|---|---|
-| `await awaitInput(game, nhgetch_raw(), {site})` | `await nhgetch()` | ~62 |
-| `await awaitInput(game, nhgetch_wrap(), {site})` | `await nhgetch()` | ~12 |
-| `await awaitMore(game, display._clearMore(), ...)` | `display.clearMore()` | ~1 |
-| `await awaitMore(game, readKey(), ...)` | `await nhgetch()` | ~2 |
-| `await awaitAnim(game, setTimeout(0), ...)` | `await display_sync(game)` | ~2 |
+| Before | After |
+|---|---|
+| `await awaitInput(game, nhgetch_raw(), {site})` | `await nhgetch_raw()` |
+| `await awaitInput(game, nhgetch_wrap(), {site})` | `await nhgetch_raw()` (+ `await more()` where --More-- was needed) |
+| `await awaitDisplayMorePrompt(game, display, ...)` | `await more()` |
+| `await awaitAnim(game, setTimeout(0), ...)` | `await display_sync()` |
+| `await awaitMore(game, readKey(), ...)` | `await nhgetch_raw()` |
+| bare `await import('./foo.js')` | `await nhimport('./foo.js')` |
+| bare `await fetch(url)` | `await nhfetch(url)` |
 
 The 3 `awaitInput` callsites in `run_command` that wrap
-`topBoundary.onKey()` and `game._pendingPromptTask` need case-by-case
-review. These handlers internally call `nhgetch()`, so origin registration
-happens there — the outer `awaitInput` wrapper is redundant.
+`topBoundary.onKey()` and `game._pendingPromptTask` are left for Phase 3
+(boundary elimination).
 
-**What goes away**: `awaitInput`, `awaitMore`, `awaitAnim`,
-`awaitDisplayMorePrompt` exports from `suspend.js`. The `suspend.js` module
-either shrinks to just `beginOriginAwait`/`endOriginAwait` re-exports (from
-`exec_guard.js`) or is deleted entirely.
-
-**Do this incrementally**: One file at a time, in order of decreasing
-callsite count:
+**Do this incrementally**, in order of decreasing callsite count:
 1. `chargen.js` (14 callsites) — chargen tests catch regressions
 2. `options.js` (8) — options UI tests
 3. `invent.js` (6), `do_wear.js` (5) — inventory/wear tests
 4. `cmd.js` (5), `pager.js` (5) — command/pager tests
 5. Remaining files (1–3 callsites each)
 
-**Gate per file**: All tests pass after each file is converted. Full gameplay
-session suite passes after each batch.
+**Gate per file**: All tests pass. Full gameplay session suite passes after
+each batch.
 
-**Final gate**: All 3421 tests pass. All 34 gameplay sessions pass.
+#### Phase 2d: Delete old mechanisms (contract)
+
+Once zero callsites remain for old wrappers:
+
+**What goes away**:
+- `nhgetch_wrap` — deleted. `nhgetch_raw` renamed to `nhgetch`.
+- `awaitInput`, `awaitMore`, `awaitAnim`, `awaitDisplayMorePrompt` — deleted.
+- `display.morePrompt()`, `consumePendingMore()` — deleted.
+- `onTimedTurn` callback parameter from `run_command` API — deleted.
+- `suspend.js` — deleted (functionality already in `gstate.js`).
+- `exec_guard.js` — deleted (functionality already in `gstate.js`).
+
+**Gate**: All tests pass. All gameplay sessions pass.
 
 **QC checks**:
+- `grep -r 'nhgetch_raw\|nhgetch_wrap' js/` returns zero hits.
 - `grep -r 'awaitInput\|awaitMore\|awaitAnim\|awaitDisplayMorePrompt' js/`
-  returns zero hits (excluding `suspend.js` definition if kept for
-  backwards compat during migration).
-- `grep -r "from './suspend'" js/` returns zero hits (or only `exec_guard.js`
-  if registration helpers remain there).
-- `WEBHACK_STRICT_SINGLE_THREAD=warn` produces no new warnings.
-- Every `await` in gameplay code (files matching `js/*.js`, excluding test/
-  and build/) is followed by one of: `nhgetch()`, `nh_delay_output()`,
-  `display_sync()`, `nhimport()`, `nhfetch()`, `nhload()`, `more()`, or a
-  function that transitively calls one of these. This can be verified by
-  a static grep: `grep -n 'await ' js/*.js | grep -v 'await nhgetch\|await nh_delay\|await display_sync\|await nhimport\|await nhfetch\|await nhload\|await more'`
-  should return only non-primitive awaits (e.g., `await someFunction()` where
-  `someFunction` internally uses a primitive).
+  returns zero hits.
+- `grep -r "from './suspend'" js/` returns zero hits.
+- `grep -r "from './exec_guard'" js/` returns zero hits.
+- `grep -r 'onTimedTurn' js/` returns zero hits.
+- `grep -r 'consumePendingMore\|display\.morePrompt' js/` returns zero hits.
+- Every `await` in gameplay code (`js/*.js`, excluding `test/` and build
+  scripts) flows through one of the 6 origin primitives. Verify:
+  `grep -n 'await ' js/*.js | grep -v 'await nhgetch\|await nh_delay\|await display_sync\|await nhimport\|await nhfetch\|await nhload\|await more'`
+  should return only non-primitive awaits (functions that transitively call a
+  primitive).
 
-### Phase 5: Eliminate boundary stack and simplify game loop
+### Phase 3: Eliminate boundary stack and simplify game loop
 
 This is the architectural payoff. Once `nhgetch()` is the only key-reading
 primitive and `more()` uses it directly, the boundary stack becomes dead
@@ -484,13 +464,13 @@ suspended context.
 browser key event → pushInput(ch)   // just enqueue the key
 
 // Game loop (started once at game init, runs until game over):
-async function gameLoop(game) {
+async function gameLoop() {
     while (!game.gameOver) {
         const ch = await nhgetch();   // suspends until pushInput resolves it
-        await rhack(ch, game);        // command runs, may nhgetch() internally
+        await rhack(ch);              // command runs, may nhgetch() internally
         if (tookTime) {
-            await moveloop_core(game);
-            await display_sync(game);
+            await moveloop_core();
+            await display_sync();
         }
     }
 }
@@ -507,6 +487,25 @@ exact point. The next `pushInput(ch)` resolves that specific `nhgetch()`
 call, and `getdir()` resumes with the direction key. No dispatch table
 needed. Same for `more()` — it's suspended at `await nhgetch()`, and the
 next key goes directly to it.
+
+**Note on count prefix handling**: C handles numeric count prefixes inside
+`rhack()`, which calls `nhgetch()` in a loop to accumulate digits. In the
+target architecture this "just works" — `rhack()` calls `nhgetch()`, keys
+arrive via `pushInput()`, no special handling needed in the game loop.
+
+#### Phase 3a: Verify boundaries are dead
+
+After Phase 2d, all --More-- goes through `more()` (which calls `nhgetch()`
+directly) and all prompts call `nhgetch()` directly. No boundaries should
+ever be pushed.
+
+**What changes**: Add a warning/assertion when `withInputBoundary` is called.
+Run all tests.
+
+**Gate**: All tests pass with zero boundary pushes. This confirms the
+boundary stack is dead code.
+
+#### Phase 3b: Remove dead boundary code
 
 **What goes away**:
 
@@ -530,25 +529,34 @@ next key goes directly to it.
 
 Total: ~290 lines removed.
 
+**Gate**: All tests pass. All gameplay sessions pass.
+
+#### Phase 3c: Simplify run_command
+
 **What `run_command` becomes**:
 
 ```javascript
-async function run_command(game, ch) {
-    const token = beginCommandExec(game);
+async function run_command(ch) {
+    const token = beginCommandExec();
     try {
-        const result = await rhack(ch, game);
+        const result = await rhack(ch);
         if (result.tookTime) {
-            await moveloop_core(game);
-            await display_sync(game);
+            await moveloop_core();
+            await display_sync();
         }
     } finally {
-        endCommandExec(game, token);
+        endCommandExec(token);
     }
 }
 ```
 
-Or `run_command` is inlined into the game loop and ceases to exist as a
-separate function.
+**Gate**: All tests pass. All gameplay sessions pass.
+
+#### Phase 3d: Game loop inversion and replay harness
+
+**This is the highest-risk step.** The control flow changes from "harness
+calls `run_command(game, key)` per keystroke" to "game loop pulls via
+`nhgetch()`, harness feeds keys via `pushInput()`."
 
 **What changes in the browser game loop**:
 
@@ -563,9 +571,7 @@ separate function.
 async gameLoop() {
     while (!this.gameOver) {
         const ch = await nhgetch();
-        // count prefix handling (if digit, accumulate and read next key)
-        await run_command(this, ch);
-        // display_sync is called inside run_command, no callback needed
+        await run_command(ch);
     }
 }
 
@@ -577,32 +583,22 @@ document.addEventListener('keydown', (e) => {
 
 **What changes in the replay harness**:
 
-`drainUntilInput()` in `replay_core.js` races command completion against
-the input runtime's wait detection. This still works — `pushInput(ch)` feeds
-a key, `nhgetch()` resolves, the command proceeds until it hits the next
-`nhgetch()` or completes. The `waitForInputWait` / `isWaitingInput` API on
-the input runtime is unchanged.
+`drainUntilInput()` in `replay_core.js` currently calls
+`run_command(game, key)` directly per key. In the target architecture:
 
-**Incremental migration path**:
+1. The game loop is started once (runs as a long-lived async function).
+2. The harness feeds keys via `pushInput(ch)` instead of calling
+   `run_command` directly.
+3. The harness waits for the game to block on the next `nhgetch()` using
+   the existing `waitForInputWait`/`isWaitingInput` API on the input runtime.
 
-This phase doesn't have to be atomic. The boundary stack can be removed
-incrementally:
+The detection mechanism (`waitForInputWait`/`isWaitingInput`) is unchanged.
+The change is mechanical: `run_command(game, key)` → `pushInput(key)` in the
+replay driver loop.
 
-1. Remove `'more'` boundary owner — `more()` now handles --More-- via direct
-   `nhgetch()`. Remove `handleMoreBoundaryKey`, `display.markMorePending`
-   boundary registration, `consumePendingMore`.
-2. Remove `'prompt'` boundary owner — prompt handlers (`getdir`, menus) now
-   `await nhgetch()` directly. Remove `pendingPrompt` setter boundary logic.
-3. Remove remaining boundary infrastructure (`withInputBoundary`, etc.).
-4. Simplify `run_command` to the minimal form above.
-5. Simplify `_gameLoopStep` to a simple pull loop.
-
-**Gate per step**: All 3421 tests pass. All 34 gameplay sessions pass.
-Browser manual test: play a few turns, verify --More-- works, menus work,
-direction prompts work, travel works.
-
-**Final gate**: All tests pass. All gameplay sessions pass. Browser smoke
-test.
+**Gate**: All tests pass. All 34 gameplay sessions pass. Browser smoke test:
+play a few turns, verify --More-- works, menus work, direction prompts work,
+travel renders intermediate frames.
 
 **QC checks**:
 - `grep -r 'withInputBoundary\|clearInputBoundary\|peekInputBoundary\|InputBoundary' js/`
@@ -612,8 +608,8 @@ test.
 - `grep -r 'handleMoreBoundaryKey\|consumePendingMore\|markMorePending' js/`
   returns zero hits.
 - `grep -r 'onTimedTurn\|onBeforeRepeat' js/` returns zero hits.
-- `run_command` function body is under 30 lines.
-- The game loop (`gameLoop` or `_gameLoopStep`) is under 20 lines.
+- `run_command` function body is under 20 lines.
+- The game loop (`gameLoop` or `_gameLoopStep`) is under 15 lines.
 
 ---
 
@@ -626,7 +622,7 @@ After cleanup, all of these become plain `await nhgetch()` calls.
 - Total callsites: 104
 - `nhgetch_raw` callsites: 79 (→ `nhgetch`)
 - `nhgetch_wrap` callsites: 25 (→ `nhgetch`, with --More-- handled by `more()`)
-- Marked `--More--` boundary callsites: 24 (→ `await more(display)`)
+- Marked `--More--` boundary callsites: 24 (→ `await more()`)
 
 | File:Line | Function | Reader | More? | Purpose | Site |
 |---|---|---|---|---|---|
@@ -766,7 +762,8 @@ After cleanup, all of these become plain `await nhgetch()` calls.
 ### 3. Remaining Dynamic Import Callsites
 
 After cycle-breaker elimination, 13 dynamic imports remain. All become
-`await nhimport()` calls.
+`await nhimport()` calls. All run during gameplay when `game` exists in
+`gstate`.
 
 | File:Line | Classification | Rationale |
 |---|---|---|
@@ -809,7 +806,8 @@ needed for write-only persistence.
 ### 6. display_sync Callsites
 
 Currently implemented as `onTimedTurn` callback with inline `setTimeout(0)`.
-Become `await display_sync(game)` calls inside `run_command`.
+Become `await display_sync()` calls inside `run_command` and inside
+multi-step command loops (travel, repeated actions).
 
 | File:Line | Context |
 |---|---|
