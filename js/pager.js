@@ -6,19 +6,21 @@ import {
     TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING,
     STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE, POOL, LAVAPOOL,
     DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
+    STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL,
 } from './const.js';
 import { def_monsyms } from './symbols.js';
 import { nhgetch, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
-import { CLR_GRAY, CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
+import { CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
-import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
+import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED } from './const.js';
 import { getpos_async } from './getpos.js';
 import { x_monnam } from './mondata.js';
 import { engr_at, can_reach_floor } from './engrave.js';
 import { objectData, STRANGE_OBJECT } from './objects.js';
 import { visctrl } from './hacklib.js';
+import { terrainSymbol, wallIsVisible } from './render.js';
 
 // -----------------------------------------------------------------------
 // Look / whatis core (merged from look.js)
@@ -650,46 +652,43 @@ export async function handlePrevMessages(display) {
 // C ref: cmd.c dooverview()
 export async function handleViewMapPrompt(game) {
     const { display, map, player, fov, flags } = game;
-    const lines = [
-        'View which?',
-        '',
-        'a * known map without monsters, objects, and traps',
-        'b - known map without monsters and objects',
-        'c - known map without monsters',
-        '(end)',
-    ];
+    const men = create_nhwindow(NHW_MENU);
+    start_menu(men, MENU_BEHAVE_STANDARD);
+    add_menu(men, null, { a_int: 1 }, 0, 0, ATR_NONE, 0,
+        'known map without monsters, objects, and traps',
+        MENU_ITEMFLAGS_SELECTED);
+    add_menu(men, null, { a_int: 2 }, 0, 0, ATR_NONE, 0,
+        'known map without monsters and objects', 0);
+    add_menu(men, null, { a_int: 3 }, 0, 0, ATR_NONE, 0,
+        'known map without monsters', 0);
+    end_menu(men, 'View which?');
+    const sel = await select_menu(men, PICK_ONE, { acceptPreselectedOnSpace: true });
+    destroy_nhwindow(men);
+    const selected = sel?.[0]?.identifier?.a_int || 0;
 
     display.clearScreen();
     display.renderMap(map, player, fov, flags);
-    if (typeof display.renderStatus === 'function') {
-        display.renderStatus(player);
-    }
-    for (let i = 0; i < lines.length && i < display.rows; i++) {
-        const text = lines[i].substring(0, Math.max(0, display.cols - 28));
-        const attr = (i === 0) ? 1 : 0;
-        await display.putstr(28, i, ' '.repeat(Math.max(0, display.cols - 28)));
-        await display.putstr(28, i, text, undefined, attr);
-    }
-
-    // C ref: cmd.c doterrain() -> select_menu(PICK_ONE):
-    // keep prompt active until an accept/cancel/selection key.
-    let selected = 0;
-    while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
-            site: 'pager.handleViewMapPrompt.select',
-        });
-        if (ch === 27) break;
-        if (ch === 10 || ch === 13 || ch === 32) { selected = 1; break; }
-        const c = String.fromCharCode(ch || 0);
-        if (c === 'a' || c === 'A'
-            || c === 'b' || c === 'B'
-            || c === 'c' || c === 'C') {
-            selected = (c === 'a' || c === 'A') ? 1 : (c === 'b' || c === 'B') ? 2 : 3;
-            break;
+    if (selected === 1) {
+        const mapOffset = display.flags?.msg_window ? 3 : MAP_ROW_START;
+        for (let y = 0; y < ROWNO; y++) {
+            const row = y + mapOffset;
+            for (let x = 1; x < COLNO; x++) {
+                const col = x - 1;
+                const loc = map.at(x, y);
+                if (!loc || !loc.seenv) {
+                    display.setCell(col, row, ' ', CLR_GRAY);
+                    continue;
+                }
+                if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags || 0)) {
+                    display.setCell(col, row, ' ', CLR_GRAY);
+                    continue;
+                }
+                const sym = terrainSymbol(loc, map, x, y, display.flags || flags || {});
+                const color = (loc.typ === STONE) ? CLR_GRAY : ((loc.typ === ROOM) ? NO_COLOR : sym.color);
+                display.setCell(col, row, sym.ch, color);
+            }
         }
     }
-    display.clearScreen();
-    display.renderMap(map, player, fov, flags);
     if (typeof display.renderStatus === 'function') {
         display.renderStatus(player);
     }

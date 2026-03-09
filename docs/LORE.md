@@ -5426,3 +5426,27 @@ hard-won wisdom:
     screens, with first RNG divergence unchanged at step `1295`.
   - `seed032_manual_direct` still full-pass.
   - `seed100_multidigit_gameplay` still full-pass.
+
+### Menu parity: preselected `PICK_ONE` rendering + doterrain menu path (2026-03-09)
+
+- Problem:
+  - `doterrain` (`View which?`) in JS used a custom prompt loop instead of the
+    canonical menu stack used by C (`create_nhwindow` + `select_menu(PICK_ONE)`).
+  - This left cursor parity short in seed033 around the prompt boundary.
+- Fixes:
+  - [`js/windows.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/windows.js):
+    - `buildMenuLines()` now renders `PICK_ONE` preselection marker as `*`
+      when `MENU_ITEMFLAGS_SELECTED` is set (C tty-style menu line shape).
+    - `select_menu()` gained optional `opts.acceptPreselectedOnSpace`; when
+      enabled, `Space`/`Enter` accepts the explicitly preselected item.
+      Default behavior for existing callers is unchanged.
+  - [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js):
+    - `handleViewMapPrompt()` now uses menu primitives instead of a bespoke
+      key loop and enables preselected-space acceptance for this command.
+    - Added terrain-only repaint for selection `1` (known terrain only) before
+      emitting the existing status message.
+- Validation:
+  - `seed033_manual_direct` cursor parity improved from `1278/1288` to
+    `1288/1288`.
+  - `seed032_manual_direct` remains full-pass.
+  - `seed100_multidigit_gameplay` remains full-pass.

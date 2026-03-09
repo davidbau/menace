@@ -7,6 +7,7 @@ import {
     NHW_MESSAGE, NHW_STATUS, NHW_MAP, NHW_MENU, NHW_TEXT, NHW_PERMINVENT,
     PICK_NONE, PICK_ONE, PICK_ANY,
     MENU_BEHAVE_STANDARD, MENU_BEHAVE_PERMINV,
+    MENU_ITEMFLAGS_SELECTED,
     ATR_NONE, ATR_ULINE, ATR_BOLD, ATR_BLINK, ATR_INVERSE, ATR_URGENT, ATR_NOHISTORY,
 } from './const.js';
 
@@ -208,7 +209,7 @@ export function end_menu(win, prompt) {
 }
 
 // Build the lines array that will be shown in a menu overlay.
-function buildMenuLines(w, selected = null) {
+function buildMenuLines(w, selected = null, how = PICK_NONE) {
     const lines = [];
     if (w.prompt) lines.push(w.prompt);
     lines.push('');
@@ -218,10 +219,12 @@ function buildMenuLines(w, selected = null) {
         if (item.id === null) {
             lines.push(item.str);          // add_menu_str equivalent: raw text, no prefix
         } else {
-            const picked = !!(selected && item.ch && selected.has(item.ch));
-            const sel = item.ch
-                ? `${String.fromCharCode(item.ch)} ${picked ? '+' : '-'} `
-                : '    ';
+            const preselected = !!(item.itemflags & MENU_ITEMFLAGS_SELECTED);
+            const picked = !!(item.ch && selected && selected.has(item.ch));
+            const marker = (how === PICK_ONE)
+                ? ((selected ? picked : preselected) ? '*' : '-')
+                : (picked ? '+' : '-');
+            const sel = item.ch ? `${String.fromCharCode(item.ch)} ${marker} ` : '    ';
             lines.push(sel + item.str);
         }
     }
@@ -260,13 +263,13 @@ export function redrawActiveTextPopupWindows() {
 
 // select_menu(win, how) — C ref: tty_select_menu()
 // Returns [{identifier, count}] for selected items, or null for no selection.
-export async function select_menu(win, how) {
+export async function select_menu(win, how, opts = null) {
     const w = wins[win];
     if (!w) return null;
     w.how = how;
 
     const renderMenu = (selected = null) => {
-        const lines = buildMenuLines(w, selected);
+        const lines = buildMenuLines(w, selected, how);
         if (_display) {
             let offx = 0;
             const isPickupMenu = typeof w.prompt === 'string' && w.prompt === 'Pick up what?';
@@ -293,12 +296,22 @@ export async function select_menu(win, how) {
     }
 
     if (how === PICK_ONE) {
+        const preselectedItem = w.mlist.find((item) => (
+            item?.id !== null
+            && !!(item.itemflags & MENU_ITEMFLAGS_SELECTED)
+        )) || null;
+        const acceptPreselectedOnSpace = !!opts?.acceptPreselectedOnSpace;
         while (true) {
             const ch = await _nhgetch();
-            // ESC, 'q', space, Enter — cancel
-            if (ch === 27 || ch === 'q'.charCodeAt(0)
-                || ch === ' '.charCodeAt(0) || ch === 13 || ch === 10) {
+            // ESC, 'q' — cancel
+            if (ch === 27 || ch === 'q'.charCodeAt(0)) {
                 return null;
+            }
+            // Optional C-faithful mode for menus with a preselected entry.
+            if (ch === ' '.charCodeAt(0) || ch === 13 || ch === 10) {
+                if (!acceptPreselectedOnSpace) return null;
+                if (!preselectedItem) return null;
+                return [{ identifier: preselectedItem.id, count: -1 }];
             }
             const item = w.mlist.find(i => i.ch === ch);
             if (item) return [{ identifier: item.id, count: -1 }];
