@@ -308,8 +308,8 @@ export function get_pricing_units(obj) {
     return units;
 }
 
-// C ref: shk.c oid_price_adjustment()
-function oid_price_adjustment(obj, oid) {
+// C ref: shk.c:2805 oid_price_adjustment()
+export function oid_price_adjustment(obj, oid) {
     const od = objectData[obj.otyp] || {};
     const nameKnown = isObjectNameKnown(obj.otyp);
     if (!(obj.dknown && nameKnown)

@@ -3891,3 +3891,6 @@ export function monsterNearby(map, player, fov) {
     }
     return false;
 }
+
+// C-compatible alias
+export { monsterNearby as monster_nearby };

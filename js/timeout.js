@@ -20,7 +20,8 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE,
          TIMER_KIND, TIMER_FUNC, MELT_ICE_AWAY,
          NO_MINVENT, MM_NOMSG,
-         LS_OBJECT, OBJ_INVENT, OBJ_FLOOR, OBJ_CONTAINED } from './const.js';
+         LS_OBJECT, OBJ_INVENT, OBJ_FLOOR, OBJ_CONTAINED,
+         OBJ_BURIED, OBJ_MINVENT, OBJ_MIGRATING } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { mons } from './monsters.js';
@@ -1318,6 +1319,24 @@ export function learn_egg_type(mnum, game) {
   mnum = little_to_big(mnum);
   game.mvitals[mnum].mvflags |= MV_KNOWS_EGG;
   update_inventory();
+}
+
+// C ref: timeout.c:2552 — obj_is_local()
+export function obj_is_local(obj, game) {
+    if (!obj) return false;
+    switch (obj.where) {
+        case OBJ_INVENT:
+        case OBJ_MIGRATING:
+            return false;
+        case OBJ_FLOOR:
+        case OBJ_BURIED:
+            return true;
+        case OBJ_CONTAINED:
+            return obj_is_local(obj.ocontainer, game);
+        case OBJ_MINVENT:
+            return mon_is_local(obj.ocarry, game);
+    }
+    return false;
 }
 
 // Autotranslated from timeout.c:2575

@@ -76,7 +76,7 @@ const seenv_matrix = [
 // ========================================================================
 // does_block — C ref: vision.c:153 — what blocks vision
 // ========================================================================
-function does_block(map, x, y) {
+export function does_block(map, x, y) {
     if (!map) return true;
     const loc = map.at(x, y);
     if (!loc) return true;

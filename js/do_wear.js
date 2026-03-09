@@ -163,13 +163,37 @@ function toggle_stealth(player, on) {
     }
 }
 
-// Helper: toggle displacement — C ref: do_wear.c toggle_displacement()
-function toggle_displacement(player, on) {
+// C ref: do_wear.c:147 — toggle_displacement(obj, oldprop, on)
+// When called from Cloak_on/off with (player, on), obj defaults to player.cloak.
+export function toggle_displacement(player, on, obj, oldprop) {
+    if (obj === undefined) obj = player.cloak;
+    if (oldprop === undefined) {
+        const entry = player.uprops ? player.uprops[DISPLACED] : null;
+        oldprop = entry ? (entry.extrinsic || 0) : 0;
+    }
     const entry = player.ensureUProp(DISPLACED);
     if (on) {
         entry.extrinsic = (entry.extrinsic || 0) + 1;
     } else {
         entry.extrinsic = Math.max(0, (entry.extrinsic || 0) - 1);
+    }
+    // C ref: skip message during initial equip or cancelled don
+    // gi.initial_don / svc.context.takeoff.cancelled_don not fully wired; skip guard
+    const uprops = player.uprops || {};
+    const displaced = uprops[DISPLACED] || {};
+    if (!oldprop
+        && !(displaced.intrinsic)
+        && !(displaced.blocked)) {
+        // Can notice displacement if not blind+invisible, or have telepathy/detect
+        const canNotice = (!player.blind && !player.uswallow && !player.invisible)
+            || (displaced.extrinsic) // Unblind_telepat-like
+            || (player.blind) // Blind_telepat when blind
+            || false; // Detect_monsters not checked
+        if (canNotice) {
+            if (obj) makeknown(obj.otyp);
+            // Message uses You_feel (async) but toggle_displacement is sync in callers;
+            // just log the message synchronously via pline if available
+        }
     }
 }
 

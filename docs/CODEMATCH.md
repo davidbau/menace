@@ -5147,7 +5147,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2576 | `mon_is_local` | - | N/A (save/restore) |
 | 588 | `nh_timeout` | 407 | Aligned: intrinsic timeout decrement loop, dialogue calls before decrement, _fireExpiryEffect with death/status/equipment handlers |
 | 2396 | `obj_has_timer` | 369 | Aligned |
-| 2552 | `obj_is_local` | - | N/A (save/restore) |
+| 2552 | `obj_is_local` | timeout.js:obj_is_local | Implemented: recursive obj.where switch for INVENT/FLOOR/BURIED/CONTAINED/MINVENT/MIGRATING |
 | 2331 | `obj_move_timers` | 333 | Aligned |
 | 2351 | `obj_split_timers` | 344 | Aligned |
 | 2369 | `obj_stop_timers` | 364 | Aligned |
