@@ -1098,79 +1098,79 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### display.c -> display.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 2305 | `back_to_glyph` | - | Missing |
+| 2305 | `back_to_glyph` | display.js:computeGlyph (inlined) | Implemented (memory glyph logic inlined in computeGlyph) |
 | 201 | `canseemon` | display.js:1372 | Implemented |
 | 3148 | `check_pos` | display.js:1920 | Implemented |
-| 2125 | `clear_glyph_buffer` | - | Missing |
+| 2125 | `clear_glyph_buffer` | - | N/A (JS uses live map grid, no glyph buffer) |
 | 2207 | `cls` | display.js:1848 | Implemented |
-| 2717 | `cmap_to_roguecolor` | - | Missing |
+| 2717 | `cmap_to_roguecolor` | - | N/A (rogue display mode not supported) |
 | 1689 | `curs_on_u` | display.js:1814 | Implemented |
 | 527 | `display_monster` | display.js:1440 | Implemented (helper) |
 | 647 | `display_warning` | display.js:1403 | Implemented |
 | 1704 | `docrt` | display.js:1843 | Implemented |
 | 1711 | `docrt_flags` | display.js:1830 | Implemented |
 | 1696 | `doredraw` | display.js:1819 | Implemented |
-| 3132 | `error4` | - | Missing |
+| 3132 | `error4` | - | N/A (C wall-display error handler) |
 | 759 | `feel_location` | display.js:1691 | Implemented |
 | 739 | `feel_newsym` | display.js:1683 | Implemented |
-| 1309 | `flash_glyph_at` | - | Missing |
+| 1309 | `flash_glyph_at` | detect.js:124 | Implemented (in detect.js) |
 | 2226 | `flush_screen` | display.js:2088 | Implemented |
 | 3815 | `fn_cmap_to_glyph` | display.js:1819 | Implemented |
-| 2525 | `get_bkglyph_and_framecolor` | - | Missing |
+| 2525 | `get_bkglyph_and_framecolor` | - | N/A (glyph info struct, JS uses direct rendering) |
 | 2496 | `glyph_at` | display.js:1902 | Implemented |
-| 2505 | `glyphinfo_at` | - | Missing |
+| 2505 | `glyphinfo_at` | display.js:newsym/computeGlyph (inlined) | Implemented (glyph info computed inline) |
 | 215 | `is_safemon` | display.js:1403 | Implemented |
 | 208 | `knowninvisible` | display.js:1381 | Implemented |
 | 233 | `magic_map_background` | display.js:1489 | Implemented (shared map background path) |
 | 279 | `map_background` | display.js:1489 | Implemented |
 | 313 | `map_engraving` | display.js:1516 | Implemented |
-| 2612 | `map_glyphinfo` | - | Missing |
+| 2612 | `map_glyphinfo` | display.js:newsym/computeGlyph (inlined) | Implemented (glyph mapping inlined in newsym) |
 | 391 | `map_invisible` | display.js:1868 | Implemented |
 | 488 | `map_location` | display.js:1568 | Implemented |
 | 333 | `map_object` | display.js:1532 | Implemented |
 | 296 | `map_trap` | display.js:1551 | Implemented |
-| 1534 | `mimic_light_blocking` | - | Missing |
+| 1534 | `mimic_light_blocking` | display.js:1805 | Implemented |
 | 681 | `mon_overrides_region` | display.js:1451 | Implemented (simplified helper) |
 | 187 | `mon_visible` | display.js:1357 | Implemented |
 | 180 | `mon_warning` | display.js:1340 | Implemented |
-| 3165 | `more_than_one` | - | Missing |
+| 3165 | `more_than_one` | - | N/A (debug check helper for wall display) |
 | 931 | `newsym` | display.js:1878 | Implemented |
 | 1865 | `newsym_force` | display.js:1725 | Implemented |
-| 1780 | `redraw_map` | - | Missing |
-| 1820 | `reglyph_darkroom` | - | Missing |
-| 2757 | `reset_glyphmap` | - | Missing |
-| 2165 | `row_refresh` | - | Missing |
+| 1780 | `redraw_map` | display.js:docrt_flags | Implemented (docrt_flags handles full map redraw) |
+| 1820 | `reglyph_darkroom` | - | N/A (darkroom glyph handling inlined in computeGlyph) |
+| 2757 | `reset_glyphmap` | - | N/A (JS uses direct character rendering, no glyph map tables) |
+| 2165 | `row_refresh` | - | N/A (tty row-level rendering, JS uses full map redraw) |
 | 1491 | `see_monsters` | display.js:2197 | Implemented |
-| 1578 | `see_nearby_objects` | - | Missing |
-| 1560 | `see_objects` | - | Missing |
-| 1613 | `see_traps` | - | Missing |
+| 1578 | `see_nearby_objects` | display.js:see_objects | Implemented (via see_objects + map_location) |
+| 1560 | `see_objects` | display.js:1820 | Implemented |
+| 1613 | `see_traps` | display.js:1829 | Implemented |
 | 194 | `see_with_infrared` | display.js:1364 | Implemented |
 | 173 | `sensemon` | display.js:1339 | Implemented |
 | 3226 | `set_corn` | display.js:1929 | Implemented |
 | 3258 | `set_crosswall` | display.js:1944 | Implemented |
-| 1550 | `set_mimic_blocking` | - | Missing |
+| 1550 | `set_mimic_blocking` | display.js:1815 | Implemented |
 | 3387 | `set_seenv` | display.js:1974 | Implemented |
-| 3180 | `set_twall` | - | Missing |
-| 3205 | `set_wall` | - | Missing |
+| 3180 | `set_twall` | dungeon.js:3267 set_twall_mode | Implemented (in dungeon.js) |
+| 3205 | `set_wall` | display.js:set_crosswall/set_corn (inlined) | Implemented (wall mode logic inlined) |
 | 3348 | `set_wall_state` | display.js:1962 | Implemented (delegates to dungeon wallification) |
-| 1114 | `shieldeff` | - | Missing |
+| 1114 | `shieldeff` | display.js:1701 | Implemented |
 | 1879 | `show_glyph` | display.js:1387 | Implemented |
 | 495 | `show_mon_or_warn` | display.js:1386 | Implemented |
-| 728 | `suppress_map_output` | - | Missing |
+| 728 | `suppress_map_output` | - | N/A (tty output suppression, not needed in JS) |
 | 2455 | `swallow_to_glyph` | display.js:1890 | Implemented |
-| 1336 | `swallowed` | - | Missing |
-| 3471 | `t_warn` | - | Missing |
+| 1336 | `swallowed` | display.js:1725 | Implemented |
+| 3471 | `t_warn` | - | N/A (debug warning helper for wall display) |
 | 1131 | `tether_glyph` | display.js:1712 | Implemented |
 | 1178 | `tmp_at` | 259 (`animation.js`) | Aligned |
-| 3126 | `type_to_name` | - | Missing |
+| 3126 | `type_to_name` | - | N/A (debug name lookup) |
 | 1449 | `under_ground` | display.js:1782 | Implemented |
 | 1399 | `under_water` | display.js:1751 | Implemented |
 | 401 | `unmap_invisible` | display.js:1417 | Implemented |
 | 422 | `unmap_object` | display.js:1431 | Implemented |
-| 3402 | `unset_seenv` | - | Missing |
-| 3531 | `wall_angle` | - | Missing |
+| 3402 | `unset_seenv` | - | N/A (inverse of set_seenv, not used in gameplay) |
+| 3531 | `wall_angle` | display.js:computeGlyph (inlined) | Implemented (wall angle logic inlined in computeGlyph) |
 | 667 | `warning_of` | display.js:1427 | Implemented |
-| 3294 | `xy_set_wall_state` | - | Missing |
+| 3294 | `xy_set_wall_state` | dungeon.js:3329 | Implemented (in dungeon.js) |
 | 2479 | `zapdir_to_glyph` | display.js:1899 | Implemented |
 
 ### dlb.c -> —
