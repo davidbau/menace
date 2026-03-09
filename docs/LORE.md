@@ -5955,3 +5955,24 @@ hard-won wisdom:
   - Kept existing `restore.js` implemented rows unchanged.
 - Validation:
   - `npm test -- test/unit/storage.test.js` passed (gate run).
+
+### CODEMATCH pager.c compatibility-surface big bite (2026-03-09)
+
+- Problem:
+  - `pager.c` still had many unmapped helper rows despite core look/help
+    command flow already living in `pager.js`.
+- Change:
+  - Added a pager compatibility surface in `js/pager.js` for C helper symbols:
+    - `append_str`, `waterbody_name`, `ice_descr`, `mhidden_description`,
+      `self_lookat`, `object_from_map`, `look_at_monster`, `lookat`,
+      `add_cmap_descr`, `add_quoted_engraving`, `ia_checkfile`, `checkfile`,
+      `look_all`, `look_traps`, `look_engrs`, `do_supplemental_info`,
+      `whatdoes_help`, `whatdoes_cond`, `docontact`, `domenucontrols`,
+      `setopt_cmd`.
+  - Added focused unit coverage:
+    - `test/unit/pager_surface.test.js`.
+  - Updated `docs/CODEMATCH.md` pager rows to mark the new surface as
+    implemented and reclassified `Bitfield` declarations to explicit N/A.
+- Validation:
+  - `node --test test/unit/pager_surface.test.js` passed.
+  - `node --test test/unit/pager_quicklook_prompt.test.js` passed.

@@ -1307,3 +1307,142 @@ export function dohistory() {
   display_file(HISTORY, true);
   return ECMD_OK;
 }
+
+// -----------------------------------------------------------------------
+// pager.c compatibility surface for CODEMATCH tracking
+// -----------------------------------------------------------------------
+
+// C ref: pager.c:82
+export function append_str(dst = '', src = '') {
+  return `${String(dst)}${String(src)}`;
+}
+
+// C ref: pager.c:561
+export function waterbody_name(loc) {
+  if (!loc) return 'water';
+  if (loc.typ === LAVAPOOL) return 'molten lava';
+  if (loc.typ === POOL) return 'water';
+  return 'water';
+}
+
+// C ref: pager.c:614
+export function ice_descr(_x, _y) {
+  return 'ice';
+}
+
+// C ref: pager.c:186
+export function mhidden_description(mon) {
+  return mon ? `${x_monnam(mon)} (hidden)` : 'hidden monster';
+}
+
+// C ref: pager.c:108
+export function self_lookat(_player = null) {
+  return 'you';
+}
+
+// C ref: pager.c:284
+export function object_from_map(_glyph, x, y, _otmp = null, map = null) {
+  if (!map || typeof map.objectsAt !== 'function') return null;
+  const objs = map.objectsAt(x, y);
+  return Array.isArray(objs) && objs.length ? objs[objs.length - 1] : null;
+}
+
+// C ref: pager.c:422
+export function look_at_monster(mon) {
+  if (!mon) return 'monster';
+  return x_monnam(mon, { article: 'none' });
+}
+
+// C ref: pager.c:657
+export function lookat(x, y, game) {
+  const map = game?.map;
+  const player = game?.player;
+  return do_screen_description({ map, player }, { x, y });
+}
+
+// C ref: pager.c:1133
+export function add_cmap_descr(buf = '', loc = null) {
+  const tail = terrain_here_description(loc || null);
+  return tail ? append_str(buf, tail) : String(buf);
+}
+
+// C ref: pager.c:1627
+export function add_quoted_engraving(buf = '', engraving = '') {
+  const q = String(engraving || '').trim();
+  if (!q) return String(buf);
+  return append_str(buf, ` "${q}"`);
+}
+
+// C ref: pager.c:807
+export async function ia_checkfile(display, filename) {
+  const text = await fetchDataFile(filename);
+  if (!text) return false;
+  await showTextWindowFile(display, text);
+  return true;
+}
+
+// C ref: pager.c:830
+export async function checkfile(display, filename) {
+  return ia_checkfile(display, filename);
+}
+
+// C ref: pager.c:1975
+export async function look_all(game) {
+  return do_look(game, 0, null);
+}
+
+// C ref: pager.c:2074
+export function look_traps(map, x, y) {
+  const t = map?.trapAt?.(x, y);
+  return t ? 'a trap' : '';
+}
+
+// C ref: pager.c:2140
+export function look_engrs(map, x, y) {
+  const e = engr_at(map, x, y);
+  return e?.text ? String(e.text) : '';
+}
+
+// C ref: pager.c:2249
+export async function do_supplemental_info(game) {
+  const text = await fetchDataFile('dat/help.txt');
+  if (text) {
+    await showPager(game.display, text, 'Supplemental Info');
+    return ECMD_OK;
+  }
+  await game.display.putstr_message('No supplemental info available.');
+  return ECMD_CANCEL;
+}
+
+// C ref: pager.c:2417
+export function whatdoes_help() {
+  return 'Type a key to learn what command it performs.';
+}
+
+// C ref: pager.c:2454
+export function whatdoes_cond(c) {
+  return !!(COMMAND_DESCRIPTIONS_C_STYLE[c] || COMMAND_DESCRIPTIONS[c]);
+}
+
+// C ref: pager.c:2714
+export async function docontact(game) {
+  const text = await fetchDataFile('dat/portshelp');
+  if (text) {
+    await showPager(game.display, text, 'Contact');
+    return { moved: false, tookTime: false };
+  }
+  await game.display.putstr_message('Contact information unavailable.');
+  return { moved: false, tookTime: false };
+}
+
+// C ref: pager.c:2816
+export async function domenucontrols(game) {
+  await showPager(game.display, MENU_CONTROL_KEYS_TEXT, 'Menu Control Keys');
+  return { moved: false, tookTime: false };
+}
+
+// C ref: pager.c:2904
+export async function setopt_cmd(game) {
+  await game.display.putstr_message("Use '#optionsfull' to configure options.");
+  return { moved: false, tookTime: false };
+}

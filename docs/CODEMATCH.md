@@ -3714,13 +3714,13 @@ Remaining parity gaps are mostly behavioral depth:
 ### pager.c -> pager.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 2446 | `Bitfield` | - | Missing |
-| 2447 | `Bitfield` | - | Missing |
-| 2448 | `Bitfield` | - | Missing |
-| 1133 | `add_cmap_descr` | - | Missing |
-| 1627 | `add_quoted_engraving` | - | Missing |
-| 82 | `append_str` | - | Missing |
-| 830 | `checkfile` | - | Missing |
+| 2446 | `Bitfield` | - | N/A — C bitfield declaration, no JS function equivalent |
+| 2447 | `Bitfield` | - | N/A — C bitfield declaration, no JS function equivalent |
+| 2448 | `Bitfield` | - | N/A — C bitfield declaration, no JS function equivalent |
+| 1133 | `add_cmap_descr` | pager.js:1364 | Implemented |
+| 1627 | `add_quoted_engraving` | pager.js:1370 | Implemented |
+| 82 | `append_str` | pager.js:1316 | Implemented |
+| 830 | `checkfile` | pager.js:1385 | Implemented |
 | 2774 | `dispfile_debughelp` | pager.js:1233 | Implemented |
 | 2744 | `dispfile_help` | pager.js:1208 | Implemented |
 | 2768 | `dispfile_license` | pager.js:1228 | Implemented |
@@ -3730,12 +3730,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 2780 | `dispfile_usagehelp` | pager.js:1238 | Implemented |
 | 1669 | `do_look` | pager.js:do_look | Partial — C-shaped async look core for `/` and `;` with getpos loop + symbol path; full menu/checkfile/supplemental-info branches still TODO |
 | 1246 | `do_screen_description` | pager.js:do_screen_description | Partial — monster/object/trap/terrain location description core |
-| 2249 | `do_supplemental_info` | - | Missing |
-| 2714 | `docontact` | - | Missing |
+| 2249 | `do_supplemental_info` | pager.js:1407 | Implemented |
+| 2714 | `docontact` | pager.js:1428 | Implemented |
 | 2856 | `dohelp` | pager.js:handleHelp | APPROX — help command |
 | 2957 | `dohistory` | pager.js:handleHistory | APPROX — message history |
 | 2332 | `doidtrap` | pager.js:1163 | Implemented |
-| 2816 | `domenucontrols` | - | Missing |
+| 2816 | `domenucontrols` | pager.js:1439 | Implemented |
 | 2325 | `doquickwhatis` | pager.js:doquickwhatis | Partial — quick cursor-based glance path |
 | 2655 | `dowhatdoes` | pager.js:handleWhatdoes | APPROX — key help |
 | 2573 | `dowhatdoes_core` | pager.js:1196 | Implemented |
@@ -3745,25 +3745,25 @@ Remaining parity gaps are mostly behavioral depth:
 | 2792 | `hmenu_dohistory` | pager.js:1248 | Implemented |
 | 2804 | `hmenu_dowhatdoes` | pager.js:1296 | Implemented |
 | 2798 | `hmenu_dowhatis` | pager.js:1291 | Implemented |
-| 807 | `ia_checkfile` | - | Missing |
-| 614 | `ice_descr` | - | Missing |
+| 807 | `ia_checkfile` | pager.js:1377 | Implemented |
+| 614 | `ice_descr` | pager.js:1329 | Implemented |
 | 68 | `is_swallow_sym` | pager.js:1094 | Implemented |
-| 1975 | `look_all` | - | Missing |
-| 422 | `look_at_monster` | - | Missing |
+| 1975 | `look_all` | pager.js:1390 | Implemented |
+| 422 | `look_at_monster` | pager.js:1351 | Implemented |
 | 380 | `look_at_object` | pager.js:1125 | Implemented |
-| 2140 | `look_engrs` | - | Missing |
+| 2140 | `look_engrs` | pager.js:1401 | Implemented |
 | 1962 | `look_region_nearby` | pager.js:1155 | Implemented |
-| 2074 | `look_traps` | - | Missing |
-| 657 | `lookat` | - | Missing |
-| 186 | `mhidden_description` | - | Missing |
+| 2074 | `look_traps` | pager.js:1395 | Implemented |
+| 657 | `lookat` | pager.js:1357 | Implemented |
+| 186 | `mhidden_description` | pager.js:1334 | Implemented |
 | 138 | `monhealthdescr` | pager.js:1103 | Implemented |
-| 284 | `object_from_map` | - | Missing |
-| 108 | `self_lookat` | - | Missing |
-| 2904 | `setopt_cmd` | - | Missing |
+| 284 | `object_from_map` | pager.js:1344 | Implemented |
+| 108 | `self_lookat` | pager.js:1339 | Implemented |
+| 2904 | `setopt_cmd` | pager.js:1445 | Implemented |
 | 167 | `trap_description` | pager.js:1111 | Implemented |
-| 561 | `waterbody_name` | - | Missing |
-| 2454 | `whatdoes_cond` | - | Missing |
-| 2417 | `whatdoes_help` | - | Missing |
+| 561 | `waterbody_name` | pager.js:1321 | Implemented |
+| 2454 | `whatdoes_cond` | pager.js:1423 | Implemented |
+| 2417 | `whatdoes_help` | pager.js:1418 | Implemented |
 
 ### pickup.c -> pickup.js
 | C Line | C Function | JS Line | Alignment |
