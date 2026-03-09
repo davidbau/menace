@@ -2434,6 +2434,9 @@ async function handleRemove(player, display, game = null) {
 
 export { handleWear, handlePutOn, handleTakeOff, handleRemove, canwearobj, cursed_check, Boots_on, Boots_off, Cloak_on, Cloak_off, Helmet_on, Helmet_off, Gloves_on, Gloves_off, Shield_on, Shield_off, Shirt_on, Shirt_off, Amulet_on, Amulet_off, wielding_corpse, dragon_armor_handling, set_wear, donning, doffing, cancel_doff, cancel_don, stop_donning, glibr, some_armor, stuck_ring, count_worn_stuff, select_off, remarm_swapwep, menu_remarm, wornarm_destroyed, inaccessible_equipment, equip_ok, any_worn_armor_ok };
 
+// C-name aliases for command handlers
+export { handleWear as dowear, handlePutOn as doputon, handleTakeOff as dotakeoff };
+
 // C ref: do_wear.c:1217 adjust_attrib() — adjust ABON for ring/amulet
 export function adjust_attrib(obj, which, val, game, player) {
   const old_attrib = acurr(player, which);

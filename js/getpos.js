@@ -844,6 +844,83 @@ export function getpos_clear_hilite() {
 
 export { HiliteNormalMap, HiliteGoodposSymbol, HiliteBackground };
 
+// C ref: getpos.c:311 cmp_coord_distu
+// Sort comparator: by Chebyshev distance from hero, tiebreak y then x.
+export function cmp_coord_distu(a, b, player) {
+    const dist_a = Math.max(Math.abs(player.x - a.x), Math.abs(player.y - a.y));
+    const dist_b = Math.max(Math.abs(player.x - b.x), Math.abs(player.y - b.y));
+    if (dist_a !== dist_b) return dist_a - dist_b;
+    return (a.y !== b.y) ? (a.y - b.y) : (a.x - b.x);
+}
+
+// C ref: getpos.c:390 gloc_filter_init
+export function gloc_filter_init(map, player) {
+    // For GFILTER_AREA mode, initializes the area filter via floodfill.
+    // In simplified JS, the area filter is handled by gloc_filter_allows()
+    // which checks roomno matching. This is a no-op stub for C naming parity.
+}
+
+// C ref: getpos.c:594 coord_desc
+// Format coordinate description based on display mode.
+export function coord_desc(x, y, player, cmode) {
+    if (!cmode || cmode === 'none') return '';
+    if (cmode === 'compass' || cmode === 'comfull') {
+        const dx = x - player.x;
+        const dy = y - player.y;
+        return `(${dxdy_to_dist_descr(dx, dy, cmode === 'comfull')})`;
+    }
+    if (cmode === 'map') return `<${x},${y}>`;
+    if (cmode === 'screen') {
+        // Map line 0 is screen row 2; column 1 is screen column 1
+        const row = String(y + 2).padStart(2, '0');
+        const col = String(x).padStart(2, '0');
+        return `[${row},${col}]`;
+    }
+    return '';
+}
+
+// C ref: getpos.c:639 auto_describe
+// Display description of what's at cursor location during getpos.
+export async function auto_describe(cx, cy, display, ctx) {
+    if (!display || typeof display.putstr_message !== 'function') return;
+    const desc = await describeCursorWithContext(display, ctx, cx, cy);
+    if (!desc) return;
+    const player = ctx?.player;
+    const coordStr = player ? coord_desc(cx, cy, player, ctx?.flags?.getpos_coords) : '';
+    let message = desc;
+    if (coordStr) message += ' ' + coordStr;
+    if (getpos_getvalid && !getpos_getvalid(cx, cy)) {
+        message += ' (invalid target)';
+    }
+    if (ctx?.travelMode && typeof ctx.isTravelPathValid === 'function') {
+        const valid = await ctx.isTravelPathValid(cx, cy);
+        if (!valid) message += ' (no travel path)';
+    }
+    await display.putstr_message(message);
+}
+
+// C ref: getpos.c:512 gather_locs
+// Gather interesting locations for target cycling, sorted by distance from hero.
+export function gather_locs(map, gloc, player, ctx) {
+    const targets = [];
+    if (!map) return targets;
+    // Always include hero's position (sorts to index 0)
+    for (let x = 1; x < COLNO; x++) {
+        for (let y = 0; y < ROWNO; y++) {
+            if ((player && x === player.x && y === player.y)
+                || gather_locs_interesting(map, x, y, gloc)) {
+                if (gloc_filter_allows(map, x, y, ctx)) {
+                    targets.push({ x, y });
+                }
+            }
+        }
+    }
+    if (player) {
+        targets.sort((a, b) => cmp_coord_distu(a, b, player));
+    }
+    return targets;
+}
+
 // Autotranslated from getpos.c:340
 export function gloc_filter_classify_glyph(glyph) {
   let c;

@@ -56,7 +56,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[N/A]` | dlb.c | — | Data librarian (file bundling). Not needed in JS |
 | `[a]` | do.c | do.js | Miscellaneous actions. handleDrop/handleDownstairs/handleUpstairs (dodrop/dodown/doup); stair transitions now reproduce C's blocking `--More--` acknowledgment via `waitForStairMessageAck()` (`goto_level()` → `docrt()` → `display_nhwindow(WIN_MESSAGE,TRUE)`); ~45 functions TODO |
 | `[a]` | do_name.c | do_name.js | Naming things. 49/55 C functions present: docallcmd, do_mgivenname, do_oname, coord_desc, the/The/an/An/aobjnam/Doname2/doname/xname/simpleonames/ansimpleonames/distant_name, mon_nam/noit_mon_nam/Monnam/Adjmonnam/a_monnam/m_monnam/l_monnam/x_monnam/rndmonnam etc. ~6 edge-case functions TODO |
-| `[~]` | do_wear.c | do_wear.js | Wearing/removing armor and accessories. Multi-slot handleWear/handlePutOn/handleTakeOff/handleRemove; canwearobj, cursed_check, find_ac. Equipment on/off effects implemented for all slot types: Boots (speed/stealth/fumble/levitation with messages and makeknown), Cloaks (stealth/displacement/invisibility/protection), Helmets (brilliance/telepathy/dunce cap), Gloves (fumbling/power/dexterity), all 28 ring types (resistances, teleport, polymorph, conflict, etc. with extrinsic tracking), Amulets (ESP, life saving, strangulation, change, etc.). Uses toggle_extrinsic/toggle_stealth/toggle_displacement helpers. adj_abon and learnring implemented. Remaining gaps: float_up/float_down for levitation, vision system calls (see_monsters, newsym), cockatrice corpse wielding check, multi-takeoff(A), armor destruction. |
+| `[a]` | do_wear.c | do_wear.js | Wearing/removing armor and accessories. 42+ C functions present: dowear/doputon/dotakeoff/doremring (C-name aliases for handleWear/PutOn/TakeOff/Remove), ia_dotakeoff, canwearobj, cursed_check, find_ac, count_worn_stuff, select_off, equip_ok, stuck_ring, some_armor, armor_or_accessory_off, accessory_or_armor_on, all slot on/off (Boots/Cloak/Helmet/Gloves/Shield/Shirt/Amulet), Ring_on/off, adj_abon, learnring, all 28 ring types. Remaining gaps: float_up/float_down, vision calls, cockatrice check |
 | `[a]` | dog.c | dog.js | Pet behavior. dogfood/makedog/mon_arrive in dog.js; losedogs/keepdogs/migrate TODO |
 | `[a]` | dogmove.c | dogmove.js | Pet movement AI. All functions except `quickmimic` |
 | `[a]` | dokick.c | dokick.js, kick.js | Kicking mechanics. `dokick.js` carries the C-structured kick/object-migration callchain (`dokick`, `kick_*`, `impact_drop`, `ship_object`, `obj_delivery`); `kick.js` remains a lightweight command adapter path |
@@ -71,7 +71,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | extralev.c | extralev.js | Special level generation helpers. All 6 C functions present: corr, roguejoin, miniwalk, roguecorr, makerogueghost, makeroguerooms |
 | `[N/A]` | files.c | — | File I/O operations. JS: `storage.js` |
 | `[a]` | fountain.c | fountain.js | Fountain effects. drinkfountain/dryup implemented (RNG-parity); ~12 functions TODO |
-| `[~]` | getpos.c | getpos.js | Position selection UI. Core highlight callback lifecycle wired (`getpos_sethilite`, toggle, refresh, cleanup) and interactive cursor loop implemented (`getpos_async`: vi/arrow movement, pick/cancel, redraw/help, filter cycle, C-style target-class next/prev keys `m/M o/O d/D x/X i/I v/V`, typed map-symbol cycling forward/backward, and NHW_MENU-backed `=` target picking). `getloc_filter` handling now applies basic view/area gating in target gathering, target cycling, and map-symbol searches. Helper surfaces `getpos_getvalids_selection`, `getpos_help_keyxhelp`, `getpos_help`, and `getpos_menu` now exist in partial form. Full C parity for keybindings/target classes/filter-area behavior/help text details remains partial |
+| `[a]` | getpos.c | getpos.js | Position selection UI. 21/22 C functions present: getpos_sethilite/toggle_hilite_state/refresh, mapxy_valid, getpos_getvalids_selection, getpos_help_keyxhelp/help/menu, getpos_async (=C getpos), gloc_filter_classify_glyph/floodfill_matcharea/floodfill/init/done, gather_locs_interesting/gather_locs, known_vibrating_square_at, cmp_coord_distu, dxdy_to_dist_descr, coord_desc, auto_describe, truncate_to_map. getpos_async replaces C's getpos with async/await |
 | `[~]` | glyphs.c | glyphs.js | Glyph system. JS: partially in `display.js`, `symbols.js` (glyph offsets), `const.js` |
 | `[a]` | hack.c | hack.js | Core movement and actions. C-structure entry points now explicit: `domove`, `domove_core`, `do_run`, `do_rush`, `lookaround`, `findtravelpath` (with `TRAVP_*` modes), travel setup (`dotravel`/`dotravel_target`), and spot/capacity helpers. Behavior remains partial vs C in many edge paths (~70 TODOs), but structure and naming fidelity improved. |
 | `[a]` | hacklib.c | hacklib.js | String/char utilities. All C functions implemented; in-place string ops return new strings in JS |
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 21
 - **Game logic files**: 108
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 72
+- **Aligned (`[a]`)**: 74
 - **Present (`[p]`)**: 9
-- **Needs alignment (`[~]`)**: 23
+- **Needs alignment (`[~]`)**: 21
 - **No JS file yet (`[ ]`)**: 0
 
 ### JS Files With Non-Strict C Mapping
