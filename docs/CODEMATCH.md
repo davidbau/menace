@@ -2492,7 +2492,7 @@ No function symbols parsed from isaac64.c.
 |--------|------------|---------|-----------|
 | 2349 | `assess_dmg` | mhitu.js:assess_dmg | Implemented |
 | 447 | `calc_mattacku_vars` | mhitu.js:calc_mattacku_vars | Implemented |
-| 2606 | `cloneu` | - | Missing |
+| 2606 | `cloneu` | mhitu.js:cloneu | Implemented (splits hero HP, creates tame clone via makemon) |
 | 1928 | `could_seduce` | mhitu.js:could_seduce | Implemented |
 | 1031 | `diseasemu` | mhitu.js:diseasemu | Implemented |
 | 1979 | `doseduce` | mhitu.js:doseduce | Partial — entrypoint present with simplified seduction flow |
@@ -2500,7 +2500,7 @@ No function symbols parsed from isaac64.c.
 | 1587 | `explmu` | mhitu.js:explmu | Implemented |
 | 1661 | `gazemu` | mhitu.js:gazemu | Implemented (partial effects) |
 | 309 | `getmattk` | mhitu.js:getmattk | Implemented |
-| 1269 | `gulp_blnd_check` | - | Missing |
+| 1269 | `gulp_blnd_check` | mhitu.js:gulp_blnd_check | Implemented (engulfment blindness on blindfold removal) |
 | 1285 | `gulpmu` | mhitu.js:gulpmu | Implemented (simplified engulf path) |
 | 30 | `hitmsg` | mhitu.js:hitmsg | Implemented — C-faithful attack verb dispatch (bite/kick/sting/butt/touch/tentacle/hit) |
 | 1140 | `hitmu` | mhitu.js:mattacku | Implemented — restructured to match C hitmu() flow: mhm state object, mhitu_adtyping dispatch, mhitm_knockback, negative AC damage reduction |
@@ -2509,11 +2509,11 @@ No function symbols parsed from isaac64.c.
 | 2303 | `mayberem` | mhitu.js:2179 | Implemented |
 | 1895 | `mdamageu` | mhitu.js:mdamageu | Implemented |
 | 86 | `missmu` | mhitu.js:mattacku | Implemented — miss message with "just misses" variant |
-| 2386 | `mon_avoiding_this_attack` | - | Missing |
+| 2386 | `mon_avoiding_this_attack` | mhitu.js:mon_avoiding_this_attack | Implemented (m_seenres check for ranged attack avoidance) |
 | 146 | `mpoisons_subj` | mhitu.js:mpoisons_subj | Implemented |
 | 131 | `mswings` | mhitu.js:monsterWeaponSwingMsg | Implemented — weapon swing verb/message for AT_WEAP |
 | 106 | `mswings_verb` | mhitu.js:monsterWeaponSwingVerb | Implemented — thrust/swing/slash verb selection |
-| 466 | `mtrapped_in_pit` | - | Missing |
+| 466 | `mtrapped_in_pit` | mhitu.js:mtrapped_in_pit | Implemented (pit trap check for player or monster) |
 | - | `mhitu_adtyping` | mhitu.js:mhitu_adtyping | Implemented — dispatcher for ~30 AD_* handlers in mhitu (monster-attacks-hero) branch |
 | - | `mhitu_ad_phys` | mhitu.js | Implemented — AT_HUGS grab, AT_WEAP weapon dmgval, AT_TUCH gate |
 | - | `mhitu_ad_fire` | mhitu.js | Implemented — Fire_resistance check, rn2(20) destroy_items gate |

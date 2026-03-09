@@ -34,9 +34,9 @@ import { xname } from './mkobj.js';
 import {
     x_monnam, is_humanoid, thick_skinned, hides_under,
     resists_fire, resists_cold, resists_elec, resists_acid, resists_ston,
-    sticks, unsolid, attacktype, is_demon, is_were, is_human,
+    sticks, unsolid, attacktype, attacktype_fordmg, can_blnd, is_demon, is_were, is_human,
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
-    dmgtype, dmgtype_fromattack,
+    dmgtype, dmgtype_fromattack, monsndx,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
 } from './mondata.js';
 import { m_seenres, find_offensive, use_offensive } from './muse.js';
@@ -52,17 +52,18 @@ import { set_wounded_legs } from './do.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { losexp } from './exper.js';
 import { stealgold, steal } from './steal.js';
-import { erode_obj } from './trap.js';
+import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
 import { flush_screen, newsym } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon } from './artifact.js';
 import { msummon } from './minion.js';
 import { new_were, were_summon } from './were.js';
-import { Mgender, Monnam, pmname } from './do_name.js';
+import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
+import { makemon } from './makemon.js';
 import { resists_blnd } from './zap.js';
 import { rloc, tele_restrict } from './teleport.js';
-import { RLOC_MSG, A_CHA, HAIR } from './const.js';
+import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { find_ac } from './do_wear.js';
 import { done_in_by } from './end.js';
@@ -2202,4 +2203,78 @@ export function ranged_attk_available(mtmp) {
     if (DISTANCE_ATTK_TYPE(mattk[i].aatyp) && (typ = get_atkdam_type(mattk[i].adtyp)) >= 0 && m_seenres(mtmp, cvt_adtyp_to_mseenres(typ)) === 0) return true;
   }
   return false;
+}
+
+// cf. mhitu.c:466 mtrapped_in_pit() — TRUE iff entity is trapped in a pit
+export function mtrapped_in_pit(mtmp, player, map) {
+    let ttmp = null;
+    if (mtmp === player || mtmp?.isHero) {
+        // Player check: u.utrap && u.utraptype == TT_PIT
+        ttmp = (player.utrap && player.utraptype === TT_PIT)
+            ? t_at(player.ux || player.x, player.uy || player.y, map) : null;
+    } else {
+        ttmp = mtmp.mtrapped ? t_at(mtmp.mx, mtmp.my, map) : null;
+    }
+    if (ttmp && is_pit(ttmp.ttyp)) return true;
+    return false;
+}
+
+// cf. mhitu.c:1269 gulp_blnd_check() — check if engulfment blindness applies
+// Called when removing a blindfold to see if engulfing attack takes effect.
+// Returns TRUE if engulfing blindness was applied.
+export async function gulp_blnd_check(player, game) {
+    if (player.Blinded || !player.uswallow) return false;
+    const ustuck = player.ustuck;
+    if (!ustuck) return false;
+    const mattk = attacktype_fordmg(ustuck.data || ustuck.type, AT_ENGL, AD_BLND);
+    if (!mattk) return false;
+    if (!can_blnd(ustuck, player, mattk.aatyp, null)) return false;
+    player.uswldtim = (player.uswldtim || 0) + 1; // compensate for gulpmu change
+    await gulpmu(ustuck, mattk, player, game);
+    return true;
+}
+
+// cf. mhitu.c:2386 mon_avoiding_this_attack() — TRUE if monster avoids this attack
+// Used as ranged_attk_assessed() callback.
+export function mon_avoiding_this_attack(mtmp, attkidx) {
+    const ptr = mtmp.data || mtmp.type || {};
+    const mattk = ptr.mattk;
+    if (!mattk) return false;
+    let typ = -1;
+    if (attkidx >= 0 && mattk[attkidx]
+        && (typ = get_atkdam_type(mattk[attkidx].adtyp)) >= 0
+        && m_seenres(mtmp, cvt_adtyp_to_mseenres(typ))) {
+        return true;
+    }
+    return false;
+}
+
+// cf. mhitu.c:2606 cloneu() — clone the hero as a tame monster
+export function cloneu(player, game, map) {
+    const G_EXTINCT = 0x02;
+    const youmonst_data = player.data || player.monst;
+    if (!youmonst_data) return null;
+    const mndx = monsndx(youmonst_data);
+    if ((player.mh || 0) <= 1) return null;
+    if (game.mvitals && game.mvitals[mndx]
+        && (game.mvitals[mndx].mvflags & G_EXTINCT)) return null;
+    const mon = makemon(youmonst_data, player.ux || player.x, player.uy || player.y,
+        NO_MINVENT | MM_EDOG | MM_NOMSG, null, map);
+    if (!mon) return null;
+    mon.mcloned = 1;
+    christen_monst(mon, player.name || player.plname || 'hero');
+    // C: initedog(mon, TRUE) — set tame/apport
+    mon.mtame = 10;
+    mon.tame = true;
+    mon.mpeaceful = true;
+    mon.m_lev = youmonst_data.mlevel || youmonst_data.m_lev || 0;
+    mon.mhpmax = player.mhmax || player.uhpmax || 0;
+    mon.mhp = Math.floor((player.mh || player.uhp || 0) / 2);
+    if (player.mh !== undefined) {
+        player.mh -= mon.mhp;
+    } else {
+        player.uhp -= mon.mhp;
+    }
+    if (game.disp) game.disp.botl = true;
+    return mon;
 }
