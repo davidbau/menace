@@ -11,7 +11,7 @@ import { rn2, rnd } from './rng.js';
 import { W_WEP, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
-import { renderOverlayMenuUntilDismiss } from './invent.js';
+import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
 import { acurr } from './attrib.js';
 
 // ============================================================
@@ -628,7 +628,22 @@ async function handleQuiver(player, display) {
             await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
-        if (c === '?' || c === '*') continue;
+        if (c === '?' || c === '*') {
+            replacePromptMessage(display);
+            const lines = buildInventoryOverlayLines(player);
+            const allInvLetters = (player.inventory || [])
+                .filter((o) => o && o.invlet)
+                .map((o) => o.invlet)
+                .join('');
+            const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+            if (menuSelection) {
+                c = menuSelection;
+                // Fall through to item processing below.
+            } else {
+                await display.putstr_message(prompt);
+                continue;
+            }
+        }
 
         if (c === '-') {
             replacePromptMessage(display);

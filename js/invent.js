@@ -1515,7 +1515,23 @@ export async function doorganize(game) {
             await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
-        if (c === '?' || c === '*') continue;
+        if (c === '?' || c === '*') {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            display.topMessage = null;
+            const lines = buildInventoryOverlayLines(player);
+            const allInvLetters = inv
+                .filter((o) => o && o.invlet)
+                .map((o) => o.invlet)
+                .join('');
+            const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+            if (menuSelection) {
+                selected = inv.find(o => o.invlet === menuSelection);
+            }
+            if (!selected) {
+                await display.putstr_message(selectPrompt);
+            }
+            continue;
+        }
         selected = inv.find(o => o.invlet === c);
     }
 

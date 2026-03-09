@@ -21,7 +21,7 @@
 import { pushRngLogEntry, rn1, rn2, rnd, withRngTag } from './rng.js';
 import { nhgetch } from './input.js';
 import { WAND_CLASS } from './objects.js';
-import { compactInvletPromptChars } from './invent.js';
+import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';
 import {
     COLNO, ROWNO, ROOM, GRAVE, FOUNTAIN, ICE,
@@ -597,13 +597,28 @@ export async function handleEngrave(player, display) {
     await display.putstr_message(writePrompt);
     while (true) {
         const ch = await awaitInput(null, nhgetch(), { site: 'engrave.handleEngrave.stylusPrompt' });
-        const c = String.fromCharCode(ch);
+        let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
             await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
-        if (c === '?' || c === '*') continue;
+        if (c === '?' || c === '*') {
+            replacePromptMessage();
+            const lines = buildInventoryOverlayLines(player);
+            const allInvLetters = (player.inventory || [])
+                .filter((o) => o && o.invlet)
+                .map((o) => o.invlet)
+                .join('');
+            const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+            if (menuSelection) {
+                c = menuSelection;
+                // Fall through to item processing below.
+            } else {
+                await display.putstr_message(writePrompt);
+                continue;
+            }
+        }
         if (c === '-' || (writeLetters && writeLetters.includes(c))) {
             replacePromptMessage();
             await display.putstr_message('Engraving is not implemented yet.');
