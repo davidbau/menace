@@ -90,7 +90,7 @@ Required validation per phase:
 
 - [x] Add shared helper to consume pending `--More--` using shared primitives.
 - [x] Route command loop (`allmain`/boundary owner path) through boundary helper.
-- [ ] Route prompt/readchar-equivalent paths through same boundary helper.
+- [x] Route prompt/readchar-equivalent paths through same boundary helper.
 - [ ] Remove `--More--` dismissal loop from `nhgetch_wrap`.
 - [ ] Verify no regressions in parity channels.
 - [ ] If regressions appear, split by callflow (command-loop vs prompt-loop) and re-run.
@@ -148,6 +148,10 @@ Required validation per phase:
    but isolates logic for later ownership transfer.
 5. 2026-03-09: Command-loop key reads in `allmain` now pre-consume pending
    `--More--` via `consumePendingMore(...)` and read keys via
+   `nhgetch_wrap({ handleMore: false })`.
+6. 2026-03-09: `input.js` prompt/readchar-equivalent paths (`getlin`,
+   `ynFunction`, `getCount`) now pre-consume pending `--More--` via
+   `consumePendingMore(...)` and then read via
    `nhgetch_wrap({ handleMore: false })`.
 
 ## Decision Log

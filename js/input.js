@@ -527,6 +527,19 @@ export function nhgetch_wrap(opts = {}) {
     return readUnifiedKey();
 }
 
+async function readBoundaryKey(display, site) {
+    if (display && display._pendingMore) {
+        await consumePendingMore(
+            display,
+            () => nhgetch_wrap({ handleMore: false }),
+            () => display._clearMore(),
+            { site: `${site}.more-consume` }
+        );
+        display.messageNeedsMore = false;
+    }
+    return await awaitInput(null, nhgetch_wrap({ handleMore: false }), { site });
+}
+
 // Get a line of input (async)
 // C ref: winprocs.h win_getlin
 export async function getlin(prompt, display) {
@@ -553,7 +566,7 @@ export async function getlin(prompt, display) {
     await updateDisplay();
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'input.getlin.read' });
+        const ch = await readBoundaryKey(disp, 'input.getlin.read');
         if (ch === 13 || ch === 10) { // Enter
             // C-style prompt cleanup after accepting typed input.
             if (disp) {
@@ -607,7 +620,7 @@ export async function ynFunction(query, choices, def, display) {
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'input.ynFunction.read' });
+        const ch = await readBoundaryKey(disp, 'input.ynFunction.read');
         ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         // C quitchars handling for yn prompts: Space/CR/LF use default.
         if ((ch === 32 || ch === 13 || ch === 10) && def) {
@@ -655,7 +668,7 @@ export async function getCount(firstKey, maxCount, display) {
     while (true) {
         // If we don't have a key yet, read one
         if (!key) {
-            key = await awaitInput(null, nhgetch_wrap(), { site: 'input.getCount.read' });
+            key = await readBoundaryKey(disp, 'input.getCount.read');
         }
 
         if (isDigit(key)) {
