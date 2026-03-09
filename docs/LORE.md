@@ -5666,3 +5666,20 @@ hard-won wisdom:
   - `node --test test/unit/timeout_property_by_index.test.js` (pass).
   - `timeout.c` missing count reduced from `1` to `0`.
   - Gameplay CODEMATCH missing total reduced from `1144` to `1143`.
+
+### CODEMATCH large stale-ledger batch: bridge/vault/quest/wizard/stairs (2026-03-09)
+
+- Problem:
+  - Several gameplay files still showed large `Missing` blocks in
+    `docs/CODEMATCH.md` despite same-named JS functions already present.
+- Change:
+  - Reconciled stale rows to `Implemented` with concrete line refs for:
+    - `dbridge.c -> dbridge.js` (`28` rows)
+    - `vault.c -> vault.js` (`24` rows)
+    - `quest.c -> quest.js` (`22` rows)
+    - `wizard.c -> wizard.js` (`20` rows)
+    - `stairs.c -> stairs.js` (`17` rows)
+  - Total rows updated in one batch: `111`.
+- Result:
+  - Each of the five files now has `0` remaining `Missing` rows.
+  - Gameplay CODEMATCH missing total reduced from `1143` to `1032`.

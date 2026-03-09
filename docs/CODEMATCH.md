@@ -971,34 +971,34 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### dbridge.c -> dbridge.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 361 | `E_phrase` | - | Missing |
-| 464 | `automiss` | - | Missing |
-| 753 | `close_drawbridge` | - | Missing |
-| 235 | `create_drawbridge` | - | Missing |
-| 116 | `db_under_typ` | - | Missing |
-| 866 | `destroy_drawbridge` | - | Missing |
-| 532 | `do_entity` | - | Missing |
-| 286 | `e_at` | - | Missing |
-| 402 | `e_died` | - | Missing |
-| 509 | `e_jumps` | - | Missing |
-| 474 | `e_missed` | - | Missing |
-| 351 | `e_nam` | - | Missing |
-| 380 | `e_survives_at` | - | Missing |
-| 180 | `find_drawbridge` | - | Missing |
-| 211 | `get_wall_for_db` | - | Missing |
-| 170 | `is_db_wall` | - | Missing |
-| 137 | `is_drawbridge_wall` | - | Missing |
-| 86 | `is_ice` | - | Missing |
-| 62 | `is_lava` | - | Missing |
-| 100 | `is_moat` | - | Missing |
-| 46 | `is_pool` | - | Missing |
-| 77 | `is_pool_or_lava` | - | Missing |
-| 38 | `is_waterwall` | - | Missing |
-| 304 | `m_to_e` | - | Missing |
-| 741 | `nokiller` | - | Missing |
-| 818 | `open_drawbridge` | - | Missing |
-| 330 | `set_entity` | - | Missing |
-| 321 | `u_to_e` | - | Missing |
+| 361 | `E_phrase` | dbridge.js:258 | Implemented |
+| 464 | `automiss` | dbridge.js:281 | Implemented |
+| 753 | `close_drawbridge` | dbridge.js:444 | Implemented |
+| 235 | `create_drawbridge` | dbridge.js:172 | Implemented |
+| 116 | `db_under_typ` | dbridge.js:103 | Implemented |
+| 866 | `destroy_drawbridge` | dbridge.js:518 | Implemented |
+| 532 | `do_entity` | dbridge.js:343 | Implemented |
+| 286 | `e_at` | dbridge.js:214 | Implemented |
+| 402 | `e_died` | dbridge.js:328 | Implemented |
+| 509 | `e_jumps` | dbridge.js:309 | Implemented |
+| 474 | `e_missed` | dbridge.js:288 | Implemented |
+| 351 | `e_nam` | dbridge.js:257 | Implemented |
+| 380 | `e_survives_at` | dbridge.js:267 | Implemented |
+| 180 | `find_drawbridge` | dbridge.js:139 | Implemented |
+| 211 | `get_wall_for_db` | dbridge.js:157 | Implemented |
+| 170 | `is_db_wall` | dbridge.js:133 | Implemented |
+| 137 | `is_drawbridge_wall` | dbridge.js:119 | Implemented |
+| 86 | `is_ice` | dbridge.js:78 | Implemented |
+| 62 | `is_lava` | dbridge.js:63 | Implemented |
+| 100 | `is_moat` | dbridge.js:89 | Implemented |
+| 46 | `is_pool` | dbridge.js:53 | Implemented |
+| 77 | `is_pool_or_lava` | dbridge.js:72 | Implemented |
+| 38 | `is_waterwall` | dbridge.js:46 | Implemented |
+| 304 | `m_to_e` | dbridge.js:223 | Implemented |
+| 741 | `nokiller` | dbridge.js:434 | Implemented |
+| 818 | `open_drawbridge` | dbridge.js:484 | Implemented |
+| 330 | `set_entity` | dbridge.js:245 | Implemented |
+| 321 | `u_to_e` | dbridge.js:236 | Implemented |
 
 ### decl.c -> decl.js
 | C Line | C Function | JS Line | Alignment |
@@ -4060,28 +4060,28 @@ Remaining parity gaps are mostly behavioral depth:
 ### quest.c -> quest.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 125 | `artitouch` | - | Missing |
-| 427 | `chat_with_guardian` | - | Missing |
-| 282 | `chat_with_leader` | - | Missing |
-| 380 | `chat_with_nemesis` | - | Missing |
-| 186 | `expulsion` | - | Missing |
-| 226 | `finish_quest` | - | Missing |
-| 153 | `is_pure` | - | Missing |
-| 116 | `leaddead` | - | Missing |
-| 357 | `leader_speaks` | - | Missing |
-| 107 | `nemdead` | - | Missing |
-| 389 | `nemesis_speaks` | - | Missing |
-| 412 | `nemesis_stinks` | - | Missing |
-| 147 | `not_capable` | - | Missing |
-| 140 | `ok_to_quest` | - | Missing |
-| 62 | `on_goal` | - | Missing |
-| 40 | `on_locate` | - | Missing |
-| 26 | `on_start` | - | Missing |
-| 90 | `onquest` | - | Missing |
-| 437 | `prisoner_speaks` | - | Missing |
-| 459 | `quest_chat` | - | Missing |
-| 500 | `quest_stat_check` | - | Missing |
-| 481 | `quest_talk` | - | Missing |
+| 125 | `artitouch` | quest.js:297 | Implemented |
+| 427 | `chat_with_guardian` | quest.js:500 | Implemented |
+| 282 | `chat_with_leader` | quest.js:366 | Implemented |
+| 380 | `chat_with_nemesis` | quest.js:468 | Implemented |
+| 186 | `expulsion` | quest.js:205 | Implemented |
+| 226 | `finish_quest` | quest.js:320 | Implemented |
+| 153 | `is_pure` | quest.js:185 | Implemented |
+| 116 | `leaddead` | quest.js:291 | Implemented |
+| 357 | `leader_speaks` | quest.js:446 | Implemented |
+| 107 | `nemdead` | quest.js:284 | Implemented |
+| 389 | `nemesis_speaks` | quest.js:477 | Implemented |
+| 412 | `nemesis_stinks` | quest.js:492 | Implemented |
+| 147 | `not_capable` | quest.js:179 | Implemented |
+| 140 | `ok_to_quest` | quest.js:313 | Implemented |
+| 62 | `on_goal` | quest.js:131 | Implemented |
+| 40 | `on_locate` | quest.js:111 | Implemented |
+| 26 | `on_start` | quest.js:95 | Implemented |
+| 90 | `onquest` | quest.js:254 | Implemented |
+| 437 | `prisoner_speaks` | quest.js:510 | Implemented |
+| 459 | `quest_chat` | quest.js:534 | Implemented |
+| 500 | `quest_stat_check` | quest.js:575 | Implemented |
+| 481 | `quest_talk` | quest.js:559 | Implemented |
 
 ### questpgr.c -> questpgr.js
 | C Line | C Function | JS Line | Alignment |
@@ -4971,23 +4971,23 @@ Remaining parity gaps are mostly behavioral depth:
 ### stairs.c -> stairs.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 154 | `On_ladder` | - | Missing |
-| 148 | `On_stairs` | - | Missing |
-| 170 | `On_stairs_dn` | - | Missing |
-| 162 | `On_stairs_up` | - | Missing |
-| 180 | `known_branch_stairs` | - | Missing |
-| 187 | `stairs_description` | - | Missing |
-| 8 | `stairway_add` | - | Missing |
-| 40 | `stairway_at` | - | Missing |
-| 50 | `stairway_find` | - | Missing |
-| 79 | `stairway_find_dir` | - | Missing |
-| 64 | `stairway_find_from` | - | Missing |
-| 99 | `stairway_find_special_dir` | - | Missing |
-| 89 | `stairway_find_type_dir` | - | Missing |
-| 27 | `stairway_free_all` | - | Missing |
-| 137 | `u_on_dnstairs` | - | Missing |
-| 113 | `u_on_sstairs` | - | Missing |
-| 125 | `u_on_upstairs` | - | Missing |
+| 154 | `On_ladder` | stairs.js:179 | Implemented |
+| 148 | `On_stairs` | stairs.js:174 | Implemented |
+| 170 | `On_stairs_dn` | stairs.js:191 | Implemented |
+| 162 | `On_stairs_up` | stairs.js:185 | Implemented |
+| 180 | `known_branch_stairs` | stairs.js:197 | Implemented |
+| 187 | `stairs_description` | stairs.js:204 | Implemented |
+| 8 | `stairway_add` | stairs.js:76 | Implemented |
+| 40 | `stairway_at` | stairs.js:91 | Implemented |
+| 50 | `stairway_find` | stairs.js:97 | Implemented |
+| 79 | `stairway_find_dir` | stairs.js:119 | Implemented |
+| 64 | `stairway_find_from` | stairs.js:107 | Implemented |
+| 99 | `stairway_find_special_dir` | stairs.js:133 | Implemented |
+| 89 | `stairway_find_type_dir` | stairs.js:125 | Implemented |
+| 27 | `stairway_free_all` | stairs.js:231 | Implemented |
+| 137 | `u_on_dnstairs` | stairs.js:163 | Implemented |
+| 113 | `u_on_sstairs` | stairs.js:143 | Implemented |
+| 125 | `u_on_upstairs` | stairs.js:152 | Implemented |
 
 ### steal.c -> steal.js
 | C Line | C Function | JS Line | Alignment |
@@ -5485,30 +5485,30 @@ Remaining parity gaps are mostly behavioral depth:
 ### vault.c -> vault.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 123 | `blackout` | - | Missing |
-| 48 | `clear_fcorr` | - | Missing |
-| 281 | `find_guard_dest` | - | Missing |
-| 204 | `findgd` | - | Missing |
-| 35 | `free_egd` | - | Missing |
-| 869 | `gd_letknow` | - | Missing |
-| 888 | `gd_move` | - | Missing |
-| 836 | `gd_move_cleanup` | - | Missing |
-| 734 | `gd_mv_monaway` | - | Missing |
-| 752 | `gd_pick_corridor_gold` | - | Missing |
-| 1272 | `gd_sound` | - | Missing |
-| 175 | `grddead` | - | Missing |
-| 1257 | `hidden_gold` | - | Missing |
-| 192 | `in_fcorridor` | - | Missing |
-| 317 | `invault` | - | Missing |
-| 632 | `move_gold` | - | Missing |
-| 155 | `parkguard` | - | Missing |
-| 1205 | `paygd` | - | Missing |
-| 144 | `restfakecorr` | - | Missing |
-| 256 | `uleftvault` | - | Missing |
-| 1278 | `vault_gd_watching` | - | Missing |
-| 244 | `vault_occupied` | - | Missing |
-| 237 | `vault_summon_gd` | - | Missing |
-| 646 | `wallify_vault` | - | Missing |
+| 123 | `blackout` | vault.js:200 | Implemented |
+| 48 | `clear_fcorr` | vault.js:220 | Implemented |
+| 281 | `find_guard_dest` | vault.js:434 | Implemented |
+| 204 | `findgd` | vault.js:357 | Implemented |
+| 35 | `free_egd` | vault.js:175 | Implemented |
+| 869 | `gd_letknow` | vault.js:674 | Implemented |
+| 888 | `gd_move` | vault.js:947 | Implemented |
+| 836 | `gd_move_cleanup` | vault.js:693 | Implemented |
+| 734 | `gd_mv_monaway` | vault.js:597 | Implemented |
+| 752 | `gd_pick_corridor_gold` | vault.js:619 | Implemented |
+| 1272 | `gd_sound` | vault.js:1448 | Implemented |
+| 175 | `grddead` | vault.js:341 | Implemented |
+| 1257 | `hidden_gold` | vault.js:1412 | Implemented |
+| 192 | `in_fcorridor` | vault.js:186 | Implemented |
+| 317 | `invault` | vault.js:714 | Implemented |
+| 632 | `move_gold` | vault.js:472 | Implemented |
+| 155 | `parkguard` | vault.js:318 | Implemented |
+| 1205 | `paygd` | vault.js:1349 | Implemented |
+| 144 | `restfakecorr` | vault.js:307 | Implemented |
+| 256 | `uleftvault` | vault.js:409 | Implemented |
+| 1278 | `vault_gd_watching` | vault.js:1456 | Implemented |
+| 244 | `vault_occupied` | vault.js:390 | Implemented |
+| 237 | `vault_summon_gd` | vault.js:381 | Implemented |
+| 646 | `wallify_vault` | vault.js:492 | Implemented |
 
 ### version.c -> —
 | C Line | C Function | JS Line | Alignment |
@@ -5735,26 +5735,26 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 488 | `aggravate` | monmove.js | Faithful — wakes sleeping monsters, rn2(5) unfreeze chance; In_W_tower check omitted |
-| 61 | `amulet` | - | Missing |
-| 332 | `choose_stairs` | - | Missing |
-| 511 | `clonewiz` | - | Missing |
-| 840 | `cuss` | - | Missing |
-| 468 | `has_aggravatables` | - | Missing |
-| 779 | `intervene` | - | Missing |
-| 106 | `mon_has_amulet` | - | Missing |
-| 165 | `mon_has_arti` | - | Missing |
-| 117 | `mon_has_special` | - | Missing |
-| 585 | `nasty` | - | Missing |
-| 202 | `on_ground` | - | Missing |
-| 184 | `other_mon_has_arti` | - | Missing |
-| 532 | `pick_nasty` | - | Missing |
-| 709 | `resurrect` | - | Missing |
-| 270 | `strategy` | - | Missing |
-| 369 | `tactics` | - | Missing |
-| 236 | `target_on` | - | Missing |
-| 142 | `which_arti` | - | Missing |
-| 809 | `wizdeadorgone` | - | Missing |
-| 216 | `you_have` | - | Missing |
+| 61 | `amulet` | wizard.js:365 | Implemented |
+| 332 | `choose_stairs` | wizard.js:340 | Implemented |
+| 511 | `clonewiz` | wizard.js:614 | Implemented |
+| 840 | `cuss` | wizard.js:904 | Implemented |
+| 468 | `has_aggravatables` | wizard.js:571 | Implemented |
+| 779 | `intervene` | wizard.js:857 | Implemented |
+| 106 | `mon_has_amulet` | wizard.js:420 | Implemented |
+| 165 | `mon_has_arti` | wizard.js:199 | Implemented |
+| 117 | `mon_has_special` | wizard.js:433 | Implemented |
+| 585 | `nasty` | wizard.js:687 | Implemented |
+| 202 | `on_ground` | wizard.js:227 | Implemented |
+| 184 | `other_mon_has_arti` | wizard.js:214 | Implemented |
+| 532 | `pick_nasty` | wizard.js:650 | Implemented |
+| 709 | `resurrect` | wizard.js:799 | Implemented |
+| 270 | `strategy` | wizard.js:290 | Implemented |
+| 369 | `tactics` | wizard.js:450 | Implemented |
+| 236 | `target_on` | wizard.js:260 | Implemented |
+| 142 | `which_arti` | wizard.js:184 | Implemented |
+| 809 | `wizdeadorgone` | wizard.js:888 | Implemented |
+| 216 | `you_have` | wizard.js:243 | Implemented |
 
 ### wizcmds.c -> wizcmds.js
 | C Line | C Function | JS Line | Alignment |
