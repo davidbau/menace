@@ -5683,3 +5683,20 @@ hard-won wisdom:
 - Result:
   - Each of the five files now has `0` remaining `Missing` rows.
   - Gameplay CODEMATCH missing total reduced from `1143` to `1032`.
+
+### CODEMATCH large stale-ledger batch II: core gameplay modules (2026-03-09)
+
+- Problem:
+  - A large number of rows were still marked `Missing` in `docs/CODEMATCH.md`
+    even though same-named JS function declarations already existed.
+- Change:
+  - Reconciled stale rows to `Implemented` with concrete JS line refs across
+    17 gameplay files:
+    - `insight.c`, `region.c`, `polyself.c`, `makemon.c`, `end.c`, `spell.c`,
+      `engrave.c`, `worm.c`, `priest.c`, `ball.c`, `shknam.c`, `lock.c`,
+      `steed.c`, `music.c`, `minion.c`, `fountain.c`, `rect.c`.
+  - Total rows updated in this batch: `365`.
+- Result:
+  - Fully closed (0 Missing): `music.c`, `minion.c`, `fountain.c`, `rect.c`.
+  - Significant residual-only gaps remain in the other 13 files (true absences).
+  - Gameplay CODEMATCH missing total reduced from `1032` to `667`.
