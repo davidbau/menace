@@ -517,20 +517,8 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
         display.renderStatus(player);
     }
     await display.putstr_message(`You swap places with ${y_monnam(mon)}.`);
-    const landedObjs = map.objectsAt(nx, ny);
-    if (landedObjs.length > 1) {
-        // C ref: invent.c look_here() — for 2+ objects, show "Things that are here:" popup
-        await look_here(player, map, landedObjs.length);
-    } else if (landedObjs.length === 1) {
-        const seen = landedObjs[0];
-        if (seen.oclass === COIN_CLASS) {
-            const count = seen.quan || 1;
-            await display.putstr_message(count === 1 ? 'You see here a gold piece.' : `You see here ${count} gold pieces.`);
-        } else {
-            observeObject(seen);
-            await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
-        }
-    }
+    // C ref: object display happens in spoteffects/autopickup (domove post-move),
+    // not in domove_swap_with_pet.  Caller (domove_core) handles objects.
     return true;
 }
 
@@ -709,9 +697,11 @@ export async function domove_core(dir, player, map, display, game) {
     game.uy0 = oldY;
     let moveDir = dir;
     if (ctx.travel) {
-        if (!await findtravelpath(TRAVP_TRAVEL, game)) {
+        const _tOk = await findtravelpath(TRAVP_TRAVEL, game);
+        if (!_tOk) {
             await findtravelpath(TRAVP_GUESS, game);
         }
+        // C ref: hack.c:2708 — reset travel1 after findtravelpath.
         ctx.travel1 = 0;
         if (Array.isArray(game.travelPath) && game.travelPath.length > 0) {
             moveDir = game.travelPath[0];
@@ -970,32 +960,37 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
+    let swappedWithPet = false;
     if (pendingSwapMon && !pendingSwapMon.dead && map.monsterAt(nx, ny) === pendingSwapMon) {
         const swapped = await domove_swap_with_pet(pendingSwapMon, nx, ny, moveDir, player, map, display, game);
         clear_forcefight_prefix(game, ctx);
-        return { moved: !!swapped, tookTime: true };
+        if (!swapped) return { moved: false, tookTime: true };
+        // C ref: after successful pet swap, domove() continues to post-move
+        // processing (reset_occupations, run checks, spoteffects, etc).
+        // Do NOT return early — fall through to post-move section.
+        swappedWithPet = true;
+        ctx.move = 1;
     }
 
-    // Move the player
-    player.x = nx;
-    player.y = ny;
-    player.moved = true;
-    ctx.move = 1;
-    game.lastMoveDir = moveDir;
-    // Clear force-fight prefix after successful movement.
-    clear_forcefight_prefix(game, ctx);
-    await maybeHandleShopEntryMessage(game, oldX, oldY);
+    if (!swappedWithPet) {
+        // Normal move: update player position and FOV.
+        player.x = nx;
+        player.y = ny;
+        player.moved = true;
+        ctx.move = 1;
+        game.lastMoveDir = moveDir;
+        // Clear force-fight prefix after successful movement.
+        clear_forcefight_prefix(game, ctx);
+        await maybeHandleShopEntryMessage(game, oldX, oldY);
 
-    // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
-    // In C, vision_recalc(0) fires at the top of the next moveloop iteration, BEFORE
-    // nhgetch blocks (so the screen is correct when captured). In JS, screen capture
-    // happens between moveloop_core calls, so we must recalc here.
-    if (game.fov) {
-        mark_vision_dirty();
-        vision_recalc();
-        newsym(oldX, oldY);          // update old player position (show terrain)
-        newsym(player.x, player.y);  // update new player position (show '@')
-        display.renderStatus(player);
+        // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
+        if (game.fov) {
+            mark_vision_dirty();
+            vision_recalc();
+            newsym(oldX, oldY);          // update old player position (show terrain)
+            newsym(player.x, player.y);  // update new player position (show '@')
+            display.renderStatus(player);
+        }
     }
 
     async function applySteppedTrap(trap) {
@@ -1699,32 +1694,70 @@ export async function findtravelpath(mode, game) {
     // is parent_cell - hero_pos (the first frontier cell to reach the hero
     // determines the travel step via implicit wave-expansion tiebreaking).
     async function reverseWave(goalX, goalY, earlyGoalX, earlyGoalY) {
+        // C ref: hack.c:1296-1430 — level-by-level BFS with two alternating
+        // step arrays.  Cells with closed doors or boulders are re-queued
+        // at the next radius (delay of +3) to prefer clear paths.
+        //
+        // C uses travel[COLNO][ROWNO] initialized to 0 by memset.
+        // travel[x][y] = 0 means unvisited (or seed).  Discovered cells
+        // get travel[nx][ny] = radius (≥1).  The seed cell stays 0 until
+        // re-discovered by a neighbor, matching C's memset initialization.
         const dist = new Map();
-        const q = [[goalX, goalY]];
-        dist.set(`${goalX},${goalY}`, 1);
-        let earlyResult = null;
-        while (q.length) {
-            const [x, y] = q.shift();
-            const r = dist.get(`${x},${y}`) || 1;
-            for (const [dx, dy] of dirs) {
-                const nx = x + dx;
-                const ny = y + dy;
-                if (!isok(nx, ny)) continue;
-                const key = `${nx},${ny}`;
-                if (dist.has(key)) continue;
-                if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
-                // C ref: hack.c:1377-1378 — cell must be previously seen OR
-                // currently in line of sight (if not blind).
-                const seen = !!(map.at(nx, ny)?.seenv)
-                    || (!player.blind && couldsee(map, player, nx, ny));
-                if (!seen) continue;
-                // C ref: hack.c:1378 — early termination when hero found.
-                if (earlyGoalX != null && nx === earlyGoalX && ny === earlyGoalY) {
-                    return { dist, earlyDir: [x - earlyGoalX, y - earlyGoalY], parentX: x, parentY: y };
+        let currentLevel = [[goalX, goalY]];
+        // C ref: seed cell keeps travel=0 (memset, never set explicitly).
+        // Use 0 so the seed can be re-discovered by neighbors (C behavior:
+        // !travel[nx][ny] is true for 0, allowing re-addition to wave).
+        dist.set(`${goalX},${goalY}`, 0);
+        let radius = 1;
+        while (currentLevel.length) {
+            const nextLevel = [];
+            for (let i = 0; i < currentLevel.length; i++) {
+                const [x, y] = currentLevel[i];
+                // C ref: travel[x][y] — 0 for seed/unvisited.
+                const r = dist.get(`${x},${y}`) || 0;
+                // C ref: hack.c:1356-1375 — delay expansion from cells
+                // with closed doors or boulders (source cell), or traps/
+                // pools/lava at the destination (per-direction).
+                const cellDelay = (
+                    (!player.passesWalls && closed_door(x, y, map))
+                    || (sobj_at(BOULDER, x, y, map)
+                        && !could_move_onto_boulder(x, y, player))
+                );
+                let alreadyrepeated = false;
+                for (const [ddx, ddy] of dirs) {
+                    const nx = x + ddx;
+                    const ny = y + ddy;
+                    if (!isok(nx, ny)) continue;
+                    // Per-direction delay: trap/pool/lava at destination
+                    const trap = map.trapAt ? map.trapAt(nx, ny) : null;
+                    const dirDelay = cellDelay
+                        || (trap && trap.tseen && trap.ttyp !== VIBRATING_SQUARE)
+                        || (!!(map.at(nx, ny)?.seenv) && is_pool_or_lava(nx, ny, map));
+                    if (dirDelay && r > radius - 3) {
+                        if (!alreadyrepeated) {
+                            nextLevel.push([x, y]);
+                            alreadyrepeated = true;
+                        }
+                        continue;
+                    }
+                    const key = `${nx},${ny}`;
+                    if (dist.has(key)) continue;
+                    if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
+                    // C ref: hack.c:1377-1378 — cell must be previously seen OR
+                    // currently in line of sight (if not blind).
+                    const seen = !!(map.at(nx, ny)?.seenv)
+                        || (!player.blind && couldsee(map, player, nx, ny));
+                    if (!seen) continue;
+                    // C ref: hack.c:1378 — early termination when hero found.
+                    if (earlyGoalX != null && nx === earlyGoalX && ny === earlyGoalY) {
+                        return { dist, earlyDir: [x - earlyGoalX, y - earlyGoalY], parentX: x, parentY: y };
+                    }
+                    dist.set(key, radius);
+                    nextLevel.push([nx, ny]);
                 }
-                dist.set(key, r + 1);
-                q.push([nx, ny]);
             }
+            currentLevel = nextLevel;
+            radius++;
         }
         return { dist, earlyDir: null };
     }
@@ -1800,32 +1833,55 @@ export async function findtravelpath(mode, game) {
     // C swaps tx/ty and ux/uy for GUESS mode (BFS from hero, goal=target).
     // Only expand through couldsee cells (C line 1354).
     async function heroWave() {
+        // C ref: hack.c:1296-1430 — same level-by-level BFS as reverseWave
+        // but for GUESS mode (from hero outward, with couldsee restriction).
         const dist = new Map();
-        const q = [[heroX, heroY]];
-        // C ref: hack.c:1297-1299 — C zeroes the travel array then seeds from
-        // (tx,ty).  Only expanded neighbor cells get travel[nx][ny] = radius.
-        // The seed cell itself keeps travel=0, so GUESS phase 2 "ctrav > 0"
-        // skips it.  Use 0 here so the hero cell is marked visited (has key)
-        // but excluded from candidate selection.
+        // C ref: seed cell keeps travel=0 (memset, never set).
+        // GUESS phase 2 "ctrav > 0" correctly skips the seed.
         dist.set(`${heroX},${heroY}`, 0);
-        while (q.length) {
-            const [x, y] = q.shift();
-            const r = dist.get(`${x},${y}`) || 1;
-            for (const [ddx, ddy] of dirs) {
-                const nx = x + ddx;
-                const ny = y + ddy;
-                if (!isok(nx, ny)) continue;
-                // C ref: hack.c:1354 — GUESS mode skips cells not couldsee.
-                if (!couldsee(map, player, nx, ny)) continue;
-                const key = `${nx},${ny}`;
-                if (dist.has(key)) continue;
-                if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
-                const seen = !!(map.at(nx, ny)?.seenv)
-                    || (!player.blind && couldsee(map, player, nx, ny));
-                if (!seen) continue;
-                dist.set(key, r + 1);
-                q.push([nx, ny]);
+        let currentLevel = [[heroX, heroY]];
+        let radius = 1;
+        while (currentLevel.length) {
+            const nextLevel = [];
+            for (let i = 0; i < currentLevel.length; i++) {
+                const [x, y] = currentLevel[i];
+                const r = dist.get(`${x},${y}`) || 0;
+                const cellDelay = (
+                    (!player.passesWalls && closed_door(x, y, map))
+                    || (sobj_at(BOULDER, x, y, map)
+                        && !could_move_onto_boulder(x, y, player))
+                );
+                let alreadyrepeated = false;
+                for (const [ddx, ddy] of dirs) {
+                    const nx = x + ddx;
+                    const ny = y + ddy;
+                    if (!isok(nx, ny)) continue;
+                    // C ref: hack.c:1354 — GUESS mode skips cells not couldsee.
+                    if (!couldsee(map, player, nx, ny)) continue;
+                    // Per-direction delay: trap/pool/lava at destination
+                    const trap = map.trapAt ? map.trapAt(nx, ny) : null;
+                    const dirDelay = cellDelay
+                        || (trap && trap.tseen && trap.ttyp !== VIBRATING_SQUARE)
+                        || (!!(map.at(nx, ny)?.seenv) && is_pool_or_lava(nx, ny, map));
+                    if (dirDelay && r > radius - 3) {
+                        if (!alreadyrepeated) {
+                            nextLevel.push([x, y]);
+                            alreadyrepeated = true;
+                        }
+                        continue;
+                    }
+                    const key = `${nx},${ny}`;
+                    if (dist.has(key)) continue;
+                    if (!await test_move(x, y, nx - x, ny - y, TEST_TRAV, player, map, null, game)) continue;
+                    const seen = !!(map.at(nx, ny)?.seenv)
+                        || (!player.blind && couldsee(map, player, nx, ny));
+                    if (!seen) continue;
+                    dist.set(key, radius);
+                    nextLevel.push([nx, ny]);
+                }
             }
+            currentLevel = nextLevel;
+            radius++;
         }
         return dist;
     }
