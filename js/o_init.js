@@ -11,8 +11,7 @@ import { exercise } from './attrib_exercise.js';
 import { A_WIS } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { resetIdentCounter, doname } from './mkobj.js';
-import { nhgetch_wrap } from './input.js';
-import { awaitInput } from './suspend.js';
+import { readBoundaryKey } from './input.js';
 import {
     objectData, initObjectData, bases,
     WEAPON_CLASS, ARMOR_CLASS, AMULET_CLASS, FOOD_CLASS,
@@ -682,7 +681,7 @@ export async function handleDiscoveries(game) {
     let pageIndex = 0;
     while (true) {
         await drawDiscoveriesPage(display, pages[pageIndex] || []);
-        const ch = await awaitInput(game, nhgetch_wrap(), { site: 'o_init.handleDiscoveries.pageNav' });
+        const ch = await readBoundaryKey(display, 'o_init.handleDiscoveries.pageNav', game);
         if (ch === 32 || ch === 10 || ch === 13) {
             if (pageIndex + 1 < pages.length) {
                 pageIndex++;

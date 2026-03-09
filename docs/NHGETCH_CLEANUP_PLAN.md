@@ -161,6 +161,8 @@ Required validation per phase:
 9. 2026-03-09: Continued callsite-first migration to boundary reads in UI/prompt
    paths (`potion.js`, `pager.js`, `getpos.js` main loop), keeping
    `consumePendingMore(...)` centralized in boundary helper layers.
+10. 2026-03-09: Additional low-risk prompt loops migrated to boundary reads:
+    `sounds.js` (`dotalk` direction) and `o_init.js` discoveries page-nav.
 
 ## Decision Log
 

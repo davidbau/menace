@@ -34,7 +34,6 @@ import {
 import { wake_nearto } from './mon.js';
 import { night, midnight } from './calendar.js';
 import { vault_occupied, findgd } from './vault.js';
-import { awaitInput } from './suspend.js';
 
 // ============================================================================
 // Hallucination sound table (cf. sounds.c:341)
@@ -1146,12 +1145,10 @@ export async function dotalk(game) {
 
     // cf. sounds.c:1287 — prompt for direction
     // Lazy import to avoid circular dependency.
-    const { nhgetch_wrap } = await import('./input.js');
+    const { readBoundaryKey } = await import('./input.js');
     const { DIRECTION_KEYS } = await import('./const.js');
     await display.putstr_message('Talk to whom? (in what direction)');
-    const ch = await awaitInput(game, nhgetch_wrap(), {
-        site: 'sounds.dotalk.direction',
-    });
+    const ch = await readBoundaryKey(display, 'sounds.dotalk.direction', game);
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
 
