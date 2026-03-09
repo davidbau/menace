@@ -15,6 +15,7 @@ import {
     TT_NONE,
     MELT_ICE_AWAY,
     HALLUC,
+    EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -61,6 +62,7 @@ import {
 import { NO_MINVENT } from './const.js';
 import { next_ident, mksobj, mkobj, weight, costly_alteration } from './mkobj.js';
 import { newexplevel } from './exper.js';
+import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
 import { xkilled, killed, monkilled,
          wakeup, healmon, mondead } from './mon.js';
@@ -1578,10 +1580,6 @@ export function maybe_explode_wand(obj, dx, dy) {
 // ============================================================
 export async function break_wand(obj, player, map) {
   if (!obj || !player) return;
-  const {
-    explode, EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
-  } = await import('./explode.js');
-
   // C ref: do_break_wand in zap.c (dozap.c in older versions)
   // Determine explosion type and damage
   const spe = obj.spe || 0;

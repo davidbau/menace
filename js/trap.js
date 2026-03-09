@@ -28,7 +28,7 @@ import { mon_knows_traps, mon_learns_traps, mons_see_trap,
 import { mondead, helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
-import { make_stunned, make_blinded } from './potion.js';
+import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { find_mac, which_armor } from './worn.js';
 import { mtele_trap, mlevel_tele_trap,
          tele_trap, level_tele_trap, domagicportal } from './teleport.js';
@@ -1737,7 +1737,6 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
           }
         }
         // trap.c chest_trap(): apply both statuses after message branch.
-        const { make_stunned, make_hallucinated } = await import('./potion.js');
         await make_stunned(player, oldStun + rn1(7, 16), false);
         await make_hallucinated(player, oldHall + rn1(5, 16), false, 0);
         break;

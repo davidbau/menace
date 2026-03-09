@@ -42,6 +42,7 @@ import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, sele
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
 import { Is_box, Has_contents, Is_mbag, thesimpleoname } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
+import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
@@ -1862,7 +1863,7 @@ async function handleLoot(game) {
                 if (tryApplyKey || tryUntrap) {
                     // C pickup.c do_loot_cont(): clear stale vertical direction before pick_lock().
                     player.dz = 0;
-                    const { autokey, pick_lock } = await import('./lock.js');
+
                     const unlocktool = tryApplyKey ? autokey(player, true) : null;
                     if (unlocktool || tryUntrap) {
                         const ox = container.ox || player.x;

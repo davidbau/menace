@@ -64,6 +64,9 @@ import {
 } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE } from './const.js';
 import { initFirstLevel } from './u_init.js';
+import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
+         playerSelection as _playerSelection, maybeDoTutorial as _maybeDoTutorial,
+         enterTutorial as _enterTutorial, showGameOver as _showGameOver } from './chargen.js';
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { phase_of_the_moon, friday_13th } from './calendar.js';
@@ -1670,14 +1673,6 @@ export class NetHackGame {
             });
         }
 
-        // Dynamically import chargen functions from nethack.js to avoid circular deps
-        const nethackChargen = await import('./chargen.js');
-        const {
-            handleReset: _handleReset, restoreFromSave: _restoreFromSave,
-            playerSelection: _playerSelection, maybeDoTutorial: _maybeDoTutorial,
-            enterTutorial: _enterTutorial,
-        } = nethackChargen;
-
         // Handle ?reset=1 — prompt to delete all saved data
         if (urlOpts.reset) {
             await _handleReset(this);
@@ -2332,8 +2327,7 @@ export class NetHackGame {
     // Show game-over screen (tombstone + score). Delegates to nethack.js showGameOver.
     // Also available as a standalone instance method for tests and external callers.
     async showGameOver() {
-        const { showGameOver } = await import('./chargen.js');
-        await showGameOver(this);
+        await _showGameOver(this);
         this._emitGameOver();
     }
 

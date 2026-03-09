@@ -58,7 +58,7 @@ import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
          mon_hates_silver } from './mondata.js';
 import { EYE } from './const.js';
 import { wake_nearto } from './mon.js';
-import { finish_meating } from './dogmove.js';
+import { finish_meating, dog_eat } from './dogmove.js';
 import { newsym } from './display.js';
 import { m_unleash } from './apply.js';
 
@@ -1007,7 +1007,6 @@ export async function tamedog(mtmp, obj, givemsg, player, game, map) {
                 await pline_mon(mtmp, "%s catches %s.", Monnam(mtmp), xname(obj));
             }
             // C: place_object + dog_eat — simplified
-            const { dog_eat } = await import('./dogmove.js');
             await dog_eat(mtmp, obj, mtmp.mx, mtmp.my, false);
             return true;
         } else {
@@ -1058,7 +1057,6 @@ export async function tamedog(mtmp, obj, givemsg, player, game, map) {
         if (canseemon(mtmp, map)) {
             await pline_mon(mtmp, "%s catches %s.", Monnam(mtmp), xname(obj));
         }
-        const { dog_eat } = await import('./dogmove.js');
         await dog_eat(mtmp, obj, mtmp.mx, mtmp.my, false);
     }
 

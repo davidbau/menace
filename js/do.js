@@ -52,6 +52,7 @@ import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs } from './stairs.js';
 import { float_down } from './trap.js';
+import { check_special_room, move_update } from './hack.js';
 import { W_ART, W_ARTI } from './const.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
@@ -1193,7 +1194,6 @@ export async function deferred_goto(player, game) {
     // check_special_room(FALSE) before return. The newlev=TRUE call resets
     // urooms so the subsequent FALSE call detects all rooms as "entered".
     if (dest !== fromDepth) {
-        const { check_special_room, move_update } = await import('./hack.js');
         const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
         await check_special_room(false, player, newMap, game?.display, game?.fov || null);
