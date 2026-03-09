@@ -53,7 +53,7 @@ Rules
 | S37 | [#318](https://github.com/davidbau/menace/issues/318) | dog.c pet transfer parity | `Ready` |
 | S38 | [#319](https://github.com/davidbau/menace/issues/319) | dogmove.c remaining AI parity | `Done` (ledger) |
 | S39 | [#320](https://github.com/davidbau/menace/issues/320) | mhitu.c special attack parity | `Ready` |
-| S40 | [#321](https://github.com/davidbau/menace/issues/321) | uhitm.c hero attack parity | `Ready` |
+| S40 | [#321](https://github.com/davidbau/menace/issues/321) | uhitm.c hero attack parity | `Done` (do_stone_u, do_stone_mon) |
 | S41 | [#322](https://github.com/davidbau/menace/issues/322) | mhitm.c monster-vs-monster parity | `Done` (ledger) |
 | S42 | [#323](https://github.com/davidbau/menace/issues/323) | mthrowu+mcastu ranged parity | `Done` (ledger) |
 | S43 | [#324](https://github.com/davidbau/menace/issues/324) | muse.c item-use AI parity | `Done` (ledger) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 35
-- Completed slices: 15 (S12, S18, S19, S28, S29, S32, S33, S35, S38, S41, S42, S43, S45, S46, S48)
+- Open slices: 34
+- Completed slices: 16 (S12, S18, S19, S28, S29, S32, S33, S35, S38, S40, S41, S42, S43, S45, S46, S48)

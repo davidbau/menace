@@ -5,7 +5,9 @@
 import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
-import { corpse_chance } from './mon.js';
+import { corpse_chance, mon_to_stone } from './mon.js';
+import { munstone } from './muse.js';
+import { grow_up } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
     A_STR, A_DEX,
@@ -51,6 +53,7 @@ import {
     resists_poison, resists_sleep, resists_ston, resists_drli,
     thick_skinned, mon_hates_silver, mon_hates_light,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc,
+    poly_when_stoned, DEADMONSTER,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
@@ -60,7 +63,7 @@ import { newsym } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac } from './worn.js';
-import { make_stunned } from './potion.js';
+import { make_stunned, make_stoned } from './potion.js';
 import {
     erode_obj, erode_obj_player,
 } from './trap.js';
@@ -1187,8 +1190,61 @@ export function mhitm_ad_famn(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:3875 — hallucination (m-vs-m: no effect)
 export function mhitm_ad_halu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3902 — do_stone_u (TODO: needs petrification system)
-// cf. uhitm.c:3923 — do_stone_mon (TODO: needs petrification system)
+// cf. uhitm.c:3902 — do_stone_u: hero touched by petrifying monster
+export async function do_stone_u(mtmp, player, game) {
+    const STONED = 26; // const.js STONED property index
+    if (player.getPropTimeout?.(STONED)) return 0; // already Stoned
+    // Stone_resistance check
+    if (resists_ston({ data: game?.youmonst?.data || player.monst })) return 0;
+    // poly_when_stoned + polymon check
+    if (poly_when_stoned(game?.youmonst?.data || player.monst)) {
+        // Would call polymon(PM_STONE_GOLEM) here; for now treat as resistant
+        return 0;
+    }
+    // Apply petrification
+    await make_stoned(player, 5, null);
+    return 1;
+}
+
+// cf. uhitm.c:3923 — do_stone_mon: monster hit by petrifying attack
+export async function do_stone_mon(magr, mattk, mdef, mhm, game) {
+    const pd = mdef.data;
+
+    // munstone: monster may eat acid/lizard corpse to cure
+    if (await munstone(mdef, false)) {
+        // may die from acid; check if still alive
+        if (!DEADMONSTER(mdef)) {
+            mhm.hitflags = M_ATTK_MISS;
+            mhm.done = true;
+        }
+        return;
+    }
+    if (poly_when_stoned(pd)) {
+        await mon_to_stone(mdef);
+        mhm.damage = 0;
+        return;
+    }
+    if (!resists_ston(mdef)) {
+        await pline("%s turns to stone!", Monnam(mdef));
+        // monstone(mdef) — full statue creation; fallback to mondead
+        mdef.mhp = 0;
+        await mondead(mdef, game);
+        if (DEADMONSTER(mdef)) {
+            if (mdef.mtame) {
+                // "You have a peculiarly sad feeling."
+            }
+            const grewUp = await grow_up(magr, mdef, game);
+            mhm.hitflags = M_ATTK_DEF_DIED | (grewUp ? 0 : M_ATTK_AGR_DIED);
+            mhm.done = true;
+            return;
+        } else {
+            mhm.hitflags = M_ATTK_MISS;
+            mhm.done = true;
+            return;
+        }
+    }
+    mhm.damage = (mattk.adtyp === AD_STON ? 0 : 1);
+}
 
 // ============================================================================
 // 5b. Central AD_* dispatcher

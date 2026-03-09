@@ -5378,8 +5378,8 @@ Remaining parity gaps are mostly behavioral depth:
 | 6286 | `disguised_as_mon` | uhitm.js:1524 | Implemented |
 | 6278 | `disguised_as_non_mon` | uhitm.js:1513 | Implemented |
 | 447 | `do_attack` | hack.js | Partial — safemon displacement (rn2(7) gate, monflee(rnd(6)), frozen/helpless/immobile rn2(6)), messages. Missing: Stormbringer, shopkeeper/inshop, leprechaun evasion, longworm, obstructed terrain |
-| 3923 | `do_stone_mon` | - | Missing |
-| 3902 | `do_stone_u` | - | Missing |
+| 3923 | `do_stone_mon` | uhitm.js:do_stone_mon | Implemented |
+| 3902 | `do_stone_u` | uhitm.js:do_stone_u | Implemented |
 | 735 | `double_punch` | uhitm.js:371 | Implemented |
 | 103 | `dynamic_multi_reason` | uhitm.js:133 | Implemented |
 | 4927 | `end_engulf` | uhitm.js:1308 | Implemented |
