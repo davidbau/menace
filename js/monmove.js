@@ -39,7 +39,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
-         VENOM_CLASS, objectData } from './objects.js';
+         VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname } from './mkobj.js';
 import { an } from './objnam.js';
 import { delobj } from './invent.js';
@@ -2687,7 +2687,7 @@ export function stuff_prevents_passage(mtmp, player) {
         // Venom is small
         if (od && od.oc_class === VENOM_CLASS) continue;
         // Small corpses
-        if (obj.otyp === 378 && obj.corpsenm >= 0 // CORPSE
+        if (obj.otyp === CORPSE && obj.corpsenm >= 0
             && mons[obj.corpsenm] && (mons[obj.corpsenm].msize || 0) <= MZ_TINY) continue;
         // Everything else is too bulky
         return true;
