@@ -1,7 +1,7 @@
 diff --git a/src/allmain.c b/src/allmain.c
 --- a/src/allmain.c
 +++ b/src/allmain.c
-@@ -162,6 +162,21 @@ static int mvl_abort_lev;
+@@ -162,6 +162,93 @@ static int mvl_abort_lev;
  #endif
  static int mvl_wtcap = 0;
  static int mvl_change = 0;
@@ -18,8 +18,87 @@ diff --git a/src/allmain.c b/src/allmain.c
 +    return (boolean) cached;
 +}
 +
++staticfn boolean
++dumpsnap_step_spec_match(const char *spec, long step_index)
++{
++    const char *p;
++
++    if (!spec || !*spec)
++        return FALSE;
++    for (p = spec; *p; ) {
++        long start = 0L, end = 0L;
++        char *endptr = 0;
++
++        while (*p == ' ' || *p == '\t' || *p == ',')
++            ++p;
++        if (!*p)
++            break;
++
++        start = strtol(p, &endptr, 10);
++        if (endptr == p) {
++            while (*p && *p != ',')
++                ++p;
++            continue;
++        }
++        p = endptr;
++        while (*p == ' ' || *p == '\t')
++            ++p;
++        end = start;
++        if (*p == '-') {
++            ++p;
++            while (*p == ' ' || *p == '\t')
++                ++p;
++            end = strtol(p, &endptr, 10);
++            if (endptr == p) {
++                end = start;
++            } else {
++                p = endptr;
++            }
++        }
++        if (start <= end) {
++            if (step_index >= start && step_index <= end)
++                return TRUE;
++        } else {
++            if (step_index >= end && step_index <= start)
++                return TRUE;
++        }
++        while (*p && *p != ',')
++            ++p;
++        if (*p == ',')
++            ++p;
++    }
++    return FALSE;
++}
++
++staticfn void
++runstep_maybe_auto_dumpsnap(const char *pathstr, int keyarg)
++{
++    static int initialized = 0;
++    static const char *step_spec = 0;
++    static long key_step_index = -1;
++    char phasebuf[64];
++
++    if (!initialized) {
++        step_spec = getenv("NETHACK_DUMPSNAP_STEPS");
++        initialized = 1;
++    }
++    if (!step_spec || !*step_spec)
++        return;
++    if (!pathstr || strcmp(pathstr, "fresh_cmd"))
++        return;
++
++    ++key_step_index;
++    if (!dumpsnap_step_spec_match(step_spec, key_step_index))
++        return;
++
++    Sprintf(phasebuf, "auto_step_%ld_path_%s_key_%d",
++            key_step_index, pathstr ? pathstr : "unknown", keyarg);
++    harness_dump_checkpoint(phasebuf);
++}
++
 +#define RUNSTEP_EVENT(pathstr, keyarg)                                         \
 +    do {                                                                       \
++        runstep_maybe_auto_dumpsnap((pathstr), (keyarg));                      \
 +        if (runstep_event_enabled())                                           \
 +            event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]", \
 +                      (pathstr), (int) (keyarg), gc.cmd_key, gc.command_count, \

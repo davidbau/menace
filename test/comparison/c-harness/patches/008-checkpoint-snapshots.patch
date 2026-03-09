@@ -503,6 +503,9 @@ index d77454878..843e21f50 100644
 +
 +    fputs("}\n", fp);
 +    fclose(fp);
++    event_log("ckpt[phase=%s rng=%d cc=%d moves=%ld ux=%d uy=%d]",
++              phase, rng_log_get_call_count(), gc.command_count,
++              svm.moves, u.ux, u.uy);
 +}
 +
  /* for rejecting attempts to use wizard mode commands

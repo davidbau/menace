@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-"""Capture a C NetHack #dumpsnap checkpoint after replaying session steps.
+"""Capture a C NetHack auto-checkpoint after replaying session steps.
 
 Usage:
   python3 capture_step_snapshot.py <session_json> <step_index> <output_json>
 
 step_index is 0-based over gameplay steps (session.steps excluding startup).
-Example: step_index 37 replays 38 gameplay steps, then captures #dumpsnap.
+Example: step_index 37 replays 38 gameplay steps, then captures env-triggered
+checkpoint emitted at the canonical runstep boundary (no injected tty commands).
 """
 
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -26,6 +28,7 @@ from run_session import (
     get_clear_more_stats,
     read_checkpoint_entries,
     read_rng_log,
+    parse_rng_lines,
     setup_home,
     no_delay_env,
     diag_events_env,
@@ -82,27 +85,117 @@ def send_char(session_name, ch):
 def replay_steps(session_name, keys, step_index):
     target = min(step_index + 1, len(keys))
     key_delay_s = float(os.environ.get("NETHACK_KEY_DELAY_S", "0.02"))
+    sent_chars = 0
     for idx in range(target):
         key = keys[idx]
         # Session gameplay keys are expected to be single-char, but handle
         # multi-char defensively for compatibility with hand-edited traces.
         for ch in key:
             send_char(session_name, ch)
+            sent_chars += 1
             time.sleep(max(0.0, key_delay_s))
-    return target
+    return target, sent_chars
 
 
-def wait_for_checkpoint_phase(checkpoint_file, expected_phase, baseline_count, timeout_s=3.0):
-    """Poll dumpsnap file until a checkpoint with expected phase appears."""
+def wait_for_checkpoint_phase_prefix(checkpoint_file, expected_prefix, baseline_count, timeout_s=20.0):
+    """Poll checkpoint file until a checkpoint whose phase starts with prefix appears."""
     deadline = time.time() + timeout_s
     while time.time() < deadline:
         checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
         if len(checkpoints) > baseline_count:
             for cp in reversed(checkpoints):
-                if cp.get("phase") == expected_phase:
+                phase = cp.get("phase") or ""
+                if phase.startswith(expected_prefix):
                     return cp, len(checkpoints)
         time.sleep(0.05)
     return None, baseline_count
+
+
+def wait_for_checkpoint_growth(checkpoint_file, baseline_count, timeout_s=20.0):
+    """Poll checkpoint file until at least one new checkpoint appears."""
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
+        if len(checkpoints) > baseline_count:
+            return checkpoints, len(checkpoints)
+        time.sleep(0.05)
+    checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
+    return checkpoints, len(checkpoints)
+
+
+_AUTO_STEP_RE = re.compile(r"^auto_step_(\d+)")
+_AUTO_INP_RE = re.compile(r"^auto_inp_(\d+)")
+_CKPT_PHASE_RE = re.compile(r"^\^ckpt\[phase=([^ ]+)")
+_RUNSTEP_PATH_RE = re.compile(r"^\^runstep\[path=([^ ]+)")
+
+
+def max_auto_index(checkpoints, pattern):
+    max_idx = -1
+    for cp in checkpoints or []:
+        phase = str((cp or {}).get("phase") or "")
+        m = pattern.match(phase)
+        if not m:
+            continue
+        try:
+            idx = int(m.group(1))
+        except (TypeError, ValueError):
+            continue
+        if idx > max_idx:
+            max_idx = idx
+    return max_idx
+
+
+def wait_for_target_runstep_rng(rng_log_file, target_runstep_index, timeout_s=120.0):
+    """Wait until C RNG/event stream has at least target runstep index."""
+    deadline = time.time() + timeout_s
+    last_lines = []
+    while time.time() < deadline:
+        _, lines = read_rng_log(rng_log_file)
+        last_lines = lines
+        entries = parse_rng_lines(lines)
+        runstep_idx = -1
+        for e in entries:
+            text = str(e or "")
+            m = _RUNSTEP_PATH_RE.match(text)
+            if not m:
+                continue
+            if m.group(1) == "repeat_cmd_done":
+                continue
+            runstep_idx += 1
+            if runstep_idx >= target_runstep_index:
+                return lines
+        time.sleep(0.05)
+    return last_lines
+
+
+def checkpoint_phase_for_runstep_index(rng_lines, target_runstep_index):
+    """Pick latest ckpt phase at/before target runstep event in unified stream."""
+    entries = parse_rng_lines(rng_lines)
+    runstep_idx = -1
+    target_entry_pos = -1
+    ckpt_by_pos = []
+    for pos, e in enumerate(entries):
+        text = str(e or "")
+        m_ckpt = _CKPT_PHASE_RE.match(text)
+        if m_ckpt:
+            ckpt_by_pos.append((pos, m_ckpt.group(1)))
+        m_rs = _RUNSTEP_PATH_RE.match(text)
+        if m_rs:
+            if m_rs.group(1) == "repeat_cmd_done":
+                continue
+            runstep_idx += 1
+            if runstep_idx == target_runstep_index:
+                target_entry_pos = pos
+                break
+    if target_entry_pos < 0:
+        return None
+    best = None
+    for pos, phase in ckpt_by_pos:
+        if pos <= target_entry_pos:
+            best = phase
+        else:
+            break
+    return best
 
 
 def run_capture(session_path, step_index, output_path, phase_tag=None, keys_override=None):
@@ -123,6 +216,10 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         monmove_debug_env = (
             f"NETHACK_MONMOVE_DEBUG={monmove_debug} " if monmove_debug else ""
         )
+        key_steps_env = os.environ.get("NETHACK_DUMPSNAP_KEY_STEPS")
+        key_steps_clause = (
+            f"NETHACK_DUMPSNAP_KEY_STEPS={key_steps_env} " if key_steps_env else ""
+        )
         cmd = (
             f"NETHACKDIR={INSTALL_DIR} "
             f"{fixed_datetime_env()}"
@@ -134,6 +231,9 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             f"NETHACK_SEED={seed} "
             f"NETHACK_RNGLOG={rng_log_file} "
             f"NETHACK_DUMPSNAP={checkpoint_file} "
+            f"NETHACK_DUMPSNAP_STEPS={step_index} "
+            f"{key_steps_clause}"
+            f"NETHACK_DUMPSNAP_INPUT_EVERY=1 "
             f"HOME={RESULTS_DIR} "
             f"TERM=xterm-256color "
             f"{NETHACK_BINARY} -u {char['name']} -D; "
@@ -154,25 +254,40 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             clear_more_prompts(session_name)
             time.sleep(0.02)
 
-        replayed_steps = replay_steps(session_name, keys, step_index)
-        pre_snapshot_screen = tmux_capture(session_name)
-
-        tag = phase_tag or f"manual_step_{step_index}"
         checkpoints_before, _ = read_checkpoint_entries(checkpoint_file, 0)
         baseline_count = len(checkpoints_before)
-        tmux_send(session_name, "#", 0.2)
-        tmux_send(session_name, "dumpsnap", 0.2)
-        tmux_send_special(session_name, "Enter", 0.2)
-        tmux_send(session_name, tag, 0.2)
-        tmux_send_special(session_name, "Enter", 0.2)
-        clear_more_prompts(session_name)
+        baseline_auto_step = max_auto_index(checkpoints_before, _AUTO_STEP_RE)
+        baseline_auto_inp = max_auto_index(checkpoints_before, _AUTO_INP_RE)
+        replayed_steps, replayed_chars = replay_steps(session_name, keys, step_index)
+        pre_snapshot_screen = tmux_capture(session_name)
+        expected_auto_step = baseline_auto_step + replayed_steps
+        expected_auto_inp = baseline_auto_inp + replayed_chars
+        tag = phase_tag or f"auto_inp_{expected_auto_inp}"
 
-        matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase(
+        matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase_prefix(
             checkpoint_file, tag, baseline_count
         )
         checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
-        last = matched_checkpoint if matched_checkpoint else (checkpoints[-1] if checkpoints else None)
+
+        matched_phase_from_stream = None
+        if matched_checkpoint is None:
+            rng_lines = wait_for_target_runstep_rng(rng_log_file, step_index)
+            matched_phase_from_stream = checkpoint_phase_for_runstep_index(rng_lines, step_index)
+        if matched_checkpoint is None and matched_phase_from_stream:
+            tag = matched_phase_from_stream
+            matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase_prefix(
+                checkpoint_file, matched_phase_from_stream, baseline_count
+            )
+            checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
+        if matched_checkpoint is None:
+            checkpoints, checkpoint_count = wait_for_checkpoint_growth(
+                checkpoint_file, baseline_count
+            )
+        last = checkpoints[-1] if checkpoints else None
+        if matched_checkpoint:
+            tag = str(matched_checkpoint.get("phase") or tag)
         rng_count, _ = read_rng_log(rng_log_file)
+        checkpoint_phases_tail = [str((cp or {}).get("phase") or "") for cp in checkpoints[-8:]]
 
         payload = {
             "session": os.path.abspath(session_path),
@@ -180,10 +295,18 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             "requestedStepIndex": step_index,
             "replayedSteps": replayed_steps,
             "phaseTag": tag,
+            "baselineAutoStep": baseline_auto_step,
+            "baselineAutoInp": baseline_auto_inp,
+            "baselineCheckpointCount": baseline_count,
+            "expectedAutoStep": expected_auto_step,
+            "expectedAutoInp": expected_auto_inp,
+            "replayedChars": replayed_chars,
+            "matchedPhaseFromStream": matched_phase_from_stream,
             "rngCallCount": rng_count,
             "checkpointCount": checkpoint_count if matched_checkpoint else len(checkpoints),
             "checkpointMatchedPhase": bool(matched_checkpoint),
             "checkpoint": last,
+            "checkpointPhasesTail": checkpoint_phases_tail,
             "preSnapshotScreen": pre_snapshot_screen,
             "screen": tmux_capture(session_name),
             "clearMore": get_clear_more_stats(),
@@ -203,7 +326,7 @@ def main():
     parser.add_argument("session_json", help="Path to *.session.json")
     parser.add_argument("step_index", type=int, help="0-based gameplay step index")
     parser.add_argument("output_json", help="Output file path for captured snapshot JSON")
-    parser.add_argument("--phase", default=None, help="Optional phase tag for #dumpsnap")
+    parser.add_argument("--phase", default=None, help="Optional phase tag prefix for auto-checkpoint matching")
     parser.add_argument(
         "--keys-json",
         default=None,

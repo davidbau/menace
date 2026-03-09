@@ -5583,3 +5583,23 @@ hard-won wisdom:
   - Oracle supply chest lock-state parity (`olocked = !!rn2(6)`).
   - `makeniche()` trap `once` parity for non-`ROCKTRAP` traps.
   - Early mklev hero-vector parity (`U/A`) via C-field sourcing and hero-seq baseline.
+
+### dbgmapdump input-boundary capture: prefer `auto_inp` over `auto_key` (2026-03-09)
+
+- Problem:
+  - Step-targeted C snapshot capture could land on the wrong boundary when
+    relying on `readchar_core` (`auto_key_*`) checkpoints. On seed033 this
+    regularly stopped far behind requested replay depth.
+- Fix:
+  - Added per-input checkpoint emission in `tty_nhgetch` as
+    `auto_inp_<n>_key_<...>` behind `NETHACK_DUMPSNAP_INPUT_EVERY=1`.
+  - Updated `capture_step_snapshot.py` to use `auto_inp_<expected>` as the
+    canonical target and removed `auto_key` fallback matching.
+  - Kept `NETHACK_DUMPSNAP_KEY_STEPS` support opt-in for diagnostics instead of
+    enabling it by default.
+- Validation:
+  - A/B capture on seed033 step 872:
+    - `auto_inp` reached exact expected boundary (`auto_inp_875...`),
+    - `auto_key` did not track replay depth reliably.
+  - Tool now consistently captures deterministic input-boundary snapshots and
+    still exposes real C/JS state differences (for example pickup flag drift).

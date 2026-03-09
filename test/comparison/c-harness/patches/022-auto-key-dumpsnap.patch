@@ -1,0 +1,96 @@
+diff --git a/src/cmd.c b/src/cmd.c
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -151,6 +151,77 @@ staticfn int dummyfunction(void);
+ 
+ static const char *readchar_queue = "";
+ 
++static const char *harness_dumpsnap_key_steps = (const char *) 0;
++static int harness_dumpsnap_every_key = 0;
++static int harness_dumpsnap_key_cfg_init = 0;
++static long harness_input_key_index = -1L;
++
++staticfn boolean
++harness_step_spec_match(const char *spec, long idx)
++{
++    const char *p;
++
++    if (!spec || !*spec)
++        return FALSE;
++    for (p = spec; *p; ) {
++        long start = 0L, end = 0L;
++        char *endptr = 0;
++
++        while (*p == ' ' || *p == '\t' || *p == ',')
++            ++p;
++        if (!*p)
++            break;
++        start = strtol(p, &endptr, 10);
++        if (endptr == p) {
++            while (*p && *p != ',')
++                ++p;
++            continue;
++        }
++        p = endptr;
++        while (*p == ' ' || *p == '\t')
++            ++p;
++        end = start;
++        if (*p == '-') {
++            ++p;
++            while (*p == ' ' || *p == '\t')
++                ++p;
++            end = strtol(p, &endptr, 10);
++            if (endptr != p)
++                p = endptr;
++            else
++                end = start;
++        }
++        if ((start <= end && idx >= start && idx <= end)
++            || (start > end && idx >= end && idx <= start))
++            return TRUE;
++        while (*p && *p != ',')
++            ++p;
++        if (*p == ',')
++            ++p;
++    }
++    return FALSE;
++}
++
++staticfn void
++harness_maybe_auto_key_dumpsnap(int sym)
++{
++    char phasebuf[128];
++
++    if (!harness_dumpsnap_key_cfg_init) {
++        harness_dumpsnap_key_steps = getenv("NETHACK_DUMPSNAP_KEY_STEPS");
++        harness_dumpsnap_every_key = (getenv("NETHACK_DUMPSNAP_EVERY_KEY") != 0);
++        harness_dumpsnap_key_cfg_init = 1;
++    }
++    if (!harness_dumpsnap_every_key
++        && (!harness_dumpsnap_key_steps || !*harness_dumpsnap_key_steps))
++        return;
++
++    ++harness_input_key_index;
++    if (!harness_dumpsnap_every_key
++        && !harness_step_spec_match(harness_dumpsnap_key_steps,
++                                    harness_input_key_index))
++        return;
++
++    Sprintf(phasebuf, "auto_key_%ld_sym_%d_getlin_%d_moveloop_%d",
++            harness_input_key_index, sym,
++            !!program_state.in_getlin, !!program_state.in_moveloop);
++    harness_dump_checkpoint(phasebuf);
++}
++
+ staticfn void
+ json_write_escaped(FILE *fp, const char *s)
+ {
+@@ -5600,6 +5671,8 @@ readchar_core(coordxy *x, coordxy *y, int *mod)
+         click_to_cmd(*x, *y, *mod);
+     }
+ 
++    harness_maybe_auto_key_dumpsnap(sym);
++
+  readchar_done:
+     /* next readchar() will be for an ordinary char unless parse()
+        sets this back to non-zero */

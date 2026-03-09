@@ -10,7 +10,7 @@ index 61338542b..51e3e3ea5 100644
  #ifdef TTY_GRAPHICS
  #include "dlb.h"
  
-@@ -94,6 +95,88 @@ extern void msmsg(const char *, ...);
+@@ -94,6 +95,102 @@ extern void msmsg(const char *, ...);
  #define HUPSKIP_RESULT(RES) /*empty*/
  #endif /* ?HANGUPHANDLING */
  
@@ -18,12 +18,20 @@ index 61338542b..51e3e3ea5 100644
 + * Enable by setting NETHACK_KEYLOG to a writable file path.
 + * Optionally set NETHACK_KEYLOG_DELAY_MS to skip initial keypresses.
 + * Each input event is written as one JSON line.
++ *
++ * Optional full-input checkpoint stream:
++ *   NETHACK_DUMPSNAP_INPUT_EVERY=1
++ * emits checkpoint phases auto_inp_<n>... for each nhgetch() key.
 + */
 +static FILE *nh_keylog_fp = (FILE *) 0;
 +static boolean nh_keylog_inited = FALSE;
 +static long nh_keylog_seq = 0L;
++static long nh_input_seq = -1L;
 +static struct timeval nh_keylog_start_time;
 +static int nh_keylog_delay_ms = 0;
++static int nh_dumpsnap_every_input = 0;
++
++extern void harness_dump_checkpoint(const char *);
 +
 +static void
 +nh_keylog_init(void)
@@ -37,6 +45,7 @@ index 61338542b..51e3e3ea5 100644
 +    delay_str = nh_getenv("NETHACK_KEYLOG_DELAY_MS");
 +    if (delay_str && *delay_str)
 +        nh_keylog_delay_ms = atoi(delay_str);
++    nh_dumpsnap_every_input = (nh_getenv("NETHACK_DUMPSNAP_INPUT_EVERY") != 0);
 +    path = nh_getenv("NETHACK_KEYLOG");
 +    if (!path || !*path)
 +        return;
@@ -56,7 +65,7 @@ index 61338542b..51e3e3ea5 100644
 +    int dnum = 0, dlevel = 0;
 +
 +    nh_keylog_init();
-+    if (!nh_keylog_fp)
++    if (!nh_keylog_fp && !nh_dumpsnap_every_input)
 +        return;
 +
 +    /* Skip logging if delay hasn't elapsed (for manual recording). */
@@ -85,15 +94,24 @@ index 61338542b..51e3e3ea5 100644
 +    }
 +
 +    ++nh_keylog_seq;
-+    (void) fprintf(
-+        nh_keylog_fp,
-+        "{\"seq\":%ld,\"key\":%d,\"moves\":%ld,"
-+        "\"x\":%d,\"y\":%d,\"dnum\":%d,\"dlevel\":%d,"
-+        "\"in_getlin\":%d,\"in_moveloop\":%d,"
-+        "\"seed\":\"%s\"}\n",
-+        nh_keylog_seq, key, movecount,
-+        (int) ux, (int) uy, (int) dnum, (int) dlevel,
-+        in_getlin, in_moveloop, seed);
++    ++nh_input_seq;
++    if (nh_dumpsnap_every_input) {
++        char phasebuf[128];
++        Sprintf(phasebuf, "auto_inp_%ld_key_%d_getlin_%d_moveloop_%d",
++                nh_input_seq, key, in_getlin, in_moveloop);
++        harness_dump_checkpoint(phasebuf);
++    }
++    if (nh_keylog_fp) {
++        (void) fprintf(
++            nh_keylog_fp,
++            "{\"seq\":%ld,\"key\":%d,\"moves\":%ld,"
++            "\"x\":%d,\"y\":%d,\"dnum\":%d,\"dlevel\":%d,"
++            "\"in_getlin\":%d,\"in_moveloop\":%d,"
++            "\"seed\":\"%s\"}\n",
++            nh_keylog_seq, key, movecount,
++            (int) ux, (int) uy, (int) dnum, (int) dlevel,
++            in_getlin, in_moveloop, seed);
++    }
 +}
 +
  /* Interface definition, for windows.c */
