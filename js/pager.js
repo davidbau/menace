@@ -354,7 +354,7 @@ export async function dolook(game) {
             if (sensed) {
                 await display.putstr_message(typeMsg);
                 if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
-                await awaitDisplayMorePrompt(null, display, () => nhgetch_wrap(), {
+                await awaitDisplayMorePrompt(null, display, () => nhgetch_raw(), {
                     site: 'pager.handleLook.readEngraving.morePrompt',
                 });
                 const et = ep.text;

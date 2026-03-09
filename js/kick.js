@@ -47,7 +47,7 @@ export async function handleKick(player, map, display, game) {
         // Consume a key for --More-- to match C's step boundary.
         if (display?.renderMoreMarker) display.renderMoreMarker();
         if (display?.morePrompt) {
-            await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
+            await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
                 site: 'kick.handleKick.woundedLegs.morePrompt',
             });
         }

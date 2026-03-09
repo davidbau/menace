@@ -251,7 +251,7 @@ export async function enterTutorial(game, opts = {}) {
     const { direct = false, deferRender = false } = opts;
     if (!direct) {
         await game.display.putstr_message('Entering the tutorial.');
-        await awaitDisplayMorePrompt(game, game.display, () => nhgetch_wrap(), {
+        await awaitDisplayMorePrompt(game, game.display, () => nhgetch_raw(), {
             site: 'chargen.enterTutorial.morePrompt',
         });
     }
