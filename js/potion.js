@@ -2,7 +2,7 @@
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
-import { nhgetch_raw, nhgetch_wrap } from './input.js';
+import { nhgetch_raw } from './input.js';
 import { awaitInput } from './suspend.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { POTION_CLASS, POT_WATER,
@@ -432,7 +432,7 @@ async function handleQuaff(player, map, display) {
     };
     await showQuaffPrompt();
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, nhgetch_raw(), {
             site: 'potion.handleQuaff.select',
         });
         let c = String.fromCharCode(ch);
