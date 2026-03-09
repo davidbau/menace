@@ -554,9 +554,12 @@ function isIgnorableEventEntry(entry) {
     //   create them. Filtering prevents false event divergence.
     // `tmp_at_*[...]` is animation display — C uses numeric glyph indices while
     //   JS uses {ch, color} objects. These are display-only, consume no RNG.
+    // `runstep[...]` is command-boundary instrumentation — optional diagnostic
+    //   events that may not emit at identical points in C vs JS.
     return typeof entry === 'string'
         && (entry.startsWith('^trick[') || entry.startsWith('^mapdump[')
-            || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_'));
+            || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
+            || entry.startsWith('^runstep['));
 }
 
 function isTestMoveEvent(entry) {

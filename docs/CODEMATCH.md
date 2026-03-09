@@ -1973,23 +1973,23 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### hack.c -> hack.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 2323 | `air_turbulence` | - | Missing |
-| 2444 | `avoid_moving_on_liquid` | - | Missing |
-| 2425 | `avoid_moving_on_trap` | - | Missing |
-| 2476 | `avoid_running_into_trap_or_liquid` | - | Missing |
+| 2323 | `air_turbulence` | hack.js:2600 | Implemented (async, RNG) |
+| 2444 | `avoid_moving_on_liquid` | hack.js:2737 | Implemented |
+| 2425 | `avoid_moving_on_trap` | hack.js:2725 | Implemented |
+| 2476 | `avoid_running_into_trap_or_liquid` | hack.js:2772 | Implemented |
 | 2496 | `avoid_trap_andor_region` | hack.js:avoid_trap_andor_region | Implemented (approx; trap/liquid coverage) |
-| 920 | `bad_rock` | - | Missing |
-| 4302 | `calc_capacity` | - | Missing |
+| 920 | `bad_rock` | hack.js:2205 | Implemented |
+| 4302 | `calc_capacity` | hack.js:2347 | Implemented |
 | 263 | `cannot_push` | hack.js:cannot_push | Implemented (approx) — push-block checks for map bounds/terrain/monster/boulder |
 | 248 | `cannot_push_msg` | hack.js:cannot_push_msg | Implemented (approx) — feedback messaging for failed boulder push |
 | 934 | `cant_squeeze_thru` | hack.js:cant_squeeze_thru | Implemented (approx) — diagonal squeeze gate using rock checks |
-| 2597 | `carrying_too_much` | - | Missing |
-| 4329 | `check_capacity` | - | Missing |
-| 3511 | `check_special_room` | - | Missing |
+| 2597 | `carrying_too_much` | hack.js:2559 | Implemented (async) |
+| 4329 | `check_capacity` | hack.js:2372 | Implemented (async) |
+| 3511 | `check_special_room` | hack.js:3006 | Implemented (async) |
 | 4416 | `cmp_weights` | hack.js:cmp_weights | Implemented |
 | 146 | `could_move_onto_boulder` | hack.js:could_move_onto_boulder | Implemented (approx) |
-| 3964 | `crawl_destination` | - | Missing |
-| 1779 | `disturb_buried_zombies` | - | Missing |
+| 3964 | `crawl_destination` | hack.js:2228 | Implemented |
+| 1779 | `disturb_buried_zombies` | hack.js:3651 | Stub (zombie timer system not modeled) |
 | 2676 | `domove` | hack.js:domove | Implemented — C-style movement entrypoint dispatching to `domove_core` |
 | 1936 | `domove_attackmon_at` | hack.js:domove_attackmon_at | Implemented (approx) — displacement/safemon/confirm/attack split helper |
 | 1906 | `domove_bump_mon` | hack.js:domove_bump_mon | Implemented (approx) |
@@ -2001,72 +2001,72 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3948 | `doorless_door` | hack.js:domove_core | APPROX — inline in movement path |
 | 3761 | `dopickup` | hack.js:domove_core | APPROX — autopickup inline in movement path |
 | 167 | `dopush` | hack.js:dopush | Implemented (approx) |
-| 817 | `dosinkfall` | - | Missing |
+| 817 | `dosinkfall` | hack.js:3627 | Implemented (async, RNG) |
 | 4351 | `dump_weights` | hack.js:dump_weights | Implemented (approx) |
-| 4015 | `end_running` | - | Missing |
-| 2620 | `escape_from_sticky_mon` | - | Missing |
+| 4015 | `end_running` | hack.js:2796 | Implemented |
+| 2620 | `escape_from_sticky_mon` | hack.js:776 | Implemented (inline in domove_core) |
 | 1247 | `findtravelpath` | hack.js:findtravelpath | APPROX — `TRAVP_TRAVEL/GUESS/VALID` wrapper over BFS pathing |
-| 3367 | `furniture_present` | - | Missing |
-| 1833 | `handle_tip` | - | Missing |
-| 1768 | `impact_disturbs_zombies` | - | Missing |
-| 2406 | `impaired_movement` | - | Missing |
-| 3383 | `in_rooms` | - | Missing |
-| 3449 | `in_town` | - | Missing |
-| 4426 | `inv_cnt` | - | Missing |
-| 4281 | `inv_weight` | - | Missing |
-| 3045 | `invocation_message` | - | Missing |
+| 3367 | `furniture_present` | hack.js:2949 | Implemented |
+| 1833 | `handle_tip` | hack.js:3494 | Implemented (async) |
+| 1768 | `impact_disturbs_zombies` | hack.js:3646 | Stub (zombie timer system not modeled) |
+| 2406 | `impaired_movement` | hack.js:2688 | Implemented |
+| 3383 | `in_rooms` | hack.js:2868 | Implemented |
+| 3449 | `in_town` | hack.js:2917 | Implemented |
+| 4426 | `inv_cnt` | hack.js:2387 | Implemented |
+| 4281 | `inv_weight` | hack.js:2322 | Implemented |
+| 3045 | `invocation_message` | hack.js:3208 | Implemented (async) |
 | 963 | `invocation_pos` | hack.js:invocation_pos | Implemented (C-faithful core predicate via `Invocation_lev` + `map.inv_pos`) |
-| 1507 | `is_valid_travelpt` | - | Missing |
+| 1507 | `is_valid_travelpt` | hack.js:3587 | Implemented (async) |
 | 82 | `long_to_any` | hack.js:long_to_any | Implemented |
 | 3783 | `lookaround` | hack.js:lookaround | APPROX — run stop conditions and continuation direction |
 | 4185 | `losehp` | hack.js:losehp | Implemented (partial) — includes saving-grace hook, polymorph HP path, death/wail thresholds |
-| 4321 | `max_capacity` | - | Missing |
-| 904 | `may_dig` | - | Missing |
-| 913 | `may_passwall` | - | Missing |
+| 4321 | `max_capacity` | hack.js:2365 | Implemented |
+| 904 | `may_dig` | hack.js:2187 | Implemented |
+| 913 | `may_passwall` | hack.js:2197 | Implemented |
 | 3001 | `maybe_smudge_engr` | hack.js:maybe_smudge_engr | Implemented wrapper; delegates to `engrave.js:maybeSmudgeEngraving` |
 | 4086 | `maybe_wail` | hack.js:maybe_wail | Implemented (partial) — role/race gates and intrinsic-power warning split |
-| 4444 | `money_cnt` | - | Missing |
+| 4444 | `money_cnt` | hack.js:2399 | Implemented |
 | 90 | `monst_to_any` | hack.js:monst_to_any | Implemented |
 | 3991 | `monster_nearby` | hack.js:monsterNearby | Aligned |
-| 3351 | `monstinroom` | - | Missing |
-| 2567 | `move_out_of_bounds` | - | Missing |
-| 3473 | `move_update` | - | Missing |
+| 3351 | `monstinroom` | hack.js:2934 | Implemented |
+| 2567 | `move_out_of_bounds` | hack.js:2589 | Implemented (async) |
+| 3473 | `move_update` | hack.js:2963 | Implemented |
 | 337 | `moverock` | hack.js:moverock | Implemented (approx) |
 | 349 | `moverock_core` | hack.js:moverock_core | Implemented (approx) |
 | 328 | `moverock_done` | hack.js:moverock_done | Implemented (boundary helper) |
-| 806 | `movobj` | - | Missing |
-| 4315 | `near_capacity` | - | Missing |
-| 4036 | `nomul` | - | Missing |
-| 1725 | `notice_all_mons` | - | Missing |
-| 1689 | `notice_mon` | - | Missing |
+| 806 | `movobj` | hack.js:3615 | Implemented |
+| 4315 | `near_capacity` | hack.js:2357 | Implemented |
+| 4036 | `nomul` | hack.js:2833 | Implemented |
+| 1725 | `notice_all_mons` | hack.js:3474 | Stub (accessibility feature) |
+| 1689 | `notice_mon` | hack.js:3468 | Stub (accessibility feature) |
 | 1716 | `notice_mons_cmp` | hack.js:notice_mons_cmp | Implemented (approx comparator) |
 | 98 | `obj_to_any` | hack.js:obj_to_any | Implemented |
 | 3016 | `overexert_hp` | hack.js:overexert_hp | Implemented (partial) — polymorph HP and pass-out message |
 | 3032 | `overexertion` | hack.js:overexertion | Implemented (partial) — metabolism + encumbrance damage gate |
-| 3673 | `pickup_checks` | - | Missing |
-| 3121 | `pooleffects` | - | Missing |
-| 106 | `revive_nasty` | - | Missing |
+| 3673 | `pickup_checks` | hack.js:3237 | Implemented (async) |
+| 3121 | `pooleffects` | hack.js:3130 | Implemented (async) |
+| 106 | `revive_nasty` | hack.js:3609 | Stub (Rider revival not modeled) |
 | 316 | `rock_disappear_msg` | hack.js:rock_disappear_msg | Implemented (approx) |
 | 4481 | `rounddiv` | hack.js:rounddiv | Implemented (C-faithful) |
 | 2977 | `runmode_delay_output` | hack.js:runmode_delay_output | Implemented (approx) |
 | 4123 | `saving_grace` | hack.js:saving_grace | Implemented (partial) — monster-turn lethal blow clamp with one-shot flag |
-| 3112 | `set_uinwater` | - | Missing |
+| 3112 | `set_uinwater` | hack.js:3097 | Implemented |
 | 4176 | `showdamage` | hack.js:showdamage | Implemented (partial) — iflags gate and polymorph HP display |
-| 2377 | `slippery_ice_fumbling` | - | Missing |
-| 4455 | `spot_checks` | - | Missing |
-| 3200 | `spoteffects` | - | Missing |
-| 628 | `still_chewing` | - | Missing |
-| 1866 | `swim_move_danger` | - | Missing |
-| 3072 | `switch_terrain` | - | Missing |
-| 972 | `test_move` | - | Missing |
-| 1531 | `trapmove` | - | Missing |
-| 1798 | `u_locomotion` | - | Missing |
-| 2399 | `u_maybe_impaired` | - | Missing |
-| 1675 | `u_rooted` | - | Missing |
-| 1814 | `u_simple_floortyp` | - | Missing |
-| 4052 | `unmul` | - | Missing |
+| 2377 | `slippery_ice_fumbling` | hack.js:2656 | Implemented |
+| 4455 | `spot_checks` | hack.js:3225 | Stub (ICE melting timer not modeled) |
+| 3200 | `spoteffects` | hack.js:3160 | Implemented (async) |
+| 628 | `still_chewing` | hack.js:2240 | Stub (tunneling not modeled) |
+| 1866 | `swim_move_danger` | hack.js:2705 | Implemented (async) |
+| 3072 | `switch_terrain` | hack.js:3113 | Implemented (async) |
+| 972 | `test_move` | hack.js:2430 | Implemented (async) |
+| 1531 | `trapmove` | hack.js:3519 | Implemented (async) |
+| 1798 | `u_locomotion` | hack.js:3483 | Implemented |
+| 2399 | `u_maybe_impaired` | hack.js:2669 | Implemented |
+| 1675 | `u_rooted` | hack.js:2578 | Implemented (async) |
+| 1814 | `u_simple_floortyp` | hack.js:3656 | Implemented |
+| 4052 | `unmul` | hack.js:2845 | Implemented (async) |
 | 2346 | `water_turbulence` | hack.js:1341 | Partial — C flow integrated (calls `water_friction`, adjusts destination, blocks climbing out while encumbered) |
-| 4225 | `weight_cap` | - | Missing |
+| 4225 | `weight_cap` | hack.js:2300 | Implemented |
 
 ### hacklib.c -> hacklib.js
 | C Line | C Function | JS Line | Alignment |
@@ -2710,99 +2710,99 @@ No function symbols parsed from isaac64.c.
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 2717 | `add_to_buried` | - | Missing |
-| 2673 | `add_to_container` | - | Missing |
-| 2695 | `add_to_migration` | - | Missing |
-| 2645 | `add_to_minv` | - | Missing |
-| 1854 | `bcsign` | - | Missing |
-| 713 | `bill_dummy_object` | - | Missing |
-| 1742 | `bless` | - | Missing |
-| 1838 | `blessorcurse` | - | Missing |
+| 2673 | `add_to_container` | mkobj.js:1823 | Implemented |
+| 2695 | `add_to_migration` | mkobj.js:1838 | Implemented |
+| 2645 | `add_to_minv` | mkobj.js:1809 | Implemented |
+| 1854 | `bcsign` | mkobj.js:434 | Implemented |
+| 713 | `bill_dummy_object` | mkobj.js:1628 | Implemented |
+| 1742 | `bless` | mkobj.js:396 | Implemented |
+| 1838 | `blessorcurse` | mkobj.js:386 | Implemented |
 | 3371 | `check_contained` | - | Missing |
 | 3417 | `check_glob` | - | Missing |
-| 836 | `clear_dknown` | - | Missing |
-| 627 | `clear_splitobjs` | - | Missing |
-| 2730 | `container_weight` | - | Missing |
+| 836 | `clear_dknown` | mkobj.js:1654 | Implemented |
+| 627 | `clear_splitobjs` | mkobj.js:1623 | Implemented |
+| 2730 | `container_weight` | mkobj.js:440 | Implemented |
 | 418 | `copy_oextra` | - | Missing |
-| 2126 | `corpse_revive_type` | - | Missing |
+| 2126 | `corpse_revive_type` | mkobj.js:1709 | Implemented |
 | 753 | `costly_alteration` | - | Missing |
-| 1780 | `curse` | - | Missing |
-| 2742 | `dealloc_obj` | - | Missing |
-| 2812 | `dealloc_obj_real` | - | Missing |
-| 97 | `dealloc_oextra` | - | Missing |
-| 2522 | `discard_minvent` | - | Missing |
+| 1780 | `curse` | mkobj.js:412 | Implemented |
+| 2742 | `dealloc_obj` | mkobj.js:1851 | Implemented (via dealloc_obj_real) |
+| 2812 | `dealloc_obj_real` | mkobj.js:1851 | Implemented |
+| 97 | `dealloc_oextra` | mkobj.js:1548 | Implemented |
+| 2522 | `discard_minvent` | mkobj.js:1764 | Implemented |
 | 2828 | `dobjsfree` | - | Missing |
-| 2620 | `extract_nexthere` | - | Missing |
-| 2593 | `extract_nobj` | - | Missing |
+| 2620 | `extract_nexthere` | mkobj.js:1792 | Implemented |
+| 2593 | `extract_nobj` | mkobj.js:1774 | Implemented |
 | 2022 | `fixup_oil` | - | Missing |
-| 168 | `free_omailcmd` | - | Missing |
-| 152 | `free_omid` | - | Missing |
-| 129 | `free_omonst` | - | Missing |
-| 2198 | `get_mtraits` | - | Missing |
+| 168 | `free_omailcmd` | mkobj.js:1600 | Implemented |
+| 152 | `free_omid` | mkobj.js:1588 | Implemented |
+| 129 | `free_omonst` | mkobj.js:1570 | Implemented |
+| 2198 | `get_mtraits` | mkobj.js:1747 | Implemented |
 | 2844 | `hornoplenty` | - | Missing |
 | 3344 | `init_dummyobj` | - | Missing |
-| 81 | `init_oextra` | - | Missing |
-| 3246 | `insane_obj_bits` | - | Missing |
+| 81 | `init_oextra` | mkobj.js:1538 | Implemented |
+| 3246 | `insane_obj_bits` | mkobj.js:1895 | Implemented |
 | 3311 | `insane_object` | - | Missing |
-| 2267 | `is_flammable` | - | Missing |
-| 2286 | `is_rottable` | - | Missing |
-| 1988 | `is_treefruit` | - | Missing |
+| 2267 | `is_flammable` | mkobj.js:290 | Implemented |
+| 2286 | `is_rottable` | mkobj.js:302 | Implemented |
+| 1988 | `is_treefruit` | mkobj.js:1688 | Implemented |
 | 1440 | `item_on_ice` | - | Missing |
 | 178 | `may_generate_eroded` | objects.js `mayGenerateEroded()` | Aligned — in_mklev context ordering fixed |
 | 1701 | `maybe_adjust_light` | - | Missing |
 | 2250 | `mk_named_object` | - | Missing |
 | 2224 | `mk_tt_object` | sp_lev.js `mk_tt_object()` | Aligned |
-| 305 | `mkbox_cnts` | - | Missing |
-| 2064 | `mkcorpstat` | - | Missing |
+| 305 | `mkbox_cnts` | mkobj.js:795 | Implemented |
+| 2064 | `mkcorpstat` | mkobj.js:1039 | Implemented |
 | 2000 | `mkgold` | sp_lev.js `mkgold()` | Aligned |
-| 271 | `mkobj` | - | Missing |
+| 271 | `mkobj` | mkobj.js:1076 | Implemented |
 | 228 | `mkobj_at` | - | Missing |
-| 197 | `mkobj_erosions` | - | Missing |
-| 1176 | `mksobj` | - | Missing |
-| 239 | `mksobj_at` | - | Missing |
-| 870 | `mksobj_init` | - | Missing |
-| 254 | `mksobj_migr_to_species` | - | Missing |
-| 3201 | `mon_obj_sanity` | - | Missing |
-| 158 | `new_omailcmd` | - | Missing |
-| 87 | `newoextra` | - | Missing |
-| 144 | `newomid` | - | Missing |
-| 115 | `newomonst` | - | Missing |
-| 510 | `next_ident` | - | Missing |
+| 197 | `mkobj_erosions` | mkobj.js:496 | Implemented |
+| 1176 | `mksobj` | mkobj.js:926 | Implemented |
+| 239 | `mksobj_at` | mkobj.js:1605 | Implemented |
+| 870 | `mksobj_init` | mkobj.js:547 | Implemented |
+| 254 | `mksobj_migr_to_species` | mkobj.js:1613 | Implemented |
+| 3201 | `mon_obj_sanity` | mkobj.js:1868 | Implemented |
+| 158 | `new_omailcmd` | mkobj.js:1593 | Implemented |
+| 87 | `newoextra` | mkobj.js:1543 | Implemented |
+| 144 | `newomid` | mkobj.js:1582 | Implemented |
+| 115 | `newomonst` | mkobj.js:1560 | Implemented |
+| 510 | `next_ident` | mkobj.js:233 | Implemented |
 | 537 | `nextoid` | - | Missing |
-| 3275 | `nomerge_exception` | - | Missing |
-| 3699 | `obj_absorb` | - | Missing |
-| 2144 | `obj_attach_mid` | - | Missing |
+| 3275 | `nomerge_exception` | mkobj.js:1910 | Implemented |
+| 3699 | `obj_absorb` | mkobj.js:1948 | Implemented |
+| 2144 | `obj_attach_mid` | mkobj.js:1716 | Implemented |
 | 2554 | `obj_extract_self` | - | Missing |
 | 2394 | `obj_ice_effects` | - | Missing |
-| 3765 | `obj_meld` | - | Missing |
-| 3640 | `obj_nexto` | - | Missing |
-| 3658 | `obj_nexto_xy` | - | Missing |
+| 3765 | `obj_meld` | mkobj.js:1982 | Implemented |
+| 3640 | `obj_nexto` | mkobj.js:1916 | Implemented |
+| 3658 | `obj_nexto_xy` | mkobj.js:1925 | Implemented |
 | 2946 | `obj_sanity_check` | - | Missing |
 | 2437 | `obj_timer_checks` | - | Missing |
 | 3029 | `objlist_sanity` | - | Missing |
 | 2420 | `peek_at_iced_corpse_age` | - | Missing |
-| 2302 | `place_object` | - | Missing |
-| 3815 | `pudding_merge_message` | - | Missing |
+| 2302 | `place_object` | mkobj.js:59 | Implemented |
+| 3815 | `pudding_merge_message` | mkobj.js:2007 | Implemented (async) |
 | 2368 | `recreate_pile_at` | - | Missing |
 | 2505 | `remove_object` | - | Missing |
 | 642 | `replace_object` | - | Missing |
-| 1368 | `rider_revival_time` | - | Missing |
+| 1368 | `rider_revival_time` | mkobj.js:1661 | Implemented |
 | 1981 | `rnd_treefruit_at` | - | Missing |
 | 389 | `rndmonnum` | - | Missing |
 | 396 | `rndmonnum_adj` | - | Missing |
 | 3444 | `sanity_check_worn` | - | Missing |
-| 2154 | `save_mtraits` | - | Missing |
-| 1861 | `set_bknown` | - | Missing |
-| 1315 | `set_corpsenm` | - | Missing |
+| 2154 | `save_mtraits` | mkobj.js:1724 | Implemented |
+| 1861 | `set_bknown` | mkobj.js:428 | Implemented |
+| 1315 | `set_corpsenm` | mkobj.js:1015 | Implemented |
 | 3131 | `shop_obj_sanity` | - | Missing |
 | 1497 | `shrink_glob` | - | Missing |
 | 1670 | `shrinking_glob_gone` | - | Missing |
-| 458 | `splitobj` | - | Missing |
-| 1386 | `start_corpse_timeout` | - | Missing |
-| 1470 | `start_glob_timeout` | - | Missing |
+| 458 | `splitobj` | mkobj.js:446 | Implemented |
+| 1386 | `start_corpse_timeout` | mkobj.js:969 | Implemented |
+| 1470 | `start_glob_timeout` | mkobj.js:1672 | Implemented |
 | 1273 | `stone_furniture_type` | - | Missing |
 | 1261 | `stone_object_type` | - | Missing |
-| 1764 | `unbless` | - | Missing |
-| 1819 | `uncurse` | - | Missing |
+| 1764 | `unbless` | mkobj.js:405 | Implemented |
+| 1819 | `uncurse` | mkobj.js:421 | Implemented |
 | 855 | `unknow_object` | - | Missing |
 | 685 | `unknwn_contnr_contents` | - | Missing |
 | 557 | `unsplitobj` | - | Missing |
@@ -2846,68 +2846,68 @@ No function symbols parsed from isaac64.c.
 ### mon.c -> mon.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 5222 | `accept_newcham_form` | - | Missing |
-| 5915 | `adj_erinys` | - | Missing |
+| 5222 | `accept_newcham_form` | mon.js:2477 | Implemented (async) |
+| 5915 | `adj_erinys` | mon.js:2586 | Implemented |
 | 4466 | `alloc_itermonarr` | - | Missing |
-| 3068 | `anger_quest_guardians` | - | Missing |
-| 5704 | `angry_guards` | - | Missing |
-| 5539 | `can_be_hatched` | - | Missing |
-| 1972 | `can_carry` | - | Missing |
-| 1940 | `can_touch_safely` | - | Missing |
-| 5908 | `check_gear_next_turn` | - | Missing |
-| 2579 | `copy_mextra` | - | Missing |
-| 3177 | `corpse_chance` | - | Missing |
-| 1895 | `curr_mon_load` | - | Missing |
+| 3068 | `anger_quest_guardians` | mon.js:2316 | Implemented |
+| 5704 | `angry_guards` | mon.js:2540 | Implemented |
+| 5539 | `can_be_hatched` | mon.js:2498 | Implemented |
+| 1972 | `can_carry` | mon.js:2199 | Implemented |
+| 1940 | `can_touch_safely` | mon.js:1882 | Implemented |
+| 5908 | `check_gear_next_turn` | mon.js:877 | Implemented |
+| 2579 | `copy_mextra` | mon.js:2224 | Implemented |
+| 3177 | `corpse_chance` | mon.js:793 | Implemented |
+| 1895 | `curr_mon_load` | mon.js:2173 | Implemented |
 | 5580 | `dead_species` | - | Missing |
 | 3981 | `deal_with_overcrowding` | - | Missing |
-| 2631 | `dealloc_mextra` | - | Missing |
-| 2658 | `dealloc_monst` | - | Missing |
+| 2631 | `dealloc_mextra` | mon.js:2259 | Implemented |
+| 2658 | `dealloc_monst` | mon.js:2276 | Implemented |
 | 4867 | `decide_to_shapeshift` | - | Missing |
 | 2469 | `dmonsfree` | - | Missing |
 | 5562 | `egg_type_from_parent` | - | Missing |
-| 3873 | `elemental_clog` | - | Missing |
+| 3873 | `elemental_clog` | mon.js:1401 | Implemented |
 | 6060 | `flash_mon` | - | Missing |
-| 452 | `genus` | - | Missing |
+| 452 | `genus` | mon.js:329 | Implemented |
 | 4539 | `get_iter_mons` | - | Missing |
 | 4557 | `get_iter_mons_xy` | - | Missing |
-| 5673 | `golemeffects` | - | Missing |
+| 5673 | `golemeffects` | mon.js:2517 | Implemented (async) |
 | 4591 | `healmon` | mon.js | Implemented — heals monster HP with optional overheal |
-| 4801 | `hide_monst` | - | Missing |
-| 4721 | `hideunder` | - | Missing |
-| 4976 | `isspecmon` | - | Missing |
+| 4801 | `hide_monst` | mon.js:1508 | Implemented |
+| 4721 | `hideunder` | mon.js:1436 | Implemented (async) |
+| 4976 | `isspecmon` | mon.js:2464 | Implemented |
 | 4522 | `iter_mons` | - | Missing |
 | 4495 | `iter_mons_safe` | - | Missing |
-| 5602 | `kill_eggs` | - | Missing |
+| 5602 | `kill_eggs` | mon.js:2506 | Implemented |
 | 5632 | `kill_genocided_monsters` | - | Missing |
 | 3465 | `killed` | mon.js | Implemented — wrapper for xkilled with XKILL_GIVEMSG |
 | 2835 | `lifesaved_monster` | mon.js | Implemented — activate life saving amulet, restore HP |
-| 2993 | `logdeadmon` | - | Missing |
-| 1162 | `m_calcdistress` | - | Missing |
-| 1374 | `m_consume_obj` | - | Missing |
+| 2993 | `logdeadmon` | mon.js:2285 | Implemented |
+| 1162 | `m_calcdistress` | mon.js:2017 | Implemented (async) |
+| 1374 | `m_consume_obj` | mon.js:1585 | Implemented |
 | 2730 | `m_detach` | mon.js | Implemented — detach monster from map, drop inventory |
-| 2112 | `m_in_air` | - | Missing |
+| 2112 | `m_in_air` | mon.js:1381 | Implemented |
 | 3829 | `m_into_limbo` | - | Missing |
-| 312 | `m_poisongas_ok` | - | Missing |
+| 312 | `m_poisongas_ok` | mon.js:1387 | Implemented |
 | 4117 | `m_respond` | monmove.js | Partial — dispatcher calls m_respond_shrieker/medusa/erinyes; shrieker rn2(10) gate faithful but makemon stubbed; medusa gazemu stubbed; erinyes aggravate faithful |
 | 4104 | `m_respond_medusa` | monmove.js | Stub — gazemu not implemented |
 | 4084 | `m_respond_shrieker` | monmove.js | Partial — rn2(10) gate faithful, makemon stubbed |
-| 4622 | `m_restartcham` | - | Missing |
+| 4622 | `m_restartcham` | mon.js:2438 | Implemented |
 | 546 | `make_corpse` | mon.js | Implemented — per-monster corpse/drop creation (dragon scales, golem drops, etc.) |
-| 1909 | `max_mon_load` | - | Missing |
-| 3994 | `maybe_mnexto` | - | Missing |
-| 4693 | `maybe_unhide_at` | - | Missing |
-| 1156 | `mcalcdistress` | - | Missing |
-| 1108 | `mcalcmove` | - | Missing |
-| 1336 | `meatbox` | - | Missing |
+| 1909 | `max_mon_load` | mon.js:2184 | Implemented |
+| 3994 | `maybe_mnexto` | mon.js:2390 | Implemented (async) |
+| 4693 | `maybe_unhide_at` | mon.js:1416 | Implemented |
+| 1156 | `mcalcdistress` | mon.js:2008 | Implemented (async) |
+| 1108 | `mcalcmove` | mon.js:106 | Implemented |
+| 1336 | `meatbox` | mon.js:1561 | Implemented |
 | 1638 | `meatcorpse` | mon.js | Implemented — purple worms eating corpses |
 | 1445 | `meatmetal` | mon.js | Implemented — rust monsters eating metal objects |
 | 1515 | `meatobj` | mon.js | Implemented — gelatinous cubes eating organic objects |
 | 2122 | `mfndpos` | mon.js | Flag-based port. Missing: ALLOW_DIG, poison gas regions, worm segments |
-| 5249 | `mgender_from_permonst` | - | Missing |
-| 3838 | `migrate_mon` | - | Missing |
-| 5769 | `mimic_hit_msg` | - | Missing |
+| 5249 | `mgender_from_permonst` | mon.js:2489 | Implemented |
+| 3838 | `migrate_mon` | mon.js:2378 | Implemented (async) |
+| 5769 | `mimic_hit_msg` | mon.js:2570 | Implemented (async) |
 | 929 | `minliquid` | mon.js | Implemented — drowning/lava/water effects on monsters |
-| 943 | `minliquid_core` | - | Missing |
+| 943 | `minliquid_core` | mon.js:1784 | Implemented (async) |
 | 2823 | `mlifesaver` | mon.js | Implemented — check for amulet of life saving |
 | 2372 | `mm_2way_aggression` | mon.js | Ported (zombie-maker aggression) |
 | 2410 | `mm_aggression` | mon.js | Ported (purple worm + zombie-maker) |
@@ -2920,123 +2920,123 @@ No function symbols parsed from isaac64.c.
 | 1760 | `mon_givit` | mon.js | Implemented — give intrinsics from eaten corpse |
 | 2678 | `mon_leaving_level` | mon.js | Partial — unstuck() called from mondead, mtrapped clearing; Missing: worm removal, mswallower display, mimic unhide, newsym |
 | 240 | `mon_sanity_check` | - | Missing |
-| 3743 | `mon_to_stone` | - | Missing |
+| 3743 | `mon_to_stone` | mon.js:2322 | Implemented (async) |
 | 3077 | `mondead` | mon.js:mondead + mon.js:mondead_full | Partial in mon.js; mondead_full adds lifesaved_monster, m_detach, corpse drops. Still missing: vamprises, steam vortex gas cloud, Kop respawn, chameleon/lycanthrope revert, mvitals tracking |
 | 3249 | `mondied` | mon.js | Implemented — died of own accord, calls mondead + corpse_chance + make_corpse |
 | 3263 | `mongone` | mon.js | Implemented — remove monster without corpse |
 | 3373 | `monkilled` | mon.js | Implemented — killed by non-hero |
-| 2039 | `monlineu` | - | Missing |
-| 2458 | `monnear` | - | Missing |
+| 2039 | `monlineu` | mon.js:430 | Implemented |
+| 2458 | `monnear` | mon.js:2666 | Implemented |
 | 3283 | `monstone` | - | Missing |
-| 1308 | `movemon` | - | Missing |
+| 1308 | `movemon` | mon.js:2047 | Implemented (async) |
 | 1196 | `movemon_singlemon` | - | Missing |
 | 1809 | `mpickgold` | mon.js | Implemented — pick up gold at location |
 | 1829 | `mpickstuff` | - | Missing |
 | 5271 | `newcham` | - | Missing |
 | 4426 | `normal_shape` | - | Missing |
-| 3859 | `ok_to_obliterate` | - | Missing |
-| 5756 | `pacify_guard` | - | Missing |
-| 5763 | `pacify_guards` | - | Missing |
+| 3859 | `ok_to_obliterate` | mon.js:2384 | Implemented |
+| 5756 | `pacify_guard` | mon.js:2560 | Implemented |
+| 5763 | `pacify_guards` | mon.js:2565 | Implemented |
 | 4158 | `peacefuls_respond` | - | Missing |
 | 4850 | `pick_animal` | - | Missing |
-| 4934 | `pickvampshape` | - | Missing |
-| 517 | `pm_to_cham` | - | Missing |
-| 4130 | `qst_guardians_respond` | - | Missing |
+| 4934 | `pickvampshape` | mon.js:2444 | Implemented |
+| 517 | `pm_to_cham` | mon.js:358 | Implemented |
+| 4130 | `qst_guardians_respond` | mon.js:2421 | Implemented (async) |
 | 2543 | `relmon` | - | Missing |
-| 2497 | `replmon` | - | Missing |
+| 2497 | `replmon` | mon.js:2612 | Implemented |
 | 4616 | `rescham` | - | Missing |
 | 4635 | `restartcham` | - | Missing |
 | 4644 | `restore_cham` | - | Missing |
 | 4657 | `restrap` | - | Missing |
 | 59 | `sanity_check_single_mon` | - | Missing |
 | 5964 | `see_monster_closeup` | - | Missing |
-| 6018 | `see_nearby_monsters` | - | Missing |
+| 6018 | `see_nearby_monsters` | mon.js:2636 | Implemented (async) |
 | 4404 | `seemimic` | mon.js | Implemented — reveal hiding mimic |
 | 5150 | `select_newcham_form` | makemon.js:select_newcham_form | APPROX — random fallback only, missing sandestin/doppelganger/werecreature |
-| 2804 | `set_mon_min_mhpmax` | - | Missing |
-| 3417 | `set_ustuck` | - | Missing |
+| 2804 | `set_mon_min_mhpmax` | mon.js:850 | Implemented |
+| 3417 | `set_ustuck` | mon.js:1406 | Implemented |
 | 4260 | `setmangry` | mon.js | Implemented — make peaceful monster hostile |
 | 6051 | `shieldeff_mon` | - | Missing |
-| 399 | `undead_to_corpse` | - | Missing |
+| 399 | `undead_to_corpse` | mon.js:311 | Implemented |
 | 3434 | `unstuck` | mon.js | Implemented — clears player.ustuck, rnd(2) for sticky/engulf/hug monsters; TODO: swallowed-player repositioning + vision recalc (no RNG impact) |
 | 5789 | `usmellmon` | - | Missing |
-| 5008 | `valid_vampshiftform` | - | Missing |
+| 5008 | `valid_vampshiftform` | mon.js:2469 | Implemented |
 | 4986 | `validspecmon` | - | Missing |
 | 5021 | `validvamp` | - | Missing |
-| 3761 | `vamp_stone` | - | Missing |
+| 3761 | `vamp_stone` | mon.js:2338 | Implemented (async) |
 | 2886 | `vamprises` | - | Missing |
 | 4317 | `wake_msg` | mon.js | Implemented — display wake message |
-| 4362 | `wake_nearby` | - | Missing |
+| 4362 | `wake_nearby` | mon.js:1341 | Implemented |
 | 4397 | `wake_nearto` | mon.js | Implemented — wake monsters within distance |
-| 4369 | `wake_nearto_core` | - | Missing |
+| 4369 | `wake_nearto_core` | mon.js:1311 | Implemented |
 | 4328 | `wakeup` | mon.js | Implemented — wake monster, possibly anger |
 | 5071 | `wiz_force_cham_form` | - | Missing |
 | 3472 | `xkilled` | mon.js | Implemented — main hero-kills-monster with treasure drop |
-| 368 | `zombie_form` | - | Missing |
-| 344 | `zombie_maker` | - | Missing |
+| 368 | `zombie_form` | mon.js:256 | Implemented |
+| 344 | `zombie_maker` | mon.js:274 | Implemented |
 
 ### mondata.c -> mondata.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 129 | `Resists_Elem` | - | Missing |
-| 54 | `attacktype` | - | Missing |
-| 42 | `attacktype_fordmg` | - | Missing |
-| 1331 | `big_little_match` | - | Missing |
-| 1316 | `big_to_little` | - | Missing |
-| 640 | `breakarm` | - | Missing |
-| 591 | `can_be_strangled` | - | Missing |
+| 54 | `attacktype` | mondata.js:257 | Implemented |
+| 42 | `attacktype_fordmg` | mondata.js:921 | Implemented |
+| 1331 | `big_little_match` | mondata.js:738 | Implemented |
+| 1316 | `big_to_little` | mondata.js:730 | Implemented |
+| 640 | `breakarm` | mondata.js:568 | Implemented |
+| 591 | `can_be_strangled` | mondata.js:633 | Implemented |
 | 305 | `can_blnd` | - | Missing |
-| 567 | `can_blow` | - | Missing |
-| 580 | `can_chant` | - | Missing |
-| 623 | `can_track` | - | Missing |
-| 663 | `cantvomit` | - | Missing |
-| 1522 | `cvt_adtyp_to_mseenres` | - | Missing |
-| 1540 | `cvt_prop_to_mseenres` | - | Missing |
-| 91 | `defended` | - | Missing |
-| 712 | `dmgtype` | - | Missing |
-| 700 | `dmgtype_fromattack` | - | Missing |
-| 1180 | `gender` | - | Missing |
-| 1660 | `get_atkdam_type` | - | Missing |
-| 1586 | `give_u_to_m_resistances` | - | Missing |
-| 540 | `hates_blessings` | - | Missing |
-| 524 | `hates_silver` | - | Missing |
-| 1211 | `levl_follower` | - | Missing |
-| 1303 | `little_to_big` | - | Missing |
-| 1380 | `locomotion` | - | Missing |
+| 567 | `can_blow` | mondata.js:611 | Implemented |
+| 580 | `can_chant` | mondata.js:622 | Implemented |
+| 623 | `can_track` | mondata.js:601 | Implemented |
+| 663 | `cantvomit` | mondata.js:541 | Implemented |
+| 1522 | `cvt_adtyp_to_mseenres` | mondata.js:1437 | Implemented |
+| 1540 | `cvt_prop_to_mseenres` | mondata.js:1461 | Implemented |
+| 91 | `defended` | mondata.js:944 | Implemented |
+| 712 | `dmgtype` | mondata.js:454 | Implemented |
+| 700 | `dmgtype_fromattack` | mondata.js:440 | Implemented |
+| 1180 | `gender` | mondata.js:1390 | Implemented |
+| 1660 | `get_atkdam_type` | mondata.js:1534 | Implemented |
+| 1586 | `give_u_to_m_resistances` | mondata.js:1543 | Implemented |
+| 540 | `hates_blessings` | mondata.js:522 | Implemented |
+| 524 | `hates_silver` | mondata.js:507 | Implemented |
+| 1211 | `levl_follower` | mondata.js:833 | Implemented |
+| 1303 | `little_to_big` | mondata.js:718 | Implemented |
+| 1380 | `locomotion` | mondata.js:1396 | Implemented |
 | 720 | `max_passive_dmg` | - | Missing |
-| 533 | `mon_hates_blessings` | - | Missing |
-| 547 | `mon_hates_light` | - | Missing |
-| 517 | `mon_hates_silver` | - | Missing |
-| 1617 | `mon_knows_traps` | - | Missing |
-| 1629 | `mon_learns_traps` | - | Missing |
-| 1641 | `mons_see_trap` | - | Missing |
-| 1558 | `monstseesu` | - | Missing |
-| 1572 | `monstunseesu` | - | Missing |
+| 533 | `mon_hates_blessings` | mondata.js:529 | Implemented |
+| 547 | `mon_hates_light` | mondata.js:586 | Implemented |
+| 517 | `mon_hates_silver` | mondata.js:514 | Implemented |
+| 1617 | `mon_knows_traps` | mondata.js:397 | Implemented |
+| 1629 | `mon_learns_traps` | mondata.js:407 | Implemented |
+| 1641 | `mons_see_trap` | mondata.js:1509 | Implemented |
+| 1558 | `monstseesu` | mondata.js:1487 | Implemented |
+| 1572 | `monstunseesu` | mondata.js:1498 | Implemented |
 | 428 | `mstrength` | - | Missing |
-| 501 | `mstrength_ranged_attk` | - | Missing |
+| 501 | `mstrength_ranged_attk` | mondata.js:1381 | Implemented |
 | 1449 | `msummon_environ` | - | Missing |
 | 883 | `name_to_mon` | - | Missing |
 | 1090 | `name_to_monclass` | - | Missing |
 | 893 | `name_to_monplus` | - | Missing |
-| 61 | `noattacks` | - | Missing |
-| 678 | `num_horns` | - | Missing |
-| 1507 | `olfaction` | - | Missing |
+| 61 | `noattacks` | mondata.js:461 | Implemented |
+| 678 | `num_horns` | mondata.js:549 | Implemented |
+| 1507 | `olfaction` | mondata.js:1408 | Implemented |
 | 1411 | `on_fire` | - | Missing |
-| 554 | `passes_bars` | - | Missing |
-| 80 | `poly_when_stoned` | - | Missing |
+| 554 | `passes_bars` | mondata.js:421 | Implemented |
+| 80 | `poly_when_stoned` | mondata.js:593 | Implemented |
 | 1191 | `pronoun_gender` | - | Missing |
 | 1359 | `raceptr` | - | Missing |
-| 402 | `ranged_attk` | - | Missing |
-| 1607 | `resist_conflict` | - | Missing |
+| 402 | `ranged_attk` | mondata.js:483 | Implemented |
+| 1607 | `resist_conflict` | mondata.js:1021 | Implemented |
 | 248 | `resists_blnd` | - | Missing |
 | 278 | `resists_blnd_by_arti` | - | Missing |
-| 201 | `resists_drli` | - | Missing |
-| 215 | `resists_magm` | - | Missing |
-| 771 | `same_race` | - | Missing |
-| 13 | `set_mon_data` | - | Missing |
-| 632 | `sliparm` | - | Missing |
-| 1395 | `stagger` | - | Missing |
-| 654 | `sticks` | - | Missing |
+| 201 | `resists_drli` | mondata.js:1008 | Implemented |
+| 215 | `resists_magm` | mondata.js:980 | Implemented |
+| 771 | `same_race` | mondata.js:772 | Implemented |
+| 13 | `set_mon_data` | mondata.js:904 | Implemented |
+| 632 | `sliparm` | mondata.js:561 | Implemented |
+| 1395 | `stagger` | mondata.js:1402 | Implemented |
+| 654 | `sticks` | mondata.js:496 | Implemented |
 
 ### monmove.c -> monmove.js
 | C Line | C Function | JS Line | Alignment |
@@ -5222,48 +5222,48 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 4525 | `acid_damage` | trap.js:975 | Implemented — acid corrosion for objects |
-| 908 | `activate_statue_trap` | - | Missing |
-| 6511 | `adj_nonconjoined_pit` | - | Missing |
+| 908 | `activate_statue_trap` | trap.js:1346 | Implemented |
+| 6511 | `adj_nonconjoined_pit` | trap.js:1839 | Implemented |
 | 726 | `animate_statue` | - | Missing |
-| 6601 | `b_trapped` | - | Missing |
+| 6601 | `b_trapped` | trap.js:1873 | Implemented (async) |
 | 4883 | `back_on_ground` | - | Missing |
-| 3098 | `blow_up_landmine` | - | Missing |
+| 3098 | `blow_up_landmine` | trap.js:1460 | Implemented (async) |
 | 88 | `burnarmor` | - | Missing |
 | 1086 | `check_in_air` | trap.js:209 | Partial — `mon_check_in_air` subset for monster trap logic |
-| 6201 | `chest_trap` | - | Missing |
+| 6201 | `chest_trap` | trap.js:1626 | Implemented (async) |
 | 3009 | `choose_trapnote` | dungeon.js:2079 | Implemented |
 | 593 | `clamp_hole_destination` | - | Missing |
-| 6487 | `clear_conjoined_pits` | - | Missing |
+| 6487 | `clear_conjoined_pits` | trap.js:1824 | Implemented |
 | 4090 | `climb_pit` | - | Missing |
 | 6117 | `closeholdingtrap` | - | Missing |
-| 5248 | `cnv_trap_obj` | - | Missing |
-| 6459 | `conjoined_pits` | - | Missing |
+| 5248 | `cnv_trap_obj` | trap.js:1532 | Implemented (async) |
+| 6459 | `conjoined_pits` | trap.js:1809 | Implemented |
 | 5165 | `could_untrap` | - | Missing |
-| 6423 | `count_traps` | - | Missing |
-| 6575 | `delfloortrap` | - | Missing |
+| 6423 | `count_traps` | trap.js:1791 | Implemented |
+| 6575 | `delfloortrap` | trap.js:1859 | Implemented (async) |
 | 6438 | `deltrap` | dungeon.js:2268 | Implemented |
-| 5701 | `disarm_box` | - | Missing |
+| 5701 | `disarm_box` | trap.js:1756 | Implemented (async) |
 | 5460 | `disarm_holdingtrap` | - | Missing |
-| 5501 | `disarm_landmine` | - | Missing |
-| 5571 | `disarm_shooting_trap` | - | Missing |
-| 5537 | `disarm_squeaky_board` | - | Missing |
+| 5501 | `disarm_landmine` | trap.js:1580 | Implemented (async) |
+| 5571 | `disarm_shooting_trap` | trap.js:1616 | Implemented (async) |
+| 5537 | `disarm_squeaky_board` | trap.js:1598 | Implemented (async) |
 | 418 | `dng_bottom` | dungeon.js:2276 | Partial — dungeon bottom computation for trapdoor/hole depth rules |
-| 4140 | `dofiretrap` | - | Missing |
-| 4224 | `domagictrap` | - | Missing |
-| 2922 | `dotrap` | - | Missing |
-| 5155 | `dountrap` | - | Missing |
+| 4140 | `dofiretrap` | trap.js:2003 | Implemented (async) |
+| 4224 | `domagictrap` | trap.js:2057 | Implemented (async) |
+| 2922 | `dotrap` | trap.js:2754 | Implemented (async) |
+| 5155 | `dountrap` | trap.js:1526 | Implemented (async) |
 | 5109 | `drain_en` | - | Missing |
 | 4966 | `drown` | - | Missing |
 | 4804 | `emergency_disrobe` | - | Missing |
 | 171 | `erode_obj` | trap.js | Implemented — armor/weapon erosion by type (burn/rust/rot/corrode/crack) |
-| 602 | `fall_through` | - | Missing |
-| 3495 | `feeltrap` | - | Missing |
-| 3917 | `fill_pit` | - | Missing |
+| 602 | `fall_through` | trap.js:2127 | Implemented (async) |
+| 3495 | `feeltrap` | trap.js:1495 | Implemented |
+| 3917 | `fill_pit` | trap.js:1520 | Implemented (async) |
 | 3506 | `find_random_launch_coord` | dungeon.js:2116 | Implemented |
 | 4362 | `fire_damage` | trap.js | Implemented — fire damage to single object |
 | 4457 | `fire_damage_chain` | trap.js:995 | Implemented — chain helper for fire damage |
-| 3931 | `float_down` | - | Missing |
-| 3844 | `float_up` | - | Missing |
+| 3931 | `float_down` | trap.js:1410 | Implemented (async) |
+| 3844 | `float_up` | trap.js:1384 | Implemented (async) |
 | 1061 | `floor_trigger` | trap.js:186 | Implemented |
 | 3170 | `force_launch_placement` | - | Missing |
 | 360 | `grease_protect` | trap.js | Implemented — grease protection check |
@@ -5272,10 +5272,10 @@ Remaining parity gaps are mostly behavioral depth:
 | 7065 | `ignite_items` | - | Missing |
 | 2711 | `immune_to_trap` | - | Missing |
 | 3751 | `instapetrify` | trap.js | Implemented — instant hero petrification (simplified) |
-| 5282 | `into_vs_onto` | - | Missing |
-| 3602 | `isclearpath` | - | Missing |
+| 5282 | `into_vs_onto` | trap.js:1551 | Implemented |
+| 3602 | `isclearpath` | trap.js:1502 | Implemented |
 | 6529 | `join_adjacent_pits` | - | Missing |
-| 939 | `keep_saddle_with_steedcorpse` | - | Missing |
+| 939 | `keep_saddle_with_steedcorpse` | trap.js:1361 | Implemented |
 | 3148 | `launch_drop_spot` | - | Missing |
 | 3162 | `launch_in_progress` | - | Missing |
 | 3186 | `launch_obj` | - | Missing |
@@ -5296,20 +5296,20 @@ Remaining parity gaps are mostly behavioral depth:
 | 6008 | `openholdingtrap` | - | Missing |
 | 4564 | `pot_acid_damage` | - | Missing |
 | 4921 | `rescued_from_terrain` | - | Missing |
-| 1045 | `reset_utrap` | - | Missing |
-| 5437 | `reward_untrap` | - | Missing |
+| 1045 | `reset_utrap` | trap.js:1449 | Implemented (async) |
+| 5437 | `reward_untrap` | trap.js:1567 | Implemented (async) |
 | 4854 | `rnd_nextto_goodpos` | - | Missing |
 | 3485 | `seetrap` | trap.js:111 | Implemented |
 | 3790 | `selftouch` | trap.js | Implemented — hero petrification from wielded cockatrice corpse |
-| 1030 | `set_utrap` | - | Missing |
-| 6898 | `sink_into_lava` | - | Missing |
+| 1030 | `set_utrap` | trap.js:1440 | Implemented |
+| 6898 | `sink_into_lava` | trap.js:1884 | Implemented (async) |
 | 6946 | `sokoban_guilt` | - | Missing |
-| 3028 | `steedintrap` | - | Missing |
-| 6409 | `t_at` | - | Missing |
+| 3028 | `steedintrap` | trap.js:1945 | Implemented (async) |
+| 6409 | `t_at` | trap.js:133 | Implemented |
 | 1018 | `t_missile` | trap.js:123 | Implemented (internal helper) |
 | 6618 | `thitm` | trap.js:139 | Implemented (monster trap-hit helper) |
-| 7079 | `trap_ice_effects` | - | Missing |
-| 7102 | `trap_sanity_check` | - | Missing |
+| 7079 | `trap_ice_effects` | trap.js:1912 | Implemented (async) |
+| 7102 | `trap_sanity_check` | trap.js:1928 | Implemented |
 | 2301 | `trapeffect_anti_magic` | trap.js:605 | Partial — monster branch |
 | 1182 | `trapeffect_arrow_trap` | trap.js:289 | Partial — monster branch |
 | 1468 | `trapeffect_bear_trap` | trap.js:353 | Partial — monster branch |
@@ -5333,16 +5333,16 @@ Remaining parity gaps are mostly behavioral depth:
 | 2653 | `trapeffect_vibrating_square` | trap.js:705 | Partial — monster branch |
 | 2084 | `trapeffect_web` | trap.js:538 | Partial — monster branch |
 | 7007 | `trapname` | - | Missing |
-| 2989 | `trapnote` | - | Missing |
+| 2989 | `trapnote` | trap.js:84 | Implemented |
 | 5348 | `try_disarm` | - | Missing |
 | 5584 | `try_lift` | - | Missing |
-| 6567 | `uescaped_shaft` | - | Missing |
+| 6567 | `uescaped_shaft` | trap.js:1854 | Implemented |
 | 6683 | `unconscious` | - | Missing |
-| 5514 | `unsqueak_ok` | - | Missing |
-| 5755 | `untrap` | - | Missing |
-| 5728 | `untrap_box` | - | Missing |
+| 5514 | `unsqueak_ok` | trap.js:1589 | Implemented |
+| 5755 | `untrap` | trap.js:1776 | Implemented (async) |
+| 5728 | `untrap_box` | trap.js:1776 | Implemented (async) |
 | 5196 | `untrap_prob` | - | Missing |
-| 6555 | `uteetering_at_seen_pit` | - | Missing |
+| 6555 | `uteetering_at_seen_pit` | trap.js:1849 | Implemented |
 | 4619 | `water_damage` | trap.js | Implemented — water damage to single object |
 | 4762 | `water_damage_chain` | trap.js:985 | Implemented — chain helper for water damage |
 
