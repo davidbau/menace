@@ -53,7 +53,7 @@ import { s_suffix } from './hacklib.js';
 import { body_part } from './polyself.js';
 import { acurr } from './attrib.js';
 import { A_CHA } from './const.js';
-import { is_covetous, is_human, is_demon, haseyes, sticks } from './mondata.js';
+import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies } from './mondata.js';
 import { EYE } from './const.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating } from './dogmove.js';
@@ -88,11 +88,6 @@ function mon_vegan(ptr) {
         || (ptr.mlet === S_GOLEM && ptr !== mons[PM_FLESH_GOLEM]
             && ptr !== mons[PM_LEATHER_GOLEM])
         || ptr.mlet === S_GHOST;
-}
-
-function flesh_petrifies(pm) {
-    return pm === mons[PM_COCKATRICE] || pm === mons[PM_CHICKATRICE]
-        || pm === mons[PM_MEDUSA];
 }
 
 function is_rider(ptr) {
