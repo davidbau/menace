@@ -1111,13 +1111,13 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1711 | `docrt_flags` | display.js:1830 | Implemented |
 | 1696 | `doredraw` | display.js:1819 | Implemented |
 | 3132 | `error4` | - | Missing |
-| 759 | `feel_location` | - | Missing |
-| 739 | `feel_newsym` | - | Missing |
+| 759 | `feel_location` | display.js:1691 | Implemented |
+| 739 | `feel_newsym` | display.js:1683 | Implemented |
 | 1309 | `flash_glyph_at` | - | Missing |
 | 2226 | `flush_screen` | display.js:2088 | Implemented |
 | 3815 | `fn_cmap_to_glyph` | display.js:1819 | Implemented |
 | 2525 | `get_bkglyph_and_framecolor` | - | Missing |
-| 2496 | `glyph_at` | - | Missing |
+| 2496 | `glyph_at` | display.js:1902 | Implemented |
 | 2505 | `glyphinfo_at` | - | Missing |
 | 215 | `is_safemon` | display.js:1403 | Implemented |
 | 208 | `knowninvisible` | display.js:1381 | Implemented |
@@ -1140,7 +1140,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1820 | `reglyph_darkroom` | - | Missing |
 | 2757 | `reset_glyphmap` | - | Missing |
 | 2165 | `row_refresh` | - | Missing |
-| 1491 | `see_monsters` | - | Missing |
+| 1491 | `see_monsters` | display.js:2197 | Implemented |
 | 1578 | `see_nearby_objects` | - | Missing |
 | 1560 | `see_objects` | - | Missing |
 | 1613 | `see_traps` | - | Missing |
@@ -1160,11 +1160,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2455 | `swallow_to_glyph` | - | Missing |
 | 1336 | `swallowed` | - | Missing |
 | 3471 | `t_warn` | - | Missing |
-| 1131 | `tether_glyph` | - | Missing |
+| 1131 | `tether_glyph` | display.js:1712 | Implemented |
 | 1178 | `tmp_at` | 259 (`animation.js`) | Aligned |
 | 3126 | `type_to_name` | - | Missing |
-| 1449 | `under_ground` | - | Missing |
-| 1399 | `under_water` | - | Missing |
+| 1449 | `under_ground` | display.js:1782 | Implemented |
+| 1399 | `under_water` | display.js:1751 | Implemented |
 | 401 | `unmap_invisible` | display.js:1417 | Implemented |
 | 422 | `unmap_object` | display.js:1431 | Implemented |
 | 3402 | `unset_seenv` | - | Missing |

@@ -1687,6 +1687,13 @@ export function feel_newsym(x, y, player) {
   }
 }
 
+// Autotranslated from display.c:759
+export function feel_location(x, y, ctxOrMap = null) {
+  if (!isok(x, y)) return;
+  const ctx = _resolveDisplayCtx(ctxOrMap);
+  map_location(x, y, 1, ctx);
+}
+
 // Autotranslated from display.c:1100
 export async function shieldeff(x, y, game) {
   let i;
@@ -1706,17 +1713,25 @@ export function tether_glyph(x, y, player) {
   let tdx, tdy;
   tdx = player.x - x;
   tdy = player.y - y;
-  return zapdir_to_glyph(sgn(tdx),sgn(tdy), 2);
+  return zapdir_to_glyph(Math.sign(tdx), Math.sign(tdy), 2);
 }
 
 // Autotranslated from display.c:1322
+let _swallowedLastX = null;
+let _swallowedLastY = null;
 export async function swallowed(first, player) {
-  let lastx, lasty, swallower, left_ok, rght_ok;
-  if (first) { await cls(); bot(); }
+  let swallower, left_ok, rght_ok;
+  const ctx = _getDisplayCtx();
+  if (first) {
+    await cls(ctx);
+    if (ctx?.display && ctx?.player && typeof ctx.display.renderStatus === 'function') {
+      ctx.display.renderStatus(ctx.player);
+    }
+  }
   else {
     let x, y;
-    for (y = lasty - 1; y <= lasty + 1; y++) {
-      for (x = lastx - 1; x <= lastx + 1; x++) {
+    for (y = (_swallowedLastY ?? player.y) - 1; y <= (_swallowedLastY ?? player.y) + 1; y++) {
+      for (x = (_swallowedLastX ?? player.x) - 1; x <= (_swallowedLastX ?? player.x) + 1; x++) {
         if (isok(x, y)) show_glyph(x, y, GLYPH_UNEXPLORED);
       }
     }
@@ -1730,50 +1745,56 @@ export async function swallowed(first, player) {
     if (rght_ok) show_glyph(player.x + 1, player.y - 1, swallow_to_glyph(swallower, S_sw_tr));
   }
   if (left_ok) show_glyph(player.x - 1, player.y, swallow_to_glyph(swallower, S_sw_ml));
-  display_self();
+  show_glyph(player.x, player.y, { ch: '@', color: CLR_WHITE }, ctx);
   if (rght_ok) show_glyph(player.x + 1, player.y, swallow_to_glyph(swallower, S_sw_mr));
   if (isok(player.x, player.y + 1)) {
     if (left_ok) show_glyph(player.x - 1, player.y + 1, swallow_to_glyph(swallower, S_sw_bl));
     show_glyph(player.x, player.y + 1, swallow_to_glyph(swallower, S_sw_bc));
     if (rght_ok) show_glyph(player.x + 1, player.y + 1, swallow_to_glyph(swallower, S_sw_br));
   }
-  lastx = player.x;
-  lasty = player.y;
+  _swallowedLastX = player.x;
+  _swallowedLastY = player.y;
 }
 
 // Autotranslated from display.c:1385
+let _underWaterLastX = null;
+let _underWaterLastY = null;
+let _underWaterDeferredClear = false;
 export async function under_water(mode, map, player) {
-  let lastx, lasty, dela, x, y;
-  if (Is_waterlevel(map.uz) || player.uswallow) return;
-  if (mode === 1 || dela) { await cls(); dela = false; }
-  else if (mode === 2) { dela = true; return; }
+  let x, y;
+  if (player.uswallow) return;
+  if (mode === 1 || _underWaterDeferredClear) { await cls(); _underWaterDeferredClear = false; }
+  else if (mode === 2) { _underWaterDeferredClear = true; return; }
   else {
-    for (y = lasty - 1; y <= lasty + 1; y++) {
-      for (x = lastx - 1; x <= lastx + 1; x++) {
+    for (y = (_underWaterLastY ?? player.y) - 1; y <= (_underWaterLastY ?? player.y) + 1; y++) {
+      for (x = (_underWaterLastX ?? player.x) - 1; x <= (_underWaterLastX ?? player.x) + 1; x++) {
         if (isok(x, y)) show_glyph(x, y, GLYPH_UNEXPLORED);
       }
     }
   }
   for (x = player.x - 1; x <= player.x + 1; x++) {
     for (y = player.y - 1; y <= player.y + 1; y++) {
-      if (isok(x, y) && (is_pool_or_lava(x, y) || is_ice(x, y))) {
-        if ((player?.Blind || player?.blind || false) && !u_at(x, y)) show_glyph(x, y, GLYPH_UNEXPLORED);
+      const loc = map?.at?.(x, y);
+      const watery = !!loc && (loc.typ === POOL || loc.typ === MOAT || loc.typ === WATER
+        || loc.typ === LAVAPOOL || loc.typ === LAVAWALL || loc.typ === ICE);
+      if (isok(x, y) && watery) {
+        if ((player?.Blind || player?.blind || false) && !(player?.x === x && player?.y === y)) show_glyph(x, y, GLYPH_UNEXPLORED);
         else {
-          newsym(x, y);
+          newsym(x, y, map);
         }
       }
     }
   }
-  lastx = player.x;
-  lasty = player.y;
+  _underWaterLastX = player.x;
+  _underWaterLastY = player.y;
 }
 
 // Autotranslated from display.c:1435
+let _underGroundDeferredClear = false;
 export async function under_ground(mode, player) {
-  let dela;
   if (player.uswallow) return;
-  if (mode === 1 || dela) { await cls(); dela = false; }
-  else if (mode === 2) { dela = true; return; }
+  if (mode === 1 || _underGroundDeferredClear) { await cls(); _underGroundDeferredClear = false; }
+  else if (mode === 2) { _underGroundDeferredClear = true; return; }
   else { newsym(player.x, player.y); }
 }
 
@@ -1863,9 +1884,6 @@ export async function cls(ctxOrMap = null) {
 // Autotranslated from display.c:1851
 export function newsym_force(x, y) {
   newsym(x, y);
-  gg.gbuf[y][x].gnew = 1;
-  if (gg.gbuf_start[y] > x) gg.gbuf_start = x;
-  if (gg.gbuf_stop[y] < x) gg.gbuf_stop = x;
 }
 
 // Autotranslated from display.c:2425
@@ -1890,8 +1908,12 @@ export function zapdir_to_glyph(dx, dy, beam_type) {
 
 // Autotranslated from display.c:2466
 export function glyph_at(x, y) {
-  if (x < 0 || y < 0 || x >= COLNO || y >= ROWNO) return cmap_to_glyph(S_room);
-  return gg.gbuf[y][x].glyphinfo.glyph;
+  if (x < 0 || y < 0 || x >= COLNO || y >= ROWNO) return cmap_to_glyph(ROOM);
+  const map = _getDisplayCtx()?.map;
+  const loc = map?.at?.(x, y);
+  if (!loc) return cmap_to_glyph(ROOM);
+  if (Number.isInteger(loc.glyph)) return loc.glyph;
+  return cmap_to_glyph(Number.isInteger(loc.typ) ? loc.typ : ROOM);
 }
 
 // Autotranslated from display.c:3118

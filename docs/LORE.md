@@ -5186,3 +5186,30 @@ hard-won wisdom:
   - `node --test test/unit/display_warning_runtime.test.js` passes (`11/11`).
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2547 pass / 5 fail` (same known 5 input-queue failures).
+
+### display runtime safety hardening (`glyph_at`/`feel_newsym`/underlay modes) (2026-03-08)
+
+- Problem:
+  - Several display exports still referenced removed C globals (`gg.gbuf`,
+    `bot`, `display_self`, transient local `lastx/lasty`) and could throw
+    during runtime paths.
+  - High-impact case: `glyph_at()` was used by gameplay callers but depended
+    on undefined `gg`.
+- Fix:
+  - Hardened in
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - `glyph_at()` now reads map-backed glyph memory (`loc.glyph` fallback to
+      `cmap_to_glyph(loc.typ)`), no `gg` dependency.
+    - `newsym_force()` now performs safe forced redraw without `gg`.
+    - Added `feel_location()` and wired blind `feel_newsym()` through
+      map-backed rendering.
+    - `swallowed()`, `under_water()`, `under_ground()` now keep stable module
+      state for deferred/last-position behavior and avoid undefined helpers.
+    - `tether_glyph()` now uses `Math.sign` directly.
+  - Added safety coverage in
+    [`test/unit/display_runtime_safety.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_runtime_safety.test.js).
+- Validation:
+  - `node --test test/unit/display_runtime_safety.test.js` passes (`4/4`).
+  - `node --test test/unit/display_docrt_cls_runtime.test.js` passes (`2/2`).
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2551 pass / 5 fail` (same known 5 input-queue failures).
