@@ -42,7 +42,7 @@ import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          SILVER_DRAGON_SCALES, SILVER_DRAGON_SCALE_MAIL } from './objects.js';
 import { doname, is_crackable } from './mkobj.js';
 import { acurr, extremeattr } from './attrib.js';
-import { armor_simple_name, suit_simple_name, cloak_simple_name, helm_simple_name, gloves_simple_name, boots_simple_name } from './objnam.js';
+import { armor_simple_name, suit_simple_name, cloak_simple_name, helm_simple_name, gloves_simple_name, boots_simple_name, shield_simple_name, shirt_simple_name } from './objnam.js';
 import { is_metallic, obj_resists } from './objdata.js';
 import {
     which_armor,
@@ -68,6 +68,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL } from './const.js';
 import { set_itimeout, incr_itimeout } from './potion.js';
 import { float_down } from './trap.js';
+import { nomul, unmul } from './hack.js';
 import { float_vs_flight } from './polyself.js';
 import { mark_vision_dirty } from './vision.js';
 import { nohands, nolimbs, cantweararm, slithy, has_horns, has_head, is_humanoid } from './mondata.js';
@@ -183,6 +184,79 @@ function toggle_extrinsic(player, prop, on) {
     } else {
         entry.extrinsic = Math.max(0, (entry.extrinsic || 0) - 1);
     }
+}
+
+// cf. do_wear.c:1915 armoroff() — remove armor piece, with delay handling
+export async function armoroff(otmp, player, game) {
+    if (await cursed_check(otmp, null)) return 0;
+    const delay = -(objectData[otmp.otyp]?.oc_delay || 0);
+    const armcat = objectData[otmp.otyp]?.oc_armcat;
+    if (delay) {
+        // Multi-turn removal: set nomul and afternmv callback
+        nomul(delay, game);
+        game.multi_reason = 'disrobing';
+        let what = null;
+        switch (armcat) {
+            case ARM_SUIT:
+                what = suit_simple_name(otmp);
+                game.afternmv = () => Armor_off();
+                break;
+            case ARM_SHIELD:
+                what = shield_simple_name(otmp);
+                game.afternmv = () => Shield_off();
+                break;
+            case ARM_HELM:
+                what = helm_simple_name(otmp);
+                game.afternmv = () => Helmet_off();
+                break;
+            case ARM_GLOVES:
+                what = gloves_simple_name(otmp);
+                game.afternmv = () => Gloves_off();
+                break;
+            case ARM_BOOTS:
+                what = boots_simple_name(otmp);
+                game.afternmv = async () => await Boots_off();
+                break;
+            case ARM_CLOAK:
+                what = cloak_simple_name(otmp);
+                game.afternmv = () => Cloak_off();
+                break;
+            case ARM_SHIRT:
+                what = shirt_simple_name(otmp);
+                game.afternmv = () => Shirt_off();
+                break;
+            default:
+                break;
+        }
+        if (what) {
+            game.nomovemsg = `You finish taking off your ${what}.`;
+        }
+    } else {
+        // No delay: call handler immediately
+        switch (armcat) {
+            case ARM_SUIT: Armor_off(); break;
+            case ARM_SHIELD: Shield_off(); break;
+            case ARM_HELM: Helmet_off(); break;
+            case ARM_GLOVES: Gloves_off(); break;
+            case ARM_BOOTS: await Boots_off(); break;
+            case ARM_CLOAK: Cloak_off(); break;
+            case ARM_SHIRT: Shirt_off(); break;
+            default: break;
+        }
+        await off_msg(otmp, player);
+    }
+    if (game?.svc?.context?.takeoff) {
+        game.svc.context.takeoff.mask = game.svc.context.takeoff.what = 0;
+    }
+    return 1;
+}
+
+// cf. do_wear.c:1857 ia_dotakeoff() — takeoff wrapper with item_action flag
+export async function ia_dotakeoff(player, display, game) {
+    if (game?.gi) game.gi.item_action_in_progress = true;
+    const res = await handleTakeOff(player, display, game);
+    if (game?.gi) game.gi.item_action_in_progress = false;
+    return res;
 }
 
 // cf. do_wear.c Boots_on() — C ref: do_wear.c:186-260
@@ -1793,6 +1867,11 @@ function isAlreadyWornAccessoryOrArmor(player, o) {
     return false;
 }
 
+// cf. do_wear.c:2204 accessory_or_armor_on() — unified entry for W/P commands
+export async function accessory_or_armor_on(obj, player, display, game) {
+    return await putOnSelectedItem(player, display, game, obj);
+}
+
 async function putOnSelectedItem(player, display, game, item) {
     if (item.oclass === ARMOR_CLASS) {
         resetTopline(display);
@@ -1934,35 +2013,41 @@ async function putOnSelectedItem(player, display, game, item) {
 async function wearArmorItem(player, display, game, item) {
     const sub = objectData[item.otyp]?.oc_subtyp;
     const slot = ARMOR_SLOTS[sub];
-    const delay = Number(objectData[item.otyp]?.oc_delay || 0);
-    const wearNow = () => {
-        const mask = ARM_SUB_TO_MASK[sub] || 0;
-        if (mask) setworn(player, item, mask);
-        else if (slot?.prop) player[slot.prop] = item;
-        const onFn = SLOT_ON[sub];
-        if (onFn) onFn(player);
-        find_ac(player);
-    };
+    const delay = -(Number(objectData[item.otyp]?.oc_delay || 0));
 
-    // C parity: armor donning can be a multi-turn occupation.
-    if (game && delay > 1) {
-        let remaining = Math.max(0, delay - 1);
-        game.occupation = {
-            occtxt: 'dressing',
-            fn: () => {
-                remaining -= 1;
-                return remaining > 0;
-            },
-            onFinishAfterTurn: async () => {
-                wearNow();
-                await display.putstr_message('You finish your dressing maneuver.');
-            },
-        };
+    // C ref: accessory_or_armor_on() — release wielded armor for wearing
+    if (item.owornmask & (W_WEP | W_SWAPWEP | W_QUIVER)) {
+        // remove_worn_item(item, false) equivalent
+        if (item === player.weapon) { player.weapon = null; item.owornmask &= ~W_WEP; }
+        else if (item === player.secondaryWeapon) { player.secondaryWeapon = null; item.owornmask &= ~W_SWAPWEP; }
+        else if (item === player.quiver) { player.quiver = null; item.owornmask &= ~W_QUIVER; }
+    }
+
+    const mask = ARM_SUB_TO_MASK[sub] || 0;
+    if (mask) setworn(player, item, mask);
+    else if (slot?.prop) player[slot.prop] = item;
+
+    // C ref: set afternmv based on which slot
+    const onFn = SLOT_ON[sub];
+    const afternmvFn = onFn ? (async () => { onFn(player); }) : null;
+
+    // C parity: armor donning uses nomul(delay) + afternmv, not occupation
+    if (game && delay) {
+        nomul(delay, game);
+        game.multi_reason = 'dressing up';
+        game.nomovemsg = 'You finish your dressing maneuver.';
+        if (afternmvFn) game.afternmv = afternmvFn;
         return { moved: false, tookTime: true };
     }
 
-    wearNow();
-    await display.putstr_message(`You are now wearing ${doname(item, player)}.`);
+    // No delay: call afternmv immediately via unmul("") (matches C)
+    if (afternmvFn) game.afternmv = afternmvFn;
+    await unmul('', player, display, game);
+    await on_msg(item, player);
+    if (game?.svc?.context?.takeoff) {
+        game.svc.context.takeoff.mask = game.svc.context.takeoff.what = 0;
+    }
+    find_ac(player);
     return { moved: false, tookTime: true };
 }
 

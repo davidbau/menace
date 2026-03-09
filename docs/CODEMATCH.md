@@ -1324,22 +1324,22 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 575 | `Gloves_on` | 209 | Fumble timeout, power STR=25+makeknown, dexterity |
 | 517 | `Helmet_off` | 189 | Brilliance adj_abon reverse, telepathy, dunce cap. Missing: fedora luck, cornuthaum CHA, helm of opposite alignment |
 | 433 | `Helmet_on` | 168 | Brilliance adj_abon, telepathy, dunce cap. Missing: fedora luck, cornuthaum, helm of opposite alignment |
-| 1450 | `Ring_gone` | - | Missing (wrapper for Ring_off_or_gone with gone=true) |
-| 1444 | `Ring_off` | 399 | All 28 ring types with extrinsic toggles. Missing: Ring_off_or_gone shared setworn logic |
-| 1342 | `Ring_off_or_gone` | - | Missing (JS uses separate Ring_off) |
+| 1450 | `Ring_gone` | do_wear.js:Ring_gone | Implemented (wrapper for Ring_off_or_gone with gone=true) |
+| 1444 | `Ring_off` | 399 | All 28 ring types with extrinsic toggles via Ring_off_or_gone. Missing: float_up, self_invis_message, see_monsters, newsym |
+| 1342 | `Ring_off_or_gone` | do_wear.js:Ring_off_or_gone | Implemented (full switch over ring types, adjust_attrib for attr rings) |
 | 1237 | `Ring_on` | 366 | All 28 ring types: passive extrinsics, stealth, warning, see_invis, invis, levitation, attribute rings, accuracy/damage, protection+find_ac, shape changers. Uses oldprop via RING_OPROP_MAP. Missing: float_up, self_invis_message, see_monsters, newsym |
 | 730 | `Shield_off` | 252 | No-op (matches C) |
 | 704 | `Shield_on` | 251 | No-op (matches C) |
 | 773 | `Shirt_off` | 256 | No-op (matches C) |
 | 754 | `Shirt_on` | 255 | No-op (matches C) |
-| 2204 | `accessory_or_armor_on` | - | Missing |
+| 2204 | `accessory_or_armor_on` | do_wear.js:accessory_or_armor_on | Implemented (delegates to putOnSelectedItem; nomul/afternmv for armor delay) |
 | 3254 | `adj_abon` | 343 | Simplified: clamps attr to [3,25], no racial cap or Fixed_abil check |
-| 1218 | `adjust_attrib` | - | Missing (C uses for ring attribute changes; JS uses adj_abon directly) |
+| 1218 | `adjust_attrib` | do_wear.js:adjust_attrib | Implemented (ABON adjustment with learnring+extremeattr) |
 | 2006 | `already_wearing` | do_wear.js:2371 | Implemented |
 | 2012 | `already_wearing2` | do_wear.js:2376 | Implemented |
 | 3415 | `any_worn_armor_ok` | do_wear.js:1709 | Implemented |
 | 1766 | `armor_or_accessory_off` | do_wear.js:1258 | Implemented |
-| 1915 | `armoroff` | - | Missing |
+| 1915 | `armoroff` | do_wear.js:armoroff | Implemented (nomul delay + afternmv callback, faithful to C) |
 | 2985 | `better_not_take_that_off` | do_wear.js:1410 | Implemented |
 | 1640 | `cancel_doff` | do_wear.js:1116 | Implemented |
 | 1659 | `cancel_don` | do_wear.js:1121 | Implemented |
@@ -1361,7 +1361,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2468 | `find_ac` | 168 | Full AC recalculation |
 | 2523 | `glibr` | do_wear.js:1161 | Implemented |
 | 567 | `hard_helmet` | do_wear.js:360 | Implemented |
-| 1857 | `ia_dotakeoff` | - | Missing |
+| 1857 | `ia_dotakeoff` | do_wear.js:ia_dotakeoff | Implemented (item_action_in_progress wrapper around handleTakeOff) |
 | 3277 | `inaccessible_equipment` | do_wear.js:1613 | Implemented |
 | 1188 | `learnring` | 349 | Simplified: sets obj.known=true (C also handles discovery tracking) |
 | 3184 | `maybe_destroy_armor` | do_wear.js:1519 | Implemented |

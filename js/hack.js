@@ -2881,6 +2881,14 @@ export async function unmul(msg_override, player, display, game) {
     game.nomovemsg = null;
     if (player) player.usleep = 0;
     game.multi_reason = null;
+
+    // C ref: hack.c:4075 — call afternmv callback when multi-turn action ends
+    if (game.afternmv) {
+        const f = game.afternmv;
+        // Clear before calling (matches C: override encumbrance hack for levitation)
+        game.afternmv = null;
+        await f();
+    }
 }
 
 // --------------------------------------------------------------------

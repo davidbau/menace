@@ -30,7 +30,7 @@ Rules
 | S14 | [#294](https://github.com/davidbau/menace/issues/294) | invent.c organize/perminv/id parity | `Ready` |
 | S15 | [#295](https://github.com/davidbau/menace/issues/295) | pickup.c floor pickup parity | `Ready` |
 | S16 | [#296](https://github.com/davidbau/menace/issues/296) | pickup.c container loot parity | `Ready` |
-| S17 | [#297](https://github.com/davidbau/menace/issues/297) | do_wear.c wear/takeoff edge parity | `Ready` |
+| S17 | [#297](https://github.com/davidbau/menace/issues/297) | do_wear.c wear/takeoff edge parity | `Done` (armoroff, accessory_or_armor_on, ia_dotakeoff, afternmv) |
 | S18 | [#298](https://github.com/davidbau/menace/issues/298) | wield.c wield/swap/quiver parity | `Done` (ledger) |
 | S19 | [#299](https://github.com/davidbau/menace/issues/299) | weapon.c skill progression parity | `Done` (ledger) |
 | S20 | [#300](https://github.com/davidbau/menace/issues/300) | apply.c tools family A parity | `Ready` |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 34
-- Completed slices: 16 (S12, S18, S19, S28, S29, S32, S33, S35, S38, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 33
+- Completed slices: 17 (S12, S17, S18, S19, S28, S29, S32, S33, S35, S38, S40, S41, S42, S43, S45, S46, S48)
