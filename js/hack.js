@@ -1806,35 +1806,26 @@ export async function findtravelpath(mode, game) {
     // Phase 2: Pick best reachable+couldsee cell as GUESS intermediate point.
     // C ref: hack.c:1433-1460.
     //
-    // C reuses tx,ty as loop variables in the for(tx=1;tx<COLNO;tx++) loop,
-    // so distmin(ux,uy,tx,ty) computes hero-to-CANDIDATE distance.  The
-    // initial px,py = target (C's "int px = tx, py = ty"), and initial
-    // dist = distmin(hero, target).  C's travel[hero] is 0 (never set),
-    // so the hero cell is excluded by the ctrav > 0 filter.
+    // C swaps tx↔ux for GUESS mode (line 1284-1288): ux=u.tx (target),
+    // tx=u.ux (hero).  In the phase 2 loop, tx/ty are SHADOWED by loop
+    // vars (candidate coords).  So distmin(ux,uy,tx,ty) in the loop =
+    // distmin(TARGET, CANDIDATE) — target-relative Chebyshev distance.
+    // Initial dist = distmin(TARGET, HERO) = upper bound.
     //
-    // JS sets guessDist(hero) = 0 to match C's exclusion.  We initialize
-    // px,py to hero (not target) so that the post-loop "u_at(px,py)" check
-    // works correctly — if no candidate is found, px,py = hero triggers
-    // the "no guesses" fallback, which is the same result as C (where
-    // px,py stays at target, but the hero is far from target so u_at fails
-    // → goto noguess → re-run from target → reverseWave fails → found:).
+    // JS guessDist(hero) = 0 matches C's exclusion (travel[seed] never set).
     let px = heroX, py = heroY;
-    const initDist = Math.max(Math.abs(heroX - tx), Math.abs(heroY - ty));
-    let bestDist = initDist;
-    let bestD2 = (heroX - tx) * (heroX - tx) + (heroY - ty) * (heroY - ty);
+    let bestDist = Math.max(Math.abs(tx - heroX), Math.abs(ty - heroY));
+    let bestD2 = (tx - heroX) * (tx - heroX) + (ty - heroY) * (ty - heroY);
     let bestTravel = COLNO * ROWNO;
     for (let cx = 1; cx < COLNO; cx++) {
         for (let cy = 0; cy < ROWNO; cy++) {
-            // C ref: hack.c:1442 — only consider couldsee cells with travel > 0.
             if (!couldsee(map, player, cx, cy)) continue;
             const ctrav = guessDist.get(`${cx},${cy}`) || 0;
             if (ctrav <= 0) continue;
-            // C ref: distmin(ux, uy, tx, ty) where tx,ty are loop vars = candidate.
-            // This computes hero-to-candidate Chebyshev distance.
-            const nxtdist = Math.max(Math.abs(heroX - cx), Math.abs(heroY - cy));
+            // C ref: distmin(ux, uy, tx, ty) = target-to-candidate Chebyshev.
+            const nxtdist = Math.max(Math.abs(tx - cx), Math.abs(ty - cy));
             if (nxtdist === bestDist && ctrav < bestTravel) {
-                // C ref: hack.c:1444-1451 — same distmin, lower travel, check dist2.
-                const nd2 = (heroX - cx) * (heroX - cx) + (heroY - cy) * (heroY - cy);
+                const nd2 = (tx - cx) * (tx - cx) + (ty - cy) * (ty - cy);
                 if (nd2 < bestD2) {
                     px = cx;
                     py = cy;
@@ -1842,11 +1833,10 @@ export async function findtravelpath(mode, game) {
                     bestTravel = ctrav;
                 }
             } else if (nxtdist < bestDist) {
-                // C ref: hack.c:1453-1459 — closer to hero, always take.
                 px = cx;
                 py = cy;
                 bestDist = nxtdist;
-                bestD2 = (heroX - cx) * (heroX - cx) + (heroY - cy) * (heroY - cy);
+                bestD2 = (tx - cx) * (tx - cx) + (ty - cy) * (ty - cy);
                 bestTravel = ctrav;
             }
         }
@@ -1882,7 +1872,10 @@ export async function findtravelpath(mode, game) {
             const parentX = guessWave.parentX ?? (heroX + guessWave.earlyDir[0]);
             const parentY = guessWave.parentY ?? (heroY + guessWave.earlyDir[1]);
             const travelVisited = game._travelVisited || (game._travelVisited = new Set());
-            const parentIsTarget = (parentX === px && parentY === py);
+            // C ref: hack.c:1386 — check against ORIGINAL target (u.tx,u.ty),
+            // not the GUESS intermediate point (px,py).  C's "goto noguess"
+            // overwrites local tx,ty but u.tx/u.ty stay as the original target.
+            const parentIsTarget = (parentX === tx && parentY === ty);
             const parentWasVisited = travelVisited.has(`${parentX},${parentY}`);
             if (parentIsTarget || parentWasVisited) {
                 nomul(0, game);
