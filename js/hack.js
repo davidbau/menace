@@ -35,7 +35,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
          ARROW, DART, SCR_SCARE_MONSTER } from './objects.js';
-import { nhgetch_wrap } from './input.js';
+import { nhgetch_raw } from './input.js';
 import { awaitInput } from './suspend.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
@@ -3794,7 +3794,7 @@ export { dosearch0 as search_demand };
 // mentioned in the task. Uses DIRECTION_KEYS from dothrow.js.
 export async function getdir(prompt, display) {
     if (display && prompt) await display.putstr_message(prompt);
-    const ch = await awaitInput(null, nhgetch_wrap(), { site: 'hack.getdir.read' });
+    const ch = await awaitInput(null, nhgetch_raw(), { site: 'hack.getdir.read' });
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
     if (dir) return { dx: dir[0], dy: dir[1], dz: 0 };
