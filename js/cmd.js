@@ -477,9 +477,7 @@ export async function rhack(ch, game) {
     // Version (v)
     // C ref: pager.c doversion()
     if (c === 'v') {
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        display.topMessage = null;
-        display.messageNeedsMore = false;
+        await display.putstr_message('Unix NetHack Version 3.7.0-132 Work-in-progress - last build Mar  8 2026\n20:21:19.');
         return { moved: false, tookTime: false };
     }
 
