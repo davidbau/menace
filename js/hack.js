@@ -23,7 +23,8 @@ import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN
          W_NONDIGGABLE, W_NONPASSWALL,
          DIRECTION_KEYS, RUN_KEYS,
          DO_MOVE, TEST_MOVE, TEST_TRAV, TEST_TRAP,
-         TRAVP_TRAVEL, TRAVP_GUESS, TRAVP_VALID } from './const.js';
+         TRAVP_TRAVEL, TRAVP_GUESS, TRAVP_VALID,
+         LOST_THROWN, LOST_DROPPED, LOST_STOLEN, LOST_EXPLODING } from './const.js';
 import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP_TRAP,
          ARROW_TRAP, DART_TRAP, ROCKTRAP } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
@@ -38,9 +39,9 @@ import { nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_human, is_rider, is_clinger, DEADMONSTER } from './mondata.js';
-import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr } from './engrave.js';
+import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
-import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop } from './shk.js';
+import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
 import { xname, an, The } from './objnam.js';
@@ -1245,9 +1246,25 @@ export async function domove_core(dir, player, map, display, game) {
 
     // Helper function: Check if object class matches pickup_types string
     // C ref: pickup.c pickup_filter() and flags.pickup_types
-    function shouldAutopickup(obj, pickupTypes) {
-        if (obj && obj._thrownByPlayer && game.flags?.pickup_thrown) {
+    function shouldAutopickup(obj, pickupTypes, costly) {
+        const howLost = obj?.how_lost;
+        const wasThrown = howLost === LOST_THROWN || howLost === 'LOST_THROWN' || howLost === 'thrown';
+        const wasDropped = howLost === LOST_DROPPED || howLost === 'LOST_DROPPED' || howLost === 'dropped';
+        const wasStolen = howLost === LOST_STOLEN || howLost === 'LOST_STOLEN' || howLost === 'stolen';
+        const wasExploding = howLost === LOST_EXPLODING || howLost === 'LOST_EXPLODING' || howLost === 'exploding';
+        const droppedNoPick = !!(game.flags?.nopick_dropped || game.flags?.dropped_nopick);
+
+        // C ref: pickup.c autopick_testobj() loss-state overrides.
+        if ((game.flags?.pickup_thrown && (wasThrown || !!obj?._thrownByPlayer))
+            || (game.flags?.pickup_stolen && wasStolen)) {
             return true;
+        }
+        if (droppedNoPick && wasDropped) return false;
+        if (wasExploding) return false;
+
+        // C ref: pickup.c autopick_testobj() — reject unpaid floor items in shops.
+        if (costly && !obj?.no_charge) {
+            return false;
         }
         // If pickup_types is empty, pick up all non-gold items (backward compat)
         if (!pickupTypes || pickupTypes === '') {
@@ -1280,11 +1297,30 @@ export async function domove_core(dir, player, map, display, game) {
     const objs = map.objectsAt(nx, ny);
     let pickedUp = false;
 
+    const costly = costly_spot(nx, ny, map);
+
+    // C ref: pickup.c pickup() — running into objects stops running before
+    // autopick processing (which can suppress pickup on this step).
+    let suppressAutopickThisStep = false;
+    if (objs.length > 0 && Number(ctx.run || 0) > 0 && Number(ctx.run || 0) !== 8 && !nopick) {
+        nomul(0, game);
+        suppressAutopickThisStep = true;
+    }
+
+    const mdat = player?.polyData || player?.data || null;
+    const inPool = is_pool(player.x, player.y, map) && !player.underwater;
+    const inLava = is_lava(player.x, player.y, map);
+    const canReachFloor = can_reach_floor(player, map, !!(trap && is_pit(trap.ttyp)));
+    let canAutopickThisStep = !!(game.flags?.pickup && !nopick && !suppressAutopickThisStep && objs.length > 0);
+    if (canAutopickThisStep && (inPool || inLava || !canReachFloor || (mdat && notake(mdat)))) {
+        canAutopickThisStep = false;
+    }
+
     // Pick up gold first if autopickup is enabled
     // C ref: pickup.c pickup() — autopickup gate applies to ALL items including gold
-    if (game.flags?.pickup && !nopick && objs.length > 0) {
+    if (canAutopickThisStep) {
         const gold = objs.find(o => o.oclass === COIN_CLASS);
-        if (gold) {
+        if (gold && shouldAutopickup(gold, '', costly)) {
             player.addToInventory(gold);
             map.removeObject(gold);
             await display.putstr_message(formatGoldPickupMessage(gold, player));
@@ -1294,9 +1330,9 @@ export async function domove_core(dir, player, map, display, game) {
 
     // Then pick up other items if autopickup is enabled
     // C ref: pickup.c pickup() filters by pickup_types
-    if (game.flags?.pickup && !nopick && objs.length > 0) {
+    if (canAutopickThisStep) {
         const pickupTypes = game.flags?.pickup_types || '';
-        const obj = objs.find(o => o.oclass !== COIN_CLASS && shouldAutopickup(o, pickupTypes));
+        const obj = objs.find(o => o.oclass !== COIN_CLASS && shouldAutopickup(o, pickupTypes, costly));
         if (obj) {
             observeObject(obj);
             const addResult = player.addToInventory(obj, { withMeta: true });

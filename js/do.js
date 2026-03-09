@@ -7,7 +7,7 @@ import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
          I_SPECIAL, TIMEOUT, WOUNDED_LEGS,
-         W_ARMOR, W_ACCESSORY, W_SADDLE } from './const.js';
+         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
 import { depth as dungeonDepth } from './dungeon.js';
@@ -234,6 +234,7 @@ async function drop_single(obj, player, map) {
     }
     // Remove from inventory and place
     player.removeFromInventory(obj);
+    obj.how_lost = LOST_DROPPED;
     await dropx(obj, player, map);
     return true;
 }
@@ -785,6 +786,7 @@ async function dropSelectedItem(item, player, map, display) {
     if (player.quiver === item) uqwepgone(player);
 
     player.removeFromInventory(item);
+    item.how_lost = LOST_DROPPED;
     item.ox = player.x;
     item.oy = player.y;
     placeFloorObject(map, item);
