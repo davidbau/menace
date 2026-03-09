@@ -60,7 +60,7 @@ import { newexplevel } from './exper.js';
 import { corpse_chance } from './mon.js';
 import { xkilled, killed, monkilled,
          wakeup, healmon, mondead } from './mon.js';
-import { nhgetch_wrap } from './input.js';
+import { readBoundaryKey } from './input.js';
 import { getdir, registerBurnarmor } from './hack.js';
 import { nonliving, is_undead, is_demon, is_rider,
          x_monnam, resists_fire, resists_cold, resists_elec,
@@ -112,7 +112,6 @@ import { attach_egg_hatch_timeout } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';
-import { awaitInput } from './suspend.js';
 
 // Direction vectors matching cmd.js DIRECTION_KEYS
 const DIRECTION_KEYS = {
@@ -547,7 +546,7 @@ export async function handleZap(player, map, display, game) {
     let wand;
     await showZapPrompt();
     while (true) {
-        const itemCh = await awaitInput(game, nhgetch_wrap(), { site: 'zap.handleZap.selectWand' });
+        const itemCh = await readBoundaryKey(display, 'zap.handleZap.selectWand', game);
         let itemChar = String.fromCharCode(itemCh);
 
         if (isDismissKey(itemCh)) {

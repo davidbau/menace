@@ -527,17 +527,17 @@ export function nhgetch_wrap(opts = {}) {
     return readUnifiedKey();
 }
 
-async function readBoundaryKey(display, site) {
+export async function readBoundaryKey(display, site, game = null) {
     if (display && display._pendingMore) {
         await consumePendingMore(
             display,
             () => nhgetch_wrap({ handleMore: false }),
             () => display._clearMore(),
-            { site: `${site}.more-consume` }
+            { game, site: `${site}.more-consume` }
         );
         display.messageNeedsMore = false;
     }
-    return await awaitInput(null, nhgetch_wrap({ handleMore: false }), { site });
+    return await awaitInput(game, nhgetch_wrap({ handleMore: false }), { site });
 }
 
 // Get a line of input (async)

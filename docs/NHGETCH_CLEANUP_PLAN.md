@@ -153,6 +153,11 @@ Required validation per phase:
    `ynFunction`, `getCount`) now pre-consume pending `--More--` via
    `consumePendingMore(...)` and then read via
    `nhgetch_wrap({ handleMore: false })`.
+7. 2026-03-09: A direct default-off toggle for wrapper-owned `--More--`
+   handling regressed `seed031/seed032/seed033` (prompt paths like
+   "What do you want to fire?"); migration must stay callsite-first.
+8. 2026-03-09: Migrated fire/zap prompt paths to explicit boundary reads
+   (`dothrow.js`, `zap.js`) via `readBoundaryKey(...)`.
 
 ## Decision Log
 
