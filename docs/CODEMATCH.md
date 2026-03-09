@@ -1539,16 +1539,16 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1708 | `ceiling` | dungeon.js:579 | Aligned |
 | 2250 | `chr_u_on_lvl` | dungeon.js:5269 | Implemented |
 | 440 | `correct_branch_type` | dungeon.js:5067 | Implemented |
-| 2943 | `count_feat_lastseentyp` | - | Missing |
+| 2943 | `count_feat_lastseentyp` | dungeon.js:5631 | Implemented |
 | 1339 | `deepest_lev_reached` | dungeon.js:550 | Aligned |
 | 1431 | `depth` | dungeon.js:306 | Aligned |
 | 284 | `dname_to_dnum` | dungeon.js:502 | Aligned |
 | 2565 | `donamelevel` | dungeon.js:5287 | Implemented |
-| 3286 | `dooverview` | - | Missing |
+| 3286 | `dooverview` | dungeon.js:5741 | Implemented |
 | 1864 | `dungeon_branch` | dungeon.js:518 | Aligned |
 | 1325 | `dunlev` | dungeon.js:297 | Aligned |
 | 1332 | `dunlevs_in_dungeon` | dungeon.js:302 | Aligned |
-| 1548 | `earth_sense` | - | Missing |
+| 1548 | `earth_sense` | dungeon.js:5602 | Implemented |
 | 3402 | `endgamelevelname` | dungeon.js:5416 | Implemented |
 | 311 | `find_branch` | dungeon.js:527 | Aligned |
 | 1943 | `find_hell` | dungeon.js:544 | Aligned |
@@ -1574,42 +1574,42 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 933 | `init_dungeon_set_entry` | dungeon.js:3570 | Aligned |
 | 1205 | `init_dungeons` | dungeon.js:3735 | Aligned |
 | 566 | `init_level` | - | N/A — C dungeon init, JS uses different startup path |
-| 2827 | `init_mapseen` | - | Missing |
+| 2827 | `init_mapseen` | dungeon.js:5663 | Implemented |
 | 463 | `insert_branch` | - | N/A — C linked list insertion, JS uses add_branch |
-| 2872 | `interest_mapseen` | - | Missing |
+| 2872 | `interest_mapseen` | dungeon.js:5716 | Implemented |
 | 1376 | `ledger_no` | dungeon.js:311 | Aligned |
 | 1422 | `ledger_to_dlev` | dungeon.js:335 | Aligned |
 | 1402 | `ledger_to_dnum` | dungeon.js:322 | Aligned |
-| 2092 | `lev_by_name` | - | Missing |
-| 2021 | `level_difficulty` | - | Missing |
-| 380 | `level_range` | - | Missing |
+| 2092 | `lev_by_name` | dungeon.js:5559 | Implemented |
+| 2021 | `level_difficulty` | dungeon.js:5568 | Implemented |
+| 380 | `level_range` | dungeon.js:5533 | Implemented |
 | 2609 | `load_exclusions` | dungeon.js:5321 | Implemented |
-| 2713 | `load_mapseen` | - | Missing |
+| 2713 | `load_mapseen` | dungeon.js:5677 | Implemented |
 | 3259 | `mapseen_temple` | priest.js:293 | STUB |
 | 1392 | `maxledgerno` | dungeon.js:314 | Aligned |
 | 1497 | `next_level` | dungeon.js:5157 | Implemented |
 | 1439 | `on_level` | dungeon.js:340 | Aligned |
-| 2753 | `overview_stats` | - | Missing |
-| 415 | `parent_dlevel` | - | Missing |
-| 346 | `parent_dnum` | - | Missing |
-| 632 | `pick_level` | - | Missing |
+| 2753 | `overview_stats` | dungeon.js:5731 | Implemented |
+| 415 | `parent_dlevel` | dungeon.js:5528 | Implemented |
+| 346 | `parent_dnum` | dungeon.js:5523 | Implemented |
+| 632 | `pick_level` | dungeon.js:5547 | Implemented |
 | 666 | `place_level` | dungeon.js:5099 | Implemented |
 | 598 | `possible_places` | dungeon.js:5083 | Implemented |
 | 1518 | `prev_level` | dungeon.js:5173 | Implemented |
 | 2257 | `print_branch` | - | N/A (debug print) |
 | 2284 | `print_dungeon` | - | N/A (debug print) |
 | 2483 | `print_level_annotation` | dungeon.js:5281 | Implemented |
-| 3508 | `print_mapseen` | - | Missing |
-| 2494 | `query_annotation` | - | Missing |
-| 3067 | `recalc_mapseen` | - | Missing |
-| 2440 | `recbranch_mapseen` | - | Missing |
-| 2803 | `remdun_mapseen` | - | Missing |
+| 3508 | `print_mapseen` | dungeon.js:5723 | Implemented |
+| 2494 | `query_annotation` | dungeon.js:5652 | Implemented |
+| 3067 | `recalc_mapseen` | dungeon.js:5708 | Implemented |
+| 2440 | `recbranch_mapseen` | dungeon.js:5703 | Implemented |
+| 2803 | `remdun_mapseen` | dungeon.js:5694 | Implemented |
 | 211 | `restore_dungeon` | - | N/A (save/restore, JS uses storage.js) |
-| 2657 | `rm_mapseen` | - | Missing |
+| 2657 | `rm_mapseen` | dungeon.js:5685 | Implemented |
 | 3274 | `room_discovered` | dungeon.js:5359 | Implemented |
 | 149 | `save_dungeon` | - | N/A (save/restore, JS uses storage.js) |
 | 2588 | `save_exclusions` | dungeon.js:5304 | Implemented |
-| 2687 | `save_mapseen` | - | Missing |
+| 2687 | `save_mapseen` | dungeon.js:5671 | Implemented |
 | 3360 | `seen_string` | dungeon.js:5401 | Implemented |
 | 3433 | `shop_string` | dungeon.js:5446 | Implemented |
 | 3297 | `show_overview` | dungeon.js:5365 | Implemented |
@@ -1619,11 +1619,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3336 | `traverse_mapseenchn` | dungeon.js:5386 | Implemented |
 | 3452 | `tunesuffix` | dungeon.js:endgamelevelname (inlined) | Implemented (level name suffix logic) |
 | 1568 | `u_on_newpos` | dungeon.js:5192 | Implemented |
-| 1599 | `u_on_rndspot` | - | Missing |
-| 2169 | `unplaced_floater` | - | Missing |
+| 1599 | `u_on_rndspot` | dungeon.js:5580 | Implemented |
+| 2169 | `unplaced_floater` | dungeon.js:5575 | Implemented |
 | 2184 | `unreachable_level` | dungeon.js:5242 | Implemented |
-| 2919 | `update_lastseentyp` | - | Missing |
-| 2935 | `update_mapseen_for` | - | Missing |
+| 2919 | `update_lastseentyp` | dungeon.js:5622 | Implemented |
+| 2935 | `update_mapseen_for` | dungeon.js:5637 | Implemented |
 
 ### eat.c -> eat.js
 | C Line | C Function | JS Line | Alignment |

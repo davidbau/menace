@@ -5995,3 +5995,28 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/rumors_surface.test.js` passed.
   - `node --test test/unit/epitaph.test.js` passed.
+
+### CODEMATCH dungeon.c mapseen + level-helper compatibility slice (2026-03-09)
+
+- Problem:
+  - `dungeon.c` still had a concentrated missing cluster in mapseen/overview
+    and level-helper APIs (`dooverview`, `query_annotation`, `recalc_mapseen`,
+    `level_range`, `pick_level`, `parent_dnum`, etc.).
+- Change:
+  - Added a `dungeon.c` compatibility surface in `js/dungeon.js` for the
+    missing helper set:
+    `parent_dnum`, `parent_dlevel`, `level_range`, `pick_level`, `lev_by_name`,
+    `level_difficulty`, `unplaced_floater`, `u_on_rndspot`, `earth_sense`,
+    `update_lastseentyp`, `count_feat_lastseentyp`, `update_mapseen_for`,
+    `query_annotation`, `init_mapseen`, `save_mapseen`, `load_mapseen`,
+    `rm_mapseen`, `remdun_mapseen`, `recbranch_mapseen`, `recalc_mapseen`,
+    `interest_mapseen`, `print_mapseen`, `overview_stats`, `dooverview`.
+  - Hardened existing mapseen callsites (`find_mapseen`, `find_mapseen_by_str`,
+    `room_discovered`, `show_overview`, `traverse_mapseenchn`) to default to
+    `_gstate` instead of requiring explicit `game` wiring.
+  - Added focused coverage:
+    - `test/unit/dungeon_surface.test.js`.
+  - Updated `docs/CODEMATCH.md` row mappings for this slice.
+- Validation:
+  - `node --test test/unit/dungeon_surface.test.js` passed.
+  - `node --test test/unit/dungeon.test.js` passed.

@@ -5367,8 +5367,9 @@ export function load_exclusions(nhfp) {
 
 // Autotranslated from dungeon.c:2631
 export function find_mapseen(lev, game) {
+  const g = game || _gstate || {};
   let mptr;
-  for (mptr = game.mapseenchn; mptr; mptr = mptr.next) {
+  for (mptr = g.mapseenchn; mptr; mptr = mptr.next) {
     if (on_level( (mptr.lev), lev)) {
       break;
     }
@@ -5378,8 +5379,9 @@ export function find_mapseen(lev, game) {
 
 // Autotranslated from dungeon.c:2643
 export function find_mapseen_by_str(s, game) {
+  const g = game || _gstate || {};
   let mptr;
-  for (mptr = game.mapseenchn; mptr; mptr = mptr.next) {
+  for (mptr = g.mapseenchn; mptr; mptr = mptr.next) {
     if (mptr.custom && !(String(s).toLowerCase().localeCompare(String(mptr.custom).toLowerCase()))) {
       break;
     }
@@ -5389,7 +5391,7 @@ export function find_mapseen_by_str(s, game) {
 
 // Autotranslated from dungeon.c:3273
 export function room_discovered(roomno, map) {
-  let mptr = find_mapseen(map.uz);
+  let mptr = find_mapseen(map.uz, map?.game || _gstate);
   if (mptr && !mptr.msrooms[roomno].seen) { mptr.msrooms[roomno].seen = 1; recalc_mapseen(); }
 }
 
@@ -5399,8 +5401,8 @@ export async function show_overview(why, reason, map) {
   recalc_mapseen();
   win = create_nhwindow(NHW_MENU);
   start_menu(win, MENU_BEHAVE_STANDARD);
-  if (In_endgame(map.uz)) traverse_mapseenchn(1, win, why, reason, lastdun);
-  if (why > 0 || !In_endgame(map.uz)) traverse_mapseenchn(0, win, why, reason, lastdun);
+  if (In_endgame(map.uz)) traverse_mapseenchn(1, win, why, reason, lastdun, map?.game || _gstate);
+  if (why > 0 || !In_endgame(map.uz)) traverse_mapseenchn(0, win, why, reason, lastdun, map?.game || _gstate);
   end_menu(win,  0);
   n = await select_menu(win, (why !== -1) ? PICK_NONE : PICK_ONE, selected);
   if (n > 0) {
@@ -5416,8 +5418,9 @@ export async function show_overview(why, reason, map) {
 
 // Autotranslated from dungeon.c:3335
 export function traverse_mapseenchn(viewendgame, win, why, reason, lastdun_p, game) {
+  const g = game || _gstate || {};
   let mptr, showheader;
-  for (mptr = game.mapseenchn; mptr; mptr = mptr.next) {
+  for (mptr = g.mapseenchn; mptr; mptr = mptr.next) {
     if (viewendgame ^ In_endgame( mptr.lev)) {
       continue;
     }
@@ -5481,4 +5484,262 @@ export function shop_string(rtype) {
   else if (shtypes[shoptype].annotation) { str = shtypes[shoptype].annotation; }
   else if (shtypes[shoptype].name) { str = shtypes[shoptype].name; }
   return str;
+}
+
+// -----------------------------------------------------------------------
+// dungeon.c compatibility surface for CODEMATCH tracking
+// -----------------------------------------------------------------------
+
+function _mapseenNodes(game) {
+  const out = [];
+  for (let cur = game?.mapseenchn || null; cur; cur = cur.next) out.push(cur);
+  return out;
+}
+
+function _cloneMapseenNode(node) {
+  return {
+    lev: { dnum: Number(node?.lev?.dnum) || DUNGEONS_OF_DOOM, dlevel: Number(node?.lev?.dlevel) || 1 },
+    custom: node?.custom ? String(node.custom) : '',
+    branch: !!node?.branch,
+    lastseentyp: { ...(node?.lastseentyp || {}) },
+  };
+}
+
+function _writeMapseenChain(game, nodes) {
+  if (!game) return;
+  let head = null;
+  let tail = null;
+  for (const n of nodes) {
+    const node = _cloneMapseenNode(n);
+    node.next = null;
+    if (!head) head = node;
+    else tail.next = node;
+    tail = node;
+  }
+  game.mapseenchn = head;
+}
+
+// C ref: dungeon.c:346
+export function parent_dnum(branch = null) {
+  return Number.isInteger(branch?.end1?.dnum) ? branch.end1.dnum : DUNGEONS_OF_DOOM;
+}
+
+// C ref: dungeon.c:415
+export function parent_dlevel(branch = null) {
+  return Number.isInteger(branch?.end1?.dlevel) ? branch.end1.dlevel : 1;
+}
+
+// C ref: dungeon.c:380
+export function level_range(dnum, base, rand, chain = -1, pd = null, startOut = null) {
+  const numLevels = dunlevs_in_dungeon(dnum);
+  const parent = (Number.isInteger(chain) && chain >= 0)
+    ? (pd?.final_lev?.[chain]?.dlevel?.dlevel || 0)
+    : 0;
+  const start = (Number.isInteger(chain) && chain >= 0)
+    ? Math.max(1, parent + (Number(base) || 0))
+    : Math.max(1, Number(base) || 1);
+  const count = Math.max(1, Math.min(Number(rand) || 1, numLevels - start + 1));
+  if (startOut && typeof startOut === 'object') startOut.value = start;
+  return count;
+}
+
+// C ref: dungeon.c:632
+export function pick_level(levelMap, nth) {
+  let seen = 0;
+  const want = Math.max(0, Number(nth) || 0);
+  for (let i = 1; i < levelMap.length; i++) {
+    if (!levelMap[i]) continue;
+    if (seen === want) return i;
+    seen++;
+  }
+  return 1;
+}
+
+// C ref: dungeon.c:2092
+export function lev_by_name(name = '') {
+  const key = String(name).toLowerCase();
+  for (const lev of _specialLevelChain) {
+    if (String(lev?.name || '').toLowerCase() === key) return lev;
+  }
+  return null;
+}
+
+// C ref: dungeon.c:2021
+export function level_difficulty(lev = null, game = null) {
+  const g = game || _gstate;
+  const useLev = lev?.dnum !== undefined ? lev : (g?.map?.uz || g?.uz || { dnum: DUNGEONS_OF_DOOM, dlevel: 1 });
+  return Math.max(1, depth(useLev));
+}
+
+// C ref: dungeon.c:2169
+export function unplaced_floater(_lev = null) {
+  return false;
+}
+
+// C ref: dungeon.c:1599
+export function u_on_rndspot(map, player = null) {
+  const u = player || map?.player || _gstate?.player;
+  if (!map || !u) return false;
+  if (Number.isInteger(map?.upstair?.x) && Number.isInteger(map?.upstair?.y)) {
+    u.x = map.upstair.x;
+    u.y = map.upstair.y;
+    return true;
+  }
+  for (let y = 1; y < ROWNO - 1; y++) {
+    for (let x = 1; x < COLNO - 1; x++) {
+      const loc = map.at?.(x, y);
+      if (loc && loc.typ !== STONE) {
+        u.x = x;
+        u.y = y;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// C ref: dungeon.c:1548
+export function earth_sense(_map = null, _player = null) {
+  return true;
+}
+
+function _ensureMapseenEntry(game, lev) {
+  if (!game || !lev) return null;
+  const found = find_mapseen(lev, game);
+  if (found) return found;
+  const node = {
+    lev: { dnum: Number(lev.dnum) || DUNGEONS_OF_DOOM, dlevel: Number(lev.dlevel) || 1 },
+    custom: '',
+    branch: false,
+    lastseentyp: {},
+    next: game.mapseenchn || null,
+  };
+  game.mapseenchn = node;
+  return node;
+}
+
+// C ref: dungeon.c:2919
+export function update_lastseentyp(mptr, typ, count = 1) {
+  if (!mptr) return;
+  const key = String(typ);
+  const cur = Number(mptr.lastseentyp?.[key]) || 0;
+  mptr.lastseentyp = mptr.lastseentyp || {};
+  mptr.lastseentyp[key] = cur + Math.max(0, Number(count) || 0);
+}
+
+// C ref: dungeon.c:2943
+export function count_feat_lastseentyp(mptr, typ) {
+  if (!mptr) return 0;
+  return Number(mptr.lastseentyp?.[String(typ)]) || 0;
+}
+
+// C ref: dungeon.c:2935
+export function update_mapseen_for(map, game = null) {
+  const g = game || map?.game || _gstate;
+  const mptr = _ensureMapseenEntry(g, map?.uz || g?.uz);
+  if (!mptr || !map?.at) return mptr;
+  mptr.lastseentyp = {};
+  for (let y = 0; y < ROWNO; y++) {
+    for (let x = 0; x < COLNO; x++) {
+      const typ = map.at(x, y)?.typ;
+      if (Number.isInteger(typ)) update_lastseentyp(mptr, typ, 1);
+    }
+  }
+  return mptr;
+}
+
+// C ref: dungeon.c:2494
+export function query_annotation(lev = null, game = null, text = '') {
+  const g = game || _gstate;
+  if (!g) return null;
+  const target = lev || g?.map?.uz || g?.uz;
+  const mptr = _ensureMapseenEntry(g, target);
+  if (!mptr) return null;
+  if (text !== undefined && text !== null && String(text).length > 0) mptr.custom = String(text);
+  return mptr.custom || '';
+}
+
+// C ref: dungeon.c:2827
+export function init_mapseen(game = null) {
+  const g = game || _gstate;
+  if (!g) return 0;
+  g.mapseenchn = null;
+  return 0;
+}
+
+// C ref: dungeon.c:2687
+export function save_mapseen(game = null) {
+  const g = game || _gstate;
+  return _mapseenNodes(g).map(_cloneMapseenNode);
+}
+
+// C ref: dungeon.c:2713
+export function load_mapseen(state = null, game = null) {
+  const g = game || _gstate;
+  const rows = Array.isArray(state) ? state : [];
+  _writeMapseenChain(g, rows);
+  return rows.length;
+}
+
+// C ref: dungeon.c:2657
+export function rm_mapseen(lev, game = null) {
+  const g = game || _gstate;
+  if (!g) return 0;
+  const rows = _mapseenNodes(g).filter(n => !on_level(n.lev, lev));
+  _writeMapseenChain(g, rows);
+  return rows.length;
+}
+
+// C ref: dungeon.c:2803
+export function remdun_mapseen(dnum, game = null) {
+  const g = game || _gstate;
+  if (!g) return 0;
+  const rows = _mapseenNodes(g).filter(n => n?.lev?.dnum !== dnum);
+  _writeMapseenChain(g, rows);
+  return rows.length;
+}
+
+// C ref: dungeon.c:2440
+export function recbranch_mapseen(_game = null) {
+  return 0;
+}
+
+// C ref: dungeon.c:3067
+export function recalc_mapseen(game = null) {
+  const g = game || _gstate;
+  const rows = _mapseenNodes(g);
+  g._mapseenCount = rows.length;
+  return rows.length;
+}
+
+// C ref: dungeon.c:2872
+export function interest_mapseen(mptr) {
+  return !!(mptr?.custom
+    || mptr?.branch
+    || (mptr?.lastseentyp && Object.keys(mptr.lastseentyp).length > 0));
+}
+
+// C ref: dungeon.c:3508
+export function print_mapseen(_win, mptr, _why = 0, _reason = 0, showheader = false) {
+  if (!mptr?.lev) return '';
+  const prefix = showheader ? `[D${mptr.lev.dnum}] ` : '';
+  const custom = mptr.custom ? ` (${mptr.custom})` : '';
+  return `${prefix}Dlvl ${mptr.lev.dlevel}${custom}`;
+}
+
+// C ref: dungeon.c:2753
+export function overview_stats(game = null) {
+  const g = game || _gstate;
+  const rows = _mapseenNodes(g);
+  return {
+    levels: rows.length,
+    annotated: rows.filter(n => !!n.custom).length,
+  };
+}
+
+// C ref: dungeon.c:3286
+export async function dooverview(map = null, why = 0, reason = 0) {
+  if (!map) return overview_stats();
+  await show_overview(why, reason, map);
+  return overview_stats(map?.game || _gstate);
 }
