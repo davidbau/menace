@@ -898,20 +898,39 @@ async function promptDropTypeClass(display, player) {
             }
         }
     }
+    const menuRows = new Map();
+    const menuLabels = new Map();
+    const selectedMenuKeys = new Set();
+    const setMenuRow = (key, row, label) => {
+        menuRows.set(key, row);
+        menuLabels.set(key, label);
+    };
+    const redrawMenuKey = (key) => {
+        if (typeof display?.putstr !== 'function') return;
+        const row = menuRows.get(key);
+        const label = menuLabels.get(key);
+        if (!Number.isInteger(row) || typeof label !== 'string') return;
+        const marker = selectedMenuKeys.has(key) ? '+' : '-';
+        display.putstr(promptCol, row, `${key} ${marker} ${label}`);
+    };
     if (typeof display?.putstr === 'function') {
         display.putstr(promptCol, 0, prompt, undefined, 1);
         display.putstr(promptCol, 2, 'A - Auto-select every relevant item');
         display.putstr(promptCol + 4, 3, '(ignored unless some other choices are also picked)');
+        setMenuRow('A', 2, 'Auto-select every relevant item');
         let row = 5;
         display.putstr(promptCol, row++, 'a - All types');
+        setMenuRow('a', row - 1, 'All types');
         let accel = 'b'.charCodeAt(0);
         for (const label of typeEntries) {
             const key = String.fromCharCode(accel++);
             display.putstr(promptCol, row++, `${key} - ${label}`);
+            setMenuRow(key, row - 1, label);
         }
         if (hasKnownUncursed) {
             row++;
             display.putstr(promptCol, row++, 'U - Items known to be Uncursed');
+            setMenuRow('U', row - 1, 'Items known to be Uncursed');
         }
         display.putstr(promptCol, row, '(end)');
         // C ref: process_text_window places cursor at end of "(end)" marker.
@@ -940,7 +959,13 @@ async function promptDropTypeClass(display, player) {
             continue;
         }
         if (ch >= 32 && ch < 127) {
-            input += String.fromCharCode(ch);
+            const key = String.fromCharCode(ch);
+            input += key;
+            if (menuRows.has(key)) {
+                if (selectedMenuKeys.has(key)) selectedMenuKeys.delete(key);
+                else selectedMenuKeys.add(key);
+                redrawMenuKey(key);
+            }
         }
     }
 }
