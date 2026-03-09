@@ -102,7 +102,7 @@ import { m_in_out_region } from './region.js';
 import { set_apparxy } from './monmove.js';
 import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
-import { is_watch } from './mondata.js';
+import { is_watch, bigmonst, verysmall } from './mondata.js';
 import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
 import { awaitInput } from './suspend.js';
 
@@ -172,8 +172,6 @@ function martial_bonus(player) {
     return role === 'Monk' || role === 'Samurai';
 }
 
-function bigmonst(ptr) { return (ptr.msize || 0) >= MZ_LARGE; }
-function verysmall(ptr) { return (ptr.msize || 0) < MZ_SMALL; }
 function canspotmon(mon, player, map, fov) {
     return canSpotMonsterForMap(mon, map, player, fov);
 }

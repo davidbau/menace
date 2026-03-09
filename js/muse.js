@@ -90,7 +90,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
-import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu } from './mondata.js';
+import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall } from './mondata.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 import { t_at, m_at } from './trap.js';
 
@@ -231,9 +231,6 @@ const MUSE_MISC_BAG = 10;
 
 // C ref: mindless(ptr) — M1_MINDLESS
 function mindless(ptr) { return is_mindless(ptr); }
-
-// C ref: verysmall(ptr)
-function verysmall(ptr) { return (ptr.msize || 0) < MZ_SMALL; }
 
 // C ref: NODIAG(mndx) — only grid bugs
 function NODIAG(mndx) { return mndx === PM_GRID_BUG; }

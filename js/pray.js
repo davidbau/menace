@@ -38,6 +38,7 @@ import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
 import { S_altar } from './symbols.js';
 import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE } from './const.js';
 import { mark_vision_dirty } from './vision.js';
+import { resists_elec, resists_disint } from './mondata.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          mons, PM_ACID_BLOB, PM_WRAITH,
          PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
@@ -601,17 +602,7 @@ function Inhell(player) {
 function Is_astralevel() { return false; }
 function Is_sanctum() { return false; }
 
-// Helper: resists_elec
-function resists_elec(mon) {
-    if (!mon || !mon.data) return false;
-    return !!(mon.data.mresists & 0x10); // MR_ELEC
-}
-
-// Helper: resists_disint
-function resists_disint(mon) {
-    if (!mon || !mon.data) return false;
-    return !!(mon.data.mresists & 0x20); // MR_DISINT
-}
+// resists_elec, resists_disint: imported from mondata.js
 
 
 // Helper: p_type storage -- prayer state (module-level, set by can_pray)

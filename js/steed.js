@@ -12,17 +12,12 @@ import { exercise } from './attrib_exercise.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { is_humanoid, slithy, amorphous, noncorporeal, is_whirly,
          unsolid, is_swimmer, is_floater, is_flyer,
-         grounded } from './mondata.js';
+         grounded, bigmonst, verysmall } from './mondata.js';
 import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE,
          S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON,
          S_JABBERWOCK, PM_KNIGHT } from './monsters.js';
 import { which_armor } from './worn.js';
 import { SADDLE } from './objects.js';
-
-// C ref: verysmall(ptr) = msize < MZ_SMALL
-function verysmall(ptr) { return (ptr.msize || 0) < MZ_SMALL; }
-// C ref: bigmonst(ptr) = msize >= MZ_LARGE
-function bigmonst(ptr) { return (ptr.msize || 0) >= MZ_LARGE; }
 
 // Monsters that might be ridden
 const STEEDS = [S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON, S_JABBERWOCK];

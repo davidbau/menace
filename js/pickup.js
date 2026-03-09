@@ -1,4 +1,5 @@
 import { strchr } from './hacklib.js';
+import { bigmonst } from './mondata.js';
 import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
          EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG,
@@ -62,11 +63,6 @@ let oldcap = 0;                    // go.oldcap
 // ---------------------------------------------------------------------------
 // Helper predicates (not exported from other modules)
 // ---------------------------------------------------------------------------
-
-// cf. C macro: #define bigmonst(ptr) ((ptr)->msize >= MZ_LARGE)
-function bigmonst(ptr) {
-    return (ptr.msize || 0) >= MZ_LARGE;
-}
 
 
 

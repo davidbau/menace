@@ -79,7 +79,8 @@ import { Monnam, mon_nam, a_monnam, l_monnam, y_monnam } from './do_name.js';
 import { nohands, nolimbs, has_head, unsolid, haseyes, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
-         poly_when_stoned, throws_rocks, passes_walls } from './mondata.js';
+         poly_when_stoned, throws_rocks, passes_walls,
+         bigmonst, verysmall } from './mondata.js';
 import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, distu, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
@@ -102,10 +103,6 @@ import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
 
 // -- Inline helpers --
-
-// cf. C macros bigmonst/verysmall (not exported from mondata.js)
-function bigmonst(ptr) { return (ptr.msize || 0) >= MZ_LARGE; }
-function verysmall(ptr) { return (ptr.msize || 0) < MZ_SMALL; }
 
 const MAXLEASHED = 2;
 

@@ -53,7 +53,8 @@ import { body_part } from './polyself.js';
 import { acurr } from './attrib.js';
 import { A_CHA } from './const.js';
 import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
-         is_rider, resists_poison, resists_acid, resists_ston, likes_fire } from './mondata.js';
+         is_rider, resists_poison, resists_acid, resists_ston, likes_fire,
+         mon_hates_silver } from './mondata.js';
 import { EYE } from './const.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating } from './dogmove.js';
@@ -92,11 +93,7 @@ function mon_vegan(ptr) {
 
 function polyfood(obj) { return false; }
 
-function mon_hates_silver(mon) {
-    const ptr = monPtr(mon);
-    if (!ptr) return false;
-    return !!(ptr.mflags2 & 0x00000400);
-}
+
 
 function ismnum(fx) { return fx >= 0 && fx < NUMMONS; }
 const humanoid = is_humanoid;

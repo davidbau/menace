@@ -214,6 +214,12 @@ export function always_peaceful(ptr) { return !!(ptr.mflags2 & M2_PEACEFUL); }
 // C ref: #define strongmonst(ptr)   ((ptr)->mflags2 & M2_STRONG)
 export function strongmonst(ptr) { return !!(ptr.mflags2 & M2_STRONG); }
 
+// C ref: #define bigmonst(ptr) ((ptr)->msize >= MZ_LARGE)
+export function bigmonst(ptr) { return (ptr.msize || 0) >= MZ_LARGE; }
+
+// C ref: #define verysmall(ptr) ((ptr)->msize < MZ_SMALL)
+export function verysmall(ptr) { return (ptr.msize || 0) < MZ_SMALL; }
+
 // C ref: #define can_rockthrow(ptr) ((ptr)->mflags2 & M2_ROCKTHROW)
 export function can_rockthrow(ptr) { return !!(ptr.mflags2 & M2_ROCKTHROW); }
 
