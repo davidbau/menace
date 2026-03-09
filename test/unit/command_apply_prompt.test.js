@@ -29,7 +29,7 @@ function makeBaseGame() {
         map,
         display,
         fov: null,
-        flags: { verbose: false },
+        flags: { verbose: false, cmdassist: false },
     };
 }
 

@@ -28,7 +28,7 @@ function makeGame(verbose = true) {
             map,
             display,
             fov: null,
-            flags: { verbose },
+            flags: { verbose, cmdassist: false },
             menuRequested: false,
         },
         messages,
