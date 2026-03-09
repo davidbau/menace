@@ -3,17 +3,19 @@
 // These operate on a permonst pointer (ptr), which in JS is the mons[] entry.
 // Monster instances have a .mnum field indexing into mons[].
 
-import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, M1_NEEDPICK, M1_CONCEAL, M1_HIDE, M1_AMPHIBIOUS, M1_BREATHLESS, M1_NOTAKE, M1_NOEYES, M1_NOHANDS, M1_NOLIMBS, M1_NOHEAD, M1_MINDLESS, M1_HUMANOID, M1_ANIMAL, M1_SLITHY, M1_UNSOLID, M1_THICK_HIDE, M1_OVIPAROUS, M1_REGEN, M1_SEE_INVIS, M1_TPORT, M1_TPORT_CNTRL, M1_ACID, M1_POIS, M1_CARNIVORE, M1_HERBIVORE, M1_OMNIVORE, M1_METALLIVORE, M2_NOPOLY, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_MERC, M2_LORD, M2_PRINCE, M2_MINION, M2_GIANT, M2_SHAPESHIFTER, M2_MALE, M2_FEMALE, M2_NEUTER, M2_PNAME, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_WANDER, M2_STALK, M2_NASTY, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_COLLECT, M2_MAGIC, M3_WANTSAMUL, M3_WANTSBELL, M3_WANTSBOOK, M3_WANTSCAND, M3_WANTSARTI, M3_WANTSALL, M3_WAITFORU, M3_CLOSE, M3_COVETOUS, M3_WAITMASK, M3_INFRAVISION, M3_INFRAVISIBLE, M3_DISPLACES, S_DOG, S_FELINE, S_GOLEM, S_GHOST, S_IMP, S_RODENT, S_VAMPIRE, S_VORTEX, S_ELEMENTAL, S_KOBOLD, S_OGRE, S_NYMPH, S_CENTAUR, S_DRAGON, S_NAGA, S_ZOMBIE, S_MUMMY, S_LICH, S_WRAITH, S_UNICORN, S_EYE, S_LIGHT, S_TROLL, S_MIMIC, S_FUNGUS, S_JELLY, S_BLOB, S_PUDDING, S_BAT, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, AT_ANY, AT_NONE, AT_BOOM, AT_SPIT, AT_GAZE, AT_MAGC, AT_ENGL, AT_HUGS, AT_BREA, AT_WEAP, AD_ANY, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID, AD_STCK, AD_WRAP, AD_DGST, AD_MAGM, AD_DRLI, AD_RBRE, AD_BLND, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, MR_ACID, MR_STONE, G_UNIQ, PM_SHADE, PM_TENGU, PM_ROCK_MOLE, PM_WOODCHUCK, PM_PONY, PM_HORSE, PM_WARHORSE, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_KI_RIN, PM_HORNED_DEVIL, PM_MINOTAUR, PM_ASMODEUS, PM_BALROG, PM_MARILITH, PM_WINGED_GARGOYLE, PM_AIR_ELEMENTAL, PM_GREMLIN, PM_STONE_GOLEM, PM_FIRE_VORTEX, PM_FLAMING_SPHERE, PM_SHOCKING_SPHERE, PM_SALAMANDER, PM_FIRE_ELEMENTAL, PM_CYCLOPS, PM_FLOATING_EYE, PM_ROPE_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_LEATHER_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_IRON_GOLEM, PM_STALKER, PM_GREEN_SLIME, PM_BLACK_PUDDING, PM_BLACK_LIGHT, PM_MEDUSA, PM_GHOUL, PM_PIRANHA, PM_GIANT, PM_HUMAN, PM_VAMPIRE_BAT, PM_HEZROU, PM_VROCK, PM_FOG_CLOUD, MS_SILENT, MS_BUZZ, MS_BURBLE, S_EEL, // For grownups table (little_to_big / big_to_little / same_race)
-    AD_SLEE, AD_DISN, AD_DRST,
-    PM_CHICKATRICE, PM_COCKATRICE, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_HELL_HOUND_PUP, PM_HELL_HOUND, PM_WINTER_WOLF_CUB, PM_WINTER_WOLF, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_KOBOLD, PM_LARGE_KOBOLD, PM_KOBOLD_LEADER, PM_GNOME, PM_GNOME_LEADER, PM_GNOME_RULER, PM_DWARF, PM_DWARF_LEADER, PM_DWARF_RULER, PM_MIND_FLAYER, PM_MASTER_MIND_FLAYER, PM_ORC, PM_HILL_ORC, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_CAPTAIN, PM_SEWER_RAT, PM_GIANT_RAT, PM_CAVE_SPIDER, PM_GIANT_SPIDER, PM_OGRE, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_ELF, PM_WOODLAND_ELF, PM_GREEN_ELF, PM_GREY_ELF, PM_ELF_NOBLE, PM_ELVEN_MONARCH, PM_LICH, PM_DEMILICH, PM_MASTER_LICH, PM_ARCH_LICH, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_BAT, PM_GIANT_BAT, PM_BABY_GRAY_DRAGON, PM_GRAY_DRAGON, PM_BABY_GOLD_DRAGON, PM_GOLD_DRAGON, PM_BABY_SILVER_DRAGON, PM_SILVER_DRAGON, PM_BABY_RED_DRAGON, PM_RED_DRAGON, PM_BABY_WHITE_DRAGON, PM_WHITE_DRAGON, PM_BABY_ORANGE_DRAGON, PM_ORANGE_DRAGON, PM_BABY_BLACK_DRAGON, PM_BLACK_DRAGON, PM_BABY_BLUE_DRAGON, PM_BLUE_DRAGON, PM_BABY_GREEN_DRAGON, PM_GREEN_DRAGON, PM_BABY_YELLOW_DRAGON, PM_YELLOW_DRAGON, PM_RED_NAGA_HATCHLING, PM_RED_NAGA, PM_BLACK_NAGA_HATCHLING, PM_BLACK_NAGA, PM_GOLDEN_NAGA_HATCHLING, PM_GOLDEN_NAGA, PM_GUARDIAN_NAGA_HATCHLING, PM_GUARDIAN_NAGA, PM_SMALL_MIMIC, PM_LARGE_MIMIC, PM_GIANT_MIMIC, PM_BABY_LONG_WORM, PM_LONG_WORM, PM_LONG_WORM_TAIL, PM_BABY_PURPLE_WORM, PM_PURPLE_WORM, PM_BABY_CROCODILE, PM_CROCODILE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_STUDENT, PM_ARCHEOLOGIST, PM_ATTENDANT, PM_HEALER, PM_PAGE, PM_KNIGHT, PM_ACOLYTE, PM_CLERIC, PM_APPRENTICE, PM_WIZARD, PM_MANES, PM_LEMURE, PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN, PM_GARGOYLE, PM_KILLER_BEE, PM_QUEEN_BEE, PM_DEATH, PM_FAMINE, PM_PESTILENCE, PM_KOBOLD_ZOMBIE, PM_KOBOLD_MUMMY, PM_MONKEY, PM_APE, PM_LICHEN } from './monsters.js';
+import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, M1_NEEDPICK, M1_CONCEAL, M1_HIDE, M1_AMPHIBIOUS, M1_BREATHLESS, M1_NOTAKE, M1_NOEYES, M1_NOHANDS, M1_NOLIMBS, M1_NOHEAD, M1_MINDLESS, M1_HUMANOID, M1_ANIMAL, M1_SLITHY, M1_UNSOLID, M1_THICK_HIDE, M1_OVIPAROUS, M1_REGEN, M1_SEE_INVIS, M1_TPORT, M1_TPORT_CNTRL, M1_ACID, M1_POIS, M1_CARNIVORE, M1_HERBIVORE, M1_OMNIVORE, M1_METALLIVORE, M2_NOPOLY, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_MERC, M2_LORD, M2_PRINCE, M2_MINION, M2_GIANT, M2_SHAPESHIFTER, M2_MALE, M2_FEMALE, M2_NEUTER, M2_PNAME, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_WANDER, M2_STALK, M2_NASTY, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_COLLECT, M2_MAGIC, M3_WANTSAMUL, M3_WANTSBELL, M3_WANTSBOOK, M3_WANTSCAND, M3_WANTSARTI, M3_WANTSALL, M3_WAITFORU, M3_CLOSE, M3_COVETOUS, M3_WAITMASK, M3_INFRAVISION, M3_INFRAVISIBLE, M3_DISPLACES, S_DOG, S_FELINE, S_GOLEM, S_GHOST, S_IMP, S_RODENT, S_VAMPIRE, S_VORTEX, S_ELEMENTAL, S_KOBOLD, S_OGRE, S_NYMPH, S_CENTAUR, S_DRAGON, S_NAGA, S_ZOMBIE, S_MUMMY, S_LICH, S_WRAITH, S_UNICORN, S_EYE, S_LIGHT, S_TROLL, S_MIMIC, S_FUNGUS, S_JELLY, S_BLOB, S_PUDDING, S_BAT, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, AT_ANY, AT_NONE, AT_BOOM, AT_SPIT, AT_GAZE, AT_MAGC, AT_ENGL, AT_HUGS, AT_BREA, AT_WEAP, AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_TENT, AT_EXPL, AD_ANY, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID, AD_STCK, AD_WRAP, AD_DGST, AD_MAGM, AD_DRLI, AD_RBRE, AD_BLND, AD_DCAY, AD_RUST, AD_WERE, AD_DRDX, AD_DRCO, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, MR_ACID, MR_STONE, G_UNIQ, G_SGROUP, G_LGROUP, G_GENO, PM_SHADE, PM_TENGU, PM_ROCK_MOLE, PM_WOODCHUCK, PM_PONY, PM_HORSE, PM_WARHORSE, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_KI_RIN, PM_HORNED_DEVIL, PM_MINOTAUR, PM_ASMODEUS, PM_BALROG, PM_MARILITH, PM_WINGED_GARGOYLE, PM_AIR_ELEMENTAL, PM_GREMLIN, PM_STONE_GOLEM, PM_FIRE_VORTEX, PM_FLAMING_SPHERE, PM_SHOCKING_SPHERE, PM_SALAMANDER, PM_FIRE_ELEMENTAL, PM_CYCLOPS, PM_FLOATING_EYE, PM_ROPE_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_LEATHER_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_IRON_GOLEM, PM_STALKER, PM_GREEN_SLIME, PM_BLACK_PUDDING, PM_BLACK_LIGHT, PM_MEDUSA, PM_GHOUL, PM_PIRANHA, PM_GIANT, PM_HUMAN, PM_VAMPIRE_BAT, PM_HEZROU, PM_VROCK, PM_FOG_CLOUD, MS_SILENT, MS_BUZZ, MS_BURBLE, S_EEL, S_ANGEL, S_DEMON, S_WORM, S_WORM_TAIL, S_MIMIC_DEF, S_invisible, MAXMCLASSES, NUMMONS, // For grownups table (little_to_big / big_to_little / same_race)
+    AD_SLEE, AD_DISN, AD_DRST, AD_STON,
+    PM_CHICKATRICE, PM_COCKATRICE, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_HELL_HOUND_PUP, PM_HELL_HOUND, PM_WINTER_WOLF_CUB, PM_WINTER_WOLF, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_KOBOLD, PM_LARGE_KOBOLD, PM_KOBOLD_LEADER, PM_GNOME, PM_GNOME_LEADER, PM_GNOME_RULER, PM_DWARF, PM_DWARF_LEADER, PM_DWARF_RULER, PM_MIND_FLAYER, PM_MASTER_MIND_FLAYER, PM_ORC, PM_HILL_ORC, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_CAPTAIN, PM_SEWER_RAT, PM_GIANT_RAT, PM_CAVE_SPIDER, PM_GIANT_SPIDER, PM_OGRE, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_ELF, PM_WOODLAND_ELF, PM_GREEN_ELF, PM_GREY_ELF, PM_ELF_NOBLE, PM_ELVEN_MONARCH, PM_LICH, PM_DEMILICH, PM_MASTER_LICH, PM_ARCH_LICH, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_BAT, PM_GIANT_BAT, PM_BABY_GRAY_DRAGON, PM_GRAY_DRAGON, PM_BABY_GOLD_DRAGON, PM_GOLD_DRAGON, PM_BABY_SILVER_DRAGON, PM_SILVER_DRAGON, PM_BABY_RED_DRAGON, PM_RED_DRAGON, PM_BABY_WHITE_DRAGON, PM_WHITE_DRAGON, PM_BABY_ORANGE_DRAGON, PM_ORANGE_DRAGON, PM_BABY_BLACK_DRAGON, PM_BLACK_DRAGON, PM_BABY_BLUE_DRAGON, PM_BLUE_DRAGON, PM_BABY_GREEN_DRAGON, PM_GREEN_DRAGON, PM_BABY_YELLOW_DRAGON, PM_YELLOW_DRAGON, PM_RED_NAGA_HATCHLING, PM_RED_NAGA, PM_BLACK_NAGA_HATCHLING, PM_BLACK_NAGA, PM_GOLDEN_NAGA_HATCHLING, PM_GOLDEN_NAGA, PM_GUARDIAN_NAGA_HATCHLING, PM_GUARDIAN_NAGA, PM_SMALL_MIMIC, PM_LARGE_MIMIC, PM_GIANT_MIMIC, PM_BABY_LONG_WORM, PM_LONG_WORM, PM_LONG_WORM_TAIL, PM_BABY_PURPLE_WORM, PM_PURPLE_WORM, PM_BABY_CROCODILE, PM_CROCODILE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_STUDENT, PM_ARCHEOLOGIST, PM_ATTENDANT, PM_HEALER, PM_PAGE, PM_KNIGHT, PM_ACOLYTE, PM_CLERIC, PM_APPRENTICE, PM_WIZARD, PM_MANES, PM_LEMURE, PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN, PM_GARGOYLE, PM_KILLER_BEE, PM_QUEEN_BEE, PM_DEATH, PM_FAMINE, PM_PESTILENCE, PM_KOBOLD_ZOMBIE, PM_KOBOLD_MUMMY, PM_MONKEY, PM_APE, PM_LICHEN,
+    PM_WATER_DEMON, PM_WATER_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_ICE_VORTEX, PM_FREEZING_SPHERE, PM_STEAM_VORTEX, PM_DUST_VORTEX, PM_ENERGY_VORTEX, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_GOLD_GOLEM, PM_YELLOW_LIGHT, PM_ANGEL, PM_RAVEN, PM_AMOROUS_DEMON, PM_VIOLET_FUNGUS, PM_HOMUNCULUS, PM_BALUCHITHERIUM, PM_LURKER_ABOVE, PM_CAVE_DWELLER, PM_DJINNI, PM_MUMAK, PM_ERINYS, PM_HOBBIT, PM_MASTER_OF_THIEVES, PM_MASTER_ASSASSIN, PM_HUMAN_WERERAT, PM_HUMAN_WEREJACKAL, PM_HUMAN_WEREWOLF, PM_WERERAT, PM_WEREJACKAL, PM_WEREWOLF, PM_SOLDIER_ANT, PM_WOOD_NYMPH, PM_OLOG_HAI, S_XAN } from './monsters.js';
 import { m_cansee } from './vision.js';
 
 import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
-         GRAY_DRAGON_SCALES, ARMOR_CLASS,
+         GRAY_DRAGON_SCALES, ARMOR_CLASS, WEAPON_CLASS,
+         ALCHEMY_SMOCK, CREAM_PIE, BLINDING_VENOM, POT_BLINDNESS,
          objectData } from './objects.js';
-import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, LOW_PM, A_CHA, ANTIMAGIC,
+import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, W_ACCESSORY, LOW_PM, A_CHA, ANTIMAGIC, DRAIN_RES, BLND_RES,
     FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES,
-    REFLECTING, INTRINSIC,
+    REFLECTING, INTRINSIC, MALE, FEMALE, NEUTER, NON_PM, PRONOUN_NO_IT, PRONOUN_HALLU,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
     M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL } from './const.js';
 import { dist2, highc } from './hacklib.js';
@@ -21,6 +23,8 @@ import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { acurr } from './attrib.js';
 import { game as _gstate } from './gstate.js';
+import { def_monsyms } from './symbols.js';
+import { title_to_mon } from './botl.js';
 
 const NATTK = 6;
 
@@ -1012,6 +1016,574 @@ export function resists_drli(mon) {
         || is_vampshifter(mon))
         return true;
     return defended(mon, AD_DRLI);
+}
+
+// ========================================================================
+// Resists_Elem — C ref: mondata.c:129
+// True if monster resists elemental property (FIRE_RES..STONE_RES, ANTIMAGIC, DRAIN_RES, BLND_RES).
+// ========================================================================
+export function Resists_Elem(mon, propindx) {
+    const is_you = !!(mon && Array.isArray(mon.inventory));
+    let u_resist = 0, damgtype = 0, rsstmask = 0;
+
+    switch (propindx) {
+    case FIRE_RES: case COLD_RES: case SLEEP_RES: case DISINT_RES:
+    case SHOCK_RES: case POISON_RES: case ACID_RES: case STONE_RES:
+        damgtype = propindx + 1;
+        rsstmask = 1 << (propindx - 1);
+        if (is_you) {
+            const player = mon;
+            u_resist = (player.uprops?.[propindx]?.intrinsic || 0)
+                     | (player.uprops?.[propindx]?.extrinsic || 0);
+        }
+        break;
+    case ANTIMAGIC:
+        return resists_magm(mon);
+    case DRAIN_RES:
+        return resists_drli(mon);
+    case BLND_RES:
+        return resists_blnd(mon);
+    default:
+        return false;
+    }
+
+    if (is_you ? u_resist : ((mon_resistancebits(mon) & rsstmask) !== 0))
+        return true;
+    // Check wielded weapon artifact
+    const wep = is_you ? (mon.weapon || null) : (mon.mw || mon.weapon || null);
+    if (wep && wep.oartifact && defends(damgtype, wep))
+        return true;
+    // Check worn/carried items
+    const inv = is_you ? (mon.inventoryChain || null) : (mon.minvent || null);
+    let slotmask = W_ARMOR | W_ACCESSORY;
+    if (!is_you || (wep && (wep.oclass === WEAPON_CLASS || _is_weptool(wep))))
+        slotmask |= W_WEP;
+    if (is_you && mon.twoweap)
+        slotmask |= W_SWAPWEP;
+    for (let o = inv; o; o = o.nobj) {
+        if (((o.owornmask & slotmask) !== 0
+             && objectData[o.otyp]?.oc_oprop === propindx)
+            || ((o.owornmask & W_ARMC) === W_ARMC
+                && o.otyp === ALCHEMY_SMOCK
+                && (propindx === POISON_RES || propindx === ACID_RES))
+            || (o.oartifact && defends_when_carried(damgtype, o)))
+            return true;
+    }
+    return false;
+}
+
+// Helper: mon_resistancebits — get mresists bitmask from monster data
+function mon_resistancebits(mon) {
+    const ptr = _mdat(mon);
+    return (ptr?.mresists || 0) | (mon?.mintrinsics || 0);
+}
+
+// Lazy import helper for is_weptool (avoid circular dep)
+function _is_weptool(obj) {
+    try { return obj && (objectData[obj.otyp]?.oc_class === WEAPON_CLASS || false); }
+    catch { return false; }
+}
+
+// ========================================================================
+// resists_blnd — C ref: mondata.c:248
+// True if monster is resistant to light-induced blindness.
+// ========================================================================
+export function resists_blnd(mon) {
+    const ptr = _mdat(mon);
+    if (!ptr) return false;
+    const is_you = !!(mon && Array.isArray(mon.inventory));
+
+    if (is_you) {
+        // Player: Blind || Unaware
+        if (mon.blind || mon.creamed) return true;
+    } else {
+        // Monster: mblinded || !mcansee || !haseyes || msleeping
+        if (mon.mblinded || !mon.mcansee || !haseyes(ptr) || mon.msleeping)
+            return true;
+    }
+    // Yellow light, Archon: AT_EXPL+AD_BLND or AT_GAZE+AD_BLND
+    if (dmgtype_fromattack(ptr, AD_BLND, AT_EXPL)
+        || dmgtype_fromattack(ptr, AD_BLND, AT_GAZE))
+        return true;
+    // Sunsword
+    if (resists_blnd_by_arti(mon))
+        return true;
+    return false;
+}
+
+// ========================================================================
+// resists_blnd_by_arti — C ref: mondata.c:278
+// True if monster resists blindness due to worn/wielded magical equipment.
+// ========================================================================
+export function resists_blnd_by_arti(mon) {
+    const is_you = !!(mon && Array.isArray(mon.inventory));
+    const wep = is_you ? (mon.weapon || null) : (mon.mw || mon.weapon || null);
+    if (wep && wep.oartifact && defends(AD_BLND, wep))
+        return true;
+    const inv = is_you ? (mon.inventoryChain || null) : (mon.minvent || null);
+    for (let o = inv; o; o = o.nobj) {
+        if (defends_when_carried(AD_BLND, o))
+            return true;
+    }
+    return false;
+}
+
+// ========================================================================
+// can_blnd — C ref: mondata.c:305
+// True if mdef can be blinded by magr's attack of type aatyp with obj.
+// ========================================================================
+export function can_blnd(magr, mdef, aatyp, obj) {
+    const is_you = !!(mdef && Array.isArray(mdef.inventory));
+    let check_visor = false;
+
+    if (!haseyes(mdef.data || mdef))
+        return false;
+    if (!is_you && mon_perma_blind(mdef))
+        return false;
+    // Ravens don't blind each other
+    if (magr && (magr.data || magr) === mons[PM_RAVEN]
+        && (mdef.data || mdef) === mons[PM_RAVEN])
+        return false;
+
+    switch (aatyp) {
+    case AT_EXPL: case AT_BOOM: case AT_GAZE: case AT_MAGC: case AT_BREA:
+        if (magr && magr.mcan) return false;
+        return !resists_blnd(mdef);
+    case AT_WEAP: case AT_SPIT: case AT_NONE:
+        if (obj && obj.otyp === CREAM_PIE) {
+            if (is_you && mdef.blindfolded) return false;
+        } else if (obj && obj.otyp === BLINDING_VENOM) {
+            if (is_you && (mdef.ublindf || mdef.creamed)) return false;
+            check_visor = true;
+        } else if (obj && obj.otyp === POT_BLINDNESS) {
+            return true;
+        } else {
+            return false;
+        }
+        if (magr && (magr === _gstate?.youmonst) && _gstate?.player?.uswallow)
+            return false;
+        break;
+    case AT_ENGL:
+        if (is_you && (mdef.blindfolded || mdef.blind || mdef.creamed))
+            return false;
+        if (!is_you && mdef.msleeping) return false;
+        break;
+    case AT_CLAW:
+        if (is_you && mdef.ublindf) return false;
+        if (magr && (magr === _gstate?.youmonst) && _gstate?.player?.uswallow)
+            return false;
+        check_visor = true;
+        break;
+    case AT_TUCH: case AT_STNG:
+        if (magr && magr.mcan) return false;
+        break;
+    default:
+        break;
+    }
+
+    if (check_visor) {
+        const inv = is_you ? (mdef.inventoryChain || null) : (mdef.minvent || null);
+        for (let o = inv; o; o = o.nobj) {
+            if ((o.owornmask & W_ARMH) && _objdescr_is(o, 'visored helmet'))
+                return false;
+        }
+    }
+    return true;
+}
+
+// Helper: mon_perma_blind — C ref: monst.h
+function mon_perma_blind(mon) {
+    return !mon.mcansee && !mon.mblinded;
+}
+
+// Lazy objdescr_is helper (avoid circular dep with o_init.js)
+function _objdescr_is(obj, descr) {
+    const d = objectData[obj.otyp]?.oc_descr;
+    return d ? d.toLowerCase() === descr.toLowerCase() : false;
+}
+
+// ========================================================================
+// max_passive_dmg — C ref: mondata.c:720
+// Maximum passive damage mdef can do to magr.
+// ========================================================================
+export function max_passive_dmg(mdef, magr) {
+    const mdefData = _mdat(mdef);
+    const magrData = _mdat(magr);
+    if (!mdefData || !magrData) return 0;
+
+    let multi2 = 0;
+    for (let i = 0; i < NATTK; i++) {
+        const a = magrData.mattk?.[i];
+        if (!a) continue;
+        switch (a.aatyp) {
+        case AT_CLAW: case AT_BITE: case AT_KICK: case AT_BUTT:
+        case AT_TUCH: case AT_STNG: case AT_HUGS: case AT_ENGL:
+        case AT_TENT: case AT_WEAP:
+            multi2++;
+            break;
+        default: break;
+        }
+    }
+
+    let dmg = 0;
+    for (let i = 0; i < NATTK; i++) {
+        const a = mdefData.mattk?.[i];
+        if (!a) continue;
+        if (a.aatyp !== AT_NONE && a.aatyp !== AT_BOOM) continue;
+        const adtyp = a.adtyp;
+        if ((adtyp === AD_FIRE && completelyburns(magrData))
+            || (adtyp === AD_DCAY && completelyrots(magrData))
+            || (adtyp === AD_RUST && completelyrusts(magrData))) {
+            dmg = magr.mhp || 0;
+        } else if ((adtyp === AD_ACID && !resists_acid(magr))
+                   || (adtyp === AD_COLD && !resists_cold(magr))
+                   || (adtyp === AD_FIRE && !resists_fire(magr))
+                   || (adtyp === AD_ELEC && !resists_elec(magr))
+                   || adtyp === AD_PHYS) {
+            dmg = a.damn || 0;
+            if (!dmg) dmg = (mdefData.mlevel || 0) + 1;
+            dmg *= (a.damd || 0);
+        }
+        dmg *= multi2;
+        break;
+    }
+    return dmg;
+}
+
+// ========================================================================
+// mstrength — C ref: mondata.c:428
+// Approximation of monster strength (for difficulty rating).
+// ========================================================================
+export function mstrength(ptr) {
+    let tmp = ptr.mlevel || 0;
+    if (tmp > 49) tmp = Math.floor(2 * (tmp - 6) / 4);
+
+    let n = !!(ptr.geno & G_SGROUP) ? 1 : 0;
+    n += (!!(ptr.geno & G_LGROUP)) << 1;
+
+    if (mstrength_ranged_attk(ptr)) n++;
+
+    n += (ptr.ac < 4) ? 1 : 0;
+    n += (ptr.ac < 0) ? 1 : 0;
+    n += (ptr.mmove >= 18) ? 1 : 0;
+
+    for (let i = 0; i < NATTK; i++) {
+        const a = ptr.mattk?.[i];
+        if (!a) continue;
+        const tmp2 = a.aatyp;
+        n += (tmp2 > 0) ? 1 : 0;
+        n += (tmp2 === AT_MAGC) ? 1 : 0;
+        n += (tmp2 === AT_WEAP && (ptr.mflags2 & M2_STRONG)) ? 1 : 0;
+        if (tmp2 === AT_EXPL) {
+            const tmp3 = a.adtyp;
+            n += ((tmp3 === AD_COLD || tmp3 === AD_FIRE) ? 3
+                  : (tmp3 === AD_ELEC) ? 5 : 0);
+        }
+    }
+
+    for (let i = 0; i < NATTK; i++) {
+        const a = ptr.mattk?.[i];
+        if (!a) continue;
+        const tmp2 = a.adtyp;
+        if (tmp2 === AD_DRLI || tmp2 === AD_STON || tmp2 === AD_DRST
+            || tmp2 === AD_DRDX || tmp2 === AD_DRCO || tmp2 === AD_WERE)
+            n += 2;
+        else if ((ptr.mname || '') !== 'grid bug')
+            n += (tmp2 !== AD_PHYS) ? 1 : 0;
+        n += (((a.damd || 0) * (a.damn || 0)) > 23) ? 1 : 0;
+    }
+
+    if ((ptr.mname || '') === 'leprechaun') n -= 2;
+    if ((ptr.mname || '') === 'killer bee' || (ptr.mname || '') === 'soldier ant')
+        n += 2;
+
+    if (n === 0) tmp -= 1;
+    else if (n < 6) tmp += (Math.floor(n / 3) + 1);
+    else tmp += Math.floor(n / 2);
+
+    return tmp >= 0 ? tmp : 0;
+}
+
+// ========================================================================
+// raceptr — C ref: mondata.c:1359
+// Return the permonst ptr for the race of the monster.
+// ========================================================================
+export function raceptr(mtmp) {
+    const player = _gstate?.player;
+    if (player && mtmp === player && !player.Upolyd) {
+        const raceNum = player.urace?.mnum ?? -1;
+        return raceNum >= 0 ? mons[raceNum] : mtmp.data;
+    }
+    return mtmp.data;
+}
+
+// ========================================================================
+// on_fire — C ref: mondata.c:1411
+// Returns description of what happens when monster is on fire.
+// ========================================================================
+export function on_fire(mptr, mattk) {
+    const mndx = monsndx(mptr);
+    switch (mndx) {
+    case PM_FLAMING_SPHERE: case PM_FIRE_VORTEX:
+    case PM_FIRE_ELEMENTAL: case PM_SALAMANDER:
+        return 'already on fire';
+    case PM_WATER_ELEMENTAL: case PM_FOG_CLOUD: case PM_STEAM_VORTEX:
+        return 'boiling';
+    case PM_ICE_VORTEX: case PM_GLASS_GOLEM:
+        return 'melting';
+    case PM_STONE_GOLEM: case PM_CLAY_GOLEM: case PM_GOLD_GOLEM:
+    case PM_AIR_ELEMENTAL: case PM_EARTH_ELEMENTAL:
+    case PM_DUST_VORTEX: case PM_ENERGY_VORTEX:
+        return 'heating up';
+    default:
+        return (mattk && mattk.aatyp === AT_HUGS) ? 'being roasted' : 'on fire';
+    }
+}
+
+// ========================================================================
+// msummon_environ — C ref: mondata.c:1449
+// Returns {what, cloud} describing summoning environment for monster.
+// ========================================================================
+export function msummon_environ(mptr) {
+    const mndx = (mptr.mlet === S_ANGEL) ? PM_ANGEL
+                 : (mptr.mlet === S_LIGHT) ? PM_YELLOW_LIGHT
+                   : monsndx(mptr);
+    let cloud = 'cloud';
+    let what;
+    switch (mndx) {
+    case PM_WATER_DEMON: case PM_AIR_ELEMENTAL: case PM_WATER_ELEMENTAL:
+    case PM_FOG_CLOUD: case PM_ICE_VORTEX: case PM_FREEZING_SPHERE:
+        what = 'vapor'; break;
+    case PM_STEAM_VORTEX:
+        what = 'steam'; break;
+    case PM_ENERGY_VORTEX: case PM_SHOCKING_SPHERE:
+        cloud = 'shower'; what = 'sparks'; break;
+    case PM_EARTH_ELEMENTAL: case PM_DUST_VORTEX:
+        what = 'dust'; break;
+    case PM_FIRE_ELEMENTAL: case PM_FIRE_VORTEX: case PM_FLAMING_SPHERE:
+        cloud = 'ball'; what = 'flame'; break;
+    case PM_ANGEL: case PM_YELLOW_LIGHT:
+        cloud = 'flash'; what = 'light'; break;
+    default:
+        what = 'smoke'; break;
+    }
+    return { what, cloud };
+}
+
+// ========================================================================
+// pronoun_gender — C ref: mondata.c:1191
+// Returns 0=male, 1=female, 2=neuter, 3=they(hallu).
+// ========================================================================
+export function pronoun_gender(mtmp, pg_flags) {
+    const override_vis = !!(pg_flags & PRONOUN_NO_IT);
+    const hallu_rand = !!(pg_flags & PRONOUN_HALLU);
+    const player = _gstate?.player;
+
+    if (hallu_rand && player?.hallucination) return rn2(4);
+    if (!override_vis && !canseemon(mtmp)) return 2;
+    if (is_neuter(mtmp.data || mtmp)) return 2;
+    const ptr = mtmp.data || mtmp;
+    return (humanoid(ptr) || (ptr.geno & G_UNIQ) || type_is_pname(ptr))
+        ? (mtmp.female ? 1 : 0) : 2;
+}
+
+// ========================================================================
+// name_to_mon — C ref: mondata.c:883
+// Wrapper for name_to_monplus.
+// ========================================================================
+export function name_to_mon(in_str) {
+    return name_to_monplus(in_str, null);
+}
+
+// ========================================================================
+// name_to_monplus — C ref: mondata.c:893
+// Figure out monster type from user-supplied string; return PM index.
+// ========================================================================
+export function name_to_monplus(in_str, remainder_ref) {
+    if (!in_str) return NON_PM;
+    let str = in_str;
+
+    // Strip leading articles
+    if (str.startsWith('a ')) str = str.slice(2);
+    else if (str.startsWith('an ')) str = str.slice(3);
+    else if (str.startsWith('the ')) str = str.slice(4);
+
+    // Depluralization
+    if (str.includes('vortices')) str = str.replace('vortices', 'vortex');
+    else if (str.length > 3 && str.endsWith('ies')
+             && !(str.length >= 7 && str.endsWith('zombies')))
+        str = str.slice(0, -3) + 'y';
+    else if (str.length > 3 && str.endsWith('ves'))
+        str = str.slice(0, -3) + 'f';
+
+    // Alternate spellings table
+    const altNames = [
+        ['grey dragon', PM_GRAY_DRAGON, NEUTER],
+        ['baby grey dragon', PM_BABY_GRAY_DRAGON, NEUTER],
+        ['grey unicorn', PM_GRAY_UNICORN, NEUTER],
+        ['mindflayer', PM_MIND_FLAYER, NEUTER],
+        ['master mindflayer', PM_MASTER_MIND_FLAYER, NEUTER],
+        ['aligned priest', PM_ALIGNED_CLERIC, MALE],
+        ['aligned priestess', PM_ALIGNED_CLERIC, FEMALE],
+        ['high priest', PM_HIGH_CLERIC, MALE],
+        ['high priestess', PM_HIGH_CLERIC, FEMALE],
+        ['master of thief', PM_MASTER_OF_THIEVES, NEUTER],
+        ['master thief', PM_MASTER_OF_THIEVES, NEUTER],
+        ['master of assassin', PM_MASTER_ASSASSIN, NEUTER],
+        ['master-lich', PM_MASTER_LICH, NEUTER],
+        ['masterlich', PM_MASTER_LICH, NEUTER],
+        ['invisible stalker', PM_STALKER, NEUTER],
+        ['high-elf', PM_ELVEN_MONARCH, NEUTER],
+        ['wood-elf', PM_WOODLAND_ELF, NEUTER],
+        ['wood elf', PM_WOODLAND_ELF, NEUTER],
+        ['woodland nymph', PM_WOOD_NYMPH, NEUTER],
+        ['halfling', PM_HOBBIT, NEUTER],
+        ['genie', PM_DJINNI, NEUTER],
+        ['human wererat', PM_HUMAN_WERERAT, NEUTER],
+        ['human werejackal', PM_HUMAN_WEREJACKAL, NEUTER],
+        ['human werewolf', PM_HUMAN_WEREWOLF, NEUTER],
+        ['rat wererat', PM_WERERAT, NEUTER],
+        ['jackal werejackal', PM_WEREJACKAL, NEUTER],
+        ['wolf werewolf', PM_WEREWOLF, NEUTER],
+        ['ki rin', PM_KI_RIN, NEUTER],
+        ['kirin', PM_KI_RIN, NEUTER],
+        ['uruk hai', PM_URUK_HAI, NEUTER],
+        ['orc captain', PM_ORC_CAPTAIN, NEUTER],
+        ['woodland elf', PM_WOODLAND_ELF, NEUTER],
+        ['green elf', PM_GREEN_ELF, NEUTER],
+        ['grey elf', PM_GREY_ELF, NEUTER],
+        ['gray elf', PM_GREY_ELF, NEUTER],
+        ['elf lady', PM_ELF_NOBLE, FEMALE],
+        ['elf lord', PM_ELF_NOBLE, MALE],
+        ['elf noble', PM_ELF_NOBLE, NEUTER],
+        ['olog hai', PM_OLOG_HAI, NEUTER],
+        ['arch lich', PM_ARCH_LICH, NEUTER],
+        ['archlich', PM_ARCH_LICH, NEUTER],
+        ['incubi', PM_AMOROUS_DEMON, MALE],
+        ['succubi', PM_AMOROUS_DEMON, FEMALE],
+        ['violet fungi', PM_VIOLET_FUNGUS, NEUTER],
+        ['homunculi', PM_HOMUNCULUS, NEUTER],
+        ['baluchitheria', PM_BALUCHITHERIUM, NEUTER],
+        ['lurkers above', PM_LURKER_ABOVE, NEUTER],
+        ['cavemen', PM_CAVE_DWELLER, MALE],
+        ['cavewomen', PM_CAVE_DWELLER, FEMALE],
+        ['watchmen', PM_WATCHMAN, NEUTER],
+        ['djinn', PM_DJINNI, NEUTER],
+        ['mumakil', PM_MUMAK, NEUTER],
+        ['erinyes', PM_ERINYS, NEUTER],
+    ];
+    const strLower = str.toLowerCase();
+    for (const [name, pm, gend] of altNames) {
+        const len = name.length;
+        if (strLower.startsWith(name)
+            && (!str[len] || str[len] === ' ' || str[len] === '\'')) {
+            if (remainder_ref) remainder_ref.value = in_str.slice(in_str.length - str.length + len);
+            return pm;
+        }
+    }
+
+    // Match against mons[].mname (longest match wins)
+    let mntmp = NON_PM, bestLen = 0;
+    for (let i = LOW_PM; i < NUMMONS; i++) {
+        const mname = mons[i].mname;
+        if (!mname) continue;
+        const mLen = mname.length;
+        if (mLen > bestLen && strLower.startsWith(mname.toLowerCase())) {
+            if (mLen === str.length) {
+                mntmp = i; bestLen = mLen; break; // exact match
+            } else if (str.length > mLen) {
+                const after = str.slice(mLen);
+                if (after === ' ' || after.startsWith(' ')
+                    || /^(s|s |'|' |'s|'s |es|es )$/i.test(after)
+                    || after.startsWith('s ') || after.startsWith("' ")
+                    || after.startsWith("'s ") || after.startsWith('es ')) {
+                    mntmp = i; bestLen = mLen;
+                }
+            }
+        }
+    }
+    if (mntmp === NON_PM) {
+        const result = title_to_mon(str, null, null);
+        if (result >= 0) mntmp = result;
+    }
+    if (bestLen && remainder_ref) {
+        remainder_ref.value = in_str.slice(in_str.length - str.length + bestLen);
+    }
+    return mntmp;
+}
+
+// ========================================================================
+// name_to_monclass — C ref: mondata.c:1090
+// Returns monster class from user input; used for genocide/polymorph.
+// ========================================================================
+export function name_to_monclass(in_str, mndx_ref) {
+    if (mndx_ref) mndx_ref.value = NON_PM;
+    if (!in_str || !in_str[0]) return 0;
+
+    if (in_str.length === 1) {
+        let i = _def_char_to_monclass(in_str.charCodeAt(0));
+        if (i === S_MIMIC_DEF) i = S_MIMIC;
+        else if (i === S_WORM_TAIL) {
+            i = S_WORM;
+            if (mndx_ref) mndx_ref.value = PM_LONG_WORM;
+        } else if (i === MAXMCLASSES) {
+            i = (in_str === 'I') ? S_invisible : 0;
+        }
+        return i;
+    }
+
+    // Multiple characters
+    if (in_str.toLowerCase() === 'long') return 0;
+
+    const falsematch = ['an', 'the', 'or', 'other', 'or other'];
+    const truematch = [
+        ['long worm', PM_LONG_WORM, NEUTER],
+        ['demon', -S_DEMON, NEUTER],
+        ['devil', -S_DEMON, NEUTER],
+        ['bug', -S_XAN, NEUTER],
+        ['fish', -S_EEL, NEUTER],
+    ];
+
+    const lower = in_str.toLowerCase();
+    for (const f of falsematch)
+        if (lower === f) return 0;
+    for (const [name, pm_val] of truematch) {
+        if (lower === name) {
+            if (pm_val < 0) return -pm_val;
+            if (mndx_ref) mndx_ref.value = pm_val;
+            return mons[pm_val].mlet;
+        }
+    }
+
+    // Check class descriptions
+    const len = in_str.length;
+    for (let i = 1; i < MAXMCLASSES; i++) {
+        const x = def_monsyms[i]?.explain || '';
+        const idx = x.toLowerCase().indexOf(lower);
+        if (idx >= 0 && (idx === 0 || x[idx - 1] === ' ')) {
+            if (x.length - idx >= len && (idx + len >= x.length || x[idx + len] === ' ' || x[idx + len] === '\0'))
+                return i;
+        }
+    }
+
+    // Check individual species
+    const i = name_to_mon(in_str);
+    if (i !== NON_PM) {
+        if (mndx_ref) mndx_ref.value = i;
+        return mons[i].mlet;
+    }
+    return 0;
+}
+
+// (S_XAN imported from monsters.js)
+
+// Helper: def_char_to_monclass by character code
+function _def_char_to_monclass(ch) {
+    for (let i = 1; i < MAXMCLASSES; i++) {
+        if (def_monsyms[i] && def_monsyms[i].sym === String.fromCharCode(ch))
+            return i;
+    }
+    return MAXMCLASSES;
 }
 
 // ========================================================================

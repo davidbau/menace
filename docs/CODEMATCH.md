@@ -2978,14 +2978,14 @@ No function symbols parsed from isaac64.c.
 ### mondata.c -> mondata.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 129 | `Resists_Elem` | - | Missing |
+| 129 | `Resists_Elem` | mondata.js:Resists_Elem | Implemented |
 | 54 | `attacktype` | mondata.js:257 | Implemented |
 | 42 | `attacktype_fordmg` | mondata.js:921 | Implemented |
 | 1331 | `big_little_match` | mondata.js:738 | Implemented |
 | 1316 | `big_to_little` | mondata.js:730 | Implemented |
 | 640 | `breakarm` | mondata.js:568 | Implemented |
 | 591 | `can_be_strangled` | mondata.js:633 | Implemented |
-| 305 | `can_blnd` | - | Missing |
+| 305 | `can_blnd` | mondata.js:can_blnd | Implemented |
 | 567 | `can_blow` | mondata.js:611 | Implemented |
 | 580 | `can_chant` | mondata.js:622 | Implemented |
 | 623 | `can_track` | mondata.js:601 | Implemented |
@@ -3003,7 +3003,7 @@ No function symbols parsed from isaac64.c.
 | 1211 | `levl_follower` | mondata.js:833 | Implemented |
 | 1303 | `little_to_big` | mondata.js:718 | Implemented |
 | 1380 | `locomotion` | mondata.js:1396 | Implemented |
-| 720 | `max_passive_dmg` | - | Missing |
+| 720 | `max_passive_dmg` | mondata.js:max_passive_dmg | Implemented |
 | 533 | `mon_hates_blessings` | mondata.js:529 | Implemented |
 | 547 | `mon_hates_light` | mondata.js:586 | Implemented |
 | 517 | `mon_hates_silver` | mondata.js:514 | Implemented |
@@ -3012,24 +3012,24 @@ No function symbols parsed from isaac64.c.
 | 1641 | `mons_see_trap` | mondata.js:1509 | Implemented |
 | 1558 | `monstseesu` | mondata.js:1487 | Implemented |
 | 1572 | `monstunseesu` | mondata.js:1498 | Implemented |
-| 428 | `mstrength` | - | Missing |
+| 428 | `mstrength` | mondata.js:mstrength | Implemented |
 | 501 | `mstrength_ranged_attk` | mondata.js:1381 | Implemented |
-| 1449 | `msummon_environ` | - | Missing |
-| 883 | `name_to_mon` | - | Missing |
-| 1090 | `name_to_monclass` | - | Missing |
-| 893 | `name_to_monplus` | - | Missing |
+| 1449 | `msummon_environ` | mondata.js:msummon_environ | Implemented |
+| 883 | `name_to_mon` | mondata.js:name_to_mon | Implemented |
+| 1090 | `name_to_monclass` | mondata.js:name_to_monclass | Implemented |
+| 893 | `name_to_monplus` | mondata.js:name_to_monplus | Implemented |
 | 61 | `noattacks` | mondata.js:461 | Implemented |
 | 678 | `num_horns` | mondata.js:549 | Implemented |
 | 1507 | `olfaction` | mondata.js:1408 | Implemented |
-| 1411 | `on_fire` | - | Missing |
+| 1411 | `on_fire` | mondata.js:on_fire | Implemented |
 | 554 | `passes_bars` | mondata.js:421 | Implemented |
 | 80 | `poly_when_stoned` | mondata.js:593 | Implemented |
-| 1191 | `pronoun_gender` | - | Missing |
-| 1359 | `raceptr` | - | Missing |
+| 1191 | `pronoun_gender` | mondata.js:pronoun_gender | Implemented |
+| 1359 | `raceptr` | mondata.js:raceptr | Implemented |
 | 402 | `ranged_attk` | mondata.js:483 | Implemented |
 | 1607 | `resist_conflict` | mondata.js:1021 | Implemented |
-| 248 | `resists_blnd` | - | Missing |
-| 278 | `resists_blnd_by_arti` | - | Missing |
+| 248 | `resists_blnd` | mondata.js:resists_blnd | Implemented |
+| 278 | `resists_blnd_by_arti` | mondata.js:resists_blnd_by_arti | Implemented |
 | 201 | `resists_drli` | mondata.js:1008 | Implemented |
 | 215 | `resists_magm` | mondata.js:980 | Implemented |
 | 771 | `same_race` | mondata.js:772 | Implemented |
