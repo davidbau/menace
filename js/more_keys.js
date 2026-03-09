@@ -18,3 +18,18 @@ export async function waitForMoreDismissKey(readKey, { game = null, site = 'more
     }
 }
 
+export async function consumePendingMore(display, readKey, clearMore, {
+    game = null,
+    site = 'more.consume',
+    onNonDismiss = null,
+} = {}) {
+    if (!display || typeof readKey !== 'function' || typeof clearMore !== 'function') return;
+    while (display && display._pendingMore) {
+        const ch = await awaitMore(game, Promise.resolve(readKey()), { site });
+        if (isMoreDismissKey(ch)) {
+            await Promise.resolve(clearMore());
+            continue;
+        }
+        if (typeof onNonDismiss === 'function') onNonDismiss(ch);
+    }
+}

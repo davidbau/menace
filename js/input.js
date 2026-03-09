@@ -9,7 +9,7 @@ import {
 } from './const.js';
 import { envFlag } from './runtime_env.js';
 import { awaitInput } from './suspend.js';
-import { isMoreDismissKey } from './more_keys.js';
+import { consumePendingMore } from './more_keys.js';
 
 function ynTraceEnabled() {
     return envFlag('WEBHACK_YN_TRACE');
@@ -505,17 +505,13 @@ export function nhgetch_wrap() {
     // the next command key. Keep this iterative to avoid recursive fallback.
     if (display && display._pendingMore) {
         const waitForMoreDismiss = async () => {
-            while (display && display._pendingMore) {
-                const ch = await readUnifiedKey();
-                if (isMoreDismissKey(ch)) {
-                    await display._clearMore();
-                    continue;
-                }
-                // C ref: tty xwaitforspace() ignores non-dismiss keys (and beeps).
-            }
-            if (display) {
-                display.messageNeedsMore = false;
-            }
+            await consumePendingMore(
+                display,
+                readUnifiedKey,
+                () => display._clearMore(),
+                { site: 'input.nhgetch.more-consume' }
+            );
+            if (display) display.messageNeedsMore = false;
             return readUnifiedKey();
         };
         return waitForMoreDismiss();
