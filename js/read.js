@@ -21,6 +21,7 @@ import {
     OIL_LAMP, BRASS_LANTERN, MAGIC_MARKER, TINNING_KIT, EXPENSIVE_CAMERA,
     BELL_OF_OPENING, UNICORN_HORN, BOULDER, ROCK,
     HEAVY_IRON_BALL,
+    WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
 import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED } from './const.js';
 import { doname } from './mkobj.js';
@@ -1859,7 +1860,7 @@ export async function recharge(obj, curse_bless, player, game) {
     const is_cursed = curse_bless < 0;
     const is_blessed = curse_bless > 0;
 
-    if (obj.oclass === 4 /* WAND_CLASS */) {
+    if (obj.oclass === WAND_CLASS) {
         const lim = (obj.otyp === WAN_WISHING) ? 1
             : ((objectData[obj.otyp]?.oc_dir || 0) !== NODIR) ? 8 : 15;
 
@@ -1898,7 +1899,7 @@ export async function recharge(obj, curse_bless, player, game) {
                 await p_glow1(obj, player, game?.display);
         }
 
-    } else if (obj.oclass === 3 /* RING_CLASS */ && objectData[obj.otyp]?.oc_charged) {
+    } else if (obj.oclass === RING_CLASS && objectData[obj.otyp]?.oc_charged) {
         const s = is_blessed ? rnd(3) : is_cursed ? -rnd(2) : 1;
         if ((obj.spe || 0) > rn2(7) || (obj.spe || 0) <= -5) {
             await pline("%s momentarily, then explodes!", Yobjnam2(obj, "pulsate"));
@@ -1910,7 +1911,7 @@ export async function recharge(obj, curse_bless, player, game) {
             obj.spe = (obj.spe || 0) + s;
         }
 
-    } else if (obj.oclass === 7 /* TOOL_CLASS */) {
+    } else if (obj.oclass === TOOL_CLASS) {
         const rechrg = obj.recharged || 0;
         if (objectData[obj.otyp]?.oc_charged) {
             if (rechrg < 7) obj.recharged = rechrg + 1;

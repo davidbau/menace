@@ -39,7 +39,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
-         objectData } from './objects.js';
+         VENOM_CLASS, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname } from './mkobj.js';
 import { an } from './objnam.js';
 import { delobj } from './invent.js';
@@ -2685,7 +2685,7 @@ export function stuff_prevents_passage(mtmp, player) {
         // Candles are small
         if (od && (od.oc_name || '').includes('candle')) continue;
         // Venom is small
-        if (od && od.oc_class === 18) continue; // VENOM_CLASS
+        if (od && od.oc_class === VENOM_CLASS) continue;
         // Small corpses
         if (obj.otyp === 378 && obj.corpsenm >= 0 // CORPSE
             && mons[obj.corpsenm] && (mons[obj.corpsenm].msize || 0) <= MZ_TINY) continue;

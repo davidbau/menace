@@ -25,6 +25,7 @@ import {
     LUMP_OF_ROYAL_JELLY, GLOB_OF_GREEN_SLIME,
     CLOVE_OF_GARLIC, APPLE, CARROT, BANANA, SLIME_MOLD,
     AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
+    SCROLL_CLASS, SPBOOK_CLASS,
 } from './objects.js';
 
 import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit, is_quest_artifact } from './objdata.js';
@@ -957,7 +958,7 @@ export async function tamedog(mtmp, obj, givemsg, player, game, map) {
     let blessed_scroll = false;
 
     // Scroll/spellbook: set blessed flag, clear obj
-    if (obj && (obj.oclass === 7 /* SCROLL_CLASS */ || obj.oclass === 11 /* SPBOOK_CLASS */)) {
+    if (obj && (obj.oclass === SCROLL_CLASS || obj.oclass === SPBOOK_CLASS)) {
         blessed_scroll = !!obj.blessed;
         obj = null;
     }

@@ -4,8 +4,8 @@
 import { nhgetch, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
-         RING_CLASS, AMULET_CLASS, HEAVY_IRON_BALL, IRON_CHAIN, TIN_OPENER,
-         WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
+         RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
+         TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
 import { W_WEP, A_DEX } from './const.js';
@@ -667,7 +667,7 @@ export { setuwep, uwepgone, will_weld, erodeable_wep, can_twoweapon, drop_uswapw
 // C ref: wield.c:325 — wield_ok(obj): filter for getobj wielding prompt
 export function wield_ok(obj) {
   if (!obj) return 1; // GETOBJ_SUGGEST
-  if (obj.oclass === 17) return 0; // COIN_CLASS → GETOBJ_EXCLUDE
+  if (obj.oclass === COIN_CLASS) return 0; // GETOBJ_EXCLUDE
   if (obj.oclass === WEAPON_CLASS || obj.oclass === TOOL_CLASS) return 1; // GETOBJ_SUGGEST
   return 2; // GETOBJ_DOWNPLAY
 }
