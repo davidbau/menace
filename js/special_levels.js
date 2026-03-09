@@ -186,7 +186,7 @@ import { generate as generateWizGoal } from './levels/Wiz-goal.js';
 import { generate as generateHellfill } from './levels/hellfill.js';
 import { generate as generateFakewiz1 } from './levels/fakewiz1.js';
 import { generate as generateFakewiz2 } from './levels/fakewiz2.js';
-// TEMP: Commented out due to Lua syntax error at line 119
+// themerms: no `generate` export yet (needs Lua translation)
 // import { generate as generateThemerms } from './levels/themerms.js';
 import { generate as generateTut1 } from './levels/tut-1.js';
 import { generate as generateTut2 } from './levels/tut-2.js';
@@ -615,7 +615,7 @@ export const otherSpecialLevels = {
     minefill: generateMinefill,
     fakewiz1: generateFakewiz1,
     fakewiz2: generateFakewiz2,
-    // themerms: generateThemerms,  // Commented out due to Lua syntax error
+    // themerms: not yet translated from Lua
     tut1: generateTut1,
     tut2: generateTut2
 };

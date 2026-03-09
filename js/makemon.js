@@ -4,7 +4,7 @@
 
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
-import { rn2, rnd, rn1, d, c_d, getRngLog, getRngCallCount, pushRngLogEntry } from './rng.js';
+import { rn2, rnd, rn1, d, c_d, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import { m_dowear, mon_break_armor } from './worn.js';
@@ -420,16 +420,6 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         console.log(`[RNDMON] begin #${traceIdx} call=${getRngCallCount()} minadj=${minadj} maxadj=${maxadj} depth=${depth} diff=${minmlev}-${maxmlev} ctx=${traceCtx}`);
     }
 
-    // DEBUG: Disabled (set to true to debug depth 3 rndmonst_adj)
-    const DEBUG_RNG = false; // (depth === 3 && minadj === 0 && maxadj === 0);
-    if (DEBUG_RNG) {
-        const log = getRngLog();
-        const callNum = log ? log.length : 0;
-        console.log(`\n=== rndmonst_adj(${minadj}, ${maxadj}, ${depth}) at RNG call ${callNum} (within depth 3) ===`);
-        console.log(`Difficulty range: ${minmlev}-${maxmlev}`);
-    }
-    let iterCount = 0;
-
     for (let mndx = LOW_PM; mndx < SPECIAL_PM; mndx++) {
         const ptr = mons[mndx];
 
@@ -445,26 +435,12 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         if (weight < 0 || weight > 127) weight = 0;
 
         if (weight > 0) {
-            const oldTotal = totalweight;
             totalweight += weight;
 
-            // DEBUG: Log first 10 eligible monsters
-            if (DEBUG_RNG && iterCount < 10) {
-                console.log(`[${iterCount}] mndx=${mndx} ${ptr.mname.padEnd(20)} diff=${ptr.difficulty} geno=0x${ptr.geno.toString(16)} freq=${ptr.geno & G_FREQ} weight=${weight} total=${oldTotal}->${totalweight}`);
-                iterCount++;
-            }
-
-            // DEBUG: Log actual rn2 call
-            // if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
-            //     console.log(`  -> Calling rn2(${totalweight})`);
-            // }
             const roll = rn2(totalweight);
             if (trace) {
-                console.log(`[RNDMON] #${traceIdx} mndx=${mndx} name=${ptr.mname} w=${weight} total=${oldTotal}->${totalweight} roll=${roll} pick=${roll < weight ? 1 : 0} ctx=${traceCtx}`);
+                console.log(`[RNDMON] #${traceIdx} mndx=${mndx} name=${ptr.mname} w=${weight} total=${totalweight} roll=${roll} pick=${roll < weight ? 1 : 0} ctx=${traceCtx}`);
             }
-            // if (depth === 3 && minadj === 0 && maxadj === 0 && iterCount < 5) {
-            //     console.log(`  -> Result: ${roll}, weight=${weight}, selected=${roll < weight ? mndx : 'unchanged'}`);
-            // }
             if (roll < weight)
                 selected_mndx = mndx;
         }
