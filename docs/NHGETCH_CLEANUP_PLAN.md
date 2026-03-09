@@ -166,6 +166,9 @@ Required validation per phase:
 11. 2026-03-09: Direction-prompt cluster migrated to boundary reads:
     `hack.js:getdir`, `kick.js`, `dokick.js`, and `lock.js`
     direction selection paths.
+12. 2026-03-09: Spell/wield prompt loops migrated to boundary reads:
+    `spell.js` (known-spells dismiss + getspell select) and
+    `wield.js` (wield/quiver select loops).
 
 ## Decision Log
 
