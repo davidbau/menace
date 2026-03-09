@@ -5478,3 +5478,35 @@ hard-won wisdom:
   - `scripts/run-and-report.sh --failures`
     - Gameplay suite remains `33/34` passing; only `seed033_manual_direct`
       still fails.
+
+### Comparison artifacts: event stream now matches comparator policy exactly (2026-03-09)
+
+- Problem:
+  - `test/comparison/comparison_artifacts.js` used a broader event
+    normalization path than `compareEvents()`, so `firstDivergence.index`
+    could point at an event not visible in artifact `normalizedWindow`.
+  - This slowed debugging of `seed033` because artifact windows and reported
+    divergence entries disagreed.
+- Fixes:
+  - [`test/comparison/comparators.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/comparators.js):
+    - Exported shared event helpers:
+      - `isIgnorableEventEntry()`
+      - `stripEventContext()`
+      - `getComparableEventStreams()`
+    - `compareEvents()` now consumes `getComparableEventStreams()` so there is
+      one canonical filtering path (including `^test_move` compatibility logic).
+  - [`test/comparison/comparison_artifacts.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/comparison_artifacts.js):
+    - Event artifacts now use `getComparableEventStreams()` and
+      `stripEventContext()` from `comparators.js` instead of local filtering.
+    - Artifact event `normalized[index]` now matches
+      `comparison.event.firstDivergence` by construction.
+- Validation:
+  - `seed033_manual_direct` artifact check now reports:
+    - `firstDivergence.index = 9435`
+    - JS entry at index `9435`: `^remove[291,45,6]`
+    - Session entry at index `9435`: `^movemon_turn[322@45,15 mv=12->0]`
+  - `scripts/run-and-report.sh --failures` unchanged at `33/34` gameplay pass.
+- Learned:
+  - The `^remove[291,45,6]` event is emitted in JS step `1398` (key `l`) at
+    the start of step processing, indicating a step-boundary work distribution
+    mismatch (JS one move ahead) rather than a standalone pickup filter bug.

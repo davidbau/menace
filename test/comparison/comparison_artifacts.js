@@ -3,6 +3,7 @@
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { getComparableEventStreams, stripEventContext } from './comparators.js';
 
 const DEFAULT_BASE_DIR = resolve(process.cwd(), 'tmp', 'session-comparisons');
 const LATEST_FILE = 'LATEST';
@@ -41,17 +42,21 @@ function stripRngSourceTag(entry) {
     return atIndex >= 0 ? noPrefix.slice(0, atIndex) : noPrefix;
 }
 
-function stripEventContext(entry) {
-    if (typeof entry !== 'string') return '';
-    const at = entry.indexOf('] @');
-    return at >= 0 ? entry.slice(0, at + 1) : entry;
-}
-
 function flattenRawRngFromSessionLike(sessionLike) {
     const startup = Array.isArray(sessionLike?.startup?.rng) ? sessionLike.startup.rng : [];
     const steps = Array.isArray(sessionLike?.steps) ? sessionLike.steps : [];
     const stepRng = steps.map((step) => (Array.isArray(step?.rng) ? step.rng : []));
     return { startup, stepRng, raw: [...startup, ...stepRng.flat()] };
+}
+
+function buildComparableEventChannel(entries = []) {
+    const filtered = Array.isArray(entries) ? entries : [];
+    return {
+        raw: filtered,
+        normalized: filtered.map((entry) => stripEventContext(entry)),
+        rawIndexMap: filtered.map((_entry, idx) => idx),
+        stepEnds: [],
+    };
 }
 
 function normalizeChannel(sessionLike, { eventsOnly = false } = {}) {
@@ -236,8 +241,11 @@ export function getLatestComparisonArtifactsRunDir({ baseDir = DEFAULT_BASE_DIR 
 export function buildComparisonArtifact(session, replay, cmp, result) {
     const jsRng = normalizeChannel(replay, { eventsOnly: false });
     const cRng = normalizeChannel(session, { eventsOnly: false });
-    const jsEvents = normalizeChannel(replay, { eventsOnly: true });
-    const cEvents = normalizeChannel(session, { eventsOnly: true });
+    const jsRaw = flattenRawRngFromSessionLike(replay).raw;
+    const cRaw = flattenRawRngFromSessionLike(session).raw;
+    const { js: jsComparableEvents, session: cComparableEvents } = getComparableEventStreams(jsRaw, cRaw);
+    const jsEvents = buildComparableEventChannel(jsComparableEvents);
+    const cEvents = buildComparableEventChannel(cComparableEvents);
 
     const artifact = {
         format: FORMAT_VERSION,

@@ -545,7 +545,7 @@ function isEventEntry(entry) {
     return typeof entry === 'string' && entry.length > 0 && entry[0] === '^';
 }
 
-function isIgnorableEventEntry(entry) {
+export function isIgnorableEventEntry(entry) {
     // `trick[...]` is map-regeneration recovery noise.
     // `mapdump[...]` is compared separately via compareMapdumpCheckpoints,
     //   not via event comparison (old sessions pre-patch-017 don't have it).
@@ -567,13 +567,13 @@ function isTestMoveEvent(entry) {
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
-function stripEventContext(entry) {
+export function stripEventContext(entry) {
     if (typeof entry !== 'string') return entry;
     const at = entry.indexOf('] @');
     return at >= 0 ? entry.slice(0, at + 1) : entry;
 }
 
-export function compareEvents(jsRng = [], sessionRng = []) {
+export function getComparableEventStreams(jsRng = [], sessionRng = []) {
     let js = (Array.isArray(jsRng) ? jsRng : [])
         .filter(isEventEntry)
         .filter((entry) => !isIgnorableEventEntry(entry));
@@ -588,6 +588,11 @@ export function compareEvents(jsRng = [], sessionRng = []) {
         js = js.filter((entry) => !isTestMoveEvent(entry));
         session = session.filter((entry) => !isTestMoveEvent(entry));
     }
+    return { js, session };
+}
+
+export function compareEvents(jsRng = [], sessionRng = []) {
+    const { js, session } = getComparableEventStreams(jsRng, sessionRng);
     const total = Math.max(js.length, session.length);
 
     let matched = 0;
