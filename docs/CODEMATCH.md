@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5000` total, `3681` missing (**73.62% left**)
-- **Gameplay rows only**: `4335` total, `3060` missing (**70.59% left**)
+- **Raw rows (all files)**: `5041` total, `931` missing (**18.47% left**)
+- **Gameplay rows only**: `4376` total, `310` missing (**7.08% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)

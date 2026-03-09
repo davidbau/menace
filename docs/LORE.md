@@ -5920,3 +5920,17 @@ hard-won wisdom:
 - Validation:
   - `npm test -- test/unit/selvar_surface.test.js` passed (gate run).
   - `selvar.c` missing count reduced from `26` to `0`.
+
+### CODEMATCH metrics refresh after March codematch burndown (2026-03-09)
+
+- Problem:
+  - `docs/CODEMATCH.md` function-level metric totals had become stale and
+    still reflected pre-burndown values (`3060` gameplay missing), which
+    obscured actual remaining scope.
+- Change:
+  - Recomputed metrics from current function rows and refreshed the summary
+    numbers in `docs/CODEMATCH.md`.
+- Updated snapshot:
+  - Raw: `5041` total, `931` missing (`18.47%` left)
+  - Gameplay: `4376` total, `310` missing (`7.08%` left)
+  - Excluded non-gameplay rows unchanged: `665`
