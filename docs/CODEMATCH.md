@@ -127,7 +127,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[x]` | rnd.c | rng.js | Random number generation |
 | `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[]/races[] data now in `role.js` (includes hpadv/enadv_full/xlev structs for all roles, hpadv/enadv for all races, `mnum` field mapping each role to its C PM_* monster-table index) and re-exported by `player.js`; `Role_if(player, pm)` and `Role_switch(player)` exported (matching C macros `Role_if`/`Role_switch` which compare `urole.mnum`); ok_role/ok_race/ok_align PARTIAL in chargen.js; role_init PARTIAL in chargen.js+u_init.js; Hello() in player.js; all others TODO |
 | `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. JS: `rumor_data.js` (data); unpadline/init_rumors/get_rnd_line in `hacklib.js`; getrumor inlined in `dungeon.js`; outoracle/doconsult/CapitalMon TODO |
-| `[~]` | save.c | save.js | Game state serialization. N/A (JS uses storage.js/IndexedDB); handleSave in storage.js. `freedynamicdata()` now calls `tmp_at(DISP_FREEMEM,0)` to mirror C display cleanup hook |
+| `[a]` | save.c | save.js, storage.js | Game state serialization. Active JS path is `storage.js` (`buildSaveData`/`saveGameState`/`saveLev`/`saveObjChn`/`saveTrapChn`/`handleSave`); binary NHFILE helpers in `save.c` are N/A in browser/localStorage architecture. `freedynamicdata()` mirrors C `tmp_at(DISP_FREEMEM,0)` cleanup |
 | `[a]` | selvar.c | — | Selection geometry. JS: `selection` object in `sp_lev.js`. All major geometry functions aligned including ellipse/gradient/is_irregular/size_description |
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
 | `[N/A]` | sfstruct.c | — | Save file structure definitions |
@@ -4387,29 +4387,29 @@ Remaining parity gaps are mostly behavioral depth:
 ### save.c -> save.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 74 | `dosave0` | - | Missing |
+| 74 | `dosave0` | storage.js:414, storage.js:1020 | Implemented |
 | 1038 | `free_dungeons` | save.js:323 | Implemented |
 | 1055 | `freedynamicdata` | save.js:136 | Implemented |
-| 679 | `save_bc` | - | Missing |
+| 679 | `save_bc` | - | N/A (binary savefile special-case for ball/chain placement; JS localStorage save has no NHFILE pointer-layout path) |
 | 574 | `save_bubbles` | save.js:184 | Implemented |
 | 237 | `save_gamelog` | save.js:142 | Implemented |
-| 1008 | `save_msghistory` | - | Missing |
-| 648 | `save_stairs` | - | Missing |
+| 1008 | `save_msghistory` | storage.js:370 | Implemented (`saveGameState.messages`) |
+| 648 | `save_stairs` | storage.js:176 | Implemented (`saveLev` serializes `upstair`/`dnstair`) |
 | 600 | `savecemetery` | save.js:193 | Implemented |
-| 623 | `savedamage` | - | Missing |
+| 623 | `savedamage` | - | N/A (shop-damage save chain is a C NHFILE structure not modeled in JS save format) |
 | 929 | `savefruitchn` | save.js:294 | Implemented |
-| 265 | `savegamestate` | - | Missing |
-| 421 | `savelev` | - | Missing |
-| 444 | `savelev_core` | - | Missing |
+| 265 | `savegamestate` | storage.js:370 | Implemented |
+| 421 | `savelev` | storage.js:176 | Implemented |
+| 444 | `savelev_core` | storage.js:176 | Implemented (`saveLev` contains core level serialization) |
 | 952 | `savelevchn` | save.js:308 | Implemented |
 | 560 | `savelevl` | save.js:173 | Implemented |
 | 809 | `savemon` | save.js:232 | Implemented |
 | 862 | `savemonchn` | save.js:268 | Implemented |
 | 709 | `saveobj` | save.js:209 | Implemented |
-| 745 | `saveobjchn` | - | Missing |
-| 343 | `savestateinlock` | - | Missing |
-| 898 | `savetrapchn` | - | Missing |
-| 977 | `store_plname_in_file` | - | Missing |
+| 745 | `saveobjchn` | storage.js:87 | Implemented |
+| 343 | `savestateinlock` | storage.js:570 | Implemented (`scheduleAutosave`) |
+| 898 | `savetrapchn` | storage.js:162 | Implemented |
+| 977 | `store_plname_in_file` | - | N/A (C binary save header/player-name suffix format; JS stores structured `you` fields directly) |
 | 329 | `tricked_fileremoved` | save.js:160 | Implemented |
 
 ### selvar.c -> —

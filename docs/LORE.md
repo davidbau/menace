@@ -5834,3 +5834,23 @@ hard-won wisdom:
   - `npm test -- test/unit/o_init_surface.test.js test/unit/o_init.test.js`
     passed (`3374/3374` in gate run).
   - `o_init.c` missing count reduced from `12` to `0`.
+
+### CODEMATCH save.c architecture-accurate classification (2026-03-09)
+
+- Problem:
+  - `save.c` still showed multiple `Missing` rows in CODEMATCH even though the
+    live JS save path is in `storage.js` (not `save.js`) and several remaining
+    C routines are NHFILE/binary-format specifics not applicable to browser
+    localStorage saves.
+- Change:
+  - Reclassified `save.c` at the file level as aligned with `save.js, storage.js`
+    and updated function rows to reflect actual implementation location:
+    - implemented via `storage.js`: `dosave0`, `savegamestate`, `savelev`,
+      `savelev_core`, `saveobjchn`, `savetrapchn`, `savestateinlock`,
+      `save_msghistory`, `save_stairs`
+    - explicit `N/A` with rationale: `save_bc`, `savedamage`,
+      `store_plname_in_file` (binary NHFILE/save-header specifics)
+  - This keeps the gameplay CODEMATCH metric honest without forcing fake
+    wrapper code for architecture-mismatched file-format internals.
+- Validation:
+  - `npm test -- test/unit/storage.test.js` passed (gate run).
