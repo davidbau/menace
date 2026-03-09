@@ -1,8 +1,8 @@
 // wield.js -- Weapon wielding, swapping, quivering, and two-weapon combat
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
-import { nhgetch_wrap, readBoundaryKey, ynFunction } from './input.js';
-import { awaitDisplayMorePrompt } from './suspend.js';
+import { nhgetch_wrap, ynFunction } from './input.js';
+import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
          TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
@@ -425,7 +425,9 @@ async function handleWield(player, display) {
     await display.putstr_message(wieldPrompt);
 
     while (true) {
-        const ch = await readBoundaryKey(display, 'wield.handleWield.select');
+        const ch = await awaitInput(null, nhgetch_wrap(), {
+            site: 'wield.handleWield.select',
+        });
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
@@ -616,7 +618,9 @@ async function handleQuiver(player, display) {
     await display.putstr_message(prompt);
 
     while (true) {
-        const ch = await readBoundaryKey(display, 'wield.handleQuiver.select');
+        const ch = await awaitInput(null, nhgetch_wrap(), {
+            site: 'wield.handleQuiver.select',
+        });
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

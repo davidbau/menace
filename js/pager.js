@@ -9,8 +9,8 @@ import {
     STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL, TER_MAP,
 } from './const.js';
 import { def_monsyms } from './symbols.js';
-import { nhgetch_wrap, readBoundaryKey, ynFunction } from './input.js';
-import { awaitDisplayMorePrompt } from './suspend.js';
+import { nhgetch_wrap, ynFunction } from './input.js';
+import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
@@ -214,7 +214,9 @@ export async function do_look(game, mode = 0, click_cc = null) {
             from_screen = true;
         } else {
             await display.putstr_message("What do you want to identify? [type a symbol, ';' for map, or ESC]");
-            const ch = await readBoundaryKey(display, 'pager.do_look.identify', game);
+            const ch = await awaitInput(game, nhgetch_wrap(), {
+                site: 'pager.do_look.identify',
+            });
             if (ch === 27) return { moved: false, tookTime: false };
             const c = String.fromCharCode(ch);
             if (c === ';' || c === '/' || c === 'y') from_screen = true;
@@ -435,7 +437,9 @@ async function _showPagerCore(display, text, title) {
 
     // Input loop
     while (true) {
-        const ch = await readBoundaryKey(display, 'pager.showPager.loop');
+        const ch = await awaitInput(null, nhgetch_wrap(), {
+            site: 'pager.showPager.loop',
+        });
         const c = String.fromCharCode(ch);
 
         if (c === 'q' || ch === 27) {
@@ -509,7 +513,9 @@ async function showMoreTextPages(display, text) {
         if (typeof display.setCursor === 'function') {
             display.setCursor(8, TERMINAL_ROWS - 1);
         }
-        await readBoundaryKey(display, 'pager.showMoreTextPages.more');
+        await awaitInput(null, nhgetch_wrap(), {
+            site: 'pager.showMoreTextPages.more',
+        });
         topLine += pageRows;
         if (topLine >= lines.length) break;
     }
@@ -562,7 +568,9 @@ async function getSearchTerm(display) {
 
     let term = '';
     while (true) {
-        const ch = await readBoundaryKey(display, 'pager.getSearchTerm.loop');
+        const ch = await awaitInput(null, nhgetch_wrap(), {
+            site: 'pager.getSearchTerm.loop',
+        });
         if (ch === 13 || ch === 10) {
             return term || null;
         } else if (ch === 27) {
@@ -766,7 +774,9 @@ async function showTextWindowFile(display, text) {
         }
 
         while (true) {
-            const ch = await readBoundaryKey(display, 'pager.showTextWindowFile.more');
+            const ch = await awaitInput(null, nhgetch_wrap(), {
+                site: 'pager.showTextWindowFile.more',
+            });
             if (!isDismissKey(ch)) continue;
             if (hasMore && (ch === 32 || ch === 10 || ch === 13)) {
                 top += pageRows;

@@ -19,7 +19,8 @@ import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN, D_TRAPPED,
 import { PM_ROGUE, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { rn2, rnl, rnd } from './rng.js';
-import { readBoundaryKey, ynFunction } from './input.js';
+import { nhgetch_wrap, ynFunction } from './input.js';
+import { awaitInput } from './suspend.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, ROCK_CLASS, POTION_CLASS,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
@@ -515,7 +516,9 @@ export async function pick_lock(game, pick, rx, ry, container) {
     } else {
         // Prompt for direction
         await display.putstr_message('In what direction? ');
-        const dirCh = await readBoundaryKey(display, 'lock.pick_lock.direction', game);
+        const dirCh = await awaitInput(game, nhgetch_wrap(), {
+            site: 'lock.pick_lock.direction',
+        });
         display.topMessage = null;
         const c = String.fromCharCode(dirCh);
         let dir = DIRECTION_KEYS[c];
@@ -946,7 +949,9 @@ export async function handleOpen(player, map, display, game) {
     await display.putstr_message('In what direction? ');
     let dir = null;
     while (!dir) {
-        const dirCh = await readBoundaryKey(display, 'lock.handleOpen.direction', game);
+        const dirCh = await awaitInput(game, nhgetch_wrap(), {
+            site: 'lock.handleOpen.direction',
+        });
         // Prompt should not concatenate with outcome message.
         display.topMessage = null;
         if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
@@ -1038,7 +1043,9 @@ export async function handleOpen(player, map, display, game) {
 // C ref: lock.c doclose()
 export async function handleClose(player, map, display, game) {
     await display.putstr_message('In what direction? ');
-    const dirCh = await readBoundaryKey(display, 'lock.handleClose.direction', game);
+    const dirCh = await awaitInput(game, nhgetch_wrap(), {
+        site: 'lock.handleClose.direction',
+    });
     display.topMessage = null;
     display.messageNeedsMore = false;
     const c = String.fromCharCode(dirCh);
