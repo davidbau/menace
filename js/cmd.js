@@ -477,8 +477,31 @@ export async function rhack(ch, game) {
     // Version (v)
     // C ref: pager.c doversion()
     if (c === 'v') {
-        await display.putstr_message('Unix NetHack Version 3.7.0-132 Work-in-progress - last build Mar  8 2026\n20:21:19.');
-        return { moved: false, tookTime: false };
+        // C ref: version.c doversion() -> pline("%s", getversionstring(...)).
+        // In tty captures this wraps across the first two message rows and
+        // ends with a standard "--More--" boundary.
+        const line0 = 'Unix NetHack Version 3.7.0-132 Work-in-progress - last build Mar  8 2026';
+        const line1 = '20:21:19.--More--';
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if (typeof display.clearRow === 'function') display.clearRow(1);
+        display.topMessage = null;
+        display._topMessageRow1 = undefined;
+        display.messageNeedsMore = false;
+        display._nonBlockingMore = false;
+        if (typeof display.putstr === 'function') {
+            display.putstr(0, 0, line0);
+            display.putstr(0, 1, line1);
+        } else {
+            await display.putstr_message(`${line0} ${line1}`);
+            return { moved: false, tookTime: false, skipPostCommandDocrt: true };
+        }
+        display.topMessage = line0;
+        display._topMessageRow1 = line1;
+        display.messageNeedsMore = true;
+        if (typeof display.markMorePending === 'function') {
+            display.markMorePending({ source: 'cmd.version' });
+        }
+        return { moved: false, tookTime: false, skipPostCommandDocrt: true };
     }
 
     // Kick (Ctrl+D)

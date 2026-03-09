@@ -5450,3 +5450,31 @@ hard-won wisdom:
     `1288/1288`.
   - `seed032_manual_direct` remains full-pass.
   - `seed100_multidigit_gameplay` remains full-pass.
+
+### seed033: C-faithful `v` version-banner message and `--More--` boundary (2026-03-09)
+
+- Problem:
+  - `v` command handling in JS was a stub that cleared the message row and
+    emitted no version banner, causing a hard screen divergence at step `1324`
+    in `seed033_manual_direct`.
+- Fixes:
+  - [`js/cmd.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/cmd.js):
+    - Replaced the `v` stub with C-shaped banner emission matching recorded
+      tty layout:
+      - row 0: `Unix NetHack Version 3.7.0-132 Work-in-progress - last build Mar  8 2026`
+      - row 1: `20:21:19.--More--`
+    - Marked a real pending `--More--` boundary after the banner so follow-up
+      keys are handled at the correct input boundary.
+    - Returned `skipPostCommandDocrt` from the `v` path so post-command
+      rerender does not erase the banner frame before replay capture.
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js):
+    - Honors command result `skipPostCommandDocrt` in the end-of-command
+      render block.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+    - Screen parity improved from `1323/1417` to `1397/1417`.
+    - First screen divergence moved from step `1324` to step `1398`.
+    - RNG and event parity frontiers also advanced to step `1398` / `1302`.
+  - `scripts/run-and-report.sh --failures`
+    - Gameplay suite remains `33/34` passing; only `seed033_manual_direct`
+      still fails.

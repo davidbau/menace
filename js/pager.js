@@ -684,7 +684,10 @@ export async function handleViewMapPrompt(game) {
                     continue;
                 }
                 const sym = terrainSymbol(loc, map, x, y, display.flags || flags || {});
-                const color = (loc.typ === STONE) ? CLR_GRAY : ((loc.typ === ROOM) ? NO_COLOR : sym.color);
+                // C terrain browse uses default color for floor dots.
+                const color = (loc.typ === STONE || sym.ch === '·')
+                    ? CLR_GRAY
+                    : ((loc.typ === ROOM) ? NO_COLOR : sym.color);
                 display.setCell(col, row, sym.ch, color);
             }
         }
@@ -714,7 +717,10 @@ export async function handleViewMapPrompt(game) {
         display.topMessage = null;
         display.messageNeedsMore = false;
     }
-    return { moved: false, tookTime: false };
+    return {
+        moved: false,
+        tookTime: false,
+    };
 }
 
 // Data file cache (same pattern as guidebook)
