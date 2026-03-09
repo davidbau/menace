@@ -1216,6 +1216,9 @@ export async function handleApply(player, map, display, game) {
                 await display.putstr_message(
                     `${item.invlet} - ${doname(item, player)}.`);
                 if (typeof display?.morePrompt === 'function') {
+                    if (typeof display.renderMoreMarker === 'function') {
+                        display.renderMoreMarker();
+                    }
                     await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
                         site: 'apply.inventory-list.morePrompt',
                     });
@@ -1249,6 +1252,9 @@ export async function handleApply(player, map, display, game) {
                 // key reveals it on the next captured step (C/getobj timing).
                 await display.putstr_message(prompt);
             } else if (typeof display?.morePrompt === 'function') {
+                if (typeof display.renderMoreMarker === 'function') {
+                    display.renderMoreMarker();
+                }
                 await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
                     site: 'apply.invalid-invlet.morePrompt',
                 });
