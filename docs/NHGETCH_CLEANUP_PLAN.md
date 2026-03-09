@@ -169,6 +169,9 @@ Required validation per phase:
 12. 2026-03-09: Spell/wield prompt loops migrated to boundary reads:
     `spell.js` (known-spells dismiss + getspell select) and
     `wield.js` (wield/quiver select loops).
+13. 2026-03-09: Read/name prompt loops migrated to boundary reads:
+    `read.js` selection/confirm reads and
+    `do_name.js` call-object-type selection.
 
 ## Decision Log
 

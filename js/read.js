@@ -2,8 +2,8 @@
 // cf. read.c — doread, seffects, scroll effects, genocide, punishment, recharging
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { nhgetch_wrap } from './input.js';
-import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
+import { nhgetch_wrap, readBoundaryKey } from './input.js';
+import { awaitDisplayMorePrompt } from './suspend.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
@@ -322,9 +322,7 @@ async function handleRead(player, display, game) {
     };
     await showReadPrompt();
     while (true) {
-        const ch = await awaitInput(game, nhgetch_wrap(), {
-            site: 'read.handleRead.select',
-        });
+        const ch = await readBoundaryKey(display, 'read.handleRead.select', game);
         let c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();
@@ -383,9 +381,11 @@ async function handleRead(player, display, game) {
                     // cf. spell.c study_book() — show both messages on one line to match
                     // C TTY behavior where pline() + yn() appear together.
                     await display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
-                    const ans = await awaitInput(game, nhgetch_wrap(), {
-                        site: 'read.handleRead.refreshKnownSpellConfirm',
-                    });
+                    const ans = await readBoundaryKey(
+                        display,
+                        'read.handleRead.refreshKnownSpellConfirm',
+                        game
+                    );
                     if (String.fromCharCode(ans) !== 'y') {
                         return { moved: false, tookTime: false };
                     }
