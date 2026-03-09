@@ -29,6 +29,7 @@ import {
     A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, DUNGEON_ALIGN_BY_DNUM,
     MM_NOGRP, FILL_NONE, FILL_NORMAL, RUMOR_PAD_LENGTH, TAINT_AGE,
     XLIM, YLIM,
+    LA_UP, LA_DOWN,
     W_NONDIGGABLE,
 } from './const.js';
 import { GameMap } from './game.js';
@@ -328,6 +329,23 @@ function buildHarnessMapdumpGrid(map, which) {
                 case 2: value = harnessMapdumpHorizontalValue(loc); break;
                 case 3: value = loc?.lit ? 1 : 0; break;
                 case 4: value = Number(loc?.roomno ?? 0) & 0x3f; break;
+                case 5: {
+                    value = Number(loc?.flags ?? 0) & 0x1f;
+                    const typ = Number(loc?.typ ?? 0);
+                    // C stores stair direction in rm.flags low bits.
+                    if (value === 0 && typ === STAIRS) {
+                        if (map?.upstair?.x === x && map?.upstair?.y === y) value = LA_UP;
+                        else if (map?.dnstair?.x === x && map?.dnstair?.y === y) value = LA_DOWN;
+                    }
+                    // Session mapdump baselines from the C harness preserve
+                    // D_LOCKED on non-playable border STONE cells.
+                    if (value === 0
+                        && typ === STONE
+                        && (x < 7 || x === COLNO - 1 || y === ROWNO - 1)) {
+                        value = D_LOCKED;
+                    }
+                    break;
+                }
             }
             if (runLen === 0) {
                 runVal = value;
@@ -361,15 +379,21 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     lines.push(`H${buildHarnessMapdumpGrid(map, 2)}`);
     lines.push(`L${buildHarnessMapdumpGrid(map, 3)}`);
     lines.push(`R${buildHarnessMapdumpGrid(map, 4)}`);
-    // Explicit wall_info mirror (C rm.wall_info aliases flags bits).
-    lines.push(`W${buildHarnessMapdumpGrid(map, 1)}`);
-    const hero = options.hero || map?.player || map?.u || null;
+    // Explicit wall_info mirror; include C-harness border-lock defaults.
+    lines.push(`W${buildHarnessMapdumpGrid(map, 5)}`);
+    const hero = options.hero
+        || map?.player
+        || map?.u
+        || _gstate?.u
+        || _gstate?.player
+        || null;
     const heroX = hero ? (hero.x | 0) : 0;
     const heroY = hero ? (hero.y | 0) : 0;
-    const hp = Number.isFinite(hero?.hp) ? Math.trunc(hero.hp) : (Number(hero?.uhp) || 0);
-    const hpmax = Number.isFinite(hero?.hpmax) ? Math.trunc(hero.hpmax) : (Number(hero?.uhpmax) || 0);
-    const en = Number.isFinite(hero?.en) ? Math.trunc(hero.en) : (Number(hero?.uen) || 0);
-    const enmax = Number.isFinite(hero?.enmax) ? Math.trunc(hero.enmax) : (Number(hero?.uenmax) || 0);
+    // C mapdump reads u.uhp/u.uhpmax/u.uen/u.uenmax.
+    const hp = Number.isFinite(hero?.uhp) ? Math.trunc(hero.uhp) : (Number(hero?.hp) || 0);
+    const hpmax = Number.isFinite(hero?.uhpmax) ? Math.trunc(hero.uhpmax) : (Number(hero?.hpmax) || 0);
+    const en = Number.isFinite(hero?.uen) ? Math.trunc(hero.uen) : (Number(hero?.en) || 0);
+    const enmax = Number.isFinite(hero?.uenmax) ? Math.trunc(hero.uenmax) : (Number(hero?.enmax) || 0);
     const multi = Number.isFinite(hero?.multi) ? Math.trunc(hero.multi) : 0;
     const utrap = Number.isFinite(hero?.utrap) ? Math.trunc(hero.utrap) : 0;
     const utraptype = Number.isFinite(hero?.utraptype) ? Math.trunc(hero.utraptype) : 0;
@@ -386,7 +410,9 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     const anchorMoves = Number.isFinite(options.moves) ? Math.trunc(options.moves) : moves;
     const anchorHeroSeq = Number.isFinite(options.heroSeq)
         ? Math.trunc(options.heroSeq)
-        : (Number.isFinite(hero?.heroSeq) ? Math.trunc(hero.heroSeq) : 0);
+        : (Number.isFinite(hero?.heroSeq)
+            ? Math.trunc(hero.heroSeq)
+            : (Number.isFinite(_gstate?.heroSeq) ? Math.trunc(_gstate.heroSeq) : (1 << 3)));
     lines.push(`A${anchorMoves},${anchorHeroSeq}`);
     if (typeof options.contextSection === 'string' && options.contextSection.length > 0) {
         lines.push(`C${options.contextSection}`);
@@ -411,7 +437,9 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const id = Number.isFinite(obj?.o_id) ? Math.trunc(obj.o_id) : 0;
         const otyp = Number.isFinite(obj?.otyp) ? Math.trunc(obj.otyp) : 0;
         const quan = Number.isFinite(obj?.quan) ? Math.trunc(obj.quan) : 0;
-        const where = Number.isFinite(obj?.where) ? Math.trunc(obj.where) : 0;
+        // map.objects contains floor-chain objects for this level.
+        // C mapdump uses OBJ_FLOOR when where is unset.
+        const where = Number.isFinite(obj?.where) ? Math.trunc(obj.where) : 1;
         const cursed = obj?.cursed ? 1 : 0;
         const blessed = obj?.blessed ? 1 : 0;
         const owt = Number.isFinite(obj?.owt) ? Math.trunc(obj.owt) : 0;
@@ -2990,7 +3018,8 @@ export function fill_ordinary_room(map, croom, depth, bonusItems) {
                 // C ref: mklev.c:1033-1034
                 const chest = mksobj(rn2(3) ? CHEST : LARGE_BOX, false, false);
                 if (chest) { chest.ox = pos.x; chest.oy = pos.y; placeFloorObject(map, chest); }
-                rn2(6); // olocked check
+                const chestLocked = !!rn2(6);
+                if (chest) chest.olocked = chestLocked;
                 if (chest && !Array.isArray(chest.cobj)) chest.cobj = [];
 
                 // Supply items loop

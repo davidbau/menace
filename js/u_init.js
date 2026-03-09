@@ -1284,6 +1284,17 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     });
     // C ref: u_init_misc() handedness assignment in u.uhandedness
     player.rightHanded = rightHanded;
+    // C ref: allmain.c/u_init.c ordering: u.uhp/u.uen are initialized before
+    // makelevel(), so early mklev mapdump checkpoints see populated hero stats.
+    const role = roles[player.roleIndex];
+    if (role) {
+        const raceHP = RACE_HP[player.race] ?? 2;
+        const racePW = RACE_PW[player.race] ?? 1;
+        player.uhp = role.startingHP + raceHP;
+        player.uhpmax = player.uhp;
+        player.uen = role.startingPW + racePW + (enadv_roll || 0);
+        player.uenmax = player.uen;
+    }
     const map = (opts.startDnum != null)
         ? await mklev(startDlevel, opts.startDnum, startDlevel,
             {
