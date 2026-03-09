@@ -741,6 +741,7 @@ export class HeadlessDisplay {
             this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
             await this._waitForMoreDismissKey(this._nhgetch);
             this.clearRow(0);
+            this.clearRow(1);
             this.messageNeedsMore = false;
             this.topMessage = null;
             if (remainder.length > 0) {

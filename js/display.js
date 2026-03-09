@@ -545,10 +545,10 @@ span.nh-cursor {
             const msg = recentMessages[i];
             const row = MSG_WINDOW_ROWS - recentMessages.length + i;
             if (msg.length <= this.cols) {
-                this.putstr(0, row, msg.substring(0, this.cols), CLR_WHITE);
+                this.putstr(0, row, msg.substring(0, this.cols), CLR_GRAY);
             } else {
                 // Truncate long messages
-                this.putstr(0, row, msg.substring(0, this.cols - 3) + '...', CLR_WHITE);
+                this.putstr(0, row, msg.substring(0, this.cols - 3) + '...', CLR_GRAY);
             }
         }
     }
@@ -1130,12 +1130,17 @@ span.nh-cursor {
             const line = lines[i];
             // C ref: wintty.c — menu prompt (line 0) and category headers use inverse video.
             const isHeader = (i === 0 && line.trim().length > 0) || isCategoryHeader(line);
-            const isSingleSpacePrefix = line.startsWith(' ') && (line.length < 2 || line[1] !== ' ');
-            const trimmed = isSingleSpacePrefix ? line.slice(1) : line;
             if (isHeader) {
+                // C ref: wintty.c — category headers have a single leading
+                // space that is part of the pre-cleared region, not inverse video.
+                // The text itself (e.g. "Weapons") starts at offx in inverse.
+                // Column headers (spell list "    Name...") have structural
+                // whitespace that IS rendered in inverse.
+                const isSingleSpacePrefix = line.startsWith(' ') && (line.length < 2 || line[1] !== ' ');
+                const trimmed = isSingleSpacePrefix ? line.slice(1) : line;
                 this.putstr(offx, i, trimmed, CLR_GRAY, 1);
             } else {
-                this.putstr(offx, i, trimmed, CLR_GRAY, 0);
+                this.putstr(offx, i, line, CLR_GRAY, 0);
             }
         }
         return offx;
