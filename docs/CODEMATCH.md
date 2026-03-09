@@ -2849,7 +2849,7 @@ No function symbols parsed from isaac64.c.
 |--------|------------|---------|-----------|
 | 5222 | `accept_newcham_form` | mon.js:2477 | Implemented (async) |
 | 5915 | `adj_erinys` | mon.js:2586 | Implemented |
-| 4466 | `alloc_itermonarr` | - | Missing |
+| 4466 | `alloc_itermonarr` | - | N/A — C memory management for iterator arrays |
 | 3068 | `anger_quest_guardians` | mon.js:2316 | Implemented |
 | 5704 | `angry_guards` | mon.js:2540 | Implemented |
 | 5539 | `can_be_hatched` | mon.js:2498 | Implemented |
@@ -2864,19 +2864,19 @@ No function symbols parsed from isaac64.c.
 | 2631 | `dealloc_mextra` | mon.js:2259 | Implemented |
 | 2658 | `dealloc_monst` | mon.js:2276 | Implemented |
 | 4867 | `decide_to_shapeshift` | - | Missing |
-| 2469 | `dmonsfree` | - | Missing |
+| 2469 | `dmonsfree` | - | N/A — C memory management |
 | 5562 | `egg_type_from_parent` | - | Missing |
 | 3873 | `elemental_clog` | mon.js:1401 | Implemented |
-| 6060 | `flash_mon` | - | Missing |
+| 6060 | `flash_mon` | - | N/A — visual shield effect, no gameplay impact |
 | 452 | `genus` | mon.js:329 | Implemented |
-| 4539 | `get_iter_mons` | - | Missing |
-| 4557 | `get_iter_mons_xy` | - | Missing |
+| 4539 | `get_iter_mons` | dokick.js:487 | Implemented |
+| 4557 | `get_iter_mons_xy` | dokick.js:495 | Implemented |
 | 5673 | `golemeffects` | mon.js:2517 | Implemented (async) |
 | 4591 | `healmon` | mon.js | Implemented — heals monster HP with optional overheal |
 | 4801 | `hide_monst` | mon.js:1508 | Implemented |
 | 4721 | `hideunder` | mon.js:1436 | Implemented (async) |
 | 4976 | `isspecmon` | mon.js:2464 | Implemented |
-| 4522 | `iter_mons` | - | Missing |
+| 4522 | `iter_mons` | mon.js:iter_mons | Missing — called from pacify_guards/dog.js/display.js but not defined |
 | 4495 | `iter_mons_safe` | - | Missing |
 | 5602 | `kill_eggs` | mon.js:2506 | Implemented |
 | 5632 | `kill_genocided_monsters` | - | Missing |
@@ -2920,7 +2920,7 @@ No function symbols parsed from isaac64.c.
 | 1708 | `mon_give_prop` | mon.js | Implemented — grant intrinsic property to monster |
 | 1760 | `mon_givit` | mon.js | Implemented — give intrinsics from eaten corpse |
 | 2678 | `mon_leaving_level` | mon.js | Partial — unstuck() called from mondead, mtrapped clearing; Missing: worm removal, mswallower display, mimic unhide, newsym |
-| 240 | `mon_sanity_check` | - | Missing |
+| 240 | `mon_sanity_check` | - | N/A — debug/validation only |
 | 3743 | `mon_to_stone` | mon.js:2322 | Implemented (async) |
 | 3077 | `mondead` | mon.js:mondead + mon.js:mondead_full | Partial in mon.js; mondead_full adds lifesaved_monster, m_detach, corpse drops. Still missing: vamprises, steam vortex gas cloud, Kop respawn, chameleon/lycanthrope revert, mvitals tracking |
 | 3249 | `mondied` | mon.js | Implemented — died of own accord, calls mondead + corpse_chance + make_corpse |
@@ -2933,7 +2933,7 @@ No function symbols parsed from isaac64.c.
 | 1196 | `movemon_singlemon` | - | Missing |
 | 1809 | `mpickgold` | mon.js | Implemented — pick up gold at location |
 | 1829 | `mpickstuff` | - | Missing |
-| 5271 | `newcham` | - | Missing |
+| 5271 | `newcham` | muse.js:399 | STUB — returns true, polymorph not fully ported |
 | 4426 | `normal_shape` | - | Missing |
 | 3859 | `ok_to_obliterate` | mon.js:2384 | Implemented |
 | 5756 | `pacify_guard` | mon.js:2560 | Implemented |
@@ -2949,15 +2949,15 @@ No function symbols parsed from isaac64.c.
 | 4635 | `restartcham` | - | Missing |
 | 4644 | `restore_cham` | - | Missing |
 | 4657 | `restrap` | - | Missing |
-| 59 | `sanity_check_single_mon` | - | Missing |
-| 5964 | `see_monster_closeup` | - | Missing |
+| 59 | `sanity_check_single_mon` | - | N/A — debug/validation only |
+| 5964 | `see_monster_closeup` | - | N/A — wizard mode monster inspection |
 | 6018 | `see_nearby_monsters` | mon.js:2636 | Implemented (async) |
 | 4404 | `seemimic` | mon.js | Implemented — reveal hiding mimic |
 | 5150 | `select_newcham_form` | makemon.js:select_newcham_form | APPROX — random fallback only, missing sandestin/doppelganger/werecreature |
 | 2804 | `set_mon_min_mhpmax` | mon.js:850 | Implemented |
 | 3417 | `set_ustuck` | mon.js:1406 | Implemented |
 | 4260 | `setmangry` | mon.js | Implemented — make peaceful monster hostile |
-| 6051 | `shieldeff_mon` | - | Missing |
+| 6051 | `shieldeff_mon` | - | N/A — visual shield effect, no gameplay impact |
 | 399 | `undead_to_corpse` | mon.js:311 | Implemented |
 | 3434 | `unstuck` | mon.js | Implemented — clears player.ustuck, rnd(2) for sticky/engulf/hug monsters; TODO: swallowed-player repositioning + vision recalc (no RNG impact) |
 | 5789 | `usmellmon` | - | Missing |
