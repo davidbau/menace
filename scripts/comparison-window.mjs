@@ -2,7 +2,7 @@
 // Inspect windows from merged .comparison.json artifacts.
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { getLatestComparisonArtifactsRunDir } from '../test/comparison/comparison_artifacts.js';
 
 function usage() {
@@ -66,11 +66,29 @@ function loadIndex(runDir) {
 function pickArtifactPath(runDir, target, indexRows) {
     if (target) {
         const direct = resolve(target);
-        if (existsSync(direct)) return direct;
-        const byIndex = indexRows.find((row) => row.session === target || row.file === target);
+        const targetBase = basename(target);
+        const targetStem = targetBase
+            .replace(/\.session\.json$/i, '')
+            .replace(/\.comparison\.json$/i, '')
+            .replace(/\.json$/i, '');
+        if (existsSync(direct) && direct.endsWith('.comparison.json')) return direct;
+        const byIndex = indexRows.find((row) => {
+            const rowSession = row.session || '';
+            const rowFile = row.file || '';
+            const rowSessionBase = basename(rowSession);
+            const rowFileBase = basename(rowFile);
+            const rowStem = rowSessionBase
+                .replace(/\.session\.json$/i, '')
+                .replace(/\.json$/i, '');
+            return row.session === target
+                || row.file === target
+                || rowSessionBase === targetBase
+                || rowFileBase === targetBase
+                || rowStem === targetStem;
+        });
         if (byIndex) return join(runDir, byIndex.file);
         const files = readdirSync(runDir).filter((f) => f.endsWith('.comparison.json'));
-        const fuzzy = files.find((f) => f.includes(target));
+        const fuzzy = files.find((f) => f.includes(target) || f.includes(targetBase) || f.includes(targetStem));
         if (fuzzy) return join(runDir, fuzzy);
         return null;
     }
@@ -97,26 +115,98 @@ function stepForIndex(stepEnds, index) {
     return 'n/a';
 }
 
+function hasLegacyArrays(side) {
+    return side && Array.isArray(side.normalized) && Array.isArray(side.raw);
+}
+
+function hasWindowArrays(side) {
+    return side
+        && side.normalizedWindow
+        && Array.isArray(side.normalizedWindow.entries)
+        && side.rawWindow
+        && Array.isArray(side.rawWindow.entries);
+}
+
+function getWindowSlice(side, center, windowSize) {
+    if (hasLegacyArrays(side)) {
+        const total = side.normalized.length;
+        const start = Math.max(0, center - windowSize);
+        const end = Math.min(total - 1, center + windowSize);
+        const rows = [];
+        for (let i = start; i <= end; i++) {
+            const rawIdx = side.rawIndexMap?.[i];
+            rows.push({
+                globalIndex: i,
+                normalized: side.normalized[i] ?? '(missing)',
+                rawIndex: rawIdx ?? null,
+                raw: rawIdx != null ? (side.raw?.[rawIdx] ?? '(missing)') : '(missing)',
+                step: stepForIndex(side.stepEnds, i),
+            });
+        }
+        return { start, end, total, rows };
+    }
+    if (hasWindowArrays(side)) {
+        const w = side.normalizedWindow;
+        const rw = side.rawWindow;
+        const total = Number.isInteger(side.totals?.normalized) ? side.totals.normalized : w.end;
+        const start = Math.max(w.start, center - windowSize);
+        const end = Math.min(w.end - 1, center + windowSize);
+        const rows = [];
+        for (let i = start; i <= end; i++) {
+            const rel = i - w.start;
+            const rawRel = i - rw.start;
+            rows.push({
+                globalIndex: i,
+                normalized: w.entries[rel] ?? '(missing)',
+                rawIndex: Number.isInteger(rawRel) ? rw.start + rawRel : null,
+                raw: rw.entries[rawRel] ?? '(missing)',
+                step: stepForIndex(side.stepEnds, i),
+            });
+        }
+        return {
+            start,
+            end,
+            total,
+            rows,
+            windowStart: w.start,
+            windowEnd: w.end,
+        };
+    }
+    return null;
+}
+
 function renderWindow(artifact, channel, center, windowSize) {
     const cmp = artifact?.comparison?.[channel];
     if (!cmp) throw new Error(`Channel not found: ${channel}`);
     const js = cmp.js;
     const c = cmp.session;
-    const total = Math.max(js.normalized.length, c.normalized.length);
-    const start = Math.max(0, center - windowSize);
-    const end = Math.min(total - 1, center + windowSize);
+    const jsWin = getWindowSlice(js, center, windowSize);
+    const cWin = getWindowSlice(c, center, windowSize);
+    if (!jsWin || !cWin) throw new Error(`Unsupported comparison shape for channel: ${channel}`);
+    const total = Math.max(jsWin.total || 0, cWin.total || 0);
+    const start = Math.min(jsWin.start, cWin.start);
+    const end = Math.max(jsWin.end, cWin.end);
     console.log(`artifact: ${artifact?.session?.file}`);
     console.log(`channel: ${channel} index=${center} window=${windowSize} total=${total}`);
+    if (Number.isInteger(jsWin.windowStart) || Number.isInteger(cWin.windowStart)) {
+        const jsRange = Number.isInteger(jsWin.windowStart) ? `${jsWin.windowStart}..${jsWin.windowEnd - 1}` : 'full';
+        const cRange = Number.isInteger(cWin.windowStart) ? `${cWin.windowStart}..${cWin.windowEnd - 1}` : 'full';
+        console.log(`available normalized windows: js=${jsRange} c=${cRange}`);
+    }
+    const jsByIndex = new Map((jsWin.rows || []).map((r) => [r.globalIndex, r]));
+    const cByIndex = new Map((cWin.rows || []).map((r) => [r.globalIndex, r]));
     for (let i = start; i <= end; i++) {
         const marker = i === center ? '>>' : '  ';
-        const jVal = js.normalized[i] ?? '(missing)';
-        const cVal = c.normalized[i] ?? '(missing)';
-        const jRawIdx = js.rawIndexMap[i];
-        const cRawIdx = c.rawIndexMap[i];
-        const jRaw = jRawIdx != null ? js.raw[jRawIdx] : '(missing)';
-        const cRaw = cRawIdx != null ? c.raw[cRawIdx] : '(missing)';
-        const jStep = stepForIndex(js.stepEnds, i);
-        const cStep = stepForIndex(c.stepEnds, i);
+        const jRow = jsByIndex.get(i);
+        const cRow = cByIndex.get(i);
+        const jVal = jRow?.normalized ?? '(missing)';
+        const cVal = cRow?.normalized ?? '(missing)';
+        const jRawIdx = jRow?.rawIndex;
+        const cRawIdx = cRow?.rawIndex;
+        const jRaw = jRow?.raw ?? '(missing)';
+        const cRaw = cRow?.raw ?? '(missing)';
+        const jStep = jRow?.step ?? stepForIndex(js.stepEnds, i);
+        const cStep = cRow?.step ?? stepForIndex(c.stepEnds, i);
         console.log(`${marker}[${i}] JS(step=${jStep}) ${jVal}`);
         console.log(`${marker}      raw#${jRawIdx ?? '-'} ${jRaw}`);
         console.log(`${marker}   C(step=${cStep}) ${cVal}`);
