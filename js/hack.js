@@ -894,6 +894,28 @@ export async function domove_core(dir, player, map, display, game) {
             domoveNotime('locked-door');
             return { moved: false, tookTime: false };
         }
+        const flags = game?.flags || map?.flags || {};
+        const canAutoOpen = !!(flags.autoopen
+            && !ctx.run
+            && !player.confused
+            && !player.stunned
+            && !player.fumbling);
+        if (!canAutoOpen) {
+            if (nx === player.x || ny === player.y) {
+                if (player.blind || player.stunned || acurr(player, A_DEX) < 10 || player.fumbling) {
+                    await display.putstr_message("Ouch!  You bump into a door.");
+                    await exercise(player, A_DEX, false);
+                    ctx.door_opened = 1;
+                    ctx.move = 1;
+                    nomul(0, game);
+                } else {
+                    await display.putstr_message("That door is closed.");
+                }
+            }
+            domoveNotime('closed-door-no-autoopen');
+            return { moved: false, tookTime: false };
+        }
+
         const str = acurr(player, A_STR);
         const dex = acurr(player, A_DEX);
         const con = acurr(player, A_CON);

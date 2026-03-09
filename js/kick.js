@@ -3,7 +3,8 @@
 
 import { IS_DOOR, D_LOCKED, D_CLOSED, D_ISOPEN, D_BROKEN, D_NODOOR,
          IRONBARS, TREE, THRONE, ALTAR, FOUNTAIN, GRAVE, SINK,
-         IS_WALL, A_STR, A_DEX, A_CON, SHOPBASE, ROOMOFFSET,
+         IS_STWALL, STAIRS, LADDER, LA_DOWN,
+         A_STR, A_DEX, A_CON, SHOPBASE, ROOMOFFSET,
          RIGHT_SIDE } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
@@ -140,9 +141,36 @@ export async function handleKick(player, map, display, game) {
         return { moved: false, tookTime: true };
     }
 
+    // C ref: dokick.c kick_nondoor() handles stairs/ladder/stair-wall
+    // before the generic kick_dumb fallback.
+    if (loc.typ === STAIRS || loc.typ === LADDER || IS_STWALL(loc.typ)) {
+        if (loc.typ === LADDER && loc.ladder === LA_DOWN && !IS_STWALL(loc.typ)) {
+            await exercise(player, A_DEX, false);
+            const dex = player.attributes?.[A_DEX] || 10;
+            if (hasMartialBonus(player) || dex >= 16 || rn2(3) !== 0) {
+                await display.putstr_message("You kick at empty space.");
+            } else {
+                await display.putstr_message("Dumb move!  You strain a muscle.");
+                await exercise(player, A_STR, false);
+                set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+            }
+            return { moved: false, tookTime: true };
+        }
+        await display.putstr_message("Ouch!  That hurts!");
+        await exercise(player, A_DEX, false);
+        await exercise(player, A_STR, false);
+        wake_nearto(nx, ny, 5 * 5, map);
+        if (rn2(3) === 0) {
+            set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
+        }
+        const con = acurr(player, A_CON);
+        const dmg = rnd(con > 15 ? 3 : 5);
+        player.uhp = Math.max(1, (player.uhp || 1) - Math.max(1, dmg));
+        return { moved: false, tookTime: true };
+    }
+
     // C ref: dokick.c kick_ouch() for hard non-door terrain.
-    if (IS_WALL(loc.typ)
-        || loc.typ === IRONBARS
+    if (loc.typ === IRONBARS
         || loc.typ === TREE
         || loc.typ === THRONE
         || loc.typ === ALTAR
