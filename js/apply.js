@@ -65,7 +65,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
 import { nhgetch, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
-import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
+import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
@@ -79,10 +79,10 @@ import { Monnam, mon_nam, a_monnam, l_monnam, y_monnam } from './do_name.js';
 import { nohands, nolimbs, has_head, unsolid, haseyes, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
-         poly_when_stoned } from './mondata.js';
+         poly_when_stoned, throws_rocks, passes_walls } from './mondata.js';
 import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
-import { dist2, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
+import { dist2, distu, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn, obj_has_timer,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
@@ -98,6 +98,8 @@ import { is_wet_towel } from './objnam.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
 import { t_at, m_at } from './trap.js';
+import { walk_path } from './dothrow.js';
+import { closed_door } from './monmove.js';
 
 // -- Inline helpers --
 
@@ -278,6 +280,15 @@ export function o_unleash(otmp, map) {
         }
     }
     otmp.leashmon = 0;
+}
+
+// cf. apply.c:876 -- get_mleash: find leash attached to a monster
+export function get_mleash(mtmp, player) {
+    for (const otmp of (player ? player.inventory || [] : [])) {
+        if (otmp.otyp === LEASH && otmp.leashmon === mtmp.m_id)
+            return otmp;
+    }
+    return null;
 }
 
 // cf. apply.c:722 -- m_unleash: unleash from monster side
@@ -514,8 +525,140 @@ function rub_ok(obj) {
 // cf. apply.c:1781 -- STUB: dorub
 async function dorub() { await pline("You rub... but nothing special happens."); }
 
-// cf. apply.c:1843 -- STUB: dojump
-export async function dojump() { await You_cant("jump very far."); }
+// Jump trajectory constants (cf. apply.c:1855)
+const jAny = 0, jHorz = 1, jVert = 2, jDiag = 3;
+
+// cf. apply.c:1858 -- check_jump: walk_path callback for jump validation
+// Returns true if the tile at (x,y) is passable for jumping through
+function check_jump(x, y, arg, map, player) {
+    const traj = arg.traj;
+    const loc = map.locations[x]?.[y];
+    if (!loc) return false;
+
+    if (player?.data && passes_walls(player.data))
+        return true;
+    if (IS_STWALL(loc.typ))
+        return false;
+    if (IS_DOOR(loc.typ)) {
+        if (closed_door(x, y, map))
+            return false;
+        if ((loc.doormask & D_ISOPEN) !== 0 && traj !== jAny
+            /* reject diagonal jump into/out-of/through open door */
+            && (traj === jDiag
+                /* reject horizontal jump through horizontal open door
+                   and non-horizontal (vertical) jump through vertical open door */
+                || ((traj & jHorz) !== 0) === (!!loc.horizontal)))
+            return false;
+        /* empty doorways aren't restricted */
+    }
+    /* let giants jump over boulders */
+    if (sobj_at(BOULDER, x, y, map) && !throws_rocks(player?.data || {}))
+        return false;
+    return true;
+}
+
+// cf. apply.c:1889 -- is_valid_jump_pos: validate a jump destination
+export function is_valid_jump_pos(x, y, magic, showmsg, player, map) {
+    if (!player) player = globalThis.gs?.player;
+    if (!map) map = globalThis.gs?.map;
+
+    const HJumping = player?.hJumping || 0;
+    const EJumping = player?.eJumping || 0;
+    const INTRINSIC = 0x00000001; // cf. const.js
+
+    if (!magic && !(HJumping & ~INTRINSIC) && !EJumping
+        && distu(player, x, y) !== 5) {
+        /* Knight jumping restriction: exactly 5 distance (L-shape) */
+        if (showmsg) pline("Illegal move!");
+        return false;
+    } else if (distu(player, x, y) > (magic ? 6 + magic * 3 : 9)) {
+        if (showmsg) pline("Too far!");
+        return false;
+    } else if (!isok(x, y)) {
+        if (showmsg) You("cannot jump there!");
+        return false;
+    } else if (!cansee(x, y)) {
+        if (showmsg) You("cannot see where to land!");
+        return false;
+    } else {
+        const loc = map.locations[player.x]?.[player.y];
+        const dx = x - player.x, dy = y - player.y;
+        let ax = Math.abs(dx), ay = Math.abs(dy);
+        const Pw = player?.data && passes_walls(player.data);
+
+        /* diag: any non-orthogonal destination classified as diagonal */
+        const diag = (magic || Pw || (!dx && !dy)) ? jAny
+               : !dy ? jHorz : !dx ? jVert : jDiag;
+        /* traj: flatten out trajectory */
+        if (ax >= 2 * ay) ay = 0;
+        else if (ay >= 2 * ax) ax = 0;
+        const traj = (magic || Pw || (!ax && !ay)) ? jAny
+               : !ay ? jHorz : !ax ? jVert : jDiag;
+
+        if (diag === jDiag && loc && IS_DOOR(loc.typ)
+            && (loc.doormask & D_ISOPEN) !== 0
+            && (traj === jDiag
+                || ((traj & jHorz) !== 0) === (!!loc.horizontal))) {
+            if (showmsg) You_cant("jump diagonally out of a doorway.");
+            return false;
+        }
+        const uc = { x: player.x, y: player.y };
+        const tc = { x, y };
+        const arg = { traj, map, player };
+        if (!walk_path(uc, tc,
+                (a, wx, wy) => check_jump(wx, wy, a, a.map, a.player), arg)) {
+            if (showmsg) There("is an obstacle preventing that jump.");
+            return false;
+        }
+    }
+    return true;
+}
+
+// cf. apply.c:1984 -- jump: main jump command
+// magic = 0 for physical jump, otherwise spell skill level
+export async function jump(magic, player, map, game) {
+    if (!player) player = globalThis.gs?.player;
+    if (!map) map = globalThis.gs?.map;
+
+    const Jumping = player?.hJumping || player?.eJumping;
+
+    /* attempt "jumping" spell if no innate jumping */
+    if (!magic && !Jumping) {
+        await You_cant("jump very far.");
+        return 0;
+    }
+
+    if (!magic && (nolimbs(player?.data || {}) || slithy(player?.data || {}))) {
+        await You_cant("jump; you have no legs!");
+        return 0;
+    } else if (player?.uswallow) {
+        if (magic) { await You("bounce around a little."); return 1; }
+        await pline("You've got to be kidding!");
+        return 0;
+    } else if (player?.uinwater) {
+        if (magic) { await You("swish around a little."); return 1; }
+        await pline("This calls for swimming, not jumping!");
+        return 0;
+    } else if (player?.ustuck) {
+        if (magic) {
+            await You("writhe a little in the grasp of " + mon_nam(player.ustuck) + "!");
+            return 1;
+        }
+        await You("cannot escape from " + mon_nam(player.ustuck) + "!");
+        return 0;
+    }
+
+    /* Full jump getpos/movement not yet wired (requires getpos infrastructure).
+       This stub handles the precondition checks faithfully to C. */
+    await pline("Where do you want to jump?");
+    await pline("(Jump position selection not yet implemented.)");
+    return 0;
+}
+
+// cf. apply.c:1843 -- dojump: entry point for #jump command
+export async function dojump(player, map, game) {
+    return jump(0, player, map, game);
+}
 
 // cf. apply.c:2163 -- tinnable
 // Autotranslated from apply.c:2162

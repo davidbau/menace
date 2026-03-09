@@ -360,7 +360,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3367 | `calc_pole_range` | apply.js:725 | Implemented |
 | 3697 | `can_grapple_location` | apply.js:754 | Implemented |
 | 1573 | `catch_lit` | apply.js:447 | Implemented |
-| 1858 | `check_jump` | - | Missing |
+| 1858 | `check_jump` | apply.js:533 | Implemented |
 | 927 | `check_leash` | apply.js:321 | Implemented |
 | 3387 | `could_pole_mon` | apply.js:728 | Implemented |
 | 3872 | `discard_broken_wand` | apply.js:776 | Implemented |
@@ -369,7 +369,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3330 | `display_polearm_positions` | apply.js:709 | Implemented |
 | 61 | `do_blinding_ray` | apply.js:135 | Implemented |
 | 3905 | `do_break_wand` | apply.js:785 | Implemented |
-| 4209 | `doapply` | - | Missing |
+| 4209 | `doapply` | apply.js:984 | Implemented (as handleApply — partial dispatcher) |
 | 1843 | `dojump` | apply.js:518 | Implemented |
 | 1781 | `dorub` | apply.js:515 | Implemented |
 | 2394 | `fig_transform` | apply.js:573 | Implemented |
@@ -377,15 +377,15 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3279 | `find_poleable_mon` | apply.js:703 | Implemented |
 | 4522 | `flip_coin` | apply.js:1152 | Implemented |
 | 4468 | `flip_through_book` | apply.js:1133 | Implemented |
-| 876 | `get_mleash` | - | Missing |
+| 876 | `get_mleash` | apply.js:286 | Implemented |
 | 1955 | `get_valid_jump_position` | apply.js:1159 | Implemented |
 | 3317 | `get_valid_polearm_position` | apply.js:706 | Implemented |
 | 3682 | `grapple_range` | apply.js:751 | Implemented |
 | 2581 | `grease_ok` | apply.js:591 | Implemented |
-| 1889 | `is_valid_jump_pos` | - | Missing |
+| 1889 | `is_valid_jump_pos` | apply.js:561 | Implemented |
 | 198 | `its_dead` | apply.js:234 | Implemented |
 | 3603 | `jelly_ok` | apply.js:745 | Implemented |
-| 1984 | `jump` | - | Missing |
+| 1984 | `jump` | apply.js:619 | Implemented (preconditions faithful; getpos/movement stub) |
 | 757 | `leashable` | apply.js:304 | Implemented |
 | 1699 | `light_cocktail` | apply.js:499 | Implemented |
 | 722 | `m_unleash` | apply.js:284 | Implemented |
