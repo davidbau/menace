@@ -1,7 +1,7 @@
 // invent.js -- Inventory management
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
-import { nhgetch_wrap, getlin } from './input.js';
+import { nhgetch_raw, nhgetch_wrap, getlin } from './input.js';
 import { awaitInput } from './suspend.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
 import { NHW_MENU } from './const.js';
@@ -671,7 +671,7 @@ export async function handleInventory(player, display, game) {
                     }
                     const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
                     await display.putstr_message(adjustPrompt);
-                    const adjCh = await awaitInput(game, nhgetch_wrap(), {
+                    const adjCh = await awaitInput(game, nhgetch_raw(), {
                         site: 'invent.handleInventory.adjustLetter',
                     });
                     const adjChar = String.fromCharCode(adjCh);
@@ -1505,7 +1505,7 @@ export async function doorganize(game) {
 
     let selected = null;
     while (!selected) {
-        const ch = await awaitInput(game, nhgetch_wrap(), {
+        const ch = await awaitInput(game, nhgetch_raw(), {
             site: 'invent.doorganize.selectItem',
         });
         const c = String.fromCharCode(ch);
@@ -1565,7 +1565,7 @@ export async function doorganize(game) {
     }
     const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
     await display.putstr_message(adjustPrompt);
-    const adjCh = await awaitInput(game, nhgetch_wrap(), {
+    const adjCh = await awaitInput(game, nhgetch_raw(), {
         site: 'invent.doorganize.selectLetter',
     });
     const adjChar = String.fromCharCode(adjCh);
