@@ -5325,3 +5325,29 @@ hard-won wisdom:
     (same core first RNG divergence at step `942`).
   - `seed100_multidigit_gameplay`: full pass unchanged (`rng/events/screens` all match).
   - `interface_startup`: full pass unchanged.
+
+### seed033: replay-boundary split persists after rerecord (2026-03-09)
+
+- Scope:
+  - Investigated `seed033_manual_direct` first divergence window around
+    steps `935-942` after runstep instrumentation landed.
+- Evidence:
+  - Per-step extraction shows a command-boundary split mismatch:
+    - Session step `935` (`key='.'`) still in travel repeat:
+      - C has `^runstep[path=repeat_mv ... ux=34 uy=14]` and large test-move burst.
+      - JS has already reached `^runstep[path=fresh_cmd ... ux=49 uy=9]`.
+    - Session step `936` (`key='l'`) catches up:
+      - C finishes repeat burst and reaches `fresh_cmd ... ux=49 uy=9`.
+      - JS is already at `fresh_cmd ... ux=49 uy=9`.
+  - First RNG divergence remains at step `942` with the same signature:
+    - JS: `rn2(100)=89 @ dochug(monmove.js:847)`
+    - C:  `rn2(3)=1 @ dog_move(dogmove.c:1302)`
+    - This is consistent with one-step run/repeat packing skew.
+- Rerecord result:
+  - Re-recording `seed033_manual_direct.session.json` from current harness did
+    not resolve the mismatch; first divergence remained at step `942` with the
+    same RNG signature and step-935 screen split.
+- Conclusion:
+  - This specific drift is not resolved by simple session rerecord or by
+    local dog-goal logic tweaks; it is tied to replay/capture boundary timing
+    under long pending travel/repeat commands.
