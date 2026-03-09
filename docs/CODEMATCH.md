@@ -1042,7 +1042,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2135 | `premap_detect` | detect.js:1051 | Implemented |
 | 86 | `reconstrain_map` | detect.js:reconstrain_map | Implemented |
 | 2357 | `reveal_terrain` | detect.js:reveal_terrain | Implemented |
-| 2168 | `reveal_terrain_getglyph` | - | Missing |
+| 2168 | `reveal_terrain_getglyph` | detect.js:1070 | Partial — terrain glyph projection for reveal/mapdump; keep-traps/objs/mons filtering still TODO |
 | 866 | `sense_trap` | detect.js:522 | Implemented |
 | 1373 | `show_map_spot` | detect.js:713 | Implemented |
 | 2125 | `skip_premap_detect` | detect.js:1045 | Implemented |

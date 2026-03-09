@@ -1065,6 +1065,22 @@ export function premap_detect(map) {
 export function dump_map() { /* dumplog not applicable in JS */ }
 
 // ========================================================================
+// cf. detect.c:2168 -- reveal_terrain_getglyph
+// ========================================================================
+export function reveal_terrain_getglyph(x, y, swallowed, default_glyph, which_subset, map) {
+    const full = !!(which_subset & 0x80); // TER_FULL
+    if (!isok(x, y)) return default_glyph;
+    const lev = map?.at?.(x, y);
+    if (!lev) return default_glyph;
+
+    // JS currently projects remembered terrain glyphs from lev.glyph; this is
+    // sufficient for terrain-only reveal and dbg/mapdump tooling. More detailed
+    // keep-trap/object/monster filtering remains handled by existing paths.
+    if (!full && !(lev.seenv > 0)) return default_glyph;
+    return Number.isInteger(lev.glyph) ? lev.glyph : default_glyph;
+}
+
+// ========================================================================
 // cf. detect.c:2356 -- reveal_terrain
 // ========================================================================
 export async function reveal_terrain(which_subset, player, map, display) {

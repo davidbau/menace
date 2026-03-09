@@ -5630,3 +5630,21 @@ hard-won wisdom:
 - Result:
   - `calendar.c` missing count reduced from `11` to `0`.
   - Gameplay CODEMATCH missing total reduced from `1156` to `1145`.
+
+### CODEMATCH detect.c: `reveal_terrain_getglyph` helper (2026-03-09)
+
+- Problem:
+  - `detect.c:reveal_terrain_getglyph` was still marked `Missing`.
+- Change:
+  - Added `reveal_terrain_getglyph(...)` in `js/detect.js` with JS terrain
+    projection semantics:
+    - returns `default_glyph` for unseen tiles when not `TER_FULL`,
+    - returns remembered `lev.glyph` for seen tiles (or always for `TER_FULL`).
+  - Marked CODEMATCH row as `Partial` (explicitly documenting remaining C-side
+    keep-trap/object/monster filtering work).
+  - Added focused unit coverage:
+    - `test/unit/detect_reveal_terrain_getglyph.test.js`.
+- Validation:
+  - `node --test test/unit/detect_reveal_terrain_getglyph.test.js` (pass).
+  - `detect.c` missing count reduced from `1` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `1145` to `1144`.
