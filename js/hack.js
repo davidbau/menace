@@ -48,7 +48,7 @@ import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap } from './display.js';
 import { couldsee } from './vision.js';
-import { helpless, monnear } from './mon.js';
+import { helpless, monnear, onscary } from './mon.js';
 import { monflee } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
@@ -3798,34 +3798,6 @@ export function drag_ball(_x, _y, _player, _map) {
 // dist2/distmin: canonical definitions in hacklib.js
 import { dist2, distmin } from './hacklib.js';
 export { dist2, distmin };
-
-function onscary(map, x, y, mon = null) {
-    if (!map) return false;
-    if (mon) {
-        const mdat = mon.data || mon.type || {};
-        if (mon.iswiz) return false;
-        if (is_rider(mdat)) return false;
-        if (mdat.mndx === PM_ANGEL) return false;
-        if (is_human(mdat) || (Number(mdat.geno || 0) & G_UNIQ)
-            || mon.isshk || mon.ispriest) return false;
-    }
-    const objects = Array.isArray(map.objects) ? map.objects : [];
-    for (const obj of objects) {
-        if (!obj || obj.buried) continue;
-        if (obj.ox === x && obj.oy === y
-            && obj.otyp === SCR_SCARE_MONSTER) {
-            return true;
-        }
-    }
-    if (!Array.isArray(map.engravings)) return false;
-    for (const engr of map.engravings) {
-        if (!engr || engr.x !== x || engr.y !== y) continue;
-        if (/elbereth/i.test(String(engr.text || ''))) {
-            return true;
-        }
-    }
-    return false;
-}
 
 function monsterIsTame(mon) {
     if (!mon) return false;
