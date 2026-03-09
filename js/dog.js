@@ -4,15 +4,14 @@
 
 import {
     mons, NUMMONS,
-    MR_POISON, MR_ACID, MR_STONE, MR_FIRE,
     M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M2_DOMESTIC,
     S_BLOB, S_JELLY, S_FUNGUS, S_VORTEX, S_LIGHT, S_ELEMENTAL,
     S_GOLEM, S_GHOST, S_YETI, S_KOBOLD, S_ORC, S_OGRE,
-    PM_COCKATRICE, PM_CHICKATRICE, PM_MEDUSA,
+    PM_MEDUSA,
     PM_STALKER, PM_FLESH_GOLEM, PM_LEATHER_GOLEM,
     PM_GHOUL, PM_KILLER_BEE, PM_PYROLISK,
     PM_GELATINOUS_CUBE, PM_RUST_MONSTER,
-    PM_DEATH, PM_PESTILENCE, PM_FAMINE, PM_LIZARD, PM_LICHEN,
+    PM_LIZARD, PM_LICHEN,
     PM_LITTLE_DOG, PM_KITTEN, PM_PONY,
     PM_CAVE_DWELLER, PM_SAMURAI, PM_BARBARIAN, PM_RANGER,
 } from './monsters.js';
@@ -53,7 +52,8 @@ import { s_suffix } from './hacklib.js';
 import { body_part } from './polyself.js';
 import { acurr } from './attrib.js';
 import { A_CHA } from './const.js';
-import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies } from './mondata.js';
+import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
+         is_rider, resists_poison, resists_acid, resists_ston, likes_fire } from './mondata.js';
 import { EYE } from './const.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating } from './dogmove.js';
@@ -90,15 +90,6 @@ function mon_vegan(ptr) {
         || ptr.mlet === S_GHOST;
 }
 
-function is_rider(ptr) {
-    return ptr === mons[PM_DEATH] || ptr === mons[PM_PESTILENCE]
-        || ptr === mons[PM_FAMINE];
-}
-
-function resists_poison(mon) { return !!(monPtr(mon)?.mresists & MR_POISON); }
-function resists_acid(mon)   { return !!(monPtr(mon)?.mresists & MR_ACID); }
-function resists_ston(mon)   { return !!(monPtr(mon)?.mresists & MR_STONE); }
-function likes_fire(ptr) { return !!(ptr.mresists & MR_FIRE); }
 function polyfood(obj) { return false; }
 
 function mon_hates_silver(mon) {
