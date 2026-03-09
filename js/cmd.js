@@ -15,7 +15,7 @@ import { handleEngrave } from './engrave.js';
 import { handleApply } from './apply.js';
 import { COIN_CLASS } from './objects.js';
 import { DART, ARROW } from './objects.js';
-import { nhgetch_wrap, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
+import { nhgetch_raw, nhgetch_wrap, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
        } from './input.js';
 import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
@@ -786,7 +786,7 @@ async function handleExtendedCommand(game) {
             }
             if (!advanceable.length) return { moved: false, tookTime: false };
             await display.putstr_message('Skill to advance (letter or ESC):');
-            const ech = await awaitInput(game, nhgetch_wrap(), {
+            const ech = await awaitInput(game, nhgetch_raw(), {
                 site: 'cmd.handleExtendedCommand.enhance',
             });
             if (ech === 27) return { moved: false, tookTime: false };
@@ -928,7 +928,7 @@ async function readExtendedCommandLine(game, display) {
             display.setCursor(Math.min(`# ${line}`.length, cols - 1), 0);
         }
 
-        const ch = await awaitInput(game, nhgetch_wrap(), {
+        const ch = await awaitInput(game, nhgetch_raw(), {
             site: 'cmd.readExtendedCommandLine',
         });
         if (ch === 13 || ch === 10) {
@@ -962,7 +962,7 @@ async function handleExtendedCommandUntrap(game) {
     let dir = null;
     while (!dir) {
         await display.putstr_message('In what direction? ');
-        const dirCh = await awaitInput(game, nhgetch_wrap(), {
+        const dirCh = await awaitInput(game, nhgetch_raw(), {
             site: 'cmd.handleExtendedCommandUntrap.direction',
         });
         display.topMessage = null;
@@ -1017,7 +1017,7 @@ async function handleExtendedCommandUntrap(game) {
         while (true) {
             const untrapPrompt = 'What do you want to untrap with? [*] ';
             await display.putstr_message(untrapPrompt);
-            const toolCh = await awaitInput(game, nhgetch_wrap(), {
+            const toolCh = await awaitInput(game, nhgetch_raw(), {
                 site: 'cmd.handleExtendedCommandUntrap.tool',
             });
             if (toolCh === 27 || toolCh === 32) {
@@ -1035,7 +1035,7 @@ async function handleExtendedCommandName(game) {
     const { player, display } = game;
     while (true) {
         await display.putstr_message('                                What do you want to name?');
-        const sel = await awaitInput(game, nhgetch_wrap(), {
+        const sel = await awaitInput(game, nhgetch_raw(), {
             site: 'cmd.handleExtendedCommandName.select',
         });
         const c = String.fromCharCode(sel).toLowerCase();
