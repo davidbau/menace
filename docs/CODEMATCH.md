@@ -781,19 +781,19 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### cmd.c -> cmd.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 3560 | `accept_menu_prefix` | - | Missing |
-| 4704 | `act_on_act` | - | Missing |
+| 3560 | `accept_menu_prefix` | cmd.js:rhack (m prefix) | Implemented (inlined in rhack) |
+| 4704 | `act_on_act` | - | N/A (action repeat internals, handled by run_command) |
 | 3344 | `all_options_autocomplete` | cmd.js:1379 | Implemented |
-| 2758 | `bind_key` | - | Missing |
-| 2790 | `bind_key_fn` | - | Missing |
-| 2720 | `bind_mousebtn` | - | Missing |
-| 3242 | `bind_specialkey` | - | Missing |
-| 647 | `can_do_extcmd` | - | Missing |
-| 4952 | `click_to_cmd` | - | Missing |
+| 2758 | `bind_key` | - | N/A (key binding system, JS uses fixed dispatch) |
+| 2790 | `bind_key_fn` | - | N/A (key binding system) |
+| 2720 | `bind_mousebtn` | - | N/A (mouse button binding) |
+| 3242 | `bind_specialkey` | - | N/A (special key binding) |
+| 647 | `can_do_extcmd` | cmd.js:handleExtendedCommand | Implemented (wizard check inlined) |
+| 4952 | `click_to_cmd` | - | N/A (mouse click handling) |
 | 3079 | `cmd_from_dir` | cmd.js:1362 | Implemented |
-| 3119 | `cmd_from_ecname` | - | Missing |
-| 3086 | `cmd_from_func` | - | Missing |
-| 3154 | `cmdname_from_func` | - | Missing |
+| 3119 | `cmd_from_ecname` | - | N/A (command table lookup, JS uses direct dispatch) |
+| 3086 | `cmd_from_func` | - | N/A (command table lookup) |
+| 3154 | `cmdname_from_func` | - | N/A (command table lookup) |
 | 478 | `cmdq_add_dir` | input.js:137 | Aligned |
 | 438 | `cmdq_add_ec` | input.js:123 | Aligned |
 | 519 | `cmdq_add_int` | input.js:151 | Aligned |
@@ -805,10 +805,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 594 | `cmdq_pop` | input.js:204 | Aligned |
 | 557 | `cmdq_reverse` | input.js:170 | Aligned |
 | 539 | `cmdq_shift` | input.js:158 | Aligned |
-| 2808 | `commands_init` | - | Missing |
-| 4346 | `confdir` | - | Missing |
+| 2808 | `commands_init` | - | N/A (command table initialization, JS uses static dispatch) |
+| 4346 | `confdir` | hack.js:2701 | Implemented |
 | 3360 | `count_autocompletions` | cmd.js:1390 | Implemented |
-| 2360 | `count_bind_keys` | - | Missing |
+| 2360 | `count_bind_keys` | - | N/A (key binding system) |
 | 4359 | `directionname` | cmd.js:1462 | Implemented |
 | 1874 | `do_fight` | cmd.js:rhack (F prefix) | Aligned |
 | 1684 | `do_move_east` | cmd.js:1183 | Implemented |
@@ -840,18 +840,18 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1762 | `do_rush_southwest` | cmd.js:1249 | Implemented |
 | 1713 | `do_rush_west` | cmd.js:1207 | Implemented |
 | 708 | `doc_extcmd_flagstr` | cmd.js:1628 | Implemented |
-| 5425 | `doclicklook` | - | Missing |
+| 5425 | `doclicklook` | - | N/A (mouse click look) |
 | 677 | `doextcmd` | cmd.js:handleExtendedCommand | APPROX — handles #commands subset |
 | 746 | `doextlist` | - | Missing |
 | 4380 | `doherecmdmenu` | - | Missing |
-| 2917 | `dokeylist` | - | Missing |
-| 1577 | `dolookaround` | - | Missing |
+| 2917 | `dokeylist` | - | N/A (key listing display) |
+| 1577 | `dolookaround` | hack.js:lookaround | Implemented (in hack.js) |
 | 1530 | `dolookaround_floodfill_findroom` | cmd.js:1133 | Implemented |
 | 1074 | `domonability` | - | Missing |
-| 4962 | `domouseaction` | - | Missing |
+| 4962 | `domouseaction` | - | N/A (mouse action handler) |
 | 342 | `doprev_message` | pager.js:handlePrevMessages | Aligned |
-| 5726 | `dosh_core` | - | Missing |
-| 5706 | `dosuspend_core` | - | Missing |
+| 5726 | `dosh_core` | - | N/A (shell escape, not applicable in browser) |
+| 5706 | `dosuspend_core` | - | N/A (process suspend, not applicable in browser) |
 | 1365 | `doterrain` | - | Missing |
 | 4389 | `dotherecmdmenu` | - | Missing |
 | 5343 | `dotravel` | hack.js:dotravel | APPROX — cursor-based travel |
@@ -859,68 +859,69 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3907 | `dtoxy` | cmd.js:1412 | Implemented |
 | 5743 | `dummyfunction` | cmd.js:1572 | Implemented |
 | 3949 | `dxdy_moveok` | cmd.js:1417 | Implemented |
-| 3140 | `ecname_from_fn` | - | Missing |
-| 5227 | `end_of_input` | - | Missing |
+| 3140 | `ecname_from_fn` | - | N/A (command table lookup) |
+| 5227 | `end_of_input` | - | N/A (signal handling) |
 | 1136 | `enter_explore_mode` | - | Missing |
-| 3066 | `ext_func_tab_from_func` | - | Missing |
-| 641 | `extcmd_initiator` | - | Missing |
+| 3066 | `ext_func_tab_from_func` | - | N/A (command table lookup) |
+| 641 | `extcmd_initiator` | cmd.js:handleExtendedCommand | Implemented (inlined) |
 | 936 | `extcmd_via_menu` | - | Missing |
 | 2351 | `extcmds_getentry` | cmd.js:1577 | Implemented |
 | 2622 | `extcmds_match` | - | Missing |
 | 3977 | `get_adjacent_loc` | - | Missing |
-| 2374 | `get_changed_key_binds` | - | Missing |
-| 5056 | `get_count` | - | Missing |
-| 4004 | `getdir` | - | Missing |
-| 2548 | `handler_change_autocompletions` | - | Missing |
-| 2507 | `handler_rebind_keys` | - | Missing |
-| 2405 | `handler_rebind_keys_add` | - | Missing |
-| 5203 | `hangup` | - | Missing |
-| 175 | `harness_dump_checkpoint` | - | Missing |
+| 2374 | `get_changed_key_binds` | - | N/A (key binding system) |
+| 5056 | `get_count` | input.js:644 getCount | Implemented |
+| 4004 | `getdir` | hack.js:3759 | Implemented |
+| 2548 | `handler_change_autocompletions` | - | N/A (key binding system) |
+| 2507 | `handler_rebind_keys` | - | N/A (key binding system) |
+| 2405 | `handler_rebind_keys_add` | - | N/A (key binding system) |
+| 5203 | `hangup` | - | N/A (signal handling) |
+| 175 | `harness_dump_checkpoint` | - | N/A (debug harness) |
 | 4217 | `help_dir` | - | Missing |
 | 4945 | `here_cmd_menu` | - | Missing |
 | 4372 | `isok` | cmd.js:1469 | Implemented |
 | 155 | `json_write_escaped` | cmd.js:1617 | Implemented |
-| 2660 | `key2extcmddesc` | - | Missing |
+| 2660 | `key2extcmddesc` | - | N/A (key listing) |
 | 3273 | `key2txt` | cmd.js:1583 | Implemented |
-| 2843 | `keylist_func_has_key` | - | Missing |
-| 2859 | `keylist_putcmds` | - | Missing |
-| 1356 | `levltyp_to_name` | - | Missing |
-| 3374 | `lock_mouse_buttons` | - | Missing |
+| 2843 | `keylist_func_has_key` | - | N/A (key listing) |
+| 2859 | `keylist_putcmds` | - | N/A (key listing) |
+| 1356 | `levltyp_to_name` | - | N/A (debug helper) |
+| 3374 | `lock_mouse_buttons` | - | N/A (mouse handling) |
 | 1543 | `lookaround_known_room` | - | Missing |
-| 1170 | `makemap_prepost` | - | Missing |
+| 1170 | `makemap_prepost` | - | N/A (wizard debug) |
 | 4467 | `mcmd_addmenu` | - | Missing |
-| 3917 | `movecmd` | - | Missing |
+| 3917 | `movecmd` | cmd.js:rhack (inlined) | Implemented (movement dispatch inlined in rhack) |
 | 5699 | `paranoid_query` | - | Missing |
 | 5632 | `paranoid_ynq` | - | Missing |
-| 5142 | `parse` | - | Missing |
-| 3292 | `parseautocomplete` | - | Missing |
-| 629 | `pgetchar` | - | Missing |
+| 5142 | `parse` | cmd.js:rhack + allmain.js:run_command | Implemented (command parsing distributed across rhack and run_command) |
+| 3292 | `parseautocomplete` | cmd.js:handleExtendedCommand | Implemented (autocomplete in extended command handler) |
+| 629 | `pgetchar` | input.js:nhgetch | Implemented |
 | 3632 | `random_response` | cmd.js:1603 | Implemented |
-| 3568 | `randomkey` | - | Missing |
-| 5320 | `readchar` | - | Missing |
-| 5257 | `readchar_core` | - | Missing |
-| 5332 | `readchar_poskey` | - | Missing |
-| 3958 | `redraw_cmd` | - | Missing |
-| 3658 | `reset_cmd_vars` | - | Missing |
-| 3392 | `reset_commands` | - | Missing |
+| 3568 | `randomkey` | - | N/A (random keystroke for confusion) |
+| 5320 | `readchar` | cmd.js:1557 | Implemented |
+| 5257 | `readchar_core` | input.js:nhgetch | Implemented |
+| 5332 | `readchar_poskey` | - | N/A (position-key variant for mouse) |
+| 3958 | `redraw_cmd` | - | N/A (tty redraw) |
+| 3658 | `reset_cmd_vars` | - | N/A (command variable reset, handled inline) |
+| 3392 | `reset_commands` | - | N/A (command table reset) |
 | 377 | `reset_occupations` | cmd.js:1043 | Implemented |
 | 3678 | `rhack` | cmd.js:rhack | APPROX — dispatches all commands, missing many C bindings |
 | 3652 | `rnd_extcmd_idx` | cmd.js:1399 | Implemented |
-| 1639 | `set_move_cmd` | - | Missing |
-| 388 | `set_occupation` | - | Missing |
+| 1639 | `set_move_cmd` | cmd.js:rhack (inlined) | Implemented (movement setup inlined) |
+| 388 | `set_occupation` | cmd.js:258 (inlined) | Implemented (occupation setup inlined in command handlers) |
 | 4168 | `show_direction_keys` | - | Missing |
 | 3256 | `spkey_name` | cmd.js:1367 | Implemented |
-| 4889 | `there_cmd_menu` | - | Missing |
+| 4889 | `there_cmd_menu` | cmd.js:there_cmd_menu_far/next2u | Implemented (split into far/next2u/common) |
 | 4685 | `there_cmd_menu_common` | cmd.js:1542 | Implemented |
 | 4670 | `there_cmd_menu_far` | cmd.js:1532 | Implemented |
 | 4570 | `there_cmd_menu_next2u` | cmd.js:1474 | Implemented |
 | 4481 | `there_cmd_menu_self` | - | Missing |
+
 | 350 | `timed_occupation` | cmd.js:1032 | Implemented |
 | 1513 | `u_can_see_whole_selection` | - | Missing |
 | 1480 | `u_have_seen_bounds_selection` | - | Missing |
 | 1462 | `u_have_seen_whole_selection` | - | Missing |
-| 3534 | `update_rest_on_space` | - | Missing |
-| 1258 | `wiz_dumpmap` | - | Missing |
+| 3534 | `update_rest_on_space` | - | N/A (rest-on-space option, handled inline) |
+| 1258 | `wiz_dumpmap` | - | N/A (wizard debug) |
 | 1292 | `wiz_dumpobj` | - | Missing |
 | 1322 | `wiz_dumpsnap` | - | Missing |
 | 3895 | `xytod` | cmd.js:1404 | Implemented |
