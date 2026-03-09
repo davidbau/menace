@@ -1390,11 +1390,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 1358 | `abuse_dog` | dog.js:792 | Implemented |
-| 934 | `discard_migrations` | - | Missing |
+| 934 | `discard_migrations` | dog.js:discard_migrations | Implemented (clean non-endgame migrating monsters/objects) |
 | 991 | `dogfood` | dog.js:124 | Partial — food type classification for pets. May differ in edge cases |
 | 35 | `free_edog` | dog.js:547 | Implemented |
-| 45 | `initedog` | - | Missing |
-| 764 | `keep_mon_accessible` | - | Missing |
+| 45 | `initedog` | dog.js:initedog | Implemented (pet edog init with apport=ACURR(A_CHA), hunger, abuse) |
+| 764 | `keep_mon_accessible` | dog.js:keep_mon_accessible | Implemented (Wizard/shk/priest/guard migration check) |
 | 785 | `keepdogs` | dog.js:704 | Implemented |
 | 304 | `losedogs` | dog.js:815 | Implemented |
 | 138 | `make_familiar` | dog.js:571 | Implemented |
@@ -1403,13 +1403,13 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 420 | `mon_arrive` | dog.js:397 | Implemented |
 | 623 | `mon_catchup_elapsed_time` | dog.js:625 | Implemented |
 | 725 | `mon_leave` | dog.js:687 | Implemented |
-| 23 | `newedog` | - | Missing |
+| 23 | `newedog` | dog.js:newedog | Implemented (allocate edog structure with parentmid) |
 | 91 | `pet_type` | dog.js:267 | Implemented |
 | 104 | `pick_familiar_pm` | dog.js:553 | Implemented |
 | 287 | `set_mon_lastmove` | dog.js:615 | Implemented |
-| 1139 | `tamedog` | - | Missing |
+| 1139 | `tamedog` | dog.js:tamedog | Implemented (taming via food/magic, untameable checks, edog init) |
 | 295 | `update_mlstmv` | dog.js:620 | Implemented |
-| 1288 | `wary_dog` | - | Missing |
+| 1288 | `wary_dog` | dog.js:wary_dog | Implemented (pet revival loyalty, abuse checks, rn2 tameness roll) |
 
 ### dogmove.c -> dogmove.js
 | C Line | C Function | JS Line | Alignment |

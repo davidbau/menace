@@ -50,7 +50,7 @@ Rules
 | S34 | [#315](https://github.com/davidbau/menace/issues/315) | mon.c lifecycle parity | `Ready` |
 | S35 | [#316](https://github.com/davidbau/menace/issues/316) | mondata.c predicate parity | `Done` (121f9695) |
 | S36 | [#317](https://github.com/davidbau/menace/issues/317) | monmove.c postmove edge parity | `Done` (bee_eat_jelly, m_arrival, soko_allow_web, stuff_prevents_passage, vamp_shift) |
-| S37 | [#318](https://github.com/davidbau/menace/issues/318) | dog.c pet transfer parity | `Ready` |
+| S37 | [#318](https://github.com/davidbau/menace/issues/318) | dog.c pet transfer parity | `Done` (newedog, initedog, tamedog, wary_dog, keep_mon_accessible, discard_migrations) |
 | S38 | [#319](https://github.com/davidbau/menace/issues/319) | dogmove.c remaining AI parity | `Done` (ledger) |
 | S39 | [#320](https://github.com/davidbau/menace/issues/320) | mhitu.c special attack parity | `Done` (cloneu, gulp_blnd_check, mon_avoiding_this_attack, mtrapped_in_pit) |
 | S40 | [#321](https://github.com/davidbau/menace/issues/321) | uhitm.c hero attack parity | `Done` (do_stone_u, do_stone_mon) |

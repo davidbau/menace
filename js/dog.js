@@ -44,12 +44,21 @@ import { SADDLE } from './objects.js';
 import { roles } from './player.js';
 import { makemon, mbirth_limit, set_malign } from './makemon.js';
 import { NO_MINVENT, MAXMONNO } from './const.js';
-import { mksobj } from './mkobj.js';
+import { mksobj, xname } from './mkobj.js';
 import { mpickobj } from './steal.js';
 import { mark_vision_dirty } from './display.js';
 import { pline, pline_The, pline_mon, You, impossible } from './pline.js';
 import { Monnam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
+import { body_part } from './polyself.js';
+import { acurr } from './attrib.js';
+import { A_CHA } from './const.js';
+import { is_covetous, is_human, is_demon, haseyes, sticks } from './mondata.js';
+import { EYE } from './const.js';
+import { wake_nearto } from './mon.js';
+import { finish_meating } from './dogmove.js';
+import { newsym } from './display.js';
+import { m_unleash } from './apply.js';
 
 // Re-export dogmove.c functions that were previously defined here
 export { can_carry, dog_eat } from './dogmove.js';
@@ -848,4 +857,300 @@ export function losedogs(game, map) {
     fmon = mtmp;
     m_into_limbo(mtmp);
   }
+}
+
+// cf. dog.c:22 newedog() — allocate edog structure for a monster
+export function newedog(mtmp) {
+    if (!mtmp.mextra) mtmp.mextra = {};
+    if (!mtmp.mextra.edog) {
+        mtmp.mextra.edog = {
+            parentmid: mtmp.m_id || 0,
+            droptime: 0,
+            dropdist: 10000,
+            apport: 0,
+            whistletime: 0,
+            ogoal: { x: -1, y: -1 },
+            abuse: 0,
+            revivals: 0,
+            mhpmax_penalty: 0,
+            killed_by_u: 0,
+            hungrytime: 0,
+        };
+    }
+}
+
+// cf. dog.c:45 initedog() — initialize pet edog data
+export function initedog(mtmp, everything, player, game) {
+    if (!mtmp.mextra?.edog) newedog(mtmp);
+    const edogp = mtmp.mextra.edog;
+    const moves = game?.moves || 0;
+    const minhungry = moves + 1000;
+    const minimumtame = is_domestic(mtmp.data || mtmp.type) ? 10 : 5;
+
+    mtmp.mtame = Math.max(minimumtame, mtmp.mtame || 0);
+    mtmp.mpeaceful = 1;
+    mtmp.mavenge = 0;
+    set_malign(mtmp);
+
+    if (everything) {
+        mtmp.mleashed = 0;
+        mtmp.meating = 0;
+        edogp.droptime = 0;
+        edogp.dropdist = 10000;
+        edogp.apport = player ? acurr(player, A_CHA) : 10;
+        edogp.whistletime = 0;
+        edogp.ogoal = { x: -1, y: -1 };
+        edogp.abuse = 0;
+        edogp.revivals = 0;
+        edogp.mhpmax_penalty = 0;
+        edogp.killed_by_u = 0;
+    } else {
+        if ((edogp.apport || 0) <= 0) edogp.apport = 1;
+    }
+    if ((edogp.hungrytime || 0) < minhungry) {
+        edogp.hungrytime = minhungry;
+    }
+    // C: u.uconduct.pets++ — conduct tracking not ported
+}
+
+// cf. dog.c:764 keep_mon_accessible() — should monster stay on migrating list?
+export function keep_mon_accessible(mon, player) {
+    if (mon.iswiz) return true;
+    if (mon.mextra) {
+        if (mon.isshk && mon.mextra.eshk) {
+            const shopLevel = mon.mextra.eshk.shoplevel;
+            if (shopLevel && player?.uz
+                && (shopLevel.dnum !== player.uz.dnum || shopLevel.dlevel !== player.uz.dlevel)) {
+                return true;
+            }
+        }
+        if (mon.ispriest && mon.mextra.epri) {
+            const shrLevel = mon.mextra.epri.shrlevel;
+            if (shrLevel && player?.uz
+                && (shrLevel.dnum !== player.uz.dnum || shrLevel.dlevel !== player.uz.dlevel)) {
+                return true;
+            }
+        }
+        if (mon.isgd && mon.mextra.egd) {
+            const gdLevel = mon.mextra.egd.gdlevel;
+            if (gdLevel && player?.uz
+                && (gdLevel.dnum !== player.uz.dnum || gdLevel.dlevel !== player.uz.dlevel)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// cf. dog.c:934 discard_migrations() — clean up non-endgame migrations
+export function discard_migrations(game) {
+    if (!game) return;
+    // Discard migrating monsters not headed to endgame
+    if (game.migrating_mons) {
+        const kept = [];
+        let mtmp = game.migrating_mons;
+        while (mtmp) {
+            const next = mtmp.nmon;
+            const dest_dnum = mtmp.mux || 0;
+            // Keep Wizard and endgame-bound monsters
+            // C: In_endgame checks dest.dnum — simplified: endgame dnum is typically 4+
+            if (mtmp.iswiz || dest_dnum >= 4) {
+                kept.push(mtmp);
+            }
+            // else: discard (free in C; GC in JS)
+            mtmp = next;
+        }
+        // Rebuild linked list
+        game.migrating_mons = null;
+        for (let i = kept.length - 1; i >= 0; i--) {
+            kept[i].nmon = game.migrating_mons;
+            game.migrating_mons = kept[i];
+        }
+    }
+}
+
+// cf. dog.c:1139 tamedog() — attempt to tame a monster with food or magic
+export async function tamedog(mtmp, obj, givemsg, player, game, map) {
+    let blessed_scroll = false;
+
+    // Scroll/spellbook: set blessed flag, clear obj
+    if (obj && (obj.oclass === 7 /* SCROLL_CLASS */ || obj.oclass === 11 /* SPBOOK_CLASS */)) {
+        blessed_scroll = !!obj.blessed;
+        obj = null;
+    }
+    // Reduce frozen/sleep timers
+    if (mtmp.mfrozen) mtmp.mfrozen = Math.floor((mtmp.mfrozen + 1) / 2);
+    if (mtmp.msleeping) wake_nearto(mtmp.mx, mtmp.my, 1, map);
+
+    // Untameable monsters
+    if (mtmp.iswiz) return false;
+    if (mtmp.data === mons[PM_MEDUSA]) return false;
+    const M3_WANTSARTI = 0x0400;
+    if ((mtmp.data?.mflags3 || 0) & M3_WANTSARTI) return false;
+
+    // Pacify message
+    if (givemsg && !mtmp.mpeaceful && canseemon(mtmp, map)) {
+        await pline_mon(mtmp, "%s seems more amiable.", Monnam(mtmp));
+        givemsg = false;
+    }
+    mtmp.mpeaceful = 1;
+    set_malign(mtmp);
+
+    // Full moon + night + dog: may resist
+    // C: flags.moonphase == FULL_MOON && night() && rn2(6) — simplified
+    // night()/moonphase not reliably available in JS replay
+
+    mtmp.mflee = 0;
+    mtmp.mfleetim = 0;
+
+    // Break engulf/grab
+    if (mtmp === player?.ustuck) {
+        if (player.uswallow) {
+            // C: expels(mtmp, ...) — not called here, simplified
+        } else if (!(player.Upolyd && sticks(player.data || {}))) {
+            // unstuck
+            player.ustuck = null;
+        }
+    }
+
+    // Already tame + food offering
+    if (mtmp.mtame && obj) {
+        const tasty = dogfood(mtmp, obj);
+        if (mtmp.mcanmove && !mtmp.mconf && !mtmp.meating
+            && (tasty === DOGFOOD || (tasty <= ACCFOOD
+                && mtmp.mextra?.edog && mtmp.mextra.edog.hungrytime <= (game?.moves || 0)))) {
+            if (canseemon(mtmp, map)) {
+                await pline_mon(mtmp, "%s catches %s.", Monnam(mtmp), xname(obj));
+            }
+            // C: place_object + dog_eat — simplified
+            const { dog_eat } = await import('./dogmove.js');
+            await dog_eat(mtmp, obj, mtmp.mx, mtmp.my, false);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // Already tame, increase tameness
+    if (mtmp.mtame && mtmp.mtame < 10) {
+        if (mtmp.mtame < rn2(10) + 1) mtmp.mtame++;
+        if (blessed_scroll) {
+            mtmp.mtame += 2;
+            if (mtmp.mtame > 10) mtmp.mtame = 10;
+        }
+        return false;
+    }
+
+    // Shopkeeper: make happy
+    if (mtmp.isshk) {
+        // C: make_happy_shk(mtmp, FALSE) — not ported
+        return false;
+    }
+
+    // Can't tame these
+    if (!mtmp.mcanmove
+        || mtmp.isshk || mtmp.isgd || mtmp.ispriest || mtmp.isminion
+        || is_covetous(mtmp.data || {}) || is_human(mtmp.data || {})
+        || (is_demon(mtmp.data || {}) && !is_demon(player?.data || {}))
+        || (obj && dogfood(mtmp, obj) >= MANFOOD)) {
+        return false;
+    }
+
+    // Quest leader
+    if (game?.quest_status?.leader_m_id && mtmp.m_id === game.quest_status.leader_m_id) {
+        return false;
+    }
+
+    // Initialize edog
+    if (!mtmp.mextra?.edog) {
+        newedog(mtmp);
+        initedog(mtmp, true, player, game);
+    } else {
+        initedog(mtmp, false, player, game);
+    }
+
+    // Feed if food offering
+    if (obj) {
+        if (canseemon(mtmp, map)) {
+            await pline_mon(mtmp, "%s catches %s.", Monnam(mtmp), xname(obj));
+        }
+        const { dog_eat } = await import('./dogmove.js');
+        await dog_eat(mtmp, obj, mtmp.mx, mtmp.my, false);
+    }
+
+    if (givemsg && canseemon(mtmp, map)) {
+        await pline_mon(mtmp, "%s seems quite tame.", Monnam(mtmp));
+    }
+    return true;
+}
+
+// cf. dog.c:1288 wary_dog() — process pet revival/life-saving
+export async function wary_dog(mtmp, was_dead, player, game, map) {
+    const quietly = was_dead;
+
+    finish_meating(mtmp);
+
+    if (!mtmp.mtame) return;
+    const edog = (!mtmp.isminion && mtmp.mextra?.edog) ? mtmp.mextra.edog : null;
+
+    // Undo starvation HP penalty
+    if (edog && edog.mhpmax_penalty) {
+        mtmp.mhpmax = (mtmp.mhpmax || 0) + edog.mhpmax_penalty;
+        mtmp.mhp = (mtmp.mhp || 0) + edog.mhpmax_penalty;
+        edog.mhpmax_penalty = 0;
+    }
+
+    // Check abuse/betrayal
+    if (edog && (edog.killed_by_u === 1 || edog.abuse > 2)) {
+        mtmp.mpeaceful = 0;
+        mtmp.mtame = 0;
+        if (edog.abuse >= 0 && edog.abuse < 10) {
+            if (!rn2(edog.abuse + 1)) mtmp.mpeaceful = 1;
+        }
+        if (!quietly && canseemon(mtmp, map)) {
+            const youmonst_data = player?.data || {};
+            if (haseyes(youmonst_data)) {
+                if (haseyes(mtmp.data || {})) {
+                    await pline_mon(mtmp, "%s %s to look you in the %s.",
+                        Monnam(mtmp),
+                        mtmp.mpeaceful ? 'seems unable' : 'refuses',
+                        body_part(EYE, player));
+                } else {
+                    await pline_mon(mtmp, "%s avoids your gaze.", Monnam(mtmp));
+                }
+            }
+        }
+    } else {
+        // Random tameness reduction
+        mtmp.mtame = rn2((mtmp.mtame || 0) + 1);
+        if (!mtmp.mtame) mtmp.mpeaceful = rn2(2);
+    }
+
+    // If no longer tame
+    if (!mtmp.mtame) {
+        if (!quietly && canseemon(mtmp, map)) {
+            await pline_mon(mtmp, "%s %s.",
+                Monnam(mtmp),
+                mtmp.mpeaceful ? 'is no longer tame' : 'has become feral');
+        }
+        newsym(mtmp.mx, mtmp.my);
+        if (mtmp.mleashed) await m_unleash(mtmp, true, player);
+        // C: dismount_steed if usteed — not ported
+    } else if (edog) {
+        // Reset edog state on revival
+        edog.revivals = (edog.revivals || 0) + 1;
+        edog.killed_by_u = 0;
+        edog.abuse = 0;
+        edog.ogoal = { x: -1, y: -1 };
+        const moves = game?.moves || 0;
+        if (was_dead || (edog.hungrytime || 0) < moves + 500) {
+            edog.hungrytime = moves + 500;
+        }
+        if (was_dead) {
+            edog.droptime = 0;
+            edog.dropdist = 10000;
+            edog.whistletime = 0;
+            edog.apport = 5;
+        }
+    }
 }
