@@ -163,7 +163,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | worm.c | worm.js | Long worm mechanics. All 28 C functions implemented (31 JS exports): get_wormno, initworm, worm_move, worm_nomove, wormgone, wormhitu, cutworm, see_wsegs, detect_wsegs, place_wsegs, place_worm_tail_randomly, size_wseg, count_wsegs, create_worm_tail, worm_known, worm_cross, wseg_at, flip_worm_segs_*, save_worm, rest_worm etc. |
 | `[a]` | worn.c | worn.js | Equipment slot management. setworn, setnotworn, allunworn, wearmask_to_obj, wearslot, wornmask_to_armcat, armcat_to_wornmask, update_mon_extrinsics, mon_set_minvis, mon_adjust_speed, extract_from_minvent, m_lose_armor, mon_break_armor, extra_pref, racial_exception, m_dowear, m_dowear_type, find_mac, bypass stubs (bypass_obj, clear_bypasses, nxt_unbypassed_obj/loot) implemented. check_wornmask_slots/which_armor/recalc_telepat_range TODO |
 | `[a]` | write.c | write.js | Writing on scrolls. cost, write_ok, new_book_description implemented; dowrite TODO |
-| `[~]` | zap.c | zap.js | Wand beam effects. All mapped `zap.c` function surfaces now exist in `zap.js`, and many former wrappers now have concrete C-structured behavior (`zappable`, `dozap` self-zap routing, `weffects` setup/wrapup flow, `zapsetup`/`zapwrapup`, `zapyourself`, `zap_steed`, `probe_objchain`, object/container/monster location helpers, trap cancellation explosion gating, polymorph pile bookkeeping (`do_osshock` + `bhitpile` follow-up), egg hatch timeout wiring, inventory-resistance helpers, `spell_hit_bonus`, `resists_stun`). Core beam animation path remains unified async `buzz()`/`dobuzz()` with `tmp_at` and awaited frame boundaries. Remaining parity work is now mostly edge-depth and side-effect richness: full `zap_over_floor` elemental terrain/door/liquid rules, full revive/montraits/corpse consumption semantics, `cancel_monst` hero/nonhero edge behavior, complete `bhitm`/`zapyourself`/`zap_steed` effect matrices, richer `break_wand`/`backfire` detail, and exact object-destruction/material interactions. |
+| `[a]` | zap.c | zap.js | Wand beam effects. 78/81 C functions present (96%): dozap/zappable/weffects/zapsetup/zapwrapup/zapyourself/zap_steed/buzz/dobuzz/zhitm/zhitu/bhitm/bhito/bhitpile/zap_over_floor/cancel_monst/probe_monster/probe_objchain/spell_hit_bonus/resists_stun/break_wand/backfire/do_osshock etc. Core beam animation uses async tmp_at + nh_delay_output. Remaining parity: edge-depth in effect matrices and terrain interactions |
 
 ### Summary
 
@@ -171,9 +171,9 @@ don't follow the same 1:1 C→JS mapping pattern.
 - **N/A (system/platform)**: 21
 - **Game logic files**: 108
 - **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 71
+- **Aligned (`[a]`)**: 72
 - **Present (`[p]`)**: 9
-- **Needs alignment (`[~]`)**: 24
+- **Needs alignment (`[~]`)**: 23
 - **No JS file yet (`[ ]`)**: 0
 
 ### JS Files With Non-Strict C Mapping
