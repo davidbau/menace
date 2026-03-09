@@ -86,6 +86,18 @@ were fully green on:
 
 This confirmed the burndown method is working and that fidelity gains were real, not masked.
 
+## Validation Checkpoint (2026-03-09)
+
+Post-milestone validation on `main`:
+
+1. `./scripts/run-and-report.sh --failures`:
+   - gameplay `34/34` passing.
+2. `npm test -- --runInBand`:
+   - total `3345/3345` passing.
+   - gameplay `34/34`, unit `3194/3194`, special `50/50`.
+
+This is the first full-suite green checkpoint documented under Phase 4 burndown.
+
 ## Representative Fix Classes in Phase 4
 
 1. Boundary ordering fixes around prompt/topline/`--More--` ownership.
