@@ -18,7 +18,7 @@ import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, 
 import { hasGivenName, type_is_pname, is_mplayer,
          is_animal, is_mindless, is_humanoid } from './mondata.js';
 import { flush_screen } from './display.js';
-import { nhgetch, getlin } from './input.js';
+import { nhgetch_wrap, getlin } from './input.js';
 import { awaitInput } from './suspend.js';
 import { impossible } from './pline.js';
 import { discoverObject, undiscoverObject } from './o_init.js';
@@ -1144,7 +1144,7 @@ export async function handleCallObjectTypePrompt(player, display) {
 
     while (true) {
         await display.putstr_message(prompt);
-        const ch = await awaitInput(null, nhgetch(), {
+        const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'do_name.handleCallObjectTypePrompt.select',
         });
         const c = String.fromCharCode(ch);

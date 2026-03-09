@@ -503,7 +503,7 @@ span.nh-cursor {
     }
 
     // Dismiss the --More-- prompt and resume queued fallback messages.
-    // Called when a key is consumed for --More-- dismissal (from nhgetch
+    // Called when a key is consumed for --More-- dismissal (from nhgetch_wrap
     // or run_command). Resume at most one queued message per dismissal so
     // prompt/message progression remains explicit.
     async _clearMore() {
@@ -576,9 +576,9 @@ span.nh-cursor {
 
     // Display "--More--" and wait for input
     // C ref: tty_display_nhwindow for message window
-    async morePrompt(nhgetch) {
+    async morePrompt(nhgetch_wrap) {
         this.renderMoreMarker();
-        await this._waitForMoreDismissKey(nhgetch);
+        await this._waitForMoreDismissKey(nhgetch_wrap);
         this.clearRow(MESSAGE_ROW);
         if (this._topMessageRow1 !== undefined) {
             this.clearRow(MESSAGE_ROW + 1);
@@ -596,10 +596,10 @@ span.nh-cursor {
 
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
     // Ignore non-dismissal keys while waiting at --More--.
-    async _waitForMoreDismissKey(nhgetch) {
-        if (typeof nhgetch !== 'function') return;
+    async _waitForMoreDismissKey(nhgetch_wrap) {
+        if (typeof nhgetch_wrap !== 'function') return;
         for (;;) {
-            const ch = await awaitMore(null, nhgetch(), {
+            const ch = await awaitMore(null, nhgetch_wrap(), {
                 site: 'display.more.dismiss',
             });
             if (this._isMoreDismissKey(ch)) return;
@@ -977,7 +977,7 @@ span.nh-cursor {
 
     // Display a simple menu and return selection (async)
     // C ref: winprocs.h win_select_menu
-    async showMenu(title, items, nhgetch) {
+    async showMenu(title, items, nhgetch_wrap) {
         // Save the current map area
         const savedCells = [];
         const startRow = MAP_ROW_START + 1;
@@ -1005,7 +1005,7 @@ span.nh-cursor {
 
         // Wait for selection
         this.putstr_message('(end) ');
-        const ch = await awaitInput(null, nhgetch(), {
+        const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'display.showMenu.select',
         });
 

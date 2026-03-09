@@ -1544,7 +1544,7 @@ export function wc_set_window_colors(op) {
 // -----------------------------------------------------------------------
 
 import { saveFlags, DEFAULT_FLAGS } from './storage.js';
-import { nhgetch, getlin } from './input.js';
+import { nhgetch_wrap, getlin } from './input.js';
 
 /**
  * Options menu data structure matching C NetHack
@@ -2055,7 +2055,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
             ];
             await renderCenteredList(lines);
 
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'options.editDoWhatCountOption',
             });
             const c = String.fromCharCode(ch);
@@ -2102,7 +2102,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
                 await display.putstr(0, row, lines[i].substring(0, display.cols));
             }
 
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'options.editStatusHilitesOption',
             });
             const c = String.fromCharCode(ch);
@@ -2131,7 +2131,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
                     '(end)'
                 ];
                 await renderCenteredList(lines2);
-                const ch2 = await awaitInput(game, nhgetch(), {
+                const ch2 = await awaitInput(game, nhgetch_wrap(), {
                     site: 'options.editStatusHilitesOption.submenu',
                 });
                 const c2 = String.fromCharCode(ch2);
@@ -2172,7 +2172,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
                 await display.putstr(0, row, lines[i].substring(0, display.cols));
             }
 
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'options.editStatusConditionsOption',
             });
             const c = String.fromCharCode(ch);
@@ -2213,7 +2213,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
             '(end)',
         ];
         await renderCenteredList(lines, 24, true);
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'options.editNumberPadModeOption',
         });
         const c = String.fromCharCode(ch);
@@ -2273,7 +2273,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
                 await display.putstr(41, i, text, undefined, attr);
             }
 
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'options.editAutounlockOption',
             });
             const c = String.fromCharCode(ch).toLowerCase();
@@ -2356,7 +2356,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
                 await display.putstr(25, i, text, undefined, attr);
             }
 
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'options.editPickupTypesOption',
             });
             const c = String.fromCharCode(ch);
@@ -2381,7 +2381,7 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
         await drawOptions();
 
         // Get input - C ref: options.c menu input loop
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'options.handleSet.loop',
         });
         const c = String.fromCharCode(ch);

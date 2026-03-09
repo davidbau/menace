@@ -50,7 +50,7 @@ import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
 import { breaktest } from './dothrow.js';
 import { find_mac } from './worn.js';
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import {
     buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
     ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
@@ -342,7 +342,7 @@ async function maybeFlushToplineBeforeMessage(display, msg, game) {
     if (typeof display.renderMoreMarker === 'function') {
         display.renderMoreMarker();
     }
-    await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+    await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
         site: 'mthrowu.maybeFlushToplineBeforeMessage.morePrompt',
     });
     if (Object.hasOwn(display, 'noConcatenateMessages')) {
@@ -663,7 +663,7 @@ export async function m_throw_timed(
                     && typeof display.renderMoreMarker === 'function'
                     && (display.topMessage || '').includes('  ')) {
                     display.renderMoreMarker();
-                    await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+                    await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
                         site: 'mthrowu.m_throw.impact.morePrompt',
                     });
                     if (Object.hasOwn(display, 'noConcatenateMessages')) {

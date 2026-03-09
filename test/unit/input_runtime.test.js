@@ -6,7 +6,7 @@ import {
     setInputRuntime,
     getInputRuntime,
     pushInput,
-    nhgetch,
+    nhgetch_wrap,
     clearInputQueue,
     ynFunction,
     cmdq_add_key,
@@ -46,7 +46,7 @@ describe('input runtime primitives', () => {
         const runtime = createInputQueue();
         setInputRuntime(runtime);
         pushInput('x'.charCodeAt(0));
-        assert.equal(await nhgetch(), 'x'.charCodeAt(0));
+        assert.equal(await nhgetch_wrap(), 'x'.charCodeAt(0));
         assert.equal(getInputRuntime(), runtime);
     });
 
@@ -59,7 +59,7 @@ describe('input runtime primitives', () => {
         // Disable throw-on-empty so nhgetch blocks instead of throwing
         setThrowOnEmptyInput(false);
         let settled = false;
-        const p = nhgetch().then(() => {
+        const p = nhgetch_wrap().then(() => {
             settled = true;
         });
         await new Promise((r) => setTimeout(r, 10));
@@ -234,7 +234,7 @@ describe('cmdq primitives', () => {
     it('nhgetch consumes queued direction in doagain input mode', async () => {
         cmdq_add_dir(CQ_REPEAT, 1, 0, 0);
         setCmdqInputMode(true);
-        const ch = await nhgetch();
+        const ch = await nhgetch_wrap();
         setCmdqInputMode(false);
         assert.equal(ch, 'l'.charCodeAt(0));
     });
@@ -244,7 +244,7 @@ describe('cmdq primitives', () => {
         setInputRuntime(runtime);
         setCmdqRepeatRecordMode(true);
         pushInput('y'.charCodeAt(0));
-        const ch = await nhgetch();
+        const ch = await nhgetch_wrap();
         setCmdqRepeatRecordMode(false);
         assert.equal(ch, 'y'.charCodeAt(0));
         const queued = cmdq_pop(true);

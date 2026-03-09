@@ -2,7 +2,7 @@
 // cf. eat.c — doeat, start_eating, eatfood, bite, corpse intrinsics, hunger
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,
@@ -1846,7 +1846,7 @@ async function handleEat(player, display, game) {
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
         await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
         const ans = String.fromCharCode(
-            await awaitInput(game, nhgetch(), { site: 'eat.handleEat.floorPrompt' })
+            await awaitInput(game, nhgetch_wrap(), { site: 'eat.handleEat.floorPrompt' })
         ).toLowerCase();
         if (ans === 'q') {
             // cf. eat.c floorfood() — 'q' exits immediately
@@ -1876,7 +1876,7 @@ async function handleEat(player, display, game) {
             display.messageNeedsMore = false;
             const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
             await display.putstr_message(eatPrompt);
-            const ch = await awaitInput(game, nhgetch(), { site: 'eat.handleEat.inventorySelect' });
+            const ch = await awaitInput(game, nhgetch_wrap(), { site: 'eat.handleEat.inventorySelect' });
             const c = String.fromCharCode(ch);
 
             if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
@@ -1925,7 +1925,7 @@ async function handleEat(player, display, game) {
                 if (!player.wizard) {
                     await display.putstr_message("You don't have that object.--More--");
                     while (true) {
-                        const moreCh = await awaitInput(game, nhgetch(), { site: 'eat.handleEat.moreDismiss' });
+                        const moreCh = await awaitInput(game, nhgetch_wrap(), { site: 'eat.handleEat.moreDismiss' });
                         if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
                     }
                 }

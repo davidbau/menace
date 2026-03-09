@@ -1,7 +1,7 @@
 // do_wear.js -- Armor wearing/removing mechanics
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import { awaitInput } from './suspend.js';
 import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -1925,7 +1925,7 @@ async function putOnSelectedItem(player, display, game, item) {
             await display.putstr_message(fingerQ);
             let mask = null;
             while (!mask) {
-                const fc = await awaitInput(game, nhgetch(), {
+                const fc = await awaitInput(game, nhgetch_wrap(), {
                     site: 'do_wear.putOnSelectedItem.ringFinger',
                 });
                 const fs = String.fromCharCode(fc);
@@ -2188,7 +2188,7 @@ async function handleWear(player, display, game = null) {
     resetTopline(display);
     await display.putstr_message(wearPrompt);
     while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'do_wear.handleWear.select',
         });
         let c = String.fromCharCode(ch);
@@ -2270,7 +2270,7 @@ async function handlePutOn(player, display, game = null) {
     resetTopline(display);
     await display.putstr_message(putOnPrompt);
     while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'do_wear.handlePutOn.select',
         });
         let c = String.fromCharCode(ch);
@@ -2341,7 +2341,7 @@ async function handleTakeOff(player, display, game = null) {
         resetTopline(display);
         await display.putstr_message(takeOffPrompt);
         while (true) {
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'do_wear.handleTakeOff.select',
             });
             let c = String.fromCharCode(ch);
@@ -2401,7 +2401,7 @@ async function handleRemove(player, display, game = null) {
         resetTopline(display);
         await display.putstr_message(removePrompt);
         while (true) {
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'do_wear.handleRemove.select',
             });
             let c = String.fromCharCode(ch);

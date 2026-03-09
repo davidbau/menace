@@ -4,11 +4,11 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 describe('synclock allmain boundary hygiene', () => {
-    it('does not use raw await nhgetch() in allmain game loop paths', () => {
+    it('does not use raw await nhgetch_wrap() in allmain game loop paths', () => {
         const src = readFileSync(resolve('js/allmain.js'), 'utf8');
-        assert.equal(/await\s+nhgetch\s*\(/.test(src), false);
+        assert.equal(/await\s+nhgetch_wrap\s*\(/.test(src), false);
         // Ensure typed wrapper is present for loop-input waits.
-        assert.equal(src.includes('await awaitInput(this, nhgetch()'), true);
+        assert.equal(src.includes('await awaitInput(this, nhgetch_wrap()'), true);
     });
 
     it('does not use raw setTimeout(0) awaits in allmain command loop paths', () => {
@@ -18,4 +18,3 @@ describe('synclock allmain boundary hygiene', () => {
         assert.equal(src.includes('await awaitAnim(this, new Promise(r => setTimeout(r, 0))'), true);
     });
 });
-

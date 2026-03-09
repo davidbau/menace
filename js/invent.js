@@ -1,7 +1,7 @@
 // invent.js -- Inventory management
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
-import { nhgetch, getlin } from './input.js';
+import { nhgetch_wrap, getlin } from './input.js';
 import { awaitInput } from './suspend.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
 import { NHW_MENU } from './const.js';
@@ -267,7 +267,7 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     let selection = null;
     let countDigits = '';
     while (true) {
-        const ch = await awaitInput(null, nhgetch(), {
+        const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'invent.renderOverlayMenuUntilDismiss.loop',
         });
         if (isMenuDismissKey(ch)) break;
@@ -346,7 +346,7 @@ export async function handleInventory(player, display, game) {
     // C tty/menu parity: inventory stays up until an explicit dismissal key.
     // Non-dismiss keys can be consumed without closing the menu frame.
     while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'invent.handleInventory.loop',
         });
         // C tty parity: space advances pages when present; otherwise it
@@ -607,7 +607,7 @@ export async function handleInventory(player, display, game) {
             }
             const actionKeys = new Set(rawActions.map((line) => String(line || '').charAt(0)));
             while (true) {
-                const actionCh = await awaitInput(game, nhgetch(), {
+                const actionCh = await awaitInput(game, nhgetch_wrap(), {
                     site: 'invent.handleInventory.actionMenu',
                 });
                 if (actionCh === 32 || actionCh === 27 || actionCh === 10 || actionCh === 13) {
@@ -671,7 +671,7 @@ export async function handleInventory(player, display, game) {
                     }
                     const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
                     await display.putstr_message(adjustPrompt);
-                    const adjCh = await awaitInput(game, nhgetch(), {
+                    const adjCh = await awaitInput(game, nhgetch_wrap(), {
                         site: 'invent.handleInventory.adjustLetter',
                     });
                     const adjChar = String.fromCharCode(adjCh);
@@ -1505,7 +1505,7 @@ export async function doorganize(game) {
 
     let selected = null;
     while (!selected) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'invent.doorganize.selectItem',
         });
         const c = String.fromCharCode(ch);
@@ -1565,7 +1565,7 @@ export async function doorganize(game) {
     }
     const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
     await display.putstr_message(adjustPrompt);
-    const adjCh = await awaitInput(game, nhgetch(), {
+    const adjCh = await awaitInput(game, nhgetch_wrap(), {
         site: 'invent.doorganize.selectLetter',
     });
     const adjChar = String.fromCharCode(adjCh);

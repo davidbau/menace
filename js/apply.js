@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { nhgetch, ynFunction } from './input.js';
+import { nhgetch_wrap, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
@@ -1032,7 +1032,7 @@ export async function handleApply(player, map, display, game) {
         }
         if (isApplyChopWeapon(selected)) {
             await display.putstr_message('In what direction do you want to chop? [>] ');
-            await awaitInput(game, nhgetch(), {
+            await awaitInput(game, nhgetch_wrap(), {
                 site: 'apply.chop.direction',
             });
             replacePromptMessage();
@@ -1044,7 +1044,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await awaitInput(game, nhgetch(), {
+                const dirCh = await awaitInput(game, nhgetch_wrap(), {
                     site: 'apply.lockpick.direction',
                 });
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
@@ -1126,7 +1126,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await awaitInput(game, nhgetch(), {
+                const dirCh = await awaitInput(game, nhgetch_wrap(), {
                     site: 'apply.use-directional.direction',
                 });
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
@@ -1176,7 +1176,7 @@ export async function handleApply(player, map, display, game) {
     };
 
     while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'apply.select.loop',
         });
         const c = String.fromCharCode(ch);
@@ -1219,13 +1219,13 @@ export async function handleApply(player, map, display, game) {
                     if (typeof display.renderMoreMarker === 'function') {
                         display.renderMoreMarker();
                     }
-                    await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+                    await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
                         site: 'apply.inventory-list.morePrompt',
                     });
                 } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                     display.markMorePending({ source: 'apply.inventory-list' });
-                    await awaitInput(game, nhgetch(), {
+                    await awaitInput(game, nhgetch_wrap(), {
                         site: 'apply.inventory-list.more-fallback',
                     });
                 }
@@ -1255,7 +1255,7 @@ export async function handleApply(player, map, display, game) {
                 if (typeof display.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                 }
-                await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+                await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
                     site: 'apply.invalid-invlet.morePrompt',
                 });
                 await showApplyPrompt();

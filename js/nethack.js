@@ -7,14 +7,14 @@ import { clearGameUrlParams, getUrlParams, saveGame, deleteSave } from './storag
 import { NetHackGame } from './allmain.js';
 import { getKeylog, saveKeylog, startReplay } from './keylog.js';
 import { VERSION_STRING } from './const.js';
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import { Promo } from './promo.js';
 window.MENACE_VERSION = VERSION_STRING;
 
 function createBrowserLifecycle(display, promo, restart) {
     return {
         restart,
-        promo: () => promo.run(display, nhgetch, restart),
+        promo: () => promo.run(display, nhgetch_wrap, restart),
         replaceUrlParams: (params) => {
             const url = new URL(window.location.href);
             for (const [key, value] of Object.entries(params || {})) {
@@ -32,7 +32,7 @@ function createBrowserLifecycle(display, promo, restart) {
 function registerMenuApis(display, promo, restart) {
     window._saveAndQuit = async function() {
         if (window.gameInstance) await saveGame(window.gameInstance);
-        await promo.run(display, nhgetch, restart);
+        await promo.run(display, nhgetch_wrap, restart);
     };
     window._newGame = function() {
         deleteSave();

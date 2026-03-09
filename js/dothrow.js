@@ -25,7 +25,7 @@ import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
@@ -202,7 +202,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         replacePromptMessage();
     }
     await display.putstr_message('In what direction? ');
-    const dirCh = await awaitInput(null, nhgetch(), {
+    const dirCh = await awaitInput(null, nhgetch_wrap(), {
         site: 'dothrow.promptDirectionAndThrowItem.direction',
     });
     const dch = String.fromCharCode(dirCh);
@@ -359,7 +359,7 @@ export async function handleThrow(player, map, display) {
     await display.putstr_message(throwPrompt);
     let invalidMorePending = false;
     while (true) {
-        const ch = await awaitInput(null, nhgetch(), {
+        const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'dothrow.handleThrow.select',
         });
         let c = String.fromCharCode(ch);
@@ -449,7 +449,7 @@ export async function handleFire(player, map, display, game) {
 
     if (!player.quiver && weapon && weapon.otyp === BULLWHIP) {
         await display.putstr_message('In what direction? ');
-        const dirCh = await awaitInput(game, nhgetch(), {
+        const dirCh = await awaitInput(game, nhgetch_wrap(), {
             site: 'dothrow.handleFire.bullwhipDirection',
         });
         const dch = String.fromCharCode(dirCh);
@@ -561,7 +561,7 @@ export async function handleFire(player, map, display, game) {
     let pendingCount = '';
     let invalidMorePending = false;
     while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'dothrow.handleFire.select',
         });
         let c = String.fromCharCode(ch);
@@ -619,7 +619,7 @@ export async function handleFire(player, map, display, game) {
                 replacePromptMessage();
                 await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q) ');
                 while (true) {
-                    const ans = await awaitInput(game, nhgetch(), {
+                    const ans = await awaitInput(game, nhgetch_wrap(), {
                         site: 'dothrow.handleFire.readyWieldedConfirm',
                     });
                     const a = String.fromCharCode(ans).toLowerCase();

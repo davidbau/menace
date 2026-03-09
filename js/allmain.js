@@ -53,7 +53,7 @@ import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch_wrap, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
@@ -197,7 +197,7 @@ export async function moveloop_core(game, opts = {}) {
     } while (player.umovement < NORMAL_SPEED && !forceStopMoveLoop && !(game?.playerDied));
 
     // C ref: In C, vision_recalc(0) fires at the top of the NEXT moveloop iteration,
-    // BEFORE nhgetch blocks — so the screen capture always has fresh FOV.
+    // BEFORE nhgetch_wrap blocks — so the screen capture always has fresh FOV.
     // In JS, screen capture happens between moveloop_core calls, so we must
     // recalc here unconditionally. This catches:
     //   (a) player movement setting mark_vision_dirty via domove_core
@@ -1654,11 +1654,11 @@ export class NetHackGame {
         }
 
         // Wire up nhwindow infrastructure
-        init_nhwindows(this.display, nhgetch, () => this._rerenderGame());
-        // Give the display access to nhgetch so putstr_message can block
+        init_nhwindows(this.display, nhgetch_wrap, () => this._rerenderGame());
+        // Give the display access to nhgetch_wrap so putstr_message can block
         // on --More-- when message overflow occurs (C ref: topl.c more()).
         if (this.display && typeof this.display.setNhgetch === 'function') {
-            this.display.setNhgetch(nhgetch);
+            this.display.setNhgetch(nhgetch_wrap);
         }
         if (this.display && typeof this.display.setInputBoundaryRuntime === 'function') {
             this.display.setInputBoundaryRuntime({
@@ -2351,7 +2351,7 @@ export class NetHackGame {
                     await this.display.putstr_message(
                         `Program in disorder! Please report to the Menace team. (${e?.message || e})`
                     );
-                    await awaitInput(this, nhgetch(), { site: 'gameLoop.error-recovery.wait-key' });
+                    await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.error-recovery.wait-key' });
                     this.fov.compute(this.map, this.player.x, this.player.y);
                     this.display.renderMap(this.map, this.player, this.fov, this.flags);
                     this.display.renderStatus(this.player);
@@ -2384,7 +2384,7 @@ export class NetHackGame {
         }
 
         // Get player input with optional count prefix
-        const firstCh = await awaitInput(this, nhgetch(), { site: 'gameLoop.read-first-key' });
+        const firstCh = await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.read-first-key' });
         let ch;
         let countPrefix = 0;
 
@@ -2404,7 +2404,7 @@ export class NetHackGame {
                     if (this.shouldInterruptMulti()) {
                         this.multi = 0;
                         await this.display.putstr_message('--More--');
-                        await awaitInput(this, nhgetch(), { site: 'gameLoop.repeat.interrupt-more' });
+                        await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.repeat.interrupt-more' });
                     }
                 },
             });
@@ -2448,7 +2448,7 @@ export class NetHackGame {
                 if (this.shouldInterruptMulti()) {
                     this.multi = 0;
                     await this.display.putstr_message('--More--');
-                    await awaitInput(this, nhgetch(), { site: 'gameLoop.multi.interrupt-more' });
+                    await awaitInput(this, nhgetch_wrap(), { site: 'gameLoop.multi.interrupt-more' });
                 }
             },
         });

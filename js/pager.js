@@ -9,7 +9,7 @@ import {
     STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL, TER_MAP,
 } from './const.js';
 import { def_monsyms } from './symbols.js';
-import { nhgetch, ynFunction } from './input.js';
+import { nhgetch_wrap, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
@@ -214,7 +214,7 @@ export async function do_look(game, mode = 0, click_cc = null) {
             from_screen = true;
         } else {
             await display.putstr_message("What do you want to identify? [type a symbol, ';' for map, or ESC]");
-            const ch = await awaitInput(game, nhgetch(), {
+            const ch = await awaitInput(game, nhgetch_wrap(), {
                 site: 'pager.do_look.identify',
             });
             if (ch === 27) return { moved: false, tookTime: false };
@@ -354,7 +354,7 @@ export async function dolook(game) {
             if (sensed) {
                 await display.putstr_message(typeMsg);
                 if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
-                await awaitDisplayMorePrompt(null, display, () => nhgetch(), {
+                await awaitDisplayMorePrompt(null, display, () => nhgetch_wrap(), {
                     site: 'pager.handleLook.readEngraving.morePrompt',
                 });
                 const et = ep.text;
@@ -437,7 +437,7 @@ async function _showPagerCore(display, text, title) {
 
     // Input loop
     while (true) {
-        const ch = await awaitInput(null, nhgetch(), {
+        const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'pager.showPager.loop',
         });
         const c = String.fromCharCode(ch);
@@ -513,7 +513,7 @@ async function showMoreTextPages(display, text) {
         if (typeof display.setCursor === 'function') {
             display.setCursor(8, TERMINAL_ROWS - 1);
         }
-        await awaitInput(null, nhgetch(), {
+        await awaitInput(null, nhgetch_wrap(), {
             site: 'pager.showMoreTextPages.more',
         });
         topLine += pageRows;
@@ -568,7 +568,7 @@ async function getSearchTerm(display) {
 
     let term = '';
     while (true) {
-        const ch = await awaitInput(null, nhgetch(), {
+        const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'pager.getSearchTerm.loop',
         });
         if (ch === 13 || ch === 10) {
@@ -774,7 +774,7 @@ async function showTextWindowFile(display, text) {
         }
 
         while (true) {
-            const ch = await awaitInput(null, nhgetch(), {
+            const ch = await awaitInput(null, nhgetch_wrap(), {
                 site: 'pager.showTextWindowFile.more',
             });
             if (!isDismissKey(ch)) continue;
@@ -1063,7 +1063,7 @@ export async function handleWhatdoes(game) {
             display.renderMoreMarker();
         }
         if (typeof display?._waitForMoreDismissKey === 'function') {
-            await display._waitForMoreDismissKey(nhgetch);
+            await display._waitForMoreDismissKey(nhgetch_wrap);
             if (typeof display?._clearMore === 'function') {
                 await display._clearMore();
             } else {

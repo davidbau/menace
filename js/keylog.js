@@ -1,5 +1,5 @@
 // keylog.js -- Keystroke recording and replay for reproducible game sessions
-// Records every key processed by nhgetch() along with PRNG seed and options diff.
+// Records every key processed by nhgetch_wrap() along with PRNG seed and options diff.
 // The resulting keylog JSON can replay the game identically in JS or drive C NetHack.
 
 import { DEFAULT_FLAGS } from './storage.js';
@@ -34,7 +34,7 @@ export function startRecording(seed, flags) {
     recording = true;
 }
 
-// Record a single key (char code as returned by nhgetch, post all key mapping)
+// Record a single key (char code as returned by nhgetch_wrap, post all key mapping)
 export function recordKey(ch) {
     if (recording) {
         keys.push(ch);

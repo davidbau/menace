@@ -449,51 +449,54 @@ function popQueuedInputKey(inDoAgain = false) {
     return null;
 }
 
-// Get a raw key from the input system (no --More-- handling).
-// Used internally by nhgetch to get a key without recursion.
-function _getRawKey() {
-    const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
-    if (Number.isFinite(queuedKey)) {
-        ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
-        recordKey(queuedKey);
-        return Promise.resolve(queuedKey);
-    }
+// Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
+// C analogue: raw windowproc read underneath readchar()/nhgetch().
+export function nhgetch_raw() {
+    return Promise.resolve(activeInputRuntime.nhgetch());
+}
 
-    if (isReplayMode()) {
-        const key = getNextReplayKey();
-        if (key !== null) {
-            ynTrace('raw=replay', key, String.fromCharCode(key));
-            recordKey(key);
-            return Promise.resolve(key);
+// Get a character of input (async)
+// This is the JS equivalent of C's nhgetch().
+// C ref: winprocs.h win_nhgetch
+export function nhgetch_wrap() {
+    const readUnifiedKey = async () => {
+        const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
+        if (Number.isFinite(queuedKey)) {
+            ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
+            recordKey(queuedKey);
+            return queuedKey;
         }
-    }
 
-    if (_throwOnEmptyInput) {
-        const state = typeof activeInputRuntime.getInputState === 'function'
-            ? activeInputRuntime.getInputState() : null;
-        if (!state || state.queueLength === 0) {
-            throw new Error('Input queue empty - test may be missing keystrokes');
+        if (isReplayMode()) {
+            const key = getNextReplayKey();
+            if (key !== null) {
+                ynTrace('raw=replay', key, String.fromCharCode(key));
+                recordKey(key);
+                return key;
+            }
         }
-    }
 
-    if (typeof activeInputRuntime?.setWaitContext === 'function') {
-        activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
-    }
+        if (_throwOnEmptyInput) {
+            const state = typeof activeInputRuntime.getInputState === 'function'
+                ? activeInputRuntime.getInputState() : null;
+            if (!state || state.queueLength === 0) {
+                throw new Error('Input queue empty - test may be missing keystrokes');
+            }
+        }
 
-    return Promise.resolve(activeInputRuntime.nhgetch()).then((ch) => {
+        if (typeof activeInputRuntime?.setWaitContext === 'function') {
+            activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
+        }
+
+        const ch = await nhgetch_raw();
         ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         recordKey(ch);
         if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
             cmdq_add_key(CQ_REPEAT, ch);
         }
         return ch;
-    });
-}
+    };
 
-// Get a character of input (async)
-// This is the JS equivalent of C's nhgetch().
-// C ref: winprocs.h win_nhgetch
-export function nhgetch() {
     const display = getRuntimeDisplay();
 
     // C ref: readchar() / flush_screen — if --More-- is pending on the
@@ -509,7 +512,7 @@ export function nhgetch() {
         );
         const waitForMoreDismiss = async () => {
             while (display && display._pendingMore) {
-                const ch = await _getRawKey();
+                const ch = await readUnifiedKey();
                 if (isMoreDismissKey(ch)) {
                     await display._clearMore();
                     continue;
@@ -519,7 +522,7 @@ export function nhgetch() {
             if (display) {
                 display.messageNeedsMore = false;
             }
-            return _getRawKey();
+            return readUnifiedKey();
         };
         return waitForMoreDismiss();
     }
@@ -530,7 +533,7 @@ export function nhgetch() {
         display.messageNeedsMore = false;
     }
 
-    return _getRawKey();
+    return readUnifiedKey();
 }
 
 // Get a line of input (async)
@@ -559,7 +562,7 @@ export async function getlin(prompt, display) {
     await updateDisplay();
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch(), { site: 'input.getlin.read' });
+        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'input.getlin.read' });
         if (ch === 13 || ch === 10) { // Enter
             // C-style prompt cleanup after accepting typed input.
             if (disp) {
@@ -613,7 +616,7 @@ export async function ynFunction(query, choices, def, display) {
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch(), { site: 'input.ynFunction.read' });
+        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'input.ynFunction.read' });
         ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         // C quitchars handling for yn prompts: Space/CR/LF use default.
         if ((ch === 32 || ch === 13 || ch === 10) && def) {
@@ -661,7 +664,7 @@ export async function getCount(firstKey, maxCount, display) {
     while (true) {
         // If we don't have a key yet, read one
         if (!key) {
-            key = await awaitInput(null, nhgetch(), { site: 'input.getCount.read' });
+            key = await awaitInput(null, nhgetch_wrap(), { site: 'input.getCount.read' });
         }
 
         if (isDigit(key)) {

@@ -3,7 +3,7 @@
 // getpos_refresh(), getpos() lifecycle.
 
 import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import { flush_screen } from './display.js';
 import {
     create_nhwindow,
@@ -568,7 +568,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 if (display.messageNeedsMore) {
                     display.renderMoreMarker();
                     while (true) {
-                        const ch = await awaitInput(null, nhgetch(), { site: 'getpos.tip.moreDismiss' });
+                        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'getpos.tip.moreDismiss' });
                         if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) break;
                     }
                     display.clearRow(0);
@@ -625,7 +625,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
             }
-            const ch = await awaitInput(null, nhgetch(), { site: 'getpos.getpos_async.loop' });
+            const ch = await awaitInput(null, nhgetch_wrap(), { site: 'getpos.getpos_async.loop' });
             const c = String.fromCharCode(ch);
 
             if (ch === 27) {
@@ -813,7 +813,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                     if (typeof display.renderMoreMarker === 'function') {
                         display.renderMoreMarker();
                     }
-                    await awaitDisplayMorePrompt(null, display, () => nhgetch(), {
+                    await awaitDisplayMorePrompt(null, display, () => nhgetch_wrap(), {
                         site: 'getpos.forcefalse.unknown.more',
                     });
                     display.topMessage = null;

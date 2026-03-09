@@ -2,7 +2,7 @@
 // cf. read.c — doread, seffects, scroll effects, genocide, punishment, recharging
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { nhgetch } from './input.js';
+import { nhgetch_wrap } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
@@ -322,7 +322,7 @@ async function handleRead(player, display, game) {
     };
     await showReadPrompt();
     while (true) {
-        const ch = await awaitInput(game, nhgetch(), {
+        const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'read.handleRead.select',
         });
         let c = String.fromCharCode(ch);
@@ -383,7 +383,7 @@ async function handleRead(player, display, game) {
                     // cf. spell.c study_book() — show both messages on one line to match
                     // C TTY behavior where pline() + yn() appear together.
                     await display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
-                    const ans = await awaitInput(game, nhgetch(), {
+                    const ans = await awaitInput(game, nhgetch_wrap(), {
                         site: 'read.handleRead.refreshKnownSpellConfirm',
                     });
                     if (String.fromCharCode(ans) !== 'y') {
@@ -496,7 +496,7 @@ async function handleRead(player, display, game) {
             continue;
         }
         if (typeof display?.morePrompt === 'function') {
-            await awaitDisplayMorePrompt(game, display, () => nhgetch(), {
+            await awaitDisplayMorePrompt(game, display, () => nhgetch_wrap(), {
                 site: 'read.handleRead.invalidInvletMorePrompt',
             });
             await showReadPrompt();

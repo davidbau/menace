@@ -2,7 +2,7 @@ import { strchr } from './hacklib.js';
 // windows.js -- NetHack windowing abstraction layer
 // Mirrors src/windows.c + win/tty/wintty.c + win/tty/topl.c
 
-import { nhgetch as defaultNhgetch } from './input.js';
+import { nhgetch_wrap as defaultNhgetch } from './input.js';
 import {
     NHW_MESSAGE, NHW_STATUS, NHW_MAP, NHW_MENU, NHW_TEXT, NHW_PERMINVENT,
     PICK_NONE, PICK_ONE, PICK_ANY,
