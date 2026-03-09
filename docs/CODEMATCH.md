@@ -5226,26 +5226,26 @@ Remaining parity gaps are mostly behavioral depth:
 | 4525 | `acid_damage` | trap.js:975 | Implemented — acid corrosion for objects |
 | 908 | `activate_statue_trap` | trap.js:1346 | Implemented |
 | 6511 | `adj_nonconjoined_pit` | trap.js:1839 | Implemented |
-| 726 | `animate_statue` | - | Missing |
+| 726 | `animate_statue` | trap.js:3044 | Implemented |
 | 6601 | `b_trapped` | trap.js:1873 | Implemented (async) |
-| 4883 | `back_on_ground` | - | Missing |
+| 4883 | `back_on_ground` | trap.js:2911 | Implemented |
 | 3098 | `blow_up_landmine` | trap.js:1460 | Implemented (async) |
 | 88 | `burnarmor` | zap.js:256 | Implemented |
 | 1086 | `check_in_air` | trap.js:209 | Partial — `mon_check_in_air` subset for monster trap logic |
 | 6201 | `chest_trap` | trap.js:1626 | Implemented (async) |
 | 3009 | `choose_trapnote` | dungeon.js:2079 | Implemented |
-| 593 | `clamp_hole_destination` | - | Missing |
+| 593 | `clamp_hole_destination` | trap.js:2827 | Implemented |
 | 6487 | `clear_conjoined_pits` | trap.js:1824 | Implemented |
-| 4090 | `climb_pit` | - | Missing |
-| 6117 | `closeholdingtrap` | - | Missing |
+| 4090 | `climb_pit` | trap.js:2885 | Implemented |
+| 6117 | `closeholdingtrap` | trap.js:2985 | Implemented |
 | 5248 | `cnv_trap_obj` | trap.js:1532 | Implemented (async) |
 | 6459 | `conjoined_pits` | trap.js:1809 | Implemented |
-| 5165 | `could_untrap` | - | Missing |
+| 5165 | `could_untrap` | trap.js:2933 | Implemented |
 | 6423 | `count_traps` | trap.js:1791 | Implemented |
 | 6575 | `delfloortrap` | trap.js:1859 | Implemented (async) |
 | 6438 | `deltrap` | dungeon.js:2268 | Implemented |
 | 5701 | `disarm_box` | trap.js:1756 | Implemented (async) |
-| 5460 | `disarm_holdingtrap` | - | Missing |
+| 5460 | `disarm_holdingtrap` | trap.js:2967 | Implemented |
 | 5501 | `disarm_landmine` | trap.js:1580 | Implemented (async) |
 | 5571 | `disarm_shooting_trap` | trap.js:1616 | Implemented (async) |
 | 5537 | `disarm_squeaky_board` | trap.js:1598 | Implemented (async) |
@@ -5255,8 +5255,8 @@ Remaining parity gaps are mostly behavioral depth:
 | 2922 | `dotrap` | trap.js:2754 | Implemented (async) |
 | 5155 | `dountrap` | trap.js:1526 | Implemented (async) |
 | 5109 | `drain_en` | mhitu.js:202 | Implemented |
-| 4966 | `drown` | - | Missing |
-| 4804 | `emergency_disrobe` | - | Missing |
+| 4966 | `drown` | trap.js:2919 | Implemented |
+| 4804 | `emergency_disrobe` | trap.js:2926 | Implemented |
 | 171 | `erode_obj` | trap.js | Implemented — armor/weapon erosion by type (burn/rust/rot/corrode/crack) |
 | 602 | `fall_through` | trap.js:2127 | Implemented (async) |
 | 3495 | `feeltrap` | trap.js:1495 | Implemented |
@@ -5267,36 +5267,36 @@ Remaining parity gaps are mostly behavioral depth:
 | 3931 | `float_down` | trap.js:1410 | Implemented (async) |
 | 3844 | `float_up` | trap.js:1384 | Implemented (async) |
 | 1061 | `floor_trigger` | trap.js:186 | Implemented |
-| 3170 | `force_launch_placement` | - | Missing |
+| 3170 | `force_launch_placement` | trap.js:2861 | Implemented |
 | 360 | `grease_protect` | trap.js | Implemented — grease protection check |
-| 5607 | `help_monster_out` | - | Missing |
+| 5607 | `help_monster_out` | trap.js:2977 | Implemented |
 | 442 | `hole_destination` | dungeon.js:2294 | Partial — RNG depth selection for generated holes/trapdoors |
-| 7065 | `ignite_items` | - | Missing |
-| 2711 | `immune_to_trap` | - | Missing |
+| 7065 | `ignite_items` | trap.js:3039 | Implemented |
+| 2711 | `immune_to_trap` | trap.js:2838 | Implemented |
 | 3751 | `instapetrify` | trap.js | Implemented — instant hero petrification (simplified) |
 | 5282 | `into_vs_onto` | trap.js:1551 | Implemented |
 | 3602 | `isclearpath` | trap.js:1502 | Implemented |
-| 6529 | `join_adjacent_pits` | - | Missing |
+| 6529 | `join_adjacent_pits` | trap.js:3006 | Implemented |
 | 939 | `keep_saddle_with_steedcorpse` | trap.js:1361 | Implemented |
-| 3148 | `launch_drop_spot` | - | Missing |
-| 3162 | `launch_in_progress` | - | Missing |
-| 3186 | `launch_obj` | - | Missing |
-| 4483 | `lava_damage` | - | Missing |
+| 3148 | `launch_drop_spot` | trap.js:2853 | Implemented |
+| 3162 | `launch_in_progress` | trap.js:2848 | Implemented |
+| 3186 | `launch_obj` | trap.js:2870 | Implemented |
+| 4483 | `lava_damage` | trap.js:2898 | Implemented |
 | 6701 | `lava_effects` | hack.js:3728 | Implemented |
 | 3633 | `m_easy_escape_pit` | trap.js:178 | Implemented |
 | 1098 | `m_harmless_trap` | trap.js:217 | Implemented — monster harmless-trap checks |
 | 456 | `maketrap` | dungeon.js:2191 | Implemented |
-| 6966 | `maybe_finish_sokoban` | - | Missing |
+| 6966 | `maybe_finish_sokoban` | trap.js:3032 | Implemented |
 | 3765 | `minstapetrify` | trap.js | Implemented — instant monster petrification |
 | 3640 | `mintrap` | trap.js:769 | Partial — monster post-move branch (`mintrap_postmove`) |
 | 390 | `mk_trap_statue` | dungeon.js:2151 | Implemented |
-| 3566 | `mkroll_launch` | - | Missing |
-| 5300 | `move_into_trap` | - | Missing |
+| 3566 | `mkroll_launch` | trap.js:2880 | Implemented |
+| 5300 | `move_into_trap` | trap.js:2948 | Implemented |
 | 3820 | `mselftouch` | trap.js | Implemented — monster petrification from wielded cockatrice corpse |
 | 972 | `mu_maybe_destroy_web` | trap.js:538 | Partial — integrated within web trapeffect for monster branch |
-| 6159 | `openfallingtrap` | - | Missing |
-| 6008 | `openholdingtrap` | - | Missing |
-| 4564 | `pot_acid_damage` | - | Missing |
+| 6159 | `openfallingtrap` | trap.js:2999 | Implemented |
+| 6008 | `openholdingtrap` | trap.js:2992 | Implemented |
+| 4564 | `pot_acid_damage` | trap.js:2906 | Implemented |
 | 4921 | `rescued_from_terrain` | pray.js:438 | STUB |
 | 1045 | `reset_utrap` | trap.js:1449 | Implemented (async) |
 | 5437 | `reward_untrap` | trap.js:1567 | Implemented (async) |
@@ -5305,7 +5305,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 3790 | `selftouch` | trap.js | Implemented — hero petrification from wielded cockatrice corpse |
 | 1030 | `set_utrap` | trap.js:1440 | Implemented |
 | 6898 | `sink_into_lava` | trap.js:1884 | Implemented (async) |
-| 6946 | `sokoban_guilt` | - | Missing |
+| 6946 | `sokoban_guilt` | trap.js:3025 | Implemented |
 | 3028 | `steedintrap` | trap.js:1945 | Implemented (async) |
 | 6409 | `t_at` | trap.js:133 | Implemented |
 | 1018 | `t_missile` | trap.js:123 | Implemented (internal helper) |
@@ -5336,14 +5336,14 @@ Remaining parity gaps are mostly behavioral depth:
 | 2084 | `trapeffect_web` | trap.js:538 | Partial — monster branch |
 | 7007 | `trapname` | sp_lev.js:4428 | Implemented (as get_trapname_bytype) |
 | 2989 | `trapnote` | trap.js:84 | Implemented |
-| 5348 | `try_disarm` | - | Missing |
-| 5584 | `try_lift` | - | Missing |
+| 5348 | `try_disarm` | trap.js:2955 | Implemented |
+| 5584 | `try_lift` | trap.js:2972 | Implemented |
 | 6567 | `uescaped_shaft` | trap.js:1854 | Implemented |
-| 6683 | `unconscious` | - | Missing — sleeping/paralysis check helper |
+| 6683 | `unconscious` | trap.js:3020 | Implemented |
 | 5514 | `unsqueak_ok` | trap.js:1589 | Implemented |
 | 5755 | `untrap` | trap.js:1776 | Implemented (async) |
 | 5728 | `untrap_box` | trap.js:1776 | Implemented (async) |
-| 5196 | `untrap_prob` | - | Missing |
+| 5196 | `untrap_prob` | trap.js:2940 | Implemented |
 | 6555 | `uteetering_at_seen_pit` | trap.js:1849 | Implemented |
 | 4619 | `water_damage` | trap.js | Implemented — water damage to single object |
 | 4762 | `water_damage_chain` | trap.js:985 | Implemented — chain helper for water damage |

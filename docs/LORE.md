@@ -6080,3 +6080,33 @@ hard-won wisdom:
   - `node --test test/unit/mon_surface.test.js` passed.
   - `node --test test/unit/mon.test.js` passed.
   - `node --test test/unit/monmove.test.js` passed.
+
+### CODEMATCH trap.c compatibility-surface closure (2026-03-09)
+
+- Problem:
+  - `trap.c` still had a broad missing helper cluster (launch/holding-trap
+    helpers, trap disarm support, pit/sokoban status helpers, lava/drown
+    utility paths, and related wrappers).
+- Change:
+  - Added compatibility exports in `js/trap.js` for the missing set:
+    - launch and placement helpers:
+      `launch_in_progress`, `launch_drop_spot`, `force_launch_placement`,
+      `launch_obj`, `mkroll_launch`
+    - trap utility and status helpers:
+      `clamp_hole_destination`, `immune_to_trap`, `climb_pit`,
+      `move_into_trap`, `could_untrap`, `untrap_prob`, `try_disarm`,
+      `disarm_holdingtrap`, `try_lift`, `help_monster_out`,
+      `join_adjacent_pits`, `unconscious`
+    - holding/falling trap state helpers:
+      `closeholdingtrap`, `openholdingtrap`, `openfallingtrap`
+    - damage/sokoban/misc wrappers:
+      `lava_damage`, `pot_acid_damage`, `drown`, `back_on_ground`,
+      `emergency_disrobe`, `sokoban_guilt`, `maybe_finish_sokoban`,
+      `ignite_items`, `animate_statue`
+  - Added focused coverage:
+    - `test/unit/trap_surface.test.js`
+  - Updated `docs/CODEMATCH.md` row mappings for this slice.
+- Validation:
+  - `node --test test/unit/trap_surface.test.js` passed.
+  - `node --test test/unit/trap_accuracy.test.js` passed.
+  - `node --test test/unit/mktrap_parity.test.js` passed.

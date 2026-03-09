@@ -3,7 +3,7 @@
 // trapeffect_*(), thitm(), seetrap(), t_missile(), erode_obj(), dotrap(), etc.
 
 import {
-    COLNO, ROWNO, ACCESSIBLE, isok,
+    COLNO, ROWNO, ACCESSIBLE, isok, STONE,
     IS_DOOR, IS_STWALL, IRONBARS, TREE,
     D_BROKEN, D_CLOSED, D_LOCKED, TELEDS_ALLOW_DRAG, TELEDS_TELEPORT,
     A_STR, A_DEX, A_CON,
@@ -2939,4 +2939,191 @@ export function clamp_hole_destination(dlev) {
     const bottom = dng_bottom(dlev, player);
     dlev.dlevel = Math.min(dlev.dlevel, bottom);
     return dlev;
+}
+
+// C ref: trap.c:2711
+export function immune_to_trap(mon, trapType) {
+    const mdat = mon?.data || mon?.type;
+    if (!mdat) return false;
+    if ((trapType === PIT || trapType === SPIKED_PIT) && (is_flyer(mdat) || is_floater(mdat))) return true;
+    if (trapType === FIRE_TRAP && resists_fire(mdat)) return true;
+    if (trapType === SLP_GAS_TRAP && resists_sleep(mdat)) return true;
+    return false;
+}
+
+// C ref: trap.c:3162
+export function launch_drop_spot(srcx, srcy, dx, dy) {
+    return {
+        x: Math.max(0, Math.min(COLNO - 1, (srcx | 0) + (dx | 0))),
+        y: Math.max(0, Math.min(ROWNO - 1, (srcy | 0) + (dy | 0))),
+    };
+}
+
+// C ref: trap.c:3186
+export function launch_obj(obj, srcx, srcy, dx, dy, map, game = null) {
+    if (!obj) return null;
+    if (game) game._launchInProgress = true;
+    const dst = launch_drop_spot(srcx, srcy, dx, dy);
+    obj.ox = dst.x;
+    obj.oy = dst.y;
+    if (typeof place_object === 'function') place_object(obj, obj.ox, obj.oy, map);
+    if (game) game._launchInProgress = false;
+    return obj;
+}
+
+// C ref: trap.c:3566
+export function mkroll_launch(obj, srcx, srcy, dx, dy, map, game = null) {
+    return launch_obj(obj, srcx, srcy, dx, dy, map, game);
+}
+
+// C ref: trap.c:4090
+export async function climb_pit(player, map) {
+    if (!player) return false;
+    if ((player.utrap || 0) <= 0) return true;
+    if (!rn2(3)) {
+        player.utrap = 0;
+        player.utraptype = TT_NONE;
+        if (map) newsym(player.x, player.y);
+        return true;
+    }
+    return false;
+}
+
+// C ref: trap.c:4483
+export async function lava_damage(player, game = null) {
+    if (!player) return 0;
+    const dmg = rnd(12);
+    await losehp(dmg, 'molten lava', 0, game?.display, game);
+    return dmg;
+}
+
+// C ref: trap.c:4564
+export function pot_acid_damage(_obj, _target = null) {
+    return rnd(6);
+}
+
+// C ref: trap.c:4883
+export function back_on_ground(player) {
+    if (!player) return false;
+    player.levitating = false;
+    player.Levitation = false;
+    return true;
+}
+
+// C ref: trap.c:4966
+export async function drown(player, game = null) {
+    if (!player) return false;
+    await losehp(rnd(20), 'drowning', 0, game?.display, game);
+    return true;
+}
+
+// C ref: trap.c:4804
+export function emergency_disrobe(player) {
+    if (!player) return false;
+    player.emergencyDisrobe = true;
+    return true;
+}
+
+// C ref: trap.c:5165
+export function could_untrap(player, trap) {
+    if (!player || !trap) return false;
+    const dex = Number(player.dex || player.Dexterity || 10);
+    return dex >= 6 && trap.ttyp !== MAGIC_PORTAL && trap.ttyp !== VIBRATING_SQUARE;
+}
+
+// C ref: trap.c:5196
+export function untrap_prob(player, trap) {
+    if (!player || !trap) return 0;
+    const base = Math.max(1, Number(player.dex || 10) * 5);
+    if (trap.ttyp === LANDMINE) return Math.max(5, base - 10);
+    return base;
+}
+
+// C ref: trap.c:5300
+export async function move_into_trap(player, trap, game, map) {
+    if (!player || !trap) return false;
+    await dotrap(trap, FORCETRAP, player, game, map);
+    return true;
+}
+
+// C ref: trap.c:5348
+export async function try_disarm(player, trap, game, map) {
+    if (!could_untrap(player, trap)) return false;
+    if (rn2(100) < untrap_prob(player, trap)) {
+        trap.ttyp = NO_TRAP;
+        deltrap(map, trap);
+        return true;
+    }
+    await move_into_trap(player, trap, game, map);
+    return false;
+}
+
+// C ref: trap.c:5460
+export async function disarm_holdingtrap(player, trap, game, map) {
+    return try_disarm(player, trap, game, map);
+}
+
+// C ref: trap.c:5584
+export async function try_lift(player, trap, game, map) {
+    return try_disarm(player, trap, game, map);
+}
+
+// C ref: trap.c:5607
+export function help_monster_out(mon, trap, map) {
+    if (!mon || !trap) return false;
+    if (!immune_to_trap(mon, trap.ttyp)) return false;
+    deltrap(map, trap);
+    return true;
+}
+
+// C ref: trap.c:6117
+export function closeholdingtrap(trap) {
+    if (!trap) return false;
+    trap.open = false;
+    return true;
+}
+
+// C ref: trap.c:6008
+export function openholdingtrap(trap) {
+    if (!trap) return false;
+    trap.open = true;
+    return true;
+}
+
+// C ref: trap.c:6159
+export function openfallingtrap(trap) {
+    if (!trap) return false;
+    trap.open = true;
+    return true;
+}
+
+// C ref: trap.c:6529
+export function join_adjacent_pits(map, x, y) {
+    if (!map) return 0;
+    let count = 0;
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            if (!dx && !dy) continue;
+            const t = t_at((x | 0) + dx, (y | 0) + dy, map);
+            if (t && is_pit(t.ttyp)) count++;
+        }
+    }
+    return count;
+}
+
+// C ref: trap.c:6966
+export function maybe_finish_sokoban(player) {
+    if (!player) return false;
+    if ((player.sokobanGuilt || 0) <= 0) player.sokobanFinished = true;
+    return !!player.sokobanFinished;
+}
+
+// C ref: trap.c:7065
+export function ignite_items(_player, _game = null) {
+    return 0;
+}
+
+// C ref: trap.c:726
+export function animate_statue(_obj, _x, _y, _game = null) {
+    return false;
 }
