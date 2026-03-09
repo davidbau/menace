@@ -32,7 +32,7 @@ Rules
 | S16 | [#296](https://github.com/davidbau/menace/issues/296) | pickup.c container loot parity | `Ready` |
 | S17 | [#297](https://github.com/davidbau/menace/issues/297) | do_wear.c wear/takeoff edge parity | `Ready` |
 | S18 | [#298](https://github.com/davidbau/menace/issues/298) | wield.c wield/swap/quiver parity | `Ready` |
-| S19 | [#299](https://github.com/davidbau/menace/issues/299) | weapon.c skill progression parity | `Ready` |
+| S19 | [#299](https://github.com/davidbau/menace/issues/299) | weapon.c skill progression parity | `Done` (ledger) |
 | S20 | [#300](https://github.com/davidbau/menace/issues/300) | apply.c tools family A parity | `Ready` |
 | S21 | [#301](https://github.com/davidbau/menace/issues/301) | apply.c tools family B parity | `Ready` |
 | S22 | [#302](https://github.com/davidbau/menace/issues/302) | apply.c tools family C parity | `Ready` |
@@ -45,13 +45,13 @@ Rules
 | S29 | [#310](https://github.com/davidbau/menace/issues/310) | zap.c self/monster matrix parity | `Ready` |
 | S30 | [#311](https://github.com/davidbau/menace/issues/311) | trap.c dotrap core parity | `Ready` |
 | S31 | [#312](https://github.com/davidbau/menace/issues/312) | trap.c advanced player effects parity | `Ready` |
-| S32 | [#313](https://github.com/davidbau/menace/issues/313) | hack.c movement/rush parity | `Ready` |
-| S33 | [#314](https://github.com/davidbau/menace/issues/314) | hack.c travel parity | `Ready` |
+| S32 | [#313](https://github.com/davidbau/menace/issues/313) | hack.c movement/rush parity | `Done` (ledger) |
+| S33 | [#314](https://github.com/davidbau/menace/issues/314) | hack.c travel parity | `Done` (ledger) |
 | S34 | [#315](https://github.com/davidbau/menace/issues/315) | mon.c lifecycle parity | `Ready` |
 | S35 | [#316](https://github.com/davidbau/menace/issues/316) | mondata.c predicate parity | `Done` (121f9695) |
 | S36 | [#317](https://github.com/davidbau/menace/issues/317) | monmove.c postmove edge parity | `Ready` |
 | S37 | [#318](https://github.com/davidbau/menace/issues/318) | dog.c pet transfer parity | `Ready` |
-| S38 | [#319](https://github.com/davidbau/menace/issues/319) | dogmove.c remaining AI parity | `Ready` |
+| S38 | [#319](https://github.com/davidbau/menace/issues/319) | dogmove.c remaining AI parity | `Done` (ledger) |
 | S39 | [#320](https://github.com/davidbau/menace/issues/320) | mhitu.c special attack parity | `Ready` |
 | S40 | [#321](https://github.com/davidbau/menace/issues/321) | uhitm.c hero attack parity | `Ready` |
 | S41 | [#322](https://github.com/davidbau/menace/issues/322) | mhitm.c monster-vs-monster parity | `Ready` |
@@ -68,6 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 49
-- Completed slices: 1 (S35)
-
+- Open slices: 45
+- Completed slices: 5 (S19, S32, S33, S35, S38)
