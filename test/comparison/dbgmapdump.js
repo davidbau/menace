@@ -398,6 +398,23 @@ function getContextEntries(replay, rawStep, span = 8) {
     return out;
 }
 
+function stepSignalCounts(stepLike) {
+    const rng = Array.isArray(stepLike?.rng) ? stepLike.rng : [];
+    let events = 0;
+    let calls = 0;
+    for (const entry of rng) {
+        const text = String(entry || '');
+        if (!text) continue;
+        if (text[0] === '^') {
+            events++;
+            continue;
+        }
+        if (text[0] === '>' || text[0] === '<') continue;
+        calls++;
+    }
+    return { rngCalls: calls, events };
+}
+
 function runCStepCapture(sessionPath, rawStep, outJson, fixedDatetime = null, keysJsonPath = null) {
     const script = resolve('test/comparison/c-harness/capture_step_snapshot.py');
     const env = { ...process.env };
@@ -514,7 +531,7 @@ async function main() {
     }
 
     const captures = [];
-    replayArgs.opts.onKey = ({ index, game }) => {
+    replayArgs.opts.onKey = ({ index, game, step }) => {
         const rawStep = index + 1;
         const sessionStep = rawTargets.get(rawStep);
         if (!sessionStep) return;
@@ -529,12 +546,18 @@ async function main() {
         const abs = join(jsDir, file);
         writeFileSync(abs, payload, 'utf8');
         const parsed = parseCompactMapdump(payload);
+        const jsCounts = stepSignalCounts(step);
+        const sessionCounts = stepSignalCounts(session.steps[sessionStep - 1]);
         captures.push({
             sessionStep,
             rawStep,
             file,
             jsPath: abs,
             signature: mapdumpSignature(parsed),
+            jsRngCalls: jsCounts.rngCalls,
+            jsEvents: jsCounts.events,
+            sessionRngCalls: sessionCounts.rngCalls,
+            sessionEvents: sessionCounts.events,
         });
     };
 
@@ -661,7 +684,14 @@ async function main() {
 
     console.log(`Captured ${captures.length} JS debug mapdump(s) -> ${jsDir}`);
     for (const c of captures) {
-        console.log(`  step ${c.sessionStep} raw=${c.rawStep} sig=${c.signature}`);
+        const dRng = Number(c.jsRngCalls || 0) - Number(c.sessionRngCalls || 0);
+        const dEvt = Number(c.jsEvents || 0) - Number(c.sessionEvents || 0);
+        console.log(
+            `  step ${c.sessionStep} raw=${c.rawStep} `
+            + `rng js/c=${c.jsRngCalls}/${c.sessionRngCalls} d=${dRng} `
+            + `evt js/c=${c.jsEvents}/${c.sessionEvents} d=${dEvt} `
+            + `sig=${c.signature}`
+        );
     }
     console.log(`test_move mode=${args.testMoveMode} enabled=${enableTestMove ? 'yes' : 'no'} c_has_test_move=${cHasTestMove ? 'yes' : 'no'}`);
     if (args.cSide) {

@@ -9,7 +9,7 @@ import { pushInput } from './input.js';
 import { NetHackGame, run_command, execute_repeat_command } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
-import { envFlag } from './runtime_env.js';
+import { envFlag, getEnv } from './runtime_env.js';
 
 export { HeadlessDisplay };
 
@@ -89,8 +89,37 @@ function replayPendingTraceEnabled() {
     return envFlag('WEBHACK_REPLAY_PENDING_TRACE');
 }
 
+function traceStepWindow() {
+    const fromRaw = getEnv('WEBHACK_TRACE_STEP_FROM', '');
+    const toRaw = getEnv('WEBHACK_TRACE_STEP_TO', '');
+    const from = Number.parseInt(String(fromRaw || '').trim(), 10);
+    const to = Number.parseInt(String(toRaw || '').trim(), 10);
+    return {
+        from: Number.isInteger(from) ? from : null,
+        to: Number.isInteger(to) ? to : null,
+    };
+}
+
+function parseTraceStep(args) {
+    for (const a of args) {
+        const m = /(?:^|\s)step=(\d+)(?:\s|$)/.exec(String(a || ''));
+        if (m) return Number.parseInt(m[1], 10);
+    }
+    return null;
+}
+
+function stepInTraceWindow(step) {
+    if (!Number.isInteger(step)) return true;
+    const { from, to } = traceStepWindow();
+    if (Number.isInteger(from) && step < from) return false;
+    if (Number.isInteger(to) && step > to) return false;
+    return true;
+}
+
 function replayPendingTrace(...args) {
     if (!replayPendingTraceEnabled()) return;
+    const step = parseTraceStep(args);
+    if (!stepInTraceWindow(step)) return;
     // eslint-disable-next-line no-console
     console.log('[REPLAY_PENDING_TRACE]', ...args);
 }

@@ -5236,3 +5236,34 @@ hard-won wisdom:
   - `node --test test/unit/display_runtime_safety.test.js` passes (`4/4`).
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2555 pass / 5 fail` (same known 5 input-queue failures).
+
+### seed033 late-window boundary split (step 935/936) (2026-03-08)
+
+- Problem:
+  - `seed033_manual_direct` shows a persistent late screen mismatch around
+    step 935 (`@` appears one step early in JS at row 10), with RNG/event
+    divergence shortly after.
+- Isolation:
+  - `dbgmapdump` window around 933-936 + `WEBHACK_REPLAY_PENDING_TRACE=1`
+    + `WEBHACK_RUN_TRACE=1` shows:
+    - step 933 (`_`): `getpos_async` starts and waits for input.
+    - step 934 (`>`): prompt resumes, still waiting.
+    - step 935 (`.`): prompt resumes and completes, then JS runs a full travel
+      chain in the same step (`69,6 -> ... -> 77,9`, then `travel.no-path`).
+  - Per-step count evidence (`scripts/comparison-window.mjs --step-summary`)
+    shows a clear adjacent shift:
+    - step 935: RNG `js/c = 540/140` (+400)
+    - step 936: RNG `js/c = 0/400` (-400)
+    - events show the same +N/-N packing pattern.
+  - C session confirms the split by step:
+    - step 935 and 936 both contain large `moveloop_core`/`distfleeck` blocks,
+      but distributed across two keys.
+- Root cause candidate:
+  - C harness recorder (`test/comparison/c-harness/run_session.py`) sends keys
+    on fixed delay and captures after each sent key; it does not wait for
+    command completion/boundary stabilization between keys.
+  - JS replay currently drains a resumed pending command to completion before
+    advancing to the next key, so work can be packed one step earlier.
+- Guardrail:
+  - Do not hide this via comparator masking or replay synthetic key injection.
+  - Fix needs runtime/input-boundary faithfulness, not comparator exceptions.
