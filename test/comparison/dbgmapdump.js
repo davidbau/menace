@@ -7,7 +7,7 @@ import {
 } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-import { normalizeSession, parseCompactMapdump } from './session_loader.js';
+import { normalizeSession, parseCompactMapdump, stripAnsiSequences } from './session_loader.js';
 import { prepareReplayArgs } from '../../js/replay_compare.js';
 import { replaySession } from '../../js/replay_core.js';
 import { buildDebugMapdumpPayload } from '../../js/dungeon.js';
@@ -61,6 +61,7 @@ function usage() {
         + '  --adjacent-diff           Compare each captured JS step to the previous captured JS step\n'
         + '                            and report first differing section (uses --sections)\n'
         + '  --c-side                  Also capture C-side snapshots for selected steps\n\n'
+        + '  --screens                 Also capture per-step JS/session screen rows for selected steps\n\n'
         + '  --with-test-move          Force-enable ^test_move event stream in JS/C replay\n'
         + '  --no-test-move            Force-disable ^test_move event stream in JS/C replay\n\n'
         + 'Compare options:\n'
@@ -103,6 +104,7 @@ function parseArgs(argv) {
         testMoveMode: 'auto',
         firstDivergence: false,
         adjacentDiff: false,
+        screens: false,
     };
     for (let i = 2; i < argv.length; i++) {
         const a = argv[i];
@@ -125,6 +127,7 @@ function parseArgs(argv) {
         else if (a === '--no-test-move') out.testMoveMode = 'off';
         else if (a === '--first-divergence') out.firstDivergence = true;
         else if (a === '--adjacent-diff') out.adjacentDiff = true;
+        else if (a === '--screens') out.screens = true;
         else if (a === '--help' || a === '-h') out.help = true;
         else if (!out.sessionPath) out.sessionPath = a;
         else throw new Error(`Unknown arg: ${a}`);
@@ -415,6 +418,23 @@ function stepSignalCounts(stepLike) {
     return { rngCalls: calls, events };
 }
 
+function normalizeScreenLines(lines) {
+    return (Array.isArray(lines) ? lines : [])
+        .map((line) => stripAnsiSequences(String(line || '')));
+}
+
+function firstScreenDiff(actualLines, expectedLines) {
+    const a = normalizeScreenLines(actualLines);
+    const e = normalizeScreenLines(expectedLines);
+    const n = Math.max(a.length, e.length);
+    for (let i = 0; i < n; i++) {
+        const aa = a[i] || '';
+        const ee = e[i] || '';
+        if (aa !== ee) return { row: i + 1, js: aa, session: ee };
+    }
+    return null;
+}
+
 function runCStepCapture(sessionPath, rawStep, outJson, fixedDatetime = null, keysJsonPath = null) {
     const script = resolve('test/comparison/c-harness/capture_step_snapshot.py');
     const env = { ...process.env };
@@ -497,7 +517,7 @@ async function main() {
     if (session.meta.options?.autopickup === false) flags.pickup = false;
 
     const replayArgs = prepareReplayArgs(session.meta.seed, session.raw, {
-        captureScreens: false,
+        captureScreens: !!args.screens,
         startupBurstInFirstStep: false,
         flags,
         replayMode: session.meta.type === 'interface' ? 'interface' : undefined,
@@ -548,6 +568,9 @@ async function main() {
         const parsed = parseCompactMapdump(payload);
         const jsCounts = stepSignalCounts(step);
         const sessionCounts = stepSignalCounts(session.steps[sessionStep - 1]);
+        const jsScreen = args.screens ? String(step?.screen || '').split('\n') : null;
+        const sessionScreen = args.screens ? (session.steps[sessionStep - 1]?.screen || null) : null;
+        const screenDiff = args.screens ? firstScreenDiff(jsScreen, sessionScreen) : null;
         captures.push({
             sessionStep,
             rawStep,
@@ -558,6 +581,9 @@ async function main() {
             jsEvents: jsCounts.events,
             sessionRngCalls: sessionCounts.rngCalls,
             sessionEvents: sessionCounts.events,
+            jsScreen: args.screens ? jsScreen : undefined,
+            sessionScreen: args.screens ? sessionScreen : undefined,
+            firstScreenDiff: args.screens ? screenDiff : undefined,
         });
     };
 
@@ -672,6 +698,7 @@ async function main() {
             context: args.context,
             firstDivergence: args.firstDivergence,
             adjacentDiff: args.adjacentDiff,
+            screens: args.screens,
         },
         captured: captures,
         comparisons,
@@ -722,6 +749,17 @@ async function main() {
             const d = row.diffs?.[0];
             if (d?.section) console.log(`  ${row.fromStep} -> ${row.toStep}: first diff section=${d.section} kind=${d.kind}`);
             else console.log(`  ${row.fromStep} -> ${row.toStep}: mismatch`);
+        }
+    }
+    if (args.screens) {
+        console.log('Screen summary:');
+        for (const c of captures) {
+            const d = c.firstScreenDiff;
+            if (!d) {
+                console.log(`  step ${c.sessionStep}: screen match`);
+            } else {
+                console.log(`  step ${c.sessionStep}: first screen diff row=${d.row}`);
+            }
         }
     }
 }
