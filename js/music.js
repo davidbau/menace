@@ -15,6 +15,7 @@
 
 import { rn2, rnd, rn1, d, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
+import { incr_itimeout } from './potion.js';
 import { acurr as ACURR } from './attrib.js';
 import { pline, pline_The, You, Your, You_hear, You_feel, You_cant,
          Norep, impossible } from './pline.js';
@@ -57,7 +58,8 @@ import { isok, COLNO, ROWNO, PIT, SPIKED_PIT, is_pit,
          SDOOR, DOOR, D_NODOOR,
          AM_MASK, AM_SANCTUM, Amask2align,
          DRAWBRIDGE_DOWN, DRAWBRIDGE_UP, SHOPBASE,
-         IS_DRAWBRIDGE, XKILL_NOMSG, TT_NONE, TT_PIT, TT_BURIEDBALL } from './const.js';
+         IS_DRAWBRIDGE, XKILL_NOMSG, TT_NONE, TT_PIT, TT_BURIEDBALL,
+         DEAF } from './const.js';
 import { getlin, ynFunction } from './input.js';
 
 // ============================================================================
@@ -678,7 +680,7 @@ async function do_improvisation(instr, player, map, display, fov) {
                 await You(`beat a ${same_old_song ? 'familiar ' : ''}deafening row!`);
                 // Hero_playnotes — sound library, no-op in JS
                 // incr_itimeout(&HDeaf, rn1(20, 30)) — deafness timeout
-                rn1(20, 30); // consume RNG for deafness duration
+                incr_itimeout(player, DEAF, rn1(20, 30));
             } else {
                 await You('pound on the drum.');
             }

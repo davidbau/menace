@@ -28,7 +28,7 @@ import { mon_knows_traps, mon_learns_traps, mons_see_trap,
 import { mondead, helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
-import { make_stunned } from './potion.js';
+import { make_stunned, make_blinded } from './potion.js';
 import { find_mac, which_armor } from './worn.js';
 import { mtele_trap, mlevel_tele_trap,
          tele_trap, level_tele_trap, domagicportal } from './teleport.js';
@@ -2060,8 +2060,7 @@ async function domagictrap(player, game, map) {
         const blindRes = !!(player?.blind_resistance || player?.Blind_resistance);
         if (!blindRes) {
             await You('are momentarily blinded by a flash of light!');
-            // C: make_blinded(rn1(5,10), FALSE) — not ported; consume RNG
-            rn1(5, 10);
+            make_blinded(player, rn1(5, 10), false);
         } else if (!(player?.Blind || player?.blind)) {
             await pline('You see a flash of light!');
         }
