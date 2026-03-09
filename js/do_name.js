@@ -11,6 +11,7 @@
 //                 rndcolor, rndorcname, christen_orc, lookup_novel
 
 import { rn2, rn1, rn2_on_display_rng } from './rng.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { mons, SPECIAL_PM, G_NOGEN, G_UNIQ, PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER } from './monsters.js';
 import { highc, upstart, s_suffix } from './hacklib.js';
 import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE, SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME, LOW_PM } from './const.js';
@@ -1153,6 +1154,20 @@ export async function handleCallObjectTypePrompt(player, display) {
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
+            replacePromptMessage();
+            const lines = buildInventoryOverlayLines(player);
+            const allInvLetters = inventory
+                .filter((o) => o && o.invlet)
+                .map((o) => o.invlet)
+                .join('');
+            const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+            if (menuSelection) {
+                const menuItem = inventory.find((obj) => obj && obj.invlet === menuSelection);
+                if (menuItem && isObjectTypeCallable(menuItem)) {
+                    await getlin(`Call ${doname(menuItem, player)}:`, display);
+                    return { moved: false, tookTime: false };
+                }
+            }
             continue;
         }
 

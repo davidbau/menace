@@ -41,7 +41,7 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          WAN_STRIKING,
          GLASS, GEMSTONE, MINERAL, CLOTH,
        } from './objects.js';
-import { compactInvletPromptChars, renderOverlayMenuUntilDismiss } from './invent.js';
+import { compactInvletPromptChars, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
 import { doname, next_ident, xname, is_crackable } from './mkobj.js';
 import { x_monnam, is_unicorn, nohands, notake } from './mondata.js';
 import { obj_resists } from './objdata.js';
@@ -564,7 +564,7 @@ export async function handleFire(player, map, display, game) {
         const ch = await awaitInput(game, nhgetch(), {
             site: 'dothrow.handleFire.select',
         });
-        const c = String.fromCharCode(ch);
+        let c = String.fromCharCode(ch);
         if (invalidMorePending) {
             if (ch === 27) {
                 invalidMorePending = false;
@@ -596,7 +596,23 @@ export async function handleFire(player, map, display, game) {
             }
             continue;
         }
-        if (c === '?' || c === '*') continue;
+        if (c === '?' || c === '*') {
+            replacePromptMessage();
+            const lines = buildInventoryOverlayLines(player);
+            const allInvLetters = (player.inventory || [])
+                .filter((o) => o && o.invlet)
+                .map((o) => o.invlet)
+                .join('');
+            const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+            if (menuSelection) {
+                c = menuSelection;
+                // Fall through to item processing below.
+            } else {
+                replacePromptMessage();
+                await display.putstr_message(firePrompt);
+                continue;
+            }
+        }
         const selected = inventory.find((itm) => itm?.invlet === c);
         if (selected) {
             if (selected === player.weapon) {
