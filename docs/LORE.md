@@ -5377,3 +5377,27 @@ hard-won wisdom:
     - Before this slice: first RNG divergence at step `996`.
     - After this slice: first RNG divergence at step `1295`.
     - Matched RNG prefix improved to `13875/15023`, screens to `1258/1417`.
+
+### seed033: command-boundary runstep count-prefix metadata and menu toggle parity (2026-03-09)
+
+- Problem:
+  - JS emitted `^runstep` for count-prefix digit keys and logged the
+    subsequent command boundary with incorrect metadata (`cc=0` and
+    `repeat_cmd`) versus C (`cc=9` and `fresh_cmd` for `9s`).
+  - JS drop-type class prompt did not redraw `+/-` selection markers after
+    accelerators were toggled, so C/JS screens diverged on `A + ...`.
+- Fixes:
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js):
+    - Suppressed `fresh_cmd` runstep emission for pure count-digit keys.
+    - Derived `effectiveCountPrefix` from explicit `countPrefix` or
+      `game.countAccum` before emitting `runstep`.
+    - Emitted initial command boundary as `fresh_cmd` before multi-repeat state
+      is applied, matching C runstep metadata shape.
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js):
+    - Added menu-line toggle redraw for drop-type class prompt so accelerator
+      lines switch between `-` and `+` like C.
+- Validation:
+  - `seed033_manual_direct` raw event window now matches C `^runstep` metadata
+    for the count-prefixed `s` boundary (`path=fresh_cmd`, `cmd=115`, `cc=9`).
+  - `seed033_manual_direct` screen match improved from `1258/1417` to
+    `1263/1417` (no RNG/event regression from this slice).

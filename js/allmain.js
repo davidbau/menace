@@ -523,12 +523,6 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
-    const runstepPath = game?.multi > 0
-        ? ((game?.context?.mv) ? 'repeat_mv' : 'repeat_cmd')
-        : (game?.multi === 0 ? 'fresh_cmd' : 'other');
-    const runstepKeyarg = game?.multi > 0 ? (game?.cmdKey | 0) : 0;
-    const runstepCmd = game?.multi > 0 ? (game?.cmdKey | 0) : chCode;
-    emitRunstep(game, runstepKeyarg, runstepPath, runstepCmd);
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: game?.getInputBoundaryState?.() || null,
@@ -793,9 +787,15 @@ export async function run_command(game, ch, opts = {}) {
     }
 
     // Set multi from countPrefix, set cmdKey
-    game.commandCount = countPrefix;
-    if (countPrefix > 0) {
-        game.multi = countPrefix - 1; // first execution is now
+    const effectiveCountPrefix = (countPrefix > 0)
+        ? countPrefix
+        : ((game.countAccum != null) ? (game.countAccum | 0) : 0);
+    game.commandCount = effectiveCountPrefix;
+    if (!_isCountDigit) {
+        emitRunstep(game, 0, 'fresh_cmd', chCode);
+    }
+    if (effectiveCountPrefix > 0) {
+        game.multi = effectiveCountPrefix - 1; // first execution is now
     } else {
         game.multi = 0;
     }
