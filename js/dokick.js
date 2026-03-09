@@ -57,7 +57,7 @@ import {
     objectData,
 } from './objects.js';
 import { obj_resists } from './objdata.js';
-import { mondead, setmangry, seemimic, wakeup, wake_nearto, wake_nearby } from './mon.js';
+import { mondead, setmangry, seemimic, wakeup, wake_nearto, wake_nearby, angry_guards } from './mon.js';
 import { newsym, map_invisible, canSpotMonsterForMap } from './display.js';
 import { mpickobj } from './steal.js';
 import { monflee } from './monmove.js';
@@ -500,13 +500,7 @@ async function get_iter_mons_xy(fn, x, y, map) {
     return false;
 }
 
-// ============================================================================
-// angry_guards stub
-// ============================================================================
-function angry_guards(silent) {
-    // TODO: implement
-    return false;
-}
+// angry_guards: imported from mon.js
 
 // ============================================================================
 // mon_yells stub
