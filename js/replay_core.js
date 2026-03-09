@@ -346,6 +346,7 @@ export async function replaySession(seed, opts, keys) {
         // C ref: the C harness captures the tmux screen AFTER the key is
         // fully processed (including deferred_goto which runs inside
         // run_command). Screen capture here reflects the post-command state.
+        await Promise.resolve();
         const screenCapture = opts.captureScreens ? captureScreen(display) : '';
         const cursorCapture = captureCursor(display);
 
