@@ -1055,19 +1055,19 @@ async function _drainOccupation(game, coreOpts, onTimedTurn) {
 // N/A: allmain.c:175 — harness_dump_checkpoint() (file I/O; JS harness uses oracle/)
 
 // cf. allmain.c:36 — early_init(argc, argv): pre-game initialization
-// TODO: allmain.c:36 — early_init(): pre-game initialization
+// Implemented: allmain.js:2462 (autotranslated) + NetHackGame constructor
 
 // cf. allmain.c:50 [static] — moveloop_preamble(resuming): pre-loop setup
-// TODO: allmain.c:50 — moveloop_preamble(): pre-loop setup
+// Implemented: NetHackGame.init() showLoreAndWelcome path
 
 // cf. allmain.c:566 [static] — maybe_do_tutorial(void): tutorial prompt
-// TODO: allmain.c:566 — maybe_do_tutorial(): tutorial entry prompt
+// Implemented: buildReplayTutorialPromptFlow (line 1209)
 
 // cf. allmain.c:586 — moveloop(resuming): main game loop
-// TODO: allmain.c:586 — moveloop(): main game loop
+// Implemented: allmain.js:2472 (autotranslated) + NetHackGame.gameLoop
 
 // cf. allmain.c:599 [static] — regen_pw(wtcap): power point regeneration
-// TODO: allmain.c:599 — regen_pw(): power regeneration
+// Implemented: regen_pw_turnend (line 1127)
 
 // cf. allmain.c:621 [static] — regen_hp(wtcap): hit point regeneration
 // Ported from C's regen_hp() (allmain.c:623-681).
@@ -1146,19 +1146,19 @@ function regen_pw_turnend(game) {
 }
 
 // cf. allmain.c:697 — init_sound_disp_gamewindows(void): init display/sound
-// TODO: allmain.c:697 — init_sound_disp_gamewindows(): display initialization
+// Implemented: NetHackGame.init() handles display/animation setup
 
 // cf. allmain.c:764 — newgame(void): new game initialization
-// TODO: allmain.c:764 — newgame(): new game setup
+// Implemented: NetHackGame.init()
 
 // cf. allmain.c:851 — welcome(new_game): display welcome message
-// TODO: allmain.c:851 — welcome(): welcome message display
+// Implemented: NetHackGame.init() showLoreAndWelcome path
 
 // cf. allmain.c:907 [static] — do_positionbar(void): update position bar
-// TODO: allmain.c:907 — do_positionbar(): position bar update
+// N/A: tty position bar, not applicable to JS
 
 // cf. allmain.c:950 [static] — interrupt_multi(msg): interrupt multi-turn action
-// TODO: allmain.c:950 — interrupt_multi(): multi-turn interrupt
+// Implemented: allmain.js:2482
 
 // cf. allmain.c:1001 — argcheck(argc, argv, e_arg): process early CLI args
 // N/A: allmain.c:1001 — argcheck() (no command-line args in browser)

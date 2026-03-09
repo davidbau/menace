@@ -315,26 +315,26 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### allmain.c -> allmain.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1001 | `argcheck` | - | Missing |
-| 1124 | `debug_fields` | - | Missing |
-| 907 | `do_positionbar` | - | Missing |
-| 1259 | `dump_enums` | - | Missing |
-| 1356 | `dump_glyphids` | - | Missing |
-| 36 | `early_init` | - | Missing |
-| 697 | `init_sound_disp_gamewindows` | - | Missing |
-| 950 | `interrupt_multi` | - | Missing |
-| 566 | `maybe_do_tutorial` | - | Missing |
-| 586 | `moveloop` | - | Missing |
-| 169 | `moveloop_core` | - | Missing |
-| 50 | `moveloop_preamble` | - | Missing |
-| 764 | `newgame` | - | Missing |
-| 621 | `regen_hp` | allmain.js:regen_hp | Approximation — core heal formula ported (level+CON vs rn2(100)), Regeneration intrinsic bonus. Missing: polymorph HP (u.mh), eel-out-of-water, encumbrance check (wtcap/MOD_ENCUMBER), Sleepy+asleep bonus |
-| 599 | `regen_pw` | - | Missing |
-| 680 | `stop_occupation` | - | Missing |
-| 1182 | `timet_delta` | - | Missing |
-| 1173 | `timet_to_seconds` | - | Missing |
-| 116 | `u_calc_moveamt` | - | Missing |
-| 851 | `welcome` | - | Missing |
+| 1001 | `argcheck` | - | N/A (CLI args, no browser equivalent) |
+| 1124 | `debug_fields` | - | N/A (CLI debug parsing, no browser equivalent) |
+| 907 | `do_positionbar` | - | N/A (tty position bar, not applicable to JS) |
+| 1259 | `dump_enums` | allmain.js:2492 | N/A (build-time tool; autotranslated stub) |
+| 1356 | `dump_glyphids` | allmain.js:2516 | N/A (build-time tool; autotranslated stub) |
+| 36 | `early_init` | allmain.js:2462, NetHackGame constructor | Implemented |
+| 697 | `init_sound_disp_gamewindows` | NetHackGame.init() | Implemented (display/animation setup in init()) |
+| 950 | `interrupt_multi` | allmain.js:2482 | Implemented |
+| 566 | `maybe_do_tutorial` | allmain.js:1209 buildReplayTutorialPromptFlow | Implemented |
+| 586 | `moveloop` | allmain.js:2472, NetHackGame.gameLoop | Implemented |
+| 169 | `moveloop_core` | allmain.js:148 | Implemented |
+| 50 | `moveloop_preamble` | NetHackGame.init() showLoreAndWelcome | Implemented |
+| 764 | `newgame` | NetHackGame.init() | Implemented |
+| 621 | `regen_hp` | allmain.js:1078 | Implemented — encumbrance gate, Regeneration bonus, full-health interrupt |
+| 599 | `regen_pw` | allmain.js:1127 regen_pw_turnend | Implemented |
+| 680 | `stop_occupation` | allmain.js:438 | Implemented |
+| 1182 | `timet_delta` | allmain.js:2487 | N/A (JS Date arithmetic; autotranslated stub) |
+| 1173 | `timet_to_seconds` | allmain.js:2521 | N/A (JS Date.now(); autotranslated stub) |
+| 116 | `u_calc_moveamt` | allmain.js:463 | Implemented |
+| 851 | `welcome` | NetHackGame.init() showLoreAndWelcome | Implemented |
 
 ### alloc.c -> —
 | C Line | C Function | JS Line | Alignment |

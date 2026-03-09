@@ -14,7 +14,7 @@ Rules
 
 | Slice | Issue | Scope | Status |
 |---|---|---|---|
-| S01 | [#281](https://github.com/davidbau/menace/issues/281) | allmain.c turn loop parity | `Ready` |
+| S01 | [#281](https://github.com/davidbau/menace/issues/281) | allmain.c turn loop parity | `Done` (all 20 Missing→Implemented/N/A: moveloop_core, u_calc_moveamt, stop_occupation, regen_hp, regen_pw, interrupt_multi, early_init, moveloop, moveloop_preamble, newgame, welcome, maybe_do_tutorial, init_sound_disp_gamewindows + 7 N/A) |
 | S02 | [#282](https://github.com/davidbau/menace/issues/282) | cmd.c dispatch core parity | `Ready` |
 | S03 | [#283](https://github.com/davidbau/menace/issues/283) | cmd.c extended command parity | `Ready` |
 | S04 | [#284](https://github.com/davidbau/menace/issues/284) | options.c parse/apply parity | `Ready` |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 17
-- Completed slices: 33 (S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 16
+- Completed slices: 34 (S01, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
