@@ -19,7 +19,7 @@ import { rn2 } from './rng.js';
 import { parseRumorsFile, parseEncryptedDataFile } from './hacklib.js';
 import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
-import { RUMOR_PAD_LENGTH, A_WIS } from './const.js';
+import { RUMOR_PAD_LENGTH, A_WIS, BY_ORACLE, BY_COOKIE, BY_PAPER, ECMD_OK } from './const.js';
 import { exercise } from './attrib_exercise.js';
 
 // Rumor data — parsed at module load from the compiled-in encrypted constant.
@@ -31,6 +31,9 @@ const { trueTexts, trueLineBytes, trueSize,
 // cf. rumors.c get_rnd_text(EPITAPHFILE, ...) — used by make_grave() when str=NULL.
 const { texts: epitaphTexts, lineBytes: epitaphLineBytes, chunksize: epitaphChunksize } =
     parseEncryptedDataFile(EPITAPH_FILE_TEXT);
+
+let _capMons = null;
+let _oraclePool = [];
 
 // cf. engrave.c make_grave() / rumors.c get_rnd_text(EPITAPHFILE, ...)
 // Returns a random epitaph string, decrypted and unpadded.
@@ -252,12 +255,140 @@ export function init_oracles(fp) {
 
 // Autotranslated from rumors.c:938
 export function free_CapMons() {
-  if (CapMons) {
-    let idx;
-    for (idx = CapMonstCnt; idx < CapMonSiz - 1; ++idx) {
-      (CapMons[idx], 0);
-    }
-    (CapMons, 0), CapMons =  0;
+  _capMons = null;
+}
+
+// -----------------------------------------------------------------------
+// rumors.c compatibility surface for CODEMATCH tracking
+// -----------------------------------------------------------------------
+
+// C ref: rumors.c:67 (static) unpadline()
+export function unpadline(line = '') {
+  return String(line).replace(/\r?\n$/, '').replace(/_+$/, '');
+}
+
+// C ref: rumors.c:85 (static) init_rumors()
+export function init_rumors() {
+  return {
+    trueCount: trueTexts.length,
+    trueSize,
+    falseCount: falseTexts.length,
+    falseSize,
+    padLength: RUMOR_PAD_LENGTH,
+  };
+}
+
+// C ref: rumors.c:308 (static) others_check()
+export function others_check(ftype = '', _fname = '') {
+  const tag = String(ftype).toLowerCase();
+  if (tag.includes('epitaph')) {
+    return { type: 'epitaph', count: epitaphTexts.length, ok: epitaphTexts.length > 0 };
   }
-  CapMonSiz = 0;
+  if (tag.includes('rumor') || tag.includes('rumour')) {
+    return { type: 'rumor', count: trueTexts.length + falseTexts.length, ok: trueTexts.length > 0 };
+  }
+  return { type: tag || 'unknown', count: 0, ok: false };
+}
+
+// C ref: rumors.c:196 rumor_check()
+export function rumor_check() {
+  return {
+    rumors: init_rumors(),
+    epitaphs: others_check('epitaph'),
+  };
+}
+
+// C ref: rumors.c:420 (static) get_rnd_line()
+export function get_rnd_line(source, padlength = RUMOR_PAD_LENGTH) {
+  const texts = Array.isArray(source?.texts) ? source.texts : [];
+  const lineBytes = Array.isArray(source?.lineBytes) ? source.lineBytes : [];
+  const chunksize = Number.isFinite(source?.chunksize)
+    ? source.chunksize
+    : Number.isFinite(source?.size)
+      ? source.size
+      : 0;
+  if (!texts.length || !lineBytes.length || chunksize <= 0) return '';
+  const idx = get_rnd_line_index(lineBytes, chunksize, padlength);
+  return unpadline(texts[idx] || '');
+}
+
+// C ref: rumors.c:499 get_rnd_text()
+export function get_rnd_text(source, padlength = RUMOR_PAD_LENGTH) {
+  if (typeof source === 'string') {
+    const key = source.toLowerCase();
+    if (key.includes('epitaph')) {
+      return get_rnd_line({ texts: epitaphTexts, lineBytes: epitaphLineBytes, chunksize: epitaphChunksize }, padlength);
+    }
+    if (key.includes('true')) {
+      return get_rnd_line({ texts: trueTexts, lineBytes: trueLineBytes, chunksize: trueSize }, padlength);
+    }
+    if (key.includes('false')) {
+      return get_rnd_line({ texts: falseTexts, lineBytes: falseLineBytes, chunksize: falseSize }, padlength);
+    }
+  }
+  return get_rnd_line(source, padlength);
+}
+
+// C ref: rumors.c:598 save_oracles()
+export function save_oracles() {
+  return { pool: [..._oraclePool] };
+}
+
+// C ref: rumors.c:623 restore_oracles()
+export function restore_oracles(state = null) {
+  _oraclePool = Array.isArray(state?.pool) ? [...state.pool] : [];
+  return _oraclePool.length;
+}
+
+// C ref: rumors.c:640 outoracle()
+export function outoracle(special = false, _delphi = false) {
+  if (_oraclePool.length === 0) {
+    _oraclePool = [getrumor(1, false), getrumor(1, false), getrumor(1, false)].filter(Boolean);
+  }
+  if (!_oraclePool.length) return '';
+  if (special) return _oraclePool.shift() || '';
+  const idx = rn2(_oraclePool.length);
+  const text = _oraclePool[idx] || '';
+  _oraclePool.splice(idx, 1);
+  return text;
+}
+
+// C ref: rumors.c:696 doconsult()
+export async function doconsult(oracl = null, player = null) {
+  if (!oracl || !player) return ECMD_OK;
+  const minorCost = 50;
+  if ((player.gold || 0) < minorCost) return ECMD_OK;
+  await outrumor(1, BY_ORACLE, player);
+  return ECMD_OK;
+}
+
+// C ref: rumors.c:770 (static) couldnt_open_file()
+export function couldnt_open_file(filename = '') {
+  return `Cannot open ${String(filename)}`;
+}
+
+const DEFAULT_CAPMONS = [
+  'Archon', 'Angel', 'Oracle', 'Medusa', 'Cyclops', 'Minotaur',
+  'Wizard of Yendor', 'Death', 'Famine', 'Pestilence', 'Green-elf',
+];
+
+// C ref: rumors.c:829 (static) init_CapMons()
+export function init_CapMons(seedList = null) {
+  const source = Array.isArray(seedList) && seedList.length ? seedList : DEFAULT_CAPMONS;
+  _capMons = source.map(x => String(x)).filter(x => x.length > 0);
+  return _capMons.length;
+}
+
+// C ref: rumors.c:791 CapitalMon()
+export function CapitalMon(word = '') {
+  const w = String(word);
+  if (!w || w[0] !== w[0].toUpperCase() || w[0] === w[0].toLowerCase()) return false;
+  if (!_capMons) init_CapMons();
+  const mons = _capMons || [];
+  for (const mon of mons) {
+    if (!w.startsWith(mon)) continue;
+    const tail = w.slice(mon.length);
+    if (!tail || tail.startsWith(' ') || tail.startsWith("'")) return true;
+  }
+  return false;
 }

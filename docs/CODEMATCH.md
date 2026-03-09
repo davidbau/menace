@@ -126,7 +126,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[a]` | rip.c | display.js | RIP screen. genl_outrip as Display.renderTombstone (method); center() inlined |
 | `[x]` | rnd.c | rng.js | Random number generation |
 | `[a]` | role.c | role.js | Role/race/gender/alignment selection. 60 JS exports covering ~42 C functions: roles[]/races[] data with hpadv/enadv_full/xlev structs, mnum field, Role_if/Role_switch macros, ok_role/ok_race/ok_gend/ok_align, plnamesiz, root_plselection_prompt, setup_role, role_init, str2role/str2race/str2gend/str2align, Hello, and filter/validation helpers. Some chargen flow split to chargen.js |
-| `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. JS: `rumor_data.js` (data); unpadline/init_rumors/get_rnd_line in `hacklib.js`; getrumor inlined in `dungeon.js`; outoracle/doconsult/CapitalMon TODO |
+| `[~]` | rumors.c | rumors.js | Rumor/oracle/CapitalMon system. `rumors.js` now exports C-compat helpers (`unpadline`, `init_rumors`, `others_check`, `rumor_check`, `get_rnd_line`, `get_rnd_text`, `save_oracles`, `restore_oracles`, `outoracle`, `doconsult`, `couldnt_open_file`, `init_CapMons`, `CapitalMon`) over JS data-driven architecture |
 | `[a]` | save.c | save.js, storage.js | Game state serialization. Active JS path is `storage.js` (`buildSaveData`/`saveGameState`/`saveLev`/`saveObjChn`/`saveTrapChn`/`handleSave`); binary NHFILE helpers in `save.c` are N/A in browser/localStorage architecture. `freedynamicdata()` mirrors C `tmp_at(DISP_FREEMEM,0)` cleanup |
 | `[a]` | selvar.c | sp_lev.js | Selection geometry. JS selection engine and selvar compatibility surface live in `sp_lev.js` |
 | `[N/A]` | sfbase.c | — | Save file base I/O routines |
@@ -4367,23 +4367,23 @@ Remaining parity gaps are mostly behavioral depth:
 ### rumors.c -> rumors.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 791 | `CapitalMon` | - | Missing |
-| 770 | `couldnt_open_file` | - | Missing |
-| 696 | `doconsult` | - | Missing |
+| 791 | `CapitalMon` | rumors.js:383 | Implemented |
+| 770 | `couldnt_open_file` | rumors.js:366 | Implemented |
+| 696 | `doconsult` | rumors.js:357 | Implemented |
 | 939 | `free_CapMons` | rumors.js:254 | Implemented |
-| 420 | `get_rnd_line` | - | Missing |
-| 499 | `get_rnd_text` | - | Missing |
+| 420 | `get_rnd_line` | rumors.js:302 | Implemented |
+| 499 | `get_rnd_text` | rumors.js:316 | Implemented |
 | 117 | `getrumor` | rumors.js:100 | Implemented |
-| 829 | `init_CapMons` | - | Missing |
+| 829 | `init_CapMons` | rumors.js:376 | Implemented |
 | 577 | `init_oracles` | rumors.js:238 | Implemented |
-| 85 | `init_rumors` | - | Missing |
-| 308 | `others_check` | - | Missing |
-| 640 | `outoracle` | - | Missing |
+| 85 | `init_rumors` | rumors.js:271 | Implemented |
+| 308 | `others_check` | rumors.js:282 | Implemented |
+| 640 | `outoracle` | rumors.js:344 | Implemented |
 | 529 | `outrumor` | rumors.js:206 | Implemented |
-| 623 | `restore_oracles` | - | Missing |
-| 196 | `rumor_check` | - | Missing |
-| 598 | `save_oracles` | - | Missing |
-| 67 | `unpadline` | - | Missing |
+| 623 | `restore_oracles` | rumors.js:338 | Implemented |
+| 196 | `rumor_check` | rumors.js:294 | Implemented |
+| 598 | `save_oracles` | rumors.js:333 | Implemented |
+| 67 | `unpadline` | rumors.js:266 | Implemented |
 
 ### save.c -> save.js
 | C Line | C Function | JS Line | Alignment |

@@ -5976,3 +5976,22 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/pager_surface.test.js` passed.
   - `node --test test/unit/pager_quicklook_prompt.test.js` passed.
+
+### CODEMATCH rumors.c compatibility-surface closure (2026-03-09)
+
+- Problem:
+  - `rumors.c` still had 13 missing rows (`CapitalMon`, random-line/text
+    helpers, oracle save/restore/output, consult wrappers, file-check helpers).
+- Change:
+  - Added a full rumors compatibility surface in `js/rumors.js`:
+    - `unpadline`, `init_rumors`, `others_check`, `rumor_check`,
+      `get_rnd_line`, `get_rnd_text`, `save_oracles`, `restore_oracles`,
+      `outoracle`, `doconsult`, `couldnt_open_file`, `init_CapMons`,
+      `CapitalMon`.
+  - Replaced broken legacy `free_CapMons()` body with a safe JS GC reset.
+  - Added focused tests:
+    - `test/unit/rumors_surface.test.js`.
+  - Updated `docs/CODEMATCH.md` rumors rows and file summary.
+- Validation:
+  - `node --test test/unit/rumors_surface.test.js` passed.
+  - `node --test test/unit/epitaph.test.js` passed.
