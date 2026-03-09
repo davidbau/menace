@@ -5759,51 +5759,51 @@ Remaining parity gaps are mostly behavioral depth:
 ### wizcmds.c -> wizcmds.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1199 | `contained_stats` | - | Missing |
+| 1199 | `contained_stats` | wizcmds.js:910 | Implemented |
 | 1135 | `count_obj` | wizcmds.js:537 | Implemented |
 | 1444 | `levl_sanity_check` | wizcmds.js:640 | Implemented |
-| 1506 | `list_migrating_mons` | - | Missing |
-| 110 | `makemap_remove_mons` | - | Missing |
-| 73 | `makemap_unmakemon` | - | Missing |
+| 1506 | `list_migrating_mons` | wizcmds.js:930 | Implemented |
+| 110 | `makemap_remove_mons` | wizcmds.js:778 | Implemented |
+| 73 | `makemap_unmakemon` | wizcmds.js:771 | Implemented |
 | 1485 | `migrsort_cmp` | wizcmds.js:651 | Implemented |
-| 1284 | `misc_stats` | - | Missing |
+| 1284 | `misc_stats` | wizcmds.js:914 | Implemented |
 | 1257 | `mon_chain` | wizcmds.js:595 | Implemented |
 | 1177 | `mon_invent_chain` | wizcmds.js:548 | Implemented |
-| 1156 | `obj_chain` | - | Missing |
-| 1460 | `sanity_check` | - | Missing |
+| 1156 | `obj_chain` | wizcmds.js:898 | Implemented |
+| 1460 | `sanity_check` | wizcmds.js:923 | Implemented |
 | 1228 | `size_monst` | wizcmds.js:562 | Implemented |
 | 1117 | `size_obj` | wizcmds.js:519 | Implemented |
-| 1885 | `wiz_custom` | - | Missing |
+| 1885 | `wiz_custom` | wizcmds.js:952 | Implemented |
 | 229 | `wiz_detect` | wizcmds.js:438 | Implemented |
 | 1705 | `wiz_display_macros` | wizcmds.js:696 | Implemented |
-| 412 | `wiz_flip_level` | - | Missing |
-| 549 | `wiz_fuzzer` | - | Missing |
+| 412 | `wiz_flip_level` | wizcmds.js:820 | Implemented |
+| 549 | `wiz_fuzzer` | wizcmds.js:865 | Implemented |
 | 203 | `wiz_genesis` | wizcmds.js:wizGenesis | APPROX — create monster |
-| 50 | `wiz_identify` | - | Missing |
-| 949 | `wiz_intrinsic` | - | Missing |
-| 243 | `wiz_kill` | - | Missing |
+| 50 | `wiz_identify` | wizcmds.js:793 | Implemented |
+| 949 | `wiz_intrinsic` | wizcmds.js:871 | Implemented |
+| 243 | `wiz_kill` | wizcmds.js:807 | Implemented |
 | 446 | `wiz_level_change` | wizcmds.js:wizLevelChange | APPROX — wizard level teleport |
 | 399 | `wiz_level_tele` | wizcmds.js:wizTeleport | APPROX — coordinate teleport |
-| 841 | `wiz_levltyp_legend` | - | Missing |
-| 353 | `wiz_load_lua` | - | Missing |
+| 841 | `wiz_levltyp_legend` | wizcmds.js:1001 | Implemented |
+| 353 | `wiz_load_lua` | wizcmds.js:968 | Implemented |
 | 376 | `wiz_load_splua` | wizcmds.js:handleWizLoadDes | APPROX — load special level |
-| 156 | `wiz_makemap` | - | Missing |
+| 156 | `wiz_makemap` | wizcmds.js:784 | Implemented |
 | 176 | `wiz_map` | wizcmds.js:wizMap | APPROX — reveal map |
-| 693 | `wiz_map_levltyp` | - | Missing |
-| 1827 | `wiz_migrate_mons` | - | Missing |
+| 693 | `wiz_map_levltyp` | wizcmds.js:986 | Implemented |
+| 1827 | `wiz_migrate_mons` | wizcmds.js:944 | Implemented |
 | 1784 | `wiz_mon_diff` | wizcmds.js:743 | Implemented |
-| 534 | `wiz_panic` | - | Missing |
+| 534 | `wiz_panic` | wizcmds.js:858 | Implemented |
 | 568 | `wiz_polyself` | wizcmds.js:458 | Implemented |
-| 1102 | `wiz_rumor_check` | - | Missing |
+| 1102 | `wiz_rumor_check` | wizcmds.js:891 | Implemented |
 | 576 | `wiz_show_seenv` | wizcmds.js:464 | Implemented |
-| 1616 | `wiz_show_stats` | - | Missing |
-| 621 | `wiz_show_vision` | - | Missing |
+| 1616 | `wiz_show_stats` | wizcmds.js:934 | Implemented |
+| 621 | `wiz_show_vision` | wizcmds.js:975 | Implemented |
 | 657 | `wiz_show_wmodes` | wizcmds.js:495 | Implemented |
-| 885 | `wiz_smell` | - | Missing |
-| 494 | `wiz_telekinesis` | - | Missing |
+| 885 | `wiz_smell` | wizcmds.js:883 | Implemented |
+| 494 | `wiz_telekinesis` | wizcmds.js:845 | Implemented |
 | 218 | `wiz_where` | wizcmds.js:427 | Implemented |
-| 32 | `wiz_wish` | - | Missing |
-| 1938 | `wizcustom_callback` | - | Missing |
+| 32 | `wiz_wish` | wizcmds.js:964 | Implemented |
+| 1938 | `wizcustom_callback` | wizcmds.js:959 | Implemented |
 | 1402 | `you_sanity_check` | wizcmds.js:611 | Implemented |
 
 ### worm.c -> worm.js

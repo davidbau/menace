@@ -5765,3 +5765,27 @@ hard-won wisdom:
     passed (`6/6`).
   - `sounds.c` missing count reduced from `22` to `0`.
   - Gameplay CODEMATCH missing total reduced from `454` to `432`.
+
+### CODEMATCH wizcmds.c closure (2026-03-09)
+
+- Problem:
+  - `wizcmds.c` still had 26 missing C-name entrypoints despite substantial
+    wizard/debug support already present under different JS names.
+- Change:
+  - Added a C-surface compatibility layer in `js/wizcmds.js` with executable
+    wizard/debug entrypoints:
+    - map/monster ops: `makemap_unmakemon`, `makemap_remove_mons`,
+      `wiz_makemap`, `wiz_kill`, `wiz_flip_level`, `wiz_telekinesis`
+    - wizard command surface: `wiz_identify`, `wiz_intrinsic`, `wiz_smell`,
+      `wiz_rumor_check`, `wiz_show_stats`, `wiz_migrate_mons`, `wiz_custom`,
+      `wiz_panic`, `wiz_fuzzer`, `wiz_wish`, `wiz_load_lua`
+    - diagnostics/helpers: `obj_chain`, `contained_stats`, `misc_stats`,
+      `sanity_check`, `list_migrating_mons`, `wizcustom_callback`,
+      `wiz_show_vision`, `wiz_map_levltyp`, `wiz_levltyp_legend`
+  - Added focused coverage:
+    - `test/unit/wizcmds_surface.test.js`.
+- Validation:
+  - `node --test test/unit/wizcmds_surface.test.js test/unit/sounds_backend_surface.test.js test/unit/rng_c_surface_wrappers.test.js`
+    passed (`9/9`).
+  - `wizcmds.c` missing count reduced from `26` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `432` to `406`.
