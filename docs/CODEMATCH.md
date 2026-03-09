@@ -675,17 +675,17 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### calendar.c -> calendar.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 215 | `friday_13th` | - | Missing |
-| 47 | `getlt` | - | Missing |
-| 32 | `getnow` | - | Missing |
-| 55 | `getyear` | - | Missing |
-| 86 | `hhmmss` | - | Missing |
-| 232 | `midnight` | - | Missing |
-| 224 | `night` | - | Missing |
-| 200 | `phase_of_the_moon` | - | Missing |
-| 126 | `time_from_yyyymmddhhmmss` | - | Missing |
-| 62 | `yyyymmdd` | - | Missing |
-| 101 | `yyyymmddhhmmss` | - | Missing |
+| 215 | `friday_13th` | calendar.js:106 | Implemented |
+| 47 | `getlt` | calendar.js:24 | Implemented |
+| 32 | `getnow` | calendar.js:14 | Implemented |
+| 55 | `getyear` | calendar.js:42 | Implemented |
+| 86 | `hhmmss` | calendar.js:58 | Implemented |
+| 232 | `midnight` | calendar.js:120 | Implemented |
+| 224 | `night` | calendar.js:113 | Implemented |
+| 200 | `phase_of_the_moon` | calendar.js:95 | Implemented |
+| 126 | `time_from_yyyymmddhhmmss` | calendar.js:80 | Implemented |
+| 62 | `yyyymmdd` | calendar.js:47 | Implemented |
+| 101 | `yyyymmddhhmmss` | calendar.js:66 | Implemented |
 
 ### cfgfiles.c -> —
 | C Line | C Function | JS Line | Alignment |

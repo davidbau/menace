@@ -5618,3 +5618,15 @@ hard-won wisdom:
 - Result:
   - `do.c` missing count reduced from `44` to `7`.
   - Gameplay CODEMATCH missing total reduced from `1192` to `1156`.
+
+### CODEMATCH calendar.c ledger accuracy pass (2026-03-09)
+
+- Problem:
+  - `calendar.c -> calendar.js` rows were all marked `Missing` despite
+    complete implementation already present (including local helper `getlt`).
+- Change:
+  - Updated all 11 rows to `Implemented` with concrete `calendar.js:<line>`
+    references.
+- Result:
+  - `calendar.c` missing count reduced from `11` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `1156` to `1145`.
