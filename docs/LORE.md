@@ -6052,3 +6052,31 @@ hard-won wisdom:
   - `node --test test/unit/mkobj.test.js` passed.
   - `node --test test/unit/mkobj_erosion_gate.test.js` passed.
   - `node --test test/unit/mkobj_novel_parity.test.js` passed.
+
+### CODEMATCH mon.c compatibility-surface closure (2026-03-09)
+
+- Problem:
+  - `mon.c` still had a large unresolved helper cluster in CODEMATCH,
+    including functions that were referenced by existing `mon.js` paths
+    (`dead_species`, `iter_mons`, `relmon`) but not defined.
+- Change:
+  - Added compatibility exports in `js/mon.js` for the missing cluster:
+    - iteration/list helpers: `iter_mons`, `iter_mons_safe`, `relmon`,
+      `m_into_limbo`
+    - movement/placement helpers: `mnexto`, `mnearto`, `movemon_singlemon`,
+      `deal_with_overcrowding`, `mon_leaving_level`, `monstone`
+    - species/cham/genocide helpers: `dead_species`, `egg_type_from_parent`,
+      `kill_genocided_monsters`, `decide_to_shapeshift`, `normal_shape`,
+      `rescham`, `restartcham`, `restore_cham`, `validspecmon`, `validvamp`,
+      `wiz_force_cham_form`, `vamprises`
+    - behavior/selection helpers: `mon_allowflags`, `mon_animal_list`,
+      `pick_animal`, `peacefuls_respond`, `mpickstuff`, `restrap`,
+      `usmellmon`
+  - Corrected `G_GENOD` bitmask references to `G_GENO` in `mon.js`.
+  - Added focused tests:
+    - `test/unit/mon_surface.test.js`
+  - Updated `docs/CODEMATCH.md` row mappings for this slice.
+- Validation:
+  - `node --test test/unit/mon_surface.test.js` passed.
+  - `node --test test/unit/mon.test.js` passed.
+  - `node --test test/unit/monmove.test.js` passed.

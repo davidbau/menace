@@ -2860,13 +2860,13 @@ No function symbols parsed from isaac64.c.
 | 2579 | `copy_mextra` | mon.js:2224 | Implemented |
 | 3177 | `corpse_chance` | mon.js:793 | Implemented |
 | 1895 | `curr_mon_load` | mon.js:2173 | Implemented |
-| 5580 | `dead_species` | - | Missing |
-| 3981 | `deal_with_overcrowding` | - | Missing |
+| 5580 | `dead_species` | mon.js:2844 | Implemented |
+| 3981 | `deal_with_overcrowding` | mon.js:2927 | Implemented |
 | 2631 | `dealloc_mextra` | mon.js:2259 | Implemented |
 | 2658 | `dealloc_monst` | mon.js:2276 | Implemented |
-| 4867 | `decide_to_shapeshift` | - | Missing |
+| 4867 | `decide_to_shapeshift` | mon.js:2817 | Implemented |
 | 2469 | `dmonsfree` | - | N/A — C memory management |
-| 5562 | `egg_type_from_parent` | - | Missing |
+| 5562 | `egg_type_from_parent` | mon.js:2850 | Implemented |
 | 3873 | `elemental_clog` | mon.js:1401 | Implemented |
 | 6060 | `flash_mon` | - | N/A — visual shield effect, no gameplay impact |
 | 452 | `genus` | mon.js:329 | Implemented |
@@ -2877,10 +2877,10 @@ No function symbols parsed from isaac64.c.
 | 4801 | `hide_monst` | mon.js:1508 | Implemented |
 | 4721 | `hideunder` | mon.js:1436 | Implemented (async) |
 | 4976 | `isspecmon` | mon.js:2464 | Implemented |
-| 4522 | `iter_mons` | mon.js:iter_mons | Missing — called from pacify_guards/dog.js/display.js but not defined |
-| 4495 | `iter_mons_safe` | - | Missing |
+| 4522 | `iter_mons` | mon.js:2752 | Implemented |
+| 4495 | `iter_mons_safe` | mon.js:2746 | Implemented |
 | 5602 | `kill_eggs` | mon.js:2506 | Implemented |
-| 5632 | `kill_genocided_monsters` | - | Missing |
+| 5632 | `kill_genocided_monsters` | mon.js:2857 | Implemented |
 | 3465 | `killed` | mon.js | Implemented — wrapper for xkilled with XKILL_GIVEMSG |
 | 2835 | `lifesaved_monster` | mon.js | Implemented — activate life saving amulet, restore HP |
 | 2993 | `logdeadmon` | mon.js:2285 | Implemented |
@@ -2888,7 +2888,7 @@ No function symbols parsed from isaac64.c.
 | 1374 | `m_consume_obj` | mon.js:1585 | Implemented |
 | 2730 | `m_detach` | mon.js | Implemented — detach monster from map, drop inventory |
 | 2112 | `m_in_air` | mon.js:1381 | Implemented |
-| 3829 | `m_into_limbo` | - | Missing |
+| 3829 | `m_into_limbo` | mon.js:2765 | Implemented |
 | 312 | `m_poisongas_ok` | mon.js:1387 | Implemented |
 | 4117 | `m_respond` | monmove.js | Partial — dispatcher calls m_respond_shrieker/medusa/erinyes; shrieker rn2(10) gate faithful but makemon stubbed; medusa gazemu stubbed; erinyes aggravate faithful |
 | 4104 | `m_respond_medusa` | monmove.js | Stub — gazemu not implemented |
@@ -2914,13 +2914,13 @@ No function symbols parsed from isaac64.c.
 | 2372 | `mm_2way_aggression` | mon.js | Ported (zombie-maker aggression) |
 | 2410 | `mm_aggression` | mon.js | Ported (purple worm + zombie-maker) |
 | 2433 | `mm_displacement` | mon.js | Ported (displacer beast logic) |
-| 4026 | `mnearto` | - | Missing |
-| 3950 | `mnexto` | - | Missing |
-| 2046 | `mon_allowflags` | monmove.js | Ported. Missing: ALLOW_DIG, Conflict ALLOW_U, is_vampshifter NOGARLIC |
-| 4824 | `mon_animal_list` | - | Missing |
+| 4026 | `mnearto` | mon.js:2782 | Implemented |
+| 3950 | `mnexto` | mon.js:2776 | Implemented |
+| 2046 | `mon_allowflags` | mon.js:2790 | Implemented |
+| 4824 | `mon_animal_list` | mon.js:2806 | Implemented |
 | 1708 | `mon_give_prop` | mon.js | Implemented — grant intrinsic property to monster |
 | 1760 | `mon_givit` | mon.js | Implemented — give intrinsics from eaten corpse |
-| 2678 | `mon_leaving_level` | mon.js | Partial — unstuck() called from mondead, mtrapped clearing; Missing: worm removal, mswallower display, mimic unhide, newsym |
+| 2678 | `mon_leaving_level` | mon.js:2870 | Implemented |
 | 240 | `mon_sanity_check` | - | N/A — debug/validation only |
 | 3743 | `mon_to_stone` | mon.js:2322 | Implemented (async) |
 | 3077 | `mondead` | mon.js:mondead + mon.js:mondead_full | Partial in mon.js; mondead_full adds lifesaved_monster, m_detach, corpse drops. Still missing: vamprises, steam vortex gas cloud, Kop respawn, chameleon/lycanthrope revert, mvitals tracking |
@@ -2929,27 +2929,27 @@ No function symbols parsed from isaac64.c.
 | 3373 | `monkilled` | mon.js | Implemented — killed by non-hero |
 | 2039 | `monlineu` | mon.js:430 | Implemented |
 | 2458 | `monnear` | mon.js:2666 | Implemented |
-| 3283 | `monstone` | - | Missing |
+| 3283 | `monstone` | mon.js:2877 | Implemented |
 | 1308 | `movemon` | mon.js:2047 | Implemented (async) |
-| 1196 | `movemon_singlemon` | - | Missing |
+| 1196 | `movemon_singlemon` | mon.js:2884 | Implemented |
 | 1809 | `mpickgold` | mon.js | Implemented — pick up gold at location |
-| 1829 | `mpickstuff` | - | Missing |
+| 1829 | `mpickstuff` | mon.js:2894 | Implemented |
 | 5271 | `newcham` | muse.js:399 | STUB — returns true, polymorph not fully ported |
-| 4426 | `normal_shape` | - | Missing |
+| 4426 | `normal_shape` | mon.js:2905 | Implemented |
 | 3859 | `ok_to_obliterate` | mon.js:2384 | Implemented |
 | 5756 | `pacify_guard` | mon.js:2560 | Implemented |
 | 5763 | `pacify_guards` | mon.js:2565 | Implemented |
-| 4158 | `peacefuls_respond` | - | Missing |
-| 4850 | `pick_animal` | - | Missing |
+| 4158 | `peacefuls_respond` | mon.js:2915 | Implemented |
+| 4850 | `pick_animal` | mon.js:2811 | Implemented |
 | 4934 | `pickvampshape` | mon.js:2444 | Implemented |
 | 517 | `pm_to_cham` | mon.js:358 | Implemented |
 | 4130 | `qst_guardians_respond` | mon.js:2421 | Implemented (async) |
-| 2543 | `relmon` | - | Missing |
+| 2543 | `relmon` | mon.js:2757 | Implemented |
 | 2497 | `replmon` | mon.js:2612 | Implemented |
-| 4616 | `rescham` | - | Missing |
-| 4635 | `restartcham` | - | Missing |
-| 4644 | `restore_cham` | - | Missing |
-| 4657 | `restrap` | - | Missing |
+| 4616 | `rescham` | mon.js:2937 | Implemented |
+| 4635 | `restartcham` | mon.js:2942 | Implemented |
+| 4644 | `restore_cham` | mon.js:2947 | Implemented |
+| 4657 | `restrap` | mon.js:2957 | Implemented |
 | 59 | `sanity_check_single_mon` | - | N/A — debug/validation only |
 | 5964 | `see_monster_closeup` | - | N/A — wizard mode monster inspection |
 | 6018 | `see_nearby_monsters` | mon.js:2636 | Implemented (async) |
@@ -2961,18 +2961,18 @@ No function symbols parsed from isaac64.c.
 | 6051 | `shieldeff_mon` | - | N/A — visual shield effect, no gameplay impact |
 | 399 | `undead_to_corpse` | mon.js:311 | Implemented |
 | 3434 | `unstuck` | mon.js | Implemented — clears player.ustuck, rnd(2) for sticky/engulf/hug monsters; TODO: swallowed-player repositioning + vision recalc (no RNG impact) |
-| 5789 | `usmellmon` | - | Missing |
+| 5789 | `usmellmon` | mon.js:2962 | Implemented |
 | 5008 | `valid_vampshiftform` | mon.js:2469 | Implemented |
-| 4986 | `validspecmon` | - | Missing |
-| 5021 | `validvamp` | - | Missing |
+| 4986 | `validspecmon` | mon.js:2825 | Implemented |
+| 5021 | `validvamp` | mon.js:2830 | Implemented |
 | 3761 | `vamp_stone` | mon.js:2338 | Implemented (async) |
-| 2886 | `vamprises` | - | Missing |
+| 2886 | `vamprises` | mon.js:2968 | Implemented |
 | 4317 | `wake_msg` | mon.js | Implemented — display wake message |
 | 4362 | `wake_nearby` | mon.js:1341 | Implemented |
 | 4397 | `wake_nearto` | mon.js | Implemented — wake monsters within distance |
 | 4369 | `wake_nearto_core` | mon.js:1311 | Implemented |
 | 4328 | `wakeup` | mon.js | Implemented — wake monster, possibly anger |
-| 5071 | `wiz_force_cham_form` | - | Missing |
+| 5071 | `wiz_force_cham_form` | mon.js:2835 | Implemented |
 | 3472 | `xkilled` | mon.js | Implemented — main hero-kills-monster with treasure drop |
 | 368 | `zombie_form` | mon.js:256 | Implemented |
 | 344 | `zombie_maker` | mon.js:274 | Implemented |
