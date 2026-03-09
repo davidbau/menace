@@ -63,10 +63,10 @@ Rules
 | S47 | [#328](https://github.com/davidbau/menace/issues/328) | display.c mapglyph/windowport parity | `Done` (all 28 Missing→Implemented/N/A: 17 implemented, 11 N/A tty/debug/glyph-table) |
 | S48 | [#329](https://github.com/davidbau/menace/issues/329) | vision.c remaining helper parity | `Done` (ledger) |
 | S49 | [#330](https://github.com/davidbau/menace/issues/330) | light.c light-source parity | `Done` (all 28 Missing→Implemented/N/A: 21 already implemented, 7 N/A save/restore/debug) |
-| S50 | [#331](https://github.com/davidbau/menace/issues/331) | shk.c shopkeeper parity | `Ready` |
+| S50 | [#331](https://github.com/davidbau/menace/issues/331) | shk.c shopkeeper parity | `Done` (all 132 Missing→Implemented: complete shk.js port with matching function names) |
 
 ## Summary
 
 - Total slices: 50
-- Open slices: 10
-- Completed slices: 40 (S01, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49)
+- Open slices: 9
+- Completed slices: 41 (S01, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49, S50)
