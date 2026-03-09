@@ -93,7 +93,7 @@ import {
   gloves_simple_name, boots_simple_name, shield_simple_name,
   shirt_simple_name, Is_box,
 } from './objnam.js';
-import { hold_another_object, prinv } from './invent.js';
+import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
 import { HOLE, TRAPDOOR } from './const.js';
@@ -525,34 +525,61 @@ export async function handleZap(player, map, display, game) {
     }
 
     const zapPrompt = `What do you want to zap? [${wands.map(w => w.invlet).join('')} or ?*] `;
-    await display.putstr_message(zapPrompt);
-    const itemCh = await awaitInput(game, nhgetch(), { site: 'zap.handleZap.selectWand' });
-    const itemChar = String.fromCharCode(itemCh);
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
+    const isDismissKey = (code) => code === 27 || code === 10 || code === 13 || code === 32;
+    const allInvLetters = (player.inventory || [])
+        .filter((o) => o && o.invlet)
+        .map((o) => o.invlet)
+        .join('');
+    const showZapHelpList = async () => {
+        replacePromptMessage();
+        const lines = buildInventoryOverlayLines(player);
+        return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
+    };
+    const showZapPrompt = async () => {
+        await display.putstr_message(zapPrompt);
+    };
 
-    if (itemCh === 27 || itemCh === 10 || itemCh === 13 || itemChar === ' ') {
-        replacePromptMessage();
-        await pline('Never mind.');
-        return { moved: false, tookTime: false };
-    }
+    let wand;
+    await showZapPrompt();
+    while (true) {
+        const itemCh = await awaitInput(game, nhgetch(), { site: 'zap.handleZap.selectWand' });
+        let itemChar = String.fromCharCode(itemCh);
 
-    const selected = player.inventory.find(o => o.invlet === itemChar);
-    if (selected && selected.oclass !== WAND_CLASS) {
+        if (isDismissKey(itemCh)) {
+            replacePromptMessage();
+            await pline('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        if (itemChar === '?' || itemChar === '*') {
+            const menuSelection = await showZapHelpList();
+            if (menuSelection) {
+                itemChar = menuSelection;
+            } else {
+                await showZapPrompt();
+                continue;
+            }
+        }
+
+        const selected = player.inventory.find(o => o.invlet === itemChar);
+        if (selected && selected.oclass !== WAND_CLASS) {
+            replacePromptMessage();
+            await pline("That's not a wand!");
+            return { moved: false, tookTime: false };
+        }
+        wand = wands.find(w => w.invlet === itemChar);
+        if (!wand) {
+            replacePromptMessage();
+            await pline("You don't have that object.");
+            return { moved: false, tookTime: false };
+        }
         replacePromptMessage();
-        await pline("That's not a wand!");
-        return { moved: false, tookTime: false };
+        break;
     }
-    const wand = wands.find(w => w.invlet === itemChar);
-    if (!wand) {
-        replacePromptMessage();
-        await pline("You don't have that object.");
-        return { moved: false, tookTime: false };
-    }
-    replacePromptMessage();
 
     // C ref: zap.c:2632 — need_dir check BEFORE direction prompt
     const need_dir = (objectData[wand.otyp]?.oc_dir || 0) !== 1; // NODIR = 1
