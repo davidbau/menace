@@ -65,6 +65,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
 import { nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
 import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
+import { make_glib } from './potion.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
@@ -178,7 +179,7 @@ export async function use_towel(obj, player) {
     switch (rn2(3)) {
       case 2:
         old = (Glib & TIMEOUT);
-      make_glib( old + rn1(10, 3));
+      make_glib(player, old + rn1(10, 3));
       await Your("%s %s!", makeplural(body_part(HAND)), (old ? "are filthier than ever" : "get slimy"));
       if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
       return ECMD_TIME;
@@ -209,7 +210,7 @@ export async function use_towel(obj, player) {
     }
   }
   if (Glib) {
-    make_glib(0);
+    make_glib(player, 0);
     await You("wipe off your %s.", !player.gloves ? makeplural(body_part(HAND)) : gloves_simple_name(player.gloves));
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
     return ECMD_TIME;
@@ -490,7 +491,7 @@ export async function use_lamp(obj) {
     if (obj.cursed && !rn2(2)) {
         if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) && !rn2(3)) {
             await pline("The lamp spills and covers your fingers with oil.");
-            d(2, 10); // consume RNG for make_glib
+            make_glib(player, (player?.glib_intrinsic || 0) + d(2, 10));
         } else {
             await pline("%s flickers for a moment, then dies.", xname(obj));
         }
