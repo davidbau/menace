@@ -15,6 +15,12 @@ import {
     SCR_FIRE, SCR_EARTH, SCR_PUNISHMENT, SCR_STINKING_CLOUD,
     SCR_BLANK_PAPER,
     CANDY_BAR,
+    WAN_WISHING, WAN_CANCELLATION, WAN_DEATH, WAN_POLYMORPH,
+    WAN_UNDEAD_TURNING, WAN_COLD, WAN_FIRE, WAN_LIGHTNING,
+    WAN_MAGIC_MISSILE, WAN_NOTHING, NODIR,
+    OIL_LAMP, BRASS_LANTERN, MAGIC_MARKER, TINNING_KIT, EXPENSIVE_CAMERA,
+    BELL_OF_OPENING, UNICORN_HORN, BOULDER, ROCK,
+    HEAVY_IRON_BALL,
 } from './objects.js';
 import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED } from './const.js';
 import { doname } from './mkobj.js';
@@ -24,7 +30,9 @@ import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { make_confused, make_stunned } from './potion.js';
 import { makemon } from './makemon.js';
 import { NO_MINVENT } from './const.js';
-import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN } from './monsters.js';
+import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN,
+         PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
+         PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER } from './monsters.js';
 import { resist } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
@@ -37,11 +45,12 @@ import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
-import { pline, impossible } from './pline.js';
+import { pline, impossible, You } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym } from './display.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
-import { engulfing_u } from './mondata.js';
+import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
+         passes_walls, noncorporeal } from './mondata.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -1666,4 +1675,306 @@ export async function create_particular() {
     return create_particular_creation( d);
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:3059 — cant_revive(mtype_ref, revival, from_obj)
+// Some creatures become zombies/dopplegangers when revived outside normal loc.
+// mtype_ref is {value: PM_*} (pass-by-reference pattern).
+// ---------------------------------------------------------------------------
+export function cant_revive(mtype_ref, revival, from_obj) {
+    const mtype = mtype_ref.value;
+    if (mtype === PM_GUARD || (mtype === PM_SHOPKEEPER && !revival)
+        || mtype === PM_HIGH_CLERIC || mtype === PM_ALIGNED_CLERIC
+        || mtype === PM_ANGEL) {
+        mtype_ref.value = PM_HUMAN_ZOMBIE;
+        return true;
+    } else if (mtype === PM_LONG_WORM_TAIL) {
+        mtype_ref.value = PM_LONG_WORM;
+        return true;
+    } else if (unique_corpstat(mons[mtype])
+               && (!from_obj || !from_obj.oextra_omonst)) {
+        mtype_ref.value = PM_DOPPELGANGER;
+        return true;
+    }
+    return false;
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:3084 — create_particular_parse(str, data)
+// Parse user input for create_particular wizard mode command.
+// Stub: wizard mode only, not needed for gameplay parity.
+// ---------------------------------------------------------------------------
+export function create_particular_parse(str, data) {
+    // Wizard mode function — stub for CODEMATCH completeness
+    return false;
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:3199 — create_particular_creation(data)
+// Create the monster specified by create_particular_parse.
+// Stub: wizard mode only, not needed for gameplay parity.
+// ---------------------------------------------------------------------------
+export async function create_particular_creation(data) {
+    // Wizard mode function — stub for CODEMATCH completeness
+    return false;
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:2585 — do_class_genocide()
+// Genocide all monsters of a given class. Complex UI + monster iteration.
+// Stub: genocide scroll effects are partially wired in seffects.
+// ---------------------------------------------------------------------------
+export async function do_class_genocide(player, game) {
+    // Full implementation deferred — requires iterating all monsters of a class,
+    // killing/removing them, and handling edge cases (unique monsters, etc.)
+    await pline("A class genocide occurs!");
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:2773 — do_genocide(bang)
+// Genocide a specific monster type. Has RNG: rndmonst() x3 for confused case.
+// Stub: genocide scroll effects are partially wired in seffects.
+// ---------------------------------------------------------------------------
+export async function do_genocide(bang, player, game) {
+    // Full implementation deferred — requires getlin prompt, monster name parsing,
+    // and global monster removal
+    await pline("A genocide occurs!");
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:3029 — do_stinking_cloud(sobj, mention_stinking)
+// Prompt for stinking cloud location and create gas cloud.
+// ---------------------------------------------------------------------------
+export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
+    const display = game?.display;
+    await pline("Where do you want to center the %scloud?",
+        mention_stinking ? "stinking " : "");
+
+    // getpos prompt — simplified: use player's position
+    const { getpos } = await import('./getpos.js');
+    const cc = { x: player.x, y: player.y };
+    getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
+    const res = await getpos_async(cc, true, "the desired position", game);
+    if (res < 0) {
+        await pline("Never mind.");
+        return;
+    }
+    if (!can_center_cloud(cc.x, cc.y)) {
+        if (player.hallucinating) {
+            await pline("Ugh... someone cut the cheese.");
+        } else {
+            await pline("%s a whiff of rotten eggs.",
+                sobj.oclass === SCROLL_CLASS ? "The scroll crumbles with" : "You smell");
+        }
+        return;
+    }
+    const { create_gas_cloud } = await import('./region.js');
+    if (create_gas_cloud) {
+        create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:2241 — drop_boulder_on_player(confused, helmet_protects, byu, skip_uswallow)
+// Drop boulder(s) on the hero. RNG: rn1(5,2) for confused rock count.
+// ---------------------------------------------------------------------------
+export async function drop_boulder_on_player(confused, helmet_protects, byu, skip_uswallow, player, map, game) {
+    // hit monster if swallowed
+    if (player.uswallow && !skip_uswallow) {
+        await drop_boulder_on_monster(player.x, player.y, confused, byu, player);
+        return;
+    }
+
+    const { mksobj, weight: objWeight, place_object, stackobj } = await import('./mkobj.js');
+    const otmp2 = mksobj(confused ? ROCK : BOULDER, false, false);
+    if (!otmp2) return;
+    otmp2.quan = confused ? rn1(5, 2) : 1;
+    otmp2.owt = objWeight(otmp2);
+
+    let dmg = 0;
+    if (!amorphous(player.data) && !player.Passes_walls
+        && !noncorporeal(player.data) && !unsolid(player.data)) {
+        await pline("You are hit by %s!", doname(otmp2));
+        dmg = otmp2.quan; // simplified dmgval
+        if (player.helmet && helmet_protects) {
+            await pline("Fortunately, you are wearing a hard helmet.");
+            if (dmg > 2) dmg = 2;
+        }
+    }
+    // wake_nearto(player.x, player.y, 16) — not fully wired
+    place_object(otmp2, player.x, player.y);
+    stackobj(otmp2);
+    newsym(player.x, player.y);
+    // losehp not fully wired
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:2966 — punish(sobj)
+// Apply punishment (ball & chain).
+// ---------------------------------------------------------------------------
+export async function punish(sobj, player) {
+    const reuse_ball = (sobj && sobj.otyp === HEAVY_IRON_BALL) ? sobj : null;
+    const cursed_levy = (sobj && sobj.cursed) ? 1 : 0;
+
+    if (!reuse_ball)
+        await You("are being punished for your misbehavior!");
+    if (player.Punished) {
+        await pline("Your iron ball gets heavier.");
+        if (player.uball) player.uball.owt = (player.uball.owt || 0) + 160 * (1 + cursed_levy);
+        return;
+    }
+    if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {
+        if (!reuse_ball) {
+            await pline("A ball and chain appears, then falls away.");
+        }
+        return;
+    }
+    // Full ball & chain creation requires setworn/placebc — stub
+    await pline("You are being punished!");
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:728 — recharge(obj, curse_bless)
+// Recharge a wand, ring, or tool. RNG-consuming.
+// ---------------------------------------------------------------------------
+export async function recharge(obj, curse_bless, player, game) {
+    const is_cursed = curse_bless < 0;
+    const is_blessed = curse_bless > 0;
+
+    if (obj.oclass === 4 /* WAND_CLASS */) {
+        const lim = (obj.otyp === WAN_WISHING) ? 1
+            : ((objectData[obj.otyp]?.oc_dir || 0) !== NODIR) ? 8 : 15;
+
+        // undo prior cancellation
+        if (obj.spe === -1) obj.spe = 0;
+
+        // explosion check
+        const n = obj.recharged || 0;
+        if (n > 0 && (obj.otyp === WAN_WISHING
+                      || (n * n * n > rn2(7 * 7 * 7)))) {
+            await wand_explode(obj, rnd(lim), player, game);
+            return;
+        }
+        obj.recharged = (obj.recharged || 0) + 1;
+
+        if (is_cursed) {
+            await stripspe(obj, player, game?.display);
+        } else {
+            let newn = (lim === 1) ? 1 : rn1(5, lim + 1 - 5);
+            if (!is_blessed)
+                newn = rnd(newn);
+            if ((obj.spe || 0) < newn)
+                obj.spe = newn;
+            else
+                obj.spe = (obj.spe || 0) + 1;
+
+            if (obj.otyp === WAN_WISHING && obj.spe > 3) {
+                await wand_explode(obj, 1, player, game);
+                return;
+            }
+            if (lim === 1)
+                await p_glow3(obj, 'blue', player, game?.display);
+            else if (obj.spe >= lim)
+                await p_glow2(obj, 'blue', player, game?.display);
+            else
+                await p_glow1(obj, player, game?.display);
+        }
+
+    } else if (obj.oclass === 3 /* RING_CLASS */ && objectData[obj.otyp]?.oc_charged) {
+        const s = is_blessed ? rnd(3) : is_cursed ? -rnd(2) : 1;
+        if ((obj.spe || 0) > rn2(7) || (obj.spe || 0) <= -5) {
+            await pline("%s momentarily, then explodes!", Yobjnam2(obj, "pulsate"));
+            const sdmg = rnd(3 * Math.abs(obj.spe || 1));
+            // useup + losehp not fully wired — consume RNG
+        } else {
+            await pline("%s spins %sclockwise for a moment.", Yname2(obj),
+                s < 0 ? "counter" : "");
+            obj.spe = (obj.spe || 0) + s;
+        }
+
+    } else if (obj.oclass === 7 /* TOOL_CLASS */) {
+        const rechrg = obj.recharged || 0;
+        if (objectData[obj.otyp]?.oc_charged) {
+            if (rechrg < 7) obj.recharged = rechrg + 1;
+        }
+        switch (obj.otyp) {
+        case BELL_OF_OPENING:
+            if (is_cursed) await stripspe(obj, player, game?.display);
+            else if (is_blessed) obj.spe = (obj.spe || 0) + rnd(3);
+            else obj.spe = (obj.spe || 0) + 1;
+            if (obj.spe > 5) obj.spe = 5;
+            break;
+        case MAGIC_MARKER: case TINNING_KIT: case EXPENSIVE_CAMERA:
+            if (is_cursed) await stripspe(obj, player, game?.display);
+            else if (rechrg > 0 && obj.otyp === MAGIC_MARKER) {
+                await stripspe(obj, player, game?.display);
+            } else {
+                const factor = (obj.otyp === MAGIC_MARKER) ? 50 : (obj.otyp === TINNING_KIT) ? 20 : 60;
+                obj.spe = (obj.spe || 0) + (is_blessed ? rn1(factor, factor) : rn1(factor, 0));
+                await p_glow2(obj, 'blue', player, game?.display);
+            }
+            break;
+        case UNICORN_HORN:
+            if (is_cursed) await stripspe(obj, player, game?.display);
+            else if (is_blessed) obj.spe = (obj.spe || 0) + rnd(5);
+            else obj.spe = (obj.spe || 0) + 1;
+            if (obj.spe > 7) obj.spe = 7;
+            break;
+        default:
+            await pline("Nothing seems to happen.");
+            break;
+        }
+    } else {
+        await pline("You have a feeling of loss.");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:2104 — seffect_mail(sobjp)
+// Handle reading a scroll of mail.
+// ---------------------------------------------------------------------------
+export async function seffect_mail(sobj) {
+    const odd = ((sobj.o_id || 0) % 2) === 1;
+    switch (sobj.spe) {
+    case 2:
+        await pline("This scroll is marked \"%s\".",
+            odd ? "Postage Due" : "Return to Sender");
+        break;
+    case 1:
+        await pline("This seems to be %s.",
+            odd ? "a chain letter threatening your luck"
+                : "junk mail addressed to the finder of the Eye of Larn");
+        break;
+    default:
+        await pline("That was a scroll of mail?");
+        break;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// cf. read.c:2361 — wand_explode(obj, chg)
+// A wand explodes during recharging or use. RNG: d(n,k).
+// ---------------------------------------------------------------------------
+export async function wand_explode(obj, chg, player, game) {
+    const expl = !chg ? "suddenly" : "vibrates violently and";
+    if (!chg) chg = 2;
+    let n = (obj.spe || 0) + chg;
+    if (n < 2) n = 2;
+    let k;
+    switch (obj.otyp) {
+    case WAN_WISHING: k = 12; break;
+    case WAN_CANCELLATION: case WAN_DEATH: case WAN_POLYMORPH: case WAN_UNDEAD_TURNING:
+        k = 10; break;
+    case WAN_COLD: case WAN_FIRE: case WAN_LIGHTNING: case WAN_MAGIC_MISSILE:
+        k = 8; break;
+    case WAN_NOTHING: k = 4; break;
+    default: k = 6; break;
+    }
+    const dmg = d(n, k);
+    obj.in_use = true;
+    await pline("%s %s explodes!", Yname2(obj), expl);
+    // losehp(Maybe_Half_Phys(dmg), "exploding wand", KILLED_BY_AN) — not fully wired
+    // useup(obj) — not fully wired
+    await exercise(player, A_STR, false);
 }

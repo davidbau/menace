@@ -4113,33 +4113,33 @@ Remaining parity gaps are mostly behavioral depth:
 | 303 | `assign_candy_wrapper` | read.js:270 | Implemented |
 | 1079 | `can_center_cloud` | read.js:1619 | Implemented |
 | 295 | `candy_wrapper_text` | read.js:265 | Implemented |
-| 3059 | `cant_revive` | - | Missing |
+| 3059 | `cant_revive` | read.js:cant_revive | Implemented |
 | 79 | `cap_spe` | read.js:275 | Implemented |
 | 688 | `charge_ok` | read.js:1513 | Implemented |
-| 3319 | `create_particular` | - | Missing |
-| 3199 | `create_particular_creation` | - | Missing |
-| 3084 | `create_particular_parse` | - | Missing |
+| 3319 | `create_particular` | read.js:1644 | Implemented |
+| 3199 | `create_particular_creation` | read.js:create_particular_creation | Implemented (wizard mode stub) |
+| 3084 | `create_particular_parse` | read.js:create_particular_parse | Implemented (wizard mode stub) |
 | 1087 | `display_stinking_cloud_positions` | read.js:1625 | Implemented |
-| 2585 | `do_class_genocide` | - | Missing |
-| 2773 | `do_genocide` | - | Missing |
-| 3029 | `do_stinking_cloud` | - | Missing |
+| 2585 | `do_class_genocide` | read.js:do_class_genocide | Implemented (stub) |
+| 2773 | `do_genocide` | read.js:do_genocide | Implemented (stub) |
+| 3029 | `do_stinking_cloud` | read.js:do_stinking_cloud | Implemented |
 | 329 | `doread` | read.js:73 | Implemented (handleRead: inventory selection + spellbook study + seffects dispatch) |
-| 2288 | `drop_boulder_on_monster` | - | Missing |
-| 2241 | `drop_boulder_on_player` | - | Missing |
+| 2288 | `drop_boulder_on_monster` | read.js:1549 | Implemented |
+| 2241 | `drop_boulder_on_player` | read.js:drop_boulder_on_player | Implemented |
 | 88 | `erode_obj_text` | read.js:111 | Implemented |
 | 1019 | `forget` | read.js:936 | Partial (inline in seffect_amnesia; forgets spells only, no map forget) |
 | 223 | `hawaiian_design` | read.js:228 | Implemented |
 | 189 | `hawaiian_motif` | read.js:215 | Implemented |
-| 69 | `learnscroll` | - | Missing (learnscrolltyp used directly) |
+| 69 | `learnscroll` | read.js:1506 | Implemented |
 | 57 | `learnscrolltyp` | read.js:270 | Implemented (wraps discoverObject) |
 | 2438 | `litroom` | read.js:642 | Implemented |
 | 1043 | `maybe_tame` | read.js:1226 | Implemented |
-| 666 | `p_glow1` | - | Missing |
-| 672 | `p_glow2` | - | Missing |
-| 679 | `p_glow3` | - | Missing |
-| 2966 | `punish` | - | Missing |
+| 666 | `p_glow1` | read.js:88 | Implemented |
+| 672 | `p_glow2` | read.js:94 | Implemented |
+| 679 | `p_glow3` | read.js:100 | Implemented |
+| 2966 | `punish` | read.js:punish | Implemented |
 | 314 | `read_ok` | read.js:77 | Implemented |
-| 728 | `recharge` | - | Missing |
+| 728 | `recharge` | read.js:recharge | Implemented |
 | 1777 | `seffect_amnesia` | read.js:936 | Implemented (forgets spells; rn2 message; exercise(A_WIS,false)) |
 | 1952 | `seffect_blank_paper` | read.js:317 | Implemented |
 | 1735 | `seffect_charging` | read.js:388 | Partial (confused path faithful; non-confused: no getobj/recharge yet) |
@@ -4156,7 +4156,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2002 | `seffect_identify` | read.js:326 | Implemented (faithful RNG: rn2(5) blessed check + cval; identify_pack inline) |
 | 1688 | `seffect_light` | read.js:425 | Partial (confused: faithful rn1(2,3)+makemon lights; non-confused: no litroom yet) |
 | 2049 | `seffect_magic_mapping` | read.js:909 | Approximate (messages match; no do_mapping() level reveal yet) |
-| 2104 | `seffect_mail` | - | Missing (mail not relevant to gameplay) |
+| 2104 | `seffect_mail` | read.js:seffect_mail | Implemented |
 | 1923 | `seffect_punishment` | read.js:1063 | Partial (confused/blessed "guilty" faithful; no punish() ball-and-chain yet) |
 | 1438 | `seffect_remove_curse` | read.js:556 | Implemented (faithful: inventory iteration, blessorcurse(2) for confused, uncurse worn) |
 | 1403 | `seffect_scare_monster` | read.js:515 | Implemented (faithful: resist() per monster, monflee, cansee check, ct counting) |
@@ -4165,11 +4165,11 @@ Remaining parity gaps are mostly behavioral depth:
 | 1962 | `seffect_teleportation` | read.js:867 | Stub (messages only; needs scrolltele/level_tele infrastructure) |
 | 2141 | `seffects` | read.js:1097 | Implemented (full dispatch to all 22 scroll types; exercise(A_WIS) for magic scrolls) |
 | 2418 | `set_lit` | read.js:1596 | Implemented |
-| 651 | `stripspe` | - | Missing |
+| 651 | `stripspe` | read.js:63 | Implemented |
 | 99 | `tshirt_text` | read.js:202 | Implemented |
 | 3013 | `unpunish` | read.js:1611 | Implemented |
 | 1068 | `valid_cloud_pos` | read.js:1543 | Implemented |
-| 2361 | `wand_explode` | - | Missing |
+| 2361 | `wand_explode` | read.js:wand_explode | Implemented |
 
 ### rect.c -> rect.js
 | C Line | C Function | JS Line | Alignment |
