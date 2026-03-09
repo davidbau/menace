@@ -5267,3 +5267,40 @@ hard-won wisdom:
 - Guardrail:
   - Do not hide this via comparator masking or replay synthetic key injection.
   - Fix needs runtime/input-boundary faithfulness, not comparator exceptions.
+
+### `^runstep` command-boundary instrumentation (C+JS) (2026-03-09)
+
+- Goal:
+  - Add a shared, optional command-boundary event stream to both C harness and
+    JS replay so multi-turn run/repeat boundary debugging can use one marker.
+- C harness implementation:
+  - Added patch
+    [`test/comparison/c-harness/patches/021-runstep-events.patch`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/patches/021-runstep-events.patch)
+    with env-gated emission (`NETHACK_EVENT_RUNSTEP`).
+  - Event format:
+    - `^runstep[path=... keyarg=... cmd=... cc=... moves=... multi=... run=... mv=... move=... occ=... umoved=... ux=... uy=...]`
+  - Emission sites are in `moveloop_core()` at fresh-command and repeat-command
+    boundaries to match C command lifecycle.
+  - Added setup guardrail marker in
+    [`test/comparison/c-harness/setup.sh`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/setup.sh)
+    so patch drift fails fast.
+- JS implementation:
+  - Added env-gated emission (`WEBHACK_EVENT_RUNSTEP`) in
+    [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js)
+    at the `run_command()` command boundary.
+  - Added session-runner auto-toggle support in
+    [`test/comparison/session_test_runner.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/session_test_runner.js):
+    if a session requests/contains runstep events, JS replay auto-enables
+    `WEBHACK_EVENT_RUNSTEP=1` for that run.
+  - Added C capture plumbing in
+    [`test/comparison/c-harness/run_session.py`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/run_session.py)
+    and
+    [`test/comparison/c-harness/capture_step_snapshot.py`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/c-harness/capture_step_snapshot.py)
+    so `NETHACK_EVENT_RUNSTEP` is preserved in rerecord/snapshot workflows.
+- Validation:
+  - Rebuilt C harness with `bash test/comparison/c-harness/setup.sh`
+    (new patch applies cleanly; marker check passes).
+  - Recorded a C session with `NETHACK_EVENT_RUNSTEP=1` and verified
+    `^runstep[...]` entries in captured session RNG/event stream.
+  - Replayed through JS session runner; stream wiring works end-to-end and
+    legacy sessions remain unaffected when the env flag is not enabled.

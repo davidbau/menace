@@ -1,0 +1,62 @@
+diff --git a/src/allmain.c b/src/allmain.c
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -162,6 +162,21 @@ static int mvl_abort_lev;
+ #endif
+ static int mvl_wtcap = 0;
+ static int mvl_change = 0;
++
++staticfn boolean
++runstep_event_enabled(void)
++{
++    static int cached = -1;
++
++    if (cached < 0) {
++        const char *ev = getenv("NETHACK_EVENT_RUNSTEP");
++        cached = (ev && *ev && *ev != '0') ? 1 : 0;
++    }
++    return (boolean) cached;
++}
++
++#define RUNSTEP_EVENT(pathstr, keyarg)                                         \
++    do {                                                                       \
++        if (runstep_event_enabled())                                           \
++            event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]", \
++                      (pathstr), (int) (keyarg), gc.cmd_key, gc.command_count, \
++                      svm.moves, gm.multi, svc.context.run, svc.context.mv,    \
++                      svc.context.move, go.occupation ? 1 : 0, u.umoved ? 1 : 0, \
++                      u.ux, u.uy);                                             \
++    } while (0)
+ 
+ void
+ moveloop_core(void)
+@@ -523,6 +538,7 @@ moveloop_core(void)
+     u.umoved = FALSE;
+ 
+     if (gm.multi > 0) {
++        RUNSTEP_EVENT(svc.context.mv ? "repeat_mv" : "repeat_cmd", gc.cmd_key);
+         lookaround();
+         runmode_delay_output();
+         if (!gm.multi) {
+@@ -543,10 +559,12 @@ moveloop_core(void)
+             --gm.multi;
+             nhassert(gc.command_count != 0);
+             rhack(gc.cmd_key);
++            RUNSTEP_EVENT("repeat_cmd_done", gc.cmd_key);
+         }
+     } else if (gm.multi == 0) {
+ #ifdef MAIL
+         ckmailstatus();
+ #endif
++        RUNSTEP_EVENT("fresh_cmd", 0);
+         rhack(0);
+     }
+     if (u.utotype)       /* change dungeon level */
+@@ -569,6 +587,7 @@ moveloop_core(void)
+         lua_settop(gl.luacore, 0);
+     }
+ }
++#undef RUNSTEP_EVENT
+ 
+ staticfn void
+ maybe_do_tutorial(void)

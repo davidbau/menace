@@ -163,6 +163,34 @@ function pendingWaitSite(inputRuntime) {
     return nonInternal || frames[1] || frames[0] || '';
 }
 
+async function settleStartupInputBoundaries(game) {
+    const maxIterations = 32;
+    for (let i = 0; i < maxIterations; i++) {
+        const topBoundary = (typeof game?.peekInputBoundary === 'function')
+            ? game.peekInputBoundary()
+            : null;
+
+        // Align replay startup with C harness readiness: dismiss lingering
+        // --More-- before gameplay keys are consumed.
+        if (game?.display?._pendingMore && typeof game.display._clearMore === 'function') {
+            await Promise.resolve(game.display._clearMore());
+            continue;
+        }
+
+        // Handle tutorial/prompt leftovers so first replay key reaches gameplay.
+        if (topBoundary && topBoundary.owner === 'prompt' && typeof topBoundary.onKey === 'function') {
+            await Promise.resolve(topBoundary.onKey('n'.charCodeAt(0), game));
+            continue;
+        }
+        if (game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
+            await Promise.resolve(game.pendingPrompt.onKey('n'.charCodeAt(0), game));
+            continue;
+        }
+
+        break;
+    }
+}
+
 // ---------------------------------------------------------------------------
 // replaySession(seed, opts, keys)
 //
@@ -212,6 +240,7 @@ export async function replaySession(seed, opts, keys) {
 
     const initOpts = { seed, ...(opts.initOpts || {}) };
     await game.init(initOpts);
+    await settleStartupInputBoundaries(game);
 
     // Enable --More-- blocking now that chargen is complete.
     if (game.display && typeof game.display._moreBlockingEnabled !== 'undefined') {

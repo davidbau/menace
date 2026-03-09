@@ -30,6 +30,7 @@ from run_session import (
     no_delay_env,
     diag_events_env,
     test_move_event_env,
+    runstep_event_env,
     tmux_capture,
     tmux_send,
     tmux_send_special,
@@ -128,6 +129,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             f"{diag_events_env()}"
             f"{no_delay_env()}"
             f"{test_move_event_env()}"
+            f"{runstep_event_env()}"
             f"{monmove_debug_env}"
             f"NETHACK_SEED={seed} "
             f"NETHACK_RNGLOG={rng_log_file} "

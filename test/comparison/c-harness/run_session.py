@@ -195,6 +195,11 @@ def test_move_event_env():
     v = os.environ.get('NETHACK_EVENT_TEST_MOVE', '')
     return f'NETHACK_EVENT_TEST_MOVE={v} ' if v else ''
 
+def runstep_event_env():
+    """Pass NETHACK_EVENT_RUNSTEP through to the C binary if set."""
+    v = os.environ.get('NETHACK_EVENT_RUNSTEP', '')
+    return f'NETHACK_EVENT_RUNSTEP={v} ' if v else ''
+
 
 def collect_mapdump_checkpoints(mapdump_dir, all_rng_entries):
     """Scan RNG entries for ^mapdump[id] markers and read corresponding dump files.
@@ -1926,6 +1931,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{test_move_event_env()}'
+            f'{runstep_event_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
@@ -2024,8 +2030,14 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         if final_capture_delay_s > 0.0:
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
         test_move_ev = os.environ.get('NETHACK_EVENT_TEST_MOVE')
-        if test_move_ev:
-            session_data['regen']['env'] = {'NETHACK_EVENT_TEST_MOVE': test_move_ev}
+        runstep_ev = os.environ.get('NETHACK_EVENT_RUNSTEP')
+        if test_move_ev or runstep_ev:
+            session_env = {}
+            if test_move_ev:
+                session_env['NETHACK_EVENT_TEST_MOVE'] = test_move_ev
+            if runstep_ev:
+                session_env['NETHACK_EVENT_RUNSTEP'] = runstep_ev
+            session_data['regen']['env'] = session_env
         if record_more_spaces:
             session_data['regen']['record_more_spaces'] = True
 

@@ -68,6 +68,91 @@ const SESSIONS_DIR = join(__dirname, 'sessions');
 const MAPS_DIR = join(__dirname, 'maps');
 const SKIP_SESSIONS = new Set();
 const DEFAULT_FIXED_DATETIME = '20000110090000';
+const _sessionTestMoveHintCache = new Map();
+
+function envEnabled(value) {
+    if (value == null) return false;
+    const text = String(value).trim().toLowerCase();
+    return text !== '' && text !== '0' && text !== 'false' && text !== 'off' && text !== 'no';
+}
+
+function hasTestMoveInRngEntries(entries) {
+    if (!Array.isArray(entries)) return false;
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        if (typeof entry === 'string' && entry.startsWith('^test_move[')) return true;
+    }
+    return false;
+}
+
+function hasRunstepInRngEntries(entries) {
+    if (!Array.isArray(entries)) return false;
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        if (typeof entry === 'string' && entry.startsWith('^runstep[')) return true;
+    }
+    return false;
+}
+
+function sessionWantsTestMoveEvents(session) {
+    const cacheKey = session?.file || session;
+    if (_sessionTestMoveHintCache.has(cacheKey)) {
+        return _sessionTestMoveHintCache.get(cacheKey);
+    }
+
+    const regenEnv = session?.meta?.regen?.env || session?.raw?.regen?.env || {};
+    if (envEnabled(regenEnv.NETHACK_EVENT_TEST_MOVE) || envEnabled(regenEnv.WEBHACK_EVENT_TEST_MOVE)) {
+        _sessionTestMoveHintCache.set(cacheKey, true);
+        return true;
+    }
+
+    if (hasTestMoveInRngEntries(session?.startup?.rng)) {
+        _sessionTestMoveHintCache.set(cacheKey, true);
+        return true;
+    }
+
+    const steps = Array.isArray(session?.steps) ? session.steps : [];
+    for (let i = 0; i < steps.length; i++) {
+        if (hasTestMoveInRngEntries(steps[i]?.rng)) {
+            _sessionTestMoveHintCache.set(cacheKey, true);
+            return true;
+        }
+    }
+
+    _sessionTestMoveHintCache.set(cacheKey, false);
+    return false;
+}
+
+const _sessionRunstepHintCache = new Map();
+
+function sessionWantsRunstepEvents(session) {
+    const cacheKey = session?.file || session;
+    if (_sessionRunstepHintCache.has(cacheKey)) {
+        return _sessionRunstepHintCache.get(cacheKey);
+    }
+
+    const regenEnv = session?.meta?.regen?.env || session?.raw?.regen?.env || {};
+    if (envEnabled(regenEnv.NETHACK_EVENT_RUNSTEP) || envEnabled(regenEnv.WEBHACK_EVENT_RUNSTEP)) {
+        _sessionRunstepHintCache.set(cacheKey, true);
+        return true;
+    }
+
+    if (hasRunstepInRngEntries(session?.startup?.rng)) {
+        _sessionRunstepHintCache.set(cacheKey, true);
+        return true;
+    }
+
+    const steps = Array.isArray(session?.steps) ? session.steps : [];
+    for (let i = 0; i < steps.length; i++) {
+        if (hasRunstepInRngEntries(steps[i]?.rng)) {
+            _sessionRunstepHintCache.set(cacheKey, true);
+            return true;
+        }
+    }
+
+    _sessionRunstepHintCache.set(cacheKey, false);
+    return false;
+}
 
 async function withSessionFixedDatetime(session, fn) {
     const prev = process.env.NETHACK_FIXED_DATETIME;
@@ -80,6 +165,31 @@ async function withSessionFixedDatetime(session, fn) {
     } finally {
         if (prev == null) delete process.env.NETHACK_FIXED_DATETIME;
         else process.env.NETHACK_FIXED_DATETIME = prev;
+    }
+}
+
+async function withSessionReplayEnv(session, fn) {
+    const prevTestMove = process.env.WEBHACK_EVENT_TEST_MOVE;
+    const prevRunstep = process.env.WEBHACK_EVENT_RUNSTEP;
+    const shouldEnableTestMove = sessionWantsTestMoveEvents(session);
+    const shouldEnableRunstep = sessionWantsRunstepEvents(session);
+    const preserveExplicit = envEnabled(prevTestMove);
+    const preserveExplicitRunstep = envEnabled(prevRunstep);
+    if (!preserveExplicit) {
+        if (shouldEnableTestMove) process.env.WEBHACK_EVENT_TEST_MOVE = '1';
+        else delete process.env.WEBHACK_EVENT_TEST_MOVE;
+    }
+    if (!preserveExplicitRunstep) {
+        if (shouldEnableRunstep) process.env.WEBHACK_EVENT_RUNSTEP = '1';
+        else delete process.env.WEBHACK_EVENT_RUNSTEP;
+    }
+    try {
+        return await fn();
+    } finally {
+        if (prevTestMove == null) delete process.env.WEBHACK_EVENT_TEST_MOVE;
+        else process.env.WEBHACK_EVENT_TEST_MOVE = prevTestMove;
+        if (prevRunstep == null) delete process.env.WEBHACK_EVENT_RUNSTEP;
+        else process.env.WEBHACK_EVENT_RUNSTEP = prevRunstep;
     }
 }
 
@@ -723,18 +833,19 @@ async function runSpecialResult(session) {
 }
 
 export async function runSessionResult(session) {
-    return withSessionFixedDatetime(session, async () => {
-        ensureSessionGlobals();
-        resetSessionRuntimeState();
-        if (session.meta.type === 'chargen') return runChargenResult(session);
-        if (session.meta.type === 'interface' && session.meta.regen?.subtype === 'chargen') {
-            return runChargenResult(session);
-        }
-        if (session.meta.type === 'interface') return runInterfaceResult(session);
-        if (session.meta.type === 'map') return runMapResult(session);
-        if (session.meta.type === 'special') return runSpecialResult(session);
-        return runGameplayResult(session);
-    });
+    return withSessionFixedDatetime(session, () =>
+        withSessionReplayEnv(session, async () => {
+            ensureSessionGlobals();
+            resetSessionRuntimeState();
+            if (session.meta.type === 'chargen') return runChargenResult(session);
+            if (session.meta.type === 'interface' && session.meta.regen?.subtype === 'chargen') {
+                return runChargenResult(session);
+            }
+            if (session.meta.type === 'interface') return runInterfaceResult(session);
+            if (session.meta.type === 'map') return runMapResult(session);
+            if (session.meta.type === 'special') return runSpecialResult(session);
+            return runGameplayResult(session);
+        }));
 }
 
 function summarizeTimeoutProgress(progress) {

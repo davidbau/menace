@@ -93,6 +93,22 @@ function strictMoreOwnerMode() {
     return raw === '1' || raw === 'true' || raw === 'on';
 }
 
+function runstepEventEnabled() {
+    const raw = String(getEnv('WEBHACK_EVENT_RUNSTEP', '0') || '').trim().toLowerCase();
+    return raw === '1' || raw === 'true' || raw === 'on';
+}
+
+function emitRunstep(game, keyarg, path) {
+    if (!runstepEventEnabled()) return;
+    const ctx = game?.context || {};
+    const p = game?.u || game?.player || {};
+    const ux = Number.isFinite(Number(p?.x)) ? Number(p.x) : Number(p?.ux || 0);
+    const uy = Number.isFinite(Number(p?.y)) ? Number(p.y) : Number(p?.uy || 0);
+    pushRngLogEntry(
+        `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${(game?.cmdKey | 0)} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
+    );
+}
+
 function questPortalInfoForPlayer(player) {
     const role = Number.isInteger(player?.roleIndex) ? roles[player.roleIndex] : null;
     const abbr = role?.abbr || '';
@@ -506,6 +522,11 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
+    const runstepPath = game?.multi > 0
+        ? ((game?.context?.mv) ? 'repeat_mv' : 'repeat_cmd')
+        : (game?.multi === 0 ? 'fresh_cmd' : 'other');
+    const runstepKeyarg = game?.multi > 0 ? (game?.cmdKey | 0) : 0;
+    emitRunstep(game, runstepKeyarg, runstepPath);
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: game?.getInputBoundaryState?.() || null,
@@ -817,6 +838,9 @@ export async function run_command(game, ch, opts = {}) {
     if (result && result.repeatRequest) {
         game.advanceRunTurn = null;
         return await execute_repeat_command(game, opts);
+    }
+    if (result && !result.tookTime) {
+        emitRunstep(game, 0, 'fresh_cmd');
     }
     if (!skipRepeatRecord && !game.inDoAgain) {
         game._repeatPrefixChainActive = !!(result && !result.tookTime && isPrefixKey);
