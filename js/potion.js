@@ -30,7 +30,7 @@ const SICK_ALL = (SICK_VOMITABLE | SICK_NONVOMITABLE);
 import { exercise } from './attrib_exercise.js';
 import { adjattrib } from './attrib.js';
 import { drinkfountain } from './fountain.js';
-import { pline, You, Your, You_feel, You_cant } from './pline.js';
+import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
 import { mark_vision_dirty } from './vision.js';
@@ -45,9 +45,16 @@ import { stairway_at } from './stairs.js';
 import { has_ceiling, ceiling } from './dungeon.js';
 import { hard_helmet } from './do_wear.js';
 import { body_part } from './polyself.js';
-import { HEAD, KILLED_BY, LEVITATION, UNCHANGING,
+import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL,
-         DETECT_MONSTERS, IS_SINK } from './const.js';
+         DETECT_MONSTERS, IS_SINK,
+         FIRE_RES, COLD_RES,
+         A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
+import { hliquid } from './do_name.js';
+import { mon_hates_blessings, likes_fire } from './mondata.js';
+import { burn_away_slime } from './timeout.js';
+import { do_enlightenment_effect } from './zap.js';
+import { see_monsters } from './display.js';
 
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
@@ -466,7 +473,19 @@ async function handleQuaff(player, map, display) {
             player.removeFromInventory(item);
             replacePromptMessage();
             item.in_use = true;
-            const potionUnknown = !!(await peffects(player, item, display));
+            gp.potion_nothing = 0;
+            gp.potion_unkn = 0;
+            const retval = await peffects(player, item, display, map);
+            if (retval >= 0) {
+                return { moved: false, tookTime: !!retval };
+            }
+            // retval === -1: normal path
+            if (gp.potion_nothing) {
+                gp.potion_unkn++;
+                await You("have a %s feeling for a moment, then it passes.",
+                    (player.hallucinating || player.Hallucination) ? "normal" : "peculiar");
+            }
+            const potionUnknown = !!gp.potion_unkn;
             if (item.dknown && !isObjectNameKnown(item.otyp)) {
                 if (!potionUnknown) {
                     discoverObject(item.otyp, true, true);
@@ -519,25 +538,19 @@ export async function peffect_blindness(player, otmp, display) {
   await make_blinded(player, newTimeout, !player.Blind);
 }
 
-// cf. potion.c peffect_speed()
+// cf. potion.c:1048 — peffect_speed
 export async function peffect_speed(player, otmp, display) {
-    // C ref: potion.c:1053-1056 — Wounded_legs early return (not ported)
-    // C ref: potion.c:1059 — speed_up(rn1(10, 100 + 60*bcsign)) for ALL BUC states
-    const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
-    const duration = rn1(10, 100 + 60 * bcsign);
-    // C ref: potion.c:2907-2913 speed_up() — message + exercise + incr_itimeout
-    if (player.fast) {
-        await You("speed up.");
-    } else {
-        await You("are suddenly moving %sfaster.", player.fast ? "" : "much ");
+    const is_speed = (otmp.otyp === POT_SPEED);
+    // C ref: potion.c:1053-1056 — Wounded_legs heal (not fully ported)
+    await speed_up(player, rn1(10, 100 + 60 * (otmp.blessed ? 1 : (otmp.cursed ? -1 : 0))));
+    // C ref: potion.c:1062-1065 — non-cursed potion grants intrinsic speed
+    if (is_speed && !otmp.cursed) {
+        const fastProp = player.uprops?.[FAST];
+        if (!(fastProp?.intrinsic & ~TIMEOUT)) {
+            await Your("quickness feels very natural.");
+            if (fastProp) fastProp.intrinsic = (fastProp.intrinsic || 0) | FROMOUTSIDE;
+        }
     }
-    await exercise(player, A_DEX, true);
-    incr_itimeout(player, FAST, duration);
-    // C ref: potion.c:1062-1065 — non-cursed grants intrinsic speed
-    if (!otmp.cursed) {
-        await Your("quickness feels very natural.");
-    }
-    return !otmp.blessed;
 }
 
 // cf. potion.c peffect_sleeping()
@@ -614,24 +627,26 @@ export async function peffect_sickness(player, otmp, display) {
     return true;
 }
 
-// cf. potion.c peffect_hallucination()
+// cf. potion.c:693 — peffect_hallucination
 export async function peffect_hallucination(player, otmp, display) {
-    // C: Halluc_resistance → early return, no RNG consumed
     const hr = player.uprops?.[HALLUC_RES];
     if (hr && (hr.intrinsic || hr.extrinsic)) {
-        return false;
+        gp.potion_nothing++;
+        return;
     }
-    // C: always applies rn1(200, 600 - 300*bcsign) duration, even blessed
+    const hallu = player.hallucinating || player.Hallucination;
+    if (hallu) gp.potion_nothing++;
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     const duration = itimeout_incr(player.getPropTimeout(HALLUC),
         rn1(200, 600 - 300 * bcsign));
     await make_hallucinated(player, duration, true);
-    // C: enlightenment path consumes rn2(3) if blessed, rn2(6) if not cursed
     if ((otmp.blessed && !rn2(3)) || (!otmp.cursed && !rn2(6))) {
-        // enlightenment — messages only, but exercise matters for RNG
+        await You("perceive yourself...");
+        // C: display_nhwindow(WIN_MESSAGE, FALSE); enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
+        await do_enlightenment_effect(player, display);
+        await Your("awareness re-normalizes.");
         await exercise(player, A_WIS, true);
     }
-    return true;
 }
 
 // cf. potion.c peffect_healing()
@@ -797,19 +812,22 @@ export async function peffect_gain_ability(player, otmp, display) {
     return false;
 }
 
-// cf. potion.c peffect_booze()
+// cf. potion.c:768 — peffect_booze
 export async function peffect_booze(player, otmp, display) {
-    await pline("Ooph!  This tastes like %s!",
-        otmp.cursed ? "liquid fire" : "dandelion wine");
-    // C: confuse if NOT blessed (both uncursed and cursed confuse)
+    gp.potion_unkn++;
+    const hallu = player.hallucinating || player.Hallucination;
+    await pline("Ooph!  This tastes like %s%s!",
+        otmp.odiluted ? "watered down " : "",
+        hallu ? "dandelion wine" : "liquid fire");
     if (!otmp.blessed) {
         // C: d(2 + u.uhs, 8) where uhs = hunger state (0=satiated..5=fainting)
         const uhs = player.uhs || 0;
         await make_confused(player, itimeout_incr(player.getPropTimeout(CONFUSION),
             d(2 + uhs, 8)), false);
     }
-    // C: healup(1, 0, 0, 0) if not diluted — always heals 1 HP
-    await healup(player, 1, 0, false, false);
+    // C: healup(1, 0, 0, 0) if not diluted
+    if (!otmp.odiluted)
+        await healup(player, 1, 0, false, false);
     // C: hunger += 10 * (2 + bcsign)
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     player.uhunger = (player.uhunger || 0) + 10 * (2 + bcsign);
@@ -818,7 +836,96 @@ export async function peffect_booze(player, otmp, display) {
         // C: multi = -rnd(15) — pass out
         rnd(15); // RNG consumed for pass-out duration
     }
-    return true;
+}
+
+// cf. potion.c:714 — peffect_water
+export async function peffect_water(player, otmp, display) {
+    if (!otmp.blessed && !otmp.cursed) {
+        // plain water
+        await pline("This tastes like %s.", hliquid("water"));
+        player.uhunger = (player.uhunger || 0) + rnd(10);
+        // newuhs(FALSE) — hunger state update (not exported yet)
+        return;
+    }
+    gp.potion_unkn++;
+    const playerAlign = player.ualign?.type ?? player.alignment ?? 0;
+    // C: mon_hates_blessings checks if player is undead or demon form
+    const hatesBlessings = mon_hates_blessings(player.youmonst || player);
+    if (hatesBlessings || playerAlign === A_CHAOTIC) {
+        if (otmp.blessed) {
+            await pline("This burns like %s!", hliquid("acid"));
+            await exercise(player, A_CON, false);
+            // C: cure lycanthropy if applicable
+            const dmg = d(2, 6);
+            const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
+            await losehp(halfPhys, "potion of holy water", KILLED_BY_AN, player);
+        } else if (otmp.cursed) {
+            await You_feel("quite proud of yourself.");
+            await healup(player, d(2, 6), 0, false, false);
+            await exercise(player, A_CON, true);
+        }
+    } else {
+        if (otmp.blessed) {
+            await You_feel("full of awe.");
+            await make_sick(player, 0, null, true, SICK_ALL);
+            await exercise(player, A_WIS, true);
+            await exercise(player, A_CON, true);
+        } else {
+            // cursed (unholy water) for non-chaotic
+            if (playerAlign === A_LAWFUL) {
+                await pline("This burns like %s!", hliquid("acid"));
+                const dmg = d(2, 6);
+                const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
+                await losehp(halfPhys, "potion of unholy water", KILLED_BY_AN, player);
+            } else {
+                await You_feel("full of dread.");
+            }
+            await exercise(player, A_CON, false);
+        }
+    }
+}
+
+// cf. potion.c:792 — peffect_enlightenment
+export async function peffect_enlightenment(player, otmp, display) {
+    if (otmp.cursed) {
+        gp.potion_unkn++;
+        await You("have an uneasy feeling...");
+        await exercise(player, A_WIS, false);
+    } else {
+        if (otmp.blessed) {
+            await adjattrib(player, A_INT, 1, false);
+            await adjattrib(player, A_WIS, 1, false);
+        }
+        await do_enlightenment_effect(player, display);
+    }
+}
+
+// cf. potion.c:1256 — peffect_oil
+export async function peffect_oil(player, otmp, display) {
+    let good_for_you = false;
+    if (otmp.lamplit) {
+        const playerData = player.youmonst?.data || player.data;
+        if (playerData && likes_fire(playerData)) {
+            await pline("Ahh, a refreshing drink.");
+            good_for_you = true;
+        } else {
+            await You("burn your %s.", body_part(FACE));
+            // C: vulnerable = !Fire_resistance || Cold_resistance
+            const fireRes = player.Fire_resistance || player.fireResistance ||
+                (player.uprops?.[FIRE_RES]?.intrinsic || player.uprops?.[FIRE_RES]?.extrinsic);
+            const coldRes = player.Cold_resistance || player.coldResistance ||
+                (player.uprops?.[COLD_RES]?.intrinsic || player.uprops?.[COLD_RES]?.extrinsic);
+            const vulnerable = !fireRes || coldRes;
+            const dmg = d(vulnerable ? 4 : 2, 4);
+            await losehp(dmg, "quaffing a burning potion of oil", KILLED_BY, player);
+        }
+        burn_away_slime();
+    } else if (otmp.cursed) {
+        await pline("This tastes like castor oil.");
+    } else {
+        await pline("That was smooth!");
+    }
+    await exercise(player, A_WIS, good_for_you);
 }
 
 // ============================================================
@@ -826,31 +933,67 @@ export async function peffect_booze(player, otmp, display) {
 // ============================================================
 
 // cf. potion.c peffects() — dispatch potion type to peffect_* handler
-// Returns true if potion type was unknown (for identification tracking).
-async function peffects(player, otmp, display) {
+// Returns -1 normally, 0 for ECMD_OK, 1 for ECMD_TIME (monster_detection/object_detection).
+async function peffects(player, otmp, display, map) {
     switch (otmp.otyp) {
-    case POT_CONFUSION:     return await peffect_confusion(player, otmp, display);
-    case POT_BLINDNESS:     return await peffect_blindness(player, otmp, display);
-    case POT_SPEED:         return await peffect_speed(player, otmp, display);
-    case POT_SLEEPING:      return await peffect_sleeping(player, otmp, display);
-    case POT_PARALYSIS:     return await peffect_paralysis(player, otmp, display);
-    case POT_SICKNESS:      return await peffect_sickness(player, otmp, display);
-    case POT_HALLUCINATION: return await peffect_hallucination(player, otmp, display);
-    case POT_HEALING:       return await peffect_healing(player, otmp, display);
-    case POT_EXTRA_HEALING: return await peffect_extra_healing(player, otmp, display);
-    case POT_FULL_HEALING:  return await peffect_full_healing(player, otmp, display);
-    case POT_GAIN_LEVEL:    return await peffect_gain_level(player, otmp, display);
-    case POT_GAIN_ENERGY:   return await peffect_gain_energy(player, otmp, display);
-    case POT_ACID:          return await peffect_acid(player, otmp, display);
-    case POT_INVISIBILITY:  return await peffect_invisibility(player, otmp, display);
-    case POT_SEE_INVISIBLE: return await peffect_see_invisible(player, otmp, display);
-    case POT_RESTORE_ABILITY: return await peffect_restore_ability(player, otmp, display);
-    case POT_GAIN_ABILITY:  return await peffect_gain_ability(player, otmp, display);
-    case POT_BOOZE:         return await peffect_booze(player, otmp, display);
+    case POT_RESTORE_ABILITY:
+        await peffect_restore_ability(player, otmp, display); break;
+    case POT_HALLUCINATION:
+        await peffect_hallucination(player, otmp, display); break;
+    case POT_WATER:
+        await peffect_water(player, otmp, display); break;
+    case POT_BOOZE:
+        await peffect_booze(player, otmp, display); break;
+    case POT_ENLIGHTENMENT:
+        await peffect_enlightenment(player, otmp, display); break;
+    case POT_INVISIBILITY:
+        await peffect_invisibility(player, otmp, display); break;
+    case POT_SEE_INVISIBLE:
+    case POT_FRUIT_JUICE:
+        await peffect_see_invisible(player, otmp, display); break;
+    case POT_PARALYSIS:
+        await peffect_paralysis(player, otmp, display); break;
+    case POT_SLEEPING:
+        await peffect_sleeping(player, otmp, display); break;
+    case POT_MONSTER_DETECTION:
+        if (await peffect_monster_detection(otmp, map, player)) return 1;
+        break;
+    case POT_OBJECT_DETECTION:
+        if (await peffect_object_detection(otmp, player)) return 1;
+        break;
+    case POT_SICKNESS:
+        await peffect_sickness(player, otmp, display); break;
+    case POT_CONFUSION:
+        await peffect_confusion(player, otmp, display); break;
+    case POT_GAIN_ABILITY:
+        await peffect_gain_ability(player, otmp, display); break;
+    case POT_SPEED:
+        await peffect_speed(player, otmp, display); break;
+    case POT_BLINDNESS:
+        await peffect_blindness(player, otmp, display); break;
+    case POT_GAIN_LEVEL:
+        await peffect_gain_level(player, otmp, display); break;
+    case POT_HEALING:
+        await peffect_healing(player, otmp, display); break;
+    case POT_EXTRA_HEALING:
+        await peffect_extra_healing(player, otmp, display); break;
+    case POT_FULL_HEALING:
+        await peffect_full_healing(player, otmp, display); break;
+    case POT_LEVITATION:
+        await peffect_levitation(otmp, map, player); break;
+    case POT_GAIN_ENERGY:
+        await peffect_gain_energy(player, otmp, display); break;
+    case POT_OIL:
+        await peffect_oil(player, otmp, display); break;
+    case POT_ACID:
+        await peffect_acid(player, otmp, display); break;
+    case POT_POLYMORPH:
+        await peffect_polymorph(otmp, player); break;
     default:
-        await pline("Hmm, that tasted like water.");
-        return true;
+        impossible("What a funny potion! (%d)", otmp.otyp);
+        return 0;
     }
+    return -1;
 }
 
 // ============================================================
@@ -1523,8 +1666,7 @@ async function split_mon(mon, mtmp, map, player) {
 
 export { handleQuaff, peffects, make_stunned, make_blinded, make_sick, make_hallucinated, make_deaf, make_slimed, bottlename, H2Opotion_dip, potionhit, potionbreathe, hold_potion, dodip, dip_potion_explosion, potion_dip, djinni_from_bottle, split_mon };
 
-// dopotion and peffect_enlightenment: broken autotranslated stubs removed.
-// The real quaffing path is handleQuaff → peffects (line ~437/797).
+// The quaffing path is handleQuaff → dopotion-equivalent → peffects (line ~937).
 
 // cf. potion.c:909 — peffect_monster_detection
 export async function peffect_monster_detection(otmp, map, player) {

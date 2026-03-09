@@ -3947,30 +3947,30 @@ Remaining parity gaps are mostly behavioral depth:
 | 2782 | `mongrantswish` | potion.js:1413 | Implemented |
 | 1293 | `peffect_acid` | 510 | Acid_resistance check, damage, exercise |
 | 1069 | `peffect_blindness` | 352 | Blessed cure, cursed extension |
-| 768 | `peffect_booze` | 560 | Confusion from booze |
+| 768 | `peffect_booze` | potion.js:813 | Implemented (diluted check, hallu message, confusion, heal, hunger) |
 | 1010 | `peffect_confusion` | 337 | Blessed cure, cursed extension |
-| 792 | `peffect_enlightenment` | potion.js:peffects default case | Stub (enlightenment messages not ported, RNG consumed inline) |
+| 792 | `peffect_enlightenment` | potion.js:889 | Implemented (adjattrib + do_enlightenment_effect) |
 | 1124 | `peffect_extra_healing` | 456 | Heal + max HP, cure hallucination, exercise |
 | 1140 | `peffect_full_healing` | 469 | Full heal, cure hallucination, exercise |
 | 1026 | `peffect_gain_ability` | potion.js:781 | Implemented |
 | 1220 | `peffect_gain_energy` | 492 | Energy gain/drain with max increase |
 | 1079 | `peffect_gain_level` | potion.js:675 | Implemented |
-| 693 | `peffect_hallucination` | 433 | Blessed cure, cursed extension |
+| 693 | `peffect_hallucination` | potion.js:631 | Implemented (duration, enlightenment chance, potion_nothing tracking) |
 | 1115 | `peffect_healing` | 445 | Heal, cure blindness, exercise |
 | 808 | `peffect_invisibility` | 521 | Timed invisibility via incr_itimeout |
 | 1161 | `peffect_levitation` | potion.js:1535 | Implemented |
 | 910 | `peffect_monster_detection` | potion.js:1502 | Implemented |
 | 951 | `peffect_object_detection` | potion.js:1528 | Implemented |
-| 1256 | `peffect_oil` | potion.js:peffects default | Stub (oil quaff has no special effect in C either, falls through to "tasted like water") |
+| 1256 | `peffect_oil` | potion.js:904 | Implemented (lit/unlit/cursed paths, fire damage, exercise) |
 | 877 | `peffect_paralysis` | 396 | FREE_ACTION check, confusion-aware message |
 | 1314 | `peffect_polymorph` | potion.js:1565 | Implemented |
 | 646 | `peffect_restore_ability` | 539 | Stub: no attribute restoration yet |
 | 838 | `peffect_see_invisible` | 532 | Timed see_invis via incr_itimeout |
 | 960 | `peffect_sickness` | 416 | Blessed cure, cursed illness, uncursed vomiting |
 | 897 | `peffect_sleeping` | 380 | FREE_ACTION check, blessed wake, sleep mechanism |
-| 1048 | `peffect_speed` | potion.js:523 | Implemented |
-| 714 | `peffect_water` | potion.js:peffects default | Implemented (handled by default "tasted like water" case) |
-| 1329 | `peffects` | 577 | Dispatcher for 18 potion types |
+| 1048 | `peffect_speed` | potion.js:542 | Implemented (calls speed_up, intrinsic speed grant) |
+| 714 | `peffect_water` | potion.js:842 | Implemented (plain/holy/unholy water, alignment-aware) |
+| 1329 | `peffects` | potion.js:937 | Dispatcher for all 25 potion types |
 | 2394 | `poof` | potion.js:1304 | Implemented |
 | 2428 | `potion_dip` | potion.js:1331 | Implemented (internal) |
 | 1918 | `potionbreathe` | potion.js:1063 | Implemented (internal) |
