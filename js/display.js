@@ -982,7 +982,7 @@ span.nh-cursor {
 
     // Display a simple menu and return selection (async)
     // C ref: winprocs.h win_select_menu
-    async showMenu(title, items, nhgetch_wrap) {
+    async showMenu(title, items, readKey) {
         // Save the current map area
         const savedCells = [];
         const startRow = MAP_ROW_START + 1;
@@ -1010,7 +1010,7 @@ span.nh-cursor {
 
         // Wait for selection
         this.putstr_message('(end) ');
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, Promise.resolve(readKey()), {
             site: 'display.showMenu.select',
         });
 
