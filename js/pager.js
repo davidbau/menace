@@ -671,17 +671,35 @@ export async function handleViewMapPrompt(game) {
         await display.putstr(28, i, text, undefined, attr);
     }
 
-    await awaitInput(game, nhgetch(), {
-        site: 'pager.handleViewMapPrompt.dismiss',
-    });
+    // C ref: cmd.c doterrain() -> select_menu(PICK_ONE):
+    // keep prompt active until an accept/cancel/selection key.
+    let selected = 0;
+    while (true) {
+        const ch = await awaitInput(game, nhgetch(), {
+            site: 'pager.handleViewMapPrompt.select',
+        });
+        if (ch === 27) break;
+        if (ch === 10 || ch === 13 || ch === 32) { selected = 1; break; }
+        const c = String.fromCharCode(ch || 0);
+        if (c === 'a' || c === 'A'
+            || c === 'b' || c === 'B'
+            || c === 'c' || c === 'C') {
+            selected = (c === 'a' || c === 'A') ? 1 : (c === 'b' || c === 'B') ? 2 : 3;
+            break;
+        }
+    }
     display.clearScreen();
     display.renderMap(map, player, fov, flags);
     if (typeof display.renderStatus === 'function') {
         display.renderStatus(player);
     }
-    if (typeof display.clearRow === 'function') display.clearRow(0);
-    display.topMessage = null;
-    display.messageNeedsMore = false;
+    if (selected > 0) {
+        await display.putstr_message("Showing known terrain only...  (For instructions type a '?')");
+    } else {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    }
     return { moved: false, tookTime: false };
 }
 

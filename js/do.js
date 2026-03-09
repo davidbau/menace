@@ -938,7 +938,7 @@ async function promptDropTypeClass(display, player) {
         const ch = await awaitInput(null, nhgetch(), {
             site: 'do.promptDropTypeClass.input',
         });
-        if (ch === 10 || ch === 13) {
+        if (ch === 10 || ch === 13 || ch === 32) {
             restoreAfterPrompt();
             return input;
         }
@@ -981,6 +981,9 @@ export async function handleDropTypes(player, map, display) {
         candidates = player.inventory.filter((obj) => !!obj?.unpaid && !!obj?.invlet);
     }
     if (candidates.length === 0) {
+        if (trimmed.includes('A')) {
+            await display.putstr_message('No relevant items selected.');
+        }
         return { moved: false, tookTime: false };
     }
 

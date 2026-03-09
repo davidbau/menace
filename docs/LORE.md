@@ -5401,3 +5401,28 @@ hard-won wisdom:
     for the count-prefixed `s` boundary (`path=fresh_cmd`, `cmd=115`, `cc=9`).
   - `seed033_manual_direct` screen match improved from `1258/1417` to
     `1263/1417` (no RNG/event regression from this slice).
+
+### seed033: C-faithful menu input boundaries for `D` and `DEL` prompts (2026-03-09)
+
+- Problem:
+  - JS stayed stuck in the `Drop what type of items?` prompt after `Space`
+    (seed033 step 1041), while C closes that prompt and continues command flow.
+  - After fixing that boundary, the next exposed mismatch was `View which?`
+    prompt handling: JS dismissed too eagerly on non-action keys, while C keeps
+    the menu active until accept/cancel/selection.
+- Fixes:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js):
+    - `promptDropTypeClass()` now treats `Space` as an accept key (same as
+      `Enter`) so `D` command boundary closes at the C-faithful point.
+    - Narrowly emits `No relevant items selected.` only for `A`-selection empty
+      result in this path (avoids broad invalid-input message regressions).
+  - [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js):
+    - `handleViewMapPrompt()` now loops like a menu prompt and ignores
+      non-action keys instead of dismissing on first keypress.
+    - Accept/cancel behavior aligned to C-facing keys (`Space`/`Enter`/`Esc`,
+      and `a`/`b`/`c` selection keys).
+- Validation:
+  - `seed033_manual_direct` improved from `1263/1417` to `1288/1417` matched
+    screens, with first RNG divergence unchanged at step `1295`.
+  - `seed032_manual_direct` still full-pass.
+  - `seed100_multidigit_gameplay` still full-pass.
