@@ -209,41 +209,62 @@ describe('E2E: Display divergence tests', () => {
     });
 
     // ---------------------------------------------------------------
-    // GAP #2: cursorOnPlayer writes '@' in browser but not headless
-    // Test: verify @ is present at player position with color
+    // GAP #2: cursorOnPlayer should only move cursor, not write '@'
+    // Test: DOM glyph at player position matches internal grid
+    // (catches the old bug where cursorOnPlayer force-wrote '@')
     // ---------------------------------------------------------------
-    it('player @ glyph is correctly positioned and not duplicated', async () => {
+    it('player glyph in DOM matches internal display grid', async () => {
         const page = await browser.newPage();
         try {
             await loadAndChargen(page, 1);
 
             const result = await page.evaluate(() => {
+                const display = window.gameDisplay;
                 const spans = document.querySelectorAll('#terminal span');
                 const atPositions = [];
+
+                // Find all '@' on the map
                 for (let r = 1; r <= 21; r++) {
                     for (let c = 0; c < 80; c++) {
                         const span = spans[r * 80 + c];
                         if (span?.textContent === '@') {
+                            // Also check what the internal grid says
+                            const gridCh = display?.grid?.[r]?.[c]?.ch || '?';
                             atPositions.push({
                                 row: r, col: c,
-                                color: span.style?.color || ''
+                                domCh: '@',
+                                gridCh,
+                                color: span.style?.color || '',
+                                match: gridCh === '@',
                             });
                         }
                     }
                 }
-                return atPositions;
+
+                // Check cursor position
+                const cursorRow = display?.cursorRow;
+                const cursorCol = display?.cursorCol;
+
+                return { atPositions, cursorRow, cursorCol };
             });
 
-            console.log('\n=== Player @ Glyph Position Test ===');
-            console.log(`  @ count: ${result.length}`);
-            for (const p of result) {
-                console.log(`  @ at [${p.row},${p.col}] color=${p.color}`);
+            console.log('\n=== Player Glyph / Grid Parity Test ===');
+            console.log(`  @ count: ${result.atPositions.length}`);
+            console.log(`  Cursor: [${result.cursorRow},${result.cursorCol}]`);
+            for (const p of result.atPositions) {
+                console.log(`  @ at [${p.row},${p.col}] grid='${p.gridCh}' match=${p.match} color=${p.color}`);
             }
 
-            // Should have exactly one @ on the map (the player)
-            assert.ok(result.length >= 1, 'At least one @ should be visible');
-            // Ideally exactly one, but pets or shopkeepers might also be @
-            assert.ok(result.length <= 3, `Too many @ symbols: ${result.length}`);
+            assert.ok(result.atPositions.length >= 1, 'At least one @ should be visible');
+
+            // Every '@' in the DOM should also be '@' in the internal grid.
+            // This catches the old cursorOnPlayer bug where setCell wrote '@'
+            // over whatever the grid actually had.
+            for (const p of result.atPositions) {
+                assert.ok(p.match,
+                    `DOM '@' at [${p.row},${p.col}] but grid has '${p.gridCh}' — ` +
+                    `cursorOnPlayer may be overwriting the map glyph`);
+            }
         } finally {
             await page.close();
         }
@@ -293,6 +314,52 @@ describe('E2E: Display divergence tests', () => {
                 assert.ok(!afterDismiss.includes('--More--'),
                     '--More-- should be dismissed after space');
             }
+        } finally {
+            await page.close();
+        }
+    });
+
+    // ---------------------------------------------------------------
+    // GAP #6/#8: Overlay menu header + color parity
+    // Test: inventory overlay has inverse header, uses CLR_GRAY
+    // ---------------------------------------------------------------
+    it('overlay menu header uses inverse video (matches headless/C)', async () => {
+        const page = await browser.newPage();
+        try {
+            await loadAndChargen(page, 3);
+
+            // Press 'i' for inventory — triggers overlay menu
+            await sendChar(page, 'i');
+            await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
+
+            const result = await page.evaluate(() => {
+                const display = window.gameDisplay;
+                if (!display?.grid) return { error: 'no grid' };
+                // Check row 0 attributes — should be inverse (attr & 1)
+                let row0Text = '';
+                let row0Attr = 0;
+                for (let c = 0; c < 80; c++) {
+                    const cell = display.grid[0]?.[c];
+                    if (cell && cell.ch !== ' ') {
+                        row0Text += cell.ch;
+                        row0Attr |= cell.attr;
+                    }
+                }
+                return { row0Text, row0Attr, hasInverse: (row0Attr & 1) !== 0 };
+            });
+
+            console.log('\n=== Overlay Menu Header Test ===');
+            console.log(`  Row 0 text: "${result.row0Text}"`);
+            console.log(`  Row 0 attr: ${result.row0Attr} (inverse=${result.hasInverse})`);
+
+            // The first line (header/prompt) should use inverse video attribute
+            if (result.row0Text && result.row0Text.length > 0) {
+                assert.ok(result.hasInverse,
+                    `Menu header should use inverse video (attr & 1), got attr=${result.row0Attr}`);
+            }
+
+            await sendChar(page, ' '); // dismiss
+            await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
         } finally {
             await page.close();
         }

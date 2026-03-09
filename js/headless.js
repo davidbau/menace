@@ -709,12 +709,13 @@ export class HeadlessDisplay {
             return;
         }
 
-        // Match tty paging: reserve room for " --More--" on long toplines,
-        // pause, then continue with the overflow text.
-        const maxLineLen = Math.max(1, this.cols - 10);
-        let breakPoint = msg.lastIndexOf(' ', maxLineLen);
-        if (breakPoint === -1) {
-            breakPoint = maxLineLen;
+        // C ref: topl.c update_topl() line 284-297 — wraps at CO-1:
+        //   for (tl += CO - 1; tl != otl; --tl)
+        //       if (*tl == ' ') break;
+        // Scan backwards from cols-1 for a space to break at.
+        let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
+        if (breakPoint <= 0) {
+            breakPoint = this.cols; // hard break if no space found
         }
         const firstLine = msg.substring(0, breakPoint);
         const wrapped = msg.substring(breakPoint).trimStart();

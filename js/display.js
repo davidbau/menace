@@ -412,7 +412,7 @@ span.nh-cursor {
             // C ref: win/tty/topl.c update_topl() uses strict '<' for fit check.
             if (combined.length + 9 < this.cols) {
                 this.clearRow(MESSAGE_ROW);
-                this.putstr(0, MESSAGE_ROW, combined, CLR_WHITE);
+                this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
                 this.topMessage = combined;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
                 this.setCursor(this.messageCursorCol, 0);
@@ -438,7 +438,7 @@ span.nh-cursor {
         this.clearRow(MESSAGE_ROW);
 
         if (msg.length <= this.cols) {
-            this.putstr(0, MESSAGE_ROW, msg, CLR_WHITE);
+            this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
             this.topMessage = msg;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
         } else {
@@ -451,7 +451,7 @@ span.nh-cursor {
             const row0 = msg.substring(0, breakPoint);
             const row1rest = msg.substring(breakPoint).trimStart();
 
-            this.putstr(0, MESSAGE_ROW, row0, CLR_WHITE);
+            this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
             this.topMessage = row0;
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
 
@@ -461,7 +461,7 @@ span.nh-cursor {
                     // with any remaining text recursively.
                     const row1 = row1rest.substring(0, this.cols);
                     this.clearRow(MESSAGE_ROW + 1);
-                    this.putstr(0, MESSAGE_ROW + 1, row1, CLR_WHITE);
+                    this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
                     this._topMessageRow1 = row1;
                     this.messageNeedsMore = true;
                     this.renderMoreMarker();
@@ -481,7 +481,7 @@ span.nh-cursor {
                 // Non-blocking mode: write row 1 and queue any remainder.
                 const row1 = row1rest.substring(0, this.cols);
                 this.clearRow(MESSAGE_ROW + 1);
-                this.putstr(0, MESSAGE_ROW + 1, row1, CLR_WHITE);
+                this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
                 this._topMessageRow1 = row1;
                 this.messageNeedsMore = true;
                 this.renderMoreMarker();
@@ -915,7 +915,8 @@ span.nh-cursor {
         }
         this.cursorCol = col;
         this.cursorRow = row;
-        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols
+        if (this.cursorVisible
+            && row >= 0 && row < this.rows && col >= 0 && col < this.cols
             && this.spans[row] && this.spans[row][col]) {
             this._cursorSpan = this.spans[row][col];
             this._cursorSpan.classList.add('nh-cursor');
@@ -924,7 +925,17 @@ span.nh-cursor {
 
     getCursor() { return [this.cursorCol, this.cursorRow, this.cursorVisible]; }
 
-    cursSet(visibility) { this.cursorVisible = visibility ? 1 : 0; }
+    cursSet(visibility) {
+        this.cursorVisible = visibility ? 1 : 0;
+        // Update DOM: hide or show cursor based on visibility
+        if (this._cursorSpan) {
+            if (!this.cursorVisible) {
+                this._cursorSpan.classList.remove('nh-cursor');
+            } else {
+                this._cursorSpan.classList.add('nh-cursor');
+            }
+        }
+    }
 
     // Get the display symbol for a terrain type
     // C ref: defsym.h PCHAR definitions, display.c back_to_glyph()
@@ -1064,12 +1075,12 @@ span.nh-cursor {
             const isHeader = (i === 0 && line.trim().length > 0);
             if (isHeader && line.startsWith(' ')) {
                 // Keep explicit leading pad non-inverse, invert remaining header text.
-                this.setCell(offx, i, ' ', CLR_WHITE, 0);
-                this.putstr(offx + 1, i, line.slice(1), CLR_WHITE, 1);
+                this.setCell(offx, i, ' ', CLR_GRAY, 0);
+                this.putstr(offx + 1, i, line.slice(1), CLR_GRAY, 1);
             } else if (isHeader) {
-                this.putstr(offx, i, line, CLR_WHITE, 1);
+                this.putstr(offx, i, line, CLR_GRAY, 1);
             } else {
-                this.putstr(offx, i, line, CLR_WHITE, 0);
+                this.putstr(offx, i, line, CLR_GRAY, 0);
             }
         }
 
@@ -1117,13 +1128,14 @@ span.nh-cursor {
 
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
-            const isHeader = isCategoryHeader(line);
+            // C ref: wintty.c — menu prompt (line 0) and category headers use inverse video.
+            const isHeader = (i === 0 && line.trim().length > 0) || isCategoryHeader(line);
             const isSingleSpacePrefix = line.startsWith(' ') && (line.length < 2 || line[1] !== ' ');
             const trimmed = isSingleSpacePrefix ? line.slice(1) : line;
             if (isHeader) {
-                this.putstr(offx, i, trimmed, CLR_WHITE, 1);
+                this.putstr(offx, i, trimmed, CLR_GRAY, 1);
             } else {
-                this.putstr(offx, i, trimmed, CLR_WHITE, 0);
+                this.putstr(offx, i, trimmed, CLR_GRAY, 0);
             }
         }
         return offx;
@@ -1228,12 +1240,13 @@ span.nh-cursor {
         this._lastTextPopup = null;
     }
 
-    // Place cursor on the player
-    // C ref: display.c curs_on_u()
+    // Place cursor on the player position (cursor only, no character write)
+    // C ref: display.c curs_on_u() → curs(WIN_MAP, u.ux, u.uy)
+    // The '@' glyph is already placed by renderMap/show_glyph; this only
+    // moves the terminal cursor to the player's position.
     cursorOnPlayer(player) {
         if (player) {
             const mapOffset = this.flags?.msg_window ? 3 : MAP_ROW_START;
-            this.setCell(player.x - 1, player.y + mapOffset, '@', CLR_WHITE);
             this.setCursor(player.x - 1, player.y + mapOffset);
         }
     }
