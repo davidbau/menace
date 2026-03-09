@@ -122,7 +122,7 @@ don't follow the same 1:1 C→JS mapping pattern.
 | `[x]` | rect.c | rect.js | Rectangle allocation for room placement |
 | `[p]` | region.c | region.js | Region system. `create_region`, `add_rect_to_reg`, `add_mon_to_reg`, `remove_mon_from_reg`, `mon_in_region`, `add_region`, `remove_region`, `clear_regions`, `run_regions`, `in_out_region`, `m_in_out_region`, `update_player_regions`, `inside_rect`/`inside_region`, `clear_heros_fault` — 15 functions present. Gas cloud effects (from `quest.js` `nemesis_stinks`) call `create_gas_cloud`. Save/restore TODO. |
 | `[N/A]` | report.c | — | Bug reporting, panic trace |
-| `[~]` | restore.c | restore.js | Game state restoration. All functions N/A (JS uses storage.js/IndexedDB with different format) |
+| `[a]` | restore.c | restore.js, storage.js, chargen.js | Game state restoration. Active JS restore path is `storage.js` (`loadSave`, `restLev`, `restGameState`, `restObj`, `restObjChn`, `restMon`, `restMonChn`) + `chargen.js:restoreFromSave` orchestration; NHFILE/binary savefile internals are explicit N/A in browser/localStorage architecture |
 | `[a]` | rip.c | display.js | RIP screen. genl_outrip as Display.renderTombstone (method); center() inlined |
 | `[x]` | rnd.c | rng.js | Random number generation |
 | `[~]` | role.c | role.js | Role/race/gender/alignment selection. roles[]/races[] data now in `role.js` (includes hpadv/enadv_full/xlev structs for all roles, hpadv/enadv for all races, `mnum` field mapping each role to its C PM_* monster-table index) and re-exported by `player.js`; `Role_if(player, pm)` and `Role_switch(player)` exported (matching C macros `Role_if`/`Role_switch` which compare `urole.mnum`); ok_role/ok_race/ok_align PARTIAL in chargen.js; role_init PARTIAL in chargen.js+u_init.js; Hello() in player.js; all others TODO |
@@ -4244,37 +4244,37 @@ Remaining parity gaps are mostly behavioral depth:
 | 290 | `submit_web_report` | - | Missing |
 | 237 | `swr_add_uricoded` | - | Missing |
 
-### restore.c -> restore.js
+### restore.c -> restore.js, storage.js, chargen.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1430 | `add_id_mapping` | - | Missing |
-| 1417 | `clear_id_mapping` | - | Missing |
-| 781 | `dorecover` | - | Missing |
-| 71 | `find_lev_obj` | - | Missing |
+| 1430 | `add_id_mapping` | - | N/A (bones/ghost NHFILE ID remap path not used by JS restore format) |
+| 1417 | `clear_id_mapping` | - | N/A (bones/ghost NHFILE ID remap path not used by JS restore format) |
+| 781 | `dorecover` | chargen.js:367, storage.js:458 | Implemented |
+| 71 | `find_lev_obj` | - | N/A (C-level object-grid rebuild; JS map uses direct object arrays) |
 | 484 | `freefruitchn` | restore.js:205 | Implemented |
-| 1308 | `get_plname_from_file` | - | Missing |
-| 1038 | `getlev` | - | Missing |
-| 497 | `ghostfruit` | - | Missing |
-| 113 | `inven_inuse` | - | Missing |
+| 1308 | `get_plname_from_file` | - | N/A (binary save-header name parsing not used in JSON/localStorage format) |
+| 1038 | `getlev` | storage.js:210 | Implemented |
+| 497 | `ghostfruit` | - | N/A (ghost fruit-ID remap path is NHFILE/bones specific) |
+| 113 | `inven_inuse` | - | N/A (interrupted in-use inventory resume path not modeled in JS restore) |
 | 465 | `loadfruitchn` | restore.js:189 | Implemented |
-| 1454 | `lookup_id_mapping` | - | Missing |
+| 1454 | `lookup_id_mapping` | - | N/A (bones/ghost NHFILE ID remap path not used by JS restore format) |
 | 1480 | `reset_oattached_mids` | restore.js:268 | Implemented |
 | 1339 | `rest_bubbles` | restore.js:260 | Implemented |
 | 1013 | `rest_levl` | restore.js:240 | Implemented |
-| 947 | `rest_stairs` | - | Missing |
+| 947 | `rest_stairs` | storage.js:210 | Implemented (`restLev` restores `upstair`/`dnstair`) |
 | 980 | `restcemetery` | restore.js:215 | Implemented |
-| 153 | `restdamage` | - | Missing |
-| 522 | `restgamestate` | - | Missing |
+| 153 | `restdamage` | - | N/A (shop damage NHFILE chain is not part of JS restore format) |
+| 522 | `restgamestate` | storage.js:391 | Implemented |
 | 130 | `restlevchn` | restore.js:287 | Implemented |
-| 747 | `restlevelfile` | - | Missing |
-| 734 | `restlevelstate` | - | Missing |
+| 747 | `restlevelfile` | - | N/A (C temp level-file rewrite step; no per-level temp files in JS) |
+| 734 | `restlevelstate` | chargen.js:367 | Implemented (restore orchestration rebinds current map/state) |
 | 307 | `restmon` | restore.js:156 | Implemented |
-| 373 | `restmonchn` | - | Missing |
-| 183 | `restobj` | - | Missing |
-| 231 | `restobjchn` | - | Missing |
-| 1360 | `restore_gamelog` | - | Missing |
-| 1506 | `restore_menu` | - | Missing |
-| 1385 | `restore_msghistory` | - | Missing |
+| 373 | `restmonchn` | storage.js:153 | Implemented |
+| 183 | `restobj` | storage.js:92 | Implemented |
+| 231 | `restobjchn` | storage.js:102 | Implemented |
+| 1360 | `restore_gamelog` | - | N/A (JS restore does not persist C gamelog chain format) |
+| 1506 | `restore_menu` | - | N/A (JS uses browser/storage UI, no C SELECTSAVED menu path) |
+| 1385 | `restore_msghistory` | storage.js:391 | Implemented (`restGameState.messages`) |
 | 1027 | `trickery` | restore.js:250 | Implemented |
 
 ### rip.c -> display.js

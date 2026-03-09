@@ -5934,3 +5934,24 @@ hard-won wisdom:
   - Raw: `5041` total, `931` missing (`18.47%` left)
   - Gameplay: `4376` total, `310` missing (`7.08%` left)
   - Excluded non-gameplay rows unchanged: `665`
+
+### CODEMATCH restore.c architecture-accurate closure (2026-03-09)
+
+- Problem:
+  - `restore.c` still showed 20 `Missing` rows despite JS restore behavior
+    already living in `storage.js` + `chargen.js` rather than `restore.js`.
+- Change:
+  - Updated file mapping to `restore.c -> restore.js, storage.js, chargen.js`.
+  - Reclassified rows to reflect actual architecture:
+    - Implemented via JS restore path:
+      `dorecover`, `getlev`, `restgamestate`, `rest_stairs`,
+      `restlevelstate`, `restmonchn`, `restobj`, `restobjchn`,
+      `restore_msghistory`.
+    - Explicit N/A for NHFILE/bones/header-specific internals:
+      `add_id_mapping`, `clear_id_mapping`, `find_lev_obj`,
+      `get_plname_from_file`, `ghostfruit`, `inven_inuse`,
+      `lookup_id_mapping`, `restdamage`, `restlevelfile`,
+      `restore_gamelog`, `restore_menu`.
+  - Kept existing `restore.js` implemented rows unchanged.
+- Validation:
+  - `npm test -- test/unit/storage.test.js` passed (gate run).
