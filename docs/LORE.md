@@ -5351,3 +5351,29 @@ hard-won wisdom:
   - This specific drift is not resolved by simple session rerecord or by
     local dog-goal logic tweaks; it is tied to replay/capture boundary timing
     under long pending travel/repeat commands.
+
+### seed033: door/kick parity fixes moved first RNG divergence 996 -> 1295 (2026-03-09)
+
+- Problem:
+  - JS `domove_core()` was intercepting closed/locked door handling before
+    `test_move()` even when C would not auto-open (for example while running).
+  - JS `kick` terrain classification missed C `kick_ouch` cases for
+    staircase-wall terrain, producing `"You kick at empty space."` where C
+    prints `"Ouch!  That hurts!"`.
+- Fixes:
+  - [`js/hack.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/hack.js):
+    - Restricted pre-`test_move` door auto-open handling to C's gate:
+      `autoopen && !run && !confused && !stunned && !fumbling`.
+    - If gate is not met, door handling falls through to `test_move()` instead
+      of forcing non-C messages/flows.
+    - Corrected closed-door auto-open turn cost to consume time
+      (`tookTime: true`) when attempting/opening/resisting.
+    - Corrected blocked closed-door message emission in `test_move()` to print
+      `"That door is closed."` on orthogonal bumps (matching C behavior).
+  - [`js/kick.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/kick.js):
+    - Added `IS_STWALL`, `STAIRS`, and `LADDER` to `kick_ouch` terrain.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+    - Before this slice: first RNG divergence at step `996`.
+    - After this slice: first RNG divergence at step `1295`.
+    - Matched RNG prefix improved to `13875/15023`, screens to `1258/1417`.

@@ -857,49 +857,19 @@ export async function domove_core(dir, player, map, display, game) {
         return { moved: false, tookTime: true };
     }
 
-    // Handle closed/locked doors before test_move so C-like auto-open can occur.
-    // C ref: hack.c domove() — D_LOCKED and D_CLOSED are separate states in rm.h;
-    // D_LOCKED (8) implies closed but uses a distinct bit from D_CLOSED (4).
+    // Closed/locked door auto-open gate.
+    // C ref: hack.c test_move() only attempts doopen_indir() when:
+    // autoopen enabled, not running, and not confused/stunned/fumbling.
+    // If that gate is not met, fall through to test_move() for regular
+    // blocked-door messaging ("That door is closed.", bump text, etc).
     if (loc && IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED))) {
-        if (loc.flags & D_LOCKED) {
-            // C ref: hack.c test_move()->doopen_indir(): with autoopen enabled,
-            // bumping a locked door prints "This door is locked." and may
-            // autounlock via key/pick/card.
-            const flags = game?.flags || map?.flags || {};
-            if (flags.autoopen && !ctx.run && !player.confused && !player.stunned && !player.fumbling) {
-                await pline("This door is locked.");
-                if (autounlock_has_action(flags, 'apply-key')) {
-                    const unlocktool = autokey(player, true);
-                    if (unlocktool) {
-                        const res = await pick_lock(game, unlocktool, nx, ny, null);
-                        // C behavior: lock-picking occupation can run immediately
-                        // on this command cycle before the next monster turn.
-                        if (res !== 0 && game?.occupation && typeof game.occupation.fn === 'function') {
-                            const cont = await game.occupation.fn(game);
-                            if (!cont) {
-                                game.occupation = null;
-                                game.pendingPrompt = null;
-                            }
-                        }
-                        return { moved: false, tookTime: res !== 0 };
-                    }
-                }
-                domoveNotime('locked-door-autoopen-no-tool');
-                return { moved: false, tookTime: false };
-            }
-            // Without autoopen path, C movement prints "That door is closed."
-            // (or bump text for low dexterity/stunned/blind); keep existing
-            // locked-door wording for now for branch-local parity.
-            await pline("This door is locked.");
-            domoveNotime('locked-door');
-            return { moved: false, tookTime: false };
-        }
         const flags = game?.flags || map?.flags || {};
         const canAutoOpen = !!(flags.autoopen
             && !ctx.run
             && !player.confused
             && !player.stunned
             && !player.fumbling);
+
         if (!canAutoOpen) {
             if (nx === player.x || ny === player.y) {
                 if (player.blind || player.stunned || acurr(player, A_DEX) < 10 || player.fumbling) {
@@ -916,6 +886,28 @@ export async function domove_core(dir, player, map, display, game) {
             return { moved: false, tookTime: false };
         }
 
+        if (loc.flags & D_LOCKED) {
+            await pline("This door is locked.");
+            if (autounlock_has_action(flags, 'apply-key')) {
+                const unlocktool = autokey(player, true);
+                if (unlocktool) {
+                    const res = await pick_lock(game, unlocktool, nx, ny, null);
+                    // C behavior: lock-picking occupation can run immediately
+                    // on this command cycle before the next monster turn.
+                    if (res !== 0 && game?.occupation && typeof game.occupation.fn === 'function') {
+                        const cont = await game.occupation.fn(game);
+                        if (!cont) {
+                            game.occupation = null;
+                            game.pendingPrompt = null;
+                        }
+                    }
+                    return { moved: false, tookTime: res !== 0 };
+                }
+            }
+            domoveNotime('locked-door-autoopen-no-tool');
+            return { moved: false, tookTime: false };
+        }
+
         const str = acurr(player, A_STR);
         const dex = acurr(player, A_DEX);
         const con = acurr(player, A_CON);
@@ -928,7 +920,8 @@ export async function domove_core(dir, player, map, display, game) {
             await exercise(player, A_STR, true);
             await display.putstr_message("The door resists!");
         }
-        return { moved: false, tookTime: false };
+        // C doopen_indir() consumes the turn (ECMD_TIME).
+        return { moved: false, tookTime: true };
     }
     if (!await test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
         // C ref: hack.c:2824-2829 — when test_move fails, C sets
@@ -2492,8 +2485,10 @@ export async function test_move(ux, uy, dx, dy, mode, player, map, display, game
         if (closed_door(x, y, map)) {
             // Closed door blocks movement
             if (mode === DO_MOVE) {
-                // Auto-open handled elsewhere in domove
-                if (flags.mention_walls) {
+                // C ref: hack.c test_move() only reports "That door is closed."
+                // for orthogonal movement; diagonal closed-door attempts are
+                // silent unless auto-open applies.
+                if (x === ux || y === uy) {
                     if (display) await display.putstr_message('That door is closed.');
                 }
             } else if (mode === TEST_TRAV || mode === TEST_TRAP) {
