@@ -18,9 +18,10 @@ import { findFirstGridDiff } from './comparators.js';
 
 const GRID_SECTIONS = new Set(['T', 'F', 'H', 'L', 'R', 'W']);
 const VECTOR_SECTIONS = new Set(['U', 'A']);
+const CONTEXT_SECTIONS = new Set(['C', 'G']);
 const SPARSE_SECTIONS = new Set(['O', 'Q', 'M', 'N', 'K', 'J', 'E']);
-const ALL_SECTIONS = [...GRID_SECTIONS, ...VECTOR_SECTIONS, ...SPARSE_SECTIONS];
-const DEFAULT_COMPARE_SECTIONS = ['U', 'A', 'O', 'Q', 'M', 'N', 'K', 'J', 'E', 'T', 'F', 'W'];
+const ALL_SECTIONS = [...GRID_SECTIONS, ...VECTOR_SECTIONS, ...CONTEXT_SECTIONS, ...SPARSE_SECTIONS];
+const DEFAULT_COMPARE_SECTIONS = ['U', 'A', 'C', 'G', 'O', 'Q', 'M', 'N', 'K', 'J', 'E', 'T', 'F', 'W'];
 
 function usage() {
     const sectionLegend = [
@@ -32,6 +33,8 @@ function usage() {
         'W wallInfoGrid',
         'U hero vector',
         'A anchor vector',
+        'C context snapshot (normalized key=value pairs)',
+        'G global flags snapshot (normalized key=value pairs)',
         'O object sparse',
         'Q object details sparse',
         'M monster sparse',
@@ -148,6 +151,216 @@ function parseSectionSet(spec, fallback = ALL_SECTIONS) {
         set.add(token);
     }
     return set;
+}
+
+function encodeContextValue(value, maxLen = 80) {
+    if (value == null) return 'null';
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    const s = String(value);
+    return s.length > maxLen ? `${s.slice(0, maxLen)}…` : s;
+}
+
+function stableRefObject(obj) {
+    if (!obj || typeof obj !== 'object') return null;
+    if (Number.isFinite(obj.o_id)) {
+        return {
+            ref: 'obj',
+            o_id: obj.o_id | 0,
+            otyp: Number.isFinite(obj.otyp) ? (obj.otyp | 0) : undefined,
+            ox: Number.isFinite(obj.ox) ? (obj.ox | 0) : undefined,
+            oy: Number.isFinite(obj.oy) ? (obj.oy | 0) : undefined,
+        };
+    }
+    if (Number.isFinite(obj.m_id)) {
+        return {
+            ref: 'mon',
+            m_id: obj.m_id | 0,
+            mnum: Number.isFinite(obj.mnum) ? (obj.mnum | 0) : undefined,
+            mx: Number.isFinite(obj.mx) ? (obj.mx | 0) : undefined,
+            my: Number.isFinite(obj.my) ? (obj.my | 0) : undefined,
+        };
+    }
+    return null;
+}
+
+function flattenContext(prefix, value, out, maxStringLen = 80, seen = new Set(), depth = 0) {
+    const key = String(prefix || '');
+    if (value == null || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
+        out.push([key, encodeContextValue(value, maxStringLen)]);
+        return;
+    }
+    const ref = stableRefObject(value);
+    if (ref) {
+        out.push([key, encodeContextValue(JSON.stringify(ref), maxStringLen)]);
+        return;
+    }
+    if (depth >= 8) {
+        out.push([key, '[max-depth]']);
+        return;
+    }
+    if (typeof value === 'object') {
+        if (seen.has(value)) {
+            out.push([key, '[cycle]']);
+            return;
+        }
+        seen.add(value);
+    }
+    if (Array.isArray(value)) {
+        out.push([`${key}.length`, String(value.length)]);
+        for (let i = 0; i < value.length; i++) {
+            flattenContext(`${key}[${i}]`, value[i], out, maxStringLen, seen, depth + 1);
+        }
+        seen.delete(value);
+        return;
+    }
+    const keys = Object.keys(value).sort();
+    for (const k of keys) {
+        flattenContext(key ? `${key}.${k}` : k, value[k], out, maxStringLen, seen, depth + 1);
+    }
+    seen.delete(value);
+}
+
+function encodeContextSection(contextObj, maxStringLen = 80) {
+    const rows = [];
+    flattenContext('', contextObj || {}, rows, maxStringLen);
+    rows.sort((a, b) => a[0].localeCompare(b[0]));
+    return rows
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join(';');
+}
+
+function buildJsContextSnapshot(game) {
+    const ctx = game?.svc?.context || game?.context || {};
+    const g = game || {};
+    return {
+        ident: Number(ctx.ident) || 0,
+        no_of_wizards: Number(ctx.no_of_wizards) || 0,
+        run: Number(ctx.run) || 0,
+        startingpet_mid: Number(ctx.startingpet_mid) || 0,
+        current_fruit: Number(ctx.current_fruit) || 0,
+        mysteryforce: Number(ctx.mysteryforce) || 0,
+        rndencode: Number(ctx.rndencode) || 0,
+        startingpet_typ: Number(ctx.startingpet_typ) || 0,
+        warnlevel: Number(ctx.warnlevel) || 0,
+        next_attrib_check: Number(ctx.next_attrib_check) || 0,
+        seer_turn: Number(ctx.seer_turn) || 0,
+        snickersnee_turn: Number(ctx.snickersnee_turn) || 0,
+        stethoscope_seq: Number(ctx.stethoscope_seq) || 0,
+        travel: !!ctx.travel,
+        travel1: !!ctx.travel1,
+        forcefight: !!ctx.forcefight,
+        nopick: !!ctx.nopick,
+        made_amulet: !!ctx.made_amulet,
+        mon_moving: !!ctx.mon_moving,
+        move: !!ctx.move,
+        mv: !!ctx.mv,
+        bypasses: !!ctx.bypasses,
+        door_opened: !!ctx.door_opened,
+        resume_wish: !!ctx.resume_wish,
+        tips: Array.isArray(ctx.tips) ? ctx.tips.map((x) => !!x) : [],
+        pickup: !!g?.flags?.pickup,
+        multi: Number(g?.multi) || 0,
+        occupation: !!g?.occupation,
+        umoved: !!(g?.u || g?.player)?.umoved,
+        jingle: encodeContextValue(ctx.jingle, 48),
+        digging: ctx.digging || {},
+        victual: ctx.victual || {},
+        engraving: ctx.engraving || {},
+        tin: ctx.tin || {},
+        spbook: ctx.spbook || {},
+        takeoff: ctx.takeoff || {},
+        warntype: ctx.warntype || {},
+        polearm: ctx.polearm || {},
+        objsplit: ctx.objsplit || {},
+        tribute: ctx.tribute || {},
+        novel: ctx.novel || {},
+        achieveo: ctx.achieveo || {},
+        lifelist: ctx.lifelist || {},
+    };
+}
+
+function bool01(v) {
+    return !!v ? 1 : 0;
+}
+
+function buildJsFlagsSnapshot(game) {
+    const f = game?.flags || {};
+    return {
+        acoustics: bool01(f.acoustics),
+        autodig: bool01(f.autodig),
+        autoquiver: bool01(f.autoquiver),
+        autoopen: bool01(f.autoopen),
+        beginner: bool01(f.beginner),
+        biff: bool01(f.mail), // JS uses `mail` where C struct flag has `biff`
+        bones: bool01(f.bones),
+        confirm: bool01(f.confirm),
+        dark_room: bool01(f.dark_room),
+        debug: bool01(f.debug || game?.wizard),
+        end_own: bool01(f.end_own),
+        explore: bool01(f.explore),
+        female: bool01(f.female),
+        friday13: bool01(f.friday13),
+        goldX: bool01(f.goldX),
+        help: bool01(f.help),
+        tips: bool01(f.tips),
+        tutorial: bool01(f.tutorial),
+        ignintr: bool01(f.ignintr),
+        implicit_uncursed: bool01(f.implicit_uncursed),
+        ins_chkpt: bool01(f.ins_chkpt),
+        invlet_constant: bool01(f.invlet_constant),
+        legacy: bool01(f.legacy),
+        lit_corridor: bool01(f.lit_corridor),
+        mention_decor: bool01(f.mention_decor),
+        mention_walls: bool01(f.mention_walls),
+        nap: bool01(f.nap),
+        nopick_dropped: bool01(f.dropped_nopick),
+        null: bool01(f.null),
+        pickup: bool01(f.pickup),
+        pickup_stolen: bool01(f.pickup_stolen),
+        pickup_thrown: bool01(f.pickup_thrown),
+        pushweapon: bool01(f.pushweapon),
+        quick_farsight: bool01(f.quick_farsight),
+        rest_on_space: bool01(f.rest_on_space),
+        safe_dog: bool01(f.safe_pet),
+        safe_wait: bool01(f.safe_wait),
+        showexp: bool01(f.showexp),
+        showscore: bool01(f.showscore),
+        showvers: bool01(f.showvers),
+        silent: bool01(f.silent),
+        sortpack: bool01(f.sortpack),
+        sparkle: bool01(f.sparkle),
+        standout: bool01(f.standout),
+        time: bool01(f.time),
+        tombstone: bool01(f.tombstone),
+        verbose: bool01(f.verbose),
+        end_top: Number(f.end_top) || 0,
+        end_around: Number(f.end_around) || 0,
+        autounlock: Number(f.autounlock) || 0,
+        moonphase: Number(f.moonphase) || 0,
+        suppress_alert: Number(f.suppress_alert) || 0,
+        paranoia_bits: Number(f.paranoia_bits) || 0,
+        versinfo: Number(f.versinfo) || 0,
+        pickup_burden: Number.isFinite(Number(f.pickup_burden)) ? Number(f.pickup_burden) : String(f.pickup_burden || ''),
+        pile_limit: Number(f.pile_limit) || 0,
+        discosort: encodeContextValue(f.discosort),
+        sortloot: encodeContextValue(f.sortloot),
+        vanq_sortmode: Number(f.vanq_sortmode) || 0,
+        inv_order: encodeContextValue(f.inv_order),
+        pickup_types: encodeContextValue(f.pickup_types),
+        end_disclose: encodeContextValue(f.end_disclose),
+        menu_style: encodeContextValue(f.menu_style),
+        made_fruit: bool01(f.made_fruit),
+        initrole: Number(f.initrole) || 0,
+        initrace: Number(f.initrace) || 0,
+        initgend: Number(f.initgend) || 0,
+        initalign: Number(f.initalign) || 0,
+        randomall: Number(f.randomall) || 0,
+        pantheon: Number(f.pantheon) || 0,
+        lootabc: bool01(f.lootabc),
+        showrace: bool01(f.showrace),
+        travelcmd: bool01(f.travel),
+        runmode: encodeContextValue(f.runmode),
+    };
 }
 
 function parseStepSet(spec, stepCount, window = 0) {
@@ -270,6 +483,31 @@ function buildCompactMapdumpFromCSnapshot(capture, sectionSet) {
         lines.push(`U${ux},${uy},0,0,0,0,0,0,0,0,0,0,0,0,0,0`);
     }
     if (sectionSet.has('A')) lines.push('A0,0');
+    if (sectionSet.has('C')) {
+        if (cp.context && typeof cp.context === 'object') {
+            lines.push(`C${encodeContextSection(cp.context)}`);
+        } else {
+            const fallbackContext = {
+                pickup: cp.pickup ? 1 : 0,
+                nopick: cp.nopick ? 1 : 0,
+                travel: cp.travel ? 1 : 0,
+                run: Number(cp.run) || 0,
+                mv: cp.mv ? 1 : 0,
+                move: cp.move ? 1 : 0,
+                occupation: cp.occupation ? 1 : 0,
+                multi: Number(cp.multi) || 0,
+                umoved: cp.umoved ? 1 : 0,
+            };
+            lines.push(`C${encodeContextSection(fallbackContext)}`);
+        }
+    }
+    if (sectionSet.has('G')) {
+        if (cp.flags && typeof cp.flags === 'object') {
+            lines.push(`G${encodeContextSection(cp.flags)}`);
+        } else {
+            lines.push('G');
+        }
+    }
 
     if (sectionSet.has('O')) {
         const objs = Array.isArray(cp.objects) ? cp.objects : [];
@@ -364,7 +602,7 @@ function sparseCompare(aList = [], bList = []) {
 function sectionField(section) {
     return ({
         T: 'typGrid', F: 'flagsGrid', H: 'horizontalGrid', L: 'litGrid', R: 'roomnoGrid', W: 'wallInfoGrid',
-        U: 'hero', A: 'anchor',
+        U: 'hero', A: 'anchor', C: 'context', G: 'flags',
         O: 'objects', Q: 'objectDetails', M: 'monsters', N: 'monsterDetails', K: 'traps', J: 'trapDetails',
         E: 'engravings',
     })[section];
@@ -383,6 +621,10 @@ function compareParsedMapdumps(aParsed, bParsed, sectionSet) {
         if (GRID_SECTIONS.has(section)) {
             const diff = findFirstGridDiff(aParsed[field] || [], bParsed[field] || []);
             if (diff) diffs.push({ section, kind: 'grid', ...diff });
+        } else if (CONTEXT_SECTIONS.has(section)) {
+            const aCtx = String(aParsed?.[field] || '');
+            const bCtx = String(bParsed?.[field] || '');
+            if (aCtx !== bCtx) diffs.push({ section, kind: 'context', a: aCtx, b: bCtx });
         } else if (VECTOR_SECTIONS.has(section)) {
             const cmp = sparseCompare([aParsed[field]], [bParsed[field]]);
             if (!cmp.match) diffs.push({ section, kind: 'vector', ...cmp.diff });
@@ -523,7 +765,10 @@ async function main() {
     const sessionPath = resolve(args.sessionPath);
     const session = loadSession(sessionPath);
     const sectionSet = parseSectionSet(args.sections, ALL_SECTIONS);
-    const compareSectionSet = parseSectionSet(args.compareSections, DEFAULT_COMPARE_SECTIONS);
+    const compareFallback = args.compareSections
+        ? DEFAULT_COMPARE_SECTIONS
+        : DEFAULT_COMPARE_SECTIONS.filter((s) => sectionSet.has(s));
+    const compareSectionSet = parseSectionSet(args.compareSections, compareFallback);
     const recordedNethackC = session?.raw?.recorded_with?.nethack_c || null;
     const currentNethackC = getCurrentNethackCCommitShort();
     const cHasTestMove = sessionHasTestMove(session?.raw);
@@ -579,7 +824,37 @@ async function main() {
         const full = buildDebugMapdumpPayload(map, {
             hero: game?.u || game?.player || null,
             moves: Number.isFinite(game?.moves) ? Math.trunc(game.moves) : undefined,
+            contextSection: encodeContextSection(buildJsContextSnapshot(game)),
         });
+        if (sectionSet.has('G')) {
+            const gLine = `G${encodeContextSection(buildJsFlagsSnapshot(game))}`;
+            const withG = String(full || '').endsWith('\n') ? `${full}${gLine}\n` : `${full}\n${gLine}\n`;
+            const payloadWithG = filterMapdumpSections(withG, sectionSet);
+            const file = `step${String(sessionStep).padStart(4, '0')}.mapdump`;
+            const abs = join(jsDir, file);
+            writeFileSync(abs, payloadWithG, 'utf8');
+            const parsed = parseCompactMapdump(payloadWithG);
+            const jsCounts = stepSignalCounts(step);
+            const sessionCounts = stepSignalCounts(session.steps[sessionStep - 1]);
+            const jsScreen = args.screens ? String(step?.screen || '').split('\n') : null;
+            const sessionScreen = args.screens ? (session.steps[sessionStep - 1]?.screen || null) : null;
+            const screenDiff = args.screens ? firstScreenDiff(jsScreen, sessionScreen) : null;
+            captures.push({
+                sessionStep,
+                rawStep,
+                file,
+                jsPath: abs,
+                signature: mapdumpSignature(parsed),
+                jsRngCalls: jsCounts.rngCalls,
+                jsEvents: jsCounts.events,
+                sessionRngCalls: sessionCounts.rngCalls,
+                sessionEvents: sessionCounts.events,
+                jsScreen: args.screens ? jsScreen : undefined,
+                sessionScreen: args.screens ? sessionScreen : undefined,
+                firstScreenDiff: args.screens ? screenDiff : undefined,
+            });
+            return;
+        }
         const payload = filterMapdumpSections(full, sectionSet);
         const file = `step${String(sessionStep).padStart(4, '0')}.mapdump`;
         const abs = join(jsDir, file);

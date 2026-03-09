@@ -105,9 +105,8 @@ function emitRunstep(game, keyarg, path, cmdOverride = null) {
     const ux = Number.isFinite(Number(p?.x)) ? Number(p.x) : Number(p?.ux || 0);
     const uy = Number.isFinite(Number(p?.y)) ? Number(p.y) : Number(p?.uy || 0);
     const cmd = (cmdOverride == null) ? (game?.cmdKey | 0) : (cmdOverride | 0);
-    const flags = game?.flags || {};
     pushRngLogEntry(
-        `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${cmd} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} pickup=${flags?.pickup ? 1 : 0} nopick=${ctx?.nopick ? 1 : 0} travel=${ctx?.travel ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
+        `^runstep[path=${path} keyarg=${keyarg | 0} cmd=${cmd} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} multi=${(game?.multi | 0)} run=${(ctx?.run | 0)} mv=${ctx?.mv ? 1 : 0} move=1 occ=${game?.occupation ? 1 : 0} umoved=${p?.umoved ? 1 : 0} ux=${ux | 0} uy=${uy | 0}]`
     );
 }
 

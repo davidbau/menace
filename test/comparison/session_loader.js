@@ -261,6 +261,8 @@ export function parseCompactMapdump(content) {
             case 'W': result.wallInfoGrid = decodeCompactRleGrid(data); break;
             case 'U': result.hero = data.split(',').map(Number); break;
             case 'A': result.anchor = data.split(',').map(Number); break;
+            case 'C': result.context = data; break;
+            case 'G': result.flags = data; break;
             case 'Q': result.objectDetails = parseCompactSparseListVariable(data, 4); break;
             case 'N': result.monsterDetails = parseCompactSparseListVariable(data, 4); break;
             case 'J': result.trapDetails = parseCompactSparseListVariable(data, 3); break;

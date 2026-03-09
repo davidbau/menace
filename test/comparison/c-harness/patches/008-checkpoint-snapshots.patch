@@ -86,6 +86,215 @@ index d77454878..843e21f50 100644
 +            ",\"u_acurrstr\":%d,\"u_str\":%d,\"u_ux\":%d,\"u_uy\":%d,\"u_blind\":%d",
 +            ACURRSTR, ABASE(A_STR), u.ux, u.uy, Blind ? 1 : 0);
 +
++    /* context snapshot (normalized, debugger-focused) */
++    fputs(",\"context\":{", fp);
++    fprintf(fp,
++            "\"ident\":%u,\"no_of_wizards\":%u,\"run\":%u,"
++            "\"startingpet_mid\":%u,\"current_fruit\":%d,\"mysteryforce\":%d,"
++            "\"rndencode\":%d,\"startingpet_typ\":%d,\"warnlevel\":%d,"
++            "\"next_attrib_check\":%ld,\"seer_turn\":%ld,\"snickersnee_turn\":%ld,"
++            "\"stethoscope_seq\":%ld,"
++            "\"travel\":%d,\"travel1\":%d,\"forcefight\":%d,\"nopick\":%d,"
++            "\"made_amulet\":%d,\"mon_moving\":%d,\"move\":%d,\"mv\":%d,"
++            "\"bypasses\":%d,\"door_opened\":%d,\"resume_wish\":%d,"
++            "\"pickup\":%d,\"occupation\":%d,\"multi\":%d,\"umoved\":%d,"
++            "\"jingle\":\"",
++            svc.context.ident, svc.context.no_of_wizards, svc.context.run,
++            svc.context.startingpet_mid, svc.context.current_fruit, svc.context.mysteryforce,
++            svc.context.rndencode, svc.context.startingpet_typ, svc.context.warnlevel,
++            svc.context.next_attrib_check, svc.context.seer_turn, svc.context.snickersnee_turn,
++            svc.context.stethoscope_seq,
++            svc.context.travel ? 1 : 0, svc.context.travel1 ? 1 : 0,
++            svc.context.forcefight ? 1 : 0, svc.context.nopick ? 1 : 0,
++            svc.context.made_amulet ? 1 : 0, svc.context.mon_moving ? 1 : 0,
++            svc.context.move ? 1 : 0, svc.context.mv ? 1 : 0,
++            svc.context.bypasses ? 1 : 0, svc.context.door_opened ? 1 : 0,
++            svc.context.resume_wish ? 1 : 0,
++            flags.pickup ? 1 : 0, go.occupation ? 1 : 0, gm.multi,
++            u.umoved ? 1 : 0);
++    json_write_escaped(fp, svc.context.jingle);
++    fputs("\",\"tips\":[", fp);
++    for (i = 0; i < NUM_TIPS; i++) {
++        if (i)
++            fputc(',', fp);
++        fprintf(fp, "%d", svc.context.tips[i] ? 1 : 0);
++    }
++    fputs("],\"digging\":{", fp);
++    fprintf(fp,
++            "\"effort\":%d,\"lastdigtime\":%ld,\"down\":%d,\"chew\":%d,"
++            "\"warned\":%d,\"quiet\":%d,\"level_dnum\":%d,\"level_dlevel\":%d,"
++            "\"x\":%d,\"y\":%d},",
++            svc.context.digging.effort, svc.context.digging.lastdigtime,
++            svc.context.digging.down ? 1 : 0, svc.context.digging.chew ? 1 : 0,
++            svc.context.digging.warned ? 1 : 0, svc.context.digging.quiet ? 1 : 0,
++            (int) svc.context.digging.level.dnum, (int) svc.context.digging.level.dlevel,
++            (int) svc.context.digging.pos.x, (int) svc.context.digging.pos.y);
++    fputs("\"victual\":{", fp);
++    fprintf(fp,
++            "\"piece_o_id\":%u,\"o_id\":%u,\"usedtime\":%d,\"reqtime\":%d,"
++            "\"nmod\":%d,\"canchoke\":%d,\"fullwarn\":%d,\"eating\":%d,\"doreset\":%d},",
++            svc.context.victual.piece ? svc.context.victual.piece->o_id : 0U,
++            svc.context.victual.o_id,
++            svc.context.victual.usedtime, svc.context.victual.reqtime,
++            svc.context.victual.nmod, svc.context.victual.canchoke ? 1 : 0,
++            svc.context.victual.fullwarn ? 1 : 0, svc.context.victual.eating ? 1 : 0,
++            svc.context.victual.doreset ? 1 : 0);
++    fputs("\"engraving\":{", fp);
++    fprintf(fp,
++            "\"stylus_o_id\":%u,\"type\":%d,\"actionct\":%d,\"x\":%d,\"y\":%d,"
++            "\"text_len\":%ld,\"text_preview\":\"",
++            svc.context.engraving.stylus ? svc.context.engraving.stylus->o_id : 0U,
++            (int) svc.context.engraving.type, svc.context.engraving.actionct,
++            (int) svc.context.engraving.pos.x, (int) svc.context.engraving.pos.y,
++            (long) strlen(svc.context.engraving.text));
++    {
++        char engrbuf[81];
++        int n = 0;
++        while (n < 80 && svc.context.engraving.text[n]) {
++            engrbuf[n] = svc.context.engraving.text[n];
++            n++;
++        }
++        engrbuf[n] = '\0';
++        json_write_escaped(fp, engrbuf);
++    }
++    fputs("\"},\"tin\":{", fp);
++    fprintf(fp,
++            "\"tin_o_id\":%u,\"o_id\":%u,\"usedtime\":%d,\"reqtime\":%d},",
++            svc.context.tin.tin ? svc.context.tin.tin->o_id : 0U,
++            svc.context.tin.o_id, svc.context.tin.usedtime, svc.context.tin.reqtime);
++    fputs("\"spbook\":{", fp);
++    fprintf(fp,
++            "\"book_o_id\":%u,\"o_id\":%u,\"delay\":%d},",
++            svc.context.spbook.book ? svc.context.spbook.book->o_id : 0U,
++            svc.context.spbook.o_id, (int) svc.context.spbook.delay);
++    fputs("\"takeoff\":{", fp);
++    fprintf(fp,
++            "\"mask\":%ld,\"what\":%ld,\"delay\":%d,\"cancelled_don\":%d,"
++            "\"disrobing\":\"",
++            svc.context.takeoff.mask, svc.context.takeoff.what, svc.context.takeoff.delay,
++            svc.context.takeoff.cancelled_don ? 1 : 0);
++    json_write_escaped(fp, svc.context.takeoff.disrobing);
++    fputs("\"},\"warntype\":{", fp);
++    fprintf(fp,
++            "\"obj\":%lu,\"polyd\":%lu,\"speciesidx\":%d},",
++            svc.context.warntype.obj, svc.context.warntype.polyd,
++            (int) svc.context.warntype.speciesidx);
++    fputs("\"polearm\":{", fp);
++    fprintf(fp,
++            "\"hitmon_mid\":%u,\"m_id\":%u},",
++            svc.context.polearm.hitmon ? svc.context.polearm.hitmon->m_id : 0U,
++            svc.context.polearm.m_id);
++    fputs("\"objsplit\":{", fp);
++    fprintf(fp,
++            "\"parent_oid\":%u,\"child_oid\":%u},",
++            svc.context.objsplit.parent_oid, svc.context.objsplit.child_oid);
++    fputs("\"tribute\":{", fp);
++    fprintf(fp,
++            "\"tributesz\":%lu,\"enabled\":%d,\"bookstock\":%d,\"Deathnotice\":%d},",
++            (unsigned long) svc.context.tribute.tributesz,
++            svc.context.tribute.enabled ? 1 : 0,
++            svc.context.tribute.bookstock ? 1 : 0,
++            svc.context.tribute.Deathnotice ? 1 : 0);
++    fputs("\"novel\":{", fp);
++    fprintf(fp,
++            "\"id\":%u,\"count\":%d},",
++            svc.context.novel.id, svc.context.novel.count);
++    fputs("\"achieveo\":{", fp);
++    fprintf(fp,
++            "\"mines_prize_oid\":%u,\"soko_prize_oid\":%u,\"castle_prize_old\":%u,"
++            "\"mines_prize_otyp\":%d,\"soko_prize_otyp\":%d,\"castle_prize_otyp\":%d,"
++            "\"minetn_reached\":%d},",
++            svc.context.achieveo.mines_prize_oid, svc.context.achieveo.soko_prize_oid,
++            svc.context.achieveo.castle_prize_old,
++            (int) svc.context.achieveo.mines_prize_otyp,
++            (int) svc.context.achieveo.soko_prize_otyp,
++            (int) svc.context.achieveo.castle_prize_otyp,
++            svc.context.achieveo.minetn_reached ? 1 : 0);
++    fputs("\"lifelist\":{", fp);
++    fprintf(fp,
++            "\"total_seen_upclose\":%ld,\"total_photographed\":%ld}}",
++            svc.context.lifelist.total_seen_upclose,
++            svc.context.lifelist.total_photographed);
++
++    /* global flags snapshot (struct flag) */
++    {
++        char invbuf[MAXOCLASSES + 1];
++        char pickbuf[MAXOCLASSES + 1];
++        char disclosebuf[NUM_DISCLOSURE_OPTIONS + 2];
++        int k;
++        for (k = 0; k < MAXOCLASSES; ++k) {
++            invbuf[k] = flags.inv_order[k];
++            pickbuf[k] = flags.pickup_types[k];
++        }
++        invbuf[MAXOCLASSES] = '\0';
++        pickbuf[MAXOCLASSES] = '\0';
++        for (k = 0; k < NUM_DISCLOSURE_OPTIONS + 1; ++k)
++            disclosebuf[k] = flags.end_disclose[k];
++        disclosebuf[NUM_DISCLOSURE_OPTIONS + 1] = '\0';
++
++        fputs(",\"flags\":{", fp);
++        fprintf(fp,
++                "\"acoustics\":%d,\"autodig\":%d,\"autoquiver\":%d,"
++                "\"autoopen\":%d,\"beginner\":%d,\"biff\":%d,\"bones\":%d,"
++                "\"confirm\":%d,\"dark_room\":%d,\"debug\":%d,\"end_own\":%d,"
++                "\"explore\":%d,\"female\":%d,\"friday13\":%d,\"goldX\":%d,"
++                "\"help\":%d,\"tips\":%d,\"tutorial\":%d,\"ignintr\":%d,"
++                "\"implicit_uncursed\":%d,\"ins_chkpt\":%d,\"invlet_constant\":%d,"
++                "\"legacy\":%d,\"lit_corridor\":%d,\"mention_decor\":%d,"
++                "\"mention_walls\":%d,\"nap\":%d,\"nopick_dropped\":%d,"
++                "\"null\":%d,\"pickup\":%d,\"pickup_stolen\":%d,"
++                "\"pickup_thrown\":%d,\"pushweapon\":%d,\"quick_farsight\":%d,"
++                "\"rest_on_space\":%d,\"safe_dog\":%d,\"safe_wait\":%d,"
++                "\"showexp\":%d,\"showscore\":%d,\"showvers\":%d,\"silent\":%d,"
++                "\"sortpack\":%d,\"sparkle\":%d,\"standout\":%d,\"time\":%d,"
++                "\"tombstone\":%d,\"verbose\":%d,"
++                "\"end_top\":%d,\"end_around\":%d,\"autounlock\":%u,"
++                "\"moonphase\":%u,\"suppress_alert\":%lu,\"paranoia_bits\":%u,"
++                "\"versinfo\":%u,\"pickup_burden\":%d,\"pile_limit\":%d,"
++                "\"discosort\":%d,\"sortloot\":%d,\"vanq_sortmode\":%u,"
++                "\"menu_style\":%d,\"made_fruit\":%d,"
++                "\"initrole\":%d,\"initrace\":%d,\"initgend\":%d,\"initalign\":%d,"
++                "\"randomall\":%d,\"pantheon\":%d,"
++                "\"lootabc\":%d,\"showrace\":%d,\"travelcmd\":%d,\"runmode\":%d,",
++                flags.acoustics ? 1 : 0, flags.autodig ? 1 : 0,
++                flags.autoquiver ? 1 : 0, flags.autoopen ? 1 : 0,
++                flags.beginner ? 1 : 0, flags.biff ? 1 : 0, flags.bones ? 1 : 0,
++                flags.confirm ? 1 : 0, flags.dark_room ? 1 : 0, flags.debug ? 1 : 0,
++                flags.end_own ? 1 : 0, flags.explore ? 1 : 0, flags.female ? 1 : 0,
++                flags.friday13 ? 1 : 0, flags.goldX ? 1 : 0, flags.help ? 1 : 0,
++                flags.tips ? 1 : 0, flags.tutorial ? 1 : 0, flags.ignintr ? 1 : 0,
++                flags.implicit_uncursed ? 1 : 0, flags.ins_chkpt ? 1 : 0,
++                flags.invlet_constant ? 1 : 0, flags.legacy ? 1 : 0,
++                flags.lit_corridor ? 1 : 0, flags.mention_decor ? 1 : 0,
++                flags.mention_walls ? 1 : 0, flags.nap ? 1 : 0,
++                flags.nopick_dropped ? 1 : 0, flags.null ? 1 : 0,
++                flags.pickup ? 1 : 0, flags.pickup_stolen ? 1 : 0,
++                flags.pickup_thrown ? 1 : 0, flags.pushweapon ? 1 : 0,
++                flags.quick_farsight ? 1 : 0, flags.rest_on_space ? 1 : 0,
++                flags.safe_dog ? 1 : 0, flags.safe_wait ? 1 : 0,
++                flags.showexp ? 1 : 0, flags.showscore ? 1 : 0,
++                flags.showvers ? 1 : 0, flags.silent ? 1 : 0,
++                flags.sortpack ? 1 : 0, flags.sparkle ? 1 : 0,
++                flags.standout ? 1 : 0, flags.time ? 1 : 0,
++                flags.tombstone ? 1 : 0, flags.verbose ? 1 : 0,
++                flags.end_top, flags.end_around, flags.autounlock,
++                flags.moonphase, flags.suppress_alert, flags.paranoia_bits,
++                flags.versinfo, flags.pickup_burden, flags.pile_limit,
++                (int) flags.discosort, (int) flags.sortloot, (unsigned) flags.vanq_sortmode,
++                (int) flags.menu_style, flags.made_fruit ? 1 : 0,
++                flags.initrole, flags.initrace, flags.initgend, flags.initalign,
++                flags.randomall, flags.pantheon,
++                flags.lootabc ? 1 : 0, flags.showrace ? 1 : 0,
++                flags.travelcmd ? 1 : 0, flags.runmode);
++        fputs("\"inv_order\":\"", fp);
++        json_write_escaped(fp, invbuf);
++        fputs("\",\"pickup_types\":\"", fp);
++        json_write_escaped(fp, pickbuf);
++        fputs("\",\"end_disclose\":\"", fp);
++        json_write_escaped(fp, disclosebuf);
++        fputs("\"}", fp);
++    }
++
 +    /* typGrid */
 +    fputs(",\"typGrid\":[", fp);
 +    for (y = 0; y < ROWNO; y++) {

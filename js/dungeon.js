@@ -388,6 +388,9 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         ? Math.trunc(options.heroSeq)
         : (Number.isFinite(hero?.heroSeq) ? Math.trunc(hero.heroSeq) : 0);
     lines.push(`A${anchorMoves},${anchorHeroSeq}`);
+    if (typeof options.contextSection === 'string' && options.contextSection.length > 0) {
+        lines.push(`C${options.contextSection}`);
+    }
 
     const objParts = [];
     for (const obj of (Array.isArray(map?.objects) ? map.objects : [])) {

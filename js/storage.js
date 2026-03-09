@@ -751,10 +751,6 @@ const C_DEFAULTS = {
     runmode: 'leap', pickup_burden: 'moderate', sortloot: 'loot',
     pile_limit: 5, msghistory: 20, statuslines: 2,
     msg_window: false, DECgraphics: false,
-
-    // JS-specific UI options
-    darkmode: 'system',  // color scheme: 'light', 'dark', or 'system' (follow OS)
-    helppanel: 'both',   // side panels: 'none', 'control' (LHS), 'objects' (RHS), or 'both'
 };
 
 // JS-specific overrides from C defaults

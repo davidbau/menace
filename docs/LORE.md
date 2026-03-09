@@ -5513,6 +5513,11 @@ hard-won wisdom:
 
 ### runstep diagnostics: include pickup/nopick/travel state (2026-03-09)
 
+- Status update:
+  - Superseded by mapdump `C/G` context/flags snapshots later on 2026-03-09.
+  - `^runstep` payload has been reverted to its lean form; use `dbgmapdump`
+    `C/G` for pickup/nopick/travel diagnostics.
+
 - Problem:
   - `^runstep` was missing explicit autopickup/boundary state, making it
     harder to prove whether a suspicious pickup happened with autopickup
@@ -5529,3 +5534,34 @@ hard-won wisdom:
   - With `WEBHACK_EVENT_RUNSTEP=1`, seed033 steps 1397-1399 now include:
     - `pickup=1 nopick=0 travel=0`
   - Gameplay parity unchanged (`33/34` passing, only seed033 failing).
+
+### dbgmapdump context/flags expansion + compare default fix (2026-03-09)
+
+- Problem:
+  - Step-1398 triage needed more than event streams; we needed direct
+    cross-runtime snapshots of command/context/option state.
+  - `dbgmapdump --sections <subset> --c-side` still compared against the full
+    default compare set, creating noisy "missing section" diffs.
+- Fixes:
+  - Added `C` section support as full normalized context snapshot
+    (`svc.context`/`game.context`) with:
+    - stable pointer refs (`o_id`/`m_id` summaries),
+    - bounded string previews,
+    - deterministic key ordering.
+  - Added `G` section support as global flags snapshot:
+    - JS from `game.flags`,
+    - C from `struct flag flags` emitted in harness checkpoint JSON.
+  - Extended compact mapdump parser to decode `C` and `G`.
+  - Fixed compare default behavior:
+    - if `--compare-sections` is omitted, compare now defaults to
+      `DEFAULT_COMPARE_SECTIONS ∩ --sections` (instead of all defaults).
+  - Reverted temporary `pickup/nopick/travel` fields from `^runstep`; these
+    diagnostics now live in mapdump `C/G`.
+- Validation:
+  - Rebuilt harness with `bash test/comparison/c-harness/setup.sh`; patch
+    application and build succeeded.
+  - `dbgmapdump --steps 1 --sections C,G --c-side` now emits/decodes both
+    `C` and `G` for JS and C.
+  - Focus run on seed033 (`1397-1399`) shows actionable signal:
+    - JS `C/G` reports pickup enabled while C reports pickup disabled,
+      matching the suspicious step-1398 item removal path.
