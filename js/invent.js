@@ -267,7 +267,7 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     let selection = null;
     let countDigits = '';
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, nhgetch_raw(), {
             site: 'invent.renderOverlayMenuUntilDismiss.loop',
         });
         if (isMenuDismissKey(ch)) break;
@@ -607,7 +607,7 @@ export async function handleInventory(player, display, game) {
             }
             const actionKeys = new Set(rawActions.map((line) => String(line || '').charAt(0)));
             while (true) {
-                const actionCh = await awaitInput(game, nhgetch_wrap(), {
+                const actionCh = await awaitInput(game, nhgetch_raw(), {
                     site: 'invent.handleInventory.actionMenu',
                 });
                 if (actionCh === 32 || actionCh === 27 || actionCh === 10 || actionCh === 13) {
