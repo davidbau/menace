@@ -5153,7 +5153,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2316 | `peek_timer` | 235 | Aligned |
 | 534 | `phaze_dialogue` | 589 | Stub (no-op) |
 | 2014 | `print_queue` | 282 | Aligned |
-| 117 | `property_by_index` | - | Missing |
+| 117 | `property_by_index` | timeout.js:110 | Implemented |
 | 554 | `region_dialogue` | 590 | Stub (no-op) |
 | 2743 | `relink_timers` | 607 | Stub |
 | 2475 | `remove_timer` | 243 | Aligned |

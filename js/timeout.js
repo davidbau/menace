@@ -8,6 +8,7 @@
 //   - basic foundation for `nh_timeout()` and status-processing hooks
 
 import { game as _gstate } from './gstate.js';
+import * as NHC from './const.js';
 import { rnd, rn2 } from './rng.js';
 import { pline, You, You_feel } from './pline.js';
 import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
@@ -31,6 +32,92 @@ import { new_light_source, del_light_source, candle_light_range } from './light.
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
 
 const MAX_EGG_HATCH_TIME = 200;
+
+// C ref: timeout.c propertynames[] table used by wizard diagnostics.
+const _PROPERTY_NAMES = [
+    ['INVULNERABLE', 'invulnerable'],
+    ['STONED', 'petrifying'],
+    ['SLIMED', 'becoming slime'],
+    ['STRANGLED', 'strangling'],
+    ['SICK', 'fatally sick'],
+    ['STUNNED', 'stunned'],
+    ['CONFUSION', 'confused'],
+    ['HALLUC', 'hallucinating'],
+    ['BLINDED', 'blinded'],
+    ['DEAF', 'deafness'],
+    ['VOMITING', 'vomiting'],
+    ['GLIB', 'slippery fingers'],
+    ['WOUNDED_LEGS', 'wounded legs'],
+    ['SLEEPY', 'sleepy'],
+    ['TELEPORT', 'teleporting'],
+    ['POLYMORPH', 'polymorphing'],
+    ['LEVITATION', 'levitating'],
+    ['FAST', 'very fast'],
+    ['CLAIRVOYANT', 'clairvoyant'],
+    ['DETECT_MONSTERS', 'monster detection'],
+    ['SEE_INVIS', 'see invisible'],
+    ['INVIS', 'invisible'],
+    ['ACID_RES', 'acid resistance'],
+    ['STONE_RES', 'stoning resistance'],
+    ['DISPLACED', 'displaced'],
+    ['PASSES_WALLS', 'pass thru walls'],
+    ['MAGICAL_BREATHING', 'magical breathing'],
+    ['WWALKING', 'water walking'],
+    ['FIRE_RES', 'fire resistance'],
+    ['COLD_RES', 'cold resistance'],
+    ['SLEEP_RES', 'sleep resistance'],
+    ['DISINT_RES', 'disintegration resistance'],
+    ['SHOCK_RES', 'shock resistance'],
+    ['POISON_RES', 'poison resistance'],
+    ['DRAIN_RES', 'drain resistance'],
+    ['SICK_RES', 'sickness resistance'],
+    ['ANTIMAGIC', 'magic resistance'],
+    ['HALLUC_RES', 'hallucination resistance'],
+    ['BLND_RES', 'light-induced blindness resistance'],
+    ['FUMBLING', 'fumbling'],
+    ['HUNGER', 'voracious hunger'],
+    ['TELEPAT', 'telepathic'],
+    ['WARNING', 'warning'],
+    ['WARN_OF_MON', 'warn: monster type or class'],
+    ['WARN_UNDEAD', 'warn: undead'],
+    ['SEARCHING', 'searching'],
+    ['INFRAVISION', 'infravision'],
+    ['ADORNED', 'adorned (+/- Cha)'],
+    ['STEALTH', 'stealthy'],
+    ['AGGRAVATE_MONSTER', 'monster aggravation'],
+    ['CONFLICT', 'conflict'],
+    ['JUMPING', 'jumping'],
+    ['TELEPORT_CONTROL', 'teleport control'],
+    ['FLYING', 'flying'],
+    ['SWIMMING', 'swimming'],
+    ['SLOW_DIGESTION', 'slow digestion'],
+    ['HALF_SPDAM', 'half spell damage'],
+    ['HALF_PHDAM', 'half physical damage'],
+    ['REGENERATION', 'HP regeneration'],
+    ['ENERGY_REGENERATION', 'energy regeneration'],
+    ['PROTECTION', 'extra protection'],
+    ['PROT_FROM_SHAPE_CHANGERS', 'protection from shape changers'],
+    ['POLYMORPH_CONTROL', 'polymorph control'],
+    ['UNCHANGING', 'unchanging'],
+    ['REFLECTING', 'reflecting'],
+    ['FREE_ACTION', 'free action'],
+    ['FIXED_ABIL', 'fixed abilities'],
+    ['LIFESAVED', 'life will be saved'],
+    [0, null],
+];
+
+// C ref: timeout.c:117 property_by_index()
+export function property_by_index(idx, propertynum = null) {
+    let i = Number.isFinite(idx) ? Math.trunc(idx) : 0;
+    if (i < 0 || i >= _PROPERTY_NAMES.length) i = _PROPERTY_NAMES.length - 1;
+    const [propKey, propName] = _PROPERTY_NAMES[i];
+    if (propertynum && typeof propertynum === 'object') {
+        propertynum.value = (typeof propKey === 'string' && Number.isInteger(NHC[propKey]))
+            ? NHC[propKey]
+            : 0;
+    }
+    return propName;
+}
 
 // _currentTurn is stored on the game object (gstate.game._currentTurn).
 // The local fallback handles early boot before the game object exists.

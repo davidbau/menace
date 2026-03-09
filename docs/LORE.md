@@ -5648,3 +5648,21 @@ hard-won wisdom:
   - `node --test test/unit/detect_reveal_terrain_getglyph.test.js` (pass).
   - `detect.c` missing count reduced from `1` to `0`.
   - Gameplay CODEMATCH missing total reduced from `1145` to `1144`.
+
+### CODEMATCH timeout.c: `property_by_index` closure (2026-03-09)
+
+- Problem:
+  - `timeout.c:property_by_index` was still marked `Missing`.
+- Change:
+  - Added C-faithful `property_by_index(idx, propertynumOut)` in `js/timeout.js`
+    using the C `propertynames[]` ordering and sentinel semantics.
+  - Added focused unit coverage in
+    `test/unit/timeout_property_by_index.test.js` for:
+    - name + property-id mapping,
+    - later-table mapping (`PROT_FROM_SHAPE_CHANGERS`),
+    - out-of-range index clamping to terminal sentinel.
+  - Updated CODEMATCH row to `Implemented`.
+- Validation:
+  - `node --test test/unit/timeout_property_by_index.test.js` (pass).
+  - `timeout.c` missing count reduced from `1` to `0`.
+  - Gameplay CODEMATCH missing total reduced from `1144` to `1143`.
