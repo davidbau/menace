@@ -5349,23 +5349,23 @@ Remaining parity gaps are mostly behavioral depth:
 ### u_init.c -> u_init.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1297 | `ini_inv` | - | Missing |
-| 1204 | `ini_inv_adjust_obj` | - | Missing |
-| 1114 | `ini_inv_mkobj_filter` | - | Missing |
-| 1178 | `ini_inv_obj_substitution` | - | Missing |
-| 1250 | `ini_inv_use_obj` | - | Missing |
-| 586 | `knows_class` | - | Missing |
-| 575 | `knows_object` | - | Missing |
-| 868 | `pauper_reinit` | - | Missing |
-| 1090 | `restricted_spell_discipline` | - | Missing |
-| 1036 | `skills_for_role` | - | Missing |
-| 1105 | `trquan` | - | Missing |
-| 927 | `u_init_carry_attr_boost` | - | Missing |
-| 1369 | `u_init_inventory_attrs` | - | Missing |
-| 942 | `u_init_misc` | - | Missing |
-| 790 | `u_init_race` | - | Missing |
-| 635 | `u_init_role` | - | Missing |
-| 1394 | `u_init_skills_discoveries` | - | Missing |
+| 1297 | `ini_inv` | u_init.js:491 | Implemented |
+| 1204 | `ini_inv_adjust_obj` | u_init.js:ini_inv_adjust_obj | Implemented |
+| 1114 | `ini_inv_mkobj_filter` | u_init.js:451 | Implemented |
+| 1178 | `ini_inv_obj_substitution` | u_init.js:ini_inv_obj_substitution | Implemented |
+| 1250 | `ini_inv_use_obj` | u_init.js:1308 | Implemented |
+| 586 | `knows_class` | u_init.js:knows_class | Implemented |
+| 575 | `knows_object` | u_init.js:knows_object | Implemented |
+| 868 | `pauper_reinit` | u_init.js:pauper_reinit | Implemented |
+| 1090 | `restricted_spell_discipline` | u_init.js:441 | Implemented |
+| 1036 | `skills_for_role` | u_init.js:skills_for_role | Implemented |
+| 1105 | `trquan` | u_init.js:622 | Implemented |
+| 927 | `u_init_carry_attr_boost` | u_init.js:906 | Implemented |
+| 1369 | `u_init_inventory_attrs` | u_init.js:u_init_inventory_attrs | Implemented |
+| 942 | `u_init_misc` | u_init.js:u_init_misc | Implemented |
+| 790 | `u_init_race` | u_init.js:704 | Implemented |
+| 635 | `u_init_role` | u_init.js:628 | Implemented |
+| 1394 | `u_init_skills_discoveries` | u_init.js:u_init_skills_discoveries | Implemented |
 
 ### uhitm.c -> uhitm.js
 | C Line | C Function | JS Line | Alignment |

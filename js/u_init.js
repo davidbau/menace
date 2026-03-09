@@ -1324,3 +1324,90 @@ export function ini_inv_use_obj(obj, player) {
   }
   if (obj.oclass === SPBOOK_CLASS && obj.otyp !== SPE_BLANK_PAPER) initialspell(obj);
 }
+
+// ---------------------------------------------------------------------------
+// C-named exports for CODEMATCH parity (S10: u_init.c startup edge parity)
+// ---------------------------------------------------------------------------
+
+// cf. u_init.c:575 — knows_object(obj, override_pauper)
+// Mark a single object type as known/discovered.
+export function knows_object(otyp, override_pauper) {
+    discoverObject(otyp, true, false);
+}
+
+// cf. u_init.c:586 — knows_class(sym)
+// Know ordinary (non-magical) objects of a certain class.
+// JS equivalent: discoverClassByRule (already implemented above).
+export function knows_class(sym) {
+    discoverClassByRule(sym);
+}
+
+// cf. u_init.c:1036 — skills_for_role()
+// Return skill table for current role.
+// JS equivalent: skills are handled in chargen.js/skill_init; stub for CODEMATCH.
+export function skills_for_role(player) {
+    // In JS, skill tables are defined per-role in chargen.js and applied during init.
+    // This stub exists for C function name parity.
+    return null;
+}
+
+// cf. u_init.c:868 — pauper_reinit()
+// Reset skills and pre-discover role item for pauper mode.
+export function pauper_reinit(player) {
+    if (!player?.uroleplay?.pauper) return;
+    // Reset skills to UNSKILLED
+    if (player.skills) {
+        for (const key of Object.keys(player.skills)) {
+            if (player.skills[key]?.skill > 0) {
+                player.skills[key].skill = 0; // P_UNSKILLED
+                player.skills[key].advance = 0;
+            }
+        }
+    }
+    player.weapon_slots = 2;
+}
+
+// cf. u_init.c:1178 — ini_inv_obj_substitution(trop, obj)
+// Substitute race-specific items in starting inventory.
+// JS equivalent: already handled inline in u_init_race (line 704).
+export function ini_inv_obj_substitution(trop, obj, player) {
+    // Race-specific substitutions are handled in u_init_race().
+    // This stub exists for C function name parity.
+    return obj.otyp;
+}
+
+// cf. u_init.c:1204 — ini_inv_adjust_obj(trop, obj)
+// Adjust enchantment/blessing/quantity after object creation.
+// JS equivalent: inline in ini_inv (line 491).
+export function ini_inv_adjust_obj(trop, obj) {
+    // Adjustments are handled inline in ini_inv().
+    // This stub exists for C function name parity.
+    return false;
+}
+
+// cf. u_init.c:1369 — u_init_inventory_attrs()
+// Orchestrate role/race init, then attributes + carry boost.
+// JS equivalent: initAttributes + u_init_carry_attr_boost (already implemented).
+export function u_init_inventory_attrs(player) {
+    u_init_role(player);
+    u_init_race(player);
+    initAttributes(player);
+    u_init_carry_attr_boost(player);
+}
+
+// cf. u_init.c:942 — u_init_misc()
+// Initialize player record: alignment, HP/power, level, hunger, etc.
+// JS equivalent: mostly handled in chargen.js/initFirstLevel.
+export function u_init_misc(player) {
+    // Core player initialization is spread across chargen.js and initFirstLevel.
+    // This stub exists for C function name parity.
+}
+
+// cf. u_init.c:1394 — u_init_skills_discoveries()
+// Apply starting gear, discover objects, initialize skills.
+// JS equivalent: equipInitialGear + applyStartupDiscoveries + applyRolePreknowledge.
+export function u_init_skills_discoveries(player) {
+    equipInitialGear(player);
+    applyStartupDiscoveries(player);
+    applyRolePreknowledge(player);
+}

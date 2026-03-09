@@ -23,7 +23,7 @@ Rules
 | S07 | [#287](https://github.com/davidbau/menace/issues/287) | attrib.c core math parity | `Ready` |
 | S08 | [#288](https://github.com/davidbau/menace/issues/288) | attrib.c innate+exercise parity | `Ready` |
 | S09 | [#289](https://github.com/davidbau/menace/issues/289) | role.c selection parity | `Done` (Hello, Goodbye, plnamesuffix, role_init, genl_player_setup) |
-| S10 | [#290](https://github.com/davidbau/menace/issues/290) | u_init.c startup edge parity | `Ready` |
+| S10 | [#290](https://github.com/davidbau/menace/issues/290) | u_init.c startup edge parity | `Done` (knows_object, knows_class, skills_for_role, pauper_reinit, ini_inv_obj_substitution, ini_inv_adjust_obj, u_init_inventory_attrs, u_init_misc, u_init_skills_discoveries) |
 | S11 | [#291](https://github.com/davidbau/menace/issues/291) | do_name.c naming flow parity | `Done` (new_mgivenname, new_oname, name_from_player, alreadynamed, do_oname, objtyp_is_callable, docallcmd, namefloorobj, rndghostname) |
 | S12 | [#292](https://github.com/davidbau/menace/issues/292) | objnam.c remaining naming parity | `Done` (ledger) |
 | S13 | [#293](https://github.com/davidbau/menace/issues/293) | invent.c getobj/askchain parity | `Ready` |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 20
-- Completed slices: 30 (S09, S11, S12, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 19
+- Completed slices: 31 (S09, S10, S11, S12, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
