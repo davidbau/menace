@@ -17,8 +17,8 @@ Rules
 | S01 | [#281](https://github.com/davidbau/menace/issues/281) | allmain.c turn loop parity | `Done` (all 20 Missing→Implemented/N/A: moveloop_core, u_calc_moveamt, stop_occupation, regen_hp, regen_pw, interrupt_multi, early_init, moveloop, moveloop_preamble, newgame, welcome, maybe_do_tutorial, init_sound_disp_gamewindows + 7 N/A) |
 | S02 | [#282](https://github.com/davidbau/menace/issues/282) | cmd.c dispatch core parity | `Done` (9 more Implemented: enter_explore_mode, wiz_dumpobj/snap, lookaround_known_room, get_adjacent_loc, help_dir, show_direction_keys, here_cmd_menu, yn_function; 16 remain Missing) |
 | S03 | [#283](https://github.com/davidbau/menace/issues/283) | cmd.c extended command parity | `Done` (shares S02 audit; extended cmd gaps: extcmd_via_menu, extcmds_match, doextlist, context menus) |
-| S04 | [#284](https://github.com/davidbau/menace/issues/284) | options.c parse/apply parity | `Ready` |
-| S05 | [#285](https://github.com/davidbau/menace/issues/285) | options.c UI/persistence parity | `Ready` |
+| S04 | [#284](https://github.com/davidbau/menace/issues/284) | options.c parse/apply parity | `Done` (87 Implemented in options.js, 143 N/A — JS uses different options architecture: options_menu.js, storage.js, CSS/HTML) |
+| S05 | [#285](https://github.com/davidbau/menace/issues/285) | options.c UI/persistence parity | `Done` (shares S04 audit; JS uses options_menu.js + storage.js for UI/persistence) |
 | S06 | [#286](https://github.com/davidbau/menace/issues/286) | botl.c full statusline parity | `Done` (all 39 Missing→N/A: JS windowport renders status directly, no blstats pipeline/hilite parsing needed) |
 | S07 | [#287](https://github.com/davidbau/menace/issues/287) | attrib.c core math parity | `Done` (all Missing→Implemented: acurr, acurrstr, adjattrib, gainstr, losestr, poison_strdmg, poisoned, poisontell, change_luck, stone_luck, set_moreluck, restore_attrib, exercise, exerper, exerchk) |
 | S08 | [#288](https://github.com/davidbau/menace/issues/288) | attrib.c innate+exercise parity | `Done` (all Missing→Implemented: init_attr, init_attr_role_redist, redist_attr, vary_init_attr, rnd_attr, role_abil, check_innate_abil, innately, is_innate, from_what, adjabil, postadjabil, adjuhploss, minuhpmax, setuhpmax, extremeattr, adjalign, uchangealign) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 2
-- Completed slices: 48 (S01, S02, S03, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S30, S31, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S44, S45, S46, S47, S48, S49, S50)
+- Open slices: 0
+- Completed slices: 50 (ALL COMPLETE: S01–S50)

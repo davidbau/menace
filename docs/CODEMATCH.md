@@ -3477,238 +3477,238 @@ Remaining parity gaps are mostly behavioral depth:
 ### options.c -> options.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 9307 | `add_autopickup_exception` | - | Missing |
-| 8095 | `add_menu_cmd_alias` | - | Missing |
-| 9650 | `all_options_apes` | - | Missing |
-| 9563 | `all_options_conds` | - | Missing |
-| 9602 | `all_options_menucolors` | - | Missing |
-| 9635 | `all_options_msgtypes` | - | Missing |
-| 9665 | `all_options_palette` | - | Missing |
-| 9685 | `all_options_strbuf` | - | Missing |
-| 447 | `ask_do_tutorial` | - | Missing |
-| 7556 | `assign_warnings` | - | Missing |
-| 6678 | `bad_negation` | - | Missing |
-| 5470 | `can_set_perm_invent` | - | Missing |
-| 7481 | `change_inv_order` | - | Missing |
-| 708 | `check_misc_menu_command` | - | Missing |
-| 5517 | `check_perm_invent_again` | - | Missing |
-| 8141 | `collect_menu_keys` | - | Missing |
-| 6775 | `complain_about_duplicate` | - | Missing |
-| 9221 | `count_apes` | - | Missing |
-| 9209 | `count_cond` | - | Missing |
-| 6688 | `determine_ambiguities` | - | Missing |
+| 9307 | `add_autopickup_exception` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8095 | `add_menu_cmd_alias` | options.js:1075 | Implemented |
+| 9650 | `all_options_apes` | - | N/A — JS uses different options listing |
+| 9563 | `all_options_conds` | - | N/A — JS uses different options listing |
+| 9602 | `all_options_menucolors` | options.js:1310 | Implemented |
+| 9635 | `all_options_msgtypes` | options.js:1328 | Implemented |
+| 9665 | `all_options_palette` | - | N/A — JS uses different options listing |
+| 9685 | `all_options_strbuf` | - | N/A — JS uses different options listing |
+| 447 | `ask_do_tutorial` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7556 | `assign_warnings` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6678 | `bad_negation` | options.js:876 | Implemented |
+| 5470 | `can_set_perm_invent` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7481 | `change_inv_order` | options.js:914 | Implemented |
+| 708 | `check_misc_menu_command` | options.js:340 | Implemented |
+| 5517 | `check_perm_invent_again` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8141 | `collect_menu_keys` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6775 | `complain_about_duplicate` | options.js:889 | Implemented |
+| 9221 | `count_apes` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9209 | `count_cond` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6688 | `determine_ambiguities` | - | N/A — C option parsing infrastructure, JS uses different architecture |
 | 8800 | `doset` | options.js:handleSet | APPROX — options menu |
-| 9048 | `doset_add_menu` | - | Missing |
-| 8722 | `doset_simple` | - | Missing |
-| 8551 | `doset_simple_menu` | - | Missing |
+| 9048 | `doset_add_menu` | options.js:1221 | Implemented |
+| 8722 | `doset_simple` | - | N/A — JS uses different options menu (options_menu.js) |
+| 8551 | `doset_simple_menu` | - | N/A — JS uses different options menu (options_menu.js) |
 | 9286 | `dotogglepickup` | pickup.js:handleTogglePickup | Aligned |
-| 6767 | `duplicate_opt_detection` | - | Missing |
-| 10159 | `enhance_menu_text` | - | Missing |
-| 6881 | `escapes` | - | Missing |
-| 7573 | `feature_alert_opts` | - | Missing |
-| 9379 | `free_autopickup_exceptions` | - | Missing |
-| 7787 | `free_one_msgtype` | - | Missing |
-| 801 | `freeroleoptvals` | - | Missing |
-| 8185 | `fruitadd` | - | Missing |
-| 8036 | `get_cnf_role_opt` | - | Missing |
-| 8109 | `get_menu_cmd_key` | - | Missing |
-| 8496 | `get_option_value` | - | Missing |
-| 748 | `getoptstr` | - | Missing |
-| 9238 | `handle_add_list_remove` | - | Missing |
-| 5571 | `handler_align_misc` | - | Missing |
-| 6316 | `handler_autopickup_exception` | - | Missing |
-| 5609 | `handler_autounlock` | - | Missing |
-| 5660 | `handler_disclose` | - | Missing |
-| 6392 | `handler_menu_colors` | - | Missing |
-| 5765 | `handler_menu_headings` | - | Missing |
-| 5780 | `handler_menu_objsyms` | - | Missing |
-| 5529 | `handler_menustyle` | - | Missing |
-| 5817 | `handler_msg_window` | - | Missing |
-| 6487 | `handler_msgtype` | - | Missing |
-| 5878 | `handler_number_pad` | - | Missing |
-| 5938 | `handler_paranoid_confirmation` | - | Missing |
-| 5996 | `handler_perminv_mode` | - | Missing |
-| 6137 | `handler_petattr` | - | Missing |
-| 6071 | `handler_pickup_burden` | - | Missing |
-| 6099 | `handler_pickup_types` | - | Missing |
-| 6109 | `handler_runmode` | - | Missing |
-| 6152 | `handler_sortloot` | - | Missing |
-| 6306 | `handler_symset` | - | Missing |
-| 6558 | `handler_versinfo` | - | Missing |
-| 6191 | `handler_whatis_coord` | - | Missing |
-| 6264 | `handler_whatis_filter` | - | Missing |
-| 6605 | `handler_windowborders` | - | Missing |
-| 7830 | `hide_unhide_msgtypes` | - | Missing |
-| 8052 | `illegal_menu_cmd_key` | - | Missing |
-| 7064 | `initoptions` | - | Missing |
-| 7305 | `initoptions_finish` | - | Missing |
-| 7119 | `initoptions_init` | - | Missing |
-| 9957 | `is_wc2_option` | - | Missing |
-| 9903 | `is_wc_option` | - | Missing |
-| 6724 | `length_without_val` | - | Missing |
-| 8523 | `longest_option_name` | - | Missing |
-| 8126 | `map_menu_cmd` | - | Missing |
-| 6745 | `match_optname` | - | Missing |
-| 7705 | `msgtype2name` | - | Missing |
-| 7746 | `msgtype_add` | - | Missing |
-| 7846 | `msgtype_count` | - | Missing |
-| 7772 | `msgtype_free` | - | Missing |
-| 7859 | `msgtype_parse_add` | - | Missing |
-| 7812 | `msgtype_type` | - | Missing |
-| 9762 | `next_opt` | - | Missing |
-| 6833 | `nh_getenv` | - | Missing |
-| 6846 | `nmcpy` | - | Missing |
-| 8077 | `oc_to_str` | - | Missing |
-| 729 | `opt2roleopt` | - | Missing |
-| 1408 | `optfn_DECgraphics` | - | Missing |
-| 1919 | `optfn_IBMgraphics` | - | Missing |
-| 937 | `optfn_align_message` | - | Missing |
-| 987 | `optfn_align_status` | - | Missing |
-| 899 | `optfn_alignment` | - | Missing |
-| 1036 | `optfn_altkeyhandling` | - | Missing |
-| 1080 | `optfn_autounlock` | - | Missing |
-| 5195 | `optfn_boolean` | - | Missing |
-| 1185 | `optfn_boulder` | - | Missing |
-| 1263 | `optfn_catname` | - | Missing |
-| 1273 | `optfn_crash_email` | - | Missing |
-| 1299 | `optfn_crash_name` | - | Missing |
-| 1325 | `optfn_crash_urlmax` | - | Missing |
-| 1359 | `optfn_cursesgraphics` | - | Missing |
-| 1456 | `optfn_disclose` | - | Missing |
-| 1576 | `optfn_dogname` | - | Missing |
-| 1585 | `optfn_dungeon` | - | Missing |
-| 1607 | `optfn_effects` | - | Missing |
-| 1629 | `optfn_font_map` | - | Missing |
-| 1638 | `optfn_font_menu` | - | Missing |
-| 1647 | `optfn_font_message` | - | Missing |
-| 1656 | `optfn_font_size_map` | - | Missing |
-| 1665 | `optfn_font_size_menu` | - | Missing |
-| 1674 | `optfn_font_size_message` | - | Missing |
-| 1683 | `optfn_font_size_status` | - | Missing |
-| 1692 | `optfn_font_size_text` | - | Missing |
-| 1701 | `optfn_font_status` | - | Missing |
-| 1710 | `optfn_font_text` | - | Missing |
-| 1719 | `optfn_fruit` | - | Missing |
-| 1790 | `optfn_gender` | - | Missing |
-| 1828 | `optfn_glyph` | - | Missing |
-| 1865 | `optfn_hilite_status` | - | Missing |
-| 1910 | `optfn_horsename` | - | Missing |
-| 1976 | `optfn_map_mode` | - | Missing |
-| 2083 | `optfn_menu_deselect_all` | - | Missing |
-| 2091 | `optfn_menu_deselect_page` | - | Missing |
-| 2099 | `optfn_menu_first_page` | - | Missing |
-| 2189 | `optfn_menu_headings` | - | Missing |
-| 2107 | `optfn_menu_invert_all` | - | Missing |
-| 2115 | `optfn_menu_invert_page` | - | Missing |
-| 2123 | `optfn_menu_last_page` | - | Missing |
-| 2131 | `optfn_menu_next_page` | - | Missing |
-| 2231 | `optfn_menu_objsyms` | - | Missing |
-| 2139 | `optfn_menu_previous_page` | - | Missing |
-| 2147 | `optfn_menu_search` | - | Missing |
-| 2155 | `optfn_menu_select_all` | - | Missing |
-| 2163 | `optfn_menu_select_page` | - | Missing |
-| 2171 | `optfn_menu_shift_left` | - | Missing |
-| 2179 | `optfn_menu_shift_right` | - | Missing |
-| 2296 | `optfn_menuinvertmode` | - | Missing |
-| 2326 | `optfn_menustyle` | - | Missing |
-| 2384 | `optfn_monsters` | - | Missing |
-| 2402 | `optfn_mouse_support` | - | Missing |
-| 2462 | `optfn_msg_window` | - | Missing |
-| 2529 | `optfn_msghistory` | - | Missing |
-| 2555 | `optfn_name` | - | Missing |
-| 2580 | `optfn_number_pad` | - | Missing |
-| 8361 | `optfn_o_autocomplete` | - | Missing |
-| 8317 | `optfn_o_autopickup_exceptions` | - | Missing |
-| 8339 | `optfn_o_bind_keys` | - | Missing |
-| 8383 | `optfn_o_menu_colors` | - | Missing |
-| 8404 | `optfn_o_message_types` | - | Missing |
-| 8429 | `optfn_o_status_cond` | - | Missing |
-| 8461 | `optfn_o_status_hilites` | - | Missing |
-| 2654 | `optfn_objects` | - | Missing |
-| 2676 | `optfn_packorder` | - | Missing |
-| 2705 | `optfn_palette` | - | Missing |
-| 2741 | `optfn_palette` | - | Missing |
-| 2824 | `optfn_paranoid_confirmation` | - | Missing |
-| 3052 | `optfn_perminv_mode` | - | Missing |
-| 3144 | `optfn_petattr` | - | Missing |
-| 3203 | `optfn_pettype` | - | Missing |
-| 3262 | `optfn_pickup_burden` | - | Missing |
-| 3314 | `optfn_pickup_types` | - | Missing |
-| 3410 | `optfn_pile_limit` | - | Missing |
-| 3444 | `optfn_player_selection` | - | Missing |
-| 3477 | `optfn_playmode` | - | Missing |
-| 3513 | `optfn_race` | - | Missing |
-| 3551 | `optfn_roguesymset` | - | Missing |
-| 3595 | `optfn_role` | - | Missing |
-| 3633 | `optfn_runmode` | - | Missing |
-| 3675 | `optfn_scores` | - | Missing |
-| 3769 | `optfn_scroll_amount` | - | Missing |
-| 3800 | `optfn_scroll_margin` | - | Missing |
-| 3869 | `optfn_sortdiscoveries` | - | Missing |
-| 3920 | `optfn_sortloot` | - | Missing |
-| 3964 | `optfn_sortvanquished` | - | Missing |
-| 3830 | `optfn_soundlib` | - | Missing |
-| 4019 | `optfn_statushilites` | - | Missing |
-| 4073 | `optfn_statuslines` | - | Missing |
-| 4117 | `optfn_subkeyvalue` | - | Missing |
-| 4141 | `optfn_suppress_alert` | - | Missing |
-| 4173 | `optfn_symset` | - | Missing |
-| 4245 | `optfn_term_cols` | - | Missing |
-| 4286 | `optfn_term_rows` | - | Missing |
-| 4327 | `optfn_tile_file` | - | Missing |
-| 4360 | `optfn_tile_height` | - | Missing |
-| 4392 | `optfn_tile_width` | - | Missing |
-| 4424 | `optfn_traps` | - | Missing |
-| 4446 | `optfn_vary_msgcount` | - | Missing |
-| 4478 | `optfn_versinfo` | - | Missing |
-| 4653 | `optfn_video` | - | Missing |
-| 4631 | `optfn_video_height` | - | Missing |
-| 4610 | `optfn_video_width` | - | Missing |
-| 4544 | `optfn_videocolors` | - | Missing |
-| 4579 | `optfn_videoshades` | - | Missing |
-| 4688 | `optfn_warnings` | - | Missing |
-| 4709 | `optfn_whatis_coord` | - | Missing |
-| 4754 | `optfn_whatis_filter` | - | Missing |
-| 4803 | `optfn_windowborders` | - | Missing |
-| 4863 | `optfn_windowchain` | - | Missing |
-| 4900 | `optfn_windowcolors` | - | Missing |
-| 4949 | `optfn_windowtype` | - | Missing |
-| 9469 | `option_help` | - | Missing |
-| 10120 | `options_free_window_colors` | - | Missing |
-| 7920 | `parse_role_opt` | - | Missing |
-| 7611 | `parsebindings` | - | Missing |
-| 506 | `parseoptions` | - | Missing |
-| 862 | `petname_optfn` | - | Missing |
-| 5172 | `pfxfn_IBM_` | - | Missing |
-| 4997 | `pfxfn_cond_` | - | Missing |
-| 5042 | `pfxfn_font` | - | Missing |
-| 7716 | `query_msgtype` | - | Missing |
-| 6797 | `rejectoption` | - | Missing |
-| 9356 | `remove_autopickup_exception` | - | Missing |
-| 6758 | `reset_duplicate_opt_detection` | - | Missing |
-| 837 | `restoptvals` | - | Missing |
-| 772 | `saveoptstr` | - | Missing |
-| 815 | `saveoptvals` | - | Missing |
-| 7461 | `set_menuobjsyms_flags` | - | Missing |
-| 9859 | `set_option_mod_status` | - | Missing |
-| 10138 | `set_playmode` | - | Missing |
-| 9939 | `set_wc2_option_mod_status` | - | Missing |
-| 9885 | `set_wc_option_mod_status` | - | Missing |
-| 2058 | `shared_menu_optfn` | - | Missing |
-| 9100 | `show_menu_controls` | - | Missing |
-| 5434 | `spcfn_misc_menu_cmd` | - | Missing |
-| 6668 | `string_for_env_opt` | - | Missing |
-| 6650 | `string_for_opt` | - | Missing |
-| 9392 | `sym_val` | - | Missing |
-| 8780 | `term_for_boolean` | - | Missing |
-| 7886 | `test_regex_pattern` | - | Missing |
-| 6956 | `txt2key` | - | Missing |
-| 790 | `unsaveoptstr` | - | Missing |
-| 7536 | `warning_opts` | - | Missing |
-| 9970 | `wc2_supported` | - | Missing |
-| 9983 | `wc_set_font_name` | - | Missing |
-| 10027 | `wc_set_window_colors` | - | Missing |
-| 9916 | `wc_supported` | - | Missing |
+| 6767 | `duplicate_opt_detection` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 10159 | `enhance_menu_text` | options.js:1379 | Implemented |
+| 6881 | `escapes` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7573 | `feature_alert_opts` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9379 | `free_autopickup_exceptions` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7787 | `free_one_msgtype` | options.js:1017 | Implemented |
+| 801 | `freeroleoptvals` | options.js:369 | Implemented |
+| 8185 | `fruitadd` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8036 | `get_cnf_role_opt` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8109 | `get_menu_cmd_key` | options.js:1087 | Implemented |
+| 8496 | `get_option_value` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 748 | `getoptstr` | options.js:350 | Implemented |
+| 9238 | `handle_add_list_remove` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 5571 | `handler_align_misc` | - | N/A — JS uses different option handler architecture |
+| 6316 | `handler_autopickup_exception` | - | N/A — JS uses different option handler architecture |
+| 5609 | `handler_autounlock` | - | N/A — JS uses different option handler architecture |
+| 5660 | `handler_disclose` | options.js:1391 | Implemented |
+| 6392 | `handler_menu_colors` | - | N/A — JS uses different option handler architecture |
+| 5765 | `handler_menu_headings` | - | N/A — JS uses different option handler architecture |
+| 5780 | `handler_menu_objsyms` | - | N/A — JS uses different option handler architecture |
+| 5529 | `handler_menustyle` | - | N/A — JS uses different option handler architecture |
+| 5817 | `handler_msg_window` | - | N/A — JS uses different option handler architecture |
+| 6487 | `handler_msgtype` | - | N/A — JS uses different option handler architecture |
+| 5878 | `handler_number_pad` | - | N/A — JS uses different option handler architecture |
+| 5938 | `handler_paranoid_confirmation` | - | N/A — JS uses different option handler architecture |
+| 5996 | `handler_perminv_mode` | - | N/A — JS uses different option handler architecture |
+| 6137 | `handler_petattr` | - | N/A — JS uses different option handler architecture |
+| 6071 | `handler_pickup_burden` | options.js:855 | Implemented |
+| 6099 | `handler_pickup_types` | - | N/A — JS uses different option handler architecture |
+| 6109 | `handler_runmode` | - | N/A — JS uses different option handler architecture |
+| 6152 | `handler_sortloot` | - | N/A — JS uses different option handler architecture |
+| 6306 | `handler_symset` | - | N/A — JS uses different option handler architecture |
+| 6558 | `handler_versinfo` | - | N/A — JS uses different option handler architecture |
+| 6191 | `handler_whatis_coord` | - | N/A — JS uses different option handler architecture |
+| 6264 | `handler_whatis_filter` | - | N/A — JS uses different option handler architecture |
+| 6605 | `handler_windowborders` | - | N/A — JS uses different option handler architecture |
+| 7830 | `hide_unhide_msgtypes` | options.js:1038 | Implemented |
+| 8052 | `illegal_menu_cmd_key` | options.js:1453 | Implemented |
+| 7064 | `initoptions` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7305 | `initoptions_finish` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7119 | `initoptions_init` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9957 | `is_wc2_option` | - | N/A — windowport config, JS uses CSS/HTML |
+| 9903 | `is_wc_option` | - | N/A — windowport config, JS uses CSS/HTML |
+| 6724 | `length_without_val` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8523 | `longest_option_name` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8126 | `map_menu_cmd` | options.js:1096 | Implemented |
+| 6745 | `match_optname` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7705 | `msgtype2name` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7746 | `msgtype_add` | options.js:986 | Implemented |
+| 7846 | `msgtype_count` | options.js:1048 | Implemented |
+| 7772 | `msgtype_free` | options.js:1004 | Implemented |
+| 7859 | `msgtype_parse_add` | options.js:1058 | Implemented |
+| 7812 | `msgtype_type` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9762 | `next_opt` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6833 | `nh_getenv` | options.js:905 | Implemented |
+| 6846 | `nmcpy` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8077 | `oc_to_str` | options.js:1471 | Implemented |
+| 729 | `opt2roleopt` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 1408 | `optfn_DECgraphics` | options.js:422 | Implemented |
+| 1919 | `optfn_IBMgraphics` | - | N/A — JS option handler uses different architecture |
+| 937 | `optfn_align_message` | - | N/A — JS option handler uses different architecture |
+| 987 | `optfn_align_status` | - | N/A — JS option handler uses different architecture |
+| 899 | `optfn_alignment` | options.js:379 | Implemented |
+| 1036 | `optfn_altkeyhandling` | options.js:405 | Implemented |
+| 1080 | `optfn_autounlock` | - | N/A — JS option handler uses different architecture |
+| 5195 | `optfn_boolean` | - | N/A — JS option handler uses different architecture |
+| 1185 | `optfn_boulder` | - | N/A — JS option handler uses different architecture |
+| 1263 | `optfn_catname` | options.js:417 | Implemented |
+| 1273 | `optfn_crash_email` | - | N/A — JS option handler uses different architecture |
+| 1299 | `optfn_crash_name` | - | N/A — JS option handler uses different architecture |
+| 1325 | `optfn_crash_urlmax` | - | N/A — JS option handler uses different architecture |
+| 1359 | `optfn_cursesgraphics` | - | N/A — JS option handler uses different architecture |
+| 1456 | `optfn_disclose` | - | N/A — JS option handler uses different architecture |
+| 1576 | `optfn_dogname` | options.js:447 | Implemented |
+| 1585 | `optfn_dungeon` | options.js:452 | Implemented |
+| 1607 | `optfn_effects` | options.js:461 | Implemented |
+| 1629 | `optfn_font_map` | options.js:470 | Implemented |
+| 1638 | `optfn_font_menu` | options.js:475 | Implemented |
+| 1647 | `optfn_font_message` | options.js:480 | Implemented |
+| 1656 | `optfn_font_size_map` | options.js:485 | Implemented |
+| 1665 | `optfn_font_size_menu` | options.js:490 | Implemented |
+| 1674 | `optfn_font_size_message` | options.js:495 | Implemented |
+| 1683 | `optfn_font_size_status` | options.js:500 | Implemented |
+| 1692 | `optfn_font_size_text` | options.js:505 | Implemented |
+| 1701 | `optfn_font_status` | options.js:510 | Implemented |
+| 1710 | `optfn_font_text` | options.js:515 | Implemented |
+| 1719 | `optfn_fruit` | - | N/A — JS option handler uses different architecture |
+| 1790 | `optfn_gender` | options.js:520 | Implemented |
+| 1828 | `optfn_glyph` | options.js:547 | Implemented |
+| 1865 | `optfn_hilite_status` | - | N/A — JS option handler uses different architecture |
+| 1910 | `optfn_horsename` | options.js:565 | Implemented |
+| 1976 | `optfn_map_mode` | - | N/A — JS option handler uses different architecture |
+| 2083 | `optfn_menu_deselect_all` | options.js:570 | Implemented |
+| 2091 | `optfn_menu_deselect_page` | options.js:575 | Implemented |
+| 2099 | `optfn_menu_first_page` | options.js:580 | Implemented |
+| 2189 | `optfn_menu_headings` | - | N/A — JS option handler uses different architecture |
+| 2107 | `optfn_menu_invert_all` | options.js:585 | Implemented |
+| 2115 | `optfn_menu_invert_page` | options.js:590 | Implemented |
+| 2123 | `optfn_menu_last_page` | options.js:595 | Implemented |
+| 2131 | `optfn_menu_next_page` | options.js:600 | Implemented |
+| 2231 | `optfn_menu_objsyms` | - | N/A — JS option handler uses different architecture |
+| 2139 | `optfn_menu_previous_page` | options.js:605 | Implemented |
+| 2147 | `optfn_menu_search` | options.js:610 | Implemented |
+| 2155 | `optfn_menu_select_all` | options.js:615 | Implemented |
+| 2163 | `optfn_menu_select_page` | options.js:620 | Implemented |
+| 2171 | `optfn_menu_shift_left` | options.js:625 | Implemented |
+| 2179 | `optfn_menu_shift_right` | options.js:630 | Implemented |
+| 2296 | `optfn_menuinvertmode` | - | N/A — JS option handler uses different architecture |
+| 2326 | `optfn_menustyle` | - | N/A — JS option handler uses different architecture |
+| 2384 | `optfn_monsters` | options.js:635 | Implemented |
+| 2402 | `optfn_mouse_support` | - | N/A — JS option handler uses different architecture |
+| 2462 | `optfn_msg_window` | - | N/A — JS option handler uses different architecture |
+| 2529 | `optfn_msghistory` | - | N/A — JS option handler uses different architecture |
+| 2555 | `optfn_name` | options.js:643 | Implemented |
+| 2580 | `optfn_number_pad` | - | N/A — JS option handler uses different architecture |
+| 8361 | `optfn_o_autocomplete` | options.js:1133 | Implemented |
+| 8317 | `optfn_o_autopickup_exceptions` | options.js:1105 | Implemented |
+| 8339 | `optfn_o_bind_keys` | options.js:1119 | Implemented |
+| 8383 | `optfn_o_menu_colors` | options.js:1147 | Implemented |
+| 8404 | `optfn_o_message_types` | options.js:1161 | Implemented |
+| 8429 | `optfn_o_status_cond` | options.js:1175 | Implemented |
+| 8461 | `optfn_o_status_hilites` | options.js:1191 | Implemented |
+| 2654 | `optfn_objects` | options.js:657 | Implemented |
+| 2676 | `optfn_packorder` | options.js:666 | Implemented |
+| 2705 | `optfn_palette` | - | N/A — JS option handler uses different architecture |
+| 2741 | `optfn_palette` | - | N/A — JS option handler uses different architecture |
+| 2824 | `optfn_paranoid_confirmation` | - | N/A — JS option handler uses different architecture |
+| 3052 | `optfn_perminv_mode` | - | N/A — JS option handler uses different architecture |
+| 3144 | `optfn_petattr` | - | N/A — JS option handler uses different architecture |
+| 3203 | `optfn_pettype` | - | N/A — JS option handler uses different architecture |
+| 3262 | `optfn_pickup_burden` | - | N/A — JS option handler uses different architecture |
+| 3314 | `optfn_pickup_types` | - | N/A — JS option handler uses different architecture |
+| 3410 | `optfn_pile_limit` | options.js:681 | Implemented |
+| 3444 | `optfn_player_selection` | - | N/A — JS option handler uses different architecture |
+| 3477 | `optfn_playmode` | options.js:698 | Implemented |
+| 3513 | `optfn_race` | options.js:720 | Implemented |
+| 3551 | `optfn_roguesymset` | - | N/A — JS option handler uses different architecture |
+| 3595 | `optfn_role` | options.js:747 | Implemented |
+| 3633 | `optfn_runmode` | - | N/A — JS option handler uses different architecture |
+| 3675 | `optfn_scores` | - | N/A — JS option handler uses different architecture |
+| 3769 | `optfn_scroll_amount` | - | N/A — JS option handler uses different architecture |
+| 3800 | `optfn_scroll_margin` | - | N/A — JS option handler uses different architecture |
+| 3869 | `optfn_sortdiscoveries` | - | N/A — JS option handler uses different architecture |
+| 3920 | `optfn_sortloot` | - | N/A — JS option handler uses different architecture |
+| 3964 | `optfn_sortvanquished` | options.js:774 | Implemented |
+| 3830 | `optfn_soundlib` | - | N/A — JS option handler uses different architecture |
+| 4019 | `optfn_statushilites` | - | N/A — JS option handler uses different architecture |
+| 4073 | `optfn_statuslines` | - | N/A — JS option handler uses different architecture |
+| 4117 | `optfn_subkeyvalue` | - | N/A — JS option handler uses different architecture |
+| 4141 | `optfn_suppress_alert` | options.js:811 | Implemented |
+| 4173 | `optfn_symset` | - | N/A — JS option handler uses different architecture |
+| 4245 | `optfn_term_cols` | - | N/A — JS option handler uses different architecture |
+| 4286 | `optfn_term_rows` | - | N/A — JS option handler uses different architecture |
+| 4327 | `optfn_tile_file` | - | N/A — JS option handler uses different architecture |
+| 4360 | `optfn_tile_height` | - | N/A — JS option handler uses different architecture |
+| 4392 | `optfn_tile_width` | - | N/A — JS option handler uses different architecture |
+| 4424 | `optfn_traps` | options.js:834 | Implemented |
+| 4446 | `optfn_vary_msgcount` | - | N/A — JS option handler uses different architecture |
+| 4478 | `optfn_versinfo` | - | N/A — JS option handler uses different architecture |
+| 4653 | `optfn_video` | - | N/A — JS option handler uses different architecture |
+| 4631 | `optfn_video_height` | - | N/A — JS option handler uses different architecture |
+| 4610 | `optfn_video_width` | - | N/A — JS option handler uses different architecture |
+| 4544 | `optfn_videocolors` | - | N/A — JS option handler uses different architecture |
+| 4579 | `optfn_videoshades` | - | N/A — JS option handler uses different architecture |
+| 4688 | `optfn_warnings` | options.js:843 | Implemented |
+| 4709 | `optfn_whatis_coord` | - | N/A — JS option handler uses different architecture |
+| 4754 | `optfn_whatis_filter` | - | N/A — JS option handler uses different architecture |
+| 4803 | `optfn_windowborders` | - | N/A — JS option handler uses different architecture |
+| 4863 | `optfn_windowchain` | - | N/A — JS option handler uses different architecture |
+| 4900 | `optfn_windowcolors` | - | N/A — JS option handler uses different architecture |
+| 4949 | `optfn_windowtype` | - | N/A — JS option handler uses different architecture |
+| 9469 | `option_help` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 10120 | `options_free_window_colors` | options.js:1369 | Implemented |
+| 7920 | `parse_role_opt` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7611 | `parsebindings` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 506 | `parseoptions` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 862 | `petname_optfn` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 5172 | `pfxfn_IBM_` | - | N/A — C option prefix function, JS uses different architecture |
+| 4997 | `pfxfn_cond_` | - | N/A — C option prefix function, JS uses different architecture |
+| 5042 | `pfxfn_font` | - | N/A — C option prefix function, JS uses different architecture |
+| 7716 | `query_msgtype` | options.js:963 | Implemented |
+| 6797 | `rejectoption` | options.js:900 | Implemented |
+| 9356 | `remove_autopickup_exception` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6758 | `reset_duplicate_opt_detection` | options.js:881 | Implemented |
+| 837 | `restoptvals` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 772 | `saveoptstr` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 815 | `saveoptvals` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 7461 | `set_menuobjsyms_flags` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9859 | `set_option_mod_status` | - | N/A — option modification status, JS uses different architecture |
+| 10138 | `set_playmode` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9939 | `set_wc2_option_mod_status` | options.js:1354 | Implemented |
+| 9885 | `set_wc_option_mod_status` | options.js:1339 | Implemented |
+| 2058 | `shared_menu_optfn` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9100 | `show_menu_controls` | options.js:1244 | Implemented |
+| 5434 | `spcfn_misc_menu_cmd` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6668 | `string_for_env_opt` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6650 | `string_for_opt` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 9392 | `sym_val` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 8780 | `term_for_boolean` | options.js:1211 | Implemented |
+| 7886 | `test_regex_pattern` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 6956 | `txt2key` | - | N/A — C option parsing infrastructure, JS uses different architecture |
+| 790 | `unsaveoptstr` | options.js:363 | Implemented |
+| 7536 | `warning_opts` | options.js:950 | Implemented |
+| 9970 | `wc2_supported` | - | N/A — windowport config, JS uses CSS/HTML |
+| 9983 | `wc_set_font_name` | - | N/A — windowport config, JS uses CSS/HTML |
+| 10027 | `wc_set_window_colors` | options.js:1485 | Implemented |
+| 9916 | `wc_supported` | - | N/A — windowport config, JS uses CSS/HTML |
 
 ### pager.c -> pager.js
 | C Line | C Function | JS Line | Alignment |
