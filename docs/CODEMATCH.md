@@ -847,7 +847,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2917 | `dokeylist` | - | N/A (key listing display) |
 | 1577 | `dolookaround` | hack.js:lookaround | Implemented (in hack.js) |
 | 1530 | `dolookaround_floodfill_findroom` | cmd.js:1133 | Implemented |
-| 1074 | `domonability` | - | Missing |
+| 1074 | `domonability` | - | Missing — #monster ability command |
 | 4962 | `domouseaction` | - | N/A (mouse action handler) |
 | 342 | `doprev_message` | pager.js:handlePrevMessages | Aligned |
 | 5726 | `dosh_core` | - | N/A (shell escape, not applicable in browser) |
@@ -861,13 +861,13 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3949 | `dxdy_moveok` | cmd.js:1417 | Implemented |
 | 3140 | `ecname_from_fn` | - | N/A (command table lookup) |
 | 5227 | `end_of_input` | - | N/A (signal handling) |
-| 1136 | `enter_explore_mode` | - | Missing |
+| 1136 | `enter_explore_mode` | cmd.js:1062 | Implemented |
 | 3066 | `ext_func_tab_from_func` | - | N/A (command table lookup) |
 | 641 | `extcmd_initiator` | cmd.js:handleExtendedCommand | Implemented (inlined) |
 | 936 | `extcmd_via_menu` | - | Missing |
 | 2351 | `extcmds_getentry` | cmd.js:1577 | Implemented |
 | 2622 | `extcmds_match` | - | Missing |
-| 3977 | `get_adjacent_loc` | - | Missing |
+| 3977 | `get_adjacent_loc` | cmd.js:1423 | Implemented |
 | 2374 | `get_changed_key_binds` | - | N/A (key binding system) |
 | 5056 | `get_count` | input.js:644 getCount | Implemented |
 | 4004 | `getdir` | hack.js:3759 | Implemented |
@@ -876,8 +876,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2405 | `handler_rebind_keys_add` | - | N/A (key binding system) |
 | 5203 | `hangup` | - | N/A (signal handling) |
 | 175 | `harness_dump_checkpoint` | - | N/A (debug harness) |
-| 4217 | `help_dir` | - | Missing |
-| 4945 | `here_cmd_menu` | - | Missing |
+| 4217 | `help_dir` | cmd.js:1434 show_direction_keys | Implemented |
+| 4945 | `here_cmd_menu` | cmd.js:1551 | Implemented |
 | 4372 | `isok` | cmd.js:1469 | Implemented |
 | 155 | `json_write_escaped` | cmd.js:1617 | Implemented |
 | 2660 | `key2extcmddesc` | - | N/A (key listing) |
@@ -886,7 +886,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2859 | `keylist_putcmds` | - | N/A (key listing) |
 | 1356 | `levltyp_to_name` | - | N/A (debug helper) |
 | 3374 | `lock_mouse_buttons` | - | N/A (mouse handling) |
-| 1543 | `lookaround_known_room` | - | Missing |
+| 1543 | `lookaround_known_room` | cmd.js:1140 | Implemented |
 | 1170 | `makemap_prepost` | - | N/A (wizard debug) |
 | 4467 | `mcmd_addmenu` | - | Missing |
 | 3917 | `movecmd` | cmd.js:rhack (inlined) | Implemented (movement dispatch inlined in rhack) |
@@ -908,7 +908,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3652 | `rnd_extcmd_idx` | cmd.js:1399 | Implemented |
 | 1639 | `set_move_cmd` | cmd.js:rhack (inlined) | Implemented (movement setup inlined) |
 | 388 | `set_occupation` | cmd.js:258 (inlined) | Implemented (occupation setup inlined in command handlers) |
-| 4168 | `show_direction_keys` | - | Missing |
+| 4168 | `show_direction_keys` | cmd.js:1434 | Implemented |
 | 3256 | `spkey_name` | cmd.js:1367 | Implemented |
 | 4889 | `there_cmd_menu` | cmd.js:there_cmd_menu_far/next2u | Implemented (split into far/next2u/common) |
 | 4685 | `there_cmd_menu_common` | cmd.js:1542 | Implemented |
@@ -922,11 +922,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1462 | `u_have_seen_whole_selection` | - | Missing |
 | 3534 | `update_rest_on_space` | - | N/A (rest-on-space option, handled inline) |
 | 1258 | `wiz_dumpmap` | - | N/A (wizard debug) |
-| 1292 | `wiz_dumpobj` | - | Missing |
-| 1322 | `wiz_dumpsnap` | - | Missing |
+| 1292 | `wiz_dumpobj` | cmd.js:1104 | Implemented |
+| 1322 | `wiz_dumpsnap` | cmd.js:1119 | Implemented |
 | 3895 | `xytod` | cmd.js:1404 | Implemented |
 | 5446 | `yn_func_menu_opt` | cmd.js:1564 | Implemented |
-| 5515 | `yn_function` | - | Missing |
+| 5515 | `yn_function` | input.js:596 ynFunction | Implemented |
 | 5463 | `yn_function_menu` | - | Missing |
 | 5438 | `yn_menuable_resp` | - | Missing |
 

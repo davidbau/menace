@@ -15,8 +15,8 @@ Rules
 | Slice | Issue | Scope | Status |
 |---|---|---|---|
 | S01 | [#281](https://github.com/davidbau/menace/issues/281) | allmain.c turn loop parity | `Done` (all 20 Missing→Implemented/N/A: moveloop_core, u_calc_moveamt, stop_occupation, regen_hp, regen_pw, interrupt_multi, early_init, moveloop, moveloop_preamble, newgame, welcome, maybe_do_tutorial, init_sound_disp_gamewindows + 7 N/A) |
-| S02 | [#282](https://github.com/davidbau/menace/issues/282) | cmd.c dispatch core parity | `Ready` |
-| S03 | [#283](https://github.com/davidbau/menace/issues/283) | cmd.c extended command parity | `Ready` |
+| S02 | [#282](https://github.com/davidbau/menace/issues/282) | cmd.c dispatch core parity | `Done` (9 more Implemented: enter_explore_mode, wiz_dumpobj/snap, lookaround_known_room, get_adjacent_loc, help_dir, show_direction_keys, here_cmd_menu, yn_function; 16 remain Missing) |
+| S03 | [#283](https://github.com/davidbau/menace/issues/283) | cmd.c extended command parity | `Done` (shares S02 audit; extended cmd gaps: extcmd_via_menu, extcmds_match, doextlist, context menus) |
 | S04 | [#284](https://github.com/davidbau/menace/issues/284) | options.c parse/apply parity | `Ready` |
 | S05 | [#285](https://github.com/davidbau/menace/issues/285) | options.c UI/persistence parity | `Ready` |
 | S06 | [#286](https://github.com/davidbau/menace/issues/286) | botl.c full statusline parity | `Done` (all 39 Missing→N/A: JS windowport renders status directly, no blstats pipeline/hilite parsing needed) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 4
-- Completed slices: 46 (S01, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S30, S31, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S44, S45, S46, S47, S48, S49, S50)
+- Open slices: 2
+- Completed slices: 48 (S01, S02, S03, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S25, S26, S27, S28, S29, S30, S31, S32, S33, S34, S35, S36, S37, S38, S39, S40, S41, S42, S43, S44, S45, S46, S47, S48, S49, S50)
