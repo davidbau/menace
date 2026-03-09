@@ -163,6 +163,9 @@ Required validation per phase:
    `consumePendingMore(...)` centralized in boundary helper layers.
 10. 2026-03-09: Additional low-risk prompt loops migrated to boundary reads:
     `sounds.js` (`dotalk` direction) and `o_init.js` discoveries page-nav.
+11. 2026-03-09: Direction-prompt cluster migrated to boundary reads:
+    `hack.js:getdir`, `kick.js`, `dokick.js`, and `lock.js`
+    direction selection paths.
 
 ## Decision Log
 

@@ -95,7 +95,7 @@ import { del_engr_at, disturb_grave } from './engrave.js';
 import { rnd_class, makeplural, Is_box, Has_contents, Is_mbag } from './objnam.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
-import { nhgetch_wrap } from './input.js';
+import { readBoundaryKey } from './input.js';
 import { DIRECTION_KEYS } from './const.js';
 import { place_monster } from './steed.js';
 import { m_in_out_region } from './region.js';
@@ -104,7 +104,6 @@ import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
 import { is_watch, bigmonst, verysmall } from './mondata.js';
 import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
-import { awaitInput } from './suspend.js';
 
 // ============================================================================
 // Constants
@@ -1637,7 +1636,7 @@ export async function dokick(player, map, display, game) {
 
     // Get direction
     if (display) await display.putstr_message('In what direction? ');
-    const dirCh = await awaitInput(game, nhgetch_wrap(), { site: 'dokick.dokick.direction' });
+    const dirCh = await readBoundaryKey(display, 'dokick.dokick.direction', game);
     if (display) display.topMessage = null;
     const c = String.fromCharCode(dirCh);
     const dir = DIRECTION_KEYS[c];
