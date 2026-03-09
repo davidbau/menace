@@ -25,10 +25,14 @@ import { which_armor } from './worn.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { spec_ability } from './artifact.js';
 import { ART_MAGICBANE, SPFX_INTEL } from './artifacts.js';
-import { make_confused, make_blinded } from './potion.js';
+import { make_confused, make_blinded, make_glib } from './potion.js';
 import { makemon } from './makemon.js';
 import { unbless, curse as curseObj } from './mkobj.js';
 import { mark_vision_dirty } from './vision.js';
+import { do_mapping } from './detect.js';
+import { aggravate } from './wizard.js';
+import { update_inventory } from './invent.js';
+import { burn_away_slime } from './timeout.js';
 
 // cf. sit.c:14 -- take_gold(): remove all gold coins from hero inventory
 export async function take_gold(player, display) {
@@ -83,8 +87,7 @@ async function special_throne_effect(effect, player, map, display) {
             if (otmp.oclass !== COIN_CLASS)
                 otmp.greased = 1;
         }
-        // TODO: make_glib(rn1(101, 100))
-        rn2(101); // RNG parity: rn1(101, 100) = rn2(101) + 100
+        make_glib(player, rn1(101, 100));
         break;
     }
     case 7:
@@ -275,10 +278,10 @@ async function throne_sit_effect(player, map, display) {
                     await pline("A terrible drone fills your head!");
                     // RNG parity: rnd(30) for confusion
                     const confDur = rnd(30);
-                    // TODO: make_confused(HConfusion + confDur, FALSE)
+                    make_confused(player, (player.confusion_intrinsic || 0) + confDur, false);
                 } else {
                     await pline("An image forms in your mind.");
-                    // TODO: do_mapping()
+                    await do_mapping(player, map, display);
                 }
             } else {
                 if (!player.blind) {
@@ -296,7 +299,7 @@ async function throne_sit_effect(player, map, display) {
             // teleport or aggravate
             if ((player.luck || 0) < 0) {
                 await You_feel("threatened.");
-                // TODO: aggravate()
+                aggravate(map, player);
             } else {
                 await You_feel("a wrenching sensation.");
                 // TODO: tele() — teleport hero
@@ -465,7 +468,7 @@ export async function dosit(player, map, display) {
         await You(sit_message, "ladder");
     } else if (is_lava(px, py, map)) {
         await You(sit_message, "lava");
-        // TODO: burn_away_slime()
+        burn_away_slime();
         if (likes_lava(playerType)) {
             await pline_The("lava feels warm.");
             return 1; // ECMD_TIME
@@ -547,7 +550,7 @@ export async function rndcurse(player, map, display) {
             else
                 curseObj(otmp);
         }
-        // TODO: update_inventory()
+        update_inventory(player);
     }
 
     // Steed's saddle
