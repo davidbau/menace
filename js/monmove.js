@@ -1331,6 +1331,8 @@ async function dochug(mon, map, player, display, fov, game = null) {
 
     // C ref: monmove.c:754 — m_respond() for special monsters
     await m_respond(mon, map, player, display, game);
+    // C ref: monmove.c:756 — m_respond gaze can kill medusa
+    if (DEADMONSTER(mon) || mon.dead) return;
 
     // C ref: monmove.c:759 — courage regain
     if (mon.mflee && !(mon.mfleetim > 0)
