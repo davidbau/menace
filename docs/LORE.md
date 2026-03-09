@@ -5213,3 +5213,26 @@ hard-won wisdom:
   - `node --test test/unit/display_docrt_cls_runtime.test.js` passes (`2/2`).
   - `node scripts/test-unit-core.mjs` baseline unchanged:
     `2551 pass / 5 fail` (same known 5 input-queue failures).
+
+### display legacy helper stabilization (`swallow_to_glyph`/wall-info helpers) (2026-03-08)
+
+- Problem:
+  - Several remaining display helper exports still referenced undefined symbols
+    (`what_mon`, `rn2_on_display_rng`, `seenv_matrix`, `sign`,
+    legacy `map.locations`-only access), creating latent runtime crashes.
+- Fix:
+  - Updated
+    [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - `swallow_to_glyph` now uses stable numeric mapping without undefined RNG helpers.
+    - `check_pos` now supports both `map.at(x,y)` and legacy `map.locations[x][y]`.
+    - `set_seenv` now uses local seenv matrix + `Math.sign` (no undefined globals).
+    - `set_wall_state` now delegates to `dungeon.set_wall_state(map)` and falls back
+      to per-cell `xy_set_wall_state` when available.
+    - Added required symbol/constant imports for swallow/zap and wall-info helpers.
+  - Added focused tests in
+    [`test/unit/display_legacy_helpers_runtime.test.js`](/share/u/davidbau/git/mazesofmenace/mazes/test/unit/display_legacy_helpers_runtime.test.js).
+- Validation:
+  - `node --test test/unit/display_legacy_helpers_runtime.test.js` passes (`4/4`).
+  - `node --test test/unit/display_runtime_safety.test.js` passes (`4/4`).
+  - `node scripts/test-unit-core.mjs` baseline unchanged:
+    `2555 pass / 5 fail` (same known 5 input-queue failures).

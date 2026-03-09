@@ -12,10 +12,12 @@ import {
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, SDOOR, SCORR,
     DB_UNDER, DB_MOAT,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED,
-    IS_WALL,
+    IS_WALL, IS_STWALL, IS_SDOOR,
+    SV0, SV1, SV2, SV3, SV4, SV5, SV6, SV7,
+    WM_C_OUTER, WM_C_INNER, WM_X_TL, WM_X_TR, WM_X_BL, WM_X_BR, WM_X_TLBR, WM_X_BLTR,
 } from './const.js';
 
-import { def_monsyms, def_oc_syms } from './symbols.js';
+import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF } from './symbols.js';
 import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
@@ -43,6 +45,7 @@ import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
 import { awaitInput, awaitMore } from './suspend.js';
 import { rn2 } from './rng.js';
+import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -1888,7 +1891,7 @@ export function newsym_force(x, y) {
 
 // Autotranslated from display.c:2425
 export function swallow_to_glyph(mnum, loc) {
-  let m_3 = what_mon(mnum, rn2_on_display_rng) << 3;
+  const m_3 = (Number(mnum) | 0) << 3;
   if (loc < S_sw_tl || S_sw_br < loc) {
     impossible("swallow_to_glyph: bad swallow location");
     loc = S_sw_br;
@@ -1920,7 +1923,11 @@ export function glyph_at(x, y) {
 export function check_pos(x, y, which, map) {
   let type;
   if (!isok(x, y)) return which;
-  type = map.locations[x][y].typ;
+  const gameMap = map || _getDisplayCtx()?.map;
+  if (!gameMap) return 0;
+  if (typeof gameMap.at === 'function') type = gameMap.at(x, y)?.typ;
+  else type = gameMap.locations?.[x]?.[y]?.typ;
+  if (!Number.isInteger(type)) return 0;
   if (IS_STWALL(type) || type === CORR || type === SCORR || IS_SDOOR(type)) return which;
   return 0;
 }
@@ -1962,18 +1969,31 @@ export function set_crosswall(x, y) {
 
 // Autotranslated from display.c:3318
 export function set_wall_state() {
-  let x, y;
-  for (x = 0; x < COLNO; x++) {
-    for (y = 0; y < ROWNO; y++) {
-      xy_set_wall_state(x, y);
+  const map = _getDisplayCtx()?.map;
+  if (!map) return;
+  if (typeof dungeonSetWallState === 'function') {
+    dungeonSetWallState(map);
+    return;
+  }
+  for (let x = 0; x < COLNO; x++) {
+    for (let y = 0; y < ROWNO; y++) {
+      dungeonXySetWallState?.(map, x, y);
     }
   }
 }
 
 // Autotranslated from display.c:3357
 export function set_seenv(lev, x0, y0, x, y) {
-  let dx = x - x0, dy = y0 - y;
-  lev.seenv |= seenv_matrix[sign(dy) + 1][sign(dx) + 1];
+  if (!lev) return;
+  const dx = x - x0;
+  const dy = y0 - y;
+  const seenvMatrix = [
+    [SV2, SV1, SV0],
+    [SV3, 0xff, SV7],
+    [SV4, SV5, SV6],
+  ];
+  lev.seenv = (Number(lev.seenv) | 0)
+    | seenvMatrix[Math.sign(dy) + 1][Math.sign(dx) + 1];
 }
 
 // Autotranslated from display.c:3785

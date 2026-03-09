@@ -1100,7 +1100,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 |--------|------------|---------|-----------|
 | 2305 | `back_to_glyph` | - | Missing |
 | 201 | `canseemon` | display.js:1372 | Implemented |
-| 3148 | `check_pos` | - | Missing |
+| 3148 | `check_pos` | display.js:1920 | Implemented |
 | 2125 | `clear_glyph_buffer` | - | Missing |
 | 2207 | `cls` | display.js:1848 | Implemented |
 | 2717 | `cmap_to_roguecolor` | - | Missing |
@@ -1146,18 +1146,18 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1613 | `see_traps` | - | Missing |
 | 194 | `see_with_infrared` | display.js:1364 | Implemented |
 | 173 | `sensemon` | display.js:1339 | Implemented |
-| 3226 | `set_corn` | - | Missing |
-| 3258 | `set_crosswall` | - | Missing |
+| 3226 | `set_corn` | display.js:1929 | Implemented |
+| 3258 | `set_crosswall` | display.js:1944 | Implemented |
 | 1550 | `set_mimic_blocking` | - | Missing |
-| 3387 | `set_seenv` | - | Missing |
+| 3387 | `set_seenv` | display.js:1974 | Implemented |
 | 3180 | `set_twall` | - | Missing |
 | 3205 | `set_wall` | - | Missing |
-| 3348 | `set_wall_state` | - | Missing |
+| 3348 | `set_wall_state` | display.js:1962 | Implemented (delegates to dungeon wallification) |
 | 1114 | `shieldeff` | - | Missing |
 | 1879 | `show_glyph` | display.js:1387 | Implemented |
 | 495 | `show_mon_or_warn` | display.js:1386 | Implemented |
 | 728 | `suppress_map_output` | - | Missing |
-| 2455 | `swallow_to_glyph` | - | Missing |
+| 2455 | `swallow_to_glyph` | display.js:1890 | Implemented |
 | 1336 | `swallowed` | - | Missing |
 | 3471 | `t_warn` | - | Missing |
 | 1131 | `tether_glyph` | display.js:1712 | Implemented |
@@ -1171,7 +1171,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3531 | `wall_angle` | - | Missing |
 | 667 | `warning_of` | display.js:1427 | Implemented |
 | 3294 | `xy_set_wall_state` | - | Missing |
-| 2479 | `zapdir_to_glyph` | - | Missing |
+| 2479 | `zapdir_to_glyph` | display.js:1899 | Implemented |
 
 ### dlb.c -> —
 | C Line | C Function | JS Line | Alignment |
