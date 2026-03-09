@@ -60,7 +60,7 @@ import { newexplevel } from './exper.js';
 import { corpse_chance } from './mon.js';
 import { xkilled, killed, monkilled,
          wakeup, healmon, mondead } from './mon.js';
-import { nhgetch_wrap } from './input.js';
+import { nhgetch_raw } from './input.js';
 import { awaitInput } from './suspend.js';
 import { getdir, registerBurnarmor } from './hack.js';
 import { nonliving, is_undead, is_demon, is_rider,
@@ -547,7 +547,7 @@ export async function handleZap(player, map, display, game) {
     let wand;
     await showZapPrompt();
     while (true) {
-        const itemCh = await awaitInput(game, nhgetch_wrap(), {
+        const itemCh = await awaitInput(game, nhgetch_raw(), {
             site: 'zap.handleZap.selectWand',
         });
         let itemChar = String.fromCharCode(itemCh);
