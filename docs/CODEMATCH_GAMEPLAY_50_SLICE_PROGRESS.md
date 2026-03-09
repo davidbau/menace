@@ -20,8 +20,8 @@ Rules
 | S04 | [#284](https://github.com/davidbau/menace/issues/284) | options.c parse/apply parity | `Ready` |
 | S05 | [#285](https://github.com/davidbau/menace/issues/285) | options.c UI/persistence parity | `Ready` |
 | S06 | [#286](https://github.com/davidbau/menace/issues/286) | botl.c full statusline parity | `Ready` |
-| S07 | [#287](https://github.com/davidbau/menace/issues/287) | attrib.c core math parity | `Ready` |
-| S08 | [#288](https://github.com/davidbau/menace/issues/288) | attrib.c innate+exercise parity | `Ready` |
+| S07 | [#287](https://github.com/davidbau/menace/issues/287) | attrib.c core math parity | `Done` (all Missing→Implemented: acurr, acurrstr, adjattrib, gainstr, losestr, poison_strdmg, poisoned, poisontell, change_luck, stone_luck, set_moreluck, restore_attrib, exercise, exerper, exerchk) |
+| S08 | [#288](https://github.com/davidbau/menace/issues/288) | attrib.c innate+exercise parity | `Done` (all Missing→Implemented: init_attr, init_attr_role_redist, redist_attr, vary_init_attr, rnd_attr, role_abil, check_innate_abil, innately, is_innate, from_what, adjabil, postadjabil, adjuhploss, minuhpmax, setuhpmax, extremeattr, adjalign, uchangealign) |
 | S09 | [#289](https://github.com/davidbau/menace/issues/289) | role.c selection parity | `Done` (Hello, Goodbye, plnamesuffix, role_init, genl_player_setup) |
 | S10 | [#290](https://github.com/davidbau/menace/issues/290) | u_init.c startup edge parity | `Done` (knows_object, knows_class, skills_for_role, pauper_reinit, ini_inv_obj_substitution, ini_inv_adjust_obj, u_init_inventory_attrs, u_init_misc, u_init_skills_discoveries) |
 | S11 | [#291](https://github.com/davidbau/menace/issues/291) | do_name.c naming flow parity | `Done` (new_mgivenname, new_oname, name_from_player, alreadynamed, do_oname, objtyp_is_callable, docallcmd, namefloorobj, rndghostname) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 14
-- Completed slices: 36 (S01, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49)
+- Open slices: 12
+- Completed slices: 38 (S01, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S27, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S47, S48, S49)

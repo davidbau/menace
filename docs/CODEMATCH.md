@@ -514,40 +514,40 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### attrib.c -> attrib.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 1197 | `acurr` | - | Missing |
-| 1242 | `acurrstr` | - | Missing |
-| 1003 | `adjabil` | - | Missing |
-| 1295 | `adjalign` | - | Missing |
-| 117 | `adjattrib` | - | Missing |
-| 1179 | `adjuhploss` | - | Missing |
-| 408 | `change_luck` | - | Missing |
-| 815 | `check_innate_abil` | - | Missing |
-| 595 | `exerchk` | - | Missing |
-| 486 | `exercise` | attrib_exercise.js | Partial — rn2(19) exercise call, A_DEX and A_STR. Missing: full exercise tracking (AEXE array), exerchk periodic processing |
-| 518 | `exerper` | - | Missing |
-| 1265 | `extremeattr` | - | Missing |
-| 902 | `from_what` | - | Missing |
-| 200 | `gainstr` | - | Missing |
-| 720 | `init_attr` | - | Missing |
-| 696 | `init_attr_role_redist` | - | Missing |
-| 861 | `innately` | - | Missing |
-| 877 | `is_innate` | - | Missing |
-| 218 | `losestr` | - | Missing |
-| 1144 | `minuhpmax` | - | Missing |
-| 1077 | `newhp` | exper.js:newhp | Implemented — role/race hpadv structs, Con adjustment for level-up. Init path uses infix+rnd(inrnd), level-up uses lo/hi with xlev cutoff |
-| 271 | `poison_strdmg` | - | Missing |
-| 314 | `poisoned` | - | Missing |
-| 291 | `poisontell` | - | Missing |
-| 777 | `postadjabil` | - | Missing |
-| 737 | `redist_attr` | - | Missing |
-| 452 | `restore_attrib` | - | Missing |
-| 679 | `rnd_attr` | - | Missing |
-| 786 | `role_abil` | - | Missing |
-| 438 | `set_moreluck` | - | Missing |
-| 1154 | `setuhpmax` | - | Missing |
-| 420 | `stone_luck` | - | Missing |
-| 1317 | `uchangealign` | - | Missing |
-| 761 | `vary_init_attr` | - | Missing |
+| 1197 | `acurr` | attrib.js:359 | Implemented |
+| 1242 | `acurrstr` | attrib.js:392 | Implemented |
+| 1003 | `adjabil` | attrib.js:1003 | Implemented |
+| 1295 | `adjalign` | attrib.js:1195 | Implemented |
+| 117 | `adjattrib` | attrib.js:409 | Implemented |
+| 1179 | `adjuhploss` | attrib.js:1161 | Implemented |
+| 408 | `change_luck` | attrib.js:606 | Implemented |
+| 815 | `check_innate_abil` | attrib.js:924 | Implemented (internal helper) |
+| 595 | `exerchk` | attrib.js:769 | Implemented |
+| 486 | `exercise` | attrib.js:674 | Implemented |
+| 518 | `exerper` | attrib.js:690 | Implemented (internal helper) |
+| 1265 | `extremeattr` | attrib.js:1173 | Implemented |
+| 902 | `from_what` | attrib.js:981 | Implemented |
+| 200 | `gainstr` | attrib.js:472 | Implemented |
+| 720 | `init_attr` | attrib.js:853 | Implemented |
+| 696 | `init_attr_role_redist` | attrib.js:831 | Implemented (internal helper) |
+| 861 | `innately` | attrib.js:950 | Implemented |
+| 877 | `is_innate` | attrib.js:965 | Implemented |
+| 218 | `losestr` | attrib.js:485 | Implemented |
+| 1144 | `minuhpmax` | attrib.js:1135 | Implemented |
+| 1077 | `newhp` | attrib.js:1081, exper.js:newhp | Implemented |
+| 271 | `poison_strdmg` | attrib.js:522 | Implemented |
+| 314 | `poisoned` | attrib.js:541 | Implemented |
+| 291 | `poisontell` | attrib.js:528 | Implemented |
+| 777 | `postadjabil` | attrib.js:898 | Implemented (internal helper) |
+| 737 | `redist_attr` | attrib.js:872 | Implemented |
+| 452 | `restore_attrib` | attrib.js:650 | Implemented |
+| 679 | `rnd_attr` | attrib.js:816 | Implemented (internal helper) |
+| 786 | `role_abil` | attrib.js:904 | Implemented |
+| 438 | `set_moreluck` | attrib.js:637 | Implemented |
+| 1154 | `setuhpmax` | attrib.js:1141 | Implemented |
+| 420 | `stone_luck` | attrib.js:620 | Implemented |
+| 1317 | `uchangealign` | attrib.js:1214 | Implemented |
+| 761 | `vary_init_attr` | attrib.js:887 | Implemented |
 
 ### ball.c -> ball.js
 | C Line | C Function | JS Line | Alignment |
