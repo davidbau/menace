@@ -3,9 +3,10 @@
 > *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
 > — Terry Pratchett, quoted in the NetHack 3.6.0 release notes
 
-**Current phase:** Phase 2 (testing burndown) with Phase 5 (self-play) running
-in parallel. Active execution is direct gameplay parity burndown on `main`,
-following the completion and merge of the More Needed campaign.
+**Current phase:** Phase 3 (full-coverage closure / CODEMATCH expansion) with
+Phase 5 (self-play) running in parallel. Phase 2 parity burndown is complete at
+the current checkpoint; active execution on `main` is short cleanup plus
+CODEMATCH coverage expansion while preserving full-green parity.
 
 **Context:** [README.md](README.md) explains what Royal Jelly is, why NetHack
 matters, and the intersection of the 3.7.0 release moment with AI-assisted
@@ -153,13 +154,13 @@ movement and pet AI, cursor-position capture and comparison, session
 re-recording with corrected C harness behavior. The campaign brought sessions
 to ~124/150 passing and was merged to `main`.
 
-**Direct parity burndown (Mar 4 – present).** Ongoing work on `main` targeting
-the remaining divergence clusters: `dochug`/monster-movement sequencing (~14
-sessions), level-generation wizard-mode divergences (~7 sessions), combat and
-late-game divergences, and miscellaneous rendering issues. Recent fixes include
-C-faithful `gethungry`, `moveloop_turnend` wiring, `wall_info` bitfield
-unification, `mhitu` hide-under detection, `mkobj` floor placement, and
-postmov trap/effect ordering.
+**Direct parity burndown (Mar 4 – Mar 9).** Intensive work on `main` closed the
+remaining divergence clusters and reached a full-green gameplay/session
+checkpoint. Recent fixes included C-faithful `gethungry`,
+`moveloop_turnend` wiring, `wall_info` bitfield unification, `mhitu`
+hide-under detection, `mkobj` floor placement, and postmov trap/effect
+ordering. After the green checkpoint, execution priority shifted to cleanup and
+CODEMATCH coverage expansion.
 
 ### Phase 3–4: Full-Coverage Closure and Stabilization (groundwork started)
 
@@ -184,7 +185,7 @@ NetHack parity campaign. See [hack/PLAN.md](hack/PLAN.md).
 
 ---
 
-## Current Status (as of March 6, 2026)
+## Current Status (as of March 9, 2026)
 
 > *"You sense the presence of determinism. It feels reassuring."*
 
@@ -192,15 +193,14 @@ NetHack parity campaign. See [hack/PLAN.md](hack/PLAN.md).
 source structure, plus 131 special level modules in `js/levels/`. Total JS
 source: ~180,000 lines.
 
-**Testing:** 156 golden session files (89 gameplay/interface/chargen + 62 map +
-5 pending), ~2,500 individual unit/integration tests across 170 test files, plus
-E2E browser tests.
+**Testing:** Full suite currently green at checkpoint:
+`3345/3345` passing (`npm test -- --runInBand`), including gameplay
+`34/34` and session failures sweep `34/34` passing (`./scripts/run-and-report.sh --failures`).
 
-**Parity:** The majority of session tests pass across all five comparison
-channels (RNG, screen, cursor, events, mapdump). Remaining failures cluster in
-three areas: (1) monster movement and pet AI sequencing in `dochug`/`monmove`,
-(2) level-generation divergences in wizard-mode multi-depth sessions, and (3)
-scattered late-game combat divergences.
+**Parity:** Gameplay/session parity is at a full-green checkpoint across all
+maintained comparison channels (RNG, screen, cursor, events, mapdump).
+Current priority is to preserve this parity baseline while expanding structural
+coverage through CODEMATCH closure.
 
 **Coverage:** The [CODEMATCH.md](docs/CODEMATCH.md) ledger tracks ~5,000 C
 functions. Of these, ~1,758 have JS counterparts; ~3,242 remain unported
@@ -228,11 +228,11 @@ gates. Per-commit parity metrics are recorded in
 2. **Phase 1: Testing infrastructure foundation** *(complete, Feb 7–9)*
    - Session recording/replay infrastructure exists for gameplay sessions, UI interactions, and map sessions.
    - Fast strict session tests exist and intentionally expose many fidelity failures.
-3. **Phase 2: Testing burndown** *(active, Feb 9 – present)*
+3. **Phase 2: Testing burndown** *(complete, Feb 9 – Mar 9)*
    - Port C logic into JS to drive session tests toward green across semantics, PRNG, typgrid, and screen parity.
    - Sub-campaigns completed: early parity push, Iron Parity (pivoted), More Needed (merged).
-   - Current focus: direct parity burndown on remaining divergence clusters.
-4. **Phase 3: Full-coverage closure** *(groundwork started)*
+   - Direct parity burndown completed to current full-green checkpoint.
+4. **Phase 3: Full-coverage closure** *(active)*
    - Maintain the [C-to-JS code correspondence ledger](docs/CODEMATCH.md) (file-by-file and function-by-function mapping).
    - Refactor JS files to match C file/function naming (one GitHub issue per C file, labeled `codematch`; [issues #32–#138](https://github.com/davidbau/menace/issues?q=label%3Acodematch)).
    - Run and maintain JS code-coverage tooling to identify unexercised codepaths.

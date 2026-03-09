@@ -9,9 +9,13 @@ This file defines how coding agents should work in this repository.
 This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the authoritative source for goals, scope, and milestone priorities.
 
 ## Current Mission (Temporary Priority)
-1. Burndown phase: drive gameplay session parity to **100% passing**.
-2. Prioritize fixes that eliminate earliest shared divergences across failing sessions.
-3. Do not add architectural or harness cruft while fixing parity; prefer minimal, C-faithful core-JS fixes.
+1. Burndown phase is complete (gameplay/session parity is green at current checkpoint).
+2. Spend a short cleanup pass on repo hygiene:
+   - remove temporary debug scaffolding not needed for ongoing work,
+   - close/update stale issues and docs status notes,
+   - keep main clean and coordinated across agents.
+3. Then prioritize **CODEMATCH coverage expansion** as the top active workstream.
+4. While expanding coverage, preserve current parity (no regressions) and avoid architectural/harness cruft.
 
 ## Source of Truth and Priorities
 1. NetHack C 3.7.0 behavior is the gameplay source of truth.
@@ -33,7 +37,7 @@ This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the auth
    Scope may include deterministic replay tooling, diagnostics, and code coverage.
    Constraint: infrastructure reveals bugs; it must not solve or mask them.
 
-## Burndown Scoring Standard (Current Phase)
+## Regression/Progress Standard (Current Phase)
 1. A change is a **regression** if it moves first divergence earlier on any parity channel (`PRNG`, `events`, or `screen`) for a session that was previously better.
 2. A change is **progress** if it moves first divergence later (or fully green) on one or more parity channels without causing larger regressions elsewhere.
 3. Treat boundary-only capture artifacts as neutral unless they clearly shift true gameplay parity.
