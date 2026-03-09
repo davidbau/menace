@@ -916,12 +916,13 @@ export async function domove_core(dir, player, map, display, game) {
         if (rnl(20, luck) < threshold) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
             await display.putstr_message("The door opens.");
+            domoveNotime('closed-door-autoopen-opened');
         } else {
             await exercise(player, A_STR, true);
             await display.putstr_message("The door resists!");
+            domoveNotime('closed-door-autoopen-resisted');
         }
-        // C doopen_indir() consumes the turn (ECMD_TIME).
-        return { moved: false, tookTime: true };
+        return { moved: false, tookTime: false };
     }
     if (!await test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
         // C ref: hack.c:2824-2829 — when test_move fails, C sets
