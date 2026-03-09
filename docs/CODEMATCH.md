@@ -3772,7 +3772,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 517 | `allow_all` | pickup.js:250 | Implemented |
 | 597 | `allow_cat_no_uchain` | pickup.js:285 | Implemented |
 | 523 | `allow_category` | pickup.js:255 | Implemented |
-| 975 | `autopick` | - | Missing |
+| 975 | `autopick` | pickup.js:autopick | Implemented |
 | 930 | `autopick_testobj` | pickup.js:334 | Implemented |
 | 2531 | `boh_loss` | pickup.js:713 | Implemented |
 | 1570 | `carry_count` | pickup.js:405 | Implemented |
@@ -3785,14 +3785,14 @@ Remaining parity gaps are mostly behavioral depth:
 | 2883 | `container_gone` | pickup.js:925 | Implemented |
 | 1511 | `count_categories` | pickup.js:361 | Implemented |
 | 635 | `count_justpicked` | pickup.js:309 | Implemented |
-| 3829 | `count_target_containers` | - | Missing |
+| 3829 | `count_target_containers` | pickup.js:count_target_containers | Implemented (C #if 0 stub) |
 | 337 | `deferred_decor` | pickup.js:191 | Implemented |
 | 1544 | `delta_cwt` | pickup.js:382 | Implemented |
 | 353 | `describe_decor` | pickup.js:194 | Implemented |
 | 2512 | `do_boh_explosion` | pickup.js:697 | Implemented |
-| 2082 | `do_loot_cont` | - | Missing |
+| 2082 | `do_loot_cont` | pickup.js:do_loot_cont | Implemented |
 | 2160 | `doloot` | pickup.js:handleLoot | APPROX — loot command |
-| 2172 | `doloot_core` | - | Missing |
+| 2172 | `doloot_core` | pickup.js:doloot_core→handleLoot | Implemented |
 | 3542 | `dotip` | pickup.js:1025 | Implemented |
 | 1972 | `encumber_msg` | pickup.js:575 | Implemented |
 | 2891 | `explain_container_prompt` | pickup.js:931 | Implemented |
@@ -3804,11 +3804,11 @@ Remaining parity gaps are mostly behavioral depth:
 | 2504 | `is_boh_item_gone` | pickup.js:691 | Implemented |
 | 609 | `is_worn_by_type` | pickup.js:294 | Implemented |
 | 1705 | `lift_object` | pickup.js:471 | Implemented |
-| 2425 | `loot_mon` | - | Missing |
+| 2425 | `loot_mon` | pickup.js:loot_mon | Implemented |
 | 2482 | `mbag_explodes` | pickup.js:677 | Implemented |
 | 2797 | `mbag_item_gone` | pickup.js:872 | Implemented |
 | 469 | `menu_class_present` | pickup.js:208 | Implemented |
-| 3245 | `menu_loot` | - | Missing |
+| 3245 | `menu_loot` | pickup.js:menu_loot | Implemented |
 | 2066 | `mon_beside` | pickup.js:663 | Implemented |
 | 460 | `n_or_more` | pickup.js:201 | Implemented |
 | 2820 | `observe_quantum_cat` | pickup.js:889 | Implemented |
@@ -3817,23 +3817,23 @@ Remaining parity gaps are mostly behavioral depth:
 | 672 | `pickup` | pickup.js:handlePickup | APPROX — pickup command |
 | 1803 | `pickup_object` | pickup.js:523 | Implemented |
 | 1942 | `pickup_prinv` | pickup.js:570 | Implemented |
-| 1226 | `query_category` | - | Missing |
-| 141 | `query_classes` | - | Missing |
-| 1025 | `query_objlist` | - | Missing |
+| 1226 | `query_category` | pickup.js:query_category | Implemented |
+| 141 | `query_classes` | pickup.js:query_classes | Implemented |
+| 1025 | `query_objlist` | pickup.js:query_objlist | Implemented |
 | 2775 | `removed_from_icebox` | pickup.js:857 | Implemented |
 | 616 | `reset_justpicked` | pickup.js:300 | Implemented |
-| 2344 | `reverse_loot` | - | Missing |
+| 2344 | `reverse_loot` | pickup.js:reverse_loot | Implemented |
 | 303 | `rider_corpse_revival` | pickup.js:175 | Implemented |
-| 76 | `simple_look` | - | Missing |
+| 76 | `simple_look` | pickup.js:simple_look | Implemented |
 | 2937 | `stash_ok` | pickup.js:946 | Implemented |
 | 3461 | `tip_ok` | pickup.js:1010 | Implemented |
 | 3668 | `tipcontainer` | pickup.js:1031 | Implemented |
 | 3934 | `tipcontainer_checks` | pickup.js:1041 | Implemented |
 | 3851 | `tipcontainer_gettarget` | pickup.js:1035 | Implemented |
-| 3210 | `traditional_loot` | - | Missing |
+| 3210 | `traditional_loot` | pickup.js:traditional_loot | Implemented |
 | 2923 | `u_handsy` | pickup.js:936 | Implemented |
 | 273 | `u_safe_from_fatal_corpse` | pickup.js:151 | Implemented |
-| 2952 | `use_container` | - | Missing |
+| 2952 | `use_container` | pickup.js:use_container→containerMenu | Implemented |
 
 ### pline.c -> pline.js
 | C Line | C Function | JS Line | Alignment |

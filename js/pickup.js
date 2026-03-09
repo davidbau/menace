@@ -12,9 +12,9 @@ import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
 import { nhgetch, getlin, ynFunction } from './input.js';
 import { awaitInput } from './suspend.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
-         set_corpsenm, start_corpse_timeout } from './mkobj.js';
+         set_corpsenm, start_corpse_timeout, add_to_container, add_to_minv } from './mkobj.js';
 import { observeObject } from './o_init.js';
-import { formatGoldPickupMessage, formatInventoryPickupMessage } from './do.js';
+import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './do.js';
 import { mons, PM_HOUSECAT, PM_ICE_TROLL, MZ_LARGE } from './monsters.js';
 import { is_rider, touch_petrifies, nohands, nolimbs, notake,
          poly_when_stoned } from './mondata.js';
@@ -28,7 +28,7 @@ import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
-         inv_cnt, merge_choice } from './invent.js';
+         inv_cnt, merge_choice, hold_another_object, prinv, g_at } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
 import { makemon } from './makemon.js';
@@ -39,7 +39,9 @@ import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
-import { Is_box, Has_contents, Is_mbag } from './objnam.js';
+import { Is_box, Has_contents, Is_mbag, thesimpleoname } from './objnam.js';
+import { which_armor, extract_from_minvent } from './worn.js';
+import { courtmon } from './mkroom.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -1918,4 +1920,569 @@ async function handleTogglePickup(game) {
     return { moved: false, tookTime: false };
 }
 
-export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_mistake, force_decor, deferred_decor, describe_decor, check_here, n_or_more, menu_class_present, add_valid_menu_class, allow_category, allow_cat_no_uchain, check_autopickup_exceptions, autopick_testobj, carry_count, lift_object, pickup_object, pickup_prinv, encumber_msg, container_at, able_to_loot, do_boh_explosion, in_container, ck_bag, out_container, container_gone, explain_container_prompt, u_handsy, choose_tip_container_menu, dotip, tipcontainer, tipcontainer_gettarget, tipcontainer_checks, collect_obj_classes, count_unpaid, count_buc };
+// ---------------------------------------------------------------------------
+// cf. pickup.c:76 — simple_look(otmp, here)
+// Display a list of objects using pline or text window.
+// ---------------------------------------------------------------------------
+async function simple_look(otmp, here, player) {
+    if (!otmp) {
+        impossible("simple_look(null)");
+    } else if (!(here ? otmp.nexthere : otmp.nobj)) {
+        // single object
+        await pline(doname(otmp, player));
+    } else {
+        // multiple objects — show in a menu window
+        const win = create_nhwindow(NHW_MENU);
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, "", 0);
+        let curr = otmp;
+        while (curr) {
+            add_menu(win, null, null, 0, 0, ATR_NONE, 0, doname(curr, player), 0);
+            curr = here ? curr.nexthere : curr.nobj;
+        }
+        end_menu(win, null);
+        await select_menu(win, 0); // PICK_NONE = 0
+        destroy_nhwindow(win);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:975 — autopick(olist, follow, pick_list)
+// Build a pick_list of objects that pass autopick_testobj.
+// Returns { count, pick_list: [{obj, count}] }.
+// ---------------------------------------------------------------------------
+function autopick(olist, here, player) {
+    let check_costly = true;
+    const items = [];
+
+    // first pass: count eligible items
+    let curr = olist;
+    while (curr) {
+        if (autopick_testobj(curr, check_costly, player)) {
+            items.push({ obj: curr, count: curr.quan || 1 });
+        }
+        check_costly = false; // only need to check once per autopickup
+        curr = here ? curr.nexthere : curr.nobj;
+    }
+
+    return { count: items.length, pick_list: items };
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:3829 — count_target_containers(olist, excludo)
+// Count containers in inventory, excluding a specific object.
+// (This function is #if 0 in C; provided as stub for completeness.)
+// ---------------------------------------------------------------------------
+function count_target_containers(olist, excludo) {
+    let ret = 0;
+    let curr = olist;
+    while (curr) {
+        if (curr !== excludo && Is_container(curr)
+            && (curr.otyp !== BAG_OF_TRICKS || !curr.dknown
+                || !(objectData[curr.otyp]?.oc_name_known)))
+            ret++;
+        curr = curr.nobj;
+    }
+    return ret;
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:2344 — reverse_loot()
+// Called when confused during #loot attempt. RNG-consuming.
+// ---------------------------------------------------------------------------
+async function reverse_loot(player, map, game) {
+    if (!rn2(3)) {
+        // n objects: 1/(n+1) chance per object, 1/(n+1) to fall off end
+        const n0 = inv_cnt(true, player);
+        let n = n0;
+        let otmp = player.inventory?.[0] || null;
+        // traverse inventory as linked list if available, else array
+        const invList = player.inventory || [];
+        for (let idx = 0; idx < invList.length; idx++) {
+            otmp = invList[idx];
+            if (!rn2(n + 1)) {
+                await prinv("You find old loot:", otmp, 0, player);
+                return true;
+            }
+            n--;
+        }
+        return false;
+    }
+
+    // find a money object to mess with
+    let goldob = null;
+    const inv = player.inventory || [];
+    for (let i = 0; i < inv.length; i++) {
+        if (inv[i].oclass === COIN_CLASS) {
+            goldob = inv[i];
+            let contribution = Math.floor((rnd(5) * (goldob.quan || 1) + 4) / 5);
+            if (contribution < (goldob.quan || 1)) {
+                goldob = splitobj(goldob, contribution);
+            }
+            break;
+        }
+    }
+    if (!goldob) return false;
+
+    const x = player.x, y = player.y;
+    const loc = map?.at?.(x, y);
+
+    if (!loc || loc.typ !== THRONE) {
+        await dropx(goldob, player, map);
+        if (g_at(x, y, map)) {
+            await pline("Ok, now there is loot here.");
+        }
+    } else {
+        // find coffers (throne room chest with spe==2, or nearest chest)
+        let coffers = null;
+        let nearest = null;
+        const fobj = map?.objects || [];
+        // search level objects for chests
+        for (const obj of fobj) {
+            if (obj && obj.otyp === CHEST) {
+                if (obj.spe === 2) { coffers = obj; break; }
+                if (!nearest) nearest = obj;
+            }
+        }
+        if (!coffers) coffers = nearest;
+
+        if (coffers) {
+            await pline("\"Thank you for your contribution to reduce the debt.\"");
+            freeinv(goldob, player);
+            add_to_container(coffers, goldob);
+            coffers.owt = weight(coffers);
+            coffers.cknown = 0;
+        } else if (!(loc.looted) /* T_LOOTED */) {
+            const mon = await makemon(courtmon, x, y, NO_MM_FLAGS, map, game);
+            if (mon) {
+                freeinv(goldob, player);
+                add_to_minv(mon, goldob);
+                await pline("The exchequer accepts your contribution.");
+                if (!rn2(10))
+                    loc.looted = true; // T_LOOTED
+            } else {
+                await You("drop %s.", doname(goldob, player));
+                await dropx(goldob, player, map);
+            }
+        } else {
+            await You("drop %s.", doname(goldob, player));
+            await dropx(goldob, player, map);
+        }
+    }
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:2425 — loot_mon(mtmp, passed_info, prev_loot)
+// Remove saddle from a monster or pick up from swallower.
+// Returns time passed (0 or rnd(3)).
+// ---------------------------------------------------------------------------
+async function loot_mon(mtmp, passed_info_ref, prev_loot_ref, player, game) {
+    let c = -1;
+    let timepassed = 0;
+
+    // 3.3.1: ability to remove saddle from a steed
+    if (mtmp && mtmp !== player.usteed) {
+        const otmp = which_armor(mtmp, W_SADDLE);
+        if (otmp) {
+            if (passed_info_ref) passed_info_ref.value = 1;
+            const mname = x_monnam(mtmp, ARTICLE_THE, null, SUPPRESS_SADDLE, false);
+            const qbuf = `Do you want to remove the saddle from ${mname}?`;
+            c = await ynFunction(qbuf, 'ynq', 'n'.charCodeAt(0), game?.display);
+            const cc = String.fromCharCode(c);
+            if (cc === 'y') {
+                if (nolimbs(player.data)) {
+                    await You_cant("do that without limbs.");
+                    return 0;
+                }
+                if (otmp.cursed) {
+                    await You("can't.  The saddle seems to be stuck to %s.", mname);
+                    return 1; // attempt costs time
+                }
+                extract_from_minvent(mtmp, otmp, true, false);
+                if (game?.flags?.verbose !== false) {
+                    await You("take %s off of %s.",
+                        thesimpleoname(otmp), mon_nam(mtmp));
+                }
+                await hold_another_object(otmp, player,
+                    `You drop %s!`, doname(otmp, player), null);
+                timepassed = rnd(3);
+                if (prev_loot_ref) prev_loot_ref.value = true;
+            } else if (cc === 'q') {
+                return 0;
+            }
+        }
+    }
+    // 3.4.0: pick things up from swallower's stomach
+    if (player.uswallow) {
+        const count = passed_info_ref ? passed_info_ref.value : 0;
+        // pickup(count) — not fully wired, stub
+        timepassed = 0;
+    }
+    return timepassed;
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:2082 — do_loot_cont(cobjp, cindex, ccount)
+// Attempt to loot a single floor container. Handles locked, bag of tricks.
+// ---------------------------------------------------------------------------
+async function do_loot_cont(cobj, cindex, ccount, player, map, game) {
+    if (!cobj) return 0;
+
+    if (cobj.olocked) {
+        if (cobj.lknown)
+            await pline("%s is locked.", xname(cobj));
+        else
+            await pline("Hmmm, %s turns out to be locked.", xname(cobj));
+        cobj.lknown = true;
+
+        // autounlock handling (already in handleLoot)
+        const flags = game?.flags || {};
+        const tryApplyKey = autounlock_has_action(flags, 'apply-key', AUTOUNLOCK_APPLY_KEY);
+        const tryUntrap = autounlock_has_action(flags, 'untrap', AUTOUNLOCK_UNTRAP);
+        if (tryApplyKey || tryUntrap) {
+            player.dz = 0;
+            const { autokey, pick_lock } = await import('./lock.js');
+            const unlocktool = tryApplyKey ? autokey(player, true) : null;
+            if (unlocktool || tryUntrap) {
+                const ox = cobj.ox || player.x;
+                const oy = cobj.oy || player.y;
+                const res = await pick_lock(game, unlocktool, ox, oy, cobj);
+                return res !== 0 ? 1 : 0;
+            }
+        }
+        return 0;
+    }
+    cobj.lknown = true;
+
+    if (cobj.otyp === BAG_OF_TRICKS) {
+        await You("carefully open %s...", xname(cobj));
+        await pline("It develops a huge set of teeth and bites you!");
+        const tmp = rnd(10);
+        // losehp(Maybe_Half_Phys(tmp), "carnivorous bag", KILLED_BY_AN)
+        // not fully wired — consume the RNG
+        if (objectData[BAG_OF_TRICKS]) objectData[BAG_OF_TRICKS].oc_name_known = true;
+        return 1; // ECMD_TIME
+    }
+
+    // Normal container — delegate to containerMenu (≈ use_container)
+    const result = await containerMenu(game, cobj);
+    return result.tookTime ? 1 : 0;
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:2172 — doloot_core()
+// Main #loot command handler. JS equivalent: handleLoot.
+// This is a C-named alias that delegates to handleLoot.
+// ---------------------------------------------------------------------------
+async function doloot_core(game) {
+    return handleLoot(game);
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:141 — query_classes(oclasses, one_at_a_time, everything,
+//                                   action, objs, here, menu_on_demand)
+// Traditional/Combination menustyle class selection prompt.
+// Returns { selected: bool, oclasses: string, one_at_a_time: bool,
+//           everything: bool, menu_on_demand: int }
+// ---------------------------------------------------------------------------
+async function query_classes(action, objs, here, player, game) {
+    const display = game?.display;
+    // collect available object classes
+    const ilets = [];
+    let itemcount = 0;
+    let curr = objs;
+    while (curr) {
+        const sym = CLASS_SYMBOLS[curr.oclass];
+        if (sym && ilets.indexOf(sym) < 0) ilets.push(sym);
+        itemcount++;
+        curr = here ? curr.nexthere : curr.nobj;
+    }
+    if (ilets.length === 0)
+        return { selected: false, oclasses: '', one_at_a_time: false, everything: false, menu_on_demand: 0 };
+
+    if (ilets.length === 1) {
+        return { selected: true, oclasses: ilets[0], one_at_a_time: false, everything: false, menu_on_demand: 0 };
+    }
+
+    // multiple classes available — prompt
+    const extras = [' ', 'a', 'A'];
+    const allIlets = [...ilets, ...extras];
+    const prompt = `What kinds of thing do you want to ${action}? [${allIlets.join('')}]`;
+    const inbuf = await getlin(prompt, display);
+    if (!inbuf || inbuf === '\x1b') {
+        return { selected: false, oclasses: '', one_at_a_time: false, everything: false, menu_on_demand: 0 };
+    }
+
+    let oclasses = '';
+    let one_at_a_time = false;
+    let everything = false;
+    let not_everything = false;
+    let m_seen = false;
+    let filtered = false;
+
+    for (const sym of inbuf) {
+        if (sym === ' ') continue;
+        else if (sym === 'A') one_at_a_time = true;
+        else if (sym === 'a') everything = true;
+        else if (sym === ':') {
+            await simple_look(objs, here, player);
+            // C does goto ask_again; we just continue
+        } else if (sym === 'm') {
+            m_seen = true;
+        } else if ('uBUCXP'.includes(sym)) {
+            add_valid_menu_class(sym);
+            filtered = true;
+        } else if (ilets.includes(sym)) {
+            add_valid_menu_class(sym);
+            oclasses += sym;
+        } else {
+            not_everything = true;
+        }
+    }
+
+    if (m_seen) {
+        const mod = ((everything || !oclasses) && !filtered) ? -2 : -3;
+        return { selected: false, oclasses: '', one_at_a_time: false, everything: false, menu_on_demand: mod };
+    }
+    if (!oclasses && (!everything || not_everything)) {
+        one_at_a_time = true;
+        everything = false;
+    }
+    return { selected: true, oclasses, one_at_a_time, everything, menu_on_demand: 0 };
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:1226 — query_category(qstr, olist, qflags, pick_list, how)
+// Menu-based category (class) selection for Full menustyle.
+// Returns { count, pick_list: [{item_int, count}] }
+// ---------------------------------------------------------------------------
+async function query_category(qstr, olist, qflags, how, player, game) {
+    if (!olist) return { count: 0, pick_list: [] };
+
+    const FOLLOW = (obj, flags) => ((flags & 1) ? obj.nexthere : obj.nobj);
+    const do_worn = !!(qflags & 0x0020); // WORN_TYPES
+    const ofilter = do_worn ? is_worn : null;
+
+    // count categories
+    let ccount = 0;
+    const inv_order = game?.flags?.inv_order || 'aefgkmopqrstuvw!?"+=([*/(';
+    for (let ci = 0; ci < inv_order.length; ci++) {
+        const pack = inv_order.charCodeAt(ci);
+        let found = false;
+        for (let c = olist; c; c = FOLLOW(c, qflags)) {
+            if (c.oclass === pack) {
+                if (ofilter && !ofilter(c)) continue;
+                if (!found) { ccount++; found = true; }
+            }
+        }
+    }
+
+    // single category optimization
+    const num_buc_types = countBucTypes(olist);
+    if (ccount === 1 && num_buc_types <= 1) {
+        for (let c = olist; c; c = FOLLOW(c, qflags)) {
+            if (ofilter && !ofilter(c)) continue;
+            return { count: 1, pick_list: [{ item_int: c.oclass, count: -1 }] };
+        }
+        return { count: 0, pick_list: [] };
+    }
+
+    // build menu for category selection
+    const win = create_nhwindow(NHW_MENU);
+    start_menu(win, MENU_BEHAVE_STANDARD);
+
+    const CHOOSE_ALL = 0x0100;
+    const ALL_TYPES_SELECTED = -2;
+    const show_a = ccount > 1;
+    let invlet = 'a'.charCodeAt(0);
+
+    if (qflags & CHOOSE_ALL) {
+        add_menu(win, null, { a_int: 'A'.charCodeAt(0) }, 'A'.charCodeAt(0), 0, ATR_NONE, 0,
+            do_worn ? "Auto-select every item being worn or wielded"
+                    : "Auto-select every relevant item", 0);
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, "", 0); // blank separator
+    }
+
+    if (show_a) {
+        add_menu(win, null, { a_int: ALL_TYPES_SELECTED }, invlet, 0, ATR_NONE, 0,
+            do_worn ? "All worn and wielded types" : "All types", 0);
+        invlet++;
+    }
+
+    for (let ci = 0; ci < inv_order.length; ci++) {
+        const pack = inv_order.charCodeAt(ci);
+        let found = false;
+        for (let c = olist; c; c = FOLLOW(c, qflags)) {
+            if (c.oclass === pack) {
+                if (ofilter && !ofilter(c)) continue;
+                if (!found) {
+                    const sym = CLASS_SYMBOLS[pack] || '?';
+                    add_menu(win, null, { a_int: pack }, invlet, sym.charCodeAt(0), ATR_NONE, 0,
+                        classSymbolLabel(sym), 0);
+                    invlet++;
+                    found = true;
+                }
+            }
+        }
+    }
+
+    end_menu(win, qstr);
+    const result = await select_menu(win, how);
+    destroy_nhwindow(win);
+
+    if (!result || result.length === 0) return { count: 0, pick_list: [] };
+    return {
+        count: result.length,
+        pick_list: result.map(r => ({ item_int: r.item?.a_int || r.a_int || 0, count: r.count || -1 })),
+    };
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:1025 — query_objlist(qstr, olist_p, qflags, pick_list, how, allow)
+// Put up a menu using the given object list. Returns selected items.
+// JS returns { count, pick_list: [{obj, count}] }
+// ---------------------------------------------------------------------------
+async function query_objlist(qstr, olist, qflags, how, allow_fn, player, game) {
+    if (!olist) return { count: 0, pick_list: [] };
+
+    const BY_NEXTHERE = 0x01;
+    const AUTOSELECT_SINGLE = 0x04;
+    const SIGNAL_NOMENU = 0x20;
+    const SIGNAL_ESCAPE = 0x40;
+    const here = !!(qflags & BY_NEXTHERE);
+    const FOLLOW = here ? (o) => o.nexthere : (o) => o.nobj;
+
+    // count eligible items
+    let n = 0, last = null;
+    for (let curr = olist; curr; curr = FOLLOW(curr)) {
+        if (allow_fn(curr)) { last = curr; n++; }
+    }
+
+    if (n === 0) return { count: (qflags & SIGNAL_NOMENU) ? -1 : 0, pick_list: [] };
+
+    if (n === 1 && (qflags & AUTOSELECT_SINGLE)) {
+        return { count: 1, pick_list: [{ obj: last, count: last.quan || 1 }] };
+    }
+
+    // build menu
+    const win = create_nhwindow(NHW_MENU);
+    start_menu(win, MENU_BEHAVE_STANDARD);
+
+    for (let curr = olist; curr; curr = FOLLOW(curr)) {
+        if (allow_fn(curr)) {
+            add_menu(win, null, { a_obj: curr }, curr.invlet || 0, 0, ATR_NONE, 0,
+                doname(curr, player), 0);
+        }
+    }
+
+    end_menu(win, qstr);
+    const result = await select_menu(win, how);
+    destroy_nhwindow(win);
+
+    if (!result || result.length === 0) {
+        const esc = (qflags & SIGNAL_ESCAPE) ? -2 : 0;
+        return { count: esc, pick_list: [] };
+    }
+
+    // fix up counts
+    const items = result.map(r => {
+        const obj = r.item?.a_obj || r.a_obj;
+        let cnt = r.count;
+        if (cnt === -1 || cnt > (obj?.quan || 1)) cnt = obj?.quan || 1;
+        return { obj, count: cnt };
+    }).filter(r => r.obj);
+
+    return { count: items.length, pick_list: items };
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:3210 — traditional_loot(put_in)
+// Traditional menustyle looting: query_classes + askchain.
+// JS equivalent: doPutIn/doTakeOut in containerMenu.
+// This is a C-named wrapper; in JS the containerMenu handles both styles.
+// ---------------------------------------------------------------------------
+async function traditional_loot(put_in, player, game) {
+    // In JS, Traditional/Full menustyle distinction is not maintained.
+    // Delegate to menu_loot which is the common path.
+    return menu_loot(0, put_in, player, game);
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:3245 — menu_loot(retry, put_in)
+// Menu-based looting: query_category + query_objlist.
+// JS equivalent: doTakeOut/doPutIn in containerMenu.
+// Returns n_looted count (>0 means time passed).
+// ---------------------------------------------------------------------------
+async function menu_loot(retry, put_in, player, game) {
+    let n_looted = 0;
+    let all_categories = true;
+    let loot_everything = false;
+    let _autopick = false;
+    const action = put_in ? "Put in" : "Take out";
+
+    pickup_encumbrance = 0;
+
+    if (retry) {
+        all_categories = (retry === -2);
+    } else {
+        // Full menustyle: query_category
+        all_categories = false;
+        const qstr = `${action} what type of objects?`;
+        const src = put_in ? player.inventory : getContainerContents(current_container);
+        // Build linked-list-like traversal for query_category
+        const catResult = await query_category(qstr, src?.[0] || null, 0, PICK_ANY, player, game);
+        if (catResult.count === 0) return 0;
+        for (const pick of catResult.pick_list) {
+            if (pick.item_int === 'A'.charCodeAt(0)) {
+                loot_everything = _autopick = true;
+            } else if (pick.item_int === -2) { // ALL_TYPES_SELECTED
+                all_categories = true;
+            } else {
+                add_valid_menu_class(pick.item_int);
+                loot_everything = false;
+            }
+        }
+    }
+
+    if (_autopick) {
+        const items = put_in
+            ? [...(player.inventory || [])].filter(o => o && o !== current_container)
+            : [...getContainerContents(current_container)];
+        for (const otmp of items) {
+            if (!current_container) break;
+            if (loot_everything || all_categories || allow_category(otmp, player)) {
+                const res = put_in
+                    ? await in_container(otmp, player)
+                    : await out_container(otmp, player, game?.map);
+                if (res < 0) break;
+                n_looted += res;
+            }
+        }
+    } else {
+        // Use query_objlist to select items
+        const src = put_in ? player.inventory : getContainerContents(current_container);
+        const qstr = `${action} what?`;
+        // For array-based inventory, filter through the allow function
+        const items = (src || []).filter(o => o && (all_categories || allow_category(o, player)));
+        for (const otmp of items) {
+            if (!current_container) break;
+            const res = put_in
+                ? await in_container(otmp, player)
+                : await out_container(otmp, player, game?.map);
+            if (res < 0) break;
+            if (res > 0) n_looted++;
+        }
+    }
+    return n_looted;
+}
+
+// ---------------------------------------------------------------------------
+// cf. pickup.c:2952 — use_container(objp, held, more_containers)
+// Main container interaction function. JS equivalent: containerMenu.
+// This is a C-named alias for the JS containerMenu function.
+// ---------------------------------------------------------------------------
+async function use_container(game, container) {
+    return containerMenu(game, container);
+}
+
+export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_mistake, force_decor, deferred_decor, describe_decor, check_here, n_or_more, menu_class_present, add_valid_menu_class, allow_category, allow_cat_no_uchain, check_autopickup_exceptions, autopick_testobj, carry_count, lift_object, pickup_object, pickup_prinv, encumber_msg, container_at, able_to_loot, do_boh_explosion, in_container, ck_bag, out_container, container_gone, explain_container_prompt, u_handsy, choose_tip_container_menu, dotip, tipcontainer, tipcontainer_gettarget, tipcontainer_checks, collect_obj_classes, count_unpaid, count_buc, simple_look, autopick, count_target_containers, reverse_loot, loot_mon, do_loot_cont, doloot_core, query_classes, query_category, query_objlist, traditional_loot, menu_loot, use_container };

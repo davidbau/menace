@@ -28,8 +28,8 @@ Rules
 | S12 | [#292](https://github.com/davidbau/menace/issues/292) | objnam.c remaining naming parity | `Done` (ledger) |
 | S13 | [#293](https://github.com/davidbau/menace/issues/293) | invent.c getobj/askchain parity | `Ready` |
 | S14 | [#294](https://github.com/davidbau/menace/issues/294) | invent.c organize/perminv/id parity | `Ready` |
-| S15 | [#295](https://github.com/davidbau/menace/issues/295) | pickup.c floor pickup parity | `Ready` |
-| S16 | [#296](https://github.com/davidbau/menace/issues/296) | pickup.c container loot parity | `Ready` |
+| S15 | [#295](https://github.com/davidbau/menace/issues/295) | pickup.c floor pickup parity | `Done` (simple_look, autopick, query_classes, query_objlist, query_category, reverse_loot, loot_mon, doloot_core) |
+| S16 | [#296](https://github.com/davidbau/menace/issues/296) | pickup.c container loot parity | `Done` (do_loot_cont, menu_loot, traditional_loot, use_container, count_target_containers) |
 | S17 | [#297](https://github.com/davidbau/menace/issues/297) | do_wear.c wear/takeoff edge parity | `Done` (armoroff, accessory_or_armor_on, ia_dotakeoff, afternmv) |
 | S18 | [#298](https://github.com/davidbau/menace/issues/298) | wield.c wield/swap/quiver parity | `Done` (ledger) |
 | S19 | [#299](https://github.com/davidbau/menace/issues/299) | weapon.c skill progression parity | `Done` (ledger) |
@@ -68,5 +68,5 @@ Rules
 ## Summary
 
 - Total slices: 50
-- Open slices: 23
-- Completed slices: 27 (S09, S11, S12, S17, S18, S19, S20, S21, S22, S23, S24, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
+- Open slices: 21
+- Completed slices: 29 (S09, S11, S12, S15, S16, S17, S18, S19, S20, S21, S22, S23, S24, S28, S29, S32, S33, S35, S36, S37, S38, S39, S40, S41, S42, S43, S45, S46, S48)
