@@ -1773,7 +1773,12 @@ export async function findtravelpath(mode, game) {
     async function heroWave() {
         const dist = new Map();
         const q = [[heroX, heroY]];
-        dist.set(`${heroX},${heroY}`, 1);
+        // C ref: hack.c:1297-1299 — C zeroes the travel array then seeds from
+        // (tx,ty).  Only expanded neighbor cells get travel[nx][ny] = radius.
+        // The seed cell itself keeps travel=0, so GUESS phase 2 "ctrav > 0"
+        // skips it.  Use 0 here so the hero cell is marked visited (has key)
+        // but excluded from candidate selection.
+        dist.set(`${heroX},${heroY}`, 0);
         while (q.length) {
             const [x, y] = q.shift();
             const r = dist.get(`${x},${y}`) || 1;
@@ -1798,12 +1803,25 @@ export async function findtravelpath(mode, game) {
 
     const guessDist = await heroWave();
 
-    // Phase 2: Pick best reachable+couldsee cell closest to target.
-    // C ref: hack.c:1433-1460. Uses distmin as primary, then prefers
-    // BOTH lower travel distance AND lower dist2 (AND condition, not OR).
+    // Phase 2: Pick best reachable+couldsee cell as GUESS intermediate point.
+    // C ref: hack.c:1433-1460.
+    //
+    // C reuses tx,ty as loop variables in the for(tx=1;tx<COLNO;tx++) loop,
+    // so distmin(ux,uy,tx,ty) computes hero-to-CANDIDATE distance.  The
+    // initial px,py = target (C's "int px = tx, py = ty"), and initial
+    // dist = distmin(hero, target).  C's travel[hero] is 0 (never set),
+    // so the hero cell is excluded by the ctrav > 0 filter.
+    //
+    // JS sets guessDist(hero) = 0 to match C's exclusion.  We initialize
+    // px,py to hero (not target) so that the post-loop "u_at(px,py)" check
+    // works correctly — if no candidate is found, px,py = hero triggers
+    // the "no guesses" fallback, which is the same result as C (where
+    // px,py stays at target, but the hero is far from target so u_at fails
+    // → goto noguess → re-run from target → reverseWave fails → found:).
     let px = heroX, py = heroY;
-    let bestDist = Math.max(Math.abs(tx - heroX), Math.abs(ty - heroY)); // distmin(target, hero)
-    let bestD2 = (tx - heroX) * (tx - heroX) + (ty - heroY) * (ty - heroY);
+    const initDist = Math.max(Math.abs(heroX - tx), Math.abs(heroY - ty));
+    let bestDist = initDist;
+    let bestD2 = (heroX - tx) * (heroX - tx) + (heroY - ty) * (heroY - ty);
     let bestTravel = COLNO * ROWNO;
     for (let cx = 1; cx < COLNO; cx++) {
         for (let cy = 0; cy < ROWNO; cy++) {
@@ -1811,10 +1829,12 @@ export async function findtravelpath(mode, game) {
             if (!couldsee(map, player, cx, cy)) continue;
             const ctrav = guessDist.get(`${cx},${cy}`) || 0;
             if (ctrav <= 0) continue;
-            const nxtdist = Math.max(Math.abs(tx - cx), Math.abs(ty - cy));
+            // C ref: distmin(ux, uy, tx, ty) where tx,ty are loop vars = candidate.
+            // This computes hero-to-candidate Chebyshev distance.
+            const nxtdist = Math.max(Math.abs(heroX - cx), Math.abs(heroY - cy));
             if (nxtdist === bestDist && ctrav < bestTravel) {
                 // C ref: hack.c:1444-1451 — same distmin, lower travel, check dist2.
-                const nd2 = (tx - cx) * (tx - cx) + (ty - cy) * (ty - cy);
+                const nd2 = (heroX - cx) * (heroX - cx) + (heroY - cy) * (heroY - cy);
                 if (nd2 < bestD2) {
                     px = cx;
                     py = cy;
@@ -1822,11 +1842,11 @@ export async function findtravelpath(mode, game) {
                     bestTravel = ctrav;
                 }
             } else if (nxtdist < bestDist) {
-                // C ref: hack.c:1453-1459 — closer to target, always take.
+                // C ref: hack.c:1453-1459 — closer to hero, always take.
                 px = cx;
                 py = cy;
                 bestDist = nxtdist;
-                bestD2 = (tx - cx) * (tx - cx) + (ty - cy) * (ty - cy);
+                bestD2 = (heroX - cx) * (heroX - cx) + (heroY - cy) * (heroY - cy);
                 bestTravel = ctrav;
             }
         }
@@ -1850,10 +1870,33 @@ export async function findtravelpath(mode, game) {
         return false;
     }
 
-    // C ref: hack.c:1487-1494 "goto noguess" — re-run TRAVEL BFS from best cell.
-    const { earlyDir: guessDir } = await reverseWave(px, py, heroX, heroY);
-    if (guessDir) {
-        game.travelPath = [guessDir];
+    // C ref: hack.c:1487-1494 "goto noguess" — re-run TRAVEL BFS from best
+    // cell with mode=TRAVP_TRAVEL.  C's "goto noguess" jumps back to the BFS
+    // loop, which includes the visited/oscillation check at hack.c:1381-1398.
+    const guessWave = await reverseWave(px, py, heroX, heroY);
+    if (guessWave.earlyDir) {
+        // Apply the same visited-cell check as the TRAVEL path (lines above).
+        // C's "goto noguess" sets mode=TRAVP_TRAVEL before re-running the BFS,
+        // so the visited check always applies during the GUESS re-run.
+        {
+            const parentX = guessWave.parentX ?? (heroX + guessWave.earlyDir[0]);
+            const parentY = guessWave.parentY ?? (heroY + guessWave.earlyDir[1]);
+            const travelVisited = game._travelVisited || (game._travelVisited = new Set());
+            const parentIsTarget = (parentX === px && parentY === py);
+            const parentWasVisited = travelVisited.has(`${parentX},${parentY}`);
+            if (parentIsTarget || parentWasVisited) {
+                nomul(0, game);
+                ctx.run = 8;
+                if (parentWasVisited) {
+                    await pline('You stop, unsure which way to go.');
+                } else {
+                    game.travelX = 0;
+                    game.travelY = 0;
+                }
+            }
+            travelVisited.add(`${heroX},${heroY}`);
+        }
+        game.travelPath = [guessWave.earlyDir];
         game.travelStep = 0;
         return true;
     }
@@ -1866,7 +1909,6 @@ export async function findtravelpath(mode, game) {
 export async function dotravel(game) {
     const { player, map, display } = game;
     const ctx = ensure_context(game);
-
     const getposTipSeen = !!player?._tipsShown?.getpos;
     const travelPrompt = (game?.flags?.verbose && getposTipSeen)
         ? "Where do you want to travel to?  (For instructions type a '?')"
