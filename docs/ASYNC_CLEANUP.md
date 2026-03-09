@@ -19,10 +19,17 @@ The purpose of this document is to:
 
 ## Execution Model
 
-### Core Invariant: One Active Await
+### Core Invariant: One Active Blocking Gameplay Origin
 
-At runtime, at most one `await` may be active in gameplay code. This is the JS
-equivalent of C's single thread of execution. Concretely:
+At runtime, at most one **blocking gameplay origin await** may be active. This
+is the JS equivalent of C's single thread of execution.
+
+This does **not** mean only one JS `await` expression can exist in a stack.
+Inner helper awaits that are part of the currently active origin are fine.
+The forbidden case is two competing gameplay origins (for example two pending
+input waits) trying to own control at once.
+
+Concretely:
 
 - `run_command()` begins a command execution epoch (`beginCommandExec`).
 - Within that epoch, the command may `await` zero or more times (reading keys,
@@ -31,6 +38,11 @@ equivalent of C's single thread of execution. Concretely:
   begin.
 - When the await resolves, the command resumes from exactly where it left off.
 - `endCommandExec()` closes the epoch.
+
+Allowed exceptions (outside gameplay-origin accounting):
+- startup/bootstrap before game instance is initialized,
+- test harness scaffolding outside the gameplay loop,
+- telemetry/logging that does not influence gameplay state.
 
 ### Game State Singleton (`gstate.js`)
 
@@ -43,6 +55,9 @@ bookkeeping (currently `suspend.js`). This consolidation means:
   to pass it.
 - `exec_guard.js` and `suspend.js` are folded into `gstate.js` and deleted.
 - One module, one source of truth for runtime state.
+- Keep test/debug injection points explicit (for example runtime overrides in
+  test harnesses) so origin helpers remain verifiable without global monkey
+  patching.
 
 ### Origin Primitives
 
@@ -56,7 +71,7 @@ actually create Promises.
 |---|---|---|---|
 | `nhgetch()` | `input` | resolved by `pushInput()` | `nhgetch()` blocks on terminal read |
 | `nh_delay_output(ms)` | `delay` | `setTimeout(ms)` | `delay_output()` calls `napms()` |
-| `display_sync()` | `display_sync` | `setTimeout(0)` | *(none — C terminal paints synchronously)* |
+| `display_sync()` | `display_sync` | `setTimeout(0)` | *(browser rendering policy; no direct C gameplay equivalent)* |
 | `nhimport(specifier)` | `import` | `import(specifier)` | *(none — C has no dynamic loading)* |
 | `nhfetch(url, opts)` | `fetch` | `fetch(url, opts)` | *(none — C reads files synchronously)* |
 | `nhload(key)` | `load` | IndexedDB read | *(none — C reads files synchronously)* |
@@ -97,7 +112,7 @@ touch the input queue. If the player types ahead while a delay or import is
 active, those keys queue up in the input runtime and are consumed by the next
 `nhgetch()` call. This preserves deterministic replay.
 
-### Input Boundary Stack (Current — To Be Removed)
+### Input Boundary Stack (Current — To Be Simplified, Then Removed if Safe)
 
 `allmain.js` currently maintains a LIFO stack of input boundary handlers.
 When `run_command` receives a key, it checks the top boundary before falling
@@ -116,7 +131,7 @@ the browser calls `run_command(game, key)` for every keystroke, and
 `run_command` must figure out who should get it. The boundary stack is a
 dispatch table that simulates what C's call stack does naturally.
 
-**This is unnecessary.** The JS `pushInput`/`nhgetch()` Promise pattern
+**Likely unnecessary long-term.** The JS `pushInput`/`nhgetch()` Promise pattern
 already provides natural call-stack routing:
 
 ```javascript
@@ -138,10 +153,9 @@ Inside commands, `getdir()` does `await nhgetch()` and gets the next key.
 `more()` does `await nhgetch()` in a loop. The async call stack routes keys
 exactly like C's synchronous call stack — no boundary dispatch needed.
 
-The entire boundary stack — `withInputBoundary`, `clearInputBoundary`,
-`peekInputBoundary`, the `'more'`/`'prompt'`/custom owner system,
-`handleMoreBoundaryKey`, the prompt boundary setter, `pendingPrompt`,
-`getAllInputBoundaryState` — is targeted for removal in Phase 3.
+The long-term target is to remove the full boundary stack. However, a minimal
+owner model may be retained temporarily if prompt/menu semantics need it during
+migration. The plan below includes a fallback checkpoint before hard deletion.
 
 ### display_sync: Why It Exists
 
@@ -221,10 +235,9 @@ unnecessary complexity:
   events. The game loop is a simple `while` loop that pulls keys via
   `await nhgetch()` and dispatches commands via `rhack()`. Like C.
 
-- **No boundary stack**: No `withInputBoundary`, `peekInputBoundary`,
-  `clearInputBoundary`, boundary owners, or key dispatch routing. The async
-  call stack routes keys naturally — whoever is `await`ing `nhgetch()` gets
-  the next key, just like whoever called `nhgetch()` in C gets the next key.
+- **No boundary stack (target)**: remove `withInputBoundary`,
+  `peekInputBoundary`, `clearInputBoundary`, and owner dispatch routing once
+  prompt/menu behavior is proven stable under direct `nhgetch` ownership.
 
 - **No `run_command` key dispatch**: `run_command` is simplified to just
   `rhack()` + `moveloop_core()` + `display_sync()`. Or it may be inlined
@@ -246,7 +259,7 @@ unnecessary complexity:
   actions). Registers as a `display_sync` origin. Zero-argument.
 
 - **`nhimport(specifier)`**: Thin wrapper around `import()` that registers as
-  an `import` origin. Replaces bare `await import()` at the 13 remaining
+  an `import` origin. Replaces bare `await import()` at the remaining
   dynamic import sites. Only used during gameplay (pre-game imports are
   static).
 
@@ -254,13 +267,32 @@ unnecessary complexity:
   `fetch` origin. Replaces bare `await fetch()` at the 3 fetch sites.
 
 - **`nhload(key)`**: Wrapper for IndexedDB reads that registers as a `load`
-  origin. Save operations are fire-and-forget (write-only, no need to await).
+  origin.
+- **Save semantics split**:
+  - autosave may be fire-and-forget for performance,
+  - explicit user-triggered save must await completion and report errors.
 
 - **Unified `gstate.js`**: All runtime tracking consolidated — game instance,
   command epochs, origin await bookkeeping. `exec_guard.js` and `suspend.js`
   are deleted.
 
 ## Cleanup Plan
+
+### Validation Commands (Run At Each Phase Gate)
+
+Use the same checks at each phase boundary so progress/regression is explicit:
+
+1. Unit + integration:
+   - `npm test -- --runInBand`
+2. Gameplay parity:
+   - `./scripts/run-and-report.sh --failures`
+3. Focused replay sanity after control-flow changes:
+   - run at least one direct replay of a known sensitive manual session
+     (for example `seed031/032/033`) and verify first divergence does not
+     move earlier.
+4. Browser smoke:
+   - start browser game, verify command input, prompt input, and `--More--`
+     dismissal still behave correctly.
 
 ### Phase 1: Eliminate cycle-breaker dynamic imports ✅ DONE
 
@@ -493,7 +525,7 @@ next key goes directly to it.
 target architecture this "just works" — `rhack()` calls `nhgetch()`, keys
 arrive via `pushInput()`, no special handling needed in the game loop.
 
-#### Phase 3a: Verify boundaries are dead
+#### Phase 3a: Verify boundaries are dead (or identify minimal fallback)
 
 After Phase 2d, all --More-- goes through `more()` (which calls `nhgetch()`
 directly) and all prompts call `nhgetch()` directly. No boundaries should
@@ -502,10 +534,11 @@ ever be pushed.
 **What changes**: Add a warning/assertion when `withInputBoundary` is called.
 Run all tests.
 
-**Gate**: All tests pass with zero boundary pushes. This confirms the
-boundary stack is dead code.
+**Gate A (preferred)**: All tests pass with zero boundary pushes (stack is dead).
+**Gate B (fallback)**: Boundary pushes remain only in a minimal, explicit
+prompt/menu shim with no `more` ownership and no key-dispatch multiplexer.
 
-#### Phase 3b: Remove dead boundary code
+#### Phase 3b: Remove dead boundary code (or collapse to minimal shim)
 
 **What goes away**:
 
@@ -527,7 +560,8 @@ boundary stack is dead code.
 | `readBoundaryKey()` | ~15 | input.js |
 | Boundary runtime wiring (`withInputBoundary` in runtime) | ~10 | allmain.js |
 
-Total: ~290 lines removed.
+Total target removal: ~290 lines (or reduced if minimal shim retained
+temporarily under Gate B).
 
 **Gate**: All tests pass. All gameplay sessions pass.
 
@@ -817,12 +851,11 @@ After cleanup, all of these become plain `await nhgetch()` calls.
 | js/spell.js:916,926,927 | cast_chain_lightning | Spell visual pacing |
 | js/trap.js:827 | trapeffect_rolling_boulder_trap_mon | Trap animation pacing |
 | js/uhitm.js:1358,1359 | start_engulf | Engulf animation pacing |
-| js/zap.js:1085 | bhit_zapped_wand | Beam/zap frame pacing |
 | js/zap.js:1154 | dobuzz | Beam/zap frame pacing |
 
 ### 3. Remaining Dynamic Import Callsites
 
-After cycle-breaker elimination, 13 dynamic imports remain. All become
+After cycle-breaker elimination, 14 dynamic imports remain. All become
 `await nhimport()` calls. All run during gameplay when `game` exists in
 `gstate`.
 
@@ -835,8 +868,8 @@ After cycle-breaker elimination, 13 dynamic imports remain. All become
 | js/read.js:1773 | lazy-cold-path | Map-position helper for scroll effects |
 | js/read.js:1790 | lazy-cold-path | Region helper for gas-cloud effect |
 | js/read.js:1807 | lazy-cold-path | Object-placement for boulder-drop |
-| js/sounds.js:1149 | runtime-adapter | `#chat` handler lazy import |
-| js/sounds.js:1150 | runtime-adapter | `#chat` direction constants |
+| js/sounds.js:1149 | lazy-cold-path | `#chat` handler path lazy import |
+| js/sounds.js:1150 | lazy-cold-path | `#chat` direction constants lazy import |
 | js/timeout.js:594 | lazy-cold-path | Timeout-revival helper |
 | js/timeout.js:600 | lazy-cold-path | Timeout-zombify helper |
 | js/timeout.js:606 | lazy-cold-path | Timeout-rot helper |
@@ -861,8 +894,9 @@ Becomes `await nhload()`.
 |---|---|
 | js/allmain.js:1692 | Load autosave if manual save absent |
 
-Save (js/nethack.js:34, js/storage.js:1034) is fire-and-forget — no await
-needed for write-only persistence.
+Autosave writes (`js/storage.js:1034`) may be fire-and-forget for
+performance. Explicit user save (`js/nethack.js:34`) remains awaited with
+explicit error reporting to the player.
 
 ### 6. display_sync Callsites
 
