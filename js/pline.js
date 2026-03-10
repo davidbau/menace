@@ -233,6 +233,8 @@ export function getDumpLog() {
     return _dumpLog.slice();
 }
 
+export function getGameLog() { return _gameLog; }
+
 export function gamelog_add(_glflags, _gltime, str) {
     const text = safeString(str);
     _gameLog.push(text);

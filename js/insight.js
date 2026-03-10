@@ -33,7 +33,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC,
 import { mons, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC, PM_LONG_WORM, PM_HIGH_CLERIC, G_UNIQ, M2_PNAME, NUMMONS } from './monsters.js';
 import { x_monnam } from './mondata.js';
 import { find_mac } from './worn.js';
-import { pline } from './pline.js';
+import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural } from './objnam.js';
@@ -1203,7 +1203,7 @@ export function sokoban_in_play(player) {
 // cf. insight.c:2542 — do_gamelog(game): #chronicle command handler
 // Autotranslated from insight.c:2541
 export async function do_gamelog() {
-  if (gg.gamelog) { await show_gamelog(ENL_GAMEINPROGRESS); }
+  if (getGameLog().length) { await show_gamelog(ENL_GAMEINPROGRESS); }
   else { await pline("No chronicled events."); }
   return ECMD_OK;
 }

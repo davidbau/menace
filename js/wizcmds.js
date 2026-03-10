@@ -495,7 +495,7 @@ export async function wiz_show_seenv(map, player) {
 
 // Autotranslated from wizcmds.c:656
 export async function wiz_show_wmodes(map) {
-  let win, x, y, row, lev, istty = WINDOWPORT(tty);
+  let win, x, y, row, lev, istty = false; // C: WINDOWPORT(tty) — JS always non-tty
   win = create_nhwindow(NHW_TEXT);
   if (istty) await putstr(win, 0, "");
   for (y = 0; y < ROWNO; y++) {

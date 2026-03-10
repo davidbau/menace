@@ -2145,11 +2145,11 @@ export async function otransit_msg(otmp, nodrop, chainthere, num) {
       xbuf += ".";
     }
     else {
-      xbuf += ` and ${otense(otmp, "fall")} ${gg.gate_str}.`;
+      xbuf += ` and ${otense(otmp, "fall")} ${gate_str}.`;
     }
     await pline("%s%s", obuf, xbuf);
   }
-  else if (!nodrop) await pline("%s %s %s.", obuf, otense(otmp, "fall"), gg.gate_str);
+  else if (!nodrop) await pline("%s %s %s.", obuf, otense(otmp, "fall"), gate_str);
 }
 
 // ============================================================================

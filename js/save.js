@@ -154,21 +154,8 @@ export function freedynamicdata() {
 }
 
 // Autotranslated from save.c:236
+// N/A: C binary save format — JS uses storage.js for persistence
 export function save_gamelog(nhfp) {
-  let tmp = gg.gamelog, tmp2, slen;
-  while (tmp) {
-    tmp2 = tmp.next;
-    if (nhfp.mode & (COUNTING | WRITING)) {
-      slen = Strlen(tmp.text);
-      Sfo_int(nhfp, slen, "gamelog-length");
-      Sfo_char(nhfp, tmp.text, "gamelog-gamelog_text", slen);
-      Sfo_gamelog_line(nhfp, tmp, "gamelog-gamelog_line");
-    }
-    // C free(): JS GC handles cleanup
-    tmp = tmp2;
-  }
-  if (nhfp.mode & (COUNTING | WRITING)) { slen = -1; Sfo_int(nhfp, slen, "gamelog-length"); }
-  if (nhfp.mode & FREEING) gg.gamelog = null;
 }
 
 // Autotranslated from save.c:328

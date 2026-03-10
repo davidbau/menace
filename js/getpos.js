@@ -26,6 +26,9 @@ const HiliteStateCount = 3;
 
 let getpos_hilitefunc = null;
 let getpos_getvalid = null;
+
+// C globals from decl.c gg struct — module-level state for gloc filtering
+const gg = { gloc_filter_floodfill_match_glyph: 0, gloc_filter_map: null };
 let getpos_hilite_state = HiliteGoodposSymbol;
 let defaultHiliteState = HiliteGoodposSymbol;
 let hiliteOn = false;

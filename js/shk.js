@@ -2970,13 +2970,13 @@ export function clear_no_charge_pets(shkp, map) {
 }
 
 // Autotranslated from shk.c:289
-export function restshk(shkp, ghostly, map) {
+export function restshk(shkp, ghostly, map, svp) {
   if (map.uz.dlevel) {
     let eshkp = ESHK(shkp);
     if (eshkp.bill_p !==  -1000) eshkp.bill_p = eshkp.bill; // C: bill_p = &bill[0]
     if (ghostly) {
       assign_level( eshkp.shoplevel, map.uz);
-      if (ANGRY(shkp) && strncmpi(eshkp.customer, svp.plname, PL_NSIZ)) pacify_shk(shkp, true);
+      if (svp && ANGRY(shkp) && strncmpi(eshkp.customer, svp.plname, PL_NSIZ)) pacify_shk(shkp, true);
     }
   }
 }
