@@ -27,6 +27,12 @@
 //   Bones/ghost level handling is not yet implemented in JS.
 import { pushRngLogEntry } from './rng.js';
 import { MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES } from './const.js';
+import { newegd } from './vault.js';
+import { newepri } from './priest.js';
+import { neweshk } from './shknam.js';
+import { newemin } from './minion.js';
+import { newedog } from './dog.js';
+import { newebones } from './bones.js';
 
 // C deserialization stubs (JS uses storage.js, not binary save files)
 function Sfi_int() { return 0; }

@@ -164,7 +164,7 @@ export function save_gamelog(nhfp) {
       Sfo_char(nhfp, tmp.text, "gamelog-gamelog_text", slen);
       Sfo_gamelog_line(nhfp, tmp, "gamelog-gamelog_line");
     }
-    if (nhfp.mode & FREEING) { (tmp.text, 0); (tmp, 0); }
+    // C free(): JS GC handles cleanup
     tmp = tmp2;
   }
   if (nhfp.mode & (COUNTING | WRITING)) { slen = -1; Sfo_int(nhfp, slen, "gamelog-length"); }
@@ -215,7 +215,7 @@ export function savecemetery(nhfp, cemeteryaddr) {
     if (update_file(nhfp)) {
       Sfo_cemetery(nhfp, thisbones, "cemetery-bonesinfo");
     }
-    if (release_data(nhfp)) (thisbones, 0);
+    // C free(): JS GC handles cleanup
   }
   if (release_data(nhfp)) cemeteryaddr = 0;
 }
@@ -328,7 +328,7 @@ export function savelevchn(nhfp) {
   for (tmplev = svs.sp_levchn; tmplev; tmplev = tmplev2) {
     tmplev2 = tmplev.next;
     if (update_file(nhfp)) { Sfo_s_level(nhfp, tmplev, "levchn-s_level"); }
-    if (release_data(nhfp)) (tmplev, 0);
+    // C free(): JS GC handles cleanup
   }
   if (release_data(nhfp)) svs.sp_levchn = 0;
 }

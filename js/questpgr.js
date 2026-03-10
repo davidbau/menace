@@ -32,6 +32,7 @@
 
 import { Has_contents } from './objnam.js';
 import { pline } from './pline.js';
+import { is_quest_artifact } from './objdata.js';
 
 // cf. questpgr.c:31 — quest_info(typ): return quest role monster/artifact num
 // typ=0 → questarti; MS_LEADER → ldrnum; MS_NEMESIS → neminum; MS_GUARDIAN → guardnum.
