@@ -45,6 +45,9 @@ import { canseemon, y_monnam } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
+import { o_unleash } from './apply.js';
+import { food_disappears } from './eat.js';
+import { book_disappears } from './spell.js';
 
 // ============================================================
 // Constants
