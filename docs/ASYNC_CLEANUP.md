@@ -17,6 +17,27 @@ The purpose of this document is to:
 2. Define the small set of origin primitives where all suspension occurs.
 3. Provide a concrete cleanup plan to reach the target architecture.
 
+## Status (2026-03-10)
+
+Completed in code:
+- `nhgetch_wrap` removed; gameplay reads use canonical `nhgetch()`.
+- Boundary stack / `withInputBoundary` infrastructure removed from gameplay flow.
+- `_pendingMore`/message-queue fallback removed; `more()` is the explicit wait path.
+- Dynamic gameplay imports/fetches/loads routed through origin helpers (`nhimport`, `nhfetch`, `nhload`).
+- Runtime/replay diagnostics no longer depend on `NetHackGame.getInputBoundaryState()`:
+  - now use direct `getRuntimeInputSnapshot(game)` helper.
+- Remaining gameplay-path raw timer await removed:
+  - `storage.handleSave()` now uses `nh_delay_output(500)`.
+
+Validation baseline at this checkpoint:
+- Unit tests green (`2731/2731`).
+- Gameplay parity green (`34/34`, PRNG/events/screens all green).
+
+Remaining cleanup focus:
+- Keep reducing obsolete SYNCLOCK-era boundary diagnostics references
+  where they no longer describe live architecture.
+- Continue origin-await audits for newly introduced raw awaits.
+
 ## Execution Model
 
 ### Core Invariant: One Active Blocking Gameplay Origin
