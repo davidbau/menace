@@ -10,6 +10,8 @@ import { rn2 } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { A_WIS } from './const.js';
 import { game as _gstate } from './gstate.js';
+import { Role_if } from './role.js';
+import { PM_SAMURAI } from './monsters.js';
 import { resetIdentCounter, doname } from './mkobj.js';
 import { nhgetch } from './input.js';
 import {
@@ -329,7 +331,7 @@ export function observe_object(obj) {
 
 // Autotranslated from o_init.c:519
 export function interesting_to_discover(i) {
-  if (Role_if(PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
+  if (Role_if(_gstate.player, PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
   return  (objectData[i].oc_uname !==  0 || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr !==  0));
 }
 
@@ -363,7 +365,7 @@ export async function choose_disco_sort(mode, game) {
 // Autotranslated from o_init.c:651
 export function disco_typename(otyp) {
   let result = obj_typename(otyp);
-  if (Role_if(PM_SAMURAI) && Japanese_item_name(otyp,  0)) {
+  if (Role_if(_gstate.player, PM_SAMURAI) && Japanese_item_name(otyp,  0)) {
     let buf;
     let actualn = (((otyp !== MAGIC_HARP && otyp !== WOODEN_HARP) || objectData[otyp].oc_name_known) ? objectData[otyp].oc_name : "harp");
     if (!actualn) {
