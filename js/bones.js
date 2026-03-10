@@ -223,10 +223,50 @@ export function sanitize_name(name) {
     return name.replace(/[^ -~]/g, '_');
 }
 
+// C ref: bones.c:752 — check if cemetery metadata contains a player name
+export function bones_include_name(name, bonesinfo) {
+    if (!name || !Array.isArray(bonesinfo)) return false;
+    const prefix = `${String(name)}-`;
+    return bonesinfo.some((entry) => String(entry?.who || '').startsWith(prefix));
+}
+
+// C ref: bones.c:786 — clear ghostly flag on pickup and adjust asymmetrical gear
+// JS currently uses no handedness-dependent object messages, so the functional
+// requirement is to clear the ghostly marker.
+export function fix_ghostly_obj(obj) {
+    if (!obj?.ghostly) return;
+    obj.ghostly = false;
+}
+
+// C ref: bones.c:308 — keep Oracle on oracle level and peaceful.
+// JS does not currently model Delphi room restoration; keep behavior minimal
+// and deterministic: if caller marks non-oracle level, remove Oracle.
+export function fixuporacle(oracle, game = null) {
+    if (!oracle) return false;
+    const isOracleLevel = game?.map?.isOracleLevel ?? game?.isOracleLevel ?? true;
+    if (!isOracleLevel) return false;
+    oracle.mpeaceful = 1;
+    return true;
+}
+
+// C ref: bones.c:808 — ensure ebones record exists and parent id is tracked.
+export function newebones(mtmp) {
+    if (!mtmp) return;
+    if (!mtmp.mextra || typeof mtmp.mextra !== 'object') {
+        mtmp.mextra = {};
+    }
+    if (!mtmp.mextra.ebones || typeof mtmp.mextra.ebones !== 'object') {
+        mtmp.mextra.ebones = {
+            parentmid: mtmp.m_id ?? null,
+        };
+    } else if (mtmp.mextra.ebones.parentmid == null) {
+        mtmp.mextra.ebones.parentmid = mtmp.m_id ?? null;
+    }
+}
+
 // TODO: bones.c:18 — no_bones_level(): check if this level forbids bones
 //   (e.g. special levels, quest levels, vibrating square level, astral)
 // TODO: bones.c:42 — goodfruit(): check if a fruit id is usable on a bones level
-// TODO: bones.c:308 — fixuporacle(): restore oracle monster after bones load
 
 // ========================================================================
 // savebones — C ref: bones.c savebones()

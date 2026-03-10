@@ -15,6 +15,10 @@ import { GameMap } from '../../js/game.js';
 import { saveLev, saveBones, loadBones, deleteBones } from '../../js/storage.js';
 import {
     can_make_bones as canMakeBones,
+    bones_include_name as bonesIncludeName,
+    fix_ghostly_obj as fixGhostlyObj,
+    fixuporacle,
+    newebones,
     resetobjs,
     drop_upon_death as dropUponDeath,
     give_to_nearby_mon as giveToNearbyMon,
@@ -79,6 +83,45 @@ describe('sanitizeName', () => {
 
     it('returns "anonymous" for empty string', () => {
         assert.equal(sanitizeName(''), 'anonymous');
+    });
+});
+
+// ========================================================================
+// bones surface helpers
+// ========================================================================
+describe('bones surface helpers', () => {
+    it('bonesIncludeName matches by prefixed who field', () => {
+        const bonesinfo = [
+            { who: 'Alice-Valkyrie' },
+            { who: 'Bob-Wizard' },
+        ];
+        assert.equal(bonesIncludeName('Alice', bonesinfo), true);
+        assert.equal(bonesIncludeName('Ali', bonesinfo), false);
+        assert.equal(bonesIncludeName('Eve', bonesinfo), false);
+    });
+
+    it('fixGhostlyObj clears ghostly marker', () => {
+        const obj = { ghostly: true };
+        fixGhostlyObj(obj);
+        assert.equal(obj.ghostly, false);
+    });
+
+    it('fixuporacle keeps oracle peaceful on oracle level', () => {
+        const oracle = { mpeaceful: 0 };
+        assert.equal(fixuporacle(oracle, { isOracleLevel: true }), true);
+        assert.equal(oracle.mpeaceful, 1);
+    });
+
+    it('fixuporacle rejects oracle off oracle level', () => {
+        const oracle = { mpeaceful: 0 };
+        assert.equal(fixuporacle(oracle, { isOracleLevel: false }), false);
+        assert.equal(oracle.mpeaceful, 0);
+    });
+
+    it('newebones allocates ebones record with parent id', () => {
+        const mon = { m_id: 12345 };
+        newebones(mon);
+        assert.deepEqual(mon.mextra.ebones, { parentmid: 12345 });
     });
 });
 

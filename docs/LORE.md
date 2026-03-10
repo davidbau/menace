@@ -6369,3 +6369,19 @@ hard-won wisdom:
       `gloc_filter_init`).
 - Validation:
   - `node --test test/unit/lock_surface_wrappers.test.js` passed (4/4).
+
+### CODEMATCH bones.c closure slice: remaining missing helper surfaces (2026-03-10)
+
+- Problem:
+  - `bones.c -> bones.js` still had 4 missing function-name rows:
+    `bones_include_name`, `fix_ghostly_obj`, `fixuporacle`, `newebones`.
+- Change:
+  - Added explicit C-name helper surfaces in `js/bones.js`:
+    - `bones_include_name(name, bonesinfo)` for cemetery-name matching.
+    - `fix_ghostly_obj(obj)` to clear ghostly marker on pickup.
+    - `fixuporacle(oracle, game)` deterministic Oracle-level gate + peaceful restore.
+    - `newebones(mtmp)` to allocate `mextra.ebones.parentmid`.
+  - Expanded `test/unit/bones.test.js` with focused coverage for all four helpers.
+  - Updated `docs/CODEMATCH.md` `bones.c` rows from `Missing` to `Implemented`.
+- Validation:
+  - `node --test test/unit/bones.test.js` passed (39/39).

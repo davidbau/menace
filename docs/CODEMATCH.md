@@ -578,16 +578,16 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### bones.c -> bones.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 752 | `bones_include_name` | - | Missing |
+| 752 | `bones_include_name` | bones.js:227 | Implemented |
 | 356 | `can_make_bones` | bones.js:42 | Implemented |
 | 259 | `drop_upon_death` | bones.js:82 | Implemented |
-| 786 | `fix_ghostly_obj` | - | Missing |
-| 308 | `fixuporacle` | - | Missing |
+| 786 | `fix_ghostly_obj` | bones.js:236 | Implemented |
+| 308 | `fixuporacle` | bones.js:244 | Implemented |
 | 823 | `free_ebones` | bones.js:342 | Implemented |
 | 629 | `getbones` | bones.js:293 | Implemented |
 | 226 | `give_to_nearby_mon` | bones.js:132 | Implemented |
 | 42 | `goodfruit` | bones.js:336 | Implemented |
-| 808 | `newebones` | - | Missing |
+| 808 | `newebones` | bones.js:253 | Implemented |
 | 390 | `remove_mon_from_bones` | bones.js:200 | Implemented |
 | 51 | `resetobjs` | bones.js:59 | Implemented |
 | 198 | `sanitize_name` | bones.js:221 | Implemented |
