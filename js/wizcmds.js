@@ -207,6 +207,7 @@ import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
 import { schedule_goto } from './do.js';
 import { check_wornmask_slots } from './worn.js';
+import { impossible } from './pline.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {

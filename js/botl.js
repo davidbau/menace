@@ -10,6 +10,7 @@ function splitsubfields(str, subfields, max) {
   return Math.min(parts.length, max);
 }
 import { depth, dunlev, In_quest, In_endgame } from './dungeon.js';
+import { impossible } from './pline.js';
 // botl.js -- Bottom status line: HP, AC, experience, conditions
 // cf. botl.c — get_strength_str, check_gold_symbol, do_statusline1, do_statusline2,
 //              bot, timebot, xlev_to_rank, rank_to_xlev, rank_of, rank,
