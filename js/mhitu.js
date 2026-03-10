@@ -13,13 +13,14 @@ import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     NATTK, XKILL_NOMSG,
     ERODE_RUST, ERODE_CORRODE, ERODE_ROT, EF_GREASE, EF_VERBOSE, ER_NOTHING, ER_DAMAGED, ER_DESTROYED,
+    SLIMED, KILLED_BY_AN,
 } from './const.js';
 import {
     G_UNIQ, M2_NEUTER, M2_MALE, M2_FEMALE, M2_PNAME,
     MZ_HUMAN, MZ_HUGE,
     AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_HUGS,
     AT_TENT, AT_WEAP, AT_ENGL, AT_NONE, AT_BOOM, AT_EXPL, AT_GAZE, AT_SPIT, AT_BREA, AT_MAGC,
-    S_NYMPH, S_EEL, PM_AMOROUS_DEMON, PM_MEDUSA, PM_BALROG,
+    S_NYMPH, S_EEL, PM_AMOROUS_DEMON, PM_MEDUSA, PM_BALROG, PM_GREEN_SLIME,
     AD_PHYS, AD_FIRE, AD_COLD, AD_SLEE, AD_ELEC, AD_DRST, AD_SLOW,
     AD_PLYS, AD_DRLI, AD_DREN, AD_STON, AD_STCK, AD_TLPT, AD_CONF,
     AD_DRIN, AD_ACID, AD_BLND, AD_STUN, AD_WRAP, AD_RUST, AD_CORR,
@@ -36,7 +37,7 @@ import {
     resists_fire, resists_cold, resists_elec, resists_acid, resists_ston,
     sticks, unsolid, attacktype, attacktype_fordmg, can_blnd, is_demon, is_were, is_human,
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
-    dmgtype, dmgtype_fromattack, monsndx,
+    dmgtype, dmgtype_fromattack, monsndx, flaming, noncorporeal,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
 } from './mondata.js';
 import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
@@ -49,7 +50,7 @@ import { castmu, buzzmu } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
 import { poisoned, acurr } from './attrib.js';
 import { set_wounded_legs } from './do.js';
-import { make_confused, make_stunned, make_blinded, make_hallucinated } from './potion.js';
+import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
 import { losexp } from './exper.js';
 import { stealgold, steal } from './steal.js';
 import { erode_obj, t_at } from './trap.js';
@@ -58,14 +59,14 @@ import { flush_screen, newsym } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon } from './artifact.js';
 import { msummon } from './minion.js';
-import { new_were, were_summon } from './were.js';
+import { new_were, were_summon, set_ulycn } from './were.js';
 import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
-import { resists_blnd } from './zap.js';
+import { resists_blnd, drain_item } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } from './const.js';
 import { s_suffix } from './hacklib.js';
-import { done_in_by } from './end.js';
+import { done_in_by, delayed_killer } from './end.js';
 import { nomul } from './hack.js';
 import { body_part } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
@@ -692,10 +693,30 @@ async function mhitu_ad_slim(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (negated) {
+        if (!monster.mcan && !ctx.suppressHitMsg) {
+            await ctx.display.putstr_message('You escape harm.');
+        }
         return; // physical damage only
     }
-    // Slime transformation — not implemented
-    mhm.damage = 0;
+    const pd = player?.data || player?.monst || {};
+    if (flaming(pd)) {
+        if (!ctx.suppressHitMsg) await ctx.display.putstr_message('The slime burns away!');
+        mhm.damage = 0;
+        return;
+    }
+    if (player?.unchanging || noncorporeal(pd) || pd === mons[PM_GREEN_SLIME]) {
+        if (!ctx.suppressHitMsg) await ctx.display.putstr_message('You are unaffected.');
+        mhm.damage = 0;
+        return;
+    }
+    const slimedTimeout = player?.getPropTimeout ? player.getPropTimeout(SLIMED) : 0;
+    if (!slimedTimeout) {
+        if (!ctx.suppressHitMsg) await ctx.display.putstr_message("You don't feel very well.");
+        await make_slimed(player, 10, null);
+        delayed_killer(SLIMED, KILLED_BY_AN, pmname(monster.data || monster.type, Mgender(monster)));
+    } else if (!ctx.suppressHitMsg) {
+        await ctx.display.putstr_message('Yuck!');
+    }
 }
 
 // cf. uhitm.c:3589 mhitm_ad_ench — mhitu branch (disenchant)
@@ -703,9 +724,23 @@ async function mhitu_ad_ench(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player);
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     if (!negated) {
-        // C: some_armor(mdef) then drain_item — consume rn2(5) for ring selection
-        rn2(5);
-        // Equipment drain — not fully implemented
+        const someArmor = [player?.armor, player?.cloak, player?.shirt, player?.helmet,
+            player?.gloves, player?.boots, player?.shield].filter(Boolean);
+        let obj = null;
+        if (someArmor.length > 0) {
+            obj = someArmor[rn2(someArmor.length)];
+        } else {
+            switch (rn2(5)) {
+            case 1: obj = player?.rightRing || null; break;
+            case 2: obj = player?.leftRing || null; break;
+            case 3: obj = player?.amulet || null; break;
+            case 4: obj = player?.blindfold || null; break;
+            default: break;
+            }
+        }
+        if (obj && drain_item(obj, false) && !ctx.suppressHitMsg) {
+            await ctx.display.putstr_message(`${xname(obj)} seems less effective.`);
+        }
     }
 }
 
@@ -724,9 +759,15 @@ async function mhitu_ad_were(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!rn2(4) && u.ulycn == NON_PM && !Protection_from_shape_changers
     //        && !defends(AD_WERE, player.weapon) && !mhitm_mgc_atk_negated(...))
-    if (!rn2(4) && !mhitm_mgc_atk_negated(monster, player)) {
-        // Lycanthropy — not implemented
+    if (!rn2(4)
+        && Number(player?.ulycn ?? -1) < 0
+        && !player?.protectionFromShapeChangers
+        && !mhitm_mgc_atk_negated(monster, player)) {
+        if (!ctx.suppressHitMsg) {
+            await ctx.display.putstr_message('You feel feverish.');
+        }
         await exercise(player, A_CON, false);
+        set_ulycn(player, monsndx(monster.data || monster.type || {}));
     }
 }
 

@@ -6903,3 +6903,15 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
   - `node scripts/test-unit-core.mjs`
+## 2026-03-10: `mhitu` AD_SLIM/AD_ENCH/AD_WERE faithfulness pass
+
+- Problem: several `mhitu.c` attack handlers in `js/mhitu.js` were still effectively stubs, notably forcing `AD_SLIM` damage to zero unconditionally and not applying lycanthropy/enchantment effects.
+- Change:
+  - `mhitu_ad_slim`: ported C branch structure for hero immunity/effect handling (negation, flaming, noncorporeal/green-slime immunity, Slimed timer + delayed killer) while preserving normal physical damage where C preserves it.
+  - `mhitu_ad_ench`: added C-style negation gate + worn-slot selection and `drain_item` application.
+  - `mhitu_ad_were`: added 1/4 gated lycanthropy infection path (`set_ulycn`) with protection/negation checks.
+  - Fixed underlying runtime bug exposed by new sliming path: `find_delayed_killer()` incorrectly referenced `svk.killer`; now uses module `killer` list.
+- Validation:
+  - Added combat regression tests for `AD_SLIM` and `AD_WERE`.
+  - Added direct delayed-killer unit tests (`end_delayed_killer.test.js`).
+  - `npm run -s test:unit` passes (2712/2712).

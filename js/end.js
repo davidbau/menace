@@ -97,7 +97,7 @@ export function delayed_killer(id, format, killername) {
 // Autotranslated from end.c:1728
 export function find_delayed_killer(id) {
   let k;
-  for (k = svk.killer.next; k !==  0; k = k.next) {
+  for (k = killer.next; k != null; k = k.next) {
     if (k.id === id) {
       break;
     }

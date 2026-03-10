@@ -2540,10 +2540,10 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_sedu` | mhitu.js | Stub — hitmsg + damage=0 (no seduction/item theft) |
 | - | `mhitu_ad_ssex` | mhitu.js | Stub — hitmsg + damage=0 |
 | - | `mhitu_ad_curs` | mhitu.js | Stub — hitmsg + damage=0 (no curse system) |
-| - | `mhitu_ad_slim` | mhitu.js | Stub — hitmsg + damage=0 (no sliming) |
-| - | `mhitu_ad_ench` | mhitu.js | Stub — hitmsg + damage=0 (no enchantment drain) |
-| - | `mhitu_ad_poly` | mhitu.js | Stub — hitmsg + damage=0 (no polymorph) |
-| - | `mhitu_ad_were` | mhitu.js | Stub — hitmsg + damage=0 (no lycanthropy) |
+| - | `mhitu_ad_slim` | mhitu.js | Partial — C-faithful branching: negation, flaming/noncorporeal/green-slime immunity, Slimed timeout + delayed killer; preserves physical damage where C does |
+| - | `mhitu_ad_ench` | mhitu.js | Partial — C-style negation gate, some-armor/accessory selection, and `drain_item` application |
+| - | `mhitu_ad_poly` | mhitu.js | Stub — hitmsg + physical damage only (no polymorph transform) |
+| - | `mhitu_ad_were` | mhitu.js | Partial — C-style 1/4 gate + lycanthropy infection (`ulycn`) with negation/protection checks |
 | - | `mhitu_ad_heal` | mhitu.js | Implemented — restores player HP |
 | - | `mhitu_ad_legs` | mhitu.js | Implemented — delegates to AD_PHYS |
 | - | `mhitu_ad_dgst` | mhitu.js | Stub — hitmsg + damage=0 (no engulfing) |

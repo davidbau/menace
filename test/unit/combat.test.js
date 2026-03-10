@@ -8,7 +8,8 @@ import { Player, roles } from '../../js/player.js';
 import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
-import { AT_WEAP, AT_BITE, AD_LEGS, M1_HUMANOID } from '../../js/monsters.js';
+import { SLIMED } from '../../js/const.js';
+import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -190,6 +191,61 @@ describe('Combat system', () => {
         assert.ok(p.woundedLegs, 'AD_LEGS should set wounded legs');
         assert.ok((p.eWoundedLegs || 0) !== 0, 'wounded leg side bits should be set');
         assert.ok((p.hWoundedLegs || 0) > 0, 'wounded leg timeout should be set');
+    });
+
+    it('AD_SLIM applies sliming without forcing zero physical damage', async () => {
+        initRng(42);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        p.unchanging = false;
+
+        const mon = makeMonster({
+            level: 12,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_SLIM, damn: 1, damd: 4 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = false;
+
+        let damaged = false;
+        for (let i = 0; i < 80; i++) {
+            const hp0 = p.hp;
+            await mattacku(mon, p, mockDisplay);
+            if (p.hp < hp0) damaged = true;
+            if ((p.getPropTimeout?.(SLIMED) || 0) > 0) break;
+        }
+
+        assert.ok((p.getPropTimeout?.(SLIMED) || 0) > 0, 'AD_SLIM should set Slimed timeout');
+        assert.ok(damaged, 'AD_SLIM hit should still deal physical damage');
+    });
+
+    it('AD_WERE can infect hero lycanthropy when conditions allow', async () => {
+        initRng(123);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        p.ulycn = -1;
+        p.protectionFromShapeChangers = false;
+        p.weapon = null;
+
+        const mon = makeMonster({
+            level: 14,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_WERE, damn: 1, damd: 4 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = false;
+        mon.data = mons[PM_WEREWOLF];
+        mon.type = mons[PM_WEREWOLF];
+
+        for (let i = 0; i < 200 && p.ulycn < 0; i++) {
+            await mattacku(mon, p, mockDisplay);
+        }
+
+        assert.equal(p.ulycn, PM_WEREWOLF);
     });
 
 
