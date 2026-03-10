@@ -8,6 +8,7 @@ import { canseemon } from './mondata.js';
 import { mon_break_armor } from './worn.js';
 import { newsym } from './display.js';
 import { possibly_unwield } from './weapon.js';
+import { nhimport } from './origin_awaits.js';
 import {
     mons,
     PM_WERERAT,
@@ -236,7 +237,7 @@ export async function you_were(player, ctx = {}) {
         if (typeof ctx.monster_nearby === 'function') {
             nearby = !!ctx.monster_nearby();
         } else if (ctx.map && player && Number.isInteger(player.x) && Number.isInteger(player.y)) {
-            const { monster_nearby } = await import('./hack.js');
+            const { monster_nearby } = await nhimport('./hack.js');
             nearby = !!monster_nearby(ctx.map, player, ctx.fov || null);
         }
         if (nearby) return false;
@@ -247,7 +248,7 @@ export async function you_were(player, ctx = {}) {
     if (typeof ctx.polymon === 'function') {
         polymonFn = ctx.polymon;
     } else if (ctx.useRuntime === true) {
-        polymonFn = (await import('./polyself.js')).polymon;
+        polymonFn = (await nhimport('./polyself.js')).polymon;
     }
     if (typeof polymonFn === 'function') {
         await polymonFn(player, player.ulycn, ctx.map || null);
@@ -279,7 +280,7 @@ export async function you_unwere(player, purify, ctx = {}) {
     if (typeof ctx.monster_nearby === 'function') {
         nearby = !!ctx.monster_nearby();
     } else if (ctx.map && Number.isInteger(player.x) && Number.isInteger(player.y)) {
-        const { monster_nearby } = await import('./hack.js');
+        const { monster_nearby } = await nhimport('./hack.js');
         nearby = !!monster_nearby(ctx.map, player, ctx.fov || null);
     }
 
@@ -293,7 +294,7 @@ export async function you_unwere(player, purify, ctx = {}) {
         if (typeof ctx.rehumanize === 'function') {
             rehumanizeFn = ctx.rehumanize;
         } else if (ctx.useRuntime === true) {
-            rehumanizeFn = (await import('./polyself.js')).rehumanize;
+            rehumanizeFn = (await nhimport('./polyself.js')).rehumanize;
         }
         if (typeof rehumanizeFn === 'function') {
             await rehumanizeFn(player);
