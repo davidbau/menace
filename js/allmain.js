@@ -839,9 +839,7 @@ export async function run_command(game, ch, opts = {}) {
             if (typeof game.display.renderStatus === 'function') {
                 game.display.renderStatus(_player);
             }
-            const holdToplineCursor = !!game.display._nonBlockingMore;
-            if (typeof game.display.cursorOnPlayer === 'function'
-                && !holdToplineCursor) {
+            if (typeof game.display.cursorOnPlayer === 'function') {
                 game.display.cursorOnPlayer(_player);
             }
         }
