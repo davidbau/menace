@@ -569,7 +569,7 @@ export async function handleFire(player, map, display, game) {
                 replacePromptMessage();
                 await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q) ');
                 while (true) {
-                    const ans = await nhgetch_wrap();
+                    const ans = await nhgetch_raw({ site: 'dothrow.handleFire.readyWieldedConfirm' });
                     const a = String.fromCharCode(ans).toLowerCase();
                     if (ans === 27 || ans === 10 || ans === 13 || a === ' ' || a === 'q' || a === 'n') {
                         replacePromptMessage();
