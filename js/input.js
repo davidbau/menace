@@ -10,6 +10,7 @@ import {
 import { envFlag } from './runtime_env.js';
 import { awaitInput } from './suspend.js';
 import { consumePendingMore } from './more_keys.js';
+import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 
 function ynTraceEnabled() {
     return envFlag('WEBHACK_YN_TRACE');
@@ -453,7 +454,11 @@ function popQueuedInputKey(inDoAgain = false) {
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
 export function nhgetch_raw() {
-    return Promise.resolve(activeInputRuntime.nhgetch());
+    const snap = beginOriginAwait(activeGame, 'input', { site: 'input.nhgetch_raw' });
+    return Promise.resolve(activeInputRuntime.nhgetch())
+        .finally(() => {
+            endOriginAwait(activeGame, snap, { site: 'input.nhgetch_raw' });
+        });
 }
 
 // Get a character of input (async)

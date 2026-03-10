@@ -10,6 +10,7 @@ import {
     DISP_BEAM, DISP_ALL, DISP_TETHER, DISP_FLASH, DISP_ALWAYS, DISP_CHANGE,
     DISP_END, DISP_FREEMEM, BACKTRACK,
 } from './const.js';
+import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 
 // C ref: display.c TMP_AT_MAX_GLYPHS (COLNO * 2)
 const TMP_AT_MAX_GLYPHS = COLNO * 2;
@@ -281,7 +282,12 @@ export async function tmp_at_end_async(flags = 0) {
 }
 
 export async function nh_delay_output(ms = undefined) {
-    await animationCore.nh_delay_output(ms);
+    const snap = beginOriginAwait(activeGame, 'delay', { site: 'animation.nh_delay_output' });
+    try {
+        await animationCore.nh_delay_output(ms);
+    } finally {
+        endOriginAwait(activeGame, snap, { site: 'animation.nh_delay_output' });
+    }
 }
 
 export function nh_delay_output_nowait(ms = undefined) {

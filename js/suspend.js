@@ -1,6 +1,6 @@
 // suspend.js -- typed suspension wrappers for SYNCLOCK phase S0.
 
-import { beforeTypedSuspend, afterTypedSuspend } from './exec_guard.js';
+import { beforeTypedSuspend, afterTypedSuspend } from './gstate.js';
 
 async function awaitTyped(game, type, awaited, details = {}) {
     const snap = beforeTypedSuspend(game, type, details);
