@@ -25,7 +25,7 @@ import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
-import { more, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
 import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
@@ -202,7 +202,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         replacePromptMessage();
     }
     await display.putstr_message('In what direction? ');
-    const dirCh = await awaitInput(null, nhgetch_wrap(), {
+    const dirCh = await awaitInput(null, nhgetch_raw(), {
         site: 'dothrow.promptDirectionAndThrowItem.direction',
     });
     const dch = String.fromCharCode(dirCh);
