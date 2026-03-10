@@ -91,7 +91,7 @@ import { region_danger, region_safety } from './region.js';
 import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival, encumber_msg } from './pickup.js';
 import { In_sokoban, Is_astralevel, Is_sanctum } from './dungeon.js';
-import { nomul } from './hack.js';
+import { nomul, near_capacity } from './hack.js';
 import { welded } from './wield.js';
 
 // cf. pray.c:58 -- Moloch constant
@@ -204,11 +204,6 @@ function xlev_to_rank(xlev) {
     return 8;
 }
 
-// Helper: near_capacity based on encumbrance
-function near_capacity(player) {
-    // Simplified: return encumbrance level 0-4
-    return player.encumbrance || 0;
-}
 
 // Helper: stuck ring check (cursed ring that can't be removed)
 function stuck_ring(ring, typ) {
