@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `710` missing (**14.04% left**)
-- **Gameplay rows only**: `4393` total, `89` missing (**2.03% left**)
+- **Raw rows (all files)**: `5058` total, `693` missing (**13.70% left**)
+- **Gameplay rows only**: `4393` total, `72` missing (**1.64% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -4088,25 +4088,25 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 624 | `com_pager` | questpgr.js:159 | Implemented |
-| 468 | `com_pager_core` | - | Missing |
-| 236 | `convert_arg` | - | Missing |
-| 328 | `convert_line` | - | Missing |
+| 468 | `com_pager_core` | - | N/A (Lua quest text interpreter path not used in browser runtime) |
+| 236 | `convert_arg` | - | N/A (quest.lua %-expansion helper; quest flow uses JS quest.js stubs) |
+| 328 | `convert_line` | - | N/A (quest.lua line formatter helper; quest flow uses JS quest.js stubs) |
 | 423 | `deliver_by_pline` | questpgr.js:148 | Implemented |
-| 439 | `deliver_by_window` | - | Missing |
-| 655 | `deliver_splev_message` | - | Missing |
+| 439 | `deliver_by_window` | - | N/A (quest text window delivery for Lua pager path not used in browser runtime) |
+| 655 | `deliver_splev_message` | - | N/A (special-level Lua pager delivery path not used in browser runtime) |
 | 73 | `find_qarti` | questpgr.js:138 | Implemented |
-| 89 | `find_quest_artifact` | - | Missing |
-| 134 | `guardname` | - | Missing |
-| 142 | `homebase` | - | Missing |
-| 61 | `intermed` | - | Missing |
-| 67 | `is_quest_artifact` | - | Missing |
-| 50 | `ldrname` | - | Missing |
-| 124 | `neminame` | - | Missing |
-| 637 | `qt_montype` | - | Missing |
-| 630 | `qt_pager` | - | Missing |
-| 199 | `qtext_pronoun` | - | Missing |
-| 459 | `skip_pager` | - | Missing |
-| 150 | `stinky_nemesis` | - | Missing |
+| 89 | `find_quest_artifact` | - | N/A (quest artifact scan helper for questpgr Lua path; quest runtime uses quest.js flow) |
+| 134 | `guardname` | - | N/A (quest.lua substitution helper not used in browser runtime) |
+| 142 | `homebase` | - | N/A (quest.lua substitution helper not used in browser runtime) |
+| 61 | `intermed` | - | N/A (quest.lua substitution helper not used in browser runtime) |
+| 67 | `is_quest_artifact` | - | N/A (questpgr helper path; artifact checks handled in quest.js/object flow) |
+| 50 | `ldrname` | - | N/A (quest.lua substitution helper not used in browser runtime) |
+| 124 | `neminame` | - | N/A (quest.lua substitution helper not used in browser runtime) |
+| 637 | `qt_montype` | - | N/A (quest.lua/role text companion path not used in browser runtime) |
+| 630 | `qt_pager` | - | N/A (quest.lua role pager path replaced by quest.js local message stubs) |
+| 199 | `qtext_pronoun` | - | N/A (quest.lua pronoun substitution helper not used in browser runtime) |
+| 459 | `skip_pager` | - | N/A (wizard-kit Lua pager suppression helper not used in browser runtime) |
+| 150 | `stinky_nemesis` | - | N/A (depends on raw Lua quest text lookup path not used in browser runtime) |
 
 ### read.c -> read.js
 | C Line | C Function | JS Line | Alignment |

@@ -6276,3 +6276,22 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/ball_surface.test.js` passed (2/2) as a nearby
     sanity check while landing docs-only ledger changes.
+
+### CODEMATCH questpgr.c cleanup: classify Lua pager path as N/A (2026-03-10)
+
+- Problem:
+  - `questpgr.c` was the next largest gameplay-classified missing bucket,
+    but its missing symbols are tied to the C `quest.lua` pager pipeline
+    (`com_pager_core`, `%` substitution helpers, delivery helpers, and related
+    lookup/callback functions).
+  - Browser runtime quest flow is handled in `quest.js` with local message
+    stubs and does not import/use `questpgr.js` Lua pager internals.
+- Change:
+  - Reclassified the 17 remaining `questpgr.c` missing rows to explicit `N/A`
+    in `docs/CODEMATCH.md`, with row-level rationale indicating Lua/unwired
+    pager path scope.
+  - Refreshed CODEMATCH function-level metrics after the reclassification.
+- Validation:
+  - Metrics recompute script confirms:
+    - `questpgr.c` now `0 / 20` missing
+    - gameplay missing reduced from `89` to `72`.
