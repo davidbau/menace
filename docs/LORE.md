@@ -7126,3 +7126,21 @@ hard-won wisdom:
       rust/rot golem-kill paths and curse cancellation/clay destruction.
   - `docs/CODEMATCH.md`:
     - upgraded these four rows from stub to accurate partial C-shaped status.
+
+## 2026-03-10: ASYNC_CLEANUP runtime diagnostics and origin-await cleanup
+
+- Removed boundary-facade dependency in runtime/replay diagnostics:
+  - added `getRuntimeInputSnapshot(game)` in `js/allmain.js`,
+  - switched command diagnostics and replay boundary trace formatting to this
+    helper,
+  - removed `NetHackGame.getInputBoundaryState()`.
+- Simplified command-loop key reads:
+  - removed `NetHackGame._readCommandLoopKey()`,
+  - now uses direct `await nhgetch()` at both callsites.
+- Removed one remaining raw timer await from gameplay path:
+  - `js/storage.js::handleSave()` now uses `await nh_delay_output(500)`
+    instead of `await new Promise(setTimeout, 500)`, so the delay is tracked
+    through origin await registration.
+- Validation at each step:
+  - unit tests stayed green (`2731/2731`),
+  - session parity stayed fully green (`34/34`, all channels).
