@@ -22,6 +22,17 @@ npm run test:e2e       # end-to-end browser tests
 npm run test:session   # C-parity session tests
 ```
 
+Session-parity coverage (C-grounded coverage signal):
+
+```bash
+npm run coverage:session-parity
+```
+
+Notes:
+- This coverage run is intentionally based on session replay only.
+- Default scope is gameplay sessions (`--type=gameplay`).
+- Report output is written to `/coverage/index.html`.
+
 Aggregate commands:
 
 ```bash

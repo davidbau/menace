@@ -173,6 +173,7 @@ Or `npx serve .` -- ES6 modules require HTTP; `file://` won't work.
 npm test             # unit + session tests
 npm run test:unit    # unit tests only
 npm run test:session # C-parity session tests only
+npm run coverage:session-parity # coverage from C-parity sessions only
 npm run test:e2e     # E2E browser tests (requires npm install first)
 npm run test:all     # everything
 ```

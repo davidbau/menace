@@ -186,7 +186,13 @@ npm run -s translator:check-annotations
 ```bash
 npm run -s test:unit
 npm run -s test:session
+# C-parity-session-only coverage report
+npm run -s coverage:session-parity
 ```
+
+Coverage details:
+- Session-parity-only coverage design and usage are documented in
+  [COVERAGE.md](COVERAGE.md).
 
 Notes:
 - On some hosts, `/usr/bin/python3` may not include `pip` or `clang` bindings.
