@@ -448,6 +448,8 @@ Progress note (2026-03-10):
 - Migrated safe `nhgetch_wrap({handleMore:false})` reads to `nhgetch_raw()` in
   `allmain._readCommandLoopKey` and `input.readBoundaryKey` (explicit `more()`
   ownership retained).
+- Removed `input.more()` fallback delegation to `display.morePrompt()` so
+  `--More--` dismissal now uses a single explicit key loop path.
 - Validation: `scripts/run-and-report.sh` remains 34/34 passing.
 
 #### Phase 2d: Delete old mechanisms (contract)

@@ -568,10 +568,6 @@ export async function more(display, { site = 'input.more', game = null, forceVis
         display.renderMoreMarker();
     }
 
-    if (typeof display.morePrompt === 'function') {
-        return display.morePrompt(readMoreKey);
-    }
-
     if (display._pendingMore && typeof display._clearMore === 'function') {
         return consumePendingMore(
             display,

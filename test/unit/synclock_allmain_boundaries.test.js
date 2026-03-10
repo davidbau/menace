@@ -4,11 +4,11 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 describe('synclock allmain boundary hygiene', () => {
-    it('keeps nhgetch_wrap usage explicit (handleMore disabled)', () => {
+    it('keeps command-loop input reads explicit and non-auto-more', () => {
         const src = readFileSync(resolve('js/allmain.js'), 'utf8');
         assert.equal(src.includes('nhgetch_wrap()'), false);
         assert.equal(src.includes('nhgetch_wrap({ handleMore: true })'), false);
-        assert.equal(src.includes('nhgetch_wrap({ handleMore: false })'), true);
+        assert.equal(src.includes('nhgetch_raw({ site:'), true);
     });
 
     it('does not use raw setTimeout(0) awaits in allmain command loop paths', () => {
