@@ -47,7 +47,7 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          vegan as vegan_mondata,
          mon_hates_silver, touch_petrifies, flesh_petrifies,
          is_male, is_female, is_neuter,
-         dmgtype, attacktype, DEADMONSTER, M_AP_TYPE } from './mondata.js';
+         dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG } from './mondata.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
 import { impossible, pline_mon } from './pline.js';
 import { next_ident } from './mkobj.js';
@@ -106,8 +106,7 @@ const MSLOW = 1;
 const MFAST = 2;
 
 
-// C ref: monst.h NODIAG(mndx) — only grid bugs move non-diagonally
-function NODIAG(mndx) { return mndx === PM_GRID_BUG; }
+// NODIAG imported from mondata.js
 
 // ========================================================================
 // mcalcmove — C ref: mon.c mcalcmove()
