@@ -80,7 +80,7 @@ import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_elf, is_dwarf, is_animal, attacktype, is_armed, mindless,
          always_hostile, always_peaceful, is_domestic, strongmonst,
          is_male, is_female, is_neuter, is_lord, is_prince, is_nasty,
-         is_ndemon, is_mercenary } from './mondata.js';
+         is_ndemon, is_mercenary, M_AP_TYPE } from './mondata.js';
 import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
 import { vtense, an } from './objnam.js';
 import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
