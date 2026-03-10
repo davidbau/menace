@@ -56,7 +56,7 @@ import { cansee, couldsee } from './vision.js';
 import { pline, You, pline_mon, You_hear, You_feel, impossible } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { dist2 } from './hacklib.js';
-import { losehp } from './hack.js';
+import { losehp, u_at } from './hack.js';
 import { an, xname, the, Tobjnam } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
 import { LEVITATION, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';
@@ -147,9 +147,6 @@ export function m_at(x, y, map) {
     return null;
 }
 
-function u_at(player, x, y) {
-    return !!(player && player.x === x && player.y === y);
-}
 
 // ========================================================================
 // seetrap — C ref: trap.c seetrap()
@@ -1540,7 +1537,7 @@ export async function cnv_trap_obj(otyp, cnt, ttmp, bury_it, player, mapRef = nu
     stackobj(otmp, map);
   }
   newsym(ttmp.tx, ttmp.ty);
-  if (player.utrap && u_at(ttmp.tx, ttmp.ty)) await reset_utrap(true);
+  if (player.utrap && u_at(player, ttmp.tx, ttmp.ty)) await reset_utrap(true);
   if (((mtmp = m_at(ttmp.tx, ttmp.ty, map)) != null) && mtmp.mtrapped) mtmp.mtrapped = 0;
   deltrap(map, ttmp);
 }
@@ -1856,7 +1853,7 @@ export function uescaped_shaft(trap, player) {
 export async function delfloortrap(ttmp, player) {
   if (ttmp && ((ttmp.ttyp === SQKY_BOARD) || (ttmp.ttyp === BEAR_TRAP) || (ttmp.ttyp === LANDMINE) || (ttmp.ttyp === FIRE_TRAP) || is_pit(ttmp.ttyp) || is_hole(ttmp.ttyp) || (ttmp.ttyp === TELEP_TRAP) || (ttmp.ttyp === LEVEL_TELEP) || (ttmp.ttyp === WEB) || (ttmp.ttyp === MAGIC_TRAP) || (ttmp.ttyp === ANTI_MAGIC))) {
     let mtmp;
-    if (u_at(ttmp.tx, ttmp.ty)) {
+    if (u_at(player, ttmp.tx, ttmp.ty)) {
       if (player.utraptype !== TT_BURIEDBALL) await reset_utrap(true);
     }
     else if ((mtmp = m_at(ttmp.tx, ttmp.ty, player?.lev || player?.map)) != null) { mtmp.mtrapped = 0; }

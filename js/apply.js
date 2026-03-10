@@ -84,6 +84,7 @@ import { nohands, nolimbs, has_head, unsolid, haseyes, breathless,
 import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, distu, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
+import { u_at } from './hack.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn, obj_has_timer,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
@@ -114,9 +115,7 @@ const DIRECTION_KEYS = {
 function _nothing_happens() { return "Nothing happens."; }
 
 
-function u_at(player, x, y) {
-    return !!(player && player.x === x && player.y === y);
-}
+
 
 // Internal: is this object type ignitable? (mirrors light.c ignitable)
 function _ignitable(obj) {
@@ -1279,7 +1278,7 @@ export function display_jump_positions(on_off, player) {
       for (dy = -4; dy <= 4; dy++) {
         x = dx + player.x;
         y = dy + player.y;
-        if (get_valid_jump_position(x, y) && !u_at(x, y)) tmp_at(x, y);
+        if (get_valid_jump_position(x, y) && !u_at(player, x, y)) tmp_at(x, y);
       }
     }
   }

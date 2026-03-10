@@ -152,6 +152,11 @@ function debug_travel_tmp_at(path, startX, startY) {
 }
 
 
+// C ref: you.h u_at(x,y) macro — checks if player is at position (x, y)
+export function u_at(player, x, y) {
+    return !!(player && player.x === x && player.y === y);
+}
+
 function M_AP_TYPE(mon) {
     return Number(mon?.m_ap_type || mon?.mappearanceType || 0);
 }

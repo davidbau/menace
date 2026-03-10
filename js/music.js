@@ -35,8 +35,7 @@ import { newsym } from './display.js';
 import { dist2, highc, mungspaces } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';
-import { losehp } from './hack.js';
-import { in_rooms } from './hack.js';
+import { losehp, in_rooms, u_at } from './hack.js';
 import { maketrap, In_sokoban, In_V_tower } from './dungeon.js';
 import { set_levltyp } from './mkmaze.js';
 import { fillholetyp, liquid_flow } from './dig.js';
@@ -68,10 +67,6 @@ import { getlin, ynFunction } from './input.js';
 
 const STRAT_WAITMASK = 0x30000000; // STRAT_CLOSE | STRAT_WAITFORU
 
-
-function u_at(x, y, player) {
-    return x === player.x && y === player.y;
-}
 
 function has_mgivenname(mon) {
     if (mon?.mgivenname) return true;
@@ -258,7 +253,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
     const otmp = sobj_at(BOULDER, x, y, map);
     if (otmp) {
         if (cansee(map, player, fov, x, y))
-            await pline(`KADOOM!  The boulder falls into a chasm${u_at(x, y, player) ? ' below you' : ''}!`);
+            await pline(`KADOOM!  The boulder falls into a chasm${u_at(player, x, y) ? ' below you' : ''}!`);
         if (mtmp)
             mtmp.mtrapped = 0;
         // obj_extract_self(otmp) — remove from floor
@@ -310,7 +305,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
                 }
             }
         }
-    } else if (u_at(x, y, player)) {
+    } else if (u_at(player, x, y)) {
         if (player.utrap && player.utraptype === TT_BURIEDBALL) {
             await Your('chain breaks!');
             // reset_utrap(TRUE)

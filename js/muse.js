@@ -91,6 +91,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall } from './mondata.js';
+import { u_at } from './hack.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 import { t_at, m_at } from './trap.js';
 
@@ -245,11 +246,6 @@ function m_next2u(mtmp, player) {
 // MFAST speed constant
 const MFAST = 2;
 
-
-// C ref: u_at(x, y) — is hero at (x, y)?
-function u_at(x, y, player) {
-    return x === player.x && y === player.y;
-}
 
 // C ref: canspotmon(mon) — can hero see or sense the monster?
 function canspotmon(mon, player, map, fov) {
@@ -856,7 +852,7 @@ export async function find_defensive(mon, tryescape, map, player) {
             const diag_ok = !NODIAG(monsndx(mdat));
 
             for (const [xx, yy] of locs) {
-                if (u_at(xx, yy, player)) continue;
+                if (u_at(player, xx, yy)) continue;
                 if (xx !== x && yy !== y && !diag_ok) continue;
                 if (m_at(xx, yy, map) && !(xx === x && yy === y)) continue;
 
@@ -1689,7 +1685,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
             tmp_at(x, y);
             await nh_delay_output();
 
-            if (u_at(bhitpos.x, bhitpos.y, player)) {
+            if (u_at(player, bhitpos.x, bhitpos.y)) {
                 if (fhitm) fhitm(player, obj, map, player);
                 range -= 3;
             } else {
@@ -1902,7 +1898,7 @@ export async function find_misc(mon, map, player) {
 
         for (let xx = x - 1; xx <= x + 1; xx++) {
             for (let yy = y - 1; yy <= y + 1; yy++) {
-                if (!isok(xx, yy) || u_at(xx, yy, player)) continue;
+                if (!isok(xx, yy) || u_at(player, xx, yy)) continue;
                 if (!diag_ok && xx !== x && yy !== y) continue;
                 if ((xx !== x || yy !== y) && m_at(xx, yy, map)) continue;
                 const t = t_at(xx, yy, map);
@@ -1932,7 +1928,7 @@ export async function find_misc(mon, map, player) {
         if (m.has_misc === MUSE_MISC_BULLWHIP) continue;
         if (obj.otyp === BULLWHIP && !mon.mpeaceful
             && player.weapon && !rn2(5) && obj === MON_WEP(mon)
-            && u_at(mon.mux ?? player.x, mon.muy ?? player.y, player)
+            && u_at(player, mon.mux ?? player.x, mon.muy ?? player.y)
             && m_next2u(mon, player)
             && !player.uswallow
             && await canletgo(player.weapon, '')) {

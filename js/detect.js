@@ -29,6 +29,7 @@ import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
+import { u_at } from './hack.js';
 
 // detect.js -- Detection spells, scrolls, and searching
 // cf. detect.c -- Full port of all detection routines.
@@ -52,9 +53,6 @@ const OTRAP_THERE = 2;
 // Has_contents imported from objnam.js
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otrapped);
-}
-function u_at(player, x, y) {
-    return player.x === x && player.y === y;
 }
 function closed_door(map, x, y) {
     const loc = map.at(x, y);

@@ -42,15 +42,12 @@ import { add_skills_to_menu, can_advance, skill_advance, skill_level_name } from
 import { handleSet } from './options.js';
 import { pline, impossible } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
-         performWaitSearch, dist2 } from './hack.js';
+         performWaitSearch, dist2, u_at } from './hack.js';
 import { cnv_trap_obj, t_at, m_at } from './trap.js';
 import { PM_GRID_BUG } from './monsters.js';
 
 
 
-function u_at(player, x, y) {
-    return !!(player && player.x === x && player.y === y);
-}
 
 // Process a command from the player
 // C ref: cmd.c rhack() -- main command dispatch
@@ -1159,16 +1156,16 @@ export async function lookaround_known_room(x, y, player) {
   let sel = selection_new(), rmno = player.urooms[0] - ROOMOFFSET, qbuf;
   set_selection_floodfillchk(dolookaround_floodfill_findroom);
   selection_floodfill(sel, x, y, true);
-  if (!u_at(x, y)) set_msg_xy(x, y);
+  if (!u_at(player, x, y)) set_msg_xy(x, y);
   if (u_have_seen_whole_selection(sel)) {
     let u_in =  selection_getpoint(x, y, sel);
-    await You("%s %s %s.", u_at(x, y) && u_in && u_can_see_whole_selection(sel) ? "are in" : (u_at(x, y)) ? "remember this as" : "remember that as", an(selection_size_description(sel, qbuf)), rmno >= 0 ? "room" : "area");
+    await You("%s %s %s.", u_at(player, x, y) && u_in && u_can_see_whole_selection(sel) ? "are in" : (u_at(player, x, y)) ? "remember this as" : "remember that as", an(selection_size_description(sel, qbuf)), rmno >= 0 ? "room" : "area");
   }
   else if (u_have_seen_bounds_selection(sel)) {
-    await You("guess %s to be %s %s.", u_at(x, y) ? "this" : "that", an(selection_size_description(sel, qbuf)), rmno >= 0 ? "room" : "area");
+    await You("guess %s to be %s %s.", u_at(player, x, y) ? "this" : "that", an(selection_size_description(sel, qbuf)), rmno >= 0 ? "room" : "area");
   }
   else {
-    await You("can't guess the size of %s area.", u_at(x, y) ? "this" : "that");
+    await You("can't guess the size of %s area.", u_at(player, x, y) ? "this" : "that");
   }
   selection_free(sel, true);
 }
@@ -1560,7 +1557,7 @@ export function there_cmd_menu_far(win, x, y, mod, player) {
 export function there_cmd_menu_common(win, x, y, mod, act, player) {
   let K = 0;
   if (mod === CLICK_1 || mod === CLICK_2) {
-    if (!u_at(x, y) || (player?.Upolyd || (player?.mtimedone > 0) || false) || glyph_at(x, y) !== hero_glyph) mcmd_addmenu(win, MCMD_LOOK_AT, "Look at map symbol"), ++K;
+    if (!u_at(player, x, y) || (player?.Upolyd || (player?.mtimedone > 0) || false) || glyph_at(x, y) !== hero_glyph) mcmd_addmenu(win, MCMD_LOOK_AT, "Look at map symbol"), ++K;
   }
   return K;
 }
