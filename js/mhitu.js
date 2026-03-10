@@ -859,8 +859,10 @@ async function mhitu_ad_legs(monster, attack, player, mhm, ctx) {
 
 // cf. uhitm.c:4470 mhitm_ad_dgst — mhitu branch (digestion)
 async function mhitu_ad_dgst(monster, attack, player, mhm, ctx) {
-    // Engulf/digestion — not handled here (gulpmu path)
+    // C mhitu branch: digestion attack via this path doesn't apply damage.
+    // Engulf resolution is handled elsewhere (AT_ENGL/gulpmu paths).
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    mhm.damage = 0;
 }
 
 // cf. uhitm.c:4557 mhitm_ad_samu — mhitu branch (steal amulet)
@@ -915,8 +917,8 @@ async function mhitu_ad_sedu(monster, attack, player, mhm, ctx) {
 
 // cf. uhitm.c:4729 mhitm_ad_ssex — mhitu branch
 async function mhitu_ad_ssex(monster, attack, player, mhm, ctx) {
-    await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
-    mhm.damage = 0;
+    // SYSOPT_SEDUCE path is not modeled in JS; follow C fallback behavior.
+    await mhitu_ad_sedu(monster, attack, player, mhm, ctx);
 }
 
 // cf. uhitm.c:3827 mhitm_ad_deth — mhitu branch (Death's touch)
@@ -951,7 +953,8 @@ async function mhitu_ad_pest(monster, attack, player, mhm, ctx) {
             `The ${x_monnam(monster)} reaches out, and you feel fever and chills.`
         );
     }
-    // C: diseasemu(pa) — not implemented, keep damage
+    await diseasemu(monster.type || monster.data || {}, player, ctx.display);
+    // keep normal physical damage (C behavior)
 }
 
 // cf. uhitm.c:3767 mhitm_ad_famn — mhitu branch (Famine)

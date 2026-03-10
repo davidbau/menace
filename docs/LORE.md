@@ -6915,3 +6915,20 @@ hard-won wisdom:
   - Added combat regression tests for `AD_SLIM` and `AD_WERE`.
   - Added direct delayed-killer unit tests (`end_delayed_killer.test.js`).
   - `npm run -s test:unit` passes (2712/2712).
+
+## 2026-03-10: `mhitu` larger branch slice (`AD_DGST` / `AD_PEST` / `AD_SSEX`)
+
+- Problem: several `mhitu` handlers were still overly stubbed, causing incorrect effect semantics:
+  - `AD_DGST` path could still inflict direct damage in JS despite C zeroing damage in `mhitu`.
+  - `AD_PEST` was missing the `diseasemu()` side-effect call.
+  - `AD_SSEX` was not routed through the C fallback seduction/theft path.
+- Change:
+  - `mhitu_ad_dgst`: now explicitly sets `mhm.damage = 0` after hit message for C-faithful `mhitu` behavior.
+  - `mhitu_ad_pest`: now calls `diseasemu()` (message + disease side effects) while preserving normal physical damage.
+  - `mhitu_ad_ssex`: now delegates to `mhitu_ad_sedu()` fallback behavior (without SYSOPT_SEDUCE branch).
+- Validation:
+  - Added `mattacku` tests in `combat.test.js` for:
+    - `AD_DGST` no direct damage
+    - `AD_PEST` disease side-effect
+    - `AD_SSEX` seduction path no direct damage
+  - `npm run -s test:unit` passes (2715/2715).

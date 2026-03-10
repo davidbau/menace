@@ -9,7 +9,7 @@ import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
 import { SLIMED } from '../../js/const.js';
-import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
+import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_SSEX, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -246,6 +246,74 @@ describe('Combat system', () => {
         }
 
         assert.equal(p.ulycn, PM_WEREWOLF);
+    });
+
+    it('AD_DGST on mhitu path does not apply direct damage', async () => {
+        initRng(7);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        const hp0 = p.hp;
+
+        const mon = makeMonster({
+            level: 12,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_DGST, damn: 6, damd: 6 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = false;
+
+        for (let i = 0; i < 12; i++) {
+            await mattacku(mon, p, mockDisplay);
+        }
+        assert.equal(p.hp, hp0, 'AD_DGST should not deal direct damage in mhitu path');
+    });
+
+    it('AD_PEST applies disease side-effects while preserving physical damage path', async () => {
+        initRng(11);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        p.sick = 0;
+        const hp0 = p.hp;
+
+        const mon = makeMonster({
+            level: 14,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_PEST, damn: 1, damd: 4 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = false;
+
+        await mattacku(mon, p, mockDisplay);
+        assert.ok((p.sick || 0) > 0, 'AD_PEST should apply disease side effect');
+        assert.ok(p.hp <= hp0, 'AD_PEST should preserve normal physical damage path');
+    });
+
+    it('AD_SSEX uses seduction/theft path and does not apply direct damage', async () => {
+        initRng(19);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+
+        const stolen = { otyp: POT_HEALING, oclass: POTION_CLASS, quan: 1, invlet: 'a' };
+        p.inventory = [stolen];
+        const hp0 = p.hp;
+
+        const mon = makeMonster({
+            level: 10,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_SSEX, damn: 4, damd: 6 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = false;
+        mon.minvent = null;
+
+        await mattacku(mon, p, mockDisplay);
+        assert.equal(p.hp, hp0, 'AD_SSEX should not apply direct damage on mhitu seduction path');
     });
 
 
