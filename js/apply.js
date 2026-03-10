@@ -38,7 +38,7 @@
 //   reset_trapset, calc_pole_range, could_pole_mon, maybe_dunk_boulders,
 //   do_blinding_ray, flip_through_book, flip_coin -- ported as stubs or partial
 
-import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
+import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, POTION_CLASS, GEM_CLASS, RING_CLASS,
          LANCE, BULLWHIP, STETHOSCOPE,
          PICK_AXE, DWARVISH_MATTOCK, EXPENSIVE_CAMERA, MIRROR, FIGURINE,
@@ -63,34 +63,34 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
 import { more, nhgetch_raw, ynFunction } from './input.js';
-import { doname, xname, splitobj, set_bknown } from './mkobj.js';
+import { doname, xname } from './mkobj.js';
 import { make_glib } from './potion.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT } from './const.js';
-import { rn2, rnd, rn1, d, rnl, shuffle_int_array } from './rng.js';
+import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
-import { pline, You, Your, You_feel, You_cant, You_hear, You_see,
+import { pline, You, Your, You_cant, You_hear,
          pline_The, There, pline_mon, verbalize, impossible } from './pline.js';
-import { Monnam, mon_nam, a_monnam, l_monnam, y_monnam } from './do_name.js';
-import { nohands, nolimbs, has_head, unsolid, haseyes, breathless,
+import { Monnam, mon_nam } from './do_name.js';
+import { nolimbs, has_head, unsolid, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
          poly_when_stoned, throws_rocks, passes_walls,
          bigmonst, verysmall } from './mondata.js';
-import { mons, PM_LONG_WORM, PM_FLOATING_EYE, PM_MEDUSA, PM_UMBER_HULK, PM_AMOROUS_DEMON, PM_QUEEN_BEE, PM_KILLER_BEE, PM_WOOD_NYMPH, PM_WATER_NYMPH, PM_MOUNTAIN_NYMPH, S_VAMPIRE, S_GHOST, S_NYMPH, S_MIMIC, S_EEL, MZ_LARGE, MZ_SMALL, MS_SILENT,
+import { mons, PM_LONG_WORM, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
-import { dist2, distu, s_suffix, upstart, isqrt, sgn } from './hacklib.js';
+import { dist2, distu, s_suffix } from './hacklib.js';
 import { u_at } from './hack.js';
 import { setnotworn } from './worn.js';
-import { begin_burn, end_burn, obj_has_timer,
+import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
+import { DISP_BEAM, DISP_END } from './const.js';
 import { break_wand } from './zap.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';

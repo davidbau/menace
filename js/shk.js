@@ -3,7 +3,7 @@
 // Handles shop pricing, billing, entry messages, shopkeeper queries,
 // payment, selling, damage tracking, and shopkeeper movement hooks.
 
-import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
+import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED } from './const.js';
 import { PM_TOURIST } from './monsters.js';
 import { Role_if } from './role.js';
@@ -27,15 +27,14 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
-import { doname, xname, splitobj, next_ident, weight, Is_container, add_to_minv, dealloc_obj } from './mkobj.js';
+import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj } from './mkobj.js';
 import { currency, o_on } from './invent.js';
-import { greetingForRole, Hello } from './player.js';
+import { Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
-import { pline, You, Your, You_hear, You_feel, You_cant, pline_The, There,
+import { pline, You, Your, You_hear, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
-import { s_suffix, upstart, highc, strchr } from './hacklib.js';
-import { findgold } from './steal.js';
+import { s_suffix, strchr } from './hacklib.js';
 import { helpless as monHelpless } from './mon.js';
 import { newsym } from './display.js';
 import { canseemon, y_monnam } from './mondata.js';

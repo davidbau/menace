@@ -51,7 +51,7 @@ import { objectData, TOOL_CLASS, BOULDER,
          WOODEN_FLUTE, MAGIC_FLUTE, TOOLED_HORN, FROST_HORN, FIRE_HORN,
          WOODEN_HARP, MAGIC_HARP, BUGLE, LEATHER_DRUM, DRUM_OF_EARTHQUAKE,
          BELL, BELL_OF_OPENING } from './objects.js';
-import { isok, COLNO, ROWNO, PIT, SPIKED_PIT, is_pit,
+import { isok, COLNO, ROWNO, PIT, is_pit,
          A_STR, A_DEX, A_CON, A_WIS,
          FOUNTAIN, SINK, ALTAR, GRAVE, THRONE, SCORR, CORR, ROOM,
          SDOOR, DOOR, D_NODOOR,

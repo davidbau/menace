@@ -44,7 +44,7 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          PM_CLERIC, PM_KNIGHT, PM_WIZARD, PM_MONK,
          AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
-import { makeplural, is_weptool, corpse_xname,
+import { makeplural, is_weptool,
          vtense, otense, An, an, yname, Yobjnam2, ansimpleoname } from './objnam.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
@@ -74,26 +74,23 @@ import { summon_minion, dlord } from './minion.js';
 import { makemon, set_malign } from './makemon.js';
 import { weapon_type, unrestrict_weapon_skill, add_weapon_skill } from './weapon.js';
 import { monflee } from './monmove.js';
-import { newsym, shieldeff, see_monsters, warning_of } from './display.js';
+import { newsym, shieldeff } from './display.js';
 import { couldsee } from './vision.js';
 import { aggravate } from './wizard.js';
-import { spelleffects, spell_skilltype } from './spell.js';
+import { spelleffects } from './spell.js';
 import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
 import { Luck } from './attrib.js';
-import { findpriest, temple_occupied, p_coaligned } from './priest.js';
-import { set_itimeout, make_glib } from './potion.js';
+import { findpriest } from './priest.js';
+import { set_itimeout } from './potion.js';
 import { feel_cockatrice, sobj_at, carried } from './invent.js';
 import { destroy_arm } from './do_wear.js';
 import { record_achievement, align_str } from './insight.js';
-import { dist2 } from './hacklib.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
-import { observe_object } from './o_init.js';
 import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival } from './pickup.js';
 import { In_sokoban } from './dungeon.js';
-import { ureflects } from './muse.js';
 import { nomul } from './hack.js';
 
 // cf. pray.c:58 -- Moloch constant

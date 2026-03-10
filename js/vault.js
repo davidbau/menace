@@ -23,18 +23,18 @@ import {
     D_NODOOR,
     VAULT_GUARD_TIME, GD_EATGOLD, GD_DESTROYGOLD,
 } from './const.js';
-import { PM_GUARD, PM_CROESUS } from './monsters.js';
-import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE, GOLD_PIECE } from './objects.js';
-import { pline, pline_The, You, You_hear, You_see, verbalize } from './pline.js';
+import { PM_GUARD } from './monsters.js';
+import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE } from './objects.js';
+import { pline, pline_The, You, You_hear, verbalize } from './pline.js';
 import { newsym, map_invisible, canSpotMonsterForMap, monVisibleForMap } from './display.js';
 import { place_monster } from './steed.js';
 import { mongone, mpickgold } from './mon.js';
-import { relobj, mpickobj } from './steal.js';
+import { relobj } from './steal.js';
 import { rloc } from './teleport.js';
 import { Monnam, noit_Monnam, noit_mon_nam, Some_Monnam, x_monnam,
          Mgender, pmname, mon_nam } from './do_name.js';
 import { m_carrying } from './weapon.js';
-import { upstart, dist2, distu } from './hacklib.js';
+import { upstart, distu } from './hacklib.js';
 import { money_cnt } from './hack.js';
 import { currency, sobj_at } from './invent.js';
 import { placeFloorObject } from './invent.js';

@@ -5,7 +5,7 @@ import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          BOLT_LIM } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS, ROCK_CLASS,
+import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS,
          SCROLL_CLASS, SPBOOK_CLASS, MAXOCLASSES,
          GOLD_PIECE, CHEST, LARGE_BOX, BOULDER, GOLD } from './objects.js';
 import { PM_GOLD_GOLEM, PM_LONG_WORM, S_EEL, S_WORM_TAIL } from './monsters.js';

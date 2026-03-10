@@ -4,7 +4,7 @@ import { THRONE, SINK, GRAVE, FOUNTAIN, STAIRS, ALTAR, IS_DOOR, D_ISOPEN,
          IS_POOL, IS_LAVA, isok, SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER,
          EXT_ENCUMBER, A_WIS, STONE, MM_ADJACENTOK, MM_NOMSG,
          AUTOUNLOCK_UNTRAP, AUTOUNLOCK_APPLY_KEY } from './const.js';
-import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
+import { objectData, COIN_CLASS, CORPSE, ICE_BOX, CHEST,
          BAG_OF_HOLDING, BAG_OF_TRICKS, WAN_CANCELLATION, LOADSTONE,
          BOULDER, STATUE, AMULET_OF_YENDOR, CANDELABRUM_OF_INVOCATION,
          BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD, LEASH, SCR_SCARE_MONSTER,
@@ -16,8 +16,8 @@ import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
          obj_extract_self } from './mkobj.js';
 import { observeObject } from './o_init.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './do.js';
-import { mons, PM_HOUSECAT, PM_ICE_TROLL, MZ_LARGE } from './monsters.js';
-import { is_rider, touch_petrifies, nohands, nolimbs, notake,
+import { mons, PM_HOUSECAT, PM_ICE_TROLL } from './monsters.js';
+import { is_rider, touch_petrifies, nohands, nolimbs,
          poly_when_stoned } from './mondata.js';
 import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE } from './const.js';
 import { rn2, rnd, d } from './rng.js';

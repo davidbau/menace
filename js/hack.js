@@ -6,7 +6,7 @@
 var _burnarmor = () => false;
 export function registerBurnarmor(fn) { _burnarmor = fn; }
 
-import { COLNO, ROWNO, STONE, DOOR, CORR, SDOOR, SCORR, STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
+import { COLNO, ROWNO, STONE, CORR, SDOOR, SCORR, STAIRS, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
          D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_OBSTRUCTED, IS_WALL, ICE,
          IS_STWALL, IS_ROCK, IS_ROOM, IS_FURNITURE, IS_POOL, IS_LAVA, IS_WATERWALL,
@@ -38,13 +38,13 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { more, nhgetch_raw } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_human, is_rider, is_clinger, DEADMONSTER } from './mondata.js';
-import { engr_at, read_engr_at, maybeSmudgeEngraving, u_wipe_engr, can_reach_floor } from './engrave.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger } from './mondata.js';
+import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
-import { xname, an, The } from './objnam.js';
+import { an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap } from './display.js';
@@ -57,15 +57,12 @@ import { Invocation_lev, find_level, deltrap } from './dungeon.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait } from './animation.js';
 import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
-import { stucksteed } from './steed.js';
-import { in_out_region } from './region.js';
-import { drag_ball as drag_ball_core } from './ball.js';
 import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS } from './const.js';
-import { MZ_LARGE, PM_GRID_BUG, PM_ANGEL, G_UNIQ, AT_WEAP,
+import { MZ_LARGE, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';

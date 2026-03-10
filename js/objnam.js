@@ -37,8 +37,7 @@ import {
     Is_container, mksobj, mkobj, bless, curse, uncurse, weight,
 } from './mkobj.js';
 import { isObjectNameKnown } from './o_init.js';
-import { discoverObject } from './o_init.js';
-import { artiname, artifact_name, undiscovered_artifact } from './artifact.js';
+import { artiname, undiscovered_artifact } from './artifact.js';
 import { ART_EYES_OF_THE_OVERWORLD, ART_ORB_OF_DETECTION } from './artifacts.js';
 import {
     highc, lowc, upstart, s_suffix, letter, digit,

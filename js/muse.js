@@ -20,10 +20,10 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
          BOLT_LIM } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
-import { pline, pline_mon, You_hear, verbalize } from './pline.js';
+import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
 import { mondead, monnear, helpless as monHelpless } from './mon.js';
-import { mpickobj, mdrop_obj } from './steal.js';
+import { mpickobj } from './steal.js';
 import { newsym, map_invisible, canSpotMonsterForMap } from './display.js';
 import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
          is_floater, is_flyer, throws_rocks, passes_walls,
@@ -33,7 +33,7 @@ import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
          can_blow, x_monnam, canseemon, needspick,
          dmgtype_fromattack, is_bat, nonliving,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
-import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_GIANT_EEL, PM_CROCODILE, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_STALKER, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_NONE, AT_BREA, G_UNIQ, G_NOCORPSE, S_GHOST, S_KOP, S_EYE, S_LIGHT, S_VAMPIRE, MZ_SMALL } from './monsters.js';
+import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
          POTION_CLASS, WAND_CLASS, SCROLL_CLASS, FOOD_CLASS,
          AMULET_CLASS, TOOL_CLASS, WEAPON_CLASS,
@@ -57,7 +57,7 @@ import { CORPSE, TIN, EGG, BOULDER,
          PICK_AXE, TIN_OPENER, ICE_BOX, LARGE_BOX,
          GLOB_OF_GREEN_SLIME,
          objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
-import { bcsign, doname, splitobj, Is_container } from './mkobj.js';
+import { bcsign, splitobj, Is_container } from './mkobj.js';
 import { m_carrying } from './weapon.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';
 import { which_armor, extract_from_minvent,
@@ -68,7 +68,6 @@ import { mon_has_amulet, mon_has_special } from './wizard.js';
 import { onscary, healmon, mongone, monkilled, xkilled,
          wakeup, seemimic } from './mon.js';
 import { monflee } from './monmove.js';
-import { paralyze_monst } from './mhitm.js';
 import { makemon } from './makemon.js';
 import { placeFloorObject } from './invent.js';
 import { linedUpToPlayer, m_throw_timed } from './mthrowu.js';
@@ -76,16 +75,13 @@ import {
     buzz, ZT_WAND, ZT_BREATH,
     ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP, ZT_DEATH, ZT_LIGHTNING,
 } from './zap.js';
-import { resist, cancel_monst, unturn_dead } from './zap.js';
-import { monverbself } from './do_name.js';
+import { resist, unturn_dead } from './zap.js';
 import { arti_reflects } from './artifact.js';
 import { can_carry } from './dogmove.js';
 import { sobj_at, carrying } from './invent.js';
 import { ZAP_POS } from './const.js';
-import { is_pool, is_lava, is_ice, find_drawbridge, destroy_drawbridge,
+import { is_pool, is_lava, is_ice,
          is_drawbridge_wall } from './dbridge.js';
-import { trycall } from './do.js';
-import { pushRngLogEntry } from './rng.js';
 import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';

@@ -65,7 +65,6 @@ import { resists_blnd } from './zap.js';
 import { rloc, tele_restrict } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } from './const.js';
 import { s_suffix } from './hacklib.js';
-import { find_ac } from './do_wear.js';
 import { done_in_by } from './end.js';
 import { nomul } from './hack.js';
 import { body_part } from './polyself.js';

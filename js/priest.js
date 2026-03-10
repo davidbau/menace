@@ -10,24 +10,22 @@ import { A_NONE, A_LAWFUL, A_CHAOTIC, A_NEUTRAL,
          AM_MASK, AM_SHRINE, ROOMOFFSET, TEMPLE,
          Amask2align, A_WIS, ALL_TRAPS,
          isok } from './const.js';
-import { IS_ALTAR, IS_DOOR, IS_ROOM } from './const.js';
-import { rn2, rnd, rn1, d, c_d } from './rng.js';
-import { pline, pline_The, verbalize, You, Your, You_feel,
+import { IS_ALTAR, IS_DOOR } from './const.js';
+import { rn2, rn1, c_d } from './rng.js';
+import { pline, verbalize, You, Your, You_feel,
          livelog_printf } from './pline.js';
 import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
          PM_GHOST, MS_LEADER } from './monsters.js';
-import { mon_nam, Monnam, mon_pmname, rndmonnam, hcolor } from './do_name.js';
+import { mon_nam, Monnam, mon_pmname, rndmonnam } from './do_name.js';
 import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict } from './mondata.js';
 import { newsym } from './display.js';
-import { dist2 } from './hacklib.js';
 import { In_endgame } from './dungeon.js';
-import { COIN_CLASS, GOLD_PIECE } from './objects.js';
 import { m_next2u } from './muse.js';
 import { move_special as move_special_monmove } from './monmove.js';
 import { priestini as priestini_mkroom } from './mkroom.js';
 import { newemin, bribe } from './minion.js';
 import { makemon } from './makemon.js';
-import { monnear, mondead, wakeup, setmangry, mongone, helpless as monHelpless } from './mon.js';
+import { monnear, wakeup, setmangry, mongone, helpless as monHelpless } from './mon.js';
 import { exercise } from './attrib_exercise.js';
 import { s_suffix, sgn } from './hacklib.js';
 import { body_part } from './polyself.js';

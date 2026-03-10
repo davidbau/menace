@@ -18,10 +18,10 @@ import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN, D_TRAPPED,
          SHOPBASE, FINGER } from './const.js';
 import { PM_ROGUE, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
-import { rn2, rnl, rnd } from './rng.js';
+import { rn2, rnl } from './rng.js';
 import { nhgetch_raw, ynFunction } from './input.js';
 import { exercise } from './attrib_exercise.js';
-import { objectData, WEAPON_CLASS, TOOL_CLASS, ROCK_CLASS, POTION_CLASS,
+import { objectData, WEAPON_CLASS, ROCK_CLASS, POTION_CLASS,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          CHEST, LARGE_BOX, ICE_BOX,
          PICK_AXE, DWARVISH_MATTOCK,
@@ -32,18 +32,16 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, ROCK_CLASS, POTION_CLASS,
 import { doname, xname } from './mkobj.js';
 import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { handleLoot, show_invalid_direction_cmdassist_help } from './pickup.js';
-import { pline, pline_The, You, You_cant, You_hear, There, set_msg_xy,
+import { pline, pline_The, You, You_cant, You_hear, There,
          verbalize } from './pline.js';
 import { acurr, acurrstr } from './attrib.js';
 import { obj_resists } from './objdata.js';
 import { newsym } from './display.js';
 import { block_point, unblock_point, recalc_block_point, cansee } from './vision.js';
 import { wake_nearto, wake_nearby } from './mon.js';
-import { useup, delobj, currency, carried } from './invent.js';
-import { stackobj } from './invent.js';
+import { useup, delobj, carried } from './invent.js';
 import { add_damage } from './shk.js';
 import { mon_nam, some_mon_nam } from './do_name.js';
-import { canseemon } from './mondata.js';
 import { chest_trap } from './trap.js';
 import { is_weptool, Is_box } from './objnam.js';
 import { game as _gstate } from './gstate.js';

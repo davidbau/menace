@@ -3,7 +3,7 @@
 // C ref: trap.c — burnarmor()
 // C ref: mon.c — xkilled(), corpse_chance()
 
-import { rn2, rnd, d, c_d, rn1, rne, rnz } from './rng.js';
+import { rn2, rnd, d, rn1, rnz } from './rng.js';
 import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     ICE, POOL,
@@ -47,7 +47,7 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          RIN_GAIN_STRENGTH, RIN_GAIN_CONSTITUTION, RIN_ADORNMENT,
          RIN_INCREASE_ACCURACY, RIN_INCREASE_DAMAGE, RIN_PROTECTION,
          HELM_OF_BRILLIANCE, GAUNTLETS_OF_DEXTERITY } from './objects.js';
-import { mons, G_FREQ, MZ_TINY, MZ_HUMAN, M1_NOEYES,
+import { mons, M1_NOEYES,
          M2_NEUTER, M2_MALE, M2_FEMALE, M2_UNDEAD, M2_DEMON,
          MR_FIRE, MR_COLD, MR_SLEEP, MR_ELEC, MR_POISON, MR_ACID, MR_DISINT,
          PM_LIZARD, PM_LICHEN, PM_DEATH, PM_CLAY_GOLEM,
@@ -60,21 +60,21 @@ import {
   rndmonnum, makemon,
 } from './makemon.js';
 import { NO_MINVENT } from './const.js';
-import { next_ident, mksobj, mkobj, weight, costly_alteration, obj_extract_self } from './mkobj.js';
+import { next_ident, mksobj, mkobj, costly_alteration } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
-import { xkilled, killed, monkilled,
+import { xkilled, killed,
          wakeup, healmon, mondead } from './mon.js';
 import { nhgetch_raw } from './input.js';
 import { getdir, registerBurnarmor } from './hack.js';
-import { nonliving, is_undead, is_demon, is_rider,
+import { nonliving, is_undead, is_demon,
          x_monnam, resists_fire, resists_cold, resists_elec,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
 import { placeFloorObject } from './invent.js';
 import { zap_dig as zap_dig_core } from './dig.js';
 import { pline } from './pline.js';
-import { mon_nam, Monnam } from './do_name.js';
+import { Monnam } from './do_name.js';
 import {
   find_mac,
   mon_adjust_speed,
@@ -86,12 +86,11 @@ import { game as _gstate } from './gstate.js';
 import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
-import { display_minventory, sobj_at, update_inventory } from './invent.js';
+import { display_minventory, update_inventory } from './invent.js';
 import { obj_resists } from './objdata.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { is_weptool } from './objnam.js';
-import { splitobj, Is_container } from './mkobj.js';
-import { delobj } from './invent.js';
+import { Is_container } from './mkobj.js';
 import { useupall } from './invent.js';
 import { monflee } from './monmove.js';
 import { readobjnam, hands_obj } from './objnam.js';

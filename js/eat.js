@@ -56,7 +56,7 @@ import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { costly_spot } from './shk.js';
 import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
-import { pline, You, Your, You_feel, You_cant, pline_The, You_hear, impossible, livelog_printf } from './pline.js';
+import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
 import { nomul, end_running, near_capacity } from './hack.js';

@@ -25,7 +25,7 @@ import { is_mindless, touch_petrifies, resists_ston,
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER } from './mondata.js';
-import { mondead, helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
+import { helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
@@ -36,7 +36,7 @@ import { rloco } from './teleport.js';
 import { resist, burnarmor } from './zap.js';
 import { dmgval } from './weapon.js';
 import { deltrap, In_sokoban } from './dungeon.js';
-import { mons, PM_IRON_GOLEM, PM_RUST_MONSTER, PM_XORN, PM_PIT_FIEND, PM_PIT_VIPER, PM_OWLBEAR, PM_BUGBEAR, PM_GREMLIN, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_WOOD_GOLEM, PM_LEATHER_GOLEM, PM_PURPLE_WORM, PM_JABBERWOCK, PM_BALROG, PM_KRAKEN, PM_MASTODON, PM_ORION, PM_NORN, PM_CYCLOPS, PM_LORD_SURTUR, PM_TITANOTHERE, PM_BALUCHITHERIUM, PM_STONE_GOLEM, M1_FLY, M1_AMORPHOUS, M1_CLING, MR_FIRE, MR_SLEEP, MZ_SMALL, MZ_HUGE, S_EYE, S_LIGHT, S_PIERCER, S_GIANT, S_DRAGON, S_SPIDER, AT_MAGC, AT_BREA, AD_PHYS, AD_FIRE, AD_RUST, AD_MAGM, AD_SLEE, AD_RBRE } from './monsters.js';
+import { mons, PM_IRON_GOLEM, PM_RUST_MONSTER, PM_XORN, PM_PIT_FIEND, PM_PIT_VIPER, PM_OWLBEAR, PM_BUGBEAR, PM_GREMLIN, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_WOOD_GOLEM, PM_LEATHER_GOLEM, PM_PURPLE_WORM, PM_JABBERWOCK, PM_BALROG, PM_KRAKEN, PM_MASTODON, PM_ORION, PM_NORN, PM_CYCLOPS, PM_LORD_SURTUR, PM_TITANOTHERE, PM_BALUCHITHERIUM, MZ_SMALL, MZ_HUGE, S_GIANT, S_DRAGON, AT_MAGC, AT_BREA, AD_PHYS, AD_FIRE, AD_RUST, AD_MAGM, AD_SLEE, AD_RBRE } from './monsters.js';
 import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          BEAR_TRAP, LANDMINE, ROLLING_BOULDER_TRAP,
          SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP,
@@ -47,7 +47,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
        } from './const.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
          is_crackable, erosion_matters, mksobj, weight, place_object } from './mkobj.js';
-import { CORPSE, WEAPON_CLASS, ARMOR_CLASS,
+import { CORPSE,
          ARROW, DART, ROCK, BOULDER, WAND_CLASS } from './objects.js';
 import { stackobj } from './invent.js';
 import { tmp_at, nh_delay_output } from './animation.js';

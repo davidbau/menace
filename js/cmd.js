@@ -2,8 +2,7 @@
 // Mirrors cmd.c from the C source.
 // Maps keyboard input to game actions.
 
-import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
-         RACE_ORC, SQKY_BOARD,
+import { RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
          xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING } from './const.js';
@@ -13,7 +12,6 @@ import { handleThrow, handleFire } from './dothrow.js';
 import { handleKnownSpells, docast } from './spell.js';
 import { handleEngrave } from './engrave.js';
 import { handleApply } from './apply.js';
-import { COIN_CLASS } from './objects.js';
 import { DART, ARROW } from './objects.js';
 import { more, nhgetch_raw, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
        } from './input.js';
@@ -38,7 +36,7 @@ import { handleSave } from './storage.js';
 import { handleForce, handleOpen, handleClose } from './lock.js';
 import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './pickup.js';
 import { dotalk } from './sounds.js';
-import { add_skills_to_menu, can_advance, skill_advance, skill_level_name } from './weapon.js';
+import { add_skills_to_menu, skill_advance } from './weapon.js';
 import { handleSet } from './options.js';
 import { pline, impossible } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
