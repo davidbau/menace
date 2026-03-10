@@ -443,12 +443,7 @@ export async function done(how, game) {
         };
     };
     if (!survive && game.wizard && how <= GENOCIDED) {
-        if (game.display?._pendingMore) {
-            // Defer prompt install until --More-- is acknowledged.
-            game._deferredWizardDiePrompt = installWizardDiePrompt;
-        } else {
-            await installWizardDiePrompt();
-        }
+        await installWizardDiePrompt();
         return;
     }
 

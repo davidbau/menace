@@ -5,9 +5,8 @@ import { NetHackGame, run_command } from '../../js/allmain.js';
 
 function makeGame() {
     const display = {
-        _pendingMore: false,
+        async putstr_message() {},
         messageNeedsMore: false,
-        _messageQueue: [],
     };
     const input = {
         isWaitingInput() {
@@ -17,7 +16,7 @@ function makeGame() {
     return new NetHackGame({ display, input });
 }
 
-test('getInputBoundaryState reports prompt/more/input boundaries via runtime API', () => {
+test('getInputBoundaryState reports prompt/input boundaries via runtime API', () => {
     const game = makeGame();
 
     let st = game.getInputBoundaryState();
@@ -30,14 +29,11 @@ test('getInputBoundaryState reports prompt/more/input boundaries via runtime API
     assert.equal(st.waitingForInput, true);
 
     game.pendingPrompt = null;
-    game.display._pendingMore = true;
-    game.display.messageNeedsMore = true;
-    game.display._messageQueue.push('queued');
     st = game.getInputBoundaryState();
-    assert.equal(st.boundaryKind, 'more');
-    assert.equal(st.waitingForInput, true);
-    assert.equal(st.pendingCount, 1);
-    assert.equal(st.ackRequired, true);
+    assert.equal(st.boundaryKind, 'none');
+    assert.equal(st.waitingForInput, false);
+    assert.equal(st.pendingCount, 0);
+    assert.equal(st.ackRequired, false);
 });
 
 test('diagnostic event API stores and streams recent events', () => {
@@ -61,8 +57,6 @@ test('diagnostic event API stores and streams recent events', () => {
 
 test('run_command consumes prompt boundary exactly once per key', async () => {
     const game = makeGame();
-    game.display._pendingMore = false;
-    game.display._messageQueue = [];
     let calls = 0;
     game.pendingPrompt = {
         onKey() {
@@ -111,42 +105,6 @@ test('run_command re-syncs missing prompt boundary owner before consuming key', 
     const result = await run_command(game, 'a'.charCodeAt(0));
     assert.equal(calls, 1);
     assert.equal(result?.prompt, true);
-});
-
-test('run_command uses owner=more stack boundary dismissal path', async () => {
-    const game = makeGame();
-    game.display._pendingMore = true;
-    game.display._moreBlockingEnabled = false;
-    game.display._nonBlockingMore = false;
-    game.display._clearMore = async () => {
-        game.display._pendingMore = false;
-    };
-    game.display.renderStatus = () => {};
-    game.display.cursorOnPlayer = () => {};
-    game.player = { x: 1, y: 1 };
-
-    game.withInputBoundary('more', async () => ({ handled: false }));
-    const result = await run_command(game, 32); // space dismisses --More--
-    assert.equal(result?.tookTime, false);
-    assert.equal(game.display._pendingMore, false);
-});
-
-test('run_command reports owner-missing when pendingMore has no more boundary owner', async () => {
-    const game = makeGame();
-    const seen = [];
-    game.subscribeDiagnostics((ev) => seen.push(ev.type));
-    game.display._pendingMore = true;
-    game.display._moreBlockingEnabled = false;
-    game.display._nonBlockingMore = false;
-    game.display.renderStatus = () => {};
-    game.display.cursorOnPlayer = () => {};
-    game.player = { x: 1, y: 1 };
-
-    const result = await run_command(game, 32);
-    assert.equal(result?.boundary, true);
-    assert.equal(result?.tookTime, false);
-    assert.equal(game.display._pendingMore, true);
-    assert.ok(seen.includes('boundary.more.owner-missing'));
 });
 
 test('clearInputBoundariesByOwner removes all matching owner entries', () => {

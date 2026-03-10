@@ -196,10 +196,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-    const pendingMoreAtStart = !!display?._pendingMore;
-    if (!pendingMoreAtStart) {
-        replacePromptMessage();
-    }
+    replacePromptMessage();
     await display.putstr_message('In what direction? ');
     const dirCh = await nhgetch_raw({ site: 'dothrow.promptDirectionAndThrowItem.direction' });
     const dch = String.fromCharCode(dirCh);

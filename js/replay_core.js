@@ -181,13 +181,6 @@ async function settleStartupInputBoundaries(game) {
             ? game.peekInputBoundary()
             : null;
 
-        // Align replay startup with C harness readiness: dismiss lingering
-        // --More-- before gameplay keys are consumed.
-        if (game?.display?._pendingMore && typeof game.display._clearMore === 'function') {
-            await Promise.resolve(game.display._clearMore());
-            continue;
-        }
-
         // Handle replay-startup tutorial prompt leftovers so the first replay
         // key reaches gameplay. Do not auto-answer arbitrary prompt boundaries.
         const replayStartupPrompt = !!(game?.pendingPrompt?.isReplayStartupPrompt);
@@ -256,11 +249,6 @@ export async function replaySession(seed, opts, keys) {
     await game.init(initOpts);
     await settleStartupInputBoundaries(game);
     emitStartupRunstepIfEnabled(game);
-
-    // Enable --More-- blocking now that chargen is complete.
-    if (game.display && typeof game.display._moreBlockingEnabled !== 'undefined') {
-        game.display._moreBlockingEnabled = true;
-    }
 
     // The welcome/lore message from init may still be visible on the topline.
     // Leave it in place so step 0 shows the natural post-init screen state.

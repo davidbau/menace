@@ -221,21 +221,13 @@ export class Display {
         this.cursorVisible = 1;
         this._cursorSpan = null; // currently highlighted <span>
         this._nhgetch = null;
-        this._pendingMore = false;
-        this._pendingMoreNoCursor = false;
-        this._messageQueue = [];
         this._topMessageRow1 = undefined; // set when message wraps to row 1
-        this._moreBlockingEnabled = false;
         this._lastTextPopup = null;
 
         this._createDOM();
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
-
-    markMorePending(_meta = null) {
-        this._pendingMore = true;
-    }
 
     _createDOM() {
         // Create the pre element
@@ -361,12 +353,6 @@ span.nh-cursor {
             }
         }
 
-        // If --More-- is pending, queue the message for later display.
-        if (this._pendingMore) {
-            this._messageQueue.push(msg);
-            return;
-        }
-
         // If msg_window is enabled, render the message window
         // C ref: win/tty/topl.c — message window modes
         if (this.flags.msg_window) {
@@ -379,9 +365,16 @@ span.nh-cursor {
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
-            this.markMorePending({ source: 'display.death-staging' });
-            this._messageQueue.push(msg);
-            return;
+            if (this._nhgetch) {
+                await this._waitForMoreDismissKey(this._nhgetch);
+            }
+            this.clearRow(MESSAGE_ROW);
+            if (this._topMessageRow1 !== undefined) {
+                this.clearRow(MESSAGE_ROW + 1);
+                this._topMessageRow1 = undefined;
+            }
+            this.messageNeedsMore = false;
+            this.topMessage = null;
         }
 
         // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit.
@@ -406,14 +399,17 @@ span.nh-cursor {
                 this.renderStatus(this._lastMapState.player);
             }
             this.renderMoreMarker();
-            if (this._moreBlockingEnabled && this._nhgetch) {
+            if (this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);
-                // Continue to display this message fresh after dismissal.
-            } else {
-                this.markMorePending({ source: 'display.concat-overflow' });
-                this._messageQueue.push(msg);
-                return;
             }
+            // Continue to display this message fresh after dismissal.
+            this.clearRow(MESSAGE_ROW);
+            if (this._topMessageRow1 !== undefined) {
+                this.clearRow(MESSAGE_ROW + 1);
+                this._topMessageRow1 = undefined;
+            }
+            this.messageNeedsMore = false;
+            this.topMessage = null;
         }
 
         // Display message, wrapping to row 1 if needed.
@@ -440,39 +436,24 @@ span.nh-cursor {
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
 
             if (row1rest.length > 0) {
-                if (this._moreBlockingEnabled && this._nhgetch) {
-                    // Blocking mode: page via row 1 + --More--, then continue
-                    // with any remaining text recursively.
-                    const row1 = row1rest.substring(0, this.cols);
-                    this.clearRow(MESSAGE_ROW + 1);
-                    this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
-                    this._topMessageRow1 = row1;
-                    this.messageNeedsMore = true;
-                    this.renderMoreMarker();
-                    await this._waitForMoreDismissKey(this._nhgetch);
-                    this.clearRow(MESSAGE_ROW);
-                    this.clearRow(MESSAGE_ROW + 1);
-                    this._topMessageRow1 = undefined;
-                    this.messageNeedsMore = false;
-                    this.topMessage = null;
-                    const row1overflow = row1rest.substring(this.cols).trimStart();
-                    if (row1overflow.length > 0) {
-                        await this.putstr_message(row1overflow);
-                    }
-                    return;
-                }
-
-                // Non-blocking mode: write row 1 and queue any remainder.
+                // Page via row 1 + --More--, then continue with any remaining text recursively.
                 const row1 = row1rest.substring(0, this.cols);
                 this.clearRow(MESSAGE_ROW + 1);
                 this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
                 this._topMessageRow1 = row1;
                 this.messageNeedsMore = true;
                 this.renderMoreMarker();
-                this.markMorePending({ source: 'display.wrap-overflow' });
+                if (this._nhgetch) {
+                    await this._waitForMoreDismissKey(this._nhgetch);
+                }
+                this.clearRow(MESSAGE_ROW);
+                this.clearRow(MESSAGE_ROW + 1);
+                this._topMessageRow1 = undefined;
+                this.messageNeedsMore = false;
+                this.topMessage = null;
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
-                    this._messageQueue.push(row1overflow);
+                    await this.putstr_message(row1overflow);
                 }
                 return;
             }
@@ -483,29 +464,14 @@ span.nh-cursor {
         this.messageNeedsMore = true;
         if (isDeathMessage) {
             this.renderMoreMarker();
-            this.markMorePending({ source: 'display.death-final' });
+            if (this._nhgetch) {
+                await this._waitForMoreDismissKey(this._nhgetch);
+                this.clearRow(MESSAGE_ROW);
+                this.messageNeedsMore = false;
+                this.topMessage = null;
+            }
         }
         this.setCursor(this.messageCursorCol, 0);
-    }
-
-    // Dismiss the --More-- prompt and resume queued fallback messages.
-    // Called when a key is consumed for --More-- dismissal.
-    // Resume at most one queued message per dismissal so prompt/message
-    // progression remains explicit.
-    async _clearMore() {
-        this._pendingMore = false;
-        this._pendingMoreNoCursor = false;
-        this.clearRow(MESSAGE_ROW);
-        if (this._topMessageRow1 !== undefined) {
-            this.clearRow(MESSAGE_ROW + 1);
-            this._topMessageRow1 = undefined;
-        }
-        this.messageNeedsMore = false;
-        this.topMessage = null;
-        if (this._messageQueue.length > 0) {
-            const queued = this._messageQueue.shift();
-            await this.putstr_message(queued);
-        }
     }
 
     // Render message window (last 3 messages)
@@ -1002,8 +968,7 @@ span.nh-cursor {
         }
         this.topMessage = null;
         this.messageNeedsMore = false;
-        this._pendingMore = false;
-        this._messageQueue = [];
+        this._topMessageRow1 = undefined;
     }
 
     // Display a chargen menu matching C TTY positioning

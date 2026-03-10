@@ -8,26 +8,10 @@ export function isMoreDismissKey(ch) {
     return code === 32 || code === 27 || code === 10 || code === 13 || code === 16;
 }
 
-export async function waitForMoreDismissKey(readKey, { game = null, site = 'more.dismiss' } = {}) {
+export async function waitForMoreDismissKey(readKey, _opts = {}) {
     if (typeof readKey !== 'function') return;
     for (;;) {
         const ch = await Promise.resolve(readKey());
         if (isMoreDismissKey(ch)) return ch;
-    }
-}
-
-export async function consumePendingMore(display, readKey, clearMore, {
-    game = null,
-    site = 'more.consume',
-    onNonDismiss = null,
-} = {}) {
-    if (!display || typeof readKey !== 'function' || typeof clearMore !== 'function') return;
-    while (display && display._pendingMore) {
-        const ch = await Promise.resolve(readKey());
-        if (isMoreDismissKey(ch)) {
-            await Promise.resolve(clearMore());
-            continue;
-        }
-        if (typeof onNonDismiss === 'function') onNonDismiss(ch);
     }
 }

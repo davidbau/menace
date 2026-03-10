@@ -544,18 +544,10 @@ export class HeadlessDisplay {
         this.cursorRow = 0;
         this.cursorVisible = 1;
         this._nhgetch = null;
-        this._pendingMore = false;
-        this._pendingMoreNoCursor = false;
-        this._messageQueue = [];
-        this._moreBlockingEnabled = false;
         this._lastTextPopup = null;
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
-
-    markMorePending(_meta = null) {
-        this._pendingMore = true;
-    }
 
     setCell(col, row, ch, color = CLR_GRAY, attr = 0) {
         if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
@@ -620,20 +612,17 @@ export class HeadlessDisplay {
             }
         }
 
-        // If --More-- is pending (non-blocking fallback), queue the message.
-        if (this._pendingMore) {
-            this._messageQueue.push(msg);
-            return;
-        }
-
         const isDeathMessage = msg.startsWith('You die...');
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
-            this.markMorePending({ source: 'headless.death-staging' });
-            this._messageQueue.push(msg);
-            return;
+            if (this._nhgetch) {
+                await this._waitForMoreDismissKey(this._nhgetch);
+            }
+            this.clearRow(0);
+            this.messageNeedsMore = false;
+            this.topMessage = null;
         }
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
@@ -660,17 +649,13 @@ export class HeadlessDisplay {
                 this.renderStatus(this._lastMapState.player);
             }
             this.renderMoreMarker();
-            if (this._moreBlockingEnabled && this._nhgetch) {
-                // True blocking: await a keypress to dismiss --More--,
-                // matching C's xwaitforspace() behavior.
+            if (this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);
-                // Fall through to display the new message fresh.
-            } else {
-                // Non-blocking fallback: queue message for later display.
-                this.markMorePending({ source: 'headless.concat-overflow' });
-                this._messageQueue.push(msg);
-                return;
             }
+            // Fall through to display the new message fresh.
+            this.clearRow(0);
+            this.messageNeedsMore = false;
+            this.topMessage = null;
         }
 
         this.clearRow(0);
@@ -680,7 +665,12 @@ export class HeadlessDisplay {
             this.messageNeedsMore = true;
             if (isDeathMessage) {
                 this.renderMoreMarker();
-                this.markMorePending({ source: 'headless.death-final' });
+                if (this._nhgetch) {
+                    await this._waitForMoreDismissKey(this._nhgetch);
+                    this.clearRow(0);
+                    this.messageNeedsMore = false;
+                    this.topMessage = null;
+                }
             }
             this.setCursor(Math.min(msg.length, this.cols - 1), 0);
             return;
@@ -705,46 +695,27 @@ export class HeadlessDisplay {
             return;
         }
 
-        if (this._moreBlockingEnabled && this._nhgetch) {
-            const moreStr = '--More--';
-            const secondMax = Math.max(1, this.cols - moreStr.length);
-            const secondLine = wrapped.substring(0, secondMax);
-            const remainder = wrapped.substring(secondLine.length).trimStart();
-            const moreCol = Math.min(secondLine.length, this.cols - moreStr.length);
-            this.clearRow(1);
-            this.putstr(0, 1, secondLine);
-            this.putstr(moreCol, 1, moreStr);
-            // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
-            this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
+        const moreStr = '--More--';
+        const secondMax = Math.max(1, this.cols - moreStr.length);
+        const secondLine = wrapped.substring(0, secondMax);
+        const remainder = wrapped.substring(secondLine.length).trimStart();
+        const moreCol = Math.min(secondLine.length, this.cols - moreStr.length);
+        this.clearRow(1);
+        this.putstr(0, 1, secondLine);
+        this.putstr(moreCol, 1, moreStr);
+        // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
+        this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
+        if (this._nhgetch) {
             await this._waitForMoreDismissKey(this._nhgetch);
-            this.clearRow(0);
-            this.clearRow(1);
-            this.messageNeedsMore = false;
-            this.topMessage = null;
-            if (remainder.length > 0) {
-                await this.putstr_message(remainder);
-            }
-            return;
         }
-
-        this.markMorePending({ source: 'headless.wrap-overflow' });
-        this._messageQueue.push(wrapped);
-    }
-
-    // Dismiss the --More-- prompt and resume queued fallback messages.
-    // Called when a key is consumed for --More-- dismissal (from nhgetch
-    // or run_command).  Resume at most one queued message per dismissal
-    // so prompt/message progression remains explicit.
-    async _clearMore() {
-        this._pendingMore = false;
-        this._pendingMoreNoCursor = false;
         this.clearRow(0);
+        this.clearRow(1);
         this.messageNeedsMore = false;
         this.topMessage = null;
-        if (this._messageQueue.length > 0) {
-            const queued = this._messageQueue.shift();
-            await this.putstr_message(queued);
+        if (remainder.length > 0) {
+            await this.putstr_message(remainder);
         }
+        return;
     }
 
     // Render the "--More--" marker that C tty appends to the topline before

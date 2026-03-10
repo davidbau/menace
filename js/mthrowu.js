@@ -97,11 +97,9 @@ function throwTrace(map, display, label, extra = '') {
         : [];
     const top = String(lines[0] || '');
     const row3 = String(lines[3] || '');
-    const pendingMore = !!display?._pendingMore;
     const topMsg = String(display?.topMessage || '');
     writeStderr(
         `[MTHROW step=${step}] ${label}`
-        + ` pendingMore=${pendingMore ? 1 : 0}`
         + ` top=${JSON.stringify(top)}`
         + ` topMsg=${JSON.stringify(topMsg)}`
         + ` r3=${JSON.stringify(row3)}`

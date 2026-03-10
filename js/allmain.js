@@ -91,11 +91,6 @@ const QUEST_PORTAL_INFO_BY_ROLE = {
     Wiz: { leader: 'Neferet the Green', homebase: 'the Lonely Tower' },
 };
 
-function strictMoreOwnerMode() {
-    const raw = String(getEnv('WEBHACK_STRICT_MORE_OWNER', '0') || '').trim().toLowerCase();
-    return raw === '1' || raw === 'true' || raw === 'on';
-}
-
 function runstepEventEnabled() {
     const raw = String(getEnv('WEBHACK_EVENT_RUNSTEP', '0') || '').trim().toLowerCase();
     return raw === '1' || raw === 'true' || raw === 'on';
@@ -562,9 +557,7 @@ export async function run_command(game, ch, opts = {}) {
         }
         // If a prompt was completed by this key, restore normal status/cursor
         // positioning for the next command frame (C tty command boundary).
-        if (!game.pendingPrompt
-            && !game.gameOver
-            && !(game.display && game.display._pendingMore)) {
+        if (!game.pendingPrompt && !game.gameOver) {
             const p = game.u || game.player;
             if (game.display && p) {
                 if (typeof game.display.renderStatus === 'function') {
@@ -580,75 +573,6 @@ export async function run_command(game, ch, opts = {}) {
             moved: promptMoved,
             prompt: true,
         };
-    };
-
-    const handleMoreBoundaryKey = async () => {
-        // C ref: win/tty/topl.c more() -> xwaitforspace("\033 "):
-        // Space, Esc, or Enter dismisses --More--; other keys are ignored.
-        const dismissesMore = (chCode === 32 || chCode === 27 || chCode === 10 || chCode === 13 || chCode === 16);
-        if (!dismissesMore) {
-            game?.emitDiagnosticEvent?.('boundary.more.ignored-key', {
-                key: chCode,
-                boundary: game?.getInputBoundaryState?.() || null,
-            });
-            return { tookTime: false };
-        }
-        game?.emitDiagnosticEvent?.('boundary.more.dismiss-key', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        const prevMoreBlocking = game.display._moreBlockingEnabled;
-        if (typeof prevMoreBlocking === 'boolean') {
-            game.display._moreBlockingEnabled = false;
-        }
-        if (typeof game.display._clearMore === 'function') {
-            await game.display._clearMore();
-        } else {
-            game?.emitDiagnosticEvent?.('boundary.more.clear-missing', {
-                key: chCode,
-                boundary: game?.getInputBoundaryState?.() || null,
-            });
-            return { tookTime: false, boundary: true };
-        }
-        game?.emitDiagnosticEvent?.('boundary.more.dismissed', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        if (typeof prevMoreBlocking === 'boolean') {
-            game.display._moreBlockingEnabled = prevMoreBlocking;
-        }
-        if (Object.hasOwn(game.display, '_nonBlockingMore')) {
-            game.display._nonBlockingMore = false;
-        }
-        if (typeof game._deferredWizardDiePrompt === 'function'
-            && !game.display._pendingMore
-            && !game.pendingPrompt) {
-            await game._deferredWizardDiePrompt();
-            game._deferredWizardDiePrompt = null;
-        }
-        if (game._pendingDeferredTurnAfterMore) {
-            if ((game.u || game.player)?.utotype) {
-                await deferred_goto((game.u || game.player), game);
-            }
-            if (!skipTurnEnd) {
-                const coreOpts = {};
-                if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-                await moveloop_core(game, coreOpts);
-                see_monsters(game.map);
-                if (onTimedTurn) await onTimedTurn();
-            }
-            game._pendingDeferredTurnAfterMore = false;
-        }
-        const _player = game.u || game.player;
-        if (game.display && _player) {
-            if (typeof game.display.renderStatus === 'function') {
-                game.display.renderStatus(_player);
-            }
-            if (typeof game.display.cursorOnPlayer === 'function') {
-                game.display.cursorOnPlayer(_player);
-            }
-        }
-        return { tookTime: false };
     };
 
     // Boundary owner stack: active top boundary gets first chance to consume key.
@@ -670,7 +594,6 @@ export async function run_command(game, ch, opts = {}) {
             : null;
     }
     if (topBoundary
-        && topBoundary.owner !== 'more'
         && topBoundary.owner !== 'prompt'
         && typeof topBoundary.onKey === 'function') {
         game?.emitDiagnosticEvent?.('boundary.stack.key', {
@@ -687,15 +610,6 @@ export async function run_command(game, ch, opts = {}) {
                 boundary: true,
             };
         }
-    } else if (topBoundary
-        && topBoundary.owner === 'more'
-        && typeof topBoundary.onKey === 'function') {
-        game?.emitDiagnosticEvent?.('boundary.stack.key', {
-            key: chCode,
-            owner: 'more',
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        return await handleMoreBoundaryKey();
     } else if (topBoundary
         && topBoundary.owner === 'prompt'
         && typeof topBoundary.onKey === 'function') {
@@ -716,23 +630,6 @@ export async function run_command(game, ch, opts = {}) {
         return { tookTime: false, moved: false, prompt: true };
     }
 
-    // SYNCLOCK S1: no-owner pending --More-- is an ownership violation.
-    // Strict mode fails loud; default mode keeps compatibility auto-sync.
-    if (game.display && game.display._pendingMore) {
-        game?.emitDiagnosticEvent?.('boundary.more.owner-missing', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        if (strictMoreOwnerMode()) {
-            return { tookTime: false, moved: false, boundary: true };
-        }
-        game?.emitDiagnosticEvent?.('boundary.more.fallback-no-owner', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        return await handleMoreBoundaryKey();
-    }
-
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
     // each command cycle, C clears the previous turn's topline message.
     // The old message text is "remembered" (pushed to history) and the
@@ -745,11 +642,10 @@ export async function run_command(game, ch, opts = {}) {
         || (chCode === 48 && game.countAccum != null);
     const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
     const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
-    if (!_isCountDigit && game.display && game.display.topMessage && !game.display._pendingMore) {
+    if (!_isCountDigit && game.display && game.display.topMessage) {
         game.display.clearRow(0);
         game.display.topMessage = null;
         game.display.messageNeedsMore = false;
-        game.display._nonBlockingMore = false;
     }
 
     if (game?._tempNoConcatMessages
@@ -840,7 +736,7 @@ export async function run_command(game, ch, opts = {}) {
     }
     // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
     // u.utotype is set.
-    if (game?.player?.utotype && !game.display?._pendingMore) {
+    if (game?.player?.utotype) {
         await deferred_goto((game.u || game.player), game);
     }
 
@@ -1529,23 +1425,20 @@ export class NetHackGame {
         const topBoundary = this.peekInputBoundary();
         const boundaryDepth = Array.isArray(this._inputBoundaryStack) ? this._inputBoundaryStack.length : 0;
         const promptActive = !!(this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function');
-        const morePending = !!display?._pendingMore;
         const menuActive = !!hasActiveTextPopupWindow();
         const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
-        const queueLen = Array.isArray(display?._messageQueue) ? display._messageQueue.length : 0;
         const ackRequired = !!display?.messageNeedsMore;
         const execState = getCommandExecState(this);
         let boundaryKind = 'none';
-        if (morePending) boundaryKind = 'more';
-        else if (promptActive) boundaryKind = 'prompt';
+        if (promptActive) boundaryKind = 'prompt';
         else if (menuActive) boundaryKind = 'menu';
         else if (topBoundary) boundaryKind = 'stack';
         else if (waitingRaw) boundaryKind = 'input';
         return {
-            waitingForInput: morePending || promptActive || menuActive || !!topBoundary || waitingRaw,
+            waitingForInput: promptActive || menuActive || !!topBoundary || waitingRaw,
             boundaryKind,
             source: boundaryKind,
-            pendingCount: queueLen,
+            pendingCount: 0,
             ackRequired,
             stackOwner: topBoundary?.owner || null,
             stackDepth: boundaryDepth,
@@ -2017,8 +1910,7 @@ export class NetHackGame {
         const player = this.player;
         const msgid = this.getQuestPortalMsgId(previousDnum);
         if (!msgid || !player) return;
-        const suppressForPendingMore = !!this.display?._pendingMore;
-        if (opts?.suppressOutputForLvltport || suppressForPendingMore) {
+        if (opts?.suppressOutputForLvltport) {
             // C ref: do.c sets qcalled before com_pager("quest_portal").
             // Even when we suppress output at lvltport boundaries for capture
             // parity, preserve the quest state transition.
@@ -2100,16 +1992,7 @@ export class NetHackGame {
         this.fov.compute(this.map, this.player.x, this.player.y, do_light_sources, this.player);
         this.display.renderMap(this.map, this.player, this.fov, this.flags);
         this.display.renderStatus(this.player);
-        // C ref: docrt() puts cursor on player, but if a --More-- is pending
-        // on the topline (player fell down shaft, etc.), the cursor must sit
-        // at the end of the --More-- text, not on the player tile.
-        if (this.display._nonBlockingMore
-            && !this.display._pendingMoreNoCursor
-            && this.display) {
-            this.display.renderMoreMarker();
-        } else {
-            this.display.cursorOnPlayer(this.player);
-        }
+        this.display.cursorOnPlayer(this.player);
     }
 
     // Render input-blocked UI state (for example active text popups) without

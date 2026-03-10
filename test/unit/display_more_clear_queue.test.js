@@ -1,70 +1,59 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { Display } from '../../js/display.js';
+import { HeadlessDisplay } from '../comparison/session_helpers.js';
 
-test('Display._clearMore resumes at most one queued message per dismissal', async () => {
-    const queued = ['first queued', 'second queued'];
-    const shown = [];
-    const fakeDisplay = {
-        _moreBoundaryToken: null,
-        _inputBoundaryRuntime: null,
-        _pendingMore: true,
-        _pendingMoreNoCursor: true,
-        _messageQueue: queued.slice(),
-        _topMessageRow1: undefined,
-        messageNeedsMore: true,
-        topMessage: 'old',
-        clearRow: () => {},
-        async putstr_message(msg) {
-            shown.push(msg);
+function makeBlockingNhgetch() {
+    const waiters = [];
+    return {
+        nhgetch: () => new Promise((resolve) => waiters.push(resolve)),
+        push(ch) {
+            const resolve = waiters.shift();
+            if (resolve) resolve(ch);
         },
     };
+}
 
-    await Display.prototype._clearMore.call(fakeDisplay);
+test('putstr_message blocks on overflow until --More-- dismissal key', async () => {
+    const display = new HeadlessDisplay();
+    display.cols = 40;
+    const input = makeBlockingNhgetch();
+    display.setNhgetch(input.nhgetch);
 
-    assert.equal(fakeDisplay._pendingMore, false);
-    assert.equal(fakeDisplay._pendingMoreNoCursor, false);
-    assert.equal(fakeDisplay.messageNeedsMore, false);
-    assert.equal(fakeDisplay.topMessage, null);
-    assert.deepEqual(shown, ['first queued']);
-    assert.deepEqual(fakeDisplay._messageQueue, ['second queued']);
-});
+    await display.putstr_message('1234567890123456789012345');
 
-test('Display._clearMore awaits queued putstr_message completion', async () => {
-    let resolveQueued;
-    const finished = [];
-    const fakeDisplay = {
-        _moreBoundaryToken: null,
-        _inputBoundaryRuntime: null,
-        _pendingMore: true,
-        _pendingMoreNoCursor: false,
-        _messageQueue: ['queued'],
-        _topMessageRow1: undefined,
-        messageNeedsMore: true,
-        topMessage: 'old',
-        clearRow: () => {},
-        putstr_message() {
-            return new Promise((resolve) => {
-                resolveQueued = () => {
-                    finished.push('queued-done');
-                    resolve();
-                };
-            });
-        },
-    };
-
-    let returned = false;
-    const clearPromise = Display.prototype._clearMore.call(fakeDisplay).then(() => {
-        returned = true;
+    let finished = false;
+    const p = display.putstr_message('abcdefghij').then(() => {
+        finished = true;
     });
 
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(returned, false);
-    assert.deepEqual(finished, []);
+    assert.equal(finished, false, 'message should still be waiting on --More--');
 
-    resolveQueued();
-    await clearPromise;
-    assert.equal(returned, true);
-    assert.deepEqual(finished, ['queued-done']);
+    input.push(32); // space
+    await p;
+    assert.equal(finished, true);
+});
+
+test('putstr_message ignores non-dismiss keys while waiting at --More--', async () => {
+    const display = new HeadlessDisplay();
+    display.cols = 40;
+    const input = makeBlockingNhgetch();
+    display.setNhgetch(input.nhgetch);
+
+    await display.putstr_message('1234567890123456789012345');
+
+    let finished = false;
+    const p = display.putstr_message('abcdefghij').then(() => {
+        finished = true;
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    input.push('a'.charCodeAt(0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(finished, false, 'non-dismiss key must not clear --More--');
+
+    input.push(27); // ESC dismisses
+    await p;
+    assert.equal(finished, true);
 });

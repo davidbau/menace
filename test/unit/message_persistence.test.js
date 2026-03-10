@@ -1,114 +1,74 @@
-// Test message display persistence
-// Verifies that messages persist until replaced by new messages
-// Regression test for bug where clearRow(0) was called before every input (fixed in commit 450d02a)
 import { describe, test } from 'node:test';
-import assert from 'assert';
+import assert from 'node:assert/strict';
 import { HeadlessDisplay } from '../comparison/session_helpers.js';
 
+function makeBlockingNhgetch() {
+    const waiters = [];
+    const queued = [];
+    return {
+        nhgetch: () => {
+            if (queued.length > 0) {
+                return Promise.resolve(queued.shift());
+            }
+            return new Promise((resolve) => waiters.push(resolve));
+        },
+        push(ch) {
+            const resolve = waiters.shift();
+            if (resolve) {
+                resolve(ch);
+            } else {
+                queued.push(ch);
+            }
+        },
+    };
+}
+
 describe('message persistence', () => {
+    test('short message remains visible until replaced', async () => {
+        const display = new HeadlessDisplay(80, 24);
+        await display.putstr_message('First message');
+        assert.equal(display.topMessage, 'First message');
+        await display.putstr_message('Second');
+        assert.equal(display.topMessage, 'First message  Second');
+    });
 
-test('message display: messages persist until replaced', () => {
-    const display = new HeadlessDisplay(80, 24);
+    test('overflow waits for dismissal before proceeding', async () => {
+        const display = new HeadlessDisplay();
+        display.cols = 40;
+        const input = makeBlockingNhgetch();
+        display.setNhgetch(input.nhgetch);
 
-    // Display first long message (must fit in 80 cols so topMessage stores full msg)
-    const longMsg1 = 'The grid bug hits you multiple times with critical damage from its attack!';
-    display.putstr_message(longMsg1);
-    assert.strictEqual(display.topMessage, longMsg1,
-        'First message should be stored in topMessage');
+        await display.putstr_message('1234567890123456789012345');
+        let done = false;
+        const p = display.putstr_message('You strike back with your enchanted weapon.').then(() => {
+            done = true;
+        });
 
-    // Display second long message - triggers --More-- (too long to concatenate)
-    const longMsg2 = 'You kill the grid bug with a mighty blow that echoes through the dungeon!';
-    display.putstr_message(longMsg2);
-    assert.strictEqual(display._pendingMore, true,
-        'Overflow should trigger --More--');
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        assert.equal(done, false);
+        input.push(32);
+        input.push(32);
+        input.push(32);
+        await p;
+        assert.equal(done, true);
+    });
 
-    // After clearing --More--, second message replaces first
-    display._clearMore();
-    assert.strictEqual(display.topMessage, longMsg2,
-        'Long second message should replace first after --More-- cleared');
+    test('death message blocks until dismissal', async () => {
+        const display = new HeadlessDisplay(80, 24);
+        const input = makeBlockingNhgetch();
+        display.setNhgetch(input.nhgetch);
+
+        await display.putstr_message('The orc hits!');
+        let done = false;
+        const p = display.putstr_message('You die...').then(() => {
+            done = true;
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        assert.equal(done, false);
+        input.push(32);
+        input.push(32);
+        await p;
+        assert.equal(done, true);
+    });
 });
-
-test('message display: short messages concatenate', () => {
-    const display = new HeadlessDisplay(80, 24);
-
-    // Short first message
-    display.putstr_message('You hit.');
-    assert.strictEqual(display.topMessage, 'You hit.');
-
-    // Short second message that fits on same line
-    display.putstr_message('It misses.');
-    // C NetHack concatenates with double-space when both fit
-    assert.strictEqual(display.topMessage, 'You hit.  It misses.',
-        'Short messages should concatenate with double-space');
-});
-
-test('message display: regression test for clearRow bug', () => {
-    const display = new HeadlessDisplay(80, 24);
-
-    // This test verifies the fix for the bug where clearRow(0) was called
-    // before every input in the game loop, clearing messages before players
-    // could see them.
-
-    // Set a long message that won't concatenate
-    const longMsg = 'The grid bug hits you with a devastating attack dealing 15 points of damage!';
-    display.putstr_message(longMsg);
-    assert.strictEqual(display.topMessage, longMsg);
-
-    // Display another long message — triggers --More--
-    const longMsg2 = 'You strike back at the grid bug with your enchanted weapon dealing damage!';
-    display.putstr_message(longMsg2);
-    assert.strictEqual(display._pendingMore, true,
-        'Overflow should trigger --More--');
-
-    // After clearing --More--, new message replaces old
-    display._clearMore();
-    assert.strictEqual(display.topMessage, longMsg2,
-        'New long message should replace old message after --More-- cleared');
-});
-
-test('message display: death messages never concatenate', () => {
-    const display = new HeadlessDisplay(80, 24);
-
-    display.putstr_message('The orc hits!');
-    assert.strictEqual(display.topMessage, 'The orc hits!');
-
-    // "You die" should NOT concatenate — it triggers --More-- first
-    display.putstr_message('You die...');
-    // Death message staged behind --More--
-    assert.strictEqual(display._pendingMore, true,
-        'Death messages should trigger --More-- boundary');
-    assert.strictEqual(display._messageQueue[0], 'You die...',
-        'Death message should be queued');
-    // After clearing --More--, death message appears
-    display._clearMore();
-    assert.strictEqual(display.topMessage, 'You die...',
-        'Death message should show after --More-- dismissed');
-});
-
-test('message display: topMessage tracks current message state', () => {
-    const display = new HeadlessDisplay(80, 24);
-
-    // No message initially (null in HeadlessDisplay)
-    assert.ok(display.topMessage === null || display.topMessage === undefined,
-        'topMessage should be null or undefined initially');
-
-    // First message
-    display.putstr_message('First message');
-    assert.strictEqual(display.topMessage, 'First message');
-
-    // Second short message concatenates
-    display.putstr_message('Second msg');
-    assert.strictEqual(display.topMessage, 'First message  Second msg');
-
-    // Long message triggers --More-- (combined would overflow)
-    const longMsg = 'This is a very long message that will not concatenate because it exceeds';
-    display.putstr_message(longMsg);
-    assert.strictEqual(display._pendingMore, true,
-        '--More-- should be pending after overflow');
-
-    // After clearing, long message is displayed
-    display._clearMore();
-    assert.strictEqual(display.topMessage, longMsg);
-});
-
-}); // describe

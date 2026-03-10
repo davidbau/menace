@@ -583,6 +583,8 @@ temporarily under Gate B).
 non-blocking fallback state. They were useful while replay/harness paths still
 dispatched keys through boundary owners, but they are no longer aligned with
 the strict async single-threaded model.
+This phase is explicit cleanup work: removing historical compatibility/fallback
+paths so `more()` and `nhgetch()` are the only gameplay input boundaries.
 
 **Target state**:
 

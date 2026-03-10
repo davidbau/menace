@@ -685,9 +685,7 @@ export async function handleDrop(player, map, display) {
         });
     };
     while (true) {
-        if (!display?._pendingMore) {
-            replacePromptMessage();
-        }
+        replacePromptMessage();
         if (countMode && countDigits.length > 1) {
             await display.putstr_message(`Count: ${countDigits}`);
         } else {
@@ -998,8 +996,11 @@ export async function doddrop(player, map, display) {
 
 async function waitForStairMessageAck(display, player = null) {
     // C ref: do.c goto_level() message path.
-    if (!display?._moreBlockingEnabled) return;
-    await more(display, { site: 'do.stair-ack', forceVisual: true });
+    // Only block when a --More-- boundary is actually pending.
+    // This avoids forcing an extra input read for short, non-overflow messages.
+    if (display?.messageNeedsMore) {
+        await more(display, { site: 'do.stair-ack', forceVisual: true });
+    }
     void player;
     return;
 }

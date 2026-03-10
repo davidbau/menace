@@ -7,6 +7,8 @@
 Phase 5 (self-play) running in parallel. Phase 2 parity burndown is complete at
 the current checkpoint; active execution on `main` is short cleanup plus
 CODEMATCH coverage expansion while preserving full-green parity.
+Active cleanup campaign: `docs/ASYNC_CLEANUP.md` (currently Phase 3e,
+removing legacy `_pendingMore`/queued-`--More--` fallback paths).
 
 **Context:** [README.md](README.md) explains what Royal Jelly is, why NetHack
 matters, and the intersection of the 3.7.0 release moment with AI-assisted
