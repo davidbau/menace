@@ -1761,7 +1761,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 231 | `engr_at` | engrave.js:engr_at | Aligned |
 | 297 | `engr_can_be_felt` | engrave.js:306 | Implemented |
 | 1625 | `engr_stats` | engrave.js:723 | Implemented |
-| 1266 | `engrave` | - | Missing |
+| 1266 | `engrave` | engrave.js:628 | Implemented |
 | 1523 | `engraving_sanity_check` | engrave.js:696 | Implemented |
 | 1731 | `feel_engraving` | engrave.js:805 | Implemented |
 | 1508 | `forget_engravings` | engrave.js:684 | Implemented |
@@ -1770,10 +1770,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1686 | `make_grave` | engrave.js:755 | Implemented |
 | 51 | `random_engraving` | engrave.js:854 | Implemented |
 | 318 | `read_engr_at` | engrave.js:381 | Implemented |
-| 1583 | `rest_engravings` | - | Missing |
+| 1583 | `rest_engravings` | engrave.js:715 | Implemented |
 | 1666 | `rloc_engr` | engrave.js:740 | Implemented |
 | 1497 | `sanitize_engravings` | engrave.js:672 | Implemented |
-| 1550 | `save_engravings` | - | Missing |
+| 1550 | `save_engravings` | engrave.js:709 | Implemented |
 | 1723 | `see_engraving` | engrave.js:799 | Implemented |
 | 251 | `sengr_at` | engrave.js:284 | Implemented |
 | 481 | `stylus_ok` | engrave.js:457 | Implemented |
@@ -5215,10 +5215,10 @@ Remaining parity gaps are mostly behavioral depth:
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 38 | `gettrack` | track.js:32 | Implemented |
-| 59 | `hastrack` | - | Missing |
+| 59 | `hastrack` | track.js:47 | Implemented |
 | 15 | `initrack` | track.js:15 | Implemented |
-| 89 | `rest_track` | - | Missing |
-| 72 | `save_track` | - | Missing |
+| 89 | `rest_track` | track.js:66 | Implemented |
+| 72 | `save_track` | track.js:56 | Implemented |
 | 24 | `settrack` | track.js:22 | Implemented |
 
 ### trap.c -> trap.js

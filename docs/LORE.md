@@ -6410,3 +6410,47 @@ hard-won wisdom:
     - end row: `odds_and_ends` Missing -> explicit `N/A` with upstream `#if 0` rationale
 - Validation:
   - `node --test test/unit/codematch_multi_surface.test.js` passed.
+
+### CODEMATCH engrave.c closure slice: missing persistence/occupation surfaces (2026-03-10)
+
+- Problem:
+  - `engrave.c -> engrave.js` still had 3 missing rows:
+    `engrave`, `save_engravings`, `rest_engravings`.
+- Change:
+  - Added explicit C-name surfaces in `js/engrave.js`:
+    - `engrave()` exported occupation callback surface (current stub behavior
+      unchanged).
+    - `save_engravings(map)` snapshot serializer for engraving list.
+    - `rest_engravings(map, saved)` round-trip restore + sanitation.
+  - Added focused tests in `test/unit/engrave_surface.test.js`.
+  - Updated `docs/CODEMATCH.md` engrave rows from `Missing` to `Implemented`.
+- Validation:
+  - `node --test test/unit/engrave_surface.test.js test/unit/command_engrave_prompt.test.js test/unit/engrave_wipe_event.test.js`
+    passed (5/5).
+
+### CODEMATCH multi-file closure slice: engrave.c + track.c remaining missing rows (2026-03-10)
+
+- Problem:
+  - `engrave.c` still had 3 missing rows (`engrave`, `save_engravings`,
+    `rest_engravings`).
+  - `track.c` still had 3 missing rows (`hastrack`, `save_track`,
+    `rest_track`), with `save/rest` functions still using broken
+    autotranslated C I/O helpers.
+- Change:
+  - In `js/engrave.js`:
+    - Exported `engrave()` occupation surface (stub behavior unchanged).
+    - Added `save_engravings(map)` and `rest_engravings(map, saved)` as
+      architecture-faithful JS persistence surfaces.
+  - In `js/track.js`:
+    - Implemented `save_track(nhfp)` and `rest_track(nhfp)` using JS snapshot
+      state (`nhfp.trackState`) with bounds checks and optional `releaseData`
+      reset semantics.
+    - `hastrack` row was stale; function already present and now marked
+      implemented in ledger.
+  - Added tests:
+    - `test/unit/engrave_surface.test.js`
+    - `test/unit/track_surface.test.js`
+  - Updated `docs/CODEMATCH.md` rows for both files to `Implemented`.
+- Validation:
+  - `node --test test/unit/engrave_surface.test.js test/unit/command_engrave_prompt.test.js test/unit/engrave_wipe_event.test.js test/unit/track_surface.test.js`
+    passed (8/8).

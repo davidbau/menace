@@ -625,7 +625,7 @@ export async function handleEngrave(player, display) {
 // Gradually engraves text char by char; handles stylus wear and marker ink.
 // NOTE: Full implementation requires the occupation system (set_occupation).
 // This is a stub that preserves the interface.
-function engrave_occupation() {
+export function engrave() {
     // Stub: occupation callback not yet implemented.
     // Would handle char-by-char engraving, stylus dulling, marker ink usage.
     return 0; // finished
@@ -706,10 +706,17 @@ export function engraving_sanity_check(map) {
 }
 
 // cf. engrave.c:1550 — save_engravings(nhfp): serialize engravings
-// N/A: engrave.c:1550 — save_engravings() (JS uses storage.js)
+export function save_engravings(map) {
+    const list = Array.isArray(map?.engravings) ? map.engravings : [];
+    return list.map((e) => ({ ...e }));
+}
 
 // cf. engrave.c:1583 — rest_engravings(nhfp): deserialize engravings
-// N/A: engrave.c:1583 — rest_engravings() (JS uses storage.js)
+export function rest_engravings(map, saved) {
+    if (!map) return;
+    map.engravings = Array.isArray(saved) ? saved.map((e) => ({ ...e })) : [];
+    sanitize_engravings(map);
+}
 
 // cf. engrave.c:1625 — engr_stats(hdrfmt, hdrbuf, count, size): engraving stats
 // Calculates statistics for engraving data.
