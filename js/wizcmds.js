@@ -659,13 +659,19 @@ export function migrsort_cmp(vptr1, vptr2) {
 
 // Autotranslated from wizcmds.c:445
 export async function wiz_level_change(player) {
-  let buf, dummy = '\x00', newlevel = 0, ret;
-  buf[0] = '\x00';
-  await getlin("To what experience level do you want to be set?", buf);
-  mungspaces(buf);
-  if (buf[0] === '\x1b' || buf[0] === '\x00') ret = 0;
+  let newlevel = 0, ret;
+  let buf = await getlin("To what experience level do you want to be set?");
+  if (typeof buf === 'string') buf = buf.trim();
+  if (!buf || buf[0] === '\x1b') ret = 0;
   else {
-    ret = sscanf(buf, "%d%c", newlevel, dummy);
+    // C: sscanf(buf, "%d%c", newlevel, dummy) — parse int, reject trailing chars
+    let match = buf.match(/^(-?\d+)(.*)/);
+    if (match) {
+      newlevel = parseInt(match[1], 10);
+      ret = match[2].length > 0 ? 2 : 1; // ret=2 means trailing chars (invalid)
+    } else {
+      ret = 0;
+    }
   }
   if (ret !== 1) { pline1(Never_mind); return ECMD_OK; }
   if (newlevel === player.ulevel) { await You("are already that experienced."); }

@@ -681,7 +681,7 @@ export function optfn_pile_limit(optidx, req, negated, opts, op, game) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) {
     op = string_for_opt(opts, negated);
-    if ((negated && op === empty_optstr) || (!negated && op !== empty_optstr)) game.flags.pile_limit = negated ? 0 : atoi(op);
+    if ((negated && op === empty_optstr) || (!negated && op !== empty_optstr)) game.flags.pile_limit = negated ? 0 : parseInt(op, 10);
     else if (negated) { bad_negation(allopt[optidx].name, true); return optn_err; }
     else {
       game.flags.pile_limit = PILE_LIMIT_DFLT;
@@ -1045,8 +1045,11 @@ export function msgtype_count() {
 
 // Autotranslated from options.c:7858
 export function msgtype_parse_add(str) {
-  let pattern, msgtype;
-  if (sscanf(str, "%10s \"%255[^\"]\"", msgtype, pattern) === 2) {
+  // C: sscanf(str, "%10s \"%255[^\"]\"", msgtype, pattern)
+  // Parses: 'typename "pattern"'
+  let match = str.match(/^(\S{1,10})\s+"([^"]{0,255})"/);
+  if (match) {
+    let msgtype = match[1], pattern = match[2];
     let typ = -1, i;
     for (i = 0; i < SIZE(msgtype_names); i++) {
       if (str_start_is(msgtype_names[i].name, msgtype, true)) { typ = msgtype_names[i].msgtyp; break; }

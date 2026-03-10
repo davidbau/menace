@@ -242,12 +242,13 @@ export function init_oracles(fp) {
   let i, line, cnt = 0;
   dlb_fgets(line, line.length, fp);
   dlb_fgets(line, line.length, fp);
-  if (sscanf(line, "%5d\n", cnt) === 1 && cnt > 0) {
-    svo.oracle_cnt =  cnt;
+  cnt = parseInt(line, 10);
+  if (!isNaN(cnt) && cnt > 0) {
+    svo.oracle_cnt = cnt;
     svo.oracle_loc = new Array(cnt).fill(0);
     for (i = 0; i < cnt; i++) {
       dlb_fgets(line, line.length, fp);
-      sscanf(line, "%5lx\n", svo.oracle_loc[i]);
+      svo.oracle_loc[i] = parseInt(line, 16);
     }
   }
   return;
