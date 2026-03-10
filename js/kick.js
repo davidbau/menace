@@ -44,12 +44,9 @@ export async function handleKick(player, map, display, game) {
         await legs_in_no_shape("kicking", false, player);
         // C ref: dokick.c:1314 — display_nhwindow(WIN_MESSAGE, TRUE)
         // Consume a key for --More-- to match C's step boundary.
-        if (display?.renderMoreMarker) display.renderMoreMarker();
-        if (display?.morePrompt) {
-            await more(display, { game,
-                site: 'kick.handleKick.woundedLegs.morePrompt',
-            });
-        }
+        await more(display, { game,
+            site: 'kick.handleKick.woundedLegs.morePrompt',
+        });
         return { moved: false, tookTime: false };
     }
     await display.putstr_message('In what direction? ');

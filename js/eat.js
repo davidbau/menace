@@ -1924,9 +1924,6 @@ async function handleEat(player, display, game) {
                 // until Space/Enter/Esc; in wizard mode it silently re-prompts.
                 if (!player.wizard) {
                     await display.putstr_message("You don't have that object.");
-                    if (typeof display.renderMoreMarker === 'function') {
-                        display.renderMoreMarker();
-                    }
                     await more(display, { game, site: 'eat.handleEat.moreDismiss' });
                 }
                 continue;

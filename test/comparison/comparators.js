@@ -719,10 +719,14 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             // false divergences on monsters killed/failed during level generation.
             const jField = (section === 'M')
                 ? (jParsed[field] || []).filter((m) => m[3] !== 0)
-                : jParsed[field];
+                : (section === 'N')
+                    ? (jParsed[field] || []).filter((m) => m[4] !== 0)
+                    : jParsed[field];
             const sField = (section === 'M')
                 ? (sParsed[field] || []).filter((m) => m[3] !== 0)
-                : sParsed[field];
+                : (section === 'N')
+                    ? (sParsed[field] || []).filter((m) => m[4] !== 0)
+                    : sParsed[field];
             const sparseCmp = compareMapdumpSparse(jField, sField);
             if (!sparseCmp.match) {
                 idMatch = false;

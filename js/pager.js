@@ -9,7 +9,7 @@ import {
     STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL, TER_MAP,
 } from './const.js';
 import { def_monsyms } from './symbols.js';
-import { more, nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
+import { more, nhgetch_raw, ynFunction } from './input.js';
 import { CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
@@ -352,7 +352,6 @@ export async function dolook(game) {
 
             if (sensed) {
                 await display.putstr_message(typeMsg);
-                if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
                 await more(display, {
                     site: 'pager.handleLook.readEngraving.morePrompt',
                 });
@@ -1050,19 +1049,7 @@ export async function handleWhatdoes(game) {
 
     if (!whatdoesIntroShown) {
         await display.putstr_message("Ask about '&' or '?' to get more info.");
-        if (typeof display?.renderMoreMarker === 'function') {
-            display.renderMoreMarker();
-        }
-        if (typeof display?._waitForMoreDismissKey === 'function') {
-            await display._waitForMoreDismissKey(nhgetch_wrap);
-            if (typeof display?._clearMore === 'function') {
-                await display._clearMore();
-            } else {
-                if (typeof display?.clearRow === 'function') display.clearRow(0);
-                if (Object.hasOwn(display || {}, 'messageNeedsMore')) display.messageNeedsMore = false;
-                if (Object.hasOwn(display || {}, 'topMessage')) display.topMessage = null;
-            }
-        }
+        await more(display, { site: 'pager.whatdoes.intro.more' });
         whatdoesIntroShown = true;
     }
 

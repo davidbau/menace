@@ -327,8 +327,8 @@ export async function replaySession(seed, opts, keys) {
             }
         } else {
             const commandPromise = (ch === 1)
-                ? execute_repeat_command(game, { renderAfterCommand: true })
-                : run_command(game, ch, { renderAfterCommand: true });
+                ? execute_repeat_command(game)
+                : run_command(game, ch);
             const settled = await drainUntilInput(commandPromise, game.input);
             if (!settled.done) {
                 pendingCommand = commandPromise;

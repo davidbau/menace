@@ -551,7 +551,7 @@ export async function readBoundaryKey(display, site, game = null) {
     return await awaitInput(game, nhgetch_wrap({ handleMore: false }), { site });
 }
 
-export async function more(display, { site = 'input.more', game = null } = {}) {
+export async function more(display, { site = 'input.more', game = null, forceVisual = false, defer = false, noCursor = false } = {}) {
     if (!display) return;
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = () => nhgetch_raw({
@@ -559,12 +559,22 @@ export async function more(display, { site = 'input.more', game = null } = {}) {
         site: `${site}.key`,
     });
 
-    if (typeof display.morePrompt === 'function') {
-        return display.morePrompt(readMoreKey);
+    if (forceVisual && typeof display.renderMoreMarker === 'function') {
+        display.renderMoreMarker();
     }
 
-    if (typeof display.renderMoreMarker === 'function') {
-        display.renderMoreMarker();
+    if (defer) {
+        if (typeof display.markMorePending === 'function') {
+            display.markMorePending({ source: site });
+        }
+        if (noCursor && Object.hasOwn(display, '_pendingMoreNoCursor')) {
+            display._pendingMoreNoCursor = true;
+        }
+        return;
+    }
+
+    if (typeof display.morePrompt === 'function') {
+        return display.morePrompt(readMoreKey);
     }
 
     if (display._pendingMore && typeof display._clearMore === 'function') {

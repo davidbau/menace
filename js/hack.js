@@ -35,7 +35,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
          ARROW, DART, SCR_SCARE_MONSTER } from './objects.js';
-import { nhgetch_raw } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
 import { x_monnam, y_monnam, YMonnam, Monnam, mon_nam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_human, is_rider, is_clinger, DEADMONSTER } from './mondata.js';
@@ -1212,9 +1212,11 @@ export async function domove_core(dir, player, map, display, game) {
             // before the level transition redraw.
             if (display && typeof display.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
-                display.markMorePending({ source: 'hack.fall-through' });
-                if (game) game._pendingDeferredTurnAfterMore = true;
             }
+            if (display && typeof display.markMorePending === 'function') {
+                display.markMorePending({ source: 'hack.fall-through' });
+            }
+            if (game) game._pendingDeferredTurnAfterMore = true;
             const currentDepth = Number.isInteger(player?.dungeonLevel)
                 ? player.dungeonLevel
                 : (Number.isInteger(map?._genDlevel) ? map._genDlevel : 1);

@@ -339,9 +339,6 @@ async function maybeFlushToplineBeforeMessage(display, msg, game) {
     const cols = Number.isInteger(display.cols) ? display.cols : 80;
     const combined = `${prior}  ${String(msg || '')}`;
     if (combined.length + 9 < cols) return;
-    if (typeof display.renderMoreMarker === 'function') {
-        display.renderMoreMarker();
-    }
     await more(display, { game,
         site: 'mthrowu.maybeFlushToplineBeforeMessage.morePrompt',
     });
@@ -660,9 +657,7 @@ export async function m_throw_timed(
             if (impact.stop) {
                 if (display
                     && typeof display.morePrompt === 'function'
-                    && typeof display.renderMoreMarker === 'function'
                     && (display.topMessage || '').includes('  ')) {
-                    display.renderMoreMarker();
                     await more(display, { game,
                         site: 'mthrowu.m_throw.impact.morePrompt',
                     });

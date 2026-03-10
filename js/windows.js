@@ -2,7 +2,7 @@ import { strchr } from './hacklib.js';
 // windows.js -- NetHack windowing abstraction layer
 // Mirrors src/windows.c + win/tty/wintty.c + win/tty/topl.c
 
-import { nhgetch_wrap as defaultNhgetch } from './input.js';
+import { nhgetch_wrap as defaultNhgetch, more } from './input.js';
 import {
     NHW_MESSAGE, NHW_STATUS, NHW_MAP, NHW_MENU, NHW_TEXT, NHW_PERMINVENT,
     PICK_NONE, PICK_ONE, PICK_ANY,
@@ -98,8 +98,7 @@ export async function display_nhwindow(win, blocking) {
     const w = wins[win];
     if (!w) return;
     if (w.type === NHW_MESSAGE && blocking && ttyDisplay.toplin === TOPLINE_NON_EMPTY) {
-        if (_display?.putstr_message) await _display.putstr_message('--More--');
-        await _nhgetch();
+        await more(_display, { site: 'windows.display_nhwindow.message', forceVisual: true });
         ttyDisplay.toplin = TOPLINE_EMPTY;
     }
     // C ref: tty_display_nhwindow NHW_MENU/NHW_TEXT — render text popup
@@ -111,11 +110,7 @@ export async function display_nhwindow(win, blocking) {
         // message with --More-- if toplin is non-empty.  Also check display.messageNeedsMore
         // for messages sent via display.putstr_message() directly (not through putstr()).
         if (blocking && (ttyDisplay.toplin === TOPLINE_NON_EMPTY || _display?.messageNeedsMore)) {
-            if (_display?.renderMoreMarker) _display.renderMoreMarker();
-            while (true) {
-                const ch = await _nhgetch();
-                if (isDismissKey(ch)) break;
-            }
+            await more(_display, { site: 'windows.display_nhwindow.pre-popup', forceVisual: true });
             // Clear row 0 after --More-- dismissal (C: more() clears the topline).
             if (_display?.clearRow) _display.clearRow(0);
             ttyDisplay.toplin = TOPLINE_EMPTY;

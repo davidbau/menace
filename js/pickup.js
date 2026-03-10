@@ -10,7 +10,7 @@ import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
          BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD, LEASH, SCR_SCARE_MONSTER,
          GOLD_PIECE, SADDLE, HORN_OF_PLENTY, SACK, OILSKIN_SACK,
          CLASS_SYMBOLS } from './objects.js';
-import { nhgetch_raw, nhgetch_wrap, getlin, ynFunction } from './input.js';
+import { more, nhgetch_raw, nhgetch_wrap, getlin, ynFunction } from './input.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
          set_corpsenm, start_corpse_timeout, add_to_container, add_to_minv } from './mkobj.js';
 import { observeObject } from './o_init.js';
@@ -1266,12 +1266,7 @@ async function handlePickup(player, map, display, game = null) {
 
         if (encMsg && !combinedFits && game) {
             await display.putstr_message(pickupMsg);
-            if (typeof display?.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-            }
-            if (typeof display?.markMorePending === 'function') {
-                display.markMorePending({ source: 'pickup.encumber.split' });
-            }
+            await more(display, { game, site: 'pickup.encumber.split.more' });
             player._oldcap = newcapVal;
             player.encumbrance = newcapVal;
             game.pendingPrompt = {

@@ -405,9 +405,6 @@ export async function handleThrow(player, map, display) {
         const selItem = player.inventory.find(o => o.invlet === c);
         if (!selItem) {
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-            }
             await more(display, { site: 'dothrow.handleThrow.invalidInvlet.more' });
             replacePromptMessage();
             await display.putstr_message(throwPrompt);
@@ -492,12 +489,7 @@ export async function handleFire(player, map, display, game) {
         // C ref: dothrow.c dofire(): when no quiver and autoquiver is off,
         // emit this message before prompting for what to fire.
         await display.putstr_message('You have no ammunition readied.');
-        if (typeof display?.renderMoreMarker === 'function') {
-            display.renderMoreMarker();
-            if (typeof display?.markMorePending === 'function') {
-                display.markMorePending({ source: 'dothrow.no-quiver' });
-            }
-        }
+        await more(display, { game, site: 'dothrow.no-quiver.more' });
     } else {
         autoquiver(player);
         if (player.quiver && inventory.includes(player.quiver)) {
@@ -508,10 +500,7 @@ export async function handleFire(player, map, display, game) {
             return throwResult;
         }
         await display.putstr_message('You have nothing appropriate for your quiver.');
-        if (typeof display?.renderMoreMarker === 'function') {
-            display.renderMoreMarker();
-            display.markMorePending({ source: 'dothrow.no-autoquiver' });
-        }
+        await more(display, { game, site: 'dothrow.no-autoquiver.more' });
     }
     const isLauncher = (o) => {
         if (o.oclass !== WEAPON_CLASS) return false;
@@ -609,19 +598,11 @@ export async function handleFire(player, map, display, game) {
                 const readyName = doname(selected, player);
                 player.quiver = savedQuiver;
                 await display.putstr_message(`You ready: ${selected.invlet} - ${readyName}.`);
-                if (typeof display?.renderMoreMarker === 'function') {
-                    display.renderMoreMarker();
-                    if (typeof display?.markMorePending === 'function') {
-                        display.markMorePending({ source: 'dothrow.ready-from-fire' });
-                    }
-                }
+                await more(display, { game, site: 'dothrow.ready-from-fire.more' });
             }
             return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true });
         }
         await display.putstr_message("You don't have that object.");
-        if (typeof display?.renderMoreMarker === 'function') {
-            display.renderMoreMarker();
-        }
         await more(display, { game, site: 'dothrow.handleFire.invalidInvlet.more' });
         replacePromptMessage();
         await display.putstr_message(firePrompt);

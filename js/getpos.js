@@ -566,8 +566,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 // window and prematurely renders the popup while the
                 // dismiss-key loop is still waiting for input.
                 if (display.messageNeedsMore) {
-                    display.renderMoreMarker();
-                    await more(display, { site: 'getpos.tip.moreDismiss' });
+                    await more(display, { site: 'getpos.tip.moreDismiss', forceVisual: true });
                 }
                 const tipWin = create_nhwindow(NHW_TEXT);
                 putstr(tipWin, 0, 'Tip: Farlooking or selecting a map location');
@@ -801,14 +800,9 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 // C getpos(force=FALSE) can leave these two plines pending at
                 // --More-- before returning to normal command flow.
                 if (hadUnknownDirection && display?.messageNeedsMore) {
-                    // Headless morePrompt omits renderMoreMarker(); render it
-                    // explicitly so the "--More--" text and cursor position
-                    // match C's screen capture at this point.
-                    if (typeof display.renderMoreMarker === 'function') {
-                        display.renderMoreMarker();
-                    }
                     await more(display, {
                         site: 'getpos.forcefalse.unknown.more',
+                        forceVisual: true,
                     });
                     display.topMessage = null;
                 }

@@ -680,16 +680,10 @@ export async function handleDrop(player, map, display) {
     const showToplineErrorWithMore = async (message, sourceTag) => {
         replacePromptMessage();
         await display.putstr_message(message);
-        if (typeof display?.renderMoreMarker === 'function') {
-            display.renderMoreMarker();
-            if (typeof display?.markMorePending === 'function') {
-                display.markMorePending({ source: sourceTag });
-            }
-        } else if (typeof display?.morePrompt === 'function') {
-            await more(display, {
-                site: 'do.handleDrop.moreBoundary',
-            });
-        }
+        void sourceTag;
+        await more(display, {
+            site: 'do.handleDrop.moreBoundary',
+        });
     };
     while (true) {
         if (!display?._pendingMore) {
@@ -810,9 +804,6 @@ async function showDropCandidates(candidates, display) {
         const needsMore = forceMoreOnSingle || !isLast;
         await display.putstr_message(`${item.invlet} - ${doname(item, null)}.`);
         if (needsMore) {
-            if (typeof display.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-            }
             await more(display, { site: 'do.showDropCandidates.more' });
         }
     }
@@ -1008,12 +999,9 @@ export async function handleDropTypes(player, map, display) {
 // ============================================================
 
 async function waitForStairMessageAck(display, player = null) {
-    // C ref: do.c goto_level() message path:
-    // preserve key-boundary behavior without forcing visible --More-- marker
-    // or cursor relocation on the topline.
+    // C ref: do.c goto_level() message path.
     if (!display?._moreBlockingEnabled) return;
-    display.markMorePending({ source: 'do.stair-ack' });
-    display._pendingMoreNoCursor = true;
+    await more(display, { site: 'do.stair-ack', forceVisual: true });
     void player;
     return;
 }

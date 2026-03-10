@@ -55,7 +55,7 @@ import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeade
 import { startRecording } from './keylog.js';
 import { nhgetch_wrap, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
-         setCmdqRepeatRecordMode } from './input.js';
+         setCmdqRepeatRecordMode, more } from './input.js';
 import { consumePendingMore } from './more_keys.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
 import {
@@ -523,7 +523,6 @@ export async function run_command(game, ch, opts = {}) {
         skipMonsterMove,
         skipTurnEnd = false,
         skipRepeatRecord = false,
-        renderAfterCommand = false,
     } = opts;
 
     const chCode = typeof ch === 'number' ? ch
@@ -641,9 +640,6 @@ export async function run_command(game, ch, opts = {}) {
         }
         const _player = game.u || game.player;
         if (game.display && _player) {
-            if (renderAfterCommand && typeof game.docrt === 'function') {
-                game.docrt();
-            }
             if (typeof game.display.renderStatus === 'function') {
                 game.display.renderStatus(_player);
             }
@@ -738,18 +734,6 @@ export async function run_command(game, ch, opts = {}) {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
         });
-        if (typeof game.display.markMorePending === 'function') {
-            game.display.markMorePending({ source: 'run_command.fallback-sync' });
-            const syncedBoundary = (typeof game?.peekInputBoundary === 'function')
-                ? game.peekInputBoundary()
-                : null;
-            if (syncedBoundary && syncedBoundary.owner === 'more') {
-                game?.emitDiagnosticEvent?.('boundary.more.fallback-synced', {
-                    key: chCode,
-                    boundary: game?.getInputBoundaryState?.() || null,
-                });
-            }
-        }
         return await handleMoreBoundaryKey();
     }
 
@@ -958,8 +942,7 @@ export async function run_command(game, ch, opts = {}) {
         // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
         // because docrt() internally calls cursorOnPlayer which would clobber it.
         if (!result?.isCountDigitWithDisplay) {
-            if (renderAfterCommand
-                && !result?.skipPostCommandDocrt
+            if (!result?.skipPostCommandDocrt
                 && typeof game.docrt === 'function') {
                 game.docrt();
             }
@@ -2099,7 +2082,7 @@ export class NetHackGame {
         // at the end of the --More-- text, not on the player tile.
         if (this.display._nonBlockingMore
             && !this.display._pendingMoreNoCursor
-            && typeof this.display.renderMoreMarker === 'function') {
+            && this.display) {
             this.display.renderMoreMarker();
         } else {
             this.display.cursorOnPlayer(this.player);
