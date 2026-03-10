@@ -14,7 +14,7 @@ import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU, W_ARMOR,
     W_WEP, W_QUIVER, W_SWAPWEP, W_WEAPONS,
     W_AMUL, W_RINGL, W_RINGR, W_RING, W_TOOL, W_ACCESSORY,
-    W_SADDLE, W_BALL, W_CHAIN,
+    W_SADDLE, W_BALL, W_CHAIN, W_ART, W_ARTI, BOLT_LIM,
 } from './const.js';
 import { S_MUMMY, S_CENTAUR,
          PM_SKELETON, PM_HOBBIT, MZ_TINY, MZ_SMALL, MZ_HUMAN, MZ_HUGE,
@@ -73,6 +73,24 @@ const WWALKING    = 50;
 const DISPLACED   = 41;
 const FUMBLING    = 25;
 const JUMPING     = 45;
+
+// ========================================================================
+// recalc_telepat_range — cf. worn.c:50
+// ========================================================================
+export function recalc_telepat_range(player) {
+    if (!player) return -1;
+    let nobjs = 0;
+    for (const wp of WORN_TABLE) {
+        const oobj = player[wp.prop];
+        if (oobj) {
+            const od = objectData[oobj.otyp];
+            if (od && od.oc_oprop === TELEPAT) nobjs++;
+        }
+    }
+    if ((Number(player.ETelepat || 0) & W_ART) !== 0) nobjs++;
+    player.unblind_telepat_range = nobjs ? ((BOLT_LIM * BOLT_LIM) * nobjs) : -1;
+    return player.unblind_telepat_range;
+}
 
 // cf. prop.h res_to_mr macro
 function res_to_mr(r) {
@@ -289,6 +307,41 @@ export function wearslot(obj) {
     default:
         return 0;
     }
+}
+
+// ========================================================================
+// check_wornmask_slots — cf. worn.c:347
+// ========================================================================
+// Returns a list of sanity issues (empty when consistent).
+export function check_wornmask_slots(player) {
+    if (!player) return [];
+    const issues = [];
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    const IGNORE_SLOTS = W_ART | W_ARTI | W_SADDLE | W_BALL | W_CHAIN;
+
+    for (const wp of WORN_TABLE) {
+        const m = wp.mask;
+        if ((m & IGNORE_SLOTS) !== 0 && (m & ~IGNORE_SLOTS) === 0) continue;
+
+        const slotObj = player[wp.prop];
+        if (slotObj) {
+            if (!inv.includes(slotObj)) {
+                issues.push(`${wp.what} not found in inventory`);
+            } else if (((slotObj.owornmask || 0) & m) === 0) {
+                issues.push(`${wp.what} bit not set in owornmask`);
+            } else if (((slotObj.owornmask || 0) & ~(m | IGNORE_SLOTS)) !== 0) {
+                issues.push(`${wp.what} has wrong owornmask bits`);
+            }
+        }
+
+        for (const obj of inv) {
+            if (!obj || obj === slotObj) continue;
+            if (((obj.owornmask || 0) & m) !== 0) {
+                issues.push(`another object claims slot ${wp.what}`);
+            }
+        }
+    }
+    return issues;
 }
 
 // ============================================================================

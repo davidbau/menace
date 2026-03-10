@@ -1,7 +1,7 @@
 // were.js -- Lycanthropy mechanics
 // cf. were.c — lycanthrope form changes, summoning, and player lycanthropy
 
-import { rn2, rnd } from './rng.js';
+import { rn2, rnd, rn1 } from './rng.js';
 import { makemon } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
 import { canseemon } from './mondata.js';
@@ -213,8 +213,56 @@ export function were_summon(ptr, x, y, yours, ctx, map, depth) {
     return { total, visible, genbuf };
 }
 
-// TODO: were.c:192 — you_were(): player changes to lycanthrope beast form (needs polymon)
-// TODO: were.c:213 — you_unwere(): player reverts from beast form or gets cured (needs rehumanize)
+// cf. were.c:192 — you_were(): player changes to lycanthrope beast form
+// JS note: full polymorph-control UX is not yet wired here; caller can supply
+// ctx.polymon(player, mndx) and ctx.monster_nearby() for deeper fidelity.
+export async function you_were(player, ctx = {}) {
+    if (!player) return false;
+    if (player.Unchanging || player.unchanging) return false;
+    if (!Number.isInteger(player.ulycn) || player.ulycn < 0) return false;
+    if (player.umonnum === player.ulycn) return false;
+    if (typeof ctx.monster_nearby === 'function' && ctx.monster_nearby()) return false;
+
+    player.were_changes = Number(player.were_changes || 0) + 1;
+    if (typeof ctx.polymon === 'function') {
+        await ctx.polymon(player, player.ulycn);
+    } else {
+        // Minimal fallback used by tests/non-polymorph contexts.
+        player.umonnum = player.ulycn;
+        if (!(player.mtimedone > 0)) player.mtimedone = rn1(500, 500);
+    }
+    return true;
+}
+
+// cf. were.c:213 — you_unwere(purify): revert hero from lycanthrope beast form
+// JS note: caller can supply ctx.rehumanize(player) and ctx.monster_nearby().
+export async function you_unwere(player, purify, ctx = {}) {
+    if (!player) return false;
+    if (purify) set_ulycn(player, -1);
+
+    const isWereForm = !!(player.umonnum != null
+        && Number.isInteger(player.ulycn) && player.ulycn >= 0
+        && player.umonnum === player.ulycn);
+
+    if (player.Unchanging || player.unchanging) return false;
+
+    if (isWereForm
+        && !(typeof ctx.monster_nearby === 'function' && ctx.monster_nearby())) {
+        if (typeof ctx.rehumanize === 'function') {
+            await ctx.rehumanize(player);
+        } else {
+            player.mtimedone = 0;
+            if (Number.isInteger(player.umonster) && player.umonster >= 0) {
+                player.umonnum = player.umonster;
+            }
+        }
+        return true;
+    }
+    if (isWereForm && !(player.mtimedone > 0)) {
+        player.mtimedone = rn1(200, 200);
+    }
+    return false;
+}
 
 // cf. were.c:232 — set/clear player lycanthropy type
 export function set_ulycn(player, which) {

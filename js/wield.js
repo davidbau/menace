@@ -11,7 +11,9 @@ import { W_WEP, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
 import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
+import { addinv_nomerge } from './invent.js';
 import { acurr } from './attrib.js';
+import { ammo_and_launcher } from './dothrow.js';
 
 // ============================================================
 // 1. Slot setters
@@ -181,6 +183,30 @@ async function drop_uswapwep(player, display) {
     // Full drop handling would need floor placement.
 }
 
+// C ref: wield.c:289 — ready_ok(obj): getobj callback for quiver selection.
+// Return values mirror GETOBJ_* tri-state used across command filters:
+// 0 = exclude, 1 = suggest, 2 = downplay.
+export function ready_ok(obj, player) {
+    if (!obj) return player?.quiver ? 1 : 2;
+
+    if (obj === player?.weapon || (obj === player?.swapWeapon && player?.twoweap)) {
+        return (Number(obj.quan || 0) === 1) ? 2 : 1;
+    }
+
+    const od = objectData[obj.otyp] || {};
+    const likelyLauncher = !!od.launcher || Number(od.oc_subtyp || 0) < 0;
+    if (od.ammo) {
+        const matched = !!((player?.weapon && ammo_and_launcher(obj, player.weapon))
+            || (player?.swapWeapon && ammo_and_launcher(obj, player.swapWeapon)));
+        return matched ? 1 : 2;
+    } else if (likelyLauncher) {
+        return 2;
+    }
+
+    if (obj.oclass === WEAPON_CLASS || obj.oclass === COIN_CLASS) return 1;
+    return 2;
+}
+
 // cf. wield.c:836 — dotwoweapon(): #twoweapon command
 async function handleTwoWeapon(player, display, game = null) {
     void game;
@@ -196,6 +222,21 @@ async function handleTwoWeapon(player, display, game = null) {
         return { moved: false, tookTime: rnd(20) > acurr(player, A_DEX) };
     }
     return { moved: false, tookTime: false };
+}
+
+// C ref: wield.c:341 — finish_splitting(obj)
+// Split stack object gets its own inventory identity/slot.
+export async function finish_splitting(obj, player, _parentObj = null) {
+    if (!obj || !player) return obj;
+    // Ensure split object can receive a fresh invlet assignment.
+    if (Object.prototype.hasOwnProperty.call(obj, 'invlet')) obj.invlet = undefined;
+    if (typeof player.addToInventory === 'function') {
+        await addinv_nomerge(obj, player);
+        return obj;
+    }
+    if (!Array.isArray(player.inventory)) player.inventory = [];
+    if (!player.inventory.includes(obj)) player.inventory.push(obj);
+    return obj;
 }
 
 // ============================================================
@@ -591,12 +632,8 @@ async function handleQuiver(player, display) {
 
     // C ref: wield.c ready_ok() — suggest ammo, missiles, gems; downplay launchers
     const quiverEligible = inventory.filter((obj) => {
-        if (!obj) return false;
-        if (obj === player.weapon) return false;
-        if (obj.oclass === WEAPON_CLASS) return true;
-        if (obj.oclass === GEM_CLASS) return true;
-        if (obj.oclass === TOOL_CLASS) return true;
-        return false;
+        const verdict = ready_ok(obj, player);
+        return verdict === 1 || verdict === 2;
     });
 
     const letters = quiverEligible.map((item) => item.invlet).join('');

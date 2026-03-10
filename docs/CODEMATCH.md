@@ -5616,8 +5616,8 @@ Remaining parity gaps are mostly behavioral depth:
 | 70 | `were_beastie` | were.js:52 | Implemented |
 | 9 | `were_change` | were.js:132 | Implemented |
 | 142 | `were_summon` | were.js:179 | Implemented |
-| 213 | `you_unwere` | - | Missing |
-| 192 | `you_were` | - | Missing |
+| 213 | `you_unwere` | were.js:you_unwere | Implemented |
+| 192 | `you_were` | were.js:you_were | Implemented |
 
 ### wield.c -> wield.js
 | C Line | C Function | JS Line | Alignment |
@@ -5627,9 +5627,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 164 | `ready_weapon` | wield.js | Implemented — core wield logic with two-weapon compat |
 | 271 | `setuqwep` | wield.js | Implemented — set quiver slot |
 | 280 | `setuswapwep` | wield.js | Implemented — set swap weapon slot |
-| 289 | `ready_ok` | - | Missing — weapon readiness check |
+| 289 | `ready_ok` | wield.js:ready_ok | Implemented |
 | 326 | `wield_ok` | wield.js:668 | Implemented |
-| 341 | `finish_splitting` | - | Missing — stack splitting after wield |
+| 341 | `finish_splitting` | wield.js:finish_splitting | Implemented |
 | 350 | `dowield` | wield.js | handleWield — w command |
 | 456 | `doswapweapon` | wield.js | handleSwapWeapon — x command |
 | 500 | `dowieldquiver` | wield.js | handleQuiver — Q command |
@@ -5821,7 +5821,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 120 | `initworm` | worm.js:83 | Implemented |
 | 738 | `place_worm_tail_randomly` | worm.js:453 | Implemented |
 | 615 | `place_wsegs` | worm.js:377 | Implemented |
-| 803 | `random_dir` | - | Missing |
+| 803 | `random_dir` | worm.js:random_dir | Implemented (legacy helper from upstream `#if 0` block) |
 | 990 | `redraw_worm` | worm.js:675 | Implemented |
 | 714 | `remove_worm` | worm.js:437 | Implemented |
 | 577 | `rest_worm` | worm.js:774 | Implemented |
@@ -5843,7 +5843,7 @@ Remaining parity gaps are mostly behavioral depth:
 ### worn.c -> worn.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 50 | `recalc_telepat_range` | - | Missing — telepathy range recalculation |
+| 50 | `recalc_telepat_range` | worn.js:recalc_telepat_range | Implemented |
 | 73 | `setworn` | worn.js | Implemented — set worn item in slot with owornmask |
 | 147 | `setnotworn` | worn.js | Implemented — clear worn item (item destroyed while worn) |
 | 180 | `allunworn` | worn.js | Implemented — clear all worn items |
@@ -5851,7 +5851,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 210 | `wornmask_to_armcat` | worn.js | Implemented — mask to armor category |
 | 242 | `armcat_to_wornmask` | worn.js | Implemented — armor category to mask |
 | 274 | `wearslot` | worn.js | Implemented — valid slots for object |
-| 347 | `check_wornmask_slots` | - | Missing — sanity check for worn slots |
+| 347 | `check_wornmask_slots` | worn.js:check_wornmask_slots | Implemented |
 | 466 | `mon_set_minvis` | worn.js | Implemented — set monster invisible |
 | 478 | `mon_adjust_speed` | worn.js | Implemented — monster speed from equipment |
 | 569 | `update_mon_extrinsics` | worn.js | Implemented — set/clear monster mextrinsics |

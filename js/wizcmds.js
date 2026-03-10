@@ -205,6 +205,7 @@ import { mons } from './monsters.js';
 import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
 import { schedule_goto } from './do.js';
+import { check_wornmask_slots } from './worn.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {
@@ -632,7 +633,7 @@ export async function you_sanity_check(player) {
     impossible("current hero energy (%d) better than maximum? (%d)", player.uen, player.uenmax);
     player.uen = player.uenmax;
   }
-  check_wornmask_slots();
+  check_wornmask_slots(player);
   check_invent_gold("invent");
 }
 

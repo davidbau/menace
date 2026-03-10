@@ -12,7 +12,7 @@
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, impossible, You } from './pline.js';
 import { newsym } from './display.js';
-import { isok, xdir, ydir, N_DIRS, NORMAL_SPEED } from './const.js';
+import { isok, xdir, ydir, N_DIRS, NORMAL_SPEED, COLNO, ROWNO } from './const.js';
 import { mcalcmove } from './mon.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { s_suffix, distmin, distu } from './hacklib.js';
@@ -530,6 +530,25 @@ function _rnd_nextto_goodpos(map, mtmp, x, y, player) {
         }
     }
     return null;
+}
+
+// cf. worm.c:803 [#if 0] — random_dir(x, y, &nx, &ny)
+// Kept as utility for CODEMATCH surface completeness; returns {x,y}.
+export function random_dir(x, y) {
+    let nx = x + (x > 1
+        ? (x < COLNO - 1 ? (rn2(3) - 1) : -rn2(2))
+        : rn2(2));
+    let ny;
+    if (nx !== x) {
+        ny = y + (y > 0
+            ? (y < ROWNO - 1 ? (rn2(3) - 1) : -rn2(2))
+            : rn2(2));
+    } else {
+        ny = y + (y > 0
+            ? (y < ROWNO - 1 ? (rn2(2) ? 1 : -1) : -1)
+            : 1);
+    }
+    return { x: nx, y: ny };
 }
 
 // ========================================================================

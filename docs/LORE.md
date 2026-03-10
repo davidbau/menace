@@ -6483,3 +6483,33 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/hacklib_surface_codematch.test.js test/unit/teleport_surface.test.js test/unit/hacklib.test.js`
     passed (169/169).
+
+### CODEMATCH multi-file closure slice: were.c + wield.c + worn.c + worm.c surfaces (2026-03-10)
+
+- Problem:
+  - Remaining gameplay-facing CODEMATCH missing rows were concentrated in four
+    files: `were.c`, `wield.c`, `worn.c`, and `worm.c`.
+- Change:
+  - `js/were.js`
+    - Added `you_were(player, ctx)` and `you_unwere(player, purify, ctx)` surfaces.
+    - Kept behavior conservative and deterministic, with optional callback hooks
+      (`ctx.polymon`, `ctx.rehumanize`, `ctx.monster_nearby`) for deeper C-style
+      integration without adding replay-side heuristics.
+  - `js/wield.js`
+    - Added `ready_ok(obj, player)` C-style tri-state filter surface.
+    - Added `finish_splitting(obj, player)` stack-split finalization surface and
+      wired quiver candidate filtering through `ready_ok`.
+  - `js/worn.js`
+    - Added `recalc_telepat_range(player)` and `check_wornmask_slots(player)` surfaces.
+    - Wired `wizcmds.you_sanity_check()` callsite to pass `player`.
+  - `js/worm.js`
+    - Added `random_dir(x, y)` legacy helper surface (upstream marks it under `#if 0`,
+      but adding it closes naming coverage and supports tooling/tests).
+  - `docs/CODEMATCH.md`
+    - Updated 7 rows from Missing -> Implemented across these files.
+  - Tests:
+    - Added `test/unit/codematch_were_wield_worn_worm_surface.test.js`
+    - Re-ran related suites for were/wield prompt paths.
+- Validation:
+  - `node --test test/unit/codematch_were_wield_worn_worm_surface.test.js test/unit/were.test.js test/unit/command_wield_prompt.test.js`
+    passed (26/26).
