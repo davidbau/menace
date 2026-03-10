@@ -2165,34 +2165,34 @@ export class NetHackGame {
             return;
         }
 
-        // Get player input with optional count prefix
         const firstCh = await nhgetch();
+        const commandResult = await this.runOneCommandCycle(firstCh);
+        if (!commandResult) return;
+        this.renderAndAutosave({ commandResult, autosave: true });
+    }
+
+    async runOneCommandCycle(firstCh) {
         let ch;
         let countPrefix = 0;
 
         // C ref: cmd.c:1687 do_repeat() — Ctrl+A repeats last command
         if (firstCh === 1) { // Ctrl+A
-            const repeatResult = await execute_repeat_command(this, {
+            return await execute_repeat_command(this, {
                 showRepeatInterruptMore: true,
             });
-            this.renderAndAutosave({
-                commandResult: repeatResult,
-                autosave: true,
-            });
-            return;
         } else if (firstCh >= 48 && firstCh <= 57) { // '0'-'9'
             const result = await getCount(firstCh, 32767, this.display);
             countPrefix = result.count;
             ch = result.key;
             if (ch === 27) { // ESC
                 this.display.clearRow(0);
-                return;
+                return null;
             }
         } else {
             ch = firstCh;
         }
 
-        if (!ch) return;
+        if (!ch) return null;
 
         if (firstCh !== 1) {
             this.lastCommand = { key: ch, count: countPrefix };
@@ -2200,13 +2200,9 @@ export class NetHackGame {
 
         await this.runPendingDeferredTimedTurn();
 
-        const result = await run_command(this, ch, {
+        return await run_command(this, ch, {
             countPrefix,
             showRepeatInterruptMore: true,
-        });
-        this.renderAndAutosave({
-            commandResult: result,
-            autosave: true,
         });
     }
 

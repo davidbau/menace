@@ -745,6 +745,9 @@ travel renders intermediate frames.
   `terminalScreenOwned` now flows from prompt handlers through `run_command`.
 - `_gameLoopStep` now uses a single `renderAndAutosave(...)` helper and skips
   redraw/autosave when the command result owns the terminal screen.
+- `_gameLoopStep` command handling is now factored into
+  `runOneCommandCycle(firstCh)`, keeping the loop step focused on orchestration
+  (read key -> run cycle -> render/autosave).
 - Validation: `npm run -s test:unit`, `./scripts/run-and-report.sh --failures`,
   and `WEBHACK_REPLAY_USE_GAMELOOP=1 ./scripts/run-and-report.sh --failures`
   all pass (`34/34` gameplay).
