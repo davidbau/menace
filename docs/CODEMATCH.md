@@ -2532,9 +2532,9 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_drst` | mhitu.js | Implemented — Poison_resistance check, rn2(8) gate; approximation: uses fixed stat drain instead of poisoned() subsystem |
 | - | `mhitu_ad_drli` | mhitu.js | Implemented — rn2(3) gate, Drain_resistance check, losexp() |
 | - | `mhitu_ad_dren` | mhitu.js | Implemented — drain_en (player.pw) inline |
-| - | `mhitu_ad_drin` | mhitu.js | Implemented — brain eating: INT drain, level loss; approximation: no helmet check |
-| - | `mhitu_ad_slow` | mhitu.js | Implemented — speed reduction; approximation: simple flag set vs full HFast property manipulation |
-| - | `mhitu_ad_ston` | mhitu.js | Implemented — rn2(3) + rn2(10) gates, messages; approximation: no actual petrification yet |
+| - | `mhitu_ad_drin` | mhitu.js | Partial — C-shaped head/helmet/defense gating (`defends(AD_DRIN, weapon)`, `has_head`, helmet block), half-physical pre-application, and per-cycle remaining-DRIN skip; simplified `eat_brains` effects (INT/rn2 side-effects only) |
+| - | `mhitu_ad_slow` | mhitu.js | Partial — C-shaped negation + `HFast && !rn2(4)` gate now wired to shared `u_slow_down()` helper; remaining property-system fidelity around intrinsic/extrinsic fast nuances |
+| - | `mhitu_ad_ston` | mhitu.js | Partial — C-shaped cough/hiss/grimace messaging + new-moon gate and `do_stone_u()` wiring with done/hitflags termination; remaining full sensory/audio parity and edge messaging |
 | - | `mhitu_ad_tlpt` | mhitu.js | Partial — negation gate + hero teleport via `tele(game)`; damage capping retained |
 | - | `mhitu_ad_sgld` | mhitu.js | Implemented — hitmsg + `stealgold()` + zero damage |
 | - | `mhitu_ad_sedu` | mhitu.js | Partial — theft path with `steal()` result handling, flee/teleport, and done flags; seduction dialogue/could_seduce branches still TODO |

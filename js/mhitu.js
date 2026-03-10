@@ -13,7 +13,7 @@ import {
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     NATTK, XKILL_NOMSG,
     ERODE_RUST, ERODE_CORRODE, ERODE_ROT, EF_GREASE, EF_VERBOSE, ER_NOTHING, ER_DAMAGED, ER_DESTROYED,
-    SLIMED, KILLED_BY_AN,
+    SLIMED, KILLED_BY_AN, NEW_MOON,
 } from './const.js';
 import {
     G_UNIQ, M2_NEUTER, M2_MALE, M2_FEMALE, M2_PNAME,
@@ -39,12 +39,12 @@ import {
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
     dmgtype, dmgtype_fromattack, monsndx, flaming, noncorporeal,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
-    is_undead,
+    is_undead, has_head,
 } from './mondata.js';
 import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
 import {
     weaponEnchantment, weaponDamageSides,
-    mhitm_mgc_atk_negated,
+    mhitm_mgc_atk_negated, do_stone_u,
 } from './uhitm.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
@@ -60,7 +60,7 @@ import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
 import { flush_screen, newsym } from './display.js';
 import { mon_explodes } from './explode.js';
-import { spec_dbon } from './artifact.js';
+import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
 import { new_were, were_summon, set_ulycn } from './were.js';
 import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
@@ -597,14 +597,24 @@ async function mhitu_ad_dren(monster, attack, player, mhm, ctx) {
 async function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
     // C: no mhitm_mgc_atk_negated for AD_DRIN mhitu!
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
+    const pd = player?.data || player?.monst || {};
+    if (defends(AD_DRIN, player?.weapon) || !has_head(pd)) {
+        if (!ctx.suppressHitMsg)
+            await ctx.display.putstr_message("You don't seem harmed.");
+        if (ctx.combatState) ctx.combatState.skipdrin = true;
+        mhm.damage = 0;
+        return;
+    }
     // C: helmet check: if (player.helmet && rn2(8)) blocks attack
     if (player.helmet && rn2(8)) {
         if (!ctx.suppressHitMsg)
             await ctx.display.putstr_message('Your helmet blocks the attack to your head.');
+        mhm.damage = 0;
         return;
     }
-    // C: mdamageu(magr, damage) then eat_brains
-    // Simplified: apply INT drain
+    // C: Half physical damage applies before mdamageu() for this branch.
+    mhm.damage = maybe_half_phys(mhm.damage, player);
+    // Simplified eat_brains effects: message + INT drain side effects.
     // cf. adjattrib(A_INT, -rnd(2), FALSE)
     // Then: !rn2(5) → losespells, !rn2(5) → drain_weapon_skill
     if (!ctx.suppressHitMsg)
@@ -624,10 +634,7 @@ async function mhitu_ad_slow(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!negated && HFast && !rn2(4)) u_slow_down()
     if (!negated && playerHasProp(player, FAST) && !rn2(4)) {
-        // u_slow_down: remove Fast intrinsic
-        if (!ctx.suppressHitMsg)
-            await ctx.display.putstr_message('You slow down.');
-        // TODO: actually remove Fast
+        await u_slow_down(player, ctx.display);
     }
 }
 
@@ -639,22 +646,32 @@ async function mhitu_ad_ston(monster, attack, player, mhm, ctx) {
     if (!rn2(3)) {
         if (monster.mcan) {
             // Cancelled: just a cough
-            if (!ctx.suppressHitMsg)
+            if (!ctx.suppressHitMsg && !player?.deaf)
                 await ctx.display.putstr_message(
                     `You hear a cough from ${x_monnam(monster)}!`
                 );
         } else {
             // Hissing + possible petrification
             if (!ctx.suppressHitMsg) {
-                await ctx.display.putstr_message(
-                    `You hear ${x_monnam(monster)}'s hissing!`
-                );
+                const hallucinating = !!(player?.hallucinated || playerHasProp(player, HALLUC));
+                if (hallucinating && !player?.blind) {
+                    if (!player?.deaf) await ctx.display.putstr_message('You hear hissing.');
+                    await ctx.display.putstr_message(
+                        `The ${x_monnam(monster)} appears to be blowing you a kiss...`
+                    );
+                } else if (!player?.deaf) {
+                    await ctx.display.putstr_message(`You hear ${x_monnam(monster)}'s hissing!`);
+                } else if (!player?.blind) {
+                    await ctx.display.putstr_message(`The ${x_monnam(monster)} seems to grimace.`);
+                }
             }
             // C: if (!rn2(10) || newmoon) do_stone_u()
-            if (!rn2(10)) {
-                // Petrification — not fully implemented
-                if (!ctx.suppressHitMsg) {
-                    await ctx.display.putstr_message('You feel yourself slowing down.');
+            if (!rn2(10) || ctx.game?.flags?.moonphase === NEW_MOON) {
+                if (await do_stone_u(monster, player, ctx.game || null)) {
+                    mhm.hitflags = M_ATTK_HIT;
+                    mhm.done = true;
+                    mhm.damage = 0;
+                    return;
                 }
             }
         }
@@ -1245,6 +1262,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     let skipnonmagc = false;
     const map = opts.map || null;
     const sum = new Array(6).fill(M_ATTK_MISS); // C NATTK == 6
+    const combatState = { skipdrin: false };
 
     // C ref: mhitu.c:755-761 — Unlike defensive stuff, don't let them use item _and_ attack.
     if (map && await find_offensive(monster, map, player)) {
@@ -1267,6 +1285,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         const attack = getmattk(monster, player, i, sum);
         if (!attack) continue;
         if (attack.aatyp === AT_NONE) continue;
+        if (combatState.skipdrin && attack.adtyp === AD_DRIN) continue;
         if (skipnonmagc && attack.aatyp !== AT_MAGC) continue;
 
         // cf. mhitu.c mattacku() attack dispatch:
@@ -1375,7 +1394,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         }
 
         // Context for handlers
-        const ctx = { display, game, suppressHitMsg, map };
+        const ctx = { display, game, suppressHitMsg, map, combatState };
 
         // cf. mhitu.c:1187 — mhitm_adtyping dispatch
         // Each handler calls hitmsg() and applies effects.

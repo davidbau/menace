@@ -7061,3 +7061,35 @@ hard-won wisdom:
   - `docs/CODEMATCH.md`:
     - updated stale `mhitu_ad_deth` row text to reflect current partial
       C-shaped implementation.
+
+## 2026-03-10: `mhitu` multi-function C-flow pass (`AD_DRIN`/`AD_SLOW`/`AD_STON`)
+
+- Problem:
+  - Three hero-target `mhitu` handlers still had known branch-shape gaps:
+    - `AD_DRIN` lacked C no-harm gates and repeated-attack short-circuiting.
+    - `AD_SLOW` used an inline message/TODO rather than the shared slowdown
+      helper path.
+    - `AD_STON` printed simplified messages and did not call `do_stone_u()`.
+- Change:
+  - `js/mhitu.js`:
+    - `AD_DRIN`:
+      - added C gates for `defends(AD_DRIN, player.weapon)` and `!has_head`.
+      - added helmet-block path (`uarmh && rn2(8)`) with zero direct damage.
+      - added half-physical damage shaping before final damage application.
+      - introduced per-cycle `combatState.skipdrin` so harmless DRIN hits skip
+        remaining DRIN attacks from the same monster move.
+    - `AD_SLOW`:
+      - now calls shared `u_slow_down(player, display)` under
+        `!negated && HFast && !rn2(4)` gate, matching C branch structure.
+    - `AD_STON`:
+      - aligned cough/hiss/grimace messaging branches with deaf/blind/hallu
+        sensitivity.
+      - wired `(!rn2(10) || moonphase==NEW_MOON)` into `do_stone_u(...)`.
+      - on successful stoning, now sets `mhm.hitflags`, `mhm.done`, and
+        suppresses further damage in this attack.
+  - `test/unit/combat.test.js`:
+    - added regression test asserting headless hero DRIN behavior:
+      no damage and only one DRIN hit message for a multi-DRIN attack cycle.
+  - `docs/CODEMATCH.md`:
+    - updated `mhitu_ad_drin`, `mhitu_ad_slow`, and `mhitu_ad_ston` rows to
+      accurate partial C-faithful status.

@@ -9,7 +9,7 @@ import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
 import { SLIMED } from '../../js/const.js';
-import { AT_WEAP, AT_BITE, AD_PHYS, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_CURS, AD_FAMN, AD_SSEX, AD_POLY, AD_DETH, M1_HUMANOID, M2_UNDEAD, PM_WEREWOLF, mons } from '../../js/monsters.js';
+import { AT_WEAP, AT_BITE, AT_TENT, AD_PHYS, AD_DRIN, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_CURS, AD_FAMN, AD_SSEX, AD_POLY, AD_DETH, M1_HUMANOID, M1_NOHEAD, M2_UNDEAD, PM_WEREWOLF, mons } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -388,6 +388,39 @@ describe('Combat system', () => {
         assert.ok(dethLoss > 0, 'undead-target AD_DETH should still do some damage');
         assert.ok(dethLoss <= Math.ceil(physLoss / 2),
             `AD_DETH undead branch should be reduced vs AD_PHYS (deth=${dethLoss}, phys=${physLoss})`);
+    });
+
+    it('AD_DRIN on headless hero skips remaining DRIN attacks in the cycle', async () => {
+        initRng(37);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        p.data = { mflags1: M1_NOHEAD };
+        p.monst = p.data;
+        const hp0 = p.hp;
+
+        const messages = [];
+        const display = {
+            putstr_message: (msg) => messages.push(msg),
+            putstr() {},
+        };
+
+        const mon = makeMonster({
+            level: 30,
+            attacks: [
+                { aatyp: AT_TENT, adtyp: AD_DRIN, damn: 2, damd: 1 },
+                { aatyp: AT_TENT, adtyp: AD_DRIN, damn: 2, damd: 1 },
+                { aatyp: AT_TENT, adtyp: AD_DRIN, damn: 2, damd: 1 },
+            ],
+            mx: 6, my: 5,
+        });
+        await mattacku(mon, p, display);
+
+        assert.equal(p.hp, hp0, 'headless hero should take no AD_DRIN damage');
+        const brainMsgs = messages.filter((m) => m.includes('tentacles suck your brain'));
+        assert.equal(brainMsgs.length, 1, 'remaining AD_DRIN attacks should be skipped after harmless headless hit');
     });
 
     it('AD_SSEX uses seduction/theft path and does not apply direct damage', async () => {
