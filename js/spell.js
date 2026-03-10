@@ -13,7 +13,7 @@
 import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE } from './const.js';
 import { PM_KNIGHT, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
-import { mark_vision_dirty } from './vision.js';
+import { mark_vision_dirty, cansee } from './vision.js';
 import {
     SPBOOK_CLASS,
     objectData, ROBE, QUARTERSTAFF, SMALL_SHIELD, LENSES,

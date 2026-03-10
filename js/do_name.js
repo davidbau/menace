@@ -16,10 +16,14 @@ import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, update_inven
 import { mons, SPECIAL_PM, G_NOGEN, G_UNIQ, PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER } from './monsters.js';
 import { highc, upstart, s_suffix } from './hacklib.js';
 import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE, SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME, LOW_PM, SIZE,
-    has_oname, ONAME, has_ebones } from './const.js';
+    has_oname, ONAME, has_ebones, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { hasGivenName, type_is_pname, is_mplayer,
-         is_animal, is_mindless, is_humanoid } from './mondata.js';
-import { flush_screen } from './display.js';
+         is_animal, is_mindless, is_humanoid, M_AP_TYPE } from './mondata.js';
+import { flush_screen, sensemon, see_with_infrared, glyph_at, canspotmon } from './display.js';
+import { cansee } from './vision.js';
+import { u_at } from './hack.js';
+import { getpos_async } from './getpos.js';
+import { beautiful } from './apply.js';
 import { nhgetch, getlin } from './input.js';
 import { impossible } from './pline.js';
 import { discoverObject, undiscoverObject } from './o_init.js';
@@ -954,12 +958,12 @@ export async function do_mgivenname(player) {
   if ((player?.Hallucination || player?.hallucinating || false)) { await You("would never recognize it anyway."); return; }
   cc.x = player.x;
   cc.y = player.y;
-  if (getpos( cc, false, "the monster you want to name") < 0 || !isok(cc.x, cc.y)) return;
+  if (await getpos_async( cc, false, "the monster you want to name") < 0 || !isok(cc.x, cc.y)) return;
   cx = cc.x, cy = cc.y;
-  if (u_at(cx, cy)) {
+  if (u_at(player, cx, cy)) {
     if (player.usteed && canspotmon(player.usteed)) { mtmp = player.usteed; }
     else {
-      await pline("This %s creature is called %s and cannot be renamed.", beautiful(), svp.plname);
+      await pline("This %s creature is called %s and cannot be renamed.", beautiful(player), player.name || player.plname || 'you');
       return;
     }
   }
@@ -967,10 +971,10 @@ export async function do_mgivenname(player) {
     mtmp = m_at(cx, cy);
   }
   if (!mtmp && player.uswallow) {
-    let glyph = glyph_at(cx, cy);
-    if (glyph_is_swallow(glyph)) { mtmp = player.ustuck; do_swallow = true; }
+    // C: glyph_is_swallow(glyph_at(cx,cy)) — not yet ported, assume swallowed=ustuck
+    mtmp = player.ustuck; do_swallow = true;
   }
-  if (!do_swallow && (!mtmp || (!sensemon(mtmp) && (!(cansee(cx, cy) || see_with_infrared(mtmp)) || mtmp.mundetected || M_AP_TYPE(mtmp) === M_AP_FURNITURE || M_AP_TYPE(mtmp) === M_AP_OBJECT || (mtmp.minvis && !See_invisible))))) { await pline("I see no monster there."); return; }
+  if (!do_swallow && (!mtmp || (!sensemon(mtmp) && (!(cansee(cx, cy) || see_with_infrared(mtmp)) || mtmp.mundetected || M_AP_TYPE(mtmp) === M_AP_FURNITURE || M_AP_TYPE(mtmp) === M_AP_OBJECT || (mtmp.minvis && !(player?.seeInvisible)))))) { await pline("I see no monster there."); return; }
   qbuf = `What do you want to call ${distant_monnam(mtmp, ARTICLE_THE, monnambuf)}?`;
   if (!name_from_player(buf, qbuf, has_mgivenname(mtmp) ? MGIVENNAME(mtmp) : null)) return;
   if ((mtmp.data.geno & G_UNIQ) && !mtmp.ispriest) {

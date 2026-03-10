@@ -3,6 +3,7 @@
 // Replaces the simplified rule-based approach with the actual
 // recursive line-of-sight scanner used by C NetHack.
 
+import { game as _gstate } from './gstate.js';
 import { COLNO, ROWNO, DOOR, SDOOR, POOL,
          IS_WALL, IS_DOOR, isok,
          D_CLOSED, D_LOCKED, D_TRAPPED,
@@ -1067,6 +1068,12 @@ export function m_cansee(mon, map, x2, y2) {
 // so cansee() delegates to the FOV object when available, falling back to
 // couldsee (LOS-only) when no FOV is present.
 export function cansee(map, player, fov, x, y) {
+    // Support C-style 2-arg cansee(x, y) calls with gstate fallback
+    if (typeof map === 'number' && typeof player === 'number' && fov === undefined) {
+        x = map; y = player;
+        const g = _gstate;
+        map = g?.lev; player = g?.player; fov = g?.fov;
+    }
     if (fov?.canSee) return fov.canSee(x, y);
     return couldsee(map, player, x, y);
 }
@@ -1078,6 +1085,12 @@ export function getActiveFov() {
 // Could the player see this position (LOS only, ignoring lighting)
 // C ref: vision.h #define couldsee(x, y) ((gv.viz_array[y][x] & COULD_SEE) != 0)
 export function couldsee(map, player, x, y) {
+    // Support C-style 2-arg couldsee(x, y) calls with gstate fallback
+    if (typeof map === 'number' && typeof player === 'number' && x === undefined) {
+        x = map; y = player;
+        const g = _gstate;
+        map = g?.lev; player = g?.player;
+    }
     if (player && player.utrap && Number(player.utraptype) === TT_PIT) {
         return Math.abs((player.x | 0) - (x | 0)) <= 1
             && Math.abs((player.y | 0) - (y | 0)) <= 1;
