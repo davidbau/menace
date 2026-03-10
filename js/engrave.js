@@ -19,7 +19,7 @@
 //   save/rest_engravings: persistence across level changes.
 
 import { pushRngLogEntry, rn1, rn2, rnd, withRngTag } from './rng.js';
-import { more, nhgetch_raw } from './input.js';
+import { more, nhgetch } from './input.js';
 import { WAND_CLASS } from './objects.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';
@@ -589,7 +589,7 @@ export async function handleEngrave(player, display) {
         : 'What do you want to write with? [- or ?*] ';
     await display.putstr_message(writePrompt);
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();

@@ -25,7 +25,7 @@ import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
-import { more, nhgetch_raw } from './input.js';
+import { more, nhgetch } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
          FLINT, ROCK, SLING, BULLWHIP, BOOMERANG, AKLYS, WAR_HAMMER,
@@ -195,7 +195,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     };
     replacePromptMessage();
     await display.putstr_message('In what direction? ');
-    const dirCh = await nhgetch_raw();
+    const dirCh = await nhgetch();
     const dch = String.fromCharCode(dirCh);
     let dir = DIRECTION_KEYS[dch];
     if (!dir && (dirCh === 10 || dirCh === 13)) {
@@ -349,7 +349,7 @@ export async function handleThrow(player, map, display) {
         : 'What do you want to throw? [*] ';
     await display.putstr_message(throwPrompt);
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -422,7 +422,7 @@ export async function handleFire(player, map, display, game) {
 
     if (!player.quiver && weapon && weapon.otyp === BULLWHIP) {
         await display.putstr_message('In what direction? ');
-        const dirCh = await nhgetch_raw();
+        const dirCh = await nhgetch();
         const dch = String.fromCharCode(dirCh);
         const dir = DIRECTION_KEYS[dch];
         if (!dir) {
@@ -523,7 +523,7 @@ export async function handleFire(player, map, display, game) {
     await display.putstr_message(firePrompt);
     let pendingCount = '';
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -563,7 +563,7 @@ export async function handleFire(player, map, display, game) {
                 replacePromptMessage();
                 await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q) ');
                 while (true) {
-                    const ans = await nhgetch_raw();
+                    const ans = await nhgetch();
                     const a = String.fromCharCode(ans).toLowerCase();
                     if (ans === 27 || ans === 10 || ans === 13 || a === ' ' || a === 'q' || a === 'n') {
                         replacePromptMessage();

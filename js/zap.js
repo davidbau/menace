@@ -66,7 +66,7 @@ import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
 import { xkilled, killed,
          wakeup, healmon, mondead } from './mon.js';
-import { nhgetch_raw } from './input.js';
+import { nhgetch } from './input.js';
 import { getdir, registerBurnarmor } from './hack.js';
 import { nonliving, is_undead, is_demon,
          x_monnam, resists_fire, resists_cold, resists_elec,
@@ -537,7 +537,7 @@ export async function handleZap(player, map, display, game) {
     let wand;
     await showZapPrompt();
     while (true) {
-        const itemCh = await nhgetch_raw();
+        const itemCh = await nhgetch();
         let itemChar = String.fromCharCode(itemCh);
 
         if (isDismissKey(itemCh)) {

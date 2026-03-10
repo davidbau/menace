@@ -465,6 +465,18 @@ Progress note (2026-03-10):
 - Validation: `npm run -s test:unit` and `scripts/run-and-report.sh` both green
   after this cleanup pass.
 
+Progress note (2026-03-10, follow-up):
+- Migrated gameplay/UI callsites from `nhgetch_raw()` to canonical `nhgetch()`
+  across command/input flows (`apply/do/dothrow/do_wear/getpos/invent/lock/pager/...`).
+- Kept `nhgetch_raw()` as an internal low-level primitive inside `input.js`;
+  no external JS modules call it directly now.
+- Revalidated parity and tests after migration:
+  `npm run -s test:unit` green, `scripts/run-and-report.sh` green (34/34).
+- Replay driver Phase 3d full inversion (`_gameLoopStep + pushInput` start path)
+  remains deferred: an attempted switch introduced a late screen-only mismatch
+  in `seed331` despite RNG/event parity; reverted to keep gameplay parity fully
+  green while continuing cleanup incrementally.
+
 #### Phase 2d: Delete old mechanisms (contract)
 
 Once zero callsites remain for old wrappers:

@@ -1,7 +1,7 @@
 // do_wear.js -- Armor wearing/removing mechanics
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
-import { nhgetch_raw } from './input.js';
+import { nhgetch } from './input.js';
 import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
@@ -1973,7 +1973,7 @@ async function putOnSelectedItem(player, display, game, item) {
             await display.putstr_message(fingerQ);
             let mask = null;
             while (!mask) {
-                const fc = await nhgetch_raw();
+                const fc = await nhgetch();
                 const fs = String.fromCharCode(fc);
                 // C yn_function(..., rightleftchars, '\0', ...) cancels on
                 // ESC and Enter (default '\0').
@@ -2234,7 +2234,7 @@ async function handleWear(player, display, game = null) {
     resetTopline(display);
     await display.putstr_message(wearPrompt);
     while (true) {
-            const ch = await nhgetch_raw();
+            const ch = await nhgetch();
         let c = String.fromCharCode(ch);
 
         if (isDismissKey(ch)) {
@@ -2314,7 +2314,7 @@ async function handlePutOn(player, display, game = null) {
     resetTopline(display);
     await display.putstr_message(putOnPrompt);
     while (true) {
-            const ch = await nhgetch_raw();
+            const ch = await nhgetch();
         let c = String.fromCharCode(ch);
 
         if (isDismissKey(ch)) {
@@ -2383,7 +2383,7 @@ async function handleTakeOff(player, display, game = null) {
         resetTopline(display);
         await display.putstr_message(takeOffPrompt);
         while (true) {
-            const ch = await nhgetch_raw();
+            const ch = await nhgetch();
             let c = String.fromCharCode(ch);
 
             if (isDismissKey(ch)) {
@@ -2441,7 +2441,7 @@ async function handleRemove(player, display, game = null) {
         resetTopline(display);
         await display.putstr_message(removePrompt);
         while (true) {
-            const ch = await nhgetch_raw();
+            const ch = await nhgetch();
             let c = String.fromCharCode(ch);
 
             if (isDismissKey(ch)) {

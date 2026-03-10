@@ -1,7 +1,7 @@
 // invent.js -- Inventory management
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
-import { nhgetch_raw, getlin } from './input.js';
+import { nhgetch, getlin } from './input.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
 import { NHW_MENU } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
@@ -266,7 +266,7 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     let selection = null;
     let countDigits = '';
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         if (isMenuDismissKey(ch)) break;
         const c = String.fromCharCode(ch);
         if (allowCountPrefix && c >= '0' && c <= '9') {
@@ -343,7 +343,7 @@ export async function handleInventory(player, display, game) {
     // C tty/menu parity: inventory stays up until an explicit dismissal key.
     // Non-dismiss keys can be consumed without closing the menu frame.
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         // C tty parity: space advances pages when present; otherwise it
         // dismisses the inventory only at the end of the final page.
         if (ch === 32) {
@@ -602,7 +602,7 @@ export async function handleInventory(player, display, game) {
             }
             const actionKeys = new Set(rawActions.map((line) => String(line || '').charAt(0)));
             while (true) {
-                const actionCh = await nhgetch_raw();
+                const actionCh = await nhgetch();
                 if (actionCh === 32 || actionCh === 27 || actionCh === 10 || actionCh === 13) {
                     if (typeof display.clearRow === 'function') {
                         for (let i = 0; i < stackActions.length; i++) {
@@ -664,7 +664,7 @@ export async function handleInventory(player, display, game) {
                     }
                     const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
                     await display.putstr_message(adjustPrompt);
-                    const adjCh = await nhgetch_raw();
+                    const adjCh = await nhgetch();
                     const adjChar = String.fromCharCode(adjCh);
                     if (adjCh === 27 || adjCh === 10 || adjCh === 13 || adjCh === 32) {
                         clearTopline();
@@ -1501,7 +1501,7 @@ export async function doorganize(game) {
 
     let selected = null;
     while (!selected) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         const c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             if (typeof display.clearRow === 'function') display.clearRow(0);
@@ -1559,7 +1559,7 @@ export async function doorganize(game) {
     }
     const adjustPrompt = `Adjust letter to what [${availStr}] (? see used letters)?`;
     await display.putstr_message(adjustPrompt);
-    const adjCh = await nhgetch_raw();
+    const adjCh = await nhgetch();
     const adjChar = String.fromCharCode(adjCh);
     if (typeof display.clearRow === 'function') display.clearRow(0);
     display.topMessage = null;

@@ -1,7 +1,7 @@
 // wield.js -- Weapon wielding, swapping, quivering, and two-weapon combat
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
-import { more, nhgetch_raw, ynFunction } from './input.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
          TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
@@ -466,7 +466,7 @@ async function handleWield(player, display) {
     await display.putstr_message(wieldPrompt);
 
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
@@ -644,7 +644,7 @@ async function handleQuiver(player, display) {
     await display.putstr_message(prompt);
 
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

@@ -13,7 +13,7 @@ import { x_monnam, is_watch } from './mondata.js';
 import { KICKING_BOOTS } from './objects.js';
 import { mondead, angry_guards, wake_nearto } from './mon.js';
 import { newsym } from './display.js';
-import { more, nhgetch_raw } from './input.js';
+import { more, nhgetch } from './input.js';
 import { DIRECTION_KEYS } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { set_wounded_legs, legs_in_no_shape } from './do.js';
@@ -50,7 +50,7 @@ export async function handleKick(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
     await display.putstr_message('In what direction? ');
-    const dirCh = await nhgetch_raw();
+    const dirCh = await nhgetch();
     // C getdir() prompt is transient; clear it before reporting kick outcome.
     if (display) {
         display.topMessage = null;

@@ -9,7 +9,7 @@ import { A_DEX, A_CON,
 import { NORMAL_SPEED } from './const.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount, pushRngLogEntry } from './rng.js';
 import { CLR_GRAY } from './display.js';
-import { more, nhgetch_raw, getCount, getlin, setInputRuntime } from './input.js';
+import { more, nhgetch, getCount, getlin, setInputRuntime } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -59,7 +59,7 @@ export async function playerSelection(game) {
     await game.display.putstr_message(
         "Shall I pick character's race, role, gender and alignment for you? [ynaq]"
     );
-    const pickCh = await nhgetch_raw();
+    const pickCh = await nhgetch();
     const pickC = String.fromCharCode(pickCh);
 
     if (pickC === 'q') {
@@ -152,7 +152,7 @@ export async function showGameOver(game) {
         game.display.renderTombstone(p.name, p.gold, deathLines, year);
         // Press any key prompt below tombstone
         await game.display.putstr(0, 20, '(Press any key)', 7);
-        await nhgetch_raw();
+        await nhgetch();
     }
 
     // Build and save topten entry
@@ -202,7 +202,7 @@ export async function showGameOver(game) {
     // Play again prompt
     row = Math.min(row + 1, game.display.rows - 1);
     await game.display.putstr(0, row, 'Play again? [yn] ', 14);
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     if (String.fromCharCode(ch) === 'y') {
         await game._runLifecycle('restart');
     } else {
@@ -326,7 +326,7 @@ export async function handleReset(game) {
     const items = listSavedData();
     if (items.length === 0) {
         await game.display.putstr_message('No saved data found.');
-        await nhgetch_raw();
+        await nhgetch();
     } else {
         await game.display.putstr_message('Saved data found:');
         // Show each item on rows 2+
@@ -335,7 +335,7 @@ export async function handleReset(game) {
         }
         await game.display.putstr(0, 2 + Math.min(items.length, 18),
             'Delete all saved data? [yn]', 15);
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         if (String.fromCharCode(ch) === 'y') {
             clearAllData();
             await game.display.putstr_message('All saved data deleted.');
@@ -355,7 +355,7 @@ export async function handleReset(game) {
 // Returns true if restored, false if user declined.
 export async function restoreFromSave(game, saveData, urlOpts) {
     await game.display.putstr_message('Saved game found. Restore? [yn]');
-    const ans = await nhgetch_raw();
+    const ans = await nhgetch();
     if (String.fromCharCode(ans) !== 'y') {
         await game.display.putstr_message('Save deleted.');
         return false;
@@ -467,7 +467,7 @@ export async function showRoleMenu(game, raceIdx, gender, align, isFirstMenu) {
     lines.push(' (end)');
 
     game.display.renderChargenMenu(lines, isFirstMenu);
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
     if (c === 'q') return { action: 'quit' };
@@ -552,7 +552,7 @@ export async function showRaceMenu(game, roleIdx, gender, align, isFirstMenu) {
     lines.push('(end)');
 
     game.display.renderChargenMenu(lines, isFirstMenu);
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
     if (c === 'q') return { action: 'quit' };
@@ -621,7 +621,7 @@ export async function showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu)
     lines.push('(end)');
 
     game.display.renderChargenMenu(lines, isFirstMenu);
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
     if (c === 'q') return { action: 'quit' };
@@ -689,7 +689,7 @@ export async function showAlignMenu(game, roleIdx, raceIdx, gender, isFirstMenu)
     lines.push('(end)');
 
     game.display.renderChargenMenu(lines, isFirstMenu);
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
     if (c === 'q') return { action: 'quit' };
@@ -728,7 +728,7 @@ export async function showConfirmation(game, roleIdx, raceIdx, gender, align) {
     lines.push('(end)');
 
     game.display.renderChargenMenu(lines, false);
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     const c = String.fromCharCode(ch);
 
     if (c === 'q') { await game._runLifecycle('promo'); return false; }
@@ -780,7 +780,7 @@ export async function showLoreAndWelcome(game, roleIdx, raceIdx, gender, align) 
     game.display.renderLoreText(loreLines, loreOffx);
 
     // Wait for key to dismiss lore
-    await nhgetch_raw();
+    await nhgetch();
 
     // Clear the lore text area
     for (let r = 0; r < loreLines.length && r < game.display.rows - 2; r++) {
@@ -846,7 +846,7 @@ export async function showLoreAndWelcome(game, roleIdx, raceIdx, gender, align) 
     }
 
     await game.display.putstr(moreCol, moreRow, moreStr, 2); // CLR_GREEN
-    await nhgetch_raw();
+    await nhgetch();
     game.display.clearRow(0);
     if (moreRow > 0) game.display.clearRow(1);
     if (moreRow > 1) game.display.clearRow(2);
@@ -928,7 +928,7 @@ export async function showFilterMenu(game) {
     game.display.renderChargenMenu(lines, true);
 
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         const c = String.fromCharCode(ch);
 
         if (c === '\r' || c === '\n' || c === ' ') {

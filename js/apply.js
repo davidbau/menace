@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { more, nhgetch_raw, ynFunction } from './input.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import { doname, xname } from './mkobj.js';
 import { make_glib } from './potion.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
@@ -1017,7 +1017,7 @@ export async function handleApply(player, map, display, game) {
         }
         if (isApplyChopWeapon(selected)) {
             await display.putstr_message('In what direction do you want to chop? [>] ');
-            await nhgetch_raw();
+            await nhgetch();
             replacePromptMessage();
             return { moved: false, tookTime: false };
         }
@@ -1027,7 +1027,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await nhgetch_raw();
+                const dirCh = await nhgetch();
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
@@ -1107,7 +1107,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await nhgetch_raw();
+                const dirCh = await nhgetch();
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
@@ -1155,7 +1155,7 @@ export async function handleApply(player, map, display, game) {
     };
 
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         const c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

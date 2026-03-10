@@ -10,7 +10,7 @@ import { objectData, COIN_CLASS, CORPSE, ICE_BOX, CHEST,
          BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD, LEASH, SCR_SCARE_MONSTER,
          GOLD_PIECE, SADDLE, HORN_OF_PLENTY, SACK, OILSKIN_SACK,
          CLASS_SYMBOLS } from './objects.js';
-import { more, nhgetch_raw, getlin, ynFunction } from './input.js';
+import { more, nhgetch, getlin, ynFunction } from './input.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
          set_corpsenm, start_corpse_timeout, add_to_container, add_to_minv,
          obj_extract_self } from './mkobj.js';
@@ -1517,7 +1517,7 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(classPad, nextRow, '(end)');
             const selections = new Set();
             while (true) {
-                const ch = await nhgetch_raw();
+                const ch = await nhgetch();
                 if (ch === 27) { selections.clear(); break; }
                 if (ch === 10 || ch === 13 || ch === 32) break;
                 let key = String.fromCharCode(ch);
@@ -1583,7 +1583,7 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             await putMenuPrompt('Take out what?');
-            const tch = await nhgetch_raw();
+            const tch = await nhgetch();
             if (tch === 27) break;
             const tchar = String.fromCharCode(tch).toLowerCase();
             if (tch === 10 || tch === 13) {
@@ -1700,7 +1700,7 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(pad, 10, '(end)');
         }
 
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         const c = String.fromCharCode(ch);
 
         if (c === '\x1b' || c === 'q') break;
@@ -1749,7 +1749,7 @@ async function containerMenu(game, container) {
             const letters = inv.map((o) => o.invlet).join('');
             const compact = compactInvletPromptChars(letters);
             await putMenuPrompt(`What do you want to stash? [${compact} or ?*] `);
-            const sch = await nhgetch_raw();
+            const sch = await nhgetch();
             const item = inv.find((o) => o.invlet === String.fromCharCode(sch));
             if (item) {
                 const res = await in_container(item, player);
@@ -1782,7 +1782,7 @@ async function handleLoot(game) {
             // C prompt leaves cursor one past '?' on topline.
             await display.putstr_message('Loot in what direction? ');
             while (true) {
-                const dirCh = await nhgetch_raw();
+                const dirCh = await nhgetch();
                 // Avoid concatenating prompt + result on the same topline message.
                 display.topMessage = null;
                 display.messageNeedsMore = false;

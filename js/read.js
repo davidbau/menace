@@ -2,7 +2,7 @@
 // cf. read.c — doread, seffects, scroll effects, genocide, punishment, recharging
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { more, nhgetch_raw } from './input.js';
+import { more, nhgetch } from './input.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
@@ -324,7 +324,7 @@ async function handleRead(player, display, game) {
     };
     await showReadPrompt();
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();
@@ -383,7 +383,7 @@ async function handleRead(player, display, game) {
                     // cf. spell.c study_book() — show both messages on one line to match
                     // C TTY behavior where pline() + yn() appear together.
                     await display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
-                    const ans = await nhgetch_raw();
+                    const ans = await nhgetch();
                     if (String.fromCharCode(ans) !== 'y') {
                         return { moved: false, tookTime: false };
                     }

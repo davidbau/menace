@@ -13,7 +13,7 @@ import { handleKnownSpells, docast } from './spell.js';
 import { handleEngrave } from './engrave.js';
 import { handleApply, reset_trapset } from './apply.js';
 import { DART, ARROW } from './objects.js';
-import { more, nhgetch_raw, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
+import { more, nhgetch, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
        } from './input.js';
 import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
@@ -777,7 +777,7 @@ async function handleExtendedCommand(game) {
             }
             if (!advanceable.length) return { moved: false, tookTime: false };
             await display.putstr_message('Skill to advance (letter or ESC):');
-            const ech = await nhgetch_raw();
+            const ech = await nhgetch();
             if (ech === 27) return { moved: false, tookTime: false };
             const ec = String.fromCharCode(ech);
             const idx = letters.indexOf(ec);
@@ -917,7 +917,7 @@ async function readExtendedCommandLine(game, display) {
             display.setCursor(Math.min(`# ${line}`.length, cols - 1), 0);
         }
 
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         if (ch === 13 || ch === 10) {
             if (display) {
                 display.topMessage = null;
@@ -949,7 +949,7 @@ async function handleExtendedCommandUntrap(game) {
     let dir = null;
     while (!dir) {
         await display.putstr_message('In what direction? ');
-        const dirCh = await nhgetch_raw();
+        const dirCh = await nhgetch();
         display.topMessage = null;
         display.messageNeedsMore = false;
 
@@ -1002,7 +1002,7 @@ async function handleExtendedCommandUntrap(game) {
         while (true) {
             const untrapPrompt = 'What do you want to untrap with? [*] ';
             await display.putstr_message(untrapPrompt);
-            const toolCh = await nhgetch_raw();
+            const toolCh = await nhgetch();
             if (toolCh === 27 || toolCh === 32) {
                 await display.putstr_message('Never mind.');
                 return { moved: false, tookTime: false };
@@ -1018,7 +1018,7 @@ async function handleExtendedCommandName(game) {
     const { player, display } = game;
     while (true) {
         await display.putstr_message('                                What do you want to name?');
-        const sel = await nhgetch_raw();
+        const sel = await nhgetch();
         const c = String.fromCharCode(sel).toLowerCase();
         if (sel === 27 || c === ' ') {
             await display.putstr_message('Never mind.');

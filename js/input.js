@@ -452,7 +452,7 @@ function popQueuedInputKey(inDoAgain = false) {
 
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
-export function nhgetch_raw(opts = {}) {
+function nhgetch_raw(opts = {}) {
     const site = opts?.site || 'input.nhgetch_raw';
     const display = getRuntimeDisplay();
     const snap = beginOriginAwait(activeGame, 'input');
@@ -533,7 +533,7 @@ export async function more(display, {
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = (typeof readKey === 'function')
         ? readKey
-        : () => nhgetch_raw();
+        : () => nhgetch();
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
@@ -586,7 +586,7 @@ export async function getlin(prompt, display) {
     // Initial display
     await updateDisplay();
 
-    const readPromptKey = async () => nhgetch_raw();
+    const readPromptKey = async () => nhgetch();
 
     while (true) {
         const ch = await readPromptKey();
@@ -641,7 +641,7 @@ export async function ynFunction(query, choices, def, display) {
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
-    const readPromptKey = async () => nhgetch_raw();
+    const readPromptKey = async () => nhgetch();
 
     while (true) {
         const ch = await readPromptKey();
@@ -689,7 +689,7 @@ export async function getCount(firstKey, maxCount, display) {
         key = 0; // Clear so we read next key
     }
 
-    const readPromptKey = async () => nhgetch_raw();
+    const readPromptKey = async () => nhgetch();
 
     while (true) {
         // If we don't have a key yet, read one

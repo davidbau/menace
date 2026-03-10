@@ -1,7 +1,7 @@
 // do.js -- Miscellaneous player actions
 // cf. do.c — dodrop, dodown, doup, flooreffects, goto_level, donull, dowipe
 
-import { more, nhgetch_raw, ynFunction, getlin } from './input.js';
+import { more, nhgetch, ynFunction, getlin } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
@@ -688,7 +688,7 @@ export async function handleDrop(player, map, display) {
             const dropPrompt = `What do you want to drop? [${dropChoices} or ?*] `;
             await display.putstr_message(dropPrompt);
         }
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (ch === 22) { // Ctrl+V
             countMode = true;
@@ -916,7 +916,7 @@ async function promptDropTypeClass(display, player) {
     }
     let input = '';
     while (true) {
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch();
         if (ch === 10 || ch === 13 || ch === 32) {
             restoreAfterPrompt();
             return input;
@@ -967,7 +967,7 @@ export async function handleDropTypes(player, map, display) {
     }
 
     // C getobj-style letter selection for filtered inventory.
-    const sel = await nhgetch_raw();
+    const sel = await nhgetch();
     if (sel === 27 || sel === 10 || sel === 13 || sel === 32) {
         return { moved: false, tookTime: false };
     }

@@ -1146,10 +1146,10 @@ export async function dotalk(game) {
 
     // cf. sounds.c:1287 — prompt for direction
     // Lazy import to avoid circular dependency.
-    const { nhgetch_raw } = await nhimport('./input.js');
+    const { nhgetch } = await nhimport('./input.js');
     const { DIRECTION_KEYS } = await nhimport('./const.js');
     await display.putstr_message('Talk to whom? (in what direction)');
-    const ch = await nhgetch_raw();
+    const ch = await nhgetch();
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
 
