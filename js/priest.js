@@ -23,7 +23,8 @@ import { dist2 } from './hacklib.js';
 import { In_endgame } from './dungeon.js';
 import { COIN_CLASS, GOLD_PIECE } from './objects.js';
 import { m_next2u } from './muse.js';
-import { move_special } from './monmove.js';
+import { move_special as move_special_monmove } from './monmove.js';
+import { priestini as priestini_mkroom } from './mkroom.js';
 import { newemin, bribe } from './minion.js';
 import { makemon } from './makemon.js';
 import { monnear, mondead, wakeup, setmangry, mongone, helpless as monHelpless } from './mon.js';
@@ -86,6 +87,18 @@ export function free_epri(mtmp) {
         mtmp.epri = null;
     }
     mtmp.ispriest = false;
+}
+
+// C ref: priest.c:42 — move_special()
+// Shared movement helper lives in monmove.js.
+export function move_special(...args) {
+    return move_special_monmove(...args);
+}
+
+// C ref: priest.c:220 — priestini()
+// Temple setup helper lives in mkroom.js generation flow.
+export function priestini(...args) {
+    return priestini_mkroom(...args);
 }
 
 // ============================================================================
@@ -355,7 +368,7 @@ export async function pri_move(priest, map, player, display, fov) {
         avoid = false;
     }
 
-    return move_special(priest, map, player, false, true, false, avoid, ggx, ggy);
+    return move_special_monmove(priest, map, player, false, true, false, avoid, ggx, ggy);
 }
 
 // ============================================================================

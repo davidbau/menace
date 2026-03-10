@@ -284,6 +284,23 @@ export const shtypes = [
     },
 ];
 
+// C ref: shknam.c:init_shop_selection() (inside #if 0 in upstream)
+// Keep this validator as an explicit surface for diagnostics.
+export function init_shop_selection() {
+    let shopProb = 0;
+    for (const shop of shtypes) {
+        if (!shop || !shop.name) break; // sentinel
+        shopProb += Number(shop.prob || 0);
+        const itemProb = (shop.iprobs || []).reduce((acc, it) => acc + Number(it.iprob || 0), 0);
+        if (itemProb !== 100) {
+            throw new Error(`item probabilities total to ${itemProb} for ${shop.name} shops`);
+        }
+    }
+    if (shopProb !== 100) {
+        throw new Error(`shop probabilities total to ${shopProb}`);
+    }
+}
+
 // ========================================================================
 // get_shop_item(type) — C ref: shknam.c:829-839
 // ========================================================================
@@ -774,4 +791,15 @@ export function monsterInShop(mon, map) {
 export function free_eshk(mtmp) {
   if (mtmp.mextra && mtmp.mextra.eshk) { mtmp.mextra.eshk = null; } // JS: no free() needed
   mtmp.isshk = 0;
+}
+
+// C ref: shknam.c:neweshk()
+export function neweshk(mtmp) {
+    if (!mtmp.mextra) mtmp.mextra = {};
+    if (!mtmp.mextra.eshk) mtmp.mextra.eshk = {};
+    mtmp.mextra.eshk = {
+        ...mtmp.mextra.eshk,
+        parentmid: mtmp.m_id || 0,
+        bill_p: null,
+    };
 }

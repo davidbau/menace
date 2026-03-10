@@ -9299,3 +9299,9 @@ export const mkobjprobs = [
     { iprob: 1, iclass: AMULET_CLASS },
 ];
 // AUTO-IMPORT-END: OBJECTS
+
+// C ref: objects.c:32 — objects_globals_init()
+// JS object/descriptor tables are generated and loaded at module initialization.
+export function objects_globals_init() {
+    return;
+}

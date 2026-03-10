@@ -6539,3 +6539,32 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_insight_iactions_surface.test.js test/unit/codematch_were_wield_worn_worm_surface.test.js`
     passed (12/12).
+
+### CODEMATCH multi-file closure slice: decl/monst/mplayer/objects/polyself/priest/shknam/steal/steed (2026-03-10)
+
+- Problem:
+  - Remaining mapped gameplay CODEMATCH gaps were a small but scattered
+    14-function cluster across 9 files (`decl.c`, `monst.c`, `mplayer.c`,
+    `objects.c`, `polyself.c`, `priest.c`, `shknam.c`, `steal.c`, `steed.c`).
+- Change:
+  - Added explicit compatibility surfaces:
+    - `decl.js`: `decl_globals_init`, `sa_victual`
+    - `monst.js`: `monst_globals_init`
+    - `objects.js`: `objects_globals_init`
+    - `mplayer.js`: `dev_name`, `get_mplname`
+    - `polyself.js`: `dropp`
+    - `priest.js`: `move_special` (re-export), `priestini` (mkroom wrapper)
+    - `shknam.js`: `init_shop_selection`, `neweshk`
+    - `steal.js`: `unstolenarm`, `stealarm`
+    - `steed.js`: `use_saddle`
+  - `mkroom.js`: exported `priestini` so the C-name priest surface can
+    delegate to the existing temple-initialization implementation.
+  - Added coverage file:
+    - `test/unit/codematch_remaining_surface_batch.test.js`
+  - Updated `docs/CODEMATCH.md` row mappings and top-line metrics:
+    - gameplay missing: `51 -> 37`
+    - raw missing: `672 -> 658`
+- Validation:
+  - `node --test test/unit/codematch_remaining_surface_batch.test.js`
+  - `node --test test/unit/codematch_remaining_surface_batch.test.js test/unit/codematch_insight_iactions_surface.test.js test/unit/codematch_were_wield_worn_worm_surface.test.js`
+  - Both passed.

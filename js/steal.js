@@ -142,6 +142,45 @@ export function unresponsive(player) {
     return false;
 }
 
+// C ref: steal.c:147 — unstolenarm()
+// Called when armor takeoff completes but thief is gone.
+export async function unstolenarm(player, display = null) {
+    const gs = globalThis.gs || {};
+    const stealoid = Number(gs.stealoid || 0);
+    gs.stealoid = 0;
+    if (!stealoid || !player) return 0;
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    const obj = inv.find((it) => Number(it?.o_id || 0) === stealoid) || null;
+    if (obj && display) await display.putstr_message(`You finish taking off your ${obj.name || 'armor'}.`);
+    return 0;
+}
+
+// C ref: steal.c:165 — stealarm()
+// Completes delayed armor theft after takeoff.
+export async function stealarm(player, map, display = null) {
+    const gs = globalThis.gs || {};
+    const stealoid = Number(gs.stealoid || 0);
+    const stealmid = Number(gs.stealmid || 0);
+    if (!stealoid || !stealmid || !player) {
+        gs.stealoid = 0;
+        gs.stealmid = 0;
+        return 0;
+    }
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    const obj = inv.find((it) => Number(it?.o_id || 0) === stealoid) || null;
+    const thief = (map?.monsters || []).find((m) => Number(m?.m_id || 0) === stealmid) || null;
+    if (obj && thief) {
+        const idx = inv.indexOf(obj);
+        if (idx >= 0) inv.splice(idx, 1);
+        if (!Array.isArray(thief.minvent)) thief.minvent = [];
+        thief.minvent.push(obj);
+        if (display) await display.putstr_message(`${Some_Monnam(thief)} steals ${doname(obj, player)}!`);
+    }
+    gs.stealoid = 0;
+    gs.stealmid = 0;
+    return 0;
+}
+
 // ============================================================================
 // remove_worn_item — cf. steal.c:213
 // ============================================================================

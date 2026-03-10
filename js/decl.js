@@ -99,3 +99,15 @@
 // cf. decl.c:1184 — reinitializeGameDataFromSavedInstances(void): restore from saved
 // Reinitializes game data from saved instance globals (after restore).
 // N/A: decl.c:1184 — reinitializeGameDataFromSavedInstances() (JS uses storage.js)
+
+// C ref: decl.c:1066 — decl_globals_init()
+// In JS, game/module globals are initialized by module load and NetHackGame setup.
+export function decl_globals_init() {
+    return;
+}
+
+// C ref: decl.c:1185 — sa_victual(volatile struct victual_info *)
+// No-op helper used by C static analysis; keep as an explicit surface.
+export function sa_victual(context_victual) {
+    return context_victual;
+}

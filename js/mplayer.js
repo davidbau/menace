@@ -19,19 +19,76 @@
 // ~50 entries covering devteam, PC, Amiga, Mac, Atari, NT, OS/2, VMS teams.
 // Used by dev_name() to pick a unique developer name for endgame mplayers.
 // Same developer name won't appear twice on a level (up to 100 retry attempts).
+const developers = [
+    "Alex", "Dave", "Dean", "Derek", "Eric", "Izchak",
+    "Janet", "Jessie", "Ken", "Kevin", "Michael", "Mike",
+    "Pasi", "Pat", "Patric", "Paul", "Sean", "Steve",
+    "Timo", "Warwick",
+    "Bill", "Eric", "Keizo", "Ken", "Kevin", "Michael",
+    "Mike", "Paul", "Stephen", "Steve", "Timo", "Yitzhak",
+    "Andy", "Gregg", "Janne", "Keni", "Mike", "Olaf",
+    "Richard",
+    "Andy", "Chris", "Dean", "Jon", "Jonathan", "Kevin",
+    "Wang",
+    "Eric", "Marvin", "Warwick",
+    "Alex", "Dion", "Michael",
+    "Helge", "Ron", "Timo",
+    "Joshua", "Pat",
+];
 
 // cf. mplayer.c:43 [static] — dev_name(): pick an unused developer name
 // Randomly selects from developers[]; retries up to 100× if that name is
 //   already in use by an existing mplayer on the level.
 // Returns NULL if all 100 tries matched (all names taken) → caller uses "Adam"/"Eve".
-// TODO: mplayer.c:43 — dev_name(): unique developer name selection
+export function dev_name(levelMonsters = null) {
+    const monsters = levelMonsters
+        || globalThis.gs?.map?.monsters
+        || globalThis.game?.map?.monsters
+        || [];
+    let tries = 0;
+    while (tries < 100) {
+        const name = developers[rn2(developers.length)];
+        let match = false;
+        for (const mtmp of monsters) {
+            const mdata = mtmp?.data || mtmp?.type;
+            if (!mdata) continue;
+            if (!(mdata.mlet === '@' || mdata.isMplayer)) continue;
+            const mname = String(mtmp?.name || mtmp?.mgivenname || '');
+            if (mname.startsWith(name)) {
+                match = true;
+                break;
+            }
+        }
+        if (!match) return name;
+        tries++;
+    }
+    return null;
+}
 
 // cf. mplayer.c:71 [static] — get_mplname(mtmp, nam): assign name to mplayer
 // Calls dev_name(); if no name available uses "Eve" (female) or "Adam" (male).
 // Female monsters: only "Janet" from dev list is kept; others get "Maud" or "Eve".
 // Appends " the <rank>" via rank_of(m_lev, monsndx, female).
 // Sets mtmp->female based on final name.
-// TODO: mplayer.c:71 — get_mplname(): developer-named mplayer naming
+export function get_mplname(mtmp, nam = '') {
+    const roleData = mtmp?.data || mtmp?.type || null;
+    const fmlkind = !!(roleData && roleData.female);
+    const devnam = dev_name();
+    let out = nam || '';
+    if (!devnam) out = fmlkind ? 'Eve' : 'Adam';
+    else if (fmlkind && devnam !== 'Janet') out = rn2(2) ? 'Maud' : 'Eve';
+    else out = devnam;
+
+    if (fmlkind || out === 'Janet') mtmp.female = 1;
+    else mtmp.female = 0;
+
+    const mlev = Number(mtmp?.m_lev || 1);
+    const monnum = (roleData && mons.indexOf(roleData) >= 0)
+        ? mons.indexOf(roleData)
+        : PM_ARCHEOLOGIST;
+    out += ` the ${rank_of(mlev, monnum, !!mtmp.female)}`;
+    return out;
+}
 
 // cf. mplayer.c:94 [static] — mk_mplayer_armor(mon, typ): give mplayer one armor piece
 // Skips if typ==STRANGE_OBJECT. Creates mksobj(typ); clears erosion;
@@ -120,6 +177,7 @@ import { COLNO, ROWNO } from './const.js';
 import { STRANGE_OBJECT } from './objects.js';
 import { goodpos } from './teleport.js';
 import { nhimport } from './origin_awaits.js';
+import { rank_of } from './botl.js';
 
 // Autotranslated from mplayer.c:94
 export function mk_mplayer_armor(mon, typ) {

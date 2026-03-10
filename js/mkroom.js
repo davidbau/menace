@@ -370,7 +370,7 @@ export function do_mkroom(map, roomtype, depth, mktemple_opts = null) {
     }
 }
 
-function priestini(sroom, sx, sy, sanctum, depth, map) {
+export function priestini(sroom, sx, sy, sanctum, depth, map) {
     const si = rn2(N_DIRS);
     const prim = sanctum ? mons[PM_HIGH_CLERIC] : mons[PM_ALIGNED_CLERIC];
 

@@ -1330,6 +1330,19 @@ export async function rehumanize(player) {
 // Remove unsuitable armor when changing form.
 // ============================================================================
 
+// C ref: polyself.c:1119 — dropp()
+// Wrapper over dropx used by break_armor/drop_weapon paths.
+export async function dropp(obj, player) {
+    if (!obj || !player) return;
+    if (typeof player.dropx === 'function') {
+        await player.dropx(obj);
+        return;
+    }
+    if (typeof player.dropp === 'function') {
+        await player.dropp(obj);
+    }
+}
+
 export async function break_armor(player) {
     // cf. polyself.c:1153 — break_armor()
     // Remove/break armor that doesn't fit the new polymorphed form.
@@ -1337,11 +1350,11 @@ export async function break_armor(player) {
     const uptr = player.type;
 
     // Helper: remove and drop an armor piece
-    function removeArmor(slot, offFn) {
+    async function removeArmor(slot, offFn) {
         const otmp = player[slot];
         if (!otmp) return;
         if (offFn && player[offFn]) player[offFn]();
-        if (player.dropp) player.dropp(otmp);
+        await dropp(otmp, player);
         player[slot] = null;
     }
 
@@ -1357,7 +1370,7 @@ export async function break_armor(player) {
         if (player.cloak) {
             // Mummy wrapping adapts to some sizes — skip if allowed
             await pline_The("clasp on your cloak breaks open!");
-            removeArmor('uarmc', 'Cloak_off');
+            await removeArmor('uarmc', 'Cloak_off');
         }
         if (player.shirt) {
             await Your("shirt rips to shreds!");
@@ -1369,7 +1382,7 @@ export async function break_armor(player) {
         if (player.armor) {
             await Your("armor falls around you!");
             if (player.Armor_gone) player.Armor_gone();
-            if (player.dropp) player.dropp(player.armor);
+            await dropp(player.armor, player);
             player.armor = null;
         }
         if (player.cloak) {
@@ -1377,14 +1390,14 @@ export async function break_armor(player) {
                 await Your("cloak falls, unsupported!");
             else
                 await You("shrink out of your cloak!");
-            removeArmor('uarmc', 'Cloak_off');
+            await removeArmor('uarmc', 'Cloak_off');
         }
         if (player.shirt) {
             if (is_whirly(uptr))
                 await You("seep right through your shirt!");
             else
                 await You("become much too small for your shirt!");
-            if (player.dropp) player.dropp(player.shirt);
+            await dropp(player.shirt, player);
             player.shirt = null;
         }
     }
@@ -1393,7 +1406,7 @@ export async function break_armor(player) {
     if (has_horns(uptr)) {
         if (player.helmet) {
             await Your("helmet falls to the ground!");
-            removeArmor('uarmh', 'Helmet_off');
+            await removeArmor('uarmh', 'Helmet_off');
         }
     }
 
@@ -1402,15 +1415,15 @@ export async function break_armor(player) {
         if (player.gloves) {
             await You("drop your gloves%s!", player.weapon ? " and weapon" : "");
             await drop_weapon(player, 0);
-            removeArmor('uarmg', 'Gloves_off');
+            await removeArmor('uarmg', 'Gloves_off');
         }
         if (player.shield) {
             await You("can no longer hold your shield!");
-            removeArmor('uarms', 'Shield_off');
+            await removeArmor('uarms', 'Shield_off');
         }
         if (player.helmet) {
             await Your("helmet falls to the ground!");
-            removeArmor('uarmh', 'Helmet_off');
+            await removeArmor('uarmh', 'Helmet_off');
         }
     }
 

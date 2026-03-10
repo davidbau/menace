@@ -72,6 +72,35 @@ export function put_saddle_on_mon(saddle, mtmp) {
     saddle.leashmon = mtmp.m_id;
 }
 
+// C ref: steed.c:36 — use_saddle()
+// Simplified saddle application helper used by apply flows.
+export async function use_saddle(otmp, player, map, display, dx = 0, dy = 0) {
+    if (!player || !map || !otmp) return 0;
+    if (!dx && !dy) {
+        if (display) await display.putstr_message('Saddle yourself?  Very funny...');
+        return 0;
+    }
+    const tx = (player.x ?? player.ux ?? 0) + dx;
+    const ty = (player.y ?? player.uy ?? 0) + dy;
+    const mtmp = map.monsterAt ? map.monsterAt(tx, ty)
+        : (map.monsters || []).find((m) => m && m.mx === tx && m.my === ty && !m.dead);
+    if (!mtmp) {
+        if (display) await display.putstr_message('I see nobody there.');
+        return 0;
+    }
+    if ((mtmp.misc_worn_check & W_SADDLE) || which_armor(mtmp, W_SADDLE)) {
+        if (display) await display.putstr_message(`${Monnam(mtmp)} doesn't need another one.`);
+        return 0;
+    }
+    if (!can_saddle(mtmp)) {
+        if (display) await display.putstr_message("You can't saddle such a creature.");
+        return 0;
+    }
+    put_saddle_on_mon(otmp, mtmp);
+    if (display) await display.putstr_message(`You put the saddle on ${mon_nam(mtmp)}.`);
+    return 1;
+}
+
 // cf. steed.c:827 -- maybewakesteed(steed): wake sleeping/paralyzed steed
 export async function maybewakesteed(steed) {
     const wasimmobile = !!(steed.msleeping || (steed.mfrozen && !steed.mcanmove));

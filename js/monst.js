@@ -43,3 +43,9 @@
 // cf. monst.c:79 [data] — c_sa_no[NATTK]: seduction attacks (no variant)
 // Constant attack array for monsters that do not have seduction attacks.
 // TODO: monst.c:79 — c_sa_no[]: seduction attack array (no)
+
+// C ref: monst.c:72 — monst_globals_init()
+// JS monster tables are initialized during module load (monsters.js generation).
+export function monst_globals_init() {
+    return;
+}
