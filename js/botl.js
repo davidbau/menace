@@ -1,6 +1,14 @@
 import { strchr } from './hacklib.js';
 import { SIZE } from './const.js';
 import { roles } from './role.js';
+
+// C stubs for status line condition parsing
+function config_error_add(fmt, ...args) { console.error('[config]', fmt, ...args); }
+function splitsubfields(str, subfields, max) {
+  let parts = str.split(/[&|,]+/).map(s => s.trim()).filter(Boolean);
+  for (let i = 0; i < parts.length && i < max; i++) subfields[i] = parts[i];
+  return Math.min(parts.length, max);
+}
 import { depth, dunlev, In_quest, In_endgame } from './dungeon.js';
 // botl.js -- Bottom status line: HP, AC, experience, conditions
 // cf. botl.c — get_strength_str, check_gold_symbol, do_statusline1, do_statusline2,
@@ -398,7 +406,7 @@ export function conditionbitmask2str(ul) {
 
 // Autotranslated from botl.c:2951
 export function str2conditionbitmask(str) {
-  let conditions_bitmask = 0, subfields, i, sf;
+  let conditions_bitmask = 0, subfields = [], i, sf;
   sf = splitsubfields(str, subfields, SIZE(conditions));
   if (sf < 1) return 0;
   for (i = 0; i < sf; ++i) {

@@ -1,3 +1,7 @@
+import { formatkiller } from './end.js';
+import { yyyymmdd } from './calendar.js';
+import { putstr } from './windows.js';
+
 // rip.js -- RIP/tombstone screen display
 // cf. rip.c — genl_outrip(): render ASCII tombstone for game-over screen
 //

@@ -1,5 +1,7 @@
 // Translator target module placeholder for utf8map.c exports.
 
+// Stub for glyph customization lookup (TODO: full implementation)
+function find_matching_customization(name, type, set) { return null; }
 
 // Autotranslated from utf8map.c:147
 export function add_custom_urep_entry(customization_name, glyphidx, utf32ch, utf8str, which_set, player) {

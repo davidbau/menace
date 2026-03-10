@@ -1,3 +1,8 @@
+// Stubs for glyph customization functions (TODO: full implementation)
+function rgbstr_to_int32(str) { return -1; }
+function glyph_find_core(name, find) { return 0; }
+function find_matching_customization(name, type, set) { return null; }
+
 // glyphs.js -- Glyph ID cache, customization, and symbol mapping
 // cf. glyphs.c — glyphrep_to_custom_map_entries, fix_glyphname,
 //                glyph_to_cmap, glyph_find_core, fill_glyphid_cache,

@@ -1,5 +1,15 @@
 import { strchr } from './hacklib.js';
-import { SIZE } from './const.js';
+import { SIZE, def_char_to_objclass } from './const.js';
+
+// C config_error_add: accumulates config parsing errors for display
+function config_error_add(fmt, ...args) {
+  console.error('[config]', fmt, ...args);
+}
+
+// C stubs for window color name lookup (rarely reached — only on windowcolors config)
+function check_enhanced_colors(name) { return -1; }
+function wc_color_name(clr) { return String(clr); }
+
 // options.js -- Game options parsing, initialization, and menu
 // cf. options.c — initoptions, initoptions_init, initoptions_finish,
 //                 match_optname, determine_ambiguities, txt2key,
