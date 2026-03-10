@@ -11,7 +11,7 @@ import { newsym } from './display.js';
 import { dist2, distmin } from './hacklib.js';
 import { movobj, near_capacity, losehp, nomul, spoteffects } from './hack.js';
 import { flooreffects } from './do.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, carried } from './invent.js';
 import { IS_OBSTRUCTED, IS_DOOR, D_CLOSED, D_LOCKED, POOL,
          is_pit, is_hole, A_STR, SLT_ENCUMBER,
          W_BALL, W_CHAIN, W_WEAPONS,
@@ -33,11 +33,6 @@ const override_restriction = -1;
 const BCPOS_DIFFER = 0; // ball & chain at different positions
 const BCPOS_CHAIN = 1;  // chain on top of ball
 const BCPOS_BALL = 2;   // ball on top of chain
-
-// Helper: carried(obj) — is object in player inventory?
-function carried(obj) {
-    return obj && (obj.where === 'OBJ_INVENT' || obj.where === 'invent');
-}
 
 // Helper: welded — is the player's weapon welded (cursed weapon)?
 function welded(obj, player) {

@@ -1314,6 +1314,11 @@ function obj_resists(obj) {
 // 5. Object queries
 // ============================================================
 
+// C ref: obj.h carried(o) macro — is object in player inventory?
+export function carried(obj) {
+    return !!(obj && (obj.where === 'OBJ_INVENT' || obj.where === 'invent'));
+}
+
 // C ref: invent.c sobj_at() — find specific object type at location
 export function sobj_at(otyp, x, y, map) {
     if (!map || !map.objects) return null;

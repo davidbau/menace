@@ -83,7 +83,7 @@ import { resist } from './zap.js';
 import { Luck } from './attrib.js';
 import { findpriest, temple_occupied, p_coaligned } from './priest.js';
 import { set_itimeout, make_glib } from './potion.js';
-import { feel_cockatrice, sobj_at } from './invent.js';
+import { feel_cockatrice, sobj_at, carried } from './invent.js';
 import { destroy_arm } from './do_wear.js';
 import { record_achievement, align_str } from './insight.js';
 import { dist2 } from './hacklib.js';
@@ -280,10 +280,6 @@ function place_object(obj, x, y, map) {
     }
 }
 
-// Helper: carried check -- is object in player inventory?
-function carried(obj, player) {
-    return player.inventory.includes(obj);
-}
 
 // Helper: useup -- consume an item from inventory
 function useup(obj, player) {
@@ -1741,7 +1737,7 @@ export async function desecrate_altar(highaltar, altaralign, player, map) {
 async function offer_real_amulet(otmp, altaralign, player, map) {
     // Remove the amulet
     if (player.amulet === otmp) player.amulet = null;
-    if (carried(otmp, player))
+    if (carried(otmp))
         useup(otmp, player);
     else
         useupf(otmp, 1, map);
@@ -1936,7 +1932,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
     } else {
         adjalign(player, 5);
     }
-    if (carried(otmp, player))
+    if (carried(otmp))
         useup(otmp, player);
     else
         useupf(otmp, 1, map);

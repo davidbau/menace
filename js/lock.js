@@ -39,7 +39,7 @@ import { obj_resists } from './objdata.js';
 import { newsym } from './display.js';
 import { block_point, unblock_point, recalc_block_point, cansee } from './vision.js';
 import { wake_nearto, wake_nearby } from './mon.js';
-import { useup, delobj, currency } from './invent.js';
+import { useup, delobj, currency, carried } from './invent.js';
 import { stackobj } from './invent.js';
 import { add_damage } from './shk.js';
 import { mon_nam, some_mon_nam } from './do_name.js';
@@ -82,10 +82,6 @@ function greatest_erosion(obj) {
 
 // cf. role check
 
-// cf. obj.h: carried(obj)
-function carried(obj) {
-    return obj.where === 'OBJ_INVENT' || obj.where === 'invent';
-}
 
 // ============================================================================
 // Lock-picking context — cf. C's gx.xlock struct

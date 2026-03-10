@@ -46,7 +46,7 @@ import {
 } from './hacklib.js';
 import { shk_your } from './shk.js';
 import { get_cost_of_shop_item } from './shk.js';
-import { currency } from './invent.js';
+import { currency, carried } from './invent.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import {
     STONE, POOL, LAVAPOOL, WATER, AIR, CLOUD, ROOM, CORR, VWALL, HWALL, DOOR,
@@ -1015,10 +1015,6 @@ export function The(str) {
 // cf. objnam.c:2234-2289
 // ============================================================================
 
-// Helper: carried(obj) - is object in player inventory?
-function carried(obj) {
-    return obj.where === 'invent' || !!obj.carried;
-}
 
 // cf. objnam.c:2234 — aobjnam(otmp, verb): "count cxname verb"
 export function aobjnam(otmp, verb) {

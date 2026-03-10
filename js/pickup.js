@@ -28,7 +28,7 @@ import { instapetrify } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
-         inv_cnt, merge_choice, hold_another_object, prinv, g_at } from './invent.js';
+         inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
 import { makemon } from './makemon.js';
@@ -71,10 +71,6 @@ let oldcap = 0;                    // go.oldcap
 
 function SchroedingersBox(obj) {
     return obj.spe === 1 && Is_box(obj);
-}
-
-function carried(obj) {
-    return obj.where === 'OBJ_INVENT' || obj.where === 'invent';
 }
 
 function autounlock_has_action(flags, actionName, actionBit) {
