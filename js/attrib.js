@@ -28,6 +28,7 @@ import { PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
          PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD } from './monsters.js';
 import { confers_luck, retouch_equipment } from './artifact.js';
 import { add_weapon_skill, lose_weapon_skill } from './weapon.js';
+import { encumber_msg } from './pickup.js';
 
 // C ref: attrib.c bitmask values for intrinsic source tracking
 // In C these are FROM_ROLE=0x01000000 etc but here we use them as FROMEXPER/FROMRACE
@@ -298,10 +299,6 @@ function see_monsters() {
     // Display refresh; a no-op in contexts where display isn't available
 }
 
-// Stub for encumber_msg
-function encumber_msg(_player) {
-    // Encumbrance message; handled externally in pickup.js
-}
 
 // Stub for losehp
 function losehp(player, dmg, knam, _k_format) {

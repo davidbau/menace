@@ -40,6 +40,7 @@ import {
 import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
+import { rnd_class } from './objnam.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,
@@ -250,19 +251,6 @@ function ensureObjectClassTablesInitialized() {
     }
 }
 
-// C ref: objnam.c rnd_class() -- pick random object in index range by probability
-function rnd_class(first, last) {
-    let sum = 0;
-    for (let i = first; i <= last; i++)
-        sum += objectData[i].oc_prob || 0;
-    if (!sum) return rn1(last - first + 1, first);
-    let x = rnd(sum);
-    for (let i = first; i <= last; i++) {
-        x -= objectData[i].oc_prob || 0;
-        if (x <= 0) return i;
-    }
-    return first;
-}
 
 // C ref: Is_mbag() -- is object a magic bag?
 function is_mbag(obj) {

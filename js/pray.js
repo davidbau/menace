@@ -45,7 +45,7 @@ import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
          AT_ENGL, AD_BLND } from './monsters.js';
 import { Role_if } from './role.js';
 import { makeplural, is_weptool,
-         vtense, otense, An, an, yname, Yobjnam2, ansimpleoname } from './objnam.js';
+         vtense, otense, An, an, yname, Yobjnam2, ansimpleoname, rnd_class } from './objnam.js';
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
@@ -89,7 +89,7 @@ import { record_achievement, align_str } from './insight.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
 import { get_mtraits } from './mkobj.js';
-import { rider_corpse_revival } from './pickup.js';
+import { rider_corpse_revival, encumber_msg } from './pickup.js';
 import { In_sokoban, Is_astralevel, Is_sanctum } from './dungeon.js';
 import { nomul } from './hack.js';
 import { welded } from './wield.js';
@@ -399,10 +399,6 @@ function you_unwere(player, _talk) {
     player.ulycn = -1;
 }
 
-// Helper: encumber_msg
-function encumber_msg() {
-    // Display update stub
-}
 
 // Helper: setuhpmax
 function setuhpmax(player, newmax, alwaysSetBase) {
@@ -602,10 +598,6 @@ function peek_at_iced_corpse_age(otmp) {
 // Helper: P_RESTRICTED stub
 function P_RESTRICTED() { return false; }
 
-// Helper: rnd_class stub -- random object in class range
-function rnd_class(low, high) {
-    return low + rn2(high - low + 1);
-}
 
 // ================================================================
 // cf. pray.c:116 -- critically_low_hp(only_if_injured)
@@ -993,7 +985,7 @@ async function fix_worst_trouble(trouble, player, map) {
                 }
             }
         }
-        await encumber_msg();
+        await encumber_msg(player);
         break;
     case TROUBLE_BLIND:
         if (player.blind) {
@@ -1517,7 +1509,7 @@ async function pleased(g_align, player, map) {
             if (player.attributes && player.attrMax
                 && player.attributes[A_STR] < player.attrMax[A_STR]) {
                 player.attributes[A_STR] = player.attrMax[A_STR];
-                await encumber_msg();
+                await encumber_msg(player);
             }
             if ((player.hunger || 0) < 900) await init_uhunger(player);
             if ((player.luck || 0) < 0) player.luck = 0;

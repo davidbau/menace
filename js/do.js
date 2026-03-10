@@ -56,7 +56,6 @@ import { W_ART, W_ARTI } from './const.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
-function encumber_msg(_player) {}
 function Wounded_legs(player) { return !!(player?.woundedLegs); }
 function EWounded_legs(player) { return Number(player?.eWoundedLegs || 0); }
 function HWounded_legs(player) { return Number(player?.hWoundedLegs || 0); }

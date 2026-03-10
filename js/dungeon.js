@@ -154,6 +154,7 @@ import {
     mazexy,
 } from './mkmaze.js';
 import { makeroguerooms } from './extralev.js';
+import { rnd_class } from './objnam.js';
 
 /**
  * Bridge function: Call themed room generation with des.* API bridge
@@ -2919,19 +2920,6 @@ export function mktrap_victim(map, trap, depth) {
     otmp.age -= (TAINT_AGE + 1);
 }
 
-// C ref: objnam.c rnd_class() -- pick random object in index range by probability
-function rnd_class(first, last) {
-    let sum = 0;
-    for (let i = first; i <= last; i++)
-        sum += objectData[i].oc_prob || 0;
-    if (!sum) return rn1(last - first + 1, first);
-    let x = rnd(sum);
-    for (let i = first; i <= last; i++) {
-        x -= objectData[i].oc_prob || 0;
-        if (x <= 0) return i;
-    }
-    return first;
-}
 
 // Supply items for Oracle supply chest
 // C ref: mklev.c:1039-1049
