@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 
 import { initRng } from '../../js/rng.js';
 import { GameMap } from '../../js/game.js';
-import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key, doinvoke } from '../../js/artifact.js';
+import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key, doinvoke, invoke_healing, invoke_charge_obj } from '../../js/artifact.js';
 import { check_in_air } from '../../js/trap.js';
 import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
 import { return_from_mtoss } from '../../js/mthrowu.js';
-import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS, ECMD_TIME } from '../../js/const.js';
+import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS, ECMD_TIME, ECMD_CANCEL, BLINDED, SICK, SLIMED, TIMEOUT } from '../../js/const.js';
 import { CHEST, DAGGER, POTION_CLASS, POT_WATER, POT_OIL, WEAPON_CLASS } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
 import { CRYSTAL_BALL } from '../../js/objects.js';
@@ -141,6 +141,33 @@ test('artifact.doinvoke selects an invokable item and consumes a turn', async ()
     const game = { moves: 1, disp: { botl: false } };
     const rc = await doinvoke(player, game);
     assert.equal(rc, ECMD_TIME);
+});
+
+test('artifact.invoke_healing cures sick/slimed and reduces timed blindness to cream', async () => {
+    const player = {
+        uhp: 9,
+        uhpmax: 20,
+        ucreamed: 2,
+        uprops: {
+            [BLINDED]: { intrinsic: 15, extrinsic: 0, blocked: 0 },
+            [SICK]: { intrinsic: 12, extrinsic: 0, blocked: 0 },
+            [SLIMED]: { intrinsic: 9, extrinsic: 0, blocked: 0 },
+        },
+        getPropTimeout(prop) { return (this.uprops[prop]?.intrinsic || 0) & TIMEOUT; },
+    };
+    const rc = await invoke_healing({ oartifact: 27 }, player);
+    assert.equal(rc, ECMD_TIME);
+    assert.equal(player.uhp > 9, true);
+    assert.equal(player.getPropTimeout(SICK), 0);
+    assert.equal(player.getPropTimeout(SLIMED), 0);
+    assert.equal(player.getPropTimeout(BLINDED), 2);
+});
+
+test('artifact.invoke_charge_obj cancels and clears cooldown when no player/target', async () => {
+    const obj = { oartifact: 27, age: 123, blessed: 0, cursed: 0 };
+    const rc = await invoke_charge_obj(obj, null, null);
+    assert.equal(rc, ECMD_CANCEL);
+    assert.equal(obj.age, 0);
 });
 
 test('artifact.is_magic_key follows rogue-vs-nonrogue bless/curse rules', () => {

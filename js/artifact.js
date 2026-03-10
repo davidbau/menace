@@ -21,12 +21,12 @@ import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
 import { getobj } from './invent.js';
-import { seffect_taming, recharge } from './read.js';
+import { seffect_taming, recharge, charge_ok } from './read.js';
 import { dountrap } from './trap.js';
 import { obfree } from './shk.js';
 
@@ -1231,8 +1231,8 @@ export function invoke_ok(obj) {
 export async function doinvoke(player, game = null) {
   const obj = getobj('invoke', invoke_ok, 0, player);
   if (!obj) return ECMD_CANCEL;
-  await arti_invoke(obj, player, game);
-  return ECMD_TIME;
+  if (!await retouch_object(obj, false, player)) return ECMD_TIME;
+  return await arti_invoke(obj, player, game);
 }
 
 // cf. artifact.c:1762 — nothing_special(obj)
@@ -1257,12 +1257,28 @@ export async function invoke_healing(obj, player) {
   const hpFields = currentHpField(player);
   if (!hpFields) { await nothing_special(obj); return ECMD_TIME; }
   const [hp, hpmax] = hpFields;
+  const creamed = Number(player.ucreamed || 0);
+  const blindEntry = player.uprops?.[BLINDED] || null;
+  const blindedTimeout = blindEntry ? (blindEntry.intrinsic & TIMEOUT) : Number(player.blindedTimeout || 0);
+  const sickTimeout = player.getPropTimeout ? player.getPropTimeout(SICK) : Number(player.sick || 0);
+  const slimedTimeout = player.getPropTimeout ? player.getPropTimeout(SLIMED) : Number(player.slimed || 0);
   let healamt = ((player[hpmax] + 1 - player[hp]) / 2) | 0;
-  if (healamt > 0) {
+  if (healamt > 0 || sickTimeout > 0 || slimedTimeout > 0 || blindedTimeout > creamed) {
     await You_feel("better.");
     player[hp] += healamt;
   } else {
     await nothing_special(obj);
+    return ECMD_TIME;
+  }
+  if (sickTimeout > 0) {
+    if (player.uprops?.[SICK]) player.uprops[SICK].intrinsic &= ~TIMEOUT;
+    player.sick = 0;
+  }
+  if (slimedTimeout > 0 && player.uprops?.[SLIMED]) player.uprops[SLIMED].intrinsic &= ~TIMEOUT;
+  if (blindedTimeout > creamed && blindEntry) {
+    blindEntry.intrinsic = (blindEntry.intrinsic & ~TIMEOUT) | (creamed & TIMEOUT);
+  } else if (blindedTimeout > creamed) {
+    player.blindedTimeout = creamed;
   }
   return ECMD_TIME;
 }
@@ -1291,29 +1307,36 @@ export async function invoke_energy_boost(obj, game, player) {
 // cf. artifact.c:1838 — invoke_untrap(obj)
 export async function invoke_untrap(obj, game = null) {
   const res = await dountrap();
-  if (res === ECMD_OK) await nothing_special(obj);
-  return 1;
+  if (res !== ECMD_TIME) {
+    obj.age = 0;
+    return ECMD_CANCEL;
+  }
+  return ECMD_TIME;
 }
 
 // cf. artifact.c:1848 — invoke_charge_obj(obj)
 export async function invoke_charge_obj(obj, game = null, player = null) {
   if (!player) {
-    await nothing_special(obj);
-    return 1;
+    obj.age = 0;
+    return ECMD_CANCEL;
   }
   const target = getobj(
     'charge',
-    (it) => (it && (it.otyp !== undefined)) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+    charge_ok,
     0,
     player
   );
   if (!target) {
-    await nothing_special(obj);
-    return 1;
+    obj.age = 0;
+    return ECMD_CANCEL;
   }
-  const curseBless = obj?.cursed ? -1 : obj?.blessed ? 1 : 0;
+  const oart = get_artifact(obj);
+  const roleMnum = Number.isInteger(player?.roleMnum) ? player.roleMnum : null;
+  const blessedEffect = !!obj?.blessed
+    && (oart.role === NON_PM || (roleMnum !== null && oart.role === roleMnum));
+  const curseBless = blessedEffect ? 1 : (obj?.cursed ? -1 : 0);
   await recharge(target, curseBless, player, game);
-  return 1;
+  return ECMD_TIME;
 }
 
 // cf. artifact.c:1867 — invoke_create_portal(obj)

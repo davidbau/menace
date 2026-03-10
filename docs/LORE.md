@@ -7311,3 +7311,33 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (13/13)
   - `npm run -s test:unit` (2750/2750)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: artifact invoke C-semantics follow-up (retouch + cancel paths)
+
+- Problem:
+  - `doinvoke` still skipped C's `retouch_object()` guard.
+  - Several invoke helpers didn't match C cancel/cooldown semantics:
+    - `invoke_untrap`: should cancel and clear cooldown age when no action.
+    - `invoke_charge_obj`: should cancel and clear cooldown age when no target.
+  - Healing invoke lacked C-side status cleanup (Sick/Slimed/timed blindness).
+- Change:
+  - `js/artifact.js`:
+    - `doinvoke` now runs `retouch_object(..., FALSE)` before dispatching invoke.
+    - `invoke_untrap` now returns `ECMD_CANCEL` and clears `obj.age` on no-op.
+    - `invoke_charge_obj` now:
+      - uses `read.charge_ok` for target filtering,
+      - applies C-shaped cancel semantics (`age=0`, `ECMD_CANCEL`) when canceled,
+      - applies role-aware blessed charging effect (artifact role matches hero role
+        or artifact role is `NON_PM`).
+    - `invoke_healing` now clears sickness/sliming and reduces timed blindness
+      down to cream-only timeout in addition to HP healing.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added coverage for healing status cleanup and charge-cancel cooldown reset.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (15/15)
+  - `npm run -s test:unit` (2752/2752)
+  - `npm run -s test:session -- --max-failures=5` (151/151)
+- Note:
+  - Running unit and session suites concurrently can cause false session timeout
+    failures from host contention; parity validation should run sessions
+    serially.
