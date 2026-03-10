@@ -228,8 +228,6 @@ export async function use_towel(obj, player) {
   return ECMD_OK;
 }
 
-// cf. apply.c:198 -- STUB: depends on sobj_at, corpse processing
-export function its_dead() { return false; }
 
 // cf. apply.c:318 -- STUB: depends on getdir, mstatusline
 async function use_stethoscope() { await You("hear nothing special."); }
@@ -318,11 +316,6 @@ export async function use_leash() { await pline("You need to get closer to use a
 // cf. apply.c:817 -- STUB: use_leash_core
 export function use_leash_core() {}
 
-// cf. apply.c:887 -- STUB: mleashed_next2u
-export function mleashed_next2u() { return false; }
-
-// cf. apply.c:915 -- next_to_u: conservative default
-export function next_to_u() { return true; }
 
 // cf. apply.c:927 -- check_leash: leash range enforcement
 export async function check_leash(player, x, y, map) {
@@ -838,11 +831,6 @@ function set_trap(game, player, map, display) {
 // cf. apply.c:2951 -- STUB: use_whip
 export async function use_whip() { await pline("Snap!"); }
 
-// cf. apply.c:3279 -- STUB: find_poleable_mon
-function find_poleable_mon() { return false; }
-
-// cf. apply.c:3317 -- STUB: get_valid_polearm_position
-export function get_valid_polearm_position() { return false; }
 
 // cf. apply.c:3330 -- STUB: display_polearm_positions
 export function display_polearm_positions(player, map) {
@@ -866,8 +854,6 @@ export function calc_pole_range() { return { min_range: 4, max_range: 4 }; }
 // cf. apply.c:3387 -- could_pole_mon
 export function could_pole_mon(_player, _x, _y, _map) { return false; }
 
-// cf. apply.c:3412 -- snickersnee_used_dist_attk
-export function snickersnee_used_dist_attk() { return false; }
 
 // cf. apply.c:3422 -- STUB: use_pole
 export async function use_pole() { await pline("You miss; there is no one there to hit."); }
