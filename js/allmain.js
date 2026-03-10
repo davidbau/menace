@@ -17,9 +17,8 @@
 
 import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
-import { setGame } from './gstate.js';
+import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
-import { beginCommandExec, endCommandExec, getCommandExecState } from './exec_guard.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -52,7 +51,7 @@ import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch, nhgetch_raw, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode, more } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
@@ -507,18 +506,15 @@ export async function moveloop_dosounds(game) {
 // orchestration logic.
 //
 // opts.countPrefix:      digit count (e.g. 20 for "20s")
-// opts.onTimedTurn:      hook called after each moveloop_core
-// opts.onBeforeRepeat:   hook called before each multi-repeat iteration
 // opts.skipMonsterMove:  passed through to moveloop_core
 // opts.skipTurnEnd:      skip all post-rhack processing (moveloop, occ, multi)
 export async function run_command(game, ch, opts = {}) {
     const {
         countPrefix = 0,
-        onTimedTurn,
-        onBeforeRepeat,
         skipMonsterMove,
         skipTurnEnd = false,
         skipRepeatRecord = false,
+        showRepeatInterruptMore = true,
     } = opts;
 
     const chCode = typeof ch === 'number' ? ch
@@ -545,10 +541,8 @@ export async function run_command(game, ch, opts = {}) {
             await moveloop_core(game, coreOpts);
             find_ac(game.u || game.player);
             see_monsters(game.map);
-            if (onTimedTurn) {
-                await onTimedTurn();
-            }
-            await _drainOccupation(game, coreOpts, onTimedTurn);
+            await display_sync();
+            await _drainOccupation(game, coreOpts);
         }
         if (!game.pendingPrompt && game._pendingTutorialStrip
             && typeof game._applyTutorialStrip === 'function') {
@@ -575,49 +569,12 @@ export async function run_command(game, ch, opts = {}) {
         };
     };
 
-    // Boundary owner stack: active top boundary gets first chance to consume key.
-    let topBoundary = (typeof game?.peekInputBoundary === 'function')
-        ? game.peekInputBoundary()
-        : null;
-    if (game?.pendingPrompt
-        && typeof game.pendingPrompt.onKey === 'function'
-        && (!topBoundary || topBoundary.owner !== 'prompt')) {
-        game?.emitDiagnosticEvent?.('boundary.prompt.fallback-sync', {
-            key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        // Re-apply prompt through property setter to restore prompt boundary owner.
-        const activePrompt = game.pendingPrompt;
-        game.pendingPrompt = activePrompt;
-        topBoundary = (typeof game?.peekInputBoundary === 'function')
-            ? game.peekInputBoundary()
-            : null;
-    }
-    if (topBoundary
-        && topBoundary.owner !== 'prompt'
-        && typeof topBoundary.onKey === 'function') {
-        game?.emitDiagnosticEvent?.('boundary.stack.key', {
-            key: chCode,
-            owner: topBoundary.owner || null,
-            boundary: game?.getInputBoundaryState?.() || null,
-        });
-        const boundaryResult = await Promise.resolve(topBoundary.onKey(chCode, game));
-        const handled = boundaryResult === true || !!(boundaryResult && boundaryResult.handled);
-        if (handled) {
-            return {
-                tookTime: !!(boundaryResult && boundaryResult.tookTime),
-                moved: !!(boundaryResult && boundaryResult.moved),
-                boundary: true,
-            };
-        }
-    } else if (topBoundary
-        && topBoundary.owner === 'prompt'
-        && typeof topBoundary.onKey === 'function') {
+    if (game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
         game?.emitDiagnosticEvent?.('boundary.prompt.key', {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
         });
-        const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
+        const promptResult = await Promise.resolve(game.pendingPrompt.onKey(chCode, game));
         const finalized = await handlePromptResult(promptResult);
         if (finalized) return finalized;
         // Strict owner semantics: while prompt boundary owns input, a key does
@@ -698,9 +655,7 @@ export async function run_command(game, ch, opts = {}) {
         find_ac(game.u || game.player);
         // After monsters move, update display at every monster position.
         see_monsters(game.map);
-        if (onTimedTurn) {
-            await onTimedTurn();
-        }
+        await display_sync();
     };
 
     // Set advanceRunTurn for running mode (G/g commands process monster
@@ -751,7 +706,7 @@ export async function run_command(game, ch, opts = {}) {
         }
 
         // Drain any occupation created by the command
-        await _drainOccupation(game, coreOpts, onTimedTurn);
+        await _drainOccupation(game, coreOpts);
 
         // Multi-repeat loop
         // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
@@ -759,8 +714,17 @@ export async function run_command(game, ch, opts = {}) {
         // travel: dotravel_target sets multi=max(COLNO,ROWNO) and context.mv,
         // so the entire travel run executes within one command boundary.
         while (game.multi > 0) {
-            if (onBeforeRepeat) {
-                await onBeforeRepeat();
+            if (typeof game.shouldInterruptMulti === 'function'
+                && game.shouldInterruptMulti()) {
+                game.multi = 0;
+                if (showRepeatInterruptMore && game.display) {
+                    await game.display.putstr_message('--More--');
+                    await more(game.display, {
+                        game,
+                        site: 'run_command.repeat.interrupt-more',
+                        forceVisual: true,
+                    });
+                }
             }
             if (game.multi <= 0) break; // hook may have cleared multi
 
@@ -808,7 +772,7 @@ export async function run_command(game, ch, opts = {}) {
                 }
                 bumpHeroSeqN();
                 await advanceTimedTurn();
-                await _drainOccupation(game, coreOpts, onTimedTurn);
+                await _drainOccupation(game, coreOpts);
             } else {
                 emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
                 game.multi--;
@@ -826,7 +790,7 @@ export async function run_command(game, ch, opts = {}) {
                 }
 
                 // Drain occupation from repeated command
-                await _drainOccupation(game, coreOpts, onTimedTurn);
+                await _drainOccupation(game, coreOpts);
             }
         }
     }
@@ -903,7 +867,7 @@ export async function execute_repeat_command(game, opts = {}) {
 
 // Internal helper: drain a multi-turn occupation until it completes or is
 // interrupted by an adjacent hostile monster.
-async function _drainOccupation(game, coreOpts, onTimedTurn) {
+async function _drainOccupation(game, coreOpts) {
     while (game.occupation) {
         const occ = game.occupation;
         const cont = await occ.fn(game);
@@ -930,7 +894,7 @@ async function _drainOccupation(game, coreOpts, onTimedTurn) {
 
         // Occupation step took time — process monster moves + turn-end
         await moveloop_core(game, coreOpts);
-        if (onTimedTurn) await onTimedTurn();
+        await display_sync();
 
         if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
             finishedOcc.onFinishAfterTurn(game);
@@ -1211,7 +1175,6 @@ export class NetHackGame {
         this.seerTurn = 0;
         this.occupation = null;
         this._pendingPrompt = null;
-        this._pendingPromptBoundaryToken = null;
         this.pendingDeferredTimedTurn = false;
         this.seed = 0;
         this.multi = 0;
@@ -1227,8 +1190,6 @@ export class NetHackGame {
         this._diagMax = 512;
         this._diagEvents = [];
         this._diagListeners = new Set();
-        this._inputBoundarySeq = 0;
-        this._inputBoundaryStack = [];
         this._namePromptEcho = '';
         this._rngAccessors = { getRngState, setRngState, getRngCallCount, setRngCallCount };
         this.rfilter = {
@@ -1320,23 +1281,7 @@ export class NetHackGame {
             enumerable: true,
             get: () => this._pendingPrompt,
             set: (handler) => {
-                this.clearInputBoundariesByOwner('prompt');
-                if (this._pendingPromptBoundaryToken) {
-                    this.clearInputBoundary(this._pendingPromptBoundaryToken);
-                    this._pendingPromptBoundaryToken = null;
-                }
                 this._pendingPrompt = handler || null;
-                if (!this._pendingPrompt || typeof this._pendingPrompt.onKey !== 'function') return;
-                this._pendingPromptBoundaryToken = this.withInputBoundary(
-                    'prompt',
-                    async (ch, game) => {
-                        if (!this._pendingPrompt || typeof this._pendingPrompt.onKey !== 'function') {
-                            return { handled: false };
-                        }
-                        return await Promise.resolve(this._pendingPrompt.onKey(ch, game));
-                    },
-                    { source: 'game.pendingPrompt' }
-                );
             },
         });
         if (this.display) {
@@ -1381,49 +1326,9 @@ export class NetHackGame {
         return this._diagEvents.slice(start);
     }
 
-    withInputBoundary(owner, onKey, meta = null) {
-        if (typeof onKey !== 'function') return null;
-        const token = ++this._inputBoundarySeq;
-        this._inputBoundaryStack.push({
-            token,
-            owner: owner ? String(owner) : 'boundary',
-            onKey,
-            meta: meta && typeof meta === 'object' ? meta : null,
-        });
-        return token;
-    }
-
-    clearInputBoundary(token) {
-        if (!Number.isInteger(token)) return false;
-        for (let i = this._inputBoundaryStack.length - 1; i >= 0; i--) {
-            if (this._inputBoundaryStack[i].token === token) {
-                this._inputBoundaryStack.splice(i, 1);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    clearInputBoundariesByOwner(owner) {
-        const target = owner ? String(owner) : '';
-        if (!target) return 0;
-        const before = this._inputBoundaryStack.length;
-        this._inputBoundaryStack = this._inputBoundaryStack.filter((entry) => entry.owner !== target);
-        return before - this._inputBoundaryStack.length;
-    }
-
-    peekInputBoundary() {
-        if (!Array.isArray(this._inputBoundaryStack) || this._inputBoundaryStack.length === 0) {
-            return null;
-        }
-        return this._inputBoundaryStack[this._inputBoundaryStack.length - 1];
-    }
-
     getInputBoundaryState() {
         const display = this.display || null;
         const input = this.input || null;
-        const topBoundary = this.peekInputBoundary();
-        const boundaryDepth = Array.isArray(this._inputBoundaryStack) ? this._inputBoundaryStack.length : 0;
         const promptActive = !!(this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function');
         const menuActive = !!hasActiveTextPopupWindow();
         const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
@@ -1432,16 +1337,15 @@ export class NetHackGame {
         let boundaryKind = 'none';
         if (promptActive) boundaryKind = 'prompt';
         else if (menuActive) boundaryKind = 'menu';
-        else if (topBoundary) boundaryKind = 'stack';
         else if (waitingRaw) boundaryKind = 'input';
         return {
-            waitingForInput: promptActive || menuActive || !!topBoundary || waitingRaw,
+            waitingForInput: promptActive || menuActive || waitingRaw,
             boundaryKind,
             source: boundaryKind,
-            pendingCount: 0,
+            pendingCount: promptActive ? 1 : 0,
             ackRequired,
-            stackOwner: topBoundary?.owner || null,
-            stackDepth: boundaryDepth,
+            stackOwner: promptActive ? 'prompt' : null,
+            stackDepth: promptActive ? 1 : 0,
             commandExecToken: execState?.activeToken ?? null,
             commandExecDepth: Number(execState?.depth || 0),
         };
@@ -2133,12 +2037,7 @@ export class NetHackGame {
             countPrefix: (options.countPrefix && options.countPrefix > 0) ? options.countPrefix : 0,
             skipMonsterMove: options.skipMonsterMove,
             skipTurnEnd: !!options.skipTurnEnd,
-            onBeforeRepeat: () => {
-                if (typeof this.shouldInterruptMulti === 'function'
-                    && this.shouldInterruptMulti()) {
-                    this.multi = 0;
-                }
-            },
+            showRepeatInterruptMore: false,
         });
 
         this.docrt();
@@ -2222,7 +2121,7 @@ export class NetHackGame {
     }
 
     async _readCommandLoopKey() {
-        return await nhgetch_raw();
+        return await nhgetch();
     }
 
     // Main game loop — browser path
@@ -2280,16 +2179,7 @@ export class NetHackGame {
         // C ref: cmd.c:1687 do_repeat() — Ctrl+A repeats last command
         if (firstCh === 1) { // Ctrl+A
             await execute_repeat_command(this, {
-                onTimedTurn: async () => {
-                    await display_sync();
-                },
-                onBeforeRepeat: async () => {
-                    if (this.shouldInterruptMulti()) {
-                        this.multi = 0;
-                        await this.display.putstr_message('--More--');
-                        await more(this.display, { game: this, site: 'gameLoop.repeat.interrupt-more', forceVisual: true });
-                    }
-                },
+                showRepeatInterruptMore: true,
             });
             this.fov.compute(this.map, this.player.x, this.player.y);
             this.display.renderMap(this.map, this.player, this.fov, this.flags);
@@ -2318,16 +2208,7 @@ export class NetHackGame {
 
         await run_command(this, ch, {
             countPrefix,
-            onTimedTurn: async () => {
-                await display_sync();
-            },
-            onBeforeRepeat: async () => {
-                if (this.shouldInterruptMulti()) {
-                    this.multi = 0;
-                    await this.display.putstr_message('--More--');
-                    await more(this.display, { game: this, site: 'gameLoop.multi.interrupt-more', forceVisual: true });
-                }
-            },
+            showRepeatInterruptMore: true,
         });
 
         this.fov.compute(this.map, this.player.x, this.player.y);

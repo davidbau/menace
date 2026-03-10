@@ -177,18 +177,9 @@ function emitStartupRunstepIfEnabled(game) {
 async function settleStartupInputBoundaries(game) {
     const maxIterations = 32;
     for (let i = 0; i < maxIterations; i++) {
-        const topBoundary = (typeof game?.peekInputBoundary === 'function')
-            ? game.peekInputBoundary()
-            : null;
-
         // Handle replay-startup tutorial prompt leftovers so the first replay
         // key reaches gameplay. Do not auto-answer arbitrary prompt boundaries.
         const replayStartupPrompt = !!(game?.pendingPrompt?.isReplayStartupPrompt);
-        if (replayStartupPrompt
-            && topBoundary && topBoundary.owner === 'prompt' && typeof topBoundary.onKey === 'function') {
-            await Promise.resolve(topBoundary.onKey('n'.charCodeAt(0), game));
-            continue;
-        }
         if (replayStartupPrompt && game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
             await Promise.resolve(game.pendingPrompt.onKey('n'.charCodeAt(0), game));
             continue;

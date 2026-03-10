@@ -1,8 +1,12 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { beginCommandExec, endCommandExec } from '../../js/exec_guard.js';
-import { awaitInput, awaitMore, awaitAnim } from '../../js/suspend.js';
+import {
+    beginCommandExec,
+    endCommandExec,
+    beginOriginAwait,
+    endOriginAwait,
+} from '../../js/gstate.js';
 
 describe('synclock exec guard (S0)', () => {
     let oldMode;
@@ -31,16 +35,19 @@ describe('synclock exec guard (S0)', () => {
         assert.equal(events.some((e) => e.type === 'synclock.command.end'), true);
     });
 
-    it('typed suspension wrappers preserve resolved value', async () => {
+    it('origin await begin/end registers without changing behavior', () => {
         const game = { emitDiagnosticEvent() {} };
         const token = beginCommandExec(game, { site: 'unit.suspend' });
-        const a = await awaitInput(game, Promise.resolve(11), { site: 'unit.awaitInput' });
-        const b = await awaitMore(game, Promise.resolve(22), { site: 'unit.awaitMore' });
-        const c = await awaitAnim(game, Promise.resolve(33), { site: 'unit.awaitAnim' });
+        const a = beginOriginAwait(game, 'input');
+        endOriginAwait(game, a);
+        const b = beginOriginAwait(game, 'more');
+        endOriginAwait(game, b);
+        const c = beginOriginAwait(game, 'anim');
+        endOriginAwait(game, c);
         endCommandExec(game, token, { site: 'unit.suspend' });
-        assert.equal(a, 11);
-        assert.equal(b, 22);
-        assert.equal(c, 33);
+        assert.equal(Number.isInteger(a?.token), true);
+        assert.equal(Number.isInteger(b?.token), true);
+        assert.equal(Number.isInteger(c?.token), true);
     });
 
     it('strict mode throws on nested command begin', () => {
@@ -54,4 +61,3 @@ describe('synclock exec guard (S0)', () => {
         endCommandExec(game, token, { site: 'outer' });
     });
 });
-

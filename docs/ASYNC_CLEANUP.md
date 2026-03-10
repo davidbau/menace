@@ -451,6 +451,19 @@ Progress note (2026-03-10):
 - Removed `input.more()` fallback delegation to `display.morePrompt()` so
   `--More--` dismissal now uses a single explicit key loop path.
 - Validation: `scripts/run-and-report.sh` remains 34/34 passing.
+- Removed boundary-owner shim APIs from `NetHackGame` (`withInputBoundary`,
+  `peekInputBoundary`, `clearInputBoundary`, `clearInputBoundariesByOwner`);
+  `run_command` now routes prompt ownership directly via `pendingPrompt.onKey`.
+- Removed `run_command` callback plumbing (`onTimedTurn`, `onBeforeRepeat`);
+  timed-turn UI sync now uses direct `display_sync()` and repeat interruption
+  is handled in `run_command` via `showRepeatInterruptMore`.
+- Deleted legacy wrapper modules `js/suspend.js` and `js/exec_guard.js`;
+  `allmain` and `synclock` tests now import guard APIs directly from
+  `gstate.js`.
+- Updated replay startup settling to rely on explicit `pendingPrompt` handling
+  (no boundary-stack probing).
+- Validation: `npm run -s test:unit` and `scripts/run-and-report.sh` both green
+  after this cleanup pass.
 
 #### Phase 2d: Delete old mechanisms (contract)
 

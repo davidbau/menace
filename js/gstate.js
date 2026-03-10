@@ -93,50 +93,6 @@ export function endCommandExec(g, token, details = {}) {
     }
 }
 
-// Compatibility wrappers used by suspend.js callsites.
-export function beforeTypedSuspend(g, type, details = {}) {
-    const mode = modeValue();
-    const st = gameState(g);
-    if (!st) return null;
-    if (!st.activeToken) {
-        report(g, mode, 'suspend-outside-command', { type, ...details });
-    }
-    const snapshot = {
-        token: st.activeToken,
-        type,
-    };
-    if (typeof g?.emitDiagnosticEvent === 'function') {
-        g.emitDiagnosticEvent('synclock.suspend.before', {
-            token: snapshot.token,
-            type,
-            ...details,
-        });
-    }
-    return snapshot;
-}
-
-export function afterTypedSuspend(g, snapshot, details = {}) {
-    if (!snapshot) return;
-    const mode = modeValue();
-    const st = gameState(g);
-    if (!st) return;
-    if (snapshot.token !== st.activeToken) {
-        report(g, mode, 'resume-token-mismatch', {
-            before: snapshot.token,
-            after: st.activeToken,
-            type: snapshot.type,
-            ...details,
-        });
-    }
-    if (typeof g?.emitDiagnosticEvent === 'function') {
-        g.emitDiagnosticEvent('synclock.suspend.after', {
-            token: snapshot.token,
-            type: snapshot.type,
-            ...details,
-        });
-    }
-}
-
 export function getCommandExecState(g) {
     const st = gameState(g);
     if (!st) return { activeToken: null, depth: 0, seq: 0 };
