@@ -616,10 +616,6 @@ export class HeadlessDisplay {
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
-            // C ref: topl.c more() calls bot() before xwaitforspace().
-            if (this._lastMapState?.player) {
-                this.renderStatus(this._lastMapState.player);
-            }
             this.renderMoreMarker();
             if (this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);
@@ -648,10 +644,6 @@ export class HeadlessDisplay {
             // - concat overflow triggers more()
             // - "You die..." also forces more() before the new message
             // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
-            // Update status line so HP/Pw reflect current state at the --More-- prompt.
-            if (this._lastMapState?.player) {
-                this.renderStatus(this._lastMapState.player);
-            }
             this.renderMoreMarker();
             if (this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);
@@ -668,10 +660,6 @@ export class HeadlessDisplay {
             this.topMessage = msg;
             this.messageNeedsMore = true;
             if (isDeathMessage) {
-                // C ref: topl.c more() calls bot() before xwaitforspace().
-                if (this._lastMapState?.player) {
-                    this.renderStatus(this._lastMapState.player);
-                }
                 this.renderMoreMarker();
                 if (this._nhgetch) {
                     await this._waitForMoreDismissKey(this._nhgetch);
@@ -741,6 +729,10 @@ export class HeadlessDisplay {
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
     // Ignore non-dismissal keys while waiting at --More--.
     async _waitForMoreDismissKey(nhgetch) {
+        // C ref: topl.c more() calls bot() before xwaitforspace().
+        if (this._lastMapState?.player) {
+            this.renderStatus(this._lastMapState.player);
+        }
         return waitForMoreDismissKey(nhgetch, { game: null, site: 'headless.more.dismiss' });
     }
 
