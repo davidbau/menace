@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `729` missing (**14.41% left**)
-- **Gameplay rows only**: `4393` total, `108` missing (**2.46% left**)
+- **Raw rows (all files)**: `5058` total, `710` missing (**14.04% left**)
+- **Gameplay rows only**: `4393` total, `89` missing (**2.03% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -1940,36 +1940,36 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 482 | `add_custom_nhcolor_entry` | glyphs.js:210 | Implemented |
-| 370 | `add_glyph_to_cache` | - | Missing |
-| 529 | `apply_customizations` | - | Missing |
+| 370 | `add_glyph_to_cache` | - | N/A (glyph customization/config cache internals not used in browser runtime) |
+| 529 | `apply_customizations` | - | N/A (glyph customization/config application path not used in browser runtime) |
 | 1165 | `clear_all_glyphmap_colors` | glyphs.js:280 | Implemented |
-| 795 | `dump_all_glyphids` | - | Missing |
-| 1193 | `find_display_sym_customization` | - | Missing |
-| 1215 | `find_display_urep_customization` | - | Missing |
-| 393 | `find_glyph_in_cache` | - | Missing |
+| 795 | `dump_all_glyphids` | - | N/A (debug/file dump helper; no browser file I/O path) |
+| 1193 | `find_display_sym_customization` | - | N/A (display customization lookup not used by browser renderer) |
+| 1215 | `find_display_urep_customization` | - | N/A (display customization lookup not used by browser renderer) |
+| 393 | `find_glyph_in_cache` | - | N/A (glyph customization/config cache lookup not used in browser runtime) |
 | 416 | `find_glyphid_in_cache_by_glyphnum` | glyphs.js:178 | Implemented |
-| 1268 | `find_glyphs` | - | Missing |
-| 734 | `find_matching_customization` | - | Missing |
+| 1268 | `find_glyphs` | - | N/A (bulk customization finder for tty config pipeline) |
+| 734 | `find_matching_customization` | - | N/A (customization list lookup for config pipeline) |
 | 184 | `fix_glyphname` | glyphs.js:326 | Implemented |
-| 234 | `glyph_find_core` | - | Missing |
-| 433 | `glyph_hash` | - | Missing |
+| 234 | `glyph_find_core` | - | N/A (glyph-id parser core for tty customization options) |
+| 433 | `glyph_hash` | - | N/A (glyph-id hash helper for customization cache) |
 | 200 | `glyph_to_cmap` | glyphs.js:131 | Implemented |
 | 450 | `glyphid_cache_status` | glyphs.js:188 | Implemented |
 | 468 | `glyphrep` | glyphs.js:200 | Implemented |
 | 112 | `glyphrep_to_custom_map_entries` | glyphs.js:289 | Implemented |
-| 1300 | `glyphs_to_unicode` | - | Missing |
+| 1300 | `glyphs_to_unicode` | - | N/A (unicode export callback path not used in browser runtime) |
 | 333 | `init_glyph_cache` | glyphs.js:151 | Implemented |
-| 1262 | `just_find_callback` | - | Missing |
+| 1262 | `just_find_callback` | - | N/A (callback helper in glyph customization search pipeline) |
 | 456 | `match_glyph` | glyphs.js:193 | Implemented |
-| 579 | `maybe_shuffle_customizations` | - | Missing |
-| 822 | `parse_id` | - | Missing |
+| 579 | `maybe_shuffle_customizations` | - | N/A (customization shuffle tied to tty/object-description customization path) |
+| 822 | `parse_id` | - | N/A (glyph/symbol config parser path not used in browser runtime) |
 | 749 | `purge_all_custom_entries` | glyphs.js:238 | Implemented |
 | 759 | `purge_custom_entries` | glyphs.js:246 | Implemented |
-| 589 | `shuffle_customizations` | - | Missing |
-| 644 | `shuffle_customizations` | - | Missing |
-| 1249 | `test_glyphnames` | - | Missing |
-| 53 | `to_custom_symset_entry_callback` | - | Missing |
-| 1278 | `to_unicode_callback` | - | Missing |
+| 589 | `shuffle_customizations` | - | N/A (customization shuffle for tty config path) |
+| 644 | `shuffle_customizations` | - | N/A (customization shuffle for tty config path) |
+| 1249 | `test_glyphnames` | - | N/A (debug/test helper for glyph naming pipeline) |
+| 53 | `to_custom_symset_entry_callback` | - | N/A (customization callback in tty symbol-set parser path) |
+| 1278 | `to_unicode_callback` | - | N/A (unicode conversion callback for customization tools) |
 | 806 | `wizcustom_glyphids` | glyphs.js:270 | Implemented |
 
 ### hack.c -> hack.js

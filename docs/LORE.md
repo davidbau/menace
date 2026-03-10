@@ -6257,3 +6257,22 @@ hard-won wisdom:
   - `node --test test/unit/ball_surface.test.js` passed (2/2).
   - `node --test test/unit/do_surface_wrappers.test.js` passed (4/4)
     as a nearby regression check.
+
+### CODEMATCH glyphs.c cleanup: classify non-runtime customization internals as N/A (2026-03-10)
+
+- Problem:
+  - `glyphs.c -> glyphs.js` remained the largest single missing bucket, but
+    inspection showed most missing symbols were not gameplay runtime logic.
+  - They belong to tty/config/customization parsing and tooling paths
+    (`parse_id`, `glyph_find_core`, custom symbol-set callbacks, shuffle/apply
+    customization internals, dump/test helpers), which are not used by the
+    browser renderer/runtime command loop.
+- Change:
+  - Reclassified 19 glyphs rows from `Missing` to explicit `N/A` in
+    `docs/CODEMATCH.md`, each with a concrete reason.
+  - Kept gameplay-relevant implemented entries (`glyph_to_cmap`, cache status,
+    glyphrep paths, clear color map, etc.) unchanged.
+  - Refreshed CODEMATCH function-level metrics after reclassification.
+- Validation:
+  - `node --test test/unit/ball_surface.test.js` passed (2/2) as a nearby
+    sanity check while landing docs-only ledger changes.
