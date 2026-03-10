@@ -1,7 +1,7 @@
 // input.js -- Runtime-agnostic input primitives.
 // Provides an async input queue plus module-level wrappers used by game code.
 
-import { CLR_GRAY } from './display.js';
+import { CLR_GRAY } from './render.js';
 import { recordKey, isReplayMode, getNextReplayKey } from './keylog.js';
 import {
     CMDQ_KEY, CMDQ_EXTCMD, CMDQ_DIR, CMDQ_USER_INPUT, CMDQ_INT,
@@ -522,10 +522,18 @@ export function nhgetch(opts = {}) {
     return readUnifiedKey();
 }
 
-export async function more(display, { site = 'input.more', game = null, forceVisual = false } = {}) {
+export async function more(display, {
+    site = 'input.more',
+    game = null,
+    forceVisual = false,
+    clearAfter = true,
+    readKey = null,
+} = {}) {
     if (!display) return;
     const ctxGame = game ?? activeGame ?? null;
-    const readMoreKey = () => nhgetch_raw();
+    const readMoreKey = (typeof readKey === 'function')
+        ? readKey
+        : () => nhgetch_raw();
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
@@ -539,15 +547,17 @@ export async function more(display, { site = 'input.more', game = null, forceVis
     }
 
     const ch = await waitForMoreDismissKey(readMoreKey, { game: ctxGame, site });
-    if (typeof display.clearRow === 'function') {
-        display.clearRow(0);
-        if (display._topMessageRow1 !== undefined) {
-            display.clearRow(1);
-            display._topMessageRow1 = undefined;
+    if (clearAfter) {
+        if (typeof display.clearRow === 'function') {
+            display.clearRow(0);
+            if (display._topMessageRow1 !== undefined) {
+                display.clearRow(1);
+                display._topMessageRow1 = undefined;
+            }
         }
+        if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+        if ('topMessage' in display) display.topMessage = null;
     }
-    if ('messageNeedsMore' in display) display.messageNeedsMore = false;
-    if ('topMessage' in display) display.topMessage = null;
     return ch;
 }
 

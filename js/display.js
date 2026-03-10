@@ -46,7 +46,7 @@ import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
-import { waitForMoreDismissKey } from './more_keys.js';
+import { more } from './input.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -366,7 +366,11 @@ span.nh-cursor {
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await this._waitForMoreDismissKey(this._nhgetch);
+                await more(this, {
+                    site: 'display.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
             }
             this.clearRow(MESSAGE_ROW);
             if (this._topMessageRow1 !== undefined) {
@@ -396,7 +400,11 @@ span.nh-cursor {
             // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await this._waitForMoreDismissKey(this._nhgetch);
+                await more(this, {
+                    site: 'display.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
             }
             // Continue to display this message fresh after dismissal.
             this.clearRow(MESSAGE_ROW);
@@ -440,7 +448,11 @@ span.nh-cursor {
                 this.messageNeedsMore = true;
                 this.renderMoreMarker();
                 if (this._nhgetch) {
-                    await this._waitForMoreDismissKey(this._nhgetch);
+                    await more(this, {
+                        site: 'display.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                    });
                 }
                 this.clearRow(MESSAGE_ROW);
                 this.clearRow(MESSAGE_ROW + 1);
@@ -461,7 +473,11 @@ span.nh-cursor {
         if (isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await this._waitForMoreDismissKey(this._nhgetch);
+                await more(this, {
+                    site: 'display.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
                 this.clearRow(MESSAGE_ROW);
                 this.messageNeedsMore = false;
                 this.topMessage = null;
@@ -514,16 +530,6 @@ span.nh-cursor {
             this.putstr(col, MESSAGE_ROW, moreStr, CLR_GRAY);
             this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
         }
-    }
-
-    // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
-    // Ignore non-dismissal keys while waiting at --More--.
-    async _waitForMoreDismissKey(nhgetch) {
-        // C ref: topl.c more() calls bot() before xwaitforspace().
-        if (this._lastMapState?.player) {
-            this.renderStatus(this._lastMapState.player);
-        }
-        return waitForMoreDismissKey(nhgetch, { game: null, site: 'display.more.dismiss' });
     }
 
     // Render the map from game state

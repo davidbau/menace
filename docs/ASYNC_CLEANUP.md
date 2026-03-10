@@ -611,6 +611,9 @@ paths so `more()` and `nhgetch()` are the only gameplay input boundaries.
 - Command-loop key reads now go through unified `nhgetch()` (`allmain._readCommandLoopKey`)
   rather than calling `nhgetch_raw()` directly.
 - Dead `allowPendingMore` plumbing was removed from `nhgetch()`.
+- `input.more()` is now the single `--More--` wait implementation used by
+  gameplay code and display/headless message paths; duplicate display/headless
+  wait helpers were removed.
 
 **Gate**:
 

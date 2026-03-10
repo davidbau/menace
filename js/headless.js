@@ -53,7 +53,7 @@ import {
     LAVAWALL, ICE, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, TREE,
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from './const.js';
-import { waitForMoreDismissKey } from './more_keys.js';
+import { more } from './input.js';
 
 
 const DEFAULT_GAME_FLAGS = {
@@ -618,7 +618,11 @@ export class HeadlessDisplay {
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await this._waitForMoreDismissKey(this._nhgetch);
+                await more(this, {
+                    site: 'headless.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
             }
             this.clearRow(0);
             this.messageNeedsMore = false;
@@ -646,7 +650,11 @@ export class HeadlessDisplay {
             // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await this._waitForMoreDismissKey(this._nhgetch);
+                await more(this, {
+                    site: 'headless.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
             }
             // Fall through to display the new message fresh.
             this.clearRow(0);
@@ -662,7 +670,11 @@ export class HeadlessDisplay {
             if (isDeathMessage) {
                 this.renderMoreMarker();
                 if (this._nhgetch) {
-                    await this._waitForMoreDismissKey(this._nhgetch);
+                    await more(this, {
+                        site: 'headless.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                    });
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
@@ -702,7 +714,11 @@ export class HeadlessDisplay {
         // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
         this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
         if (this._nhgetch) {
-            await this._waitForMoreDismissKey(this._nhgetch);
+            await more(this, {
+                site: 'headless.more.dismiss',
+                clearAfter: false,
+                readKey: this._nhgetch,
+            });
         }
         this.clearRow(0);
         this.clearRow(1);
@@ -724,16 +740,6 @@ export class HeadlessDisplay {
         const col = Math.min(msgLen, this.cols - moreStr.length);
         this.putstr(col, 0, moreStr, CLR_GRAY);
         this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
-    }
-
-    // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
-    // Ignore non-dismissal keys while waiting at --More--.
-    async _waitForMoreDismissKey(nhgetch) {
-        // C ref: topl.c more() calls bot() before xwaitforspace().
-        if (this._lastMapState?.player) {
-            this.renderStatus(this._lastMapState.player);
-        }
-        return waitForMoreDismissKey(nhgetch, { game: null, site: 'headless.more.dismiss' });
     }
 
     // Matches Display.renderChargenMenu() — always clears screen, applies offset
