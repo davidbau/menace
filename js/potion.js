@@ -3,7 +3,6 @@
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { nhgetch_raw } from './input.js';
-import { awaitInput } from './suspend.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
@@ -399,9 +398,7 @@ async function handleQuaff(player, map, display) {
     const loc = map.at(player.x, player.y);
     if (loc && loc.typ === FOUNTAIN) {
         await display.putstr_message('Drink from the fountain?');
-        const ans = await awaitInput(null, nhgetch_raw(), {
-            site: 'potion.handleQuaff.fountainConfirm',
-        });
+        const ans = await nhgetch_raw();
         display.topMessage = null;
         if (String.fromCharCode(ans) === 'y') {
             await drinkfountain(player, map, display);
@@ -439,9 +436,7 @@ async function handleQuaff(player, map, display) {
     };
     await showQuaffPrompt();
     while (true) {
-        const ch = await awaitInput(null, nhgetch_raw(), {
-            site: 'potion.handleQuaff.select',
-        });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
 
         if (isDismissKey(ch)) {

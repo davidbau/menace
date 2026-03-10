@@ -34,7 +34,6 @@ import {
 import { wake_nearto } from './mon.js';
 import { night, midnight } from './calendar.js';
 import { vault_occupied, findgd } from './vault.js';
-import { awaitInput } from './suspend.js';
 import { nhimport } from './origin_awaits.js';
 
 // ============================================================================
@@ -1150,9 +1149,7 @@ export async function dotalk(game) {
     const { nhgetch_raw } = await nhimport('./input.js');
     const { DIRECTION_KEYS } = await nhimport('./const.js');
     await display.putstr_message('Talk to whom? (in what direction)');
-    const ch = await awaitInput(game, nhgetch_raw(), {
-        site: 'sounds.dotalk.direction',
-    });
+    const ch = await nhgetch_raw();
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
 

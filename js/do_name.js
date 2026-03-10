@@ -19,7 +19,6 @@ import { hasGivenName, type_is_pname, is_mplayer,
          is_animal, is_mindless, is_humanoid } from './mondata.js';
 import { flush_screen } from './display.js';
 import { nhgetch_raw, getlin } from './input.js';
-import { awaitInput } from './suspend.js';
 import { impossible } from './pline.js';
 import { discoverObject, undiscoverObject } from './o_init.js';
 import { doname } from './mkobj.js';
@@ -1144,9 +1143,7 @@ export async function handleCallObjectTypePrompt(player, display) {
 
     while (true) {
         await display.putstr_message(prompt);
-        const ch = await awaitInput(null, nhgetch_raw(), {
-            site: 'do_name.handleCallObjectTypePrompt.select',
-        });
+        const ch = await nhgetch_raw();
         const c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();

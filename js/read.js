@@ -384,9 +384,7 @@ async function handleRead(player, display, game) {
                     // cf. spell.c study_book() — show both messages on one line to match
                     // C TTY behavior where pline() + yn() appear together.
                     await display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
-                    const ans = await awaitInput(game, nhgetch_raw(), {
-                        site: 'read.handleRead.refreshKnownSpellConfirm',
-                    });
+                    const ans = await nhgetch_raw();
                     if (String.fromCharCode(ans) !== 'y') {
                         return { moved: false, tookTime: false };
                     }

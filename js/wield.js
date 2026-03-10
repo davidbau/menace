@@ -618,9 +618,7 @@ async function handleQuiver(player, display) {
     await display.putstr_message(prompt);
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_raw(), {
-            site: 'wield.handleQuiver.select',
-        });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
