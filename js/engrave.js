@@ -37,7 +37,6 @@ import { t_at } from './trap.js';
 import { attacktype, ceiling_hider, sticks } from './mondata.js';
 import { AT_HUGS, MZ_HUGE } from './monsters.js';
 import { envFlag } from './runtime_env.js';
-import { awaitInput } from './suspend.js';
 
 function engrTraceEnabled() {
     return envFlag('WEBHACK_ENGR_TRACE');
@@ -405,7 +404,7 @@ export async function read_engr_at(map, x, y, player, game = null) {
             game.display.renderMoreMarker();
         }
         while (true) {
-            const ch = await awaitInput(game, nhgetch_raw(), { site: 'engrave.read_engr_at.moreDismiss' });
+            const ch = await nhgetch_raw();
             if (ch === 32 || ch === 13 || ch === 10 || ch === 27) break;
         }
         if (typeof game.display.clearRow === 'function') {
@@ -596,7 +595,7 @@ export async function handleEngrave(player, display) {
         : 'What do you want to write with? [- or ?*] ';
     await display.putstr_message(writePrompt);
     while (true) {
-        const ch = await awaitInput(null, nhgetch_raw(), { site: 'engrave.handleEngrave.stylusPrompt' });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();

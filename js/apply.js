@@ -1226,9 +1226,7 @@ export async function handleApply(player, map, display, game) {
                 } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                     display.markMorePending({ source: 'apply.inventory-list' });
-                    await awaitInput(game, nhgetch_raw(), {
-                        site: 'apply.inventory-list.more-fallback',
-                    });
+                    await nhgetch_raw();
                 }
             }
             await showApplyPrompt();

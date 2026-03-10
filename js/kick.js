@@ -20,7 +20,7 @@ import { set_wounded_legs, legs_in_no_shape } from './do.js';
 import { recalc_block_point, couldsee } from './vision.js';
 import { add_damage, pay_for_damage } from './shk.js';
 import { in_town } from './hack.js';
-import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
+import { awaitDisplayMorePrompt } from './suspend.js';
 
 function hasMartialBonus(player) {
     const roleName = String(player?.role || '').toLowerCase();
@@ -54,7 +54,7 @@ export async function handleKick(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
     await display.putstr_message('In what direction? ');
-    const dirCh = await awaitInput(game, nhgetch_raw(), { site: 'kick.handleKick.direction' });
+    const dirCh = await nhgetch_raw();
     // C getdir() prompt is transient; clear it before reporting kick outcome.
     if (display) {
         display.topMessage = null;
