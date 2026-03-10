@@ -65,7 +65,7 @@ import { cansee, couldsee } from './vision.js';
 import { recalc_block_point, unblock_point } from './vision.js';
 import { game as _gstate } from './gstate.js';
 import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym, money_cnt } from './hack.js';
-import { in_rooms } from './hack.js';
+import { in_rooms, in_town } from './hack.js';
 import { is_pool, is_ice, is_drawbridge_wall, find_drawbridge } from './dbridge.js';
 import { noteleport_level, goodpos, rloco } from './teleport.js';
 import { body_part, poly_gender, polymon } from './polyself.js';
@@ -1338,11 +1338,6 @@ async function kick_door(x, y, avrg_attrib, maploc, player, map, game) {
     }
 }
 
-// in_town stub
-function in_town(x, y, map) {
-    // TODO: implement — check if location is in a town
-    return false;
-}
 
 // ============================================================================
 // 14. kick_nondoor — kick non-door terrain
