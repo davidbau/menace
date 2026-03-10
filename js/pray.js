@@ -81,7 +81,8 @@ import { spelleffects } from './spell.js';
 import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
 import { Luck } from './attrib.js';
-import { findpriest } from './priest.js';
+import { findpriest, angry_priest } from './priest.js';
+import { display_nhwindow } from './windows.js';
 import { set_itimeout } from './potion.js';
 import { feel_cockatrice, sobj_at, carried } from './invent.js';
 import { destroy_arm, makeknown } from './do_wear.js';
@@ -467,8 +468,6 @@ function uhim(player) {
 }
 
 
-// Helper: angry_priest stub
-function angry_priest() { }
 
 
 // Helper: is_pool_or_lava -- checks if tile is pool or lava
@@ -481,8 +480,6 @@ function is_pool_or_lava(x, y, map) {
 
 const in_sokoban = In_sokoban;
 
-// Helper: display_nhwindow stub
-function display_nhwindow() { }
 
 // Helper: Soundeffect stub
 function Soundeffect() { }
@@ -1830,7 +1827,7 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
             if (rnl(player.ulevel || 1, Luck(player)) > 6 && (player.alignmentRecord || 0) > 0
                 && rnd(player.alignmentRecord) > Math.floor(3 * ALIGNLIM / 4))
                 await summon_minion(altaralign, true, map, player);
-            angry_priest();
+            angry_priest(map, player);
         } else {
             await pline("Unluckily, you feel the power of %s decrease.", u_gname(player));
             change_luck(player, -1);
@@ -1862,7 +1859,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
         const loc = map.at(player.x, player.y);
         loc.flags = AM_CHAOTIC;
         newsym(player.x, player.y);
-        angry_priest();
+        angry_priest(map, player);
     } else {
         let demonless_msg;
         if (altaralign === A_CHAOTIC && player.alignment !== A_CHAOTIC) {
@@ -1872,7 +1869,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
             loc.typ = ROOM;
             loc.flags = 0;
             newsym(player.x, player.y);
-            angry_priest();
+            angry_priest(map, player);
             demonless_msg = "cloud dissipates";
         } else {
             await pline_The("blood covers the altar!");

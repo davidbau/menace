@@ -485,11 +485,6 @@ function couldsee(x, y) {
 }
 
 // ============================================================================
-// show_glyph / glyph helpers (stubs)
-// ============================================================================
-function glyph_at(x, y) { return 0; }
-function glyph_is_invisible(g) { return false; }
-function show_glyph(x, y, g) { /* stub */ }
 // engulfing_u imported from mondata.js
 
 // ============================================================================

@@ -57,7 +57,7 @@ import { CORPSE, TIN, EGG, BOULDER,
          PICK_AXE, TIN_OPENER, ICE_BOX, LARGE_BOX,
          GLOB_OF_GREEN_SLIME,
          objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
-import { bcsign, splitobj, Is_container } from './mkobj.js';
+import { bcsign, splitobj, Is_container, unknow_object } from './mkobj.js';
 import { m_carrying } from './weapon.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';
 import { which_armor, extract_from_minvent,
@@ -90,6 +90,7 @@ import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall } from './mondata.js';
 import { u_at } from './hack.js';
 import { Has_contents, Is_mbag } from './objnam.js';
+import { awaken_soldiers } from './music.js';
 import { t_at, m_at } from './trap.js';
 import { makeknown } from './do_wear.js';
 
@@ -273,11 +274,6 @@ function stairway_at(x, y, map) {
 // Not yet tracked in JS; always returns 0 (monster has not seen)
 export function m_seenres(_mon, _flag) { return 0; }
 
-// Stub for monstseesu — monster notes hero has resistance
-function monstseesu(_flag) { }
-
-// Stub for monstunseesu — monster notes hero lacks resistance
-function monstunseesu(_flag) { }
 
 // Stub level/dungeon predicates — JS levels are single-dungeon currently
 function Is_knox(map) { return !!(map && map.flags && map.flags.is_knox); }
@@ -335,11 +331,6 @@ function POTION_OCCUPANT_CHANCE(n) { return ((n) >= 5 ? 1 : (n) >= 4 ? 2 : 4); }
 
 // makeknown imported from do_wear.js
 
-// C ref: unknow_object(otmp) — hero loses knowledge of object
-function unknow_object(_otmp) { }
-
-// C ref: observe_object(otmp) — hero observes object being used
-function observe_object(_otmp) { }
 
 // m_useup — monster uses up an item from inventory
 function m_useup(mon, obj) {
@@ -384,8 +375,6 @@ function grow_up(mtmp, _killer) { return true; }
 // C ref: rndmonst() — random monster type
 function rndmonst() { return null; }
 
-// C ref: awaken_soldiers — wake soldiers
-function awaken_soldiers(_bugler) { }
 
 // C ref: mon_consume_unstone — eat lizard/acid to cure stone
 export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player) {
@@ -1035,7 +1024,7 @@ export async function use_defensive(mon, map, player) {
         } else {
             await You_hear('a bugle playing reveille!');
         }
-        await awaken_soldiers(mon);
+        await awaken_soldiers(mon, map, player);
         return 2;
 
     case MUSE_WAN_TELEPORTATION_SELF:
