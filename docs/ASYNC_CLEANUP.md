@@ -735,6 +735,20 @@ replay driver loop.
 play a few turns, verify --More-- works, menus work, direction prompts work,
 travel renders intermediate frames.
 
+**Progress update (2026-03-10):**
+
+- Added an opt-in replay inversion path behind
+  `WEBHACK_REPLAY_USE_GAMELOOP=1` in `js/replay_core.js`:
+  replay now feeds keys via `pushInput()` and runs `NetHackGame._gameLoopStep()`
+  instead of direct `run_command(game, key)` when enabled.
+- Added explicit command-result ownership propagation:
+  `terminalScreenOwned` now flows from prompt handlers through `run_command`.
+- `_gameLoopStep` now uses a single `renderAndAutosave(...)` helper and skips
+  redraw/autosave when the command result owns the terminal screen.
+- Validation: `npm run -s test:unit`, `./scripts/run-and-report.sh --failures`,
+  and `WEBHACK_REPLAY_USE_GAMELOOP=1 ./scripts/run-and-report.sh --failures`
+  all pass (`34/34` gameplay).
+
 ## Risk Analysis
 
 ### Where the risk is concentrated

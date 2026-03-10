@@ -591,6 +591,7 @@ export async function run_command(game, ch, opts = {}) {
             tookTime: promptTookTime,
             moved: promptMoved,
             prompt: true,
+            terminalScreenOwned: !!promptResult.terminalScreenOwned,
         };
     };
 
@@ -826,7 +827,7 @@ export async function run_command(game, ch, opts = {}) {
     // docrt() handles FOV recomputation (including do_light_sources for
     // mobile light sources) and full map rendering.
     const _player = game.u || game.player;
-    if (game.display && _player) {
+    if (game.display && _player && !result?.terminalScreenOwned) {
         // C ref: parse() / get_count() — while accumulating a count prefix that
         // has been displayed ("Count: N"), the cursor stays on the topline.
         // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
@@ -2160,10 +2161,7 @@ export class NetHackGame {
             if (result.tookTime) {
                 await moveloop_core(this);
             }
-            this.fov.compute(this.map, this.player.x, this.player.y);
-            this.display.renderMap(this.map, this.player, this.fov, this.flags);
-            this.display.renderStatus(this.player);
-            this.display.cursorOnPlayer(this.player);
+            this.renderAndAutosave({ autosave: false, forceRender: true });
             return;
         }
 
@@ -2174,13 +2172,13 @@ export class NetHackGame {
 
         // C ref: cmd.c:1687 do_repeat() — Ctrl+A repeats last command
         if (firstCh === 1) { // Ctrl+A
-            await execute_repeat_command(this, {
+            const repeatResult = await execute_repeat_command(this, {
                 showRepeatInterruptMore: true,
             });
-            this.fov.compute(this.map, this.player.x, this.player.y);
-            this.display.renderMap(this.map, this.player, this.fov, this.flags);
-            this.display.renderStatus(this.player);
-            this.display.cursorOnPlayer(this.player);
+            this.renderAndAutosave({
+                commandResult: repeatResult,
+                autosave: true,
+            });
             return;
         } else if (firstCh >= 48 && firstCh <= 57) { // '0'-'9'
             const result = await getCount(firstCh, 32767, this.display);
@@ -2202,16 +2200,28 @@ export class NetHackGame {
 
         await this.runPendingDeferredTimedTurn();
 
-        await run_command(this, ch, {
+        const result = await run_command(this, ch, {
             countPrefix,
             showRepeatInterruptMore: true,
         });
+        this.renderAndAutosave({
+            commandResult: result,
+            autosave: true,
+        });
+    }
 
-        this.fov.compute(this.map, this.player.x, this.player.y);
-        this.display.renderMap(this.map, this.player, this.fov, this.flags);
-        this.display.renderStatus(this.player);
-        this.display.cursorOnPlayer(this.player);
-        scheduleAutosave(this);   // fire-and-forget crash recovery save
+    renderAndAutosave({
+        commandResult = null,
+        autosave = false,
+        forceRender = false,
+    } = {}) {
+        const terminalScreenOwned = !!commandResult?.terminalScreenOwned;
+        if (forceRender || !terminalScreenOwned) {
+            this.docrt();
+        }
+        if (autosave && !terminalScreenOwned && !this.gameOver) {
+            scheduleAutosave(this); // fire-and-forget crash recovery save
+        }
     }
 }
 

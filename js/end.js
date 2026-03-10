@@ -497,7 +497,12 @@ async function maybeInstallPossessionsPrompt(how, game) {
                 }
             }
             renderHeadlessEndWarnings(gameCtx);
-            return { handled: true, moved: false, tookTime: false };
+            return {
+                handled: true,
+                moved: false,
+                tookTime: false,
+                terminalScreenOwned: true,
+            };
         },
     };
     return true;

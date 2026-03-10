@@ -266,6 +266,7 @@ export async function replaySession(seed, opts, keys) {
 
     // Feed each keystroke to the game, record results.
     let pendingCommand = null;
+    const useGameLoopPath = envFlag('WEBHACK_REPLAY_USE_GAMELOOP');
 
     for (let i = 0; i < keys.length; i++) {
         const preMap = game.lev || game.map || null;
@@ -303,16 +304,22 @@ export async function replaySession(seed, opts, keys) {
                 );
             }
         } else {
-            const commandPromise = (ch === 1)
-                ? execute_repeat_command(game)
-                : run_command(game, ch);
+            let commandPromise;
+            if (useGameLoopPath) {
+                pushInput(ch);
+                commandPromise = game._gameLoopStep();
+            } else {
+                commandPromise = (ch === 1)
+                    ? execute_repeat_command(game)
+                    : run_command(game, ch);
+            }
             const settled = await drainUntilInput(commandPromise, game.input);
             if (!settled.done) {
                 pendingCommand = commandPromise;
                 replayPendingTrace(
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
-                    'mode=start',
+                    `mode=${useGameLoopPath ? 'start-gameloop' : 'start'}`,
                     'start=waiting',
                     pendingWaitSite(game.input),
                     replayBoundaryState(game, game.input)
@@ -321,7 +328,7 @@ export async function replaySession(seed, opts, keys) {
                 replayPendingTrace(
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
-                    'mode=start',
+                    `mode=${useGameLoopPath ? 'start-gameloop' : 'start'}`,
                     'start=done',
                     replayBoundaryState(game, game.input)
                 );
