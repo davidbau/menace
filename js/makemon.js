@@ -71,7 +71,7 @@ import {
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
 import { dist2 } from './hacklib.js';
-import { newsym, senseMonsterForMap, canspotmon } from './display.js';
+import { newsym, senseMonsterForMap, canspotmon, sensemon } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_golem, nonliving, is_humanoid, is_shapeshifter,
          is_swimmer, pm_resistance, is_flyer, is_floater, amorphous,
@@ -154,11 +154,6 @@ function sgn(x) {
     return x > 0 ? 1 : (x < 0 ? -1 : 0);
 }
 
-function sensemon(mon, player = null, map = null) {
-    if (!player) return false;
-    const levelMap = map || player?.map || null;
-    return senseMonsterForMap(mon, levelMap, player);
-}
 
 function race_peaceful(ptr, playerCtx) {
     const flags2 = ptr.mflags2 || 0;

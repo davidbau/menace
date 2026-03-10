@@ -5,6 +5,8 @@
 // upstart, upwords, mungspaces, trimspaces, strip_newline, strkitten, copynchars,
 // strcasecpy, tabexpand) return new strings in JS because JS strings are immutable.
 
+import { rn2 } from './rng.js';
+
 // ============================================================================
 // Character predicates and case conversion
 // C ref: hacklib.c:125-150
@@ -803,3 +805,6 @@ export function nh_qsort_idx_cmp(va, vb) {
     if (a > b) return 1;
     return 0;
 }
+
+// C ref: monst.h ROLL_FROM(arr) — pick a random element from an array
+export function ROLL_FROM(arr) { return arr[rn2(arr.length)]; }

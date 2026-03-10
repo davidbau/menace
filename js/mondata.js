@@ -18,7 +18,7 @@ import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, 
     REFLECTING, INTRINSIC, MALE, FEMALE, NEUTER, NON_PM, PRONOUN_NO_IT, PRONOUN_HALLU,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
     M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL } from './const.js';
-import { dist2, highc } from './hacklib.js';
+import { dist2, highc, ROLL_FROM } from './hacklib.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { acurr } from './attrib.js';
@@ -1996,9 +1996,6 @@ export function mdistu(mon, player) {
     const dx = player.x - mon.mx, dy = player.y - mon.my;
     return dx * dx + dy * dy;
 }
-
-// C ref: monst.h ROLL_FROM(arr) — pick a random element
-function ROLL_FROM(arr) { return arr[rn2(arr.length)]; }
 
 // C ref: monst.h m_setseenres(mon, seenres) — set bits on mon->mseenres
 function m_setseenres(mon, seenres) { mon.mseenres = (mon.mseenres || 0) | seenres; }

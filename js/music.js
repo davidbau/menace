@@ -32,7 +32,7 @@ import { monflee } from './monmove.js';
 import { resist } from './zap.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { newsym } from './display.js';
-import { dist2, highc, mungspaces } from './hacklib.js';
+import { dist2, highc, mungspaces, ROLL_FROM } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';
 import { losehp, in_rooms, u_at } from './hack.js';
@@ -80,11 +80,6 @@ const M_AP_MONSTER = 3; // C: M_AP_MONSTER=3 (2 is M_AP_OBJECT)
 
 function M_AP_TYPE(mtmp) {
     return mtmp.m_ap_type || M_AP_NOTHING;
-}
-
-// ROLL_FROM(arr) — C macro: arr[rn2(SIZE(arr))]
-function ROLL_FROM(arr) {
-    return arr[rn2(arr.length)];
 }
 
 

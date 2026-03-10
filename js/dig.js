@@ -48,7 +48,7 @@ import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
 import { cansee } from './vision.js';
-import { mb_trapped } from './monmove.js';
+import { mb_trapped, closed_door } from './monmove.js';
 import { canseemon, is_whirly, digests, unique_corpstat } from './mondata.js';
 import { mksobj } from './mkobj.js';
 import { placeFloorObject, sobj_at } from './invent.js';
@@ -88,12 +88,6 @@ import { You_hear } from './pline.js';
 // Helper functions (inline equivalents of C utility functions)
 // ============================================================================
 
-// C ref: closed_door(x, y) — location has a closed or locked door
-function closed_door(x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc || !IS_DOOR(loc.typ)) return false;
-    return !!(loc.flags & (D_CLOSED | D_LOCKED));
-}
 
 
 // C ref: may_dig(x, y) — is digging allowed at this location?

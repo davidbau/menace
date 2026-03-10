@@ -2390,7 +2390,9 @@ export function mon_would_consume_item(mon, obj) {
 
 // Autotranslated from monmove.c:2183
 export function closed_door(x, y, map) {
-  return  (IS_DOOR(map.locations[x][y].typ) && ((map.locations[x][y].flags || 0) & (D_LOCKED | D_CLOSED)));
+  const loc = map.at(x, y);
+  if (!loc || !IS_DOOR(loc.typ)) return false;
+  return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
 }
 
 // Autotranslated from monmove.c:33

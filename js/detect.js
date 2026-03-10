@@ -4,6 +4,7 @@ import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP,
          BOLT_LIM } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
+import { hidden_gold } from './vault.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS,
          SCROLL_CLASS, SPBOOK_CLASS, MAXOCLASSES,
@@ -30,6 +31,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
+import { closed_door } from './monmove.js';
 import { sobj_at } from './invent.js';
 
 // detect.js -- Detection spells, scrolls, and searching
@@ -55,13 +57,7 @@ const OTRAP_THERE = 2;
 function SchroedingersBox(obj) {
     return !!(obj && obj.spe === 1 && obj.otrapped);
 }
-function closed_door(map, x, y) {
-    const loc = map.at(x, y);
-    if (!loc || !IS_DOOR(loc.typ)) return false;
-    return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
-}
 
-function hidden_gold() { return 0; }
 function get_obj_location(otmp) {
     if (otmp.ox != null && otmp.oy != null) return { x: otmp.ox, y: otmp.oy };
     return null;
@@ -258,7 +254,7 @@ export async function gold_detect(sobj, player, map, display, game) {
     }
     if (!known) {
         let buf;
-        if (money_cnt(player.inventory) || hidden_gold(true))
+        if (money_cnt(player.inventory) || hidden_gold(true, player))
             buf = 'You feel worried about your future financial situation.';
         else if (steedgold) buf = "You feel interested in your steed's financial situation.";
         else buf = 'You feel materially poor.';
@@ -782,7 +778,7 @@ function findone_fn(zx, zy, found_p, player, map, display) {
         sense_trap(ttmp, zx, zy, 0, player, map, display);
         foundone(zx, zy, 0, map); found_p.num_traps++;
     }
-    if (closed_door(map, zx, zy) && ((lev.flags || 0) & D_TRAPPED) !== 0) {
+    if (closed_door(zx, zy, map) && ((lev.flags || 0) & D_TRAPPED) !== 0) {
         sense_trap({ tx: zx, ty: zy, ttyp: TRAPPED_DOOR, tseen: 1 },
                    zx, zy, 0, player, map, display);
         foundone(zx, zy, 0, map); found_p.num_traps++;

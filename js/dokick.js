@@ -60,7 +60,7 @@ import { obj_resists } from './objdata.js';
 import { mondead, setmangry, seemimic, wakeup, wake_nearto, wake_nearby, angry_guards } from './mon.js';
 import { newsym, map_invisible, canspotmon } from './display.js';
 import { mpickobj } from './steal.js';
-import { monflee } from './monmove.js';
+import { monflee, closed_door } from './monmove.js';
 import { cansee } from './vision.js';
 import { recalc_block_point, unblock_point } from './vision.js';
 import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym, money_cnt } from './hack.js';
@@ -94,6 +94,7 @@ import { sink_backs_up } from './fountain.js';
 import { altar_wrath } from './pray.js';
 import { del_engr_at, disturb_grave } from './engrave.js';
 import { rnd_class, makeplural, Is_box, Has_contents, Is_mbag } from './objnam.js';
+import { hidden_gold } from './vault.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
 import { nhgetch_raw } from './input.js';
@@ -186,12 +187,6 @@ function OBJ_AT(x, y, map) {
     return objs && objs.length > 0;
 }
 
-// closed_door helper
-function closed_door(x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc || !IS_DOOR(loc.typ)) return false;
-    return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
-}
 
 // isok helper
 function isok(x, y) {
@@ -259,8 +254,6 @@ async function miss(what, mtmp) {
     await pline("%s misses %s.", what, mon_nam(mtmp));
 }
 
-// hidden_gold stub
-function hidden_gold(_countonly) { return 0; }
 
 // makeplural imported from objnam.js
 
@@ -821,7 +814,7 @@ export async function ghitm(mtmp, gold, player, map) {
         } else if (mtmp.isgd) {
             const umoney = money_cnt(player.inventory);
             await verbalize(umoney ? "Drop the rest and follow me."
-                : hidden_gold(true)
+                : hidden_gold(true, player)
                     ? "You still have hidden gold.  Drop it now."
                     : mtmp.mpeaceful
                         ? "I'll take care of that; please move along."

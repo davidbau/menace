@@ -50,7 +50,7 @@ import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon } from './display.js';
 import { couldsee } from './vision.js';
 import { helpless, monnear, onscary } from './mon.js';
-import { monflee } from './monmove.js';
+import { monflee, closed_door } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
 import { Invocation_lev, find_level, deltrap } from './dungeon.js';
@@ -2328,12 +2328,6 @@ function is_waterwall(x, y, map) {
     return loc ? IS_WATERWALL(loc.typ) : false;
 }
 
-// C ref: hack.c closed_door() helper
-function closed_door(x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc || !IS_DOOR(loc.typ)) return false;
-    return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
-}
 
 
 // --------------------------------------------------------------------
