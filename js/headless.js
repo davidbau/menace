@@ -53,7 +53,7 @@ import {
     LAVAWALL, ICE, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, AIR, CLOUD, TREE,
     D_ISOPEN, D_CLOSED, D_LOCKED,
 } from './const.js';
-import { isMoreDismissKey, waitForMoreDismissKey } from './more_keys.js';
+import { waitForMoreDismissKey } from './more_keys.js';
 
 
 const DEFAULT_GAME_FLAGS = {
@@ -544,8 +544,6 @@ export class HeadlessDisplay {
         this.cursorRow = 0;
         this.cursorVisible = 1;
         this._nhgetch = null;
-        this._inputBoundaryRuntime = null;
-        this._moreBoundaryToken = null;
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this._messageQueue = [];
@@ -554,30 +552,9 @@ export class HeadlessDisplay {
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
-    setInputBoundaryRuntime(runtime) { this._inputBoundaryRuntime = runtime || null; }
 
-    markMorePending(meta = null) {
+    markMorePending(_meta = null) {
         this._pendingMore = true;
-        if (this._moreBoundaryToken) return;
-        const runtime = this._inputBoundaryRuntime;
-        if (!runtime || typeof runtime.withInputBoundary !== 'function') return;
-        const topBoundary = (typeof runtime.peekInputBoundary === 'function')
-            ? runtime.peekInputBoundary()
-            : null;
-        if (topBoundary && topBoundary.owner === 'more' && Number.isInteger(topBoundary.token)) {
-            this._moreBoundaryToken = topBoundary.token;
-            return;
-        }
-        if (typeof runtime.clearInputBoundariesByOwner === 'function') {
-            runtime.clearInputBoundariesByOwner('more');
-        }
-        this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
-            if (!isMoreDismissKey(ch)) {
-                return { handled: true, tookTime: false };
-            }
-            await this._clearMore();
-            return { handled: true, tookTime: false };
-        }, meta || { source: 'headless.putstr_message' });
     }
 
     setCell(col, row, ch, color = CLR_GRAY, attr = 0) {
@@ -759,12 +736,6 @@ export class HeadlessDisplay {
     // or run_command).  Resume at most one queued message per dismissal
     // so prompt/message progression remains explicit.
     async _clearMore() {
-        if (this._moreBoundaryToken
-            && this._inputBoundaryRuntime
-            && typeof this._inputBoundaryRuntime.clearInputBoundary === 'function') {
-            this._inputBoundaryRuntime.clearInputBoundary(this._moreBoundaryToken);
-            this._moreBoundaryToken = null;
-        }
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this.clearRow(0);

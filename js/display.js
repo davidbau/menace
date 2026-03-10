@@ -46,7 +46,7 @@ import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
-import { isMoreDismissKey, waitForMoreDismissKey } from './more_keys.js';
+import { waitForMoreDismissKey } from './more_keys.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -221,8 +221,6 @@ export class Display {
         this.cursorVisible = 1;
         this._cursorSpan = null; // currently highlighted <span>
         this._nhgetch = null;
-        this._inputBoundaryRuntime = null;
-        this._moreBoundaryToken = null;
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this._messageQueue = [];
@@ -234,30 +232,9 @@ export class Display {
     }
 
     setNhgetch(fn) { this._nhgetch = fn; }
-    setInputBoundaryRuntime(runtime) { this._inputBoundaryRuntime = runtime || null; }
 
-    markMorePending(meta = null) {
+    markMorePending(_meta = null) {
         this._pendingMore = true;
-        if (this._moreBoundaryToken) return;
-        const runtime = this._inputBoundaryRuntime;
-        if (!runtime || typeof runtime.withInputBoundary !== 'function') return;
-        const topBoundary = (typeof runtime.peekInputBoundary === 'function')
-            ? runtime.peekInputBoundary()
-            : null;
-        if (topBoundary && topBoundary.owner === 'more' && Number.isInteger(topBoundary.token)) {
-            this._moreBoundaryToken = topBoundary.token;
-            return;
-        }
-        if (typeof runtime.clearInputBoundariesByOwner === 'function') {
-            runtime.clearInputBoundariesByOwner('more');
-        }
-        this._moreBoundaryToken = runtime.withInputBoundary('more', async (ch) => {
-            if (!isMoreDismissKey(ch)) {
-                return { handled: true, tookTime: false };
-            }
-            await this._clearMore();
-            return { handled: true, tookTime: false };
-        }, meta || { source: 'display.putstr_message' });
     }
 
     _createDOM() {
@@ -516,12 +493,6 @@ span.nh-cursor {
     // Resume at most one queued message per dismissal so prompt/message
     // progression remains explicit.
     async _clearMore() {
-        if (this._moreBoundaryToken
-            && this._inputBoundaryRuntime
-            && typeof this._inputBoundaryRuntime.clearInputBoundary === 'function') {
-            this._inputBoundaryRuntime.clearInputBoundary(this._moreBoundaryToken);
-            this._moreBoundaryToken = null;
-        }
         this._pendingMore = false;
         this._pendingMoreNoCursor = false;
         this.clearRow(MESSAGE_ROW);

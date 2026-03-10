@@ -1681,15 +1681,6 @@ export class NetHackGame {
         if (this.display && typeof this.display.setNhgetch === 'function') {
             this.display.setNhgetch(nhgetch);
         }
-        if (this.display && typeof this.display.setInputBoundaryRuntime === 'function') {
-            this.display.setInputBoundaryRuntime({
-                withInputBoundary: (owner, onKey, meta) => this.withInputBoundary(owner, onKey, meta),
-                clearInputBoundary: (token) => this.clearInputBoundary(token),
-                clearInputBoundariesByOwner: (owner) => this.clearInputBoundariesByOwner(owner),
-                peekInputBoundary: () => this.peekInputBoundary(),
-            });
-        }
-
         // Handle ?reset=1 — prompt to delete all saved data
         if (urlOpts.reset) {
             await _handleReset(this);
