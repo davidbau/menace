@@ -5131,7 +5131,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1712 | `begin_burn` | 542 | Aligned |
 | 448 | `burn_away_slime` | 587 | Stub (no-op) |
 | 1383 | `burn_object` | 524 | Aligned |
-| 295 | `choke_dialogue` | 583 | Stub (no-op) |
+| 295 | `choke_dialogue` | timeout.js:1151 | Implemented |
 | 1828 | `cleanup_burn` | 551 | Aligned |
 | 1847 | `do_storms` | 575 | Aligned |
 | 575 | `done_timeout` | 462 | Aligned |
@@ -5143,7 +5143,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1995 | `kind_name` | 130 | Aligned |
 | 1360 | `lantern_message` | 593 | Stub (no-op) |
 | 1193 | `learn_egg_type` | timeout.js:learn_egg_type | Implemented |
-| 353 | `levitation_dialogue` | 585 | Stub (no-op) |
+| 353 | `levitation_dialogue` | timeout.js:1205 | Implemented |
 | 2619 | `maybe_write_timer` | - | N/A (save/restore) |
 | 2576 | `mon_is_local` | - | N/A (save/restore) |
 | 588 | `nh_timeout` | 407 | Aligned: intrinsic timeout decrement loop, dialogue calls before decrement, _fireExpiryEffect with death/status/equipment handlers |
@@ -5163,21 +5163,21 @@ Remaining parity gaps are mostly behavioral depth:
 | 2214 | `run_timers` | 268 | Aligned |
 | 2660 | `save_timers` | 615 | Stub |
 | 1345 | `see_lamp_flicker` | 592 | Stub (no-op) |
-| 323 | `sickness_dialogue` | 584 | Stub (no-op) |
-| 268 | `sleep_dialogue` | 582 | Stub (no-op) |
-| 389 | `slime_dialogue` | 586 | Stub (no-op) |
+| 323 | `sickness_dialogue` | timeout.js:1184 | Implemented |
+| 268 | `sleep_dialogue` | timeout.js:1129 | Implemented |
+| 389 | `slime_dialogue` | timeout.js:1241 | Implemented |
 | 457 | `slimed_to_death` | 588 | Stub (no-op) |
 | 1222 | `slip_or_trip` | 591 | Stub (no-op) |
 | 2408 | `spot_stop_timers` | 377 | Aligned |
 | 2437 | `spot_time_expires` | 389 | Aligned |
 | 2451 | `spot_time_left` | 399 | Aligned |
 | 2239 | `start_timer` | 168 | Aligned |
-| 137 | `stoned_dialogue` | 580 | Stub (no-op) |
+| 137 | `stoned_dialogue` | timeout.js:1043 | Implemented |
 | 2291 | `stop_timer` | 210 | Aligned |
 | 2595 | `timer_is_local` | - | N/A (save/restore) |
 | 2122 | `timer_sanity_check` | 311 | Aligned |
 | 2727 | `timer_stats` | 139 | Aligned |
-| 197 | `vomiting_dialogue` | 581 | Stub (no-op) |
+| 197 | `vomiting_dialogue` | timeout.js:1073 | Implemented |
 | 2041 | `wiz_timeout_queue` | 294 | Aligned |
 | 2497 | `write_timer` | - | N/A (save/restore) |
 
