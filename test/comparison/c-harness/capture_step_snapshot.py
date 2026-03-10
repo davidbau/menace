@@ -111,16 +111,57 @@ def wait_for_checkpoint_phase_prefix(checkpoint_file, expected_prefix, baseline_
     return None, baseline_count
 
 
-def wait_for_checkpoint_growth(checkpoint_file, baseline_count, timeout_s=20.0):
-    """Poll checkpoint file until at least one new checkpoint appears."""
+def find_checkpoint_by_phase_prefix(checkpoints, phase_prefix, baseline_count=0):
+    """Return newest checkpoint whose phase starts with phase_prefix, else None."""
+    if not phase_prefix:
+        return None
+    start = max(0, int(baseline_count))
+    for cp in reversed((checkpoints or [])[start:]):
+        phase = str((cp or {}).get("phase") or "")
+        if phase.startswith(phase_prefix):
+            return cp
+    return None
+
+
+def wait_for_checkpoint_best_match(
+    checkpoint_file,
+    baseline_count,
+    primary_prefix,
+    secondary_prefix=None,
+    timeout_s=20.0,
+    settle_s=1.0,
+):
+    """Wait for checkpoints; prefer primary/secondary phase matches over first growth.
+
+    This avoids grabbing an early phase (for example, after_map) when the
+    expected auto_inp_* phase appears slightly later in the same transition.
+    """
     deadline = time.time() + timeout_s
+    last_count = baseline_count
+    last_growth_t = None
+    latest = None
     while time.time() < deadline:
         checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
-        if len(checkpoints) > baseline_count:
-            return checkpoints, len(checkpoints)
+        count = len(checkpoints)
+        if count > baseline_count:
+            latest = checkpoints[-1]
+            if count != last_count:
+                last_count = count
+                last_growth_t = time.time()
+            primary = find_checkpoint_by_phase_prefix(checkpoints, primary_prefix, baseline_count)
+            if primary is not None:
+                return primary, checkpoints, count
+            secondary = find_checkpoint_by_phase_prefix(checkpoints, secondary_prefix, baseline_count)
+            if secondary is not None:
+                return secondary, checkpoints, count
+            if last_growth_t is not None and (time.time() - last_growth_t) >= settle_s:
+                return latest, checkpoints, count
         time.sleep(0.05)
     checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
-    return checkpoints, len(checkpoints)
+    count = len(checkpoints)
+    if count > 0:
+        latest = checkpoints[-1]
+    return latest, checkpoints, count
 
 
 _AUTO_STEP_RE = re.compile(r"^auto_step_(\d+)")
@@ -273,17 +314,24 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         if matched_checkpoint is None:
             rng_lines = wait_for_target_runstep_rng(rng_log_file, step_index)
             matched_phase_from_stream = checkpoint_phase_for_runstep_index(rng_lines, step_index)
-        if matched_checkpoint is None and matched_phase_from_stream:
-            tag = matched_phase_from_stream
-            matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase_prefix(
-                checkpoint_file, matched_phase_from_stream, baseline_count
-            )
-            checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
         if matched_checkpoint is None:
-            checkpoints, checkpoint_count = wait_for_checkpoint_growth(
-                checkpoint_file, baseline_count
+            fallback_cp, checkpoints, checkpoint_count = wait_for_checkpoint_best_match(
+                checkpoint_file,
+                baseline_count,
+                tag,
+                matched_phase_from_stream,
+                timeout_s=30.0,
+                settle_s=2.0,
             )
-        last = checkpoints[-1] if checkpoints else None
+            # Only promote fallback capture to matched when phase aligns.
+            phase = str((fallback_cp or {}).get("phase") or "")
+            if phase.startswith(tag) or (
+                matched_phase_from_stream and phase.startswith(matched_phase_from_stream)
+            ):
+                matched_checkpoint = fallback_cp
+            else:
+                matched_checkpoint = None
+        chosen_checkpoint = matched_checkpoint if matched_checkpoint is not None else (checkpoints[-1] if checkpoints else None)
         if matched_checkpoint:
             tag = str(matched_checkpoint.get("phase") or tag)
         rng_count, _ = read_rng_log(rng_log_file)
@@ -305,7 +353,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             "rngCallCount": rng_count,
             "checkpointCount": checkpoint_count if matched_checkpoint else len(checkpoints),
             "checkpointMatchedPhase": bool(matched_checkpoint),
-            "checkpoint": last,
+            "checkpoint": chosen_checkpoint,
             "checkpointPhasesTail": checkpoint_phases_tail,
             "preSnapshotScreen": pre_snapshot_screen,
             "screen": tmux_capture(session_name),
