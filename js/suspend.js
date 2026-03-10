@@ -22,12 +22,3 @@ export async function awaitMore(game, awaited, details = {}) {
 export async function awaitAnim(game, awaited, details = {}) {
     return awaitTyped(game, 'anim', awaited, details);
 }
-
-export async function awaitDisplayMorePrompt(game, display, keyReader, details = {}) {
-    if (!display || typeof display.morePrompt !== 'function' || typeof keyReader !== 'function') {
-        return;
-    }
-    const site = details?.site || 'morePrompt';
-    const readMoreKey = () => awaitInput(game, Promise.resolve(keyReader()), { site: `${site}.key` });
-    return awaitMore(game, display.morePrompt(readMoreKey), { ...details, site });
-}

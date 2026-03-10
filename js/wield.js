@@ -1,8 +1,8 @@
 // wield.js -- Weapon wielding, swapping, quivering, and two-weapon combat
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
-import { nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
-import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
+import { more, nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
+import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
          TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
@@ -466,7 +466,7 @@ async function handleWield(player, display) {
                 // Keep C/getobj timing: prompt appears after --More-- dismiss.
                 await display.putstr_message(wieldPrompt);
             } else if (typeof display?.morePrompt === 'function') {
-                await awaitDisplayMorePrompt(null, display, () => nhgetch_raw(), {
+                await more(display, {
                     site: 'wield.handleWield.invalidInvletMorePrompt',
                 });
                 await display.putstr_message(wieldPrompt);

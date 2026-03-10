@@ -19,7 +19,7 @@
 //   save/rest_engravings: persistence across level changes.
 
 import { pushRngLogEntry, rn1, rn2, rnd, withRngTag } from './rng.js';
-import { nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
 import { WAND_CLASS } from './objects.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';
@@ -400,19 +400,7 @@ export async function read_engr_at(map, x, y, player, game = null) {
         if (typeof game.docrt === 'function') {
             game.docrt();
         }
-        if (typeof game.display.renderMoreMarker === 'function') {
-            game.display.renderMoreMarker();
-        }
-        while (true) {
-            const ch = await nhgetch_raw();
-            if (ch === 32 || ch === 13 || ch === 10 || ch === 27) break;
-        }
-        if (typeof game.display.clearRow === 'function') {
-            game.display.clearRow(0);
-        }
-        if ('messageNeedsMore' in game.display) {
-            game.display.messageNeedsMore = false;
-        }
+        await more(game.display, { game, site: 'engrave.read_engr_at.more' });
     }
     await pline(readMsg);
     ep.eread = true;

@@ -62,8 +62,8 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
-import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
+import { more, nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
+import { awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { make_glib } from './potion.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
@@ -1220,13 +1220,13 @@ export async function handleApply(player, map, display, game) {
                     if (typeof display.renderMoreMarker === 'function') {
                         display.renderMoreMarker();
                     }
-                    await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
+                    await more(display, { game,
                         site: 'apply.inventory-list.morePrompt',
                     });
                 } else if (typeof display?.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                     display.markMorePending({ source: 'apply.inventory-list' });
-                    await nhgetch_raw();
+                    await more(display, { game, site: 'apply.inventory-list.fallback-more' });
                 }
             }
             await showApplyPrompt();
@@ -1254,7 +1254,7 @@ export async function handleApply(player, map, display, game) {
                 if (typeof display.renderMoreMarker === 'function') {
                     display.renderMoreMarker();
                 }
-                await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
+                await more(display, { game,
                     site: 'apply.invalid-invlet.morePrompt',
                 });
                 await showApplyPrompt();

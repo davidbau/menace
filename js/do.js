@@ -1,8 +1,8 @@
 // do.js -- Miscellaneous player actions
 // cf. do.c — dodrop, dodown, doup, flooreffects, goto_level, donull, dowipe
 
-import { nhgetch_raw, nhgetch_wrap, ynFunction, getlin } from './input.js';
-import { awaitDisplayMorePrompt, awaitInput } from './suspend.js';
+import { more, nhgetch_raw, nhgetch_wrap, ynFunction, getlin } from './input.js';
+import { awaitInput } from './suspend.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
@@ -686,7 +686,7 @@ export async function handleDrop(player, map, display) {
                 display.markMorePending({ source: sourceTag });
             }
         } else if (typeof display?.morePrompt === 'function') {
-            await awaitDisplayMorePrompt(null, display, () => nhgetch_raw(), {
+            await more(display, {
                 site: 'do.handleDrop.moreBoundary',
             });
         }

@@ -9,8 +9,7 @@ import { A_DEX, A_CON,
 import { NORMAL_SPEED } from './const.js';
 import { initRng, rn2, rnd, rn1, getRngState, setRngState, getRngCallCount, setRngCallCount, pushRngLogEntry } from './rng.js';
 import { CLR_GRAY } from './display.js';
-import { nhgetch_raw, nhgetch_wrap, getCount, getlin, setInputRuntime } from './input.js';
-import { awaitDisplayMorePrompt } from './suspend.js';
+import { more, nhgetch_raw, nhgetch_wrap, getCount, getlin, setInputRuntime } from './input.js';
 import { FOV } from './vision.js';
 import { Player, roles, races, validRacesForRole, validAlignsForRoleRace,
          needsGenderMenu, rankOf, godForRoleAlign, isGoddess, greetingForRole,
@@ -245,7 +244,7 @@ export async function enterTutorial(game, opts = {}) {
     const { direct = false, deferRender = false } = opts;
     if (!direct) {
         await game.display.putstr_message('Entering the tutorial.');
-        await awaitDisplayMorePrompt(game, game.display, () => nhgetch_raw(), {
+        await more(game.display, { game,
             site: 'chargen.enterTutorial.morePrompt',
         });
     }

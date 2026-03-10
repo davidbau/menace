@@ -9,7 +9,7 @@ import {
 } from './const.js';
 import { envFlag } from './runtime_env.js';
 import { awaitInput } from './suspend.js';
-import { consumePendingMore } from './more_keys.js';
+import { consumePendingMore, waitForMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 
 function ynTraceEnabled() {
@@ -453,7 +453,13 @@ function popQueuedInputKey(inDoAgain = false) {
 
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
-export function nhgetch_raw() {
+export function nhgetch_raw(opts = {}) {
+    const allowPendingMore = opts?.allowPendingMore === true;
+    const site = opts?.site || 'input.nhgetch_raw';
+    const display = getRuntimeDisplay();
+    if (!allowPendingMore && display?._pendingMore) {
+        throw new Error(`[nhgetch_raw] pending --More-- requires explicit boundary handling at ${site}`);
+    }
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
         .finally(() => {
@@ -466,7 +472,7 @@ export function nhgetch_raw() {
 // C ref: winprocs.h win_nhgetch
 export function nhgetch_wrap(opts = {}) {
     const handleMore = opts?.handleMore !== false;
-    const readUnifiedKey = async () => {
+    const readUnifiedKey = async (allowPendingMore = false, site = 'input.nhgetch.wrap.read') => {
         const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
         if (Number.isFinite(queuedKey)) {
             ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
@@ -495,7 +501,7 @@ export function nhgetch_wrap(opts = {}) {
             activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
         }
 
-        const ch = await nhgetch_raw();
+        const ch = await nhgetch_raw({ allowPendingMore, site });
         ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         recordKey(ch);
         if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
@@ -513,12 +519,12 @@ export function nhgetch_wrap(opts = {}) {
         const waitForMoreDismiss = async () => {
             await consumePendingMore(
                 display,
-                readUnifiedKey,
+                () => readUnifiedKey(true, 'input.nhgetch.more-consume'),
                 () => display._clearMore(),
                 { site: 'input.nhgetch.more-consume' }
             );
             if (display) display.messageNeedsMore = false;
-            return readUnifiedKey();
+            return readUnifiedKey(false, 'input.nhgetch.post-more');
         };
         return waitForMoreDismiss();
     }
@@ -529,7 +535,7 @@ export function nhgetch_wrap(opts = {}) {
         display.messageNeedsMore = false;
     }
 
-    return readUnifiedKey();
+    return readUnifiedKey(false, 'input.nhgetch.normal');
 }
 
 export async function readBoundaryKey(display, site, game = null) {
@@ -543,6 +549,44 @@ export async function readBoundaryKey(display, site, game = null) {
         display.messageNeedsMore = false;
     }
     return await awaitInput(game, nhgetch_wrap({ handleMore: false }), { site });
+}
+
+export async function more(display, { site = 'input.more', game = null } = {}) {
+    if (!display) return;
+    const ctxGame = game ?? activeGame ?? null;
+    const readMoreKey = () => nhgetch_raw({
+        allowPendingMore: true,
+        site: `${site}.key`,
+    });
+
+    if (typeof display.morePrompt === 'function') {
+        return display.morePrompt(readMoreKey);
+    }
+
+    if (typeof display.renderMoreMarker === 'function') {
+        display.renderMoreMarker();
+    }
+
+    if (display._pendingMore && typeof display._clearMore === 'function') {
+        return consumePendingMore(
+            display,
+            readMoreKey,
+            () => display._clearMore(),
+            { game: ctxGame, site }
+        );
+    }
+
+    const ch = await waitForMoreDismissKey(readMoreKey, { game: ctxGame, site });
+    if (typeof display.clearRow === 'function') {
+        display.clearRow(0);
+        if (display._topMessageRow1 !== undefined) {
+            display.clearRow(1);
+            display._topMessageRow1 = undefined;
+        }
+    }
+    if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+    if ('topMessage' in display) display.topMessage = null;
+    return ch;
 }
 
 // Get a line of input (async)

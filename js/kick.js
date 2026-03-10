@@ -13,14 +13,13 @@ import { x_monnam, is_watch } from './mondata.js';
 import { KICKING_BOOTS } from './objects.js';
 import { mondead, angry_guards, wake_nearto } from './mon.js';
 import { newsym } from './display.js';
-import { nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
 import { DIRECTION_KEYS } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { set_wounded_legs, legs_in_no_shape } from './do.js';
 import { recalc_block_point, couldsee } from './vision.js';
 import { add_damage, pay_for_damage } from './shk.js';
 import { in_town } from './hack.js';
-import { awaitDisplayMorePrompt } from './suspend.js';
 
 function hasMartialBonus(player) {
     const roleName = String(player?.role || '').toLowerCase();
@@ -47,7 +46,7 @@ export async function handleKick(player, map, display, game) {
         // Consume a key for --More-- to match C's step boundary.
         if (display?.renderMoreMarker) display.renderMoreMarker();
         if (display?.morePrompt) {
-            await awaitDisplayMorePrompt(game, display, () => nhgetch_raw(), {
+            await more(display, { game,
                 site: 'kick.handleKick.woundedLegs.morePrompt',
             });
         }
