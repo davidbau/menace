@@ -1,7 +1,7 @@
 // do_wear.js -- Armor wearing/removing mechanics
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
-import { nhgetch_raw, nhgetch_wrap } from './input.js';
+import { nhgetch_raw } from './input.js';
 import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,

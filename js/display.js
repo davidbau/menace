@@ -512,9 +512,9 @@ span.nh-cursor {
     }
 
     // Dismiss the --More-- prompt and resume queued fallback messages.
-    // Called when a key is consumed for --More-- dismissal (from nhgetch_wrap
-    // or run_command). Resume at most one queued message per dismissal so
-    // prompt/message progression remains explicit.
+    // Called when a key is consumed for --More-- dismissal.
+    // Resume at most one queued message per dismissal so prompt/message
+    // progression remains explicit.
     async _clearMore() {
         if (this._moreBoundaryToken
             && this._inputBoundaryRuntime
@@ -583,23 +583,10 @@ span.nh-cursor {
         }
     }
 
-    // Display "--More--" and wait for input
-    // C ref: tty_display_nhwindow for message window
-    async morePrompt(nhgetch_wrap) {
-        this.renderMoreMarker();
-        await this._waitForMoreDismissKey(nhgetch_wrap);
-        this.clearRow(MESSAGE_ROW);
-        if (this._topMessageRow1 !== undefined) {
-            this.clearRow(MESSAGE_ROW + 1);
-            this._topMessageRow1 = undefined;
-        }
-        this.messageNeedsMore = false;
-    }
-
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
     // Ignore non-dismissal keys while waiting at --More--.
-    async _waitForMoreDismissKey(nhgetch_wrap) {
-        return waitForMoreDismissKey(nhgetch_wrap, { game: null, site: 'display.more.dismiss' });
+    async _waitForMoreDismissKey(nhgetch) {
+        return waitForMoreDismissKey(nhgetch, { game: null, site: 'display.more.dismiss' });
     }
 
     // Render the map from game state

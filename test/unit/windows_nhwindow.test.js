@@ -23,6 +23,8 @@ function makeDisplay() {
         messages: [],
         lastMenuLines: null,
         putstr_message(msg) { this.messages.push(msg); },
+        renderMoreMarker() { this.messages.push('--More--'); },
+        clearRow() {},
         renderChargenMenu(lines) { this.lastMenuLines = lines; },
     };
 }

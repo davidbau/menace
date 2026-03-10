@@ -19,7 +19,7 @@
 //   save/rest_engravings: persistence across level changes.
 
 import { pushRngLogEntry, rn1, rn2, rnd, withRngTag } from './rng.js';
-import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import { WAND_CLASS } from './objects.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';

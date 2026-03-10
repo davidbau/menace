@@ -22,8 +22,9 @@ describe('replay render architecture contracts', () => {
         const replaySrc = readFileSync(replayCorePath, 'utf8');
         const mainSrc = readFileSync(allmainPath, 'utf8');
 
-        assert.match(replaySrc, /run_command\(game, ch, \{\s*renderAfterCommand:\s*true\s*\}\)/);
-        assert.match(replaySrc, /execute_repeat_command\(game, \{\s*renderAfterCommand:\s*true\s*\}\)/);
+        assert.match(replaySrc, /run_command\(game, ch\)/);
+        assert.match(replaySrc, /execute_repeat_command\(game\)/);
+        assert.doesNotMatch(replaySrc, /renderAfterCommand/);
         assert.doesNotMatch(replaySrc, /renderInputBlockedState/);
 
         assert.match(mainSrc, /renderInputBlockedState\(\)\s*\{/);

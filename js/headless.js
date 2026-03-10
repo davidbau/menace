@@ -788,15 +788,6 @@ export class HeadlessDisplay {
         this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
     }
 
-    async morePrompt(nhgetch) {
-        // Keep topline text stable during replay; C harness snapshots don't
-        // expose the transient "--More--" marker for most callers.
-        // Use renderMoreMarker() before this call when C does show the marker.
-        await this._waitForMoreDismissKey(nhgetch);
-        this.clearRow(0);
-        this.messageNeedsMore = false;
-    }
-
     // C ref: xwaitforspace("\033 ") in win/tty/topl.c.
     // Ignore non-dismissal keys while waiting at --More--.
     async _waitForMoreDismissKey(nhgetch) {

@@ -35,7 +35,7 @@ import {
 import { discover_object } from './o_init.js';
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
-import { nhgetch_raw, nhgetch_wrap } from './input.js';
+import { nhgetch_raw } from './input.js';
 import { create_nhwindow, destroy_nhwindow } from './windows.js';
 import { NHW_MENU } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';

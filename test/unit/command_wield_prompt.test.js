@@ -4,12 +4,13 @@ import assert from 'node:assert/strict';
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { clearInputQueue, createInputQueue, pushInput, setInputRuntime, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { DAGGER, WEAPON_CLASS, GEM_CLASS } from '../../js/objects.js';
 
 describe('wield prompt', () => {
 
     beforeEach(() => {
+        setInputRuntime(createInputQueue());
         clearInputQueue();
         setThrowOnEmptyInput(true);
     });
@@ -49,9 +50,8 @@ test('wield prompt stays open on invalid letters until canceled', async () => {
     const game = makeGame();
     clearInputQueue();
     pushInput('a'.charCodeAt(0));
-    pushInput('n'.charCodeAt(0));
-    pushInput('d'.charCodeAt(0));
-    pushInput(' '.charCodeAt(0));
+    pushInput(' '.charCodeAt(0)); // dismiss --More-- after invalid letter
+    pushInput(' '.charCodeAt(0)); // cancel at reprompt
 
     const result = await rhack('w'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);

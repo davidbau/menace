@@ -13,7 +13,7 @@ import { x_monnam, is_watch } from './mondata.js';
 import { KICKING_BOOTS } from './objects.js';
 import { mondead, angry_guards, wake_nearto } from './mon.js';
 import { newsym } from './display.js';
-import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import { DIRECTION_KEYS } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { set_wounded_legs, legs_in_no_shape } from './do.js';

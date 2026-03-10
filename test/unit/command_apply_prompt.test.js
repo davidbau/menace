@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { clearInputQueue, createInputQueue, pushInput, setInputRuntime, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { BATTLE_AXE, CREDIT_CARD, FLINT, GEM_CLASS, LANCE, SPE_HEALING, SPBOOK_CLASS, STETHOSCOPE, TOOL_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 
 function makeBaseGame() {
@@ -35,6 +35,7 @@ function makeBaseGame() {
 
 describe('apply prompt behavior', () => {
     beforeEach(() => {
+        setInputRuntime(createInputQueue());
         setThrowOnEmptyInput(true);
         clearInputQueue();
     });
@@ -45,9 +46,9 @@ describe('apply prompt behavior', () => {
             { invlet: 'a', oclass: WEAPON_CLASS, otyp: 1, name: 'long sword' },
             { invlet: 'b', oclass: WEAPON_CLASS, otyp: LANCE, name: 'lance' },
         ];
-        pushInput('q'.charCodeAt(0));
-        pushInput('a'.charCodeAt(0));
-        pushInput(' '.charCodeAt(0));
+        pushInput('q'.charCodeAt(0)); // invalid item letter
+        pushInput(' '.charCodeAt(0)); // dismiss --More--
+        pushInput('a'.charCodeAt(0)); // then choose valid letter
 
         const result = await rhack('a'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
@@ -81,7 +82,8 @@ describe('apply prompt behavior', () => {
         const game = makeBaseGame();
         game.player.inventory = [{ invlet: 'a', oclass: WEAPON_CLASS, otyp: BATTLE_AXE, name: 'battle-axe' }];
         pushInput('y'.charCodeAt(0)); // invalid item letter for this prompt
-        pushInput(' '.charCodeAt(0)); // cancel
+        pushInput(' '.charCodeAt(0)); // dismiss --More--
+        pushInput(' '.charCodeAt(0)); // then cancel at reprompt
         const result = await rhack('a'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
         assert.equal(game.display.topMessage, 'Never mind.');

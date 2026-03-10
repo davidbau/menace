@@ -4,12 +4,13 @@ import assert from 'node:assert/strict';
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { clearInputQueue, createInputQueue, pushInput, setInputRuntime, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { ARMOR_CLASS, WEAPON_CLASS } from '../../js/objects.js';
 
 describe('drop count prompt', () => {
 
     beforeEach(() => {
+        setInputRuntime(createInputQueue());
         clearInputQueue();
         setThrowOnEmptyInput(true);
     });
@@ -39,12 +40,11 @@ function makeGame() {
 test('drop prompt supports count entry via Ctrl+V digits', async () => {
     const game = makeGame();
     clearInputQueue();
-    pushInput('P'.charCodeAt(0));
-    pushInput('e'.charCodeAt(0));
     pushInput(22); // Ctrl+V
     pushInput('1'.charCodeAt(0));
     pushInput('8'.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
+    pushInput(' '.charCodeAt(0)); // cancel at reprompt
 
     const result = await rhack('d'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);

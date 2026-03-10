@@ -475,9 +475,10 @@ export function nhgetch_raw(opts = {}) {
 // Get a character of input (async)
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
-export function nhgetch_wrap(opts = {}) {
-    const handleMore = opts?.handleMore !== false;
-    const readUnifiedKey = async (allowPendingMore = false, site = 'input.nhgetch.wrap.read') => {
+export function nhgetch(opts = {}) {
+    const allowPendingMore = opts?.allowPendingMore === true;
+    const site = opts?.site || 'input.nhgetch.read';
+    const readUnifiedKey = async () => {
         const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
         if (Number.isFinite(queuedKey)) {
             ynTrace('raw=queued', queuedKey, String.fromCharCode(queuedKey));
@@ -517,43 +518,13 @@ export function nhgetch_wrap(opts = {}) {
 
     const display = getRuntimeDisplay();
 
-    // C ref: readchar() / flush_screen — if --More-- is pending on the
-    // topline, consume dismissal key(s), drain queued messages, then return
-    // the next command key. Keep this iterative to avoid recursive fallback.
-    if (handleMore && display && display._pendingMore) {
-        const waitForMoreDismiss = async () => {
-            await consumePendingMore(
-                display,
-                () => readUnifiedKey(true, 'input.nhgetch.more-consume'),
-                () => display._clearMore(),
-                { site: 'input.nhgetch.more-consume' }
-            );
-            if (display) display.messageNeedsMore = false;
-            return readUnifiedKey(false, 'input.nhgetch.post-more');
-        };
-        return waitForMoreDismiss();
-    }
-
     // Clear message acknowledgement flag when user presses a key.
     // C ref: win/tty/topl.c - toplin gets set to TOPLINE_EMPTY after keypress
     if (display) {
         display.messageNeedsMore = false;
     }
 
-    return readUnifiedKey(false, 'input.nhgetch.normal');
-}
-
-export async function readBoundaryKey(display, site, game = null) {
-    if (display && display._pendingMore) {
-        await consumePendingMore(
-            display,
-            () => nhgetch_raw({ site: `${site}.more-consume` }),
-            () => display._clearMore(),
-            { game, site: `${site}.more-consume` }
-        );
-        display.messageNeedsMore = false;
-    }
-    return await nhgetch_raw({ site: `${site}.read` });
+    return readUnifiedKey();
 }
 
 export async function more(display, { site = 'input.more', game = null, forceVisual = false } = {}) {
@@ -615,8 +586,15 @@ export async function getlin(prompt, display) {
     // Initial display
     await updateDisplay();
 
+    const readPromptKey = async (site) => {
+        if (disp && disp._pendingMore) {
+            await more(disp, { site: `${site}.pre-more`, game: activeGame ?? null });
+        }
+        return nhgetch_raw({ site: `${site}.read` });
+    };
+
     while (true) {
-        const ch = await readBoundaryKey(disp, 'input.getlin.read');
+        const ch = await readPromptKey('input.getlin');
         if (ch === 13 || ch === 10) { // Enter
             // C-style prompt cleanup after accepting typed input.
             if (disp) {
@@ -668,9 +646,15 @@ export async function ynFunction(query, choices, def, display) {
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
+    const readPromptKey = async (site) => {
+        if (disp && disp._pendingMore) {
+            await more(disp, { site: `${site}.pre-more`, game: activeGame ?? null });
+        }
+        return nhgetch_raw({ site: `${site}.read` });
+    };
 
     while (true) {
-        const ch = await readBoundaryKey(disp, 'input.ynFunction.read');
+        const ch = await readPromptKey('input.ynFunction');
         ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         // C quitchars handling for yn prompts: Space/CR/LF use default.
         if ((ch === 32 || ch === 13 || ch === 10) && def) {
@@ -715,10 +699,17 @@ export async function getCount(firstKey, maxCount, display) {
         key = 0; // Clear so we read next key
     }
 
+    const readPromptKey = async (site) => {
+        if (disp && disp._pendingMore) {
+            await more(disp, { site: `${site}.pre-more`, game: activeGame ?? null });
+        }
+        return nhgetch_raw({ site: `${site}.read` });
+    };
+
     while (true) {
         // If we don't have a key yet, read one
         if (!key) {
-            key = await readBoundaryKey(disp, 'input.getCount.read');
+            key = await readPromptKey('input.getCount');
         }
 
         if (isDigit(key)) {

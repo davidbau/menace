@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
-import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { clearInputQueue, createInputQueue, pushInput, setInputRuntime, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import {
     WEAPON_CLASS, FOOD_CLASS, COIN_CLASS, GOLD_PIECE, LANCE, LONG_SWORD,
     ARROW, BOW, FLINT, ROCK, SLING, GEM_CLASS,
@@ -13,6 +13,7 @@ import {
 describe('fire prompt', () => {
 
     beforeEach(() => {
+        setInputRuntime(createInputQueue());
         clearInputQueue();
         setThrowOnEmptyInput(true);
     });
@@ -40,6 +41,7 @@ test('fire command keeps prompt open until canceled', async () => {
     const game = makeGame();
     game.player.weapon = { otyp: LONG_SWORD, oclass: WEAPON_CLASS, invlet: 'a', name: 'long sword' };
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput(27);
 
     const result = await rhack('f'.charCodeAt(0), game);
@@ -66,6 +68,7 @@ test('fire prompt includes C-style candidate letters for non-wielded weapon plus
     game.player.inventory = [lance, carrots];
     game.player.weapon = carrots;
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput(27);
 
     const result = await rhack('f'.charCodeAt(0), game);
@@ -80,6 +83,7 @@ test('fire prompt shows count after second digit prefix', async () => {
     const lance = { otyp: LANCE, oclass: WEAPON_CLASS, invlet: 'b', name: 'lance' };
     game.player.inventory = [lance];
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput('1'.charCodeAt(0));
     pushInput('4'.charCodeAt(0));
     pushInput(27);
@@ -96,6 +100,7 @@ test('fire prompt falls back to coin letter when no launcher candidates exist', 
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
     ];
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput(27);
 
     const result = await rhack('f'.charCodeAt(0), game);
@@ -111,6 +116,7 @@ test('fire prompt shows C-style invalid-object more() loop', async () => {
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
     ];
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput('f'.charCodeAt(0)); // invalid inventory letter at fire prompt
     pushInput(' '.charCodeAt(0)); // acknowledge more() boundary and re-show prompt
     pushInput(27); // cancel
@@ -211,8 +217,10 @@ test('fire accepts manual inventory letters then asks direction', async () => {
         readied,
     ];
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput('e'.charCodeAt(0));
-    pushInput('e'.charCodeAt(0)); // invalid direction key => cancel without extra message
+    pushInput(27); // may dismiss a boundary
+    pushInput(27); // explicit cancel at direction prompt
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
@@ -229,8 +237,10 @@ test("fire invalid inventory letter shows C-style don't-have-object more() loop"
         { oclass: FOOD_CLASS, otyp: 0, invlet: 'b', name: 'food ration', quan: 1 },
     ];
     clearInputQueue();
+    pushInput(' '.charCodeAt(0)); // dismiss no-ammo --More--
     pushInput('f'.charCodeAt(0)); // invalid item letter
     pushInput(' '.charCodeAt(0)); // dismiss more() and reprompt
+    pushInput(27); // may dismiss a boundary
     pushInput(27); // cancel
 
     const result = await rhack('f'.charCodeAt(0), game);

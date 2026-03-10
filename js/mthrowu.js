@@ -50,7 +50,7 @@ import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
 import { breaktest } from './dothrow.js';
 import { find_mac } from './worn.js';
-import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import {
     buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
     ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
