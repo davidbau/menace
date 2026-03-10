@@ -214,6 +214,7 @@ import {
     glyph_to_mon, glyph_to_obj,
 } from './symbols.js';
 import { glyph_to_cmap } from './glyphs.js';
+import { defsyms } from './symbols.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {
