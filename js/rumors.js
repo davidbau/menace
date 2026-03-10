@@ -244,7 +244,7 @@ export function init_oracles(fp) {
   dlb_fgets(line, line.length, fp);
   if (sscanf(line, "%5d\n", cnt) === 1 && cnt > 0) {
     svo.oracle_cnt =  cnt;
-    svo.oracle_loc =  alloc( cnt * sizeof);
+    svo.oracle_loc = new Array(cnt).fill(0);
     for (i = 0; i < cnt; i++) {
       dlb_fgets(line, line.length, fp);
       sscanf(line, "%5lx\n", svo.oracle_loc[i]);

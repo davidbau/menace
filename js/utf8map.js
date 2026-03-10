@@ -29,8 +29,8 @@ export function add_custom_urep_entry(customization_name, glyphidx, utf32ch, utf
       details = details.next;
     }
   }
-  newdetails =  alloc( sizeof );
-  newdetails.content.urep.glyphidx = glyphidx;
+  newdetails = { content: { urep: { glyphidx: glyphidx, player: {} } }, next: null };
+  // glyphidx already set above
   if (utf8str && utf8str) {
     newdetails.content.urep.player.utf8str =  dupstr( utf8str);
   }

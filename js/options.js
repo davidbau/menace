@@ -983,7 +983,7 @@ export async function query_msgtype() {
 
 // Autotranslated from options.c:7745
 export function msgtype_add(typ, pattern) {
-  let re_error = "MSGTYPE regex error", tmp =  alloc(tmp.length);
+  let re_error = "MSGTYPE regex error", tmp = { msgtype: 0, regex: null, pattern: null, next: null };
   tmp.msgtype = typ;
   tmp.regex = regex_init();
   if (!regex_compile(pattern, tmp.regex)) {
@@ -1309,7 +1309,7 @@ export async function show_menu_controls(win, dolist) {
 export function all_options_menucolors(sbuf, game) {
   let i = 0, ncolors = count_menucolors(), tmp = game.menu_colorings, buf, arr;
   if (!ncolors) return;
-  arr =  alloc(ncolors * arr.length);
+  arr = new Array(ncolors).fill(null);
   while (tmp) {
     arr = tmp;
     tmp = tmp.next;

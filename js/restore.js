@@ -218,7 +218,7 @@ export function restcemetery(nhfp, cemeteryaddr) {
   if (cflag === 0) {
     bonesaddr = cemeteryaddr;
     do {
-      bonesinfo =  alloc(bonesinfo.length);
+      bonesinfo = { next: null };
       Sfi_cemetery(nhfp, bonesinfo, "cemetery-bonesinfo");
        bonesaddr = bonesinfo;
       bonesaddr = ( bonesaddr).next;
@@ -289,7 +289,7 @@ export function restlevchn(nhfp) {
   svs.sp_levchn =  0;
   Sfi_int(nhfp, cnt, "levchn-lev_count");
   for (cnt > 0; cnt--; ) {
-    tmplev =  alloc(sizeof);
+    tmplev = { next: null };
     Sfi_s_level(nhfp, tmplev, "levchn-s_level");
     if (!svs.sp_levchn) svs.sp_levchn = tmplev;
     else {

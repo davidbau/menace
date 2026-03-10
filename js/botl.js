@@ -344,8 +344,7 @@ export async function query_arrayvalue(querystr, arr, arrmin, arrmax) {
 export function status_hilite_add_threshold(fld, hilite, game) {
   let new_hilite, old_hilite;
   if (!hilite) return;
-  new_hilite =  alloc(0);
-   new_hilite = hilite;
+  new_hilite = { ...hilite };
   new_hilite.set = true;
   new_hilite.fld = fld;
   new_hilite.next =  0;

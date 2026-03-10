@@ -156,7 +156,7 @@ export function init_glyph_cache() {
     ++glyphid_cache_lsize;
     glyphid_cache_size <<= 1;
   }
-  glyphid_cache =  alloc( glyphid_cache_size * 0);
+  glyphid_cache = Array.from({ length: glyphid_cache_size }, () => ({ glyphnum: 0, id: null }));
   for (glyph = 0; glyph < glyphid_cache_size; ++glyph) {
     glyphid_cache[glyph].glyphnum = 0;
     glyphid_cache[glyph].id =  0;
@@ -223,9 +223,7 @@ export function add_custom_nhcolor_entry(customization_name, glyphidx, nhcolor, 
       details = details.next;
     }
   }
-  newdetails =  alloc(newdetails.length);
-  newdetails.content.urep.glyphidx = glyphidx;
-  newdetails.content.ccolor.nhcolor = nhcolor;
+  newdetails = { content: { urep: { glyphidx: glyphidx }, ccolor: { glyphidx: glyphidx, nhcolor: nhcolor } }, next: null };
   newdetails.next =  0;
   if (gdc.details === null) { gdc.details = newdetails; }
   else { gdc.details_end.next = newdetails; }

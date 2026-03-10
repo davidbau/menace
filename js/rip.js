@@ -45,7 +45,7 @@ export function center(line, text) {
 // Autotranslated from rip.c:84
 export async function genl_outrip(tmpwin, how, when) {
   let dp, dpx, buf, x, line, year, cash;
-  gr.rip = dp =  alloc(sizeof(rip_txt));
+  gr.rip = dp = new Array(rip_txt.length).fill(null);
   for (x = 0; rip_txt[x]; ++x) {
     dp[x] = dupstr(rip_txt[x]);
   }

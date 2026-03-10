@@ -5391,13 +5391,12 @@ export function load_exclusions(nhfp) {
   let ez, nez = 0;
   Sfi_int(nhfp, nez, "exclusion_count");
   while (nez-- > 0) {
-    ez =  alloc(ez.length);
+    ez = { zonetype: 0, lx: 0, ly: 0, hx: 0, hy: 0, next: sve.exclusion_zones };
     Sfi_xint16(nhfp, ez.zonetype, "exclusion-zonetype");
     Sfi_coordxy(nhfp, ez.lx, "exclusion-lx");
     Sfi_coordxy(nhfp, ez.ly, "exclusion-ly");
     Sfi_coordxy(nhfp, ez.hx, "exclusion-hx");
     Sfi_coordxy(nhfp, ez.hy, "exclusion-hy");
-    ez.next = sve.exclusion_zones;
     sve.exclusion_zones = ez;
   }
 }

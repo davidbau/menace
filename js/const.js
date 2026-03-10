@@ -3888,11 +3888,7 @@ export function savedsym_add(name, val, which_set) {
   let tmp = null;
   if ((tmp = savedsym_find(name, which_set)) != null) { tmp.val = dupstr(val); }
   else {
-    tmp =  alloc(tmp.length);
-    tmp.name = dupstr(name);
-    tmp.val = dupstr(val);
-    tmp.which_set = which_set;
-    tmp.next = saved_symbols;
+    tmp = { name: dupstr(name), val: dupstr(val), which_set: which_set, next: saved_symbols };
     saved_symbols = tmp;
   }
 }
