@@ -425,7 +425,7 @@ export function optfn_DECgraphics(optidx, req, negated, opts, op) {
     if (!negated) {
       if (gs.symset[PRIMARYSET].name) { badflag = true; }
       else {
-        gs.symset[PRIMARYSET].name = dupstr(allopt[optidx].name);
+        gs.symset[PRIMARYSET].name = allopt[optidx].name;
         if (!read_sym_file(PRIMARYSET)) { badflag = true; clear_symsetentry(PRIMARYSET, true); }
         else {
           switch_symbols(true);
@@ -993,7 +993,7 @@ export function msgtype_add(typ, pattern) {
     config_error_add("%s: %s", re_error, re_error_desc);
     return false;
   }
-  tmp.pattern = dupstr(pattern);
+  tmp.pattern = pattern;
   tmp.next = gp.plinemsg_types;
   gp.plinemsg_types = tmp;
   return true;
@@ -1515,12 +1515,12 @@ export function wc_set_window_colors(op) {
         if (!strstri(tfg, " ")) {
           if ( fgp[j]) (fgp[j], 0);
           clr = check_enhanced_colors(tfg);
-           fgp[j] = dupstr((clr >= 0) ? wc_color_name(clr) : tfg);
+           fgp[j] = (clr >= 0) ? wc_color_name(clr) : tfg;
         }
         if (!strstri(tbg, " ")) {
           if ( bgp[j]) (bgp[j], 0);
           clr = check_enhanced_colors(tbg);
-           bgp[j] = dupstr((clr >= 0) ? wc_color_name(clr) : tbg);
+           bgp[j] = (clr >= 0) ? wc_color_name(clr) : tbg;
         }
         if (wcolors_opt[j] !== 0) {
           config_error_add( "windowcolors for %s windows specified multiple times", wcnames[j]);

@@ -1582,7 +1582,7 @@ export function free_omid(otmp) {
 function new_omailcmd(otmp, response_cmd) {
   if (!otmp.oextra) otmp.oextra = newoextra();
   if (otmp.oextra.omailcmd) free_omailcmd(otmp);
-  otmp.oextra.omailcmd = dupstr(response_cmd);
+  otmp.oextra.omailcmd = response_cmd;
 }
 
 // Autotranslated from mkobj.c:167

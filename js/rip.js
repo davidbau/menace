@@ -47,7 +47,7 @@ export async function genl_outrip(tmpwin, how, when) {
   let dp, dpx, buf, x, line, year, cash;
   gr.rip = dp = new Array(rip_txt.length).fill(null);
   for (x = 0; rip_txt[x]; ++x) {
-    dp[x] = dupstr(rip_txt[x]);
+    dp[x] = rip_txt[x];
   }
   dp[x] =  0;
   buf = svp.plname.slice(0, STONE_LINE_LEN);

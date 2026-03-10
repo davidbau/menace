@@ -211,7 +211,7 @@ export function add_custom_nhcolor_entry(customization_name, glyphidx, nhcolor, 
   let gdc =  gs.sym_customizations[which_set][custom_nhcolor];
   let details, newdetails = 0;
   if (!gdc.details) {
-    gdc.customization_name = dupstr(customization_name);
+    gdc.customization_name = customization_name;
     gdc.custtype = custom_nhcolor;
     gdc.details = 0;
     gdc.details_end = 0;

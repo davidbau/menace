@@ -1062,7 +1062,7 @@ export async function docall(obj) {
   if ( uname_p) { had_name = true; (uname_p, 0), uname_p = null; }
   mungspaces(buf);
   if (!buf) { if (had_name) undiscoverObject(obj.otyp); }
-  else { uname_p = dupstr(buf); discoverObject(obj.otyp, false, true); }
+  else { uname_p = buf; discoverObject(obj.otyp, false, true); }
   if (obj.where === 'OBJ_INVENT' || carrying(obj.otyp)) update_inventory();
 }
 
