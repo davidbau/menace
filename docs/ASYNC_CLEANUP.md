@@ -606,6 +606,12 @@ paths so `more()` and `nhgetch()` are the only gameplay input boundaries.
   - `_clearMore()` queue-resume fallback
 - input/allmain/replay checks and fallback paths that branch on `_pendingMore`.
 
+**Progress update (2026-03-10):**
+
+- Command-loop key reads now go through unified `nhgetch()` (`allmain._readCommandLoopKey`)
+  rather than calling `nhgetch_raw()` directly.
+- Dead `allowPendingMore` plumbing was removed from `nhgetch()`.
+
 **Gate**:
 
 - `npm test --silent` passes.

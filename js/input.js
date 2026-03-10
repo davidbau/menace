@@ -472,7 +472,6 @@ export function nhgetch_raw(opts = {}) {
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
 export function nhgetch(opts = {}) {
-    const allowPendingMore = opts?.allowPendingMore === true;
     const site = opts?.site || 'input.nhgetch.read';
     const readUnifiedKey = async () => {
         const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
@@ -503,7 +502,7 @@ export function nhgetch(opts = {}) {
             activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
         }
 
-        const ch = await nhgetch_raw({ allowPendingMore, site });
+        const ch = await nhgetch_raw({ site });
         ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         recordKey(ch);
         if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
