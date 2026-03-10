@@ -95,7 +95,8 @@ describe('mon compatibility surface', () => {
     assert.equal(kill_genocided_monsters(map, game), 1);
     assert.equal(map.monsters.length, 0);
 
-    assert.equal(decide_to_shapeshift(mon, game) === true || decide_to_shapeshift(mon, game) === false, true);
+    const shapeshiftDecision = decide_to_shapeshift(mon, game);
+    assert.equal(shapeshiftDecision === true || shapeshiftDecision === false, true);
   });
 
   it('supports leaving-level, pickup, peaceful response, overcrowding, smell', () => {
