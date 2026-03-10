@@ -62,7 +62,7 @@ import { new_were, were_summon } from './were.js';
 import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd } from './zap.js';
-import { rloc, tele_restrict } from './teleport.js';
+import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by } from './end.js';
@@ -654,7 +654,10 @@ async function mhitu_ad_tlpt(monster, attack, player, mhm, ctx) {
         if (!ctx.suppressHitMsg)
             await ctx.display.putstr_message('You are not affected.');
     } else {
-        // Teleport hero — not implemented
+        // C: AD_TLPT teleports the hero on successful magical hit.
+        if (ctx.game) {
+            await tele(ctx.game);
+        }
         // C: if (damage >= u.uhp) cap damage
         if (mhm.damage >= player.uhp) {
             if (player.uhp === 1) player.uhp++;

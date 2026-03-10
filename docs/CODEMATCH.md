@@ -2535,8 +2535,8 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_drin` | mhitu.js | Implemented — brain eating: INT drain, level loss; approximation: no helmet check |
 | - | `mhitu_ad_slow` | mhitu.js | Implemented — speed reduction; approximation: simple flag set vs full HFast property manipulation |
 | - | `mhitu_ad_ston` | mhitu.js | Implemented — rn2(3) + rn2(10) gates, messages; approximation: no actual petrification yet |
-| - | `mhitu_ad_tlpt` | mhitu.js | Stub — negation check only, no teleport system |
-| - | `mhitu_ad_sgld` | mhitu.js | Stub — hitmsg + damage=0 (no gold theft) |
+| - | `mhitu_ad_tlpt` | mhitu.js | Partial — negation gate + hero teleport via `tele(game)`; damage capping retained |
+| - | `mhitu_ad_sgld` | mhitu.js | Implemented — hitmsg + `stealgold()` + zero damage |
 | - | `mhitu_ad_sedu` | mhitu.js | Stub — hitmsg + damage=0 (no seduction/item theft) |
 | - | `mhitu_ad_ssex` | mhitu.js | Stub — hitmsg + damage=0 |
 | - | `mhitu_ad_curs` | mhitu.js | Stub — hitmsg + damage=0 (no curse system) |
@@ -2553,9 +2553,9 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_pest` | mhitu.js | Stub — physical damage only |
 | - | `mhitu_ad_famn` | mhitu.js | Stub — physical damage only |
 | - | `mhitu_ad_halu` | mhitu.js | Implemented — applies hallucination timeout and zeroes damage |
-| - | `mhitu_ad_rust` | mhitu.js | Stub — hitmsg + damage=0 (no armor erosion) |
-| - | `mhitu_ad_corr` | mhitu.js | Stub — hitmsg + damage=0 (no armor erosion) |
-| - | `mhitu_ad_dcay` | mhitu.js | Stub — hitmsg + damage=0 (no armor erosion) |
+| - | `mhitu_ad_rust` | mhitu.js | Implemented — hitmsg + `erode_armor_on_player(ERODE_RUST)` + zero damage |
+| - | `mhitu_ad_corr` | mhitu.js | Implemented — hitmsg + `erode_armor_on_player(ERODE_CORRODE)` + zero damage |
+| - | `mhitu_ad_dcay` | mhitu.js | Implemented — hitmsg + `erode_armor_on_player(ERODE_ROT)` + zero damage |
 | - | `mhitm_knockback` | mhitu.js | Implemented — rn2(3) distance, rn2(6) chance, eligibility (AD_PHYS, attack type, size), rn2(2)+rn2(2) message |
 | 2425 | `passiveum` | mhitu.js:passiveum | Implemented |
 | 954 | `summonmu` | mhitu.js:summonmu | Partial — entrypoint present, simplified summon behavior |
@@ -4122,8 +4122,8 @@ Remaining parity gaps are mostly behavioral depth:
 | 3199 | `create_particular_creation` | read.js:create_particular_creation | Implemented (wizard mode stub) |
 | 3084 | `create_particular_parse` | read.js:create_particular_parse | Implemented (wizard mode stub) |
 | 1087 | `display_stinking_cloud_positions` | read.js:1625 | Implemented |
-| 2585 | `do_class_genocide` | read.js:do_class_genocide | Implemented (stub) |
-| 2773 | `do_genocide` | read.js:do_genocide | Implemented (stub) |
+| 2585 | `do_class_genocide` | read.js:do_class_genocide | Approximate (wired; deterministic class fallback, no full C prompt UX yet) |
+| 2773 | `do_genocide` | read.js:do_genocide | Approximate (wired; deterministic species fallback, cursed/REALLY paths, simplified prompt UX) |
 | 3029 | `do_stinking_cloud` | read.js:do_stinking_cloud | Implemented |
 | 329 | `doread` | read.js:73 | Implemented (handleRead: inventory selection + spellbook study + seffects dispatch) |
 | 2288 | `drop_boulder_on_monster` | read.js:1549 | Implemented |
@@ -4152,9 +4152,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 1114 | `seffect_enchant_armor` | read.js:686 | Implemented (faithful: evaporation check, enchant calc, vibration warning) |
 | 1576 | `seffect_enchant_weapon` | read.js:606 | Implemented (faithful: confused erodeproof; chwepon RNG: rn2(spe), rnd(3-spe/3)) |
 | 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; no explode() area effect yet) |
-| 1993 | `seffect_food_detection` | read.js:901 | Stub (message only; needs food_detect infrastructure) |
-| 1669 | `seffect_genocide` | read.js:993 | Stub (messages only; needs do_genocide/do_class_genocide prompts) |
-| 1982 | `seffect_gold_detection` | read.js:884 | Stub (message only; needs gold_detect/trap_detect infrastructure) |
+| 1993 | `seffect_food_detection` | read.js:901 | Implemented (routes to `food_detect`) |
+| 1669 | `seffect_genocide` | read.js:993 | Approximate (routes to `do_class_genocide`/`do_genocide`; prompt UX simplified) |
+| 1982 | `seffect_gold_detection` | read.js:884 | Implemented (routes to `gold_detect`) |
 | 2002 | `seffect_identify` | read.js:326 | Implemented (faithful RNG: rn2(5) blessed check + cval; identify_pack inline) |
 | 1688 | `seffect_light` | read.js:425 | Partial (confused: faithful rn1(2,3)+makemon lights; non-confused: no litroom yet) |
 | 2049 | `seffect_magic_mapping` | read.js:909 | Approximate (messages match; no do_mapping() level reveal yet) |
@@ -4162,9 +4162,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 1923 | `seffect_punishment` | read.js:1063 | Partial (confused/blessed "guilty" faithful; no punish() ball-and-chain yet) |
 | 1438 | `seffect_remove_curse` | read.js:556 | Implemented (faithful: inventory iteration, blessorcurse(2) for confused, uncurse worn) |
 | 1403 | `seffect_scare_monster` | read.js:515 | Implemented (faithful: resist() per monster, monflee, cansee check, ct counting) |
-| 1938 | `seffect_stinking_cloud` | read.js:1078 | Stub (message only; needs do_stinking_cloud positioning) |
+| 1938 | `seffect_stinking_cloud` | read.js:1078 | Implemented (routes to `do_stinking_cloud` targeting + gas cloud creation) |
 | 1626 | `seffect_taming` | read.js:960 | Approximate (simplified: no resist/maybe_tame, just sets tame flag in radius) |
-| 1962 | `seffect_teleportation` | read.js:867 | Stub (messages only; needs scrolltele/level_tele infrastructure) |
+| 1962 | `seffect_teleportation` | read.js:867 | Implemented (routes to `scrolltele`/`level_tele`) |
 | 2141 | `seffects` | read.js:1097 | Implemented (full dispatch to all 22 scroll types; exercise(A_WIS) for magic scrolls) |
 | 2418 | `set_lit` | read.js:1596 | Implemented |
 | 651 | `stripspe` | read.js:63 | Implemented |

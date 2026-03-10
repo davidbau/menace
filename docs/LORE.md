@@ -6736,3 +6736,33 @@ hard-won wisdom:
   - `node --test test/unit/codematch_timeout_surface.test.js`
   - `node scripts/test-unit-core.mjs`
   - Both passed.
+
+### CODEMATCH `read.c` + `mhitu.c` chunk (`seffect_*` wiring + AD_TLPT/erosion status cleanup) (2026-03-10)
+
+- Problem:
+  - `read.js` still had several scroll effects marked as message-only stubs in the
+    CODEMATCH ledger.
+  - `mhitu.c` rows in `docs/CODEMATCH.md` had stale stub status for handlers that
+    are now wired in JS (`AD_SGLD`, `AD_RUST/CORR/DCAY`), and `AD_TLPT` still lacked
+    a teleport action.
+- Change:
+  - `js/read.js`:
+    - `seffect_genocide` now routes to `do_class_genocide` / `do_genocide`.
+    - `seffect_stinking_cloud` now routes to `do_stinking_cloud`.
+    - `do_class_genocide` and `do_genocide` now perform real `mvitals` marking with
+      `G_GENO|G_NOCORPSE` and `kill_genocided_monsters(...)` (with simplified deterministic
+      target selection where C has prompt-driven selection).
+    - `do_stinking_cloud` now runs a `getpos` target flow and `create_gas_cloud(...)`.
+    - Fixed `SCR_GENOCIDE` dispatcher wiring to pass `game`.
+  - `js/mhitu.js`:
+    - `mhitu_ad_tlpt` now executes hero teleport via `tele(game)` on successful magical hit,
+      while preserving existing C-style damage cap behavior.
+  - `docs/CODEMATCH.md`:
+    - Updated read rows: teleport/gold/food/stinking-cloud now implemented; genocide
+      rows now marked approximate instead of stub.
+    - Updated mhitu rows: `mhitu_ad_sgld`, `mhitu_ad_rust`, `mhitu_ad_corr`,
+      `mhitu_ad_dcay` now implemented; `mhitu_ad_tlpt` now partial.
+    - Global `Stub` count reduced from `85` to `75`.
+- Validation:
+  - `node scripts/test-unit-core.mjs`
+  - Passed (`2702` tests, `0` failures).

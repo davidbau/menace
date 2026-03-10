@@ -32,7 +32,8 @@ import { makemon } from './makemon.js';
 import { NO_MINVENT } from './const.js';
 import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN,
          PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
-         PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER } from './monsters.js';
+         PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER,
+         G_GENO, G_NOCORPSE } from './monsters.js';
 import { resist } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
@@ -52,6 +53,7 @@ import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismis
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal } from './mondata.js';
+import { kill_genocided_monsters } from './mon.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -1275,7 +1277,7 @@ export async function seffect_taming(sobj, player, display, game) {
 }
 
 // cf. read.c seffect_genocide()
-export async function seffect_genocide(sobj, player, display) {
+export async function seffect_genocide(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
@@ -1285,9 +1287,11 @@ export async function seffect_genocide(sobj, player, display) {
         await display.putstr_message('You have found a scroll of genocide!');
     }
     // cf. C: if (sblessed) do_class_genocide(); else do_genocide((!scursed) | (2 * !!Confusion))
-    // do_genocide and do_class_genocide require interactive prompts (monster class/type selection)
-    // which are not yet available in automated play. The scroll is identified but has no effect.
-    await display.putstr_message('A sad feeling comes over you.');
+    if (sblessed) {
+        await do_class_genocide(player, game);
+    } else {
+        await do_genocide((!scursed ? 1 : 0) | (2 * (confused ? 1 : 0)), player, game);
+    }
     return false;
 }
 
@@ -1386,43 +1390,7 @@ export async function seffect_stinking_cloud(sobj, player, display, game) {
     if (!already_known) {
         await display.putstr_message('You have found a scroll of stinking cloud!');
     }
-    // cf. do_stinking_cloud(sobj, already_known) + display_stinking_cloud_positions()
-    const map = game?.map;
-    if (map && player) {
-        const display_stinking_cloud_positions = (on) => {
-            if (on) {
-                tmp_at(DISP_BEAM, { ch: '*', color: 10 });
-                for (let dx = -STINKING_CLOUD_TARGET_DIST; dx <= STINKING_CLOUD_TARGET_DIST; dx++) {
-                    for (let dy = -STINKING_CLOUD_TARGET_DIST; dy <= STINKING_CLOUD_TARGET_DIST; dy++) {
-                        const x = player.x + dx;
-                        const y = player.y + dy;
-                        if (x === player.x && y === player.y) continue;
-                        const loc = map.at ? map.at(x, y) : null;
-                        if (!loc) continue;
-                        tmp_at(x, y);
-                    }
-                }
-            } else {
-                tmp_at(DISP_END, 0);
-            }
-        };
-        const can_center_cloud = (x, y) => {
-            const loc = map.at ? map.at(x, y) : null;
-            if (!loc) return false;
-            return Math.max(Math.abs(x - player.x), Math.abs(y - player.y)) <= STINKING_CLOUD_TARGET_DIST;
-        };
-        const cc = { x: player.x, y: player.y };
-        getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
-        const rc = await getpos_async(cc, true, 'the desired position', {
-            map, display, flags: game?.flags, goalPrompt: 'the desired position', player
-        });
-        if (rc < 0) {
-            return false;
-        }
-    }
-    // The C version prompts for a target position; automated play still self-targets.
-    // cf. create_gas_cloud(cc.x, cc.y, ...) — gas cloud creation not yet ported
-    await display.putstr_message('A cloud of toxic gas billows from the scroll.');
+    await do_stinking_cloud(sobj, already_known, player, game);
     return false;
 }
 
@@ -1462,7 +1430,7 @@ async function seffects(sobj, player, display, game) {
     case SCR_TAMING:
         return await seffect_taming(sobj, player, display, game);
     case SCR_GENOCIDE:
-        return await seffect_genocide(sobj, player, display);
+        return await seffect_genocide(sobj, player, display, game);
     case SCR_LIGHT:
         return await seffect_light(sobj, player, display, game);
     case SCR_TELEPORTATION:
@@ -1710,9 +1678,26 @@ export async function create_particular_creation(data) {
 // Stub: genocide scroll effects are partially wired in seffects.
 // ---------------------------------------------------------------------------
 export async function do_class_genocide(player, game) {
-    // Full implementation deferred — requires iterating all monsters of a class,
-    // killing/removing them, and handling edge cases (unique monsters, etc.)
-    await pline("A class genocide occurs!");
+    const map = game?.map;
+    if (!map) return;
+    const chosenClass = (map.monsters || [])
+        .find((m) => m && !m.dead && m.data?.mlet)?.data?.mlet;
+    if (!chosenClass) {
+        await pline("No class of monsters is available for genocide.");
+        return;
+    }
+
+    let marked = 0;
+    const mvitals = game?.mvitals || [];
+    for (let i = 0; i < mons.length; i++) {
+        if (mons[i]?.mlet !== chosenClass) continue;
+        if (!mvitals[i]) mvitals[i] = { mvflags: 0, died: 0, born: 0 };
+        mvitals[i].mvflags = (mvitals[i].mvflags || 0) | G_GENO | G_NOCORPSE;
+        marked++;
+    }
+    kill_genocided_monsters(map, game);
+    await pline("Wiped out all monsters of class %s.", chosenClass);
+    if (!marked) await pline("Nothing happens.");
 }
 
 // ---------------------------------------------------------------------------
@@ -1721,9 +1706,48 @@ export async function do_class_genocide(player, game) {
 // Stub: genocide scroll effects are partially wired in seffects.
 // ---------------------------------------------------------------------------
 export async function do_genocide(bang, player, game) {
-    // Full implementation deferred — requires getlin prompt, monster name parsing,
-    // and global monster removal
-    await pline("A genocide occurs!");
+    const REALLY = 1;
+    const PLAYER = 2;
+    const map = game?.map;
+    if (!map) return;
+
+    let mndx = null;
+    if (bang & PLAYER) {
+        mndx = Number.isInteger(player?.umonnum) ? player.umonnum
+            : Number.isInteger(player?.roleMnum) ? player.roleMnum : 0;
+    } else {
+        const live = (map.monsters || []).find((m) => m && !m.dead && Number.isInteger(m.mndx));
+        mndx = live?.mndx ?? null;
+    }
+    if (!Number.isInteger(mndx) || mndx < 0 || mndx >= mons.length) {
+        await pline("Nothing happens.");
+        return;
+    }
+
+    if (!(bang & REALLY)) {
+        // Cursed path: create monsters instead of genociding.
+        const count = rn1(3, 4);
+        let made = 0;
+        for (let i = 0; i < count; i++) {
+            if (makemon(mons[mndx], player.x, player.y, MM_ADJACENTOK, player.dungeonLevel || 1, map))
+                made++;
+        }
+        if (made) await pline("Sent in %s.", made > 1 ? "some monsters" : an(mons[mndx].pmnames?.[0] || "monster"));
+        else await pline("Nothing happens.");
+        return;
+    }
+
+    const mvitals = game?.mvitals || [];
+    if (!mvitals[mndx]) mvitals[mndx] = { mvflags: 0, died: 0, born: 0 };
+    mvitals[mndx].mvflags = (mvitals[mndx].mvflags || 0) | G_GENO | G_NOCORPSE;
+    kill_genocided_monsters(map, game);
+    await pline("Wiped out all %s.", mons[mndx].pmnames?.[0] || "monsters");
+
+    if (bang & PLAYER) {
+        player.uhp = -1;
+        player.dead = true;
+        player.deathCause = 'genocided';
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1732,14 +1756,42 @@ export async function do_genocide(bang, player, game) {
 // ---------------------------------------------------------------------------
 export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
     const display = game?.display;
+    const map = game?.map;
     await pline("Where do you want to center the %scloud?",
         mention_stinking ? "stinking " : "");
 
-    // getpos prompt — simplified: use player's position
-    const { getpos } = await nhimport('./getpos.js');
+    if (!map || !player) {
+        await pline("Nothing happens.");
+        return;
+    }
+
+    const display_stinking_cloud_positions = (on) => {
+        if (on) {
+            tmp_at(DISP_BEAM, { ch: '*', color: 10 });
+            for (let dx = -STINKING_CLOUD_TARGET_DIST; dx <= STINKING_CLOUD_TARGET_DIST; dx++) {
+                for (let dy = -STINKING_CLOUD_TARGET_DIST; dy <= STINKING_CLOUD_TARGET_DIST; dy++) {
+                    const x = player.x + dx;
+                    const y = player.y + dy;
+                    if (x === player.x && y === player.y) continue;
+                    const loc = map.at ? map.at(x, y) : null;
+                    if (!loc) continue;
+                    tmp_at(x, y);
+                }
+            }
+        } else {
+            tmp_at(DISP_END, 0);
+        }
+    };
+    const can_center_cloud = (x, y) => {
+        const loc = map.at ? map.at(x, y) : null;
+        if (!loc) return false;
+        return Math.max(Math.abs(x - player.x), Math.abs(y - player.y)) <= STINKING_CLOUD_TARGET_DIST;
+    };
+
     const cc = { x: player.x, y: player.y };
     getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
-    const res = await getpos_async(cc, true, "the desired position", game);
+    const res = await getpos_async(cc, true, "the desired position",
+        { map, display, flags: game?.flags, goalPrompt: "the desired position", player });
     if (res < 0) {
         await pline("Never mind.");
         return;
@@ -1755,7 +1807,8 @@ export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
     }
     const { create_gas_cloud } = await nhimport('./region.js');
     if (create_gas_cloud) {
-        create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj));
+        await create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj),
+            map, player, game);
     }
 }
 
