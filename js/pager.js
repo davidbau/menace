@@ -1049,7 +1049,7 @@ export async function handleWhatdoes(game) {
 
     if (!whatdoesIntroShown) {
         await display.putstr_message("Ask about '&' or '?' to get more info.");
-        await more(display, { site: 'pager.whatdoes.intro.more' });
+        await more(display, { site: 'pager.whatdoes.intro.more', forceVisual: true });
         whatdoesIntroShown = true;
     }
 

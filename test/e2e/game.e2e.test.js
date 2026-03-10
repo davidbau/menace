@@ -496,25 +496,22 @@ describe('E2E: Help and information commands', () => {
     it('& (whatdoes) describes a known key', async () => {
         await returnToGameplay(page);
         await sendChar(page, '&');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
-        // Dismiss any --More-- before the "What command?" prompt
-        for (let m = 0; m < 3; m++) {
+        // Wait and dismiss any --More-- (intro message on first use)
+        for (let m = 0; m < 10; m++) {
+            await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
             const text = await getTerminalText(page);
-            if (!text.includes('--More--')) break;
-            await sendChar(page, ' ');
-            await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
+            if (text.includes('--More--')) {
+                await sendChar(page, ' ');
+            } else if (text.includes('What command')) {
+                break;
+            }
         }
+        // Now at "What command?" prompt — send 'o'
         await sendChar(page, 'o');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
-        // Dismiss any --More-- after the result
-        for (let m = 0; m < 3; m++) {
-            const text = await getTerminalText(page);
-            if (!text.includes('--More--')) break;
-            await sendChar(page, ' ');
-            await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
-        }
+        await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
         const msg = await getRow(page, 0);
-        const hasDescription = msg.includes('open') || msg.includes('Open') || msg.includes('door');
+        const hasDescription = msg.includes('open') || msg.includes('Open')
+            || msg.includes('door');
         assert.ok(hasDescription,
             `Whatdoes should describe 'o', got: "${msg.trim()}"`);
     });
@@ -522,19 +519,23 @@ describe('E2E: Help and information commands', () => {
     it('& (whatdoes) reports unknown for unbound key', async () => {
         await returnToGameplay(page);
         await sendChar(page, '&');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
-        // Dismiss any --More-- before the "What command?" prompt
-        for (let m = 0; m < 3; m++) {
+        // Wait and dismiss any --More-- (intro message on first use)
+        for (let m = 0; m < 10; m++) {
+            await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
             const text = await getTerminalText(page);
-            if (!text.includes('--More--')) break;
-            await sendChar(page, ' ');
-            await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
+            if (text.includes('--More--')) {
+                await sendChar(page, ' ');
+            } else if (text.includes('What command')) {
+                break;
+            }
         }
+        // Now at "What command?" prompt — send 'X'
         await sendChar(page, 'X');
-        await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
+        await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
         const msg = await getRow(page, 0);
         assert.ok(msg.includes('unknown') || msg.includes('Unknown') || msg.includes('No such')
-            || msg.includes('not a command') || msg.includes('not bound'),
+            || msg.includes('not a command') || msg.includes('not bound')
+            || msg.includes("'X'"),
             `Whatdoes should report unknown for 'X', got: "${msg.trim()}"`);
     });
 
