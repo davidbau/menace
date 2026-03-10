@@ -15,7 +15,7 @@ import { handleEngrave } from './engrave.js';
 import { handleApply } from './apply.js';
 import { COIN_CLASS } from './objects.js';
 import { DART, ARROW } from './objects.js';
-import { nhgetch_raw, nhgetch_wrap, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
+import { more, nhgetch_raw, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
        } from './input.js';
 import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
@@ -500,9 +500,7 @@ export async function rhack(ch, game) {
         display.topMessage = line0;
         display._topMessageRow1 = line1;
         display.messageNeedsMore = true;
-        if (typeof display.markMorePending === 'function') {
-            display.markMorePending({ source: 'cmd.version' });
-        }
+        await more(display, { game, site: 'cmd.version' });
         return { moved: false, tookTime: false, skipPostCommandDocrt: true };
     }
 

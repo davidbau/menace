@@ -1210,13 +1210,9 @@ export async function domove_core(dir, player, map, display, game) {
             await You('fall down a shaft!');
             // Falling to another level should pause on the combined trap message
             // before the level transition redraw.
-            if (display && typeof display.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
+            if (display) {
+                await more(display, { game, site: 'hack.fall-through', forceVisual: true });
             }
-            if (display && typeof display.markMorePending === 'function') {
-                display.markMorePending({ source: 'hack.fall-through' });
-            }
-            if (game) game._pendingDeferredTurnAfterMore = true;
             const currentDepth = Number.isInteger(player?.dungeonLevel)
                 ? player.dungeonLevel
                 : (Number.isInteger(map?._genDlevel) ? map._genDlevel : 1);
