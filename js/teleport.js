@@ -149,6 +149,14 @@ export function goodpos(x, y, mtmp, gpflags, map, player) {
     return true;
 }
 
+// teleport.c:48 — approximation of onscary() using only monster data.
+// In JS we delegate to mon.js onscary() with a lightweight probe monster.
+export function goodpos_onscary(x, y, mptr, map) {
+    if (!mptr || !isok(x, y) || !map || typeof onscary !== 'function') return false;
+    const probe = { data: mptr, type: mptr, mx: x, my: y, wormno: 0 };
+    return !!onscary(map, x, y, probe);
+}
+
 // ============================================================================
 // collect_coords — cf. teleport.c:572
 // Runtime version with full cc_flags support.
@@ -452,6 +460,23 @@ export async function rloc(mtmp, rlocflags, map, player, display, fov) {
     }
     await rloc_to_core(mtmp, backupX, backupY, rlocflags, map, player, display, fov);
     return true;
+}
+
+// teleport.c:1894 — optional wizard destination override for monster teleports.
+// JS keeps this deterministic and UI-free: caller can prefill cc_p and set
+// monTelecontrol=true to request validation of the provided destination.
+export function control_mon_tele(mon, cc_p, rlocflags, via_rloc, map, player, opts = {}) {
+    if (!cc_p || typeof cc_p !== 'object') return false;
+    if (!isok(cc_p.x ?? -1, cc_p.y ?? -1)) {
+        cc_p.x = mon?.mx ?? player?.x ?? 0;
+        cc_p.y = mon?.my ?? player?.y ?? 0;
+    }
+    if (!opts.monTelecontrol) return false;
+    if (player && cc_p.x === player.x && cc_p.y === player.y) return false;
+    if (opts.force === true) return true;
+    return via_rloc
+        ? !!rloc_pos_ok(cc_p.x, cc_p.y, mon, map, player)
+        : !!goodpos(cc_p.x, cc_p.y, mon, rlocflags, map, player);
 }
 
 // ============================================================================
@@ -976,6 +1001,36 @@ export function teleport_pet(mtmp, force) {
         mtmp.mleashed = false;
         return true;
     }
+    return true;
+}
+
+// teleport.c:809 — teleport hero near a random pet (if valid and not adjacent).
+export async function tele_to_rnd_pet(game) {
+    const map = game?.lev || game?.map;
+    const player = game?.u || game?.player;
+    if (!map || !player) return false;
+    if (noteleport_level(player, map)) return false;
+
+    let pet = null;
+    let cnt = 0;
+    for (const mtmp of (map.monsters || [])) {
+        if (!mtmp || mtmp.dead) continue;
+        const tame = Number(mtmp.mtame || 0) > 0 || !!mtmp.tame;
+        if (!tame) continue;
+        if (!isok(mtmp.mx, mtmp.my)) continue;
+        cnt++;
+        if (!rn2(cnt)) pet = mtmp;
+    }
+    if (!pet) return false;
+
+    const adjacent = Math.abs((pet.mx || 0) - player.x) <= 1
+        && Math.abs((pet.my || 0) - player.y) <= 1;
+    if (adjacent) return false;
+
+    const tx = pet.mx + rn2(3) - 1;
+    const ty = pet.my + rn2(3) - 1;
+    if (!isok(tx, ty) || !teleok(tx, ty, false, game)) return false;
+    await teleds(tx, ty, TELEDS_TELEPORT, game);
     return true;
 }
 

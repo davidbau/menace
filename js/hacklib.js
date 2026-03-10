@@ -628,47 +628,178 @@ export function parseRumorsFile(fileText) {
     return { trueTexts, trueLineBytes, trueSize, falseTexts, falseLineBytes, falseSize };
 }
 
-// Autotranslated from hacklib.c:985
+// hacklib.c:985 — case-insensitive compare. Returns signed difference.
 export function case_insensitive_comp(s1, s2) {
-  let u1, u2;
-  for (s1++, s2++; ; ) {
-    u1 = s1.value;
-    if (isupper(u1)) u1 =  tolower(u1);
-    u2 = s2.value;
-    if (isupper(u2)) u2 =  tolower(u2);
-    if (u1 === '\0' || u1 !== u2) {
-      break;
+    const a = String(s1 ?? '');
+    const b = String(s2 ?? '');
+    let i = 0;
+    for (;;) {
+        let u1 = i < a.length ? a.charCodeAt(i) : 0;
+        let u2 = i < b.length ? b.charCodeAt(i) : 0;
+        if (u1 >= 65 && u1 <= 90) u1 += 32;
+        if (u2 >= 65 && u2 <= 90) u2 += 32;
+        if (u1 === 0 || u1 !== u2) return u1 - u2;
+        i++;
     }
-  }
-  return u1 - u2;
 }
 
-// Autotranslated from hacklib.c:1003
+// hacklib.c:1003 — byte-copy helper used by native file descriptors.
+// JS runtime variant supports stream-like objects exposing read()/write().
 export function copy_bytes(ifd, ofd) {
-  let buf, nfrom, nto;
-  do {
-    nto = 0;
-    nfrom = read(ifd, buf, BUFSIZ);
-    if (nfrom >= 0 && nfrom <= BUFSIZ) nto = write(ofd, buf, nfrom);
-    if (nto !== nfrom || nfrom < 0) return false;
-  } while (nfrom === BUFSIZ);
-  return true;
+    const BUFSIZ = 8192;
+    if (!ifd || !ofd || typeof ifd.read !== 'function' || typeof ofd.write !== 'function') {
+        return false;
+    }
+    const buf = new Uint8Array(BUFSIZ);
+    for (;;) {
+        const nfrom = ifd.read(buf, 0, BUFSIZ);
+        if (typeof nfrom !== 'number' || nfrom < 0) return false;
+        const nto = nfrom > 0 ? ofd.write(buf, 0, nfrom) : 0;
+        if (nto !== nfrom) return false;
+        if (nfrom !== BUFSIZ) return true;
+    }
 }
 
-// Autotranslated from hacklib.c:1055
+const DATA_MODELS = [
+    { sz: [2, 4, 4, 8, 4], datamodel: 'ILP32LL64', dmplatform: 'x86 32-bit' },
+    { sz: [2, 4, 4, 8, 8], datamodel: 'IL32LLP64', dmplatform: 'Windows x64 64-bit' },
+    { sz: [2, 4, 8, 8, 8], datamodel: 'I32LP64', dmplatform: 'Unix 64-bit' },
+    { sz: [2, 8, 8, 8, 8], datamodel: 'ILP64', dmplatform: 'Unix ILP64' },
+];
+
+function detectedDataModelSizes() {
+    if (typeof process !== 'undefined') {
+        const arch = String(process.arch || '');
+        if (arch === 'ia32') return [2, 4, 4, 8, 4];
+        if (arch === 'x64' || arch === 'arm64' || arch === 'ppc64'
+            || arch === 's390x' || arch === 'riscv64' || arch === 'loong64') {
+            return [2, 4, 8, 8, 8];
+        }
+    }
+    return [2, 4, 8, 8, 8];
+}
+
+// hacklib.c:974 — detect this runtime's data model label.
+export function datamodel(retidx) {
+    const [szshort, szint, szlong, szll, szptr] = detectedDataModelSizes();
+    return what_datamodel_is_this(retidx, szshort, szint, szlong, szll, szptr);
+}
+
+// hacklib.c:992 — map explicit size tuple to data model label/platform.
 export function what_datamodel_is_this(retidx, szshort, szint, szlong, szll, szptr) {
-  let i, unknown = "Unknown";
-  for (i = 1; i < SIZE(dm); ++i) {
-    if (szshort === dm[i].sz[0] && szint === dm[i].sz[1] && szlong === dm[i].sz[2] && szll === dm[i].sz[3] && szptr === dm[i].sz) return (retidx === 0) ? dm[i].datamodel : dm[i].dmplatform;
-  }
-  return unknown;
+    for (let i = 0; i < DATA_MODELS.length; i++) {
+        const sz = DATA_MODELS[i].sz;
+        if (szshort === sz[0] && szint === sz[1] && szlong === sz[2]
+            && szll === sz[3] && szptr === sz[4]) {
+            return retidx === 0 ? DATA_MODELS[i].datamodel : DATA_MODELS[i].dmplatform;
+        }
+    }
+    return 'Unknown';
 }
 
-// Autotranslated from hacklib.c:18
+function fmtValue(spec, arg) {
+    switch (spec) {
+    case 's': return String(arg ?? '');
+    case 'd':
+    case 'i': return String(Number(arg) | 0);
+    case 'u': return String((Number(arg) >>> 0));
+    case 'x': return (Number(arg) >>> 0).toString(16);
+    case 'X': return (Number(arg) >>> 0).toString(16).toUpperCase();
+    case 'c': return String.fromCharCode(Number(arg) | 0);
+    default: return `%${spec}`;
+    }
+}
+
+function simplePrintf(fmt, args) {
+    let ai = 0;
+    return String(fmt).replace(/%([%sdixXuc])/g, (m, spec) => {
+        if (spec === '%') return '%';
+        const arg = ai < args.length ? args[ai++] : undefined;
+        return fmtValue(spec, arg);
+    });
+}
+
+function assignIntoOutString(target, text) {
+    if (target && typeof target === 'object') {
+        if ('value' in target) {
+            target.value = text;
+            return;
+        }
+        if ('text' in target) {
+            target.text = text;
+            return;
+        }
+    }
+}
+
+// hacklib.c:854 — snprintf wrapper used for bounded formatting.
+// JS returns the bounded string and also writes into out.value/out.text if passed.
+export function nh_snprintf(func, line, out, size, fmt, ...args) {
+    let _func = func;
+    let _line = line;
+    let _out = out;
+    let _size = size;
+    let _fmt = fmt;
+    let _args = args;
+
+    // Support both signatures:
+    // 1) nh_snprintf(func, line, out, size, fmt, ...)
+    // 2) nh_snprintf(out, size, fmt, ...)
+    if (typeof line !== 'number') {
+        _func = '';
+        _line = 0;
+        _out = func;
+        _size = line;
+        _fmt = out;
+        _args = [size, fmt, ...args].filter((x) => x !== undefined);
+    }
+
+    const rendered = simplePrintf(_fmt, _args);
+    const limit = Math.max(0, Number(_size) - 1);
+    const bounded = rendered.slice(0, limit);
+    assignIntoOutString(_out, bounded);
+    return bounded;
+}
+
+// hacklib.c:882 — convert Unicode code point to UTF-8 bytes into caller buffer.
+// Returns 1 on success, 0 on invalid input or insufficient buffer.
+export function unicodeval_to_utf8str(uval, buffer, bufsz) {
+    const cap = Number.isInteger(bufsz) ? bufsz : (buffer?.length ?? 0);
+    if (!buffer || cap < 5) return 0;
+    if (!Number.isInteger(uval) || uval < 0) return 0;
+
+    const bytes = [];
+    if (uval < 0x80) {
+        bytes.push(uval);
+    } else if (uval < 0x800) {
+        bytes.push(0xc0 + Math.floor(uval / 64));
+        bytes.push(0x80 + (uval % 64));
+    } else if ((uval - 0xd800) >>> 0 < 0x800) {
+        return 0;
+    } else if (uval < 0x10000) {
+        bytes.push(0xe0 + Math.floor(uval / 4096));
+        bytes.push(0x80 + Math.floor(uval / 64) % 64);
+        bytes.push(0x80 + (uval % 64));
+    } else if (uval < 0x110000) {
+        bytes.push(0xf0 + Math.floor(uval / 262144));
+        bytes.push(0x80 + Math.floor(uval / 4096) % 64);
+        bytes.push(0x80 + Math.floor(uval / 64) % 64);
+        bytes.push(0x80 + (uval % 64));
+    } else {
+        return 0;
+    }
+
+    if (bytes.length + 1 > cap) return 0;
+    for (let i = 0; i < bytes.length; i++) buffer[i] = bytes[i];
+    buffer[bytes.length] = 0;
+    return 1;
+}
+
+// hacklib.c:18 — qsort index comparator helper, with index tiebreak.
 export function nh_qsort_idx_cmp(va, vb) {
-  let a =  va, b =  vb;
-  let c = nh_qsort_cmp_fn( (nh_qsort_base + (a.idx * nh_qsort_size)),  (nh_qsort_base + (b.idx * nh_qsort_size)));
-  if (c) return c;
-  if (a.idx < b.idx) return -1;
-  return (a.idx > b.idx);
+    const a = Number(va?.idx ?? 0);
+    const b = Number(vb?.idx ?? 0);
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
 }

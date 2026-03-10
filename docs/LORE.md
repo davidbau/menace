@@ -6454,3 +6454,32 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/engrave_surface.test.js test/unit/command_engrave_prompt.test.js test/unit/engrave_wipe_event.test.js test/unit/track_surface.test.js`
     passed (8/8).
+
+### CODEMATCH multi-file closure slice: hacklib.c + teleport.c missing surfaces (2026-03-10)
+
+- Problem:
+  - `hacklib.c` still had 3 missing rows (`datamodel`, `nh_snprintf`,
+    `unicodeval_to_utf8str`) and several broken autotranslated helpers.
+  - `teleport.c` still had 3 missing rows (`goodpos_onscary`,
+    `control_mon_tele`, `tele_to_rnd_pet`).
+- Change:
+  - In `js/hacklib.js`:
+    - Replaced broken autotranslated stubs with working implementations for
+      `case_insensitive_comp`, `copy_bytes`, `what_datamodel_is_this`,
+      `nh_qsort_idx_cmp`.
+    - Added `datamodel`, `nh_snprintf`, `unicodeval_to_utf8str` C-name
+      compatibility surfaces.
+  - In `js/teleport.js`:
+    - Added `goodpos_onscary` probe helper.
+    - Added deterministic `control_mon_tele` destination-validation helper
+      (opt-in via `opts.monTelecontrol`).
+    - Added `tele_to_rnd_pet` hero-near-pet teleport helper.
+  - Added tests:
+    - `test/unit/hacklib_surface_codematch.test.js`
+    - `test/unit/teleport_surface.test.js`
+  - Updated `docs/CODEMATCH.md` rows from `Missing` to `Implemented` for all
+    six functions, and updated teleport file-summary note to reflect `33/37`
+    surfaces present.
+- Validation:
+  - `node --test test/unit/hacklib_surface_codematch.test.js test/unit/teleport_surface.test.js test/unit/hacklib.test.js`
+    passed (169/169).
