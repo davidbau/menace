@@ -94,6 +94,7 @@ import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
 import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu } from './mondata.js';
 import { record_achievement } from './insight.js';
+import { pmname, Mgender } from './do_name.js';
 
 // C macro: ismnum(mndx) — valid monster index check
 function ismnum(mndx) { return mndx >= 0 && mndx < NUMMONS; }

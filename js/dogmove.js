@@ -38,6 +38,7 @@ import { MAGIC_PORTAL, WT_HUMAN } from './const.js';
 import { gettrack } from './track.js';
 import { On_stairs } from './stairs.js';
 import { helpless, onscary } from './mon.js';
+import { pmname, Mgender } from './do_name.js';
 
 // Shared utilities from monmove.js
 import { dist2, distmin, monnear, mfndpos, mon_allowflags,

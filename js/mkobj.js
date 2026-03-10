@@ -47,7 +47,7 @@ import { impossible } from './pline.js';
 import { newsym } from './display.js';
 import { cansee } from './vision.js';
 import { artifact_exists } from './artifact.js';
-import { safe_oname } from './do_name.js';
+import { safe_oname, pmname, Mgender } from './do_name.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,
