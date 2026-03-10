@@ -1613,7 +1613,7 @@ export async function quickmimic(mtmp, player) {
   mtmp.mappearance = qm[idx].mappearance;
   if (spotted || seeloc || canspotmon(mtmp)) {
     let prev_glyph = glyph_at(mtmp.mx, mtmp.my);
-    let what = (M_AP_TYPE(mtmp) === M_AP_FURNITURE) ? defsyms[mtmp.mappearance].explanation : (M_AP_TYPE(mtmp) === M_AP_OBJECT && OBJ_DESCR(objectData[mtmp.mappearance])) ? OBJ_DESCR(objectData[mtmp.mappearance]) : (M_AP_TYPE(mtmp) === M_AP_OBJECT && OBJ_NAME(objectData[mtmp.mappearance])) ? OBJ_NAME(objectData[mtmp.mappearance]) : (M_AP_TYPE(mtmp) === M_AP_MONSTER) ? pmname(mons[mtmp.mappearance], Mgender(mtmp)) : something;
+    let what = (M_AP_TYPE(mtmp) === M_AP_FURNITURE) ? defsyms[mtmp.mappearance].explanation : (M_AP_TYPE(mtmp) === M_AP_OBJECT && objectData[mtmp.mappearance].oc_descr) ? objectData[mtmp.mappearance].oc_descr : (M_AP_TYPE(mtmp) === M_AP_OBJECT && objectData[mtmp.mappearance].oc_name) ? objectData[mtmp.mappearance].oc_name : (M_AP_TYPE(mtmp) === M_AP_MONSTER) ? pmname(mons[mtmp.mappearance], Mgender(mtmp)) : something;
     newsym(mtmp.mx, mtmp.my);
     if (was_leashed && (M_AP_TYPE(mtmp) !== M_AP_MONSTER || !mnum_leashable(mtmp.mappearance))) { await Your("leash goes slack."); await m_unleash(mtmp, false); }
     if (glyph_at(mtmp.mx, mtmp.my) !== prev_glyph) await You("%s %s %s where %s was!", seeloc ? "see" : "sense that", (what !== something) ? an(what) : what, seeloc ? "appear" : "has appeared", buf);

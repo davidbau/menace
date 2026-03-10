@@ -1580,7 +1580,7 @@ export async function dowizcast() {
       break;
     }
     any.a_int = n;
-    add_menu(win, nul_glyphinfo, any, 0, 0, ATR_NONE, NO_COLOR, OBJ_NAME(objectData[n]), MENU_ITEMFLAGS_NONE);
+    add_menu(win, nul_glyphinfo, any, 0, 0, ATR_NONE, NO_COLOR, objectData[n].oc_name, MENU_ITEMFLAGS_NONE);
   }
   end_menu(win, "Cast which spell?");
   n = await select_menu(win, PICK_ONE, selected);

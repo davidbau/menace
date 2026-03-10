@@ -1317,7 +1317,7 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
 
 // Autotranslated from u_init.c:1249
 export function ini_inv_use_obj(obj, player) {
-  if (OBJ_DESCR(objectData[obj.otyp]) && obj.known) discoverObject(obj.otyp, true, true);
+  if (objectData[obj.otyp].oc_descr && obj.known) discoverObject(obj.otyp, true, true);
   if (obj.otyp === OIL_LAMP) discoverObject(POT_OIL, true, true);
   if (obj.oclass === ARMOR_CLASS) {
     if (is_shield(obj) && !player.shield && !(player.weapon && bimanual(player.weapon))) { setworn(obj, W_ARMS); set_twoweap(false); }

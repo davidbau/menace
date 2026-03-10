@@ -1058,7 +1058,7 @@ export async function docall(obj) {
   if (!obj.dknown) return;
   flush_screen(1);
   if (obj.oclass === POTION_CLASS && obj.fromsink) {
-    qbuf = `Call a stream of ${OBJ_DESCR(objectData[obj.otyp])} fluid:`;
+    qbuf = `Call a stream of ${objectData[obj.otyp].oc_descr} fluid:`;
   }
   else {
     safe_qbuf(qbuf, "Call ", ":", obj, docall_xname, simpleonames, "thing");

@@ -330,7 +330,7 @@ export function observe_object(obj) {
 // Autotranslated from o_init.c:519
 export function interesting_to_discover(i) {
   if (Role_if(PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
-  return  (objectData[i].oc_uname !==  0 || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && OBJ_DESCR(objectData[i]) !==  0));
+  return  (objectData[i].oc_uname !==  0 || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr !==  0));
 }
 
 // Autotranslated from o_init.c:601
@@ -365,7 +365,7 @@ export function disco_typename(otyp) {
   let result = obj_typename(otyp);
   if (Role_if(PM_SAMURAI) && Japanese_item_name(otyp,  0)) {
     let buf;
-    let actualn = (((otyp !== MAGIC_HARP && otyp !== WOODEN_HARP) || objectData[otyp].oc_name_known) ? OBJ_NAME(objectData[otyp]) : "harp");
+    let actualn = (((otyp !== MAGIC_HARP && otyp !== WOODEN_HARP) || objectData[otyp].oc_name_known) ? objectData[otyp].oc_name : "harp");
     if (!actualn) {
     }
     else if (strstri(result, " called")) { buf = ` [${actualn}] called`; strsubst(result, " called", buf); }

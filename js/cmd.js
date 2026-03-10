@@ -1124,7 +1124,7 @@ export async function wiz_dumpobj() {
   fp = fopen(fname, "w");
   if (!fp) { await pline("Cannot open %s for writing.", fname); return ECMD_OK; }
   for (obj = fobj; obj; obj = obj.nobj) {
-    fprintf(fp, "%d %d %d %u %s\n", obj.ox, obj.oy, obj.otyp, obj.owt, OBJ_NAME(objectData[obj.otyp]));
+    fprintf(fp, "%d %d %d %u %s\n", obj.ox, obj.oy, obj.otyp, obj.owt, objectData[obj.otyp].oc_name);
   }
   fclose(fp);
   await pline("Objects dumped to %s.", fname);
