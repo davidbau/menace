@@ -70,6 +70,25 @@ Fix:
 Result: `seed033` mapdump parity restored without regressions; full suite back
 to green.
 
+### Never inject gameplay `#dumpmap` commands during recording/replay
+
+Injecting `#dumpmap` into gameplay command streams changes real input
+semantics:
+1. it inserts extra keys (`#`, command text, terminator) into the same parser
+   path as player commands;
+2. it can perturb prompt/message timing and `--More--` boundaries;
+3. it creates "Unknown command" artifacts and step-alignment confusion that
+   look like gameplay bugs but are harness-induced.
+
+Policy:
+1. keep mapdump capture out-of-band (harness env/log channels), not as in-band
+   gameplay commands;
+2. do not mutate recorded key streams for diagnostics;
+3. treat command-stream purity as a hard invariant for session fidelity.
+
+This explains several historical "mystery" divergences that disappeared once
+in-band `#dumpmap` insertion was removed.
+
 ---
 
 ## RNG Parity
