@@ -813,11 +813,8 @@ async function showDropCandidates(candidates, display) {
         if (needsMore) {
             if (typeof display.renderMoreMarker === 'function') {
                 display.renderMoreMarker();
-                display.markMorePending({ source: 'do.drop-candidates' });
             }
-            await awaitInput(null, nhgetch_wrap(), {
-                site: 'do.showDropCandidates.more',
-            });
+            await more(display, { site: 'do.showDropCandidates.more' });
         }
     }
 }

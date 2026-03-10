@@ -567,13 +567,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 // dismiss-key loop is still waiting for input.
                 if (display.messageNeedsMore) {
                     display.renderMoreMarker();
-                    while (true) {
-                        const ch = await awaitInput(null, nhgetch_wrap(), { site: 'getpos.tip.moreDismiss' });
-                        if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) break;
-                    }
-                    display.clearRow(0);
-                    display.messageNeedsMore = false;
-                    display.topMessage = null;
+                    await more(display, { site: 'getpos.tip.moreDismiss' });
                 }
                 const tipWin = create_nhwindow(NHW_TEXT);
                 putstr(tipWin, 0, 'Tip: Farlooking or selecting a map location');

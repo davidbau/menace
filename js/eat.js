@@ -2,7 +2,7 @@
 // cf. eat.c — doeat, start_eating, eatfood, bite, corpse intrinsics, hunger
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { nhgetch_wrap } from './input.js';
+import { more, nhgetch_wrap } from './input.js';
 import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,
@@ -1924,10 +1924,10 @@ async function handleEat(player, display, game) {
                 // until Space/Enter/Esc; in wizard mode it silently re-prompts.
                 if (!player.wizard) {
                     await display.putstr_message("You don't have that object.--More--");
-                    while (true) {
-                        const moreCh = await awaitInput(game, nhgetch_wrap(), { site: 'eat.handleEat.moreDismiss' });
-                        if (moreCh === 32 || moreCh === 10 || moreCh === 13 || moreCh === 27) break;
+                    if (typeof display.renderMoreMarker === 'function') {
+                        display.renderMoreMarker();
                     }
+                    await more(display, { game, site: 'eat.handleEat.moreDismiss' });
                 }
                 continue;
             }
