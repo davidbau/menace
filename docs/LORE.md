@@ -6185,3 +6185,28 @@ hard-won wisdom:
   - `scripts/run-and-report.sh` returned `34/34` gameplay sessions green
     after the fix and subsequent `wrap -> raw` conversions in `dothrow`,
     `eat`, and `getpos`.
+
+### CODEMATCH makemon.c closure slice: mongen and propagation helpers (2026-03-10)
+
+- Problem:
+  - `makemon.c -> makemon.js` still had 7 missing C-surface functions:
+    `is_home_elemental`, `cmp_init_mongen_order`, `check_mongen_order`,
+    `dump_mongen`, `mkclass_aligned`, `mkclass_poly`, `propagate`.
+  - Some of these were not just ledger gaps: `is_home_elemental` is used by
+    existing `wrong_elem_type()`/`grow_up()` paths, and missing mvitals flag
+    constants (`G_GENOD`/`G_EXTINCT`) created latent runtime error risk.
+- Change:
+  - Implemented and exported the 7 missing functions in `js/makemon.js`.
+  - Added C-faithful elemental-home checks using dungeon level predicates
+    (`Is_airlevel`, `Is_firelevel`, `Is_earthlevel`, `Is_waterlevel`).
+  - Added/centralized mvitals flag constants:
+    `G_GENOD = 0x01`, `G_EXTINCT = 0x02`, `G_GONE = 0x03`.
+  - Added focused unit coverage in `test/unit/makemon.test.js` for:
+    - mongen order initialization/check helpers
+    - `mkclass_aligned`
+    - `mkclass_poly`
+    - `propagate` (born/extinction behavior)
+  - Updated `docs/CODEMATCH.md` makemon rows from `Missing` to `Implemented`.
+  - Refreshed CODEMATCH function-level metrics from current row totals.
+- Validation:
+  - `node --test test/unit/makemon.test.js` passed (19/19).

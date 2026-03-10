@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5041` total, `931` missing (**18.47% left**)
-- **Gameplay rows only**: `4376` total, `310` missing (**7.08% left**)
+- **Raw rows (all files)**: `5058` total, `740` missing (**14.63% left**)
+- **Gameplay rows only**: `4393` total, `119` missing (**2.71% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -2389,17 +2389,17 @@ No function symbols parsed from isaac64.c.
 | 2010 | `adj_lev` | makemon.js:548 | Implemented |
 | 1608 | `align_shift` | makemon.js:384 | Implemented |
 | 2548 | `bagotricks` | makemon.js:2726 | Implemented |
-| 1778 | `check_mongen_order` | - | Missing |
+| 1778 | `check_mongen_order` | makemon.js:538 | Implemented |
 | 839 | `clone_mon` | makemon.js:2770 | Implemented |
-| 1757 | `cmp_init_mongen_order` | - | Missing |
+| 1757 | `cmp_init_mongen_order` | makemon.js:529 | Implemented |
 | 1553 | `create_critters` | makemon.js:2585 | Implemented |
-| 1829 | `dump_mongen` | - | Missing |
+| 1829 | `dump_mongen` | makemon.js:744 | Implemented |
 | 2373 | `freemcorpsenm` | makemon.js:2721 | Implemented |
 | 2227 | `golemhp` | makemon.js:656 | Implemented |
 | 2045 | `grow_up` | makemon.js:2611 | Implemented |
 | 1061 | `init_mextra` | makemon.js:2558 | Implemented |
 | 1801 | `init_mongen_order` | makemon.js:528 | Implemented |
-| 35 | `is_home_elemental` | - | Missing |
+| 35 | `is_home_elemental` | makemon.js:269 | Implemented |
 | 81 | `m_initgrp` | makemon.js:2528 | Implemented |
 | 591 | `m_initinv` | makemon.js:1237 | Implemented |
 | 150 | `m_initthrow` | makemon.js:768 | Implemented |
@@ -2409,8 +2409,8 @@ No function symbols parsed from isaac64.c.
 | 1539 | `mbirth_limit` | makemon.js:647 | Implemented |
 | 1733 | `mk_gen_ok` | makemon.js:517 | Implemented |
 | 1867 | `mkclass` | makemon.js:569 | Implemented |
-| 1874 | `mkclass_aligned` | - | Missing |
-| 1977 | `mkclass_poly` | - | Missing |
+| 1874 | `mkclass_aligned` | makemon.js:662 | Implemented |
+| 1977 | `mkclass_poly` | makemon.js:667 | Implemented |
 | 578 | `mkmonmoney` | makemon.js:1225 | Implemented |
 | 2175 | `mongets` | makemon.js:710 | Implemented |
 | 988 | `monhp_per_lvl` | makemon.js:2548 | Implemented |
@@ -2418,7 +2418,7 @@ No function symbols parsed from isaac64.c.
 | 1068 | `newmextra` | makemon.js:2563 | Implemented |
 | 1014 | `newmonhp` | makemon.js:673 | Implemented |
 | 2262 | `peace_minded` | makemon.js:316 | Implemented |
-| 960 | `propagate` | - | Missing |
+| 960 | `propagate` | makemon.js:715 | Implemented |
 | 1649 | `rndmonst` | makemon.js:2606 | Implemented |
 | 1656 | `rndmonst_adj` | makemon.js:404 | Implemented |
 | 2315 | `set_malign` | monsters.js `set_malign()` | Aligned |

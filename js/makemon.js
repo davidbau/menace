@@ -22,7 +22,7 @@ import {
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
 import { get_shop_item } from './shknam.js';
-import { mons, SPECIAL_PM, MAXMCLASSES, G_FREQ, G_NOGEN, G_UNIQ, G_HELL, G_NOHELL, G_SGROUP, G_LGROUP, G_NOCORPSE, G_IGNORE, S_ANT, S_BLOB, S_COCKATRICE, S_DOG, S_EYE, S_FELINE, S_GREMLIN, S_HUMANOID, S_IMP, S_JELLY, S_KOBOLD, S_LEPRECHAUN, S_MIMIC, S_NYMPH, S_ORC, S_PIERCER, S_QUADRUPED, S_RODENT, S_SPIDER, S_TRAPPER, S_UNICORN, S_VORTEX, S_WORM, S_XAN, S_LIGHT, S_ZRUTY, S_ANGEL, S_BAT, S_CENTAUR, S_DRAGON, S_ELEMENTAL, S_FUNGUS, S_GNOME, S_GIANT, S_JABBERWOCK, S_KOP, S_LICH, S_MUMMY, S_NAGA, S_OGRE, S_PUDDING, S_QUANTMECH, S_RUSTMONST, S_SNAKE, S_TROLL, S_UMBER, S_VAMPIRE, S_WRAITH, S_XORN, S_YETI, S_ZOMBIE, S_HUMAN, S_GHOST, S_GOLEM, S_DEMON, S_EEL, S_LIZARD, S_MIMIC_DEF, M2_MERC, M2_LORD, M2_PRINCE, M2_NASTY, M2_FEMALE, M2_MALE, M2_STRONG, M2_ROCKTHROW, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_NEUTER, M2_GREEDY, M2_SHAPESHIFTER, M2_NOPOLY, M2_ELF, M2_DWARF, M2_MINION, M2_DEMON, M3_WAITFORU, M3_CLOSE, M3_WAITMASK, M3_COVETOUS, M1_FLY, M1_NOHANDS, M1_SWIM, M1_AMPHIBIOUS, M1_WALLWALK, M1_AMORPHOUS, PM_ORC, PM_GIANT, PM_ELF, PM_HUMAN, PM_ETTIN, PM_MINOTAUR, PM_NAZGUL, PM_ELVEN_MONARCH, PM_MASTER_LICH, PM_ARCH_LICH, PM_GRAY_DRAGON, PM_STRAW_GOLEM, PM_PAPER_GOLEM, PM_ROPE_GOLEM, PM_GOLD_GOLEM, PM_LEATHER_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, PM_GLASS_GOLEM, PM_IRON_GOLEM, PM_DEATH, PM_FAMINE, PM_WUMPUS, PM_LONG_WORM, PM_GIANT_EEL, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_GUARD, PM_SHOPKEEPER, AT_WEAP, AT_EXPL, PM_PESTILENCE, PM_GOBLIN, PM_ORC_CAPTAIN, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_SHAMAN, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_GHOST, PM_ERINYS, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_VLAD_THE_IMPALER, PM_WOLF, PM_FOG_CLOUD, PM_VAMPIRE_BAT, PM_CHAMELEON, PM_ROTHE, PM_CAVE_DWELLER, PM_BARBARIAN, PM_NEANDERTHAL, PM_HORNED_DEVIL, PM_BALROG, PM_ASMODEUS, PM_DISPATER, PM_YEENOGHU, PM_ORCUS, PM_HUMAN_WEREJACKAL, PM_HUMAN_WERERAT, PM_HUMAN_WEREWOLF, PM_WEREJACKAL, PM_WERERAT, PM_WEREWOLF, PM_OWLBEAR, PM_STEAM_VORTEX, PM_GREEN_SLIME, PM_VIOLET_FUNGUS, PM_SHRIEKER, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_JELLYFISH, MS_LEADER, MS_NEMESIS, MS_GUARDIAN, MS_PRIEST, PM_CROESUS, PM_ARCHEOLOGIST, PM_WIZARD, PM_QUANTUM_MECHANIC, PM_HOUSECAT, PM_PONY, PM_FOREST_CENTAUR } from './monsters.js';
+import { mons, SPECIAL_PM, MAXMCLASSES, G_FREQ, G_NOGEN, G_UNIQ, G_HELL, G_NOHELL, G_SGROUP, G_LGROUP, G_NOCORPSE, G_IGNORE, S_ANT, S_BLOB, S_COCKATRICE, S_DOG, S_EYE, S_FELINE, S_GREMLIN, S_HUMANOID, S_IMP, S_JELLY, S_KOBOLD, S_LEPRECHAUN, S_MIMIC, S_NYMPH, S_ORC, S_PIERCER, S_QUADRUPED, S_RODENT, S_SPIDER, S_TRAPPER, S_UNICORN, S_VORTEX, S_WORM, S_XAN, S_LIGHT, S_ZRUTY, S_ANGEL, S_BAT, S_CENTAUR, S_DRAGON, S_ELEMENTAL, S_FUNGUS, S_GNOME, S_GIANT, S_JABBERWOCK, S_KOP, S_LICH, S_MUMMY, S_NAGA, S_OGRE, S_PUDDING, S_QUANTMECH, S_RUSTMONST, S_SNAKE, S_TROLL, S_UMBER, S_VAMPIRE, S_WRAITH, S_XORN, S_YETI, S_ZOMBIE, S_HUMAN, S_GHOST, S_GOLEM, S_DEMON, S_EEL, S_LIZARD, S_MIMIC_DEF, M2_MERC, M2_LORD, M2_PRINCE, M2_NASTY, M2_FEMALE, M2_MALE, M2_STRONG, M2_ROCKTHROW, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_NEUTER, M2_GREEDY, M2_SHAPESHIFTER, M2_NOPOLY, M2_ELF, M2_DWARF, M2_MINION, M2_DEMON, M3_WAITFORU, M3_CLOSE, M3_WAITMASK, M3_COVETOUS, M1_FLY, M1_NOHANDS, M1_SWIM, M1_AMPHIBIOUS, M1_WALLWALK, M1_AMORPHOUS, PM_ORC, PM_GIANT, PM_ELF, PM_HUMAN, PM_ETTIN, PM_MINOTAUR, PM_NAZGUL, PM_ELVEN_MONARCH, PM_MASTER_LICH, PM_ARCH_LICH, PM_GRAY_DRAGON, PM_STRAW_GOLEM, PM_PAPER_GOLEM, PM_ROPE_GOLEM, PM_GOLD_GOLEM, PM_LEATHER_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, PM_GLASS_GOLEM, PM_IRON_GOLEM, PM_DEATH, PM_FAMINE, PM_WUMPUS, PM_LONG_WORM, PM_GIANT_EEL, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_GUARD, PM_SHOPKEEPER, AT_WEAP, AT_EXPL, PM_PESTILENCE, PM_GOBLIN, PM_ORC_CAPTAIN, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_SHAMAN, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_GHOST, PM_ERINYS, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_VLAD_THE_IMPALER, PM_WOLF, PM_FOG_CLOUD, PM_VAMPIRE_BAT, PM_CHAMELEON, PM_ROTHE, PM_CAVE_DWELLER, PM_BARBARIAN, PM_NEANDERTHAL, PM_HORNED_DEVIL, PM_BALROG, PM_ASMODEUS, PM_DISPATER, PM_YEENOGHU, PM_ORCUS, PM_HUMAN_WEREJACKAL, PM_HUMAN_WERERAT, PM_HUMAN_WEREWOLF, PM_WEREJACKAL, PM_WERERAT, PM_WEREWOLF, PM_OWLBEAR, PM_STEAM_VORTEX, PM_GREEN_SLIME, PM_VIOLET_FUNGUS, PM_SHRIEKER, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_JELLYFISH, PM_AIR_ELEMENTAL, PM_FIRE_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_WATER_ELEMENTAL, PM_HIGH_CLERIC, MS_LEADER, MS_NEMESIS, MS_GUARDIAN, MS_PRIEST, PM_CROESUS, PM_ARCHEOLOGIST, PM_WIZARD, PM_QUANTUM_MECHANIC, PM_HOUSECAT, PM_PONY, PM_FOREST_CENTAUR } from './monsters.js';
 import {
     ROCK, STATUE, FIGURINE, EGG, TIN, STRANGE_OBJECT, GOLD_PIECE, DILITHIUM_CRYSTAL,
     RING_CLASS, WAND_CLASS, WEAPON_CLASS, FOOD_CLASS, COIN_CLASS,
@@ -73,7 +73,9 @@ import { mpickobj } from './steal.js';
 import { dist2 } from './hacklib.js';
 import { newsym, senseMonsterForMap } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
-         is_golem, nonliving, is_humanoid, is_shapeshifter } from './mondata.js';
+         is_golem, nonliving, is_humanoid, is_shapeshifter,
+         is_swimmer, pm_resistance, is_flyer, is_floater, amorphous,
+         noncorporeal, is_whirly } from './mondata.js';
 import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
 import { vtense, an } from './objnam.js';
 import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
@@ -82,7 +84,7 @@ import { update_inventory } from './invent.js';
 import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
 import { new_light_source } from './light.js';
 import { PIT, SPIKED_PIT, LOW_PM } from './const.js';
-import { In_sokoban, Is_stronghold } from './dungeon.js';
+import { In_sokoban, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel } from './dungeon.js';
 
 // ========================================================================
 // Monster flags needed for m_initweap/m_initinv checks
@@ -261,6 +263,26 @@ function getRndmonTraceCtx() {
     if (!a) return '?';
     const b = toTag(lines[4]);
     return b ? `${a} <= ${b}` : a;
+}
+
+// C ref: makemon.c:34 is_home_elemental()
+export function is_home_elemental(ptr, lev = null) {
+    if (!ptr || ptr.mlet !== S_ELEMENTAL) return false;
+    const currentLev = lev || _gstate?.map?.uz || _gstate?.player?.uz || null;
+    if (!currentLev) return false;
+    const pm = monsndx(ptr);
+    switch (pm) {
+    case PM_AIR_ELEMENTAL:
+        return Is_airlevel(currentLev);
+    case PM_FIRE_ELEMENTAL:
+        return Is_firelevel(currentLev);
+    case PM_EARTH_ELEMENTAL:
+        return Is_earthlevel(currentLev);
+    case PM_WATER_ELEMENTAL:
+        return Is_waterlevel(currentLev);
+    default:
+        return false;
+    }
 }
 
 function _normalizeMakemonOverride(playerLike) {
@@ -481,6 +503,8 @@ export function rndmonnum_adj(minadj, maxadj, depth) {
 // ========================================================================
 
 const G_GENO = 0x0020;
+const G_GENOD = 0x01;
+const G_EXTINCT = 0x02;
 const G_GONE = 0x03; // G_GENOD | G_EXTINCT (mvflags)
 
 // C ref: mondata.h is_placeholder()
@@ -501,6 +525,34 @@ export function mk_gen_ok(mndx, mvflagsmask, genomask) {
 // C ref: makemon.c:1750-1823 mongen_order initialization
 let mongen_order = null;
 let mclass_maxf = null;
+// C ref: makemon.c:1756 comparator for mongen_order qsort.
+export function cmp_init_mongen_order(i1, i2) {
+    const idx1 = Number(i1) | 0;
+    const idx2 = Number(i2) | 0;
+    const difficulty1 = ((mons[idx1].difficulty | 0) | ((mons[idx1].mlet | 0) << 8));
+    const difficulty2 = ((mons[idx2].difficulty | 0) | ((mons[idx2].mlet | 0) << 8));
+    return difficulty1 - difficulty2;
+}
+
+// C ref: makemon.c:1777 debug check that sorted order remains monotonic.
+export function check_mongen_order() {
+    if (!Array.isArray(mongen_order) || mongen_order.length === 0) return true;
+    let diff = 0;
+    let mlet = 0;
+    for (let i = LOW_PM; i < mongen_order.length; i++) {
+        const mon = mons[mongen_order[i]];
+        if (!mon) continue;
+        if (mlet === mon.mlet) {
+            if ((mon.difficulty | 0) < diff) return false;
+            diff = mon.difficulty | 0;
+        } else {
+            mlet = mon.mlet | 0;
+            diff = 0;
+        }
+    }
+    return true;
+}
+
 export function init_mongen_order() {
     if (mongen_order) return;
     mongen_order = [];
@@ -513,11 +565,8 @@ export function init_mongen_order() {
             mclass_maxf[mlet] = freq;
     }
     // C ref: qsort by (mlet << 8) | difficulty, ascending
-    mongen_order.sort((a, b) => {
-        const ka = (mons[a].mlet << 8) | mons[a].difficulty;
-        const kb = (mons[b].mlet << 8) | mons[b].difficulty;
-        return ka - kb;
-    });
+    mongen_order.sort((a, b) => cmp_init_mongen_order(a, b));
+    check_mongen_order();
 }
 
 // C ref: makemon.c:2007-2039 adj_lev()
@@ -609,6 +658,44 @@ export function mkclass(monclass, spc, depth = 1, atyp = A_NONE) {
     return -1;
 }
 
+// C ref: makemon.c:1873 mkclass_aligned()
+export function mkclass_aligned(monclass, spc, atyp, depth = 1) {
+    return mkclass(monclass, spc, depth, atyp);
+}
+
+// C ref: makemon.c:1976 mkclass_poly()
+export function mkclass_poly(monclass) {
+    let first;
+    for (first = LOW_PM; first < SPECIAL_PM; first++) {
+        if (mons[first].mlet === monclass) break;
+    }
+    if (first === SPECIAL_PM) return -1;
+
+    let gmask = G_NOGEN | G_UNIQ;
+    const inhell = !!_gstate?.Inhell;
+    if (rn2(9) || monclass === S_LICH) {
+        gmask |= (inhell ? G_NOHELL : G_HELL);
+    }
+
+    let num = 0;
+    let last;
+    for (last = first; last < SPECIAL_PM && mons[last].mlet === monclass; last++) {
+        if (mk_gen_ok(last, G_GENOD, gmask)) {
+            num += mons[last].geno & G_FREQ;
+        }
+    }
+    if (!num) return -1;
+
+    let roll = rnd(num);
+    for (let i = first; i < last; i++) {
+        if (mk_gen_ok(i, G_GENOD, gmask)) {
+            roll -= (mons[i].geno & G_FREQ);
+            if (roll <= 0) return i;
+        }
+    }
+    return -1;
+}
+
 // C ref: drawing.c def_char_to_monclass()
 export function def_char_to_monclass(ch) {
     for (let i = 1; i < MAXMCLASSES; i++) {
@@ -622,6 +709,41 @@ export function def_char_to_monclass(ch) {
 // Autotranslated from makemon.c:1539
 export function mbirth_limit(mndx) {
   return (mndx === PM_NAZGUL ? 9 : mndx === PM_ERINYS ? 3 : MAXMONNO);
+}
+
+// C ref: makemon.c:959 propagate()
+export function propagate(mndx, tally = true, ghostly = false, game = _gstate) {
+    if (!game) return false;
+    if (!Array.isArray(game.mvitals)) return false;
+    const mv = game.mvitals[mndx];
+    if (!mv) return false;
+
+    const lim = mbirth_limit(mndx);
+    const gone = !!(mv.mvflags & G_GONE);
+    const born = Number(mv.born || 0);
+    const result = (born < lim) && !gone;
+
+    if ((mons[mndx].geno & G_UNIQ) && mndx !== PM_HIGH_CLERIC) {
+        mv.mvflags |= G_EXTINCT;
+    }
+
+    if (born < 255 && tally && (!ghostly || result)) {
+        mv.born = born + 1;
+    }
+
+    if ((mv.born || 0) >= lim
+        && !(mons[mndx].geno & G_NOGEN)
+        && !(mv.mvflags & G_EXTINCT)) {
+        mv.mvflags |= G_EXTINCT;
+    }
+
+    return result;
+}
+
+// C ref: makemon.c:1828 debug dump helper for mongen order.
+export function dump_mongen() {
+    init_mongen_order();
+    return mongen_order.slice();
 }
 
 // ========================================================================

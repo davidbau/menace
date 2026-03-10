@@ -5,8 +5,13 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { ACCESSIBLE, MM_ASLEEP, NO_MM_FLAGS, MM_NOGRP } from '../../js/const.js';
-import { makemon, rndmonnum, withMakemonPlayerOverride, mbirth_limit } from '../../js/makemon.js';
-import { mons, PM_NAZGUL, PM_ERINYS, PM_LEPRECHAUN, PM_LITTLE_DOG } from '../../js/monsters.js';
+import {
+    makemon, rndmonnum, withMakemonPlayerOverride, mbirth_limit,
+    init_mongen_order, check_mongen_order, dump_mongen,
+    mkclass_aligned, mkclass_poly, propagate
+} from '../../js/makemon.js';
+import { A_CHAOTIC } from '../../js/const.js';
+import { mons, PM_NAZGUL, PM_ERINYS, PM_LEPRECHAUN, PM_LITTLE_DOG, G_UNIQ, S_LICH, S_ZOMBIE } from '../../js/monsters.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 /** Find an unoccupied accessible tile in a room. */
@@ -207,5 +212,51 @@ describe('mbirth_limit', () => {
 
     it('returns 120 for index 0', () => {
         assert.equal(mbirth_limit(0), 120);
+    });
+});
+
+describe('makemon C-surface helpers', () => {
+    it('initializes a monotonic mongen order', () => {
+        init_mongen_order();
+        assert.equal(check_mongen_order(), true);
+        const dumped = dump_mongen();
+        assert.ok(Array.isArray(dumped));
+        assert.ok(dumped.length > 100);
+    });
+
+    it('mkclass_aligned filters by alignment sign', () => {
+        initRng(7);
+        const mndx = mkclass_aligned(S_ZOMBIE, 0, A_CHAOTIC, 8);
+        assert.ok(mndx >= 0);
+        const mal = mons[mndx].maligntyp || 0;
+        assert.ok(Math.sign(mal) === Math.sign(A_CHAOTIC) || mal === 0);
+    });
+
+    it('mkclass_poly returns a valid index for common class', () => {
+        initRng(9);
+        const mndx = mkclass_poly(S_LICH);
+        if (mndx >= 0) {
+            assert.equal(mons[mndx].mlet, S_LICH);
+        } else {
+            // Accept NON_PM if all candidates are masked on current state.
+            assert.equal(mndx, -1);
+        }
+    });
+
+    it('propagate updates born count and extinction flags', () => {
+        const game = { mvitals: new Array(mons.length).fill(null).map(() => ({ born: 0, mvflags: 0 })) };
+        const regular = PM_LITTLE_DOG;
+        const unique = PM_LEPRECHAUN;
+        const originalGeno = mons[unique].geno;
+        mons[unique].geno = originalGeno | G_UNIQ;
+
+        const r1 = propagate(regular, true, false, game);
+        assert.equal(r1, true);
+        assert.equal(game.mvitals[regular].born, 1);
+
+        const r2 = propagate(unique, true, false, game);
+        assert.equal(r2, true);
+        assert.ok((game.mvitals[unique].mvflags & 0x02) !== 0);
+        mons[unique].geno = originalGeno;
     });
 });
