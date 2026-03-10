@@ -80,7 +80,7 @@ import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_
          EDOG, ESHK, has_emin, has_epri, has_eshk,
          ACH_MEDU } from './const.js';
 import { S_poisoncloud } from './symbols.js';
-import { m_harmless_trap } from './trap.js';
+import { m_harmless_trap, m_at } from './trap.js';
 import { dist2, distmin } from './hacklib.js';
 import { in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';

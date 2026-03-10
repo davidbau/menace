@@ -25,7 +25,7 @@ import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';
 import { body_part } from './polyself.js';
 import { HAND, FOOT } from './const.js';
-import { instapetrify } from './trap.js';
+import { instapetrify, m_at } from './trap.js';
 import { exercise } from './attrib_exercise.js';
 import { newsym } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
@@ -657,7 +657,7 @@ export function mon_beside(x, y) {
     for (j = -1; j <= 1; j++) {
       nx = x + i;
       ny = y + j;
-      if (isok(nx, ny) && MON_AT(nx, ny)) return true;
+      if (isok(nx, ny) && m_at(nx, ny)) return true;
     }
   }
   return false;

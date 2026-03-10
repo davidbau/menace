@@ -10,6 +10,7 @@
 //                 obj_pmname, rndmonnam, bogon_is_pname, roguename,
 //                 rndcolor, rndorcname, christen_orc, lookup_novel
 
+import { m_at } from './trap.js';
 import { rn2, rn1, rn2_on_display_rng } from './rng.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, update_inventory } from './invent.js';
 import { mons, SPECIAL_PM, G_NOGEN, G_UNIQ, PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER } from './monsters.js';

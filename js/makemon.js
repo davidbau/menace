@@ -8,6 +8,7 @@ import { rn2, rnd, rn1, d, c_d, getRngCallCount, pushRngLogEntry } from './rng.j
 import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
 import { m_dowear, mon_break_armor } from './worn.js';
+import { m_at } from './trap.js';
 import {
     SHOPBASE, ROOMOFFSET, IS_POOL, IS_LAVA, IS_STWALL, IS_DOOR, IS_WALL, ACCESSIBLE,
     VAULT, ZOO, DELPHI, TEMPLE,
@@ -2852,8 +2853,8 @@ export function clone_mon(mon, x, y, game, player) {
     impossible("clone_mon trying to create a monster at <%d,%d>?", mm.x, mm.y);
     return null;
   }
-  if (MON_AT(mm.x, mm.y)) {
-    if (!enexto( mm, mm.x, mm.y, mon.data) || MON_AT(mm.x, mm.y)) return null;
+  if (m_at(mm.x, mm.y, game?.lev)) {
+    if (!enexto( mm, mm.x, mm.y, mon.data) || m_at(mm.x, mm.y, game?.lev)) return null;
   }
   // C: m2 = newmonst(); *m2 = *mon; (alloc + struct copy)
   // JS: Object.assign copies fields; skip newmonst() to avoid spurious RNG

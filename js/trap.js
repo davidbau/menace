@@ -45,6 +45,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          WEB, STATUE_TRAP, MAGIC_TRAP, ANTI_MAGIC,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
+import { game as _gstate } from './gstate.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
          is_crackable, erosion_matters, mksobj, weight, place_object } from './mkobj.js';
 import { CORPSE,
@@ -133,6 +134,7 @@ export function t_at(x, y, map) {
 }
 
 export function m_at(x, y, map) {
+    if (!map) map = _gstate?.lev;
     if (!map) return null;
     if (typeof map.monsterAt === 'function') return map.monsterAt(x, y);
     if (Array.isArray(map.monsters)) {
