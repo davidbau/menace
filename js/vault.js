@@ -44,6 +44,7 @@ import { makemon } from './makemon.js';
 import { cansee, couldsee, block_point, unblock_point, recalc_block_point } from './vision.js';
 import { t_at } from './trap.js';
 import { m_canseeu } from './mondata.js';
+import { Has_contents } from './objnam.js';
 
 // ---------- Constants ----------
 const FCSIZ = ROWNO + COLNO;

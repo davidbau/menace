@@ -6,6 +6,8 @@
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
          ESHK } from './const.js';
+// C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
+function ANGRY(mon) { return !mon.mpeaceful; }
 import { PM_TOURIST } from './monsters.js';
 import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
@@ -29,6 +31,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
 import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
 import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object } from './mkobj.js';
+import { Has_contents } from './objnam.js';
 import { currency, o_on } from './invent.js';
 import { Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';

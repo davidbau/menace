@@ -30,6 +30,9 @@
 // Note: com_pager_core() uses a Lua interpreter (nhl_init) that is N/A
 //   for the browser port. Quest text would need a different delivery mechanism.
 
+import { Has_contents } from './objnam.js';
+import { pline } from './pline.js';
+
 // cf. questpgr.c:31 — quest_info(typ): return quest role monster/artifact num
 // typ=0 → questarti; MS_LEADER → ldrnum; MS_NEMESIS → neminum; MS_GUARDIAN → guardnum.
 // TODO: questpgr.c:31 — quest_info(): quest role monster/artifact index lookup

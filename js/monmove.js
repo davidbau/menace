@@ -79,7 +79,7 @@ import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym } from './display.js';
 import { addToMonsterInventory, canMergeMonsterInventoryObj } from './invent.js';
-import { mpickobj, mdrop_obj } from './steal.js';
+import { mpickobj, mdrop_obj, findgold } from './steal.js';
 import { game as _gstate } from './gstate.js';
 export { dist2, distmin, monnear, attackVerb, monAttackName, canSpotMonsterForMap, map_invisible, addToMonsterInventory, canMergeMonsterInventoryObj, mondead, mpickobj, mdrop_obj };
 
