@@ -625,8 +625,7 @@ export function sub_one_frombill(obj, shkp) {
     let otmp;
     obj.unpaid = 0;
     if (bp.bquan > obj.quan) {
-      otmp = newobj();
-      Object.assign(otmp, obj); // C: *otmp = *obj (struct copy)
+      otmp = { ...obj }; // C: *otmp = *obj (struct copy)
       otmp.oextra =  0;
       bp.bo_id = otmp.o_id = next_ident();
       otmp.where = OBJ_FREE;

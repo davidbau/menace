@@ -2247,33 +2247,26 @@ export function can_carry(mtmp, otmp, player) {
 // Autotranslated from mon.c:2581
 export function copy_mextra(mtmp2, mtmp1) {
   if (!mtmp2 || !mtmp1 || !mtmp1.mextra) return;
-  if (!mtmp2.mextra) mtmp2.mextra = newmextra();
+  if (!mtmp2.mextra) mtmp2.mextra = { mcorpsenm: NON_PM };
   if (mtmp1.mextra.mgivenname) {
-    new_mgivenname(mtmp2, mtmp1.mextra.mgivenname.length + 1);
     mtmp2.mextra.mgivenname = mtmp1.mextra.mgivenname;
   }
   if (mtmp1.mextra.egd) {
-    if (!mtmp2.mextra.egd) newegd(mtmp2);
     mtmp2.mextra.egd = { ...mtmp1.mextra.egd };
   }
   if (mtmp1.mextra.epri) {
-    if (!mtmp2.mextra.epri) newepri(mtmp2);
     mtmp2.mextra.epri = { ...mtmp1.mextra.epri };
   }
   if (mtmp1.mextra.eshk) {
-    if (!mtmp2.mextra.eshk) neweshk(mtmp2);
     mtmp2.mextra.eshk = { ...mtmp1.mextra.eshk };
   }
   if (mtmp1.mextra.emin) {
-    if (!mtmp2.mextra.emin) newemin(mtmp2);
     mtmp2.mextra.emin = { ...mtmp1.mextra.emin };
   }
   if (mtmp1.mextra.edog) {
-    if (!mtmp2.mextra.edog) newedog(mtmp2);
     mtmp2.mextra.edog = { ...mtmp1.mextra.edog };
   }
   if (mtmp1.mextra.ebones) {
-    if (!mtmp2.mextra.ebones) newebones(mtmp2);
     mtmp2.mextra.ebones = { ...mtmp1.mextra.ebones };
   }
   if (has_mcorpsenm(mtmp1)) mtmp2.mextra.mcorpsenm = mtmp1.mextra.mcorpsenm;
