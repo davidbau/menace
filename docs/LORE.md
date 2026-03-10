@@ -6877,3 +6877,29 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
   - `node scripts/test-unit-core.mjs`
+
+### CODEMATCH `uhitm.c` branch expansion (`AD_TLPT`/`AD_ENCH`/`AD_POLY`/`AD_SLIM`) (2026-03-10)
+
+- Problem:
+  - Several remaining `uhitm` m-vs-m AD handlers were still hard stubs and
+    either zeroed damage incorrectly or omitted C branch gates.
+- Change:
+  - `js/uhitm.js`:
+    - `mhitm_ad_tlpt`: now follows m-vs-m C gating shape (cancel, damage gate,
+      no-tele gate, negation) and clears wait strategy on eligible branch;
+      async relocation remains pending in this sync path.
+    - `mhitm_ad_ench`: now preserves normal damage (C m-vs-m branch has no
+      special handling).
+    - `mhitm_ad_poly`: now applies C-shaped negation/cooldown gating and
+      special-hit termination (`M_ATTK_HIT`, `done`), with full `newcham`
+      transformation still pending.
+    - `mhitm_ad_slim`: now applies negation + `rn2(4)` + slimeproof gate,
+      then zero-damage hit branch and wait-strategy clear; full
+      munslime/newcham pipeline remains pending.
+  - `test/unit/codematch_uhitm_ad_branches.test.js` expanded with targeted
+    tests for the above branches.
+  - `docs/CODEMATCH.md` updated from `Stub` to `Implemented/Partial` for these
+    rows.
+- Validation:
+  - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
+  - `node scripts/test-unit-core.mjs`

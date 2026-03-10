@@ -5434,7 +5434,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2423 | `mhitm_ad_drli` | uhitm.js | Implemented (m-vs-m path) |
 | 3100 | `mhitm_ad_drst` | uhitm.js | Implemented (m-vs-m path) |
 | 2662 | `mhitm_ad_elec` | uhitm.js | Implemented (m-vs-m path) |
-| 3581 | `mhitm_ad_ench` | uhitm.js | Stub (no m-vs-m effect) |
+| 3581 | `mhitm_ad_ench` | uhitm.js | Implemented — C m-vs-m branch has no special effect (normal damage path) |
 | 3755 | `mhitm_ad_famn` | uhitm.js | Implemented — m-vs-m branch zeroes damage for non-eaters; otherwise keeps normal damage |
 | 2499 | `mhitm_ad_fire` | uhitm.js | Implemented (m-vs-m path) |
 | 3875 | `mhitm_ad_halu` | uhitm.js | Implemented — m-vs-m confusion application (`mconf`) + wait-strategy clear + zero damage |
@@ -5443,19 +5443,19 @@ Remaining parity gaps are mostly behavioral depth:
 | 3786 | `mhitm_ad_pest` | uhitm.js | Implemented — m-vs-m branch routes through AD_DISE semantics |
 | 3959 | `mhitm_ad_phys` | uhitm.js | Implemented (m-vs-m path) |
 | 3409 | `mhitm_ad_plys` | uhitm.js | Implemented (m-vs-m path) |
-| 3707 | `mhitm_ad_poly` | uhitm.js | Stub (needs newcham) |
+| 3707 | `mhitm_ad_poly` | uhitm.js | Partial — m-vs-m negation/cooldown gate + hit/done path; full newcham transformation still pending |
 | 2259 | `mhitm_ad_rust` | uhitm.js | Stub (no armor system) |
 | 4548 | `mhitm_ad_samu` | uhitm.js | Implemented — m-vs-m no-op with zero damage (matches C branch) |
 | 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m item theft from defender inventory (tame avoids cursed items); nymph marks `M_ATTK_AGR_DONE` |
 | 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with same-class/cancel gates |
 | 3457 | `mhitm_ad_slee` | uhitm.js | Implemented (m-vs-m path) |
-| 3504 | `mhitm_ad_slim` | uhitm.js | Stub (needs newcham) |
+| 3504 | `mhitm_ad_slim` | uhitm.js | Partial — m-vs-m negation + rn2(4) gate, slimeproof check, zero-damage hit branch; full transformation pending |
 | 3630 | `mhitm_ad_slow` | uhitm.js | Implemented (m-vs-m path) |
 | 4729 | `mhitm_ad_ssex` | uhitm.js | Partial — delegates to `mhitm_ad_sedu` |
 | 3284 | `mhitm_ad_stck` | uhitm.js | Implemented (m-vs-m path) |
 | 4181 | `mhitm_ad_ston` | uhitm.js | Stub (needs petrification) |
 | 4366 | `mhitm_ad_stun` | uhitm.js | Implemented (m-vs-m path) |
-| 2837 | `mhitm_ad_tlpt` | uhitm.js | Stub |
+| 2837 | `mhitm_ad_tlpt` | uhitm.js | Partial — m-vs-m gating/negation path and wait-strategy clear; async relocation not yet wired here |
 | 4243 | `mhitm_ad_were` | uhitm.js | Implemented — m-vs-m branch delegates to physical damage handler |
 | 3315 | `mhitm_ad_wrap` | uhitm.js | Implemented (m-vs-m path) |
 | 4760 | `mhitm_adtyping` | uhitm.js | Implemented |

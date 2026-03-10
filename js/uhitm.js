@@ -54,7 +54,7 @@ import {
     thick_skinned, mon_hates_silver, mon_hates_light,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc,
     carnivorous, herbivorous, is_metallivore,
-    is_rider,
+    is_rider, slimeproof,
     poly_when_stoned, DEADMONSTER,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
@@ -75,6 +75,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
+import { tele_restrict } from './teleport.js';
 
 function exclam(force) {
     if (force < 0) return '?';
@@ -1137,20 +1138,51 @@ export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
     if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
 }
 
-// cf. uhitm.c:2837 — teleport (m-vs-m: TODO)
-export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:2837 — teleport
+export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) {
+    // m-vs-m: keep base damage semantics; relocation remains async and is
+    // handled in other call paths.
+    if (!magr || !mdef) return;
+    if (magr.mcan) return;
+    if (Number(mhm.damage || 0) >= Number(mdef.mhp || 0)) return;
+    if (tele_restrict(mdef, null)) return;
+    if (mhitm_mgc_atk_negated(magr, mdef)) return;
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+}
 
 // cf. uhitm.c:2993 — curse items (m-vs-m: no effect)
 export function mhitm_ad_curs(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
-// cf. uhitm.c:3504 — slime (TODO: needs newcham)
-export function mhitm_ad_slim(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:3504 — slime
+export function mhitm_ad_slim(magr, mattk, mdef, mhm) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef);
+    const pd = mdef?.data || mdef?.type || {};
+    if (negated) return; // physical damage only
+    if (!rn2(4) && !slimeproof(pd)) {
+        // Full munslime/newcham pipeline is not yet wired on this path.
+        mhm.damage = 0;
+        mhm.hitflags |= M_ATTK_HIT;
+        if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    }
+}
 
-// cf. uhitm.c:3581 — enchantment drain (TODO)
-export function mhitm_ad_ench(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:3581 — enchantment drain
+export function mhitm_ad_ench(magr, mattk, mdef, mhm) {
+    // m-vs-m branch: no special effect, preserve normal damage.
+}
 
-// cf. uhitm.c:3707 — polymorph (TODO: needs newcham)
-export function mhitm_ad_poly(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:3707 — polymorph
+export function mhitm_ad_poly(magr, mattk, mdef, mhm) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef) || !!magr?.mspec_used;
+    if (Number(mhm.damage || 0) < Number(mdef?.mhp || 0) && !negated) {
+        // Approximate C mon_poly cooldown/hit termination while full
+        // newcham selection remains elsewhere.
+        magr.mspec_used = Number(magr.mspec_used || 0) + rnd(2);
+        mhm.hitflags |= M_ATTK_HIT;
+        if (DEADMONSTER(mdef)) mhm.hitflags |= M_ATTK_DEF_DIED;
+        mhm.done = true;
+    }
+}
 
 // cf. uhitm.c:4181 — stoning (TODO: needs petrification system)
 export function mhitm_ad_ston(magr, mattk, mdef, mhm) { mhm.damage = 0; }

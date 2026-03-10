@@ -10,10 +10,14 @@ import {
     mhitm_ad_dise,
     mhitm_ad_dgst,
     mhitm_ad_halu,
+    mhitm_ad_tlpt,
+    mhitm_ad_ench,
+    mhitm_ad_poly,
+    mhitm_ad_slim,
 } from '../../js/uhitm.js';
 import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, mons } from '../../js/monsters.js';
 import { GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
-import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED } from '../../js/const.js';
+import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED, M_ATTK_HIT } from '../../js/const.js';
 
 test('mhitm_ad_were delegates through physical handling (kick vs thick hide -> zero damage)', () => {
     const magr = { mcan: false, data: {} };
@@ -123,4 +127,45 @@ test('mhitm_ad_halu confuses seeing, eyeful defender and zeroes damage', () => {
     assert.equal(mhm.damage, 0);
     assert.equal(mdef.mconf, 1);
     assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+});
+
+test('mhitm_ad_tlpt keeps damage and clears wait strategy when teleport branch is eligible', () => {
+    const mhm = { damage: 3 };
+    const magr = { mcan: false, data: {} };
+    const mdef = { mhp: 10, data: {}, mstrategy: 0x08000000 };
+    mhitm_ad_tlpt(magr, {}, mdef, mhm);
+    assert.equal(mhm.damage, 3);
+    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+});
+
+test('mhitm_ad_ench preserves incoming damage in m-vs-m branch', () => {
+    const mhm = { damage: 4 };
+    mhitm_ad_ench({}, {}, {}, mhm);
+    assert.equal(mhm.damage, 4);
+});
+
+test('mhitm_ad_poly sets hit/done and cooldown when eligible', () => {
+    const mhm = { damage: 2, hitflags: 0, done: false };
+    const magr = { mcan: false, mspec_used: 0, data: {} };
+    const mdef = { mhp: 9, data: {} };
+    mhitm_ad_poly(magr, {}, mdef, mhm);
+    assert.equal((mhm.hitflags & M_ATTK_HIT) !== 0, true);
+    assert.equal(mhm.done, true);
+    assert.equal(magr.mspec_used >= 1, true);
+});
+
+test('mhitm_ad_slim can enter zero-damage slime branch under RNG gating', () => {
+    const magr = { mcan: false, data: {} };
+    let observed = false;
+    for (let i = 0; i < 300; i++) {
+        const mhm = { damage: 5, hitflags: 0 };
+        const mdef = { data: {}, mstrategy: 0x08000000 };
+        mhitm_ad_slim(magr, {}, mdef, mhm);
+        if (mhm.damage === 0 && (mhm.hitflags & M_ATTK_HIT) !== 0) {
+            assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+            observed = true;
+            break;
+        }
+    }
+    assert.equal(observed, true);
 });
