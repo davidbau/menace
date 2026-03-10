@@ -822,3 +822,34 @@ export const SYM_MAX = (SYM_OFF_X + MAXOTHER);
 // Moved from const.js — depends on S_arrow_trap
 export function trap_to_defsym(t) { return S_arrow_trap + t - 1; }
 export function defsym_to_trap(d) { return d - S_arrow_trap + 1; }
+
+// C ref: drawing.c def_char_to_objclass()
+export function def_char_to_objclass(ch) {
+    for (let i = 1; i < MAXOCLASSES; i++) {
+        if (ch === def_oc_syms[i].sym) return i;
+    }
+    return MAXOCLASSES;
+}
+
+// C ref: drawing.c def_char_to_monclass()
+export function def_char_to_monclass(ch) {
+    for (let i = 1; i < MAXMCLASSES; i++) {
+        if (ch === def_monsyms[i].sym) return i;
+    }
+    return MAXMCLASSES;
+}
+
+// C ref: drawing.c def_char_is_furniture()
+// Returns defsyms[] index when char maps to furniture, else -1.
+export function def_char_is_furniture(ch) {
+    let furniture = false;
+    for (let i = 0; i < MAXPCHARS; ++i) {
+        const desc = String(defsyms[i]?.desc || '');
+        if (!furniture && desc.startsWith('stair')) furniture = true;
+        if (furniture) {
+            if (defsyms[i].ch === ch) return i;
+            if (desc === 'fountain') break;
+        }
+    }
+    return -1;
+}

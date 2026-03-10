@@ -611,6 +611,24 @@ export async function retouch_object(obj, loseit, player) {
   return 0;
 }
 
+// cf. artifact.c:2598 — untouchable(obj, drop_untouchable)
+// Returns true if object fails touch test and was unworn/unwielded (and
+// possibly dropped by retouch_object), false otherwise.
+export async function untouchable(obj, drop_untouchable, player) {
+  if (!obj) return false;
+  const oart = get_artifact(obj);
+  const beingworn = !!obj.owornmask;
+  const carryeffect = (oart !== artilist[ART_NONARTIFACT]) && !!(oart.cary.adtyp || oart.cspfx);
+  const invoked = (oart !== artilist[ART_NONARTIFACT])
+    && !!(oart.inv_prop > 0 && oart.inv_prop <= LAST_PROP
+      && player?.uprops?.[oart.inv_prop]
+      && (player.uprops[oart.inv_prop].extrinsic & W_ARTI));
+  if (!(beingworn || carryeffect || invoked)) return false;
+  const canHandle = await retouch_object(obj, !!drop_untouchable, player);
+  if (canHandle) return false;
+  return true;
+}
+
 // cf. artifact.c:2640 — retouch_equipment(dropflag, player)
 export function retouch_equipment(dropflag, player) {
   if (!player) return;

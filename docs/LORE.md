@@ -6385,3 +6385,28 @@ hard-won wisdom:
   - Updated `docs/CODEMATCH.md` `bones.c` rows from `Missing` to `Implemented`.
 - Validation:
   - `node --test test/unit/bones.test.js` passed (39/39).
+
+### CODEMATCH multi-file closure slice: drawing.c + artifact.c + end.c ledger hygiene (2026-03-10)
+
+- Problem:
+  - `drawing.c` still had 3 missing lookup helpers despite `symbols.js`
+    already owning the relevant symbol tables.
+  - `artifact.c` still had one missing helper (`untouchable`) in the touch/retouch
+    path.
+  - `end.c` still listed `odds_and_ends` as missing even though upstream has it
+    behind `#if 0` (disabled legacy path).
+- Change:
+  - Added C-faithful drawing helpers in `js/symbols.js`:
+    - `def_char_to_objclass`
+    - `def_char_to_monclass`
+    - `def_char_is_furniture`
+  - Added `artifact.c` helper in `js/artifact.js`:
+    - `untouchable(obj, drop_untouchable, player)` routed through existing
+      `retouch_object` logic.
+  - Added focused tests in `test/unit/codematch_multi_surface.test.js`.
+  - Updated `docs/CODEMATCH.md`:
+    - drawing rows: 3 Missing -> Implemented and file status `[x]`
+    - artifact row: `untouchable` Missing -> Implemented
+    - end row: `odds_and_ends` Missing -> explicit `N/A` with upstream `#if 0` rationale
+- Validation:
+  - `node --test test/unit/codematch_multi_surface.test.js` passed.
