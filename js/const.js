@@ -4,6 +4,9 @@
 import { COMMIT_NUMBER } from './version.js';
 import { strchr } from './hacklib.js';
 
+// C macro: SIZE(arr) = sizeof(arr)/sizeof(arr[0]) → JS: arr.length
+export function SIZE(arr) { return arr.length; }
+
 // Version (patchlevel.h)
 export const VERSION_MAJOR = 3;
 export const VERSION_MINOR = 7;

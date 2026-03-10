@@ -1,4 +1,5 @@
 import { strchr } from './hacklib.js';
+import { SIZE } from './const.js';
 // options.js -- Game options parsing, initialization, and menu
 // cf. options.c — initoptions, initoptions_init, initoptions_finish,
 //                 match_optname, determine_ambiguities, txt2key,
@@ -355,7 +356,7 @@ export function getoptstr(optidx, ophase) {
     }
   }
   if ((roleoptindx >= 0 && roleoptindx < MAX_ROLEOPT && ophase >= 0 && ophase < num_opt_phases)) return roleoptvals[roleoptindx][ophase];
-  panic("bad index roleoptvals[%d][%d]", roleoptindx, ophase);
+  throw new Error(`bad index roleoptvals[${roleoptindx}][${ophase}]`);
 }
 
 // Autotranslated from options.c:789

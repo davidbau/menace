@@ -10,7 +10,7 @@ import { makemon } from './makemon.js';
 import { NO_MM_FLAGS, RLOC_MSG, BOLT_LIM, MAGIC_PORTAL, M_AP_MONSTER,
          STRAT_APPEARMSG, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK,
          STRAT_HEAL, STRAT_GROUND, STRAT_MONSTR, STRAT_PLAYER,
-         STRAT_NONE, STRAT_STRATMASK, STRAT_GOAL } from './const.js';
+         STRAT_NONE, STRAT_STRATMASK, STRAT_GOAL, SIZE } from './const.js';
 import { mksobj, doname, add_to_minv } from './mkobj.js';
 import {
     AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,

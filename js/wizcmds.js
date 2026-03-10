@@ -199,7 +199,7 @@ import { resetLevelState, withFinalizeContext, withSpecialLevelDepth } from './s
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok } from './const.js';
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok, SIZE } from './const.js';
 import { makemon } from './makemon.js';
 import { mons } from './monsters.js';
 import { makewish } from './zap.js';

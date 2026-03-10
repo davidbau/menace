@@ -1,3 +1,4 @@
+import { SIZE } from './const.js';
 // monst.js -- Monster data tables (permonst array) and global initialization
 // cf. monst.c — monst_globals_init, mons[], mons_init[], c_sa_yes[], c_sa_no[]
 //

@@ -1,4 +1,5 @@
 import { strchr } from './hacklib.js';
+import { SIZE } from './const.js';
 import { roles } from './role.js';
 import { depth, dunlev, In_quest, In_endgame } from './dungeon.js';
 // botl.js -- Bottom status line: HP, AC, experience, conditions

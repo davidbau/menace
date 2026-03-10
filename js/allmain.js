@@ -31,7 +31,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          COLNO, ROWNO, A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, NORMAL_SPEED,
          FEMALE, MALE, TERMINAL_COLS, MAXULEV,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER } from './const.js';
+         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE } from './const.js';
 import { ageSpells } from './spell.js';
 import { wipe_engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';

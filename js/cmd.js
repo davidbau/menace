@@ -5,7 +5,7 @@
 import { RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
-         xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING } from './const.js';
+         xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING, SIZE } from './const.js';
 import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
