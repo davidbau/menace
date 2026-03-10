@@ -612,4 +612,142 @@ describe('E2E: Display method parity (browser vs headless)', () => {
             await page.close();
         }
     });
+
+    // -------------------------------------------------------------------
+    // Color parity: setCell with various colors produces same stored values
+    // -------------------------------------------------------------------
+    it('setCell stores identical colors in browser and headless', async () => {
+        const page = await browser.newPage();
+        try {
+            await page.goto(`${serverInfo.url}?seed=99`, { waitUntil: 'networkidle0' });
+            await page.waitForFunction(
+                () => document.querySelectorAll('#terminal span').length >= 1920,
+                { timeout: 15000 }
+            );
+
+            // Write cells with every color (0-15) and various attrs
+            const testCells = [
+                { col: 0, row: 0, ch: '@', color: 7, attr: 0 },   // CLR_GRAY
+                { col: 1, row: 0, ch: 'D', color: 1, attr: 0 },   // CLR_RED
+                { col: 2, row: 0, ch: 'a', color: 2, attr: 0 },   // CLR_GREEN
+                { col: 3, row: 0, ch: 'd', color: 3, attr: 0 },   // CLR_BROWN
+                { col: 4, row: 0, ch: ';', color: 4, attr: 0 },   // CLR_BLUE
+                { col: 5, row: 0, ch: 'H', color: 5, attr: 0 },   // CLR_MAGENTA
+                { col: 6, row: 0, ch: 'T', color: 6, attr: 0 },   // CLR_CYAN
+                { col: 7, row: 0, ch: '#', color: 15, attr: 0 },   // CLR_WHITE
+                { col: 8, row: 0, ch: '.', color: 9, attr: 0 },   // CLR_ORANGE
+                { col: 9, row: 0, ch: 'e', color: 10, attr: 0 },  // CLR_BRIGHT_GREEN
+                { col: 10, row: 0, ch: 'Z', color: 11, attr: 0 },  // CLR_YELLOW
+                { col: 11, row: 0, ch: '&', color: 12, attr: 0 },  // CLR_BRIGHT_BLUE
+                { col: 12, row: 0, ch: 'V', color: 13, attr: 0 },  // CLR_BRIGHT_MAGENTA
+                { col: 13, row: 0, ch: 'N', color: 14, attr: 0 },  // CLR_BRIGHT_CYAN
+                // Attrs: inverse, bold, underline
+                { col: 0, row: 1, ch: '@', color: 7, attr: 1 },   // inverse
+                { col: 1, row: 1, ch: '@', color: 1, attr: 2 },   // bold
+                { col: 2, row: 1, ch: '@', color: 4, attr: 4 },   // underline
+                { col: 3, row: 1, ch: '@', color: 15, attr: 3 },  // inverse+bold
+            ];
+
+            const browserResult = await page.evaluate((cells) => {
+                const d = window.gameDisplay;
+                d.clearScreen();
+                for (const c of cells) {
+                    d.setCell(c.col, c.row, c.ch, c.color, c.attr);
+                }
+                const colors = [];
+                const attrs = [];
+                for (const c of cells) {
+                    colors.push(d.grid[c.row][c.col].color);
+                    attrs.push(d.grid[c.row][c.col].attr);
+                }
+                return { colors, attrs };
+            }, testCells);
+
+            const hd = await getHeadlessDisplay();
+            hd.clearScreen();
+            for (const c of testCells) {
+                hd.setCell(c.col, c.row, c.ch, c.color, c.attr);
+            }
+            const headlessColors = testCells.map(c => hd.colors[c.row][c.col]);
+            const headlessAttrs = testCells.map(c => hd.attrs[c.row][c.col]);
+
+            console.log('\n=== setCell Color/Attr Parity ===');
+            let colorDiffs = 0;
+            let attrDiffs = 0;
+            for (let i = 0; i < testCells.length; i++) {
+                const tc = testCells[i];
+                if (browserResult.colors[i] !== headlessColors[i]) {
+                    colorDiffs++;
+                    console.log(`  Cell (${tc.col},${tc.row}) color DIFF: browser=${browserResult.colors[i]} headless=${headlessColors[i]} (input=${tc.color})`);
+                }
+                if (browserResult.attrs[i] !== headlessAttrs[i]) {
+                    attrDiffs++;
+                    console.log(`  Cell (${tc.col},${tc.row}) attr DIFF: browser=${browserResult.attrs[i]} headless=${headlessAttrs[i]} (input=${tc.attr})`);
+                }
+            }
+            console.log(`  Color diffs: ${colorDiffs}/${testCells.length}, Attr diffs: ${attrDiffs}/${testCells.length}`);
+            assert.equal(colorDiffs, 0, `${colorDiffs} color mismatches`);
+            assert.equal(attrDiffs, 0, `${attrDiffs} attr mismatches`);
+        } finally {
+            await page.close();
+        }
+    });
+
+    // -------------------------------------------------------------------
+    // putstr color parity: colored text at same positions
+    // -------------------------------------------------------------------
+    it('putstr with colors produces identical color arrays', async () => {
+        const page = await browser.newPage();
+        try {
+            await page.goto(`${serverInfo.url}?seed=99`, { waitUntil: 'networkidle0' });
+            await page.waitForFunction(
+                () => document.querySelectorAll('#terminal span').length >= 1920,
+                { timeout: 15000 }
+            );
+
+            const browserColors = await page.evaluate(() => {
+                const d = window.gameDisplay;
+                d.clearScreen();
+                d.putstr(0, 0, 'Gray message', 7);       // CLR_GRAY
+                d.putstr(0, 1, 'Red warning!', 1);        // CLR_RED
+                d.putstr(0, 2, 'Green text', 2);           // CLR_GREEN
+                d.putstr(0, 3, 'White heading', 15);       // CLR_WHITE
+                const rows = [];
+                for (let r = 0; r < 4; r++) {
+                    const row = [];
+                    for (let c = 0; c < 20; c++) {
+                        row.push(d.grid[r][c].color);
+                    }
+                    rows.push(row);
+                }
+                return rows;
+            });
+
+            const hd = await getHeadlessDisplay();
+            hd.clearScreen();
+            hd.putstr(0, 0, 'Gray message', 7);
+            hd.putstr(0, 1, 'Red warning!', 1);
+            hd.putstr(0, 2, 'Green text', 2);
+            hd.putstr(0, 3, 'White heading', 15);
+
+            console.log('\n=== putstr Color Parity ===');
+            let diffs = 0;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 20; c++) {
+                    const bc = browserColors[r][c];
+                    const hc = hd.colors[r][c];
+                    if (bc !== hc) {
+                        diffs++;
+                        if (diffs <= 5) {
+                            console.log(`  (${c},${r}) color DIFF: browser=${bc} headless=${hc}`);
+                        }
+                    }
+                }
+            }
+            console.log(`  Color diffs: ${diffs}/80`);
+            assert.equal(diffs, 0, `${diffs} putstr color mismatches`);
+        } finally {
+            await page.close();
+        }
+    });
 });

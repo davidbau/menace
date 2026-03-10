@@ -298,13 +298,13 @@ describe('E2E: Headless vs Browser parity', () => {
             console.log('\n=== Browser/Headless Parity (seed=7) ===');
             console.log(`  Browser char: ${JSON.stringify(browserChar)}`);
 
-            // Headless path
+            // Headless path: use the SAME chargen flow as browser (playerSelection
+            // with auto-pick) so both consume identical RNG. Don't pass `character`
+            // or `wizard` — let pre-pushed chargenKeys drive playerSelection().
             const { replaySession } = await import('../../js/replay_core.js');
             const chargenKeys = ['Test\n', 'y', 'y', ' ', ' ', 'n'];
             const headlessResult = await replaySession(SEED, {
-                initOpts: {
-                    character: browserChar || { roleIndex: 11 },
-                },
+                initOpts: {},
                 chargenKeys,
                 captureScreens: true,
             }, '...');
@@ -341,12 +341,10 @@ describe('E2E: Headless vs Browser parity', () => {
             }
             console.log(`  Map mismatches: ${mapMismatches}/21, Status diffs: ${statusDiffs}/3`);
 
-            // NOTE: Map content will differ because browser chargen consumes RNG
-            // that headless skips (direct character assignment). This test documents
-            // the current gap. When chargen RNG parity is achieved, this will pass.
-            if (mapMismatches > 0) {
-                console.log('  NOTE: Expected — browser chargen RNG diverges from headless direct-assign');
-            }
+            // Both browser and headless go through playerSelection() with the
+            // same chargen keys, consuming identical RNG. Maps should match.
+            assert.equal(mapMismatches, 0,
+                `Map should match: ${mapMismatches}/21 rows differ`);
         } finally {
             await page.close();
         }

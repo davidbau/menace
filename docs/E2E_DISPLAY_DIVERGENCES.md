@@ -163,10 +163,15 @@ Additional tests in `test/e2e/headless_browser_parity.e2e.test.js` (5 tests):
 
 ## Remaining Work
 
-1. **Close chargen RNG gap**: Browser interactive chargen consumes different RNG
-   than headless direct-assign, producing different dungeons for same seed
-2. **gap #9**: Consider adding `rest_on_space` equivalent to headless input
-3. **gap #7**: Consider adding `msg_window` support to headless
+1. ~~**Close chargen RNG gap**~~: **FIXED**. The headless parity test now uses
+   the same chargen flow as browser (pre-pushed chargen keys drive
+   `playerSelection()` instead of direct character assignment). Both paths
+   consume identical RNG, producing identical maps for the same seed.
+2. **Color parity tests added**: `setCell` color/attr parity (18 cells, all
+   colors 0-15, inverse/bold/underline attrs) and `putstr` color parity (4
+   colored strings). All pass with zero diffs.
+3. **gap #9**: Consider adding `rest_on_space` equivalent to headless input
+4. **gap #7**: Consider adding `msg_window` support to headless
 
 ## Architecture Notes
 
