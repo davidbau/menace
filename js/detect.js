@@ -29,7 +29,7 @@ import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
-import { u_at, money_cnt } from './hack.js';
+import { u_at, money_cnt, nomul } from './hack.js';
 import { sobj_at } from './invent.js';
 
 // detect.js -- Detection spells, scrolls, and searching
@@ -61,9 +61,6 @@ function closed_door(map, x, y) {
     return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
 }
 
-function nomul(game, turns) {
-    if (game && typeof game.multi === 'number') game.multi = turns;
-}
 function hidden_gold() { return 0; }
 function get_obj_location(otmp) {
     if (otmp.ox != null && otmp.oy != null) return { x: otmp.ox, y: otmp.oy };
@@ -669,7 +666,7 @@ export async function use_crystal_ball(obj, player, map, display, game) {
         return;
     }
     if (player.hallucinating) {
-        nomul(game, -rnd(charged ? 4 : 2));
+        nomul(-rnd(charged ? 4 : 2), game);
         if (!charged) { await pline("All you see is funky colored haze."); }
         else {
             switch (rnd(6)) {
@@ -685,7 +682,7 @@ export async function use_crystal_ball(obj, player, map, display, game) {
         return;
     }
     await You("peer into the crystal ball...");
-    nomul(game, -rnd(charged ? 10 : 2));
+    nomul(-rnd(charged ? 10 : 2), game);
     if (!charged) { await pline_The("vision is unclear."); return; }
     if (obj.spe > 0) obj.spe--;
     if (!rn2(100)) await You_see("the Wizard of Yendor gazing out at you.");

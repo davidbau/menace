@@ -22,6 +22,7 @@ import { newsym } from './display.js';
 import { dist2 } from './hacklib.js';
 import { In_endgame } from './dungeon.js';
 import { COIN_CLASS, GOLD_PIECE } from './objects.js';
+import { m_next2u } from './muse.js';
 import { move_special } from './monmove.js';
 import { newemin, bribe } from './minion.js';
 import { makemon } from './makemon.js';
@@ -35,7 +36,7 @@ import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
 import { RLOC_NOMSG, SPINE } from './const.js';
 import { buzz } from './zap.js';
-import { money_cnt } from './hack.js';
+import { money_cnt, nomul } from './hack.js';
 
 // cf. priest.c:9-10 — alignment thresholds
 const ALGN_SINNED = -4;
@@ -279,10 +280,7 @@ function set_malign(mtmp) {
         mtmp.malign = Math.max(5, Math.abs(mal));
     }
 }
-function m_next2u(mon, player) {
-    if (!player) return false;
-    return dist2(mon.mx, mon.my, player.x, player.y) <= 2;
-}
+
 function m_canseeu(mon, player) {
     if (!mon || !player) return false;
     return mon.mcansee !== false && !mon.blind;
@@ -290,10 +288,6 @@ function m_canseeu(mon, player) {
 // helpless: use monHelpless from mon.js
 // resist_conflict imported from mondata.js
 function mapseen_temple(/*priest*/) { /* stub */ }
-function nomul(player, turns) {
-    // Simplified stub: set multi-turn counter
-    if (player) player.multi = turns;
-}
 // in_rooms helper (also in vault.js — local copy for self-containment)
 function in_rooms(x, y, rtype, map) {
     if (!map || !map.rooms) return '';
@@ -489,7 +483,7 @@ export async function intemple(roomno, map, player, display, fov) {
                 if (player.verbose !== false) {
                     await You("are frightened to death, and unable to move.");
                 }
-                nomul(player, -3);
+                nomul(-3, player);
                 // C: multi_reason = "being terrified of a ghost"
                 // C: nomovemsg = "You regain your composure."
             }

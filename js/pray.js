@@ -94,6 +94,7 @@ import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival } from './pickup.js';
 import { In_sokoban } from './dungeon.js';
 import { ureflects } from './muse.js';
+import { nomul } from './hack.js';
 
 // cf. pray.c:58 -- Moloch constant
 const Moloch = "Moloch";
@@ -370,10 +371,6 @@ async function make_slimed(player, duration, msg) {
     if (msg) await pline(msg);
 }
 
-// Helper: nomul -- set multi-turn paralysis
-function nomul(player, turns) {
-    player.multi = turns;
-}
 
 // Helper: losehp -- lose hit points
 function losehp(player, dmg, reason, _type) {
@@ -1913,7 +1910,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
                 if (sgn(player.alignment) === sgn(dmon.data ? dmon.data.maligntyp || 0 : 0))
                     dmon.mpeaceful = true;
                 await You("are terrified, and unable to move.");
-                nomul(player, -3);
+                nomul(-3, player);
             } else {
                 await pline_The("%s.", demonless_msg);
             }
@@ -2281,7 +2278,7 @@ export async function dopray(player, map) {
     if (!await can_pray(true, player, map))
         return 0;
 
-    nomul(player, -3);
+    nomul(-3, player);
     player.multi_reason = "praying";
     player.nomovemsg = "You finish your prayer.";
     // Schedule prayer_done callback
@@ -2463,7 +2460,7 @@ export async function doturn(player, map) {
         }
     }
 
-    nomul(player, -(5 - Math.floor(((player.ulevel || 1) - 1) / 6)));
+    nomul(-(5 - Math.floor(((player.ulevel || 1) - 1) / 6)), player);
     player.multi_reason = "trying to turn the monsters";
     player.nomovemsg = "You can move again.";
     return 1;

@@ -239,7 +239,7 @@ function NODIAG(mndx) { return mndx === PM_GRID_BUG; }
 // monsndx and is_vampshifter imported from mondata.js
 
 // C ref: m_next2u(mtmp) — is monster adjacent to hero?
-function m_next2u(mtmp, player) {
+export function m_next2u(mtmp, player) {
     return dist2(mtmp.mx, mtmp.my, player.x, player.y) <= 2;
 }
 

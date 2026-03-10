@@ -3,6 +3,7 @@
 //                choose_stairs, nasty, pick_nasty, clonewiz, resurrect,
 //                intervene, wizdeadorgone, cuss, aggravate, has_aggravatables
 
+import { m_next2u } from './muse.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You, You_feel, verbalize } from './pline.js';
 import { makemon } from './makemon.js';
@@ -125,11 +126,7 @@ function ROLL_FROM(arr) {
     return arr[rn2(arr.length)];
 }
 
-// m_next2u(mtmp, player) — is monster adjacent to player?
-function m_next2u(mtmp, player) {
-    return Math.abs(mtmp.mx - player.x) <= 1
-        && Math.abs(mtmp.my - player.y) <= 1;
-}
+
 
 // In_W_tower, In_hell imported from dungeon.js
 const Inhell = In_hell;

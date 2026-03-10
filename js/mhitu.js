@@ -39,7 +39,7 @@ import {
     dmgtype, dmgtype_fromattack, monsndx,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
 } from './mondata.js';
-import { m_seenres, find_offensive, use_offensive } from './muse.js';
+import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
 import {
     weaponEnchantment, weaponDamageSides,
     mhitm_mgc_atk_negated,
@@ -2180,7 +2180,7 @@ export async function mswings(mtmp, otemp, bash, game, player) {
 export async function mayberem(mon, seducer, obj, str, player) {
   let qbuf;
   if (!obj || !obj.owornmask) return;
-  if (player.utotype || !m_next2u(mon)) return;
+  if (player.utotype || !m_next2u(mon, player)) return;
   if ((player?.Deaf || player?.deaf || false)) { await pline("%s takes off your %s.", seducer, str); }
   else if (rn2(20) < acurr(player,A_CHA)) {
     qbuf = `"Shall I remove your ${str}, ${!rn2(2) ? "lover" : !rn2(2) ? "dear" : "sweetheart"}?"`;

@@ -25,6 +25,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          AMETHYST, JASPER, FLUORITE, AGATE, JADE,
          STRANGE_OBJECT, GEMSTONE, GLASS,
          CANDELABRUM_OF_INVOCATION } from './objects.js';
+import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
 import { doname, xname, splitobj, next_ident, weight, Is_container, add_to_minv, dealloc_obj } from './mkobj.js';
 import { currency, o_on } from './invent.js';
@@ -210,13 +211,6 @@ function canspotmon(shkp) {
     return false;
 }
 
-// C ref: m_next2u -- is monster adjacent to hero?
-function m_next2u(shkp, player) {
-    if (!shkp || !player) return false;
-    const dx = Math.abs(shkp.mx - player.x);
-    const dy = Math.abs(shkp.my - player.y);
-    return dx <= 1 && dy <= 1 && (dx + dy > 0);
-}
 
 // ============================================================
 // Pricing helpers
