@@ -41,7 +41,7 @@ import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          SILVER_DRAGON_SCALES, SILVER_DRAGON_SCALE_MAIL } from './objects.js';
 import { doname, is_crackable } from './mkobj.js';
 import { acurr, extremeattr } from './attrib.js';
-import { armor_simple_name, suit_simple_name, cloak_simple_name, helm_simple_name, gloves_simple_name, boots_simple_name, shield_simple_name, shirt_simple_name } from './objnam.js';
+import { armor_simple_name, suit_simple_name, cloak_simple_name, helm_simple_name, gloves_simple_name, boots_simple_name, shield_simple_name, shirt_simple_name, safe_typename } from './objnam.js';
 import { is_metallic, obj_resists } from './objdata.js';
 import {
     which_armor,
