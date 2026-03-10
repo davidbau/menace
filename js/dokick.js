@@ -58,7 +58,7 @@ import {
 } from './objects.js';
 import { obj_resists } from './objdata.js';
 import { mondead, setmangry, seemimic, wakeup, wake_nearto, wake_nearby, angry_guards } from './mon.js';
-import { newsym, map_invisible, canSpotMonsterForMap } from './display.js';
+import { newsym, map_invisible, canspotmon } from './display.js';
 import { mpickobj } from './steal.js';
 import { monflee } from './monmove.js';
 import { cansee } from './vision.js';
@@ -172,9 +172,7 @@ function martial_bonus(player) {
     return role === 'Monk' || role === 'Samurai';
 }
 
-function canspotmon(mon, player, map, fov) {
-    return canSpotMonsterForMap(mon, map, player, fov);
-}
+
 
 // C: M_AP_TYPE(mon) — check mimicry type
 function M_AP_TYPE(mon) {
@@ -647,7 +645,7 @@ export async function maybe_kick_monster(mon, x, y, player, map, game) {
         // bhitpos
         game.bhitpos = { x, y };
 
-        if (!mon.mpeaceful || !canspotmon(mon, player, map))
+        if (!mon.mpeaceful || !canspotmon(mon, player, null, map))
             if (ctx) ctx.forcefight = true;
 
         if (await attack_checks(mon, null) || await overexertion(player, game))
@@ -684,12 +682,12 @@ async function kick_monster(mon, x, y, player, map, game) {
         if (M_AP_TYPE(mon))
             seemimic(mon, map);
         mon.mundetected = 0;
-        if (!canspotmon(mon, player, map))
+        if (!canspotmon(mon, player, null, map))
             map_invisible(map, x, y, player);
         else
             newsym(x, y, map);
         await There("is %s here.",
-            canspotmon(mon, player, map) ? a_monnam(mon) : "something hidden");
+            canspotmon(mon, player, null, map) ? a_monnam(mon) : "something hidden");
     }
 
     // Polymorph kick attacks
@@ -1707,7 +1705,7 @@ export async function dokick(player, map, display, game) {
 
         if (mtmp.mhp <= 0) {
             // dead monster handling
-        } else if (!canspotmon(mtmp, player, map)
+        } else if (!canspotmon(mtmp, player, null, map)
                    && mtmp.mx === x && mtmp.my === y) {
             map_invisible(map, x, y, player);
         }

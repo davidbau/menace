@@ -47,7 +47,7 @@ import { place_object } from './mkobj.js';
 import { an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon } from './display.js';
 import { couldsee } from './vision.js';
 import { helpless, monnear, onscary } from './mon.js';
 import { monflee } from './monmove.js';
@@ -156,10 +156,6 @@ export function u_at(player, x, y) {
 
 function M_AP_TYPE(mon) {
     return Number(mon?.m_ap_type || mon?.mappearanceType || 0);
-}
-
-function canspotmon(mon, player = null, fov = null) {
-    return !!canseemon(mon, player, fov);
 }
 
 function remove_object(obj, map) {

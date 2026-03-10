@@ -762,7 +762,7 @@ async function in_container(obj, player) {
 
     // cf. C pickup.c:2588-2618 — unwield weapons being put away
     if (obj === player.weapon) {
-        if (welded(player)) { await weldmsg(player); return 0; }
+        if (welded(player.weapon, player)) { await weldmsg(player); return 0; }
         setuwep(player, null);
         if (player.weapon) return 0; // unwielded, died, rewielded
     } else if (obj === player.swapWeapon) {

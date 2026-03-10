@@ -24,7 +24,7 @@ import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
 import { mondead, monnear, helpless as monHelpless } from './mon.js';
 import { mpickobj } from './steal.js';
-import { newsym, map_invisible, canSpotMonsterForMap } from './display.js';
+import { newsym, map_invisible, canspotmon } from './display.js';
 import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
          is_floater, is_flyer, throws_rocks, passes_walls,
          haseyes, is_undead, poly_when_stoned,
@@ -79,6 +79,7 @@ import { resist, unturn_dead } from './zap.js';
 import { arti_reflects } from './artifact.js';
 import { can_carry } from './dogmove.js';
 import { sobj_at, carrying } from './invent.js';
+import { welded } from './wield.js';
 import { ZAP_POS } from './const.js';
 import { is_pool, is_lava, is_ice,
          is_drawbridge_wall } from './dbridge.js';
@@ -243,10 +244,7 @@ export function m_next2u(mtmp, player) {
 const MFAST = 2;
 
 
-// C ref: canspotmon(mon) — can hero see or sense the monster?
-function canspotmon(mon, player, map, fov) {
-    return canSpotMonsterForMap(mon, map, player, fov);
-}
+
 
 // C ref: accessible(x, y) — can walk there
 function accessible(x, y, map) {
@@ -320,9 +318,6 @@ function canletgo(obj, _str) {
     if (!obj) return false;
     return !obj.cursed;
 }
-
-// C ref: welded(obj) — is weapon welded to hero?
-function welded(obj) { return !!(obj && obj.cursed && (obj.owornmask & W_WEP)); }
 
 // C ref: is_plural(obj)
 function is_plural(obj) { return (obj.quan || 1) > 1; }
@@ -1127,7 +1122,7 @@ export async function use_defensive(mon, map, player) {
         if (!enexto(cc, mon.mx, mon.my, null, map, player)) return 0;
         await mzapwand(mon, otmp, false, map, player);
         const newmon = makemon(null, cc.x, cc.y, 0, 0, map);
-        if (newmon && canspotmon(newmon, player, map) && oseen)
+        if (newmon && canspotmon(newmon, player, null, map) && oseen)
             makeknown(WAN_CREATE_MONSTER);
         return 2;
     }
@@ -1145,7 +1140,7 @@ export async function use_defensive(mon, map, player) {
             const cc = {};
             if (!enexto(cc, mon.mx, mon.my, pm, map, player)) break;
             const newmon = makemon(pm, cc.x, cc.y, 0, 0, map);
-            if (newmon && canspotmon(newmon, player, map)) known = true;
+            if (newmon && canspotmon(newmon, player, null, map)) known = true;
         }
         if (known) makeknown(SCR_CREATE_MONSTER);
         m_useup(mon, otmp);
@@ -1632,7 +1627,7 @@ async function mbhitm(mtmp, otmp, map, player) {
 
     if (reveal_invis && !DEADMONSTER(mtmp)
         && cansee(map, player, null, bhitpos.x, bhitpos.y)
-        && !canspotmon(mtmp, player, map))
+        && !canspotmon(mtmp, player, null, map))
         map_invisible(map, bhitpos.x, bhitpos.y, player);
 
     return 0;
@@ -1688,7 +1683,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
                 const mtmp = m_at(bhitpos.x, bhitpos.y, map);
                 if (mtmp) {
                     if (cansee(map, player, null, bhitpos.x, bhitpos.y)
-                        && !canspotmon(mtmp, player, map))
+                        && !canspotmon(mtmp, player, null, map))
                         map_invisible(map, bhitpos.x, bhitpos.y, player);
                     if (fhitm) fhitm(mtmp, obj, map, player);
                     range -= 3;
@@ -1776,7 +1771,7 @@ export async function use_offensive(mtmp, map, player) {
     case MUSE_OFF_SCR_EARTH: {
         const mmx = mtmp.mx, mmy = mtmp.my;
         await mreadmsg(mtmp, otmp, player);
-        if (canspotmon(mtmp, player, map)) {
+        if (canspotmon(mtmp, player, null, map)) {
             await pline('The ceiling rumbles!');
             if (oseen) makeknown(otmp.otyp);
         }
@@ -2111,7 +2106,7 @@ export async function use_misc(mon, map, player) {
         }
         mon_set_minvis(mon, map);
         if (vismon && mon.minvis) {
-            if (canspotmon(mon, player, map)) {
+            if (canspotmon(mon, player, null, map)) {
                 await pline(`${name}'s body takes on a strange transparency.`);
             } else {
                 const name2 = x_monnam(mon, { article: 'none' });
@@ -2184,7 +2179,7 @@ export async function use_misc(mon, map, player) {
             return 1;
         }
         await pline(`${The_whip} wraps around what you're wielding!`);
-        if (welded(obj)) {
+        if (welded(obj, player)) {
             await pline('It is welded to your hand!');
             where_to = 0;
         }

@@ -36,7 +36,7 @@ import { pline, You, Your, You_hear, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
 import { s_suffix, strchr } from './hacklib.js';
 import { helpless as monHelpless } from './mon.js';
-import { newsym } from './display.js';
+import { newsym, canspotmon } from './display.js';
 import { canseemon, y_monnam } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { getpos_async } from './getpos.js';
@@ -198,16 +198,6 @@ function mhim(shkp) {
 function muteshk(shkp) {
     const mdat = shkp?.data || shkp?.type;
     return monHelpless(shkp) || (mdat?.msound !== undefined && mdat.msound <= 1);
-}
-
-// C ref: canspotmon -- can hero see or sense the monster
-function canspotmon(shkp) {
-    const player = _gstate?.player || null;
-    const fov = _gstate?.fov || null;
-    if (!shkp || !player) return false;
-    if (canseemon(shkp, player, fov)) return true;
-    if (player.telepathy && !shkp.mindless) return true;
-    return false;
 }
 
 

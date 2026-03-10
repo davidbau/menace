@@ -2417,6 +2417,15 @@ export function senseMonsterForMap(mon, map, player) {
 }
 
 // C ref: display.h canspotmon(mon) = canseemon(mon) || sensemon(mon)
+// Context-resolving wrapper matching canseemon() pattern.
+export function canspotmon(mon, playerArg = null, fovArg = null, ctxOrMap = null) {
+    const ctx = _resolveDisplayCtx(ctxOrMap);
+    const map = ctx?.map || null;
+    const player = playerArg || ctx?.player || null;
+    const fov = fovArg || ctx?.fov || null;
+    return canSpotMonsterForMap(mon, map, player, fov);
+}
+
 export function canSpotMonsterForMap(mon, map, player, fov) {
     return canSeeMonsterForMap(mon, map, player, fov)
         || senseMonsterForMap(mon, map, player);

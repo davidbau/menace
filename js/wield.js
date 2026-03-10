@@ -70,10 +70,11 @@ function will_weld(obj) {
     return erodeable_wep(obj) || obj.otyp === TIN_OPENER;
 }
 
-// cf. wield.c:1042 — welded(obj): test if hero's main weapon is welded to hand
-export function welded(player) {
-    if (player.weapon && will_weld(player.weapon)) {
-        player.weapon.bknown = true;
+// cf. wield.c:1042 — welded(obj): test if obj is hero's welded weapon
+// C: welded(otmp) = otmp && otmp == uwep && will_weld(otmp)
+export function welded(obj, player) {
+    if (obj && obj === player?.weapon && will_weld(obj)) {
+        obj.bknown = true;
         return true;
     }
     return false;
@@ -326,7 +327,7 @@ async function wield_tool(player, display, obj, _verb) {
         if (display) await display.putstr_message("You can't wield that while wearing it.");
         return false;
     }
-    if (welded(player)) {
+    if (welded(player.weapon, player)) {
         await weldmsg(player, display);
         return false;
     }
@@ -444,7 +445,7 @@ function buildWieldMenuLines(player, inventory) {
 // Moved from cmd.js handleWield
 async function handleWield(player, display) {
     // Weld check
-    if (welded(player)) {
+    if (welded(player.weapon, player)) {
         await weldmsg(player, display);
         return { moved: false, tookTime: false };
     }
@@ -596,7 +597,7 @@ async function handleWield(player, display) {
 // Moved from cmd.js handleSwapWeapon
 async function handleSwapWeapon(player, display) {
     // Weld check
-    if (welded(player)) {
+    if (welded(player.weapon, player)) {
         await weldmsg(player, display);
         return { moved: false, tookTime: false };
     }

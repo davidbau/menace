@@ -71,7 +71,7 @@ import {
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
 import { dist2 } from './hacklib.js';
-import { newsym, senseMonsterForMap } from './display.js';
+import { newsym, senseMonsterForMap, canspotmon } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_golem, nonliving, is_humanoid, is_shapeshifter,
          is_swimmer, pm_resistance, is_flyer, is_floater, amorphous,
@@ -91,8 +91,6 @@ import { In_sokoban, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, 
 // ========================================================================
 
 // Check helpers
-// C ref: canspotmon — can hero spot the monster?
-function canspotmon(mtmp) { return canseemon(mtmp); }
 // C ref: mhe(mtmp) — pronoun for monster
 function mhe(mtmp) { return mtmp?.female ? 'she' : 'he'; }
 // C ref: humanoid(ptr) — alias for is_humanoid

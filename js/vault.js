@@ -26,7 +26,7 @@ import {
 import { PM_GUARD } from './monsters.js';
 import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE } from './objects.js';
 import { pline, pline_The, You, You_hear, verbalize } from './pline.js';
-import { newsym, map_invisible, canSpotMonsterForMap, monVisibleForMap } from './display.js';
+import { newsym, map_invisible, canspotmon, monVisibleForMap } from './display.js';
 import { place_monster } from './steed.js';
 import { mongone, mpickgold } from './mon.js';
 import { relobj } from './steal.js';
@@ -96,11 +96,7 @@ function in_rooms(x, y, rtype, map) {
     return result;
 }
 
-// C ref: canspotmon(mon) — hero can see or sense the monster
-function canspotmon(grd, map, player, fov) {
-    if (!grd || grd.mx === 0 && grd.my === 0) return false;
-    return canSpotMonsterForMap(grd, map, player, fov);
-}
+
 
 // C ref: mon_visible(mon) — is monster actually visible (not invis/hiding)?
 function mon_visible(grd, player) {
@@ -393,7 +389,7 @@ export async function uleftvault(grd, map, player, fov) {
     if ((money_cnt(player.inventory || player.invent) || hidden_gold(true, player))
         && !um_dist(grd.mx, grd.my, 1, player)) {
         if (grd.mpeaceful) {
-            if (canspotmon(grd, map, player, fov)) {
+            if (canspotmon(grd, player, fov, map)) {
                 await pline("%s becomes irate.", Monnam(grd));
             }
             grd.mpeaceful = 0; // bypass setmangry()
@@ -671,7 +667,7 @@ export async function gd_letknow(grd, map, player, fov) {
 // ========================================================================
 export async function gd_move_cleanup(grd, semi_dead, disappear_msg_seen, map, player, fov) {
     const x = grd.mx, y = grd.my;
-    const see_guard = canspotmon(grd, map, player, fov);
+    const see_guard = canspotmon(grd, player, fov, map);
     parkguard(grd, map);
     await wallify_vault(grd, map, player, fov);
     await restfakecorr(grd, map, player, fov);
@@ -787,7 +783,7 @@ export async function invault(map, player, fov) {
 
     // C: reset_faint(), boulder handling — simplified
 
-    const spotted = canspotmon(guard, map, player, fov);
+    const spotted = canspotmon(guard, player, fov, map);
     if (spotted) {
         await pline("Suddenly one of the Vault's %s enters!",
             pmname(guard.type || guard.data, Mgender(guard)) + 's');
@@ -1193,7 +1189,7 @@ export async function gd_move(grd, map, player, fov) {
                         place_monster(grd, nx, ny, map);
                         if (g_at(nx, ny, map)) {
                             mpickgold(grd, map);
-                            if (canspotmon(grd, map, player, fov))
+                            if (canspotmon(grd, player, fov, map))
                                 await pline("%s picks up some gold.", Monnam(grd));
                         } else {
                             newsym(grd.mx, grd.my);
@@ -1311,7 +1307,7 @@ export async function gd_move(grd, map, player, fov) {
     if (newspot && g_at(nx, ny, map)) {
         // Pick up pre-existing gold so guard doesn't blame hero later
         mpickgold(grd, map);
-        if (canspotmon(grd, map, player, fov))
+        if (canspotmon(grd, player, fov, map))
             await pline("%s picks up some gold.", Monnam(grd));
     } else {
         newsym(grd.mx, grd.my);

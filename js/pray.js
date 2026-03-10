@@ -92,6 +92,7 @@ import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival } from './pickup.js';
 import { In_sokoban } from './dungeon.js';
 import { nomul } from './hack.js';
+import { welded } from './wield.js';
 
 // cf. pray.c:58 -- Moloch constant
 const Moloch = "Moloch";
@@ -207,11 +208,6 @@ function xlev_to_rank(xlev) {
 function near_capacity(player) {
     // Simplified: return encumbrance level 0-4
     return player.encumbrance || 0;
-}
-
-// Helper: welded weapon check
-function welded(obj) {
-    return obj && obj.cursed && obj.bknown;
 }
 
 // Helper: stuck ring check (cursed ring that can't be removed)
@@ -725,7 +721,7 @@ export function in_trouble(player, map) {
         || stuck_ring(player.rightRing, RIN_LEVITATION))
         return TROUBLE_CURSED_LEVITATION;
     if (player.data && nohands(player.data) || !freehand(player)) {
-        if (welded(player.weapon))
+        if (welded(player.weapon, player))
             return TROUBLE_UNUSEABLE_HANDS;
         if (Upolyd(player) && player.data && nohands(player.data)
             && (!Unchanging(player) || (unchanger(player) && unchanger(player).cursed)))
@@ -784,7 +780,7 @@ export function worst_cursed_item(player) {
         }
     }
     // weapon takes precedence if interfering with ring/shield
-    if (welded(player.weapon) && (player.rightRing || bimanual(player.weapon))) {
+    if (welded(player.weapon, player) && (player.rightRing || bimanual(player.weapon))) {
         otmp = player.weapon;
     } else if (player.gloves && player.gloves.cursed) {
         otmp = player.gloves;
@@ -809,7 +805,7 @@ export function worst_cursed_item(player) {
         otmp = player.rightRing;
     } else if (player.blindfold && player.blindfold.cursed) {
         otmp = player.blindfold;
-    } else if (welded(player.weapon)) {
+    } else if (welded(player.weapon, player)) {
         otmp = player.weapon;
     } else if (player.swapWeapon && player.swapWeapon.cursed && player.twoweap) {
         otmp = player.swapWeapon;
@@ -943,7 +939,7 @@ async function fix_worst_trouble(trouble, player, map) {
         await fix_curse_trouble(otmp, what, player);
         break;
     case TROUBLE_UNUSEABLE_HANDS:
-        if (welded(player.weapon)) {
+        if (welded(player.weapon, player)) {
             otmp = player.weapon;
             await fix_curse_trouble(otmp, what, player);
             break;
@@ -1456,7 +1452,7 @@ async function pleased(g_align, player, map) {
         case 0:
             break;
         case 1:
-            if (player.weapon && (welded(player.weapon)
+            if (player.weapon && (welded(player.weapon, player)
                 || player.weapon.oclass === WEAPON_CLASS
                 || is_weptool(player.weapon))) {
                 if (player.weapon.cursed) {

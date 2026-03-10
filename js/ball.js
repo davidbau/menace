@@ -24,6 +24,7 @@ import { exercise } from './attrib_exercise.js';
 import { maybe_unhide_at } from './mon.js';
 import { obj_extract_self } from './mkobj.js';
 import { t_at } from './trap.js';
+import { welded } from './wield.js';
 
 // cf. ball.c:17 — static restriction state
 let bcrestriction = 0;
@@ -34,15 +35,6 @@ const override_restriction = -1;
 const BCPOS_DIFFER = 0; // ball & chain at different positions
 const BCPOS_CHAIN = 1;  // chain on top of ball
 const BCPOS_BALL = 2;   // ball on top of chain
-
-// Helper: welded — is the player's weapon welded (cursed weapon)?
-function welded(obj, player) {
-    // In C, welded() checks if uwep is cursed and erodeable.
-    // Here we check if the specific object is the weapon and cursed.
-    if (!obj) return false;
-    if (obj !== player.weapon) return false;
-    return !!(obj.cursed && (obj.owornmask & 0x00000100)); // W_WEP
-}
 
 // Helper: hard_helmet — is the helmet hard (not cloth)?
 function hard_helmet(obj) {
