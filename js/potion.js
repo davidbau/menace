@@ -3,7 +3,7 @@
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { nhgetch } from './input.js';
-import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
          POT_SLEEPING, POT_SICKNESS, POT_HALLUCINATION,
@@ -22,7 +22,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          VOMITING, GLIB, FAST, STONED, SLIMED,
          FREE_ACTION, ACID_RES, SLEEP_RES, POISON_RES,
          SICK_VOMITABLE, SICK_NONVOMITABLE,
-         FROMOUTSIDE, INVIS, SEE_INVIS } from './const.js';
+         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST } from './const.js';
 
 const A_MAX = 6; // number of attributes (STR, INT, WIS, DEX, CON, CHA)
 const SICK_ALL = (SICK_VOMITABLE | SICK_NONVOMITABLE);
@@ -1490,21 +1490,61 @@ function hold_potion(player, potobj) {
 }
 
 // cf. potion.c dodip() — dip command entry point
-// Not yet fully interactive (needs getobj infrastructure). Stub for caller.
 async function dodip(player, map, display) {
     // C ref: potion.c:2252-2358
-    // Full interactive dip flow requires getobj/y_n prompting not yet ported.
-    // Minimal stub: "You have nothing to dip." or direct to potion_dip.
-    await pline("That command is not yet available.");
-    return { moved: false, tookTime: false };
+    // Use existing getobj flow (non-interactive first-suggest in this port).
+    const potion = getobj(
+        'dip into',
+        (obj) => (obj && obj.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+        0,
+        player
+    );
+    if (!potion) {
+        await You("don't have anything to dip into.");
+        return false;
+    }
+
+    const target = getobj(
+        'dip',
+        (obj) => dip_ok(obj) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+        0,
+        player
+    );
+    if (!target) {
+        await You("don't have anything to dip.");
+        return false;
+    }
+
+    await potion_dip(player, target, potion);
+    return true;
 }
 
 // cf. potion.c dip_into() — alternate dip entry (potion selected first)
-export async function dip_into(player, map, display) {
+export async function dip_into(player, map, display, target = null) {
     // C ref: potion.c:2364-2391
-    // Requires cmdq infrastructure. Stub.
-    await pline("That command is not yet available.");
-    return { moved: false, tookTime: false };
+    // Select potion first and then apply dip to provided/selected target object.
+    const obj = target || getobj(
+        'dip',
+        (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+        0,
+        player
+    );
+    if (!obj) {
+        await You("don't have anything to dip.");
+        return false;
+    }
+    const potion = getobj(
+        'dip into',
+        (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+        0,
+        player
+    );
+    if (!potion) {
+        await You("don't have anything to dip into.");
+        return false;
+    }
+    await potion_dip(player, obj, potion);
+    return true;
 }
 
 // cf. potion.c poof() — potion disappears in a poof (trycall + useup)

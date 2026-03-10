@@ -3918,11 +3918,11 @@ Remaining parity gaps are mostly behavioral depth:
 | 1494 | `H2Opotion_dip` | potion.js:865 | Implemented |
 | 1484 | `bottlename` | potion.js:852 | Implemented |
 | 2217 | `dip_hands_ok` | potion.js:1269 | Implemented |
-| 2365 | `dip_into` | potion.js:1296 | Implemented |
+| 2365 | `dip_into` | potion.js:1518 | Implemented (getobj-backed selection; alternate entry supports preselected target) |
 | 2200 | `dip_ok` | potion.js:1261 | Implemented |
 | 2403 | `dip_potion_explosion` | potion.js:1313 | Implemented |
 | 2801 | `djinni_from_bottle` | potion.js:1437 | Implemented |
-| 2253 | `dodip` | potion.js:1287 | Implemented (internal) |
+| 2253 | `dodip` | potion.js:1493 | Implemented (getobj-backed selection + potion_dip path) |
 | 526 | `dodrink` | potion.js:389 handleQuaff | Implemented |
 | 618 | `dopotion` | potion.js:peffects (inlined) | Implemented (dispatcher at peffects) |
 | 505 | `drink_ok` | potion.js:380 | Implemented |

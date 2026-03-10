@@ -9,11 +9,12 @@ import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
 import { return_from_mtoss } from '../../js/mthrowu.js';
 import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS } from '../../js/const.js';
-import { CHEST, DAGGER } from '../../js/objects.js';
+import { CHEST, DAGGER, POTION_CLASS, POT_WATER, POT_OIL, WEAPON_CLASS } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
 import { CRYSTAL_BALL } from '../../js/objects.js';
 import { PM_ROGUE } from '../../js/monsters.js';
 import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
+import { dodip, dip_into } from '../../js/potion.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -144,4 +145,32 @@ test('artifact.is_magic_key follows rogue-vs-nonrogue bless/curse rules', () => 
     assert.equal(is_magic_key({ mndx: PM_FLOATING_EYE }, key), false);
     key.blessed = 1;
     assert.equal(is_magic_key({ mndx: PM_FLOATING_EYE }, key), true);
+});
+
+test('potion.dodip performs a dip turn when potion and target exist', async () => {
+    initRng(123);
+    const pot = { oclass: POTION_CLASS, otyp: POT_WATER, invlet: 'a', quan: 1, blessed: 0, cursed: 0 };
+    const obj = { oclass: WEAPON_CLASS, otyp: DAGGER, invlet: 'b', blessed: 0, cursed: 0 };
+    const player = {
+        inventory: [pot, obj],
+        removeFromInventory(item) {
+            this.inventory = this.inventory.filter((it) => it !== item);
+        },
+    };
+    const tookTime = await dodip(player, new GameMap(), null);
+    assert.equal(tookTime, true);
+});
+
+test('potion.dip_into can dip a selected object into a potion', async () => {
+    initRng(124);
+    const pot = { oclass: POTION_CLASS, otyp: POT_OIL, invlet: 'a', quan: 1, blessed: 0, cursed: 0 };
+    const obj = { oclass: WEAPON_CLASS, otyp: DAGGER, invlet: 'b', blessed: 0, cursed: 0 };
+    const player = {
+        inventory: [obj, pot],
+        removeFromInventory(item) {
+            this.inventory = this.inventory.filter((it) => it !== item);
+        },
+    };
+    const tookTime = await dip_into(player, new GameMap(), null, obj);
+    assert.equal(tookTime, true);
 });

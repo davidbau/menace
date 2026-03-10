@@ -7255,3 +7255,29 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (10/10)
   - `npm run -s test:unit` (2747/2747)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: potion command parity batch for dodip/dip_into
+
+- Problem:
+  - `dodip` and `dip_into` existed as command stubs, so `#dip` behavior was
+    effectively unavailable despite `potion_dip` core logic being present.
+- Change:
+  - `js/potion.js`:
+    - replaced both stubs with getobj-backed selection flow:
+      - select potion (`POTION_CLASS`) and dip target (`dip_ok`),
+      - route through existing `potion_dip(...)` core mixer,
+      - return boolean turn-use semantics expected by `cmd.js`.
+    - `dip_into` now supports optional preselected target object for command-queue
+      integration while still supporting normal selection fallback.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added direct coverage for `dodip` and `dip_into` successful paths.
+  - `docs/CODEMATCH.md`:
+    - updated potion rows for `dodip` and `dip_into` to reflect real getobj-backed
+      command behavior.
+- Why this matters:
+  - This closes a gameplay-facing command surface gap instead of leaving
+    parity-critical behavior behind inert stubs.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (12/12)
+  - `npm run -s test:unit` (2749/2749)
+  - `npm run -s test:session -- --max-failures=5` (151/151)
