@@ -35,13 +35,15 @@ Completed in code:
 - Residual `_nonBlockingMore` compatibility writes were removed from gameplay paths.
 
 Validation baseline at this checkpoint:
-- Unit tests green (`2737/2737`).
+- Unit tests green (`2747/2747`).
 - Gameplay parity green (`34/34`, PRNG/events/screens all green).
 
 Remaining cleanup focus:
 - Keep reducing obsolete SYNCLOCK-era diagnostics/docs wording that no longer
   matches the live architecture.
 - Continue origin-await audits for newly introduced raw awaits.
+- Continue shrinking `run_command(...)` into auditable helper stages
+  (multi-repeat loop and rhack-core execution paths now extracted).
 
 ## Execution Model
 
