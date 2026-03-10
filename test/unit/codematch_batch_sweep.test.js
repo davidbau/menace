@@ -9,12 +9,13 @@ import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
 import { return_from_mtoss } from '../../js/mthrowu.js';
 import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS, ECMD_TIME, ECMD_CANCEL, BLINDED, SICK, SLIMED, TIMEOUT } from '../../js/const.js';
-import { CHEST, DAGGER, POTION_CLASS, POT_WATER, POT_OIL, WEAPON_CLASS } from '../../js/objects.js';
+import { CHEST, DAGGER, POTION_CLASS, POT_WATER, POT_OIL, WEAPON_CLASS, SCR_CHARGING, WAND_CLASS, WAN_FIRE } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
 import { CRYSTAL_BALL } from '../../js/objects.js';
 import { PM_ROGUE } from '../../js/monsters.js';
 import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
 import { dodip, dip_into } from '../../js/potion.js';
+import { seffect_charging } from '../../js/read.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -212,4 +213,21 @@ test('potion.dip_into can dip a selected object into a potion', async () => {
     };
     const tookTime = await dip_into(player, new GameMap(), null, obj);
     assert.equal(tookTime, true);
+});
+
+test('read.seffect_charging non-confused recharges selected chargeable object', async () => {
+    initRng(77);
+    const scroll = { otyp: SCR_CHARGING, oclass: 0, blessed: 0, cursed: 0 };
+    const wand = { oclass: WAND_CLASS, otyp: WAN_FIRE, spe: 0, invlet: 'a', recharged: 0 };
+    const player = {
+        confused: 0,
+        inventory: [wand],
+        removeFromInventory(item) {
+            this.inventory = this.inventory.filter((it) => it !== item);
+        },
+    };
+    const display = { putstr_message: async () => {} };
+    const consumed = await seffect_charging(scroll, player, display, { disp: { botl: false }, display });
+    assert.equal(consumed, true);
+    assert.equal(wand.spe > 0, true);
 });

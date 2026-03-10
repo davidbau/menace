@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -52,7 +52,7 @@ import { pline, impossible, You } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph } from './display.js';
 import { S_goodpos } from './symbols.js';
-import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
+import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj } from './invent.js';
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim } from './mondata.js';
@@ -603,7 +603,7 @@ export async function seffect_charging(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
-    const already_known = isObjectNameKnown(sobj.otyp);
+    const already_known = (sobj.oclass === SPBOOK_CLASS) || isObjectNameKnown(sobj.otyp);
 
     if (confused) {
         if (scursed) {
@@ -618,6 +618,7 @@ export async function seffect_charging(sobj, player, display, game) {
                 player.pw = player.pwmax;
             }
         }
+        if (game?.disp) game.disp.botl = true;
         return false;
     }
 
@@ -630,10 +631,11 @@ export async function seffect_charging(sobj, player, display, game) {
     const charge_bless = scursed ? -1 : sblessed ? 1 : 0;
     useup_scroll(sobj, player);
 
-    // cf. getobj("charge", charge_ok, ...) + recharge(otmp, curse_bless)
-    // In automated play, no item prompt is possible; the scroll is consumed
-    // but no item is charged. A full UI implementation would prompt here.
-    await display.putstr_message('You have a feeling of loss.');
+    // cf. getobj("charge", charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT)
+    const otmp = getobj('charge', charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT, player);
+    if (otmp) {
+        await recharge(otmp, charge_bless, player, game);
+    }
     return true; // consumed
 }
 

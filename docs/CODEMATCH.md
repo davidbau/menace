@@ -4144,7 +4144,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 728 | `recharge` | read.js:recharge | Implemented |
 | 1777 | `seffect_amnesia` | read.js:936 | Implemented (forgets spells; rn2 message; exercise(A_WIS,false)) |
 | 1952 | `seffect_blank_paper` | read.js:317 | Implemented |
-| 1735 | `seffect_charging` | read.js:388 | Partial (confused path faithful; non-confused: no getobj/recharge yet) |
+| 1735 | `seffect_charging` | read.js:602 | Implemented (confused energy branch + non-confused `getobj(charge_ok)` → `recharge` path; scroll consumed before selection, matching C ordering) |
 | 1348 | `seffect_confuse_monster` | read.js:469 | Implemented (faithful RNG: rnd(100), rnd(2), rn1(8,2); umconf tracking) |
 | 1557 | `seffect_create_monster` | read.js:839 | Implemented (faithful RNG: rn2(73)+rnd(4); uses makemon; confused=acid blob) |
 | 1285 | `seffect_destroy_armor` | read.js:789 | Implemented (confused erodeproof; normal destroy_arm; cursed degrade+stun) |

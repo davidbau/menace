@@ -7358,3 +7358,22 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (16/16)
   - `npm run -s test:unit` (2753/2753)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: read.seffect_charging non-confused getobj/recharge path restored
+
+- Problem:
+  - `seffect_charging` non-confused branch still consumed the scroll but never
+    selected/charged an item (placeholder "feeling of loss" behavior).
+- Change:
+  - `js/read.js`:
+    - imports `getobj` and canonical `GETOBJ_*` constants.
+    - keeps C ordering: identify scroll if needed, consume scroll, then prompt
+      for chargeable target via `getobj("charge", charge_ok, ...)`.
+    - calls `recharge(otmp, scursed ? -1 : sblessed ? 1 : 0)` when target exists.
+    - sets bottom-line refresh in confused branch (`disp.botl = TRUE` analogue).
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added `seffect_charging` coverage verifying non-confused recharging path.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (17/17)
+  - `npm run -s test:unit` (2754/2754)
+  - `npm run -s test:session -- --max-failures=5` (151/151)
