@@ -92,7 +92,7 @@ import { u_at } from './hack.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 import { awaken_soldiers } from './music.js';
 import { t_at, m_at } from './trap.js';
-import { makeknown } from './do_wear.js';
+import { makeknown, hard_helmet } from './do_wear.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 
@@ -288,13 +288,7 @@ function is_Vlad(mtmp) { return !!((mtmp.data || mtmp.type) && (mtmp.data || mtm
 // C ref: mon_offmap(mon)
 function mon_offmap(mon) { return !isok(mon.mx, mon.my); }
 
-// C ref: hard_helmet(obj) — is helmet hard (not cloth)?
-function hard_helmet(obj) {
-    if (!obj) return false;
-    const od = objectData[obj.otyp];
-    if (!od) return false;
-    return od.oc_material !== CLOTH;
-}
+// hard_helmet imported from do_wear.js
 
 // C ref: MON_WEP(mon) — wielded weapon
 export function MON_WEP(mon) {

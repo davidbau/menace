@@ -65,6 +65,7 @@ import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
 import { poisoned, acurr, change_luck } from './attrib.js';
 import { sgn } from './hacklib.js';
+import { xytod } from './cmd.js';
 import { wake_nearby } from './mon.js';
 import { set_wounded_legs } from './do.js';
 import { rndcolor } from './do_name.js';
@@ -1786,13 +1787,7 @@ export function count_traps(ttyp) {
   return ret;
 }
 
-// C ref: cmd.c xytod() — local copy to avoid circular import with cmd.js
-function xytod(x, y) {
-  for (let dd = 0; dd < N_DIRS; dd++) {
-    if (x === xdir[dd] && y === ydir[dd]) return dd;
-  }
-  return DIR_ERR;
-}
+// xytod imported from cmd.js
 
 // Autotranslated from trap.c:6460
 export function conjoined_pits(trap2, trap1, u_entering_trap2, player) {
