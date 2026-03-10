@@ -21,9 +21,10 @@ import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
+import { Is_container } from './mkobj.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -1492,10 +1493,28 @@ export function count_surround_traps(x, y, map) {
   let ret = 0;
   for (let dx = x - 1; dx <= x + 1; dx++) {
     for (let dy = y - 1; dy <= y + 1; dy++) {
+      if (!isok(dx, dy)) continue;
       const cell = map.at(dx, dy);
       if (!cell) continue;
-      // Check for traps at this location
-      if (cell.trap) ret++;
+      // C: shown traps are not counted.
+      const trap = typeof map.trapAt === 'function' ? map.trapAt(dx, dy) : null;
+      if (trap) {
+        const shown = !!(trap.tseen || cell.mem_trap);
+        if (!shown) ret++;
+        continue;
+      }
+      // C: trapped doors are counted.
+      if (IS_DOOR(cell.typ) && ((cell.flags || 0) & D_TRAPPED)) {
+        ret++;
+        continue;
+      }
+      // C: trapped containers in a pile count once per location.
+      const pile = typeof map.objectsAt === 'function'
+        ? map.objectsAt(dx, dy)
+        : (Array.isArray(map.objects) ? map.objects.filter(o => o.ox === dx && o.oy === dy) : []);
+      if (pile.some(o => o && Is_container(o) && o.otrapped)) {
+        ret++;
+      }
     }
   }
   return ret;

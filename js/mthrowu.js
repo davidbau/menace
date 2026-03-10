@@ -762,13 +762,37 @@ export async function m_throw_timed(
 export function return_from_mtoss(magr, otmp, tethered_weapon, map) {
     if (!magr || !otmp || !map) return;
     const impaired = !!(magr.mconf || magr.mstun || magr.mblinded);
-    const madeItBack = !!rn2(100);
+    const madeItBack = rn2(100);
     const atx = magr.mx;
     const aty = magr.my;
-    if (madeItBack && !impaired && rn2(100)) {
-        add_to_minv(magr, otmp);
-        if (tethered_weapon) magr.weapon = otmp;
-    } else if (isok(atx, aty)) {
+    let notCaught = false;
+    let hitsThrower = false;
+    let dmg = 0;
+
+    if (madeItBack) {
+        if (!impaired && rn2(100)) {
+            add_to_minv(magr, otmp);
+            if (tethered_weapon) magr.weapon = otmp;
+            return;
+        }
+        dmg = rn2(2);
+        if (dmg) {
+            dmg += rnd(3);
+            hitsThrower = true;
+        }
+        notCaught = true;
+    } else {
+        notCaught = true;
+    }
+
+    if (hitsThrower) {
+        magr.mhp = (magr.mhp || 0) - dmg;
+        if ((magr.mhp || 0) <= 0) {
+            mondead(magr, map);
+        }
+    }
+
+    if (notCaught && isok(atx, aty)) {
         otmp.ox = atx;
         otmp.oy = aty;
         placeFloorObject(map, otmp);

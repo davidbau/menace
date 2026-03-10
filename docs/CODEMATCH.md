@@ -456,7 +456,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 626 | `attacks` | artifact.js:274 | Implemented |
 | 993 | `bane_applies` | artifact.js:358 | Implemented |
 | 526 | `confers_luck` | artifact.js:228 | Implemented |
-| 2708 | `count_surround_traps` | artifact.js:697 | Stub |
+| 2708 | `count_surround_traps` | artifact.js:1491 | Implemented — counts hidden traps, trapped doors, and trapped containers around hero while skipping shown trap glyphs |
 | 636 | `defends` | artifact.js:283 | Implemented |
 | 687 | `defends_when_carried` | artifact.js:294 | Implemented |
 | 1113 | `discover_artifact` | artifact.js:449 | Implemented |
@@ -2558,7 +2558,7 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_dcay` | mhitu.js | Implemented — hitmsg + `erode_armor_on_player(ERODE_ROT)` + zero damage |
 | - | `mhitm_knockback` | mhitu.js | Implemented — rn2(3) distance, rn2(6) chance, eligibility (AD_PHYS, attack type, size), rn2(2)+rn2(2) message |
 | 2425 | `passiveum` | mhitu.js:passiveum | Implemented |
-| 954 | `summonmu` | mhitu.js:summonmu | Partial — entrypoint present, simplified summon behavior |
+| 954 | `summonmu` | mhitu.js:summonmu | Partial — demon summon gate plus were-form switching (including protection-from-shape-changers forced revert and night odds) and were_summon messaging; Inhell and full sensory/message parity remain |
 | 1045 | `u_slip_free` | mhitu.js:u_slip_free | Implemented |
 | 162 | `u_slow_down` | mhitu.js:u_slow_down | Implemented |
 | 175 | `wildmiss` | mhitu.js:wildmiss | Implemented |
@@ -3132,7 +3132,7 @@ No function symbols parsed from isaac64.c.
 | 201 | `monmulti` | mthrowu.js:162 | Partial — core volley logic + class/racial bonuses implemented |
 | 262 | `monshoot` | mthrowu.js:278 | Implemented |
 | 321 | `ohitmon` | mthrowu.js:242 | Partial — hit/miss/drop pipeline with `find_mac` to-hit and `dmgval` weapon/gem damage path implemented; remaining C edge-cases (special materials/effects) TODO |
-| 824 | `return_from_mtoss` | mthrowu.js:355 | Partial — thrower recatch-vs-drop behavior implemented |
+| 824 | `return_from_mtoss` | mthrowu.js:762 | Partial — return-flight recatch-vs-drop and thrower self-hit branch implemented; full message/animation/snuff-ship-object parity remains |
 | 52 | `rnd_hallublast` | mthrowu.js:43 | Implemented |
 | 990 | `spitmm` | mthrowu.js:442 | Partial — venom path implemented |
 | 1241 | `spitmu` | mthrowu.js:458 | Partial — wrapper to spitmm |
@@ -5232,7 +5232,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 4883 | `back_on_ground` | trap.js:2911 | Implemented |
 | 3098 | `blow_up_landmine` | trap.js:1460 | Implemented (async) |
 | 88 | `burnarmor` | zap.js:256 | Implemented |
-| 1086 | `check_in_air` | trap.js:209 | Partial — `mon_check_in_air` subset for monster trap logic |
+| 1086 | `check_in_air` | trap.js:256 | Partial — trap flag + flyer/floater logic implemented for monsters and hero-shaped callers; remaining integration is full `youmonst`/property parity wiring |
 | 6201 | `chest_trap` | trap.js:1626 | Implemented (async) |
 | 3009 | `choose_trapnote` | dungeon.js:2079 | Implemented |
 | 593 | `clamp_hole_destination` | trap.js:2827 | Implemented |
@@ -5464,7 +5464,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1920 | `mhurtle_to_doom` | uhitm.js:779 | Implemented |
 | 5176 | `missum` | uhitm.js | Implemented (message path; cumbersome-armor hint + miss message) |
 | 350 | `mon_maybe_unparalyze` | uhitm.js | Implemented — rn2(10) wake paralyzed monster before dieroll |
-| 6293 | `nohandglow` | uhitm.js | Stub — function present; `umconf` state not yet modeled |
+| 6293 | `nohandglow` | uhitm.js:1857 | Implemented — decrements `umconf` after hand-to-hand confusion-touch usage when defender not already confused |
 | 5843 | `passive` | uhitm.js | Partial — C-style AT_NONE search, damage dice, AD_ACID/AD_ENCH first-pass handling, `passive_obj` integration for weapon erosion, rn2(3) alive gate, and AD_PLYS/COLD/FIRE/ELEC/STUN alive effects with hero resistance/status hooks. Remaining gaps: exact damage/death messaging parity and full property-system fidelity |
 | 6105 | `passive_obj` | uhitm.js | Partial — erosion paths wired through `erode_obj` for FIRE/ACID/RUST/CORR/DCAY and AD_ENCH enchant-drain path now wired; remaining gaps are full C `drain_item` edge semantics |
 | 1970 | `shade_aware` | uhitm.js | Implemented |

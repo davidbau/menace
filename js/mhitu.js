@@ -62,12 +62,12 @@ import { flush_screen, newsym } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
-import { new_were, were_summon, set_ulycn } from './were.js';
+import { new_were, were_summon, set_ulycn, counter_were } from './were.js';
 import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd, drain_item } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
-import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } from './const.js';
+import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
 import { nomul } from './hack.js';
@@ -201,6 +201,13 @@ export function applyMonflee(monster, fleetime, first = false) {
 
 function playerHasProp(player, prop) {
     return player.hasProp ? player.hasProp(prop) : false;
+}
+
+function hasProtectionFromShapeChangers(player) {
+    if (!player) return false;
+    if (player.protectionFromShapeChangers) return true;
+    const uprop = player.uprops?.[PROT_FROM_SHAPE_CHANGERS];
+    return !!(uprop?.intrinsic || uprop?.extrinsic);
 }
 
 function maybe_half_phys(n, player) {
@@ -1607,7 +1614,7 @@ export function calc_mattacku_vars(mtmp, player) {
 
 // cf. mhitu.c:954 summonmu() — monster summons help for its fight against hero
 export async function summonmu(mtmp, youseeit, map, player, display) {
-    const mdat = mtmp.data || mtmp.type || {};
+    let mdat = mtmp.data || mtmp.type || {};
 
     if (is_demon(mdat)) {
         if (mdat !== mons[PM_BALROG] && mdat !== mons[PM_AMOROUS_DEMON]) {
@@ -1622,18 +1629,26 @@ export async function summonmu(mtmp, youseeit, map, player, display) {
 
     if (is_were(mdat)) {
         // Maybe switch form
+        const protectedFromShifters = hasProtectionFromShapeChangers(player);
         if (is_human(mdat)) {
-            // Maybe switch to animal form
-            // C: if (!Protection_from_shape_changers && !rn2(5 - (night() * 2)))
-            if (!rn2(5)) {
-                new_were(mtmp);
+            // C: !Protection_from_shape_changers && !rn2(5 - (night()*2))
+            const denom = Math.max(1, 5 - (night() ? 2 : 0));
+            if (!protectedFromShifters && !rn2(denom)) {
+                const other = counter_were(mtmp?.mndx);
+                if (other != null) {
+                    await new_were(mtmp, other, { map, player, display });
+                }
             }
         } else {
-            // Maybe switch back to human form
-            if (!rn2(30)) {
-                new_were(mtmp);
+            // C: if (Protection_from_shape_changers || !rn2(30)) new_were(mtmp)
+            if (protectedFromShifters || !rn2(30)) {
+                const other = counter_were(mtmp?.mndx);
+                if (other != null) {
+                    await new_were(mtmp, other, { map, player, display });
+                }
             }
         }
+        mdat = mtmp.data || mtmp.type || mdat;
 
         // Maybe summon compatible critters
         if (!rn2(10)) {
@@ -1641,7 +1656,7 @@ export async function summonmu(mtmp, youseeit, map, player, display) {
                 await display.putstr_message(`The ${x_monnam(mtmp)} summons help!`);
             }
             const result = were_summon(
-                mtmp.data || mtmp.type,
+                mdat,
                 mtmp.mx, mtmp.my,
                 false, // not yours
                 { player },

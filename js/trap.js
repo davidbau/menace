@@ -9,7 +9,7 @@ import {
     A_STR, A_DEX, A_CON,
     W_ARMH, W_ARMC, W_ARM, W_ARMU, W_ARMS, W_ARMG, W_ARMF,
     TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
-    FORCETRAP, NOWEBMSG, FORCEBUNGLE, RECURSIVETRAP, TOOKPLUNGE, VIASITTING, FAILEDUNTRAP,
+    FORCETRAP, NOWEBMSG, FORCEBUNGLE, RECURSIVETRAP, TOOKPLUNGE, VIASITTING, FAILEDUNTRAP, HURTLING,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, ERODE_CRACK,
     ER_NOTHING, ER_GREASED, ER_DAMAGED, ER_DESTROYED,
     EF_NONE, EF_GREASE, EF_DESTROY, EF_VERBOSE, EF_PAY,
@@ -60,7 +60,7 @@ import { dist2 } from './hacklib.js';
 import { losehp, u_at } from './hack.js';
 import { an, xname, the, Tobjnam, Has_contents } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
-import { LEVITATION, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';
+import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
@@ -253,9 +253,23 @@ export function floor_trigger(ttyp) {
 }
 
 // C ref: trap.c check_in_air() subset for monsters.
-function mon_check_in_air(mon) {
+export function check_in_air(mon, trflags = 0) {
+    const plunged = ((trflags & (TOOKPLUNGE | VIASITTING)) !== 0);
+    const isYou = !!(mon?.isPlayer || mon?.youmonst || mon?.isYou);
+    const levitating = isYou
+        ? !!(mon?.levitating || mon?.Levitation || mon?.hasProp?.(LEVITATION))
+        : false;
+    const flying = isYou
+        ? !!(mon?.flying || mon?.Flying || mon?.hasProp?.(FLYING))
+        : false;
     const mdat = mon?.type || mons[mon?.mndx] || {};
-    return is_flyer(mdat) || is_floater(mdat);
+    return ((trflags & HURTLING) !== 0)
+        || (isYou ? levitating : is_floater(mdat))
+        || ((isYou ? flying : is_flyer(mdat)) && !plunged);
+}
+
+function mon_check_in_air(mon, trflags = 0) {
+    return check_in_air(mon, trflags);
 }
 
 // ========================================================================

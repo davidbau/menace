@@ -1855,9 +1855,10 @@ export function disguised_as_mon(mtmp) {
 //   Reduce hero's umconf counter (hand-glow for confusion touch).
 //   Called after a hand-to-hand hit when umconf > 0 and mon is not confused.
 export function nohandglow(mon) {
-    // C: if (!u.umconf || mon->mconf) return;
-    //    decrements u.umconf, prints message about hands stopping glowing.
-    // In JS, u.umconf is not tracked. Stub: no-op.
+    const player = arguments[1] || null;
+    if (!player || !Number(player.umconf || 0) || mon?.mconf) return false;
+    player.umconf = Math.max(0, Number(player.umconf || 0) - 1);
+    return true;
 }
 
 // cf. uhitm.c:6319 — flash_hits_mon(mtmp, otmp):
