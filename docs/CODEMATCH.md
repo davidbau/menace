@@ -2480,13 +2480,13 @@ No function symbols parsed from isaac64.c.
 | 76 | `missmm` | mhitm.js | Implemented |
 | 1122 | `mon_poly` | mhitm.js:887 | Implemented |
 | 1283 | `mswingsm` | mhitm.js:899 | Implemented |
-| 27 | `noises` | mhitm.js | Stub |
+| 27 | `noises` | mhitm.js:71 | Implemented |
 | 1210 | `paralyze_monst` | mhitm.js | Implemented |
 | 1304 | `passivemm` | mhitm.js | Implemented |
 | 41 | `pre_mm_attack` | mhitm.js | Implemented (simplified) |
-| 1260 | `rustm` | mhitm.js | Stub |
+| 1260 | `rustm` | mhitm.js:223 | Implemented |
 | 1223 | `sleep_monst` | mhitm.js | Implemented |
-| 1250 | `slept_monst` | mhitm.js | Stub |
+| 1250 | `slept_monst` | mhitm.js:212 | Implemented |
 | 1461 | `xdrainenergym` | mhitm.js | Implemented |
 
 ### mhitu.c -> mhitu.js

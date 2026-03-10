@@ -6644,3 +6644,28 @@ hard-won wisdom:
   - `node --test test/unit/codematch_spell_explode_mcastu_surface.test.js`
   - `node scripts/test-unit-core.mjs`
   - Both passed.
+
+### CODEMATCH combat closure: mhitm.c helper stubs (`noises`, `slept_monst`, `rustm`) (2026-03-10)
+
+- Problem:
+  - `mhitm.c` still had three helper rows tracked as stubs even though the
+    surrounding m-vs-m pipeline is active and these helpers are parity-relevant.
+- Change:
+  - `js/mhitm.js`:
+    - Exported `noises(...)` (previously implemented as internal-only helper).
+    - Implemented `slept_monst(mon, player)` to release `player.ustuck` when
+      a sleeping/paralyzed grabber should relax grip (C-style `unstuck` path).
+    - Tightened `rustm(...)` with C steam-vortex exclusion for fire erosion.
+  - Added targeted coverage:
+    - `test/unit/codematch_mhitm_surface.test.js`
+      - noise message/rate-limit behavior
+      - `slept_monst` release behavior
+      - steam-vortex fire-erosion exclusion vs non-steam erosion path
+  - Updated `docs/CODEMATCH.md` rows:
+    - `mhitm.c:noises` -> Implemented
+    - `mhitm.c:slept_monst` -> Implemented
+    - `mhitm.c:rustm` -> Implemented
+- Validation:
+  - `node --test test/unit/codematch_mhitm_surface.test.js`
+  - `node scripts/test-unit-core.mjs`
+  - Both passed.

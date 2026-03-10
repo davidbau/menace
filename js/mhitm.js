@@ -18,7 +18,7 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin } from './hacklib.js';
-import { monnear, mondead, helpless } from './mon.js';
+import { monnear, mondead, helpless, unstuck } from './mon.js';
 import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
 import { monAttackName } from './do_name.js';
 import { cansee } from './vision.js';
@@ -29,7 +29,7 @@ import {
     DEADMONSTER,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
-import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, MZ_HUGE, PM_GRID_BUG } from './monsters.js';
+import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
@@ -68,7 +68,7 @@ export function resetNoisesState() {
 // ============================================================================
 
 // cf. mhitm.c:26 — noises(magr, mattk): combat noise output
-async function noises(magr, mattk, display, ctx) {
+export async function noises(magr, mattk, display, ctx) {
     if (!display) return;
     const player = ctx?.player || null;
     const deaf = Number(player?.deafness || 0) > 0 || !!player?.deaf;
@@ -209,8 +209,15 @@ export function sleep_monst(mon, amt, how) {
 }
 
 // cf. mhitm.c:1249 — slept_monst(mon)
-export function slept_monst(mon) {
-    // TODO: release grab on hero if grabbing while asleep
+export function slept_monst(mon, player = (globalThis.gs?.player || null)) {
+    if (!mon || !player) return;
+    const heroData = player.data || player.type || null;
+    if (helpless(mon)
+        && player.ustuck === mon
+        && !sticks(heroData)
+        && !player.uswallow) {
+        unstuck(mon, player);
+    }
 }
 
 // cf. mhitm.c:1259 — rustm(mdef, obj)
@@ -225,7 +232,8 @@ export function rustm(mdef, obj) {
         dmgtyp = ERODE_CORRODE;
     } else if (dmgtype(mdat, AD_RUST)) {
         dmgtyp = ERODE_RUST;
-    } else if (dmgtype(mdat, AD_FIRE)) {
+    } else if (dmgtype(mdat, AD_FIRE)
+               && (mdef.mndx !== PM_STEAM_VORTEX)) {
         dmgtyp = ERODE_BURN;
         chance = 6; // fire erosion is rarer: 1-in-6
     }
