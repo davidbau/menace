@@ -437,7 +437,7 @@ export function bcsign(otmp) {
 
 // C ref: mkobj.c container_weight() — set owt recursively up container chain
 // Autotranslated from mkobj.c:2732
-export function container_weight(object) {
+function container_weight(object) {
   object.owt = weight(object);
   if (object.where === OBJ_CONTAINED) container_weight(object.ocontainer);
 }
@@ -1535,17 +1535,17 @@ export function doname(obj, player) {
 }
 
 // C ref: mkobj.c:80 — init_oextra zeroes the struct
-export function init_oextra(oex) {
+function init_oextra(oex) {
   // C zeroes the struct; JS empty object suffices
 }
 
 // C ref: mkobj.c:86 — allocate new oextra struct
-export function newoextra() {
+function newoextra() {
   return {};
 }
 
 // Autotranslated from mkobj.c:96
-export function dealloc_oextra(o) {
+function dealloc_oextra(o) {
   let x = o.oextra;
   if (x) {
     if (x.oname) x.oname = null;
@@ -1557,7 +1557,7 @@ export function dealloc_oextra(o) {
 }
 
 // Autotranslated from mkobj.c:114
-export function newomonst(otmp) {
+function newomonst(otmp) {
   if (!otmp.oextra) otmp.oextra = newoextra();
   if (!otmp.oextra.omonst) {
     // C ref: m = newmonst(); *m = cg.zeromonst; (alloc + zero-init)
@@ -1567,7 +1567,7 @@ export function newomonst(otmp) {
 }
 
 // Autotranslated from mkobj.c:128
-export function free_omonst(otmp) {
+function free_omonst(otmp) {
   if (otmp.oextra) {
     let m = otmp.oextra.omonst;
     if (m) {
@@ -1590,14 +1590,14 @@ export function free_omid(otmp) {
 }
 
 // Autotranslated from mkobj.c:157
-export function new_omailcmd(otmp, response_cmd) {
+function new_omailcmd(otmp, response_cmd) {
   if (!otmp.oextra) otmp.oextra = newoextra();
   if (otmp.oextra.omailcmd) free_omailcmd(otmp);
   otmp.oextra.omailcmd = dupstr(response_cmd);
 }
 
 // Autotranslated from mkobj.c:167
-export function free_omailcmd(otmp) {
+function free_omailcmd(otmp) {
   if (otmp.oextra && otmp.oextra.omailcmd) { otmp.oextra.omailcmd = null; } // JS: no free() needed
 }
 
@@ -1610,7 +1610,7 @@ export function mksobj_at(otyp, x, y, init, artif) {
 }
 
 // Autotranslated from mkobj.c:253
-export function mksobj_migr_to_species(otyp, mflags2, init, artif) {
+function mksobj_migr_to_species(otyp, mflags2, init, artif) {
   let otmp;
   otmp = mksobj(otyp, init, artif);
   add_to_migration(otmp);
@@ -1620,7 +1620,7 @@ export function mksobj_migr_to_species(otyp, mflags2, init, artif) {
 }
 
 // Autotranslated from mkobj.c:626
-export function clear_splitobjs(game) {
+function clear_splitobjs(game) {
   game.svc.context.objsplit.parent_oid = game.svc.context.objsplit.child_oid = 0;
 }
 
@@ -1651,14 +1651,14 @@ export function bill_dummy_object(otmp, player) {
 }
 
 // Autotranslated from mkobj.c:835
-export function clear_dknown(obj) {
+function clear_dknown(obj) {
   obj.dknown = strchr(dknowns, obj.oclass) ? 0 : 1;
   if ((obj.otyp >= ELVEN_SHIELD && obj.otyp <= ORCISH_SHIELD) || obj.otyp === SHIELD_OF_REFLECTION || objectData[obj.otyp].oc_merge) obj.dknown = 0;
   if (Is_pudding(obj)) obj.dknown = 1;
 }
 
 // Autotranslated from mkobj.c:1367
-export function rider_revival_time(body, retry) {
+function rider_revival_time(body, retry) {
   let when, minturn = retry ? 3 : (body.corpsenm === PM_DEATH) ? 6 : 12;
   for (when = minturn; when < 67; when++) {
     if (!rn2(3)) {

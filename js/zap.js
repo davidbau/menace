@@ -321,7 +321,7 @@ export function burnarmor(victim, player) {
 registerBurnarmor(burnarmor);
 
 // C ref: zap.c:4646 zap_hit() — determine if beam hits a monster
-export function zap_hit(ac, type) {
+function zap_hit(ac, type) {
     // C ref: zap.c:4650 — rn2(20) chance check
     const chance = rn2(20);
     if (!chance) {
@@ -648,7 +648,7 @@ export async function dozap(player, map, display, game) {
 export { ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP, ZT_DEATH, ZT_LIGHTNING };
 export { ZT_POISON_GAS, ZT_ACID, ZT_WAND, ZT_SPELL, ZT_BREATH };
 export { MAGIC_COOKIE };
-export { zaptype, flash_str, is_hero_spell };
+// zaptype, flash_str, is_hero_spell are module-local (not imported elsewhere)
 
 // cf. zap.c destroy_item() — destroy items in hero inventory by type
 // osym: object class symbol, dmgtyp: AD_FIRE/AD_COLD/AD_ELEC
@@ -1540,7 +1540,7 @@ export async function probe_monster(mon) {
 // cf. zap.c:3567 skiprange() — range calculation for thrown rocks
 // ============================================================
 // Autotranslated from zap.c:3566
-export function skiprange(range) {
+function skiprange(range) {
   let tr = Math.floor(range / 4), tmp = range - ((tr > 0) ? rnd(tr) : 0);
   const skipstart = tmp;
   let skipend = tmp - (Math.floor(tmp / 4) * rnd(3));
@@ -1553,7 +1553,7 @@ export function skiprange(range) {
 // This was a JS-only stub. Keeping for interface but implementing
 // the logic from dozap's cursed-wand backfire check.
 // ============================================================
-export function maybe_explode_wand(obj, dx, dy) {
+function maybe_explode_wand(obj, dx, dy) {
   if (!obj) return false;
   // C ref: zap.c:2635 — cursed wands have 1/WAND_BACKFIRE_CHANCE to explode
   // WAND_BACKFIRE_CHANCE = 100 in C (hack.h:1415)
@@ -1921,7 +1921,7 @@ export async function bhito(obj, otmp, map) {
 // ============================================================
 
 // C ref: zap.c adtyp_to_prop()
-export function adtyp_to_prop(adtyp) {
+function adtyp_to_prop(adtyp) {
   switch (adtyp) {
   case 1: return 'magic_missile_resistance';
   case 2: return 'fire_resistance';
@@ -1936,13 +1936,13 @@ export function adtyp_to_prop(adtyp) {
 }
 
 // C ref: zap.c learnwand()
-export function learnwand(obj) {
+function learnwand(obj) {
   if (!obj) return;
   discoverObject(obj.otyp, true, true);
 }
 
 // C ref: zap.c zappable()
-export function zappable(obj) {
+function zappable(obj) {
   if (!obj || obj.oclass !== WAND_CLASS) return false;
   const spe = Number(obj.spe || 0);
   if (spe < 0) return false;
@@ -1953,13 +1953,13 @@ export function zappable(obj) {
 
 // C ref: zap.c zap_ok()
 // Autotranslated from zap.c:2605
-export function zap_ok(obj) {
+function zap_ok(obj) {
   if (obj && obj.oclass === WAND_CLASS) return GETOBJ_SUGGEST;
   return GETOBJ_EXCLUDE;
 }
 
 // C ref: zap.c zapsetup()/zapwrapup() naming surfaces.
-export function zapsetup(player, dx = 0, dy = 0, dz = 0) {
+function zapsetup(player, dx = 0, dy = 0, dz = 0) {
   go_obj_zapped = false;
   gp_poly_zapped = -1;
   if (!player) return;
@@ -1968,7 +1968,7 @@ export function zapsetup(player, dx = 0, dy = 0, dz = 0) {
   player.dz = dz;
 }
 
-export async function zapwrapup(_obj, _disclose = false, player = null, display = null) {
+async function zapwrapup(_obj, _disclose = false, player = null, display = null) {
   if (go_obj_zapped) {
     if (display?.putstr_message) await display.putstr_message('You feel shuddering vibrations.');
     else if (player) await pline('You feel shuddering vibrations.');
@@ -2012,7 +2012,7 @@ export async function do_enlightenment_effect(player = null, display = null, gam
 }
 
 // C ref: zap.c wishcmdassist()
-export function wishcmdassist(text) {
+function wishcmdassist(text) {
   return typeof text === 'string' ? text.trim() : '';
 }
 

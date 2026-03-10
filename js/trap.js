@@ -180,7 +180,7 @@ export function t_missile(otyp, trap) {
 // ========================================================================
 // thitm — C ref: trap.c thitm() — Monster is hit by trap
 // ========================================================================
-export function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
+function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
     let strike;
     let trapkilled = false;
 
@@ -223,7 +223,7 @@ export function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
 // m_easy_escape_pit — C ref: trap.c m_easy_escape_pit()
 // ========================================================================
 // Autotranslated from trap.c:3633
-export function m_easy_escape_pit(mtmp) {
+function m_easy_escape_pit(mtmp) {
   // C ref: mon->data is stored as mon.type in JS (auto-translated field alias)
   const mdata = mtmp.data || mtmp.type || mons[mtmp.mndx];
   return (mdata === mons[PM_PIT_FIEND] || mdata.msize >= MZ_HUGE);
@@ -1280,7 +1280,7 @@ export function instapetrify(str, player) {
 }
 
 // C ref: mon.c minstapetrify() — instant monster petrification
-export function minstapetrify(mon, byplayer) {
+function minstapetrify(mon, byplayer) {
     if (!mon) return;
     if (resists_ston(mon)) return;
     // C ref: mon_adjust_speed(mon, -3, NULL) — slow down
@@ -1353,7 +1353,7 @@ export function activate_statue_trap(trap, x, y, shatter) {
 }
 
 // Autotranslated from trap.c:939
-export function keep_saddle_with_steedcorpse(steed_mid, objchn, saddle) {
+function keep_saddle_with_steedcorpse(steed_mid, objchn, saddle) {
   if (!saddle) return false;
   while (objchn) {
     if (objchn.otyp === CORPSE && has_omonst(objchn)) {
@@ -1581,7 +1581,7 @@ export async function disarm_landmine(ttmp) {
 }
 
 // Autotranslated from trap.c:5514
-export function unsqueak_ok(obj) {
+function unsqueak_ok(obj) {
   if (!obj) return GETOBJ_EXCLUDE;
   if (obj.otyp === CAN_OF_GREASE) return GETOBJ_SUGGEST;
   if (obj.otyp === POT_OIL && obj.dknown && objectData[POT_OIL].oc_name_known) return GETOBJ_SUGGEST;

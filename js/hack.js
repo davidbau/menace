@@ -233,7 +233,7 @@ function reset_tmp_anything() {
 
 // C ref: hack.c uint_to_any()
 // Autotranslated from hack.c:74
-export function uint_to_any(ui) {
+function uint_to_any(ui) {
     reset_tmp_anything();
     tmp_anything.a_uint = (ui >>> 0);
     return tmp_anything;
@@ -241,7 +241,7 @@ export function uint_to_any(ui) {
 
 // C ref: hack.c long_to_any()
 // Autotranslated from hack.c:82
-export function long_to_any(lng) {
+function long_to_any(lng) {
     reset_tmp_anything();
     tmp_anything.a_long = Number.isFinite(lng) ? Math.trunc(lng) : 0;
     return tmp_anything;
@@ -249,7 +249,7 @@ export function long_to_any(lng) {
 
 // C ref: hack.c monst_to_any()
 // Autotranslated from hack.c:90
-export function monst_to_any(mon) {
+function monst_to_any(mon) {
     reset_tmp_anything();
     tmp_anything.a_monst = mon || null;
     return tmp_anything;
@@ -282,7 +282,7 @@ export async function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
 }
 
 // C ref: hack.c could_move_onto_boulder()
-export function could_move_onto_boulder(_sx, _sy, player) {
+function could_move_onto_boulder(_sx, _sy, player) {
     if (player?.passesWalls) return true;
     if (player?.usteed) return false;
     if (player?.throwsRocks) return true;
@@ -363,7 +363,7 @@ export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display, player
 }
 
 // C ref: hack.c moverock_done()
-export function moverock_done(_sx, _sy, _map) {
+function moverock_done(_sx, _sy, _map) {
     // In C this updates movement side effects after push. JS keeps this as a
     // named boundary and performs side effects at the callsites.
 }
@@ -442,7 +442,7 @@ export function cant_squeeze_thru(player, map) {
 }
 
 // C ref: hack.c notice_mons_cmp()
-export function notice_mons_cmp(a, b) {
+function notice_mons_cmp(a, b) {
     const ax = a?.mx ?? 0;
     const ay = a?.my ?? 0;
     const bx = b?.mx ?? 0;
@@ -2277,7 +2277,7 @@ export function bad_rock(mdat, x, y, map) {
 }
 
 // C ref: hack.c doorless_door() — does (x,y) have a doorless doorway?
-export function doorless_door(x, y, map) {
+function doorless_door(x, y, map) {
     const loc = map.at(x, y);
     if (!loc || !IS_DOOR(loc.typ)) return false;
     // Rogue level: all doors are doorless but block diagonal
@@ -2298,7 +2298,7 @@ export function crawl_destination(x, y, player, map) {
 
 // C ref: hack.c still_chewing() — chew on wall/door/boulder (poly'd)
 // Returns true if still eating, false when done.
-export function still_chewing(_x, _y, _player, _map, _display) {
+function still_chewing(_x, _y, _player, _map, _display) {
     // Full chewing behavior requires multi-turn state and polymorph system.
     // Stub: always returns false (hero cannot chew).
     return false;
@@ -2456,7 +2456,7 @@ export function money_cnt(inventory) {
 }
 
 // C ref: hack.c cmp_weights()
-export function cmp_weights(i1, i2) {
+function cmp_weights(i1, i2) {
     const w1 = Number(i1?.owt || 0);
     const w2 = Number(i2?.owt || 0);
     return w1 - w2;
@@ -2628,7 +2628,7 @@ export async function carrying_too_much(player, map, display) {
 }
 
 // C ref: hack.c u_rooted() — is hero rooted in place?
-export async function u_rooted(player, display, game = null) {
+async function u_rooted(player, display, game = null) {
     // Only applies when polymorphed into an immobile form
     if (player.polyData && player.polyData.mmove === 0) {
         if (display) await display.putstr_message('You are rooted to the ground.');
@@ -2639,7 +2639,7 @@ export async function u_rooted(player, display, game = null) {
 }
 
 // C ref: hack.c move_out_of_bounds() — is (x,y) off the map?
-export async function move_out_of_bounds(x, y, display, flags) {
+async function move_out_of_bounds(x, y, display, flags) {
     if (!isok(x, y)) {
         if (flags && flags.mention_walls) {
             if (display) await display.putstr_message('You have already gone as far as possible.');
@@ -2650,7 +2650,7 @@ export async function move_out_of_bounds(x, y, display, flags) {
 }
 
 // C ref: hack.c air_turbulence() — plane of air movement disruption
-export async function air_turbulence(player, map, display) {
+async function air_turbulence(player, map, display) {
     if (map.flags && map.flags.is_airlevel && rn2(4)
         && !player.levitating && !player.flying) {
         switch (rn2(3)) {
@@ -2672,7 +2672,7 @@ export async function air_turbulence(player, map, display) {
 }
 
 // C ref: hack.c water_turbulence() — underwater movement disruption
-export async function water_turbulence(player, map, display, target = null) {
+async function water_turbulence(player, map, display, target = null) {
     if (!player?.uinwater) return false;
 
     if (map?.flags?.is_waterlevel) {
@@ -2706,7 +2706,7 @@ export async function water_turbulence(player, map, display, target = null) {
 }
 
 // C ref: hack.c slippery_ice_fumbling() — fumble on ice
-export function slippery_ice_fumbling(player, map) {
+function slippery_ice_fumbling(player, map) {
     if (player.levitating) return;
     const loc = map.at(player.x, player.y);
     if (!loc || loc.typ !== ICE) return;
@@ -2755,7 +2755,7 @@ export function impaired_movement(player, map, dest, game) {
 }
 
 // C ref: hack.c swim_move_danger() — is it dangerous to move into water/lava?
-export async function swim_move_danger(x, y, player, map, display) {
+async function swim_move_danger(x, y, player, map, display) {
     const loc = map.at(x, y);
     if (!loc) return false;
     const isLiquid = IS_POOL(loc.typ) || IS_LAVA(loc.typ);
@@ -2775,7 +2775,7 @@ export async function swim_move_danger(x, y, player, map, display) {
 }
 
 // C ref: hack.c avoid_moving_on_trap() — stop for known trap during run
-export async function avoid_moving_on_trap(x, y, msg, map, display, flags) {
+async function avoid_moving_on_trap(x, y, msg, map, display, flags) {
     const trap = map.trapAt ? map.trapAt(x, y) : null;
     if (trap && trap.tseen && trap.ttyp !== VIBRATING_SQUARE) {
         if (msg && flags && flags.mention_walls) {
@@ -2992,7 +2992,7 @@ export function in_town(x, y, map) {
 }
 
 // C ref: hack.c monstinroom() — find monster of type in room
-export function monstinroom(mdat_pmid, roomno, map) {
+function monstinroom(mdat_pmid, roomno, map) {
     if (!map || !map.monsters) return null;
     for (const mon of map.monsters) {
         if (mon.dead) continue;
@@ -3007,7 +3007,7 @@ export function monstinroom(mdat_pmid, roomno, map) {
 }
 
 // C ref: hack.c furniture_present() — check for furniture type in room
-export function furniture_present(furniture, roomno, map) {
+function furniture_present(furniture, roomno, map) {
     if (!map || !map.rooms || roomno < 0 || roomno >= map.rooms.length) return false;
     const room = map.rooms[roomno];
     if (!room) return false;
@@ -3526,13 +3526,13 @@ export async function losehp(n, knam, k_format, player, display, game) {
 
 
 // C ref: hack.c notice_mon() — accessibility notice for a monster
-export function notice_mon(_mtmp) {
+function notice_mon(_mtmp) {
     // Accessibility feature: announce newly spotted monsters.
     // Stub: not yet implemented.
 }
 
 // C ref: hack.c notice_all_mons() — notice all visible monsters
-export function notice_all_mons(_reset) {
+function notice_all_mons(_reset) {
     // Stub: not yet implemented.
 }
 
@@ -3667,7 +3667,7 @@ export async function is_valid_travelpt(x, y, player, map) {
 }
 
 // C ref: hack.c revive_nasty() — revive rider corpses at (x,y)
-export function revive_nasty(_x, _y, _msg, _map) {
+function revive_nasty(_x, _y, _msg, _map) {
     // Rider revival system not yet implemented.
     return false;
 }
@@ -3704,12 +3704,12 @@ export async function dosinkfall(player, map, display) {
 }
 
 // C ref: hack.c impact_disturbs_zombies()
-export function impact_disturbs_zombies(_obj, _violent) {
+function impact_disturbs_zombies(_obj, _violent) {
     // Buried zombie timer system not yet implemented.
 }
 
 // C ref: hack.c disturb_buried_zombies()
-export function disturb_buried_zombies(_x, _y) {
+function disturb_buried_zombies(_x, _y) {
     // Buried zombie timer system not yet implemented.
 }
 
@@ -3771,7 +3771,7 @@ export async function lava_effects(player, map, display) {
 // C ref: hack.c swamp_effects() — effects of stepping in swamp
 // Note: C doesn't have a standalone swamp_effects; swamp is a room type.
 // This is a convenience stub for swamp terrain interaction.
-export function swamp_effects(_player, _map, _display) {
+function swamp_effects(_player, _map, _display) {
     // Swamp rooms just give an entry message (handled by check_special_room).
     // No per-step swamp terrain effect in C.
 }
