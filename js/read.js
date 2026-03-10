@@ -1553,15 +1553,16 @@ export async function drop_boulder_on_monster(x, y, confused, byu, player) {
   return true;
 }
 
+// C ref: read.c static linked list for gremlin damage on light
+let gremlins = null;
+
 // Autotranslated from read.c:2417
 export function set_lit(x, y, val, map) {
   let mtmp, gremlin;
   if (val) {
     map.locations[x][y].lit = 1;
     if ((mtmp = m_at(x, y, map)) != null && mtmp.data === mons[PM_GREMLIN]) {
-      gremlin =  alloc(gremlin.length);
-      gremlin.mon = mtmp;
-      gremlin.nxt = gremlins;
+      gremlin = { mon: mtmp, nxt: gremlins };
       gremlins = gremlin;
     }
   }
