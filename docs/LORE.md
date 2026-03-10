@@ -7341,3 +7341,20 @@ hard-won wisdom:
   - Running unit and session suites concurrently can cause false session timeout
     failures from host contention; parity validation should run sessions
     serially.
+
+## 2026-03-10: artifact non-power invoke cleanup (crystal ball + carried-only no-op)
+
+- Change:
+  - `js/artifact.js`:
+    - `arti_invoke` non-artifact/non-power path now mirrors C crystal-ball
+      behavior by delegating to `detect.use_crystal_ball(...)` when the invoked
+      object is a crystal ball.
+    - `nothing_special` now emits feedback only when the object is carried,
+      matching C's `carried(obj)` guard.
+    - `invoke_taming` now returns `ECMD_TIME` explicitly.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added crystal-ball invoke routing coverage.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (16/16)
+  - `npm run -s test:unit` (2753/2753)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

@@ -441,7 +441,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2344 | `abil_to_spfx` | artifact.js:670 | Implemented |
 | 2309 | `arti_cost` | artifact.js:328 | Implemented |
 | 979 | `arti_immune` | artifact.js:314 | Implemented |
-| 2131 | `arti_invoke` | artifact.js:1356 | Partial — invocation dispatcher implemented for artifact powers and property toggles; deep side-effects for several invoke powers remain simplified |
+| 2131 | `arti_invoke` | artifact.js:1417 | Partial — invocation dispatcher implemented for artifact powers and property toggles, including non-artifact crystal-ball handoff (`use_crystal_ball`); deep side-effects for several invoke powers remain simplified |
 | 2106 | `arti_invoke_cost` | artifact.js:1321 | Partial — C-shaped cooldown-vs-energy payment gate implemented (supports uen/pw/en fields); remaining exact message/time semantics |
 | 2091 | `arti_invoke_cost_pw` | artifact.js:1310 | Implemented — FLING_POISON/BLINDING_RAY invoke cost maps to level-5 spell power |
 | 537 | `arti_reflects` | artifact.js:234 | Implemented |
@@ -492,7 +492,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 172 | `mk_artifact` | artifact.js:551 | Implemented (RNG-consuming candidate selection) |
 | 2753 | `mkot_trap_warn` | artifact.js:1585 | Implemented — C-shaped adjacent trap heat messaging and state-tracking for Master Key of Thievery |
 | 462 | `nartifact_exist` | artifact.js:211 | Implemented |
-| 1762 | `nothing_special` | artifact.js:1238 | Implemented — standard invoke no-op feedback message |
+| 1762 | `nothing_special` | artifact.js:1240 | Implemented — C-shaped no-op feedback (message only when object is carried) |
 | 2837 | `permapoisoned` | artifact.js:347 | Implemented |
 | 698 | `protects` | artifact.js:303 | Implemented |
 | 133 | `restore_artifacts` | artifact.js:737 | Implemented |

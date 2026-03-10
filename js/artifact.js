@@ -25,9 +25,10 @@ import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
-import { getobj } from './invent.js';
+import { getobj, carried } from './invent.js';
 import { seffect_taming, recharge, charge_ok } from './read.js';
 import { dountrap } from './trap.js';
+import { use_crystal_ball } from './detect.js';
 import { obfree } from './shk.js';
 
 // ── Artifact existence tracking ──
@@ -1237,7 +1238,9 @@ export async function doinvoke(player, game = null) {
 
 // cf. artifact.c:1762 — nothing_special(obj)
 export async function nothing_special(obj) {
-  await You_feel("a surge of power, but nothing seems to happen.");
+  if (carried(obj)) {
+    await You_feel("a surge of power, but nothing seems to happen.");
+  }
 }
 
 // cf. artifact.c:1769 — invoke_taming(obj)
@@ -1248,7 +1251,7 @@ export async function invoke_taming(obj, game = null, player = null) {
   } else {
     await pline("A wave of calm sweeps over you.");
   }
-  return 1;
+  return ECMD_TIME;
 }
 
 // cf. artifact.c:1780 — invoke_healing(obj, player)
@@ -1417,8 +1420,12 @@ export async function arti_invoke(obj, player, game) {
   if (!obj) return 0;
   const oart = get_artifact(obj);
   if (oart === artilist[ART_NONARTIFACT] || !oart.inv_prop) {
-    await pline("Nothing happens.");
-    return 1;
+    if (obj.otyp === CRYSTAL_BALL) {
+      await use_crystal_ball(obj, player || null, game?.map || null, game?.display || game?.disp || null, game || null);
+    } else {
+      await pline("Nothing happens.");
+    }
+    return ECMD_TIME;
   }
 
   // Special powers (inv_prop > LAST_PROP)

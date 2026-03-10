@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { initRng } from '../../js/rng.js';
 import { GameMap } from '../../js/game.js';
-import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key, doinvoke, invoke_healing, invoke_charge_obj } from '../../js/artifact.js';
+import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key, doinvoke, invoke_healing, invoke_charge_obj, arti_invoke } from '../../js/artifact.js';
 import { check_in_air } from '../../js/trap.js';
 import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
@@ -168,6 +168,11 @@ test('artifact.invoke_charge_obj cancels and clears cooldown when no player/targ
     const rc = await invoke_charge_obj(obj, null, null);
     assert.equal(rc, ECMD_CANCEL);
     assert.equal(obj.age, 0);
+});
+
+test('artifact.arti_invoke routes plain crystal ball to crystal-ball path', async () => {
+    const rc = await arti_invoke({ oartifact: 0, otyp: CRYSTAL_BALL, spe: 1 }, { blind: false, uprops: {} }, null);
+    assert.equal(rc, ECMD_TIME);
 });
 
 test('artifact.is_magic_key follows rogue-vs-nonrogue bless/curse rules', () => {
