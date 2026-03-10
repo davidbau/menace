@@ -2156,3 +2156,8 @@ export function give_u_to_m_resistances(mtmp, player) {
 export function M_AP_TYPE(mon) {
     return Number(mon?.m_ap_type || mon?.mappearanceType || M_AP_NOTHING);
 }
+
+// C ref: mondata.c — pronoun helpers
+export function mhe(mtmp) { return mtmp?.female ? 'she' : 'he'; }
+export function mhis(mtmp) { return mtmp?.female ? 'her' : 'his'; }
+export function mhim(mtmp) { return mtmp?.female ? 'her' : 'him'; }

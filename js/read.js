@@ -55,7 +55,7 @@ import { S_goodpos } from './symbols.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
-         passes_walls, noncorporeal } from './mondata.js';
+         passes_walls, noncorporeal, mhim } from './mondata.js';
 import { kill_genocided_monsters } from './mon.js';
 import { obfree } from './shk.js';
 

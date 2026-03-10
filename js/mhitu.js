@@ -39,7 +39,7 @@ import {
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
     dmgtype, dmgtype_fromattack, monsndx, flaming, noncorporeal,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
-    is_undead, has_head,
+    is_undead, has_head, mhis,
 } from './mondata.js';
 import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
 import {

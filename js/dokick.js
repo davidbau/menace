@@ -105,7 +105,7 @@ import { m_in_out_region } from './region.js';
 import { set_apparxy } from './monmove.js';
 import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
-import { is_watch, bigmonst, verysmall } from './mondata.js';
+import { is_watch, bigmonst, verysmall, mhis } from './mondata.js';
 import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
 
 // ============================================================================
@@ -237,10 +237,7 @@ function currency(amount) {
     return amount === 1 ? "zorkmid" : "zorkmids";
 }
 
-// mhis — his/her/its for monster
-function mhis(mtmp) {
-    return "its";
-}
+// mhis imported from mondata.js
 
 // verbalize
 async function verbalize(msg, ...args) {

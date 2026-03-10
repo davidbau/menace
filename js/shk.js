@@ -41,7 +41,7 @@ import { pline, You, Your, You_hear, You_cant, pline_The, There,
 import { s_suffix, strchr, plur } from './hacklib.js';
 import { helpless as monHelpless } from './mon.js';
 import { newsym, canspotmon } from './display.js';
-import { canseemon, y_monnam } from './mondata.js';
+import { canseemon, y_monnam, mhe, mhis, mhim } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
@@ -186,18 +186,7 @@ function sSuffix(name) {
 }
 
 
-// C ref: noit_mhe/noit_mhis/noit_mhim -- pronoun helpers
-function mhe(shkp) {
-    return shkp?.female ? 'she' : 'he';
-}
-
-function mhis(shkp) {
-    return shkp?.female ? 'her' : 'his';
-}
-
-function mhim(shkp) {
-    return shkp?.female ? 'her' : 'him';
-}
+// mhe/mhis/mhim imported from mondata.js
 
 // C ref: muteshk(shkp) -- check if shk is unable to speak
 function muteshk(shkp) {
