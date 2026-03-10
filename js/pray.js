@@ -29,7 +29,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          AM_SANCTUM, ALTAR, ROOM, SDOOR, SCORR, isok, Amask2align, Align2amask,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          HVY_ENCUMBER, EXT_ENCUMBER, W_SADDLE, TT_NONE, TT_LAVA, TT_BURIEDBALL,
-         BOLT_LIM } from './const.js';
+         BOLT_LIM, NATTK } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
 import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
@@ -80,7 +80,7 @@ import { aggravate } from './wizard.js';
 import { spelleffects } from './spell.js';
 import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
-import { Luck } from './attrib.js';
+import { Luck, change_luck } from './attrib.js';
 import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
 import { set_itimeout, make_sick, make_stunned, make_confused,
@@ -157,7 +157,7 @@ const STRIDENT = 4;
 const ALIGNLIM = 14;
 const MAXVALUE = 24;
 const LUCKMAX = 10;
-const NATTK = 6;
+// NATTK imported from const.js
 const A_MAX = 6;
 
 // Body part constants (cf. mondata.h)
@@ -312,10 +312,7 @@ function adjattrib(player, attr, delta, _silent) {
     return delta !== 0;
 }
 
-// Helper: change_luck
-function change_luck(player, delta) {
-    player.luck = (player.luck || 0) + delta;
-}
+// change_luck imported from attrib.js
 
 // Helper: init_uhunger -- reset hunger to normal
 function init_uhunger(player) {
@@ -1734,11 +1731,11 @@ export async function offer_fake_amulet(otmp, highaltar, altaralign, player, map
         await You("realize you have made a %s.",
             player.hallucinating ? "boo-boo" : "mistake");
         otmp.known = true;
-        change_luck(player, -1);
+        change_luck(-1, player);
     } else {
         if (Deaf(player))
             await pline("Oh, no.");
-        change_luck(player, -3);
+        change_luck(-3, player);
         adjalign(player, -1);
         player.ugangr = (player.ugangr || 0) + 3;
         await offer_negative_valued(highaltar, altaralign, player, map);
@@ -1758,14 +1755,14 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
             await pline("%s accepts your allegiance.", a_gname(player, map));
             // Conversion
             player.alignment = altaralign;
-            change_luck(player, -3);
+            change_luck(-3, player);
             player.ublesscnt = (player.ublesscnt || 0) + 300;
         } else {
             player.ugangr = (player.ugangr || 0) + 3;
             adjalign(player, -5);
             await pline("%s rejects your sacrifice!", a_gname(player, map));
             await godvoice(altaralign, "Suffer, infidel!", player);
-            change_luck(player, -5);
+            change_luck(-5, player);
             await adjattrib(player, A_WIS, -2, true);
             if (!Inhell(player))
                 await angrygods(player.alignment, player, map);
@@ -1776,7 +1773,7 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
         if (rn2(8 + (player.ulevel || 1)) > 5) {
             await You_feel("the power of %s increase.", u_gname(player));
             await exercise(player, A_WIS, true);
-            change_luck(player, 1);
+            change_luck(1, player);
             const loc = map.at(player.x, player.y);
             const shrine = on_shrine(player, map);
             loc.flags = Align2amask(player.alignment);
@@ -1793,7 +1790,7 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
             angry_priest(map, player);
         } else {
             await pline("Unluckily, you feel the power of %s decrease.", u_gname(player));
-            change_luck(player, -1);
+            change_luck(-1, player);
             await exercise(player, A_WIS, false);
             if (rnl(player.ulevel || 1, Luck(player)) > 6 && (player.alignmentRecord || 0) > 0
                 && rnd(player.alignmentRecord) > Math.floor(7 * ALIGNLIM / 8))
@@ -1836,7 +1833,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
             demonless_msg = "cloud dissipates";
         } else {
             await pline_The("blood covers the altar!");
-            change_luck(player, altaralign === A_NONE ? -2 : 2);
+            change_luck(altaralign === A_NONE ? -2 : 2, player);
             demonless_msg = "blood coagulates";
         }
         const pm = dlord(altaralign);
@@ -1862,7 +1859,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
         await adjattrib(player, A_WIS, -1, true);
         if (!Inhell(player))
             await angrygods(player.alignment, player, map);
-        change_luck(player, -5);
+        change_luck(-5, player);
     } else {
         adjalign(player, 5);
     }
@@ -2069,7 +2066,7 @@ export async function offer_corpse(otmp, highaltar, altaralign, player, map) {
             if (player.ugangr) {
                 await pline("%s seems %s.", u_gname(player),
                       player.hallucinating ? "groovy" : "slightly mollified");
-                if ((player.luck || 0) < 0) change_luck(player, 1);
+                if ((player.luck || 0) < 0) change_luck(1, player);
             } else {
                 await pline("%s seems %s.", u_gname(player),
                       player.hallucinating ? "cosmic (not a new fact)" : "mollified");
@@ -2097,7 +2094,7 @@ export async function offer_corpse(otmp, highaltar, altaralign, player, map) {
                     await You("realize that the gods are not like you and I.");
                 else
                     await You("have a hopeful feeling.");
-                if ((player.luck || 0) < 0) change_luck(player, 1);
+                if ((player.luck || 0) < 0) change_luck(1, player);
             } else {
                 if (player.hallucinating)
                     await pline("Overall, there is a smell of fried onions.");
@@ -2117,7 +2114,7 @@ export async function offer_corpse(otmp, highaltar, altaralign, player, map) {
         else if (orig_luck + luck_increase > value)
             luck_increase = value - orig_luck;
 
-        change_luck(player, luck_increase);
+        change_luck(luck_increase, player);
         if ((player.luck || 0) < 0) player.luck = 0;
         if ((player.luck || 0) !== orig_luck) {
             if (player.blind)
@@ -2270,7 +2267,7 @@ export async function prayer_done(player, map) {
         if (on_altar(player, map) && player.alignment !== alignment)
             await water_prayer(false, player, map);
         player.ublesscnt = (player.ublesscnt || 0) + rnz(250);
-        change_luck(player, -3);
+        change_luck(-3, player);
         await gods_upset(player.alignment, player, map);
     } else if (p_type === 1) {
         if (on_altar(player, map) && player.alignment !== alignment)
@@ -2279,7 +2276,7 @@ export async function prayer_done(player, map) {
     } else if (p_type === 2) {
         if (await water_prayer(false, player, map)) {
             player.ublesscnt = (player.ublesscnt || 0) + rnz(250);
-            change_luck(player, -3);
+            change_luck(-3, player);
             await gods_upset(player.alignment, player, map);
         } else {
             await pleased(alignment, player, map);

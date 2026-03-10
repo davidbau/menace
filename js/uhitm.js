@@ -71,7 +71,7 @@ import {
     erode_obj, erode_obj_player,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_ALWAYS, DISP_END } from './const.js';
+import { DISP_ALWAYS, DISP_END, NATTK } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 
@@ -1871,7 +1871,7 @@ async function handleMonsterKilled(player, monster, display, map) {
 // cf. uhitm.c:5843 — passive(mon, weapon, mhitb, maliveb, aatyp, wep_was_destroyed):
 //   Handle monster's passive counterattack when hero attacks it.
 //   Only consumes RNG if the monster has an AT_NONE attack slot.
-const NATTK = 6;
+// NATTK imported from const.js
 
 function playerHasProp(player, prop) {
     return !!(player && typeof player.hasProp === 'function' && player.hasProp(prop));

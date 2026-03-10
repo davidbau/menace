@@ -63,7 +63,7 @@ import { mpickobj } from './steal.js';
 import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
 import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr } from './attrib.js';
+import { acurr, change_luck } from './attrib.js';
 import { A_STR, A_DEX } from './const.js';
 import {
     tmp_at, tmp_at_end_async, nh_delay_output,
@@ -127,7 +127,7 @@ function is_spear(otmp) {
 }
 
 // cf. obj.h: is_blade(otmp)
-function is_blade(otmp) {
+export function is_blade(otmp) {
     if (!otmp || otmp.oclass !== WEAPON_CLASS) return false;
     const sk = objectData[otmp.otyp]?.oc_subtyp ?? 0;
     return sk >= P_DAGGER && sk <= P_SABER;
@@ -154,14 +154,11 @@ function uslinging_check(player) {
 }
 
 // Helper: greatest_erosion(obj) -- cf. obj.h
-function greatest_erosion(obj) {
+export function greatest_erosion(obj) {
     return Math.max(obj.oeroded || 0, obj.oeroded2 || 0);
 }
 
-// Helper: change_luck(player, delta)
-function change_luck(player, delta) {
-    player.luck = (player.luck || 0) + delta;
-}
+// change_luck imported from attrib.js
 
 // Has_contents imported from objnam.js
 
@@ -1336,18 +1333,18 @@ async function gem_accept(mon, obj, player, _map) {
 
     if (obj.dknown && objectData[obj.otyp]?.known) {
         if (is_gem) {
-            if (is_buddy) { buf += ' gratefully'; change_luck(player, 5); }
-            else { buf += ' hesitatingly'; change_luck(player, rn2(7) - 3); }
+            if (is_buddy) { buf += ' gratefully'; change_luck(5, player); }
+            else { buf += ' hesitatingly'; change_luck(rn2(7) - 3, player); }
         } else { await pline(`${buf} is not interested in your junk.`); return 0; }
     } else if (obj.oname || objectData[obj.otyp]?.uname) {
         if (is_gem) {
-            if (is_buddy) { buf += ' gratefully'; change_luck(player, 2); }
-            else { buf += ' hesitatingly'; change_luck(player, rn2(3) - 1); }
+            if (is_buddy) { buf += ' gratefully'; change_luck(2, player); }
+            else { buf += ' hesitatingly'; change_luck(rn2(3) - 1, player); }
         } else { await pline(`${buf} is not interested in your junk.`); return 0; }
     } else {
         if (is_gem) {
-            if (is_buddy) { buf += ' gratefully'; change_luck(player, 1); }
-            else { buf += ' hesitatingly'; change_luck(player, rn2(3) - 1); }
+            if (is_buddy) { buf += ' gratefully'; change_luck(1, player); }
+            else { buf += ' hesitatingly'; change_luck(rn2(3) - 1, player); }
         } else { buf += ' graciously'; }
     }
     buf += ' accepts your gift.';
@@ -1397,12 +1394,12 @@ export async function breakobj(obj, x, y, hero_caused, from_invent, player, map)
     }
     const etype = obj.oclass === POTION_CLASS ? POT_WATER : obj.otyp;
     switch (etype) {
-    case MIRROR: if (hero_caused) change_luck(player, -2); break;
+    case MIRROR: if (hero_caused) change_luck(-2, player); break;
     case POT_WATER: break; // potion effects stub
     case EXPENSIVE_CAMERA: await release_camera_demon(obj, x, y, map); break;
     case EGG:
         if (hero_caused && obj.spe && obj.corpsenm !== undefined && obj.corpsenm >= 0)
-            change_luck(player, -Math.min(obj.quan || 1, 5));
+            change_luck(-Math.min(obj.quan || 1, 5), player);
         break;
     case BOULDER: fracture = true; break;
     default: break;

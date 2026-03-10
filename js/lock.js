@@ -45,38 +45,23 @@ import { mon_nam, some_mon_nam } from './do_name.js';
 import { chest_trap } from './trap.js';
 import { is_weptool, Is_box } from './objnam.js';
 import { game as _gstate } from './gstate.js';
+import { is_blade, greatest_erosion } from './dothrow.js';
 
 // ============================================================================
 // Local helpers (cf. obj.h macros)
 // ============================================================================
 
 // Skill constants for weapon classification
-const P_DAGGER = 1;
-const P_SABER = 9;
 const P_FLAIL = 13;
 const P_LANCE = 19;
-
-// cf. obj.h: is_blade(otmp)
-function is_blade(otmp) {
-    if (!otmp || otmp.oclass !== WEAPON_CLASS) return false;
-    const sk = objectData[otmp.otyp]?.oc_subtyp ?? 0;
-    return sk >= P_DAGGER && sk <= P_SABER;
-}
 
 // cf. obj.h: is_pick(otmp)
 function is_pick(otmp) {
     return otmp && (otmp.otyp === PICK_AXE || otmp.otyp === DWARVISH_MATTOCK);
 }
 
-// is_weptool imported from objnam.js
-
-// cf. obj.h: Is_box(obj)
-// Is_box imported from objnam.js
-
-// cf. obj.h: greatest_erosion(obj)
-function greatest_erosion(obj) {
-    return Math.max(obj.oeroded || 0, obj.oeroded2 || 0);
-}
+// is_blade, greatest_erosion imported from dothrow.js
+// is_weptool, Is_box imported from objnam.js
 
 // cf. role check
 

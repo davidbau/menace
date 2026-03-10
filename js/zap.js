@@ -81,7 +81,7 @@ import {
   mon_set_minvis,
   which_armor,
 } from './worn.js';
-import { erode_obj } from './trap.js';
+import { erode_obj, t_at } from './trap.js';
 import { game as _gstate } from './gstate.js';
 import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
@@ -157,13 +157,7 @@ function SchroedingersBox(obj) {
   return !!(obj && obj.spe === 1 && Is_container(obj));
 }
 
-function t_at(x, y, map) {
-  if (!map || !Array.isArray(map.traps)) return null;
-  for (const t of map.traps) {
-    if (t && t.tx === x && t.ty === y) return t;
-  }
-  return null;
-}
+// t_at imported from trap.js
 
 function is_hero_spell(type) { return type >= 10 && type < 20; }
 

@@ -13,7 +13,7 @@ import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA
          GRAY_DRAGON_SCALES, ARMOR_CLASS, WEAPON_CLASS,
          ALCHEMY_SMOCK, CREAM_PIE, BLINDING_VENOM, POT_BLINDNESS,
          objectData } from './objects.js';
-import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, W_ACCESSORY, LOW_PM, A_CHA, ANTIMAGIC, DRAIN_RES, BLND_RES,
+import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, W_ACCESSORY, LOW_PM, A_CHA, ANTIMAGIC, DRAIN_RES, BLND_RES, NATTK,
     FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES,
     REFLECTING, INTRINSIC, MALE, FEMALE, NEUTER, NON_PM, PRONOUN_NO_IT, PRONOUN_HALLU,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
@@ -27,7 +27,7 @@ import { game as _gstate } from './gstate.js';
 import { def_monsyms } from './symbols.js';
 import { title_to_mon } from './botl.js';
 
-const NATTK = 6;
+// NATTK imported from const.js
 
 // ========================================================================
 // Diet predicates — C ref: mondata.h
