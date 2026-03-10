@@ -6993,3 +6993,20 @@ hard-won wisdom:
     - controllable `you_unwere` remain-beast path timer refresh.
   - Updated `docs/CODEMATCH.md` summary line for `were.c` to all-public-surface
     aligned.
+
+## 2026-03-10: Canonical scorefiles for deterministic C endgame captures
+
+- Problem:
+  - Some C-recorded sessions could surface endgame warning text:
+    `Cannot open file logfile...` / `Cannot open file xlogfile...`
+  - Cause: harness cleanup removed `record/logfile/xlogfile`, and endgame score
+    code then emitted filesystem warnings into captured screens.
+- Change:
+  - Added canonical scorefile creation after cleanup for C launch paths:
+    - `test/comparison/c-harness/run_session.py`
+    - `test/comparison/c-harness/keylog_to_session.py`
+    - `selfplay/interface/tmux_adapter.js`
+  - Behavior now matches an installed environment with present score files,
+    eliminating this avoidable warning condition for newly recorded sessions.
+- Validation:
+  - Regenerated `seed331` to a temp session and verified warning text is absent.
