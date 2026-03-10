@@ -452,8 +452,7 @@ function popQueuedInputKey(inDoAgain = false) {
 
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
-function nhgetch_raw(opts = {}) {
-    const site = opts?.site || 'input.nhgetch_raw';
+function nhgetch_raw() {
     const display = getRuntimeDisplay();
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
@@ -472,7 +471,6 @@ function nhgetch_raw(opts = {}) {
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
 export function nhgetch(opts = {}) {
-    const site = opts?.site || 'input.nhgetch.read';
     const readUnifiedKey = async () => {
         const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
         if (Number.isFinite(queuedKey)) {
@@ -502,7 +500,7 @@ export function nhgetch(opts = {}) {
             activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
         }
 
-        const ch = await nhgetch_raw({ site });
+        const ch = await nhgetch_raw();
         ynTrace('raw=runtime', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         recordKey(ch);
         if (cmdqRepeatRecordMode && Number.isFinite(ch)) {
@@ -523,7 +521,6 @@ export function nhgetch(opts = {}) {
 }
 
 export async function more(display, {
-    site = 'input.more',
     game = null,
     forceVisual = false,
     clearAfter = true,
@@ -546,7 +543,7 @@ export async function more(display, {
         display.renderMoreMarker();
     }
 
-    const ch = await waitForMoreDismissKey(readMoreKey, { game: ctxGame, site });
+    const ch = await waitForMoreDismissKey(readMoreKey);
     if (clearAfter) {
         if (typeof display.clearRow === 'function') {
             display.clearRow(0);
