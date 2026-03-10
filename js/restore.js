@@ -28,6 +28,22 @@
 import { pushRngLogEntry } from './rng.js';
 import { MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES } from './const.js';
 
+// C deserialization stubs (JS uses storage.js, not binary save files)
+function Sfi_int() { return 0; }
+function Sfi_monst() {}
+function Sfi_char() {}
+function Sfi_egd() {}
+function Sfi_epri() {}
+function Sfi_eshk() {}
+function Sfi_emin() {}
+function Sfi_edog() {}
+function Sfi_ebones() {}
+function Sfi_fruit() {}
+function Sfi_cemetery() {}
+function Sfi_rm() {}
+function Sfi_xint8() { return 0; }
+function Sfi_s_level() {}
+
 // cf. restore.c:71 — find_lev_obj(): rebuild object-by-position grid
 // Reconstructs svl.level.objects[x][y] by scanning all objects on the level.
 // Called after restoring a level's objects.

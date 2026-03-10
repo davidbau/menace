@@ -20,6 +20,13 @@ import { PM_LONG_WORM, mons } from './monsters.js';
 import { goodpos } from './teleport.js';
 import { cansee } from './vision.js';
 
+// C serialization stubs (JS uses storage.js, not binary save files)
+function release_data() { return false; }
+function update_file() { return false; }
+function Sfo_int() {}
+function Sfo_coordxy() {}
+function Sfo_long() {}
+
 const MAX_NUM_WORMS = 32;
 const MHPMAX = 500;
 

@@ -27,6 +27,20 @@ import { DISP_FREEMEM,
 import { pushRngLogEntry } from './rng.js';
 import { monsndx } from './mondata.js';
 
+// C serialization macros — stubs (JS uses storage.js, not binary save files)
+function release_data(nhfp) { return false; }
+function Sfo_int() {}
+function Sfo_obj() {}
+function Sfo_monst() {}
+function Sfo_char() {}
+function Sfo_unsigned() {}
+function Sfo_egd() {}
+function Sfo_epri() {}
+function Sfo_eshk() {}
+function Sfo_emin() {}
+function Sfo_edog() {}
+function Sfo_ebones() {}
+
 // cf. save.c:42 — dosave(): player-facing #save command
 // Prompts player to confirm; calls dosave0(); handles quit-to-save logic.
 // N/A: save.c:42 — dosave() (JS uses storage.js)

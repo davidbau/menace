@@ -46,6 +46,15 @@ import {
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj } from './makemon.js';
 import { NO_MM_FLAGS, SIZE } from './const.js';
+
+// C serialization stubs (JS uses storage.js, not binary save files)
+function update_file() { return false; }
+function Sfo_int() {}
+function Sfo_xint16() {}
+function Sfo_coordxy() {}
+function Sfi_int() { return 0; }
+function Sfi_xint16() { return 0; }
+function Sfi_coordxy() { return 0; }
 import {
     mons, S_UNICORN, S_DRAGON, S_GIANT, S_TROLL, S_CENTAUR, S_ORC, S_GNOME, S_KOBOLD,
     S_VAMPIRE, S_ZOMBIE, S_DEMON, S_FUNGUS,
