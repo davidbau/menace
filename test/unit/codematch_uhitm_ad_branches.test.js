@@ -1,10 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { initRng } from '../../js/rng.js';
 
 import {
     mhitm_ad_were,
     mhitm_ad_pest,
     mhitm_ad_famn,
+    mhitm_ad_rust,
+    mhitm_ad_corr,
+    mhitm_ad_dcay,
+    mhitm_ad_curs,
     mhitm_ad_sgld,
     mhitm_ad_sedu,
     mhitm_ad_dise,
@@ -15,9 +20,9 @@ import {
     mhitm_ad_poly,
     mhitm_ad_slim,
 } from '../../js/uhitm.js';
-import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, mons } from '../../js/monsters.js';
+import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, mons } from '../../js/monsters.js';
 import { GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
-import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED, M_ATTK_HIT } from '../../js/const.js';
+import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED, M_ATTK_DEF_DIED, M_ATTK_HIT } from '../../js/const.js';
 
 test('mhitm_ad_were delegates through physical handling (kick vs thick hide -> zero damage)', () => {
     const magr = { mcan: false, data: {} };
@@ -52,6 +57,72 @@ test('mhitm_ad_famn zeroes damage only for non-eaters', () => {
     const mhm2 = { damage: 6 };
     mhitm_ad_famn(magr, mattk, eater, mhm2);
     assert.equal(mhm2.damage, 6);
+});
+
+test('mhitm_ad_rust kills iron golem target and marks defender death', () => {
+    const magr = { mcan: false, data: {} };
+    const mdef = { data: mons[PM_IRON_GOLEM], mhp: 15, dead: false };
+    const mhm = { damage: 4, hitflags: 0, done: false };
+
+    mhitm_ad_rust(magr, {}, mdef, mhm);
+    assert.equal(mhm.done, true);
+    assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
+});
+
+test('mhitm_ad_corr erodes m-vs-m branch and zeroes base damage', () => {
+    initRng(101);
+    const magr = { mcan: false, data: {} };
+    const mdef = { data: {}, mstrategy: 0x08000000 };
+    const mhm = { damage: 7, hitflags: 0 };
+
+    mhitm_ad_corr(magr, {}, mdef, mhm);
+    assert.equal(mhm.damage, 0);
+    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+});
+
+test('mhitm_ad_dcay kills rot-vulnerable golem and marks defender death', () => {
+    const magr = { mcan: false, data: {} };
+    const mdef = { data: mons[PM_WOOD_GOLEM], mhp: 12, dead: false };
+    const mhm = { damage: 3, hitflags: 0, done: false };
+
+    mhitm_ad_dcay(magr, {}, mdef, mhm);
+    assert.equal(mhm.done, true);
+    assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
+});
+
+test('mhitm_ad_curs can cancel defender and preserve base damage', () => {
+    initRng(9);
+    const magr = { mcan: false, data: { mlet: 'd' } };
+    let observed = false;
+    for (let i = 0; i < 200; i++) {
+        const mdef = { data: {}, mcan: 0, mstrategy: 0x08000000 };
+        const mhm = { damage: 6, hitflags: 0, done: false };
+        mhitm_ad_curs(magr, {}, mdef, mhm);
+        if (mdef.mcan === 1) {
+            assert.equal(mhm.damage, 6);
+            assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+            observed = true;
+            break;
+        }
+    }
+    assert.equal(observed, true);
+});
+
+test('mhitm_ad_curs destroys clay golem target on curse branch', () => {
+    initRng(13);
+    const magr = { mcan: false, data: { mlet: 'd' } };
+    let observed = false;
+    for (let i = 0; i < 300; i++) {
+        const mdef = { data: mons[PM_CLAY_GOLEM], mhp: 14, dead: false, mcan: 0 };
+        const mhm = { damage: 6, hitflags: 0, done: false };
+        mhitm_ad_curs(magr, {}, mdef, mhm);
+        if (mhm.done) {
+            assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
+            observed = true;
+            break;
+        }
+    }
+    assert.equal(observed, true);
 });
 
 test('mhitm_ad_sgld transfers defender gold to attacker inventory', () => {

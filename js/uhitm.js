@@ -21,7 +21,7 @@ import {
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
-    PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN,
+    PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM,
     PM_BLACK_PUDDING, PM_BROWN_PUDDING, PM_IRON_GOLEM, PM_GHOUL,
     AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC,
     AD_DRST, AD_ACID, AD_BLND, AD_STUN, AD_SLOW, AD_PLYS, AD_DRLI,
@@ -33,6 +33,7 @@ import {
     AT_NONE, AT_WEAP, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG,
     AT_HUGS, AT_TENT, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_GAZE,
     AT_BOOM, AT_MAGC,
+    mons,
 } from './monsters.js';
 import {
     CORPSE, FIGURINE, FOOD_CLASS, objectData,
@@ -52,15 +53,15 @@ import {
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
     thick_skinned, mon_hates_silver, mon_hates_light,
-    noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc,
+    noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
-    is_rider, slimeproof,
+    is_rider, slimeproof, completelyrusts, completelyrots,
     poly_when_stoned, DEADMONSTER,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead, mondied } from './mon.js';
+import { mondead, mondied, monkilled } from './mon.js';
 import { newsym } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
@@ -76,6 +77,7 @@ import { DISP_ALWAYS, DISP_END, NATTK } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { tele_restrict } from './teleport.js';
+import { night } from './calendar.js';
 
 function exclam(force) {
     if (force < 0) return '?';
@@ -1114,14 +1116,53 @@ export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
 
 // --- Remaining AD_* handlers: simplified stubs for rare/complex effects ---
 
-// cf. uhitm.c:2259 — rust handler (m-vs-m: damages equipment)
-export function mhitm_ad_rust(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:2259 — rust handler (m-vs-m)
+export function mhitm_ad_rust(magr, mattk, mdef, mhm) {
+    const pd = mdef?.data || mdef?.type || {};
+    if (magr?.mcan) return;
+    if (completelyrusts(pd)) {
+        monkilled(mdef, null, AD_RUST);
+        if (!DEADMONSTER(mdef)) {
+            mhm.hitflags = M_ATTK_MISS;
+            mhm.done = true;
+            return;
+        }
+        mhm.hitflags = M_ATTK_DEF_DIED;
+        mhm.done = true;
+        return;
+    }
+    erode_armor(mdef, ERODE_RUST);
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    mhm.damage = 0;
+}
 
-// cf. uhitm.c:2316 — corrosion handler
-export function mhitm_ad_corr(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:2316 — corrosion handler (m-vs-m)
+export function mhitm_ad_corr(magr, mattk, mdef, mhm) {
+    if (magr?.mcan) return;
+    erode_armor(mdef, ERODE_CORRODE);
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    mhm.damage = 0;
+}
 
-// cf. uhitm.c:2341 — decay handler
-export function mhitm_ad_dcay(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:2341 — decay handler (m-vs-m)
+export function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
+    const pd = mdef?.data || mdef?.type || {};
+    if (magr?.mcan) return;
+    if (completelyrots(pd)) {
+        monkilled(mdef, null, AD_DCAY);
+        if (!DEADMONSTER(mdef)) {
+            mhm.hitflags = M_ATTK_MISS;
+            mhm.done = true;
+            return;
+        }
+        mhm.hitflags = M_ATTK_DEF_DIED;
+        mhm.done = true;
+        return;
+    }
+    erode_armor(mdef, ERODE_ROT);
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    mhm.damage = 0;
+}
 
 // cf. uhitm.c:2768 — steal gold (m-vs-m: no effect)
 export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
@@ -1150,8 +1191,29 @@ export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) {
     if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
 }
 
-// cf. uhitm.c:2993 — curse items (m-vs-m: no effect)
-export function mhitm_ad_curs(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:2993 — curse items
+export function mhitm_ad_curs(magr, mattk, mdef, mhm) {
+    const pa = magr?.data || magr?.type || {};
+    const pd = mdef?.data || mdef?.type || {};
+    if (!night() && pa === mons[PM_GREMLIN]) return;
+    if (!magr?.mcan && !rn2(10)) {
+        mdef.mcan = 1;
+        if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+        // Full were_change transform path is modeled elsewhere.
+        if (is_were(pd) && pd.mlet !== S_HUMAN) {
+            mdef.mcan = 1;
+        }
+        if (pd === mons[PM_CLAY_GOLEM]) {
+            mondied(mdef);
+            if (!DEADMONSTER(mdef)) {
+                mhm.hitflags = M_ATTK_MISS;
+            } else {
+                mhm.hitflags |= M_ATTK_DEF_DIED;
+            }
+            mhm.done = true;
+        }
+    }
+}
 
 // cf. uhitm.c:3504 — slime
 export function mhitm_ad_slim(magr, mattk, mdef, mhm) {

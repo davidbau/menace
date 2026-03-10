@@ -7093,3 +7093,36 @@ hard-won wisdom:
   - `docs/CODEMATCH.md`:
     - updated `mhitu_ad_drin`, `mhitu_ad_slow`, and `mhitu_ad_ston` rows to
       accurate partial C-faithful status.
+
+## 2026-03-10: `uhitm` m-vs-m erosion/curse branch closure (`AD_RUST/CORR/DCAY/CURS`)
+
+- Problem:
+  - Four m-vs-m `uhitm` handlers were still hard stubs:
+    - `mhitm_ad_rust`, `mhitm_ad_corr`, `mhitm_ad_dcay`, `mhitm_ad_curs`.
+  - This left important C branch behavior unmodeled: cancellation gates,
+    golem-vulnerability instant-kill paths, defender wait-strategy clearing,
+    and curse/cancel effects in monster-vs-monster combat.
+- Change:
+  - `js/uhitm.js`:
+    - `mhitm_ad_rust`:
+      - added `mcan` gate,
+      - added `completelyrusts` iron-golem instant-kill path (`monkilled`),
+      - added erosion + wait-strategy clear + zero-damage branch.
+    - `mhitm_ad_corr`:
+      - added `mcan` gate,
+      - added erosion + wait-strategy clear + zero-damage branch.
+    - `mhitm_ad_dcay`:
+      - added `mcan` gate,
+      - added `completelyrots` golem instant-kill path (`monkilled`),
+      - added erosion + wait-strategy clear + zero-damage branch.
+    - `mhitm_ad_curs`:
+      - added daytime-gremlin guard,
+      - added `!mcan && !rn2(10)` cancel branch,
+      - added wait-strategy clear,
+      - added clay-golem destruction branch via `mondied`,
+      - preserved normal damage outside curse-special branches.
+  - `test/unit/codematch_uhitm_ad_branches.test.js`:
+    - added targeted regression tests for all four handlers, including
+      rust/rot golem-kill paths and curse cancellation/clay destruction.
+  - `docs/CODEMATCH.md`:
+    - upgraded these four rows from stub to accurate partial C-shaped status.

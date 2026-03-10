@@ -5423,9 +5423,9 @@ Remaining parity gaps are mostly behavioral depth:
 | 2936 | `mhitm_ad_blnd` | uhitm.js | Implemented (m-vs-m path) |
 | 2604 | `mhitm_ad_cold` | uhitm.js | Implemented (m-vs-m path) |
 | 3668 | `mhitm_ad_conf` | uhitm.js | Implemented (m-vs-m path) |
-| 2316 | `mhitm_ad_corr` | uhitm.js | Stub (no armor system) |
-| 2993 | `mhitm_ad_curs` | uhitm.js | Stub (no m-vs-m effect) |
-| 2341 | `mhitm_ad_dcay` | uhitm.js | Stub (no armor system) |
+| 2316 | `mhitm_ad_corr` | uhitm.js | Partial — C-shaped m-vs-m cancellation gate, `erode_armor(ERODE_CORRODE)`, wait-strategy clear, and zero-damage branch |
+| 2993 | `mhitm_ad_curs` | uhitm.js | Partial — C-shaped m-vs-m daytime-gremlin guard, `!mcan && !rn2(10)` cancel path, clay-golem destruction, and wait-strategy clear while preserving normal damage otherwise |
+| 2341 | `mhitm_ad_dcay` | uhitm.js | Partial — C-shaped m-vs-m cancellation gate, rotting-golem instant kill path (`completelyrots`), erosion call, wait-strategy clear, and zero-damage branch |
 | 3815 | `mhitm_ad_deth` | uhitm.js | Implemented (redirects to drli) |
 | 4470 | `mhitm_ad_dgst` | uhitm.js | Partial — m-vs-m digest sets lethal swallow damage; Rider defender kills aggressor path modeled |
 | 4571 | `mhitm_ad_dise` | uhitm.js | Partial — m-vs-m immunity gates for fungus/ghoul; susceptible targets keep normal damage |
@@ -5444,7 +5444,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 3959 | `mhitm_ad_phys` | uhitm.js | Implemented (m-vs-m path) |
 | 3409 | `mhitm_ad_plys` | uhitm.js | Implemented (m-vs-m path) |
 | 3707 | `mhitm_ad_poly` | uhitm.js | Partial — m-vs-m negation/cooldown gate + hit/done path; full newcham transformation still pending |
-| 2259 | `mhitm_ad_rust` | uhitm.js | Stub (no armor system) |
+| 2259 | `mhitm_ad_rust` | uhitm.js | Partial — C-shaped m-vs-m cancellation gate, iron-golem instant kill path (`completelyrusts`), erosion call, wait-strategy clear, and zero-damage branch |
 | 4548 | `mhitm_ad_samu` | uhitm.js | Implemented — m-vs-m no-op with zero damage (matches C branch) |
 | 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m item theft from defender inventory (tame avoids cursed items); nymph marks `M_ATTK_AGR_DONE` |
 | 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with same-class/cancel gates |
