@@ -9,7 +9,7 @@ import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
 import { SLIMED } from '../../js/const.js';
-import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_SSEX, AD_POLY, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
+import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_CURS, AD_FAMN, AD_SSEX, AD_POLY, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -303,6 +303,52 @@ describe('Combat system', () => {
         await mattacku(mon, p, mockDisplay);
         assert.ok((p.sick || 0) > 0, 'AD_PEST should apply disease side effect');
         assert.ok(p.hp <= hp0, 'AD_PEST should preserve normal physical damage path');
+    });
+
+    it('AD_CURS keeps normal physical damage path (no forced zero damage)', async () => {
+        initRng(17);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        const hp0 = p.hp;
+
+        const mon = makeMonster({
+            level: 30,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_CURS, damn: 2, damd: 4 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = true; // deterministic: skip curse side path
+
+        await mattacku(mon, p, mockDisplay);
+        assert.ok(p.hp < hp0, 'AD_CURS should preserve normal physical damage');
+    });
+
+    it('AD_FAMN applies hunger only when hero is not fainted', async () => {
+        initRng(19);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        p.hunger = 1000;
+
+        const mon = makeMonster({
+            level: 30,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_FAMN, damn: 1, damd: 1 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = true;
+
+        const before = p.hunger;
+        await mattacku(mon, p, mockDisplay);
+        assert.ok(p.hunger < before, 'AD_FAMN should call morehungry for non-fainted hero');
+
+        p.hunger = 1000;
+        p.fainted = true;
+        await mattacku(mon, p, mockDisplay);
+        assert.equal(p.hunger, 1000, 'AD_FAMN should not consume hunger while fainted');
     });
 
     it('AD_SSEX uses seduction/theft path and does not apply direct damage', async () => {

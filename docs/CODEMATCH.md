@@ -2539,19 +2539,19 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_sgld` | mhitu.js | Implemented — hitmsg + `stealgold()` + zero damage |
 | - | `mhitu_ad_sedu` | mhitu.js | Partial — theft path with `steal()` result handling, flee/teleport, and done flags; seduction dialogue/could_seduce branches still TODO |
 | - | `mhitu_ad_ssex` | mhitu.js | Partial — routed through AD_SEDU fallback (SYSOPT_SEDUCE path not modeled) |
-| - | `mhitu_ad_curs` | mhitu.js | Stub — hitmsg + damage=0 (no curse system) |
+| - | `mhitu_ad_curs` | mhitu.js | Partial — C-shaped mhitu flow: gremlin daytime no-op, `!mcan && !rn2(10)` curse gate, laughter messaging, clay-golem rehumanize path, and `attrcurse`; preserves normal physical damage |
 | - | `mhitu_ad_slim` | mhitu.js | Partial — C-faithful branching: negation, flaming/noncorporeal/green-slime immunity, Slimed timeout + delayed killer; preserves physical damage where C does |
 | - | `mhitu_ad_ench` | mhitu.js | Partial — C-style negation gate, some-armor/accessory selection, and `drain_item` application |
-| - | `mhitu_ad_poly` | mhitu.js | Stub — hitmsg + physical damage only (no polymorph transform) |
+| - | `mhitu_ad_poly` | mhitu.js | Partial — C-shaped polymorph gate (`Maybe_Half_Phys(dmg) < HP`), negation/cancellation messaging, and done/hitflags termination; polymorph body uses `polymon` path |
 | - | `mhitu_ad_were` | mhitu.js | Partial — C-style 1/4 gate + lycanthropy infection (`ulycn`) with negation/protection checks |
 | - | `mhitu_ad_heal` | mhitu.js | Implemented — restores player HP |
 | - | `mhitu_ad_legs` | mhitu.js | Implemented — delegates to AD_PHYS |
 | - | `mhitu_ad_dgst` | mhitu.js | Implemented — mhitu branch zero-damage behavior (engulf/digestion resolved in separate engulf path) |
-| - | `mhitu_ad_samu` | mhitu.js | Stub — hitmsg + damage=0 (no artifact theft) |
+| - | `mhitu_ad_samu` | mhitu.js | Partial — C-shaped `!rn2(20)` branch with `stealamulet` wiring (invocation/amulet path; quest-artifact depth depends on `is_quest_artifact`) |
 | - | `mhitu_ad_dise` | mhitu.js | Implemented — calls diseasemu(); zero-damage when disease resisted |
 | - | `mhitu_ad_deth` | mhitu.js | Implemented — redirects to drli |
 | - | `mhitu_ad_pest` | mhitu.js | Partial — C-faithful message + `diseasemu()` side effect while preserving normal physical damage |
-| - | `mhitu_ad_famn` | mhitu.js | Stub — physical damage only |
+| - | `mhitu_ad_famn` | mhitu.js | Partial — C-shaped message + `exercise(A_CON,FALSE)` and non-fainted hunger drain (`morehungry(rn1(40,40))`) while preserving physical damage |
 | - | `mhitu_ad_halu` | mhitu.js | Implemented — applies hallucination timeout and zeroes damage |
 | - | `mhitu_ad_rust` | mhitu.js | Implemented — hitmsg + `erode_armor_on_player(ERODE_RUST)` + zero damage |
 | - | `mhitu_ad_corr` | mhitu.js | Implemented — hitmsg + `erode_armor_on_player(ERODE_CORRODE)` + zero damage |

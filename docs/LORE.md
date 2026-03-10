@@ -7010,3 +7010,31 @@ hard-won wisdom:
     eliminating this avoidable warning condition for newly recorded sessions.
 - Validation:
   - Regenerated `seed331` to a temp session and verified warning text is absent.
+
+## 2026-03-10: `mhitu` branch-closure chunk (`AD_CURS` + `AD_FAMN`) and stale ledger fixes
+
+- Problem:
+  - `mhitu_ad_curs` still forced `mhm.damage = 0`, which is not C-faithful in
+    the hero-target branch (C keeps normal physical damage and applies curse
+    side effects conditionally).
+  - `mhitu_ad_famn` consumed `rn1(40,40)` unconditionally and did not apply the
+    actual hunger change branch.
+  - `docs/CODEMATCH.md` still had stale rows marking several `mhitu` handlers
+    (`AD_CURS`, `AD_POLY`, `AD_SAMU`, `AD_FAMN`) as stubs despite landed code.
+- Change:
+  - `js/mhitu.js`:
+    - `mhitu_ad_curs` now follows C branch shape:
+      - daytime gremlin early-return,
+      - `!mcan && !rn2(10)` curse gate,
+      - laughter messaging (blind/deaf aware),
+      - clay-golem rehumanize branch,
+      - `attrcurse()` application,
+      - and importantly preserves normal physical damage.
+    - `mhitu_ad_famn` now applies hunger drain only when hero is not fainted:
+      `morehungry(rn1(40,40))`, matching C branch structure.
+  - `test/unit/combat.test.js`:
+    - added regression test that `AD_CURS` no longer zeroes physical damage.
+    - added `AD_FAMN` hunger gating test (normal vs fainted hero).
+  - `docs/CODEMATCH.md`:
+    - updated stale `mhitu` rows for `AD_CURS`, `AD_POLY`, `AD_SAMU`,
+      and `AD_FAMN` from stub wording to accurate partial implementations.

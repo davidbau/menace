@@ -20,7 +20,7 @@ import {
     MZ_HUMAN, MZ_HUGE,
     AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_HUGS,
     AT_TENT, AT_WEAP, AT_ENGL, AT_NONE, AT_BOOM, AT_EXPL, AT_GAZE, AT_SPIT, AT_BREA, AT_MAGC,
-    S_NYMPH, S_EEL, PM_AMOROUS_DEMON, PM_MEDUSA, PM_BALROG, PM_GREEN_SLIME,
+    S_NYMPH, S_EEL, PM_AMOROUS_DEMON, PM_MEDUSA, PM_BALROG, PM_GREEN_SLIME, PM_GREMLIN, PM_CLAY_GOLEM,
     AD_PHYS, AD_FIRE, AD_COLD, AD_SLEE, AD_ELEC, AD_DRST, AD_SLOW,
     AD_PLYS, AD_DRLI, AD_DREN, AD_STON, AD_STCK, AD_TLPT, AD_CONF,
     AD_DRIN, AD_ACID, AD_BLND, AD_STUN, AD_WRAP, AD_RUST, AD_CORR,
@@ -52,6 +52,7 @@ import { poisoned, acurr } from './attrib.js';
 import { set_wounded_legs } from './do.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
 import { losexp } from './exper.js';
+import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
 import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
@@ -68,8 +69,10 @@ import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } 
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
 import { nomul } from './hack.js';
-import { body_part, polymon } from './polyself.js';
+import { body_part, polymon, rehumanize } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
+import { night } from './calendar.js';
+import { attrcurse } from './sit.js';
 
 const PIERCE = 1;
 
@@ -201,6 +204,10 @@ function playerHasProp(player, prop) {
 function maybe_half_phys(n, player) {
     const hasHalf = !!(player?.halfPhysDamage || player?.Half_physical_damage);
     return hasHalf ? Math.max(1, Math.floor((n + 1) / 2)) : n;
+}
+
+function player_is_fainted(player) {
+    return !!(player?.fainted || player?.unconscious || player?.unaware || player?.Unaware);
 }
 
 // cf. attrib.c drain_en() — drain hero's spell energy
@@ -684,13 +691,27 @@ async function mhitu_ad_sgld(monster, attack, player, mhm, ctx) {
 // cf. uhitm.c:3015 mhitm_ad_curs — mhitu branch
 async function mhitu_ad_curs(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
-    // C: if (!magr->mcan && !rn2(10)) — curse effect
-    if (!monster.mcan && !rn2(10)) {
-        // Curse items — not fully implemented
-        if (!ctx.suppressHitMsg)
-            await ctx.display.putstr_message('You feel as if you need some help.');
+    const pa = monster?.data || monster?.type || {};
+    if (!night() && pa === mons[PM_GREMLIN]) {
+        return;
     }
-    mhm.damage = 0;
+    if (!monster.mcan && !rn2(10)) {
+        if (!ctx.suppressHitMsg && !player?.deaf) {
+            if (player?.blind) {
+                await ctx.display.putstr_message('You hear laughter.');
+            } else {
+                await ctx.display.putstr_message(`The ${x_monnam(monster)} chuckles.`);
+            }
+        }
+        if (Number(player?.umonnum ?? -1) === PM_CLAY_GOLEM) {
+            if (!ctx.suppressHitMsg) {
+                await ctx.display.putstr_message('Some writing vanishes from your head!');
+            }
+            await rehumanize(player);
+            return;
+        }
+        await attrcurse(player, ctx.display);
+    }
 }
 
 // cf. uhitm.c:3531 mhitm_ad_slim — mhitu branch (slime)
@@ -982,8 +1003,9 @@ async function mhitu_ad_famn(monster, attack, player, mhm, ctx) {
         );
     }
     await exercise(player, A_CON, false);
-    // C: morehungry(rn1(40, 40)) — hunger not implemented
-    rn1(40, 40);
+    if (!player_is_fainted(player)) {
+        await morehungry(player, rn1(40, 40));
+    }
 }
 
 // cf. uhitm.c:3885 mhitm_ad_halu — mhitu branch
