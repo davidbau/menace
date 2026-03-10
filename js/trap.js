@@ -1887,7 +1887,7 @@ export async function sink_into_lava(player) {
       svk.killer.format = KILLED_BY;
       svk.killer.name = "molten lava";
       await urgent_pline("You sink below the surface and die.");
-      burn_away_slime();
+      await burn_away_slime();
       await done(DISSOLVED);
       await reset_utrap(true);
       if (!(player?.Levitation || player?.levitating || false) && !(player?.Flying || player?.flying || false)) {
@@ -1895,7 +1895,7 @@ export async function sink_into_lava(player) {
       }
     }
     else if (!player.umoved) {
-      if (Slimed && rnd(10 - 1) >= Math.trunc(Slimed & TIMEOUT)) { await pline(sink_deeper); burn_away_slime(); }
+      if (Slimed && rnd(10 - 1) >= Math.trunc(Slimed & TIMEOUT)) { await pline(sink_deeper); await burn_away_slime(); }
       else { await Norep(sink_deeper); }
       player.utrap += rnd(4);
     }

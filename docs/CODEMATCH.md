@@ -5129,7 +5129,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 981 | `attach_egg_hatch_timeout` | 473 | Aligned |
 | 1204 | `attach_fig_transform_timeout` | 509 | Aligned |
 | 1712 | `begin_burn` | 542 | Aligned |
-| 448 | `burn_away_slime` | 587 | Stub (no-op) |
+| 448 | `burn_away_slime` | timeout.js:1274 | Implemented |
 | 1383 | `burn_object` | 524 | Aligned |
 | 295 | `choke_dialogue` | timeout.js:1151 | Implemented |
 | 1828 | `cleanup_burn` | 551 | Aligned |
@@ -5141,7 +5141,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2459 | `insert_timer` | 247 | Aligned |
 | 1009 | `kill_egg` | 492 | Aligned |
 | 1995 | `kind_name` | 130 | Aligned |
-| 1360 | `lantern_message` | 593 | Stub (no-op) |
+| 1360 | `lantern_message` | timeout.js:1325 | Implemented |
 | 1193 | `learn_egg_type` | timeout.js:learn_egg_type | Implemented |
 | 353 | `levitation_dialogue` | timeout.js:1205 | Implemented |
 | 2619 | `maybe_write_timer` | - | N/A (save/restore) |
@@ -5162,12 +5162,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 2699 | `restore_timers` | 611 | Stub |
 | 2214 | `run_timers` | 268 | Aligned |
 | 2660 | `save_timers` | 615 | Stub |
-| 1345 | `see_lamp_flicker` | 592 | Stub (no-op) |
+| 1345 | `see_lamp_flicker` | timeout.js:1308 | Implemented |
 | 323 | `sickness_dialogue` | timeout.js:1184 | Implemented |
 | 268 | `sleep_dialogue` | timeout.js:1129 | Implemented |
 | 389 | `slime_dialogue` | timeout.js:1241 | Implemented |
-| 457 | `slimed_to_death` | 588 | Stub (no-op) |
-| 1222 | `slip_or_trip` | 591 | Stub (no-op) |
+| 457 | `slimed_to_death` | timeout.js:1282 | Implemented |
+| 1222 | `slip_or_trip` | timeout.js:1292 | Implemented (simplified message subset) |
 | 2408 | `spot_stop_timers` | 377 | Aligned |
 | 2437 | `spot_time_expires` | 389 | Aligned |
 | 2451 | `spot_time_left` | 399 | Aligned |

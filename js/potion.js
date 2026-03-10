@@ -955,7 +955,7 @@ export async function peffect_oil(player, otmp, display) {
             const dmg = d(vulnerable ? 4 : 2, 4);
             await losehp(dmg, "quaffing a burning potion of oil", KILLED_BY, player);
         }
-        burn_away_slime();
+        await burn_away_slime();
     } else if (otmp.cursed) {
         await pline("This tastes like castor oil.");
     } else {

@@ -468,7 +468,7 @@ export async function dosit(player, map, display) {
         await You(sit_message, "ladder");
     } else if (is_lava(px, py, map)) {
         await You(sit_message, "lava");
-        burn_away_slime();
+        await burn_away_slime();
         if (likes_lava(playerType)) {
             await pline_The("lava feels warm.");
             return 1; // ECMD_TIME

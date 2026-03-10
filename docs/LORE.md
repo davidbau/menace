@@ -6705,3 +6705,34 @@ hard-won wisdom:
   - `node --test test/unit/codematch_blindness_restore_surface.test.js`
   - `node scripts/test-unit-core.mjs`
   - Both passed.
+
+### CODEMATCH timeout helper closure (`burn_away_slime`, `slimed_to_death`, lamp + fumble helpers) (2026-03-10)
+
+- Problem:
+  - Several `timeout.c` helpers were still true JS no-ops:
+    `burn_away_slime`, `slimed_to_death`, `slip_or_trip`,
+    `see_lamp_flicker`, `lantern_message`.
+- Change:
+  - `js/timeout.js`:
+    - Implemented `burn_away_slime(player)` by routing through
+      `make_slimed(..., 0, "The slime that covers you is burned away!")`.
+    - Implemented `slimed_to_death(kptr, player)` to set terminal sliming
+      death through `done_timeout`.
+    - Implemented `slip_or_trip(player, map)` as a simplified message subset
+      with ice/hallucination-aware variants.
+    - Implemented `see_lamp_flicker` and `lantern_message` message helpers.
+    - Wired `_fireExpiryEffect` SLIMED path to call `slimed_to_death`.
+    - Wired FUMBLING expiry path to invoke `slip_or_trip` when applicable.
+  - `js/potion.js`, `js/trap.js`, `js/sit.js`:
+    - Updated `burn_away_slime()` callsites to `await burn_away_slime()`
+      now that the helper performs async status/message work.
+  - Added targeted coverage:
+    - `test/unit/codematch_timeout_surface.test.js`
+      - slimed timeout burn-away clear
+      - slimed death terminal state
+      - lamp helper callability
+  - Updated `docs/CODEMATCH.md` rows from stub to implemented for the above.
+- Validation:
+  - `node --test test/unit/codematch_timeout_surface.test.js`
+  - `node scripts/test-unit-core.mjs`
+  - Both passed.

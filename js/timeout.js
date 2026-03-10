@@ -17,7 +17,7 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          STONED, SLIMED, STRANGLED, INVIS, SEE_INVIS, DISPLACED,
          PASSES_WALLS, MAGICAL_BREATHING, FLYING,
          FIRE_RES, STONE_RES, DETECT_MONSTERS, PROT_FROM_SHAPE_CHANGERS,
-         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE,
+         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE, ICE,
          TIMER_KIND, TIMER_FUNC, MELT_ICE_AWAY,
          NO_MINVENT, MM_NOMSG,
          LS_OBJECT, OBJ_INVENT, OBJ_FLOOR, OBJ_CONTAINED,
@@ -644,8 +644,7 @@ async function _fireExpiryEffect(player, prop, context = {}) {
 
     case SLIMED:
         // C ref: slimed_to_death() — sliming death
-        await pline("You have become a green slime.");
-        done_timeout('slimed', 'sliming');
+        await slimed_to_death(null, player);
         break;
 
     case VOMITING:
@@ -746,6 +745,9 @@ async function _fireExpiryEffect(player, prop, context = {}) {
         //     HFumbling &= ~FROMOUTSIDE;
         //     if (Fumbling) incr_itimeout(&HFumbling, rnd(20));
         if (entry) entry.intrinsic &= ~FROMOUTSIDE;
+        if (player.umoved && !(player.levitating || player.flying)) {
+            await slip_or_trip(player, context.map || _timeoutContext.map);
+        }
         if (entry && (entry.intrinsic || entry.extrinsic)) {
             // Still fumbling from another source — restart timer
             const e = player.ensureUProp(FUMBLING);
@@ -1271,13 +1273,77 @@ export async function slime_dialogue(player) {
         p.uprops[FAST].intrinsic &= ~TIMEOUT;
     }
 }
-export function burn_away_slime() {}
-export function slimed_to_death(_ptr) {}
+export async function burn_away_slime(player = _timeoutContext.player) {
+    if (!player || !player.getPropTimeout || !player.getPropTimeout(SLIMED)) return;
+    const fns = await getStatusFns();
+    if (fns.make_slimed) {
+        await fns.make_slimed(player, 0, "The slime that covers you is burned away!");
+    }
+}
+
+export async function slimed_to_death(kptr, player = _timeoutContext.player) {
+    if (!player) return;
+    const reason = (kptr && typeof kptr.name === 'string' && kptr.name.trim())
+        ? kptr.name
+        : 'turned into green slime';
+    await pline("You have become a green slime.");
+    done_timeout('slimed', reason);
+}
 export function phaze_dialogue() {}
 export function region_dialogue() {}
-export function slip_or_trip() {}
-export function see_lamp_flicker() {}
-export function lantern_message() {}
+export async function slip_or_trip(player = _timeoutContext.player, map = _timeoutContext.map) {
+    if (!player) return;
+    const onIce = !!(map?.at && map.at(player.x, player.y)?.typ === ICE);
+    if (onIce) {
+        await pline("You slip on the ice.");
+        return;
+    }
+    if (player.hallucinating || player.getPropTimeout?.(HALLUC)) {
+        const hmsgs = [
+            "Egads!  Something bites your foot!",
+            "You slip on a banana peel.",
+            "You flounder.",
+            "You stumble."
+        ];
+        await pline(hmsgs[rn2(hmsgs.length)]);
+        return;
+    }
+    const msgs = ["You trip over something.", "You slip and nearly fall.", "You flounder.", "You stumble."];
+    await pline(msgs[rn2(msgs.length)]);
+}
+
+export async function see_lamp_flicker(obj, tailer = '') {
+    if (!obj) return;
+    const name = obj.oname || obj.name || 'light';
+    switch (obj.where) {
+    case OBJ_INVENT:
+    case OBJ_MINVENT:
+        await pline("%s flickers%s.", name, tailer || '');
+        break;
+    case OBJ_FLOOR:
+        await pline("You see %s flicker%s.", name, tailer || '');
+        break;
+    default:
+        break;
+    }
+}
+
+export async function lantern_message(obj) {
+    if (!obj) return;
+    switch (obj.where) {
+    case OBJ_INVENT:
+        await pline("Your lantern is getting dim.");
+        break;
+    case OBJ_FLOOR:
+        await pline("You see a lantern getting dim.");
+        break;
+    case OBJ_MINVENT:
+        await pline("A monster's lantern is getting dim.");
+        break;
+    default:
+        break;
+    }
+}
 
 export function timerSanityCheck() {
     return timer_sanity_check();
