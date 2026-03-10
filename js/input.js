@@ -8,7 +8,7 @@ import {
     CQ_CANNED, CQ_REPEAT,
 } from './const.js';
 import { envFlag } from './runtime_env.js';
-import { consumePendingMore, waitForMoreDismissKey } from './more_keys.js';
+import { waitForMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 
 function ynTraceEnabled() {
@@ -453,12 +453,8 @@ function popQueuedInputKey(inDoAgain = false) {
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
 export function nhgetch_raw(opts = {}) {
-    const allowPendingMore = opts?.allowPendingMore === true;
     const site = opts?.site || 'input.nhgetch_raw';
     const display = getRuntimeDisplay();
-    if (!allowPendingMore && display?._pendingMore) {
-        throw new Error(`[nhgetch_raw] pending --More-- requires explicit boundary handling at ${site}`);
-    }
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
         .then((ch) => {
@@ -530,22 +526,10 @@ export function nhgetch(opts = {}) {
 export async function more(display, { site = 'input.more', game = null, forceVisual = false } = {}) {
     if (!display) return;
     const ctxGame = game ?? activeGame ?? null;
-    const readMoreKey = () => nhgetch_raw({
-        allowPendingMore: true,
-        site: `${site}.key`,
-    });
+    const readMoreKey = () => nhgetch_raw({ site: `${site}.key` });
 
     if (forceVisual && typeof display.renderMoreMarker === 'function') {
         display.renderMoreMarker();
-    }
-
-    if (display._pendingMore && typeof display._clearMore === 'function') {
-        return consumePendingMore(
-            display,
-            readMoreKey,
-            () => display._clearMore(),
-            { game: ctxGame, site }
-        );
     }
 
     const ch = await waitForMoreDismissKey(readMoreKey, { game: ctxGame, site });
@@ -586,12 +570,7 @@ export async function getlin(prompt, display) {
     // Initial display
     await updateDisplay();
 
-    const readPromptKey = async (site) => {
-        if (disp && disp._pendingMore) {
-            await more(disp, { site: `${site}.pre-more`, game: activeGame ?? null });
-        }
-        return nhgetch_raw({ site: `${site}.read` });
-    };
+    const readPromptKey = async (site) => nhgetch_raw({ site: `${site}.read` });
 
     while (true) {
         const ch = await readPromptKey('input.getlin');
@@ -646,12 +625,7 @@ export async function ynFunction(query, choices, def, display) {
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
-    const readPromptKey = async (site) => {
-        if (disp && disp._pendingMore) {
-            await more(disp, { site: `${site}.pre-more`, game: activeGame ?? null });
-        }
-        return nhgetch_raw({ site: `${site}.read` });
-    };
+    const readPromptKey = async (site) => nhgetch_raw({ site: `${site}.read` });
 
     while (true) {
         const ch = await readPromptKey('input.ynFunction');
@@ -699,12 +673,7 @@ export async function getCount(firstKey, maxCount, display) {
         key = 0; // Clear so we read next key
     }
 
-    const readPromptKey = async (site) => {
-        if (disp && disp._pendingMore) {
-            await more(disp, { site: `${site}.pre-more`, game: activeGame ?? null });
-        }
-        return nhgetch_raw({ site: `${site}.read` });
-    };
+    const readPromptKey = async (site) => nhgetch_raw({ site: `${site}.read` });
 
     while (true) {
         // If we don't have a key yet, read one

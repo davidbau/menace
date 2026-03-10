@@ -577,6 +577,38 @@ temporarily under Gate B).
 
 **Gate**: All tests pass. All gameplay sessions pass.
 
+#### Phase 3e: Remove `_pendingMore` / queued-more fallback (active cleanup)
+
+`_pendingMore`, `_pendingMoreNoCursor`, and `_messageQueue` are legacy
+non-blocking fallback state. They were useful while replay/harness paths still
+dispatched keys through boundary owners, but they are no longer aligned with
+the strict async single-threaded model.
+
+**Target state**:
+
+1. `Display.putstr_message()` and `HeadlessDisplay.putstr_message()` always
+   resolve message boundaries synchronously by awaiting key dismissal at the
+   exact `--More--` point (no deferred queueing).
+2. No command-loop/prompt path checks `display._pendingMore` before reading
+   keys.
+3. `more()` is the only explicit `--More--` wait helper.
+4. `replay_core` startup settlement does not mutate `_pendingMore`.
+
+**Removal scope**:
+
+- display/headless fields and branches:
+  - `_pendingMore`
+  - `_pendingMoreNoCursor`
+  - `_messageQueue`
+  - `markMorePending(...)`
+  - `_clearMore()` queue-resume fallback
+- input/allmain/replay checks and fallback paths that branch on `_pendingMore`.
+
+**Gate**:
+
+- `npm test --silent` passes.
+- `scripts/run-and-report.sh` remains `34/34` green.
+
 #### Phase 3c: Simplify run_command
 
 **What `run_command` becomes**:

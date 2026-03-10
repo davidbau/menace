@@ -2339,9 +2339,6 @@ export class NetHackGame {
     }
 
     async _readCommandLoopKey(site) {
-        if (this.display?._pendingMore) {
-            await more(this.display, { game: this, site: `${site}.pre-more` });
-        }
         return await nhgetch_raw({ site: `${site}.read` });
     }
 
