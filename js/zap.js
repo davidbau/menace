@@ -60,7 +60,7 @@ import {
   rndmonnum, makemon,
 } from './makemon.js';
 import { NO_MINVENT } from './const.js';
-import { next_ident, mksobj, mkobj, weight, costly_alteration } from './mkobj.js';
+import { next_ident, mksobj, mkobj, weight, costly_alteration, obj_extract_self } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
@@ -164,16 +164,6 @@ function t_at(x, y, map) {
     if (t && t.tx === x && t.ty === y) return t;
   }
   return null;
-}
-
-function obj_extract_self(obj, map) {
-  if (!obj || !map || !Array.isArray(map.objects)) return;
-  if (typeof map.removeObject === 'function') {
-    map.removeObject(obj);
-    return;
-  }
-  const idx = map.objects.indexOf(obj);
-  if (idx >= 0) map.objects.splice(idx, 1);
 }
 
 function is_hero_spell(type) { return type >= 10 && type < 20; }

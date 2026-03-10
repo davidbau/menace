@@ -29,7 +29,8 @@ import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
-import { u_at } from './hack.js';
+import { u_at, money_cnt } from './hack.js';
+import { sobj_at } from './invent.js';
 
 // detect.js -- Detection spells, scrolls, and searching
 // cf. detect.c -- Full port of all detection routines.
@@ -59,20 +60,9 @@ function closed_door(map, x, y) {
     if (!loc || !IS_DOOR(loc.typ)) return false;
     return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
 }
-function sobj_at(otyp, x, y, map) {
-    const objs = map.objectsAt ? map.objectsAt(x, y) : [];
-    for (const obj of objs) if (obj.otyp === otyp) return obj;
-    return null;
-}
+
 function nomul(game, turns) {
     if (game && typeof game.multi === 'number') game.multi = turns;
-}
-function money_cnt(inventory) {
-    if (!inventory) return 0;
-    let total = 0;
-    for (const obj of inventory)
-        if (obj.otyp === GOLD_PIECE) total += (obj.quan || 1);
-    return total;
 }
 function hidden_gold() { return 0; }
 function get_obj_location(otmp) {

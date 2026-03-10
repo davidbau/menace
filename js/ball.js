@@ -22,6 +22,7 @@ import { xname } from './objnam.js';
 import { HEAVY_IRON_BALL, IRON_CHAIN } from './objects.js';
 import { exercise } from './attrib_exercise.js';
 import { maybe_unhide_at } from './mon.js';
+import { obj_extract_self } from './mkobj.js';
 import { t_at } from './trap.js';
 
 // cf. ball.c:17 — static restriction state
@@ -109,14 +110,6 @@ function place_object(obj, x, y, map) {
 // Helper: remove_object — remove object from map floor
 function remove_object(obj, map) {
     if (map && map.removeObject) map.removeObject(obj);
-    obj.where = 'OBJ_FREE';
-}
-
-// Helper: obj_extract_self — remove object from wherever it is
-function obj_extract_self(obj, map) {
-    if (obj.where === 'OBJ_FLOOR') {
-        if (map && map.removeObject) map.removeObject(obj);
-    }
     obj.where = 'OBJ_FREE';
 }
 

@@ -51,7 +51,7 @@ import { cansee } from './vision.js';
 import { mb_trapped } from './monmove.js';
 import { canseemon, is_whirly, digests, unique_corpstat } from './mondata.js';
 import { mksobj } from './mkobj.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, sobj_at } from './invent.js';
 import { makemon, mkclass } from './makemon.js';
 import {
     BOULDER, ROCK, STATUE, HEAVY_IRON_BALL, CORPSE,
@@ -95,11 +95,6 @@ function closed_door(x, y, map) {
     return !!(loc.flags & (D_CLOSED | D_LOCKED));
 }
 
-// C ref: sobj_at(otyp, x, y) — is there an object of given type at (x,y)?
-function sobj_at(otyp, x, y, map) {
-    const objs = map.objectsAt ? map.objectsAt(x, y) : [];
-    return objs.find(o => o.otyp === otyp) || null;
-}
 
 // C ref: may_dig(x, y) — is digging allowed at this location?
 export function may_dig(x, y, map) {

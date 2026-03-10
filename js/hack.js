@@ -61,7 +61,7 @@ import { stucksteed } from './steed.js';
 import { in_out_region } from './region.js';
 import { drag_ball as drag_ball_core } from './ball.js';
 import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
-import { look_here, dfeature_at } from './invent.js';
+import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS } from './const.js';
@@ -2342,16 +2342,6 @@ function closed_door(x, y, map) {
     return !!((loc.flags || 0) & (D_CLOSED | D_LOCKED));
 }
 
-// C ref: hack.c sobj_at() — find object of given type at (x,y)
-function sobj_at(otyp, x, y, map) {
-    const objs = map.objectsAt ? map.objectsAt(x, y) : [];
-    // C ref: floor object chain is scanned from top object downward.
-    for (let i = objs.length - 1; i >= 0; i--) {
-        const obj = objs[i];
-        if (obj.otyp === otyp) return obj;
-    }
-    return null;
-}
 
 // --------------------------------------------------------------------
 // Carrying capacity (hack.c weight_cap / inv_weight / calc_capacity etc.)
@@ -2456,13 +2446,13 @@ export function inv_cnt(player, incl_gold) {
 }
 
 // C ref: hack.c money_cnt() — count gold in inventory
-// Autotranslated from hack.c:4443
-export function money_cnt(otmp) {
-  while (otmp) {
-    if (otmp.oclass === COIN_CLASS) return otmp.quan;
-    otmp = otmp.nobj;
+export function money_cnt(inventory) {
+  if (!inventory) return 0;
+  let total = 0;
+  for (const obj of inventory) {
+    if (obj && obj.oclass === COIN_CLASS) total += (obj.quan || 1);
   }
-  return 0;
+  return total;
 }
 
 // C ref: hack.c cmp_weights()

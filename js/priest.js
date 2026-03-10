@@ -35,6 +35,7 @@ import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
 import { RLOC_NOMSG, SPINE } from './const.js';
 import { buzz } from './zap.js';
+import { money_cnt } from './hack.js';
 
 // cf. priest.c:9-10 — alignment thresholds
 const ALGN_SINNED = -4;
@@ -293,20 +294,6 @@ function nomul(player, turns) {
     // Simplified stub: set multi-turn counter
     if (player) player.multi = turns;
 }
-function money_cnt(inventory) {
-    if (!inventory) return 0;
-    if (Array.isArray(inventory)) {
-        let total = 0;
-        for (const obj of inventory) {
-            if (obj && (obj.oclass === COIN_CLASS || obj.otyp === GOLD_PIECE)) {
-                total += obj.quan || 1;
-            }
-        }
-        return total;
-    }
-    return 0;
-}
-
 // in_rooms helper (also in vault.js — local copy for self-containment)
 function in_rooms(x, y, rtype, map) {
     if (!map || !map.rooms) return '';

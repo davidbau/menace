@@ -35,7 +35,8 @@ import { Monnam, noit_Monnam, noit_mon_nam, Some_Monnam, x_monnam,
          Mgender, pmname, mon_nam } from './do_name.js';
 import { m_carrying } from './weapon.js';
 import { upstart, dist2, distu } from './hacklib.js';
-import { currency } from './invent.js';
+import { money_cnt } from './hack.js';
+import { currency, sobj_at } from './invent.js';
 import { placeFloorObject } from './invent.js';
 import { deltrap } from './dungeon.js';
 import { add_to_minv } from './mkobj.js';
@@ -67,32 +68,10 @@ function g_at(x, y, map) {
     return null;
 }
 
-// C ref: sobj_at(otyp, x, y) — find object of given type at location
-function sobj_at(otyp, x, y, map) {
-    if (!map) return null;
-    const objects = map.objectsAt ? map.objectsAt(x, y) : [];
-    for (const obj of objects) {
-        if (!obj || obj.buried) continue;
-        if (obj.otyp === otyp) return obj;
-    }
-    return null;
-}
 
 // C ref: del_engr_at(x, y) — delete engravings at location (stub)
 function del_engr_at(x, y, map) {
     // Engravings not fully tracked in JS yet
-}
-
-// C ref: money_cnt(invent) — count gold coins in inventory
-function money_cnt(inventory) {
-    if (!inventory || !Array.isArray(inventory)) return 0;
-    let total = 0;
-    for (const obj of inventory) {
-        if (obj && obj.oclass === COIN_CLASS) {
-            total += (obj.quan || 1);
-        }
-    }
-    return total;
 }
 
 // C ref: um_dist(x, y, n) — is hero within n steps of (x,y)?

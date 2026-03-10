@@ -12,7 +12,8 @@ import { objectData, COIN_CLASS, CORPSE, ICE_BOX, LARGE_BOX, CHEST,
          CLASS_SYMBOLS } from './objects.js';
 import { more, nhgetch_raw, getlin, ynFunction } from './input.js';
 import { doname, xname, Is_container, weight, splitobj, unbless, set_bknown,
-         set_corpsenm, start_corpse_timeout, add_to_container, add_to_minv } from './mkobj.js';
+         set_corpsenm, start_corpse_timeout, add_to_container, add_to_minv,
+         obj_extract_self } from './mkobj.js';
 import { observeObject } from './o_init.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './do.js';
 import { mons, PM_HOUSECAT, PM_ICE_TROLL, MZ_LARGE } from './monsters.js';
@@ -121,11 +122,6 @@ export async function show_invalid_direction_cmdassist_help(display) {
         return;
     }
     await display?.putstr_message?.('cmdassist: Invalid direction key!');
-}
-
-function obj_extract_self(obj) {
-    // Stub: in the JS port, object list management is handled differently.
-    // This is a no-op placeholder for C's obj_extract_self().
 }
 
 function is_worn(obj) {

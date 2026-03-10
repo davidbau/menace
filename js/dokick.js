@@ -63,7 +63,7 @@ import { mpickobj } from './steal.js';
 import { monflee } from './monmove.js';
 import { cansee } from './vision.js';
 import { recalc_block_point, unblock_point } from './vision.js';
-import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym } from './hack.js';
+import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym, money_cnt } from './hack.js';
 import { in_rooms } from './hack.js';
 import { is_pool, is_ice, is_drawbridge_wall, find_drawbridge } from './dbridge.js';
 import { noteleport_level, goodpos, rloco } from './teleport.js';
@@ -77,7 +77,7 @@ import { scatter } from './explode.js';
 import { sobj_at, delobj } from './invent.js';
 import { snuff_candle } from './apply.js';
 import { bhit } from './zap.js';
-import { dealloc_obj } from './mkobj.js';
+import { dealloc_obj, obj_extract_self } from './mkobj.js';
 import { find_trap } from './detect.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import {
@@ -200,14 +200,6 @@ function isok(x, y) {
     return x >= 0 && x < 80 && y >= 0 && y < 21;
 }
 
-// obj_extract_self - remove object from its current location
-function obj_extract_self(obj, map) {
-    if (!map) return;
-    if (map.removeObject) {
-        map.removeObject(obj);
-    }
-}
-
 // obfree — free an object (destroy it)
 function obfree(obj, map) {
     // In JS, just let GC handle it
@@ -271,16 +263,6 @@ async function miss(what, mtmp) {
 
 // hidden_gold stub
 function hidden_gold(_countonly) { return 0; }
-
-// money_cnt — count gold in inventory
-function money_cnt(inv) {
-    if (!inv) return 0;
-    let total = 0;
-    for (const obj of inv) {
-        if (obj && obj.oclass === COIN_CLASS) total += (obj.quan || 0);
-    }
-    return total;
-}
 
 // makeplural imported from objnam.js
 
