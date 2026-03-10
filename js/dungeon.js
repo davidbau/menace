@@ -5363,7 +5363,6 @@ export function free_exclusions() {
   let ez = sve.exclusion_zones;
   while (ez) {
     let nxtez = ez.next;
-    (ez, 0);
     ez = nxtez;
   }
   sve.exclusion_zones =  0;
@@ -5447,7 +5446,6 @@ export async function show_overview(why, reason, map) {
     lev.dnum = ledger_to_dnum(ledger);
     lev.dlevel = ledger_to_dlev(ledger);
     query_annotation( lev);
-    (selected, 0);
   }
   destroy_nhwindow(win);
 }

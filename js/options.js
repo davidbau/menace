@@ -1431,7 +1431,6 @@ export async function handler_disclose(game) {
       if (n > 0) {
         game.flags.end_disclose[i] = disclosure_pick[0].item.a_char;
         if (n > 1 && game.flags.end_disclose[i] === c) game.flags.end_disclose[i] = disclosure_pick[1].item.a_char;
-        (disclosure_pick, 0);
       }
       destroy_nhwindow(tmpwin);
     }

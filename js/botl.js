@@ -197,11 +197,7 @@ export function status_finish(game) {
     game.gb.blstats[0][i].hilite_rule = game.gb.blstats[1][i].hilite_rule = 0;
     if (game.gb.blstats[0][i].thresholds) {
       let temp, next;
-      for (temp = game.gb.blstats[0][i].thresholds; temp; temp = next) {
-        next = temp.next;
-        (temp, 0);
-      }
-      game.gb.blstats[0][i].thresholds = game.gb.blstats[1][i].thresholds =  null;
+      game.gb.blstats[0][i].thresholds = game.gb.blstats[1][i].thresholds = null;
     }
   }
 }
@@ -375,7 +371,6 @@ export async function query_conditions() {
     for (i = 0; i < res; i++) {
       ret |= picks[i].item.a_ulong;
     }
-    (picks, 0);
   }
   return ret;
 }
@@ -421,10 +416,6 @@ export function clear_status_hilites(game) {
   let i;
   for (i = 0; i < MAXBLSTATS; ++i) {
     let temp, next;
-    for (temp = game.gb.blstats[0][i].thresholds; temp; temp = next) {
-      next = temp.next;
-      (temp, 0);
-    }
     game.gb.blstats[0][i].thresholds = game.gb.blstats[1][i].thresholds = 0;
     game.gb.blstats[0][i].hilite_rule = game.gb.blstats[1][i].hilite_rule = 0;
   }
@@ -468,7 +459,6 @@ export function status_hilite_linestr_done() {
   let nxt, tmp = status_hilite_str;
   while (tmp) {
     nxt = tmp.next;
-    (tmp, 0);
     tmp = nxt;
   }
   status_hilite_str =  0;
