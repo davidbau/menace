@@ -355,7 +355,6 @@ export async function choose_disco_sort(mode, game) {
   if (n > 0) {
     choice = selected[0].item.a_int;
     if (n > 1 && choice ===  game.flags.discosort) choice = selected[1].item.a_int;
-    (selected, 0);
     game.flags.discosort = choice;
   }
   return n;

@@ -230,7 +230,6 @@ export function restcemetery(nhfp, cemeteryaddr) {
     nextbones = cemeteryaddr;
     while ((thisbones = nextbones) != null) {
       nextbones = thisbones.next;
-      (thisbones, 0);
     }
      cemeteryaddr = 0;
   }

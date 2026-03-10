@@ -3876,9 +3876,6 @@ export function savedsym_free() {
   let tmp = saved_symbols, tmp2;
   while (tmp) {
     tmp2 = tmp.next;
-    (tmp.name, 0);
-    (tmp.val, 0);
-    (tmp, 0);
     tmp = tmp2;
   }
 }

@@ -168,10 +168,9 @@ export function free_glyphid_cache() {
   let idx;
   if (!glyphid_cache) return;
   for (idx = 0; idx < glyphid_cache_size; ++idx) {
-    if (glyphid_cache[idx].id) { (glyphid_cache[idx].id, 0); glyphid_cache[idx].id =  0; }
+    if (glyphid_cache[idx].id) { glyphid_cache[idx].id = 0; }
   }
-  (glyphid_cache, 0);
-  glyphid_cache =  0;
+  glyphid_cache = 0;
 }
 
 // Autotranslated from glyphs.c:415
@@ -249,12 +248,10 @@ export function purge_custom_entries(which_set, player) {
     while (details) {
       next = details.next;
       if (gdc.custtype === custom_ureps) {
-        if (details.content.urep.player.utf8str) (details.content.urep.player.utf8str, 0);
         details.content.urep.player.utf8str = null;
       }
       else if (gdc.custtype === custom_symbols) { details.content.sym.symparse =  0; details.content.sym.val = 0; }
       else if (gdc.custtype === custom_nhcolor) { details.content.ccolor.nhcolor = 0; details.content.ccolor.glyphidx = 0; }
-      (details, 0);
       details = next;
     }
     gdc.details = 0;

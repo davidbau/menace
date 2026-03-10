@@ -82,9 +82,5 @@ export async function genl_outrip(tmpwin, how, when) {
   }
   await putstr(tmpwin, 0, "");
   await putstr(tmpwin, 0, "");
-  for (x = 0; rip_txt[x]; x++) {
-    (gr.rip[x], 0);
-  }
-  (gr.rip, 0);
   gr.rip = 0;
 }

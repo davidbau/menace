@@ -15,7 +15,6 @@ export function add_custom_urep_entry(customization_name, glyphidx, utf32ch, utf
   if (details) {
     while (details) {
       if (details.content.urep.glyphidx === glyphidx) {
-        if (details.content.urep.player.utf8str) (details.content.urep.player.utf8str, 0);
         if (utf32ch) {
           details.content.urep.player.utf8str = utf8str;
           details.content.urep.player.utf32ch = utf32ch;

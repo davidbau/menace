@@ -186,7 +186,6 @@ export function update_rect_pool_for_room(room) {
 
 // Autotranslated from rect.c:44
 export function free_rect() {
-  if (rect) (rect, 0);
   rect = 0;
   n_rects = rect_cnt = 0;
 }

@@ -865,7 +865,6 @@ export async function handler_pickup_burden(game) {
   end_menu(tmpwin, "Select encumbrance level:");
   if (await select_menu(tmpwin, PICK_ONE, burden_pick) > 0) {
     game.flags.pickup_burden = burden_pick.item.a_int - 1;
-    (burden_pick, 0);
   }
   destroy_nhwindow(tmpwin);
   return optn_ok;
@@ -975,7 +974,6 @@ export async function query_msgtype() {
   destroy_nhwindow(tmpwin);
   if (pick_cnt > 0) {
     i = picks.item.a_int - 1;
-    (picks, 0);
     return i;
   }
   return -1;
@@ -989,7 +987,6 @@ export function msgtype_add(typ, pattern) {
   if (!regex_compile(pattern, tmp.regex)) {
     let errbuf, re_error_desc = regex_error_desc(tmp.regex, errbuf);
     regex_free(tmp.regex);
-    (tmp, 0);
     config_error_add("%s: %s", re_error, re_error_desc);
     return false;
   }
@@ -1004,10 +1001,8 @@ export function msgtype_free() {
   let tmp, tmp2 = 0;
   for (tmp = gp.plinemsg_types; tmp; tmp = tmp2) {
     tmp2 = tmp.next;
-    (tmp.pattern, 0);
     regex_free(tmp.regex);
     tmp.regex = 0;
-    (tmp, 0);
   }
   gp.plinemsg_types =  0;
 }
@@ -1019,8 +1014,6 @@ export function free_one_msgtype(idx) {
     if (idx === 0) {
       let next = tmp.next;
       regex_free(tmp.regex);
-      (tmp.pattern, 0);
-      (tmp, 0);
       if (prev) prev.next = next;
       else {
         gp.plinemsg_types = next;
@@ -1320,7 +1313,6 @@ export function all_options_menucolors(sbuf, game) {
     buf = `MENUCOLOR="${tmp.origstr}"=${sclr}${(tmp.attr !== ATR_NONE) ? "&" : ""}${(tmp.attr !== ATR_NONE) ? sattr : ""}\n`;
     strbuf_append(sbuf, buf);
   }
-  (arr, 0);
 }
 
 // Autotranslated from options.c:9634
@@ -1408,7 +1400,6 @@ export async function handler_disclose(game) {
       opt_idx = disclosure_pick[pick_idx].item.a_int - 1;
       disc_cat[opt_idx] = 1;
     }
-    (disclosure_pick, 0);
     disclosure_pick = null;
   }
   destroy_nhwindow(tmpwin);
@@ -1513,14 +1504,12 @@ export function wc_set_window_colors(op) {
     for (j = 0; j < WC_COUNT; ++j) {
       if (!strcmpi(wn, wcnames[j]) || !strcmpi(wn, wcshortnames[j])) {
         if (!strstri(tfg, " ")) {
-          if ( fgp[j]) (fgp[j], 0);
           clr = check_enhanced_colors(tfg);
-           fgp[j] = (clr >= 0) ? wc_color_name(clr) : tfg;
+          fgp[j] = (clr >= 0) ? wc_color_name(clr) : tfg;
         }
         if (!strstri(tbg, " ")) {
-          if ( bgp[j]) (bgp[j], 0);
           clr = check_enhanced_colors(tbg);
-           bgp[j] = (clr >= 0) ? wc_color_name(clr) : tbg;
+          bgp[j] = (clr >= 0) ? wc_color_name(clr) : tbg;
         }
         if (wcolors_opt[j] !== 0) {
           config_error_add( "windowcolors for %s windows specified multiple times", wcnames[j]);

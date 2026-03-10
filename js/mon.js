@@ -2283,16 +2283,15 @@ export function copy_mextra(mtmp2, mtmp1) {
 export function dealloc_mextra(m) {
   let x = m.mextra;
   if (x) {
-    if (x.mgivenname) (x.mgivenname, 0), x.mgivenname = 0;
-    if (x.egd) (x.egd, 0), x.egd = 0;
-    if (x.epri) (x.epri, 0), x.epri = 0;
-    if (x.eshk) (x.eshk, 0), x.eshk = 0;
-    if (x.emin) (x.emin, 0), x.emin = 0;
-    if (x.edog) (x.edog, 0), x.edog = 0;
-    if (x.ebones) (x.ebones, 0), x.ebones = 0;
+    x.mgivenname = 0;
+    x.egd = 0;
+    x.epri = 0;
+    x.eshk = 0;
+    x.emin = 0;
+    x.edog = 0;
+    x.ebones = 0;
     x.mcorpsenm = NON_PM;
-    (x, 0);
-    m.mextra =  0;
+    m.mextra = 0;
   }
 }
 
