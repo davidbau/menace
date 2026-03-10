@@ -83,7 +83,8 @@ import { resist } from './zap.js';
 import { Luck } from './attrib.js';
 import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
-import { set_itimeout } from './potion.js';
+import { set_itimeout, make_sick, make_stunned, make_confused,
+         make_hallucinated, make_blinded, make_stoned, make_slimed } from './potion.js';
 import { feel_cockatrice, sobj_at, carried } from './invent.js';
 import { destroy_arm, makeknown } from './do_wear.js';
 import { record_achievement, align_str } from './insight.js';
@@ -321,44 +322,6 @@ function init_uhunger(player) {
     player.hunger = 900;
 }
 
-// Helper: make_sick
-function make_sick(player, duration, _cause, _talk, _type) {
-    player.sick = duration ? duration : 0;
-}
-
-// Helper: make_stunned
-function make_stunned(player, duration, _talk) {
-    player.stunned = duration ? duration : 0;
-}
-
-// Helper: make_confused
-function make_confused(player, duration, _talk) {
-    player.confused = duration ? duration : 0;
-}
-
-// Helper: make_hallucinated
-function make_hallucinated(player, duration, _talk, _mask) {
-    player.hallucinating = duration ? duration : 0;
-}
-
-// Helper: make_blinded
-function make_blinded(player, duration, _talk) {
-    const was_blind = !!player.blind;
-    player.blind = duration ? duration : 0;
-    if (!!player.blind !== was_blind) mark_vision_dirty();
-}
-
-// Helper: make_stoned
-async function make_stoned(player, duration, msg, _opt, _arg) {
-    if (player.stoned !== undefined) player.stoned = duration ? duration : 0;
-    if (msg) await pline(msg);
-}
-
-// Helper: make_slimed
-async function make_slimed(player, duration, msg) {
-    if (player.slimed !== undefined) player.slimed = duration ? duration : 0;
-    if (msg) await pline(msg);
-}
 
 
 // Helper: losehp -- lose hit points

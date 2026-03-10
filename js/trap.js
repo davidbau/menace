@@ -40,7 +40,7 @@ import { mons, PM_IRON_GOLEM, PM_RUST_MONSTER, PM_XORN, PM_PIT_FIEND, PM_PIT_VIP
 import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          BEAR_TRAP, LANDMINE, ROLLING_BOULDER_TRAP,
          SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP,
-         PIT, SPIKED_PIT, HOLE, TRAPDOOR,
+         PIT, SPIKED_PIT, HOLE, TRAPDOOR, is_pit, is_hole,
          TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL,
          WEB, STATUE_TRAP, MAGIC_TRAP, ANTI_MAGIC,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
@@ -113,11 +113,6 @@ function metallivorous(mptr) {
 // resists_magm and defended imported from mondata.js
 
 
-// C ref: is_pit() helper
-function is_pit(ttyp) { return ttyp === PIT || ttyp === SPIKED_PIT; }
-
-// C ref: is_hole()
-function is_hole(ttyp) { return ttyp === HOLE || ttyp === TRAPDOOR; }
 
 // Check if there's a boulder at (x,y) on the map
 function has_boulder_at(map, x, y) {
