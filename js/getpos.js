@@ -16,7 +16,6 @@ import {
     destroy_nhwindow,
 } from './windows.js';
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
-import { awaitInput } from './suspend.js';
 import { visctrl } from './hacklib.js';
 
 const HiliteNormalMap = 0;
@@ -618,7 +617,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
             }
-            const ch = await awaitInput(null, nhgetch_wrap(), { site: 'getpos.getpos_async.loop' });
+            const ch = await nhgetch_wrap();
             const c = String.fromCharCode(ch);
 
             if (ch === 27) {

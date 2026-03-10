@@ -63,7 +63,6 @@ import { flooreffects } from './do.js';
 import { stairway_at } from './stairs.js';
 import { t_at } from './trap.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
-import { awaitInput } from './suspend.js';
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',

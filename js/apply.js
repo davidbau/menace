@@ -63,7 +63,6 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
 import { more, nhgetch_raw, ynFunction } from './input.js';
-import { awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { make_glib } from './potion.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
@@ -1033,9 +1032,7 @@ export async function handleApply(player, map, display, game) {
         }
         if (isApplyChopWeapon(selected)) {
             await display.putstr_message('In what direction do you want to chop? [>] ');
-            await awaitInput(game, nhgetch_raw(), {
-                site: 'apply.chop.direction',
-            });
+            await nhgetch_raw({ site: 'apply.chop.direction' });
             replacePromptMessage();
             return { moved: false, tookTime: false };
         }
@@ -1045,9 +1042,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await awaitInput(game, nhgetch_raw(), {
-                    site: 'apply.lockpick.direction',
-                });
+                const dirCh = await nhgetch_raw({ site: 'apply.lockpick.direction' });
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
@@ -1127,9 +1122,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await awaitInput(game, nhgetch_raw(), {
-                    site: 'apply.use-directional.direction',
-                });
+                const dirCh = await nhgetch_raw({ site: 'apply.use-directional.direction' });
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
@@ -1177,9 +1170,7 @@ export async function handleApply(player, map, display, game) {
     };
 
     while (true) {
-        const ch = await awaitInput(game, nhgetch_raw(), {
-            site: 'apply.select.loop',
-        });
+        const ch = await nhgetch_raw({ site: 'apply.select.loop' });
         const c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

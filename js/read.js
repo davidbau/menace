@@ -3,7 +3,6 @@
 
 import { rn2, rn1, rnd, d } from './rng.js';
 import { more, nhgetch_raw } from './input.js';
-import { awaitInput } from './suspend.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
@@ -323,9 +322,7 @@ async function handleRead(player, display, game) {
     };
     await showReadPrompt();
     while (true) {
-        const ch = await awaitInput(game, nhgetch_raw(), {
-            site: 'read.handleRead.select',
-        });
+        const ch = await nhgetch_raw({ site: 'read.handleRead.select' });
         let c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();

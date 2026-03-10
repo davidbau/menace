@@ -8,7 +8,6 @@ import {
     CQ_CANNED, CQ_REPEAT,
 } from './const.js';
 import { envFlag } from './runtime_env.js';
-import { awaitInput } from './suspend.js';
 import { consumePendingMore, waitForMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 
@@ -548,7 +547,7 @@ export async function readBoundaryKey(display, site, game = null) {
         );
         display.messageNeedsMore = false;
     }
-    return await awaitInput(game, nhgetch_wrap({ handleMore: false }), { site });
+    return await nhgetch_wrap({ handleMore: false });
 }
 
 export async function more(display, { site = 'input.more', game = null, forceVisual = false, defer = false, noCursor = false } = {}) {

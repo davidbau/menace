@@ -44,7 +44,6 @@ import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
-import { awaitInput } from './suspend.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { isMoreDismissKey, waitForMoreDismissKey } from './more_keys.js';
@@ -1013,9 +1012,7 @@ span.nh-cursor {
 
         // Wait for selection
         this.putstr_message('(end) ');
-        const ch = await awaitInput(null, Promise.resolve(readKey()), {
-            site: 'display.showMenu.select',
-        });
+        const ch = await Promise.resolve(readKey());
 
         // Restore map
         for (let r = startRow; r < startRow + maxItems + 2; r++) {

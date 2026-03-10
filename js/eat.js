@@ -65,7 +65,6 @@ import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
 import { pluslvl } from './exper.js';
-import { awaitInput } from './suspend.js';
 import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
          vegan, vegetarian, carnivorous, herbivorous,
          is_humanoid, is_undead, attacktype, dmgtype,
@@ -1846,7 +1845,7 @@ async function handleEat(player, display, game) {
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
         await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
         const ans = String.fromCharCode(
-            await awaitInput(game, nhgetch_wrap(), { site: 'eat.handleEat.floorPrompt' })
+            await nhgetch_wrap()
         ).toLowerCase();
         if (ans === 'q') {
             // cf. eat.c floorfood() — 'q' exits immediately
@@ -1876,7 +1875,7 @@ async function handleEat(player, display, game) {
             display.messageNeedsMore = false;
             const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
             await display.putstr_message(eatPrompt);
-            const ch = await awaitInput(game, nhgetch_wrap(), { site: 'eat.handleEat.inventorySelect' });
+            const ch = await nhgetch_wrap();
             const c = String.fromCharCode(ch);
 
             if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

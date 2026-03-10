@@ -20,7 +20,7 @@ import { savebones } from './bones.js';
 import { setGame } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { beginCommandExec, endCommandExec, getCommandExecState } from './exec_guard.js';
-import { awaitInput, awaitMore, awaitAnim } from './suspend.js';
+import { awaitMore, awaitAnim } from './suspend.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -538,7 +538,7 @@ export async function run_command(game, ch, opts = {}) {
     const handlePromptResult = async (promptResult) => {
         if (!(promptResult && promptResult.handled)) return null;
         if (game._pendingPromptTask) {
-            await awaitInput(game, game._pendingPromptTask, { site: 'run_command.handlePromptResult.pendingTask' });
+            await game._pendingPromptTask;
             game._pendingPromptTask = null;
         }
         const promptTookTime = !!promptResult.tookTime;
@@ -677,10 +677,7 @@ export async function run_command(game, ch, opts = {}) {
             owner: topBoundary.owner || null,
             boundary: game?.getInputBoundaryState?.() || null,
         });
-        const boundaryResult = await awaitInput(game, Promise.resolve(topBoundary.onKey(chCode, game)), {
-            site: 'run_command.stackBoundary.onKey',
-            owner: topBoundary.owner || null,
-        });
+        const boundaryResult = await Promise.resolve(topBoundary.onKey(chCode, game));
         const handled = boundaryResult === true || !!(boundaryResult && boundaryResult.handled);
         if (handled) {
             return {
@@ -705,9 +702,7 @@ export async function run_command(game, ch, opts = {}) {
             key: chCode,
             boundary: game?.getInputBoundaryState?.() || null,
         });
-        const promptResult = await awaitInput(game, Promise.resolve(topBoundary.onKey(chCode, game)), {
-            site: 'run_command.promptBoundary.onKey',
-        });
+        const promptResult = await Promise.resolve(topBoundary.onKey(chCode, game));
         const finalized = await handlePromptResult(promptResult);
         if (finalized) return finalized;
         // Strict owner semantics: while prompt boundary owns input, a key does
@@ -2319,9 +2314,7 @@ export class NetHackGame {
         if (!(this.display && this.display._pendingMore)) return;
         await consumePendingMore(
             this.display,
-            () => awaitInput(this, nhgetch_wrap({ handleMore: false }), {
-                site: `${site}.read`,
-            }),
+            () => nhgetch_wrap({ handleMore: false }),
             () => this.display._clearMore(),
             {
                 game: this,
@@ -2333,7 +2326,7 @@ export class NetHackGame {
 
     async _readCommandLoopKey(site) {
         await this._consumePendingMoreBoundary(`${site}.pre-more`);
-        return await awaitInput(this, nhgetch_wrap({ handleMore: false }), { site });
+        return await nhgetch_wrap({ handleMore: false });
     }
 
     // Main game loop — browser path

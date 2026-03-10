@@ -2,7 +2,6 @@
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
 import { more, nhgetch_raw, ynFunction } from './input.js';
-import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
          TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
@@ -425,9 +424,7 @@ async function handleWield(player, display) {
     await display.putstr_message(wieldPrompt);
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_raw(), {
-            site: 'wield.handleWield.select',
-        });
+        const ch = await nhgetch_raw({ site: 'wield.handleWield.select' });
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

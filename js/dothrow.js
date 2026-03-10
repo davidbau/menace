@@ -26,7 +26,6 @@ import { IS_SOFT, ZAP_POS,
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
-import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
          FLINT, ROCK, SLING, BULLWHIP, BOOMERANG, AKLYS, WAR_HAMMER,
@@ -202,9 +201,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         replacePromptMessage();
     }
     await display.putstr_message('In what direction? ');
-    const dirCh = await awaitInput(null, nhgetch_raw(), {
-        site: 'dothrow.promptDirectionAndThrowItem.direction',
-    });
+    const dirCh = await nhgetch_raw({ site: 'dothrow.promptDirectionAndThrowItem.direction' });
     const dch = String.fromCharCode(dirCh);
     let dir = DIRECTION_KEYS[dch];
     if (!dir && (dirCh === 10 || dirCh === 13)) {
@@ -358,9 +355,7 @@ export async function handleThrow(player, map, display) {
         : 'What do you want to throw? [*] ';
     await display.putstr_message(throwPrompt);
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
-            site: 'dothrow.handleThrow.select',
-        });
+        const ch = await nhgetch_wrap();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -433,9 +428,7 @@ export async function handleFire(player, map, display, game) {
 
     if (!player.quiver && weapon && weapon.otyp === BULLWHIP) {
         await display.putstr_message('In what direction? ');
-        const dirCh = await awaitInput(game, nhgetch_wrap(), {
-            site: 'dothrow.handleFire.bullwhipDirection',
-        });
+        const dirCh = await nhgetch_raw({ site: 'dothrow.handleFire.bullwhipDirection' });
         const dch = String.fromCharCode(dirCh);
         const dir = DIRECTION_KEYS[dch];
         if (!dir) {
@@ -536,9 +529,7 @@ export async function handleFire(player, map, display, game) {
     await display.putstr_message(firePrompt);
     let pendingCount = '';
     while (true) {
-        const ch = await awaitInput(game, nhgetch_wrap(), {
-            site: 'dothrow.handleFire.select',
-        });
+        const ch = await nhgetch_wrap();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -578,9 +569,7 @@ export async function handleFire(player, map, display, game) {
                 replacePromptMessage();
                 await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q) ');
                 while (true) {
-                    const ans = await awaitInput(game, nhgetch_wrap(), {
-                        site: 'dothrow.handleFire.readyWieldedConfirm',
-                    });
+                    const ans = await nhgetch_wrap();
                     const a = String.fromCharCode(ans).toLowerCase();
                     if (ans === 27 || ans === 10 || ans === 13 || a === ' ' || a === 'q' || a === 'n') {
                         replacePromptMessage();
