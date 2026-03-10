@@ -639,25 +639,14 @@ export async function run_command(game, ch, opts = {}) {
     if (player) player.umoved = false;
 
     // Execute command
-    const enableRepeatCapture = !skipRepeatRecord && !game.inDoAgain && chCode !== '#'.charCodeAt(0);
-    setCmdqInputMode(!!game.inDoAgain);
-    setCmdqRepeatRecordMode(enableRepeatCapture);
-    let result;
-    try {
-        result = await rhack(chCode, game);
-    } finally {
-        setCmdqInputMode(false);
-        setCmdqRepeatRecordMode(false);
-    }
+    const result = await executeRhackCommandCore(game, chCode, {
+        skipRepeatRecord,
+        isPrefixKey,
+        bumpHeroSeqN,
+    });
     if (result && result.repeatRequest) {
         game.advanceRunTurn = null;
         return await execute_repeat_command(game, opts);
-    }
-    if (!skipRepeatRecord && !game.inDoAgain) {
-        game._repeatPrefixChainActive = !!(result && !result.tookTime && isPrefixKey);
-    }
-    if (result && result.tookTime) {
-        bumpHeroSeqN();
     }
     // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
     // u.utotype is set.
@@ -779,6 +768,30 @@ async function executeMultiRepeatLoop(game, {
             await _drainOccupation(game, coreOpts);
         }
     }
+}
+
+async function executeRhackCommandCore(game, chCode, {
+    skipRepeatRecord,
+    isPrefixKey,
+    bumpHeroSeqN,
+} = {}) {
+    const enableRepeatCapture = !skipRepeatRecord && !game.inDoAgain && chCode !== '#'.charCodeAt(0);
+    setCmdqInputMode(!!game.inDoAgain);
+    setCmdqRepeatRecordMode(enableRepeatCapture);
+    let result;
+    try {
+        result = await rhack(chCode, game);
+    } finally {
+        setCmdqInputMode(false);
+        setCmdqRepeatRecordMode(false);
+    }
+    if (!skipRepeatRecord && !game.inDoAgain) {
+        game._repeatPrefixChainActive = !!(result && !result.tookTime && isPrefixKey);
+    }
+    if (result && result.tookTime) {
+        bumpHeroSeqN();
+    }
+    return result;
 }
 
 async function handlePendingPromptCommandInput(game, chCode, {
