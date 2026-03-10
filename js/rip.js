@@ -32,24 +32,21 @@
 //   formatkiller() (JS formatkiller() is TODO in topten.js:13).
 // ALIGNED: rip.c:85 — genl_outrip() ↔ display.renderTombstone() (display.js:1135)
 
-// Autotranslated from rip.c:74
+// Autotranslated from rip.c:74 — center text on tombstone line
+// Writes text centered at STONE_LINE_CENT in gr.rip[line]
 export function center(line, text) {
-  let ip, op;
-  ip = text;
-  op = gr.rip[line][STONE_LINE_CENT - ((strlen(text) + 1) >> 1)];
-  while ( ip) {
-     op = ip++;
+  let start = STONE_LINE_CENT - ((text.length + 1) >> 1);
+  let arr = gr.rip[line].split('');
+  for (let i = 0; i < text.length; i++) {
+    arr[start + i] = text[i];
   }
+  gr.rip[line] = arr.join('');
 }
 
-// Autotranslated from rip.c:84
+// Autotranslated from rip.c:84 — render tombstone to a window
 export async function genl_outrip(tmpwin, how, when) {
-  let dp, dpx, buf, x, line, year, cash;
-  gr.rip = dp = new Array(rip_txt.length).fill(null);
-  for (x = 0; rip_txt[x]; ++x) {
-    dp[x] = rip_txt[x];
-  }
-  dp[x] =  0;
+  let buf, x, line, year, cash;
+  gr.rip = rip_txt.map(s => s);
   buf = svp.plname.slice(0, STONE_LINE_LEN);
   center(NAME_LINE, buf);
   cash = Math.max(gd.done_money, 0);
@@ -57,28 +54,26 @@ export async function genl_outrip(tmpwin, how, when) {
   buf = `${cash} Au`;
   center(GOLD_LINE, buf);
   formatkiller(buf, buf.length, how, false);
-  for (line = DEATH_LINE, dpx = buf; line < YEAR_LINE; line++) {
-    let tmpchar, i, i0 =  strlen(dpx);
+  // Word-wrap death description across DEATH_LINE..YEAR_LINE-1
+  let dpx = buf;
+  for (line = DEATH_LINE; line < YEAR_LINE; line++) {
+    let i0 = dpx.length;
     if (i0 > STONE_LINE_LEN) {
-      for (i = STONE_LINE_LEN; (i > 0) && (i0 > STONE_LINE_LEN); --i) {
+      for (let i = STONE_LINE_LEN; i > 0 && i0 > STONE_LINE_LEN; --i) {
         if (dpx[i] === ' ') i0 = i;
       }
-      if (!i) i0 = STONE_LINE_LEN;
+      if (i0 > STONE_LINE_LEN) i0 = STONE_LINE_LEN;
     }
-    tmpchar = dpx[i0];
-    dpx[i0] = 0;
-    center(line, dpx);
-    if (tmpchar !== ' ') { dpx[i0] = tmpchar; dpx = dpx[i0]; }
-    else {
-      dpx = dpx[i0 + 1];
-    }
+    center(line, dpx.slice(0, i0));
+    if (i0 < dpx.length && dpx[i0] === ' ') dpx = dpx.slice(i0 + 1);
+    else dpx = dpx.slice(i0);
   }
-  year =  (Math.floor(yyyymmdd(when) / 10000) % 10000);
+  year = (Math.floor(yyyymmdd(when) / 10000) % 10000);
   buf = String(year).padStart(4);
   center(YEAR_LINE, buf);
   await putstr(tmpwin, 0, "");
-  for ( dp; dp++; ) {
-    await putstr(tmpwin, 0, dp);
+  for (x = 0; x < gr.rip.length; x++) {
+    await putstr(tmpwin, 0, gr.rip[x]);
   }
   await putstr(tmpwin, 0, "");
   await putstr(tmpwin, 0, "");

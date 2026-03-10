@@ -281,32 +281,40 @@ export function clear_all_glyphmap_colors() {
 }
 
 // Autotranslated from glyphs.c:111
+// Parses "glyphid:unicode/color" format and looks up glyph customization
 export function glyphrep_to_custom_map_entries(op, glyphptr) {
   to_custom_symbol_find = zero_find;
-  let buf, c_glyphid, c_unicode, c_colorval, cp, reslt = 0, rgb = 0;
-  let slash = false, colon = false;
+  let c_glyphid, c_unicode = null, c_colorval = null, reslt = 0, rgb = 0;
   if (!glyphid_cache) reslt = 1;
   nhUse(reslt);
-  buf = op;
-  c_unicode = c_colorval =  0;
-  c_glyphid = cp = buf;
-  while ( cp) {
-    if ( cp === ':' || cp === '/') {
-      if ( cp === ':') { colon = true; cp = '\x00'; }
-      if ( cp === '/') { slash = true; cp = '\x00'; }
+  // Split on ':' and '/' delimiters: "glyphid:unicode/color"
+  let colonIdx = op.indexOf(':');
+  let slashIdx = op.indexOf('/');
+  if (colonIdx >= 0 && slashIdx >= 0 && slashIdx < colonIdx) {
+    // slash before colon: "glyphid/color:unicode"
+    c_glyphid = op.slice(0, slashIdx);
+    c_colorval = op.slice(slashIdx + 1, colonIdx);
+    c_unicode = op.slice(colonIdx + 1);
+  } else if (colonIdx >= 0) {
+    c_glyphid = op.slice(0, colonIdx);
+    let rest = op.slice(colonIdx + 1);
+    let restSlash = rest.indexOf('/');
+    if (restSlash >= 0) {
+      c_unicode = rest.slice(0, restSlash);
+      c_colorval = rest.slice(restSlash + 1);
+    } else {
+      c_unicode = rest;
     }
-    cp++;
-    if (colon) { c_unicode = cp; colon = false; }
-    if (slash) { c_colorval = cp; slash = false; }
+  } else if (slashIdx >= 0) {
+    c_glyphid = op.slice(0, slashIdx);
+    c_colorval = op.slice(slashIdx + 1);
+  } else {
+    c_glyphid = op;
   }
-  if (c_glyphid && c_glyphid === ' ') c_glyphid++;
-  if (c_colorval && c_colorval === ' ') c_colorval++;
-  if (c_unicode && c_unicode === ' ') {
-    while ( c_unicode === ' ') {
-      c_unicode++;
-    }
-  }
-  if (c_unicode && !c_unicode) c_unicode = 0;
+  c_glyphid = c_glyphid.trimStart();
+  if (c_colorval) c_colorval = c_colorval.trimStart();
+  if (c_unicode) c_unicode = c_unicode.trimStart();
+  if (c_unicode && c_unicode.length === 0) c_unicode = null;
   if ((c_colorval && (rgb = rgbstr_to_int32(c_colorval)) !== -1) || !c_colorval) {
     to_custom_symbol_find.color = (rgb === -1 || !c_colorval) ? 0 : (rgb === 0) ? nonzero_black : rgb;
   }

@@ -139,19 +139,16 @@ export function wordcount(p) {
 }
 
 // cf. end.c:1811 [static] — bel_copy1(inp, out): copy next word
-// Returns [nextInputIndex, appendedWord]
-// Autotranslated from end.c:1811
-export function bel_copy1(inp, out) {
-  let in_ =  inp;
-  out += strlen(out);
-  while ( in_ && isspace( in_)) {
-    in_++;
+// Returns [nextIndex, word] — extracts next whitespace-delimited word from inp starting at index out
+export function bel_copy1(inp, idx) {
+  // skip leading whitespace
+  while (idx < inp.length && inp[idx] === ' ') idx++;
+  // copy word
+  let word = '';
+  while (idx < inp.length && inp[idx] !== ' ') {
+    word += inp[idx++];
   }
-  while ( in_ && !isspace( in_)) {
-     out = in_++;
-  }
-   out = '\x00';
-   inp = in_;
+  return [idx, word];
 }
 
 // cf. end.c:1825 — build_english_list(input): build English list

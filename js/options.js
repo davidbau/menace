@@ -910,36 +910,33 @@ export function nh_getenv(ev) {
 
 // Autotranslated from options.c:7480
 export function change_inv_order(op, game) {
-  let oc_sym, num, sp, buf, retval = 1;
-  num = 0;
-  if (!strchr(op, GOLD_SYM)) buf = COIN_CLASS;
-  for (sp = op;  sp; sp++) {
+  let oc_sym, buf = '', retval = 1;
+  if (!strchr(op, GOLD_SYM)) buf += String.fromCharCode(COIN_CLASS);
+  for (let si = 0; si < op.length; si++) {
     let fail = false;
-    oc_sym = def_char_to_objclass( sp);
+    oc_sym = def_char_to_objclass(op[si]);
     if (oc_sym === MAXOCLASSES) {
-      config_error_add("Not an object class '%c'", sp);
+      config_error_add("Not an object class '%c'", op[si]);
       retval = 0;
       fail = true;
     }
     else if (!strchr(game.flags.inv_order, oc_sym)) {
-      config_error_add("Object class '%c' not allowed", sp);
+      config_error_add("Object class '%c' not allowed", op[si]);
       retval = 0;
       fail = true;
     }
-    else if (strchr(sp + 1, sp)) {
-      config_error_add("Duplicate object class '%c'", sp);
+    else if (strchr(op.slice(si + 1), op[si])) {
+      config_error_add("Duplicate object class '%c'", op[si]);
       retval = 0;
       fail = true;
     }
-    if (!fail) buf =  oc_sym;
+    if (!fail) buf += String.fromCharCode(oc_sym);
   }
-  buf = '\0';
-  for (sp = game.flags.inv_order;  sp; sp++) {
-    if (!strchr(buf, sp)) {
-      strkitten( buf, sp);
+  for (let si = 0; si < game.flags.inv_order.length; si++) {
+    if (!strchr(buf, game.flags.inv_order[si])) {
+      buf += game.flags.inv_order[si];
     }
   }
-  buf = '\0';
   game.flags.inv_order = buf;
   return retval;
 }
