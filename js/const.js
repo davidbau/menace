@@ -3768,6 +3768,13 @@ export function def_char_is_furniture(ch) {
     return 0;
 }
 
+// C global structs from decl.c — module-level state for symbol sets
+// Note: init functions lost array indices in autotranslation; showsyms/primary_syms/rogue_syms
+// are scalars here (last-write-wins) rather than arrays. Functional but imprecise.
+export const gs = { showsyms: null, symset: [{ name: null, handling: 0, nocolor: 0 }, { name: null, handling: 0, nocolor: 0 }] };
+export const gp = { primary_syms: null, pl_race: null, plinemsg_types: null };
+const gr = { rogue_syms: null };
+
 // Autotranslated from symbols.c:84
 export function init_symbols() {
   init_ov_primary_symbols();

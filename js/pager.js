@@ -13,7 +13,7 @@ import { more, nhgetch, ynFunction } from './input.js';
 import { CLR_WHITE, CLR_GREEN, CLR_CYAN } from './display.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
-import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED } from './const.js';
+import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED, gs } from './const.js';
 import { getpos_async } from './getpos.js';
 import { x_monnam } from './mondata.js';
 import { engr_at, can_reach_floor } from './engrave.js';

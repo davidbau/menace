@@ -190,7 +190,7 @@ export function parse_cond_option(negated, opts) {
   uniqpart = opts + (prefix.length - 1);
   for (i = 0; i < CONDITION_COUNT; ++i) {
     compareto = condtests[i].useroption;
-    sl = Strlen(compareto);
+    sl = compareto.length;
     if (match_optname(uniqpart, compareto, (sl >= 4) ? 4 : sl, false)) { condopt(i, condtests[i].choice, negated); return 0; }
   }
   return 1;
