@@ -352,8 +352,12 @@ export function m_harmless_trap(mon, trap, map) {
 function trapeffect_arrow_trap_mon(mon, trap, map, player, fov) {
     let trapkilled = false;
     const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
+    const see_it = cansee(mon.mx, mon.my);
 
     if (trap.once && trap.tseen && !rn2(15)) {
+        if (in_sight && see_it) {
+            pline_mon(mon, '%s triggers a trap but nothing happens.', Monnam(mon));
+        }
         deltrap(map, trap);
         newsym(mon.mx, mon.my);
         return Trap_Effect_Finished; // trap is gone, nothing happens
@@ -371,8 +375,12 @@ function trapeffect_arrow_trap_mon(mon, trap, map, player, fov) {
 function trapeffect_dart_trap_mon(mon, trap, map, player, fov) {
     let trapkilled = false;
     const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
+    const see_it = cansee(mon.mx, mon.my);
 
     if (trap.once && trap.tseen && !rn2(15)) {
+        if (in_sight && see_it) {
+            pline_mon(mon, '%s triggers a trap but nothing happens.', Monnam(mon));
+        }
         deltrap(map, trap);
         newsym(mon.mx, mon.my);
         return Trap_Effect_Finished;
@@ -392,8 +400,13 @@ function trapeffect_dart_trap_mon(mon, trap, map, player, fov) {
 function trapeffect_rocktrap_mon(mon, trap, map, player, fov) {
     let trapkilled = false;
     const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
+    const see_it = cansee(mon.mx, mon.my);
 
     if (trap.once && trap.tseen && !rn2(15)) {
+        if (in_sight && see_it) {
+            pline_mon(mon, 'A trap door above %s opens, but nothing falls out!',
+                      mon_nam(mon));
+        }
         deltrap(map, trap);
         newsym(mon.mx, mon.my);
         return Trap_Effect_Finished;
@@ -435,13 +448,27 @@ async function trapeffect_sqky_board_mon(mon, trap, player, fov) {
     return Trap_Effect_Finished;
 }
 
-function trapeffect_bear_trap_mon(mon, trap, map, player) {
+function trapeffect_bear_trap_mon(mon, trap, trflags, map, player) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
+    const in_sight = canseemon(mon, player) || (mon === player?.usteed);
+    const forcetrap = ((trflags & FORCETRAP) !== 0)
+        || ((trflags & FAILEDUNTRAP) !== 0)
+        || ((trflags & VIASITTING) !== 0);
 
     if ((mptr.msize || 0) > MZ_SMALL && !amorphous(mptr) && !m_in_air(mon)
         && !is_whirly(mptr) && !unsolid(mptr)) {
         mon.mtrapped = 1;
+        if (in_sight) {
+            pline_mon(mon, '%s is caught in %s bear trap!', Monnam(mon),
+                      trap.madeby_u ? 'your' : 'a');
+            seetrap(trap);
+        } else if (mon.mndx === PM_OWLBEAR || mon.mndx === PM_BUGBEAR) {
+            You_hear('the roaring of an angry bear!');
+        }
+    } else if (forcetrap && in_sight) {
+        pline_mon(mon, '%s evades %s bear trap!', Monnam(mon),
+                  trap.madeby_u ? 'your' : 'a');
         seetrap(trap);
     }
     if (mon.mtrapped)
@@ -457,6 +484,7 @@ function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
         // C ref: trap.c:1568-1574 — seetrap only if sleep_monst() returns true AND in_sight
         const in_sight = canseemon(mon, player, fov);
         if (sleep_monst(mon, rnd(25), -1) && in_sight) {
+            pline_mon(mon, '%s suddenly falls asleep!', Monnam(mon));
             seetrap(trap);
         }
     }
@@ -466,8 +494,10 @@ function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
 function trapeffect_rust_trap_mon(mon, trap, map, player) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
+    const in_sight = canseemon(mon, player) || (mon === player?.usteed);
 
-    seetrap(trap);
+    if (in_sight)
+        seetrap(trap);
     // C ref: rn2(5) to determine which body part gets hit
     const bodypart = rn2(5);
     switch (bodypart) {
@@ -940,7 +970,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case SQKY_BOARD:
         return await trapeffect_sqky_board_mon(mon, trap, player, fov);
     case BEAR_TRAP:
-        return trapeffect_bear_trap_mon(mon, trap, map, player);
+        return trapeffect_bear_trap_mon(mon, trap, trflags, map, player);
     case SLP_GAS_TRAP:
         return trapeffect_slp_gas_trap_mon(mon, trap, player, fov);
     case RUST_TRAP:
@@ -970,7 +1000,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case POLY_TRAP:
         return trapeffect_poly_trap_mon(mon, trap);
     case LANDMINE:
-        return trapeffect_landmine_mon(mon, trap, 0, map, player);
+        return trapeffect_landmine_mon(mon, trap, trflags, map, player);
     case ROLLING_BOULDER_TRAP:
         return await trapeffect_rolling_boulder_trap_mon(mon, trap, map, player);
     case VIBRATING_SQUARE:
