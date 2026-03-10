@@ -8,7 +8,7 @@ describe('synclock allmain boundary hygiene', () => {
         const src = readFileSync(resolve('js/allmain.js'), 'utf8');
         assert.equal(src.includes('nhgetch_wrap()'), false);
         assert.equal(src.includes('nhgetch_wrap({ handleMore: true })'), false);
-        assert.equal(src.includes('nhgetch_raw({ site:'), true);
+        assert.equal(src.includes('nhgetch_raw()'), true);
     });
 
     it('does not use raw setTimeout(0) awaits in allmain command loop paths', () => {

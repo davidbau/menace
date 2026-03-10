@@ -2221,8 +2221,8 @@ export class NetHackGame {
         this._emitGameOver();
     }
 
-    async _readCommandLoopKey(site) {
-        return await nhgetch_raw({ site: `${site}.read` });
+    async _readCommandLoopKey() {
+        return await nhgetch_raw();
     }
 
     // Main game loop — browser path
@@ -2240,7 +2240,7 @@ export class NetHackGame {
                     await this.display.putstr_message(
                         `Program in disorder! Please report to the Menace team. (${e?.message || e})`
                     );
-                    await this._readCommandLoopKey('gameLoop.error-recovery.wait-key');
+                    await this._readCommandLoopKey();
                     this.fov.compute(this.map, this.player.x, this.player.y);
                     this.display.renderMap(this.map, this.player, this.fov, this.flags);
                     this.display.renderStatus(this.player);
@@ -2273,7 +2273,7 @@ export class NetHackGame {
         }
 
         // Get player input with optional count prefix
-        const firstCh = await this._readCommandLoopKey('gameLoop.read-first-key');
+        const firstCh = await this._readCommandLoopKey();
         let ch;
         let countPrefix = 0;
 
