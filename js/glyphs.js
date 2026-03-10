@@ -3,6 +3,19 @@ function rgbstr_to_int32(str) { return -1; }
 function glyph_find_core(name, find) { return 0; }
 function find_matching_customization(name, type, set) { return null; }
 
+import {
+    GLYPH_CMAP_STONE_OFF, GLYPH_CMAP_MAIN_OFF, GLYPH_CMAP_MINES_OFF,
+    GLYPH_CMAP_GEH_OFF, GLYPH_CMAP_KNOX_OFF, GLYPH_CMAP_SOKO_OFF,
+    GLYPH_CMAP_A_OFF, GLYPH_CMAP_B_OFF, GLYPH_CMAP_C_OFF, GLYPH_ZAP_OFF,
+    S_stone, S_vwall, S_ndoor, S_altar, S_grave, S_digbeam, S_vbeam,
+    S_sw_tl, S_expl_tl, MAXPCHARS,
+    glyph_is_cmap_main, glyph_is_cmap_mines, glyph_is_cmap_gehennom,
+    glyph_is_cmap_knox, glyph_is_cmap_sokoban, glyph_is_cmap_a,
+    glyph_is_cmap_altar, glyph_is_cmap_b, glyph_is_cmap_c,
+    glyph_is_cmap_zap, glyph_is_swallow, glyph_is_explosion,
+    glyph_to_swallow, glyph_to_explosion,
+} from './symbols.js';
+
 // glyphs.js -- Glyph ID cache, customization, and symbol mapping
 // cf. glyphs.c — glyphrep_to_custom_map_entries, fix_glyphname,
 //                glyph_to_cmap, glyph_find_core, fill_glyphid_cache,

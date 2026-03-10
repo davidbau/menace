@@ -17,7 +17,9 @@ import {
     WM_C_OUTER, WM_C_INNER, WM_X_TL, WM_X_TR, WM_X_BL, WM_X_BR, WM_X_TLBR, WM_X_BLTR,
 } from './const.js';
 
-import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF } from './symbols.js';
+import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF,
+    glyph_is_invisible, glyph_is_trap,
+} from './symbols.js';
 import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';

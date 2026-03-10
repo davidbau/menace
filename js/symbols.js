@@ -823,6 +823,44 @@ export const SYM_MAX = (SYM_OFF_X + MAXOTHER);
 export function trap_to_defsym(t) { return S_arrow_trap + t - 1; }
 export function defsym_to_trap(d) { return d - S_arrow_trap + 1; }
 
+// C ref: include/display.h glyph_is_* predicate macros (range checks)
+export function glyph_is_monster(g) { return g >= GLYPH_MON_OFF && g < GLYPH_PET_OFF; }
+export function glyph_is_pet(g) { return g >= GLYPH_PET_OFF && g < GLYPH_INVIS_OFF; }
+export function glyph_is_invisible(g) { return g === GLYPH_INVIS_OFF; }
+export function glyph_is_detect(g) { return g >= GLYPH_DETECT_OFF && g < GLYPH_BODY_OFF; }
+export function glyph_is_body(g) { return g >= GLYPH_BODY_OFF && g < GLYPH_RIDDEN_OFF; }
+export function glyph_is_ridden(g) { return g >= GLYPH_RIDDEN_OFF && g < GLYPH_OBJ_OFF; }
+export function glyph_is_object(g) { return g >= GLYPH_OBJ_OFF && g < GLYPH_CMAP_OFF; }
+export function glyph_is_cmap(g) { return g >= GLYPH_CMAP_OFF && g < GLYPH_SWALLOW_OFF; }
+export function glyph_is_cmap_main(g) { return g >= GLYPH_CMAP_MAIN_OFF && g < GLYPH_CMAP_MINES_OFF; }
+export function glyph_is_cmap_mines(g) { return g >= GLYPH_CMAP_MINES_OFF && g < GLYPH_CMAP_GEH_OFF; }
+export function glyph_is_cmap_gehennom(g) { return g >= GLYPH_CMAP_GEH_OFF && g < GLYPH_CMAP_KNOX_OFF; }
+export function glyph_is_cmap_knox(g) { return g >= GLYPH_CMAP_KNOX_OFF && g < GLYPH_CMAP_SOKO_OFF; }
+export function glyph_is_cmap_sokoban(g) { return g >= GLYPH_CMAP_SOKO_OFF && g < GLYPH_CMAP_A_OFF; }
+export function glyph_is_cmap_a(g) { return g >= GLYPH_CMAP_A_OFF && g < GLYPH_ALTAR_OFF; }
+export function glyph_is_cmap_altar(g) { return g >= GLYPH_ALTAR_OFF && g < GLYPH_CMAP_B_OFF; }
+export function glyph_is_cmap_b(g) { return g >= GLYPH_CMAP_B_OFF && g < GLYPH_ZAP_OFF; }
+export function glyph_is_cmap_zap(g) { return g >= GLYPH_ZAP_OFF && g < GLYPH_CMAP_C_OFF; }
+export function glyph_is_cmap_c(g) { return g >= GLYPH_CMAP_C_OFF && g < GLYPH_SWALLOW_OFF; }
+export function glyph_is_swallow(g) { return g >= GLYPH_SWALLOW_OFF && g < GLYPH_EXPLODE_OFF; }
+export function glyph_is_explosion(g) { return g >= GLYPH_EXPLODE_OFF && g < GLYPH_WARNING_OFF; }
+export function glyph_is_warning(g) { return g >= GLYPH_WARNING_OFF && g < GLYPH_STATUE_OFF; }
+export function glyph_is_statue(g) { return g >= GLYPH_STATUE_OFF && g < GLYPH_PILETOP_OFF; }
+export function glyph_is_piletop(g) { return g >= GLYPH_PILETOP_OFF && g < GLYPH_UNEXPLORED_OFF; }
+// C ref: glyph_is_trap checks cmap_b range AND trap defsym range
+export function glyph_is_trap(g) {
+    if (!glyph_is_cmap_b(g)) return false;
+    const sym = (g - GLYPH_CMAP_B_OFF) + S_grave;
+    return sym >= S_arrow_trap && sym < S_arrow_trap + MAXTCHARS;
+}
+
+// C ref: include/display.h glyph_to_* converter macros
+export function glyph_to_mon(g) { return g >= GLYPH_MON_FEM_OFF ? g - GLYPH_MON_FEM_OFF : g - GLYPH_MON_MALE_OFF; }
+export function glyph_to_obj(g) { return g - GLYPH_OBJ_OFF; }
+export function glyph_to_trap(g) { return ((g - GLYPH_CMAP_B_OFF) + S_grave) - S_arrow_trap + 1; }
+export function glyph_to_swallow(g) { return (g - GLYPH_SWALLOW_OFF) & 7; }
+export function glyph_to_explosion(g) { return (g - GLYPH_EXPLODE_OFF) % (S_expl_br - S_expl_tl + 1); }
+
 // C ref: drawing.c def_char_to_objclass()
 export function def_char_to_objclass(ch) {
     for (let i = 1; i < MAXOCLASSES; i++) {

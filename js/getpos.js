@@ -18,6 +18,8 @@ import {
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
 import { visctrl } from './hacklib.js';
 import { game as _gstate } from './gstate.js';
+import { glyph_is_cmap } from './symbols.js';
+import { glyph_to_cmap } from './glyphs.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;

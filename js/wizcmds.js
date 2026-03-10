@@ -209,6 +209,11 @@ import { schedule_goto } from './do.js';
 import { check_wornmask_slots } from './worn.js';
 import { impossible } from './pline.js';
 import { m_at } from './trap.js';
+import {
+    glyph_is_cmap, glyph_is_cmap_zap, glyph_is_monster, glyph_is_object,
+    glyph_to_mon, glyph_to_obj,
+} from './symbols.js';
+import { glyph_to_cmap } from './glyphs.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {
