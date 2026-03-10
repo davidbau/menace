@@ -46,7 +46,7 @@ import {
     weight,
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj } from './makemon.js';
-import { NO_MM_FLAGS, SIZE } from './const.js';
+import { NO_MM_FLAGS, SIZE, nul_glyphinfo } from './const.js';
 
 // C serialization stubs (JS uses storage.js, not binary save files)
 function update_file() { return false; }

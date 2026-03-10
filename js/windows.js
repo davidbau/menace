@@ -9,6 +9,7 @@ import {
     MENU_BEHAVE_STANDARD, MENU_BEHAVE_PERMINV,
     MENU_ITEMFLAGS_SELECTED,
     ATR_NONE, ATR_ULINE, ATR_BOLD, ATR_BLINK, ATR_INVERSE, ATR_URGENT, ATR_NOHISTORY,
+    nul_glyphinfo,
 } from './const.js';
 
 // Window ID globals (mirrors decl.c WIN_MESSAGE / WIN_MAP etc.)

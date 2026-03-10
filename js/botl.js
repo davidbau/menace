@@ -1,5 +1,5 @@
 import { strchr } from './hacklib.js';
-import { SIZE } from './const.js';
+import { SIZE, nul_glyphinfo } from './const.js';
 import { roles } from './role.js';
 
 // C stubs for status line condition parsing

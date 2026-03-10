@@ -1466,6 +1466,9 @@ export const MENU_ITEMFLAGS_SKIPINVERT = 0x0000002;
 // wintype.h
 export const MENU_ITEMFLAGS_SKIPMENUCOLORS = 0x0000004;
 
+// C ref: display.h — static const glyph_info nul_glyphinfo (zero-initialized struct)
+export const nul_glyphinfo = null;
+
 // ===== sym.h =====
 // sym.h
 export const H_UNK = 0;

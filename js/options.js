@@ -1,5 +1,5 @@
 import { strchr } from './hacklib.js';
-import { SIZE, def_char_to_objclass, gs, gp, PRIMARYSET } from './const.js';
+import { SIZE, def_char_to_objclass, gs, gp, PRIMARYSET, nul_glyphinfo } from './const.js';
 
 // C config_error_add: accumulates config parsing errors for display
 function config_error_add(fmt, ...args) {

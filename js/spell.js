@@ -10,7 +10,7 @@
 //   getspell(): prompt user to select a spell.
 //   dospellmenu(): display spell menu UI.
 
-import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE } from './const.js';
+import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE, nul_glyphinfo } from './const.js';
 import { PM_KNIGHT, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { mark_vision_dirty, cansee } from './vision.js';

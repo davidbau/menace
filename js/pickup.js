@@ -19,7 +19,7 @@ import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './
 import { mons, PM_HOUSECAT, PM_ICE_TROLL } from './monsters.js';
 import { is_rider, touch_petrifies, nohands, nolimbs,
          poly_when_stoned } from './mondata.js';
-import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE } from './const.js';
+import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo } from './const.js';
 import { rn2, rnd, d } from './rng.js';
 import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';

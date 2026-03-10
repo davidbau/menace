@@ -8,7 +8,7 @@ import { strchr, strstri, strsubst } from './hacklib.js';
 
 import { rn2 } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { A_WIS } from './const.js';
+import { A_WIS, nul_glyphinfo } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { Role_if } from './role.js';
 import { PM_SAMURAI } from './monsters.js';
