@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, FOOD_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { more, nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
+import { more, nhgetch_raw, ynFunction } from './input.js';
 import { awaitInput } from './suspend.js';
 import { doname, xname, splitobj, set_bknown } from './mkobj.js';
 import { make_glib } from './potion.js';
@@ -1033,7 +1033,7 @@ export async function handleApply(player, map, display, game) {
         }
         if (isApplyChopWeapon(selected)) {
             await display.putstr_message('In what direction do you want to chop? [>] ');
-            await awaitInput(game, nhgetch_wrap(), {
+            await awaitInput(game, nhgetch_raw(), {
                 site: 'apply.chop.direction',
             });
             replacePromptMessage();
@@ -1045,7 +1045,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await awaitInput(game, nhgetch_wrap(), {
+                const dirCh = await awaitInput(game, nhgetch_raw(), {
                     site: 'apply.lockpick.direction',
                 });
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
@@ -1127,7 +1127,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await awaitInput(game, nhgetch_wrap(), {
+                const dirCh = await awaitInput(game, nhgetch_raw(), {
                     site: 'apply.use-directional.direction',
                 });
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
@@ -1177,7 +1177,7 @@ export async function handleApply(player, map, display, game) {
     };
 
     while (true) {
-        const ch = await awaitInput(game, nhgetch_wrap(), {
+        const ch = await awaitInput(game, nhgetch_raw(), {
             site: 'apply.select.loop',
         });
         const c = String.fromCharCode(ch);
@@ -1200,34 +1200,21 @@ export async function handleApply(player, map, display, game) {
                 showList = candidates;
             }
             showList.sort((a, b) => String(a.invlet).charCodeAt(0) - String(b.invlet).charCodeAt(0));
-            if (showList.length === 1 && typeof display?.renderMoreMarker === 'function') {
+            if (showList.length === 1) {
                 const item = showList[0];
                 replacePromptMessage();
                 await display.putstr_message(`${item.invlet} - ${doname(item, player)}.`);
-                display.renderMoreMarker();
-                if (typeof display?.markMorePending === 'function') {
-                    display.markMorePending({ source: 'apply.inventory-list.single' });
-                }
-                // Queue prompt to appear immediately after --More-- dismissal.
-                await display.putstr_message(prompt);
+                await more(display, { game, site: 'apply.inventory-list.single-more' });
+                await showApplyPrompt();
                 continue;
             }
             for (const item of showList) {
                 replacePromptMessage();
                 await display.putstr_message(
                     `${item.invlet} - ${doname(item, player)}.`);
-                if (typeof display?.morePrompt === 'function') {
-                    if (typeof display.renderMoreMarker === 'function') {
-                        display.renderMoreMarker();
-                    }
-                    await more(display, { game,
-                        site: 'apply.inventory-list.morePrompt',
-                    });
-                } else if (typeof display?.renderMoreMarker === 'function') {
-                    display.renderMoreMarker();
-                    display.markMorePending({ source: 'apply.inventory-list' });
-                    await more(display, { game, site: 'apply.inventory-list.fallback-more' });
-                }
+                await more(display, { game,
+                    site: 'apply.inventory-list.morePrompt',
+                });
             }
             await showApplyPrompt();
             continue;
@@ -1242,23 +1229,10 @@ export async function handleApply(player, map, display, game) {
             // get consumed together with the next command key.
             replacePromptMessage();
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-                if (typeof display?.markMorePending === 'function') {
-                    display.markMorePending({ source: 'apply.invalid-invlet' });
-                }
-                // Queue the prompt behind the pending --More-- so the dismiss
-                // key reveals it on the next captured step (C/getobj timing).
-                await display.putstr_message(prompt);
-            } else if (typeof display?.morePrompt === 'function') {
-                if (typeof display.renderMoreMarker === 'function') {
-                    display.renderMoreMarker();
-                }
-                await more(display, { game,
-                    site: 'apply.invalid-invlet.morePrompt',
-                });
-                await showApplyPrompt();
-            }
+            await more(display, { game,
+                site: 'apply.invalid-invlet.morePrompt',
+            });
+            await showApplyPrompt();
             continue;
         }
         return await resolveApplySelection(selected);
