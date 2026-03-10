@@ -77,7 +77,8 @@ import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EY
 import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER, TAINT_AGE, NON_PM,
          FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES,
          ACID_RES, STONE_RES, TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
-         EDOG, ESHK, has_emin, has_epri, has_eshk } from './const.js';
+         EDOG, ESHK, has_emin, has_epri, has_eshk,
+         ACH_MEDU } from './const.js';
 import { S_poisoncloud } from './symbols.js';
 import { m_harmless_trap } from './trap.js';
 import { dist2, distmin } from './hacklib.js';
@@ -92,6 +93,10 @@ import { envFlag, writeStderr } from './runtime_env.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
 import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu } from './mondata.js';
+import { record_achievement } from './insight.js';
+
+// C macro: ismnum(mndx) — valid monster index check
+function ismnum(mndx) { return mndx >= 0 && mndx < NUMMONS; }
 
 // ========================================================================
 // Monster speed constants — C ref: include/monsym.h

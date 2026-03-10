@@ -36,7 +36,7 @@ import { rn2_on_display_rng } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
          livelog_printf } from './pline.js';
 import { S_altar } from './symbols.js';
-import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE } from './const.js';
+import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE, ACH_TUNE } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { resists_elec, resists_disint } from './mondata.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
@@ -1424,7 +1424,7 @@ async function pleased(g_align, player, map) {
                     await You_hear("a divine music...");
                     await pline("It sounds like:  \"%s\".", player.tune || "");
                     player.uevent.uheard_tune = (player.uevent.uheard_tune || 0) + 1;
-                    record_achievement();
+                    record_achievement(ACH_TUNE);
                     break;
                 }
             }
