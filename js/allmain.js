@@ -2137,10 +2137,7 @@ export class NetHackGame {
                         `Program in disorder! Please report to the Menace team. (${e?.message || e})`
                     );
                     await nhgetch();
-                    this.fov.compute(this.map, this.player.x, this.player.y);
-                    this.display.renderMap(this.map, this.player, this.fov, this.flags);
-                    this.display.renderStatus(this.player);
-                    this.display.cursorOnPlayer(this.player);
+                    this.renderAndAutosave({ autosave: false, forceRender: true });
                 } catch (displayErr) {
                     console.error('gameLoop recovery failed:', displayErr);
                 }
