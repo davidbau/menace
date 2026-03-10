@@ -36,7 +36,7 @@ test('display_inventory returns NUL when no display runtime is available', async
     };
 
     const selected = await display_inventory(')', true, player, null);
-    assert.equal(selected, '\0');
+    assert.equal(selected, '');
 });
 
 test('getobj C-name wrapper delegates to simplified selector', () => {

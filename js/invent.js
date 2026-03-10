@@ -1802,12 +1802,12 @@ export function display_inventory_items(lets, player) {
 }
 
 function selectionFromInventoryResult(result) {
-    if (result == null) return '\0';
+    if (result == null) return '';
     if (typeof result === 'string') return result;
     if (typeof result === 'object' && typeof result.selection === 'string') {
         return result.selection;
     }
-    return '\0';
+    return '';
 }
 
 function countFromInventoryResult(result) {
@@ -1821,7 +1821,7 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
     player = null, display = null) {
     const p = player || _gstate?.player || null;
     const d = display || _gstate?.display || null;
-    if (!p || !d) return '\0';
+    if (!p || !d) return '';
 
     const objects = display_inventory_items(lets, p);
     const lines = [];
@@ -1855,7 +1855,7 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
     if (lines.length === 0) {
         await d.putstr_message('Not carrying anything.');
         if (out_cnt && typeof out_cnt === 'object') out_cnt.value = -1;
-        return '\0';
+        return '';
     }
 
     const result = await renderOverlayMenuUntilDismiss(

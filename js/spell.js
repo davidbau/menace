@@ -1691,7 +1691,7 @@ export function spellretention(idx, outbuf) {
   skill = P_SKILL(spell_skilltype(spellid(idx)));
   skill = Math.max(skill, P_UNSKILLED);
   turnsleft = spellknow(idx);
-   outbuf = '\0';
+   outbuf = '';
   if (turnsleft < 1) { outbuf = "(gone)"; }
   else if (turnsleft >=  KEEN) { outbuf = "100%"; }
   else {

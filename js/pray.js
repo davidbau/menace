@@ -2301,7 +2301,7 @@ async function maybe_turn_mon_iter(mtmp, player, map) {
             mtmp.mflee = 0;
             mtmp.mfrozen = 0;
             mtmp.mcanmove = true;
-        } else if (!resist(mtmp, '\0')) {
+        } else if (!resist(mtmp, 0)) {
             let xlev = 6;
             switch (mdat.mlet) {
             case S_LICH:    xlev += 2; // FALLTHRU
@@ -2310,7 +2310,7 @@ async function maybe_turn_mon_iter(mtmp, player, map) {
             case S_WRAITH:  xlev += 2; // FALLTHRU
             case S_MUMMY:   xlev += 2; // FALLTHRU
             case S_ZOMBIE:
-                if ((player.ulevel || 1) >= xlev && !resist(mtmp, '\0')) {
+                if ((player.ulevel || 1) >= xlev && !resist(mtmp, 0)) {
                     if (player.alignment === A_CHAOTIC) {
                         mtmp.mpeaceful = true;
                         set_malign(mtmp);

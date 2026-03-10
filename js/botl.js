@@ -387,7 +387,7 @@ export async function query_conditions() {
 // Autotranslated from botl.c:2883
 export function conditionbitmask2str(ul) {
   let buf, i, first = true, alias =  0;
-  buf = '\0';
+  buf = '';
   if (!ul) return buf;
   for (i = 1; i < SIZE(condition_aliases); i++) {
     if (condition_aliases[i].bitmask === ul) alias = condition_aliases[i].id;

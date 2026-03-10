@@ -2264,7 +2264,7 @@ export async function dump_enums() {
       if (edmp[i].dumpflgs > 0) {
         comment = `  ${(ed[i][j].val >= 32 && ed[i][j].val <= 126) ? String.fromCharCode(ed[i][j].val) : ' '}`;
       }
-      else { comment = '\0'; }
+      else { comment = ''; }
       await raw_printf(" %s% s.value = %3d,%s", nmprefix, -nmwidth, ed[i][j].nm, ed[i][j].val, comment);
     }
     raw_print("};");

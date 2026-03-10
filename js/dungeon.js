@@ -5484,7 +5484,7 @@ export function seen_string(x, obj) {
 // Autotranslated from dungeon.c:3401
 export function endgamelevelname(outbuf, indx) {
   let planename = 0;
-   outbuf = '\0';
+   outbuf = '';
   switch (indx) {
     case -5:
       outbuf = "Astral Plane";

@@ -1570,7 +1570,7 @@ export function name_to_monclass(in_str, mndx_ref) {
         const x = def_monsyms[i]?.explain || '';
         const idx = x.toLowerCase().indexOf(lower);
         if (idx >= 0 && (idx === 0 || x[idx - 1] === ' ')) {
-            if (x.length - idx >= len && (idx + len >= x.length || x[idx + len] === ' ' || x[idx + len] === '\0'))
+            if (x.length - idx >= len && (idx + len >= x.length || x[idx + len] === ' '))
                 return i;
         }
     }

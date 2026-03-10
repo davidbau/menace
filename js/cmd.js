@@ -1341,7 +1341,7 @@ export async function handler_change_autocompletions() {
     }
     any.a_int = (i + 1);
     buf = `${(ec.flags & AUTOCOMP_ADJ) ? '*' : ' '} ${ec.ef_txt}: ${ec.ef_desc}`;
-    add_menu(win, nul_glyphinfo, any, '\0', 0, ATR_NONE, clr, buf, (ec.flags & AUTOCOMPLETE) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
+    add_menu(win, nul_glyphinfo, any, 0, 0, ATR_NONE, clr, buf, (ec.flags & AUTOCOMPLETE) ? MENU_ITEMFLAGS_SELECTED : MENU_ITEMFLAGS_NONE);
   }
   end_menu(win, "Which commands autocomplete?");
   n = await select_menu(win, PICK_ANY, picks);
@@ -1563,7 +1563,7 @@ export function there_cmd_menu_common(win, x, y, mod, act, player) {
 // Autotranslated from cmd.c:5010
 export async function here_cmd_menu(player) {
   await there_cmd_menu(player.x, player.y, CLICK_1);
-  return '\0';
+  return '';
 }
 
 // Autotranslated from cmd.c:5385

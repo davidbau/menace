@@ -2303,7 +2303,7 @@ export function logdeadmon(mtmp, mndx, game) {
   if (mndx === PM_MEDUSA && howmany === 1) { record_achievement(ACH_MEDU); }
   else if ((unique_corpstat(mtmp.data) && (mndx !== PM_HIGH_CLERIC || !mtmp.mrevived)) || (mtmp.isshk && !mtmp.mrevived)) {
     let shkdetail, mkilled, herodidit = !game.svc.context.mon_moving;
-    shkdetail = '\0';
+    shkdetail = '';
     if (mtmp.isshk) {
       howmany = 1;
       shkdetail = `, the ${shtypes[ESHK(mtmp).shoptype - SHOPBASE].name} ${mtmp.female ? "proprietrix" : "proprietor"}${herodidit ? "" : ","}`;
@@ -2314,7 +2314,7 @@ export function logdeadmon(mtmp, mndx, game) {
       if (howmany === 1 || mtmp.iswiz || is_rider(mtmp.data)) {
         llevent_type |= LL_ACHIEVE;
       }
-      xtra = '\0';
+      xtra = '';
       if (howmany > 1) {
         xtra = ` (${howmany}${ordin(howmany)} time)`;
       }

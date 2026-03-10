@@ -146,12 +146,10 @@ export function find_qarti(ochain) {
 
 // Autotranslated from questpgr.c:422
 export async function deliver_by_pline(str) {
-  let in_line, out_line, msgp = str, msgend = eos( str);
-  while (msgp < msgend) {
-    copynchars(in_line, msgp,  in_line.length - 1);
-    msgp += in_line.length + 1;
-    convert_line(in_line, out_line);
-    await pline("%s", out_line);
+  // TODO: convert_line() %-escape expansion not yet implemented
+  const lines = str.split('\n');
+  for (const line of lines) {
+    if (line) await pline("%s", line);
   }
 }
 

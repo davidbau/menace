@@ -401,7 +401,7 @@ import { S_ANT, S_BLOB, S_COCKATRICE, S_DOG, S_EYE, S_FELINE, S_GREMLIN, S_HUMAN
 
 // 6) MONSYMS_DRAWING
 export const def_monsyms = [
-    { sym: '\\0', name: "", explain: "" },
+    { sym: '', name: "", explain: "" },
     { sym: 'a', name: "", explain: "ant or other insect" }, // S_ANT
     { sym: 'b', name: "", explain: "blob" }, // S_BLOB
     { sym: 'c', name: "", explain: "cockatrice" }, // S_COCKATRICE
@@ -568,7 +568,7 @@ export const S_venom = 17;
 
 // 11) OBJCLASS_DRAWING
 export const def_oc_syms = [
-    { sym: '\\0', name: "", explain: "" },
+    { sym: '', name: "", explain: "" },
     { sym: ']', name: "illegal objects", explain: "strange object" }, // ILLOBJ_CLASS
     { sym: ')', name: "weapons", explain: "weapon" }, // WEAPON_CLASS
     { sym: '[', name: "armor", explain: "suit or piece of armor" }, // ARMOR_CLASS

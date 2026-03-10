@@ -484,7 +484,7 @@ export async function wiz_show_seenv(map, player) {
         break;
       }
     }
-    row = '\0';
+    row = '';
     await putstr(win, 0, row);
   }
   await display_nhwindow(win, true);
@@ -508,7 +508,7 @@ export async function wiz_show_wmodes(map) {
         row = 'x';
       }
     }
-    row = '\0';
+    row = '';
     await putstr(win, 0, row[1]);
   }
   await display_nhwindow(win, true);

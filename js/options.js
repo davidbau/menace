@@ -417,7 +417,7 @@ export function optfn_altkeyhandling(optidx, req, negated, opts, op) {
   if (req === do_set) {
     return optn_ok;
   }
-  if (req === get_val || req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_val || req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -447,7 +447,7 @@ export function optfn_DECgraphics(optidx, req, negated, opts, op) {
     }
     return optn_ok;
   }
-  if (req === get_val || req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_val || req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -461,7 +461,7 @@ export function optfn_dungeon(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) { return optn_ok; }
   if (req === get_val) { opts = to_be_done; return optn_ok; }
-  if (req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -470,7 +470,7 @@ export function optfn_effects(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) { return optn_ok; }
   if (req === get_val) { opts = to_be_done; return optn_ok; }
-  if (req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -565,7 +565,7 @@ export function optfn_glyph(optidx, req, negated, opts, op) {
     return optn_ok;
   }
   if (req === get_val) { opts = to_be_done; return optn_ok; }
-  if (req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -643,7 +643,7 @@ export function optfn_menu_shift_right(optidx, req, negated, opts, op) {
 export function optfn_monsters(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) { return optn_ok; }
-  if (req === get_val || req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_val || req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -666,7 +666,7 @@ export function optfn_objects(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) { return optn_ok; }
   if (req === get_val) { opts = to_be_done; return optn_ok; }
-  if (req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -826,7 +826,7 @@ export function optfn_suppress_alert(optidx, req, negated, opts, op, game, playe
     return optn_ok;
   }
   if (req === get_val || req === get_cnf_val) {
-    if (req === get_cnf_val && game.flags.suppress_alert === 0) opts = '\0';
+    if (req === get_cnf_val && game.flags.suppress_alert === 0) opts = '';
     else if (game.flags.suppress_alert === 0) {
       opts = none;
     }
@@ -843,7 +843,7 @@ export function optfn_traps(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) { return optn_ok; }
   if (req === get_val) { opts = to_be_done; return optn_ok; }
-  if (req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -855,7 +855,7 @@ export function optfn_warnings(optidx, req, negated, opts, op) {
     reslt = warning_opts(opts, allopt[optidx].name);
     return reslt ? optn_ok : optn_err;
   }
-  if (req === get_val || req === get_cnf_val) { opts = '\0'; return optn_ok; }
+  if (req === get_val || req === get_cnf_val) { opts = ''; return optn_ok; }
   return optn_ok;
 }
 
@@ -895,7 +895,7 @@ export function reset_duplicate_opt_detection() {
 // Autotranslated from options.c:6774
 export function complain_about_duplicate(optidx) {
   let buf;
-  buf = '\0';
+  buf = '';
   if (using_alias) {
     buf = ` (via alias: ${allopt[optidx].alias})`;
   }
@@ -1078,8 +1078,7 @@ export async function add_menu_cmd_alias(from_ch, to_ch, game) {
     game.mapped_menu_cmds = from_ch;
     game.mapped_menu_op = to_ch;
     game.gn.n_menu_mapped++;
-    game.mapped_menu_cmds = '\0';
-    game.mapped_menu_op = '\0';
+    // C null-terminates arrays here; in JS these are just property assignments
   }
 }
 
@@ -1221,7 +1220,7 @@ export function term_for_boolean(idx, b) {
 export function doset_add_menu(win, option, fmtstr, idx, indexoffset) {
   let value = "unknown", indent, buf, buf2, any, i = idx, reslt = optn_err;
   let clr = NO_COLOR;
-  buf2 = '\0';
+  buf2 = '';
   any = { a_int: 0 };
   if (i >= 0 && i < OPTCOUNT && allopt[i].name && allopt[i].optfn) {
     any.a_int = (indexoffset === 0) ? 0 : i + 1 + indexoffset;

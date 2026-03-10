@@ -2055,14 +2055,14 @@ function inherits(shkp, _numsk, _croaked, _silently) {
 // ============================================================
 
 // C ref: shk.c sellobj_state()
-let sell_response = '\0';
+let sell_response = '';
 let sell_how = 0;
 const SELL_NORMAL = 0;
 const SELL_DELIBERATE = 1;
 const SELL_DONTSELL = 2;
 
 export function sellobj_state(deliberate) {
-    sell_response = (deliberate !== SELL_NORMAL) ? '\0' : 'a';
+    sell_response = (deliberate !== SELL_NORMAL) ? '' : 'a';
     sell_how = deliberate;
 }
 

@@ -1,3 +1,4 @@
+import { COLNO } from './const.js';
 // topten.js -- High score list persistence and display
 // C ref: topten.c — struct toptenentry, topten(), outentry()
 //
@@ -236,7 +237,7 @@ export function add_achieveX(buf, achievement, condition) {
 
 // Autotranslated from topten.c:583
 export function encode_extended_conducts(buf, game, player) {
-  buf = '\0';
+  buf = '';
   add_achieveX(buf, "foodless", !player.uconduct.food);
   add_achieveX(buf, "vegan", !player.uconduct.unvegan);
   add_achieveX(buf, "vegetarian", !player.uconduct.unvegetarian);
@@ -293,13 +294,11 @@ export function tt_doppel(mon) {
 
 // Autotranslated from topten.c:928
 export function outheader() {
-  let linebuf, bp;
-  linebuf = " No Points Name";
-  bp = eos(linebuf);
-  while (bp < linebuf + COLNO - 9) {
-     bp = ' ';
+  let linebuf = " No Points Name";
+  while (linebuf.length < COLNO - 9) {
+    linebuf += ' ';
   }
-  bp = "Hp [max]";
+  linebuf += "Hp [max]";
   topten_print(linebuf);
 }
 

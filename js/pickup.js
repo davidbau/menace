@@ -203,7 +203,7 @@ function menu_class_present(c) {
 
 // cf. pickup.c:475 — add_valid_menu_class(c)
 function add_valid_menu_class(c) {
-    if (c === 0 || c === '\0') {
+    if (!c) {
         valid_menu_classes = '';
         class_filter = false;
         bucx_filter = false;
