@@ -6568,3 +6568,24 @@ hard-won wisdom:
   - `node --test test/unit/codematch_remaining_surface_batch.test.js`
   - `node --test test/unit/codematch_remaining_surface_batch.test.js test/unit/codematch_insight_iactions_surface.test.js test/unit/codematch_were_wield_worn_worm_surface.test.js`
   - Both passed.
+
+### CODEMATCH closure slice: monmove.c `onscary` completion (2026-03-10)
+
+- Problem:
+  - `onscary` was still tracked as `Partial` in CODEMATCH due missing C checks
+    (lawful-minion resistance, vampire-shifter altar scare, and full Elbereth gate parity fields).
+- Change:
+  - `js/mon.js` `onscary(...)` now includes:
+    - lawful-minion direct scare immunity
+    - altar scare for vampire shifters (`is_vampshifter`)
+    - Elbereth exclusion parity cleanup (`mpeaceful` + existing minotaur/vision/hell/endgame/displaced logic)
+  - Added focused tests in `test/unit/mon_onscary.test.js` covering:
+    - lawful-minion immunity
+    - vampire-shifter altar fear
+    - displaced Elbereth protection path
+    - minotaur Elbereth exclusion
+  - Updated `docs/CODEMATCH.md` row `monmove.c:onscary` from `Partial` to `Implemented`
+    and refreshed top-line totals by -1.
+- Validation:
+  - `node --test test/unit/mon_onscary.test.js`
+  - `node --test test/unit/mon_onscary.test.js test/unit/codematch_remaining_surface_batch.test.js`

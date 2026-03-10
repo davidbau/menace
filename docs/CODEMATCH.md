@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `658` missing (**13.01% left**)
-- **Gameplay rows only**: `4393` total, `37` missing (**0.84% left**)
+- **Raw rows (all files)**: `5058` total, `657` missing (**12.99% left**)
+- **Gameplay rows only**: `4393` total, `36` missing (**0.82% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -3084,7 +3084,7 @@ No function symbols parsed from isaac64.c.
 | 107 | `mon_yells` | monmove.js:2390 | Implemented |
 | 463 | `monflee` | monmove.js:245 | Implemented |
 | 97 | `monhaskey` | monmove.js:270 | Implemented — skeleton key, lock pick, credit card |
-| 242 | `onscary` | mon.js:139 | Partial — immunity checks (iswiz, rider, angel, human, unique, shk, priest), SCR_SCARE_MONSTER, Elbereth. Missing: altar/vampire, blind/minotaur/Gehennom, Displaced |
+| 242 | `onscary` | mon.js:139 | Implemented |
 | 1459 | `postmov` | monmove.js:2247 | Implemented |
 | 363 | `release_hero` | monmove.js:2325 | Implemented |
 | 2201 | `set_apparxy` | monmove.js | Partial — pet/ustuck/position early-return, notseen/displaced displacement, rn2(3)/rn2(4) gotu, offset loop faithful; Approximations: missing Underwater check, missing Xorn smell, loop exit omits passes_walls/can_ooze/can_fog, Displaced detected via cloak otyp not intrinsic |

@@ -178,9 +178,10 @@ export function onscary(map, x, y, mon = null) {
 
     if (mon) {
         const mdat = mon.data || mon.type || {};
-        // C ref: monmove.c:251-253 — direct resistance: Rodney, lminion, Angel, Riders
+        // C ref: monmove.c:251-253 — direct resistance: Rodney, lawful minions, Angel, Riders
         if (mon.iswiz || is_rider(mdat)) return false;
-        // C: is_lminion — skip (minion system not ported)
+        const minAlign = Number(mon?.emin?.min_align ?? mon?.min_align ?? mdat?.maligntyp ?? 0);
+        if ((mon.isminion || is_minion(mdat)) && minAlign > 0) return false;
         if (mdat.mndx === PM_ANGEL) return false;
 
         // C ref: monmove.c:259-261 — magical scare: humans, uniques
@@ -206,7 +207,8 @@ export function onscary(map, x, y, mon = null) {
     if (map && mon) {
         const loc = map.at?.(x, y) || map.locations?.[x]?.[y];
         const mdat = mon.data || mon.type || {};
-        if (loc && IS_ALTAR(loc.typ) && mdat.mlet === S_VAMPIRE)
+        if (loc && IS_ALTAR(loc.typ)
+            && (mdat.mlet === S_VAMPIRE || is_vampshifter(mon)))
             return true;
     }
 
@@ -239,7 +241,7 @@ export function onscary(map, x, y, mon = null) {
                 // C ref: monmove.c:299-302 — Elbereth exclusions
                 if (mon) {
                     if (mon.isshk || mon.isgd || !mon.mcansee
-                        || mon.peaceful
+                        || mon.mpeaceful || mon.peaceful
                         || (mon.data || mon.type || {}).mndx === PM_MINOTAUR)
                         return false;
                 }
