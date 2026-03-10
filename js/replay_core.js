@@ -6,7 +6,7 @@
 
 import { enableRngLog, getRngLog, disableRngLog, pushRngLogEntry } from './rng.js';
 import { pushInput } from './input.js';
-import { NetHackGame, run_command, execute_repeat_command, getRuntimeInputSnapshot } from './allmain.js';
+import { NetHackGame, getRuntimeInputSnapshot } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { envFlag, getEnv } from './runtime_env.js';
@@ -266,7 +266,6 @@ export async function replaySession(seed, opts, keys) {
 
     // Feed each keystroke to the game, record results.
     let pendingCommand = null;
-    const useGameLoopPath = envFlag('WEBHACK_REPLAY_USE_GAMELOOP');
 
     for (let i = 0; i < keys.length; i++) {
         const preMap = game.lev || game.map || null;
@@ -304,22 +303,15 @@ export async function replaySession(seed, opts, keys) {
                 );
             }
         } else {
-            let commandPromise;
-            if (useGameLoopPath) {
-                pushInput(ch);
-                commandPromise = game._gameLoopStep();
-            } else {
-                commandPromise = (ch === 1)
-                    ? execute_repeat_command(game)
-                    : run_command(game, ch);
-            }
+            pushInput(ch);
+            const commandPromise = game._gameLoopStep();
             const settled = await drainUntilInput(commandPromise, game.input);
             if (!settled.done) {
                 pendingCommand = commandPromise;
                 replayPendingTrace(
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
-                    `mode=${useGameLoopPath ? 'start-gameloop' : 'start'}`,
+                    'mode=start-gameloop',
                     'start=waiting',
                     pendingWaitSite(game.input),
                     replayBoundaryState(game, game.input)
@@ -328,7 +320,7 @@ export async function replaySession(seed, opts, keys) {
                 replayPendingTrace(
                     `step=${i + 1}`,
                     `key=${JSON.stringify(String.fromCharCode(ch))}`,
-                    `mode=${useGameLoopPath ? 'start-gameloop' : 'start'}`,
+                    'mode=start-gameloop',
                     'start=done',
                     replayBoundaryState(game, game.input)
                 );

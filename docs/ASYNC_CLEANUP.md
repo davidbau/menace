@@ -28,14 +28,19 @@ Completed in code:
   - now use direct `getRuntimeInputSnapshot(game)` helper.
 - Remaining gameplay-path raw timer await removed:
   - `storage.handleSave()` now uses `nh_delay_output(500)`.
+- Replay now always drives through the game loop path (`pushInput` + `_gameLoopStep`);
+  the old direct `run_command(game, key)` replay path has been removed.
+- Replay startup tutorial prompt flow no longer uses deferred `_pendingPromptTask`;
+  prompt handlers await their work inline.
+- Residual `_nonBlockingMore` compatibility writes were removed from gameplay paths.
 
 Validation baseline at this checkpoint:
-- Unit tests green (`2731/2731`).
+- Unit tests green (`2737/2737`).
 - Gameplay parity green (`34/34`, PRNG/events/screens all green).
 
 Remaining cleanup focus:
-- Keep reducing obsolete SYNCLOCK-era boundary diagnostics references
-  where they no longer describe live architecture.
+- Keep reducing obsolete SYNCLOCK-era diagnostics/docs wording that no longer
+  matches the live architecture.
 - Continue origin-await audits for newly introduced raw awaits.
 
 ## Execution Model
@@ -447,9 +452,9 @@ Tests pass after each file.
 | bare `await import('./foo.js')` | `await nhimport('./foo.js')` |
 | bare `await fetch(url)` | `await nhfetch(url)` |
 
-The 3 `awaitInput` callsites in `run_command` that wrap
-`topBoundary.onKey()` and `game._pendingPromptTask` are left for Phase 3
-(boundary elimination).
+The `awaitInput` boundary wrappers in `run_command` were removed in the
+Phase 3 cleanup; prompt handling now runs directly through `pendingPrompt.onKey`
+without boundary-stack dispatch.
 
 **Do this incrementally**, in order of decreasing callsite count:
 1. `chargen.js` (14 callsites) — chargen tests catch regressions
@@ -737,10 +742,9 @@ travel renders intermediate frames.
 
 **Progress update (2026-03-10):**
 
-- Added an opt-in replay inversion path behind
-  `WEBHACK_REPLAY_USE_GAMELOOP=1` in `js/replay_core.js`:
-  replay now feeds keys via `pushInput()` and runs `NetHackGame._gameLoopStep()`
-  instead of direct `run_command(game, key)` when enabled.
+- Replay inversion is now the canonical path in `js/replay_core.js`:
+  replay feeds keys via `pushInput()` and runs `NetHackGame._gameLoopStep()`
+  (old direct `run_command(game, key)` path removed).
 - Added explicit command-result ownership propagation:
   `terminalScreenOwned` now flows from prompt handlers through `run_command`.
 - `_gameLoopStep` now uses a single `renderAndAutosave(...)` helper and skips
@@ -748,9 +752,8 @@ travel renders intermediate frames.
 - `_gameLoopStep` command handling is now factored into
   `runOneCommandCycle(firstCh)`, keeping the loop step focused on orchestration
   (read key -> run cycle -> render/autosave).
-- Validation: `npm run -s test:unit`, `./scripts/run-and-report.sh --failures`,
-  and `WEBHACK_REPLAY_USE_GAMELOOP=1 ./scripts/run-and-report.sh --failures`
-  all pass (`34/34` gameplay).
+- Validation: `npm run -s test:unit` and
+  `./scripts/run-and-report.sh --failures` pass (`34/34` gameplay).
 
 ## Risk Analysis
 

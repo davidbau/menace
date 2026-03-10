@@ -607,7 +607,6 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             if (typeof display.clearRow === 'function') display.clearRow(0);
             if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
             if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
-            if (Object.hasOwn(display, '_nonBlockingMore')) display._nonBlockingMore = false;
         };
 
         for (;;) {

@@ -554,10 +554,6 @@ export async function run_command(game, ch, opts = {}) {
 
     const handlePromptResult = async (promptResult) => {
         if (!(promptResult && promptResult.handled)) return null;
-        if (game._pendingPromptTask) {
-            await game._pendingPromptTask;
-            game._pendingPromptTask = null;
-        }
         const promptTookTime = !!promptResult.tookTime;
         const promptMoved = !!promptResult.moved;
         if (promptTookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
@@ -1075,7 +1071,6 @@ async function renderToplineMorePrompt(display, msg) {
     if (typeof display.clearRow === 'function') display.clearRow(0);
     if ('messageNeedsMore' in display) display.messageNeedsMore = false;
     await display.putstr_message(text);
-    display._nonBlockingMore = true;
     if (typeof display.renderMoreMarker === 'function') {
         display.renderMoreMarker();
         return;
@@ -1113,14 +1108,14 @@ async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, on
                 await renderToplineMorePrompt(g.display, prompts[idx]);
                 idx++;
                 if (!entered && idx >= enterAt) {
-                    g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
+                    await onEnterTutorial(g);
                     entered = true;
                 }
                 if (idx < prompts.length) {
                     g.pendingPrompt = handler;
                 } else {
                     if (!entered) {
-                        g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
+                        await onEnterTutorial(g);
                         entered = true;
                     }
                     awaitingFinalDismiss = true;
@@ -1129,7 +1124,7 @@ async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, on
                 return { handled: true };
             }
             if (!entered) {
-                g._pendingPromptTask = Promise.resolve(onEnterTutorial(g));
+                await onEnterTutorial(g);
                 entered = true;
             }
             if (typeof g.display.clearRow === 'function') g.display.clearRow(0);

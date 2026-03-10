@@ -482,7 +482,6 @@ export async function rhack(ch, game) {
         display.topMessage = null;
         display._topMessageRow1 = undefined;
         display.messageNeedsMore = false;
-        display._nonBlockingMore = true;
         if (typeof display.putstr === 'function') {
             display.putstr(0, 0, line0);
             display.putstr(0, 1, line1);
@@ -491,7 +490,6 @@ export async function rhack(ch, game) {
             }
         } else {
             await display.putstr_message(`${line0} ${line1}`);
-            display._nonBlockingMore = true;
             return { moved: false, tookTime: false, terminalScreenOwned: true };
         }
         display.topMessage = line0;
