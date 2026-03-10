@@ -64,7 +64,8 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
 import { more, nhgetch, ynFunction } from './input.js';
 import { doname, xname } from './mkobj.js';
-import { make_glib } from './potion.js';
+import { make_glib, make_blinded, incr_itimeout, set_itimeout } from './potion.js';
+import { gulp_blnd_check } from './mhitu.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
@@ -90,7 +91,7 @@ import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_END, IS_FURNITURE } from './const.js';
 import { break_wand } from './zap.js';
 import { body_part } from './polyself.js';
 import { freehand } from './engrave.js';
@@ -98,9 +99,11 @@ import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
-import { is_wet_towel } from './objnam.js';
+import { is_wet_towel, gloves_simple_name } from './objnam.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
+import { cmap_to_glyph } from './display.js';
+import { S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';

@@ -50,7 +50,8 @@ import { DISP_BEAM, DISP_END } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 import { pline, impossible, You } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
-import { newsym } from './display.js';
+import { newsym, cmap_to_glyph } from './display.js';
+import { S_goodpos } from './symbols.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,

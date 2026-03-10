@@ -18,7 +18,7 @@ import {
 } from './const.js';
 
 import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF,
-    glyph_is_invisible, glyph_is_trap,
+    glyph_is_invisible, glyph_is_trap, GLYPH_CMAP_MAIN_OFF,
 } from './symbols.js';
 import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
@@ -2018,6 +2018,11 @@ export function set_seenv(lev, x0, y0, x, y) {
   ];
   lev.seenv = (Number(lev.seenv) | 0)
     | seenvMatrix[Math.sign(dy) + 1][Math.sign(dx) + 1];
+}
+
+// C macro: #define cmap_to_glyph(cmap_idx) ((int)(cmap_idx) + GLYPH_CMAP_MAIN_OFF)
+export function cmap_to_glyph(cmap_idx) {
+  return cmap_idx + GLYPH_CMAP_MAIN_OFF;
 }
 
 // Autotranslated from display.c:3785

@@ -46,6 +46,8 @@ import { an } from './objnam.js';
 import { PM_GRID_BUG } from './monsters.js';
 import { canspotmon, glyph_at } from './display.js';
 import { glyph_is_invisible } from './symbols.js';
+import { IS_STWALL, IS_DOOR, IS_TREE, IS_WATERWALL,
+         LAVAWALL, IRONBARS, SCORR, SDOOR, DRAWBRIDGE_UP } from './const.js';
 
 
 
