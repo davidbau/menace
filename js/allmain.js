@@ -551,7 +551,7 @@ export async function run_command(game, ch, opts = {}) {
     const execToken = beginCommandExec(game, { site: 'run_command', key: chCode });
 
     try {
-    const promptFinalized = await handlePendingPromptCommandInput(game, chCode, {
+    const promptFinalized = await promptStep(game, chCode, {
         skipTurnEnd,
         skipMonsterMove,
     });
@@ -675,7 +675,7 @@ export async function run_command(game, ch, opts = {}) {
         });
     }
 
-    applyPostCommandRender(game, result);
+    postRender(game, result);
 
     return result;
     } finally {
@@ -794,7 +794,7 @@ async function rhackCore(game, chCode, {
     return result;
 }
 
-async function handlePendingPromptCommandInput(game, chCode, {
+async function promptStep(game, chCode, {
     skipTurnEnd = false,
     skipMonsterMove,
 } = {}) {
@@ -854,7 +854,7 @@ async function handlePendingPromptCommandInput(game, chCode, {
     };
 }
 
-function applyPostCommandRender(game, result) {
+function postRender(game, result) {
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
