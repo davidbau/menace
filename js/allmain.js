@@ -1247,6 +1247,34 @@ async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, on
     return handler;
 }
 
+function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
+    const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13 || ch === 16);
+    const clearLoreOverlay = (display) => {
+        if (!display) return;
+        const rows = Number.isInteger(display.rows) ? display.rows : 24;
+        const cols = Number.isInteger(display.cols) ? display.cols : 80;
+        for (let r = 0; r < loreLines.length && r < rows - 2; r++) {
+            for (let c = loreOffx; c < cols; c++) {
+                if (typeof display.setCell === 'function') {
+                    display.setCell(c, r, ' ', CLR_GRAY, 0);
+                }
+            }
+        }
+    };
+    return {
+        source: 'startup_lore',
+        async onKey(ch, g) {
+            if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
+            clearLoreOverlay(g?.display);
+            if (g?.display && typeof g.display.putstr_message === 'function') {
+                await g.display.putstr_message(welcomeMsg);
+            }
+            g.pendingPrompt = null;
+            return { handled: true, tookTime: false, moved: false, prompt: true };
+        },
+    };
+}
+
 // ============================================================================
 // NetHackGame — unified browser + headless game class
 // cf. allmain.c early_init(), moveloop(), newgame()
@@ -1826,9 +1854,9 @@ export class NetHackGame {
         this.display.cursorOnPlayer(this.player);
 
         // C ref: moveloop_preamble() shows lore text with --More-- then
-        // queues a welcome message.  Replicate this in headless init so
-        // step 0 captures the lore screen and step 1's space dismisses
-        // --More-- (revealing the welcome greeting), matching C behaviour.
+        // proceeds to welcome text. Keep this as an explicit startup prompt
+        // boundary so step 0 captures lore and step 1 dismisses it to reveal
+        // the welcome greeting.
         if (urlOpts.showLoreAndWelcome && urlOpts.character && !this.flags.tutorial) {
             const roleIdx = this.player.roleIndex;
             const raceIdx = this.player.race;
@@ -1869,8 +1897,7 @@ export class NetHackGame {
             const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
-            this.display.markMorePending({ source: 'lore-startup' });
-            this.display._messageQueue.push(welcomeMsg);
+            this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg);
         }
 
         if (this.flags.tutorial && urlOpts.character) {
