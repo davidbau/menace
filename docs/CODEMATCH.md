@@ -5435,12 +5435,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 3100 | `mhitm_ad_drst` | uhitm.js | Implemented (m-vs-m path) |
 | 2662 | `mhitm_ad_elec` | uhitm.js | Implemented (m-vs-m path) |
 | 3581 | `mhitm_ad_ench` | uhitm.js | Stub (no m-vs-m effect) |
-| 3755 | `mhitm_ad_famn` | uhitm.js | Stub (physical only m-vs-m) |
+| 3755 | `mhitm_ad_famn` | uhitm.js | Implemented — m-vs-m branch zeroes damage for non-eaters; otherwise keeps normal damage |
 | 2499 | `mhitm_ad_fire` | uhitm.js | Implemented (m-vs-m path) |
 | 3875 | `mhitm_ad_halu` | uhitm.js | Stub (no m-vs-m effect) |
 | 4274 | `mhitm_ad_heal` | uhitm.js | Implemented (m-vs-m path) |
 | 4403 | `mhitm_ad_legs` | uhitm.js | Implemented (delegates to phys) |
-| 3786 | `mhitm_ad_pest` | uhitm.js | Stub (physical only m-vs-m) |
+| 3786 | `mhitm_ad_pest` | uhitm.js | Implemented — m-vs-m branch routes through AD_DISE semantics |
 | 3959 | `mhitm_ad_phys` | uhitm.js | Implemented (m-vs-m path) |
 | 3409 | `mhitm_ad_plys` | uhitm.js | Implemented (m-vs-m path) |
 | 3707 | `mhitm_ad_poly` | uhitm.js | Stub (needs newcham) |
@@ -5456,7 +5456,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 4181 | `mhitm_ad_ston` | uhitm.js | Stub (needs petrification) |
 | 4366 | `mhitm_ad_stun` | uhitm.js | Implemented (m-vs-m path) |
 | 2837 | `mhitm_ad_tlpt` | uhitm.js | Stub |
-| 4243 | `mhitm_ad_were` | uhitm.js | Stub (no m-vs-m effect) |
+| 4243 | `mhitm_ad_were` | uhitm.js | Implemented — m-vs-m branch delegates to physical damage handler |
 | 3315 | `mhitm_ad_wrap` | uhitm.js | Implemented (m-vs-m path) |
 | 4760 | `mhitm_adtyping` | uhitm.js | Implemented |
 | 5225 | `mhitm_knockback` | mhitu.js + uhitm.js | Implemented — rn2(3) distance, rn2(6) chance, eligibility checks (AD_PHYS, attack type, size), rn2(2)+rn2(2) message; no actual monster movement |

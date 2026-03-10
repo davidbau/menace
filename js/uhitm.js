@@ -53,6 +53,7 @@ import {
     resists_poison, resists_sleep, resists_ston, resists_drli,
     thick_skinned, mon_hates_silver, mon_hates_light,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc,
+    carnivorous, herbivorous, is_metallivore,
     poly_when_stoned, DEADMONSTER,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
@@ -1140,7 +1141,10 @@ export function mhitm_ad_poly(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 export function mhitm_ad_ston(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
 // cf. uhitm.c:4243 — lycanthropy (m-vs-m: no effect)
-export function mhitm_ad_were(magr, mattk, mdef, mhm) { /* no effect m-vs-m */ }
+export function mhitm_ad_were(magr, mattk, mdef, mhm) {
+    // C routes m-vs-m AD_WERE through physical damage handling.
+    mhitm_ad_phys(magr, mattk, mdef, mhm);
+}
 
 // cf. uhitm.c:4274 — nurse healing (m-vs-m: heals defender)
 export function mhitm_ad_heal(magr, mattk, mdef, mhm) {
@@ -1179,12 +1183,17 @@ export function mhitm_ad_deth(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:3786 — pestilence (Rider attack)
 export function mhitm_ad_pest(magr, mattk, mdef, mhm) {
-    /* m-vs-m: just physical damage */
+    // C routes Pestilence m-vs-m handling through AD_DISE logic.
+    const alt = { ...(mattk || {}), adtyp: AD_DISE };
+    mhitm_ad_dise(magr, alt, mdef, mhm);
 }
 
 // cf. uhitm.c:3755 — famine (Rider attack)
 export function mhitm_ad_famn(magr, mattk, mdef, mhm) {
-    /* m-vs-m: just physical damage */
+    const pd = mdef?.data || mdef?.type || {};
+    if (!(carnivorous(pd) || herbivorous(pd) || is_metallivore(pd))) {
+        mhm.damage = 0;
+    }
 }
 
 // cf. uhitm.c:3875 — hallucination (m-vs-m: no effect)

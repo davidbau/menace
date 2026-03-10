@@ -6789,3 +6789,28 @@ hard-won wisdom:
 - Validation:
   - `seed331` targeted replay now matches screen/color fully (`389/389`).
   - `scripts/run-and-report.sh`: gameplay `34/34` green.
+
+### CODEMATCH `uhitm.c` AD-branch alignment (`AD_WERE`/`AD_PEST`/`AD_FAMN`) (2026-03-10)
+
+- Problem:
+  - `uhitm` AD handlers for Rider/lycanthropy variants were still simplified
+    and not matching C branch behavior in the m-vs-m path.
+- Change:
+  - `js/uhitm.js`:
+    - `mhitm_ad_were` now delegates to `mhitm_ad_phys` (matching C m-vs-m).
+    - `mhitm_ad_pest` now routes through `AD_DISE` semantics.
+    - `mhitm_ad_famn` now zeroes damage for non-eaters
+      (non-carnivorous/non-herbivorous/non-metallivorous defenders).
+  - Added focused unit coverage:
+    - `test/unit/codematch_uhitm_ad_branches.test.js`
+      - were -> physical delegation behavior
+      - pest -> disease delegation behavior
+      - famine eater/non-eater split behavior
+  - Updated `docs/CODEMATCH.md` rows from stub to implemented for:
+    - `mhitm_ad_were`
+    - `mhitm_ad_pest`
+    - `mhitm_ad_famn`
+- Validation:
+  - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
+  - `node scripts/test-unit-core.mjs`
+  - Both passed.
