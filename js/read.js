@@ -23,7 +23,7 @@ import {
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
 import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED } from './const.js';
-import { doname } from './mkobj.js';
+import { doname, bcsign, blessorcurse, uncurse } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
@@ -536,27 +536,6 @@ function some_armor(player) {
     return otmph;
 }
 
-// cf. C bcsign(obj)
-function bcsign(obj) {
-    return obj.cursed ? -1 : obj.blessed ? 1 : 0;
-}
-
-// cf. C blessorcurse(obj, chance) — randomly bless or curse an uncursed item
-function blessorcurse(obj, chance) {
-    if (obj.blessed || obj.cursed) return;
-    if (!rn2(chance)) {
-        if (!rn2(2)) {
-            obj.cursed = true;
-        } else {
-            obj.blessed = true;
-        }
-    }
-}
-
-// cf. C uncurse(obj)
-function uncurse(obj) {
-    obj.cursed = false;
-}
 
 
 // ============================================================

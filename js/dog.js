@@ -32,7 +32,7 @@ import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit, i
 import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
-    canseemon, slimeproof, DEADMONSTER,
+    canseemon, slimeproof, DEADMONSTER, is_domestic,
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -265,7 +265,6 @@ function pet_type(roleIndex) {
     return rn2(2) ? PM_KITTEN : PM_LITTLE_DOG;
 }
 
-function is_domestic(ptr) { return !!(ptr.mflags2 & M2_DOMESTIC); }
 
 // C ref: dog.c makedog()
 export function makedog(map, player, depth) {

@@ -59,13 +59,6 @@ const gd = {};
 function Wounded_legs(player) { return !!(player?.woundedLegs); }
 function EWounded_legs(player) { return Number(player?.eWoundedLegs || 0); }
 function HWounded_legs(player) { return Number(player?.hWoundedLegs || 0); }
-function strchr(s, ch) {
-    if (s == null || ch == null) return null;
-    const text = String(s);
-    const needle = String(ch)[0] || '';
-    const idx = text.indexOf(needle);
-    return idx >= 0 ? text.slice(idx) : null;
-}
 
 
 // ============================================================
