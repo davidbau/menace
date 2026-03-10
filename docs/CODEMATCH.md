@@ -460,13 +460,13 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 636 | `defends` | artifact.js:283 | Implemented |
 | 687 | `defends_when_carried` | artifact.js:294 | Implemented |
 | 1113 | `discover_artifact` | artifact.js:449 | Implemented |
-| 1147 | `disp_artifact_discoveries` | artifact.js:463 | Stub |
+| 1147 | `disp_artifact_discoveries` | artifact.js:455 | Implemented — enumerates discovered artifacts with alignment/type labels and returns discovered count |
 | 312 | `dispose_of_orig_obj` | artifact.js:dispose_of_orig_obj | Implemented |
 | 1749 | `doinvoke` | artifact.js:616 | Stub |
-| 1177 | `dump_artifact_info` | artifact.js:469 | Stub |
+| 1177 | `dump_artifact_info` | artifact.js:477 | Implemented — emits full artifact existence/knowledge/origin flag summary lines |
 | 356 | `exist_artifact` | artifact.js:128 | Implemented |
 | 422 | `find_artifact` | artifact.js:202 | Implemented |
-| 2236 | `finesse_ahriman` | artifact.js:643 | Stub |
+| 2236 | `finesse_ahriman` | artifact.js:1447 | Implemented — levitation-removal safety check for Heart of Ahriman invoke handling |
 | 409 | `found_artifact` | artifact.js:195 | Implemented |
 | 2821 | `get_artifact` | artifact.js:60 | Implemented |
 | 2427 | `glow_color` | artifact.js:476 | Implemented |
@@ -475,32 +475,32 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 87 | `hack_artifacts` | artifact.js:105 | Implemented |
 | 2790 | `has_magic_key` | artifact.js:717 | Implemented |
 | 111 | `init_artifacts` | artifact.js:102 | Implemented |
-| 1963 | `invoke_banish` | artifact.js:637 | Stub |
-| 2054 | `invoke_blinding_ray` | artifact.js:640 | Stub |
-| 1848 | `invoke_charge_obj` | artifact.js:634 | Stub |
-| 1934 | `invoke_create_ammo` | artifact.js:636 | Stub |
-| 1867 | `invoke_create_portal` | artifact.js:635 | Stub |
-| 1818 | `invoke_energy_boost` | artifact.js:632 | Stub |
-| 2022 | `invoke_fling_poison` | artifact.js:638 | Stub |
-| 1780 | `invoke_healing` | artifact.js:631 | Stub |
+| 1963 | `invoke_banish` | artifact.js:1315 | Partial — invoke entrypoint wired; deep demon-iteration/banishment behavior remains TODO |
+| 2054 | `invoke_blinding_ray` | artifact.js:1336 | Partial — invoke entrypoint wired; directional ray/body-target effects remain TODO |
+| 1848 | `invoke_charge_obj` | artifact.js:1294 | Partial — invoke entrypoint wired; target selection + recharge mechanics remain TODO |
+| 1934 | `invoke_create_ammo` | artifact.js:1308 | Partial — invoke entrypoint wired; full arrow creation/hold semantics remain TODO |
+| 1867 | `invoke_create_portal` | artifact.js:1301 | Partial — invoke entrypoint wired; full dungeon menu/portal travel logic remains TODO |
+| 1818 | `invoke_energy_boost` | artifact.js:1267 | Partial — C-shaped energy-restoration formula implemented with canonical energy fields; full polymorph/status side effects remain TODO |
+| 2022 | `invoke_fling_poison` | artifact.js:1322 | Partial — invoke entrypoint wired; direction/getdir/throw flow remains TODO |
+| 1780 | `invoke_healing` | artifact.js:1250 | Partial — C-shaped half-heal path implemented across hero hp field variants; full Sick/Slimed/Blinded clearing remains TODO |
 | 1727 | `invoke_ok` | artifact.js:1230 | Implemented — C-shaped invoke target filter (artifact/unique/fake-amulet/crystal-ball suggestions) |
-| 2040 | `invoke_storm_spell` | artifact.js:639 | Stub |
-| 1769 | `invoke_taming` | artifact.js:630 | Stub |
-| 1838 | `invoke_untrap` | artifact.js:633 | Stub |
+| 2040 | `invoke_storm_spell` | artifact.js:1329 | Partial — invoke entrypoint wired; spell-skill override + spelleffects parity remains TODO |
+| 1769 | `invoke_taming` | artifact.js:1243 | Partial — invoke entrypoint wired; full SCR_TAMING seffects path remains TODO |
+| 1838 | `invoke_untrap` | artifact.js:1287 | Partial — invoke entrypoint wired; full untrap command path remains TODO |
 | 2808 | `is_art` | artifact.js:342 | Implemented |
 | 2775 | `is_magic_key` | artifact.js:708 | Implemented |
 | 172 | `mk_artifact` | artifact.js:551 | Implemented (RNG-consuming candidate selection) |
-| 2753 | `mkot_trap_warn` | artifact.js:703 | Stub |
+| 2753 | `mkot_trap_warn` | artifact.js:1585 | Implemented — C-shaped adjacent trap heat messaging and state-tracking for Master Key of Thievery |
 | 462 | `nartifact_exist` | artifact.js:211 | Implemented |
-| 1762 | `nothing_special` | artifact.js:629 | Stub |
+| 1762 | `nothing_special` | artifact.js:1238 | Implemented — standard invoke no-op feedback message |
 | 2837 | `permapoisoned` | artifact.js:347 | Implemented |
 | 698 | `protects` | artifact.js:303 | Implemented |
 | 133 | `restore_artifacts` | artifact.js:737 | Implemented |
 | 575 | `restrict_name` | artifact.js:256 | Implemented |
-| 2640 | `retouch_equipment` | artifact.js:535 | Stub |
-| 2508 | `retouch_object` | artifact.js:528 | Stub |
+| 2640 | `retouch_equipment` | artifact.js:634 | Partial — core retouch pass over wielded/worn/inventory artifacts implemented; full C bypass-order edge cases remain |
+| 2508 | `retouch_object` | artifact.js:583 | Partial — C-shaped artifact touch gate + forced drop path implemented; full carried/unwield side effects remain |
 | 119 | `save_artifacts` | artifact.js:729 | Implemented |
-| 716 | `set_artifact_intrinsic` | artifact.js:543 | Stub |
+| 716 | `set_artifact_intrinsic` | artifact.js:657 | Partial — property bit wiring for attack/defense/carry effects implemented; full blocked/invisible/property-stack nuances remain |
 | 555 | `shade_glare` | artifact.js:246 | Implemented |
 | 516 | `spec_ability` | artifact.js:222 | Implemented |
 | 1076 | `spec_abon` | artifact.js:415 | Implemented (wired into uhitm.js find_roll_to_hit) |

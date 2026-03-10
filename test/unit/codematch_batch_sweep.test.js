@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { initRng } from '../../js/rng.js';
 import { GameMap } from '../../js/game.js';
-import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost } from '../../js/artifact.js';
+import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key } from '../../js/artifact.js';
 import { check_in_air } from '../../js/trap.js';
 import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
@@ -12,6 +12,8 @@ import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS } from '../../js/
 import { CHEST, DAGGER } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
 import { CRYSTAL_BALL } from '../../js/objects.js';
+import { PM_ROGUE } from '../../js/monsters.js';
+import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -131,4 +133,15 @@ test('artifact.arti_invoke_cost drains pw for paid invoke-cost artifacts', async
     assert.equal(ok, true);
     assert.equal(player.pw, 5);
     assert.equal(game.disp.botl, true);
+});
+
+test('artifact.is_magic_key follows rogue-vs-nonrogue bless/curse rules', () => {
+    const key = { oartifact: ART_MASTER_KEY_OF_THIEVERY, blessed: 0, cursed: 0 };
+    assert.equal(is_magic_key({ mndx: PM_ROGUE }, key), true);
+    key.cursed = 1;
+    assert.equal(is_magic_key({ mndx: PM_ROGUE }, key), false);
+    key.cursed = 0;
+    assert.equal(is_magic_key({ mndx: PM_FLOATING_EYE }, key), false);
+    key.blessed = 1;
+    assert.equal(is_magic_key({ mndx: PM_FLOATING_EYE }, key), true);
 });

@@ -7233,3 +7233,25 @@ hard-won wisdom:
   - `node --test test/unit/codematch_uhitm_ad_branches.test.js` (25/25)
   - `npm run -s test:unit` (2737/2737)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: artifact is_magic_key bless/curse rules aligned to C role split
+
+- Problem:
+  - JS `is_magic_key(mon, obj)` was not fully role-faithful for Master Key of
+    Thievery. C behavior is role-sensitive and intentionally asymmetric.
+- Change:
+  - `js/artifact.js`:
+    - for Rogues, key is "magic" when not cursed;
+    - for non-Rogues, key is "magic" only when blessed.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added focused branch test for rogue/non-rogue + bless/curse combinations.
+  - `docs/CODEMATCH.md`:
+    - refreshed artifact invoke/utility rows from stale stub markers to current
+      implementation status.
+- Why this matters:
+  - This avoids over-generalized blessing checks and keeps edge-case lock/key
+    behavior faithful to C when role identity changes the gating rule.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (10/10)
+  - `npm run -s test:unit` (2747/2747)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

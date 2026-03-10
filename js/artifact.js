@@ -1601,8 +1601,9 @@ export async function mkot_trap_warn(player, map) {
 // cf. artifact.c:2775 — is_magic_key(mon, obj)
 export function is_magic_key(mon, obj) {
   if (is_art(obj, ART_MASTER_KEY_OF_THIEVERY)) {
-    // Simplified: blessed = magic for non-rogues, non-cursed for rogues
-    return obj.blessed;
+    const mndx = mon?.mndx ?? mon?.data?.mndx ?? null;
+    const isRogue = mndx === PM_ROGUE;
+    return isRogue ? !obj.cursed : !!obj.blessed;
   }
   return false;
 }
