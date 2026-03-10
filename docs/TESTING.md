@@ -31,7 +31,7 @@ npm run coverage:session-parity
 Notes:
 - This coverage run is intentionally based on session replay only.
 - Default scope is gameplay sessions (`--type=gameplay`).
-- Report output is written to `/coverage/index.html`.
+- Report output is written to `/coverage/index.html` and `/coverage/coverage-summary.json`.
 
 Aggregate commands:
 

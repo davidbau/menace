@@ -43,6 +43,7 @@ Behavior:
 
 Primary artifact:
 - `/coverage/index.html`
+- `/coverage/coverage-summary.json`
 
 Directory:
 - `/coverage/` (repo root)

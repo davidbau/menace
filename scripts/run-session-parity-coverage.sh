@@ -12,14 +12,14 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-REPORTERS="--reporter=html"
+REPORTERS="--reporter=html --reporter=json-summary"
 TYPE_ARG="--type=gameplay"
 RUNNER_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --text)
-      REPORTERS="--reporter=html --reporter=text"
+      REPORTERS="--reporter=html --reporter=json-summary --reporter=text"
       shift
       ;;
     --all-types)
