@@ -817,33 +817,32 @@ export async function run_command(game, ch, opts = {}) {
         }
     }
 
-    // C ref: bot() + curs_on_u() — update status line and cursor position
-    // after all command processing.  In C, bot() runs at the end of each
-    // moveloop turn, and curs_on_u() runs before waiting for the next key.
-    // docrt() handles FOV recomputation (including do_light_sources for
-    // mobile light sources) and full map rendering.
-    const _player = game.u || game.player;
-    if (game.display && _player && !result?.terminalScreenOwned) {
-        // C ref: parse() / get_count() — while accumulating a count prefix that
-        // has been displayed ("Count: N"), the cursor stays on the topline.
-        // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
-        // because docrt() internally calls cursorOnPlayer which would clobber it.
-        if (!result?.isCountDigitWithDisplay) {
-            if (typeof game.docrt === 'function') {
-                game.docrt();
-            }
-            if (typeof game.display.renderStatus === 'function') {
-                game.display.renderStatus(_player);
-            }
-            if (typeof game.display.cursorOnPlayer === 'function') {
-                game.display.cursorOnPlayer(_player);
-            }
-        }
-    }
+    applyPostCommandRender(game, result);
 
     return result;
     } finally {
         endCommandExec(game, execToken, { site: 'run_command', key: chCode });
+    }
+}
+
+function applyPostCommandRender(game, result) {
+    // C ref: bot() + curs_on_u() — update status line and cursor position
+    // after all command processing. In C, bot() runs at end-of-turn and
+    // curs_on_u() runs before waiting for the next key.
+    const player = game.u || game.player;
+    if (!game.display || !player || result?.terminalScreenOwned) return;
+    // C ref: parse()/get_count() count-prefix digits keep topline cursor.
+    // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
+    // because docrt() internally calls cursorOnPlayer and would clobber it.
+    if (result?.isCountDigitWithDisplay) return;
+    if (typeof game.docrt === 'function') {
+        game.docrt();
+    }
+    if (typeof game.display.renderStatus === 'function') {
+        game.display.renderStatus(player);
+    }
+    if (typeof game.display.cursorOnPlayer === 'function') {
+        game.display.cursorOnPlayer(player);
     }
 }
 
