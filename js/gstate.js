@@ -148,7 +148,7 @@ export function getCommandExecState(g) {
 }
 
 // New origin registration API used by canonical async origins.
-export function beginOriginAwait(g, type, details = {}) {
+export function beginOriginAwait(g, type) {
     const mode = modeValue();
     const st = gameState(g);
     if (!st) return null;
@@ -156,7 +156,6 @@ export function beginOriginAwait(g, type, details = {}) {
         report(g, mode, 'nested-origin-await', {
             existing: st.activeOrigin,
             attempted: type,
-            ...details,
         });
     }
     st.originSeq += 1;
@@ -169,13 +168,12 @@ export function beginOriginAwait(g, type, details = {}) {
         g.emitDiagnosticEvent('synclock.origin.begin', {
             token,
             type: st.activeOrigin.type,
-            ...details,
         });
     }
     return { token, type: st.activeOrigin.type };
 }
 
-export function endOriginAwait(g, snapshot, details = {}) {
+export function endOriginAwait(g, snapshot) {
     if (!snapshot) return;
     const mode = modeValue();
     const st = gameState(g);
@@ -183,7 +181,6 @@ export function endOriginAwait(g, snapshot, details = {}) {
     if (!st.activeOrigin) {
         report(g, mode, 'origin-end-without-active', {
             got: snapshot,
-            ...details,
         });
         return;
     }
@@ -191,14 +188,12 @@ export function endOriginAwait(g, snapshot, details = {}) {
         report(g, mode, 'origin-token-mismatch', {
             expected: st.activeOrigin,
             got: snapshot,
-            ...details,
         });
     }
     if (typeof g?.emitDiagnosticEvent === 'function') {
         g.emitDiagnosticEvent('synclock.origin.end', {
             token: snapshot.token,
             type: snapshot.type,
-            ...details,
         });
     }
     st.activeOrigin = null;

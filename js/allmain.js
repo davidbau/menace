@@ -69,6 +69,7 @@ import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          enterTutorial as _enterTutorial, showGameOver as _showGameOver } from './chargen.js';
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
+import { nhimport, nhload } from './origin_awaits.js';
 import { phase_of_the_moon, friday_13th } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
@@ -1684,7 +1685,7 @@ export class NetHackGame {
 
         // Check for saved game before RNG init.
         // Prefer manual save; fall back to autosave (crash recovery).
-        const saveData = loadSave() || await loadAutosave();
+        const saveData = loadSave() || await nhload(() => loadAutosave());
         if (saveData) {
             const restored = await _restoreFromSave(this, saveData, urlOpts);
             if (restored) return;
@@ -2387,7 +2388,7 @@ export class NetHackGame {
     async _gameLoopStep() {
         // Travel continuation
         if (this.travelPath && this.travelStep < this.travelPath.length) {
-            const { dotravel_target } = await import('./hack.js');
+            const { dotravel_target } = await nhimport('./hack.js');
             const result = await dotravel_target(this);
             if (result.tookTime) {
                 await moveloop_core(this);

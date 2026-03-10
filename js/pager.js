@@ -22,6 +22,7 @@ import { objectData, STRANGE_OBJECT } from './objects.js';
 import { visctrl } from './hacklib.js';
 import { terrainSymbol, wallIsVisible } from './render.js';
 import { dealloc_obj } from './mkobj.js';
+import { nhfetch, nhimport } from './origin_awaits.js';
 
 // -----------------------------------------------------------------------
 // Look / whatis core (merged from look.js)
@@ -731,14 +732,14 @@ const dataFileCache = {};
 async function fetchDataFile(filename) {
     if (dataFileCache[filename]) return dataFileCache[filename];
     try {
-        const resp = await fetch(filename);
+        const resp = await nhfetch(filename);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const text = await resp.text();
         dataFileCache[filename] = text;
         return text;
     } catch (_e) {
         try {
-            const { readFile } = await import('node:fs/promises');
+            const { readFile } = await nhimport('node:fs/promises');
             const text = await readFile(filename, 'utf8');
             dataFileCache[filename] = text;
             return text;
@@ -1118,7 +1119,7 @@ async function showGuidebook(display) {
     if (!guidebookText) {
         await display.putstr_message('Loading Guidebook...');
         try {
-            const resp = await fetch('Guidebook.txt');
+            const resp = await nhfetch('Guidebook.txt');
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             guidebookText = await resp.text();
         } catch (e) {

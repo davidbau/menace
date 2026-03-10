@@ -282,11 +282,11 @@ export async function tmp_at_end_async(flags = 0) {
 }
 
 export async function nh_delay_output(ms = undefined) {
-    const snap = beginOriginAwait(activeGame, 'delay', { site: 'animation.nh_delay_output' });
+    const snap = beginOriginAwait(activeGame, 'delay');
     try {
         await animationCore.nh_delay_output(ms);
     } finally {
-        endOriginAwait(activeGame, snap, { site: 'animation.nh_delay_output' });
+        endOriginAwait(activeGame, snap);
     }
 }
 

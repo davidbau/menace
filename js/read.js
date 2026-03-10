@@ -50,6 +50,7 @@ import { pline, impossible, You } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym } from './display.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
+import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal } from './mondata.js';
 
@@ -1770,7 +1771,7 @@ export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
         mention_stinking ? "stinking " : "");
 
     // getpos prompt — simplified: use player's position
-    const { getpos } = await import('./getpos.js');
+    const { getpos } = await nhimport('./getpos.js');
     const cc = { x: player.x, y: player.y };
     getpos_sethilite(display_stinking_cloud_positions, can_center_cloud);
     const res = await getpos_async(cc, true, "the desired position", game);
@@ -1787,7 +1788,7 @@ export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
         }
         return;
     }
-    const { create_gas_cloud } = await import('./region.js');
+    const { create_gas_cloud } = await nhimport('./region.js');
     if (create_gas_cloud) {
         create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj));
     }
@@ -1804,7 +1805,7 @@ export async function drop_boulder_on_player(confused, helmet_protects, byu, ski
         return;
     }
 
-    const { mksobj, weight: objWeight, place_object, stackobj } = await import('./mkobj.js');
+    const { mksobj, weight: objWeight, place_object, stackobj } = await nhimport('./mkobj.js');
     const otmp2 = mksobj(confused ? ROCK : BOULDER, false, false);
     if (!otmp2) return;
     otmp2.quan = confused ? rn1(5, 2) : 1;

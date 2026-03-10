@@ -424,6 +424,11 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
+      "path": "js/origin_awaits.js",
+      "policy": "manual_only",
+      "reason": "Canonical async origin wrappers (import/fetch/load) for SYNCLOCK cleanup."
+    },
+    {
       "path": "js/pager.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."

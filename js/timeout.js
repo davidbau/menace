@@ -29,6 +29,7 @@ import { POT_OIL, TALLOW_CANDLE, WAX_CANDLE, CANDELABRUM_OF_INVOCATION } from '.
 import { big_to_little } from './mondata.js';
 import { enexto } from './teleport.js';
 import { new_light_source, del_light_source, candle_light_range } from './light.js';
+import { nhimport } from './origin_awaits.js';
 
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
 
@@ -592,19 +593,19 @@ export async function nh_timeout(context = {}) {
 
 async function revive_mon_timer(body) {
     if (!body) return;
-    const { revive_mon } = await import('./do.js');
+    const { revive_mon } = await nhimport('./do.js');
     await revive_mon(body, _timeoutContext.player, _timeoutContext.map);
 }
 
 async function zombify_mon_timer(body) {
     if (!body) return;
-    const { zombify_mon } = await import('./do.js');
+    const { zombify_mon } = await nhimport('./do.js');
     await zombify_mon(body, _timeoutContext.player, _timeoutContext.map);
 }
 
 async function rot_corpse_timer(body) {
     if (!body) return;
-    const { rot_corpse } = await import('./dig.js');
+    const { rot_corpse } = await nhimport('./dig.js');
     rot_corpse(body, _getCurrentTurn(), _timeoutContext.map, _timeoutContext.player);
 }
 
@@ -755,7 +756,7 @@ async function _fireExpiryEffect(player, prop, context = {}) {
     case WOUNDED_LEGS:
     {
         // C ref: timeout.c case WOUNDED_LEGS — heal_legs(0); stop_occupation();
-        const { heal_legs } = await import('./do.js');
+        const { heal_legs } = await nhimport('./do.js');
         await heal_legs(0, player);
         const game = context.game || _gstate;
         if (game && typeof game.stop_occupation === 'function') {
@@ -891,7 +892,7 @@ export async function hatch_egg(egg) {
     const mnum = big_to_little(Number.isInteger(egg.corpsenm) ? egg.corpsenm : -1);
     const mdat = Number.isInteger(mnum) && mnum >= 0 ? mons[mnum] : null;
     if (map && mdat) {
-        const { makemon } = await import('./makemon.js');
+        const { makemon } = await nhimport('./makemon.js');
         const depth = Number(player?.dungeonLevel || 1);
         let hatched = 0;
         for (let i = 0; i < hatchcount; i++) {
@@ -1318,7 +1319,7 @@ export function relinkTimers() {
 export async function learn_egg_type(mnum, game) {
   mnum = little_to_big(mnum);
   game.mvitals[mnum].mvflags |= MV_KNOWS_EGG;
-  const { update_inventory } = await import('./invent.js');
+  const { update_inventory } = await nhimport('./invent.js');
   update_inventory();
 }
 

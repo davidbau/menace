@@ -454,10 +454,10 @@ function popQueuedInputKey(inDoAgain = false) {
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
 export function nhgetch_raw() {
-    const snap = beginOriginAwait(activeGame, 'input', { site: 'input.nhgetch_raw' });
+    const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
         .finally(() => {
-            endOriginAwait(activeGame, snap, { site: 'input.nhgetch_raw' });
+            endOriginAwait(activeGame, snap);
         });
 }
 

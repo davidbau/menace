@@ -9,6 +9,7 @@ import { getKeylog, saveKeylog, startReplay } from './keylog.js';
 import { VERSION_STRING } from './const.js';
 import { nhgetch_wrap } from './input.js';
 import { Promo } from './promo.js';
+import { nhfetch } from './origin_awaits.js';
 window.MENACE_VERSION = VERSION_STRING;
 
 function createBrowserLifecycle(display, promo, restart) {
@@ -47,7 +48,7 @@ function registerKeylogApis() {
         return kl;
     };
     window.run_keylog = async (src) => {
-        const data = typeof src === 'string' ? await (await fetch(src)).json() : src;
+        const data = typeof src === 'string' ? await (await nhfetch(src)).json() : src;
         startReplay(data);
     };
     window.save_keylog = saveKeylog;

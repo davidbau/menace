@@ -103,7 +103,7 @@ const other_class_msg = [
 ];
 export async function mplayer_talk(mtmp) {
     if (mtmp.mpeaceful) return; // falls through to generic humanoid talk
-    const { verbalize } = await import('./pline.js');
+    const { verbalize } = await nhimport('./pline.js');
     const player = globalThis.gs?.player;
     const sameClass = player && mtmp.data === mons[player.roleMnum];
     await verbalize("Talk? -- %s", sameClass
@@ -119,6 +119,7 @@ import { mons, PM_WIZARD, PM_ARCHEOLOGIST } from './monsters.js';
 import { COLNO, ROWNO } from './const.js';
 import { STRANGE_OBJECT } from './objects.js';
 import { goodpos } from './teleport.js';
+import { nhimport } from './origin_awaits.js';
 
 // Autotranslated from mplayer.c:94
 export function mk_mplayer_armor(mon, typ) {

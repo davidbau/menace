@@ -44,6 +44,7 @@ import { Is_box, Has_contents, Is_mbag, thesimpleoname } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
+import { nhimport } from './origin_awaits.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -1886,7 +1887,7 @@ async function handleLoot(game) {
 
 // C ref: shk.c dopay()
 async function handlePay(player, map, display, game = null) {
-    const { dopay } = await import('./shk.js');
+    const { dopay } = await nhimport('./shk.js');
     const state = game || { player, map, display };
     const result = await dopay(state);
     return { moved: false, tookTime: !!result };
@@ -2138,7 +2139,7 @@ async function do_loot_cont(cobj, cindex, ccount, player, map, game) {
         const tryUntrap = autounlock_has_action(flags, 'untrap', AUTOUNLOCK_UNTRAP);
         if (tryApplyKey || tryUntrap) {
             player.dz = 0;
-            const { autokey, pick_lock } = await import('./lock.js');
+            const { autokey, pick_lock } = await nhimport('./lock.js');
             const unlocktool = tryApplyKey ? autokey(player, true) : null;
             if (unlocktool || tryUntrap) {
                 const ox = cobj.ox || player.x;
