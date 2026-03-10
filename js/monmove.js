@@ -106,7 +106,7 @@ import { m_harmless_trap, floor_trigger, mintrap_postmove, t_at } from './trap.j
 export { m_harmless_trap, floor_trigger, mintrap_postmove };
 import { maketrap } from './dungeon.js';
 import { mdig_tunnel, may_dig, bury_an_obj } from './dig.js';
-import { IS_TREE } from './const.js';
+import { IS_TREE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { stairway_at } from './stairs.js';
 import { mwelded } from './wield.js';
 import { extract_from_minvent } from './worn.js';
@@ -168,10 +168,7 @@ function mon_is_stunned(mon) {
 }
 
 
-const M_AP_NOTHING = 0;
-const M_AP_FURNITURE = 1;
-const M_AP_OBJECT = 2;
-// M_AP_TYPE imported from mondata.js
+// M_AP_NOTHING/FURNITURE/OBJECT imported from const.js; M_AP_TYPE from mondata.js
 
 
 // ========================================================================
