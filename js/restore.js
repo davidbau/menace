@@ -190,25 +190,19 @@ export function loadfruitchn(nhfp) {
   let flist, fnext;
   flist = 0;
   for (; ; ) {
-    fnext = newfruit();
+    fnext = { fname: '', fid: 0, nextf: null };
     Sfi_fruit(nhfp, fnext, "fruit");
     if (fnext.fid !== 0) { fnext.nextf = flist; flist = fnext; }
     else {
       break;
     }
   }
-  dealloc_fruit(fnext);
   return flist;
 }
 
 // Autotranslated from restore.c:483
 export function freefruitchn(flist) {
-  let fnext;
-  while (flist) {
-    fnext = flist.nextf;
-    dealloc_fruit(flist);
-    flist = fnext;
-  }
+  // C dealloc_fruit is free() — JS uses GC, nothing to do
 }
 
 // Autotranslated from restore.c:979

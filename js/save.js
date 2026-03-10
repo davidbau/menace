@@ -283,7 +283,6 @@ export function savemonchn(nhfp, mtmp, game, player) {
       if (mtmp === player.ustuck) player.ustuck_mid = player.ustuck.m_id;
       if (mtmp === player.usteed) player.usteed_mid = player.usteed.m_id;
       mtmp.nmon = null;
-      dealloc_monst(mtmp);
     }
     mtmp = mtmp2;
   }
@@ -297,7 +296,7 @@ export function savefruitchn(nhfp) {
   while (f1) {
     f2 = f1.nextf;
     if (f1.fid >= 0 && update_file(nhfp)) { Sfo_fruit(nhfp, f1, "fruit"); }
-    if (release_data(nhfp)) dealloc_fruit(f1);
+    // C dealloc_fruit is free() — JS uses GC
     f1 = f2;
   }
   if (update_file(nhfp)) { Sfo_fruit(nhfp, zerofruit, "fruit"); }

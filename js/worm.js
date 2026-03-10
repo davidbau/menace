@@ -780,11 +780,10 @@ export function save_worm(nhfp) {
       }
       while (curr) {
         temp = curr.nseg;
-        dealloc_seg(curr);
         curr = temp;
       }
-      wheads = wtails =  0;
-      wgrowtime = 0;
+      wheads[i] = wtails[i] = 0;
+      wgrowtime[i] = 0;
     }
   }
 }

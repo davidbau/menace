@@ -262,13 +262,7 @@ export function encode_extended_conducts(buf, game, player) {
 
 // Autotranslated from topten.c:614
 export function free_ttlist(tt) {
-  let ttnext;
-  while (tt.points > 0) {
-    ttnext = tt.tt_next;
-    dealloc_ttentry(tt);
-    tt = ttnext;
-  }
-  dealloc_ttentry(tt);
+  // C dealloc_ttentry is free() — JS uses GC, nothing to do
 }
 
 // Autotranslated from topten.c:1421
