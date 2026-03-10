@@ -419,6 +419,11 @@ export function strncmpi(s1, s2, n) {
     return 0;
 }
 
+// C strcmpi — case-insensitive full string comparison, returns 0 for match
+export function strcmpi(s1, s2) {
+    return strncmpi(s1, s2, Math.max(s1.length, s2.length));
+}
+
 // hacklib.c:803 — case-insensitive substring search
 // C: returns pointer to match in str, or NULL.
 // JS: returns the slice of str starting at the match, or null.

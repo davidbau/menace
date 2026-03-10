@@ -3859,11 +3859,13 @@ export function symset_is_compatible(handling, wincap2) {
 }
 
 // Autotranslated from symbols.c:656
+const known_handling = ["UNKNOWN", "IBM", "DEC", "UTF8", null];
+
 export function set_symhandling(handling, which_set) {
   let i = 0;
   gs.symset[which_set].handling = H_UNK;
-  while (known_handling) {
-    if (!strcmpi(known_handling, handling)) { gs.symset[which_set].handling = i; return; }
+  while (known_handling[i]) {
+    if (known_handling[i].toLowerCase() === handling.toLowerCase()) { gs.symset[which_set].handling = i; return; }
     i++;
   }
 }

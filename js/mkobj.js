@@ -42,6 +42,7 @@ import { lays_eggs, monsndx, DEADMONSTER } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { rnd_class } from './objnam.js';
 import { extract_from_minvent } from './worn.js';
+import { g_at } from './invent.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,
@@ -1684,7 +1685,7 @@ export function is_treefruit(otmp) {
 
 // Autotranslated from mkobj.c:1999
 export function mkgold(amount, x, y, map) {
-  let gold = g_at(x, y);
+  let gold = g_at(x, y, map);
   if (amount <= 0) {
     let mul = rnd(Math.max(Math.floor(30 / Math.max(12-depth(map.uz), 2)), 1));
     amount =  (1 + rnd(level_difficulty() + 2) * mul);

@@ -518,9 +518,9 @@ export async function wiz_show_wmodes(map) {
 
 // Autotranslated from wizcmds.c:1116
 export function size_obj(otmp) {
-  let sz =  sizeof;
+  let sz = 1; // sizeof placeholder
   if (otmp.oextra) {
-    sz +=  sizeof ;
+    sz += 1; // sizeof placeholder
     if (ONAME(otmp)) {
       sz +=  ONAME(otmp).length + 1;
     }
@@ -561,32 +561,32 @@ export async function mon_invent_chain(win, src, chain, total_count, total_size)
 
 // Autotranslated from wizcmds.c:1227
 export function size_monst(mtmp, incl_wsegs) {
-  let sz =  sizeof;
+  let sz = 1; // sizeof placeholder
   if (mtmp.wormno && incl_wsegs) {
     sz += size_wseg(mtmp);
   }
   if (mtmp.mextra) {
-    sz +=  sizeof ;
+    sz += 1; // sizeof placeholder
     if (MGIVENNAME(mtmp)) {
       sz +=  MGIVENNAME(mtmp).length + 1;
     }
     if (EGD(mtmp)) {
-      sz +=  sizeof ;
+      sz += 1; // sizeof placeholder
     }
     if (EPRI(mtmp)) {
-      sz +=  sizeof ;
+      sz += 1; // sizeof placeholder
     }
     if (ESHK(mtmp)) {
-      sz +=  sizeof ;
+      sz += 1; // sizeof placeholder
     }
     if (EMIN(mtmp)) {
-      sz +=  sizeof ;
+      sz += 1; // sizeof placeholder
     }
     if (EDOG(mtmp)) {
-      sz +=  sizeof ;
+      sz += 1; // sizeof placeholder
     }
     if (EBONES(mtmp)) {
-      sz +=  sizeof ;
+      sz += 1; // sizeof placeholder
     }
   }
   return sz;

@@ -556,7 +556,7 @@ export function random_dir(x, y) {
 // ========================================================================
 // Autotranslated from worm.c:826
 export function size_wseg(worm) {
-  return  (count_wsegs(worm) * sizeof );
+  return  (count_wsegs(worm) * 8); // sizeof(wseg) placeholder for memory accounting
 }
 
 // ========================================================================

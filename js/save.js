@@ -208,7 +208,7 @@ export function savecemetery(nhfp, cemeteryaddr) {
 // Autotranslated from save.c:708
 export function saveobj(nhfp, otmp) {
   let buflen, zerobuf = 0;
-  buflen =  sizeof ;
+  buflen = 1; // sizeof placeholder (JS uses structured serialization)
   Sfo_int(nhfp, buflen, "obj-obj_length");
   Sfo_obj(nhfp, otmp, "obj");
   if (otmp.oextra) {
@@ -232,7 +232,7 @@ export function saveobj(nhfp, otmp) {
 export function savemon(nhfp, mtmp) {
   let buflen;
   mtmp.mtemplit = 0;
-  buflen =  sizeof ;
+  buflen = 1; // sizeof placeholder (JS uses structured serialization)
   Sfo_int(nhfp, buflen, "monst-monst_length");
   Sfo_monst(nhfp, mtmp, "monst");
   if (mtmp.mextra) {
@@ -241,22 +241,22 @@ export function savemon(nhfp, mtmp) {
     if (buflen > 0) {
       Sfo_char(nhfp, MGIVENNAME(mtmp), "monst-mgivenname", buflen);
     }
-    buflen = EGD(mtmp) ?  sizeof  : 0;
+    buflen = EGD(mtmp) ? 1 : 0;
     Sfo_int(nhfp, buflen, "monst-egd_length");
     if (buflen > 0) { Sfo_egd(nhfp, EGD(mtmp), "monst-egd"); }
-    buflen = EPRI(mtmp) ?  sizeof  : 0;
+    buflen = EPRI(mtmp) ? 1 : 0;
     Sfo_int(nhfp, buflen, "monst-epri_length");
     if (buflen > 0) { Sfo_epri(nhfp, EPRI(mtmp), "monst-epri"); }
-    buflen = ESHK(mtmp) ?  sizeof  : 0;
+    buflen = ESHK(mtmp) ? 1 : 0;
     Sfo_int(nhfp, buflen, "monst-eshk_length");
     if (buflen > 0) { Sfo_eshk(nhfp, ESHK(mtmp), "monst-eshk"); }
-    buflen = EMIN(mtmp) ?  sizeof  : 0;
+    buflen = EMIN(mtmp) ? 1 : 0;
     Sfo_int(nhfp, buflen, "monst-emin_length");
     if (buflen > 0) { Sfo_emin(nhfp, EMIN(mtmp), "monst-emin"); }
-    buflen = EDOG(mtmp) ?  sizeof  : 0;
+    buflen = EDOG(mtmp) ? 1 : 0;
     Sfo_int(nhfp, buflen, "monst-edog_length");
     if (buflen > 0) { Sfo_edog(nhfp, EDOG(mtmp), "monst-edog"); }
-    buflen = EBONES(mtmp) ?  sizeof  : 0;
+    buflen = EBONES(mtmp) ? 1 : 0;
     Sfo_int(nhfp, buflen, "monst-ebones_length");
     if (buflen > 0) { Sfo_ebones(nhfp, EBONES(mtmp), "monst-ebones"); }
     buflen =  MCORPSENM(mtmp);

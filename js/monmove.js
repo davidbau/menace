@@ -42,7 +42,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an } from './objnam.js';
-import { delobj } from './invent.js';
+import { delobj, g_at } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
 import { can_carry, cursed_object_at } from './dogmove.js';
@@ -80,6 +80,7 @@ import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym } from './display.js';
 import { addToMonsterInventory, canMergeMonsterInventoryObj } from './invent.js';
 import { mpickobj, mdrop_obj } from './steal.js';
+import { game as _gstate } from './gstate.js';
 export { dist2, distmin, monnear, attackVerb, monAttackName, canSpotMonsterForMap, map_invisible, addToMonsterInventory, canMergeMonsterInventoryObj, mondead, mpickobj, mdrop_obj };
 
 // Re-export track functions (track.c)
@@ -2462,7 +2463,7 @@ export function leppie_stash(mtmp, map) {
   let gold;
   if (mtmp.data === mons[PM_LEPRECHAUN] && !DEADMONSTER(mtmp) && !m_canseeu(mtmp) && !in_rooms(mtmp.mx, mtmp.my, SHOPBASE) && map.locations[mtmp.mx][mtmp.my].typ === ROOM && !t_at(mtmp.mx, mtmp.my, map) && rn2(4) && (gold = findgold(mtmp.minvent)) != null) {
     mdrop_obj(mtmp, gold, false);
-    gold = g_at(mtmp.mx, mtmp.my);
+    gold = g_at(mtmp.mx, mtmp.my, map);
     if (gold) {
       bury_an_obj(gold, map, null);
     }
@@ -2506,10 +2507,11 @@ export async function maybe_spin_web(mtmp, map) {
 }
 
 // Autotranslated from monmove.c:2123
-export function can_hide_under_obj(obj) {
+export function can_hide_under_obj(obj, map) {
   let t;
+  map = map || _gstate?.lev;
   if (!obj || obj.where !== 'OBJ_FLOOR') return false;
-  if ((t = t_at(obj.ox, obj.oy)) != null && !is_pit(t.ttyp)) return false;
+  if ((t = t_at(obj.ox, obj.oy, map)) != null && !is_pit(t.ttyp)) return false;
   if (obj.oclass === COIN_CLASS) {
     let coinquan = 0;
     do {
@@ -2530,11 +2532,12 @@ export function accessible(x, y) {
 }
 
 // Autotranslated from monmove.c:2279
-export function undesirable_disp(mtmp, x, y) {
-  let is_pet = (mtmp.mtame && !mtmp.isminion), trap = t_at(x, y);
+export function undesirable_disp(mtmp, x, y, map) {
+  map = map || _gstate?.lev;
+  let is_pet = (mtmp.mtame && !mtmp.isminion), trap = t_at(x, y, map);
   if (is_pet) {
     if (trap && trap.tseen && rn2(40)) return true;
-    if (cursed_object_at(x, y)) return true;
+    if (cursed_object_at(map, x, y)) return true;
   }
   else if (trap && rn2(40) && mon_knows_traps(mtmp, trap.ttyp)) { return true; }
   if (!accessible(x, y)   && !(is_pool(x, y) && is_pool(mtmp.mx, mtmp.my))) return true;

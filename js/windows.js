@@ -1,4 +1,4 @@
-import { strchr } from './hacklib.js';
+import { strchr, strcmpi } from './hacklib.js';
 // windows.js -- NetHack windowing abstraction layer
 // Mirrors src/windows.c + win/tty/wintty.c + win/tty/topl.c
 

@@ -17,6 +17,7 @@ import {
 } from './windows.js';
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
 import { visctrl } from './hacklib.js';
+import { game as _gstate } from './gstate.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;
@@ -943,9 +944,9 @@ export function gloc_filter_done() {
 }
 
 // Autotranslated from getpos.c:421
-export function known_vibrating_square_at(x, y) {
+export function known_vibrating_square_at(x, y, map) {
   if (invocation_pos(x, y)) {
-    let ttmp = t_at(x, y);
+    let ttmp = t_at(x, y, map || _gstate?.lev);
     return ttmp && ttmp.ttyp === VIBRATING_SQUARE && ttmp.tseen;
   }
   return false;
