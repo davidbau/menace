@@ -112,7 +112,7 @@ function metallivorous(mptr) {
     return ndx === PM_RUST_MONSTER || ndx === PM_XORN;
 }
 
-// resists_magm and defended imported from mondata.js
+// resists_fire, resists_magm, resists_sleep, defended imported from mondata.js above
 
 
 

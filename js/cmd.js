@@ -44,6 +44,7 @@ import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
 import { cnv_trap_obj, t_at, m_at } from './trap.js';
 import { an } from './objnam.js';
 import { PM_GRID_BUG } from './monsters.js';
+import { canspotmon } from './display.js';
 
 
 
