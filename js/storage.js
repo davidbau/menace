@@ -28,6 +28,7 @@ import { CONFUSION, STUNNED, BLINDED, HALLUC, SICK,
 import { GameMap } from './game.js';
 import { makeRoom } from './mkroom.js';
 import { getDiscoveryState, setDiscoveryState } from './o_init.js';
+import { nh_delay_output } from './animation.js';
 
 const SAVE_KEY = 'menace-save';
 const AUTOSAVE_KEY = 'menace-autosave';
@@ -1031,7 +1032,7 @@ export async function handleSave(game) {
     if (ok) {
         await display.putstr_message('Game saved.');
         // Brief delay so the user sees the message, then reload
-        await new Promise(r => setTimeout(r, 500));
+        await nh_delay_output(500);
         window.location.reload();
     } else {
         await display.putstr_message('Save failed (storage full or unavailable).');
