@@ -222,14 +222,14 @@ export class Promo {
     // Run the attract-mode loop.
     // Displays cycling scenes until any key is pressed.
     // Calls onPlay() when the user presses a key.
-    async run(display, nhgetch_wrap, onPlay) {
+    async run(display, nhgetch_raw, onPlay) {
         let sceneIdx = 0;
         let keyPressed = false;
 
-        // A single persistent nhgetch_wrap() call covers all scene transitions.
+        // A single persistent key-read call covers all scene transitions.
         // Racing it against per-scene timers lets us advance slides without
-        // calling nhgetch_wrap() again (which would overwrite the pending resolver).
-        const keyPromise = nhgetch_wrap().then(ch => {
+        // calling it again (which would overwrite the pending resolver).
+        const keyPromise = nhgetch_raw().then(ch => {
             keyPressed = true;
             return ch;
         });
