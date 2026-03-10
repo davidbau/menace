@@ -5427,7 +5427,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2993 | `mhitm_ad_curs` | uhitm.js | Stub (no m-vs-m effect) |
 | 2341 | `mhitm_ad_dcay` | uhitm.js | Stub (no armor system) |
 | 3815 | `mhitm_ad_deth` | uhitm.js | Implemented (redirects to drli) |
-| 4470 | `mhitm_ad_dgst` | uhitm.js | Stub |
+| 4470 | `mhitm_ad_dgst` | uhitm.js | Partial — m-vs-m digest sets lethal swallow damage; Rider defender kills aggressor path modeled |
 | 4571 | `mhitm_ad_dise` | uhitm.js | Partial — m-vs-m immunity gates for fungus/ghoul; susceptible targets keep normal damage |
 | 2396 | `mhitm_ad_dren` | uhitm.js | Implemented (m-vs-m path) |
 | 3146 | `mhitm_ad_drin` | uhitm.js | Implemented (m-vs-m path) |
@@ -5437,7 +5437,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 3581 | `mhitm_ad_ench` | uhitm.js | Stub (no m-vs-m effect) |
 | 3755 | `mhitm_ad_famn` | uhitm.js | Implemented — m-vs-m branch zeroes damage for non-eaters; otherwise keeps normal damage |
 | 2499 | `mhitm_ad_fire` | uhitm.js | Implemented (m-vs-m path) |
-| 3875 | `mhitm_ad_halu` | uhitm.js | Stub (no m-vs-m effect) |
+| 3875 | `mhitm_ad_halu` | uhitm.js | Implemented — m-vs-m confusion application (`mconf`) + wait-strategy clear + zero damage |
 | 4274 | `mhitm_ad_heal` | uhitm.js | Implemented (m-vs-m path) |
 | 4403 | `mhitm_ad_legs` | uhitm.js | Implemented (delegates to phys) |
 | 3786 | `mhitm_ad_pest` | uhitm.js | Implemented — m-vs-m branch routes through AD_DISE semantics |
@@ -5445,7 +5445,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 3409 | `mhitm_ad_plys` | uhitm.js | Implemented (m-vs-m path) |
 | 3707 | `mhitm_ad_poly` | uhitm.js | Stub (needs newcham) |
 | 2259 | `mhitm_ad_rust` | uhitm.js | Stub (no armor system) |
-| 4548 | `mhitm_ad_samu` | uhitm.js | Stub (no m-vs-m effect) |
+| 4548 | `mhitm_ad_samu` | uhitm.js | Implemented — m-vs-m no-op with zero damage (matches C branch) |
 | 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m item theft from defender inventory (tame avoids cursed items); nymph marks `M_ATTK_AGR_DONE` |
 | 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with same-class/cancel gates |
 | 3457 | `mhitm_ad_slee` | uhitm.js | Implemented (m-vs-m path) |

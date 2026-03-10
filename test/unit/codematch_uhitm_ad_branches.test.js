@@ -8,10 +8,12 @@ import {
     mhitm_ad_sgld,
     mhitm_ad_sedu,
     mhitm_ad_dise,
+    mhitm_ad_dgst,
+    mhitm_ad_halu,
 } from '../../js/uhitm.js';
-import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS } from '../../js/monsters.js';
+import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, mons } from '../../js/monsters.js';
 import { GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
-import { M_ATTK_AGR_DONE } from '../../js/const.js';
+import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED } from '../../js/const.js';
 
 test('mhitm_ad_were delegates through physical handling (kick vs thick hide -> zero damage)', () => {
     const magr = { mcan: false, data: {} };
@@ -95,4 +97,30 @@ test('mhitm_ad_dise keeps normal damage on susceptible targets', () => {
     const mdef = { mndx: 0, data: { mlet: 'o' } };
     mhitm_ad_dise({}, {}, mdef, mhm);
     assert.equal(mhm.damage, 8);
+});
+
+test('mhitm_ad_dgst swallows non-rider defender (damage becomes defender hp)', () => {
+    const mhm = { damage: 1, hitflags: 0, done: false };
+    const mdef = { mhp: 23, data: { mlet: 'o' } };
+    mhitm_ad_dgst({ mhp: 20, data: {} }, {}, mdef, mhm);
+    assert.equal(mhm.damage, 23);
+    assert.equal(mhm.done, false);
+});
+
+test('mhitm_ad_dgst marks aggressor death when digesting a Rider', () => {
+    const mhm = { damage: 2, hitflags: 0, done: false };
+    const magr = { mhp: 0, data: {}, minvent: [] };
+    const mdef = { mhp: 40, mndx: PM_FAMINE, data: mons[PM_FAMINE] };
+    mhitm_ad_dgst(magr, {}, mdef, mhm);
+    assert.equal(mhm.done, true);
+    assert.equal((mhm.hitflags & M_ATTK_AGR_DIED) !== 0, true);
+});
+
+test('mhitm_ad_halu confuses seeing, eyeful defender and zeroes damage', () => {
+    const mhm = { damage: 5 };
+    const mdef = { data: {}, mcansee: true, mconf: 0, mstrategy: 0x08000000 };
+    mhitm_ad_halu({ mcan: false }, {}, mdef, mhm);
+    assert.equal(mhm.damage, 0);
+    assert.equal(mdef.mconf, 1);
+    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
 });

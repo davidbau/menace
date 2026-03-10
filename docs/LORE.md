@@ -6847,3 +6847,33 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
   - `node scripts/test-unit-core.mjs`
+
+### CODEMATCH `uhitm.c` digestion/hallucination branch closure (`AD_DGST` + `AD_HALU`) (2026-03-10)
+
+- Problem:
+  - `mhitm_ad_dgst` and `mhitm_ad_halu` were still treated as stubs in the
+    m-vs-m branch and did not reflect key C side effects.
+- Change:
+  - `js/uhitm.js`:
+    - `mhitm_ad_dgst` now:
+      - applies swallow-lethal damage (`mhm.damage = mdef.mhp`) for normal
+        defenders, and
+      - models Rider edge behavior where digesting a Rider kills the aggressor
+        (`mondied`, `M_ATTK_AGR_DIED` / miss fallback).
+    - `mhitm_ad_halu` now applies C-shaped m-vs-m hallucination effects:
+      - set defender confusion (`mconf`) when attacker not cancelled and
+        defender has eyes and can see,
+      - clear wait strategy,
+      - force zero damage.
+  - Added/expanded targeted tests in:
+    - `test/unit/codematch_uhitm_ad_branches.test.js`
+      - digest non-Rider damage behavior
+      - digest Rider aggressor-death behavior
+      - hallucination confusion/strategy behavior
+  - Updated `docs/CODEMATCH.md`:
+    - `mhitm_ad_dgst`: Stub -> Partial
+    - `mhitm_ad_halu`: Stub -> Implemented
+    - `mhitm_ad_samu`: Stub -> Implemented (documented as C-faithful no-op m-vs-m branch)
+- Validation:
+  - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
+  - `node scripts/test-unit-core.mjs`

@@ -54,12 +54,13 @@ import {
     thick_skinned, mon_hates_silver, mon_hates_light,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc,
     carnivorous, herbivorous, is_metallivore,
+    is_rider,
     poly_when_stoned, DEADMONSTER,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead } from './mon.js';
+import { mondead, mondied } from './mon.js';
 import { newsym } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
@@ -1173,8 +1174,20 @@ export function mhitm_ad_legs(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:4470 — digestion (engulf)
 export function mhitm_ad_dgst(magr, mattk, mdef, mhm) {
-    // C ref: full digestion damage = d(6,6) if mhm.damage == 0
-    // Simplified: just use the rolled damage
+    const pd = mdef?.data || mdef?.type || {};
+    if (is_rider(pd)) {
+        // C: digesting a Rider is fatal to the aggressor.
+        mondied(magr);
+        if (DEADMONSTER(magr)) {
+            mhm.hitflags = M_ATTK_AGR_DIED;
+        } else {
+            mhm.hitflags = M_ATTK_MISS;
+        }
+        mhm.done = true;
+        return;
+    }
+    // C m-vs-m digestion swallows defender whole.
+    mhm.damage = Number(mdef?.mhp || mhm.damage || 0);
 }
 
 // cf. uhitm.c:4548 — steal amulet (m-vs-m: no effect)
@@ -1239,8 +1252,15 @@ export function mhitm_ad_famn(magr, mattk, mdef, mhm) {
     }
 }
 
-// cf. uhitm.c:3875 — hallucination (m-vs-m: no effect)
-export function mhitm_ad_halu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:3875 — hallucination
+export function mhitm_ad_halu(magr, mattk, mdef, mhm) {
+    const pd = mdef?.data || mdef?.type || {};
+    if (!magr?.mcan && haseyes(pd) && mdef?.mcansee) {
+        mdef.mconf = 1;
+        if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    }
+    mhm.damage = 0;
+}
 
 // cf. uhitm.c:3902 — do_stone_u: hero touched by petrifying monster
 export async function do_stone_u(mtmp, player, game) {
