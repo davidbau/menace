@@ -56,7 +56,6 @@ import { startRecording } from './keylog.js';
 import { nhgetch_wrap, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode, more } from './input.js';
-import { consumePendingMore } from './more_keys.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
 import {
     init_nhwindows, create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
@@ -2310,22 +2309,10 @@ export class NetHackGame {
         this._emitGameOver();
     }
 
-    async _consumePendingMoreBoundary(site) {
-        if (!(this.display && this.display._pendingMore)) return;
-        await consumePendingMore(
-            this.display,
-            () => nhgetch_wrap({ handleMore: false }),
-            () => this.display._clearMore(),
-            {
-                game: this,
-                site: `${site}.consume`,
-            }
-        );
-        if (this.display) this.display.messageNeedsMore = false;
-    }
-
     async _readCommandLoopKey(site) {
-        await this._consumePendingMoreBoundary(`${site}.pre-more`);
+        if (this.display?._pendingMore) {
+            await more(this.display, { game: this, site: `${site}.pre-more` });
+        }
         return await nhgetch_wrap({ handleMore: false });
     }
 
@@ -2397,7 +2384,7 @@ export class NetHackGame {
                     if (this.shouldInterruptMulti()) {
                         this.multi = 0;
                         await this.display.putstr_message('--More--');
-                        await this._consumePendingMoreBoundary('gameLoop.repeat.interrupt-more');
+                        await more(this.display, { game: this, site: 'gameLoop.repeat.interrupt-more', forceVisual: true });
                     }
                 },
             });
@@ -2441,7 +2428,7 @@ export class NetHackGame {
                 if (this.shouldInterruptMulti()) {
                     this.multi = 0;
                     await this.display.putstr_message('--More--');
-                    await this._consumePendingMoreBoundary('gameLoop.multi.interrupt-more');
+                    await more(this.display, { game: this, site: 'gameLoop.multi.interrupt-more', forceVisual: true });
                 }
             },
         });
