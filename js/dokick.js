@@ -61,8 +61,9 @@ import { mondead, setmangry, seemimic, wakeup, wake_nearto, wake_nearby, angry_g
 import { newsym, map_invisible, canspotmon } from './display.js';
 import { mpickobj } from './steal.js';
 import { monflee, closed_door } from './monmove.js';
-import { cansee } from './vision.js';
+import { cansee, couldsee } from './vision.js';
 import { recalc_block_point, unblock_point } from './vision.js';
+import { game as _gstate } from './gstate.js';
 import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym, money_cnt } from './hack.js';
 import { in_rooms } from './hack.js';
 import { is_pool, is_ice, is_drawbridge_wall, find_drawbridge } from './dbridge.js';
@@ -435,9 +436,7 @@ function remove_worn_item(obj, osync) {
 // ============================================================================
 // In_endgame imported from dungeon.js
 // Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines imported from dungeon.js
-function on_level(uz1, uz2) {
-    return uz1 && uz2 && uz1.dnum === uz2.dnum && uz1.dlevel === uz2.dlevel;
-}
+// on_level available from dungeon.js if needed
 function ok_to_quest() { return true; }
 function dunlev(uz) { return uz ? uz.dlevel : 1; }
 function dunlevs_in_dungeon(uz) { return 30; }
@@ -477,12 +476,7 @@ async function mon_yells(mtmp, msg) {
     await pline("%s yells: \"%s\"", Monnam(mtmp), msg);
 }
 
-// ============================================================================
-// couldsee stub
-// ============================================================================
-function couldsee(x, y) {
-    return true; // simplified
-}
+// couldsee imported from vision.js
 
 // ============================================================================
 // engulfing_u imported from mondata.js
@@ -1212,7 +1206,7 @@ function kickstr(kickobjnam, maploc) {
 // ============================================================================
 // Autotranslated from dokick.c:833
 export async function watchman_thief_arrest(mtmp) {
-  if (is_watch(mtmp.data) && couldsee(mtmp.mx, mtmp.my) && mtmp.mpeaceful) {
+  if (is_watch(mtmp.data) && couldsee(_gstate.map, _gstate.player, mtmp.mx, mtmp.my) && mtmp.mpeaceful) {
     await mon_yells(mtmp, "Halt, thief! You're under arrest!");
     await angry_guards(false);
     return true;
@@ -1226,7 +1220,7 @@ export async function watchman_thief_arrest(mtmp) {
 // ============================================================================
 // Autotranslated from dokick.c:845
 export async function watchman_door_damage(mtmp, x, y, map) {
-  if (is_watch(mtmp.data) && mtmp.mpeaceful && couldsee(mtmp.mx, mtmp.my)) {
+  if (is_watch(mtmp.data) && mtmp.mpeaceful && couldsee(_gstate.map, _gstate.player, mtmp.mx, mtmp.my)) {
     if (map.locations[x][y].looted & D_WARNED) {
       await mon_yells(mtmp, "Halt, vandal! You're under arrest!");
       await angry_guards(false);

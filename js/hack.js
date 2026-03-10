@@ -73,6 +73,7 @@ import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
        } from './trap.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
+import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -2295,36 +2296,7 @@ function still_chewing(_x, _y, _player, _map, _display) {
     return false;
 }
 
-// C ref: hack.c is_pool_or_lava() helper
-function is_pool_or_lava(x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc) return false;
-    return IS_POOL(loc.typ) || IS_LAVA(loc.typ);
-}
-
-// C ref: hack.c is_pool() helper
-function is_pool(x, y, map) {
-    const loc = map.at(x, y);
-    return loc ? IS_POOL(loc.typ) : false;
-}
-
-// C ref: hack.c is_lava() helper
-function is_lava(x, y, map) {
-    const loc = map.at(x, y);
-    return loc ? IS_LAVA(loc.typ) : false;
-}
-
-// C ref: hack.c is_ice() helper
-function is_ice(x, y, map) {
-    const loc = map.at(x, y);
-    return loc ? loc.typ === ICE : false;
-}
-
-// C ref: hack.c is_waterwall() helper
-function is_waterwall(x, y, map) {
-    const loc = map.at(x, y);
-    return loc ? IS_WATERWALL(loc.typ) : false;
-}
+// is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall imported from dbridge.js
 
 
 

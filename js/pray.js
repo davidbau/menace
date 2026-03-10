@@ -57,7 +57,7 @@ import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
 import { ART_EXCALIBUR, ART_VORPAL_BLADE, ART_STORMBRINGER } from './artifacts.js';
 import { artiname, exist_artifact, nartifact_exist, mk_artifact,
          artifact_origin, is_art, confers_luck, discover_artifact } from './artifact.js';
-import { mksobj, mkobj, bless as bless_obj, uncurse, xname } from './mkobj.js';
+import { mksobj, mkobj, bless as bless_obj, uncurse, xname, place_object } from './mkobj.js';
 import { hcolor } from './do_name.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { is_undead, is_demon, is_human, is_unicorn, nohands, throws_rocks,
@@ -95,6 +95,8 @@ import { rider_corpse_revival, encumber_msg } from './pickup.js';
 import { In_sokoban, Is_astralevel, Is_sanctum } from './dungeon.js';
 import { nomul, near_capacity } from './hack.js';
 import { welded } from './wield.js';
+import { heal_legs } from './do.js';
+import { is_pool_or_lava } from './dbridge.js';
 
 // cf. pray.c:58 -- Moloch constant
 const Moloch = "Moloch";
@@ -259,17 +261,7 @@ function dropy(obj, player, map) {
     }
 }
 
-// Helper: place_object
-function place_object(obj, x, y, map) {
-    obj.ox = x;
-    obj.oy = y;
-    const loc = map.at(x, y);
-    if (loc.objects) {
-        loc.objects.push(obj);
-    } else {
-        loc.objects = [obj];
-    }
-}
+// place_object imported from mkobj.js
 
 
 // Helper: useup -- consume an item from inventory
@@ -345,10 +337,7 @@ function punish(player) {
     player.punished = true;
 }
 
-// Helper: heal_legs
-function heal_legs(player) {
-    if (player.woundedLegs) player.woundedLegs = 0;
-}
+// heal_legs imported from do.js
 
 // Helper: you_unwere -- cure lycanthropy
 function you_unwere(player, _talk) {
@@ -430,12 +419,7 @@ function uhim(player) {
 
 
 
-// Helper: is_pool_or_lava -- checks if tile is pool or lava
-function is_pool_or_lava(x, y, map) {
-    if (!isok(x, y)) return false;
-    const loc = map.at(x, y);
-    return loc.typ === POOL || loc.typ === LAVAPOOL;
-}
+// is_pool_or_lava imported from dbridge.js
 
 
 const in_sokoban = In_sokoban;
@@ -949,7 +933,7 @@ async function fix_worst_trouble(trouble, player, map) {
         }
         break;
     case TROUBLE_WOUNDED_LEGS:
-        await heal_legs(player);
+        await heal_legs(0, player);
         break;
     case TROUBLE_STUNNED:
         await make_stunned(player, 0, true);
