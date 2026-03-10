@@ -80,7 +80,7 @@ import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_elf, is_dwarf, is_animal, attacktype, is_armed, mindless,
          always_hostile, always_peaceful, is_domestic, strongmonst,
          is_male, is_female, is_neuter, is_lord, is_prince, is_nasty,
-         is_ndemon, is_mercenary, M_AP_TYPE, mhe, DEADMONSTER } from './mondata.js';
+         is_ndemon, is_mercenary, M_AP_TYPE, mhe, DEADMONSTER, is_placeholder } from './mondata.js';
 import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
 import { vtense, an } from './objnam.js';
 import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
@@ -486,18 +486,12 @@ const G_GENOD = 0x01;
 const G_EXTINCT = 0x02;
 const G_GONE = 0x03; // G_GENOD | G_EXTINCT (mvflags)
 
-// C ref: mondata.h is_placeholder()
-function is_placeholder(mndx) {
-    return mndx === PM_ORC || mndx === PM_GIANT
-        || mndx === PM_ELF || mndx === PM_HUMAN;
-}
-
 // C ref: makemon.c mk_gen_ok()
 export function mk_gen_ok(mndx, mvflagsmask, genomask) {
     const ptr = mons[mndx];
     // mvitals not tracked yet — skip mvflagsmask check
     if (ptr.geno & genomask) return false;
-    if (is_placeholder(mndx)) return false;
+    if (is_placeholder(ptr)) return false;
     return true;
 }
 
@@ -1535,11 +1529,6 @@ const mimic_syms = [
     S_MIMIC_DEF,  S_MIMIC_DEF,
 ];
 
-function is_placeholder_mndx(mndx) {
-    return mndx === PM_ORC || mndx === PM_GIANT
-        || mndx === PM_ELF || mndx === PM_HUMAN;
-}
-
 function polyok_for_newcham(ptr) {
     if (!ptr) return false;
     // C ref: mondata.h polyok(ptr) => ((ptr->mflags2 & M2_NOPOLY) == 0L)
@@ -1547,7 +1536,7 @@ function polyok_for_newcham(ptr) {
 }
 function accept_newcham_form(chamMndx, mndx) {
     if (!Number.isInteger(mndx) || mndx < LOW_PM || mndx >= SPECIAL_PM) return null;
-    if (is_placeholder_mndx(mndx)) return null;
+    if (is_placeholder(mons[mndx])) return null;
     const mdat = mons[mndx];
     if (!mdat) return null;
     // C ref: accept_newcham_form() allows mplayer forms even when !polyok.
