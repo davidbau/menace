@@ -19,8 +19,9 @@ import {
     mhitm_ad_ench,
     mhitm_ad_poly,
     mhitm_ad_slim,
+    mhitm_ad_ston,
 } from '../../js/uhitm.js';
-import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, mons } from '../../js/monsters.js';
+import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, mons } from '../../js/monsters.js';
 import { GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
 import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED, M_ATTK_DEF_DIED, M_ATTK_HIT } from '../../js/const.js';
 
@@ -88,6 +89,26 @@ test('mhitm_ad_dcay kills rot-vulnerable golem and marks defender death', () => 
     mhitm_ad_dcay(magr, {}, mdef, mhm);
     assert.equal(mhm.done, true);
     assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
+});
+
+test('mhitm_ad_ston kills non-stone-resistant defender and marks defender death', () => {
+    const magr = { mcan: false, data: {} };
+    const mdef = { data: {}, mhp: 12, dead: false };
+    const mhm = { damage: 5, hitflags: 0, done: false };
+
+    mhitm_ad_ston(magr, {}, mdef, mhm);
+    assert.equal(mhm.done, true);
+    assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
+});
+
+test('mhitm_ad_ston keeps resistant defender alive and zeroes damage', () => {
+    const magr = { mcan: false, data: {} };
+    const mdef = { data: mons[PM_STONE_GOLEM], mhp: 22, dead: false };
+    const mhm = { damage: 5, hitflags: 0, done: false };
+
+    mhitm_ad_ston(magr, {}, mdef, mhm);
+    assert.equal(mhm.done, false);
+    assert.equal(mhm.damage, 0);
 });
 
 test('mhitm_ad_curs can cancel defender and preserve base damage', () => {

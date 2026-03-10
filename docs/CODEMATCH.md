@@ -5453,7 +5453,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 3630 | `mhitm_ad_slow` | uhitm.js | Implemented (m-vs-m path) |
 | 4729 | `mhitm_ad_ssex` | uhitm.js | Partial — delegates to `mhitm_ad_sedu` |
 | 3284 | `mhitm_ad_stck` | uhitm.js | Implemented (m-vs-m path) |
-| 4181 | `mhitm_ad_ston` | uhitm.js | Stub (needs petrification) |
+| 4181 | `mhitm_ad_ston` | uhitm.js | Partial — C-shaped m-vs-m branch: cancellation gate, stone-resistant zero-damage path, and petrification kill path with `M_ATTK_DEF_DIED`/`done` termination; remaining munstone/newcham/grow_up edge semantics |
 | 4366 | `mhitm_ad_stun` | uhitm.js | Implemented (m-vs-m path) |
 | 2837 | `mhitm_ad_tlpt` | uhitm.js | Partial — m-vs-m gating/negation path and wait-strategy clear; async relocation not yet wired here |
 | 4243 | `mhitm_ad_were` | uhitm.js | Implemented — m-vs-m branch delegates to physical damage handler |

@@ -7144,3 +7144,21 @@ hard-won wisdom:
 - Validation at each step:
   - unit tests stayed green (`2731/2731`),
   - session parity stayed fully green (`34/34`, all channels).
+
+## 2026-03-10: `uhitm` m-vs-m `AD_STON` stub closure
+
+- Problem:
+  - `mhitm_ad_ston` in `uhitm.js` was still a full stub (`damage=0`), missing
+    C branch behavior for monster-vs-monster petrification.
+- Change:
+  - `js/uhitm.js`:
+    - replaced stub with C-shaped m-vs-m logic:
+      - cancellation (`mcan`) early return,
+      - stone-resistant defender path with zero direct damage,
+      - non-resistant petrification kill path via `monkilled`,
+      - `M_ATTK_DEF_DIED`/`done` termination on defender death.
+  - `test/unit/codematch_uhitm_ad_branches.test.js`:
+    - added targeted tests for kill-path and stone-resistant path behavior.
+  - `docs/CODEMATCH.md`:
+    - upgraded `mhitm_ad_ston` from stub to partial with explicit remaining
+      edge gaps (munstone/newcham/grow_up semantics).

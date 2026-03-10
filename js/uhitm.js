@@ -1246,8 +1246,35 @@ export function mhitm_ad_poly(magr, mattk, mdef, mhm) {
     }
 }
 
-// cf. uhitm.c:4181 — stoning (TODO: needs petrification system)
-export function mhitm_ad_ston(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+// cf. uhitm.c:4181 — stoning
+export function mhitm_ad_ston(magr, mattk, mdef, mhm) {
+    if (magr?.mcan) return;
+    const pd = mdef?.data || mdef?.type || {};
+
+    // C do_stone_mon() path:
+    // - polymorph-when-stoned target: convert form, no direct damage
+    // - non-resistant target: petrification attempt (can kill target)
+    // - resistant target: AD_STON sets damage=0
+    if (poly_when_stoned(pd)) {
+        mhm.damage = 0;
+        mhm.hitflags |= M_ATTK_HIT;
+        return;
+    }
+
+    if (!resists_ston(mdef)) {
+        monkilled(mdef, null, AD_STON);
+        if (!DEADMONSTER(mdef)) {
+            mhm.hitflags = M_ATTK_MISS;
+            mhm.done = true;
+            return;
+        }
+        mhm.hitflags |= M_ATTK_DEF_DIED;
+        mhm.done = true;
+        return;
+    }
+
+    mhm.damage = 0;
+}
 
 // cf. uhitm.c:4243 — lycanthropy (m-vs-m: no effect)
 export function mhitm_ad_were(magr, mattk, mdef, mhm) {
