@@ -287,6 +287,12 @@ export async function stumble_onto_mimic(x, y, map) {
     return false;
 }
 
+// C-name compatibility wrapper for CODEMATCH surface.
+// cf. lock.c:759 — stumble_on_door_mimic()
+export async function stumble_on_door_mimic(x, y, map) {
+    return stumble_onto_mimic(x, y, map);
+}
+
 // cf. lock.c:289 — autokey(opening): find appropriate key
 export function autokey(player, opening) {
     let key = null, pick = null, card = null;
@@ -417,6 +423,13 @@ async function makePicklockOccupation(game) {
     };
 }
 
+// C-name compatibility wrapper for occupation callback.
+// cf. lock.c:68 — picklock()
+export async function picklock(game) {
+    const fn = await makePicklockOccupation(game);
+    return fn();
+}
+
 // cf. lock.c:216 [static] — forcelock(void): forced lock occupation callback
 // This creates and returns the occupation callback function.
 async function makeForcelockOccupation(game) {
@@ -473,6 +486,13 @@ async function makeForcelockOccupation(game) {
         reset_pick(game);
         return false;
     };
+}
+
+// C-name compatibility wrapper for occupation callback.
+// cf. lock.c:216 — forcelock()
+export async function forcelock(game) {
+    const fn = await makeForcelockOccupation(game);
+    return fn();
 }
 
 // cf. lock.c:358 — pick_lock(pick, rx, ry, container): initiate lock-picking
@@ -942,43 +962,9 @@ export async function handleForce(game) {
 
 // Handle opening a door
 // C ref: lock.c doopen() / doopen_indir()
-export async function handleOpen(player, map, display, game) {
-    await display.putstr_message('In what direction? ');
-    let dir = null;
-    while (!dir) {
-        const dirCh = await nhgetch_raw();
-        // Prompt should not concatenate with outcome message.
-        display.topMessage = null;
-        if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
-            await display.putstr_message('Never mind.');
-            return { moved: false, tookTime: false };
-        }
-        const c = String.fromCharCode(dirCh);
-        dir = DIRECTION_KEYS[c] || null;
-        // C ref: getdir() accepts self-direction ('.' and 's').
-        if (!dir && (c === '.' || c === 's')) {
-            dir = [0, 0];
-        }
-        if (dir) break;
-        if (game?.flags?.cmdassist !== false) {
-            await show_invalid_direction_cmdassist_help(display);
-            continue;
-        }
-        if (game?.player?.wizard) {
-            await display.putstr_message('Never mind.');
-        } else {
-            await display.putstr_message('What a strange direction!  Never mind.');
-        }
-        return { moved: false, tookTime: false };
-    }
-
-    // C ref: doopen() with self-direction routes through loot handling.
-    if (dir[0] === 0 && dir[1] === 0) {
-        return await handleLoot(game);
-    }
-
-    const nx = player.x + dir[0];
-    const ny = player.y + dir[1];
+export async function doopen_indir(player, map, display, game, dx, dy) {
+    const nx = player.x + dx;
+    const ny = player.y + dy;
 
     // C ref: stumble_onto_mimic
     if (await stumble_onto_mimic(nx, ny, map)) {
@@ -1032,6 +1018,44 @@ export async function handleOpen(player, map, display, game) {
         await display.putstr_message("The door resists!");
     }
     return { moved: false, tookTime: true };
+}
+
+export async function handleOpen(player, map, display, game) {
+    await display.putstr_message('In what direction? ');
+    let dir = null;
+    while (!dir) {
+        const dirCh = await nhgetch_raw();
+        // Prompt should not concatenate with outcome message.
+        display.topMessage = null;
+        if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
+            await display.putstr_message('Never mind.');
+            return { moved: false, tookTime: false };
+        }
+        const c = String.fromCharCode(dirCh);
+        dir = DIRECTION_KEYS[c] || null;
+        // C ref: getdir() accepts self-direction ('.' and 's').
+        if (!dir && (c === '.' || c === 's')) {
+            dir = [0, 0];
+        }
+        if (dir) break;
+        if (game?.flags?.cmdassist !== false) {
+            await show_invalid_direction_cmdassist_help(display);
+            continue;
+        }
+        if (game?.player?.wizard) {
+            await display.putstr_message('Never mind.');
+        } else {
+            await display.putstr_message('What a strange direction!  Never mind.');
+        }
+        return { moved: false, tookTime: false };
+    }
+
+    // C ref: doopen() with self-direction routes through loot handling.
+    if (dir[0] === 0 && dir[1] === 0) {
+        return await handleLoot(game);
+    }
+
+    return doopen_indir(player, map, display, game, dir[0], dir[1]);
 }
 
 // Handle closing a door

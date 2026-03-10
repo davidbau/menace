@@ -6344,3 +6344,28 @@ hard-won wisdom:
   - `node --test test/unit/spell_codematch_surface.test.js test/unit/command_known_spells.test.js`
     passed (6/6).
   - `node --test test/unit/spell_accuracy.test.js` passed (38/38).
+
+### CODEMATCH lock.c + getpos.c closure slice: lock wrappers and stale ledger cleanup (2026-03-10)
+
+- Problem:
+  - `lock.c -> lock.js` still had 4 missing function-name rows that were
+    either inlined in command handlers or present under near-identical names.
+  - `getpos.c -> getpos.js` still had 5 stale `Missing` rows for functions
+    already implemented and exported.
+- Change:
+  - Added explicit C-name lock compatibility surfaces in
+    `js/lock.js`:
+    - `doopen_indir` (extracted directional open logic from `handleOpen`)
+    - `picklock` (occupation-callback wrapper)
+    - `forcelock` (occupation-callback wrapper)
+    - `stumble_on_door_mimic` (alias to existing `stumble_onto_mimic`)
+  - Refactored `handleOpen` to call `doopen_indir` so behavior stays unified.
+  - Added focused unit coverage in
+    `test/unit/lock_surface_wrappers.test.js`.
+  - Updated `docs/CODEMATCH.md` rows:
+    - `lock.c`: 4 missing rows -> implemented.
+    - `getpos.c`: 5 stale missing rows -> implemented
+      (`auto_describe`, `cmp_coord_distu`, `coord_desc`, `gather_locs`,
+      `gloc_filter_init`).
+- Validation:
+  - `node --test test/unit/lock_surface_wrappers.test.js` passed (4/4).

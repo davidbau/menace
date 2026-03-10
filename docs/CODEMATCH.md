@@ -1913,11 +1913,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### getpos.c -> getpos.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 640 | `auto_describe` | - | Missing |
-| 312 | `cmp_coord_distu` | - | Missing |
-| 595 | `coord_desc` | - | Missing |
-| 557 | `dxdy_to_dist_descr` | getpos.js:891 | Implemented |
-| 513 | `gather_locs` | - | Missing |
+| 640 | `auto_describe` | getpos.js:871 | Implemented |
+| 312 | `cmp_coord_distu` | getpos.js:836 | Implemented |
+| 595 | `coord_desc` | getpos.js:852 | Implemented |
+| 557 | `dxdy_to_dist_descr` | getpos.js:955 | Implemented |
+| 513 | `gather_locs` | getpos.js:891 | Implemented |
 | 438 | `gather_locs_interesting` | getpos.js:229 | Implemented |
 | 771 | `getpos` | getpos.js:getpos_async | Partial — interactive cursor loop plus filter/target cycling and basic target menu implemented; full C keybinding/help/target-class parity remains TODO |
 | 102 | `getpos_getvalids_selection` | getpos.js:getpos_getvalids_selection | Partial — valid-location scan helper wired for current map bounds; C selectionvar-backed area map plumbing remains TODO |
@@ -1931,7 +1931,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 412 | `gloc_filter_done` | getpos.js:877 | Implemented |
 | 382 | `gloc_filter_floodfill` | getpos.js:870 | Implemented |
 | 364 | `gloc_filter_floodfill_matcharea` | getpos.js:861 | Implemented |
-| 391 | `gloc_filter_init` | - | Missing |
+| 391 | `gloc_filter_init` | getpos.js:844 | Implemented |
 | 422 | `known_vibrating_square_at` | getpos.js:882 | Implemented |
 | 94 | `mapxy_valid` | getpos.js:isValidTarget | Implemented (helper parity) |
 | 729 | `truncate_to_map` | getpos.js:911 | Implemented |
@@ -2351,18 +2351,18 @@ No function symbols parsed from isaac64.c.
 | 957 | `doclose` | lock.js:handleClose | APPROX — close door command |
 | 676 | `doforce` | lock.js:handleForce | APPROX — force lock command |
 | 773 | `doopen` | lock.js:handleOpen | APPROX — open door command |
-| 780 | `doopen_indir` | - | Missing |
+| 780 | `doopen_indir` | lock.js:965 | Implemented |
 | 1103 | `doorlock` | lock.js:742 | Implemented |
-| 216 | `forcelock` | - | Missing |
+| 216 | `forcelock` | lock.js:493 | Implemented |
 | 38 | `lock_action` | lock.js:153 | Implemented |
 | 269 | `maybe_reset_pick` | lock.js:122 | Implemented |
 | 926 | `obstructed` | lock.js:243 | Implemented |
 | 358 | `pick_lock` | lock.js:481 | Implemented |
 | 30 | `picking_at` | lock.js:144 | Implemented |
 | 17 | `picking_lock` | lock.js:132 | Implemented |
-| 68 | `picklock` | - | Missing |
+| 68 | `picklock` | lock.js:428 | Implemented |
 | 259 | `reset_pick` | lock.js:112 | Implemented |
-| 759 | `stumble_on_door_mimic` | - | Missing |
+| 759 | `stumble_on_door_mimic` | lock.js:292 | Implemented |
 | 660 | `u_have_forceable_weapon` | lock.js:271 | Implemented |
 
 ### mail.c -> —
