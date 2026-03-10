@@ -441,9 +441,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2344 | `abil_to_spfx` | artifact.js:670 | Implemented |
 | 2309 | `arti_cost` | artifact.js:328 | Implemented |
 | 979 | `arti_immune` | artifact.js:314 | Implemented |
-| 2131 | `arti_invoke` | artifact.js:622 | Stub |
-| 2106 | `arti_invoke_cost` | artifact.js:642 | Stub |
-| 2091 | `arti_invoke_cost_pw` | artifact.js:641 | Stub |
+| 2131 | `arti_invoke` | artifact.js:1356 | Partial — invocation dispatcher implemented for artifact powers and property toggles; deep side-effects for several invoke powers remain simplified |
+| 2106 | `arti_invoke_cost` | artifact.js:1321 | Partial — C-shaped cooldown-vs-energy payment gate implemented (supports uen/pw/en fields); remaining exact message/time semantics |
+| 2091 | `arti_invoke_cost_pw` | artifact.js:1310 | Implemented — FLING_POISON/BLINDING_RAY invoke cost maps to level-5 spell power |
 | 537 | `arti_reflects` | artifact.js:234 | Implemented |
 | 2279 | `arti_speak` | artifact.js:646 | Implemented |
 | 371 | `artifact_exists` | artifact.js:140 | Implemented |
@@ -483,7 +483,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1818 | `invoke_energy_boost` | artifact.js:632 | Stub |
 | 2022 | `invoke_fling_poison` | artifact.js:638 | Stub |
 | 1780 | `invoke_healing` | artifact.js:631 | Stub |
-| 1727 | `invoke_ok` | artifact.js:628 | Stub |
+| 1727 | `invoke_ok` | artifact.js:1230 | Implemented — C-shaped invoke target filter (artifact/unique/fake-amulet/crystal-ball suggestions) |
 | 2040 | `invoke_storm_spell` | artifact.js:639 | Stub |
 | 1769 | `invoke_taming` | artifact.js:630 | Stub |
 | 1838 | `invoke_untrap` | artifact.js:633 | Stub |

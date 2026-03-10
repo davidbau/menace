@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { initRng } from '../../js/rng.js';
 import { GameMap } from '../../js/game.js';
-import { count_surround_traps } from '../../js/artifact.js';
+import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost } from '../../js/artifact.js';
 import { check_in_air } from '../../js/trap.js';
 import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
@@ -11,6 +11,7 @@ import { return_from_mtoss } from '../../js/mthrowu.js';
 import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS } from '../../js/const.js';
 import { CHEST, DAGGER } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
+import { CRYSTAL_BALL } from '../../js/objects.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -105,4 +106,29 @@ test('mthrowu.return_from_mtoss drops uncaught returning projectile at thrower s
     assert.equal(otmp.ox, 15);
     assert.equal(otmp.oy, 8);
     assert.equal(map.objects.includes(otmp), true);
+});
+
+test('artifact.invoke_ok suggests artifact-like invoke targets (crystal ball)', () => {
+    const crystal = { otyp: CRYSTAL_BALL, oartifact: 0 };
+    assert.equal(invoke_ok(crystal), 2);
+});
+
+test('artifact.invoke_energy_boost raises pw and marks botl', async () => {
+    const player = { pw: 3, pwmax: 20, uprops: {} };
+    const game = { moves: 100, disp: { botl: false } };
+    const obj = { oartifact: 27, age: 0 };
+    const res = await invoke_energy_boost(obj, game, player);
+    assert.equal(res, 1);
+    assert.equal(player.pw > 3, true);
+    assert.equal(game.disp.botl, true);
+});
+
+test('artifact.arti_invoke_cost drains pw for paid invoke-cost artifacts', async () => {
+    const player = { pw: 30 };
+    const game = { moves: 1, disp: { botl: false } };
+    const obj = { oartifact: 5, age: 99 };
+    const ok = await arti_invoke_cost(obj, player, game);
+    assert.equal(ok, true);
+    assert.equal(player.pw, 5);
+    assert.equal(game.disp.botl, true);
 });

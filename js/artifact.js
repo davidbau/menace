@@ -19,9 +19,9 @@ import {
 
 import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
-         GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES } from './objects.js';
+         GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container } from './mkobj.js';
@@ -1178,11 +1178,52 @@ function noncorporeal_simple(ptr) { return ptr.mlet === 'W' || ptr.mlet === ' ';
 function amorphous_simple(ptr) { return !!(ptr.mflags1 & 0x00000004); /* M1_AMORPHOUS */ }
 function nonliving_simple(ptr) { return !!(ptr.mflags1 & 0x00004000); /* M1_NONLIVING - approximation */ }
 
+const GETOBJ_EXCLUDE = -3;
+const GETOBJ_SUGGEST = 2;
+
+function playerEnergy(player) {
+  if (!player) return 0;
+  if (Number.isFinite(player.uen)) return player.uen;
+  if (Number.isFinite(player.pw)) return player.pw;
+  return Number(player.en || 0);
+}
+
+function setPlayerEnergy(player, value) {
+  if (!player) return;
+  if (Number.isFinite(player.uen)) {
+    player.uen = value;
+    return;
+  }
+  if (Number.isFinite(player.pw)) {
+    player.pw = value;
+    return;
+  }
+  player.en = value;
+}
+
+function playerEnergyMax(player) {
+  if (!player) return 0;
+  if (Number.isFinite(player.uenmax)) return player.uenmax;
+  if (Number.isFinite(player.pwmax)) return player.pwmax;
+  return Number(player.enmax || 0);
+}
+
+function currentHpField(player) {
+  if (!player) return null;
+  if (Number.isFinite(player.uhp) && Number.isFinite(player.uhpmax)) return ['uhp', 'uhpmax'];
+  if (Number.isFinite(player.mhp) && Number.isFinite(player.mhpmax)) return ['mhp', 'mhpmax'];
+  if (Number.isFinite(player.hp) && Number.isFinite(player.hpmax)) return ['hp', 'hpmax'];
+  return null;
+}
+
 // cf. artifact.c:1727 — invoke_ok(obj)
 export function invoke_ok(obj) {
-  if (!obj) return 0; // GETOBJ_EXCLUDE
-  if (obj.oartifact) return 1; // GETOBJ_SUGGEST
-  return 0;
+  if (!obj) return GETOBJ_EXCLUDE;
+  if (obj.oartifact || objectData[obj.otyp]?.oc_unique
+      || (obj.otyp === FAKE_AMULET_OF_YENDOR && !obj.known)
+      || obj.otyp === CRYSTAL_BALL)
+    return GETOBJ_SUGGEST;
+  return GETOBJ_EXCLUDE;
 }
 
 // cf. artifact.c:1749 — doinvoke()
@@ -1207,26 +1248,35 @@ export async function invoke_taming(obj) {
 
 // cf. artifact.c:1780 — invoke_healing(obj, player)
 export async function invoke_healing(obj, player) {
-  if (!player) { await nothing_special(obj); return 1; }
-  let healamt = ((player.uhpmax + 1 - player.uhp) / 2) | 0;
+  if (!player) { await nothing_special(obj); return ECMD_TIME; }
+  const hpFields = currentHpField(player);
+  if (!hpFields) { await nothing_special(obj); return ECMD_TIME; }
+  const [hp, hpmax] = hpFields;
+  let healamt = ((player[hpmax] + 1 - player[hp]) / 2) | 0;
   if (healamt > 0) {
     await You_feel("better.");
-    player.uhp += healamt;
+    player[hp] += healamt;
   } else {
     await nothing_special(obj);
   }
-  return 1;
+  return ECMD_TIME;
 }
 
 // cf. artifact.c:1818 — invoke_energy_boost(obj, player)
 // Autotranslated from artifact.c:1817
 export async function invoke_energy_boost(obj, game, player) {
-  let epboost = Math.floor((player.uenmax + 1 - player.uen) / 2);
+  if (!player) {
+    await nothing_special(obj);
+    return ECMD_TIME;
+  }
+  const emax = playerEnergyMax(player);
+  const enow = playerEnergy(player);
+  let epboost = Math.floor((emax + 1 - enow) / 2);
   if (epboost > 120) epboost = 120;
-  else if (epboost < 12) epboost = player.uenmax - player.uen;
+  else if (epboost < 12) epboost = emax - enow;
   if (epboost) {
-    player.uen += epboost;
-    game.disp.botl = true;
+    setPlayerEnergy(player, enow + epboost);
+    if (game?.disp) game.disp.botl = true;
     await You_feel("re-energized.");
   }
   else { await nothing_special(obj); return ECMD_TIME; }
@@ -1304,13 +1354,15 @@ export async function arti_invoke_cost(obj, player, game) {
   const moves = (game && game.moves) || 0;
   if (obj.age > moves) {
     const pw_cost = arti_invoke_cost_pw(obj);
-    if (pw_cost < 0 || (player && (player.en || 0) < pw_cost)) {
+    const en = playerEnergy(player);
+    if (pw_cost < 0 || en < pw_cost) {
       await You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
       obj.age += d(3, 10);
       return false;
-    } else if (player) {
+    } else {
       await You_feel("drained...");
-      player.en -= pw_cost;
+      setPlayerEnergy(player, Math.max(0, en - pw_cost));
+      if (game?.disp) game.disp.botl = true;
     }
   } else {
     obj.age = moves + rnz(100);
@@ -1334,7 +1386,7 @@ export async function arti_invoke(obj, player, game) {
     switch (oart.inv_prop) {
       case TAMING: return await invoke_taming(obj);
       case HEALING: return await invoke_healing(obj, player);
-      case ENERGY_BOOST: return await invoke_energy_boost(obj, player);
+      case ENERGY_BOOST: return await invoke_energy_boost(obj, game, player);
       case UNTRAP: return await invoke_untrap(obj);
       case CHARGE_OBJ: return await invoke_charge_obj(obj);
       case LEV_TELE: /* await level_tele(); */ return 1;
