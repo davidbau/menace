@@ -1914,10 +1914,9 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
 
     setup_home(char)
 
-    # Temp files for RNG log and dumpmap
+    # Temp files for RNG log and auto-mapdump checkpoints
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
-    dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
     os.makedirs(mapdump_dir, exist_ok=True)
 
@@ -1934,7 +1933,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{runstep_event_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
-            f'NETHACK_DUMPMAP={dumpmap_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
@@ -1958,15 +1956,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         # Capture startup state
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         print(f'Startup: {startup_rng_count} RNG calls')
-
-        startup_typ_grid = None
-        if wizard_mode:
-            # Capture startup typ grid via #dumpmap (wizard-mode only).
-            startup_typ_grid = execute_dumpmap(session_name, dumpmap_file)
-            if startup_typ_grid:
-                print(f'Startup typGrid: {len(startup_typ_grid)}x{len(startup_typ_grid[0])} captured')
-            else:
-                print('WARNING: Failed to capture startup typGrid')
 
         # Capture compressed ANSI screen for startup.
         # Defensive remediation: if tutorial prompt is still visible here, we are
@@ -1995,9 +1984,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             'screen': startup_screen_compressed,
             'cursor': startup_cursor,
         }
-        if startup_typ_grid:
-            startup_step['typGrid'] = encode_typgrid_rle(startup_typ_grid)
-
         session_data = {
             'version': 3,
             'seed': seed,
@@ -2043,9 +2029,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
 
         # Execute moves - send each character individually (no grouping)
         prev_rng_count = startup_rng_count
-        prev_typ_grid = startup_typ_grid
         prev_depth_recorded = None  # Record depth only when it changes
-        captured_levels = {'Dlvl:1'} if wizard_mode else set()  # Track levels with typGrid snapshots
         replay_keys = list(move_str)
 
         # Helper to send a single character with proper control char handling
@@ -2110,19 +2094,6 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
                 step['capture'] = {
                     'key_delay_s': step_delay,
                 }
-
-            # Capture typGrid snapshots only in wizard-mode, where #dumpmap exists.
-            if wizard_mode:
-                level_gen_likely = delta > 1000
-                new_depth = depth not in captured_levels
-                if new_depth or (level_gen_likely and 'typGrid' not in step):
-                    current_grid = execute_dumpmap(session_name, dumpmap_file)
-                    if current_grid:
-                        step['typGrid'] = encode_typgrid_rle(current_grid)
-                        captured_levels.add(depth)
-                        reason = f'depth={depth}' if new_depth else f'RNG spike ({delta} calls)'
-                        print(f'  New level detected ({reason}), typGrid captured')
-                        prev_typ_grid = current_grid
 
             session_data['steps'].append(step)
             print(f'  [{idx+1:03d}] {key!r:5s} ({description:20s}) +{delta:4d} RNG calls (total {rng_count})')
