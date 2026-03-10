@@ -12,10 +12,12 @@ import { extract_from_minvent, update_mon_extrinsics } from './worn.js';
 import { doname } from './objnam.js';
 import { Some_Monnam } from './do_name.js';
 import { obj_resists, is_quest_artifact } from './objdata.js';
+import { can_teleport } from './mondata.js';
+import { rloc, tele_restrict } from './teleport.js';
 import {
     W_ARMOR, W_ACCESSORY, W_WEAPONS,
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
-    W_AMUL, W_WEP, W_SWAPWEP, W_QUIVER,
+    W_AMUL, W_WEP, W_SWAPWEP, W_QUIVER, RLOC_MSG,
 } from './const.js';
 import { S_NYMPH } from './monsters.js';
 
@@ -345,9 +347,89 @@ export async function steal(mon, player, display, map = null) {
 // stealamulet — cf. steal.c:689
 // ============================================================================
 // Wizard/nemesis steals quest artifact or Amulet from hero.
-// Stub: quest artifacts and invocation items not yet implemented.
-export function stealamulet(_mon, _player, _display) {
-    // Not implemented: requires quest artifact tracking, freeinv, etc.
+export async function stealamulet(mon, player, display = null, map = null) {
+    if (!mon || !player) return 0;
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    if (inv.length === 0) return 0;
+
+    let candidates = inv.filter((obj) => obj && is_quest_artifact(obj));
+    let otmp = null;
+    if (candidates.length > 0) {
+        otmp = candidates.length === 1
+            ? candidates[0]
+            : candidates[rnd(candidates.length) - 1];
+    }
+
+    if (!otmp) {
+        let real = 0;
+        let fake = 0;
+        if (player.uhave?.amulet) {
+            real = AMULET_OF_YENDOR;
+            fake = FAKE_AMULET_OF_YENDOR;
+        } else if (player.uhave?.bell) {
+            real = BELL_OF_OPENING;
+        } else if (player.uhave?.book) {
+            real = SPE_BOOK_OF_THE_DEAD;
+        } else if (player.uhave?.menorah) {
+            real = CANDELABRUM_OF_INVOCATION;
+        } else {
+            return 0;
+        }
+
+        candidates = inv.filter((obj) => obj
+            && (obj.otyp === real || (obj.otyp === fake && !mon.iswiz)));
+        if (candidates.length === 0) return 0;
+        otmp = candidates.length === 1
+            ? candidates[0]
+            : candidates[rnd(candidates.length) - 1];
+    }
+
+    if (!otmp) return 0;
+
+    if ((otmp === player.armor || otmp === player.shirt) && player.cloak) {
+        await worn_item_removal(mon, player.cloak, player, display);
+    }
+    if (otmp === player.shirt && player.armor) {
+        await worn_item_removal(mon, player.armor, player, display);
+    }
+    if ((otmp === player.gloves || ((otmp === player.rightRing || otmp === player.leftRing) && player.gloves))
+        && player.weapon) {
+        if (player.twoweap && player.swapWeapon) {
+            await worn_item_removal(mon, player.swapWeapon, player, display);
+            player.twoweap = false;
+        }
+        await worn_item_removal(mon, player.weapon, player, display);
+    }
+    if ((otmp === player.rightRing || otmp === player.leftRing) && player.gloves) {
+        await worn_item_removal(mon, player.gloves, player, display);
+    }
+
+    if (inferred_wornmask(player, otmp) !== 0) {
+        await worn_item_removal(mon, otmp, player, display);
+    }
+
+    if (typeof player.removeFromInventory === 'function') {
+        player.removeFromInventory(otmp);
+    } else {
+        const idx = inv.indexOf(otmp);
+        if (idx >= 0) inv.splice(idx, 1);
+    }
+    if (!player.uhave) player.uhave = {};
+    if (otmp.otyp === AMULET_OF_YENDOR) player.uhave.amulet = false;
+    else if (otmp.otyp === CANDELABRUM_OF_INVOCATION) player.uhave.menorah = false;
+    else if (otmp.otyp === BELL_OF_OPENING) player.uhave.bell = false;
+    else if (otmp.otyp === SPE_BOOK_OF_THE_DEAD) player.uhave.book = false;
+
+    const buf = doname(otmp, player);
+    mpickobj(mon, otmp, map);
+    if (display) {
+        await display.putstr_message(`${Some_Monnam(mon)} steals ${buf}!`);
+    }
+
+    if (can_teleport(mon.data || mon.type || {}) && !tele_restrict(mon, map)) {
+        await rloc(mon, RLOC_MSG, map, player, display);
+    }
+    return 1;
 }
 
 // ============================================================================

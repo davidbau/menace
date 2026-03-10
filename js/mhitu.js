@@ -52,7 +52,7 @@ import { poisoned, acurr } from './attrib.js';
 import { set_wounded_legs } from './do.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
 import { losexp } from './exper.js';
-import { stealgold, steal } from './steal.js';
+import { stealgold, steal, stealamulet } from './steal.js';
 import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
 import { flush_screen, newsym } from './display.js';
@@ -68,7 +68,7 @@ import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG } 
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
 import { nomul } from './hack.js';
-import { body_part } from './polyself.js';
+import { body_part, polymon } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
 
 const PIERCE = 1;
@@ -196,6 +196,11 @@ export function applyMonflee(monster, fleetime, first = false) {
 
 function playerHasProp(player, prop) {
     return player.hasProp ? player.hasProp(prop) : false;
+}
+
+function maybe_half_phys(n, player) {
+    const hasHalf = !!(player?.halfPhysDamage || player?.Half_physical_damage);
+    return hasHalf ? Math.max(1, Math.floor((n + 1) / 2)) : n;
 }
 
 // cf. attrib.c drain_en() — drain hero's spell energy
@@ -749,8 +754,20 @@ async function mhitu_ad_poly(monster, attack, player, mhm, ctx) {
     const negated = mhitm_mgc_atk_negated(monster, player)
                     || !!monster.mspec_used;
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
-    if (!negated) {
-        // Polymorph hero — not implemented
+    const heroHp = Number(player?.uhp ?? player?.hp ?? 1);
+    if (maybe_half_phys(Number(mhm.damage || 0), player) < heroHp) {
+        if (negated) {
+            if (monster.mcan && !ctx.suppressHitMsg) {
+                await ctx.display.putstr_message("You aren't transformed.");
+            }
+        } else {
+            const mndx = monsndx(monster.data || monster.type || {});
+            if (mndx >= 0) {
+                await polymon(player, mndx, ctx.map || null);
+            }
+            mhm.hitflags |= M_ATTK_HIT;
+            mhm.done = true;
+        }
     }
 }
 
@@ -870,7 +887,7 @@ async function mhitu_ad_samu(monster, attack, player, mhm, ctx) {
     await hitmsg(monster, attack, ctx.display, ctx.suppressHitMsg);
     // C: if (!rn2(20)) stealamulet(magr)
     if (!rn2(20)) {
-        // Steal quest artifact — not implemented
+        await stealamulet(monster, player, ctx.display, ctx.map || null);
     }
 }
 

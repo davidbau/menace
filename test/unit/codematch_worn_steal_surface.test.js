@@ -15,9 +15,12 @@ import {
     mdrop_special_objs,
     stealarm,
     unstolenarm,
+    stealamulet,
 } from '../../js/steal.js';
 import {
     AMULET_OF_YENDOR,
+    FAKE_AMULET_OF_YENDOR,
+    BELL_OF_OPENING,
     WEAPON_CLASS,
 } from '../../js/objects.js';
 
@@ -102,4 +105,45 @@ test('steal mdrop_special_objs drops invocation item from monster inventory', ()
     assert.equal(mon.minvent.length, 0);
     assert.equal(map.objects.length, 1);
     assert.equal(map.objects[0].otyp, AMULET_OF_YENDOR);
+});
+
+test('stealamulet steals fake amulet from non-wizard and updates uhave flags', async () => {
+    const fake = { otyp: FAKE_AMULET_OF_YENDOR, oclass: 5, owornmask: 0 };
+    const player = {
+        inventory: [fake],
+        uhave: { amulet: true },
+        removeFromInventory(obj) {
+            const idx = this.inventory.indexOf(obj);
+            if (idx >= 0) this.inventory.splice(idx, 1);
+        },
+    };
+    const mon = { mndx: 2, mx: 4, my: 4, minvent: [], iswiz: false, data: {} };
+    const msgs = [];
+    const display = { putstr_message: async (s) => msgs.push(s) };
+    const rv = await stealamulet(mon, player, display, null);
+    assert.equal(rv, 1);
+    assert.equal(player.inventory.length, 0);
+    assert.equal(mon.minvent.length, 1);
+    assert.equal(mon.minvent[0].otyp, FAKE_AMULET_OF_YENDOR);
+    assert.equal(player.uhave.amulet, true);
+    assert.ok(msgs.some((m) => m.includes('steals')));
+});
+
+test('stealamulet ignores fake amulet for Wizard and steals real bell', async () => {
+    const fake = { otyp: FAKE_AMULET_OF_YENDOR, oclass: 5, owornmask: 0 };
+    const bell = { otyp: BELL_OF_OPENING, oclass: 2, owornmask: 0 };
+    const player = {
+        inventory: [fake, bell],
+        uhave: { amulet: false, bell: true },
+        removeFromInventory(obj) {
+            const idx = this.inventory.indexOf(obj);
+            if (idx >= 0) this.inventory.splice(idx, 1);
+        },
+    };
+    const mon = { mndx: 3, mx: 4, my: 4, minvent: [], iswiz: true, data: {} };
+    const rv = await stealamulet(mon, player, null, null);
+    assert.equal(rv, 1);
+    assert.equal(mon.minvent.length, 1);
+    assert.equal(mon.minvent[0].otyp, BELL_OF_OPENING);
+    assert.equal(player.uhave.bell, false);
 });

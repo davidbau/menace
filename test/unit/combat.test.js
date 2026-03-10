@@ -9,7 +9,7 @@ import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
 import { SLIMED } from '../../js/const.js';
-import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_SSEX, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
+import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_SSEX, AD_POLY, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -175,6 +175,19 @@ describe('Combat system', () => {
         const p = new Player();
         p.initRole(0);
         p.ac = 10;
+        p.hp = 30;
+        p.uhp = 30;
+        p.inventory = [];
+        p.armor = null;
+        p.cloak = null;
+        p.shirt = null;
+        p.helmet = null;
+        p.gloves = null;
+        p.boots = null;
+        p.shield = null;
+        p.amulet = null;
+        p.leftRing = null;
+        p.rightRing = null;
         p.x = 5;
         p.y = 5;
         p.boots = null;
@@ -314,6 +327,58 @@ describe('Combat system', () => {
 
         await mattacku(mon, p, mockDisplay);
         assert.equal(p.hp, hp0, 'AD_SSEX should not apply direct damage on mhitu seduction path');
+    });
+
+    it('AD_POLY eligible path skips direct takeDamage application', async () => {
+        initRng(5);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        let damageCalls = 0;
+        const origTakeDamage = p.takeDamage.bind(p);
+        p.takeDamage = (...args) => {
+            damageCalls += 1;
+            return origTakeDamage(...args);
+        };
+
+        const mon = makeMonster({
+            level: 30, // force hit (toHit > max dieroll)
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_POLY, damn: 1, damd: 1 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = false;
+        mon.mspec_used = 0;
+
+        await mattacku(mon, p, mockDisplay);
+        assert.equal(damageCalls, 0, 'AD_POLY transform path should bypass direct takeDamage in hitmu');
+    });
+
+    it('AD_POLY negated via cancelled attacker falls back to direct damage path', async () => {
+        initRng(5);
+        const p = new Player();
+        p.initRole(0);
+        p.ac = 10;
+        p.x = 5;
+        p.y = 5;
+        let damageCalls = 0;
+        const origTakeDamage = p.takeDamage.bind(p);
+        p.takeDamage = (...args) => {
+            damageCalls += 1;
+            return origTakeDamage(...args);
+        };
+
+        const mon = makeMonster({
+            level: 30, // force hit
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_POLY, damn: 2, damd: 4 }],
+            mx: 6, my: 5,
+        });
+        mon.mcan = true; // deterministic negation
+        mon.mspec_used = 0;
+
+        await mattacku(mon, p, mockDisplay);
+        assert.ok(damageCalls > 0, 'negated AD_POLY should apply direct takeDamage path');
     });
 
 

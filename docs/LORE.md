@@ -6932,3 +6932,30 @@ hard-won wisdom:
     - `AD_PEST` disease side-effect
     - `AD_SSEX` seduction path no direct damage
   - `npm run -s test:unit` passes (2715/2715).
+
+## 2026-03-10: `stealamulet` implementation + `mhitu AD_SAMU` await wiring
+
+- Problem:
+  - `steal.c:stealamulet()` was still a JS stub, and `mhitu_ad_samu` called it
+    without awaiting any side effects.
+  - This left invocation-item theft behavior under-implemented and made
+    `AD_SAMU` less C-faithful than surrounding `mhitu` handlers.
+- Change:
+  - Implemented `stealamulet(mon, player, display, map)` in `js/steal.js` with
+    C-shaped behavior:
+    - target selection among quest artifacts/invocation items with `rnd(n)`
+      tie-breaking,
+    - fake-amulet exclusion for Wizard thieves (`iswiz`),
+    - worn-item pre-removal ordering (cloak/armor/shirt/gloves/weapon/rings),
+    - inventory transfer + `uhave` flag updates,
+    - theft message and post-theft teleport attempt (`can_teleport` +
+      `tele_restrict` + `rloc`).
+  - Wired `mhitu_ad_samu` to `await stealamulet(...)` and pass map context.
+  - Tightened `AD_POLY` combat tests to validate direct-damage path behavior
+    (`takeDamage` bypass vs fallback) instead of assuming unchanged HP.
+  - Added dedicated `stealamulet` unit coverage in
+    `test/unit/codematch_worn_steal_surface.test.js`.
+- Validation:
+  - `node --test test/unit/combat.test.js`
+  - `node --test test/unit/codematch_worn_steal_surface.test.js`
+  - `npm run -s test:unit` (2719/2719 passing)
