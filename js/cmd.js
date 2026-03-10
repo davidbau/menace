@@ -492,13 +492,13 @@ export async function rhack(ch, game) {
         } else {
             await display.putstr_message(`${line0} ${line1}`);
             display._nonBlockingMore = true;
-            return { moved: false, tookTime: false, skipPostCommandDocrt: true };
+            return { moved: false, tookTime: false, terminalScreenOwned: true };
         }
         display.topMessage = line0;
         display._topMessageRow1 = line1;
         display.messageNeedsMore = true;
         await more(display, { game, site: 'cmd.version' });
-        return { moved: false, tookTime: false, skipPostCommandDocrt: true };
+        return { moved: false, tookTime: false, terminalScreenOwned: true };
     }
 
     // Kick (Ctrl+D)

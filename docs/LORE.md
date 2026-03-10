@@ -5510,17 +5510,18 @@ hard-won wisdom:
     emitted no version banner, causing a hard screen divergence at step `1324`
     in `seed033_manual_direct`.
 - Fixes:
-  - [`js/cmd.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/cmd.js):
+  - [`js/cmd.js`](/share/u/davidbau/git/mazesofmenace/game/js/cmd.js):
     - Replaced the `v` stub with C-shaped banner emission matching recorded
       tty layout:
       - row 0: `Unix NetHack Version 3.7.0-132 Work-in-progress - last build Mar  8 2026`
       - row 1: `20:21:19.--More--`
     - Marked a real pending `--More--` boundary after the banner so follow-up
       keys are handled at the correct input boundary.
-    - Returned `skipPostCommandDocrt` from the `v` path so post-command
-      rerender does not erase the banner frame before replay capture.
-  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js):
-    - Honors command result `skipPostCommandDocrt` in the end-of-command
+    - Returned explicit command result ownership (`terminalScreenOwned`) from
+      the `v` path so post-command rerender does not erase the banner frame
+      before replay capture.
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js):
+    - Honors command result `terminalScreenOwned` in the end-of-command
       render block.
 - Validation:
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`

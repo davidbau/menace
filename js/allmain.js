@@ -833,8 +833,7 @@ export async function run_command(game, ch, opts = {}) {
         // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
         // because docrt() internally calls cursorOnPlayer which would clobber it.
         if (!result?.isCountDigitWithDisplay) {
-            if (!result?.skipPostCommandDocrt
-                && typeof game.docrt === 'function') {
+            if (typeof game.docrt === 'function') {
                 game.docrt();
             }
             if (typeof game.display.renderStatus === 'function') {
