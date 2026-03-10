@@ -6669,3 +6669,39 @@ hard-won wisdom:
   - `node --test test/unit/codematch_mhitm_surface.test.js`
   - `node scripts/test-unit-core.mjs`
   - Both passed.
+
+### CODEMATCH blindness boundary + restore-ability closure (`toggle_blindness`, `peffect_restore_ability`) (2026-03-10)
+
+- Problem:
+  - `potion.c:toggle_blindness` remained marked as stub/inlined behavior.
+  - `potion.c:peffect_restore_ability` was still RNG-only skeleton logic.
+  - `do_wear.js` had blindfold removal callsites passing wrong arguments into
+    `Blindf_off`, creating boundary fragility.
+- Change:
+  - `js/potion.js`:
+    - Added explicit exported `toggle_blindness(player)` API
+      (botl + vision dirty + monster-visibility refresh hook).
+    - Wired `make_blinded(...)` to call `toggle_blindness` when sight toggles.
+    - Implemented `peffect_restore_ability(...)` core C behavior:
+      - cursed: "mediocre" path
+      - non-cursed: random-start attribute restoration to `attrMax`
+      - blessed: restore all drained attributes
+      - potion form restores lost levels via `pluslvl`, looping for blessed.
+  - `js/do_wear.js`:
+    - `Blindf_on/Blindf_off` now update `BLINDED` extrinsic/blocked masks
+      (`W_TOOL`) in a C-faithful eyewear boundary model
+      (blindfold/towel blinds; lenses block blindness).
+    - Both functions now call `toggle_blindness` on actual sight transitions.
+    - Fixed incorrect `Blindf_off(...)` callsites to pass `(player, obj)`.
+  - Added targeted tests:
+    - `test/unit/codematch_blindness_restore_surface.test.js`
+      - blindfold on/off extrinsic transitions
+      - lenses blocked-visibility transition
+      - restore-ability blessed path (attributes + lost level recovery).
+  - Updated `docs/CODEMATCH.md`:
+    - `potion.c:toggle_blindness` -> Implemented
+    - `potion.c:peffect_restore_ability` -> Implemented
+- Validation:
+  - `node --test test/unit/codematch_blindness_restore_surface.test.js`
+  - `node scripts/test-unit-core.mjs`
+  - Both passed.

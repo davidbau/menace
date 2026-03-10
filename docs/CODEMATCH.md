@@ -3964,7 +3964,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1256 | `peffect_oil` | potion.js:904 | Implemented (lit/unlit/cursed paths, fire damage, exercise) |
 | 877 | `peffect_paralysis` | 396 | FREE_ACTION check, confusion-aware message |
 | 1314 | `peffect_polymorph` | potion.js:1565 | Implemented |
-| 646 | `peffect_restore_ability` | 539 | Stub: no attribute restoration yet |
+| 646 | `peffect_restore_ability` | potion.js:789 | Implemented (attribute restore + blessed multi-level pluslvl recovery) |
 | 838 | `peffect_see_invisible` | 532 | Timed see_invis via incr_itimeout |
 | 960 | `peffect_sickness` | 416 | Blessed cure, cursed illness, uncursed vomiting |
 | 897 | `peffect_sleeping` | 380 | FREE_ACTION check, blessed wake, sleep mechanism |
@@ -3980,7 +3980,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2905 | `speed_up` | potion.js:338 | Implemented |
 | 2859 | `split_mon` | potion.js:1478 | Implemented (internal) |
 | 1457 | `strange_feeling` | potion.js:833 | Implemented |
-| 336 | `toggle_blindness` | potion.js:make_blinded (inlined) | Stub (vision recalc deferred to mark_vision_dirty) |
+| 336 | `toggle_blindness` | potion.js:255 | Implemented (explicit blindness-boundary API, used by make_blinded and Blindf_on/off) |
 
 ### pray.c -> pray.js
 | C Line | C Function | JS Line | Alignment |

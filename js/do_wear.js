@@ -65,7 +65,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          PROT_FROM_SHAPE_CHANGERS,
          DRAIN_RES, SICK_RES, STONE_RES, INFRAVISION, ANTIMAGIC,
          TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL } from './const.js';
-import { set_itimeout, incr_itimeout } from './potion.js';
+import { set_itimeout, incr_itimeout, toggle_blindness } from './potion.js';
 import { float_down } from './trap.js';
 import { nomul, unmul } from './hack.js';
 import { float_vs_flight } from './polyself.js';
@@ -946,14 +946,27 @@ export function Ring_off(player, ring) {
 // cf. do_wear.c Blindf_on() — apply effects when wearing a blindfold/towel
 export async function Blindf_on(player, otmp) {
     if (!player || !otmp) return;
-    const already_blind = player.blind;
+    const already_blind = !!player.blind;
+    const blindEntry = player.ensureUProp(BLINDED);
     player.blindfold = otmp;
+    if (otmp.otyp === LENSES) {
+        blindEntry.extrinsic &= ~W_TOOL;
+        blindEntry.blocked = (blindEntry.blocked || 0) | W_TOOL;
+    } else {
+        blindEntry.blocked = (blindEntry.blocked || 0) & ~W_TOOL;
+        blindEntry.extrinsic = (blindEntry.extrinsic || 0) | W_TOOL;
+    }
 
+    let changed = false;
     if (player.blind && !already_blind) {
-        await pline("You can't see any more.");
+        changed = true;
+        await You_cant("see any more.");
     } else if (already_blind && !player.blind) {
-        // Eyes of the Overworld or similar
-        await pline("You can see!");
+        changed = true;
+        await You("can see!");
+    }
+    if (changed) {
+        await toggle_blindness(player);
     }
 }
 
@@ -962,17 +975,29 @@ export async function Blindf_off(player, otmp) {
     if (!player) return;
     if (!otmp) otmp = player.blindfold;
     if (!otmp) return;
-    const was_blind = player.blind;
-    player.blindfold = null;
+    const was_blind = !!player.blind;
+    const blindEntry = player.ensureUProp(BLINDED);
+    if (otmp.otyp === LENSES) {
+        blindEntry.blocked = (blindEntry.blocked || 0) & ~W_TOOL;
+    } else {
+        blindEntry.extrinsic = (blindEntry.extrinsic || 0) & ~W_TOOL;
+    }
+    if (player.blindfold === otmp) player.blindfold = null;
 
+    let changed = false;
     if (player.blind) {
         if (was_blind && otmp.otyp !== LENSES) {
-            await pline("You still cannot see.");
+            await You("still cannot see.");
         } else if (!was_blind) {
-            await pline("You can't see anything now!");
+            changed = true;
+            await You_cant("see anything now!");
         }
     } else if (was_blind) {
-        await pline("You can see again.");
+        changed = true;
+        await You("can see again.");
+    }
+    if (changed) {
+        await toggle_blindness(player);
     }
 }
 
@@ -1382,7 +1407,7 @@ export async function armor_or_accessory_off(obj, game, player) {
   if (obj.owornmask & W_ARMOR) { armoroff(obj); }
   else if (obj === player.rightRing || obj === player.leftRing) { await off_msg(obj); Ring_off(obj); }
   else if (obj === player.amulet) { Amulet_off(); }
-  else if (obj === player.blindfold) { await Blindf_off(obj); }
+  else if (obj === player.blindfold) { await Blindf_off(player, obj); }
   else {
     impossible("removing strange accessory: %s", safe_typename(obj.otyp));
     if (obj.owornmask) remove_worn_item(obj, false);
@@ -1491,7 +1516,7 @@ export async function do_takeoff(game, player) {
   else if (doff.what === WORN_AMUL) { otmp = player.amulet; if (!await cursed(otmp, player)) Amulet_off(); }
   else if (doff.what === LEFT_RING) { otmp = player.leftRing; if (!await cursed(otmp, player)) Ring_off(player.leftRing); }
   else if (doff.what === RIGHT_RING) { otmp = player.rightRing; if (!await cursed(otmp, player)) Ring_off(player.rightRing); }
-  else if (doff.what === WORN_BLINDF) { if (!await cursed(player.blindfold, player)) await Blindf_off(player.blindfold); }
+  else if (doff.what === WORN_BLINDF) { if (!await cursed(player.blindfold, player)) await Blindf_off(player, player.blindfold); }
   else {
     impossible("do_takeoff: taking off %lx", doff.what);
   }

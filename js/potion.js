@@ -35,7 +35,7 @@ import { DISP_ALWAYS, DISP_END } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { float_up, float_down } from './trap.js';
 import { float_vs_flight } from './polyself.js';
-import { rndexp } from './exper.js';
+import { rndexp, pluslvl } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
 import { monster_detect, object_detect } from './detect.js';
@@ -245,10 +245,19 @@ async function make_blinded(player, xtime, talk) {
     set_itimeout(player, BLINDED, xtime);
 
     if (u_could_see !== can_see_now) {
-        // C ref: toggle_blindness() — vision_full_recalc, see_monsters
-        player._botl = true;
-        mark_vision_dirty();
+        await toggle_blindness(player);
     }
+}
+
+// cf. potion.c toggle_blindness()
+// Blindness has just toggled due to timeout or eyewear changes.
+export async function toggle_blindness(player) {
+    if (!player) return;
+    player._botl = true;
+    mark_vision_dirty();
+    // C calls see_monsters() when blind telepathy/infravision/stinging are active.
+    // JS keeps this broad as a safe display refresh hook.
+    see_monsters();
 }
 
 // cf. potion.c make_hallucinated() — C ref: potion.c:368-430
@@ -776,14 +785,46 @@ export async function peffect_see_invisible(player, otmp, display) {
 
 // cf. potion.c peffect_restore_ability()
 async function peffect_restore_ability(player, otmp, display) {
+    gp.potion_unkn++;
     if (otmp.cursed) {
         await pline("Ulch!  This makes you feel mediocre!");
         return true; // no RNG consumed
     }
+
+    const attrs = Array.isArray(player.attributes) ? player.attributes : [];
+    const attrMax = Array.isArray(player.attrMax) ? player.attrMax : attrs.slice();
+    player.attributes = attrs;
+    player.attrMax = attrMax;
+    const hasUnfixableTrouble = attrs.some((v, idx) => Number(v || 0) < Number(attrMax[idx] || 0));
+    await pline("Wow!  This makes you feel %s!",
+        !otmp.blessed ? "good" : (hasUnfixableTrouble ? "better" : "great"));
+
     // C: i = rn2(A_MAX) — always consumed for starting point
     let i = rn2(A_MAX);
-    // C: iterate attributes, restore ABASE to AMAX
-    // Simplified: RNG consumed above is what matters for parity
+    // C: iterate attributes, restore ABASE to AMAX, one stat unless blessed
+    for (let ii = 0; ii < A_MAX; ii++) {
+        if (attrs[i] == null) attrs[i] = 10;
+        if (attrMax[i] == null) attrMax[i] = attrs[i];
+        if (attrs[i] < attrMax[i]) {
+            attrs[i] = attrMax[i];
+            player._botl = true;
+            if (!otmp.blessed) break;
+        }
+        i = (i + 1) % A_MAX;
+    }
+
+    // C: potion (not spell) can restore lost levels; blessed restores all.
+    if (otmp.otyp === POT_RESTORE_ABILITY
+        && Number(player.ulevel || 1) < Number(player.ulevelmax || player.ulevel || 1)) {
+        const levelDisplay = (display && typeof display.putstr_message === 'function')
+            ? display
+            : { putstr_message: async () => {} };
+        do {
+            await pluslvl(player, levelDisplay, false);
+        } while (Number(player.ulevel || 1) < Number(player.ulevelmax || player.ulevel || 1)
+                 && !!otmp.blessed);
+    }
+
     return false;
 }
 
