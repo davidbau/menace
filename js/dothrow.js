@@ -623,7 +623,7 @@ export function multishot_class_bonus(pm, ammo, launcher) {
 }
 
 // cf. dothrow.c:86 [static] -- throw_obj(obj, shotlimit)
-export function throw_obj(player, obj, shotlimit) {
+function throw_obj(player, obj, shotlimit) {
     let multishot = 1;
     const skill = objectData[obj.otyp]?.oc_subtyp ?? 0;
     const uwep = player.weapon;
@@ -654,7 +654,7 @@ export function throw_obj(player, obj, shotlimit) {
 }
 
 // cf. dothrow.c:296 [static] -- ok_to_throw(shotlimit_p)
-export async function ok_to_throw(player, command_count) {
+async function ok_to_throw(player, command_count) {
     const shotlimit = Math.max(0, command_count || 0);
     if (player.polyData && notake(player.polyData)) {
         await pline("You are physically incapable of throwing or shooting anything.");
@@ -668,7 +668,7 @@ export async function ok_to_throw(player, command_count) {
 }
 
 // cf. dothrow.c:316 [static] -- throw_ok(obj)
-export function throw_ok(obj, player) {
+function throw_ok(obj, player) {
     if (!obj) return 0;
     if (obj.bknown && obj.welded) return 2;
     if (obj.otyp === BOOMERANG || obj.otyp === AKLYS) return 1;
@@ -680,7 +680,7 @@ export function throw_ok(obj, player) {
 }
 
 // cf. dothrow.c:380 [static] -- autoquiver(player)
-export function autoquiver(player) {
+function autoquiver(player) {
     if (player.quiver) return;
     let oammo = null, omissile = null, omisc = null, altammo = null;
     const uwep = player.weapon;
@@ -718,7 +718,7 @@ export function autoquiver(player) {
 }
 
 // cf. dothrow.c:446 [static] -- find_launcher(ammo, player)
-export function find_launcher(ammo, player) {
+function find_launcher(ammo, player) {
     if (!ammo) return null;
     let oX = null;
     for (const otmp of (player.inventory || [])) {
@@ -733,7 +733,7 @@ export function find_launcher(ammo, player) {
 }
 
 // cf. dothrow.c:589 -- endmultishot(verbose, m_shot)
-export async function endmultishot(verbose, m_shot) {
+async function endmultishot(verbose, m_shot) {
     if (!m_shot) return;
     if (m_shot.i < m_shot.n) {
         if (verbose) {

@@ -39,6 +39,7 @@ import { helpless as monHelpless } from './mon.js';
 import { newsym, canspotmon } from './display.js';
 import { canseemon, y_monnam } from './mondata.js';
 import { game as _gstate } from './gstate.js';
+import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
 
 // ============================================================
@@ -2992,7 +2993,7 @@ export function obfree(obj, merge, player) {
   if (obj.oclass === FOOD_CLASS) food_disappears(obj);
   if (obj.oclass === SPBOOK_CLASS) book_disappears(obj);
   if (Has_contents(obj)) delete_contents(obj);
-  if (Is_container(obj)) maybe_reset_pick(obj);
+  if (Is_container(obj)) maybe_reset_pick(_gstate, obj);
   if (obj.otyp === BOULDER) obj.next_boulder = 0;
   shkp = 0;
   if (obj.unpaid) {

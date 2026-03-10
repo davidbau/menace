@@ -33,7 +33,7 @@ import {
 import { handleKick } from './kick.js';
 import { handleZap } from './zap.js';
 import { handleSave } from './storage.js';
-import { handleForce, handleOpen, handleClose } from './lock.js';
+import { handleForce, handleOpen, handleClose, reset_pick } from './lock.js';
 import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './pickup.js';
 import { dotalk } from './sounds.js';
 import { add_skills_to_menu, skill_advance } from './weapon.js';

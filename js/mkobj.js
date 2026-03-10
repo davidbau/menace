@@ -140,6 +140,7 @@ export function mergable(otmp, obj) {
 }
 
 import { game as _gstate } from './gstate.js';
+import { maybe_reset_pick } from './lock.js';
 import { envFlag } from './runtime_env.js';
 
 // Accessors for game state previously passed through set*Context() wiring hacks.
@@ -1827,7 +1828,7 @@ export function add_to_migration(obj, game, map) {
   if (obj.where !== OBJ_FREE) console.error("add_to_migration: obj where=%d, not free", obj.where);
   if (obj.unpaid) impossible("unpaid object migrating to another level? [%s]", simpleonames(obj));
   obj.no_charge = 0;
-  if (Is_container(obj)) maybe_reset_pick(obj);
+  if (Is_container(obj)) maybe_reset_pick(_gstate, obj);
   obj.where = OBJ_MIGRATING;
   obj.nobj = game.migrating_objs;
   obj.omigr_from_dnum = map.uz.dnum;

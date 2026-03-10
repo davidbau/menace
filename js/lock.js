@@ -107,7 +107,7 @@ export function maybe_reset_pick(game, container) {
 
 // cf. lock.c:17 — picking_lock(x, y): check if picking a lock
 // Returns { picking: true, x, y } if currently picking a lock, else { picking: false }.
-export function picking_lock(game) {
+function picking_lock(game) {
     const xlock = getXlock(game);
     if (game.occupation && game.occupation.occtxt
         && (game.occupation.occtxt.includes('locking')
@@ -119,7 +119,7 @@ export function picking_lock(game) {
 }
 
 // cf. lock.c:30 — picking_at(x, y): check if picking lock at location
-export function picking_at(game, x, y) {
+function picking_at(game, x, y) {
     const xlock = getXlock(game);
     if (game.occupation && xlock._isPicklock && xlock.door) {
         return xlock._targetX === x && xlock._targetY === y;
@@ -128,7 +128,7 @@ export function picking_at(game, x, y) {
 }
 
 // cf. lock.c:38 [static] — lock_action(void): current lock-picking action description
-export function lock_action(game) {
+function lock_action(game) {
     const xlock = getXlock(game);
     // if the target is currently unlocked, we're trying to lock it now
     if (xlock.door && !(xlock.door.flags & D_LOCKED)) {
@@ -148,7 +148,7 @@ export function lock_action(game) {
 }
 
 // cf. lock.c:1276 [static] — chest_shatter_msg(otmp): chest shatter message
-export async function chest_shatter_msg(otmp) {
+async function chest_shatter_msg(otmp) {
     if (otmp.oclass === POTION_CLASS) {
         // C: You("%s %s shatter!", Blind ? "hear" : "see", an(bottlename()));
         // potionbreathe not ported — just print the message
