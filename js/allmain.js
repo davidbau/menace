@@ -678,91 +678,12 @@ export async function run_command(game, ch, opts = {}) {
         // Drain any occupation created by the command
         await _drainOccupation(game, coreOpts);
 
-        // Multi-repeat loop
-        // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
-        // C calls domove() directly instead of rhack(). This is critical for
-        // travel: dotravel_target sets multi=max(COLNO,ROWNO) and context.mv,
-        // so the entire travel run executes within one command boundary.
-        while (game.multi > 0) {
-            if (typeof game.shouldInterruptMulti === 'function'
-                && game.shouldInterruptMulti()) {
-                game.multi = 0;
-                if (showRepeatInterruptMore && game.display) {
-                    await game.display.putstr_message('--More--');
-                    await more(game.display, {
-                        game,
-                        site: 'run_command.repeat.interrupt-more',
-                        forceVisual: true,
-                    });
-                }
-            }
-            if (game.multi <= 0) break; // hook may have cleared multi
-
-            const ctx = game.context || {};
-            if (ctx.mv) {
-                emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
-                // C ref: allmain.c:527-530 — movement/travel multi repeat.
-                // lookaround() can abort running by clearing multi.
-                const _p = game.u || game.player;
-                const _map = game.map;
-                const _fov = FOV;
-                const _display = game.display;
-                await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
-                if (game.multi <= 0) {
-                    ctx.move = 0;
-                    break;
-                }
-                // C ref: hack.c domove() can call end_running() internally
-                // (e.g. when findtravelpath exhausts the path), which clears
-                // ctx.run.  Save the run mode before domove so we can detect
-                // travel-end afterward.
-                const savedRun = ctx.run;
-                if (game.multi < COLNO && !--game.multi) {
-                    end_running(true, game);
-                }
-                game.advanceRunTurn = async () => {
-                    await advanceTimedTurn();
-                };
-                const moveResult = await domove([0, 0], _p, _map, _display, game);
-                game.advanceRunTurn = null;
-                if (!moveResult || !moveResult.tookTime) {
-                    // C ref: allmain.c moveloop — when travel ends via
-                    // findtravelpath exhausting the path, C's context.move
-                    // stays 1 from the prior successful domove (hack.c u_at()
-                    // path doesn't clear it).  The next moveloop_core runs
-                    // one more movemon before discovering multi=0 and exiting.
-                    // JS's post-domove model needs an explicit advanceTimedTurn.
-                    if (savedRun === 8) {
-                        await advanceTimedTurn();
-                    }
-                    break;
-                }
-                if (!moveResult.moved) {
-                    break;
-                }
-                bumpHeroSeqN();
-                await advanceTimedTurn();
-                await _drainOccupation(game, coreOpts);
-            } else {
-                emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
-                game.multi--;
-                game.advanceRunTurn = async () => {
-                    await advanceTimedTurn();
-                };
-                const repeated = await rhack(game.cmdKey, game);
-                game.advanceRunTurn = null;
-
-                if (!repeated || !repeated.tookTime) break;
-                bumpHeroSeqN();
-                await advanceTimedTurn();
-                if (typeof repeated.onAfterTurn === 'function') {
-                    await repeated.onAfterTurn(game);
-                }
-
-                // Drain occupation from repeated command
-                await _drainOccupation(game, coreOpts);
-            }
-        }
+        await executeMultiRepeatLoop(game, {
+            coreOpts,
+            advanceTimedTurn,
+            bumpHeroSeqN,
+            showRepeatInterruptMore,
+        });
     }
 
     applyPostCommandRender(game, result);
@@ -770,6 +691,93 @@ export async function run_command(game, ch, opts = {}) {
     return result;
     } finally {
         endCommandExec(game, execToken, { site: 'run_command', key: chCode });
+    }
+}
+
+async function executeMultiRepeatLoop(game, {
+    coreOpts,
+    advanceTimedTurn,
+    bumpHeroSeqN,
+    showRepeatInterruptMore,
+}) {
+    // C ref: allmain.c:519-535 — when context.mv is set (movement/travel),
+    // C calls domove() directly instead of rhack(). This is critical for
+    // travel: dotravel_target sets multi=max(COLNO,ROWNO) and context.mv,
+    // so the entire travel run executes within one command boundary.
+    while (game.multi > 0) {
+        if (typeof game.shouldInterruptMulti === 'function'
+            && game.shouldInterruptMulti()) {
+            game.multi = 0;
+            if (showRepeatInterruptMore && game.display) {
+                await game.display.putstr_message('--More--');
+                await more(game.display, {
+                    game,
+                    site: 'run_command.repeat.interrupt-more',
+                    forceVisual: true,
+                });
+            }
+        }
+        if (game.multi <= 0) break; // hook may have cleared multi
+
+        const ctx = game.context || {};
+        if (ctx.mv) {
+            emitRunstep(game, game?.cmdKey | 0, 'repeat_mv', game?.cmdKey | 0);
+            // C ref: allmain.c:527-530 — movement/travel multi repeat.
+            // lookaround() can abort running by clearing multi.
+            const _p = game.u || game.player;
+            const _map = game.map;
+            const _fov = FOV;
+            const _display = game.display;
+            await lookaround(_map, _p, _fov, [_p.dx || 0, _p.dy || 0], 'run', _display, game);
+            if (game.multi <= 0) {
+                ctx.move = 0;
+                break;
+            }
+            // C ref: hack.c domove() can call end_running() internally
+            // (e.g. when findtravelpath exhausts the path), which clears
+            // ctx.run. Save run mode before domove to detect travel-end.
+            const savedRun = ctx.run;
+            if (game.multi < COLNO && !--game.multi) {
+                end_running(true, game);
+            }
+            game.advanceRunTurn = async () => {
+                await advanceTimedTurn();
+            };
+            const moveResult = await domove([0, 0], _p, _map, _display, game);
+            game.advanceRunTurn = null;
+            if (!moveResult || !moveResult.tookTime) {
+                // C ref: allmain.c moveloop — when travel ends via path
+                // exhaustion, run one more monster turn before exiting.
+                if (savedRun === 8) {
+                    await advanceTimedTurn();
+                }
+                break;
+            }
+            if (!moveResult.moved) {
+                break;
+            }
+            bumpHeroSeqN();
+            await advanceTimedTurn();
+            await _drainOccupation(game, coreOpts);
+        } else {
+            emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
+            game.multi--;
+            game.advanceRunTurn = async () => {
+                await advanceTimedTurn();
+            };
+            const repeated = await rhack(game.cmdKey, game);
+            game.advanceRunTurn = null;
+
+            if (!repeated || !repeated.tookTime) break;
+            bumpHeroSeqN();
+            await advanceTimedTurn();
+            if (typeof repeated.onAfterTurn === 'function') {
+                await repeated.onAfterTurn(game);
+            }
+
+            // Drain occupation from repeated command.
+            await _drainOccupation(game, coreOpts);
+        }
     }
 }
 
