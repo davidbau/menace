@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 
 import { initRng } from '../../js/rng.js';
 import { GameMap } from '../../js/game.js';
-import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key } from '../../js/artifact.js';
+import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key, doinvoke } from '../../js/artifact.js';
 import { check_in_air } from '../../js/trap.js';
 import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
 import { return_from_mtoss } from '../../js/mthrowu.js';
-import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS } from '../../js/const.js';
+import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS, ECMD_TIME } from '../../js/const.js';
 import { CHEST, DAGGER, POTION_CLASS, POT_WATER, POT_OIL, WEAPON_CLASS } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
 import { CRYSTAL_BALL } from '../../js/objects.js';
@@ -113,7 +113,7 @@ test('mthrowu.return_from_mtoss drops uncaught returning projectile at thrower s
 
 test('artifact.invoke_ok suggests artifact-like invoke targets (crystal ball)', () => {
     const crystal = { otyp: CRYSTAL_BALL, oartifact: 0 };
-    assert.equal(invoke_ok(crystal), 2);
+    assert.equal(invoke_ok(crystal), 1);
 });
 
 test('artifact.invoke_energy_boost raises pw and marks botl', async () => {
@@ -134,6 +134,13 @@ test('artifact.arti_invoke_cost drains pw for paid invoke-cost artifacts', async
     assert.equal(ok, true);
     assert.equal(player.pw, 5);
     assert.equal(game.disp.botl, true);
+});
+
+test('artifact.doinvoke selects an invokable item and consumes a turn', async () => {
+    const player = { pw: 30, pwmax: 30, inventory: [{ oartifact: 5, age: 99 }], uprops: {} };
+    const game = { moves: 1, disp: { botl: false } };
+    const rc = await doinvoke(player, game);
+    assert.equal(rc, ECMD_TIME);
 });
 
 test('artifact.is_magic_key follows rogue-vs-nonrogue bless/curse rules', () => {

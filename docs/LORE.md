@@ -7281,3 +7281,33 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (12/12)
   - `npm run -s test:unit` (2749/2749)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: artifact invoke selection now composes with inventory GETOBJ constants
+
+- Problem:
+  - `invoke_ok()` used local non-canonical constants (`2/-3`) which did not
+    align with inventory `getobj()` (`GETOBJ_SUGGEST=1`), so command-layer
+    invocation selection could not compose correctly.
+  - `doinvoke()` itself was still a no-op return.
+- Change:
+  - `js/artifact.js`:
+    - switched `invoke_ok()` to canonical `GETOBJ_*` constants from `const.js`.
+    - implemented async `doinvoke(player, game)`:
+      - selects invokable item via `getobj(..., invoke_ok, ...)`,
+      - dispatches through `arti_invoke(...)`,
+      - returns command time semantics (`ECMD_TIME` / `ECMD_CANCEL`).
+    - improved invoke side-effect routing:
+      - `invoke_taming` now uses `read.seffect_taming(...)` when runtime context
+        is available,
+      - `invoke_untrap` now routes through `trap.dountrap()`,
+      - `invoke_charge_obj` now selects a target via `getobj` and calls
+        `read.recharge(...)`.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - updated `invoke_ok` expectation to canonical suggest value,
+    - added `doinvoke` turn-consumption test.
+  - `docs/CODEMATCH.md`:
+    - updated stale `Mb_hit`/`doinvoke` stub labels and refreshed invoke row notes.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (13/13)
+  - `npm run -s test:unit` (2750/2750)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

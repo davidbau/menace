@@ -21,10 +21,13 @@ import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container } from './mkobj.js';
+import { getobj } from './invent.js';
+import { seffect_taming, recharge } from './read.js';
+import { dountrap } from './trap.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -1178,9 +1181,6 @@ function noncorporeal_simple(ptr) { return ptr.mlet === 'W' || ptr.mlet === ' ';
 function amorphous_simple(ptr) { return !!(ptr.mflags1 & 0x00000004); /* M1_AMORPHOUS */ }
 function nonliving_simple(ptr) { return !!(ptr.mflags1 & 0x00004000); /* M1_NONLIVING - approximation */ }
 
-const GETOBJ_EXCLUDE = -3;
-const GETOBJ_SUGGEST = 2;
-
 function playerEnergy(player) {
   if (!player) return 0;
   if (Number.isFinite(player.uen)) return player.uen;
@@ -1227,11 +1227,11 @@ export function invoke_ok(obj) {
 }
 
 // cf. artifact.c:1749 — doinvoke()
-export function doinvoke(player) {
-  // #invoke command handler — requires UI interaction (getobj).
-  // In the JS port this is triggered by the command system;
-  // for now, return 0 (no action) since UI prompts are not wired here.
-  return 0;
+export async function doinvoke(player, game = null) {
+  const obj = getobj('invoke', invoke_ok, 0, player);
+  if (!obj) return ECMD_CANCEL;
+  await arti_invoke(obj, player, game);
+  return ECMD_TIME;
 }
 
 // cf. artifact.c:1762 — nothing_special(obj)
@@ -1240,9 +1240,13 @@ export async function nothing_special(obj) {
 }
 
 // cf. artifact.c:1769 — invoke_taming(obj)
-export async function invoke_taming(obj) {
-  // seffects(SCR_TAMING) — not yet ported; stub returns time
-  await pline("A wave of calm sweeps over you."); // placeholder
+export async function invoke_taming(obj, game = null, player = null) {
+  const display = game?.disp || game?.display || null;
+  if (player && display) {
+    await seffect_taming(obj, player, display, game);
+  } else {
+    await pline("A wave of calm sweeps over you.");
+  }
   return 1;
 }
 
@@ -1284,16 +1288,30 @@ export async function invoke_energy_boost(obj, game, player) {
 }
 
 // cf. artifact.c:1838 — invoke_untrap(obj)
-export async function invoke_untrap(obj) {
-  // untrap() not yet ported; stub
-  await nothing_special(obj);
+export async function invoke_untrap(obj, game = null) {
+  const res = await dountrap();
+  if (res === ECMD_OK) await nothing_special(obj);
   return 1;
 }
 
 // cf. artifact.c:1848 — invoke_charge_obj(obj)
-export async function invoke_charge_obj(obj) {
-  // recharge() not yet ported; stub
-  await nothing_special(obj);
+export async function invoke_charge_obj(obj, game = null, player = null) {
+  if (!player) {
+    await nothing_special(obj);
+    return 1;
+  }
+  const target = getobj(
+    'charge',
+    (it) => (it && (it.otyp !== undefined)) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+    0,
+    player
+  );
+  if (!target) {
+    await nothing_special(obj);
+    return 1;
+  }
+  const curseBless = obj?.cursed ? -1 : obj?.blessed ? 1 : 0;
+  await recharge(target, curseBless, player, game);
   return 1;
 }
 
@@ -1384,11 +1402,11 @@ export async function arti_invoke(obj, player, game) {
     if (!await arti_invoke_cost(obj, player, game)) return 1;
 
     switch (oart.inv_prop) {
-      case TAMING: return await invoke_taming(obj);
+      case TAMING: return await invoke_taming(obj, game, player);
       case HEALING: return await invoke_healing(obj, player);
       case ENERGY_BOOST: return await invoke_energy_boost(obj, game, player);
-      case UNTRAP: return await invoke_untrap(obj);
-      case CHARGE_OBJ: return await invoke_charge_obj(obj);
+      case UNTRAP: return await invoke_untrap(obj, game);
+      case CHARGE_OBJ: return await invoke_charge_obj(obj, game, player);
       case LEV_TELE: /* await level_tele(); */ return 1;
       case CREATE_PORTAL: return await invoke_create_portal(obj);
       case ENLIGHTENING: /* enlightenment(); */ return 1;
