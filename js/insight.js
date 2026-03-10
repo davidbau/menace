@@ -863,6 +863,26 @@ export function weapon_insight(final, game) {
 // ^X attribute display command.
 // ============================================================================
 
+// cf. insight.c:266 [static] — cause_known()
+// Minimal JS parity surface: query whether a cause id/text has been marked known.
+export function cause_known(cause, gameOrPlayer) {
+    const player = (gameOrPlayer && (gameOrPlayer.u || gameOrPlayer.player))
+        ? (gameOrPlayer.u || gameOrPlayer.player)
+        : gameOrPlayer;
+    if (!player || cause == null) return false;
+    const known = player.knownCauses || player.known_causes;
+    if (Array.isArray(known)) return known.includes(cause);
+    if (known && typeof known === 'object') return !!known[cause];
+    return false;
+}
+
+// cf. insight.c:1464 [static] — attributes_enlightenment()
+// Wrapper used by callers that want the canonical attributes-view pipeline.
+export async function attributes_enlightenment(mode, final, game) {
+    await enlightenment(mode, final, game);
+    return 0;
+}
+
 // cf. insight.c:2014 — doattributes(game): ^X attribute display command
 // Autotranslated from insight.c:2013
 export function doattributes() {
@@ -1064,6 +1084,36 @@ export async function show_conduct(final, game) {
     if (game.display) {
         await showPager(game.display, text, 'Conduct');
     }
+}
+
+// cf. insight.c:2253 [static] — show_achievements()
+export async function show_achievements(final, game) {
+    const player = (game.u || game.player);
+    const entries = Array.isArray(player.uachieved) ? player.uachieved : [];
+    const lines = [];
+    lines.push(`${final ? 'Major' : 'Recorded'} achievements:`);
+    if (!entries.length) {
+        lines.push(' none');
+    } else {
+        for (const raw of entries) {
+            const ach = Math.abs(Number(raw) || 0);
+            let label = `achievement #${ach}`;
+            if (ach === ACH_BELL) label = 'obtained the Bell of Opening';
+            else if (ach === ACH_CNDL) label = 'obtained the Candelabrum of Invocation';
+            else if (ach === ACH_BOOK) label = 'obtained the Book of the Dead';
+            else if (ach === ACH_AMUL) label = 'obtained the Amulet of Yendor';
+            else if (ach === ACH_ENDG) label = 'entered the endgame';
+            else if (ach === ACH_ASTR) label = 'reached the Astral Plane';
+            else if (ach === ACH_UWIN) label = 'completed the game objective';
+            else if (ach === ACH_SOKO_PRIZE) label = 'claimed the Sokoban prize';
+            else if (ach === ACH_MINE_PRIZE) label = 'claimed the Gnomish Mines prize';
+            lines.push(` - ${label}`);
+        }
+    }
+    if (game.display) {
+        await showPager(game.display, lines.join('\n'), 'Achievements');
+    }
+    return lines;
 }
 
 // ============================================================================

@@ -6513,3 +6513,29 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_were_wield_worn_worm_surface.test.js test/unit/were.test.js test/unit/command_wield_prompt.test.js`
     passed (26/26).
+
+### CODEMATCH multi-file closure slice: insight.c + iactions.c missing surfaces (2026-03-10)
+
+- Problem:
+  - `iactions.c` still had 3 missing surfaces and the existing JS file had
+    unresolved autotranslated symbols.
+  - `insight.c` still had 3 missing surfaces (`cause_known`,
+    `attributes_enlightenment`, `show_achievements`).
+- Change:
+  - Replaced `js/iactions.js` with stable C-name surfaces:
+    - `item_naming_classification`
+    - `item_reading_classification`
+    - `ia_addmenu`
+    - `itemactions_pushkeys`
+    - `itemactions`
+  - Added missing insight surfaces in `js/insight.js`:
+    - `cause_known`
+    - `attributes_enlightenment`
+    - `show_achievements`
+  - Updated `docs/CODEMATCH.md` rows from Missing -> Implemented for all six
+    functions and updated top-line totals.
+  - Added test coverage in:
+    - `test/unit/codematch_insight_iactions_surface.test.js`
+- Validation:
+  - `node --test test/unit/codematch_insight_iactions_surface.test.js test/unit/codematch_were_wield_worn_worm_surface.test.js`
+    passed (12/12).

@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `678` missing (**13.40% left**)
-- **Gameplay rows only**: `4393` total, `57` missing (**1.30% left**)
+- **Raw rows (all files)**: `5058` total, `672` missing (**13.29% left**)
+- **Gameplay rows only**: `4393` total, `51` missing (**1.16% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -2128,21 +2128,21 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 127 | `ia_addmenu` | iactions.js:66 | Implemented |
-| 46 | `item_naming_classification` | - | Missing |
+| 46 | `item_naming_classification` | iactions.js:item_naming_classification | Implemented |
 | 86 | `item_reading_classification` | iactions.js:42 | Implemented |
-| 278 | `itemactions` | - | Missing |
-| 140 | `itemactions_pushkeys` | - | Missing |
+| 278 | `itemactions` | iactions.js:itemactions | Implemented |
+| 140 | `itemactions_pushkeys` | iactions.js:itemactions_pushkeys | Implemented |
 
 ### insight.c -> insight.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
 | 2516 | `achieve_rank` | insight.js:1534 | Implemented |
 | 3207 | `align_str` | insight.js:88 | Implemented |
-| 1464 | `attributes_enlightenment` | - | Missing |
+| 1464 | `attributes_enlightenment` | insight.js:attributes_enlightenment | Implemented |
 | 286 | `attrval` | insight.js:692 | Implemented |
 | 445 | `background_enlightenment` | insight.js:567 | Implemented |
 | 705 | `basics_enlightenment` | insight.js:621 | Implemented |
-| 266 | `cause_known` | - | Missing |
+| 266 | `cause_known` | insight.js:cause_known | Implemented |
 | 804 | `characteristics_enlightenment` | insight.js:675 | Implemented |
 | 2504 | `count_achievements` | insight.js:1123 | Implemented |
 | 2542 | `do_gamelog` | insight.js:1155 | Implemented |
@@ -2169,7 +2169,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2417 | `record_achievement` | insight.js:1076 | Implemented |
 | 2486 | `remove_achievement` | insight.js:1102 | Implemented |
 | 2728 | `set_vanq_order` | insight.js:1209 | Implemented |
-| 2253 | `show_achievements` | - | Missing |
+| 2253 | `show_achievements` | insight.js:show_achievements | Implemented |
 | 2094 | `show_conduct` | insight.js:949 | Implemented |
 | 2571 | `show_gamelog` | insight.js:1168 | Implemented |
 | 3223 | `size_str` | insight.js:105 | Implemented |
