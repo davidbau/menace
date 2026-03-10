@@ -466,7 +466,7 @@ async function handleWield(player, display) {
     await display.putstr_message(wieldPrompt);
 
     while (true) {
-        const ch = await nhgetch_raw({ site: 'wield.handleWield.select' });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

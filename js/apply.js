@@ -1017,7 +1017,7 @@ export async function handleApply(player, map, display, game) {
         }
         if (isApplyChopWeapon(selected)) {
             await display.putstr_message('In what direction do you want to chop? [>] ');
-            await nhgetch_raw({ site: 'apply.chop.direction' });
+            await nhgetch_raw();
             replacePromptMessage();
             return { moved: false, tookTime: false };
         }
@@ -1027,7 +1027,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await nhgetch_raw({ site: 'apply.lockpick.direction' });
+                const dirCh = await nhgetch_raw();
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
@@ -1107,7 +1107,7 @@ export async function handleApply(player, map, display, game) {
             await display.putstr_message('In what direction? ');
             let dir = null;
             while (!dir) {
-                const dirCh = await nhgetch_raw({ site: 'apply.use-directional.direction' });
+                const dirCh = await nhgetch_raw();
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
@@ -1155,7 +1155,7 @@ export async function handleApply(player, map, display, game) {
     };
 
     while (true) {
-        const ch = await nhgetch_raw({ site: 'apply.select.loop' });
+        const ch = await nhgetch_raw();
         const c = String.fromCharCode(ch);
 
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

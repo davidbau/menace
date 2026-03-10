@@ -617,7 +617,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
             }
-            const ch = await nhgetch_raw({ site: 'getpos.getpos_async.loop' });
+            const ch = await nhgetch_raw();
             const c = String.fromCharCode(ch);
 
             if (ch === 27) {

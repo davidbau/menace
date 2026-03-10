@@ -684,7 +684,7 @@ export async function handleDrop(player, map, display) {
             const dropPrompt = `What do you want to drop? [${dropChoices} or ?*] `;
             await display.putstr_message(dropPrompt);
         }
-        const ch = await nhgetch_raw({ site: 'do.handleDrop.select' });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
         if (ch === 22) { // Ctrl+V
             countMode = true;
@@ -912,7 +912,7 @@ async function promptDropTypeClass(display, player) {
     }
     let input = '';
     while (true) {
-        const ch = await nhgetch_raw({ site: 'do.promptDropTypeClass.input' });
+        const ch = await nhgetch_raw();
         if (ch === 10 || ch === 13 || ch === 32) {
             restoreAfterPrompt();
             return input;
@@ -963,7 +963,7 @@ export async function handleDropTypes(player, map, display) {
     }
 
     // C getobj-style letter selection for filtered inventory.
-    const sel = await nhgetch_raw({ site: 'do.handleDropTypes.select' });
+    const sel = await nhgetch_raw();
     if (sel === 27 || sel === 10 || sel === 13 || sel === 32) {
         return { moved: false, tookTime: false };
     }

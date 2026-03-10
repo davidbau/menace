@@ -198,7 +198,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     };
     replacePromptMessage();
     await display.putstr_message('In what direction? ');
-    const dirCh = await nhgetch_raw({ site: 'dothrow.promptDirectionAndThrowItem.direction' });
+    const dirCh = await nhgetch_raw();
     const dch = String.fromCharCode(dirCh);
     let dir = DIRECTION_KEYS[dch];
     if (!dir && (dirCh === 10 || dirCh === 13)) {
@@ -352,7 +352,7 @@ export async function handleThrow(player, map, display) {
         : 'What do you want to throw? [*] ';
     await display.putstr_message(throwPrompt);
     while (true) {
-        const ch = await nhgetch_raw({ site: 'dothrow.handleThrow.select' });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -425,7 +425,7 @@ export async function handleFire(player, map, display, game) {
 
     if (!player.quiver && weapon && weapon.otyp === BULLWHIP) {
         await display.putstr_message('In what direction? ');
-        const dirCh = await nhgetch_raw({ site: 'dothrow.handleFire.bullwhipDirection' });
+        const dirCh = await nhgetch_raw();
         const dch = String.fromCharCode(dirCh);
         const dir = DIRECTION_KEYS[dch];
         if (!dir) {
@@ -526,7 +526,7 @@ export async function handleFire(player, map, display, game) {
     await display.putstr_message(firePrompt);
     let pendingCount = '';
     while (true) {
-        const ch = await nhgetch_raw({ site: 'dothrow.handleFire.select' });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -566,7 +566,7 @@ export async function handleFire(player, map, display, game) {
                 replacePromptMessage();
                 await display.putstr_message('You are wielding that.  Ready it instead? [ynq] (q) ');
                 while (true) {
-                    const ans = await nhgetch_raw({ site: 'dothrow.handleFire.readyWieldedConfirm' });
+                    const ans = await nhgetch_raw();
                     const a = String.fromCharCode(ans).toLowerCase();
                     if (ans === 27 || ans === 10 || ans === 13 || a === ' ' || a === 'q' || a === 'n') {
                         replacePromptMessage();

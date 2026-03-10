@@ -324,7 +324,7 @@ async function handleRead(player, display, game) {
     };
     await showReadPrompt();
     while (true) {
-        const ch = await nhgetch_raw({ site: 'read.handleRead.select' });
+        const ch = await nhgetch_raw();
         let c = String.fromCharCode(ch);
         if (isDismissKey(ch)) {
             replacePromptMessage();

@@ -1843,7 +1843,7 @@ async function handleEat(player, display, game) {
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
         await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
         const ans = String.fromCharCode(
-            await nhgetch_raw({ site: 'eat.handleEat.floorPrompt' })
+            await nhgetch_raw()
         ).toLowerCase();
         if (ans === 'q') {
             // cf. eat.c floorfood() — 'q' exits immediately
@@ -1873,7 +1873,7 @@ async function handleEat(player, display, game) {
             display.messageNeedsMore = false;
             const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
             await display.putstr_message(eatPrompt);
-            const ch = await nhgetch_raw({ site: 'eat.handleEat.inventorySelect' });
+            const ch = await nhgetch_raw();
             const c = String.fromCharCode(ch);
 
             if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

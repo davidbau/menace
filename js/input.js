@@ -525,7 +525,7 @@ export function nhgetch(opts = {}) {
 export async function more(display, { site = 'input.more', game = null, forceVisual = false } = {}) {
     if (!display) return;
     const ctxGame = game ?? activeGame ?? null;
-    const readMoreKey = () => nhgetch_raw({ site: `${site}.key` });
+    const readMoreKey = () => nhgetch_raw();
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
@@ -576,10 +576,10 @@ export async function getlin(prompt, display) {
     // Initial display
     await updateDisplay();
 
-    const readPromptKey = async (site) => nhgetch_raw({ site: `${site}.read` });
+    const readPromptKey = async () => nhgetch_raw();
 
     while (true) {
-        const ch = await readPromptKey('input.getlin');
+        const ch = await readPromptKey();
         if (ch === 13 || ch === 10) { // Enter
             // C-style prompt cleanup after accepting typed input.
             if (disp) {
@@ -631,10 +631,10 @@ export async function ynFunction(query, choices, def, display) {
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.
     const preserveCase = !!(choices && /[A-Z]/.test(choices));
-    const readPromptKey = async (site) => nhgetch_raw({ site: `${site}.read` });
+    const readPromptKey = async () => nhgetch_raw();
 
     while (true) {
-        const ch = await readPromptKey('input.ynFunction');
+        const ch = await readPromptKey();
         ynTrace('key', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
         // C quitchars handling for yn prompts: Space/CR/LF use default.
         if ((ch === 32 || ch === 13 || ch === 10) && def) {
@@ -679,12 +679,12 @@ export async function getCount(firstKey, maxCount, display) {
         key = 0; // Clear so we read next key
     }
 
-    const readPromptKey = async (site) => nhgetch_raw({ site: `${site}.read` });
+    const readPromptKey = async () => nhgetch_raw();
 
     while (true) {
         // If we don't have a key yet, read one
         if (!key) {
-            key = await readPromptKey('input.getCount');
+            key = await readPromptKey();
         }
 
         if (isDigit(key)) {
