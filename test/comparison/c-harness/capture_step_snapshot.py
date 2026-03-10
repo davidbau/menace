@@ -97,6 +97,22 @@ def replay_steps(session_name, keys, step_index):
     return target, sent_chars
 
 
+def emit_manual_dumpsnap_checkpoint(session_name, phase_tag):
+    """Emit one checkpoint via wizard #dumpsnap command."""
+    # Extended command prefix.
+    tmux_send(session_name, "#")
+    time.sleep(0.05)
+    # Command name.
+    tmux_send(session_name, "dumpsnap")
+    time.sleep(0.02)
+    tmux_send_special(session_name, "Enter")
+    time.sleep(0.05)
+    # Prompt asks for phase tag; provide expected auto_inp tag.
+    tmux_send(session_name, phase_tag)
+    time.sleep(0.02)
+    tmux_send_special(session_name, "Enter")
+
+
 def wait_for_checkpoint_phase_prefix(checkpoint_file, expected_prefix, baseline_count, timeout_s=20.0):
     """Poll checkpoint file until a checkpoint whose phase starts with prefix appears."""
     deadline = time.time() + timeout_s
@@ -303,15 +319,17 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         pre_snapshot_screen = tmux_capture(session_name)
         expected_auto_step = baseline_auto_step + replayed_steps
         expected_auto_inp = baseline_auto_inp + replayed_chars
-        tag = phase_tag or f"auto_inp_{expected_auto_inp}"
+        target_auto_inp_by_step = int(step_index)
+        tag = phase_tag or f"auto_inp_{target_auto_inp_by_step}"
 
         matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase_prefix(
-            checkpoint_file, tag, baseline_count
+            checkpoint_file, tag, baseline_count, timeout_s=6.0
         )
         checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
 
         matched_phase_from_stream = None
-        if matched_checkpoint is None:
+        runstep_events_enabled = bool(os.environ.get("NETHACK_EVENT_RUNSTEP"))
+        if matched_checkpoint is None and runstep_events_enabled:
             rng_lines = wait_for_target_runstep_rng(rng_log_file, step_index)
             matched_phase_from_stream = checkpoint_phase_for_runstep_index(rng_lines, step_index)
         if matched_checkpoint is None:
@@ -320,8 +338,8 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
                 baseline_count,
                 tag,
                 matched_phase_from_stream,
-                timeout_s=30.0,
-                settle_s=2.0,
+                timeout_s=6.0,
+                settle_s=0.5,
             )
             # Only promote fallback capture to matched when phase aligns.
             phase = str((fallback_cp or {}).get("phase") or "")
@@ -331,6 +349,16 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
                 matched_checkpoint = fallback_cp
             else:
                 matched_checkpoint = None
+        if matched_checkpoint is None:
+            # Fallback for C builds that do not emit auto_inp_* checkpoints:
+            # trigger one explicit no-time wizard checkpoint at this boundary.
+            emit_manual_dumpsnap_checkpoint(session_name, tag)
+            manual_cp, checkpoint_count = wait_for_checkpoint_phase_prefix(
+                checkpoint_file, tag, baseline_count, timeout_s=8.0
+            )
+            if manual_cp is not None:
+                matched_checkpoint = manual_cp
+                checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
         chosen_checkpoint = matched_checkpoint if matched_checkpoint is not None else (checkpoints[-1] if checkpoints else None)
         if matched_checkpoint:
             tag = str(matched_checkpoint.get("phase") or tag)
@@ -348,6 +376,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             "baselineCheckpointCount": baseline_count,
             "expectedAutoStep": expected_auto_step,
             "expectedAutoInp": expected_auto_inp,
+            "targetAutoInpByStep": target_auto_inp_by_step,
             "replayedChars": replayed_chars,
             "matchedPhaseFromStream": matched_phase_from_stream,
             "rngCallCount": rng_count,
