@@ -1620,7 +1620,7 @@ export async function create_particular() {
       ++altmsg;
     }
     if (tryct === CP_TRYLIM) {
-      Strcat(prompt, " [type name or symbol]");
+      prompt += " [type name or symbol]";
     }
   } while (--tryct > 0);
   if (!tryct) pline1(thats_enough_tries);

@@ -989,11 +989,10 @@ export async function query_msgtype() {
 export function msgtype_add(typ, pattern) {
   let re_error = "MSGTYPE regex error", tmp = { msgtype: 0, regex: null, pattern: null, next: null };
   tmp.msgtype = typ;
-  tmp.regex = regex_init();
-  if (!regex_compile(pattern, tmp.regex)) {
-    let errbuf, re_error_desc = regex_error_desc(tmp.regex, errbuf);
-    regex_free(tmp.regex);
-    config_error_add("%s: %s", re_error, re_error_desc);
+  try {
+    tmp.regex = new RegExp(pattern);
+  } catch (e) {
+    config_error_add("%s: %s", re_error, e.message);
     return false;
   }
   tmp.pattern = pattern;
@@ -1007,7 +1006,7 @@ export function msgtype_free() {
   let tmp, tmp2 = 0;
   for (tmp = gp.plinemsg_types; tmp; tmp = tmp2) {
     tmp2 = tmp.next;
-    regex_free(tmp.regex);
+    tmp.regex = null;
     tmp.regex = 0;
   }
   gp.plinemsg_types =  0;
@@ -1019,7 +1018,7 @@ export function free_one_msgtype(idx) {
   while (tmp) {
     if (idx === 0) {
       let next = tmp.next;
-      regex_free(tmp.regex);
+      tmp.regex = null;
       if (prev) prev.next = next;
       else {
         gp.plinemsg_types = next;

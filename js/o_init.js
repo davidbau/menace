@@ -381,7 +381,7 @@ export async function disco_output_sorted(tmpwin, sorted_lines, sorted_ct, loots
   sorted_lines.sort(discovered_cmp);
   for (j = 0; j < sorted_ct; ++j) {
     p = sorted_lines;
-    assert(p !== null);
+    if (p === null) continue;
     if (lootsort) { p = p; p += 6; }
     await putstr(tmpwin, 0, p);
     (sorted_lines[j], 0), sorted_lines = 0;

@@ -1007,8 +1007,6 @@ export function water_has_kelp(x, y, kelp_pool, kelp_moat, map) {
 export function mkinvk_check_wall(x, y, map) {
   let ltyp;
   if (!isok(x, y)) return 0;
-  assert(x > 0 && x < COLNO);
-  assert(y >= 0 && y < ROWNO);
   ltyp = map.locations[x][y].typ;
   return (IS_STWALL(ltyp) || ltyp === IRONBARS) ? 1 : 0;
 }

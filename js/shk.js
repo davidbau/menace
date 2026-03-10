@@ -3221,7 +3221,7 @@ export function stolen_container(obj, shkp, price, ininv) {
       if ((bp = onbill(otmp, shkp, false)) == null) {
         continue;
       }
-      assert(shkp !== null);
+      if (!shkp) continue;
       billamt = bp.bquan * bp.price;
       sub_one_frombill(otmp, shkp);
     }

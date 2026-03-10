@@ -434,25 +434,25 @@ export function clear_status_hilites(game) {
 export function hlattr2attrname(attrib, buf, bufsz) {
   if (attrib && buf) {
     let attbuf, first = 0, k;
-    attbuf = '\0';
+    attbuf = '';
     if (attrib === HL_NONE) { buf = "normal"; return buf; }
     if (attrib & HL_BOLD) {
-      Strcat(attbuf, first++ ? "+bold" : "bold");
+      attbuf += first++ ? "+bold" : "bold";
     }
     if (attrib & HL_DIM) {
-      Strcat(attbuf, first++ ? "+dim" : "dim");
+      attbuf += first++ ? "+dim" : "dim";
     }
     if (attrib & HL_ITALIC) {
-      Strcat(attbuf, first++ ? "+italic" : "italic");
+      attbuf += first++ ? "+italic" : "italic";
     }
     if (attrib & HL_ULINE) {
-      Strcat(attbuf, first++ ? "+underline" : "underline");
+      attbuf += first++ ? "+underline" : "underline";
     }
     if (attrib & HL_BLINK) {
-      Strcat(attbuf, first++ ? "+blink" : "blink");
+      attbuf += first++ ? "+blink" : "blink";
     }
     if (attrib & HL_INVERSE) {
-      Strcat(attbuf, first++ ? "+inverse" : "inverse");
+      attbuf += first++ ? "+inverse" : "inverse";
     }
     k = attbuf.length;
     if (k < (bufsz - 1)) {

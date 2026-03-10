@@ -2885,7 +2885,7 @@ export function clone_mon(mon, x, y, game, player) {
   if (m2.isminion) {
     let atyp;
     newemin(m2);
-    assert(has_emin(m2) && has_emin(mon));
+    if (!has_emin(m2) || !has_emin(mon)) { console.error("propagate_mextra: missing emin"); }
      m2.mextra.emin = { ...mon.mextra.emin };
     atyp = m2.mextra.emin.min_align;
     m2.mextra.emin.renegade = (atyp !== player.ualign.type) ^ !m2.mpeaceful;

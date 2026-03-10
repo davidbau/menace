@@ -546,7 +546,7 @@ export async function pick_familiar_pm(otmp, quietly, game) {
   let pm =  0;
   if (otmp) {
     let mndx = otmp.corpsenm;
-    assert(ismnum(mndx));
+    if (!ismnum(mndx)) return 0;
     pm = mons[mndx];
     if ((game.mvitals[mndx].mvflags & G_EXTINCT) && mbirth_limit(mndx) !== MAXMONNO) { if (!quietly) await pline("... into a pile of dust."); return  0; }
   }

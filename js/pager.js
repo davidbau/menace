@@ -1144,23 +1144,23 @@ export async function look_at_object(buf, x, y, glyph, map) {
   }
   else { buf = something; }
   if (otmp && otmp.where === OBJ_BURIED) {
-    Strcat(buf, " (buried)");
+    buf += " (buried)";
   }
   else if (IS_TREE(map.locations[x][y].typ)) buf += ` ${(otmp && is_treefruit(otmp)) ? "dangling" : "stuck"} in a tree`;
   else if (map.locations[x][y].typ === STONE || map.locations[x][y].typ === SCORR) {
-    Strcat(buf, " embedded in stone");
+    buf += " embedded in stone";
   }
   else if (IS_WALL(map.locations[x][y].typ) || map.locations[x][y].typ === SDOOR) {
-    Strcat(buf, " embedded in a wall");
+    buf += " embedded in a wall";
   }
   else if (closed_door(x, y)) {
-    Strcat(buf, " embedded in a door");
+    buf += " embedded in a door";
   }
   else if (is_pool(x, y)) {
-    Strcat(buf, " in water");
+    buf += " in water";
   }
   else if (is_lava(x, y)) {
-    Strcat(buf, " in molten lava");
+    buf += " in molten lava";
   }
   return;
 }
