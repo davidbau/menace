@@ -32,7 +32,7 @@ import { monflee } from './monmove.js';
 import { resist } from './zap.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { newsym } from './display.js';
-import { dist2, highc, mungspaces, ROLL_FROM } from './hacklib.js';
+import { dist2, highc, mungspaces, plur, ROLL_FROM } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';
 import { losehp, in_rooms, u_at } from './hack.js';
@@ -87,7 +87,6 @@ function Maybe_Half_Phys(n, player) {
     return n;
 }
 
-function plur(n) { return n === 1 ? '' : 's'; }
 
 // Autotranslated from music.c:44 — awaken_scare(mtmp, scary)
 // Wake up monster, possibly scare it.

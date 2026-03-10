@@ -17,7 +17,7 @@ import { pline, verbalize, You, Your, You_feel,
 import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
          PM_GHOST, MS_LEADER } from './monsters.js';
 import { mon_nam, Monnam, mon_pmname, rndmonnam } from './do_name.js';
-import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict } from './mondata.js';
+import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict, m_canseeu } from './mondata.js';
 import { newsym } from './display.js';
 import { In_endgame, Is_astralevel, Is_sanctum } from './dungeon.js';
 import { m_next2u } from './muse.js';
@@ -289,10 +289,6 @@ function set_malign(mtmp) {
     }
 }
 
-function m_canseeu(mon, player) {
-    if (!mon || !player) return false;
-    return mon.mcansee !== false && !mon.blind;
-}
 // helpless: use monHelpless from mon.js
 // resist_conflict imported from mondata.js
 function mapseen_temple(/*priest*/) { /* stub */ }
@@ -353,7 +349,7 @@ export async function pri_move(priest, map, player, display, fov) {
             return 0;
         } else if ((player.urooms || '').indexOf(String.fromCharCode(temple)) >= 0) {
             // chase player if inside temple & can see him
-            if (priest.mcansee !== false && m_canseeu(priest, player)) {
+            if (priest.mcansee !== false && m_canseeu(priest)) {
                 ggx = player.x;
                 ggy = player.y;
             }

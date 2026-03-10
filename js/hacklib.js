@@ -806,5 +806,8 @@ export function nh_qsort_idx_cmp(va, vb) {
     return 0;
 }
 
+// C ref: hacklib.c plur — plural suffix
+export function plur(n) { return n === 1 ? '' : 's'; }
+
 // C ref: monst.h ROLL_FROM(arr) — pick a random element from an array
 export function ROLL_FROM(arr) { return arr[rn2(arr.length)]; }

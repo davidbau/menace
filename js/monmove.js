@@ -58,7 +58,7 @@ import { can_teleport, noeyes, perceives, nohands,
          webmaker, tunnels, needspick,
          dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
-         is_vampshifter, DEADMONSTER, noattacks, M_AP_TYPE } from './mondata.js';
+         is_vampshifter, DEADMONSTER, noattacks, M_AP_TYPE, m_canseeu } from './mondata.js';
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
 import { create_gas_cloud, visible_region_at } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
@@ -169,15 +169,6 @@ const M_AP_FURNITURE = 1;
 const M_AP_OBJECT = 2;
 // M_AP_TYPE imported from mondata.js
 
-function m_canseeu(mon, map, player) {
-    if (!mon || !player || !map) return false;
-    const heroInvis = !!(player.Invis || player.invisible);
-    const canPerceiveInvis = perceives(mon.data || mon.type || mons[mon.mndx] || {});
-    if (heroInvis && !canPerceiveInvis) return false;
-    if (player.underwater) return false;
-    // C macro uses couldsee(mon->mx, mon->my): hero visibility of monster square.
-    return !!couldsee(map, player, mon.mx, mon.my);
-}
 
 // ========================================================================
 // onscary — C ref: monmove.c:241 (also in mon.c; we delegate to mon.js)
@@ -1228,7 +1219,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:710-712 — waiting monsters wake once they can see
     // the hero or after taking damage.
     if ((Number(mon.mstrategy || 0) & STRAT_WAITFORU) !== 0) {
-        const canSeeHero = m_canseeu(mon, map, player);
+        const canSeeHero = m_canseeu(mon);
         const mhp = Number(mon.mhp);
         const mhpmax = Number(mon.mhpmax);
         const tookDamage = Number.isFinite(mhp) && Number.isFinite(mhpmax) && mhp < mhpmax;

@@ -34,7 +34,7 @@ import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
 import { rn2, rnd } from './rng.js';
 import { pline, You, Your, You_hear, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
-import { s_suffix, strchr } from './hacklib.js';
+import { s_suffix, strchr, plur } from './hacklib.js';
 import { helpless as monHelpless } from './mon.js';
 import { newsym, canspotmon } from './display.js';
 import { canseemon, y_monnam } from './mondata.js';
@@ -177,9 +177,6 @@ function sSuffix(name) {
     return s_suffix(name || 'shopkeeper');
 }
 
-function plur(n) {
-    return n === 1 ? '' : 's';
-}
 
 // C ref: noit_mhe/noit_mhis/noit_mhim -- pronoun helpers
 function mhe(shkp) {

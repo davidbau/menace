@@ -7,7 +7,7 @@ import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, 
     AD_SLEE, AD_DISN, AD_DRST, AD_STON,
     PM_CHICKATRICE, PM_COCKATRICE, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_HELL_HOUND_PUP, PM_HELL_HOUND, PM_WINTER_WOLF_CUB, PM_WINTER_WOLF, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_KOBOLD, PM_LARGE_KOBOLD, PM_KOBOLD_LEADER, PM_GNOME, PM_GNOME_LEADER, PM_GNOME_RULER, PM_DWARF, PM_DWARF_LEADER, PM_DWARF_RULER, PM_MIND_FLAYER, PM_MASTER_MIND_FLAYER, PM_ORC, PM_HILL_ORC, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_CAPTAIN, PM_SEWER_RAT, PM_GIANT_RAT, PM_CAVE_SPIDER, PM_GIANT_SPIDER, PM_OGRE, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_ELF, PM_WOODLAND_ELF, PM_GREEN_ELF, PM_GREY_ELF, PM_ELF_NOBLE, PM_ELVEN_MONARCH, PM_LICH, PM_DEMILICH, PM_MASTER_LICH, PM_ARCH_LICH, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_BAT, PM_GIANT_BAT, PM_BABY_GRAY_DRAGON, PM_GRAY_DRAGON, PM_BABY_GOLD_DRAGON, PM_GOLD_DRAGON, PM_BABY_SILVER_DRAGON, PM_SILVER_DRAGON, PM_BABY_RED_DRAGON, PM_RED_DRAGON, PM_BABY_WHITE_DRAGON, PM_WHITE_DRAGON, PM_BABY_ORANGE_DRAGON, PM_ORANGE_DRAGON, PM_BABY_BLACK_DRAGON, PM_BLACK_DRAGON, PM_BABY_BLUE_DRAGON, PM_BLUE_DRAGON, PM_BABY_GREEN_DRAGON, PM_GREEN_DRAGON, PM_BABY_YELLOW_DRAGON, PM_YELLOW_DRAGON, PM_RED_NAGA_HATCHLING, PM_RED_NAGA, PM_BLACK_NAGA_HATCHLING, PM_BLACK_NAGA, PM_GOLDEN_NAGA_HATCHLING, PM_GOLDEN_NAGA, PM_GUARDIAN_NAGA_HATCHLING, PM_GUARDIAN_NAGA, PM_SMALL_MIMIC, PM_LARGE_MIMIC, PM_GIANT_MIMIC, PM_BABY_LONG_WORM, PM_LONG_WORM, PM_LONG_WORM_TAIL, PM_BABY_PURPLE_WORM, PM_PURPLE_WORM, PM_BABY_CROCODILE, PM_CROCODILE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_STUDENT, PM_ARCHEOLOGIST, PM_ATTENDANT, PM_HEALER, PM_PAGE, PM_KNIGHT, PM_ACOLYTE, PM_CLERIC, PM_APPRENTICE, PM_WIZARD, PM_MANES, PM_LEMURE, PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN, PM_GARGOYLE, PM_KILLER_BEE, PM_QUEEN_BEE, PM_DEATH, PM_FAMINE, PM_PESTILENCE, PM_KOBOLD_ZOMBIE, PM_KOBOLD_MUMMY, PM_MONKEY, PM_APE, PM_LICHEN,
     PM_WATER_DEMON, PM_WATER_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_ICE_VORTEX, PM_FREEZING_SPHERE, PM_STEAM_VORTEX, PM_DUST_VORTEX, PM_ENERGY_VORTEX, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_GOLD_GOLEM, PM_YELLOW_LIGHT, PM_ANGEL, PM_RAVEN, PM_AMOROUS_DEMON, PM_VIOLET_FUNGUS, PM_HOMUNCULUS, PM_BALUCHITHERIUM, PM_LURKER_ABOVE, PM_CAVE_DWELLER, PM_DJINNI, PM_MUMAK, PM_ERINYS, PM_HOBBIT, PM_MASTER_OF_THIEVES, PM_MASTER_ASSASSIN, PM_HUMAN_WERERAT, PM_HUMAN_WEREJACKAL, PM_HUMAN_WEREWOLF, PM_WERERAT, PM_WEREJACKAL, PM_WEREWOLF, PM_SOLDIER_ANT, PM_WOOD_NYMPH, PM_OLOG_HAI, S_XAN } from './monsters.js';
-import { m_cansee } from './vision.js';
+import { m_cansee, couldsee } from './vision.js';
 
 import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
          GRAY_DRAGON_SCALES, ARMOR_CLASS, WEAPON_CLASS,
@@ -18,7 +18,7 @@ import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, 
     REFLECTING, INTRINSIC, MALE, FEMALE, NEUTER, NON_PM, PRONOUN_NO_IT, PRONOUN_HALLU,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
     M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL,
-    M_AP_NOTHING } from './const.js';
+    M_AP_NOTHING, A_LAWFUL } from './const.js';
 import { dist2, highc, ROLL_FROM } from './hacklib.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
@@ -1757,6 +1757,30 @@ export function is_dlord(ptr) { return is_demon(ptr) && is_lord(ptr); }
 
 // C ref: #define is_dprince(ptr) (is_demon(ptr) && is_prince(ptr))
 export function is_dprince(ptr) { return is_demon(ptr) && is_prince(ptr); }
+
+// C ref: mondata.h is_lminion(mon) — lawful minion check
+export function is_lminion(mon) {
+    if (!mon) return false;
+    const ptr = mon.data || mon.type || {};
+    if (ptr.mlet !== S_ANGEL) return false;
+    if (mon.isminion && mon.emin) {
+        return mon.emin.min_align === A_LAWFUL;
+    }
+    return (ptr.maligntyp || 0) > 0;
+}
+
+// C ref: mondata.h m_canseeu(mtmp) — can monster see hero?
+export function m_canseeu(mon) {
+    if (!mon) return false;
+    const player = _gstate.player;
+    if (!player) return false;
+    const heroInvis = !!(player.Invis || player.invisible);
+    const ptr = mon.data || mon.type || mons[mon.mndx] || {};
+    if (heroInvis && !perceives(ptr)) return false;
+    if (player.underwater) return false;
+    const map = _gstate.map;
+    return !!couldsee(map, player, mon.mx, mon.my);
+}
 
 // C ref: #define polyok(ptr) (((ptr)->mflags2 & M2_NOPOLY) == 0L)
 export function polyok(ptr) { return !(ptr.mflags2 & M2_NOPOLY); }

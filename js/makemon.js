@@ -75,7 +75,7 @@ import { newsym, senseMonsterForMap, canspotmon, sensemon } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_golem, nonliving, is_humanoid, is_shapeshifter,
          is_swimmer, pm_resistance, is_flyer, is_floater, amorphous,
-         noncorporeal, is_whirly } from './mondata.js';
+         noncorporeal, is_whirly, is_lminion } from './mondata.js';
 import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
 import { vtense, an } from './objnam.js';
 import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
@@ -134,11 +134,6 @@ function canHideUnderObjAt(map, x, y) {
 function is_sword(otmp) { return otmp && otmp.otyp >= SHORT_SWORD && otmp.otyp <= KATANA; }
 // C ref: #define is_mplayer(ptr) ((ptr) >= &mons[PM_ARCHEOLOGIST] && (ptr) <= &mons[PM_WIZARD])
 function is_mplayer_idx(mndx) { return mndx >= PM_ARCHEOLOGIST && mndx <= PM_WIZARD; }
-// C ref: is_lminion — lawful minion (angel aligned to lawful god)
-// During level generation, we approximate: angel with A_LAWFUL alignment
-function is_lminion(mon) {
-    return mon.type?.mlet === S_ANGEL && (mon.type?.maligntyp || 0) > 0;
-}
 function attacktype(ptr, atyp) { return ptr.mattk && ptr.mattk.some(a => a.aatyp === atyp); }
 function is_animal(ptr) { return !!(ptr.mflags1 & 0x00040000); } // M1_ANIMAL
 function mindless(ptr) { return !!(ptr.mflags1 & 0x00010000); } // M1_MINDLESS

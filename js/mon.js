@@ -90,7 +90,7 @@ import { adjalign, change_luck } from './attrib.js';
 import { envFlag, writeStderr } from './runtime_env.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
-import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u } from './mondata.js';
+import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu } from './mondata.js';
 
 // ========================================================================
 // Monster speed constants — C ref: include/monsym.h

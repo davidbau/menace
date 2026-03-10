@@ -13,7 +13,7 @@ import { mons, S_ANGEL, S_DEMON, PM_WIZARD_OF_YENDOR, PM_ANGEL, PM_ARCHON, PM_BO
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from './const.js';
 import {
     is_ndemon, is_dlord, is_dprince,
-    is_lord, canseemon,
+    is_lord, canseemon, is_lminion,
 } from './mondata.js';
 import { Monnam, Amonnam } from './do_name.js';
 import { newsym } from './display.js';
@@ -64,22 +64,6 @@ export function monster_census(spotted, map, player, fov) {
     return count;
 }
 
-// ============================================================================
-// is_lminion — lawful minion check (runtime version)
-// cf. mondata.h is_lminion macro
-// ============================================================================
-
-function is_lminion(mon) {
-    if (!mon) return false;
-    const ptr = mon.type || mon.data || {};
-    if (ptr.mlet !== S_ANGEL) return false;
-    // If it has emin data, check alignment
-    if (mon.isminion && mon.emin) {
-        return mon.emin.min_align === A_LAWFUL;
-    }
-    // Fallback: check base monster alignment
-    return (ptr.maligntyp || 0) > 0;
-}
 
 // ============================================================================
 // dprince — select demon prince by alignment

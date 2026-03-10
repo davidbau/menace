@@ -43,6 +43,7 @@ import { add_to_minv } from './mkobj.js';
 import { makemon } from './makemon.js';
 import { cansee, couldsee, block_point, unblock_point, recalc_block_point } from './vision.js';
 import { t_at } from './trap.js';
+import { m_canseeu } from './mondata.js';
 
 // ---------- Constants ----------
 const FCSIZ = ROWNO + COLNO;
@@ -103,13 +104,6 @@ function mon_visible(grd, player) {
     return monVisibleForMap(grd, player);
 }
 
-// C ref: m_canseeu(mon) — can monster see hero?
-function m_canseeu(grd, player) {
-    if (!grd || !player) return false;
-    if (!grd.mcansee) return false;
-    // Simplified: adjacent or line-of-sight
-    return true;
-}
 
 // C ref: is_fainted() — is hero fainted?
 function is_fainted(player) {
@@ -1430,7 +1424,7 @@ export function gd_sound(player) {
 // ========================================================================
 export function vault_gd_watching(activity, map, player) {
     const guard = findgd(map, player);
-    if (guard && guard.mx && guard.mcansee && m_canseeu(guard, player)) {
+    if (guard && guard.mx && guard.mcansee && m_canseeu(guard)) {
         if (activity === GD_EATGOLD || activity === GD_DESTROYGOLD) {
             if (guard.egd) guard.egd.witness = activity;
         }

@@ -39,7 +39,7 @@ import {
     M3_WANTSARTI,
     G_HELL, G_NOHELL,
 } from './monsters.js';
-import { is_covetous, is_minion, attacktype, big_to_little } from './mondata.js';
+import { is_covetous, is_minion, attacktype, big_to_little, is_lminion } from './mondata.js';
 import { Monnam } from './do_name.js';
 import { hcolor } from './do_name.js';
 import { newsym } from './display.js';
@@ -149,14 +149,6 @@ function cansee_pos(map, player, fov, x, y) {
     return false;
 }
 
-// is_lminion — lawful minion check
-function is_lminion(mon) {
-    if (!mon) return false;
-    const ptr = mptr(mon);
-    if (ptr.mlet !== S_ANGEL) return false;
-    if (mon.isminion && mon.emin) return (mon.emin.min_align || 0) > 0;
-    return (ptr.maligntyp || 0) > 0;
-}
 
 // ============================================================================
 // M_Wants — does monster want this artifact?
