@@ -49,7 +49,7 @@ import { placeFloorObject, stackobj } from './invent.js';
 import {
     thick_skinned, nolimbs, slithy, nohands, haseyes, attacktype,
     likes_gold, is_mercenary, is_flyer, is_floater, is_giant,
-    can_teleport, canseemon, poly_when_stoned, M_AP_TYPE,
+    can_teleport, canseemon, poly_when_stoned, M_AP_TYPE, ismnum,
 } from './mondata.js';
 import { mons, PM_SHADE, PM_SASQUATCH, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_KILLER_BEE, PM_BLACK_PUDDING, PM_AMOROUS_DEMON, PM_STONE_GOLEM, PM_ARCHEOLOGIST, PM_SAMURAI, S_EEL, S_LIZARD, AT_KICK, M2_UNDEAD, M2_WERE, M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC, M2_DEMON, M2_GIANT } from './monsters.js';
 import {
@@ -409,12 +409,7 @@ function is_unpaid(obj) {
     return false;
 }
 
-// ============================================================================
-// ismnum helper
-// ============================================================================
-function ismnum(corpsenm) {
-    return corpsenm !== undefined && corpsenm !== null && corpsenm !== NON_PM && corpsenm >= 0;
-}
+
 
 // remove_worn_item stub
 function remove_worn_item(obj, osync) {

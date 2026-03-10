@@ -32,7 +32,7 @@ import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit, i
 import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
-    canseemon, slimeproof, DEADMONSTER, is_domestic,
+    canseemon, slimeproof, DEADMONSTER, is_domestic, ismnum,
 } from './mondata.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -97,7 +97,6 @@ function polyfood(obj) { return false; }
 
 
 
-function ismnum(fx) { return fx >= 0 && fx < NUMMONS; }
 const humanoid = is_humanoid;
 
 function same_race(ptr1, ptr2) {

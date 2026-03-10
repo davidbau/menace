@@ -18,7 +18,7 @@ import { highc, upstart, s_suffix } from './hacklib.js';
 import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE, SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME, LOW_PM, SIZE,
     has_oname, ONAME, has_ebones, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { hasGivenName, type_is_pname, is_mplayer,
-         is_animal, is_mindless, is_humanoid, M_AP_TYPE } from './mondata.js';
+         is_animal, is_mindless, is_humanoid, M_AP_TYPE, ismnum } from './mondata.js';
 import { flush_screen, sensemon, see_with_infrared, glyph_at, canspotmon } from './display.js';
 import { cansee } from './vision.js';
 import { u_at } from './hack.js';

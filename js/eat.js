@@ -66,12 +66,13 @@ import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
 import { pluslvl } from './exper.js';
+import { sgn } from './hacklib.js';
 import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
          vegan, vegetarian, carnivorous, herbivorous,
          is_humanoid, is_undead, attacktype, dmgtype,
          telepathic, can_teleport, control_teleport,
          noncorporeal, slimeproof, is_orc, is_elf, is_dwarf,
-         type_is_pname } from './mondata.js';
+         type_is_pname, ismnum } from './mondata.js';
 
 
 // ============================================================

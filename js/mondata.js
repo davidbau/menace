@@ -2164,3 +2164,6 @@ export function mhim(mtmp) { return mtmp?.female ? 'her' : 'him'; }
 
 // C ref: monst.h NODIAG(mndx) — only grid bugs move non-diagonally
 export function NODIAG(mndx) { return mndx === PM_GRID_BUG; }
+
+// C ref: monst.h #define ismnum(mndx) ((mndx) >= LOW_PM)
+export function ismnum(mndx) { return mndx != null && mndx >= 0 && mndx < NUMMONS; }

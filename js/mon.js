@@ -47,7 +47,7 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          vegan as vegan_mondata,
          mon_hates_silver, touch_petrifies, flesh_petrifies,
          is_male, is_female, is_neuter,
-         dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG } from './mondata.js';
+         dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG, ismnum } from './mondata.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
 import { impossible, pline_mon } from './pline.js';
 import { next_ident } from './mkobj.js';
@@ -97,7 +97,7 @@ import { record_achievement } from './insight.js';
 import { pmname, Mgender } from './do_name.js';
 
 // C macro: ismnum(mndx) — valid monster index check
-function ismnum(mndx) { return mndx >= 0 && mndx < NUMMONS; }
+// ismnum imported from mondata.js
 
 // ========================================================================
 // Monster speed constants — C ref: include/monsym.h

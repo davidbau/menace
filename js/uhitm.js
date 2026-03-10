@@ -76,7 +76,7 @@ import {
     erode_obj, erode_obj_player, mselftouch,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_ALWAYS, DISP_END, NATTK } from './const.js';
+import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { tele_restrict, rloc } from './teleport.js';
@@ -1804,7 +1804,7 @@ export function that_is_a_mimic(mtmp, mimic_flags) {
     // C: complex message formatting based on glyph, blind, hallucination
     // Simplified: just reveal the mimic
     if (reveal_it && mtmp.m_ap_type) {
-        mtmp.m_ap_type = 0; // M_AP_NOTHING
+        mtmp.m_ap_type = M_AP_NOTHING;
         mtmp.mundetected = false;
     }
 }
@@ -1832,8 +1832,6 @@ export function stumble_onto_mimic(mtmp) {
 //   Returns true if mtmp is disguised as something other than a monster.
 export function disguised_as_non_mon(mtmp) {
     // C: M_AP_TYPE(mtmp) && M_AP_TYPE(mtmp) != M_AP_MONSTER
-    const M_AP_NOTHING = 0;
-    const M_AP_MONSTER = 3; // C: M_AP_MONSTER=3, not 2 (2 is M_AP_OBJECT)
     const ap = mtmp.m_ap_type || M_AP_NOTHING;
     return ap !== M_AP_NOTHING && ap !== M_AP_MONSTER;
 }
@@ -1842,7 +1840,6 @@ export function disguised_as_non_mon(mtmp) {
 //   Check if monster is disguised as another monster.
 //   Returns true if mtmp's appearance type is M_AP_MONSTER.
 export function disguised_as_mon(mtmp) {
-    const M_AP_MONSTER = 3; // C: M_AP_MONSTER=3, not 2 (2 is M_AP_OBJECT)
     return (mtmp.m_ap_type || 0) === M_AP_MONSTER;
 }
 

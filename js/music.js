@@ -20,7 +20,7 @@ import { acurr as ACURR } from './attrib.js';
 import { pline, pline_The, You, Your, You_hear, You_feel, You_cant,
          Norep, impossible } from './pline.js';
 import { Monnam, mon_nam, a_monnam, x_monnam, Amonnam } from './do_name.js';
-import { SUPPRESS_SADDLE, SIZE } from './const.js';
+import { SUPPRESS_SADDLE, SIZE, M_AP_NOTHING, M_AP_MONSTER } from './const.js';
 import { Role_if } from './role.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an, the } from './objnam.js';
 import { unique_corpstat, is_mindless, canseemon, is_mercenary,
@@ -74,11 +74,7 @@ function has_mgivenname(mon) {
     return !!(mon?.name && species && mon.name !== species);
 }
 
-// C: M_AP_TYPE(mtmp) — appearance type constants
-const M_AP_NOTHING = 0;
-const M_AP_MONSTER = 3; // C: M_AP_MONSTER=3 (2 is M_AP_OBJECT)
-
-// M_AP_TYPE imported from mondata.js
+// M_AP_TYPE imported from mondata.js; M_AP_NOTHING, M_AP_MONSTER from const.js
 
 
 // Maybe_Half_Phys — if player has half physical damage, halve it
