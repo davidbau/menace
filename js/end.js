@@ -509,10 +509,10 @@ function renderHeadlessEndWarnings(game) {
     if (typeof display.clearScreen !== 'function' || typeof display.putstr !== 'function') return;
 
     display.clearScreen();
-    display.putstr(0, 1, 'Cannot open file logfile.  Is NetHack installed correctly?');
-    display.putstr(0, 2, 'Cannot open file xlogfile.  Is NetHack installed correctly?');
     if (game.wizard) {
-        display.putstr(0, 4, 'Since you were in wizard mode, the score list will not be checked.');
+        // C emits the wizard-score notice after endgame scoring paths; logfile
+        // warnings are harness/environment dependent and should not be forced.
+        display.putstr(0, 2, 'Since you were in wizard mode, the score list will not be checked.');
     }
 }
 
