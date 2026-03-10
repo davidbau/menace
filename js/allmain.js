@@ -114,7 +114,7 @@ function questPortalInfoForPlayer(player) {
         || { leader: 'your quest leader', homebase: 'your home base' };
 }
 
-export function getRuntimeInputSnapshot(game) {
+export function inputSnap(game) {
     const display = game?.display || null;
     const input = game?.input || null;
     const promptActive = !!(game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function');
@@ -122,14 +122,13 @@ export function getRuntimeInputSnapshot(game) {
     const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
     const ackRequired = !!display?.messageNeedsMore;
     const execState = getCommandExecState(game);
-    let boundaryKind = 'none';
-    if (promptActive) boundaryKind = 'prompt';
-    else if (menuActive) boundaryKind = 'menu';
-    else if (waitingRaw) boundaryKind = 'input';
+    let owner = 'none';
+    if (promptActive) owner = 'prompt';
+    else if (menuActive) owner = 'menu';
+    else if (waitingRaw) owner = 'input';
     return {
         waitingForInput: promptActive || menuActive || waitingRaw,
-        boundaryKind,
-        source: boundaryKind,
+        owner,
         pendingCount: promptActive ? 1 : 0,
         ackRequired,
         stackOwner: promptActive ? 'prompt' : null,
@@ -546,7 +545,7 @@ export async function run_command(game, ch, opts = {}) {
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
-        boundary: getRuntimeInputSnapshot(game),
+        boundary: inputSnap(game),
     });
     const execToken = beginCommandExec(game, { site: 'run_command', key: chCode });
 
@@ -803,7 +802,7 @@ async function promptStep(game, chCode, {
     }
     game?.emitDiagnosticEvent?.('boundary.prompt.key', {
         key: chCode,
-        boundary: getRuntimeInputSnapshot(game),
+        boundary: inputSnap(game),
     });
     const promptResult = await Promise.resolve(game.pendingPrompt.onKey(chCode, game));
     if (!(promptResult && promptResult.handled)) {
@@ -812,7 +811,7 @@ async function promptStep(game, chCode, {
         // non-handled (for example during transient prompt state updates).
         game?.emitDiagnosticEvent?.('boundary.prompt.ignored-key', {
             key: chCode,
-            boundary: getRuntimeInputSnapshot(game),
+            boundary: inputSnap(game),
         });
         return { tookTime: false, moved: false, prompt: true };
     }

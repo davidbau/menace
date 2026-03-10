@@ -6,7 +6,7 @@
 
 import { enableRngLog, getRngLog, disableRngLog, pushRngLogEntry } from './rng.js';
 import { pushInput } from './input.js';
-import { NetHackGame, getRuntimeInputSnapshot } from './allmain.js';
+import { NetHackGame, inputSnap } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { envFlag, getEnv } from './runtime_env.js';
@@ -125,10 +125,10 @@ function replayPendingTrace(...args) {
 }
 
 function replayBoundaryState(game, inputRuntime) {
-    const boundary = game ? getRuntimeInputSnapshot(game) : null;
+    const boundary = game ? inputSnap(game) : null;
     if (boundary) {
         return [
-            `boundary=${String(boundary.boundaryKind || 'none')}`,
+            `owner=${String(boundary.owner || 'none')}`,
             `waiting=${boundary.waitingForInput ? 1 : 0}`,
             `ack=${boundary.ackRequired ? 1 : 0}`,
             `pending=${Number(boundary.pendingCount || 0)}`,

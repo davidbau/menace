@@ -25,7 +25,7 @@ Completed in code:
 - `_pendingMore`/message-queue fallback removed; `more()` is the explicit wait path.
 - Dynamic gameplay imports/fetches/loads routed through origin helpers (`nhimport`, `nhfetch`, `nhload`).
 - Runtime/replay diagnostics no longer depend on `NetHackGame.getInputBoundaryState()`:
-  - now use direct `getRuntimeInputSnapshot(game)` helper.
+  - now use direct `inputSnap(game)` helper.
 - Remaining gameplay-path raw timer await removed:
   - `storage.handleSave()` now uses `nh_delay_output(500)`.
 - Replay now always drives through the game loop path (`pushInput` + `_gameLoopStep`);
@@ -613,7 +613,7 @@ prompt/menu shim with no `more` ownership and no key-dispatch multiplexer.
 | `clearInputBoundary()` | ~10 | allmain.js |
 | `clearInputBoundariesByOwner()` | ~5 | allmain.js |
 | `peekInputBoundary()` | ~5 | allmain.js |
-| `getRuntimeInputSnapshot()` (direct runtime diagnostics) | ~25 | allmain.js |
+| `inputSnap()` (direct runtime diagnostics) | ~25 | allmain.js |
 | `_inputBoundaryStack` field + init | ~5 | allmain.js |
 | `pendingPrompt` setter (boundary registration) | ~20 | allmain.js |
 | `_pendingPromptBoundaryToken` tracking | ~10 | allmain.js |
