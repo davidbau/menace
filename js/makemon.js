@@ -70,12 +70,16 @@ import {
 } from './objects.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
-import { dist2 } from './hacklib.js';
+import { dist2, sgn } from './hacklib.js';
 import { newsym, senseMonsterForMap, canspotmon, sensemon } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_golem, nonliving, is_humanoid, is_shapeshifter,
          is_swimmer, pm_resistance, is_flyer, is_floater, amorphous,
-         noncorporeal, is_whirly, is_lminion } from './mondata.js';
+         noncorporeal, is_whirly, is_lminion,
+         is_elf, is_dwarf, is_animal, attacktype, is_armed, mindless,
+         always_hostile, always_peaceful, is_domestic, strongmonst,
+         is_male, is_female, is_neuter, is_lord, is_prince, is_nasty,
+         is_ndemon, is_mercenary } from './mondata.js';
 import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
 import { vtense, an } from './objnam.js';
 import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
@@ -96,21 +100,11 @@ function mhe(mtmp) { return mtmp?.female ? 'she' : 'he'; }
 // C ref: humanoid(ptr) — alias for is_humanoid
 const humanoid = is_humanoid;
 
-function is_mercenary(ptr) { return !!(ptr.mflags2 & M2_MERC); }
-function is_lord(ptr) { return !!(ptr.mflags2 & M2_LORD); }
-function is_prince(ptr) { return !!(ptr.mflags2 & M2_PRINCE); }
-function is_nasty(ptr) { return !!(ptr.mflags2 & M2_NASTY); }
-function is_female(ptr) { return !!(ptr.mflags2 & M2_FEMALE); }
-function is_male(ptr) { return !!(ptr.mflags2 & M2_MALE); }
-function strongmonst(ptr) { return !!(ptr.mflags2 & M2_STRONG); }
-function is_neuter(ptr) { return !!(ptr.mflags2 & M2_NEUTER); }
-function is_domestic(ptr) { return !!(ptr.mflags2 & M2_DOMESTIC); }
-function is_elf(ptr) { return !!(ptr.mflags2 & M2_ELF); }
-function is_dwarf(ptr) { return !!(ptr.mflags2 & M2_DWARF); }
+// is_mercenary, is_lord, is_prince, is_nasty, is_female, is_male,
+// strongmonst, is_neuter, is_domestic, is_elf, is_dwarf imported from mondata.js
 function is_hobbit(ptr) { return ptr.mlet === S_HUMANOID && ptr.mname && ptr.mname.includes('hobbit'); }
 function is_giant_species(ptr) { return ptr.mlet === S_GIANT && ptr.mname && ptr.mname.includes('giant'); }
-// C ref: mondata.h:87 — #define is_armed(ptr) attacktype(ptr, AT_WEAP)
-function is_armed(ptr) { return ptr.mattk && ptr.mattk.some(a => a.aatyp === AT_WEAP); }
+// is_armed imported from mondata.js
 
 function canHideUnderObjAt(map, x, y) {
     if (!map) return false;
@@ -134,20 +128,14 @@ function canHideUnderObjAt(map, x, y) {
 function is_sword(otmp) { return otmp && otmp.otyp >= SHORT_SWORD && otmp.otyp <= KATANA; }
 // C ref: #define is_mplayer(ptr) ((ptr) >= &mons[PM_ARCHEOLOGIST] && (ptr) <= &mons[PM_WIZARD])
 function is_mplayer_idx(mndx) { return mndx >= PM_ARCHEOLOGIST && mndx <= PM_WIZARD; }
-function attacktype(ptr, atyp) { return ptr.mattk && ptr.mattk.some(a => a.aatyp === atyp); }
-function is_animal(ptr) { return !!(ptr.mflags1 & 0x00040000); } // M1_ANIMAL
-function mindless(ptr) { return !!(ptr.mflags1 & 0x00010000); } // M1_MINDLESS
-function is_ndemon(ptr) { return ptr.mlet === S_DEMON; }
-function always_hostile(ptr) { return !!(ptr.mflags2 & M2_HOSTILE); }
-function always_peaceful(ptr) { return !!(ptr.mflags2 & M2_PEACEFUL); }
+// attacktype, is_animal, mindless, is_ndemon, always_hostile, always_peaceful
+// imported from mondata.js
 function playerHasAmulet(map) {
     const inv = map?.player?.inventory;
     return Array.isArray(inv) && inv.some((o) => o?.otyp === AMULET_OF_YENDOR);
 }
 
-function sgn(x) {
-    return x > 0 ? 1 : (x < 0 ? -1 : 0);
-}
+// sgn imported from hacklib.js
 
 
 function race_peaceful(ptr, playerCtx) {

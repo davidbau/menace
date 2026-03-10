@@ -25,7 +25,7 @@ import { dist2, distmin } from './hacklib.js';
 import { mondead, monnear, helpless as monHelpless } from './mon.js';
 import { mpickobj } from './steal.js';
 import { newsym, map_invisible, canspotmon } from './display.js';
-import { is_animal, is_mindless, nohands, is_mercenary, is_unicorn,
+import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          is_floater, is_flyer, throws_rocks, passes_walls,
          haseyes, is_undead, poly_when_stoned,
          resists_ston, touch_petrifies, amorphous, noncorporeal,
@@ -229,8 +229,7 @@ const MUSE_MISC_BAG = 10;
 // ========================================================================
 
 
-// C ref: mindless(ptr) — M1_MINDLESS
-function mindless(ptr) { return is_mindless(ptr); }
+// mindless imported from mondata.js
 
 // C ref: NODIAG(mndx) — only grid bugs
 function NODIAG(mndx) { return mndx === PM_GRID_BUG; }

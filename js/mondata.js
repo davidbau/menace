@@ -54,7 +54,9 @@ export function is_metallivore(ptr) { return !!(ptr.mflags1 & M1_METALLIVORE); }
 export function is_animal(ptr) { return !!(ptr.mflags1 & M1_ANIMAL); }
 
 // C ref: #define is_mindless(ptr)   ((ptr)->mflags1 & M1_MINDLESS)
+// C also uses mindless() as an alias (mondata.h)
 export function is_mindless(ptr) { return !!(ptr.mflags1 & M1_MINDLESS); }
+export const mindless = is_mindless;
 
 // C ref: #define is_humanoid(ptr)   ((ptr)->mflags1 & M1_HUMANOID)
 export function is_humanoid(ptr) { return !!(ptr.mflags1 & M1_HUMANOID); }
@@ -1742,6 +1744,9 @@ export function is_neuter(ptr) { return !!(ptr.mflags2 & M2_NEUTER); }
 
 // C ref: #define type_is_pname(ptr) (((ptr)->mflags2 & M2_PNAME) != 0L)
 export function type_is_pname(ptr) { return !!(ptr.mflags2 & M2_PNAME); }
+
+// C ref: #define is_nasty(ptr)   ((ptr)->mflags2 & M2_NASTY)
+export function is_nasty(ptr) { return !!(ptr.mflags2 & M2_NASTY); }
 
 // C ref: #define is_lord(ptr)    (((ptr)->mflags2 & M2_LORD) != 0L)
 export function is_lord(ptr) { return !!(ptr.mflags2 & M2_LORD); }

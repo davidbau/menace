@@ -16,7 +16,7 @@ import {
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
 import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
-import { is_mindless, touch_petrifies, resists_ston,
+import { is_mindless, mindless, touch_petrifies, resists_ston,
          amorphous, is_whirly, unsolid, is_clinger, passes_walls,
          webmaker, grounded, is_flyer, is_floater, breathless,
          resists_fire, resists_sleep, attacktype, strongmonst,
