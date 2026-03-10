@@ -68,7 +68,8 @@ import { mon_has_amulet, mon_has_special } from './wizard.js';
 import { onscary, healmon, mongone, monkilled, xkilled,
          wakeup, seemimic } from './mon.js';
 import { monflee } from './monmove.js';
-import { makemon } from './makemon.js';
+import { makemon, grow_up, rndmonst } from './makemon.js';
+import { inhishop } from './shk.js';
 import { placeFloorObject } from './invent.js';
 import { linedUpToPlayer, m_throw_timed } from './mthrowu.js';
 import {
@@ -89,6 +90,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
 import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall } from './mondata.js';
 import { u_at } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 import { awaken_soldiers } from './music.js';
 import { t_at, m_at } from './trap.js';
@@ -355,18 +357,12 @@ function ledger_no(_dlev) { return 1; }
 // C ref: depth(&u.uz) — depth of current level
 function depth_uz(map) { return map?.flags?.depth || 1; }
 
-// C ref: inhishop(shk)
-function inhishop(_shk) { return false; }
+// inhishop imported from shk.js
+// grow_up, rndmonst imported from makemon.js
 
 // C ref: newcham — polymorph monster
 // Stub: polymorph not yet fully ported
 function newcham(mtmp, _pm, _flags) { return true; }
-
-// C ref: grow_up — monster gains a level
-function grow_up(mtmp, _killer) { return true; }
-
-// C ref: rndmonst() — random monster type
-function rndmonst() { return null; }
 
 
 // C ref: mon_consume_unstone — eat lizard/acid to cure stone
@@ -899,7 +895,7 @@ export async function find_defensive(mon, tryescape, map, player) {
         }
         if (m.has_defense === MUSE_SCR_TELEPORTATION) continue;
         if (obj2.otyp === SCR_TELEPORTATION && mon_can_see(mon) && haseyes(mdat)
-            && (!obj2.cursed || (!(mon.isshk && inhishop(mon))
+            && (!obj2.cursed || (!(mon.isshk && inhishop(mon, map))
                 && !mon.isgd && !mon.ispriest))) {
             if (!noteleport_level(mon, map) || !mon_knows_traps(mon, TELEP_TRAP)) {
                 m.defensive = obj2;
@@ -1022,7 +1018,7 @@ export async function use_defensive(mon, map, player) {
 
     case MUSE_WAN_TELEPORTATION_SELF:
         if (!otmp) return 0;
-        if ((mon.isshk && inhishop(mon)) || mon.isgd || mon.ispriest) return 2;
+        if ((mon.isshk && inhishop(mon, map)) || mon.isgd || mon.ispriest) return 2;
         await m_flee(mon);
         await mzapwand(mon, otmp, true, map, player);
         await m_tele(mon, vismon, oseen, WAN_TELEPORTATION, map, player);
@@ -2074,7 +2070,7 @@ export async function use_misc(mon, map, player) {
             await pline_mon(mon, `${name} seems more experienced.`);
         if (oseen) makeknown(POT_GAIN_LEVEL);
         m_useup(mon, otmp);
-        if (!await grow_up(mon, null)) return 1;
+        if (!await grow_up(mon, null, _gstate)) return 1;
         return 2;
 
     case MUSE_MISC_WAN_MAKE_INVISIBLE:
