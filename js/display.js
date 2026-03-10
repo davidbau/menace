@@ -364,6 +364,10 @@ span.nh-cursor {
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
+            // C ref: topl.c more() calls bot() before xwaitforspace().
+            if (this._lastMapState?.player) {
+                this.renderStatus(this._lastMapState.player);
+            }
             this.renderMoreMarker();
             if (this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);
@@ -463,6 +467,10 @@ span.nh-cursor {
         // C ref: toplin = TOPLINE_NEED_MORE after displaying message
         this.messageNeedsMore = true;
         if (isDeathMessage) {
+            // C ref: topl.c more() calls bot() before xwaitforspace().
+            if (this._lastMapState?.player) {
+                this.renderStatus(this._lastMapState.player);
+            }
             this.renderMoreMarker();
             if (this._nhgetch) {
                 await this._waitForMoreDismissKey(this._nhgetch);

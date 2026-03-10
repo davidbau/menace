@@ -6705,7 +6705,6 @@ hard-won wisdom:
   - `node --test test/unit/codematch_blindness_restore_surface.test.js`
   - `node scripts/test-unit-core.mjs`
   - Both passed.
-
 ### CODEMATCH timeout helper closure (`burn_away_slime`, `slimed_to_death`, lamp + fumble helpers) (2026-03-10)
 
 - Problem:
@@ -6766,3 +6765,27 @@ hard-won wisdom:
 - Validation:
   - `node scripts/test-unit-core.mjs`
   - Passed (`2702` tests, `0` failures).
+
+### seed331 status-row stale-at-death fix (2026-03-10)
+
+- Symptom:
+  - `seed331_tourist_wizard_gameplay` regressed to a screen mismatch at step
+    `379`: status showed `HP:4(10)` in JS vs `HP:0(10)` in C/session.
+  - RNG/events were still full parity; mismatch was render-boundary only.
+- Root cause:
+  - In JS death-message `--More--` paths, we blocked for dismissal without a
+    guaranteed status refresh immediately before waiting.
+  - C `more()` behavior refreshes status (`bot()`) before input wait, so HP=0
+    is already visible at that boundary.
+- Fix:
+  - Generalized explicit `more(...)` helper in
+    [`js/input.js`](/share/u/davidbau/git/mazesofmenace/game/js/input.js) to
+    render status before waiting on dismissal, matching C `more()` behavior for
+    all callers.
+  - In both [`js/display.js`](/share/u/davidbau/git/mazesofmenace/game/js/display.js)
+    and [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/game/js/headless.js),
+    also render status before death-message internal waits where
+    `putstr_message(...)` blocks directly.
+- Validation:
+  - `seed331` targeted replay now matches screen/color fully (`389/389`).
+  - `scripts/run-and-report.sh`: gameplay `34/34` green.

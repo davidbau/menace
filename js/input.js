@@ -527,6 +527,13 @@ export async function more(display, { site = 'input.more', game = null, forceVis
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = () => nhgetch_raw({ site: `${site}.key` });
 
+    // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
+    // Keep status line current at every explicit --More-- boundary.
+    const statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
+    if (statusPlayer && typeof display.renderStatus === 'function') {
+        display.renderStatus(statusPlayer);
+    }
+
     if (forceVisual && typeof display.renderMoreMarker === 'function') {
         display.renderMoreMarker();
     }
