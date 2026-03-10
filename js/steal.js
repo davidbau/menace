@@ -2,13 +2,16 @@
 // cf. steal.c — leprechaun gold theft, nymph/monkey item theft, monster pickup/drop
 
 import { rn1, rn2, rnd, pushRngLogEntry } from './rng.js';
-import { GOLD_PIECE, COIN_CLASS } from './objects.js';
+import { GOLD_PIECE, COIN_CLASS, ROCK_CLASS, AMULET_OF_YENDOR,
+    FAKE_AMULET_OF_YENDOR, BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD,
+    CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { newsym } from './display.js';
 import { addToMonsterInventory, stackobj } from './invent.js';
 import { place_object, weight } from './mkobj.js';
 import { extract_from_minvent, update_mon_extrinsics } from './worn.js';
 import { doname } from './objnam.js';
 import { Some_Monnam } from './do_name.js';
+import { obj_resists, is_quest_artifact } from './objdata.js';
 import {
     W_ARMOR, W_ACCESSORY, W_WEAPONS,
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
@@ -128,7 +131,12 @@ export async function stealgold(mon, player, display) {
 // ============================================================================
 // Monster who was stealing from hero has just died. Clear multi-turn state.
 export function thiefdead(_player) {
-    // Multi-turn armor theft callbacks not fully ported; stub.
+    const gs = globalThis.gs || {};
+    gs.stealmid = 0;
+    if (gs.afternmv === stealarm) {
+        gs.afternmv = unstolenarm;
+        gs.nomovemsg = null;
+    }
 }
 
 // ============================================================================
@@ -338,8 +346,23 @@ export function stealamulet(_mon, _player, _display) {
 // maybe_absorb_item — cf. steal.c:772
 // ============================================================================
 // Mimic absorbs item poked at it. Stub.
-export function maybe_absorb_item(_mon, _obj, _ochance, _achance) {
-    // Not implemented: requires full object handling
+export async function maybe_absorb_item(mon, obj, ochance, achance, player = null, display = null) {
+    if (!mon || !obj) return false;
+    if (obj === player?.uball || obj === player?.uchain || obj.oclass === ROCK_CLASS) return false;
+    if (obj_resists(obj, 100 - ochance, 100 - achance)) return false;
+
+    const carried = !!(player && Array.isArray(player.inventory) && player.inventory.includes(obj));
+    if (carried) {
+        if (obj.owornmask) remove_worn_item(player, obj);
+        const inv = player.inventory;
+        const idx = inv.indexOf(obj);
+        if (idx >= 0) inv.splice(idx, 1);
+        if (display) await display.putstr_message(`${Some_Monnam(mon)} pulls ${doname(obj, player)} away from you and absorbs it!`);
+    } else if (display) {
+        await display.putstr_message(`${Some_Monnam(mon)} absorbs ${doname(obj, player)}!`);
+    }
+    mpickobj(mon, obj);
+    return true;
 }
 
 // ============================================================================
@@ -347,8 +370,33 @@ export function maybe_absorb_item(_mon, _obj, _ochance, _achance) {
 // ============================================================================
 // Prevent special items (Amulet, invocation, quest artifacts) from leaving level.
 // Stub: quest artifacts and invocation items not yet tracked.
-export function mdrop_special_objs(_mon) {
-    // Not implemented: requires obj_resists, is_quest_artifact
+export function mdrop_special_objs(mon, map = null) {
+    if (!mon || !Array.isArray(mon.minvent)) return;
+    const inv = [...mon.minvent];
+    for (const obj of inv) {
+        if (!obj) continue;
+        const special = obj.otyp === AMULET_OF_YENDOR
+            || obj.otyp === FAKE_AMULET_OF_YENDOR
+            || obj.otyp === BELL_OF_OPENING
+            || obj.otyp === SPE_BOOK_OF_THE_DEAD
+            || obj.otyp === CANDELABRUM_OF_INVOCATION
+            || is_quest_artifact(obj)
+            || obj_resists(obj, 0, 0);
+        if (!special) continue;
+        if (Number.isInteger(mon.mx) && Number.isInteger(mon.my) && map) {
+            mdrop_obj(mon, obj, map);
+        } else {
+            extract_from_minvent(mon, obj, true, true);
+            if (map) {
+                const hx = globalThis.gs?.player?.x ?? 1;
+                const hy = globalThis.gs?.player?.y ?? 1;
+                obj.ox = hx;
+                obj.oy = hy;
+                place_object(obj, hx, hy, map);
+                stackobj(obj, map);
+            }
+        }
+    }
 }
 
 // ============================================================================

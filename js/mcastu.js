@@ -23,8 +23,11 @@ import {
 
 // cf. mcastu.c:48 — cursetxt(mtmp, vis)
 export function cursetxt(mtmp, vis) {
-  // Message when monster's spell is frustrated
-  // Stub — would print "The <monster> points at you, then curses."
+  if (!vis) return '';
+  const mname = mtmp?.name || mtmp?.data?.mname || 'monster';
+  const text = `The ${mname} points at you, then curses.`;
+  if (mtmp) mtmp.lastCurseText = text;
+  return text;
 }
 
 // cf. mcastu.c:75 — choose_magic_spell(n)
@@ -83,12 +86,17 @@ export function m_cure_self(mtmp, dmg) {
 
 // cf. mcastu.c:374 — touch_of_death(mtmp)
 export function touch_of_death(mtmp, player) {
-  // Stub — instant kill or massive damage to player
-  // Full implementation requires player death handling
-  if (!player) return;
-  const dmg = 50 + d(8, 6);
-  // Would check for Antimagic, magic resistance, etc.
-  // For now this is a stub
+  if (!player) return 0;
+  // C-like shape: fatal touch unless protected by antimagic/magic resistance.
+  const resisted = !!(player.magicResistance || player.antimagic);
+  const dmg = resisted ? d(8, 6) : (50 + d(8, 6));
+  if (player.uhp !== undefined) {
+    player.uhp = Math.max(0, player.uhp - dmg);
+  } else if (player.hp !== undefined) {
+    player.hp = Math.max(0, player.hp - dmg);
+  }
+  player.lastDamageReason = death_inflicted_by('a touch of death', mtmp);
+  return dmg;
 }
 
 // cf. mcastu.c:409 — death_inflicted_by(who, mtmp)

@@ -25,6 +25,7 @@ import { newsym } from './display.js';
 import { You_hear } from './pline.js';
 import { placeFloorObject } from './invent.js';
 import { Has_contents } from './objnam.js';
+import { game as gstateGame } from './gstate.js';
 
 // Armor category constants — cf. objclass.h
 const ARM_SUIT   = 0;
@@ -822,24 +823,65 @@ export async function mon_break_armor(mon, polyspot, map, opts = {}) {
 // ============================================================================
 // Bypass system — stubs cf. worn.c:1109-1163
 // ============================================================================
+function eachObjChain(head, fn) {
+    if (!head) return;
+    if (Array.isArray(head)) {
+        for (const obj of head) fn(obj);
+        return;
+    }
+    for (let obj = head; obj; obj = obj.nobj) fn(obj);
+}
+
 export function bypass_obj(obj) {
-    if (obj) obj.bypass = true;
+    if (!obj) return;
+    obj.bypass = 1;
+    const game = globalThis.gs || gstateGame;
+    if (game?.svc?.context) game.svc.context.bypasses = true;
 }
 
 export function bypass_objlist(objchain, on) {
-    if (!Array.isArray(objchain)) return;
-    for (const obj of objchain) {
-        obj.bypass = on ? true : false;
+    if (!objchain) return;
+    if (on) {
+        const game = globalThis.gs || gstateGame;
+        if (game?.svc?.context) game.svc.context.bypasses = true;
     }
+    eachObjChain(objchain, (obj) => {
+        if (obj) obj.bypass = on ? 1 : 0;
+    });
 }
 
 export function clear_bypasses() {
-    // No-op stub: bypass tracking not needed for current JS gameplay
+    const game = globalThis.gs || gstateGame;
+    if (!game) return;
+    clear_bypass(game.map?.objects || game.fobj || null);
+    clear_bypass(game.player?.inventory || game.invent || null);
+    clear_bypass(game.migrating_objs || null);
+    clear_bypass(game.map?.buriedobjlist || null);
+    clear_bypass(game.billobjs || null);
+    clear_bypass(game.objs_deleted || null);
+    for (const mon of game.map?.monsters || []) {
+        if (mon?.dead) continue;
+        clear_bypass(mon?.minvent || null);
+    }
+    for (const mon of game.migrating_mons || []) clear_bypass(mon?.minvent || null);
+    for (const mon of game.mydogs || []) clear_bypass(mon?.minvent || null);
+    if (game.player?.uball) game.player.uball.bypass = 0;
+    if (game.player?.uchain) game.player.uchain.bypass = 0;
+    if (game.svc?.context) game.svc.context.bypasses = false;
 }
 
 export function nxt_unbypassed_obj(objchain) {
-    if (!Array.isArray(objchain)) return null;
-    for (const obj of objchain) {
+    if (!objchain) return null;
+    if (Array.isArray(objchain)) {
+        for (const obj of objchain) {
+            if (!obj?.bypass) {
+                bypass_obj(obj);
+                return obj;
+            }
+        }
+        return null;
+    }
+    for (let obj = objchain; obj; obj = obj.nobj) {
         if (!obj.bypass) {
             bypass_obj(obj);
             return obj;
@@ -850,24 +892,27 @@ export function nxt_unbypassed_obj(objchain) {
 
 // Autotranslated from worn.c:1044
 export function clear_bypass(objchn) {
-  let o;
-  for (o = objchn; o; o = o.nobj) {
-    o.bypass = 0;
-    if (Has_contents(o)) clear_bypass(o.cobj);
-  }
+    eachObjChain(objchn, (o) => {
+        if (!o) return;
+        o.bypass = 0;
+        if (Has_contents(o)) clear_bypass(o.cobj);
+    });
 }
 
 // Autotranslated from worn.c:1148
 export function nxt_unbypassed_loot(lootarray, listhead) {
-  let o, obj;
-  while ((obj = lootarray.obj) != null) {
-    for (o = listhead; o; o = o.nobj) {
-      if (o === obj) {
-        break;
-      }
+    if (!Array.isArray(lootarray)) return null;
+    for (const entry of lootarray) {
+        const obj = entry?.obj || entry || null;
+        if (!obj) continue;
+        let exists = false;
+        eachObjChain(listhead, (o) => {
+            if (o === obj) exists = true;
+        });
+        if (exists && !obj.bypass) {
+            bypass_obj(obj);
+            return obj;
+        }
     }
-    if (o && !obj.bypass) { bypass_obj(obj); break; }
-    ++lootarray;
-  }
-  return obj;
+    return null;
 }

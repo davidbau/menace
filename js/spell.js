@@ -498,10 +498,10 @@ export function num_spells() {
 
 // C ref: spell.c spell_idx() — find index of spell by otyp, or UNKNOWN_SPELL
 // Autotranslated from spell.c:2378
-export function spell_idx(otyp) {
+export function spell_idx(otyp, player) {
   let i;
-  for (i = 0; (i < MAXSPELL) && (spellid(i) !== NO_SPELL); i++) {
-    if (spellid(i) === otyp) return i;
+  for (i = 0; (i < MAXSPELL) && (spellid(player, i) !== NO_SPELL); i++) {
+    if (spellid(player, i) === otyp) return i;
   }
   return UNKNOWN_SPELL;
 }

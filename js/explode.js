@@ -36,17 +36,25 @@ export function adtyp_to_expltype(adtyp) {
 // cf. explode.c:25 — explosionmask(m, adtyp, olet)
 // Simplified: returns whether target needs shield effect
 export function explosionmask(m, adtyp, olet) {
-  // Simplified stub — in full implementation this checks:
-  // - monster resistances
-  // - whether shields/reflection apply
-  // - engulf status
+  if (!m) return 0;
+  const mdat = m.data || (m.mndx != null ? mons[m.mndx] : null);
+  if (!mdat) return 0;
+  if (adtyp === AD_FIRE && (mdat.mresists & MR_FIRE)) return 1;
+  if (adtyp === AD_COLD && (mdat.mresists & MR_COLD)) return 1;
+  if (adtyp === AD_ELEC && (mdat.mresists & MR_ELEC)) return 1;
   return 0;
 }
 
 // cf. explode.c:117 — engulfer_explosion_msg(adtyp, olet)
 export function engulfer_explosion_msg(adtyp, olet) {
-  // Stub — message for explosion while engulfed
-  return '';
+  switch (adtyp) {
+    case AD_FIRE: return 'a blast of fire inside your stomach';
+    case AD_COLD: return 'a freezing blast inside your stomach';
+    case AD_ELEC: return 'a blast of lightning inside your stomach';
+    case AD_ACID: return 'an acidic blast inside your stomach';
+    default:
+      return 'a violent explosion inside your stomach';
+  }
 }
 
 // cf. explode.c:198 — explode(x, y, type, dam, olet, expltype)
@@ -131,11 +139,38 @@ export async function explode(x, y, type, dam, olet, expltype, map, player) {
 // cf. explode.c:720 — scatter(sx, sy, blastforce, scflags, obj)
 // Scatter objects from explosion site
 export function scatter(sx, sy, blastforce, scflags, obj, map) {
-  // Simplified: in full implementation, objects at (sx,sy) are flung
-  // in random directions based on blastforce and their weight.
-  // This is primarily a visual/placement effect.
-  if (!map) return 0;
-  return 0;
+  if (!map || !obj || !Number.isFinite(sx) || !Number.isFinite(sy)) return 0;
+  const dirs = [
+    [1, 0], [1, 1], [0, 1], [-1, 1],
+    [-1, 0], [-1, -1], [0, -1], [1, -1],
+  ];
+  const distance = Math.max(1, Math.min(3, Number(blastforce) || 1));
+  let x = sx;
+  let y = sy;
+  for (let i = 0; i < distance; i++) {
+    const [dx, dy] = dirs[rn2(dirs.length)];
+    const nx = x + dx;
+    const ny = y + dy;
+    if (!isok(nx, ny)) break;
+    x = nx;
+    y = ny;
+  }
+
+  if (typeof map.removeObject === 'function') {
+    map.removeObject(obj);
+  }
+  obj.ox = x;
+  obj.oy = y;
+  if (typeof map.addObject === 'function') {
+    map.addObject(obj);
+  } else if (typeof map.at === 'function') {
+    const loc = map.at(x, y);
+    if (loc) {
+      if (!Array.isArray(loc.objects)) loc.objects = [];
+      loc.objects.push(obj);
+    }
+  }
+  return 1;
 }
 
 // cf. explode.c:959 — splatter_burning_oil(x, y, diluted_oil)

@@ -6589,3 +6589,58 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/mon_onscary.test.js`
   - `node --test test/unit/mon_onscary.test.js test/unit/codematch_remaining_surface_batch.test.js`
+
+### CODEMATCH multi-file closure slice: worn.c + steal.c (2026-03-10)
+
+- Problem:
+  - Remaining CODEMATCH rows in `worn.c`/`steal.c` were still tracked as
+    missing/stub despite now-needed gameplay helper surfaces for bypass
+    traversal and thief post-action callbacks.
+- Change:
+  - `js/worn.js`:
+    - Implemented `bypass_obj`, `bypass_objlist`, `clear_bypass`,
+      `clear_bypasses`, `nxt_unbypassed_obj`, `nxt_unbypassed_loot`.
+    - Added linked-list and array traversal support so callers from different
+      object-chain contexts can use the same bypass helpers.
+  - `js/steal.js`:
+    - Implemented `thiefdead` callback rewiring (`stealarm` -> `unstolenarm`)
+      and cleanup behavior.
+    - Implemented `maybe_absorb_item` carry/inventory transfer flow.
+    - Implemented `mdrop_special_objs` drop path for invocation/special items.
+  - Added targeted coverage:
+    - `test/unit/codematch_worn_steal_surface.test.js`
+  - Updated `docs/CODEMATCH.md` row status entries for this slice.
+- Validation:
+  - `node --test test/unit/codematch_worn_steal_surface.test.js`
+  - `node scripts/test-unit-core.mjs`
+  - Both passed.
+
+### CODEMATCH multi-file closure slice: spell.c + explode.c + mcastu.c surfaces (2026-03-10)
+
+- Problem:
+  - Several rows in `spell.c`, `explode.c`, and `mcastu.c` were still marked
+    `Stub` even though the JS had substantial logic or needed lightweight
+    faithful behavior to close missing surfaces.
+- Change:
+  - `js/spell.js`:
+    - Fixed `spell_idx(otyp, player)` lookup to pass the player spellbook into
+      `spellid(...)` correctly (surfaced by new unit coverage).
+    - Audited and kept existing implemented surfaces:
+      `study_book`, `confused_book`, `book_cursed`, `learn`, `rejectcasting`.
+  - `js/explode.js`:
+    - Implemented `explosionmask` resistance checks for elemental cases.
+    - Implemented `engulfer_explosion_msg` message selection by explosion type.
+    - Implemented a bounded `scatter` object relocation path for callers with
+      object+map context.
+  - `js/mcastu.js`:
+    - Implemented `cursetxt` output text generation/storage.
+    - Implemented `touch_of_death` damage path with antimagic/magic-resistance
+      mitigation and damage bookkeeping.
+  - Added targeted coverage:
+    - `test/unit/codematch_spell_explode_mcastu_surface.test.js`
+  - Updated `docs/CODEMATCH.md` row statuses from stale `Stub` entries to
+    implemented/partial statuses matching current behavior.
+- Validation:
+  - `node --test test/unit/codematch_spell_explode_mcastu_surface.test.js`
+  - `node scripts/test-unit-core.mjs`
+  - Both passed.
