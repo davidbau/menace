@@ -199,7 +199,6 @@ export function match_glyph(buf) {
 export function glyphrep(op) {
   let reslt = 0, glyph = NO_GLYPH;
   if (!glyphid_cache) reslt = 1;
-  nhUse(reslt);
   reslt = glyphrep_to_custom_map_entries(op, glyph);
   if (reslt) return 1;
   return 0;
@@ -286,7 +285,6 @@ export function glyphrep_to_custom_map_entries(op, glyphptr) {
   to_custom_symbol_find = zero_find;
   let c_glyphid, c_unicode = null, c_colorval = null, reslt = 0, rgb = 0;
   if (!glyphid_cache) reslt = 1;
-  nhUse(reslt);
   // Split on ':' and '/' delimiters: "glyphid:unicode/color"
   let colonIdx = op.indexOf(':');
   let slashIdx = op.indexOf('/');

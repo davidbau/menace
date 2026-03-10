@@ -908,7 +908,6 @@ export async function observe_quantum_cat(box, makecat, givemsg, game) {
     }
     if (givemsg) await pline_The("%s inside the box is dead!", Hallucination ? rndmonnam( 0) : "housecat");
   }
-  nhUse(deadcat);
   return;
 }
 

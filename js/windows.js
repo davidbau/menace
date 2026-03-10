@@ -502,7 +502,6 @@ export function genl_status_enablefield(fieldidx, nm, fmt, enable) {
 
 // Autotranslated from windows.c:1243
 export function dump_open_log(now) {
-  nhUse(now);
 }
 
 // Autotranslated from windows.c:1266

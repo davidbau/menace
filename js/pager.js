@@ -1117,8 +1117,6 @@ export function is_swallow_sym(c) {
 
 // Autotranslated from pager.c:137
 export function monhealthdescr(mon, addspace, outbuf) {
-  nhUse(mon);
-  nhUse(addspace);
    outbuf = '\0';
   return outbuf;
 }

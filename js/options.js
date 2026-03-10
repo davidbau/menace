@@ -404,8 +404,6 @@ export function optfn_alignment(optidx, req, negated, opts, op, game) {
 export function optfn_altkeyhandling(optidx, req, negated, opts, op) {
   if (req === do_init) { return optn_ok; }
   if (req === do_set) {
-    nhUse(negated);
-    nhUse(op);
     return optn_ok;
   }
   if (req === get_val || req === get_cnf_val) { opts = '\0'; return optn_ok; }
@@ -1372,9 +1370,6 @@ export function enhance_menu_text(buf, sz, whichpass, bool_p, thisopt) {
   if (!buf) return;
   nowsz = buf.length + 1;
   availsz = sz - nowsz;
-  nhUse(availsz);
-  nhUse(bool_p);
-  nhUse(thisopt);
   return;
 }
 
