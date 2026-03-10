@@ -104,18 +104,14 @@ async function returnToGameplay(page) {
         }
         await page.evaluate(() => new Promise(r => setTimeout(r, 200)));
     }
-    // Clear internal Display state that prior tests may have left behind.
-    // In non-blocking --More-- mode, the visual --More-- may be gone but
-    // messageNeedsMore or _pendingMore can persist, causing the next
-    // putstr_message to concatenate and overflow with --More--.
+    // Clear internal Display message state that prior tests may have left behind.
+    // Keep this aligned with the current async model: messageNeedsMore/topMessage
+    // are the only state needed here.
     await page.evaluate(() => {
         const d = window.gameDisplay;
         if (d) {
-            d._pendingMore = false;
-            d._pendingMoreNoCursor = false;
             d.messageNeedsMore = false;
             d.topMessage = null;
-            d._messageQueue = [];
         }
     });
 }
