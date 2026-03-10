@@ -221,11 +221,36 @@ export async function you_were(player, ctx = {}) {
     if (player.Unchanging || player.unchanging) return false;
     if (!Number.isInteger(player.ulycn) || player.ulycn < 0) return false;
     if (player.umonnum === player.ulycn) return false;
-    if (typeof ctx.monster_nearby === 'function' && ctx.monster_nearby()) return false;
+
+    const stunnedOrUnaware = !!(player.stunned || player.Stunned
+        || player.unaware || player.Unaware);
+    const polymorphControl = !!(player.polyControl || player.Polymorph_control);
+    const controllable_poly = polymorphControl && !stunnedOrUnaware;
+
+    if (controllable_poly) {
+        if (typeof ctx.confirmWerechange === 'function') {
+            if (!ctx.confirmWerechange(player)) return false;
+        }
+    } else {
+        let nearby = false;
+        if (typeof ctx.monster_nearby === 'function') {
+            nearby = !!ctx.monster_nearby();
+        } else if (ctx.map && player && Number.isInteger(player.x) && Number.isInteger(player.y)) {
+            const { monster_nearby } = await import('./hack.js');
+            nearby = !!monster_nearby(ctx.map, player, ctx.fov || null);
+        }
+        if (nearby) return false;
+    }
 
     player.were_changes = Number(player.were_changes || 0) + 1;
+    let polymonFn = null;
     if (typeof ctx.polymon === 'function') {
-        await ctx.polymon(player, player.ulycn);
+        polymonFn = ctx.polymon;
+    } else if (ctx.useRuntime === true) {
+        polymonFn = (await import('./polyself.js')).polymon;
+    }
+    if (typeof polymonFn === 'function') {
+        await polymonFn(player, player.ulycn, ctx.map || null);
     } else {
         // Minimal fallback used by tests/non-polymorph contexts.
         player.umonnum = player.ulycn;
@@ -240,16 +265,38 @@ export async function you_unwere(player, purify, ctx = {}) {
     if (!player) return false;
     if (purify) set_ulycn(player, -1);
 
-    const isWereForm = !!(player.umonnum != null
-        && Number.isInteger(player.ulycn) && player.ulycn >= 0
-        && player.umonnum === player.ulycn);
+    const pm = Number.isInteger(player.umonnum) ? player.umonnum : null;
+    const isWereForm = (pm != null && counter_were(pm) != null);
 
     if (player.Unchanging || player.unchanging) return false;
 
-    if (isWereForm
-        && !(typeof ctx.monster_nearby === 'function' && ctx.monster_nearby())) {
+    const stunnedOrUnaware = !!(player.stunned || player.Stunned
+        || player.unaware || player.Unaware);
+    const polymorphControl = !!(player.polyControl || player.Polymorph_control);
+    const controllable_poly = polymorphControl && !stunnedOrUnaware;
+
+    let nearby = false;
+    if (typeof ctx.monster_nearby === 'function') {
+        nearby = !!ctx.monster_nearby();
+    } else if (ctx.map && Number.isInteger(player.x) && Number.isInteger(player.y)) {
+        const { monster_nearby } = await import('./hack.js');
+        nearby = !!monster_nearby(ctx.map, player, ctx.fov || null);
+    }
+
+    let remainInBeast = false;
+    if (isWereForm && controllable_poly && typeof ctx.confirmRemainBeast === 'function') {
+        remainInBeast = !!ctx.confirmRemainBeast(player);
+    }
+
+    if (isWereForm && !nearby && !remainInBeast) {
+        let rehumanizeFn = null;
         if (typeof ctx.rehumanize === 'function') {
-            await ctx.rehumanize(player);
+            rehumanizeFn = ctx.rehumanize;
+        } else if (ctx.useRuntime === true) {
+            rehumanizeFn = (await import('./polyself.js')).rehumanize;
+        }
+        if (typeof rehumanizeFn === 'function') {
+            await rehumanizeFn(player);
         } else {
             player.mtimedone = 0;
             if (Number.isInteger(player.umonster) && player.umonster >= 0) {
@@ -268,5 +315,7 @@ export async function you_unwere(player, purify, ctx = {}) {
 export function set_ulycn(player, which) {
     if (!player) return;
     player.ulycn = which;
-    // TODO: call set_uasmon() to update innate intrinsics (Drain_resistance)
+    if (typeof player.set_uasmon === 'function') {
+        player.set_uasmon(player);
+    }
 }

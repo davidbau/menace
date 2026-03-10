@@ -25,6 +25,48 @@ test('were surface: you_unwere purify clears ulycn', async () => {
     assert.equal(player.ulycn, -1);
 });
 
+test('were surface: uncontrollable you_were is blocked by nearby monster', async () => {
+    const player = { ulycn: PM_WEREWOLF, umonnum: 0, umonster: 0, mtimedone: 0 };
+    const changed = await you_were(player, {
+        monster_nearby: () => true,
+    });
+    assert.equal(changed, false);
+    assert.equal(player.umonnum, 0);
+});
+
+test('were surface: controllable you_were honors confirmation callback', async () => {
+    const player = {
+        ulycn: PM_WEREWOLF,
+        umonnum: 0,
+        umonster: 0,
+        mtimedone: 0,
+        polyControl: true,
+    };
+    const changed = await you_were(player, {
+        confirmWerechange: () => false,
+    });
+    assert.equal(changed, false);
+    assert.equal(player.umonnum, 0);
+});
+
+test('were surface: you_unwere can remain in beast form under control and sets timer', async () => {
+    initRng(2);
+    const player = {
+        ulycn: PM_WEREWOLF,
+        umonnum: PM_WEREWOLF,
+        umonster: 0,
+        mtimedone: 0,
+        polyControl: true,
+    };
+    const changed = await you_unwere(player, false, {
+        monster_nearby: () => false,
+        confirmRemainBeast: () => true,
+    });
+    assert.equal(changed, false);
+    assert.equal(player.umonnum, PM_WEREWOLF);
+    assert.ok(player.mtimedone > 0);
+});
+
 test('wield surface: ready_ok mirrors C tri-state for common cases', () => {
     const player = {
         quiver: null,

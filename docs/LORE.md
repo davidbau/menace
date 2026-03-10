@@ -6959,3 +6959,37 @@ hard-won wisdom:
   - `node --test test/unit/combat.test.js`
   - `node --test test/unit/codematch_worn_steal_surface.test.js`
   - `npm run -s test:unit` (2719/2719 passing)
+
+## 2026-03-10: `were.c` control-flow fidelity pass (`you_were` / `you_unwere`)
+
+- Problem:
+  - `you_were` / `you_unwere` existed in JS but did not fully preserve C
+    control flow boundaries:
+    - controllable-poly path vs `monster_nearby()` gating,
+    - controlled unwere "remain in beast form" branch with timer refresh,
+    - default runtime wiring to real polymorph/rehumanize routines.
+- Change:
+  - `js/were.js`:
+    - `you_were` now mirrors C branch shape:
+      - computes controllable polymorph gate (`polyControl` and not
+        stunned/unaware),
+      - applies confirmation callback only for controllable path,
+      - otherwise blocks on nearby-hostile gate,
+      - then performs transformation through `polymon` (dynamic import
+        fallback) and increments `were_changes`.
+    - `you_unwere` now mirrors C branch shape:
+      - optional purification (`set_ulycn`),
+      - checks current were-form state,
+      - applies nearby-hostile gate,
+      - supports controlled "remain in beast form" callback,
+      - rehumanizes by default (dynamic import fallback), or refreshes were
+        timer when remaining in beast form with no timer active.
+    - `set_ulycn` now calls `player.set_uasmon()` when available, so
+      lycanthropy catch/cure can update intrinsic state immediately.
+  - Added targeted tests in
+    `test/unit/codematch_were_wield_worn_worm_surface.test.js` for:
+    - uncontrollable `you_were` blocked by nearby monsters,
+    - controllable `you_were` confirmation decline path,
+    - controllable `you_unwere` remain-beast path timer refresh.
+  - Updated `docs/CODEMATCH.md` summary line for `were.c` to all-public-surface
+    aligned.
