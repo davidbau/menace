@@ -41,6 +41,7 @@ import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { rnd_class } from './objnam.js';
+import { extract_from_minvent } from './worn.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,

@@ -40,12 +40,12 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          CLOAK_OF_DISPLACEMENT, MINERAL, GOLD_PIECE,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
-import { next_ident, weight, doname, splitobj, xname } from './mkobj.js';
+import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an } from './objnam.js';
 import { delobj } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
-import { can_carry } from './dogmove.js';
+import { can_carry, cursed_object_at } from './dogmove.js';
 import { couldsee, m_cansee } from './vision.js';
 import { pline_mon, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
@@ -103,10 +103,12 @@ export { mfndpos, onscary, corpse_chance };
 import { m_harmless_trap, floor_trigger, mintrap_postmove, t_at } from './trap.js';
 export { m_harmless_trap, floor_trigger, mintrap_postmove };
 import { maketrap } from './dungeon.js';
-import { mdig_tunnel, may_dig } from './dig.js';
+import { mdig_tunnel, may_dig, bury_an_obj } from './dig.js';
 import { IS_TREE } from './const.js';
 import { stairway_at } from './stairs.js';
 import { mwelded } from './wield.js';
+import { extract_from_minvent } from './worn.js';
+import { eaten_stat } from './eat.js';
 import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';

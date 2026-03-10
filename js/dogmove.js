@@ -443,7 +443,7 @@ export function mnum_leashable(mnum) {
 
 // C ref: dogmove.c:144-153 — cursed_object_at(x, y)
 // Checks if ANY object at position (x, y) is cursed
-function cursed_object_at(map, x, y) {
+export function cursed_object_at(map, x, y) {
     for (const obj of map.objects) {
         if (obj.buried) continue;
         if (obj.ox === x && obj.oy === y && obj.cursed)
