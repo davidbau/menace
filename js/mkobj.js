@@ -147,6 +147,7 @@ export function mergable(otmp, obj) {
 import { game as _gstate } from './gstate.js';
 import { maybe_reset_pick } from './lock.js';
 import { envFlag } from './runtime_env.js';
+import { obfree } from './shk.js';
 
 // Accessors for game state previously passed through set*Context() wiring hacks.
 // Now read from the game singleton (gstate.js), mirroring C's global variables.

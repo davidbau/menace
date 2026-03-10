@@ -45,6 +45,7 @@ import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 import { nhimport } from './origin_awaits.js';
+import { obfree } from './shk.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c

@@ -24,10 +24,11 @@ import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN,
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
-import { Is_container } from './mkobj.js';
+import { Is_container, obj_extract_self } from './mkobj.js';
 import { getobj } from './invent.js';
 import { seffect_taming, recharge } from './read.js';
 import { dountrap } from './trap.js';
+import { obfree } from './shk.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
