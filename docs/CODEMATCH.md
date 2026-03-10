@@ -4931,12 +4931,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 646 | `book_disappears` | spell.js:682 | Implemented |
 | 658 | `book_substitution` | spell.js:689 | Implemented |
 | 1619 | `can_center_spell_location` | spell.js:858 | Implemented |
-| 1003 | `cast_chain_lightning` | spell.js:894 | Implemented |
+| 1003 | `cast_chain_lightning` | spell.js:912 | Implemented |
 | 1104 | `cast_protection` | spell.js:822 | Implemented |
 | 189 | `confused_book` | spell.js:272 | Stub |
 | 130 | `cursed_book` | spell.js:613 | Implemented |
-| 231 | `deadbook` | - | Missing |
-| 211 | `deadbook_pacify_undead` | spell.js:1428 | Implemented |
+| 231 | `deadbook` | spell.js:1537 | Implemented |
+| 211 | `deadbook_pacify_undead` | spell.js:1546 | Implemented |
 | 1627 | `display_spell_target_positions` | spell.js:865 | Implemented |
 | 820 | `docast` | spell.js:981 | Implemented |
 | 2075 | `dospellmenu` | spell.js:handleKnownSpells | APPROX — spell list display |
@@ -4950,14 +4950,14 @@ Remaining parity gaps are mostly behavioral depth:
 | 1763 | `losespells` | spell.js:1288 | Implemented |
 | 2417 | `num_spells` | spell.js:490 | Implemented |
 | 2173 | `percent_success` | spell.js:estimateSpellFailPercent | APPROX — spell failure calculation |
-| 952 | `propagate_chain_lightning` | - | Missing |
+| 952 | `propagate_chain_lightning` | spell.js:894 | Implemented |
 | 687 | `rejectcasting` | spell.js:338 | Stub |
-| 2059 | `show_spells` | - | Missing |
-| 864 | `skill_based_spellbook_id` | - | Missing |
-| 1927 | `sortspells` | - | Missing |
+| 2059 | `show_spells` | spell.js:1504 | Implemented |
+| 864 | `skill_based_spellbook_id` | spell.js:1520 | Implemented |
+| 1927 | `sortspells` | spell.js:1492 | Implemented |
 | 1607 | `spell_aim_step` | spell.js:1564 | Implemented |
 | 1181 | `spell_backfire` | spell.js:794 | Implemented |
-| 1870 | `spell_cmp` | - | Missing |
+| 1870 | `spell_cmp` | spell.js:1457 | Implemented |
 | 2379 | `spell_idx` | spell.js:502 | Implemented |
 | 115 | `spell_let_to_idx` | spell.js:208 | Implemented |
 | 856 | `spell_skilltype` | spell.js:spellCategoryForName | APPROX — spell category lookup |

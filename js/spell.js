@@ -15,6 +15,7 @@ import { PM_KNIGHT, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { mark_vision_dirty } from './vision.js';
 import {
+    SPBOOK_CLASS,
     objectData, ROBE, QUARTERSTAFF, SMALL_SHIELD, LENSES,
     SPE_DIG, SPE_MAGIC_MISSILE, SPE_FIREBALL, SPE_CONE_OF_COLD,
     SPE_SLEEP, SPE_FINGER_OF_DEATH, SPE_LIGHT, SPE_DETECT_MONSTERS,
@@ -31,6 +32,7 @@ import {
     SPE_STONE_TO_FLESH, SPE_CHAIN_LIGHTNING,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
 } from './objects.js';
+import { discover_object } from './o_init.js';
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
 import { nhgetch_raw, nhgetch_wrap } from './input.js';
@@ -706,7 +708,7 @@ export async function learn(player) {
 
     // Book of the Dead special handling
     if (booktype === SPE_BOOK_OF_THE_DEAD) {
-        await You("turn the pages of the Book of the Dead...");
+        await deadbook(book);
         return 0;
     }
 
@@ -888,6 +890,25 @@ function can_chain_lightning_pos(map, x, y) {
     return !IS_OBSTRUCTED(loc.typ);
 }
 
+// C ref: spell.c propagate_chain_lightning() -- enqueue one beam step
+export function propagate_chain_lightning(clq, zap, map) {
+    if (!clq || !zap || !map) return null;
+    const [dx, dy] = CHAIN_LIGHTNING_DIRS[zap.dir] || [0, 0];
+    const x = zap.x + dx;
+    const y = zap.y + dy;
+    if (!can_chain_lightning_pos(map, x, y)) return null;
+
+    const strength = (zap.strength || 0) - 1;
+    if (strength < 0) return null;
+
+    clq.push({ x, y, dir: zap.dir, strength });
+    if (strength > 0) {
+        clq.push({ x, y, dir: (zap.dir + 7) % 8, strength: 0 });
+        clq.push({ x, y, dir: (zap.dir + 1) % 8, strength: 0 });
+    }
+    return { x, y, dx, dy, strength };
+}
+
 async function cast_chain_lightning(player, map) {
     if (!player || !map) return;
     const displayed = new Set();
@@ -900,25 +921,15 @@ async function cast_chain_lightning(player, map) {
     tmp_at(DISP_BEAM, chainLightBeamGlyph(0, 1));
     while (queue.length > 0) {
         const zap = queue.shift();
-        const [dx, dy] = CHAIN_LIGHTNING_DIRS[zap.dir];
-        const nx = zap.x + dx;
-        const ny = zap.y + dy;
-        if (!can_chain_lightning_pos(map, nx, ny)) continue;
-        const key = `${nx},${ny}`;
+        const step = propagate_chain_lightning(queue, zap, map);
+        if (!step) continue;
+        const key = `${step.x},${step.y}`;
         if (displayed.has(key)) continue;
         displayed.add(key);
 
-        tmp_at(DISP_CHANGE, chainLightBeamGlyph(dx, dy));
-        tmp_at(nx, ny);
+        tmp_at(DISP_CHANGE, chainLightBeamGlyph(step.dx, step.dy));
+        tmp_at(step.x, step.y);
         await nh_delay_output();
-
-        const nextStrength = zap.strength - 1;
-        if (nextStrength < 0) continue;
-        queue.push({ x: nx, y: ny, dir: zap.dir, strength: nextStrength });
-        if (nextStrength > 0) {
-            queue.push({ x: nx, y: ny, dir: (zap.dir + 7) % 8, strength: 0 });
-            queue.push({ x: nx, y: ny, dir: (zap.dir + 1) % 8, strength: 0 });
-        }
     }
     await nh_delay_output();
     await nh_delay_output();
@@ -1415,6 +1426,118 @@ export function tport_spell(player, what) {
 
 // C ref: spell.c dovspell() — view spells (alias for handleKnownSpells)
 export const dovspell = handleKnownSpells;
+
+// spell.c enum spl_sort_types
+const SORTBY_LETTER = 0;
+const SORTBY_ALPHA = 1;
+const SORTBY_LVL_LO = 2;
+const SORTBY_LVL_HI = 3;
+const SORTBY_SKL_AL = 4;
+const SORTBY_SKL_LO = 5;
+const SORTBY_SKL_HI = 6;
+const SORTBY_CURRENT = 7;
+const SORTRETAINORDER = 8;
+
+function spellLevelForEntry(entry) {
+    if (!entry) return 0;
+    const od = objectData[entry.otyp] || {};
+    return Number(od.oc_oc2 || od.oc_level || entry.sp_lev || 0);
+}
+
+function spellSkillForEntry(entry) {
+    return spell_skilltype(entry?.otyp);
+}
+
+function spellNameForEntry(entry) {
+    if (!entry) return '';
+    return String(objectData[entry.otyp]?.oc_name || '').toLowerCase();
+}
+
+// C ref: spell.c spell_cmp() — qsort callback for spell ordering
+export function spell_cmp(lhs, rhs, sortMode = SORTBY_ALPHA) {
+    const levl1 = spellLevelForEntry(lhs);
+    const levl2 = spellLevelForEntry(rhs);
+    const skil1 = spellSkillForEntry(lhs);
+    const skil2 = spellSkillForEntry(rhs);
+
+    switch (sortMode) {
+    case SORTBY_LETTER:
+    case SORTBY_CURRENT:
+        return 0;
+    case SORTBY_LVL_LO:
+        if (levl1 !== levl2) return levl1 - levl2;
+        break;
+    case SORTBY_LVL_HI:
+        if (levl1 !== levl2) return levl2 - levl1;
+        break;
+    case SORTBY_SKL_AL:
+        if (skil1 !== skil2) return skil1 < skil2 ? -1 : 1;
+        break;
+    case SORTBY_SKL_LO:
+        if (skil1 !== skil2) return skil1 < skil2 ? -1 : 1;
+        if (levl1 !== levl2) return levl1 - levl2;
+        break;
+    case SORTBY_SKL_HI:
+        if (skil1 !== skil2) return skil1 < skil2 ? -1 : 1;
+        if (levl1 !== levl2) return levl2 - levl1;
+        break;
+    case SORTBY_ALPHA:
+    default:
+        break;
+    }
+    return spellNameForEntry(lhs).localeCompare(spellNameForEntry(rhs));
+}
+
+// C ref: spell.c sortspells() — sort known spell list
+export function sortspells(player, sortMode = SORTBY_ALPHA) {
+    if (!player?.spells || player.spells.length < 2) return player?.spells || [];
+    if (sortMode === SORTBY_CURRENT || sortMode === SORTBY_LETTER) return player.spells;
+    const sorted = [...player.spells].sort((a, b) => spell_cmp(a, b, sortMode));
+    if (sortMode === SORTRETAINORDER) {
+        player.spells = sorted;
+        return player.spells;
+    }
+    return sorted;
+}
+
+// C ref: spell.c show_spells() — dump-style known spells listing
+export async function show_spells(player, display) {
+    if (display) return handleKnownSpells(player, display);
+    if (!player?.spells?.length || player.spells.every((sp) => !sp.sp_know)) {
+        await pline("You didn't know any spells.");
+        await pline("");
+        return;
+    }
+    await pline("Spells:");
+    for (const sp of player.spells) {
+        if (!sp.sp_know) continue;
+        const name = spellNameForEntry(sp);
+        if (name) await pline(`  ${name}`);
+    }
+}
+
+// C ref: spell.c skill_based_spellbook_id() — passive wizard book ID
+export function skill_based_spellbook_id(player) {
+    if (!player || !Role_if(player, PM_WIZARD)) return;
+    for (let otyp = 0; otyp < objectData.length; otyp++) {
+        const od = objectData[otyp];
+        if (!od || od.oc_class !== SPBOOK_CLASS) continue;
+        const category = spell_skilltype(otyp);
+        const rank = spellSkillRank(player, category);
+        let knownUpToLevel = player.uroleplay?.pauper ? 0 : 1;
+        if (rank >= SPELL_SKILL_BASIC) knownUpToLevel = 3;
+        const level = Number(od.oc_oc2 || od.oc_level || 0);
+        if (level <= knownUpToLevel) {
+            discover_object(otyp, true, false, false);
+        }
+    }
+}
+
+// C ref: spell.c deadbook() — Book of the Dead special entrypoint
+export async function deadbook(book2) {
+    await You("turn the pages of the Book of the Dead...");
+    if (book2) book2.known = true;
+}
 
 // Export constants for use by other modules
 export { KEEN, SPELL_LEV_PW, SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_HEALING, SPELL_CATEGORY_DIVINATION, SPELL_CATEGORY_ENCHANTMENT, SPELL_CATEGORY_CLERICAL, SPELL_CATEGORY_ESCAPE, SPELL_CATEGORY_MATTER, spellCategoryForName, spellSkillRank, spellet, spellRetentionText, estimateSpellFailPercent, percent_success };

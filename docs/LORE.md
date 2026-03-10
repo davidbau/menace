@@ -6322,3 +6322,25 @@ hard-won wisdom:
   - Metrics recompute script confirms:
     - `cmd.c` now `0 / 147` missing
     - gameplay missing reduced from `72` to `57`.
+
+### CODEMATCH spell.c closure slice: compatibility surfaces for missing function names (2026-03-10)
+
+- Problem:
+  - `spell.c -> spell.js` still had 6 missing rows (`deadbook`,
+    `propagate_chain_lightning`, `show_spells`, `skill_based_spellbook_id`,
+    `sortspells`, `spell_cmp`) despite nearby functionality already existing in
+    JS under different entrypoints.
+- Change:
+  - Added C-name compatibility functions in `js/spell.js`:
+    - `propagate_chain_lightning` and rewired `cast_chain_lightning` to call it.
+    - `spell_cmp` and `sortspells` as explicit spell-ordering helpers.
+    - `show_spells` as dump-style surface (or delegates to display overlay).
+    - `skill_based_spellbook_id` for wizard passive spellbook discovery.
+    - `deadbook` and routed `learn()` Book-of-the-Dead path through it.
+  - Added focused unit coverage in
+    `test/unit/spell_codematch_surface.test.js`.
+  - Updated `docs/CODEMATCH.md` spell rows from `Missing` to `Implemented`.
+- Validation:
+  - `node --test test/unit/spell_codematch_surface.test.js test/unit/command_known_spells.test.js`
+    passed (6/6).
+  - `node --test test/unit/spell_accuracy.test.js` passed (38/38).
