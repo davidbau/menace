@@ -1265,7 +1265,13 @@ async function handlePickup(player, map, display, game = null) {
             || ((pickupMsg.length + 2 + encMsg.length + 9) < Number(display?.cols || 80));
 
         if (encMsg && !combinedFits && game) {
-            await display.putstr_message(`${pickupMsg}--More--`);
+            await display.putstr_message(pickupMsg);
+            if (typeof display?.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+            }
+            if (typeof display?.markMorePending === 'function') {
+                display.markMorePending({ source: 'pickup.encumber.split' });
+            }
             player._oldcap = newcapVal;
             player.encumbrance = newcapVal;
             game.pendingPrompt = {
