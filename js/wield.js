@@ -1,7 +1,7 @@
 // wield.js -- Weapon wielding, swapping, quivering, and two-weapon combat
 // cf. wield.c — setuwep, dowield, doswapweapon, chwepon, welded, twoweapon
 
-import { more, nhgetch_raw, nhgetch_wrap, ynFunction } from './input.js';
+import { more, nhgetch_raw, ynFunction } from './input.js';
 import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, COIN_CLASS, HEAVY_IRON_BALL, IRON_CHAIN,
@@ -425,7 +425,7 @@ async function handleWield(player, display) {
     await display.putstr_message(wieldPrompt);
 
     while (true) {
-        const ch = await awaitInput(null, nhgetch_wrap(), {
+        const ch = await awaitInput(null, nhgetch_raw(), {
             site: 'wield.handleWield.select',
         });
         let c = String.fromCharCode(ch);
@@ -458,19 +458,10 @@ async function handleWield(player, display) {
         if (!item) {
             replacePromptMessage(display);
             await display.putstr_message("You don't have that object.");
-            if (typeof display?.renderMoreMarker === 'function') {
-                display.renderMoreMarker();
-                if (typeof display?.markMorePending === 'function') {
-                    display.markMorePending({ source: 'wield.invalid-invlet' });
-                }
-                // Keep C/getobj timing: prompt appears after --More-- dismiss.
-                await display.putstr_message(wieldPrompt);
-            } else if (typeof display?.morePrompt === 'function') {
-                await more(display, {
-                    site: 'wield.handleWield.invalidInvletMorePrompt',
-                });
-                await display.putstr_message(wieldPrompt);
-            }
+            await more(display, {
+                site: 'wield.handleWield.invalidInvletMorePrompt',
+            });
+            await display.putstr_message(wieldPrompt);
             continue;
         }
 

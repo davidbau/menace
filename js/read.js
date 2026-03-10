@@ -2,7 +2,7 @@
 // cf. read.c — doread, seffects, scroll effects, genocide, punishment, recharging
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import { awaitInput } from './suspend.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
@@ -323,7 +323,7 @@ async function handleRead(player, display, game) {
     };
     await showReadPrompt();
     while (true) {
-        const ch = await awaitInput(game, nhgetch_wrap(), {
+        const ch = await awaitInput(game, nhgetch_raw(), {
             site: 'read.handleRead.select',
         });
         let c = String.fromCharCode(ch);
@@ -486,20 +486,11 @@ async function handleRead(player, display, game) {
         // show error, block at --More--, then reveal prompt again.
         replacePromptMessage();
         await display.putstr_message("You don't have that object.");
-        if (typeof display?.renderMoreMarker === 'function') {
-            display.renderMoreMarker();
-            if (typeof display?.markMorePending === 'function') {
-                display.markMorePending({ source: 'read.invalid-invlet' });
-            }
-            await display.putstr_message(prompt);
-            continue;
-        }
-        if (typeof display?.morePrompt === 'function') {
-            await more(display, { game,
-                site: 'read.handleRead.invalidInvletMorePrompt',
-            });
-            await showReadPrompt();
-        }
+        await more(display, { game,
+            site: 'read.handleRead.invalidInvletMorePrompt',
+        });
+        await showReadPrompt();
+        continue;
     }
 }
 
