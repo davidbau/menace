@@ -639,7 +639,7 @@ export async function run_command(game, ch, opts = {}) {
     if (player) player.umoved = false;
 
     // Execute command
-    const result = await executeRhackCommandCore(game, chCode, {
+    const result = await rhackCore(game, chCode, {
         skipRepeatRecord,
         isPrefixKey,
         bumpHeroSeqN,
@@ -667,7 +667,7 @@ export async function run_command(game, ch, opts = {}) {
         // Drain any occupation created by the command
         await _drainOccupation(game, coreOpts);
 
-        await executeMultiRepeatLoop(game, {
+        await repeatLoop(game, {
             coreOpts,
             advanceTimedTurn,
             bumpHeroSeqN,
@@ -683,7 +683,7 @@ export async function run_command(game, ch, opts = {}) {
     }
 }
 
-async function executeMultiRepeatLoop(game, {
+async function repeatLoop(game, {
     coreOpts,
     advanceTimedTurn,
     bumpHeroSeqN,
@@ -770,7 +770,7 @@ async function executeMultiRepeatLoop(game, {
     }
 }
 
-async function executeRhackCommandCore(game, chCode, {
+async function rhackCore(game, chCode, {
     skipRepeatRecord,
     isPrefixKey,
     bumpHeroSeqN,
