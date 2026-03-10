@@ -1,4 +1,4 @@
-import { strchr } from './hacklib.js';
+import { strchr, strstri, strsubst } from './hacklib.js';
 // o_init.js -- Object initialization (description shuffling)
 // Faithful port of o_init.c from NetHack 3.7.
 // C ref: o_init.c init_objects(), shuffle_all(), shuffle(), randomize_gem_colors()
@@ -12,6 +12,7 @@ import { A_WIS } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { Role_if } from './role.js';
 import { PM_SAMURAI } from './monsters.js';
+import { obj_typename, Japanese_item_name } from './objnam.js';
 import { resetIdentCounter, doname } from './mkobj.js';
 import { nhgetch } from './input.js';
 import {
@@ -42,6 +43,7 @@ import {
     // Venom range (entire class via bases)
     // Gem probability constants
     LAST_REAL_GEM, oclass_prob_totals,
+    MAGIC_HARP, WOODEN_HARP,
 } from './objects.js';
 
 // C ref: objclass.h
