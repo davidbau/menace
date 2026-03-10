@@ -6210,3 +6210,27 @@ hard-won wisdom:
   - Refreshed CODEMATCH function-level metrics from current row totals.
 - Validation:
   - `node --test test/unit/makemon.test.js` passed (19/19).
+
+### CODEMATCH do.c closure slice: command-surface wrappers (2026-03-10)
+
+- Problem:
+  - `do.c -> do.js` still showed 6 missing command-surface symbols:
+    `doddrop`, `dodown`, `doup`, `goto_level`, `menu_drop`, `u_collide_m`.
+  - The corresponding JS behavior already existed under `handle*`/`changeLevel`
+    names, so the gap was mostly C-surface naming and callchain visibility.
+- Change:
+  - Added explicit C-name wrappers in `js/do.js`:
+    - `doddrop` -> `handleDropTypes`
+    - `dodown` -> `handleDownstairs`
+    - `doup` -> `handleUpstairs`
+    - `goto_level` -> `changeLevel`
+    - `menu_drop` -> `handleDropTypes`
+    - `u_collide_m` -> `resolveArrivalCollision`
+  - Added focused test coverage:
+    - `test/unit/do_surface_wrappers.test.js`
+  - Updated `docs/CODEMATCH.md` do.c rows from `Missing` to `Implemented`.
+  - Refreshed CODEMATCH function-level metrics after this closure.
+- Validation:
+  - `node --test test/unit/do_surface_wrappers.test.js` passed (4/4).
+  - `node --test test/unit/makemon.test.js` passed (19/19) as a nearby
+    regression check.

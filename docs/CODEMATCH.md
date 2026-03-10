@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `740` missing (**14.63% left**)
-- **Gameplay rows only**: `4393` total, `119` missing (**2.71% left**)
+- **Raw rows (all files)**: `5058` total, `734` missing (**14.51% left**)
+- **Gameplay rows only**: `4393` total, `113` missing (**2.57% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -1213,12 +1213,12 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 2308 | `danger_uprops` | do.js:1696 | Implemented |
 | 2065 | `deferred_goto` | do.js:1156 | Implemented |
 | 363 | `doaltarobj` | do.js:396 | Implemented |
-| 924 | `doddrop` | - | Missing |
-| 1131 | `dodown` | - | Missing |
+| 924 | `doddrop` | do.js:990 | Implemented |
+| 1131 | `dodown` | do.js:1072 | Implemented |
 | 29 | `dodrop` | do.js:1842 | Implemented |
 | 2347 | `donull` | do.js:1718 | Implemented |
 | 498 | `dosinkring` | do.js:503 | Implemented |
-| 1298 | `doup` | - | Missing |
+| 1298 | `doup` | do.js:1127 | Implemented |
 | 2386 | `dowipe` | do.js:1750 | Implemented |
 | 714 | `drop` | do.js:1852 | Implemented |
 | 786 | `dropx` | do.js:244 | Implemented |
@@ -1228,12 +1228,12 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1448 | `familiar_level_msg` | do.js:1216 | Implemented |
 | 2033 | `final_level` | do.js:1263 | Implemented |
 | 162 | `flooreffects` | do.js:363 | Implemented |
-| 1479 | `goto_level` | - | Missing |
+| 1479 | `goto_level` | do.js:1608 | Implemented |
 | 2445 | `heal_legs` | do.js:1812 | Implemented |
 | 1993 | `hellish_smoke_mesg` | do.js:1240 | Implemented |
 | 2404 | `legs_in_no_shape` | do.js:1771 | Implemented |
 | 2022 | `maybe_lvltport_feedback` | do.js:1207 | Implemented |
-| 981 | `menu_drop` | - | Missing |
+| 981 | `menu_drop` | do.js:1613 | Implemented |
 | 964 | `menudrop_split` | do.js:189 | Implemented |
 | 893 | `obj_no_longer_held` | do.js:151 | Implemented |
 | 404 | `polymorph_sink` | do.js:434 | Implemented |
@@ -1245,7 +1245,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 460 | `teleport_sink` | do.js:475 | Implemented |
 | 2006 | `temperature_change_msg` | do.js:1249 | Implemented |
 | 395 | `trycall` | do.js:425 | Implemented |
-| 1412 | `u_collide_m` | - | Missing |
+| 1412 | `u_collide_m` | do.js:1618 | Implemented |
 | 1110 | `u_stuck_cannot_go` | do.js:1025 | Implemented |
 | 2357 | `wipeoff` | do.js:1726 | Implemented |
 | 2288 | `zombify_mon` | do.js:1676 | Implemented |
