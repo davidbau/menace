@@ -39,6 +39,39 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ---
 
+## Recent Findings (2026-03-10)
+
+### `v` command output should be real project version text, not captured literals
+
+We had a hardcoded C-capture artifact in `cmd.js` for `v` (version):
+- line 0: Unix NetHack build string
+- line 1: literal `20:21:19.--More--`
+
+That timestamp-like tail is not gameplay state and should not be embedded in JS.
+Fix:
+1. Keep the existing nonblocking `--More--` boundary behavior for parity.
+2. Replace hardcoded line 0 with `VERSION_STRING` (Royal Jelly branding +
+   `version.js` commit number).
+3. Add a narrow comparator alias for legacy C version/clock text vs new
+   Royal Jelly version text.
+
+Result: removes fake timestamp text from JS while preserving replay parity.
+
+### `W` mapdump parity: avoid synthetic border-lock fallback
+
+A persistent `seed033` mapdump miss (`W`, checkpoint `d0l1_001`) came from a
+JS-only fallback that force-set border STONE cells to `D_LOCKED` when
+`wall_info` was absent. This produced false `8` values where C/session had `0`.
+
+Fix:
+1. Prefer `loc.wall_info` when present; otherwise use low bits of `flags`.
+2. Remove synthetic border `D_LOCKED` fallback from `W` mapdump emission.
+
+Result: `seed033` mapdump parity restored without regressions; full suite back
+to green.
+
+---
+
 ## RNG Parity
 
 ### Clang required for cross-platform determinism

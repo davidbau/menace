@@ -330,19 +330,15 @@ function buildHarnessMapdumpGrid(map, which) {
                 case 3: value = loc?.lit ? 1 : 0; break;
                 case 4: value = Number(loc?.roomno ?? 0) & 0x3f; break;
                 case 5: {
-                    value = Number(loc?.flags ?? 0) & 0x1f;
+                    const hasWallInfo = Number.isFinite(loc?.wall_info);
+                    value = hasWallInfo
+                        ? (Math.trunc(loc.wall_info) & 0x1f)
+                        : (Number(loc?.flags ?? 0) & 0x1f);
                     const typ = Number(loc?.typ ?? 0);
                     // C stores stair direction in rm.flags low bits.
                     if (value === 0 && typ === STAIRS) {
                         if (map?.upstair?.x === x && map?.upstair?.y === y) value = LA_UP;
                         else if (map?.dnstair?.x === x && map?.dnstair?.y === y) value = LA_DOWN;
-                    }
-                    // Session mapdump baselines from the C harness preserve
-                    // D_LOCKED on non-playable border STONE cells.
-                    if (value === 0
-                        && typ === STONE
-                        && (x < 7 || x === COLNO - 1 || y === ROWNO - 1)) {
-                        value = D_LOCKED;
                     }
                     break;
                 }
@@ -390,6 +386,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     const heroX = hero ? (hero.x | 0) : 0;
     const heroY = hero ? (hero.y | 0) : 0;
     // C mapdump reads u.uhp/u.uhpmax/u.uen/u.uenmax.
+    const heroUnplaced = (heroX === 0 && heroY === 0);
     const hp = Number.isFinite(hero?.uhp) ? Math.trunc(hero.uhp) : (Number(hero?.hp) || 0);
     const hpmax = Number.isFinite(hero?.uhpmax) ? Math.trunc(hero.uhpmax) : (Number(hero?.hpmax) || 0);
     const en = Number.isFinite(hero?.uen) ? Math.trunc(hero.uen) : (Number(hero?.en) || 0);
@@ -397,8 +394,16 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     const multi = Number.isFinite(hero?.multi) ? Math.trunc(hero.multi) : 0;
     const utrap = Number.isFinite(hero?.utrap) ? Math.trunc(hero.utrap) : 0;
     const utraptype = Number.isFinite(hero?.utraptype) ? Math.trunc(hero.utraptype) : 0;
-    const move = Number.isFinite(hero?.move) ? Math.trunc(hero.move) : 0;
-    const moves = Number.isFinite(hero?.moves) ? Math.trunc(hero.moves) : 0;
+    const move = Number.isFinite(hero?.move)
+        ? Math.trunc(hero.move)
+        : (Number.isFinite(_gstate?.context?.move)
+            ? Math.trunc(_gstate.context.move)
+            : (Number.isFinite(_gstate?.move) ? Math.trunc(_gstate.move) : 0));
+    const moves = Number.isFinite(hero?.moves)
+        ? Math.trunc(hero.moves)
+        : (heroUnplaced && Number.isFinite(hero?.turns)
+            ? Math.trunc(hero.turns)
+            : (Number.isFinite(_gstate?.moves) ? Math.trunc(_gstate.moves) : 0));
     const conf = !!(hero?.confused || hero?.Confusion) ? 1 : 0;
     const stun = !!(hero?.stunned || hero?.Stunned) ? 1 : 0;
     const blind = !!(hero?.blind || hero?.Blind) ? 1 : 0;
@@ -408,11 +413,14 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         `U${heroX},${heroY},${hp},${hpmax},${en},${enmax},${multi},${utrap},${utraptype},${move},${moves},${conf},${stun},${blind},${hallu},${fumbling}`
     );
     const anchorMoves = Number.isFinite(options.moves) ? Math.trunc(options.moves) : moves;
+    const fallbackHeroSeq = heroUnplaced
+        ? (1 << 3)
+        : (((anchorMoves | 0) << 3) + ((move | 0) ? 1 : 0));
     const anchorHeroSeq = Number.isFinite(options.heroSeq)
         ? Math.trunc(options.heroSeq)
         : (Number.isFinite(hero?.heroSeq)
             ? Math.trunc(hero.heroSeq)
-            : (Number.isFinite(_gstate?.heroSeq) ? Math.trunc(_gstate.heroSeq) : (1 << 3)));
+            : (Number.isFinite(_gstate?.heroSeq) ? Math.trunc(_gstate.heroSeq) : fallbackHeroSeq));
     lines.push(`A${anchorMoves},${anchorHeroSeq}`);
     if (typeof options.contextSection === 'string' && options.contextSection.length > 0) {
         lines.push(`C${options.contextSection}`);
@@ -442,7 +450,22 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const where = Number.isFinite(obj?.where) ? Math.trunc(obj.where) : 1;
         const cursed = obj?.cursed ? 1 : 0;
         const blessed = obj?.blessed ? 1 : 0;
-        const owt = Number.isFinite(obj?.owt) ? Math.trunc(obj.owt) : 0;
+        let owt = Number.isFinite(obj?.owt) ? Math.trunc(obj.owt) : 0;
+        if ((otyp === STATUE || Array.isArray(obj?.cobj)) && typeof weight === 'function') {
+            let computedOwt = weight(obj);
+            // Some special-level builders still attach nested items on `contents`
+            // rather than `cobj`; include those weights for mapdump parity.
+            if ((!Array.isArray(obj?.cobj) || obj.cobj.length === 0)
+                && Array.isArray(obj?.contents)
+                && obj.contents.length > 0) {
+                for (const contained of obj.contents) {
+                    computedOwt += weight(contained);
+                }
+            }
+            if (Number.isFinite(computedOwt) && computedOwt >= 0) {
+                owt = Math.trunc(computedOwt);
+            }
+        }
         const invlet = (typeof obj?.invlet === 'string' && obj.invlet.length > 0)
             ? obj.invlet.charCodeAt(0)
             : 0;

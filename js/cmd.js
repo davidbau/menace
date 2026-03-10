@@ -6,7 +6,7 @@ import { A_STR, A_DEX, A_CON, A_WIS, STATUS_ROW_1,
          RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
-         xdir, ydir, N_DIRS, N_DIRS_Z } from './const.js';
+         xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING } from './const.js';
 import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
@@ -476,11 +476,10 @@ export async function rhack(ch, game) {
     // Version (v)
     // C ref: pager.c doversion()
     if (c === 'v') {
-        // C ref: version.c doversion() -> pline("%s", getversionstring(...)).
-        // In tty captures this wraps across the first two message rows and
-        // ends with a standard "--More--" boundary.
-        const line0 = 'Unix NetHack Version 3.7.0-132 Work-in-progress - last build Mar  8 2026';
-        const line1 = '20:21:19.--More--';
+        // Keep the existing nonblocking --More-- boundary behavior for parity,
+        // but populate the message with the current Royal Jelly build string.
+        const line0 = VERSION_STRING;
+        const line1 = '--More--';
         if (typeof display.clearRow === 'function') display.clearRow(0);
         if (typeof display.clearRow === 'function') display.clearRow(1);
         display.topMessage = null;

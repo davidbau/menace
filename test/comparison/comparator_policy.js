@@ -81,6 +81,13 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
         } else if (row === 0 && isMorePromptBoundaryAlias(comparableActual[row], comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
+        } else if (row <= 1 && isVersionCommandAlias(comparableActual[row], comparableExpected[row])) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
+        } else if (row === 1
+                   && isVersionCommandMoreTailAlias(comparableActual[row], comparableExpected[row])) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
         } else if (highScore && isHighScoreRow(comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
@@ -126,6 +133,13 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (row === 0 && isMorePromptBoundaryAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (row <= 1 && isVersionCommandAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (row === 1
+                   && isVersionCommandMoreTailAlias(actualPlain[row], expectedPlain[row])) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (highScore && isHighScoreRow(expectedPlain[row])) {
@@ -297,6 +311,33 @@ function isMorePromptBoundaryAlias(actualLine, expectedLine) {
     if (am && expected.startsWith(am[1])) return true;
     if (em && actual.startsWith(em[1])) return true;
     return false;
+}
+
+// C old version output vs Royal Jelly version branding:
+// C session may contain:
+//   "Unix NetHack Version ... - last build ..."
+//   "HH:MM:SS.--More--"
+// while JS now emits VERSION_STRING from const.js.
+function isVersionCommandAlias(actualLine, expectedLine) {
+    const actual = String(actualLine || '').replace(/ +$/, '');
+    const expected = String(expectedLine || '').replace(/ +$/, '');
+    const cVersionLine = /^Unix NetHack Version 3\.7\.[0-9]+-[0-9]+ Work-in-progress - last build /;
+    const cClockMoreLine = /^\d{2}:\d{2}:\d{2}\.--More--$/;
+    const rjVersionLine = /^NetHack 3\.7\.0 Royal Jelly #[0-9]+/;
+    return (
+        (cVersionLine.test(actual) && rjVersionLine.test(expected))
+        || (cVersionLine.test(expected) && rjVersionLine.test(actual))
+        || (cClockMoreLine.test(actual) && (expected === '' || expected === '--More--'))
+        || (cClockMoreLine.test(expected) && (actual === '' || actual === '--More--'))
+    );
+}
+
+function isVersionCommandMoreTailAlias(actualLine, expectedLine) {
+    const actual = String(actualLine || '').replace(/ +$/, '');
+    const expected = String(expectedLine || '').replace(/ +$/, '');
+    const oneBlank = (actual === '' && /--More--$/.test(expected))
+        || (expected === '' && /--More--$/.test(actual));
+    return oneBlank;
 }
 
 // C ref: tmux screen capture may lag behind the game state at level
