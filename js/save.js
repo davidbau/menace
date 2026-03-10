@@ -22,7 +22,8 @@
 //   format — no direct equivalents to these file-based save functions.
 //   Memory management (freedynamicdata, free_dungeons) is handled by GC.
 import { tmp_at } from './animation.js';
-import { DISP_FREEMEM } from './const.js';
+import { DISP_FREEMEM,
+    ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES, MCORPSENM } from './const.js';
 import { pushRngLogEntry } from './rng.js';
 import { monsndx } from './mondata.js';
 

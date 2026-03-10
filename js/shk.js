@@ -4,7 +4,8 @@
 // payment, selling, damage tracking, and shopkeeper movement hooks.
 
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
-         COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED } from './const.js';
+         COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
+         ESHK } from './const.js';
 import { PM_TOURIST } from './monsters.js';
 import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,

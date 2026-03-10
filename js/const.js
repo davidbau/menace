@@ -4224,3 +4224,31 @@ export const LOW_PM = 0;
 export const LEAVESTATUE = NON_PM - 1;
 export const NATTK = 6;
 export const NORMAL_SPEED = 12;
+
+// ========================================================================
+// C macro accessors for monster/object extra fields
+// C: ESHK(mtmp) → ((struct eshk *)(mtmp)->mextra->eshk)
+// JS: ESHK(mtmp) → mtmp.mextra?.eshk
+// ========================================================================
+export function ESHK(mtmp) { return mtmp?.mextra?.eshk; }
+export function EPRI(mtmp) { return mtmp?.mextra?.epri; }
+export function EMIN(mtmp) { return mtmp?.mextra?.emin; }
+export function EGD(mtmp) { return mtmp?.mextra?.egd; }
+export function EDOG(mtmp) { return mtmp?.mextra?.edog; }
+export function EBONES(mtmp) { return mtmp?.mextra?.ebones; }
+export function MCORPSENM(mtmp) { return mtmp?.mextra?.mcorpsenm ?? -1; }
+
+export function has_eshk(mtmp) { return !!mtmp?.mextra?.eshk; }
+export function has_epri(mtmp) { return !!mtmp?.mextra?.epri; }
+export function has_emin(mtmp) { return !!mtmp?.mextra?.emin; }
+export function has_egd(mtmp) { return !!mtmp?.mextra?.egd; }
+export function has_edog(mtmp) { return !!mtmp?.mextra?.edog; }
+export function has_ebones(mtmp) { return !!mtmp?.mextra?.ebones; }
+
+// Object extra accessors
+// C: ONAME(obj) → ((char *)(obj)->oextra->oname)
+export function ONAME(obj) { return obj?.oextra?.oname || ''; }
+export function has_oname(obj) { return !!obj?.oextra?.oname; }
+export function OMONST(obj) { return obj?.oextra?.omonst; }
+export function MGIVENNAME(mtmp) { return mtmp?.mextra?.mgivenname || mtmp?.mgivenname || ''; }
+export function has_mgivenname(mtmp) { return !!(mtmp?.mextra?.mgivenname || mtmp?.mgivenname); }

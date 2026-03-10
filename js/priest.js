@@ -33,7 +33,7 @@ import { a_gname_at, halu_gname } from './pray.js';
 import { adjalign } from './attrib.js';
 import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
-import { RLOC_NOMSG, SPINE } from './const.js';
+import { RLOC_NOMSG, SPINE, EPRI, EMIN } from './const.js';
 import { buzz } from './zap.js';
 import { money_cnt, nomul } from './hack.js';
 

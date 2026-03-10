@@ -26,6 +26,7 @@
 //   format — no direct equivalents to these file-based restore functions.
 //   Bones/ghost level handling is not yet implemented in JS.
 import { pushRngLogEntry } from './rng.js';
+import { MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES } from './const.js';
 
 // cf. restore.c:71 — find_lev_obj(): rebuild object-by-position grid
 // Reconstructs svl.level.objects[x][y] by scanning all objects on the level.

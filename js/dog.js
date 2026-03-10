@@ -56,7 +56,7 @@ import { A_CHA } from './const.js';
 import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
          is_rider, resists_poison, resists_acid, resists_ston, likes_fire,
          mon_hates_silver } from './mondata.js';
-import { EYE } from './const.js';
+import { EYE, has_oname, ONAME, EDOG, ESHK } from './const.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating, dog_eat } from './dogmove.js';
 import { newsym } from './display.js';
