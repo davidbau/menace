@@ -141,6 +141,7 @@ def setup_home(character, symset, tutorial_enabled=False, interactive=False):
             os.unlink(fn)
     for fn in glob.glob(os.path.join(INSTALL_DIR, 'bon*')):
         os.unlink(fn)
+    _session.ensure_canonical_scorefiles()
 
 
 def read_keylog(path):

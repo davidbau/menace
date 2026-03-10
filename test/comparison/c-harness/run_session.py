@@ -344,6 +344,16 @@ def setup_home(character=None):
             os.unlink(os.path.join(INSTALL_DIR, score_file))
         except FileNotFoundError:
             pass
+    ensure_canonical_scorefiles()
+
+
+def ensure_canonical_scorefiles():
+    """Create empty canonical score files expected by C end-of-game flow."""
+    for score_file in ('record', 'xlogfile', 'logfile'):
+        score_path = os.path.join(INSTALL_DIR, score_file)
+        os.makedirs(os.path.dirname(score_path), exist_ok=True)
+        with open(score_path, 'a', encoding='utf-8'):
+            pass
 
 
 def read_rng_log(rng_log_file):
@@ -1276,6 +1286,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             os.unlink(f)
     for f in glob.glob(os.path.join(INSTALL_DIR, 'bon*')):
         os.unlink(f)
+    ensure_canonical_scorefiles()
 
     tmpdir = tempfile.mkdtemp(prefix='webhack-chargen-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')

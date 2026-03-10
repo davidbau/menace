@@ -6,7 +6,7 @@
 
 import { GameAdapter } from './adapter.js';
 import { execSync, spawn } from 'child_process';
-import { writeFileSync, mkdirSync, existsSync, unlinkSync, readdirSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, unlinkSync, readdirSync, openSync, closeSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -212,6 +212,7 @@ export class TmuxAdapter extends GameAdapter {
         } else {
             this._cleanGameState(name);
         }
+        this._ensureCanonicalScorefiles();
 
         // Kill any existing tmux session with the same name
         try { execSync(`${this.tmuxBaseCmd} kill-session -t ${this.sessionName} 2>/dev/null`); } catch {}
@@ -434,6 +435,16 @@ export class TmuxAdapter extends GameAdapter {
                 }
             }
         } catch {}
+    }
+
+    _ensureCanonicalScorefiles() {
+        for (const fileName of ['record', 'xlogfile', 'logfile']) {
+            const filePath = join(INSTALL_DIR, fileName);
+            try {
+                const fd = openSync(filePath, 'a');
+                closeSync(fd);
+            } catch {}
+        }
     }
 }
 
