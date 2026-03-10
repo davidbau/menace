@@ -6234,3 +6234,26 @@ hard-won wisdom:
   - `node --test test/unit/do_surface_wrappers.test.js` passed (4/4).
   - `node --test test/unit/makemon.test.js` passed (19/19) as a nearby
     regression check.
+
+### CODEMATCH ball.c closure slice: C-name compatibility aliases (2026-03-10)
+
+- Problem:
+  - `ball.c -> ball.js` still had 5 missing rows, all C-name entrypoints over
+    already-implemented lowercase JS behavior:
+    `Placebc`, `Unplacebc`, `Unplacebc_and_covet_placebc`,
+    `Lift_covet_and_placebc`, `bc_order`.
+- Change:
+  - Added explicit wrappers in `js/ball.js` mapping to existing live logic:
+    - `Placebc` -> `placebc`
+    - `Unplacebc` -> `unplacebc`
+    - `Unplacebc_and_covet_placebc` -> `unplacebc_and_covet_placebc`
+    - `Lift_covet_and_placebc` -> `lift_covet_and_placebc`
+    - `bc_order` -> `bc_order_fn`
+  - Added focused test coverage:
+    - `test/unit/ball_surface.test.js`
+  - Updated `docs/CODEMATCH.md` ball rows from `Missing` to `Implemented`.
+  - Refreshed CODEMATCH function-level metrics after this closure.
+- Validation:
+  - `node --test test/unit/ball_surface.test.js` passed (2/2).
+  - `node --test test/unit/do_surface_wrappers.test.js` passed (4/4)
+    as a nearby regression check.

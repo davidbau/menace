@@ -261,6 +261,11 @@ export async function placebc(player, map) {
     await placebc_core(player, map);
 }
 
+// C ref: ball.c:259 Placebc() — compatibility alias.
+export async function Placebc(player, map) {
+    return placebc(player, map);
+}
+
 // cf. ball.c:211 — unplacebc(): remove ball and chain
 // Autotranslated from ball.c:211
 export function unplacebc() {
@@ -269,6 +274,11 @@ export function unplacebc() {
     return;
   }
   unplacebc_core();
+}
+
+// C ref: ball.c:287 Unplacebc() — compatibility alias.
+export function Unplacebc() {
+    return unplacebc();
 }
 
 // cf. ball.c:221 — unplacebc_and_covet_placebc(): remove and pin bc
@@ -282,6 +292,11 @@ export function unplacebc_and_covet_placebc() {
   return restriction;
 }
 
+// C ref: ball.c:306 Unplacebc_and_covet_placebc() — compatibility alias.
+export function Unplacebc_and_covet_placebc() {
+    return unplacebc_and_covet_placebc();
+}
+
 // cf. ball.c:235 — lift_covet_and_placebc(pin): lift restriction and replace
 export async function lift_covet_and_placebc(pin, player, map) {
     if (!check_restriction(pin)) {
@@ -292,6 +307,11 @@ export async function lift_covet_and_placebc(pin, player, map) {
         return;
     }
     await placebc_core(player, map);
+}
+
+// C ref: ball.c:327 Lift_covet_and_placebc() — compatibility alias.
+export async function Lift_covet_and_placebc(pin, player, map) {
+    return lift_covet_and_placebc(pin, player, map);
 }
 
 // cf. ball.c:353 — bc_order(): ball/chain stacking order
@@ -313,6 +333,11 @@ function bc_order_fn(player, map) {
     }
     impossible("bc_order: ball&chain not in same location!");
     return BCPOS_DIFFER;
+}
+
+// C ref: ball.c:354 bc_order() — expose ordering helper.
+export function bc_order(player, map) {
+    return bc_order_fn(player, map);
 }
 
 // cf. ball.c:379 — set_bc(already_blind): set up blind bc tracking

@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `734` missing (**14.51% left**)
-- **Gameplay rows only**: `4393` total, `113` missing (**2.57% left**)
+- **Raw rows (all files)**: `5058` total, `729` missing (**14.41% left**)
+- **Gameplay rows only**: `4393` total, `108` missing (**2.46% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -553,13 +553,13 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 ### ball.c -> ball.js
 | C Line | C Function | JS Line | Alignment |
 |--------|------------|---------|-----------|
-| 327 | `Lift_covet_and_placebc` | - | Missing |
-| 259 | `Placebc` | - | Missing |
-| 287 | `Unplacebc` | - | Missing |
-| 306 | `Unplacebc_and_covet_placebc` | - | Missing |
+| 327 | `Lift_covet_and_placebc` | ball.js:313 | Implemented |
+| 259 | `Placebc` | ball.js:265 | Implemented |
+| 287 | `Unplacebc` | ball.js:280 | Implemented |
+| 306 | `Unplacebc_and_covet_placebc` | ball.js:296 | Implemented |
 | 43 | `ballfall` | ball.js:150 | Implemented |
 | 23 | `ballrelease` | ball.js:129 | Implemented |
-| 354 | `bc_order` | - | Missing |
+| 354 | `bc_order` | ball.js:339 | Implemented |
 | 1034 | `bc_sanity_check` | ball.js:924 | Implemented |
 | 180 | `check_restriction` | ball.js:243 | Implemented |
 | 560 | `drag_ball` | ball.js:491 | Implemented |
