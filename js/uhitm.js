@@ -20,9 +20,9 @@ import {
     PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
-    S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN,
+    S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
     PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN,
-    PM_BLACK_PUDDING, PM_BROWN_PUDDING, PM_IRON_GOLEM,
+    PM_BLACK_PUDDING, PM_BROWN_PUDDING, PM_IRON_GOLEM, PM_GHOUL,
     AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC,
     AD_DRST, AD_ACID, AD_BLND, AD_STUN, AD_SLOW, AD_PLYS, AD_DRLI,
     AD_DREN, AD_LEGS, AD_STON, AD_STCK, AD_SGLD, AD_SITM, AD_SEDU,
@@ -62,8 +62,10 @@ import { applyMonflee } from './mhitu.js';
 import { mondead } from './mon.js';
 import { newsym } from './display.js';
 import { placeFloorObject } from './invent.js';
+import { addToMonsterInventory } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
-import { find_mac } from './worn.js';
+import { find_mac, extract_from_minvent } from './worn.js';
+import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
     erode_obj, erode_obj_player,
@@ -1120,7 +1122,19 @@ export function mhitm_ad_corr(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 export function mhitm_ad_dcay(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
 // cf. uhitm.c:2768 — steal gold (m-vs-m: no effect)
-export function mhitm_ad_sgld(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
+    mhm.damage = 0;
+    if (!magr || !mdef || magr.mcan) return;
+    const pa = magr.data || magr.type || {};
+    const pd = mdef.data || mdef.type || {};
+    // C: same monster class doesn't steal gold from each other.
+    if (pa.mlet && pd.mlet && pa.mlet === pd.mlet) return;
+    const gold = findgold(mdef.minvent || []);
+    if (!gold) return;
+    extract_from_minvent(mdef, gold, false, true);
+    addToMonsterInventory(magr, gold);
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+}
 
 // cf. uhitm.c:2837 — teleport (m-vs-m: TODO)
 export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) { mhm.damage = 0; }
@@ -1167,10 +1181,39 @@ export function mhitm_ad_dgst(magr, mattk, mdef, mhm) {
 export function mhitm_ad_samu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
 
 // cf. uhitm.c:4571 — disease (m-vs-m: no effect)
-export function mhitm_ad_dise(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+export function mhitm_ad_dise(magr, mattk, mdef, mhm) {
+    // C m-vs-m: fungi/ghouls and disease-defended targets are unaffected;
+    // otherwise, disease does ordinary attack damage.
+    const pd = mdef?.data || mdef?.type || {};
+    const mndx = Number.isInteger(mdef?.mndx) ? mdef.mndx : -1;
+    if (pd.mlet === S_FUNGUS || mndx === PM_GHOUL) {
+        mhm.damage = 0;
+    }
+}
 
 // cf. uhitm.c:4601 — seduction (m-vs-m: no effect)
-export function mhitm_ad_sedu(magr, mattk, mdef, mhm) { mhm.damage = 0; }
+export function mhitm_ad_sedu(magr, mattk, mdef, mhm) {
+    mhm.damage = 0;
+    if (!magr || !mdef || magr.mcan) return;
+    const inv = Array.isArray(mdef.minvent) ? mdef.minvent : [];
+    if (!inv.length) return;
+    // C: tame stealers avoid cursed items when possible.
+    let obj = null;
+    for (const it of inv) {
+        if (!magr.mtame || !it?.cursed) {
+            obj = it;
+            break;
+        }
+    }
+    if (!obj) return;
+    extract_from_minvent(mdef, obj, true, false);
+    addToMonsterInventory(magr, obj);
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    // C: nymphs may teleport away after a successful theft.
+    if ((magr.data?.mlet || magr.type?.mlet) === S_NYMPH) {
+        mhm.hitflags |= M_ATTK_AGR_DONE;
+    }
+}
 
 // cf. uhitm.c:4729 — succubus seduction (m-vs-m: no effect)
 export function mhitm_ad_ssex(magr, mattk, mdef, mhm) { mhm.damage = 0; }

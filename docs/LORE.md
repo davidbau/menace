@@ -6814,3 +6814,36 @@ hard-won wisdom:
   - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
   - `node scripts/test-unit-core.mjs`
   - Both passed.
+
+### CODEMATCH `uhitm.c` theft/disease branch expansion (`AD_SGLD`/`AD_SEDU`/`AD_SSEX` + `AD_DISE`) (2026-03-10)
+
+- Problem:
+  - Several m-vs-m `uhitm` AD handlers were still pure no-op stubs, limiting
+    callchain fidelity in monster-vs-monster combat.
+  - `steal.js:findgold()` only handled linked-list style inventories and missed
+    JS runtime array inventories.
+- Change:
+  - `js/steal.js`:
+    - `findgold()` now supports both array and linked-list inventory shapes.
+  - `js/uhitm.js`:
+    - `mhitm_ad_sgld`: now transfers gold from defender to attacker inventory
+      with cancel/same-class gates.
+    - `mhitm_ad_sedu`: now steals one item from defender inventory; tame
+      attackers prefer non-cursed items; nymph theft marks `M_ATTK_AGR_DONE`.
+    - `mhitm_ad_ssex`: continues delegating through seduction path and is now
+      treated as partial rather than pure no-op.
+    - `mhitm_ad_dise`: now preserves normal damage for susceptible defenders
+      and zeroes damage for fungus/ghoul immunity cases.
+  - `test/unit/codematch_uhitm_ad_branches.test.js` expanded to cover:
+    - gold transfer,
+    - seduction theft + nymph done flag,
+    - tame cursed-item avoidance,
+    - disease susceptible-target behavior.
+  - `docs/CODEMATCH.md` updated from `Stub` to `Partial` for:
+    - `mhitm_ad_sgld`
+    - `mhitm_ad_sedu`
+    - `mhitm_ad_ssex`
+    - `mhitm_ad_dise`
+- Validation:
+  - `node --test test/unit/codematch_uhitm_ad_branches.test.js`
+  - `node scripts/test-unit-core.mjs`

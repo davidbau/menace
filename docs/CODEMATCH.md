@@ -5428,7 +5428,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2341 | `mhitm_ad_dcay` | uhitm.js | Stub (no armor system) |
 | 3815 | `mhitm_ad_deth` | uhitm.js | Implemented (redirects to drli) |
 | 4470 | `mhitm_ad_dgst` | uhitm.js | Stub |
-| 4571 | `mhitm_ad_dise` | uhitm.js | Stub (no m-vs-m effect) |
+| 4571 | `mhitm_ad_dise` | uhitm.js | Partial — m-vs-m immunity gates for fungus/ghoul; susceptible targets keep normal damage |
 | 2396 | `mhitm_ad_dren` | uhitm.js | Implemented (m-vs-m path) |
 | 3146 | `mhitm_ad_drin` | uhitm.js | Implemented (m-vs-m path) |
 | 2423 | `mhitm_ad_drli` | uhitm.js | Implemented (m-vs-m path) |
@@ -5446,12 +5446,12 @@ Remaining parity gaps are mostly behavioral depth:
 | 3707 | `mhitm_ad_poly` | uhitm.js | Stub (needs newcham) |
 | 2259 | `mhitm_ad_rust` | uhitm.js | Stub (no armor system) |
 | 4548 | `mhitm_ad_samu` | uhitm.js | Stub (no m-vs-m effect) |
-| 4601 | `mhitm_ad_sedu` | uhitm.js | Stub (no m-vs-m effect) |
-| 2768 | `mhitm_ad_sgld` | uhitm.js | Stub (no m-vs-m effect) |
+| 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m item theft from defender inventory (tame avoids cursed items); nymph marks `M_ATTK_AGR_DONE` |
+| 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with same-class/cancel gates |
 | 3457 | `mhitm_ad_slee` | uhitm.js | Implemented (m-vs-m path) |
 | 3504 | `mhitm_ad_slim` | uhitm.js | Stub (needs newcham) |
 | 3630 | `mhitm_ad_slow` | uhitm.js | Implemented (m-vs-m path) |
-| 4729 | `mhitm_ad_ssex` | uhitm.js | Stub (no m-vs-m effect) |
+| 4729 | `mhitm_ad_ssex` | uhitm.js | Partial — delegates to `mhitm_ad_sedu` |
 | 3284 | `mhitm_ad_stck` | uhitm.js | Implemented (m-vs-m path) |
 | 4181 | `mhitm_ad_ston` | uhitm.js | Stub (needs petrification) |
 | 4366 | `mhitm_ad_stun` | uhitm.js | Implemented (m-vs-m path) |

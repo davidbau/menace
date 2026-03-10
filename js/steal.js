@@ -67,6 +67,14 @@ export function somegold(lmoney) {
 // (Differs from makemon.js findgold which returns boolean.)
 // Autotranslated from steal.c:44
 export function findgold(argchain) {
+  if (!argchain) return null;
+  // JS runtime inventories are array-based; C used linked lists.
+  if (Array.isArray(argchain)) {
+    for (const obj of argchain) {
+      if (obj?.otyp === GOLD_PIECE) return obj;
+    }
+    return null;
+  }
   let chain = argchain;
   while (chain && chain.otyp !== GOLD_PIECE) {
     chain = chain.nobj;
