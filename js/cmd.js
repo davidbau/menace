@@ -24,7 +24,7 @@ import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe }
 import { handleInventory, currency, doorganize } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { dodip } from './potion.js';
-import { handleCallObjectTypePrompt } from './do_name.js';
+import { handleCallObjectTypePrompt, mon_nam } from './do_name.js';
 import { handleDiscoveries } from './o_init.js';
 import {
     handlePrevMessages, handleHelp, handleWhatdoes, handleHistory,

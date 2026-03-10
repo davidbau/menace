@@ -44,6 +44,7 @@ import { rnd_class } from './objnam.js';
 import { extract_from_minvent } from './worn.js';
 import { g_at } from './invent.js';
 import { impossible } from './pline.js';
+import { newsym } from './display.js';
 
 // Named object indices we need (exported from objects.js)
 // Check: CORPSE, EGG, TIN, SLIME_MOLD, KELP_FROND, CANDY_BAR,

@@ -27,9 +27,10 @@ import { doname, bcsign, blessorcurse, uncurse } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
+import { s_suffix } from './hacklib.js';
 import { make_confused, make_stunned } from './potion.js';
 import { makemon } from './makemon.js';
-import { NO_MINVENT } from './const.js';
+import { NO_MINVENT, HEAD, STOMACH } from './const.js';
 import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN,
          PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
          PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER,
@@ -37,7 +38,8 @@ import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMA
 import { resist } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
-import { hcolor } from './do_name.js';
+import { hcolor, Monnam, mon_nam } from './do_name.js';
+import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
 import { scrolltele, level_tele } from './teleport.js';
 import { gold_detect, food_detect, trap_detect, do_mapping, cvt_sdoor_to_door } from './detect.js';

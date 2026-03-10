@@ -69,7 +69,7 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
-         TIMEOUT } from './const.js';
+         TIMEOUT, HAND, FACE } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -92,6 +92,7 @@ import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { break_wand } from './zap.js';
+import { body_part } from './polyself.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';

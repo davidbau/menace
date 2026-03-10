@@ -18,6 +18,7 @@ import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM } from './const.js';
 import { rn2, rnd, rn1, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight, place_object } from './mkobj.js';
 import { game as _gstate } from './gstate.js';
+import { newsym } from './display.js';
 import { create_room, makecorridors, create_corridor, init_rect, rnd_rect, get_rect, split_rects, check_room, add_doors_to_room, link_doors_rooms, update_rect_pool_for_room, bound_digging, mineralize as dungeonMineralize, fill_ordinary_room, fill_special_room, isMtInitialized, setMtInitialized, wallification as dungeonWallification, wallify_region as dungeonWallifyRegion, fix_wall_spines, set_wall_state, mktrap, deltrap, enexto, sp_create_door, floodFillAndRegister, repair_irregular_room_boundaries, resolveBranchPlacementForLevel, induced_align, enterMklevContext, leaveMklevContext } from './dungeon.js';
 import {
     place_lregion,
