@@ -440,6 +440,13 @@ The 3 `awaitInput` callsites in `run_command` that wrap
 **Gate per file**: All tests pass. Full gameplay session suite passes after
 each batch.
 
+Progress note (2026-03-10):
+- Migrated `allmain.js` off `awaitMore`/`awaitAnim` wrappers.
+- Migrated `more_keys.js` off `awaitMore` wrapper.
+- Added canonical `display_sync()` origin primitive in `origin_awaits.js` and
+  switched `allmain` timed-turn UI yields to use it.
+- Validation: `scripts/run-and-report.sh` remains 34/34 passing.
+
 #### Phase 2d: Delete old mechanisms (contract)
 
 Once zero callsites remain for old wrappers:

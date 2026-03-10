@@ -1,7 +1,5 @@
 // more_keys.js -- shared --More-- dismissal primitives.
 
-import { awaitMore } from './suspend.js';
-
 export function isMoreDismissKey(ch) {
     const code = typeof ch === 'number'
         ? ch
@@ -13,7 +11,7 @@ export function isMoreDismissKey(ch) {
 export async function waitForMoreDismissKey(readKey, { game = null, site = 'more.dismiss' } = {}) {
     if (typeof readKey !== 'function') return;
     for (;;) {
-        const ch = await awaitMore(game, Promise.resolve(readKey()), { site });
+        const ch = await Promise.resolve(readKey());
         if (isMoreDismissKey(ch)) return ch;
     }
 }
@@ -25,7 +23,7 @@ export async function consumePendingMore(display, readKey, clearMore, {
 } = {}) {
     if (!display || typeof readKey !== 'function' || typeof clearMore !== 'function') return;
     while (display && display._pendingMore) {
-        const ch = await awaitMore(game, Promise.resolve(readKey()), { site });
+        const ch = await Promise.resolve(readKey());
         if (isMoreDismissKey(ch)) {
             await Promise.resolve(clearMore());
             continue;

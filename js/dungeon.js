@@ -413,9 +413,22 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         `U${heroX},${heroY},${hp},${hpmax},${en},${enmax},${multi},${utrap},${utraptype},${move},${moves},${conf},${stun},${blind},${hallu},${fumbling}`
     );
     const anchorMoves = Number.isFinite(options.moves) ? Math.trunc(options.moves) : moves;
+    // C allmain tracks hero_seq as (moves << 3) + n where n is hero actions
+    // in the current move tick. Prefer tracked n when available.
+    const movedThisTurn = !!hero?.umoved ? 1 : 0;
+    const trackedHeroSeqN = Number.isFinite(options.heroSeqN)
+        ? Math.trunc(options.heroSeqN)
+        : (Number.isFinite(hero?.heroSeqN)
+            ? Math.trunc(hero.heroSeqN)
+            : (Number.isFinite(_gstate?.heroSeqN)
+                ? Math.trunc(_gstate.heroSeqN)
+                : ((anchorMoves | 0) > 1 ? 1 : movedThisTurn)));
+    const clampedHeroSeqN = Math.max(0, Math.min(7, trackedHeroSeqN));
+    const minimumHeroSeqN = heroUnplaced ? 0 : (((anchorMoves | 0) > 1) ? 1 : 0);
+    const heroSeqN = Math.max(minimumHeroSeqN, clampedHeroSeqN);
     const fallbackHeroSeq = heroUnplaced
         ? (1 << 3)
-        : (((anchorMoves | 0) << 3) + ((move | 0) ? 1 : 0));
+        : (((anchorMoves | 0) << 3) + heroSeqN);
     const anchorHeroSeq = Number.isFinite(options.heroSeq)
         ? Math.trunc(options.heroSeq)
         : (Number.isFinite(hero?.heroSeq)
@@ -535,10 +548,13 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const tseen = trap?.tseen ? 1 : 0;
         const once = trap?.once ? 1 : 0;
         const madeByU = trap?.madeby_u ? 1 : 0;
+        // C struct trap maps teledest as a macro alias of launch; honor either shape.
         const teledestX = Number.isFinite(trap?.teledest_x) ? Math.trunc(trap.teledest_x)
-            : (Number.isFinite(trap?.teledest?.x) ? Math.trunc(trap.teledest.x) : -1);
+            : (Number.isFinite(trap?.teledest?.x) ? Math.trunc(trap.teledest.x)
+                : (Number.isFinite(trap?.launch?.x) ? Math.trunc(trap.launch.x) : -1));
         const teledestY = Number.isFinite(trap?.teledest_y) ? Math.trunc(trap.teledest_y)
-            : (Number.isFinite(trap?.teledest?.y) ? Math.trunc(trap.teledest.y) : -1);
+            : (Number.isFinite(trap?.teledest?.y) ? Math.trunc(trap.teledest.y)
+                : (Number.isFinite(trap?.launch?.y) ? Math.trunc(trap.launch.y) : -1));
         trapDetailParts.push(
             `${tx},${ty},${ttyp},${tseen},${once},${madeByU},${teledestX},${teledestY}`
         );

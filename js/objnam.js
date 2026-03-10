@@ -523,7 +523,8 @@ export function wizterrainwish(ctx) {
         else if (text.includes('unaligned')) al = A_NONE;
         loc.flags = Align2amask(al);
     } else if (result.terrain === 'grave') {
-        make_grave(map, x, y, '');
+        // C ref: objnam.c create_terrain_at() passes NULL text to make_grave().
+        make_grave(map, x, y, null);
         loc.disturbed = text.includes('disturbed') || text.includes('looted');
     } else if (result.terrain === 'tree') {
         loc.typ = TREE;

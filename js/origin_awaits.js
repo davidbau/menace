@@ -28,3 +28,31 @@ export async function nhload(loadFn) {
         endOriginAwait(activeGame, snap);
     }
 }
+
+export async function display_sync() {
+    const game = activeGame;
+    if (!game) return;
+    const map = game.map || game.lev || null;
+    const player = game.u || game.player || null;
+    if (game.fov && map && player && typeof game.fov.compute === 'function') {
+        game.fov.compute(map, player.x, player.y);
+    }
+    if (game.display && map && player) {
+        if (typeof game.display.renderMap === 'function') {
+            game.display.renderMap(map, player, game.fov, game.flags);
+        }
+        if (typeof game.display.renderStatus === 'function') {
+            game.display.renderStatus(player);
+        }
+        if (typeof game.display.cursorOnPlayer === 'function') {
+            game.display.cursorOnPlayer(player);
+        }
+    }
+    if (game.headless) return;
+    const snap = beginOriginAwait(activeGame, 'display_sync');
+    try {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+    } finally {
+        endOriginAwait(activeGame, snap);
+    }
+}

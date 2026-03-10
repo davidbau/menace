@@ -25,7 +25,6 @@ import { GOLD_PIECE, BELL, CORPSE, SCR_TELEPORTATION } from './objects.js';
 import { S_HUMAN, S_MIMIC } from './monsters.js';
 import { mkclass, makemon } from './makemon.js';
 import { make_engr_at, wipe_engr_at, make_grave } from './engrave.js';
-import { random_epitaph_text } from './rumors.js';
 import { litstate_rnd } from './mkmap.js';
 import {
     maketrap,
@@ -611,11 +610,9 @@ export function mkgrave(map, croom, depth) {
     if (!pos) return;
     const loc = map.at(pos.x, pos.y);
     if (!loc) return;
-    let epitaph = '';
-    if (!dobell) {
-        epitaph = random_epitaph_text();
-    }
-    make_grave(map, pos.x, pos.y, epitaph);
+    // C ref: mklev.c mkgrave() passes fixed text on dobell, else NULL
+    // and make_grave() chooses a random epitaph.
+    make_grave(map, pos.x, pos.y, dobell ? 'Saved by the bell!' : null);
     if (!rn2(3)) {
         mksobj(GOLD_PIECE, true, false);
         rnd(20);

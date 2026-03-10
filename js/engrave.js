@@ -37,6 +37,7 @@ import { t_at } from './trap.js';
 import { attacktype, ceiling_hider, sticks } from './mondata.js';
 import { AT_HUGS, MZ_HUGE } from './monsters.js';
 import { envFlag } from './runtime_env.js';
+import { random_epitaph_text } from './rumors.js';
 
 function engrTraceEnabled() {
     return envFlag('WEBHACK_ENGR_TRACE');
@@ -189,6 +190,11 @@ export async function wipe_engr_at(map, x, y, cnt, magical = false) {
             }
             if (erase > 0) {
                 engr.text = wipeoutEngravingText(engr.text || '', erase);
+                // C ref: engrave.c wipe_engr_at() trims leading spaces by
+                // advancing engr_txt[actual_text] while first char is ' '.
+                while (typeof engr.text === 'string' && engr.text.startsWith(' ')) {
+                    engr.text = engr.text.slice(1);
+                }
                 engrTrace(
                     `step=${step}`,
                     `wipe_text(${x},${y})`,
@@ -750,9 +756,8 @@ export function make_grave(map, x, y, str) {
     loc.typ = GRAVE;
     // Engrave the headstone
     del_engr_at(map, x, y);
-    // C: if (!str) str = get_rnd_text(EPITAPHFILE, buf, rn2, MD_PAD_RUMORS);
-    // str should be provided by caller or left as empty
-    if (!str) str = '';
+    // C ref: engrave.c make_grave() — NULL str means random epitaph text.
+    if (str == null) str = random_epitaph_text();
     make_engr_at(map, x, y, str, 'headstone');
 }
 

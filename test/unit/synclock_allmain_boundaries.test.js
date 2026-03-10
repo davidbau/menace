@@ -4,17 +4,17 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 describe('synclock allmain boundary hygiene', () => {
-    it('does not use raw await nhgetch_wrap() in allmain game loop paths', () => {
+    it('keeps nhgetch_wrap usage explicit (handleMore disabled)', () => {
         const src = readFileSync(resolve('js/allmain.js'), 'utf8');
-        assert.equal(/await\s+nhgetch_wrap\s*\(/.test(src), false);
-        // Ensure typed wrapper is present for loop-input waits.
+        assert.equal(src.includes('nhgetch_wrap()'), false);
+        assert.equal(src.includes('nhgetch_wrap({ handleMore: true })'), false);
         assert.equal(src.includes('nhgetch_wrap({ handleMore: false })'), true);
     });
 
     it('does not use raw setTimeout(0) awaits in allmain command loop paths', () => {
         const src = readFileSync(resolve('js/allmain.js'), 'utf8');
         assert.equal(/await\s+new\s+Promise\s*\(\s*r\s*=>\s*setTimeout\s*\(\s*r\s*,\s*0\s*\)\s*\)/.test(src), false);
-        // Ensure typed animation wrapper remains in use.
-        assert.equal(src.includes('await awaitAnim(this, new Promise(r => setTimeout(r, 0))'), true);
+        // Ensure canonical display sync primitive is used for loop-frame yields.
+        assert.equal(src.includes('await display_sync();'), true);
     });
 });

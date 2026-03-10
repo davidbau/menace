@@ -20,7 +20,6 @@ import { savebones } from './bones.js';
 import { setGame } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { beginCommandExec, endCommandExec, getCommandExecState } from './exec_guard.js';
-import { awaitMore, awaitAnim } from './suspend.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
@@ -68,7 +67,7 @@ import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          enterTutorial as _enterTutorial, showGameOver as _showGameOver } from './chargen.js';
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
-import { nhimport, nhload } from './origin_awaits.js';
+import { nhimport, nhload, display_sync } from './origin_awaits.js';
 import { phase_of_the_moon, friday_13th } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
@@ -242,6 +241,9 @@ export async function moveloop_turnend(game) {
     game.turnCount++;
     (game.u || game.player).turns = game.turnCount;
     game._currentTurn = game.turnCount + 1;
+    // C ref: allmain.c sets gh.hero_seq = svm.moves << 3 when moves advances;
+    // track the low 3-bit action count separately for mapdump anchor parity.
+    game.heroSeqN = 0;
     // C ref: allmain.c -- random spawn happens before svm.moves++.
     // During this turn-end frame, mkobj-side erosion checks should
     // still observe the pre-increment move count.
@@ -600,7 +602,7 @@ export async function run_command(game, ch, opts = {}) {
             game.display._moreBlockingEnabled = false;
         }
         if (typeof game.display._clearMore === 'function') {
-            await awaitMore(game, game.display._clearMore(), { site: 'run_command.handleMoreBoundaryKey.clearMore' });
+            await game.display._clearMore();
         } else {
             game?.emitDiagnosticEvent?.('boundary.more.clear-missing', {
                 key: chCode,
@@ -788,6 +790,10 @@ export async function run_command(game, ch, opts = {}) {
 
     const coreOpts = {};
     if (skipMonsterMove) coreOpts.skipMonsterMove = true;
+    const bumpHeroSeqN = () => {
+        const prior = Number.isFinite(game?.heroSeqN) ? (game.heroSeqN | 0) : 0;
+        game.heroSeqN = Math.min(7, prior + 1);
+    };
 
     // Process one timed turn of world updates after a command consumed time.
     const advanceTimedTurn = async () => {
@@ -828,6 +834,9 @@ export async function run_command(game, ch, opts = {}) {
     }
     if (!skipRepeatRecord && !game.inDoAgain) {
         game._repeatPrefixChainActive = !!(result && !result.tookTime && isPrefixKey);
+    }
+    if (result && result.tookTime) {
+        bumpHeroSeqN();
     }
     // C ref: allmain.c deferred_goto() immediately follows rhack() whenever
     // u.utotype is set.
@@ -901,6 +910,7 @@ export async function run_command(game, ch, opts = {}) {
                 if (!moveResult.moved) {
                     break;
                 }
+                bumpHeroSeqN();
                 await advanceTimedTurn();
                 await _drainOccupation(game, coreOpts, onTimedTurn);
             } else {
@@ -913,6 +923,7 @@ export async function run_command(game, ch, opts = {}) {
                 game.advanceRunTurn = null;
 
                 if (!repeated || !repeated.tookTime) break;
+                bumpHeroSeqN();
                 await advanceTimedTurn();
                 if (typeof repeated.onAfterTurn === 'function') {
                     await repeated.onAfterTurn(game);
@@ -2399,13 +2410,7 @@ export class NetHackGame {
         if (firstCh === 1) { // Ctrl+A
             await execute_repeat_command(this, {
                 onTimedTurn: async () => {
-                    this.fov.compute(this.map, this.player.x, this.player.y);
-                    this.display.renderMap(this.map, this.player, this.fov, this.flags);
-                    this.display.renderStatus(this.player);
-                    this.display.cursorOnPlayer(this.player);
-                    await awaitAnim(this, new Promise(r => setTimeout(r, 0)), {
-                        site: 'gameLoop.repeat.onTimedTurn.yield',
-                    });
+                    await display_sync();
                 },
                 onBeforeRepeat: async () => {
                     if (this.shouldInterruptMulti()) {
@@ -2443,13 +2448,7 @@ export class NetHackGame {
         await run_command(this, ch, {
             countPrefix,
             onTimedTurn: async () => {
-                this.fov.compute(this.map, this.player.x, this.player.y);
-                this.display.renderMap(this.map, this.player, this.fov, this.flags);
-                this.display.renderStatus(this.player);
-                this.display.cursorOnPlayer(this.player);
-                await awaitAnim(this, new Promise(r => setTimeout(r, 0)), {
-                    site: 'gameLoop.onTimedTurn.yield',
-                });
+                await display_sync();
             },
             onBeforeRepeat: async () => {
                 if (this.shouldInterruptMulti()) {
