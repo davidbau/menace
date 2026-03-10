@@ -91,6 +91,7 @@ import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall }
 import { u_at } from './hack.js';
 import { Has_contents, Is_mbag } from './objnam.js';
 import { t_at, m_at } from './trap.js';
+import { makeknown } from './do_wear.js';
 
 const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
 
@@ -332,9 +333,7 @@ const WAND_BACKFIRE_CHANCE = 100;
 // C ref: POTION_OCCUPANT_CHANCE(n)
 function POTION_OCCUPANT_CHANCE(n) { return ((n) >= 5 ? 1 : (n) >= 4 ? 2 : 4); }
 
-// C ref: makeknown(otyp) — mark object type as discovered
-// Stub: discoveries tracked elsewhere (not yet fully implemented)
-function makeknown(_otyp) { }
+// makeknown imported from do_wear.js
 
 // C ref: unknow_object(otmp) — hero loses knowledge of object
 function unknow_object(_otmp) { }

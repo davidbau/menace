@@ -38,7 +38,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { more, nhgetch_raw } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
@@ -154,9 +154,7 @@ export function u_at(player, x, y) {
     return !!(player && player.x === x && player.y === y);
 }
 
-function M_AP_TYPE(mon) {
-    return Number(mon?.m_ap_type || mon?.mappearanceType || 0);
-}
+// M_AP_TYPE imported from mondata.js
 
 function remove_object(obj, map) {
     if (!obj || !map) return;

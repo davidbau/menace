@@ -10,7 +10,7 @@ import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS,
          SCROLL_CLASS, SPBOOK_CLASS, MAXOCLASSES,
          GOLD_PIECE, CHEST, LARGE_BOX, BOULDER, GOLD } from './objects.js';
 import { PM_GOLD_GOLEM, PM_LONG_WORM, S_EEL, S_WORM_TAIL } from './monsters.js';
-import { is_hider, hides_under, DEADMONSTER } from './mondata.js';
+import { is_hider, hides_under, DEADMONSTER, M_AP_TYPE } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
@@ -62,9 +62,7 @@ function get_obj_location(otmp) {
     if (otmp.ox != null && otmp.oy != null) return { x: otmp.ox, y: otmp.oy };
     return null;
 }
-function M_AP_TYPE(mtmp) {
-    return (mtmp && mtmp.m_ap_type) ? mtmp.m_ap_type : 0;
-}
+// M_AP_TYPE imported from mondata.js
 function Is_rogue_level() { return false; }
 function random_object(rn2func) { return rn2func(400) || 1; }
 function random_monster(rn2func) { return rn2func(400); }

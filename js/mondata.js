@@ -17,7 +17,8 @@ import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, 
     FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES,
     REFLECTING, INTRINSIC, MALE, FEMALE, NEUTER, NON_PM, PRONOUN_NO_IT, PRONOUN_HALLU,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
-    M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL } from './const.js';
+    M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL,
+    M_AP_NOTHING } from './const.js';
 import { dist2, highc, ROLL_FROM } from './hacklib.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
@@ -2120,4 +2121,9 @@ export function give_u_to_m_resistances(mtmp, player) {
   for (intr = FIRE_RES; intr <= STONE_RES; intr++) {
     if ((player.uprops[intr].intrinsic & INTRINSIC) !== 0) { mtmp.mintrinsics |=  res_to_mr(intr); }
   }
+}
+
+// C ref: M_AP_TYPE(mon) — get monster appearance type, defaulting to M_AP_NOTHING
+export function M_AP_TYPE(mon) {
+    return Number(mon?.m_ap_type || mon?.mappearanceType || M_AP_NOTHING);
 }

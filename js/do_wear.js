@@ -148,7 +148,7 @@ export async function on_msg(obj, player) {
 }
 
 // C ref: makeknown(otyp) — discover an object type
-function makeknown(otyp) {
+export function makeknown(otyp) {
     discoverObject(otyp, true, true);
 }
 

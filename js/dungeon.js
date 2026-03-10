@@ -832,6 +832,16 @@ export function Is_airlevel(lev) {
     return dnum === ELEMENTAL_PLANES && dlevel === 3;
 }
 
+export function Is_astralevel(lev) {
+    const { dnum, dlevel } = _coerceLevelArg(lev);
+    return dnum === ELEMENTAL_PLANES && dlevel === 5;
+}
+
+export function Is_sanctum(lev) {
+    const { dnum, dlevel } = _coerceLevelArg(lev);
+    return dnum === GEHENNOM && dlevel === dunlevs_in_dungeon(dnum);
+}
+
 export function Invocation_lev(lev) {
     const { dnum, dlevel } = _coerceLevelArg(lev);
     return dnum === GEHENNOM && dlevel === (dunlevs_in_dungeon(dnum) - 1);

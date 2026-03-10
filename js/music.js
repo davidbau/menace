@@ -25,7 +25,7 @@ import { Role_if } from './role.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an, the } from './objnam.js';
 import { unique_corpstat, is_mindless, canseemon, is_mercenary,
          is_flyer, is_clinger, is_humanoid, slithy, nolimbs,
-         ceiling_hider, can_blow, DEADMONSTER, mdistu } from './mondata.js';
+         ceiling_hider, can_blow, DEADMONSTER, mdistu, M_AP_TYPE } from './mondata.js';
 import { mons, PM_GUARD, S_SNAKE, S_NYMPH, PM_ARCHEOLOGIST } from './monsters.js';
 import { onscary, wakeup, seemimic, xkilled } from './mon.js';
 import { monflee } from './monmove.js';
@@ -78,9 +78,7 @@ function has_mgivenname(mon) {
 const M_AP_NOTHING = 0;
 const M_AP_MONSTER = 3; // C: M_AP_MONSTER=3 (2 is M_AP_OBJECT)
 
-function M_AP_TYPE(mtmp) {
-    return mtmp.m_ap_type || M_AP_NOTHING;
-}
+// M_AP_TYPE imported from mondata.js
 
 
 // Maybe_Half_Phys — if player has half physical damage, halve it

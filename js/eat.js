@@ -3,6 +3,7 @@
 
 import { rn2, rn1, rnd, d } from './rng.js';
 import { more, nhgetch_raw } from './input.js';
+import { Is_astralevel } from './dungeon.js';
 import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,

@@ -84,13 +84,13 @@ import { Luck } from './attrib.js';
 import { findpriest } from './priest.js';
 import { set_itimeout } from './potion.js';
 import { feel_cockatrice, sobj_at, carried } from './invent.js';
-import { destroy_arm } from './do_wear.js';
+import { destroy_arm, makeknown } from './do_wear.js';
 import { record_achievement, align_str } from './insight.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
 import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival } from './pickup.js';
-import { In_sokoban } from './dungeon.js';
+import { In_sokoban, Is_astralevel, Is_sanctum } from './dungeon.js';
 import { nomul } from './hack.js';
 import { welded } from './wield.js';
 
@@ -425,8 +425,7 @@ function reset_utrap(player, _talk) {
 function rescued_from_terrain() { }
 
 
-// Helper: makeknown stub
-function makeknown() { }
+// makeknown imported from do_wear.js
 
 
 // Helper: your_race check
@@ -584,9 +583,7 @@ function Inhell(player) {
     return player.inGehennom || false;
 }
 
-// Helper: Is_astralevel / Is_sanctum
-function Is_astralevel() { return false; }
-function Is_sanctum() { return false; }
+// Is_astralevel / Is_sanctum imported from dungeon.js
 
 // resists_elec, resists_disint: imported from mondata.js
 

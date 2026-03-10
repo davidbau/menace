@@ -50,7 +50,7 @@ import { monster_census, msummon } from './minion.js';
 import { sgn, distu, ROLL_FROM } from './hacklib.js';
 import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
-import { builds_up, In_endgame, In_W_tower, In_hell } from './dungeon.js';
+import { builds_up, In_endgame, In_W_tower, In_hell, Is_astralevel } from './dungeon.js';
 
 // Strategy constants imported from const.js (monst.h)
 
@@ -128,8 +128,7 @@ const Inhell = In_hell;
 
 // In_endgame imported from dungeon.js
 
-// Is_astralevel — stub
-function Is_astralevel() { return false; }
+// Is_astralevel imported from dungeon.js
 
 // Is_rogue_level — stub
 function Is_rogue_level() { return false; }

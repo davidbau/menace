@@ -19,7 +19,7 @@ import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
 import { mon_nam, Monnam, mon_pmname, rndmonnam } from './do_name.js';
 import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict } from './mondata.js';
 import { newsym } from './display.js';
-import { In_endgame } from './dungeon.js';
+import { In_endgame, Is_astralevel, Is_sanctum } from './dungeon.js';
 import { m_next2u } from './muse.js';
 import { move_special as move_special_monmove } from './monmove.js';
 import { priestini as priestini_mkroom } from './mkroom.js';
@@ -270,10 +270,7 @@ export function priestname(mon, article, reveal_high_priest, player) {
     return pname;
 }
 
-// Stubs for functions not yet available in the JS port
-function Is_astralevel() { return false; }
-function Is_sanctum() { return false; }
-// In_endgame imported from dungeon.js
+// Is_astralevel, Is_sanctum, In_endgame imported from dungeon.js
 
 // set_malign — cf. makemon.c:2316
 // Not exported from any module; define locally.
