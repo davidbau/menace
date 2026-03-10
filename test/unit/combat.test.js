@@ -9,7 +9,7 @@ import { do_attack } from '../../js/uhitm.js';
 import { mattacku } from '../../js/mhitu.js';
 import { POTION_CLASS, POT_HEALING, ORCISH_DAGGER, WEAPON_CLASS } from '../../js/objects.js';
 import { SLIMED } from '../../js/const.js';
-import { AT_WEAP, AT_BITE, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_CURS, AD_FAMN, AD_SSEX, AD_POLY, M1_HUMANOID, PM_WEREWOLF, mons } from '../../js/monsters.js';
+import { AT_WEAP, AT_BITE, AD_PHYS, AD_LEGS, AD_SLIM, AD_WERE, AD_DGST, AD_PEST, AD_CURS, AD_FAMN, AD_SSEX, AD_POLY, AD_DETH, M1_HUMANOID, M2_UNDEAD, PM_WEREWOLF, mons } from '../../js/monsters.js';
 
 // Mock display object
 const mockDisplay = {
@@ -349,6 +349,45 @@ describe('Combat system', () => {
         p.fainted = true;
         await mattacku(mon, p, mockDisplay);
         assert.equal(p.hunger, 1000, 'AD_FAMN should not consume hunger while fainted');
+    });
+
+    it('AD_DETH against undead hero applies reduced physical damage branch', async () => {
+        const mkUndeadHero = () => {
+            const p = new Player();
+            p.initRole(0);
+            p.ac = 10;
+            p.x = 5;
+            p.y = 5;
+            p.data = { mflags2: M2_UNDEAD };
+            p.monst = p.data;
+            return p;
+        };
+
+        initRng(23);
+        const pDeth = mkUndeadHero();
+        const hpDeth0 = pDeth.hp;
+        const monDeth = makeMonster({
+            level: 30,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_DETH, damn: 2, damd: 6 }],
+            mx: 6, my: 5,
+        });
+        await mattacku(monDeth, pDeth, mockDisplay);
+        const dethLoss = hpDeth0 - pDeth.hp;
+
+        initRng(23);
+        const pPhys = mkUndeadHero();
+        const hpPhys0 = pPhys.hp;
+        const monPhys = makeMonster({
+            level: 30,
+            attacks: [{ aatyp: AT_BITE, adtyp: AD_PHYS, damn: 2, damd: 6 }],
+            mx: 6, my: 5,
+        });
+        await mattacku(monPhys, pPhys, mockDisplay);
+        const physLoss = hpPhys0 - pPhys.hp;
+
+        assert.ok(dethLoss > 0, 'undead-target AD_DETH should still do some damage');
+        assert.ok(dethLoss <= Math.ceil(physLoss / 2),
+            `AD_DETH undead branch should be reduced vs AD_PHYS (deth=${dethLoss}, phys=${physLoss})`);
     });
 
     it('AD_SSEX uses seduction/theft path and does not apply direct damage', async () => {

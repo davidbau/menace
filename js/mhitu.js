@@ -7,7 +7,7 @@ import {
     A_STR, A_DEX, A_CON, A_WIS, A_INT,
     CONFUSION, STUNNED, BLINDED, HALLUC, TIMEOUT,
     FIRE_RES, COLD_RES, SHOCK_RES, SLEEP_RES, POISON_RES, DRAIN_RES,
-    ACID_RES, FREE_ACTION, FAST, SICK_RES, STONE_RES, REFLECTING,
+    ACID_RES, FREE_ACTION, FAST, SICK_RES, STONE_RES, REFLECTING, ANTIMAGIC,
     MALE, FEMALE, DISPLACED,
     LEFT_SIDE, RIGHT_SIDE,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
@@ -39,6 +39,7 @@ import {
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
     dmgtype, dmgtype_fromattack, monsndx, flaming, noncorporeal,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
+    is_undead,
 } from './mondata.js';
 import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
 import {
@@ -47,6 +48,7 @@ import {
 } from './uhitm.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
+import { touch_of_death } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
 import { poisoned, acurr } from './attrib.js';
 import { set_wounded_legs } from './do.js';
@@ -966,11 +968,30 @@ async function mhitu_ad_deth(monster, attack, player, mhm, ctx) {
             `The ${x_monnam(monster)} reaches out with its deadly touch.`
         );
     }
+    const pd = player?.data || player?.monst || {};
+    if (is_undead(pd)) {
+        mhm.damage = Math.floor((Number(mhm.damage || 0) + 1) / 2);
+        if (!ctx.suppressHitMsg) {
+            await ctx.display.putstr_message('Was that the touch of death?');
+        }
+        return;
+    }
+
+    const hasAntimagic = playerHasProp(player, ANTIMAGIC)
+        || !!(player?.antimagic || player?.Antimagic);
+
     // C: switch(rn2(20)) for death/drain/lucky outcomes
     const roll = rn2(20);
     if (roll >= 17) {
-        // Touch of death — not fully implemented
-        mhm.damage = 0;
+        if (!hasAntimagic) {
+            touch_of_death(monster, player);
+            mhm.damage = 0;
+            return;
+        }
+        if (!ctx.suppressHitMsg) {
+            await ctx.display.putstr_message('You feel your life force draining away...');
+        }
+        mhm.permdmg = 1;
     } else if (roll >= 5) {
         // Life force drain
         if (!ctx.suppressHitMsg)

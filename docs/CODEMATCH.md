@@ -2549,7 +2549,7 @@ No function symbols parsed from isaac64.c.
 | - | `mhitu_ad_dgst` | mhitu.js | Implemented — mhitu branch zero-damage behavior (engulf/digestion resolved in separate engulf path) |
 | - | `mhitu_ad_samu` | mhitu.js | Partial — C-shaped `!rn2(20)` branch with `stealamulet` wiring (invocation/amulet path; quest-artifact depth depends on `is_quest_artifact`) |
 | - | `mhitu_ad_dise` | mhitu.js | Implemented — calls diseasemu(); zero-damage when disease resisted |
-| - | `mhitu_ad_deth` | mhitu.js | Implemented — redirects to drli |
+| - | `mhitu_ad_deth` | mhitu.js | Partial — C-shaped mhitu flow: undead-target reduced damage + message, antimagic-aware touch-of-death/life-force-drain/lucky branches; remaining edge parity around full death-side effects |
 | - | `mhitu_ad_pest` | mhitu.js | Partial — C-faithful message + `diseasemu()` side effect while preserving normal physical damage |
 | - | `mhitu_ad_famn` | mhitu.js | Partial — C-shaped message + `exercise(A_CON,FALSE)` and non-fainted hunger drain (`morehungry(rn1(40,40))`) while preserving physical damage |
 | - | `mhitu_ad_halu` | mhitu.js | Implemented — applies hallucination timeout and zeroes damage |

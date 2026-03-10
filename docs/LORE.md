@@ -7038,3 +7038,26 @@ hard-won wisdom:
   - `docs/CODEMATCH.md`:
     - updated stale `mhitu` rows for `AD_CURS`, `AD_POLY`, `AD_SAMU`,
       and `AD_FAMN` from stub wording to accurate partial implementations.
+
+## 2026-03-10: `mhitu AD_DETH` C-branch alignment pass
+
+- Problem:
+  - `mhitu_ad_deth` was still a coarse approximation and missed key C branch
+    structure:
+    - undead-target reduced-damage behavior,
+    - antimagic-gated touch-of-death vs life-force-drain path.
+- Change:
+  - `js/mhitu.js`:
+    - added undead-target branch: reduce damage to `(damage+1)/2` and emit
+      "Was that the touch of death?".
+    - added antimagic-aware high-roll handling:
+      - no antimagic: `touch_of_death(...)` and zero direct damage,
+      - with antimagic: life-force-drain messaging + `permdmg` path.
+    - preserved existing low-roll lucky branch and mid-roll life-force-drain
+      branch.
+  - `test/unit/combat.test.js`:
+    - added deterministic regression test comparing undead-target `AD_DETH`
+      against same-seed `AD_PHYS`, asserting reduced damage behavior.
+  - `docs/CODEMATCH.md`:
+    - updated stale `mhitu_ad_deth` row text to reflect current partial
+      C-shaped implementation.
