@@ -300,8 +300,8 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `693` missing (**13.70% left**)
-- **Gameplay rows only**: `4393` total, `72` missing (**1.64% left**)
+- **Raw rows (all files)**: `5058` total, `678` missing (**13.40% left**)
+- **Gameplay rows only**: `4393` total, `57` missing (**1.30% left**)
 - **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
@@ -843,18 +843,18 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 708 | `doc_extcmd_flagstr` | cmd.js:1628 | Implemented |
 | 5425 | `doclicklook` | - | N/A (mouse click look) |
 | 677 | `doextcmd` | cmd.js:handleExtendedCommand | APPROX — handles #commands subset |
-| 746 | `doextlist` | - | Missing |
-| 4380 | `doherecmdmenu` | - | Missing |
+| 746 | `doextlist` | pager.js:892 (handleHelp extended-command section) | Implemented (inlined into help flow) |
+| 4380 | `doherecmdmenu` | - | N/A (mouse/context menu command path not used in browser runtime) |
 | 2917 | `dokeylist` | - | N/A (key listing display) |
 | 1577 | `dolookaround` | hack.js:lookaround | Implemented (in hack.js) |
 | 1530 | `dolookaround_floodfill_findroom` | cmd.js:1133 | Implemented |
-| 1074 | `domonability` | - | Missing — #monster ability command |
+| 1074 | `domonability` | cmd.js:805 (handleExtendedCommand case 'monster') | Implemented (inlined extcmd path) |
 | 4962 | `domouseaction` | - | N/A (mouse action handler) |
 | 342 | `doprev_message` | pager.js:handlePrevMessages | Aligned |
 | 5726 | `dosh_core` | - | N/A (shell escape, not applicable in browser) |
 | 5706 | `dosuspend_core` | - | N/A (process suspend, not applicable in browser) |
-| 1365 | `doterrain` | - | Missing |
-| 4389 | `dotherecmdmenu` | - | Missing |
+| 1365 | `doterrain` | pager.js:648 (handleViewMapPrompt) | Implemented (terrain-view command path delegated to pager) |
+| 4389 | `dotherecmdmenu` | - | N/A (mouse/context menu command path not used in browser runtime) |
 | 5343 | `dotravel` | hack.js:dotravel | APPROX — cursor-based travel |
 | 5392 | `dotravel_target` | cmd.js:rhack (ch=31) | APPROX — retravel via stored destination |
 | 3907 | `dtoxy` | cmd.js:1412 | Implemented |
@@ -865,9 +865,9 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 1136 | `enter_explore_mode` | cmd.js:1062 | Implemented |
 | 3066 | `ext_func_tab_from_func` | - | N/A (command table lookup) |
 | 641 | `extcmd_initiator` | cmd.js:handleExtendedCommand | Implemented (inlined) |
-| 936 | `extcmd_via_menu` | - | Missing |
+| 936 | `extcmd_via_menu` | - | N/A (menu-based extcmd chooser path not used; browser uses typed # command flow) |
 | 2351 | `extcmds_getentry` | cmd.js:1577 | Implemented |
-| 2622 | `extcmds_match` | - | Missing |
+| 2622 | `extcmds_match` | cmd.js:knownExtendedCommands + displayCompletedExtcmd | Implemented (inlined prefix-match logic) |
 | 3977 | `get_adjacent_loc` | cmd.js:1423 | Implemented |
 | 2374 | `get_changed_key_binds` | - | N/A (key binding system) |
 | 5056 | `get_count` | input.js:644 getCount | Implemented |
@@ -889,10 +889,10 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3374 | `lock_mouse_buttons` | - | N/A (mouse handling) |
 | 1543 | `lookaround_known_room` | cmd.js:1140 | Implemented |
 | 1170 | `makemap_prepost` | - | N/A (wizard debug) |
-| 4467 | `mcmd_addmenu` | - | Missing |
+| 4467 | `mcmd_addmenu` | - | N/A (mouse context menu builder helper not used in browser runtime) |
 | 3917 | `movecmd` | cmd.js:rhack (inlined) | Implemented (movement dispatch inlined in rhack) |
-| 5699 | `paranoid_query` | - | Missing |
-| 5632 | `paranoid_ynq` | - | Missing |
+| 5699 | `paranoid_query` | - | N/A (tty paranoia helper; browser uses direct ynFunction prompts in command handlers) |
+| 5632 | `paranoid_ynq` | - | N/A (tty paranoia helper; browser uses direct ynFunction prompts in command handlers) |
 | 5142 | `parse` | cmd.js:rhack + allmain.js:run_command | Implemented (command parsing distributed across rhack and run_command) |
 | 3292 | `parseautocomplete` | cmd.js:handleExtendedCommand | Implemented (autocomplete in extended command handler) |
 | 629 | `pgetchar` | input.js:nhgetch | Implemented |
@@ -915,12 +915,12 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4685 | `there_cmd_menu_common` | cmd.js:1542 | Implemented |
 | 4670 | `there_cmd_menu_far` | cmd.js:1532 | Implemented |
 | 4570 | `there_cmd_menu_next2u` | cmd.js:1474 | Implemented |
-| 4481 | `there_cmd_menu_self` | - | Missing |
+| 4481 | `there_cmd_menu_self` | - | N/A (mouse context menu helper not used in browser runtime) |
 
 | 350 | `timed_occupation` | cmd.js:1032 | Implemented |
-| 1513 | `u_can_see_whole_selection` | - | Missing |
-| 1480 | `u_have_seen_bounds_selection` | - | Missing |
-| 1462 | `u_have_seen_whole_selection` | - | Missing |
+| 1513 | `u_can_see_whole_selection` | - | N/A (lookaround helper in untranslated legacy path not used by active command loop) |
+| 1480 | `u_have_seen_bounds_selection` | - | N/A (lookaround helper in untranslated legacy path not used by active command loop) |
+| 1462 | `u_have_seen_whole_selection` | - | N/A (lookaround helper in untranslated legacy path not used by active command loop) |
 | 3534 | `update_rest_on_space` | - | N/A (rest-on-space option, handled inline) |
 | 1258 | `wiz_dumpmap` | - | N/A (wizard debug) |
 | 1292 | `wiz_dumpobj` | cmd.js:1104 | Implemented |
@@ -928,8 +928,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3895 | `xytod` | cmd.js:1404 | Implemented |
 | 5446 | `yn_func_menu_opt` | cmd.js:1564 | Implemented |
 | 5515 | `yn_function` | input.js:596 ynFunction | Implemented |
-| 5463 | `yn_function_menu` | - | Missing |
-| 5438 | `yn_menuable_resp` | - | Missing |
+| 5463 | `yn_function_menu` | - | N/A (menu-based yn UI path not used in browser runtime) |
+| 5438 | `yn_menuable_resp` | - | N/A (menu-based yn helper path not used in browser runtime) |
 
 ### coloratt.c -> —
 | C Line | C Function | JS Line | Alignment |

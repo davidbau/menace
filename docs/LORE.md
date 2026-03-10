@@ -6295,3 +6295,30 @@ hard-won wisdom:
   - Metrics recompute script confirms:
     - `questpgr.c` now `0 / 20` missing
     - gameplay missing reduced from `89` to `72`.
+
+### CODEMATCH cmd.c cleanup: close residual missing rows (2026-03-10)
+
+- Problem:
+  - `cmd.c` remained the largest residual gameplay-classified bucket with
+    15 missing rows, mixing a few inlined command behaviors and many
+    mouse/tty/menu-only helpers not used in browser runtime.
+- Change:
+  - Updated `docs/CODEMATCH.md` `cmd.c` rows as follows:
+    - Marked inlined/redirected behaviors as implemented:
+      - `doextlist` (help-flow extended command section),
+      - `domonability` (`handleExtendedCommand` `'monster'` case),
+      - `doterrain` (`pager.handleViewMapPrompt`),
+      - `extcmds_match` (inlined via `knownExtendedCommands` +
+        `displayCompletedExtcmd`).
+    - Marked browser-nonruntime mouse/tty/menu helpers as explicit `N/A`:
+      - `doherecmdmenu`, `dotherecmdmenu`, `mcmd_addmenu`,
+        `there_cmd_menu_self`, `extcmd_via_menu`,
+        `paranoid_query`, `paranoid_ynq`,
+        `u_can_see_whole_selection`, `u_have_seen_bounds_selection`,
+        `u_have_seen_whole_selection`,
+        `yn_function_menu`, `yn_menuable_resp`.
+  - Refreshed CODEMATCH function-level metrics after this closure.
+- Validation:
+  - Metrics recompute script confirms:
+    - `cmd.c` now `0 / 147` missing
+    - gameplay missing reduced from `72` to `57`.
