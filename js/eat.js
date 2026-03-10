@@ -2,7 +2,7 @@
 // cf. eat.c — doeat, start_eating, eatfood, bite, corpse intrinsics, hunger
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { more, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
          MEAT_RING, MEATBALL, MEAT_STICK, ENORMOUS_MEATBALL,
@@ -1845,7 +1845,7 @@ async function handleEat(player, display, game) {
         const article = /^[aeiou]/i.test(floorName) ? 'an' : 'a';
         await display.putstr_message(`There is ${article} ${floorName} here; eat it? [ynq] (n)`);
         const ans = String.fromCharCode(
-            await nhgetch_wrap()
+            await nhgetch_raw({ site: 'eat.handleEat.floorPrompt' })
         ).toLowerCase();
         if (ans === 'q') {
             // cf. eat.c floorfood() — 'q' exits immediately
@@ -1875,7 +1875,7 @@ async function handleEat(player, display, game) {
             display.messageNeedsMore = false;
             const eatPrompt = `What do you want to eat? [${eatChoices} or ?*] `;
             await display.putstr_message(eatPrompt);
-            const ch = await nhgetch_wrap();
+            const ch = await nhgetch_raw({ site: 'eat.handleEat.inventorySelect' });
             const c = String.fromCharCode(ch);
 
             if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {

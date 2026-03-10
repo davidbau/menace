@@ -6162,3 +6162,26 @@ hard-won wisdom:
   - `node --test test/unit/trap_surface.test.js` passed.
   - `node --test test/unit/trap_accuracy.test.js` passed.
   - `node --test test/unit/mktrap_parity.test.js` passed.
+
+### nhgetch cleanup: stale topline ack when switching wrap->raw (2026-03-10)
+
+- Symptom:
+  - Converting some gameplay reads from `nhgetch_wrap()` to `nhgetch_raw()`
+    caused screen-only drift (not RNG/event), first seen in
+    `seed031_manual_direct` step 10:
+    - JS: `"What do you want to throw? ...  You don't have that object."`
+    - C/session: `"You don't have that object.--More--"`
+- Root cause:
+  - `nhgetch_wrap()` was clearing `display.messageNeedsMore` on keypress,
+    but `nhgetch_raw()` was not.
+  - After a prompt read, the next message could be appended to stale topline
+    prompt text instead of replacing it.
+- Fix:
+  - Moved keypress acknowledgement behavior into `nhgetch_raw()`:
+    after any successful key read, clear `display.messageNeedsMore`.
+  - This preserves expected topline replacement semantics while allowing
+    additional safe `wrap -> raw` conversions.
+- Validation:
+  - `scripts/run-and-report.sh` returned `34/34` gameplay sessions green
+    after the fix and subsequent `wrap -> raw` conversions in `dothrow`,
+    `eat`, and `getpos`.

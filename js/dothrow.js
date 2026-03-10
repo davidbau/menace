@@ -25,7 +25,7 @@ import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
-import { more, nhgetch_raw, nhgetch_wrap } from './input.js';
+import { more, nhgetch_raw } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
          FLINT, ROCK, SLING, BULLWHIP, BOOMERANG, AKLYS, WAR_HAMMER,
@@ -355,7 +355,7 @@ export async function handleThrow(player, map, display) {
         : 'What do you want to throw? [*] ';
     await display.putstr_message(throwPrompt);
     while (true) {
-        const ch = await nhgetch_wrap();
+        const ch = await nhgetch_raw({ site: 'dothrow.handleThrow.select' });
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
@@ -529,7 +529,7 @@ export async function handleFire(player, map, display, game) {
     await display.putstr_message(firePrompt);
     let pendingCount = '';
     while (true) {
-        const ch = await nhgetch_wrap();
+        const ch = await nhgetch_raw({ site: 'dothrow.handleFire.select' });
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();

@@ -461,6 +461,12 @@ export function nhgetch_raw(opts = {}) {
     }
     const snap = beginOriginAwait(activeGame, 'input');
     return Promise.resolve(activeInputRuntime.nhgetch())
+        .then((ch) => {
+            // C ref: tty topline key acknowledgement semantics.
+            // After any keypress, topline should no longer be in NEED_MORE state.
+            if (display) display.messageNeedsMore = false;
+            return ch;
+        })
         .finally(() => {
             endOriginAwait(activeGame, snap);
         });
