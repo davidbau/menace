@@ -41,7 +41,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
-import { an } from './objnam.js';
+import { an, vtense } from './objnam.js';
 import { delobj, g_at } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';

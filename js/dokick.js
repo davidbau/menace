@@ -78,7 +78,7 @@ import { scatter } from './explode.js';
 import { sobj_at, delobj } from './invent.js';
 import { snuff_candle } from './apply.js';
 import { bhit } from './zap.js';
-import { dealloc_obj, obj_extract_self } from './mkobj.js';
+import { dealloc_obj, obj_extract_self, doname } from './mkobj.js';
 import { find_trap } from './detect.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import {

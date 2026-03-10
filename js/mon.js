@@ -85,7 +85,7 @@ import { dist2, distmin } from './hacklib.js';
 import { in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
 import { monsterAtWithSegments, worm_cross } from './worm.js';
-import { ansimpleoname, Has_contents } from './objnam.js';
+import { ansimpleoname, Has_contents, vtense } from './objnam.js';
 import { game as _gstate } from './gstate.js';
 import { sengr_at, del_engr_at } from './engrave.js';
 import { adjalign, change_luck } from './attrib.js';

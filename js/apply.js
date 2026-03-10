@@ -93,6 +93,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { break_wand } from './zap.js';
 import { body_part } from './polyself.js';
+import { freehand } from './engrave.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
