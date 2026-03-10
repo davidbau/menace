@@ -40,7 +40,7 @@ import {
 import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
-import { rnd_class, safe_typename } from './objnam.js';
+import { rnd_class, safe_typename, makeplural } from './objnam.js';
 import { extract_from_minvent } from './worn.js';
 import { g_at } from './invent.js';
 import { impossible } from './pline.js';
@@ -1118,14 +1118,13 @@ export function mkobj(oclass, artif, skipErosion) {
 }
 
 // C ref: objnam.c just_an() — pick "a" vs "an" for a noun.
-// Mirrors the exception list in objnam.js just_an().
+// Local copy (no trailing space) — canonical objnam.js version includes trailing space.
 function just_an(str) {
     const s = String(str || '').trimStart();
     if (!s) return 'a';
     const c = s[0].toLowerCase();
     const sl = s.toLowerCase();
     if ('aeiou'.includes(c)) {
-        // Exceptions: vowel-starting words with consonant-like pronunciation
         if ((sl.startsWith('one') && (!s[3] || '-_ '.includes(s[3])))
             || sl.startsWith('eu')
             || sl.startsWith('uke')
@@ -1137,54 +1136,11 @@ function just_an(str) {
         }
         return 'an';
     }
-    // "x" before a consonant sounds like "ex" → "an x-ray"
     if (c === 'x' && !'aeiou'.includes(s[1]?.toLowerCase() || '')) return 'an';
     return 'a';
 }
 
-// C ref: objnam.c makeplural() + singplur_compound() (subset).
-function makeplural(word) {
-    const w0 = String(word || '').trimStart();
-    if (!w0) return 's';
-    if (/^pair of /i.test(w0)) return w0;
-
-    const compounds = [
-        ' of ', ' labeled ', ' called ', ' named ', ' above', ' versus ',
-        ' from ', ' in ', ' on ', ' a la ', ' with', ' de ', " d'",
-        ' du ', ' au ', '-in-', '-at-',
-    ];
-    const lower = w0.toLowerCase();
-    let splitIdx = -1;
-    for (const c of compounds) {
-        const idx = lower.indexOf(c);
-        if (idx >= 0 && (splitIdx < 0 || idx < splitIdx)) splitIdx = idx;
-    }
-    const excess = splitIdx >= 0 ? w0.slice(splitIdx) : '';
-    let stem = splitIdx >= 0 ? w0.slice(0, splitIdx) : w0;
-    stem = stem.replace(/\s+$/, '');
-    if (!stem) return `s${excess}`;
-
-    const irregular = new Map([
-        ['corpse', 'corpses'],
-        ['knife', 'knives'],
-        ['tooth', 'teeth'],
-        ['staff', 'staves'],
-        ['man', 'men'],
-    ]);
-    const asIs = ['boots', 'shoes', 'gloves', 'lenses', 'scales', 'gauntlets', 'iron bars', 'ya'];
-    const stemLower = stem.toLowerCase();
-    if (asIs.some(s => stemLower.endsWith(s))) return `${stem}${excess}`;
-
-    for (const [sing, plur] of irregular.entries()) {
-        if (stemLower.endsWith(sing)) {
-            return `${stem.slice(0, stem.length - sing.length)}${plur}${excess}`;
-        }
-    }
-    if (!/[A-Za-z]$/.test(stem)) return `${stem}'s${excess}`;
-    if (/(s|x|z|ch|sh)$/i.test(stem) || /ato$/i.test(stem)) return `${stem}es${excess}`;
-    if (/[^aeiou]y$/i.test(stem)) return `${stem.slice(0, -1)}ies${excess}`;
-    return `${stem}s${excess}`;
-}
+// makeplural imported from objnam.js
 
 // C ref: objnam.c xname() pluralize path + makeplural()
 function pluralizeName(name) {

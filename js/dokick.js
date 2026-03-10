@@ -14,7 +14,9 @@
 //   ghitm(): gold/object thrown at monster with shop interaction.
 
 import { rn2, rnd, rnl } from './rng.js';
-import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines } from './dungeon.js';
+import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines, dunlev, dunlevs_in_dungeon } from './dungeon.js';
+import { sgn } from './hacklib.js';
+import { Role_if } from './role.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr as ACURR, acurrstr as ACURRSTR, change_luck, adjalign } from './attrib.js';
 import {
@@ -253,14 +255,8 @@ async function miss(what, mtmp) {
 const something = "something";
 const Something = "Something";
 
-// sgn helper
-function sgn(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
-
-// Role_if
-function Role_if(pm, player) {
-    // TODO: implement proper role check
-    return false;
-}
+// sgn imported from hacklib.js
+// Role_if imported from role.js
 
 // ============================================================================
 // stairway helpers (local, simplified)
@@ -432,8 +428,7 @@ function remove_worn_item(obj, osync) {
 // Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines imported from dungeon.js
 // on_level available from dungeon.js if needed
 function ok_to_quest() { return true; }
-function dunlev(uz) { return uz ? uz.dlevel : 1; }
-function dunlevs_in_dungeon(uz) { return 30; }
+// dunlev, dunlevs_in_dungeon imported from dungeon.js
 
 // ============================================================================
 // Wipe engraving
@@ -1391,7 +1386,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       return ECMD_TIME;
     }
     else if (!rn2(4)) {
-      if (dunlev(map.uz) < dunlevs_in_dungeon(map.uz)) { fall_through(false, 0); return ECMD_TIME; }
+      if (dunlev(map.uz) < dunlevs_in_dungeon(map.uz.dnum)) { fall_through(false, 0); return ECMD_TIME; }
       else { await kick_ouch(x, y, ""); return ECMD_TIME; }
     }
     await kick_ouch(x, y, "");
@@ -1421,7 +1416,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     else if (!game.maploc.disturbed && !rn2(2)) { await disturb_grave(x, y); }
     else {
       await exercise(player, A_WIS, false);
-      if (Role_if(PM_ARCHEOLOGIST) || Role_if(PM_SAMURAI) || (player.ualign.type === A_LAWFUL && player.ualign.record > -10)) adjalign(-sgn(player.ualign.type));
+      if (Role_if(player, PM_ARCHEOLOGIST) || Role_if(player, PM_SAMURAI) || (player.ualign.type === A_LAWFUL && player.ualign.record > -10)) adjalign(-sgn(player.ualign.type));
       game.maploc.typ = ROOM;
       game.maploc.emptygrave = 0;
       game.maploc.disturbed = 0;
