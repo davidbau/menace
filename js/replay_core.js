@@ -6,7 +6,7 @@
 
 import { enableRngLog, getRngLog, disableRngLog, pushRngLogEntry } from './rng.js';
 import { pushInput } from './input.js';
-import { NetHackGame, run_command, execute_repeat_command } from './allmain.js';
+import { NetHackGame, run_command, execute_repeat_command, getRuntimeInputSnapshot } from './allmain.js';
 import { HeadlessDisplay, createHeadlessInput } from './headless.js';
 import { consumeHarnessMapdumpPayloads } from './dungeon.js';
 import { envFlag, getEnv } from './runtime_env.js';
@@ -125,9 +125,7 @@ function replayPendingTrace(...args) {
 }
 
 function replayBoundaryState(game, inputRuntime) {
-    const boundary = (typeof game?.getInputBoundaryState === 'function')
-        ? game.getInputBoundaryState()
-        : null;
+    const boundary = game ? getRuntimeInputSnapshot(game) : null;
     if (boundary) {
         return [
             `boundary=${String(boundary.boundaryKind || 'none')}`,

@@ -114,6 +114,31 @@ function questPortalInfoForPlayer(player) {
         || { leader: 'your quest leader', homebase: 'your home base' };
 }
 
+export function getRuntimeInputSnapshot(game) {
+    const display = game?.display || null;
+    const input = game?.input || null;
+    const promptActive = !!(game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function');
+    const menuActive = !!hasActiveTextPopupWindow();
+    const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
+    const ackRequired = !!display?.messageNeedsMore;
+    const execState = getCommandExecState(game);
+    let boundaryKind = 'none';
+    if (promptActive) boundaryKind = 'prompt';
+    else if (menuActive) boundaryKind = 'menu';
+    else if (waitingRaw) boundaryKind = 'input';
+    return {
+        waitingForInput: promptActive || menuActive || waitingRaw,
+        boundaryKind,
+        source: boundaryKind,
+        pendingCount: promptActive ? 1 : 0,
+        ackRequired,
+        stackOwner: promptActive ? 'prompt' : null,
+        stackDepth: promptActive ? 1 : 0,
+        commandExecToken: execState?.activeToken ?? null,
+        commandExecDepth: Number(execState?.depth || 0),
+    };
+}
+
 async function com_pager_quest_common(msgid, player) {
     // C ref: questpgr.c com_pager_core() -> nhl_init() loads nhlib.lua.
     // nhlib top-level shuffle(align) consumes rn2(3), rn2(2) per call.
@@ -521,7 +546,7 @@ export async function run_command(game, ch, opts = {}) {
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
-        boundary: game?.getInputBoundaryState?.() || null,
+        boundary: getRuntimeInputSnapshot(game),
     });
     const execToken = beginCommandExec(game, { site: 'run_command', key: chCode });
 
@@ -572,7 +597,7 @@ export async function run_command(game, ch, opts = {}) {
     if (game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function') {
         game?.emitDiagnosticEvent?.('boundary.prompt.key', {
             key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
+            boundary: getRuntimeInputSnapshot(game),
         });
         const promptResult = await Promise.resolve(game.pendingPrompt.onKey(chCode, game));
         const finalized = await handlePromptResult(promptResult);
@@ -582,7 +607,7 @@ export async function run_command(game, ch, opts = {}) {
         // non-handled (for example during transient prompt state updates).
         game?.emitDiagnosticEvent?.('boundary.prompt.ignored-key', {
             key: chCode,
-            boundary: game?.getInputBoundaryState?.() || null,
+            boundary: getRuntimeInputSnapshot(game),
         });
         return { tookTime: false, moved: false, prompt: true };
     }
@@ -1324,31 +1349,6 @@ export class NetHackGame {
         if (!cap) return [];
         const start = Math.max(0, this._diagEvents.length - cap);
         return this._diagEvents.slice(start);
-    }
-
-    getInputBoundaryState() {
-        const display = this.display || null;
-        const input = this.input || null;
-        const promptActive = !!(this.pendingPrompt && typeof this.pendingPrompt.onKey === 'function');
-        const menuActive = !!hasActiveTextPopupWindow();
-        const waitingRaw = !!(input && typeof input.isWaitingInput === 'function' && input.isWaitingInput());
-        const ackRequired = !!display?.messageNeedsMore;
-        const execState = getCommandExecState(this);
-        let boundaryKind = 'none';
-        if (promptActive) boundaryKind = 'prompt';
-        else if (menuActive) boundaryKind = 'menu';
-        else if (waitingRaw) boundaryKind = 'input';
-        return {
-            waitingForInput: promptActive || menuActive || waitingRaw,
-            boundaryKind,
-            source: boundaryKind,
-            pendingCount: promptActive ? 1 : 0,
-            ackRequired,
-            stackOwner: promptActive ? 'prompt' : null,
-            stackDepth: promptActive ? 1 : 0,
-            commandExecToken: execState?.activeToken ?? null,
-            commandExecDepth: Number(execState?.depth || 0),
-        };
     }
 
     // Emit lifecycle event

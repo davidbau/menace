@@ -585,7 +585,7 @@ prompt/menu shim with no `more` ownership and no key-dispatch multiplexer.
 | `clearInputBoundary()` | ~10 | allmain.js |
 | `clearInputBoundariesByOwner()` | ~5 | allmain.js |
 | `peekInputBoundary()` | ~5 | allmain.js |
-| `getInputBoundaryState()` / `getAllInputBoundaryState()` | ~20 | allmain.js |
+| `getRuntimeInputSnapshot()` (direct runtime diagnostics) | ~25 | allmain.js |
 | `_inputBoundaryStack` field + init | ~5 | allmain.js |
 | `pendingPrompt` setter (boundary registration) | ~20 | allmain.js |
 | `_pendingPromptBoundaryToken` tracking | ~10 | allmain.js |
