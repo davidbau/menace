@@ -11,14 +11,14 @@ import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizW
 import { handleThrow, handleFire } from './dothrow.js';
 import { handleKnownSpells, docast } from './spell.js';
 import { handleEngrave } from './engrave.js';
-import { handleApply } from './apply.js';
+import { handleApply, reset_trapset } from './apply.js';
 import { DART, ARROW } from './objects.js';
 import { more, nhgetch_raw, ynFunction, getlin, cmdq_pop_command, cmdq_clear, cmdq_add_ec,
        } from './input.js';
 import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
-import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll } from './do_wear.js';
+import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll, reset_remarm } from './do_wear.js';
 import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
 import { handleInventory, currency, doorganize } from './invent.js';

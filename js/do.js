@@ -53,6 +53,10 @@ import { setCurrentLevelStairs } from './stairs.js';
 import { float_down } from './trap.js';
 import { check_special_room, move_update } from './hack.js';
 import { W_ART, W_ARTI } from './const.js';
+import { hitfloor } from './dothrow.js';
+import { can_reach_floor } from './engrave.js';
+import { finesse_ahriman } from './artifact.js';
+import { freeinv } from './invent.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
@@ -1872,12 +1876,12 @@ export async function drop(obj, game, map, player) {
   }
   else {
     if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj); return ECMD_TIME; }
-    if (!can_reach_floor(true)) {
-      let levhack = finesse_ahriman(obj);
+    if (!can_reach_floor(player, map, true)) {
+      let levhack = finesse_ahriman(obj, player);
       // TODO: if (levhack) E(Levitation) = W_ART — autotranslation stub
       if (game.flags.verbose) await You("drop %s.", doname(obj));
-      freeinv(obj);
-      await hitfloor(obj, true);
+      freeinv(obj, player);
+      await hitfloor(obj, true, player, map);
       if (levhack) await float_down(I_SPECIAL | TIMEOUT, W_ARTI | W_ART, player, game);
       return ECMD_TIME;
     }
