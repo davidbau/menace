@@ -1923,7 +1923,7 @@ async function handleEat(player, display, game) {
                 // on mode. In non-wizard mode, it emits a "--More--" that blocks
                 // until Space/Enter/Esc; in wizard mode it silently re-prompts.
                 if (!player.wizard) {
-                    await display.putstr_message("You don't have that object.--More--");
+                    await display.putstr_message("You don't have that object.");
                     if (typeof display.renderMoreMarker === 'function') {
                         display.renderMoreMarker();
                     }

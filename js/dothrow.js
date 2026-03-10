@@ -25,7 +25,7 @@ import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
-import { nhgetch_wrap } from './input.js';
+import { more, nhgetch_wrap } from './input.js';
 import { awaitInput } from './suspend.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
@@ -357,29 +357,11 @@ export async function handleThrow(player, map, display) {
         ? `What do you want to throw? [${throwChoices} or ?*] `
         : 'What do you want to throw? [*] ';
     await display.putstr_message(throwPrompt);
-    let invalidMorePending = false;
     while (true) {
         const ch = await awaitInput(null, nhgetch_wrap(), {
             site: 'dothrow.handleThrow.select',
         });
         let c = String.fromCharCode(ch);
-        if (invalidMorePending) {
-            // C/getobj-style invalid-item loop with explicit --More-- text.
-            if (ch === 27) {
-                invalidMorePending = false;
-                replacePromptMessage();
-                await display.putstr_message('Never mind.');
-                return { moved: false, tookTime: false };
-            }
-            if (ch === 32 || ch === 10 || ch === 13 || ch === 16) {
-                invalidMorePending = false;
-                replacePromptMessage();
-                await display.putstr_message(throwPrompt);
-                continue;
-            }
-            await display.putstr_message("You don't have that object.--More--");
-            continue;
-        }
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
             await display.putstr_message('Never mind.');
@@ -422,8 +404,13 @@ export async function handleThrow(player, map, display) {
         }
         const selItem = player.inventory.find(o => o.invlet === c);
         if (!selItem) {
-            await display.putstr_message("You don't have that object.--More--");
-            invalidMorePending = true;
+            await display.putstr_message("You don't have that object.");
+            if (typeof display?.renderMoreMarker === 'function') {
+                display.renderMoreMarker();
+            }
+            await more(display, { site: 'dothrow.handleThrow.invalidInvlet.more' });
+            replacePromptMessage();
+            await display.putstr_message(throwPrompt);
             continue;
         }
         return await promptDirectionAndThrowItem(player, map, display, selItem);
@@ -559,28 +546,11 @@ export async function handleFire(player, map, display, game) {
         : 'What do you want to fire? [*] ';
     await display.putstr_message(firePrompt);
     let pendingCount = '';
-    let invalidMorePending = false;
     while (true) {
         const ch = await awaitInput(game, nhgetch_wrap(), {
             site: 'dothrow.handleFire.select',
         });
         let c = String.fromCharCode(ch);
-        if (invalidMorePending) {
-            if (ch === 27) {
-                invalidMorePending = false;
-                replacePromptMessage();
-                await display.putstr_message('Never mind.');
-                return { moved: false, tookTime: false };
-            }
-            if (ch === 32 || ch === 10 || ch === 13 || ch === 16) {
-                invalidMorePending = false;
-                replacePromptMessage();
-                await display.putstr_message(firePrompt);
-                continue;
-            }
-            await display.putstr_message("You don't have that object.--More--");
-            continue;
-        }
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
             await display.putstr_message('Never mind.');
@@ -648,8 +618,13 @@ export async function handleFire(player, map, display, game) {
             }
             return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true });
         }
-        await display.putstr_message("You don't have that object.--More--");
-        invalidMorePending = true;
+        await display.putstr_message("You don't have that object.");
+        if (typeof display?.renderMoreMarker === 'function') {
+            display.renderMoreMarker();
+        }
+        await more(display, { game, site: 'dothrow.handleFire.invalidInvlet.more' });
+        replacePromptMessage();
+        await display.putstr_message(firePrompt);
     }
 }
 

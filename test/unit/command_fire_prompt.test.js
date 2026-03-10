@@ -105,14 +105,14 @@ test('fire prompt falls back to coin letter when no launcher candidates exist', 
     assert.equal(game.display.topMessage, 'Never mind.');
 });
 
-test('fire prompt shows C-style invalid-object --More-- loop', async () => {
+test('fire prompt shows C-style invalid-object more() loop', async () => {
     const game = makeGame();
     game.player.inventory = [
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
     ];
     clearInputQueue();
     pushInput('f'.charCodeAt(0)); // invalid inventory letter at fire prompt
-    pushInput(' '.charCodeAt(0)); // acknowledge --More-- and re-show prompt
+    pushInput(' '.charCodeAt(0)); // acknowledge more() boundary and re-show prompt
     pushInput(27); // cancel
 
     const result = await rhack('f'.charCodeAt(0), game);
@@ -120,7 +120,7 @@ test('fire prompt shows C-style invalid-object --More-- loop', async () => {
     assert.deepEqual(game.display.messages, [
         'You have no ammunition readied.',
         'What do you want to fire? [$ or ?*] ',
-        "You don't have that object.--More--",
+        "You don't have that object.",
         'What do you want to fire? [$ or ?*] ',
         'Never mind.',
     ]);
@@ -222,7 +222,7 @@ test('fire accepts manual inventory letters then asks direction', async () => {
     assert.equal(game.player.quiver, readied);
 });
 
-test("fire invalid inventory letter shows C-style don't-have-object --More-- loop", async () => {
+test("fire invalid inventory letter shows C-style don't-have-object more() loop", async () => {
     const game = makeGame();
     game.player.inventory = [
         { oclass: COIN_CLASS, otyp: GOLD_PIECE, invlet: '$', name: 'gold piece', quan: 10 },
@@ -230,12 +230,12 @@ test("fire invalid inventory letter shows C-style don't-have-object --More-- loo
     ];
     clearInputQueue();
     pushInput('f'.charCodeAt(0)); // invalid item letter
-    pushInput(' '.charCodeAt(0)); // dismiss --More-- and reprompt
+    pushInput(' '.charCodeAt(0)); // dismiss more() and reprompt
     pushInput(27); // cancel
 
     const result = await rhack('f'.charCodeAt(0), game);
     assert.equal(result.tookTime, false);
-    assert.equal(game.display.messages[2], "You don't have that object.--More--");
+    assert.equal(game.display.messages[2], "You don't have that object.");
     assert.equal(game.display.messages[3], 'What do you want to fire? [$ or ?*] ');
     assert.equal(game.display.topMessage, 'Never mind.');
 });

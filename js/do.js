@@ -808,8 +808,7 @@ async function showDropCandidates(candidates, display) {
         display.messageNeedsMore = false;
         const isLast = i === candidates.length - 1;
         const needsMore = forceMoreOnSingle || !isLast;
-        const suffix = needsMore ? '.--More--' : '.';
-        await display.putstr_message(`${item.invlet} - ${doname(item, null)}${suffix}`);
+        await display.putstr_message(`${item.invlet} - ${doname(item, null)}.`);
         if (needsMore) {
             if (typeof display.renderMoreMarker === 'function') {
                 display.renderMoreMarker();

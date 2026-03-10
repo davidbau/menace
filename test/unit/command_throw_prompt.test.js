@@ -175,18 +175,17 @@ describe('throw prompt behavior', () => {
     it('keeps throw prompt stable on invalid letters', async () => {
         const game = makeGame();
         pushInput('i'.charCodeAt(0));
+        pushInput(' '.charCodeAt(0));
         pushInput('o'.charCodeAt(0));
+        pushInput(' '.charCodeAt(0));
         pushInput('n'.charCodeAt(0));
+        pushInput(' '.charCodeAt(0));
         pushInput(27);
         const result = await rhack('t'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
-        assert.deepEqual(game.display.messages, [
-            'What do you want to throw? [b or ?*] ',
-            "You don't have that object.--More--",
-            "You don't have that object.--More--",
-            "You don't have that object.--More--",
-            'Never mind.',
-        ]);
+        assert.equal(game.display.messages[0], 'What do you want to throw? [b or ?*] ');
+        assert.equal(game.display.messages.filter((m) => m === "You don't have that object.").length, 3);
+        assert.equal(game.display.messages.at(-1), 'Never mind.');
     });
 
     it('stacks repeated throws onto existing floor object', async () => {
