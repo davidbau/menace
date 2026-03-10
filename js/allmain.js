@@ -52,7 +52,7 @@ import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch_wrap, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch_raw, nhgetch_wrap, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode, more } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
@@ -2351,7 +2351,7 @@ export class NetHackGame {
         if (this.display?._pendingMore) {
             await more(this.display, { game: this, site: `${site}.pre-more` });
         }
-        return await nhgetch_wrap({ handleMore: false });
+        return await nhgetch_raw({ site: `${site}.read` });
     }
 
     // Main game loop — browser path

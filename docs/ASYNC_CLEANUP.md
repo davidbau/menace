@@ -445,6 +445,9 @@ Progress note (2026-03-10):
 - Migrated `more_keys.js` off `awaitMore` wrapper.
 - Added canonical `display_sync()` origin primitive in `origin_awaits.js` and
   switched `allmain` timed-turn UI yields to use it.
+- Migrated safe `nhgetch_wrap({handleMore:false})` reads to `nhgetch_raw()` in
+  `allmain._readCommandLoopKey` and `input.readBoundaryKey` (explicit `more()`
+  ownership retained).
 - Validation: `scripts/run-and-report.sh` remains 34/34 passing.
 
 #### Phase 2d: Delete old mechanisms (contract)

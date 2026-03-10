@@ -547,13 +547,13 @@ export async function readBoundaryKey(display, site, game = null) {
     if (display && display._pendingMore) {
         await consumePendingMore(
             display,
-            () => nhgetch_wrap({ handleMore: false }),
+            () => nhgetch_raw({ site: `${site}.more-consume` }),
             () => display._clearMore(),
             { game, site: `${site}.more-consume` }
         );
         display.messageNeedsMore = false;
     }
-    return await nhgetch_wrap({ handleMore: false });
+    return await nhgetch_raw({ site: `${site}.read` });
 }
 
 export async function more(display, { site = 'input.more', game = null, forceVisual = false } = {}) {
