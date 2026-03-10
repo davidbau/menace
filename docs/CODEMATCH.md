@@ -5428,7 +5428,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 2341 | `mhitm_ad_dcay` | uhitm.js | Partial — C-shaped m-vs-m cancellation gate, rotting-golem instant kill path (`completelyrots`), erosion call, wait-strategy clear, and zero-damage branch |
 | 3815 | `mhitm_ad_deth` | uhitm.js | Implemented (redirects to drli) |
 | 4470 | `mhitm_ad_dgst` | uhitm.js | Partial — m-vs-m digest sets lethal swallow damage; Rider defender kills aggressor path modeled |
-| 4571 | `mhitm_ad_dise` | uhitm.js | Partial — m-vs-m immunity gates for fungus/ghoul; susceptible targets keep normal damage |
+| 4571 | `mhitm_ad_dise` | uhitm.js | Partial — m-vs-m immunity gates for fungus/ghoul plus `defended(AD_DISE)` protection; susceptible targets keep normal damage |
 | 2396 | `mhitm_ad_dren` | uhitm.js | Implemented (m-vs-m path) |
 | 3146 | `mhitm_ad_drin` | uhitm.js | Implemented (m-vs-m path) |
 | 2423 | `mhitm_ad_drli` | uhitm.js | Implemented (m-vs-m path) |
@@ -5446,8 +5446,8 @@ Remaining parity gaps are mostly behavioral depth:
 | 3707 | `mhitm_ad_poly` | uhitm.js | Partial — m-vs-m negation/cooldown gate + hit/done path; full newcham transformation still pending |
 | 2259 | `mhitm_ad_rust` | uhitm.js | Partial — C-shaped m-vs-m cancellation gate, iron-golem instant kill path (`completelyrusts`), erosion call, wait-strategy clear, and zero-damage branch |
 | 4548 | `mhitm_ad_samu` | uhitm.js | Implemented — m-vs-m no-op with zero damage (matches C branch) |
-| 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m item theft from defender inventory (tame avoids cursed items); nymph marks `M_ATTK_AGR_DONE` |
-| 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with same-class/cancel gates |
+| 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m theft path now mirrors C side effects: steal non-cursed item when tame, `possibly_unwield`, `mselftouch` petrification check, wait-strategy clear, defender-death termination, and nymph `M_ATTK_AGR_DONE` only when teleport is allowed; remaining gap is actual `rloc()` relocation/grow_up coupling |
+| 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with cancel gate, wait-strategy clear, and `M_ATTK_AGR_DONE` when teleport is allowed; remaining gap is actual `rloc()` relocation |
 | 3457 | `mhitm_ad_slee` | uhitm.js | Implemented (m-vs-m path) |
 | 3504 | `mhitm_ad_slim` | uhitm.js | Partial — m-vs-m negation + rn2(4) gate, slimeproof check, zero-damage hit branch; full transformation pending |
 | 3630 | `mhitm_ad_slow` | uhitm.js | Implemented (m-vs-m path) |

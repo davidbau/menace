@@ -7162,3 +7162,36 @@ hard-won wisdom:
   - `docs/CODEMATCH.md`:
     - upgraded `mhitm_ad_ston` from stub to partial with explicit remaining
       edge gaps (munstone/newcham/grow_up semantics).
+
+## 2026-03-10: `uhitm` m-vs-m theft/disease branch fidelity (`AD_SGLD/SEDU/DISE`)
+
+- Problem:
+  - Several gameplay-relevant m-vs-m branches were still missing C side
+    effects:
+    - `mhitm_ad_sgld` incorrectly blocked same-class theft and never marked
+      aggressor-done teleport intent.
+    - `mhitm_ad_sedu` lacked `possibly_unwield`/`mselftouch`/defender-death
+      side effects and set nymph done-flag without teleport gating.
+    - `mhitm_ad_dise` lacked the `defended(AD_DISE)` immunity gate.
+- Change:
+  - `js/uhitm.js`:
+    - `mhitm_ad_sgld`:
+      - removed incorrect same-class (`mlet`) block in m-vs-m path,
+      - kept cancel gate + wait-strategy clear,
+      - sets `M_ATTK_AGR_DONE` when teleport is allowed (still no `rloc` here).
+    - `mhitm_ad_dise`:
+      - added `defended(mdef, AD_DISE)` immunity.
+    - `mhitm_ad_sedu`:
+      - after theft, now runs `possibly_unwield(mdef, false)`,
+      - runs `mselftouch(mdef, ..., false)` and terminates attack on defender
+        death (`M_ATTK_DEF_DIED`, `done`),
+      - keeps wait-strategy clear,
+      - nymph `M_ATTK_AGR_DONE` now gated by `!tele_restrict(...)`.
+  - `test/unit/codematch_uhitm_ad_branches.test.js`:
+    - added regression checks for:
+      - same-class gold theft succeeding in m-vs-m,
+      - `AD_SGLD` setting `M_ATTK_AGR_DONE`,
+      - `AD_SEDU` petrification side effect via `mselftouch`.
+  - `docs/CODEMATCH.md`:
+    - updated rows for `mhitm_ad_sgld`, `mhitm_ad_sedu`, `mhitm_ad_dise`
+      with the new parity status and remaining gaps (`rloc`/grow_up coupling).

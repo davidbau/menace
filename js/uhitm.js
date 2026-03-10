@@ -52,6 +52,7 @@ import {
     magic_negation, attacktype,
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
+    defended,
     thick_skinned, mon_hates_silver, mon_hates_light,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
@@ -65,12 +66,13 @@ import { mondead, mondied, monkilled } from './mon.js';
 import { newsym } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
+import { possibly_unwield } from './weapon.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac, extract_from_minvent } from './worn.js';
 import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
-    erode_obj, erode_obj_player,
+    erode_obj, erode_obj_player, mselftouch,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK } from './const.js';
@@ -1168,15 +1170,14 @@ export function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
 export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
     mhm.damage = 0;
     if (!magr || !mdef || magr.mcan) return;
-    const pa = magr.data || magr.type || {};
-    const pd = mdef.data || mdef.type || {};
-    // C: same monster class doesn't steal gold from each other.
-    if (pa.mlet && pd.mlet && pa.mlet === pd.mlet) return;
     const gold = findgold(mdef.minvent || []);
     if (!gold) return;
     extract_from_minvent(mdef, gold, false, true);
     addToMonsterInventory(magr, gold);
     if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (!tele_restrict(magr, null)) {
+        mhm.hitflags = M_ATTK_AGR_DONE;
+    }
 }
 
 // cf. uhitm.c:2837 — teleport
@@ -1320,7 +1321,7 @@ export function mhitm_ad_dise(magr, mattk, mdef, mhm) {
     // otherwise, disease does ordinary attack damage.
     const pd = mdef?.data || mdef?.type || {};
     const mndx = Number.isInteger(mdef?.mndx) ? mdef.mndx : -1;
-    if (pd.mlet === S_FUNGUS || mndx === PM_GHOUL) {
+    if (pd.mlet === S_FUNGUS || mndx === PM_GHOUL || defended(mdef, AD_DISE)) {
         mhm.damage = 0;
     }
 }
@@ -1342,9 +1343,17 @@ export function mhitm_ad_sedu(magr, mattk, mdef, mhm) {
     if (!obj) return;
     extract_from_minvent(mdef, obj, true, false);
     addToMonsterInventory(magr, obj);
+    possibly_unwield(mdef, false);
     if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    mselftouch(mdef, null, false);
+    if (DEADMONSTER(mdef)) {
+        mhm.hitflags |= M_ATTK_DEF_DIED;
+        mhm.done = true;
+        return;
+    }
     // C: nymphs may teleport away after a successful theft.
-    if ((magr.data?.mlet || magr.type?.mlet) === S_NYMPH) {
+    if ((magr.data?.mlet || magr.type?.mlet) === S_NYMPH
+        && !tele_restrict(magr, null)) {
         mhm.hitflags |= M_ATTK_AGR_DONE;
     }
 }

@@ -21,8 +21,8 @@ import {
     mhitm_ad_slim,
     mhitm_ad_ston,
 } from '../../js/uhitm.js';
-import { AT_KICK, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, mons } from '../../js/monsters.js';
-import { GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
+import { AT_KICK, AT_WEAP, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, PM_COCKATRICE, mons } from '../../js/monsters.js';
+import { CORPSE, GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
 import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED, M_ATTK_DEF_DIED, M_ATTK_HIT } from '../../js/const.js';
 
 test('mhitm_ad_were delegates through physical handling (kick vs thick hide -> zero damage)', () => {
@@ -154,10 +154,22 @@ test('mhitm_ad_sgld transfers defender gold to attacker inventory', () => {
 
     mhitm_ad_sgld(magr, {}, mdef, mhm);
     assert.equal(mhm.damage, 0);
+    assert.equal((mhm.hitflags & M_ATTK_AGR_DONE) !== 0, true);
     assert.equal(mdef.minvent.length, 0);
     assert.equal(magr.minvent.length, 1);
     assert.equal(magr.minvent[0].otyp, GOLD_PIECE);
     assert.equal(magr.minvent[0].quan, 77);
+});
+
+test('mhitm_ad_sgld steals from same-class target in m-vs-m branch', () => {
+    const magr = { mcan: false, data: { mlet: 'n' }, minvent: [] };
+    const gold = { otyp: GOLD_PIECE, quan: 10 };
+    const mdef = { data: { mlet: 'n' }, minvent: [gold], mstrategy: 0 };
+    const mhm = { damage: 1, hitflags: 0 };
+
+    mhitm_ad_sgld(magr, {}, mdef, mhm);
+    assert.equal(mdef.minvent.length, 0);
+    assert.equal(magr.minvent.length, 1);
 });
 
 test('mhitm_ad_sedu steals an item and marks AGR_DONE for nymphs', () => {
@@ -172,6 +184,24 @@ test('mhitm_ad_sedu steals an item and marks AGR_DONE for nymphs', () => {
     assert.equal(mdef.minvent.length, 0);
     assert.equal(magr.minvent.length, 1);
     assert.equal(magr.minvent[0].otyp, DAGGER);
+});
+
+test('mhitm_ad_sedu can petrify defender via mselftouch side effect', () => {
+    const magr = { mcan: false, mtame: 0, data: { mlet: 'h' }, minvent: [] };
+    const stolen = { otyp: DAGGER, cursed: false, owornmask: 0 };
+    const cockCorpse = { otyp: CORPSE, corpsenm: PM_COCKATRICE, cursed: false, owornmask: 0 };
+    const mdef = {
+        minvent: [stolen, cockCorpse],
+        weapon: cockCorpse,
+        data: { mresists: 0, mattk: [{ aatyp: AT_WEAP }] },
+        mstrategy: 0,
+        mhp: 15,
+    };
+    const mhm = { damage: 4, hitflags: 0, done: false };
+
+    mhitm_ad_sedu(magr, {}, mdef, mhm);
+    assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
+    assert.equal(mhm.done, true);
 });
 
 test('mhitm_ad_sedu tame thief avoids cursed item when uncursed available', () => {
