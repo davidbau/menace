@@ -35,7 +35,7 @@ import {
 } from './const.js';
 import {
     pline, pline_The, You, Your, You_hear, You_cant, There, Norep,
-    impossible,
+    impossible, verbalize,
 } from './pline.js';
 import { mon_nam, Monnam, a_monnam } from './do_name.js';
 import { hcolor, hliquid } from './do_name.js';
@@ -239,10 +239,7 @@ function currency(amount) {
 
 // mhis imported from mondata.js
 
-// verbalize
-async function verbalize(msg, ...args) {
-    await pline(`"${msg}"`, ...args);
-}
+// verbalize imported from pline.js
 
 // miss — show miss message
 async function miss(what, mtmp) {
