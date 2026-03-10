@@ -35,7 +35,7 @@ import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
 import { M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE, W_ARMG, W_ARMF, W_ARMH, ERODE_RUST, ERODE_CORRODE, ERODE_BURN, EF_GREASE, EF_VERBOSE, NEED_WEAPON, NEED_HTH_WEAPON, NON_PM, NATTK } from './const.js';
 import {
-    mhitm_adtyping,
+    mhitm_adtyping_async,
 } from './uhitm.js';
 import { monsterWeaponSwingVerb, monsterPossessive } from './mhitu.js';
 import { mhurtle, will_hurtle } from './dothrow.js';
@@ -532,7 +532,13 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
     }
 
     // Dispatch to AD_* handler
-    mhitm_adtyping(magr, mattk, mdef, mhm);
+    await mhitm_adtyping_async(magr, mattk, mdef, mhm, {
+        map,
+        player: ctx?.player || null,
+        display: display || null,
+        fov: ctx?.fov || null,
+        depth: ctx?.depth || 1,
+    });
 
     // cf. mhitm.c — artifact damage bonus for monster-vs-monster
     if (mwep && mwep.oartifact) {

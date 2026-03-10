@@ -7195,3 +7195,40 @@ hard-won wisdom:
   - `docs/CODEMATCH.md`:
     - updated rows for `mhitm_ad_sgld`, `mhitm_ad_sedu`, `mhitm_ad_dise`
       with the new parity status and remaining gaps (`rloc`/grow_up coupling).
+
+## 2026-03-10: async m-vs-m AD runtime path for teleport/slime fidelity
+
+- Problem:
+  - `mhitm` uses an async combat loop, but `uhitm` AD dispatch was sync-only.
+  - This prevented C-faithful awaited effects in m-vs-m AD handlers:
+    - `AD_TLPT` could clear strategy but could not execute `rloc(...)`.
+    - `AD_SLIM` could gate damage but could not run `munslime/newcham`.
+- Change:
+  - `js/uhitm.js`:
+    - added `mhitm_ad_tlpt_async(...)`:
+      - preserves C gate order (`mcan`, fatal gate, `tele_restrict`, negation),
+      - clears `STRAT_WAITFORU`,
+      - executes `rloc(mdef, RLOC_NOMSG, ...)` when runtime map context exists.
+    - added `mhitm_ad_slim_async(...)`:
+      - preserves C gate order (negation + `rn2(4)` + `slimeproof`),
+      - attempts `munslime(...)`,
+      - on failure and survival, applies direct green-slime transform via
+        `runtimeApplyNewchamDirect(...)`,
+      - sets wait-strategy clear + hit flags on transform,
+      - handles defender-death termination (`M_ATTK_DEF_DIED`, `done`),
+      - enforces zero damage after successful sliming branch.
+    - added `mhitm_adtyping_async(...)` and kept sync dispatcher for legacy paths.
+  - `js/mhitm.js`:
+    - `mdamagem(...)` now awaits `mhitm_adtyping_async(...)`, enabling awaited
+      m-vs-m AD behavior in the actual runtime callchain.
+  - `js/makemon.js`:
+    - exported `runtimeApplyNewchamDirect(...)` wrapper for controlled direct
+      form changes in parity-sensitive runtime paths.
+  - `test/unit/codematch_uhitm_ad_branches.test.js`:
+    - added async tests for:
+      - `mhitm_ad_tlpt_async` gate/strategy behavior,
+      - `mhitm_ad_slim_async` green-slime transform path.
+- Validation:
+  - `node --test test/unit/codematch_uhitm_ad_branches.test.js` (25/25)
+  - `npm run -s test:unit` (2737/2737)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

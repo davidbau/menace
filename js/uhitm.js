@@ -6,14 +6,15 @@ import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { corpse_chance, mon_to_stone } from './mon.js';
-import { munstone } from './muse.js';
-import { grow_up } from './makemon.js';
+import { munstone, munslime } from './muse.js';
+import { grow_up, runtimeApplyNewchamDirect } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
     A_STR, A_DEX,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
+    RLOC_NOMSG,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -22,7 +23,7 @@ import {
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
     PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM,
-    PM_BLACK_PUDDING, PM_BROWN_PUDDING, PM_IRON_GOLEM, PM_GHOUL,
+    PM_BLACK_PUDDING, PM_BROWN_PUDDING, PM_IRON_GOLEM, PM_GHOUL, PM_GREEN_SLIME,
     AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC,
     AD_DRST, AD_ACID, AD_BLND, AD_STUN, AD_SLOW, AD_PLYS, AD_DRLI,
     AD_DREN, AD_LEGS, AD_STON, AD_STCK, AD_SGLD, AD_SITM, AD_SEDU,
@@ -78,7 +79,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
-import { tele_restrict } from './teleport.js';
+import { tele_restrict, rloc } from './teleport.js';
 import { night } from './calendar.js';
 
 function exclam(force) {
@@ -1192,6 +1193,19 @@ export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) {
     if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
 }
 
+// Async mhitm path for C-faithful relocation when map/runtime context is present.
+export async function mhitm_ad_tlpt_async(magr, mattk, mdef, mhm, ctx = {}) {
+    if (!magr || !mdef) return;
+    if (magr.mcan) return;
+    if (Number(mhm.damage || 0) >= Number(mdef.mhp || 0)) return;
+    if (tele_restrict(mdef, ctx.map || null)) return;
+    if (mhitm_mgc_atk_negated(magr, mdef)) return;
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (ctx.map) {
+        await rloc(mdef, RLOC_NOMSG, ctx.map, ctx.player || null, ctx.display || null, ctx.fov || null);
+    }
+}
+
 // cf. uhitm.c:2993 — curse items
 export function mhitm_ad_curs(magr, mattk, mdef, mhm) {
     const pa = magr?.data || magr?.type || {};
@@ -1227,6 +1241,39 @@ export function mhitm_ad_slim(magr, mattk, mdef, mhm) {
         mhm.hitflags |= M_ATTK_HIT;
         if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
     }
+}
+
+// Async mhitm path for C-faithful munslime/newcham branching when runtime
+// context is available.
+export async function mhitm_ad_slim_async(magr, mattk, mdef, mhm, ctx = {}) {
+    const negated = mhitm_mgc_atk_negated(magr, mdef);
+    const pd = mdef?.data || mdef?.type || {};
+    if (negated) return; // physical damage only
+    if (rn2(4) || slimeproof(pd)) return;
+
+    const unslimed = await munslime(mdef, false, ctx.map || null, ctx.player || null);
+    if (!unslimed && !DEADMONSTER(mdef)) {
+        const transformed = runtimeApplyNewchamDirect(
+            mdef,
+            PM_GREEN_SLIME,
+            ctx.depth || 1,
+            ctx.map || null,
+            ctx.player || null,
+            ctx.fov || null,
+            ctx.display || null,
+            !!(ctx.display && ctx.map)
+        );
+        if (transformed) {
+            if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+            mhm.hitflags |= M_ATTK_HIT;
+        }
+    }
+    if (DEADMONSTER(mdef)) {
+        mhm.hitflags = M_ATTK_DEF_DIED;
+        mhm.done = true;
+        return;
+    }
+    mhm.damage = 0;
 }
 
 // cf. uhitm.c:3581 — enchantment drain
@@ -1501,6 +1548,21 @@ export function mhitm_adtyping(magr, mattk, mdef, mhm) {
     default:
         mhm.damage = 0;
         break;
+    }
+}
+
+// Async dispatcher for mhitm runtime paths that need awaited AD_* behavior.
+export async function mhitm_adtyping_async(magr, mattk, mdef, mhm, ctx = {}) {
+    switch (mattk.adtyp) {
+    case AD_TLPT:
+        await mhitm_ad_tlpt_async(magr, mattk, mdef, mhm, ctx);
+        return;
+    case AD_SLIM:
+        await mhitm_ad_slim_async(magr, mattk, mdef, mhm, ctx);
+        return;
+    default:
+        mhitm_adtyping(magr, mattk, mdef, mhm);
+        return;
     }
 }
 

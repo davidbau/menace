@@ -1787,6 +1787,11 @@ function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null,
     return true;
 }
 
+// Runtime helper for parity ports which need a direct, known-form transform.
+export function runtimeApplyNewchamDirect(mon, targetMndx, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
+    return apply_newcham_direct(mon, targetMndx, depth, map, player, fov, display, showMsg);
+}
+
 function maybe_apply_newcham(mon, baseMndx, depth, map = null) {
     const basePtr = mons[baseMndx];
     if (!(basePtr.mflags2 & M2_SHAPESHIFTER)) return false;

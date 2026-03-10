@@ -19,9 +19,11 @@ import {
     mhitm_ad_ench,
     mhitm_ad_poly,
     mhitm_ad_slim,
+    mhitm_ad_slim_async,
     mhitm_ad_ston,
+    mhitm_ad_tlpt_async,
 } from '../../js/uhitm.js';
-import { AT_KICK, AT_WEAP, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, PM_COCKATRICE, mons } from '../../js/monsters.js';
+import { AT_KICK, AT_WEAP, M1_THICK_HIDE, M1_HERBIVORE, S_NYMPH, S_FUNGUS, PM_FAMINE, PM_IRON_GOLEM, PM_WOOD_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, PM_COCKATRICE, PM_GREEN_SLIME, mons } from '../../js/monsters.js';
 import { CORPSE, GOLD_PIECE, DAGGER, LEATHER_ARMOR } from '../../js/objects.js';
 import { M_ATTK_AGR_DONE, M_ATTK_AGR_DIED, M_ATTK_DEF_DIED, M_ATTK_HIT } from '../../js/const.js';
 
@@ -260,6 +262,15 @@ test('mhitm_ad_tlpt keeps damage and clears wait strategy when teleport branch i
     assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
 });
 
+test('mhitm_ad_tlpt_async keeps damage and clears wait strategy without map context', async () => {
+    const mhm = { damage: 3 };
+    const magr = { mcan: false, data: {} };
+    const mdef = { mhp: 10, data: {}, mstrategy: 0x08000000 };
+    await mhitm_ad_tlpt_async(magr, {}, mdef, mhm, {});
+    assert.equal(mhm.damage, 3);
+    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+});
+
 test('mhitm_ad_ench preserves incoming damage in m-vs-m branch', () => {
     const mhm = { damage: 4 };
     mhitm_ad_ench({}, {}, {}, mhm);
@@ -284,6 +295,33 @@ test('mhitm_ad_slim can enter zero-damage slime branch under RNG gating', () => 
         const mdef = { data: {}, mstrategy: 0x08000000 };
         mhitm_ad_slim(magr, {}, mdef, mhm);
         if (mhm.damage === 0 && (mhm.hitflags & M_ATTK_HIT) !== 0) {
+            assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+            observed = true;
+            break;
+        }
+    }
+    assert.equal(observed, true);
+});
+
+test('mhitm_ad_slim_async can transform defender into green slime under RNG gate', async () => {
+    const magr = { mcan: false, data: {} };
+    let observed = false;
+    for (let i = 0; i < 400; i++) {
+        const mhm = { damage: 5, hitflags: 0, done: false };
+        const mdef = {
+            data: { mflags3: 0, mattk: [{ aatyp: AT_WEAP }], mlet: 'o', ac: 10 },
+            type: { mflags3: 0, mattk: [{ aatyp: AT_WEAP }], mlet: 'o', ac: 10 },
+            minvent: [],
+            mstrategy: 0x08000000,
+            mhp: 10,
+            mhpmax: 10,
+            m_lev: 1,
+            mndx: PM_IRON_GOLEM,
+        };
+        await mhitm_ad_slim_async(magr, {}, mdef, mhm, {});
+        if (mdef.mndx === PM_GREEN_SLIME) {
+            assert.equal(mhm.damage, 0);
+            assert.equal((mhm.hitflags & M_ATTK_HIT) !== 0, true);
             assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
             observed = true;
             break;

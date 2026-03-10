@@ -5443,22 +5443,22 @@ Remaining parity gaps are mostly behavioral depth:
 | 3786 | `mhitm_ad_pest` | uhitm.js | Implemented — m-vs-m branch routes through AD_DISE semantics |
 | 3959 | `mhitm_ad_phys` | uhitm.js | Implemented (m-vs-m path) |
 | 3409 | `mhitm_ad_plys` | uhitm.js | Implemented (m-vs-m path) |
-| 3707 | `mhitm_ad_poly` | uhitm.js | Partial — m-vs-m negation/cooldown gate + hit/done path; full newcham transformation still pending |
+| 3707 | `mhitm_ad_poly` | uhitm.js | Partial — m-vs-m negation/cooldown gate + hit/done path implemented; still lacks full C `mon_poly/newcham` form-selection depth |
 | 2259 | `mhitm_ad_rust` | uhitm.js | Partial — C-shaped m-vs-m cancellation gate, iron-golem instant kill path (`completelyrusts`), erosion call, wait-strategy clear, and zero-damage branch |
 | 4548 | `mhitm_ad_samu` | uhitm.js | Implemented — m-vs-m no-op with zero damage (matches C branch) |
 | 4601 | `mhitm_ad_sedu` | uhitm.js | Partial — m-vs-m theft path now mirrors C side effects: steal non-cursed item when tame, `possibly_unwield`, `mselftouch` petrification check, wait-strategy clear, defender-death termination, and nymph `M_ATTK_AGR_DONE` only when teleport is allowed; remaining gap is actual `rloc()` relocation/grow_up coupling |
 | 2768 | `mhitm_ad_sgld` | uhitm.js | Partial — m-vs-m gold transfer from defender inventory with cancel gate, wait-strategy clear, and `M_ATTK_AGR_DONE` when teleport is allowed; remaining gap is actual `rloc()` relocation |
 | 3457 | `mhitm_ad_slee` | uhitm.js | Implemented (m-vs-m path) |
-| 3504 | `mhitm_ad_slim` | uhitm.js | Partial — m-vs-m negation + rn2(4) gate, slimeproof check, zero-damage hit branch; full transformation pending |
+| 3504 | `mhitm_ad_slim` | uhitm.js | Partial — m-vs-m async runtime path now models C order (`munslime` attempt, direct green-slime transform, wait-strategy clear, hit/def-died flags, zero-damage); remaining gaps are exact C messaging/NC_SHOW_MSG nuances and legacy sync-only callsites |
 | 3630 | `mhitm_ad_slow` | uhitm.js | Implemented (m-vs-m path) |
 | 4729 | `mhitm_ad_ssex` | uhitm.js | Partial — delegates to `mhitm_ad_sedu` |
 | 3284 | `mhitm_ad_stck` | uhitm.js | Implemented (m-vs-m path) |
 | 4181 | `mhitm_ad_ston` | uhitm.js | Partial — C-shaped m-vs-m branch: cancellation gate, stone-resistant zero-damage path, and petrification kill path with `M_ATTK_DEF_DIED`/`done` termination; remaining munstone/newcham/grow_up edge semantics |
 | 4366 | `mhitm_ad_stun` | uhitm.js | Implemented (m-vs-m path) |
-| 2837 | `mhitm_ad_tlpt` | uhitm.js | Partial — m-vs-m gating/negation path and wait-strategy clear; async relocation not yet wired here |
+| 2837 | `mhitm_ad_tlpt` | uhitm.js | Partial — m-vs-m async runtime path now performs `rloc(..., RLOC_NOMSG)` after C gate/negation checks and wait-strategy clear; remaining gaps are full visibility-message parity and legacy sync-only callsites |
 | 4243 | `mhitm_ad_were` | uhitm.js | Implemented — m-vs-m branch delegates to physical damage handler |
 | 3315 | `mhitm_ad_wrap` | uhitm.js | Implemented (m-vs-m path) |
-| 4760 | `mhitm_adtyping` | uhitm.js | Implemented |
+| 4760 | `mhitm_adtyping` | uhitm.js | Implemented — sync dispatcher retained plus async runtime dispatcher (`mhitm_adtyping_async`) used by `mhitm` to support awaited AD handlers |
 | 5225 | `mhitm_knockback` | mhitu.js + uhitm.js | Implemented — rn2(3) distance, rn2(6) chance, eligibility checks (AD_PHYS, attack type, size), rn2(2)+rn2(2) message; no actual monster movement |
 | 3082 | `mhitm_really_poison` | uhitm.js | Implemented |
 | 1920 | `mhurtle_to_doom` | uhitm.js:779 | Implemented |
