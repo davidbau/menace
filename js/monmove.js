@@ -2464,7 +2464,7 @@ export function leppie_stash(mtmp, map) {
     mdrop_obj(mtmp, gold, false);
     gold = g_at(mtmp.mx, mtmp.my);
     if (gold) {
-      bury_an_obj(gold, null);
+      bury_an_obj(gold, map, null);
     }
   }
 }

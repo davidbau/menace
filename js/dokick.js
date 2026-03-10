@@ -873,9 +873,9 @@ export async function container_impact_dmg(obj, x, y, player, map) {
         }
         if (result) {
             if (otmp.otyp === MIRROR)
-                change_luck(player, -2);
+                change_luck(-2, player);
             if (otmp.otyp === EGG && otmp.spe && ismnum(otmp.corpsenm))
-                change_luck(player, -1);
+                change_luck(-1, player);
 
             await You_hear("a muffled %s.", result);
             if (costly) {
@@ -1943,11 +1943,11 @@ export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game)
         const odata = objectData[otmp.otyp];
         if ((odata && odata.oc_material === GLASS) || otmp.otyp === EXPENSIVE_CAMERA) {
             if (otmp.otyp === MIRROR)
-                change_luck(player, -2);
+                change_luck(-2, player);
             result = "crash";
         } else {
             if (otmp.otyp === EGG && otmp.spe && ismnum(otmp.corpsenm))
-                change_luck(player, -Math.min(otmp.quan || 1, 5));
+                change_luck(-Math.min(otmp.quan || 1, 5), player);
             result = "splat";
         }
         await You_hear("a muffled %s.", result);

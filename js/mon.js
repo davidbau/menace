@@ -2407,7 +2407,7 @@ export async function maybe_mnexto(mtmp, player) {
   let mm = {x: 0, y: 0}, ptr = mtmp.data, diagok = !NODIAG(monsndx(mtmp.data)), tryct = 20;
   do {
     if (!enexto( mm, player.x, player.y, ptr)) return;
-    if (couldsee(mm.x, mm.y)   && (diagok || mm.x === mtmp.mx || mm.y === mtmp.my)) { await rloc_to(mtmp, mm.x, mm.y); return; }
+    if (couldsee(null, player, mm.x, mm.y) && (diagok || mm.x === mtmp.mx || mm.y === mtmp.my)) { await rloc_to(mtmp, mm.x, mm.y); return; }
   } while (--tryct > 0);
 }
 
@@ -2429,7 +2429,7 @@ export async function m_respond_medusa(mtmp) {
 // Autotranslated from mon.c:4120
 export async function m_respond(mtmp) {
   if (mtmp.data.msound === MS_SHRIEK && !um_dist(mtmp.mx, mtmp.my, 1)) await m_respond_shrieker(mtmp);
-  if (mtmp.data === mons[PM_MEDUSA] && couldsee(mtmp.mx, mtmp.my)) await m_respond_medusa(mtmp);
+  if (mtmp.data === mons[PM_MEDUSA] && couldsee(null, null, mtmp.mx, mtmp.my)) await m_respond_medusa(mtmp);
   if (mtmp.data === mons[PM_ERINYS] && !mtmp.mpeaceful && m_canseeu(mtmp)) aggravate();
 }
 
