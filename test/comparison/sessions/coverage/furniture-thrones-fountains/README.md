@@ -33,6 +33,11 @@ Determinism settings for recordings:
 2. `NETHACK_NO_DELAY=1`
 3. Include raw keyspaces for `--More--` dismissal in session steps (no suppression).
 
+Checkpoint reconnaissance helper:
+1. Use `node scripts/checkpoint_feature_scan.mjs <session.json> [checkpoint-id]`
+   to list typ-value hotspots and sample coordinates before planning movement
+   to fountains/sinks/room features.
+
 Validation gates per session:
 1. `node test/comparison/session_test_runner.js --no-parallel --sessions=<new-session>.session.json --verbose`
 2. `./scripts/run-session-tests.sh` remains full-green after batch add.
