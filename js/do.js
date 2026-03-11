@@ -34,8 +34,9 @@ import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
-import { hcolor, hliquid, rndmonnam, Monnam, mon_nam } from './do_name.js';
+import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam } from './do_name.js';
 import { an, makeplural } from './objnam.js';
+import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH } from './const.js';
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
@@ -46,7 +47,7 @@ import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
 import { zombie_form } from './mon.js';
 import { revive } from './zap.js';
 import { cansee } from './vision.js';
-import { canseemon } from './mondata.js';
+import { canseemon } from './display.js';
 import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs } from './stairs.js';
@@ -1627,6 +1628,9 @@ export async function revive_corpse(corpse, player, map) {
                      || (corpse.buried && is_reviver(mons[montype])));
     const chewed = (corpse.oeaten || 0) !== 0;
     const where = corpse.where ?? OBJ_FLOOR;
+    const corpsex = Number(corpse.ox ?? 0);
+    const corpsey = Number(corpse.oy ?? 0);
+    const cname = corpse_xname(corpse, chewed ? "bite-covered" : null, { singular: true });
 
     // Attempt to revive via zap.js revive()
     const mtmp = await revive(corpse, false, map, player);
@@ -1642,14 +1646,12 @@ export async function revive_corpse(corpse, player, map) {
         else if (ptr === mons[PM_PESTILENCE]) effect = " in a churning pillar of flies";
         else if (ptr === mons[PM_FAMINE]) effect = " in a ring of withered crops";
 
-        const canSeeReviver = !player.blind
-            && cansee(map, player, null, mtmp.mx, mtmp.my)
-            && !mtmp.mundetected
-            && (!mtmp.minvis || !!player.seeInvisible);
-        if (canSeeReviver) {
-            const name = chewed ? `A bite-covered ${ptr?.mname || "monster"}`
-                                : (ptr?.mname || "Something");
-            await pline("%s rises from the dead%s!", name, effect);
+        if (cansee(corpsex, corpsey) || canseemon(mtmp, player, null, map)) {
+            if (canseemon(mtmp, player, null, map)) {
+                await pline("%s rises from the dead%s!", chewed ? Adjmonnam(mtmp, "bite-covered") : Monnam(mtmp), effect);
+            } else {
+                await pline("%s disappears%s!", The(cname), effect);
+            }
         }
     }
     return true;

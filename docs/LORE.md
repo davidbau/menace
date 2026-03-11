@@ -7648,3 +7648,20 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/monmove_mind_blast.test.js`
   - `node --test test/unit/monmove.test.js`
+
+## 2026-03-11: revive_corpse floor-visibility messaging parity (seed322 screen fix)
+
+- Problem:
+  - `seed322_barbarian_wizard_gameplay` diverged on screen-only output at step 375:
+    JS showed `orc zombie rises from the dead!` while C session had no top-line message.
+  - Root cause: `js/do.js::revive_corpse()` used `!blind` and always emitted `"rises from the dead"` for floor revivals, instead of C's visibility-gated branch.
+- Change:
+  - `js/do.js` `revive_corpse()` now follows `do.c` behavior for `OBJ_FLOOR` revival messaging:
+    - gate messaging on `cansee(corpse_x, corpse_y) || canseemon(mtmp)`,
+    - emit `"X rises from the dead"` only when `canseemon(mtmp)`,
+    - otherwise emit `"The <corpse name> disappears"`.
+  - Added proper corpse naming via `corpse_xname(..., { singular: true })` and `The(...)`.
+  - Switched this callsite to display-context-aware `canseemon` import.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed322_barbarian_wizard_gameplay.session.json`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
