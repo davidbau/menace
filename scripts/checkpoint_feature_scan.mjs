@@ -34,28 +34,37 @@ function main() {
     const topN = parseIntSafe(getArg('--top', '12'), 12);
 
     const raw = JSON.parse(fs.readFileSync(sessionPath, 'utf8'));
-    const checkpoints = raw?.checkpoints;
-    if (!checkpoints || typeof checkpoints !== 'object' || Array.isArray(checkpoints)) {
+    let parsed = null;
+    let chosen = checkpointId || null;
+
+    const compactTop = (raw?.checkpoints && typeof raw.checkpoints === 'object' && !Array.isArray(raw.checkpoints))
+        ? raw.checkpoints
+        : null;
+    if (!compactTop) {
         // eslint-disable-next-line no-console
-        console.error('No compact top-level checkpoints found in session.');
+        console.error(
+            'No compact top-level checkpoints found. '
+            + 'This tool currently supports gameplay sessions captured with '
+            + 'top-level compact checkpoint payloads.'
+        );
         process.exit(1);
     }
-    const ids = Object.keys(checkpoints);
+    const ids = Object.keys(compactTop);
     if (!ids.length) {
         // eslint-disable-next-line no-console
-        console.error('Session checkpoints object is empty.');
+        console.error('Session compact checkpoints object is empty.');
         process.exit(1);
     }
-    const chosen = checkpointId || ids[0];
-    if (!Object.hasOwn(checkpoints, chosen)) {
+    chosen = chosen || ids[0];
+    if (!Object.hasOwn(compactTop, chosen)) {
         // eslint-disable-next-line no-console
         console.error(`Checkpoint id not found: ${chosen}`);
         // eslint-disable-next-line no-console
         console.error(`Available: ${ids.join(', ')}`);
         process.exit(1);
     }
+    parsed = parseCompactMapdump(compactTop[chosen]);
 
-    const parsed = parseCompactMapdump(checkpoints[chosen]);
     const typ = parsed?.typGrid;
     if (!Array.isArray(typ) || !typ.length) {
         // eslint-disable-next-line no-console
