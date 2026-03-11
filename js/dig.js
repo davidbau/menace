@@ -82,7 +82,7 @@ import { hard_helmet } from './do_wear.js';
 import { You_hear } from './pline.js';
 import { abon } from './weapon.js';
 import { acurr } from './attrib.js';
-import { A_STR, A_DEX, AM_SANCTUM } from './const.js';
+import { A_STR, A_DEX, AM_SANCTUM, MM_NOMSG } from './const.js';
 import { bimanual } from './pray.js';
 
 // ============================================================================
@@ -568,7 +568,7 @@ export function dig_up_grave(cc, map, player) {
         {
             const zmndx = mkclass(S_ZOMBIE, 0);
             if (zmndx >= 0) {
-                makemon(zmndx, dig_x, dig_y, 0x04 /* MM_NOMSG */, undefined, map);
+                makemon(zmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
             }
         }
         break;
@@ -578,7 +578,7 @@ export function dig_up_grave(cc, map, player) {
         {
             const mmndx = mkclass(S_MUMMY, 0);
             if (mmndx >= 0) {
-                makemon(mmndx, dig_x, dig_y, 0x04 /* MM_NOMSG */, undefined, map);
+                makemon(mmndx, dig_x, dig_y, MM_NOMSG, undefined, map);
             }
         }
         break;
@@ -1354,7 +1354,7 @@ export async function dig(map, player) {
         // Earth level: rn2(3), rn2(2) for earth elemental
         if (map.flags && map.flags.is_earthlevel && !rn2(3)) {
             const mndx = rn2(2) ? PM_EARTH_ELEMENTAL : PM_XORN;
-            makemon(mndx, dpx, dpy, 0x04 /* MM_NOMSG */, undefined, map);
+            makemon(mndx, dpx, dpy, MM_NOMSG, undefined, map);
         }
 
         if (IS_DOOR(lev.typ) && (lev.flags & D_TRAPPED)) {

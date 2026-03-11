@@ -61,7 +61,7 @@ import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './p
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
-import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN } from './const.js';
+import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE } from './const.js';
 import { MZ_LARGE, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE,
          M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK } from './monsters.js';
@@ -2199,8 +2199,6 @@ const WT_WEIGHTCAP_SPARE = 50;
 const MAX_CARR_CAP = 1000;
 const WT_HUMAN = 1450;
 const WT_WOUNDEDLEG_REDUCT = 100;
-const LEFT_SIDE = 0x10;
-const RIGHT_SIDE = 0x20;
 
 // --------------------------------------------------------------------
 // Utility

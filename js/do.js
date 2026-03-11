@@ -38,7 +38,7 @@ import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam } from './do_nam
 import { an, makeplural } from './objnam.js';
 import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
-import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING } from './const.js';
+import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING, LEFT_SIDE, RIGHT_SIDE, BOTH_SIDES } from './const.js';
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
@@ -1774,7 +1774,6 @@ export async function dowipe(player) {
 // by_steed: true if the steed's legs are the issue.
 // Autotranslated from do.c:2403
 export async function legs_in_no_shape(for_what, by_steed, player) {
-  const LEFT_SIDE = 0x20000, RIGHT_SIDE = 0x40000, BOTH_SIDES = 0x60000;
   if (by_steed && player.usteed) {
     await pline("%s is in_ no shape for %s.", Monnam(player.usteed), for_what);
   }
@@ -1789,7 +1788,6 @@ export async function legs_in_no_shape(for_what, by_steed, player) {
 // side: LEFT_SIDE or RIGHT_SIDE or BOTH_SIDES
 // timex: duration of the condition
 export function set_wounded_legs(side, timex, player) {
-    const BOTH_SIDES = 0x60000;
 
     if (!player.woundedLegs) {
         // First time getting wounded legs: reduce DEX
@@ -1815,7 +1813,6 @@ export function set_wounded_legs(side, timex, player) {
 // cf. do.c heal_legs() — heal wounded legs.
 // how: 0 = ordinary, 1 = dismounting steed, 2 = limbs turn to stone
 export async function heal_legs(how, player) {
-    const BOTH_SIDES = 0x60000;
 
     if (player.woundedLegs) {
         // Restore DEX
