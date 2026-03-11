@@ -107,6 +107,7 @@ import { nomul, near_capacity } from './hack.js';
 import { welded } from './wield.js';
 import { heal_legs } from './do.js';
 import { is_pool_or_lava, is_pool, is_lava } from './dbridge.js';
+import { ynFunction } from './input.js';
 
 // cf. pray.c:58 -- Moloch constant
 const Moloch = "Moloch";
@@ -1579,10 +1580,10 @@ export async function gods_angry(g_align) {
 // cf. pray.c:1436 -- gods_upset(g_align, player, map)
 // ================================================================
 // Autotranslated from pray.c:1435
-export async function gods_upset(g_align, player) {
+export async function gods_upset(g_align, player, map) {
   if (g_align === player.alignment) player.ugangr++;
   else if (player.ugangr) player.ugangr--;
-  await angrygods(g_align);
+  await angrygods(g_align, player, map);
 }
 
 // ================================================================
@@ -2187,6 +2188,7 @@ export function pray_revive(player, map) {
 // cf. pray.c:2199 -- dopray(player, map)
 // ================================================================
 export async function dopray(player, map) {
+    let ok = false;
     // Conduct tracking
     if (!player.uconduct) player.uconduct = {};
     if (!player.uconduct.gnostic) player.uconduct.gnostic = 0;
@@ -2195,11 +2197,36 @@ export async function dopray(player, map) {
     if (!await can_pray(true, player, map))
         return 0;
 
+    // C ref: pray.c dopray() wizard-mode force-success prompt.
+    if ((_gstate?.wizard || player?.wizard) && p_type >= 0) {
+        ok = ((await ynFunction('Force the gods to be pleased?', 'yn', 'n'.charCodeAt(0), _gstate?.display))
+            === 'y'.charCodeAt(0));
+        if (ok) {
+            player.ublesscnt = 0;
+            if ((player.luck || 0) < 0) {
+                player.luck = 0;
+            }
+            if ((player.alignmentRecord || 0) <= 0) {
+                player.alignmentRecord = 1;
+            }
+            player.ugangr = 0;
+            if (p_type < 2) {
+                p_type = 3;
+            }
+        }
+    }
+
     nomul(-3, _gstate);
     _gstate.multi_reason = "praying";
     _gstate.nomovemsg = "You finish your prayer.";
-    // Schedule prayer_done callback
-    player.afternmv = async () => await prayer_done(player, map);
+    // C ref: ge.afternmv callback slot consumed by unmul().
+    // Keep this on game state, not player instance.
+    if (_gstate) {
+        _gstate.afternmv = async () => {
+            const currentMap = _gstate?.lev || _gstate?.map || map;
+            return await prayer_done(player, currentMap);
+        };
+    }
 
     if (p_type === 3 && !Inhell(player)) {
         if (!player.blind)
@@ -2214,8 +2241,8 @@ export async function dopray(player, map) {
 // cf. pray.c:2276 -- prayer_done(player, map)
 // ================================================================
 export async function prayer_done(player, map) {
+    map = map || _gstate?.lev || _gstate?.map;
     const alignment = p_aligntyp;
-
     player.uinvulnerable = false;
     if (p_type === -2) {
         await You("%s diabolical laughter all around you...",

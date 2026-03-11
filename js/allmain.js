@@ -370,7 +370,7 @@ export async function moveloop_turnend(game) {
             if (typeof p?.hasProp === 'function') return !!p.hasProp(propIdx);
             if (p?.uprops && p.uprops[propIdx]) {
                 const e = p.uprops[propIdx];
-                return !!(e.intrinsic || e.extrinsic || e.blocked);
+                return !!(e.intrinsic || e.extrinsic);
             }
             return !!(p?.[legacyName] || (legacyName2 ? p?.[legacyName2] : 0));
         };
