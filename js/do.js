@@ -38,7 +38,7 @@ import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam } from './do_nam
 import { an, makeplural } from './objnam.js';
 import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
-import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED } from './const.js';
+import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING } from './const.js';
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
@@ -1169,7 +1169,7 @@ export async function deferred_goto(player, game) {
         }
         // C ref: do.c goto_level(falling) damage uses d(max(dist,1),6) from
         // rnd.c (composite d() log entry).
-        if (typmask & 0x02) {
+        if (typmask & UTOTYPE_FALLING) {
             const dist = Math.max(1, Math.abs((Number(dest) || fromDepth) - fromDepth));
             const dmg = c_d(dist, 6);
             await losehp(Math.max(0, dmg), "falling down a mine shaft", KILLED_BY, player, game?.display, game);

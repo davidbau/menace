@@ -82,7 +82,7 @@ import { hard_helmet } from './do_wear.js';
 import { You_hear } from './pline.js';
 import { abon } from './weapon.js';
 import { acurr } from './attrib.js';
-import { A_STR, A_DEX } from './const.js';
+import { A_STR, A_DEX, AM_SANCTUM } from './const.js';
 import { bimanual } from './pray.js';
 
 // ============================================================================
@@ -1465,8 +1465,7 @@ export function dig_check(madeby, x, y, map, player) {
 
     if (IS_ALTAR(loc.typ)
         && (madeby !== BY_OBJECT
-            || (loc.altarmask !== undefined && (loc.altarmask & 0x04) !== 0))) {
-        // AM_SANCTUM = 0x04
+            || (loc.altarmask !== undefined && (loc.altarmask & AM_SANCTUM) !== 0))) {
         return DIGCHECK_FAIL_ALTAR;
     }
 
