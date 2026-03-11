@@ -1,8 +1,8 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-11T21:29:24.830Z",
-  "commit": "764ccc7fc4e9d8ea2b2033068b7d3594f07dcb08",
-  "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
+  "generatedAt": "2026-03-11T21:37:52.014Z",
+  "commit": "12a9f8ad9a6fbff9ec3217c0d3ec946b5ce98ee5",
+  "sourceSummaryPath": "/tmp/mazes-covfix-nlfi2O/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
     "minLines": 200,
