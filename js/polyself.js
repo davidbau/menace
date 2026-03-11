@@ -92,18 +92,23 @@ import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
 import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
-import { losehp, spoteffects } from './hack.js';
-import { find_ac } from './do_wear.js';
+import { losehp, spoteffects, nomul } from './hack.js';
+import { find_ac, Armor_gone } from './do_wear.js';
 import { dismount_steed, can_ride } from './steed.js';
 import { mksobj } from './mkobj.js';
 import { AMULET_OF_STRANGULATION } from './objects.js';
 import { were_summon } from './were.js';
 import { encumber_msg } from './pickup.js';
-import { update_inventory } from './invent.js';
+import { update_inventory, useup, freeinv } from './invent.js';
 import { retouch_equipment } from './artifact.js';
-import { selftouch } from './trap.js';
+import { selftouch, dotrap, ignite_items } from './trap.js';
+import { learn_egg_type } from './timeout.js';
 import { done } from './end.js';
 import { game as _gstate } from './gstate.js';
+import { adjabil, redist_attr } from './attrib.js';
+import { expels } from './mhitu.js';
+import { dropx } from './do.js';
+import { newuhs } from './eat.js';
 import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS, KILLED_BY_AN, DIED, STONING } from './const.js';
 
 // resists_fire already imported from mondata.js above
@@ -755,13 +760,13 @@ export async function newman(player) {
     }
 
     // adjabil(oldlvl, newlvl) — ability adjustments for level change
-    if (player.adjabil) await player.adjabil(oldlvl, newlvl);
+    await adjabil(player, oldlvl, newlvl);
 
     // cf. polyself.c:363 — rndexp(FALSE) — random XP for new level
     player.uexp = rndexp(player, false);
 
     // redist_attr() — set up new attribute points
-    if (player.redist_attr) player.redist_attr();
+    redist_attr(player);
 
     // New hit points: scale hpmax by rn1(4, 8)/10, then add newhp() per level
     let hpmax = player.uhpmax || 10;
@@ -828,7 +833,7 @@ export async function newman(player) {
     }
 
     // newuhs(FALSE) — update hunger state
-    if (player.newuhs) await player.newuhs(false);
+    await newuhs(player, false);
 
     // Use race-specific form name
     const newform = (player.female && player.raceIndividualF)
@@ -1144,7 +1149,7 @@ export async function polymon(player, mntmp, map) {
 
     // Egg type learning
     if (lays_eggs(mons[mntmp])) {
-        if (player.learnEggType) player.learnEggType(mntmp);
+        await learn_egg_type(mntmp, _gstate);
     }
 
     // Engulf/swallow handling
@@ -1158,7 +1163,7 @@ export async function polymon(player, mntmp, map) {
                 await pline("%s can no longer contain you.",
                     player.ustuck.name || "It");
             }
-            if (player.expels) await player.expels(player.ustuck);
+            await expels(player.ustuck, player.ustuck?.data, true, player);
         }
     } else if (player.ustuck && !player.uswallow) {
         // Being held; if now capable of holding or unsolid, release
@@ -1301,7 +1306,7 @@ export async function rehumanize(player) {
     }
 
     // Light source handling
-    if (player.delLightSource) player.delLightSource();
+    // TODO: del_light_source(LS_MONSTER, monst_to_any(&youmonst)) — player light source removal
 
     const raceAdj = player.raceAdj || "human";
     await polyman(player, "You return to %s form!", raceAdj);
@@ -1312,7 +1317,7 @@ export async function rehumanize(player) {
     }
 
     // nomul(0) — cancel any multi-turn action
-    if (player.nomul) player.nomul(0);
+    nomul(0, _gstate);
 
     await encumber_msg(player);
 
@@ -1371,8 +1376,8 @@ export async function break_armor(player) {
         if (player.armor) {
             await You("break out of your armor!");
             await exercise(player, A_STR, false);
-            if (player.Armor_gone) player.Armor_gone();
-            if (player.useup) player.useup(player.armor);
+            Armor_gone(player);
+            useup(player.armor);
             player.armor = null;
         }
         if (player.cloak) {
@@ -1382,14 +1387,14 @@ export async function break_armor(player) {
         }
         if (player.shirt) {
             await Your("shirt rips to shreds!");
-            if (player.useup) player.useup(player.shirt);
+            useup(player.shirt);
             player.shirt = null;
         }
     } else if (sliparm(uptr)) {
         // Small/slimy form slips out of armor
         if (player.armor) {
             await Your("armor falls around you!");
-            if (player.Armor_gone) player.Armor_gone();
+            Armor_gone(player);
             await dropp(player.armor, player);
             player.armor = null;
         }
@@ -1475,11 +1480,11 @@ export async function drop_weapon(player, alone) {
             if (player.twoweap && player.swapWeapon) {
                 const swapwep = player.swapWeapon;
                 player.swapWeapon = null;
-                if (player.dropx) await player.dropx(swapwep);
+                await dropx(swapwep, player);
             }
             const wep = player.weapon;
             player.weapon = null;
-            if (player.dropx) await player.dropx(wep);
+            await dropx(wep, player);
             update_inventory(player);
         }
     }
@@ -1651,7 +1656,7 @@ export async function dospinweb(player, map) {
     if (player.uswallow) {
         await You("release web fluid inside %s.", mon_nam(player.ustuck));
         if (player.ustuck && is_animal(player.ustuck.type || player.ustuck.data)) {
-            if (player.expels) await player.expels(player.ustuck);
+            await expels(player.ustuck, player.ustuck?.data, true, player);
             return 0;
         }
         if (player.ustuck && is_whirly(player.ustuck.type || player.ustuck.data)) {
@@ -1726,7 +1731,7 @@ export async function dospinweb(player, map) {
             // Arrow, dart, bear, rock, fire, land mine, sleep gas, rust,
             // magic, anti-magic, poly traps — trigger them
             await You("have triggered a trap!");
-            if (player.dotrap) player.dotrap(ttmp);
+            await dotrap(ttmp, 0, player, _gstate);
             return 1;
         }
     }
@@ -1865,7 +1870,7 @@ export async function dogaze(player, map) {
                 }
                 if (lev > rn2(20)) {
                     if (player.destroyItems) dmg += player.destroyItems(mtmp, AD_FIRE, orig_dmg);
-                    if (player.igniteItems) player.igniteItems(mtmp);
+                    ignite_items(player, _gstate);
                 }
                 if (dmg) {
                     mtmp.mhp = (mtmp.mhp || 0) - dmg;
@@ -1889,7 +1894,8 @@ export async function dogaze(player, map) {
                     const freezeTime = ((player.ulevel || 1) > 6 || rn2(4))
                         ? -d(mlev + 1, damd)
                         : -200;
-                    if (player.nomul) player.nomul(freezeTime, "frozen by a monster's gaze");
+                    nomul(freezeTime, _gstate);
+                    if (_gstate) _gstate.multi_reason = "frozen by a monster's gaze";
                     return 1;
                 } else {
                     await You("stiffen momentarily under %s gaze.",
