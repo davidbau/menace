@@ -7477,3 +7477,27 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (21/21)
   - `npm run -s test:unit` (2758/2758)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: read.seffect_earth level/terrain gating tightened to C shape
+
+- Problem:
+  - `seffect_earth` still lacked the C-level gating and square suitability
+    checks, causing overly broad behavior on levels where earth effects should
+    be suppressed or filtered.
+- Change:
+  - `js/read.js`:
+    - added C-shaped gate before earth effects:
+      - skip when rogue level,
+      - require `has_ceiling`,
+      - require earth-level if in endgame.
+    - added message branching using `avoid_ceiling(...)` and `ceiling(...)`.
+    - added `sokoban_guilt()` call when effect applies.
+    - added square suitability checks for neighborhood drops:
+      - `!closed_door(x,y)`,
+      - `!IS_OBSTRUCTED(typ)`,
+      - `!IS_AIR(typ)`.
+    - kept player-hit and boulder helper paths from prior slice.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (21/21)
+  - `npm run -s test:unit` (2758/2758)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

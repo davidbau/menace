@@ -4148,7 +4148,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1348 | `seffect_confuse_monster` | read.js:469 | Implemented (faithful RNG: rnd(100), rnd(2), rn1(8,2); umconf tracking) |
 | 1557 | `seffect_create_monster` | read.js:839 | Implemented (faithful RNG: rn2(73)+rnd(4); uses makemon; confused=acid blob) |
 | 1285 | `seffect_destroy_armor` | read.js:789 | Implemented (confused erodeproof; normal destroy_arm; cursed degrade+stun) |
-| 1866 | `seffect_earth` | read.js:1411 | Partial (now routes through `drop_boulder_on_monster`/`drop_boulder_on_player` and blessed-neighborhood sweep; map/terrain gating remains simplified vs C `has_ceiling`/`avoid_ceiling`/obstruction checks) |
+| 1866 | `seffect_earth` | read.js:1411 | Partial (now includes C-shaped level gating `!Is_rogue_level && has_ceiling && (!In_endgame || Is_earthlevel)`, `avoid_ceiling` message branch, Sokoban guilt, and square suitability filters (`!closed_door`, `!IS_OBSTRUCTED`, `!IS_AIR`); remaining gap is full message/terrain nuance and steed handling) |
 | 1114 | `seffect_enchant_armor` | read.js:686 | Implemented (faithful: evaporation check, enchant calc, vibration warning) |
 | 1576 | `seffect_enchant_weapon` | read.js:606 | Implemented (faithful: confused erodeproof; chwepon RNG: rn2(spe), rnd(3-spe/3)) |
 | 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; explosion routes through `explode()`, but blessed targeting/UX remains simplified) |

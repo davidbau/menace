@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -41,6 +41,7 @@ import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
 import { hcolor, Monnam, mon_nam } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
+import { sokoban_guilt } from './trap.js';
 import { scrolltele, level_tele } from './teleport.js';
 import { gold_detect, food_detect, trap_detect, do_mapping, cvt_sdoor_to_door } from './detect.js';
 import { explode } from './explode.js';
@@ -61,6 +62,8 @@ import { tamedog } from './dog.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 import { which_armor } from './worn.js';
+import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
+import { closed_door } from './monmove.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -1415,16 +1418,33 @@ export async function seffect_earth(sobj, player, display, game) {
     const confused = !!player.confused;
     const map = game?.map;
     let nboulders = 0;
+    const lev = map?.uz || map;
 
-    // cf. C: check has_ceiling, not rogue level, not endgame
-    await display.putstr_message(
-        `The ${sblessed ? 'ceiling rumbles around' : 'ceiling rumbles above'} you!`);
+    // cf. C: no effect on rogue levels / non-ceiling areas / non-earth endgame.
+    if (!map
+        || Is_rogue_level(map)
+        || !has_ceiling(lev)
+        || (In_endgame(lev) && !Is_earthlevel(lev))) {
+        return false;
+    }
 
-    // cf. C: when blessed, affect surrounding monsters first
-    if (sblessed && map) {
+    if (player.uswallow) {
+        await display.putstr_message('You hear rumbling.');
+    } else if (!avoid_ceiling(lev)) {
+        await display.putstr_message(`The ${ceiling(player.x, player.y, map, lev)} rumbles ${sblessed ? 'around' : 'above'} you!`);
+    } else {
+        await display.putstr_message(`${sblessed ? 'Avalanches' : 'An avalanche'} of boulders materialize ${sblessed ? 'around' : 'above'} you!`);
+    }
+    sokoban_guilt();
+
+    // cf. C: if not cursed, affect surrounding squares.
+    if (!scursed) {
         for (let x = player.x - 1; x <= player.x + 1; x++) {
             for (let y = player.y - 1; y <= player.y + 1; y++) {
                 if (!isok(x, y) || (x === player.x && y === player.y)) continue;
+                const loc = map.at ? map.at(x, y) : null;
+                if (!loc) continue;
+                if (closed_door(x, y, map) || IS_OBSTRUCTED(loc.typ) || IS_AIR(loc.typ)) continue;
                 if (!m_at(x, y, map)) continue;
                 nboulders += await drop_boulder_on_monster(x, y, confused, true, player, map, game) ? 1 : 0;
             }
