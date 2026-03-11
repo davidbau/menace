@@ -1565,6 +1565,10 @@ function getobjChoicesForPrompt(player, obj_ok) {
 async function getobj_prompt_local(word, obj_ok, display, player) {
     const choices = getobjChoicesForPrompt(player, obj_ok);
     if (!choices.length) return null;
+    if (!display || typeof display.putstr_message !== 'function') {
+        // Headless/unit fallback: choose first valid object when no prompt UI exists.
+        return choices[0];
+    }
 
     const letters = [];
     const seen = new Set();
@@ -1594,8 +1598,9 @@ async function getobj_prompt_local(word, obj_ok, display, player) {
 async function dodip(player, map, display) {
     // C ref: potion.c:2252-2358
     const pmap = activeMap(map);
-    const here = (pmap && player) ? pmap.at(player.x, player.y) : null;
-    const at_pool = !!(pmap && player && is_pool(player.x, player.y, pmap));
+    const hasPos = Number.isInteger(player?.x) && Number.isInteger(player?.y);
+    const here = (pmap && player && hasPos) ? pmap.at(player.x, player.y) : null;
+    const at_pool = !!(pmap && player && hasPos && is_pool(player.x, player.y, pmap));
     const at_fountain = !!(here && here.typ === FOUNTAIN);
     const at_sink = !!(here && IS_SINK(here.typ));
 
@@ -1611,7 +1616,7 @@ async function dodip(player, map, display) {
         return false;
     }
 
-    if (pmap && can_reach_floor(player, pmap, false)) {
+    if (pmap && hasPos && can_reach_floor(player, pmap, false)) {
         const obuf = doname(obj, player);
         if (at_fountain) {
             const ans = await ynFunction(`Dip ${obuf} into the fountain?`, 'yn', 'n'.charCodeAt(0), display);

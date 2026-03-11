@@ -7896,3 +7896,20 @@ hard-won wisdom:
   - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed501_extcmd_chat.session.json --parallel=1 --verbose`
   - `scripts/run-and-report.sh --failures`
     - gameplay baseline preserved (`41/41` passing).
+
+## 2026-03-11: stabilize `potion.dodip` headless/unit path after prompt refactor
+
+- Problem:
+  - `test/unit/codematch_batch_sweep.test.js` regressed at
+    `potion.dodip performs a dip turn when potion and target exist`.
+  - Root causes after `dodip` prompt-flow refactor:
+    - unconditional map-tile probe without guaranteed player coordinates,
+    - local prompt helper requiring `display.putstr_message` in headless tests.
+- Change:
+  - `js/potion.js` `dodip()` now gates floor-tile checks on valid integer
+    `player.x/player.y`.
+  - `getobj_prompt_local()` now has a headless fallback: if no display prompt
+    API exists, select first valid object (unit-path only).
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (`23/23` passing).
+  - `scripts/run-and-report.sh --failures` (gameplay `41/41` passing).
