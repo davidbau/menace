@@ -29,7 +29,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          AM_SANCTUM, ALTAR, ROOM, SDOOR, SCORR, isok, Amask2align, Align2amask,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          HVY_ENCUMBER, EXT_ENCUMBER, W_SADDLE, TT_NONE, TT_LAVA, TT_BURIEDBALL,
-         BOLT_LIM, NATTK, Upolyd } from './const.js';
+         BOLT_LIM, NATTK, Upolyd, DIED, ESCAPED, ASCENDED } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
 import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
@@ -68,6 +68,8 @@ import { body_part, rehumanize } from './polyself.js';
 import { which_armor } from './worn.js';
 import { killed, wake_nearby } from './mon.js';
 import { losehp } from './hack.js';
+import { done } from './end.js';
+import { game as _gstate } from './gstate.js';
 import { losexp } from './exper.js';
 import { rndcurse, attrcurse } from './sit.js';
 import { safe_teleds } from './teleport.js';
@@ -315,11 +317,7 @@ function init_uhunger(player) {
 
 // losehp imported from hack.js
 
-// Helper: done -- end the game
-function done(player, reason) {
-    player.deathCause = reason;
-    // Game ending is handled externally
-}
+// done imported from end.js
 
 // Helper: unpunish
 function unpunish(player) {
@@ -1017,7 +1015,7 @@ export async function fry_by_god(resp_god, via_disintegration, player) {
     await You("%s!", !via_disintegration ? "fry to a crisp"
                                    : "disintegrate into a pile of dust");
     player.deathCause = "the wrath of " + align_gname(resp_god, player);
-    await done(player, "DIED");
+    await done(DIED, _gstate);
 }
 
 // ================================================================
@@ -1653,10 +1651,10 @@ async function offer_real_amulet(otmp, altaralign, player, map) {
         await pline("%s shrugs and retains dominion over %s,", Moloch, u_gname(player));
         await pline("then mercilessly snuffs out your life.");
         player.deathCause = Moloch + " indifference";
-        await done(player, "DIED");
+        await done(DIED, _gstate);
         await pline("%s snarls and tries again...", Moloch);
         await fry_by_god(A_NONE, true, player);
-        await done(player, "ESCAPED");
+        await done(ESCAPED, _gstate);
     } else if (player.alignment !== altaralign) {
         adjalign(player, -99);
         await pline("%s accepts your gift, and gains dominion over %s...",
@@ -1664,7 +1662,7 @@ async function offer_real_amulet(otmp, altaralign, player, map) {
         await pline("%s is enraged...", u_gname(player));
         await pline("Fortunately, %s permits you to live...", a_gname(player, map));
         await pline("A cloud of %s smoke surrounds you...", hcolor("orange"));
-        await done(player, "ESCAPED");
+        await done(ESCAPED, _gstate);
     } else {
         if (!player.uevent) player.uevent = {};
         player.uevent.ascended = 1;
@@ -1675,7 +1673,7 @@ async function offer_real_amulet(otmp, altaralign, player, map) {
         await verbalize("In return for thy service, I grant thee the gift of Immortality!");
         await You("ascend to the status of Demigod%s...",
             player.female ? "dess" : "");
-        await done(player, "ASCENDED");
+        await done(ASCENDED, _gstate);
     }
 }
 

@@ -73,9 +73,9 @@ import { getlin, ynFunction } from './input.js';
 // M_AP_TYPE imported from mondata.js; M_AP_NOTHING, M_AP_MONSTER from const.js
 
 
-// Maybe_Half_Phys — if player has half physical damage, halve it
+// C: Maybe_Half_Phys — if player has half physical damage, halve it
 function Maybe_Half_Phys(n, player) {
-    // Simplified: half physical damage not fully tracked in JS yet
+    if (player && player.halfPhysDamage) return Math.max(1, Math.floor(n / 2));
     return n;
 }
 

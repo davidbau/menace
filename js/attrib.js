@@ -18,11 +18,13 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          CONFUSION, HALLUC, FUMBLING, STUNNED,
          FROM_ROLE as FROMEXPER_BIT, FROM_RACE as FROMRACE_BIT,
          FROM_FORM as FROMFORM_BIT, FROMOUTSIDE } from './const.js';
-import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF, Upolyd } from './const.js';
+import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF, Upolyd, DIED, POISONING } from './const.js';
 import { roles, races } from './player.js';
 import { pline, You, Your, You_feel, pline_The, livelog_printf } from './pline.js';
 import { sgn, strstri } from './hacklib.js';
 import { losehp } from './hack.js';
+import { done } from './end.js';
+import { game as _gstate } from './gstate.js';
 import { DUNCE_CAP, GAUNTLETS_OF_POWER, HELM_OF_OPPOSITE_ALIGNMENT, LUCKSTONE } from './objects.js';
 import { PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
          PM_KNIGHT, PM_MONK, PM_CLERIC, PM_ROGUE, PM_RANGER,
@@ -298,10 +300,7 @@ function see_monsters() {
 }
 
 
-// Stub for done
-function done(_how, _player) {
-    // Death handling; in actual game this triggers the death screen
-}
+// done imported from end.js
 
 // Stub for shieldeff
 function shieldeff(_x, _y) {
@@ -581,7 +580,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
 
     if (player.uhp < 1) {
         player.deathCause = pkiller || "poison";
-        await done(strstri(pkiller || "", "poison") ? 0 /* DIED */ : 2 /* POISONING */, player);
+        await done(strstri(pkiller || "", "poison") ? DIED : POISONING, _gstate);
     }
     await encumber_msg(player);
 }
