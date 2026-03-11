@@ -16,12 +16,16 @@ Accepted sessions:
 2. `t02_s704_w_lockbox_gp.session.json`
 3. `t02_s701_b_lockbox_gp.session.json`
 4. `t02_s704_w_forcebox_gp.session.json`
+5. `t02_s704_w_force2_gp.session.json` (repeat `#force` on already-broken lock)
+6. `t02_s704_w_forceblade2_gp.session.json` (`#force` with uncursed dagger path)
 
 Coverage impact (2026-03-11 refreshes):
 1. First addition: `js/lock.js` line coverage `23.58% -> 38.43%` (`+14.85`).
 2. Second addition: `js/lock.js` line coverage `38.43% -> 38.70%` (`+0.27`).
 3. Third addition (`#force` flow): `js/lock.js` line coverage `38.70% -> 47.43%` (`+8.73`).
-4. Overall parity coverage after three additions: lines `53.18%`, branches `59.51%`, functions `34.68%`.
+4. Fourth addition (`#force` repeat on broken lock): `js/lock.js` line coverage `47.43% -> 48.15%` (`+0.72`).
+5. Fifth addition (`#force` blade path): `js/lock.js` line coverage `48.15% -> 48.96%` (`+0.81`).
+6. Overall parity coverage after five additions: lines `53.20%`, branches `59.57%`, functions `34.72%`.
 
 Issue links:
 - Theme tracker: https://github.com/davidbau/menace/issues/338
