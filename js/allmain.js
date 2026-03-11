@@ -1818,21 +1818,8 @@ export class NetHackGame {
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.
-        const levelTeleportPostMsg = (typeof this.player?.dfr_post_msg === 'string'
-            && this.player.dfr_post_msg.startsWith('You materialize'))
-            ? this.player.dfr_post_msg
-            : null;
-        const hadLevelTeleportPostMsg = !!levelTeleportPostMsg;
-        const questPortalMsgId = this.getQuestPortalMsgId(previousDnum);
-        const suppressQuestPortalForLvltport = hadLevelTeleportPostMsg && !!questPortalMsgId;
         await maybe_lvltport_feedback(this.player);
-        // C capture parity: this transition displays a visible "--More--"
-        // suffix when the quest-portal path is suppressed at this boundary;
-        // marker is non-blocking for key-step parity.
-        if (suppressQuestPortalForLvltport) {
-            await renderToplineMorePrompt(this.display, `${levelTeleportPostMsg}--More--`);
-        }
-        await this.maybeShowQuestPortalCall(previousDnum, { suppressOutputForLvltport: suppressQuestPortalForLvltport });
+        await this.maybeShowQuestPortalCall(previousDnum, { suppressOutputForLvltport: false });
         await this.maybeShowQuestLocateHint(depth);
         if (typeof this.hooks.onLevelChange === 'function') {
             this.hooks.onLevelChange({ game: this, depth });
