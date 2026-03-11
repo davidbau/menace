@@ -22,9 +22,9 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          VOMITING, GLIB, FAST, STONED, SLIMED,
          FREE_ACTION, ACID_RES, SLEEP_RES, POISON_RES,
          SICK_VOMITABLE, SICK_NONVOMITABLE,
-         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST } from './const.js';
+         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
 
-const A_MAX = 6; // number of attributes (STR, INT, WIS, DEX, CON, CHA)
+// A_MAX imported from const.js
 const SICK_ALL = (SICK_VOMITABLE | SICK_NONVOMITABLE);
 import { exercise } from './attrib_exercise.js';
 import { adjattrib } from './attrib.js';

@@ -65,7 +65,10 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          TELEPORT, TELEPORT_CONTROL, POLYMORPH, POLYMORPH_CONTROL,
          PROT_FROM_SHAPE_CHANGERS,
          DRAIN_RES, SICK_RES, STONE_RES, INFRAVISION, ANTIMAGIC,
-         TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL } from './const.js';
+         TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
+         W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
+         W_AMUL, W_WEP, W_SWAPWEP, W_QUIVER, W_RINGL, W_RINGR, W_TOOL,
+         W_RING, W_ACCESSORY, W_ARMOR } from './const.js';
 import { set_itimeout, incr_itimeout, toggle_blindness } from './potion.js';
 import { float_down } from './trap.js';
 import { nomul, unmul } from './hack.js';
@@ -75,24 +78,7 @@ import { nohands, nolimbs, cantweararm, slithy, has_horns, has_head, is_humanoid
 import { MZ_SMALL, S_CENTAUR } from './monsters.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 
-// Worn-mask bits (cf. worn.js / prop.h)
-const W_ARM = 0x00000001;
-const W_ARMC = 0x00000002;
-const W_ARMH = 0x00000004;
-const W_ARMS = 0x00000008;
-const W_ARMG = 0x00000010;
-const W_ARMF = 0x00000020;
-const W_ARMU = 0x00000040;
-const W_AMUL = 0x00010000;
-const W_WEP = 0x00000100;
-const W_SWAPWEP = 0x00000400;
-const W_QUIVER = 0x00000200;
-const W_RINGL = 0x00020000;
-const W_RINGR = 0x00040000;
-const W_TOOL = 0x00080000;
-const W_RING = W_RINGL | W_RINGR;
-const W_ACCESSORY = W_RING | W_AMUL | W_TOOL;
-const W_ARMOR = W_ARM | W_ARMC | W_ARMH | W_ARMS | W_ARMG | W_ARMF | W_ARMU;
+// W_* flags imported from const.js
 
 
 
