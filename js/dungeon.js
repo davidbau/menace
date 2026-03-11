@@ -2731,12 +2731,20 @@ function dng_bottom(map) {
     if (dnum === GEHENNOM && !invoked) {
         bottom = Math.max(1, bottom - 1);
     }
-    // Optional quest cut-off hook for parity contexts that track quest locate.
-    if (dnum === QUEST
-        && Number.isInteger(map?._questLocateDlevel)
-        && Number.isInteger(map?._dunlevReached)
-        && map._dunlevReached < map._questLocateDlevel) {
-        bottom = Math.min(bottom, map._questLocateDlevel);
+    // C ref: trap.c dng_bottom() — in upper quest branch, don't fall past
+    // quest locate depth until that depth has been reached.
+    if (dnum === QUEST) {
+        const qlocateDepth = Number.isInteger(map?._questLocateDlevel)
+            ? map._questLocateDlevel
+            : _questLocaDlevel;
+        // Use explicit reached depth when available; otherwise fall back to
+        // current generated dlevel as a conservative proxy.
+        const reachedDepth = Number.isInteger(map?._dunlevReached)
+            ? map._dunlevReached
+            : (Number.isInteger(map?._genDlevel) ? map._genDlevel : 1);
+        if (Number.isInteger(qlocateDepth) && reachedDepth < qlocateDepth) {
+            bottom = Math.min(bottom, qlocateDepth);
+        }
     }
     return Math.max(bottom, 1);
 }

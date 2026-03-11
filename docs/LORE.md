@@ -7719,3 +7719,15 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: dungeon hole_destination quest cutoff closure
+
+- Problem:
+  - `dungeon.js` generation-side `dng_bottom()` only applied quest cutoff when both ad-hoc debug fields were present, leaving normal quest generation paths under-specified.
+- Change:
+  - `dungeon.js` `dng_bottom()` now applies quest cutoff using canonical quest locate depth fallback (`_questLocaDlevel`) and a conservative reached-depth fallback (`_dunlevReached` when available, otherwise current generated level).
+  - Keeps C-style Gehennom invocation gating and hole RNG walk semantics unchanged.
+  - Updated CODEMATCH `hole_destination` row to `Implemented`.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)

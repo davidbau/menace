@@ -5271,7 +5271,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 3170 | `force_launch_placement` | trap.js:2861 | Implemented |
 | 360 | `grease_protect` | trap.js | Implemented — grease protection check |
 | 5607 | `help_monster_out` | trap.js:2977 | Implemented |
-| 442 | `hole_destination` | dungeon.js:2294 | Partial — RNG depth selection for generated holes/trapdoors |
+| 442 | `hole_destination` | dungeon.js:2745 | Implemented — C-faithful RNG depth selection with Gehennom/quest bottom gating |
 | 7065 | `ignite_items` | trap.js:3039 | Implemented |
 | 2711 | `immune_to_trap` | trap.js:2838 | Implemented |
 | 3751 | `instapetrify` | trap.js | Implemented — instant hero petrification (simplified) |
