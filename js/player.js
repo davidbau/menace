@@ -59,7 +59,8 @@ export class Player {
         this.pw = 1;     // power (mana)
         this.pwmax = 1;
         this.ac = 10;    // armor class (lower is better)
-        this.level = 1;  // experience level
+        this.level = 1;  // experience level (C: u.ulevel)
+        this.ulevelmax = 1; // max level attained (C: u.ulevelmax)
         this.exp = 0;    // experience points
         this.score = 0;
 
