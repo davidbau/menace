@@ -7618,3 +7618,21 @@ hard-won wisdom:
   - `node --test test/unit/monmove.test.js`
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
+
+## 2026-03-11: monmove `mind_blast` victim lock-on messaging + wakeup parity
+
+- Problem:
+  - `mind_blast` still lacked C-style visible victim lock-on text and used incomplete wakeup semantics in the monster-victim loop.
+- Change:
+  - `js/monmove.js`:
+    - In monster-victim branch, call `wakeup(m2, false, map, player)` before damage.
+    - Emit C-style lock-on text when victim is visible: `It locks on to <monster>.`
+      with visibility gated by current `fov` (fallback `couldsee`).
+    - Imported/used `mon_nam` for victim naming.
+  - Expanded tests in `test/unit/monmove_mind_blast.test.js` to cover visible-victim messaging + wakeup side effect.
+  - Updated `docs/CODEMATCH.md` `mind_blast` row to reflect this closure.
+- Validation:
+  - `node --test test/unit/monmove_mind_blast.test.js`
+  - `node --test test/unit/monmove.test.js`
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`

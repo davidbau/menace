@@ -116,3 +116,42 @@ test('mind_blast from peaceful mind flayer is soothing and non-damaging', async 
     assert.equal(player.uhp, 30);
     assert.ok(display.messages.includes('It feels quite soothing.'));
 });
+
+test('mind_blast reports lock-on to visible monster victims', async () => {
+    initRng(10);
+    const mon = makeMindFlayer();
+    const victim = {
+        mndx: PM_MIND_FLAYER,
+        data: mons[PM_MIND_FLAYER],
+        mx: 11,
+        my: 11,
+        mpeaceful: true,
+        peaceful: true,
+        mcansee: true,
+        blind: true,
+        sleeping: true,
+        mhp: 20,
+        dead: false,
+    };
+    const map = makeMap(mon);
+    map.monsters.push(victim);
+    const display = makeDisplay();
+    const player = {
+        x: 10,
+        y: 11,
+        uhp: 30,
+        telepathy: true,
+        blind: false,
+        uundetected: 0,
+        m_ap_type: 0,
+        mappearance: 0,
+        halfSpellDamage: false,
+        uinvulnerable: false,
+    };
+    const fov = { canSee: () => true };
+
+    await mind_blast(mon, map, player, display, fov, null);
+
+    assert.ok(display.messages.some((m) => m.startsWith('It locks on to the ')));
+    assert.equal(victim.sleeping, false);
+});

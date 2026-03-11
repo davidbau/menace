@@ -54,7 +54,7 @@ import { can_teleport, noeyes, perceives, nohands,
          is_mindless, telepathic,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
          passes_walls, corpse_eater, amorphous,
-         passes_bars, is_human, canseemon, monsdat,
+         passes_bars, is_human, canseemon, mon_nam, monsdat,
          webmaker, tunnels, needspick,
          dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
@@ -1121,6 +1121,12 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
 
         if (m2hit) {
             wakeup(m2, false, map, player);
+            const victimVisible = fov?.canSee
+                ? !!fov.canSee(m2.mx, m2.my)
+                : !!couldsee(map, player, m2.mx, m2.my);
+            if (display && victimVisible) {
+                await display.putstr_message(`It locks on to ${mon_nam(m2)}.`);
+            }
             const m2dmg = rnd(15);
             m2.mhp = (m2.mhp ?? 0) - m2dmg;
             monmoveTrace('mind_blast',
