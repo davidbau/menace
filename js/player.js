@@ -9,7 +9,8 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE,
          DEAF, INVIS, SEE_INVIS, TELEPAT, STEALTH, REGENERATION,
          TELEPORT, TELEPORT_CONTROL, PROTECTION, FUMBLING,
-         SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING } from './const.js';
+         SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING,
+         HALF_PHDAM, HALF_SPDAM, CONFLICT } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight } from './mkobj.js';
@@ -591,5 +592,10 @@ export class Player {
     set Flying(val) { this._setPropBool(FLYING, val); }
     get flying() { return this.hasProp(FLYING); }
     set flying(val) { this._setPropBool(FLYING, val); }
+    get halfPhysDamage() { return this.hasProp(HALF_PHDAM); }
+    get Half_physical_damage() { return this.hasProp(HALF_PHDAM); }
+    get halfSpellDamage() { return this.hasProp(HALF_SPDAM); }
+    get Half_spell_damage() { return this.hasProp(HALF_SPDAM); }
+    get conflict() { return this.hasProp(CONFLICT); }
 
 }
