@@ -1,8 +1,8 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-11T21:37:52.014Z",
-  "commit": "12a9f8ad9a6fbff9ec3217c0d3ec946b5ce98ee5",
-  "sourceSummaryPath": "/tmp/mazes-covfix-nlfi2O/coverage/coverage-summary.json",
+  "generatedAt": "2026-03-11T22:44:16.586Z",
+  "commit": "c8aa525e27206f3bcb11d71e3b63e4ca8e18fd5c",
+  "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
     "minLines": 200,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 53.02,
-    "branchesPct": 59.64,
-    "functionsPct": 34.49
+    "linesPct": 53.13,
+    "branchesPct": 59.57,
+    "functionsPct": 34.58
   },
   "filteredCount": 108,
   "lowestCovered": [
@@ -166,25 +166,6 @@
         "total": 85,
         "covered": 3,
         "pct": 3.52
-      }
-    },
-    {
-      "relPath": "js/lock.js",
-      "baseName": "lock.js",
-      "lines": {
-        "total": 1111,
-        "covered": 262,
-        "pct": 23.58
-      },
-      "branches": {
-        "total": 55,
-        "covered": 31,
-        "pct": 56.36
-      },
-      "functions": {
-        "total": 25,
-        "covered": 5,
-        "pct": 20
       }
     },
     {
@@ -362,9 +343,9 @@
       "relPath": "js/dig.js",
       "baseName": "dig.js",
       "lines": {
-        "total": 2090,
+        "total": 2093,
         "covered": 626,
-        "pct": 29.95
+        "pct": 29.9
       },
       "branches": {
         "total": 107,
@@ -519,9 +500,9 @@
         "pct": 33.06
       },
       "branches": {
-        "total": 383,
-        "covered": 139,
-        "pct": 36.29
+        "total": 384,
+        "covered": 141,
+        "pct": 36.71
       },
       "functions": {
         "total": 70,
@@ -571,14 +552,14 @@
       "relPath": "js/potion.js",
       "baseName": "potion.js",
       "lines": {
-        "total": 2143,
+        "total": 2148,
         "covered": 796,
-        "pct": 37.14
+        "pct": 37.05
       },
       "branches": {
-        "total": 213,
-        "covered": 99,
-        "pct": 46.47
+        "total": 215,
+        "covered": 101,
+        "pct": 46.97
       },
       "functions": {
         "total": 79,
@@ -644,12 +625,31 @@
       }
     },
     {
+      "relPath": "js/lock.js",
+      "baseName": "lock.js",
+      "lines": {
+        "total": 1111,
+        "covered": 430,
+        "pct": 38.7
+      },
+      "branches": {
+        "total": 113,
+        "covered": 40,
+        "pct": 35.39
+      },
+      "functions": {
+        "total": 26,
+        "covered": 10,
+        "pct": 38.46
+      }
+    },
+    {
       "relPath": "js/dothrow.js",
       "baseName": "dothrow.js",
       "lines": {
-        "total": 1526,
-        "covered": 615,
-        "pct": 40.3
+        "total": 1527,
+        "covered": 616,
+        "pct": 40.34
       },
       "branches": {
         "total": 241,
@@ -819,37 +819,18 @@
       "baseName": "invent.js",
       "lines": {
         "total": 2678,
-        "covered": 1160,
-        "pct": 43.31
+        "covered": 1162,
+        "pct": 43.39
       },
       "branches": {
-        "total": 344,
-        "covered": 210,
-        "pct": 61.04
+        "total": 345,
+        "covered": 212,
+        "pct": 61.44
       },
       "functions": {
         "total": 148,
         "covered": 31,
         "pct": 20.94
-      }
-    },
-    {
-      "relPath": "js/apply.js",
-      "baseName": "apply.js",
-      "lines": {
-        "total": 1445,
-        "covered": 632,
-        "pct": 43.73
-      },
-      "branches": {
-        "total": 172,
-        "covered": 113,
-        "pct": 65.69
-      },
-      "functions": {
-        "total": 82,
-        "covered": 14,
-        "pct": 17.07
       }
     },
     {
@@ -894,14 +875,14 @@
       "relPath": "js/eat.js",
       "baseName": "eat.js",
       "lines": {
-        "total": 2323,
-        "covered": 1054,
-        "pct": 45.37
+        "total": 2320,
+        "covered": 1051,
+        "pct": 45.3
       },
       "branches": {
-        "total": 271,
-        "covered": 118,
-        "pct": 43.54
+        "total": 273,
+        "covered": 120,
+        "pct": 43.95
       },
       "functions": {
         "total": 90,
@@ -964,6 +945,25 @@
         "total": 70,
         "covered": 4,
         "pct": 5.71
+      }
+    },
+    {
+      "relPath": "js/were.js",
+      "baseName": "were.js",
+      "lines": {
+        "total": 321,
+        "covered": 149,
+        "pct": 46.41
+      },
+      "branches": {
+        "total": 40,
+        "covered": 19,
+        "pct": 47.5
+      },
+      "functions": {
+        "total": 10,
+        "covered": 4,
+        "pct": 40
       }
     }
   ]
