@@ -7913,3 +7913,38 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_batch_sweep.test.js` (`23/23` passing).
   - `scripts/run-and-report.sh --failures` (gameplay `41/41` passing).
+
+## 2026-03-11: extcmd chat parity brought to green and promoted from pending
+
+- Problem:
+  - `seed501_extcmd_chat` diverged in wizard `#genesis` flow and monster chat
+    wording/cursor details.
+  - Key misses vs C:
+    - `wizGenesis` placement path was custom-scanning adjacent squares instead
+      of C's `create_particular_creation()->makemon(u.ux,u.uy,MM_NOEXCLAM)`
+      shape.
+    - `domonnoise` used `x_monnam()` where C uses `Monnam()` for `pline_msg`.
+    - `dotalk` prompt missed trailing space in
+      `Talk to whom? (in what direction) `.
+    - tame checks in `sounds.js` relied on `mtmp.tame` (boolean in some JS
+      paths), but C logic uses numeric `mtame` thresholds.
+- Change:
+  - `js/wizcmds.js`:
+    - make `wizGenesis` call `makemon(..., player.x, player.y, MM_NOEXCLAM, ...)`
+      and rely on `makemon` placement selection like C.
+  - `js/cmd.js`:
+    - keep `# c` and `# ch` literal during extcmd typing so chat echo matches C.
+  - `js/sounds.js`:
+    - normalize tame semantics via numeric `tameLevel`/`isTame`.
+    - emit `Monnam(mtmp)` for `pline_msg` monster sounds.
+    - add trailing space to `dotalk` direction prompt.
+  - Session workflow:
+    - promoted green session from pending to coverage:
+      `test/comparison/sessions/coverage/monster-ai-combat/seed501_extcmd_chat.session.json`.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/coverage/monster-ai-combat/seed501_extcmd_chat.session.json --parallel=1 --verbose`
+    - pass (`rng/events/screens/colors/cursor` all full).
+  - `npm run test:session`
+    - pass (`159/159`).
+  - `scripts/run-and-report.sh --failures`
+    - gameplay baseline remains green (`41/41`).

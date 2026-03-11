@@ -905,9 +905,9 @@ function displayCompletedExtcmd(typed, game) {
     const raw = String(typed || '');
     const lowered = raw.toLowerCase();
     if (!lowered) return raw;
-    // C shows literal "# d" while entering dip; don't auto-expand this alias.
-    // Likewise, keep "# s" literal so "#sit" can be entered progressively.
-    if (lowered === 'd' || lowered === 's') return raw;
+    // C shows literal one-letter progress for some extcmds while typing.
+    // Keep these literal so typed echo matches C.
+    if (lowered === 'd' || lowered === 's' || lowered === 'c' || lowered === 'ch') return raw;
     const cmds = knownExtendedCommands(game);
     const exact = cmds.find((c) => c === lowered);
     if (exact) return raw;

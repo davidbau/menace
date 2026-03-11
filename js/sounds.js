@@ -31,6 +31,7 @@ import {
     carnivorous, herbivorous, likes_magic, same_race,
     canseemon, x_monnam, is_mplayer,
 } from './mondata.js';
+import { Monnam } from './do_name.js';
 import { wake_nearto } from './mon.js';
 import { night, midnight } from './calendar.js';
 import { vault_occupied, findgd } from './vault.js';
@@ -678,6 +679,10 @@ export async function domonnoise(mtmp, game) {
     if ((game.u || game.player)?.deaf) return 0;
     // C: if (is_silent(ptr) && !mtmp.isshk) return
     if (is_silent(ptr) && !mtmp.isshk) return 0;
+    // C uses numeric mtame (>0) for pet state; keep a compatibility fallback
+    // for legacy boolean-only monster payloads.
+    const tameLevel = Number.isFinite(mtmp?.mtame) ? Math.trunc(mtmp.mtame) : (mtmp?.tame ? 10 : 0);
+    const isTame = tameLevel > 0;
 
     // --- msound adjustments (cf. sounds.c:696-714) ---
     // leader override
@@ -695,7 +700,7 @@ export async function domonnoise(mtmp, game) {
     else if (msound === MS_ORC && (game.u || game.player)?.hallucinating)
         msound = MS_HUMANOID;
     // untamed moo → bellow
-    else if (msound === MS_MOO && !mtmp.tame)
+    else if (msound === MS_MOO && !isTame)
         msound = MS_BELLOW;
     // hallucination + gecko → sell (GEICO joke)
     else if ((game.u || game.player)?.hallucinating && mon_is_gecko(mtmp))
@@ -739,7 +744,7 @@ export async function domonnoise(mtmp, game) {
         const isnight = night();
         const kindred = false; // simplified: would need Upolyd check
         const nightchild = false;
-        if (mtmp.tame) {
+        if (isTame) {
             if (kindred) {
                 verbl_msg = isnight ? 'Good evening to you Master!'
                     : 'Good day to you Master.  Why do we not rest?';
@@ -782,12 +787,12 @@ export async function domonnoise(mtmp, game) {
         if (game.flags?.moonphase === 2 && night()) {
             pline_msg = 'howls.';
         } else if (mtmp.peaceful) {
-            if (mtmp.tame
+            if (isTame
                 && (mtmp.confused || mtmp.mflee || mtmp.trapped
                     || (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
-                    || (mtmp.tame < 5)))
+                    || tameLevel < 5))
                 pline_msg = 'whines.';
-            else if (mtmp.tame && mtmp.edog
+            else if (isTame && mtmp.edog
                      && mtmp.edog.hungrytime > game.turnCount + 1000)
                 pline_msg = 'yips.';
             else {
@@ -800,9 +805,9 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_MEW:
-        if (mtmp.tame) {
+        if (isTame) {
             if (mtmp.confused || mtmp.mflee || mtmp.trapped
-                || (mtmp.tame < 5))
+                || tameLevel < 5)
                 pline_msg = 'yowls.';
             else if (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
                 pline_msg = 'meows.';
@@ -849,7 +854,7 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_NEIGH:
-        if ((mtmp.tame || 0) < 5)
+        if (tameLevel < 5)
             pline_msg = 'neighs.';
         else if (mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
             pline_msg = 'whinnies.';
@@ -920,7 +925,7 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_DJINNI:
-        if (mtmp.tame)
+        if (isTame)
             verbl_msg = "Sorry, I'm all out of wishes.";
         else if (mtmp.peaceful) {
             if (ptr === mons[PM_WATER_DEMON])
@@ -972,7 +977,7 @@ export async function domonnoise(mtmp, game) {
             verbl_msg = "I'm trapped!";
         else if (mtmp.hp < Math.floor((mtmp.hpmax || 1) / 2))
             pline_msg = 'asks for a potion of healing.';
-        else if (mtmp.tame && !mtmp.isminion
+        else if (isTame && !mtmp.isminion
                  && mtmp.edog && game.turnCount > mtmp.edog.hungrytime)
             verbl_msg = "I'm hungry.";
         else if (is_elf(ptr))
@@ -1051,7 +1056,7 @@ export async function domonnoise(mtmp, game) {
         break;
 
     case MS_BRIBE:
-        if (mtmp.peaceful && !mtmp.tame) {
+        if (mtmp.peaceful && !isTame) {
             // C: demon_talk(mtmp) — not ported
             await game.display.putstr_message(`${x_monnam(mtmp)} makes a deal.`);
             break;
@@ -1114,7 +1119,7 @@ export async function domonnoise(mtmp, game) {
     } // switch
 
     if (pline_msg) {
-        await game.display.putstr_message(`${x_monnam(mtmp)} ${pline_msg}`);
+        await game.display.putstr_message(`${Monnam(mtmp)} ${pline_msg}`);
     } else if (verbl_msg) {
         if (ptr === mons[PM_DEATH]) {
             await game.display.putstr_message(verbl_msg.toUpperCase());
@@ -1147,7 +1152,7 @@ export async function dotalk(game) {
     }
 
     // cf. sounds.c:1287 — prompt for direction
-    await display.putstr_message('Talk to whom? (in what direction)');
+    await display.putstr_message('Talk to whom? (in what direction) ');
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];

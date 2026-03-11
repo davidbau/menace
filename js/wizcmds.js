@@ -90,25 +90,13 @@ export async function wizGenesis(game) {
         await display.putstr_message(`Unknown monster: "${input.trim()}".`);
         return { moved: false, tookTime: false };
     }
-    let placed = false;
-    for (let dx = -1; dx <= 1 && !placed; dx++) {
-        for (let dy = -1; dy <= 1 && !placed; dy++) {
-            if (dx === 0 && dy === 0) continue;
-            const mx = player.x + dx;
-            const my = player.y + dy;
-            if (!isok(mx, my)) continue;
-            const loc = map.at(mx, my);
-            if (!loc || !ACCESSIBLE(loc.typ)) continue;
-            if (map.monsterAt(mx, my)) continue;
-            const mon = makemon(mndx, mx, my, 0, player.dungeonLevel, map);
-            if (mon) {
-                mon.sleeping = false;
-                placed = true;
-            }
-        }
-    }
-    if (!placed) {
+    // C-ref faithful shape: create_particular_creation() calls
+    // makemon(whichpm, u.ux, u.uy, mmflags) with MM_NOEXCLAM.
+    const mon = makemon(mndx, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
+    if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
+    } else {
+        mon.sleeping = false;
     }
     return { moved: false, tookTime: false };
 }
@@ -198,7 +186,7 @@ import { resetLevelState, withFinalizeContext, withSpecialLevelDepth } from './s
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok, SIZE,
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok, SIZE, MM_NOEXCLAM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
     Never_mind } from './const.js';
 import { makemon } from './makemon.js';
