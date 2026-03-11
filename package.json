@@ -13,6 +13,7 @@
     "session:compare": "node scripts/compare-sessions.mjs",
     "comparison:window": "node scripts/comparison-window.mjs",
     "session:names": "node scripts/check-session-filename-length.mjs",
+    "codematch:missing": "node scripts/codematch-missing-summary.mjs",
     "audit:synclock": "node scripts/synclock_audit.mjs --strict",
     "audit:browser-safety": "node scripts/audit-browser-safety.mjs",
     "constants:report": "python3 scripts/generators/gen_constants.py --report-deferred-json",
