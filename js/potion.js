@@ -24,7 +24,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL, COLNO, ROWNO,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib } from './attrib.js';
+import { adjattrib, poisontell } from './attrib.js';
 import { drinkfountain, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
@@ -54,6 +54,7 @@ import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
 import { mons } from './monsters.js';
+import { PM_HEALER } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
@@ -64,6 +65,7 @@ import { is_pool } from './dbridge.js';
 import { glyph_is_invisible } from './symbols.js';
 import { delayed_killer, find_delayed_killer, dealloc_killer } from './end.js';
 import { aggravate } from './wizard.js';
+import { Role_if } from './role.js';
 
 // C ref: invent.c compactify() — compress inventory letter list for prompts
 // Inlined here to avoid circular import issues with invent.js
@@ -733,30 +735,54 @@ export async function peffect_paralysis(player, otmp, display) {
 export async function peffect_sickness(player, otmp, display) {
     await pline("Yecch!  This stuff tastes like poison.");
     if (otmp.blessed) {
-        // C: blessed = "mildly stale fruit juice", losehp(1) unless Healer
-        // RNG: none consumed for blessed path
+        await pline("(But in fact it was mildly stale %s.)", fruitname(true));
+        if (!Role_if(player, PM_HEALER)) {
+            await losehp(1, "mildly contaminated potion", KILLED_BY_AN, player, display || gstateGame?.display, gstateGame);
+        }
         return true;
     }
-    // C: non-blessed, non-Healer path
+
     const poisRes = player.uprops?.[POISON_RES];
     const hasPoisonRes = poisRes && (poisRes.intrinsic || poisRes.extrinsic);
-    const typ = rn2(A_MAX); // always consumed: pick stat to drain
-    // C: adjattrib(typ, Poison_resistance ? -1 : -rn1(4, 3), 1)
-    if (!hasPoisonRes) {
-        const drain = -rn1(4, 3);
-        // adjattrib stub — stat drain effect (RNG consumed above)
-    } // if poison resistant, no rn1 consumed
-    if (!hasPoisonRes) {
-        // losehp(rnd(10) + 5 * !!(otmp.cursed), ...)
-        rnd(10); // HP damage roll consumed
-    } else {
-        // losehp(1 + rn2(2), ...)
-        rn2(2); // HP damage roll consumed
+    if (hasPoisonRes) {
+        await pline("(But in fact it was biologically contaminated %s.)", fruitname(true));
     }
-    await exercise(player, A_CON, false);
+    if (Role_if(player, PM_HEALER)) {
+        await pline("Fortunately, you have been immunized.");
+    } else {
+        const contaminant = `${hasPoisonRes ? "mildly " : ""}${otmp.fromsink ? "contaminated tap water" : "contaminated potion"}`;
+        const typ = rn2(A_MAX);
+        const fixedAbil = player.uprops?.[FIXED_ABIL];
+        if (!(fixedAbil && (fixedAbil.intrinsic || fixedAbil.extrinsic))) {
+            await poisontell(player, typ, false);
+            await adjattrib(player, typ, hasPoisonRes ? -1 : -rn1(4, 3), 1);
+        }
+        if (!hasPoisonRes) {
+            await losehp(
+                rnd(10) + 5 * !!otmp.cursed,
+                contaminant,
+                otmp.fromsink ? KILLED_BY : KILLED_BY_AN,
+                player,
+                display || gstateGame?.display,
+                gstateGame,
+            );
+        } else {
+            await losehp(
+                1 + rn2(2),
+                contaminant,
+                otmp.fromsink ? KILLED_BY : KILLED_BY_AN,
+                player,
+                display || gstateGame?.display,
+                gstateGame,
+            );
+        }
+        await exercise(player, A_CON, false);
+    }
+
     // C: if Hallucination, cure it
     const hh = player.uprops?.[HALLUC];
     if (hh && (hh.intrinsic || hh.extrinsic)) {
+        await You("are shocked back to your senses!");
         await make_hallucinated(player, 0, false);
     }
     return true;

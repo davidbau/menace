@@ -8377,3 +8377,19 @@ Validation:
 - `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
 - `scripts/run-and-report.sh --pending --failures` -> `6/6` passing
 - `scripts/run-and-report.sh --failures` -> gameplay `104/104` passing
+
+## 2026-03-11: C-faithful `peffect_sickness` branch parity
+
+- Reworked `js/potion.js:peffect_sickness()` to follow C `potion.c` branch structure:
+  - blessed path now emits stale-fruit-juice explanation and applies 1 HP damage for non-Healers,
+  - non-blessed path now branches on poison resistance and role (Healer immunity messaging),
+  - from-sink contaminant cause now selects `KILLED_BY` vs `KILLED_BY_AN` consistently,
+  - stat-drain path now honors `Fixed_abil` and uses `poisontell` + `adjattrib` when applicable,
+  - applies C-shaped HP damage paths (`rnd(10)+5*cursed` or `1+rn2(2)`),
+  - keeps hallucination cure with explicit C message (`You are shocked back to your senses!`).
+- Added required imports: `Role_if`, `PM_HEALER`, `poisontell`.
+
+Validation:
+- `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
+- `scripts/run-and-report.sh --pending --failures` -> `3/3` passing
+- `scripts/run-and-report.sh --failures` -> gameplay `107/107` passing
