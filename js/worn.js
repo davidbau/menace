@@ -5,6 +5,7 @@ import { objectData, ARMOR_CLASS, AMULET_CLASS, RING_CLASS, WEAPON_CLASS,
          TOOL_CLASS, FOOD_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLASS,
          BLINDFOLD, TOWEL, LENSES, SADDLE, MEAT_RING, SPEED_BOOTS,
          MUMMY_WRAPPING, AMULET_OF_GUARDING, TIN_OPENER,
+         ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
        } from './objects.js';
 import { nohands, is_animal, is_mindless, cantweararm, slithy, has_horns,
          is_humanoid, breakarm, sliparm, is_whirly, noncorporeal,
@@ -15,6 +16,11 @@ import {
     W_WEP, W_QUIVER, W_SWAPWEP, W_WEAPONS,
     W_AMUL, W_RINGL, W_RINGR, W_RING, W_TOOL, W_ACCESSORY,
     W_SADDLE, W_BALL, W_CHAIN, W_ART, W_ARTI, BOLT_LIM,
+    FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES,
+    ACID_RES, STONE_RES, INVIS, FAST, ANTIMAGIC, REFLECTING, PROTECTION,
+    CLAIRVOYANT, STEALTH, TELEPAT, LEVITATION, FLYING, WWALKING,
+    DISPLACED, FUMBLING, JUMPING,
+    MSLOW, MFAST,
 } from './const.js';
 import { S_MUMMY, S_CENTAUR,
          PM_SKELETON, PM_HOBBIT, MZ_TINY, MZ_SMALL, MZ_HUMAN, MZ_HUGE,
@@ -27,15 +33,6 @@ import { placeFloorObject } from './invent.js';
 import { Has_contents } from './objnam.js';
 import { game as gstateGame } from './gstate.js';
 
-// Armor category constants — cf. objclass.h
-const ARM_SUIT   = 0;
-const ARM_SHIELD = 1;
-const ARM_HELM   = 2;
-const ARM_GLOVES = 3;
-const ARM_BOOTS  = 4;
-const ARM_CLOAK  = 5;
-const ARM_SHIRT  = 6;
-
 // armcat → wornmask mapping
 const ARMCAT_TO_MASK = {
     [ARM_SUIT]:   W_ARM,
@@ -46,34 +43,6 @@ const ARMCAT_TO_MASK = {
     [ARM_CLOAK]:  W_ARMC,
     [ARM_SHIRT]:  W_ARMU,
 };
-
-// Speed constants — cf. monflag.h
-const MSLOW = 1;
-const MFAST = 2;
-
-// Property constants — cf. prop.h (subset needed for update_mon_extrinsics)
-const FIRE_RES    = 1;
-const COLD_RES    = 2;
-const SLEEP_RES   = 3;
-const DISINT_RES  = 4;
-const SHOCK_RES   = 5;
-const POISON_RES  = 6;
-const ACID_RES    = 7;
-const STONE_RES   = 8;
-const INVIS       = 40;
-const FAST        = 64;
-const ANTIMAGIC   = 12;
-const REFLECTING  = 65;
-const PROTECTION  = 59;
-const CLAIRVOYANT = 35;
-const STEALTH     = 42;
-const TELEPAT     = 30;
-const LEVITATION  = 48;
-const FLYING      = 49;
-const WWALKING    = 50;
-const DISPLACED   = 41;
-const FUMBLING    = 25;
-const JUMPING     = 45;
 
 // ========================================================================
 // recalc_telepat_range — cf. worn.c:50

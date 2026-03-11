@@ -22,6 +22,7 @@ import {
     DB_MOAT, DB_LAVA, DB_ICE, DB_UNDER,
     W_NONDIGGABLE,
     D_NODOOR,
+    XKILL_NOMSG, XKILL_NOCORPSE,
 } from './const.js';
 import { rnd, rn2 } from './rng.js';
 import { block_point, unblock_point } from './vision.js';
@@ -365,7 +366,7 @@ function do_entity(etmp, occupants, map, player) {
     } else {
         if (loc && loc.typ === DRAWBRIDGE_DOWN) {
             // Crushed underneath — no jump possible
-            e_died(etmp, 0x03, 0 /* CRUSHING */, map);
+            e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);
             return;
         }
         must_jump = true;
@@ -376,7 +377,7 @@ function do_entity(etmp, occupants, map, player) {
             if (e_jumps(etmp)) {
                 relocates = true;
             } else {
-                e_died(etmp, 0x03, 0 /* CRUSHING */, map);
+                e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);
                 return;
             }
         } else {
@@ -423,7 +424,7 @@ function do_entity(etmp, occupants, map, player) {
 
     // Check survival at final position
     if (!e_survives_at(etmp, etmp.ex, etmp.ey, map)) {
-        e_died(etmp, 0x03,
+        e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE,
                is_pool(etmp.ex, etmp.ey, map) ? 1 /* DROWNING */
                : is_lava(etmp.ex, etmp.ey, map) ? 2 /* BURNING */
                : 0 /* CRUSHING */, map);
@@ -559,7 +560,7 @@ export function destroy_drawbridge(x, y, map, player) {
     set_entity(wall.x, wall.y, occupants[1], map, player);
     if (occupants[1].edata) {
         if (!automiss(occupants[1])) {
-            e_died(occupants[1], 0x03, 0 /* CRUSHING */, map);
+            e_died(occupants[1], XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);
         }
     }
     set_entity(x, y, occupants[0], map, player);
@@ -567,7 +568,7 @@ export function destroy_drawbridge(x, y, map, player) {
         if (e_missed(occupants[0], true, map)) {
             // Spared — but may fall into liquid
         } else {
-            e_died(occupants[0], 0x03, 0 /* CRUSHING */, map);
+            e_died(occupants[0], XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);
             if (map.at(occupants[0].ex, occupants[0].ey) &&
                 map.at(occupants[0].ex, occupants[0].ey).typ === MOAT) {
                 do_entity(occupants[0], occupants, map, player);

@@ -887,7 +887,7 @@ export async function observe_quantum_cat(box, makecat, givemsg, game) {
     if (makecat) livecat = makemon( mons[PM_HOUSECAT], box.ox, box.oy, NO_MINVENT | MM_ADJACENTOK | MM_NOMSG);
     if (livecat) {
       livecat.mpeaceful = 1;
-      set_malign(livecat);
+      set_malign(livecat, game?.player);
       if (givemsg) {
         if (!canspotmon(livecat)) await You("think %s brushed your %s.", "something", body_part(FOOT));
         else {
