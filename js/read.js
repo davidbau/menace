@@ -1412,24 +1412,29 @@ export async function seffect_earth(sobj, player, display, game) {
     const sblessed = sobj.blessed;
     const scursed = sobj.cursed;
     const confused = !!player.confused;
+    const map = game?.map;
+    let nboulders = 0;
 
     // cf. C: check has_ceiling, not rogue level, not endgame
     await display.putstr_message(
         `The ${sblessed ? 'ceiling rumbles around' : 'ceiling rumbles above'} you!`);
 
-    // cf. drop_boulder_on_player / drop_boulder_on_monster
-    // Simplified: boulder damage without full object creation
-    if (!sblessed) {
-        // cf. C: drop_boulder_on_player(confused, !scursed, TRUE, FALSE)
-        // dam = dmgval of boulder/rock
-        const dam = confused ? rnd(6) : rnd(20);
-        if (player.helmet) {
-            await display.putstr_message('Fortunately, you are wearing a hard helmet.');
-            player.uhp = Math.max(0, (player.uhp || 0) - Math.min(dam, 2));
-        } else {
-            await display.putstr_message(`You are hit by ${confused ? 'rocks' : 'a boulder'}!`);
-            player.uhp = Math.max(0, (player.uhp || 0) - dam);
+    // cf. C: when blessed, affect surrounding monsters first
+    if (sblessed && map) {
+        for (let x = player.x - 1; x <= player.x + 1; x++) {
+            for (let y = player.y - 1; y <= player.y + 1; y++) {
+                if (!isok(x, y) || (x === player.x && y === player.y)) continue;
+                if (!m_at(x, y, map)) continue;
+                nboulders += await drop_boulder_on_monster(x, y, confused, true, player, map, game) ? 1 : 0;
+            }
         }
+    }
+
+    // cf. C: attack the player unless blessed
+    if (!sblessed) {
+        await drop_boulder_on_player(confused, !scursed, true, false, player, map, game);
+    } else if (!nboulders) {
+        await display.putstr_message('But nothing else happens.');
     }
     return false;
 }
@@ -1443,11 +1448,7 @@ export async function seffect_punishment(sobj, player, display) {
         await display.putstr_message('You feel guilty.');
         return false;
     }
-    // cf. punish(sobj) — apply iron ball + chain
-    // punish() creates iron ball and chain objects; not yet fully ported
-    await display.putstr_message('You are being punished for your misbehavior!');
-    // Mark player as punished (simplified — no ball/chain objects)
-    player.punished = true;
+    await punish(sobj, player);
     return false;
 }
 
@@ -1575,13 +1576,13 @@ export function valid_cloud_pos(x, y, map) {
 }
 
 // Autotranslated from read.c:2287
-export async function drop_boulder_on_monster(x, y, confused, byu, player) {
+export async function drop_boulder_on_monster(x, y, confused, byu, player, map, game) {
   let otmp2, mtmp;
   otmp2 = mksobj(confused ? ROCK : BOULDER, false, false);
   if (!otmp2) return false;
   otmp2.quan = confused ? rn1(5, 2) : 1;
   otmp2.owt = weight(otmp2);
-  mtmp = m_at(x, y);
+  mtmp = m_at(x, y, map);
   if (mtmp && !amorphous(mtmp.data) && !passes_walls(mtmp.data) && !noncorporeal(mtmp.data) && !unsolid(mtmp.data)) {
     let helmet = which_armor(mtmp, W_ARMH), mdmg;
     if (cansee(mtmp.mx, mtmp.my)) {
@@ -1606,11 +1607,11 @@ export async function drop_boulder_on_monster(x, y, confused, byu, player) {
       else { await pline("%s is killed.", Monnam(mtmp)); mondied(mtmp); }
     }
     else { wakeup(mtmp, byu); }
-    wake_nearto(x, y, 4 * 4);
+    wake_nearto(x, y, 4 * 4, map, game, player);
   }
   else if (engulfing_u(mtmp)) {
     obfree(otmp2,  0);
-    drop_boulder_on_player(confused, true, false, true);
+    await drop_boulder_on_player(confused, true, false, true, player, map, game);
     return 1;
   }
   if (!await flooreffects(otmp2, x, y, "fall")) {
@@ -1888,7 +1889,7 @@ export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
 export async function drop_boulder_on_player(confused, helmet_protects, byu, skip_uswallow, player, map, game) {
     // hit monster if swallowed
     if (player.uswallow && !skip_uswallow) {
-        await drop_boulder_on_monster(player.x, player.y, confused, byu, player);
+        await drop_boulder_on_monster(player.x, player.y, confused, byu, player, map, game);
         return;
     }
 
@@ -1927,7 +1928,8 @@ export async function punish(sobj, player) {
         await You("are being punished for your misbehavior!");
     if (player.Punished) {
         await pline("Your iron ball gets heavier.");
-        if (player.uball) player.uball.owt = (player.uball.owt || 0) + 160 * (1 + cursed_levy);
+        if (!player.uball) player.uball = { owt: 0 };
+        player.uball.owt = (player.uball.owt || 0) + 160 * (1 + cursed_levy);
         return;
     }
     if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {
@@ -1936,8 +1938,13 @@ export async function punish(sobj, player) {
         }
         return;
     }
-    // Full ball & chain creation requires setworn/placebc — stub
-    await pline("You are being punished!");
+    if (!reuse_ball) {
+        await pline("You are being punished!");
+    }
+    player.Punished = true;
+    player.punished = true;
+    if (!player.uball) player.uball = { owt: 0 };
+    if (!player.uchain) player.uchain = {};
 }
 
 // ---------------------------------------------------------------------------

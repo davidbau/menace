@@ -4148,7 +4148,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1348 | `seffect_confuse_monster` | read.js:469 | Implemented (faithful RNG: rnd(100), rnd(2), rn1(8,2); umconf tracking) |
 | 1557 | `seffect_create_monster` | read.js:839 | Implemented (faithful RNG: rn2(73)+rnd(4); uses makemon; confused=acid blob) |
 | 1285 | `seffect_destroy_armor` | read.js:789 | Implemented (confused erodeproof; normal destroy_arm; cursed degrade+stun) |
-| 1866 | `seffect_earth` | read.js:1043 | Approximate (messages match; no boulder drop_boulder_on_monster/player yet) |
+| 1866 | `seffect_earth` | read.js:1411 | Partial (now routes through `drop_boulder_on_monster`/`drop_boulder_on_player` and blessed-neighborhood sweep; map/terrain gating remains simplified vs C `has_ceiling`/`avoid_ceiling`/obstruction checks) |
 | 1114 | `seffect_enchant_armor` | read.js:686 | Implemented (faithful: evaporation check, enchant calc, vibration warning) |
 | 1576 | `seffect_enchant_weapon` | read.js:606 | Implemented (faithful: confused erodeproof; chwepon RNG: rn2(spe), rnd(3-spe/3)) |
 | 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; explosion routes through `explode()`, but blessed targeting/UX remains simplified) |
@@ -4159,7 +4159,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1688 | `seffect_light` | read.js:425 | Implemented (non-confused now routes through `litroom` + `lightdamage`; confused path keeps faithful rn1(2,3)+makemon lights) |
 | 2049 | `seffect_magic_mapping` | read.js:909 | Approximate (messages match; no do_mapping() level reveal yet) |
 | 2104 | `seffect_mail` | read.js:seffect_mail | Implemented |
-| 1923 | `seffect_punishment` | read.js:1063 | Partial (confused/blessed "guilty" faithful; no punish() ball-and-chain yet) |
+| 1923 | `seffect_punishment` | read.js:1444 | Partial (confused/blessed guilty path faithful; now calls shared `punish()` path, but full ball-and-chain object placement/wear semantics remain simplified) |
 | 1438 | `seffect_remove_curse` | read.js:556 | Implemented (faithful: inventory iteration, blessorcurse(2) for confused, uncurse worn) |
 | 1403 | `seffect_scare_monster` | read.js:515 | Implemented (faithful: resist() per monster, monflee, cansee check, ct counting) |
 | 1938 | `seffect_stinking_cloud` | read.js:1078 | Implemented (routes to `do_stinking_cloud` targeting + gas cloud creation) |

@@ -15,7 +15,7 @@ import { CRYSTAL_BALL } from '../../js/objects.js';
 import { PM_ROGUE } from '../../js/monsters.js';
 import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
 import { dodip, dip_into } from '../../js/potion.js';
-import { seffect_charging, seffect_taming } from '../../js/read.js';
+import { seffect_charging, seffect_taming, seffect_punishment } from '../../js/read.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -280,4 +280,27 @@ test('read.seffect_taming uses u.ustuck path when player is swallowed', async ()
     const consumed = await seffect_taming(scroll, player, display, { map, fov: null, moves: 1 });
     assert.equal(consumed, false);
     assert.equal(!!stuck.peaceful || !!stuck.mpeaceful, false);
+});
+
+test('read.seffect_punishment confused or blessed only feels guilty', async () => {
+    const display = { putstr_message: async () => {} };
+    const player = { confused: 1, data: {}, Punished: false };
+    const consumedConfused = await seffect_punishment({ blessed: 0 }, player, display);
+    assert.equal(consumedConfused, false);
+    assert.equal(!!player.Punished, false);
+
+    player.confused = 0;
+    const consumedBlessed = await seffect_punishment({ blessed: 1 }, player, display);
+    assert.equal(consumedBlessed, false);
+    assert.equal(!!player.Punished, false);
+});
+
+test('read.seffect_punishment applies punishment when not blessed/confused', async () => {
+    const display = { putstr_message: async () => {} };
+    const player = { confused: 0, data: {}, Punished: false };
+    const consumed = await seffect_punishment({ blessed: 0, cursed: 0 }, player, display);
+    assert.equal(consumed, false);
+    assert.equal(!!player.Punished, true);
+    assert.equal(!!player.punished, true);
+    assert.equal(!!player.uball, true);
 });

@@ -7448,3 +7448,32 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (19/19)
   - `npm run -s test:unit` (2756/2756)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: read.seffect_earth + seffect_punishment moved onto shared C-style paths
+
+- Problem:
+  - `seffect_earth` still used bespoke direct-damage logic and skipped the
+    existing boulder helper callchain.
+  - `seffect_punishment` bypassed the shared `punish()` path and only flipped a
+    local marker.
+- Change:
+  - `js/read.js`:
+    - `seffect_earth` now uses the C-shaped helper flow:
+      - blessed: scans neighborhood and applies `drop_boulder_on_monster(...)`;
+      - non-blessed: applies `drop_boulder_on_player(...)`;
+      - blessed with no affected monsters emits "But nothing else happens."
+    - `seffect_punishment` now delegates to `punish(sobj, player)` when active
+      (still keeps confused/blessed "You feel guilty." branch).
+    - `drop_boulder_on_monster` now threads `map/game` to use explicit map
+      lookups and wake-near calls.
+    - `punish()` now records simplified punishment state (`Punished`, `uball`,
+      `uchain`) so repeated punishment has a stable heavier-ball path.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added coverage for punishment guilty path and active punishment path.
+  - `docs/CODEMATCH.md`:
+    - updated `seffect_earth` and `seffect_punishment` rows from stale notes to
+      current partial-implementation status.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (21/21)
+  - `npm run -s test:unit` (2758/2758)
+  - `npm run -s test:session -- --max-failures=5` (151/151)
