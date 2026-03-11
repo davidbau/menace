@@ -10,7 +10,7 @@ import { A_NONE, A_LAWFUL, A_CHAOTIC, A_NEUTRAL,
          AM_MASK, AM_SHRINE, ROOMOFFSET, TEMPLE,
          Amask2align, A_WIS, ALL_TRAPS,
          isok } from './const.js';
-import { IS_ALTAR, IS_DOOR, PROTECTION, FROMOUTSIDE } from './const.js';
+import { IS_ALTAR, IS_DOOR, PROTECTION, FROMOUTSIDE, CONFLICT } from './const.js';
 import { rn2, rn1, c_d } from './rng.js';
 import { pline, verbalize, You, Your, You_feel,
          livelog_printf } from './pline.js';
@@ -299,7 +299,7 @@ export async function pri_move(priest, map, player, display, fov) {
     let avoid = true;
 
     if (!priest.mpeaceful
-        || (player.conflict && !resist_conflict(priest, player))) {
+        || (player.hasProp(CONFLICT) && !resist_conflict(priest, player))) {
         if (monnear(priest, player.x, player.y)) {
             if (player.displaced) {
                 await Your("displaced image doesn't fool %s!", mon_nam(priest));
