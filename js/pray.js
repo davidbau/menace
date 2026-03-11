@@ -1038,7 +1038,7 @@ async function angrygods(resp_god, player, map) {
               mletH === S_HUMAN ? "mortal" : "creature");
         await verbalize("Thou must relearn thy lessons!");
         await adjattrib(player, A_WIS, -1, false);
-        await losexp(player);
+        await losexp(player, null, "the wrath of the gods");
         break;
     case 6:
         if (!Punished(player)) {
@@ -1795,7 +1795,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
                 if (sgn(player.alignment) === sgn(dmon.data ? dmon.data.maligntyp || 0 : 0))
                     dmon.mpeaceful = true;
                 await You("are terrified, and unable to move.");
-                nomul(-3, player);
+                nomul(-3, _gstate);
             } else {
                 await pline_The("%s.", demonless_msg);
             }
@@ -2163,9 +2163,9 @@ export async function dopray(player, map) {
     if (!await can_pray(true, player, map))
         return 0;
 
-    nomul(-3, player);
-    player.multi_reason = "praying";
-    player.nomovemsg = "You finish your prayer.";
+    nomul(-3, _gstate);
+    _gstate.multi_reason = "praying";
+    _gstate.nomovemsg = "You finish your prayer.";
     // Schedule prayer_done callback
     player.afternmv = async () => await prayer_done(player, map);
 
@@ -2345,9 +2345,9 @@ export async function doturn(player, map) {
         }
     }
 
-    nomul(-(5 - Math.floor(((player.ulevel || 1) - 1) / 6)), player);
-    player.multi_reason = "trying to turn the monsters";
-    player.nomovemsg = "You can move again.";
+    nomul(-(5 - Math.floor(((player.ulevel || 1) - 1) / 6)), _gstate);
+    _gstate.multi_reason = "trying to turn the monsters";
+    _gstate.nomovemsg = "You can move again.";
     return 1;
 }
 

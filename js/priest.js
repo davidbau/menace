@@ -36,6 +36,7 @@ import { rloc } from './teleport.js';
 import { RLOC_NOMSG, SPINE, EPRI, EMIN, MM_EMIN, MM_ADJACENTOK, MM_NOMSG, NO_MM_FLAGS, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR } from './const.js';
 import { buzz } from './zap.js';
 import { money_cnt, nomul, in_rooms } from './hack.js';
+import { game as _gstate } from './gstate.js';
 
 // cf. priest.c:9-10 — alignment thresholds
 const ALGN_SINNED = -4;
@@ -446,7 +447,7 @@ export async function intemple(roomno, map, player, display, fov) {
                 if (player.verbose !== false) {
                     await You("are frightened to death, and unable to move.");
                 }
-                nomul(-3, player);
+                nomul(-3, _gstate);
                 // C: multi_reason = "being terrified of a ghost"
                 // C: nomovemsg = "You regain your composure."
             }

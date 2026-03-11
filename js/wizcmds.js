@@ -693,7 +693,7 @@ export async function wiz_level_change(player) {
     }
     if (newlevel < 1) newlevel = 1;
     while (player.ulevel > newlevel) {
-      await losexp("#levelchange");
+      await losexp(player, null, "#levelchange");
     }
   }
   else {

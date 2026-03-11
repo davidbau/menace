@@ -1867,7 +1867,7 @@ export async function peffect_levitation(otmp, map, player) {
                 let dmg = rnd(!helm ? 10 : !hard_helmet(helm) ? 6 : 3);
                 if (player.halfPhysDamage) dmg = Math.max(1, Math.floor(dmg / 2));
                 await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y, mapRef));
-                await losehp(dmg, "colliding with the ceiling", KILLED_BY, player);
+                await losehp(dmg, "colliding with the ceiling", KILLED_BY, player, null, null);
                 gp.potion_nothing = 0;
             }
         }

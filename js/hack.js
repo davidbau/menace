@@ -1122,7 +1122,7 @@ export async function domove_core(dir, player, map, display, game) {
             const origDmg = d(2, 4);
             const fireDmg = d(2, 4);
             await display.putstr_message('A tower of flame erupts from the floor!');
-            await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player);
+            await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player, display, game);
             // C ref: burnarmor(&youmonst) || rn2(3)
             if (!_burnarmor(player, player)) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
@@ -1143,7 +1143,7 @@ export async function domove_core(dir, player, map, display, game) {
             player.utraptype = TT_PIT;
             const pitDmg = rnd(trap.ttyp === SPIKED_PIT ? 10 : 6);
             await losehp(Math.max(0, pitDmg), trap.ttyp === SPIKED_PIT
-                ? "a pit of spikes" : "a pit", KILLED_BY_AN, player);
+                ? "a pit of spikes" : "a pit", KILLED_BY_AN, player, display, game);
             if (trap.ttyp === SPIKED_PIT) {
                 rn2(6); // C ref: 1-in-6 poison-spike branch gate.
                 // C ref: trap.c trapeffect_pit() emits both lines when falling
@@ -3650,7 +3650,7 @@ export async function dosinkfall(player, map, display) {
     if (display) await display.putstr_message('You crash to the floor!');
     const con = acurr(player, A_CON);
     const dmg = rn1(8, 25 - con); // C: rn1(8, 25-ACURR(A_CON))
-    await losehp(dmg, "fell onto a sink", KILLED_BY, player);
+    await losehp(dmg, "fell onto a sink", KILLED_BY, player, display, null);
     await exercise(player, A_DEX, false);
 }
 
@@ -3713,7 +3713,7 @@ export async function lava_effects(player, map, display) {
     // Damage from lava
     const dmg = d(6, 6);
     if (display) await display.putstr_message("The lava burns you!");
-    await losehp(dmg, "molten lava", KILLED_BY, player);
+    await losehp(dmg, "molten lava", KILLED_BY, player, display, null);
     return false;
 }
 
