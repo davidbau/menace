@@ -8242,3 +8242,26 @@ hard-won wisdom:
     - RNG full, events full.
   - `scripts/run-and-report.sh --failures`
     - promoted gameplay still green (`92/92`).
+
+## 2026-03-11: Pending parity lift for sit/wear prompt semantics (t01_s650)
+
+- Problem:
+  - `t01_s650_w_sit_gp` had deep RNG/event divergence rooted in an early input
+    boundary mismatch at ring-finger selection, then ended with a final screen
+    text mismatch in `#sit` object wording.
+- Changes:
+  - `js/do_wear.js`
+    - ring-finger prompt now treats `Space` as cancel for
+      `Which ring-finger, Right or Left? [rl]`, matching C `yn_function(..., '\0')`
+      default/cancel behavior.
+  - `js/sit.js`
+    - floor-object sit text now names the object C-faithfully (`the <xname>`)
+      instead of fallback pronoun `it`.
+- Result:
+  - `t01_s650_w_sit_gp` flipped from heavy RNG/event drift to full parity:
+    - RNG `3299/3299`
+    - Events `389/389`
+    - Screen `98/98`
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t01_s650_w_sit_gp.session.json` → PASS.
+  - `scripts/run-and-report.sh --failures` remained green (`104/104`).

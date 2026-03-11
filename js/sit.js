@@ -24,6 +24,7 @@ import { is_prince, slithy, is_hider, lays_eggs, likes_lava,
          amorphous, is_humanoid, eggs_in_water, sticks } from './mondata.js';
 import { which_armor } from './worn.js';
 import { Monnam, mon_nam } from './do_name.js';
+import { xname, the } from './objnam.js';
 import { spec_ability } from './artifact.js';
 import { ART_MAGICBANE, SPFX_INTEL } from './artifacts.js';
 import { make_confused, make_blinded, make_glib } from './potion.js';
@@ -409,10 +410,11 @@ export async function dosit(player, map, display) {
         if (playerType.mlet === S_DRAGON && obj.oclass === COIN_CLASS) {
             await You("coil up around your hoard.");
         } else {
+            const objLabel = the(xname(obj));
             if (slithy(playerType))
-                await You("coil up around %s.", obj.oname || "it");
+                await You("coil up around %s.", objLabel);
             else
-                await You("sit on %s.", obj.oname || "it");
+                await You("sit on %s.", objLabel);
             if (!obj.otyp) {
                 // generic
             } else {

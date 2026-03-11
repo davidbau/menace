@@ -1964,9 +1964,9 @@ async function putOnSelectedItem(player, display, game, item) {
             while (!mask) {
                 const fc = await nhgetch();
                 const fs = String.fromCharCode(fc);
-                // C yn_function(..., rightleftchars, '\0', ...) cancels on
-                // ESC and Enter (default '\0').
-                if (fc === 27 || fc === 0 || fc === 10 || fc === 13) {
+                // C yn_function(..., rightleftchars, '\0', ...) treats space
+                // as default-selection/cancel for '\0' prompts.
+                if (fc === 27 || fc === 0 || fc === 10 || fc === 13 || fc === 32) {
                     return { moved: false, tookTime: false };
                 }
                 if (fs === 'r' || fs === 'R') mask = 'right';
