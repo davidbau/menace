@@ -1013,7 +1013,7 @@ register char *let,*word;
 
 	foo=0;
 	for(otmp=invent;otmp;otmp=otmp->nobj)
-		if(index(let,otmp->olet)) foo++;
+		if(!let || index(let,otmp->olet)) foo++;
 	if(!invent || (let && *let!=')' && !foo)) {
 		pline("You don't have anything to %s.",word);
 		return(0);

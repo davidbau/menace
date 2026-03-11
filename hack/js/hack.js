@@ -1,5 +1,5 @@
 // C ref: hack.c — player movement, combat, teleport, item naming
-import { WALL, SDOOR, DOOR, CORR, ROOM, SEEN, HP, GOLD, AC, STR } from './const.js';
+import { WALL, SDOOR, DOOR, CORR, ROOM, SEEN, HP, GOLD, AC, STR, RINN, WANN } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { pline, atl, newsym, nscr, pru, prl, prl1, nose1, nosee, on, cls, curs, losehp } from './pri.js';
@@ -370,15 +370,38 @@ export function doname(obj) {
       return label ? `${base} labeled '${label}'.` : `${base}.`;
     }
     case '/': {
-      let s = obj.known ? wantyp[obj.otyp] || 'wand' :
-              (game.wannam && game.wannam[obj.otyp]) ? `${game.wannam[obj.otyp]} wand` : 'a wand';
-      s += ` (${obj.spe})`;
-      return `a ${s}.`;
+      // C: if oiden[otyp]&WANN → "a wand of X."; elif wandcall → "a wand called X."; else setan(wannam[otyp])+" wand."
+      // If obj->known: append "  (N)."
+      let s;
+      if (game.oiden[obj.otyp] & WANN) {
+        s = `a wand of ${wantyp[obj.otyp]}.`;
+      } else if (game.wandcall && game.wandcall[obj.otyp]) {
+        s = `a wand called ${game.wandcall[obj.otyp]}.`;
+      } else {
+        const wn = game.wannam && game.wannam[obj.otyp];
+        s = setan(wn ? wn : 'wand') + (wn ? ' wand.' : '.');
+      }
+      if (obj.known) {
+        // C: while(*buf) buf++; sprintf(buf,"  (%d).",obj->spe)
+        s = s.slice(0, -1) + `  (${obj.spe}).`;
+      }
+      return s;
     }
     case '=': {
-      const nm = obj.known ? ringtyp[obj.otyp] || 'ring' :
-                 (game.rinnam && game.rinnam[obj.otyp]) ? `${game.rinnam[obj.otyp]} ring` : 'a ring';
-      return `a ${nm}.`;
+      // C: if oiden[otyp]&RINN and known → "a ±N ring of X"; elif ringcall → "a ring called X"; else rinnam
+      let s;
+      if (game.oiden[obj.otyp] & RINN) {
+        if (obj.known) s = `a ${obj.minus ? '-' : '+'}${obj.spe} ring of ${ringtyp[obj.otyp]}`;
+        else s = `a ring of ${ringtyp[obj.otyp]}`;
+      } else if (game.ringcall && game.ringcall[obj.otyp]) {
+        s = `a ring called ${game.ringcall[obj.otyp]}`;
+      } else {
+        const rn = game.rinnam && game.rinnam[obj.otyp];
+        s = setan(rn ? rn + ' ring' : 'ring');
+      }
+      if (obj === game.uright) s += '  (on right hand)';
+      if (obj === game.uleft) s += '  (on left hand)';
+      return s + '.';
     }
     case '*': {
       const typname = (game.potcol && game.potcol[obj.otyp]) || 'glowing';

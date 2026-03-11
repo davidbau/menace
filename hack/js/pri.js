@@ -335,12 +335,13 @@ export async function pline(line, ...args) {
 // Simple printf-style formatter for pline
 function sprintfSimple(fmt, args) {
   let i = 0;
-  return fmt.replace(/%([sduo])/g, (_, spec) => {
+  return fmt.replace(/%([sduoc])/g, (_, spec) => {
     const val = args[i++];
     if (val === undefined) return '';
     switch (spec) {
       case 'd': case 'u': return String(Math.floor(Number(val)));
       case 'o': return Number(val).toString(8);
+      case 'c': return typeof val === 'number' ? String.fromCharCode(val) : String(val);
       case 's': return String(val);
       default: return String(val);
     }

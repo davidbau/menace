@@ -1,9 +1,9 @@
 // C ref: hack.do.c — rhack command dispatcher, player actions
 // STUB: most commands stubbed; movement and basic commands implemented.
-import { HP, GOLD, AC, STR, SEEN } from './const.js';
+import { HP, HPM, ULV, UEX, GOLD, AC, STR, SEEN, POTN, SCRN, WANN, RINN, SDOOR, CORR, WALL, DOOR } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
-import { pline, atl, newsym, nscr, bot, cls, curs, on, pru } from './pri.js';
+import { pline, atl, newsym, nscr, bot, cls, curs, on, pru, losehp, prl } from './pri.js';
 import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon, prinv } from './hack.js';
 import { movemon, makemon, rloc, mnexto, g_at_mon, g_at_obj, g_at_gen, delmon, killed,
          newcham, steal } from './mon.js';
@@ -52,27 +52,41 @@ async function getobj(filter, verb) {
   }
 }
 
-// C ref: doinv() — list inventory
+// C ref: doinv(str) — list inventory
+// C (SMALL): cls(), fputs each item directly, then getret() + docrt()
+// NOT through pline — writes directly to screen rows
 async function doinv(filter) {
   if (!game.invent) { await pline(EMPTY); return; }
-  let i = 0;
-  let lines = ['Your inventory:'];
+  cls();
+  let ilet = 'a'.charCodeAt(0);
+  let row = 0;
   for (let obj = game.invent; obj; obj = obj.nobj) {
-    const letter = String.fromCharCode('a'.charCodeAt(0) + i++);
-    const name = doname(obj);
-    let marker = '';
-    if (obj === game.uwep) marker = ' (weapon in hand)';
-    else if (obj === game.uarm) marker = ' (being worn)';
-    else if (obj === game.uleft) marker = ' (on left hand)';
-    else if (obj === game.uright) marker = ' (on right hand)';
-    lines.push(`  ${letter}) ${name}${marker}`);
+    if (!filter || filter.includes(obj.olet)) {
+      const letter = String.fromCharCode(ilet);
+      const name = doname(obj);
+      // C: puts name directly on screen via fputs (no pline)
+      game.display.moveCursor(1, row + 1);
+      game.display.putString(`${letter} -  ${name}`);
+      game.curx = `${letter} -  ${name}`.length + 1;
+      game.cury = row + 1;
+      row++;
+    }
+    if (++ilet > 'z'.charCodeAt(0)) ilet = 'A'.charCodeAt(0);
   }
-  for (const line of lines) await pline(line);
+  // C: getret() — fputs "\n\n--Hit space to continue--", while(getchar()!=' ')
+  game.display.moveCursor(1, row + 3);
+  game.display.putString('--Hit space to continue--');
+  game.curx = 26; game.cury = row + 3;
+  game.display.flush();
+  while (await game.input.getKey() !== ' ') {}
+  await docrt();
+  game.flags.topl = 0;
 }
 
 // C ref: getdir() — prompt for a direction, sets game.dx/game.dy
 async function getdir() {
-  await pline('In what direction?');
+  await pline('What direction?');
+  game.flags.topl = 1;  // C: flags.topl=1 after pline in getdir
   const ch = await game.input.getKey();
   return movecm(ch);
 }
@@ -141,25 +155,20 @@ function loseone(obj, tdx, tdy) {
 }
 
 // C ref: docall(obj) — name/call an item
+// C: pline("Call it:"); getlin(buf); store in scrcall/potcall/wandcall/ringcall[otyp]
 async function docall(obj) {
-  await pline('Call it what? ');
+  await pline('Call it:');
+  game.flags.topl = 1;
   const name = await getlin();
-  if (!name) return;
-  // Store call name (simplified — just mark known)
-  obj.known = true;
+  const str = name || null;
+  switch (obj.olet) {
+    case '?': game.scrcall[obj.otyp] = str; break;
+    case '!': game.potcall[obj.otyp] = str; break;
+    case '/': game.wandcall[obj.otyp] = str; break;
+    case '=': game.ringcall[obj.otyp] = str; break;
+  }
 }
 
-// C ref: litroom() — wand of light
-function litroom() {
-  if (!game.seehx) {
-    // In corridor or dark room — just light player's cell
-    game.levl[game.u.ux][game.u.uy].lit = true;
-    return;
-  }
-  for (let x = game.seelx; x <= game.seehx; x++)
-    for (let y = game.seely; y <= game.seehy; y++)
-      game.levl[x][y].lit = true;
-}
 
 // C ref: rescham() — force all chameleons to become normal
 // C: for each monster with cham flag, clears cham and calls newcham(mtmp, &mon[6][6])
@@ -175,86 +184,391 @@ function rescham() {
 }
 
 // C ref: drink1(otmp) — drink a potion
+// Effects match C hack.do.c drink1(), compiled with -DSMALL
 async function drink1(otmp) {
   const typ = otmp.otyp;
   switch (typ) {
-    case 0: case 1:  // restore strength
-      await pline('Your muscles feel stronger.'); game.u.ustr = game.u.ustrmax; ndaminc(); game.flags.botl |= STR; break;
-    case 2:  // extra healing
-      game.u.uhp = Math.min(game.u.uhpmax + 4, game.u.uhpmax); await pline('You feel much better.'); game.flags.botl |= HP; break;
-    case 3:  // healing
-      game.u.uhp = Math.min(game.u.uhp + d(2,4), game.u.uhpmax); await pline('You feel better.'); game.flags.botl |= HP; break;
-    case 4:  // gain level
-      game.u.ulevel++; await pline('You feel more experienced.'); game.flags.botl |= 0xff; break;
-    case 5:  // confusion
-      game.u.uconfused += d(3,8); await pline('You feel confused.'); break;
-    case 6:  // blindness
-      game.u.ublind += d(3,8); seeoff(0); await pline('You feel a sudden darkness.'); break;
-    case 7:  // gain strength
-      game.u.ustr = Math.min(game.u.ustr + 1, 118); ndaminc(); await pline('You feel stronger.'); game.flags.botl |= STR; break;
-    case 8:  // polymorph (STUB)
-      await pline('You feel strange.'); break;
-    case 9:  // speed
-      game.u.ufast += rn1(10,15); await pline('You feel yourself moving faster.'); break;
-    case 10: // gain strength
-      game.u.ustr = Math.min(game.u.ustr + 1, 118); ndaminc(); await pline('You feel stronger.'); game.flags.botl |= STR; break;
-    case 11: // levitation
-      game.u.ufloat = true; await pline('You float up off the floor.'); break;
-    case 12: // poison
-      if (!game.u.upres) { losestr(rnd(4)); await pline('You feel weaker.'); game.flags.botl |= STR; }
-      else await pline('You feel sick, but it passes.'); break;
-    case 13: // see invisible
-      game.u.ucinvis = true; await pline('You can see invisible things.'); break;
-    case 14: // paralysis
-      nomul(-rnd(10)); await pline('Your limbs stiffen.'); break;
+    case 0: {
+      // "You feel great!" — restore strength
+      await pline('You feel great!');
+      if (game.u.ustr < game.u.ustrmax) { game.u.ustr = game.u.ustrmax; game.flags.botl |= STR; ndaminc(); }
+      break;
+    }
+    case 1: {
+      // #SMALL: "This tastes like liquid fire!" — confusion + maybe pass out
+      await pline('This tastes like liquid fire!');
+      game.u.uconfused += d(3,8);
+      if (game.u.uhp < game.u.uhpmax) losehp(-1);
+      if (!rn2(4)) { await pline('You pass out.'); game.multi = -rnd(15); }
+      break;
+    }
+    case 2: {
+      // "You turn invisible." — gain invisibility
+      await pline('You turn invisible.');
+      newsym(game.u.ux, game.u.uy);
+      game.u.uinvis += rn1(15,31);
+      break;
+    }
+    case 3: {
+      // #SMALL: "This is fruit juice." — lesshungry
+      await pline('This is fruit juice.');
+      lesshungry(20);
+      break;
+    }
+    case 4: {
+      // "You begin to feel better." — heal 1/3 hp
+      await pline('You begin to feel better.');
+      const num = (game.u.uhpmax / 3) | 0;
+      if (game.u.uhp + num > game.u.uhpmax) {
+        game.u.uhp = ++game.u.uhpmax; game.flags.botl |= (HP | HPM);
+      } else {
+        game.u.uhp += num; game.flags.botl |= HP;
+      }
+      if (game.u.ublind) game.u.ublind = 1;
+      break;
+    }
+    case 5: {
+      // "You are frozen!" — paralysis
+      await pline('You are frozen!');
+      nomul(-(rn1(10,5)));
+      break;
+    }
+    case 6: {
+      // sense monsters
+      if (!game.fmon) { await nothin(otmp); return; }
+      await cls();
+      for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon)
+        atl(mtmp.mx, mtmp.my, mtmp.data.mlet);
+      game.flags.topl = 0;
+      await pline('You sense monsters.');
+      await more_fn();
+      game.flags.topl = 0;
+      await docrt();
+      break;
+    }
+    case 7: {
+      // sense objects
+      if (!game.fobj) { await nothin(otmp); return; }
+      await cls();
+      for (let objs = game.fobj; objs; objs = objs.nobj)
+        atl(objs.ox, objs.oy, objs.olet);
+      game.flags.topl = 0;
+      await pline('You sense objects.');
+      await more_fn();
+      await docrt();
+      game.flags.topl = 0;
+      break;
+    }
+    case 8: {
+      // "Yech! Poison!"
+      await pline('Yech!  Poison!');
+      losestr(rn1(4,3));
+      losehp(rnd(10));
+      break;
+    }
+    case 9: {
+      // "What? Where am I?" — confusion
+      await pline('What?  Where am I?');
+      game.u.uconfused += rn1(7,16);
+      break;
+    }
+    case 10: {
+      // "Wow, do you feel strong!" — gain strength
+      await pline('Wow, do you feel strong!');
+      if (game.u.ustr < 118) {
+        if (game.u.ustr > 17) { game.u.ustr += rnd(118 - game.u.ustr); }
+        else game.u.ustr++;
+        if (game.u.ustr > game.u.ustrmax) game.u.ustrmax = game.u.ustr;
+        ndaminc(); game.flags.botl |= STR;
+      }
+      break;
+    }
+    case 11: {
+      // #SMALL: "You are moving faster." — speed
+      await pline('You are moving faster.');
+      game.u.ufast += rn1(10,100);
+      break;
+    }
+    case 12: {
+      // "The world goes dark." — blindness
+      await pline('The world goes dark.');
+      game.u.ublind += rn1(100,250);
+      seeoff(0);
+      break;
+    }
+    case 13: {
+      // pluslvl() — gain level
+      await pluslvl();
+      break;
+    }
+    case 14: {
+      // "You feel much better." — heal 3/4 hp
+      await pline('You feel much better.');
+      const num = ((game.u.uhpmax / 2) | 0) + ((game.u.uhpmax / 4) | 0);
+      if (game.u.uhp + num > game.u.uhpmax) {
+        game.u.uhp = (game.u.uhpmax += 2); game.flags.botl |= (HP | HPM);
+      } else {
+        game.u.uhp += num; game.flags.botl |= HP;
+      }
+      if (game.u.ublind) game.u.ublind = 1;
+      break;
+    }
     default:
       await pline('You feel strange.'); break;
+  }
+  // C ref: identification tracking
+  if (!(game.oiden[typ] & POTN)) {
+    if (typ > 1) {
+      game.oiden[typ] |= POTN;
+      game.u.urexp += 10;
+    } else if (!game.potcall[typ]) {
+      await docall(otmp);
+    }
   }
   useup(otmp);
 }
 
+// C ref: pluslvl() — gain level from potion
+async function pluslvl() {
+  await pline('You feel more experienced.');
+  const num = rnd(10);
+  game.u.uhpmax += num;
+  game.u.uhp += num;
+  game.u.uexp = (10 * Math.pow(2, game.u.ulevel - 1)) + 1;
+  await pline('Welcome to level %d.', ++game.u.ulevel);
+  game.flags.botl |= (HP | HPM | ULV | UEX);
+}
+
+// C ref: nothin(obj) — "A strange feeling passes over you."
+async function nothin(obj) {
+  await pline('A strange feeling passes over you.');
+  if (obj.olet === '?') {
+    if (!(game.oiden[obj.otyp] & SCRN) && !game.scrcall[obj.otyp]) await docall(obj);
+  } else if (!(game.oiden[obj.otyp] & POTN) && !game.potcall[obj.otyp]) {
+    await docall(obj);
+  }
+}
+
+// C ref: more() — display --More-- and wait for keypress
+// Used after pline() in certain potion effects to require dismissal
+async function more_fn() {
+  if (game.flags.topl === 2) {
+    curs(game.savx, 1);
+    game.display.putString('--More--');
+    game.display.flush();
+    let ch;
+    do { ch = await game.input.getKey(); } while (ch !== ' ');
+    game.flags.topl = 0;
+  }
+}
+
 // C ref: read1(otmp) — read a scroll
+// Scroll effects match C hack.do.c read1(), compiled with -DSMALL
 async function read1(otmp) {
   const typ = otmp.otyp;
   switch (typ) {
-    case 0:  // enchant weapon
-      if (game.uwep) { game.uwep.spe++; await pline('Your weapon glows blue.'); }
-      else await pline('Nothing happens.'); break;
-    case 1:  // enchant armor
-      if (game.uarm) { game.uarm.spe++; game.u.uac--; game.flags.botl |= AC; await pline('Your armor glows silver.'); }
-      else await pline('Nothing happens.'); break;
-    case 2:  // blank paper
-      await pline('This scroll seems to be blank.'); break;
-    case 3:  // identify
-      await pline('This is a scroll of identify.');
-      for (let obj = game.invent; obj; obj = obj.nobj) obj.known = true;
+    case 0: {
+      // enchant armor — "Your armor glows green."
+      if (!game.uarm) { await nothin(otmp); return; }
+      await pline('Your armor glows green.');
+      plusone(game.uarm); game.u.uac--; game.flags.botl |= AC; break;
+    }
+    case 1: {
+      // confuse weapon — "Your hands start glowing blue."
+      await pline('Your hands start glowing blue.');
+      game.u.umconf = 1; break;
+    }
+    case 2: {
+      // blank scroll
+      await pline('This scroll seems blank.'); break;
+    }
+    case 3: {
+      // remove curse
+      await pline('You feel like someone is helping you.');
+      if (game.uleft) game.uleft.cursed = false;
+      if (game.uright) game.uright.cursed = false;
+      if (game.uarm) game.uarm.cursed = false;
+      if (game.uwep) game.uwep.cursed = false;
       break;
-    case 4:  // teleportation
-      tele(); break;
-    case 5:  // scare monster
+    }
+    case 4: {
+      // enchant weapon — weapon glows green (plus one)
+      if (!game.uwep || game.uwep.olet !== ')') { await nothin(otmp); return; }
+      chwepon('green'); plusone(game.uwep); break;
+    }
+    case 5: {
+      // create monster
+      makemon(null); if (game.fmon) mnexto(game.fmon); break;
+    }
+    case 6: {
+      // curse weapon — weapon glows black (minus one)
+      if (!game.uwep || game.uwep.olet !== ')') { await nothin(otmp); return; }
+      chwepon('black'); minusone(game.uwep); break;
+    }
+    case 7: {
+      // rust armor
+      if (game.u.uac > 9 || !game.uarm) { await nothin(otmp); return; }
+      game.u.uac++; game.flags.botl |= AC;
+      await pline(RUST); minusone(game.uarm); break;
+    }
+    case 8: {
+      // genocide
+      await pline('Behold, a scroll of genocide!');
+      let zx, done = false;
+      do {
+        await pline('What monster (Letter)? ');
+        game.flags.topl = 1;
+        zx = await game.input.getKey();
+        for (const tier of mon) {
+          for (const mdat of tier) {
+            if (mdat && mdat.mlet === zx) { mdat.mlet = 0; done = true; break; }
+          }
+          if (done) break;
+        }
+      } while (!done);
+      // Remove existing instances
       for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) {
-        if (Math.abs(mtmp.mx - game.u.ux) < 10 && Math.abs(mtmp.my - game.u.uy) < 10) mtmp.mstat = 1; // FLEE
+        if (mtmp.data.mlet === zx || mtmp.data.mlet === 0) {
+          delmon(mtmp);
+          if (game.levl[mtmp.mx][mtmp.my].scrsym === zx) newsym(mtmp.mx, mtmp.my);
+        }
       }
-      await pline('Monsters flee!'); break;
-    case 6:  // gold detection
-      for (let g = game.fgold; g; g = g.ngen) atl(g.gx, g.gy, '$');
-      await pline('You sense the presence of gold.'); break;
-    case 7:  // food detection
-      for (let obj = game.fobj; obj; obj = obj.nobj) if (obj.olet === '%') atl(obj.ox, obj.oy, '%');
-      await pline('You sense food nearby.'); break;
-    case 8:  // aggravate monsters
-      for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) mtmp.mstat = 0; // MNORM
-      await pline('You hear a sudden stirring.'); break;
-    case 9:  // create monster
-      makemon(null); if (game.fmon) mnexto(game.fmon);
-      await pline('A monster materializes.'); break;
-    case 10: // remove curse
-      for (let obj = game.invent; obj; obj = obj.nobj) obj.cursed = false;
-      await pline('You feel as if someone is helping you.'); break;
+      break;
+    }
+    case 9: {
+      // light room
+      litroom(); break;
+    }
+    case 10: {
+      // teleport
+      tele(); break;
+    }
+    case 11: {
+      // sense gold
+      if (!game.fgold) { await nothin(otmp); return; }
+      await cls();
+      for (let gtmp = game.fgold; gtmp; gtmp = gtmp.ngen)
+        atl(gtmp.gx, gtmp.gy, '$');
+      game.flags.topl = 0;
+      await pline('You sense gold!');
+      await more_fn();
+      game.flags.topl = 0;
+      await docrt();
+      break;
+    }
+    case 12: {
+      // identify
+      await pline('This is an identify scroll.');
+      useup(otmp);
+      game.oiden[12] |= SCRN;
+      const iobj = await getobj(null, 'identify');
+      if (iobj) {
+        switch (iobj.olet) {
+          case '!': game.oiden[iobj.otyp] |= POTN; break;
+          case '?': game.oiden[iobj.otyp] |= SCRN; break;
+          case '[': case ')': iobj.known = true; break;
+          case '/': iobj.known = true; game.oiden[iobj.otyp] |= WANN; break;
+          case '=':
+            if (iobj.otyp > 12) iobj.known = true;
+            game.oiden[iobj.otyp] |= RINN; break;
+        }
+        await prinv(iobj);
+      }
+      return; // useup already done
+    }
+    case 13: {
+      // magic mapping
+      await pline('You found a map!');
+      for (let x = 0; x < 80; x++) {
+        for (let y = 0; y < 22; y++) {
+          const cell = game.levl[x][y];
+          if (cell.typ === SDOOR) {
+            cell.typ = DOOR; cell.scrsym = '+'; cell.new_ = true;
+            on(x, y);
+          } else if ((cell.typ === CORR || cell.typ === WALL || cell.typ === DOOR) && !cell.seen) {
+            cell.new_ = true; on(x, y);
+          }
+        }
+      }
+      if (!game.levl[game.xupstair][game.yupstair].seen) {
+        game.levl[game.xupstair][game.yupstair].new_ = true; on(game.xupstair, game.yupstair);
+      }
+      if (!game.levl[game.xdnstair][game.ydnstair].seen) {
+        game.levl[game.xdnstair][game.ydnstair].new_ = true; on(game.xdnstair, game.ydnstair);
+      }
+      break;
+    }
+    case 14: {
+      // fire scroll
+      await pline('The scroll erupts in a tower of flame!');
+      if (game.u.ufireres) { await pline('You are uninjured.'); }
+      else {
+        const num = rnd(6);
+        game.u.uhp -= num; game.u.uhpmax -= num;
+        game.flags.botl |= (HP | HPM);
+      }
+      break;
+    }
     default:
       await pline('Nothing happens.'); break;
   }
+  // C ref: identification tracking
+  if (!(game.oiden[typ] & SCRN)) {
+    if (typ > 7) {
+      game.oiden[typ] |= SCRN;
+      game.u.urexp += 10;
+    } else if (!game.scrcall[typ]) {
+      await docall(otmp);
+    }
+  }
   useup(otmp);
+}
+
+// C ref: chwepon(color) — print "Your weapon glows color."
+async function chwepon(color) {
+  await pline('Your %s glows %s.', wepnam[game.uwep.otyp], color);
+}
+
+// C ref: plusone(obj) — increment item bonus (remove minus)
+function plusone(obj) {
+  obj.cursed = false;
+  if (obj.minus) { if (!--obj.spe) obj.minus = false; }
+  else obj.spe++;
+}
+
+// C ref: minusone(obj) — decrement item bonus (add minus)
+function minusone(obj) {
+  if (obj.minus) obj.spe++;
+  else if (obj.spe) obj.spe--;
+  else { obj.minus = true; obj.spe = 1; }
+}
+
+// C ref: litroom() — light the current room (scroll of light)
+async function litroom() {
+  if (game.levl[game.u.ux][game.u.uy].typ === CORR) {
+    await pline('The corridor glows briefly.'); return;
+  }
+  await pline('The room is lit.');
+  if (game.levl[game.u.ux][game.u.uy].lit) return;
+  // Find room boundaries
+  let zx = game.u.ux, zy = game.u.uy;
+  if (game.levl[game.u.ux][game.u.uy].typ === DOOR) {
+    if (game.levl[game.u.ux][game.u.uy + 1].typ === ROOM) zy = game.u.uy + 1;
+    else if (game.levl[game.u.ux][game.u.uy - 1].typ === ROOM) zy = game.u.uy - 1;
+    if (game.levl[game.u.ux + 1][game.u.uy].typ === ROOM) zx = game.u.ux + 1;
+    else if (game.levl[game.u.ux - 1][game.u.uy].typ === ROOM) zx = game.u.ux - 1;
+  }
+  let seelx = game.u.ux, seehx = game.u.ux, seely = game.u.uy, seehy = game.u.uy;
+  while (game.levl[seelx - 1][zy].typ && game.levl[seelx - 1][zy].typ !== CORR) seelx--;
+  while (game.levl[seehx + 1][zy].typ && game.levl[seehx + 1][zy].typ !== CORR) seehx++;
+  while (game.levl[zx][seely - 1].typ && game.levl[zx][seely - 1].typ !== CORR) seely--;
+  while (game.levl[zx][seehy + 1].typ && game.levl[zx][seehy + 1].typ !== CORR) seehy++;
+  for (let y = seely; y <= seehy; y++) {
+    for (let x = seelx; x <= seehx; x++) {
+      game.levl[x][y].lit = true;
+      if (!game.levl[x][y].cansee) prl(x, y);
+    }
+  }
 }
 
 // C ref: rhack(cmd) — main command dispatcher
@@ -394,6 +708,8 @@ export async function rhack(cmd) {
       if (game.uarm) { game.flags.move = false; await pline('Already wearing armor.'); return; }
       const otmp = await getobj('[', 'wear');
       if (!otmp) { game.flags.move = false; break; }
+      // C ref: movemon(); movemon(); then set uarm, nomul(-3), adjust AC, prinv
+      await movemon(); await movemon();
       game.uarm = otmp; nomul(-3); otmp.known = true;
       game.u.uac -= otmp.otyp;
       if (otmp.minus) game.u.uac += otmp.spe; else game.u.uac -= otmp.spe;
@@ -411,6 +727,7 @@ export async function rhack(cmd) {
         do {
           await pline('Right or Left? ');
           side = await game.input.getKey();
+          game.flags.topl = 1;  // C resets topl after reading "Right or Left?" key
           if (side === '\x1b') { game.flags.move = 0; return; }
         } while (!'rl'.includes(side));
         if (side === 'l') game.uleft = otmp; else game.uright = otmp;
@@ -419,24 +736,40 @@ export async function rhack(cmd) {
       applyRingOn(otmp); await prinv(otmp); break;
     }
     case 'R': {
-      const otmp = game.uleft || game.uright;
-      if (!otmp) { await pline('You have no rings to remove.'); game.flags.move = 0; break; }
+      game.multi = 0;
+      const otmp = await getobj('=', 'remove');
+      if (!otmp) { game.flags.move = 0; return; }
       if (otmp.cursed) { await pline(CURSED); game.flags.move = 0; break; }
-      ringoff(otmp);
-      if (game.uleft === otmp) game.uleft = null; else game.uright = null;
-      await pline('You remove %s', doname(otmp)); break;
+      else if (otmp === game.uleft) {
+        game.uleft = null;
+        await pline('You were wearing %s', doname(otmp));
+        ringoff(otmp);
+      } else if (otmp === game.uright) {
+        game.uright = null;
+        await pline('You were wearing %s', doname(otmp));
+        ringoff(otmp);
+      } else {
+        await pline("You can't remove that."); game.flags.move = 0;
+      }
+      break;
     }
     case 'T': {
-      if (!game.uarm) { await pline("You aren't wearing armor."); game.flags.move = 0; break; }
+      game.multi = 0;
+      if (!game.uarm) { await pline('Not wearing any!'); game.flags.move = 0; break; }
       if (game.uarm.cursed) { await pline(CURSED); game.flags.move = 0; break; }
+      // C ref: movemon(); movemon(); nomul(-3); adjust AC; uarm=0; were(otmp);
+      await movemon(); await movemon();
       const otmp = game.uarm;
       game.u.uac += otmp.otyp;
       if (otmp.minus) game.u.uac -= otmp.spe; else game.u.uac += otmp.spe;
-      game.uarm = null; nomul(-3); game.flags.botl |= AC; break;
+      game.flags.botl |= AC; game.uarm = null; nomul(-3);
+      await pline('You were wearing %s', doname(otmp)); break;
     }
     case 'S': await dosave(); break;
     default:
-      await pline('Unknown command: %s', cmd); game.flags.move = false; break;
+      if (cmd < ' ') await pline("Unknown command '^%c'.", String.fromCharCode(cmd.charCodeAt(0) + 64));
+      else await pline("Unknown command '%c'", cmd);
+      game.flags.move = false; break;
   }
 }
 

@@ -57,7 +57,7 @@ function wireDeps() {
 
   _setMonDeps({
     setsee, tele, nomul, killed, rloc, newcham, mnexto,
-    attmon, amon, buzz, dosearch, losestr, ndaminc,
+    attmon, amon, buzz, dosearch, losestr, ndaminc, docrt,
   });
 
   _setDo1Deps(nomul);

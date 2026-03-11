@@ -189,10 +189,15 @@ export class GameState {
     this.potcol   = null;
     this.rinnam   = null;
     this.scrnam   = null;
-    this.potcall  = null;
-    this.scrcall  = null;
-    this.wandcall = null;
-    this.ringcall = null;
+    // C ref: global char* arrays, null-initialized (not yet named by player)
+    this.potcall  = new Array(15).fill(null);   // POTNUM=15
+    this.scrcall  = new Array(15).fill(null);   // SCRNUM=15
+    this.wandcall = new Array(16).fill(null);   // WANDNUM=16
+    this.ringcall = new Array(17).fill(null);   // RINGNUM=17
+
+    // C ref: oiden[20] — item identification flags (1 bit per item type)
+    // Indexed by otyp; bits: POTN=1, SCRN=2, WANN=4, RINN=8
+    this.oiden = new Array(20).fill(0);
 
     // Display interface (set by browser_main.js)
     this.display = null;

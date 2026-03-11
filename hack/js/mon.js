@@ -1,20 +1,21 @@
 // C ref: hack.mon.c — monster AI, combat, movement
-import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP, DOOR, COLNO, ROWNO } from './const.js';
+import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP, HPM, ULV, UEX, SDOOR, DOOR, COLNO, ROWNO } from './const.js';
 import { rn1, rn2, rnd, d, logEvent } from './rng.js';
 import { game } from './gstate.js';
-import { makeMonst, makeStole } from './game.js';
+import { makeMonst, makeStole, makeGen } from './game.js';
 import { mon, mregen, CRUSH, NOBLUE, RUST, NOCOLD, mlarge } from './data.js';
 import { pline, atl, newsym, nscr, bot, curs, pru, losehp } from './pri.js';
+import { mkobj } from './lev.js';
 
 // Forward refs for functions in hack.js / do1.js / do.js imported at call time
 let _setsee, _tele, _nomul, _killed, _rloc, _newcham, _mnexto, _attmon, _amon;
-let _buzz, _dosearch, _losestr, _ndaminc;
+let _buzz, _dosearch, _losestr, _ndaminc, _docrt;
 export function _setMonDeps(deps) {
   _setsee = deps.setsee; _tele = deps.tele; _nomul = deps.nomul;
   _killed = deps.killed; _rloc = deps.rloc; _newcham = deps.newcham;
   _mnexto = deps.mnexto; _attmon = deps.attmon; _amon = deps.amon;
   _buzz = deps.buzz; _dosearch = deps.dosearch; _losestr = deps.losestr;
-  _ndaminc = deps.ndaminc;
+  _ndaminc = deps.ndaminc; _docrt = deps.docrt;
 }
 
 // C ref: g_at(x,y,gen) — search a linked list for gen at (x,y)
@@ -473,20 +474,45 @@ export function rloc(mtmp) {
 }
 
 // C ref: mnexto(mon) — move monster next to player
+// C: builds list of valid cells in expanding squares, picks randomly
+// test(x,y): x in [1..78], y in [1..20], typ >= DOOR, no monster there
 export function mnexto(mtmp) {
-  for (let ddx = -1; ddx <= 1; ddx++) {
-    for (let ddy = -1; ddy <= 1; ddy++) {
-      if (!ddx && !ddy) continue;
-      const x = game.u.ux + ddx, y = game.u.uy + ddy;
-      if (x < 0 || x >= 80 || y < 0 || y >= 22) continue;
-      if (game.levl[x][y].typ >= 3 && !g_at_mon(x, y, game.fmon)) {
-        mtmp.mx = x; mtmp.my = y;
-        if (game.levl[x][y].cansee) pmon(mtmp);
-        return;
-      }
+  const foo = [];
+  let range = 1;
+  do {
+    foo.length = 0;
+    const ux = game.u.ux, uy = game.u.uy;
+    // top row: x from ux-range..ux+range, y = uy-range
+    for (let x = ux - range; x <= ux + range; x++) {
+      if (x >= 1 && x <= 78 && (uy - range) >= 1 && (uy - range) <= 20 &&
+          game.levl[x][uy - range].typ >= DOOR && !g_at_mon(x, uy - range, game.fmon))
+        foo.push({ zx: x, zy: uy - range });
     }
-  }
-  rloc(mtmp);
+    // bottom row: x from ux-range..ux+range, y = uy+range
+    for (let x = ux - range; x <= ux + range; x++) {
+      if (x >= 1 && x <= 78 && (uy + range) >= 1 && (uy + range) <= 20 &&
+          game.levl[x][uy + range].typ >= DOOR && !g_at_mon(x, uy + range, game.fmon))
+        foo.push({ zx: x, zy: uy + range });
+    }
+    // left col: y from uy+1-range..uy+range-1 (exclusive corners), x = ux-range
+    for (let y = uy + 1 - range; y < uy + range; y++) {
+      if ((ux - range) >= 1 && (ux - range) <= 78 && y >= 1 && y <= 20 &&
+          game.levl[ux - range][y].typ >= DOOR && !g_at_mon(ux - range, y, game.fmon))
+        foo.push({ zx: ux - range, zy: y });
+    }
+    // right col: y from uy+1-range..uy+range-1 (exclusive corners), x = ux+range
+    for (let y = uy + 1 - range; y < uy + range; y++) {
+      if ((ux + range) >= 1 && (ux + range) <= 78 && y >= 1 && y <= 20 &&
+          game.levl[ux + range][y].typ >= DOOR && !g_at_mon(ux + range, y, game.fmon))
+        foo.push({ zx: ux + range, zy: y });
+    }
+    range++;
+  } while (foo.length === 0);
+  const tfoo = foo[rn2(foo.length)];
+  mtmp.mx = tfoo.zx;
+  mtmp.my = tfoo.zy;
+  if (game.levl[mtmp.mx][mtmp.my].cansee && (!mtmp.invis || game.u.ucinvis))
+    atl(mtmp.mx, mtmp.my, mtmp.data.mlet);
 }
 
 // C ref: newcham(mon,pmonst) — change monster form
@@ -498,30 +524,97 @@ export function newcham(mtmp, new_mdat) {
 }
 
 // C ref: killed(mtmp) — monster killed
+// Note: compiled with -DSMALL so always uses "You destroy" (no rand()%4 call)
 export async function killed(mtmp) {
-  const kmsg = [
-    'You destroy %s%s!', 'You blow away %s%s!',
-    'You wale on %s%s!', 'You have defeated %s%s!',
-  ];
-  const article = 'aeiou'.includes(mtmp.data.mname[0].toLowerCase()) ? 'an ' : 'a ';
-  await pline(kmsg[rn2(4)], article, mtmp.data.mname);
-  game.u.urexp += mtmp.data.mhd * 4;
-  if (game.u.ulevel < 21 && game.u.uexp + game.u.urexp > _levelXP(game.u.ulevel)) {
-    game.u.ulevel++;
-    game.u.uhpmax += rnd(game.u.ulevel > 9 ? game.u.ulevel - 9 : game.u.ulevel + 2);
-    game.u.uhp = game.u.uhpmax;
-    game.flags.botl |= 0xff;
-    await pline('Welcome to level %d.', game.u.ulevel);
-  }
-  game.flags.botl |= 2; // GOLD (score)
-  delmon(mtmp);
-}
+  // C ref: #ifdef SMALL: k1("You destroy %s%s!", mtmp->data->mname)
+  // k1() uses "the " article (or "The " / "it" / "It" if blind)
+  await k1('You destroy %s%s!', mtmp.data.mname);
 
-function _levelXP(lev) {
-  // Simple XP thresholds (C doesn't define these explicitly, using standard values)
-  const thresholds = [0,20,40,80,160,320,640,1280,2560,5120,10240,
-    20480,40960,81920,163840,327680,655360,1310720,2621440,5242880];
-  return thresholds[Math.min(lev, thresholds.length - 1)];
+  if (game.u.umconf) {
+    await pline(NOBLUE);
+    game.u.umconf = 0;
+  }
+  if (game.u.ustuck === mtmp) game.u.ustuck = null;
+
+  // C ref: tmp = 1 + (mhd*mhd); bonuses for AC and special mlet
+  let tmp = 1 + (mtmp.data.mhd * mtmp.data.mhd);
+  if (mtmp.data.ac < 3) tmp += 2 * (7 - mtmp.data.ac);
+  if ('AcsSDXaeRTVWU&In:P'.includes(mtmp.data.mlet)) tmp += 4 * mtmp.data.mhd;
+  if ('DeV&P'.includes(mtmp.data.mlet)) tmp += 10 * mtmp.data.mhd;
+  if (mtmp.data.mhd > 6) tmp += 50;
+  game.u.uexp += tmp;
+  game.u.urexp += 4 * tmp;
+  game.flags.botl |= UEX;
+
+  // Return stolen items/gold if monster carried any
+  let stmp = game.fstole;
+  let stmpPrev = null;
+  let foundStole = null;
+  while (stmp) {
+    if (stmp.smon === mtmp) {
+      foundStole = stmp;
+      if (stmp.sgold) {
+        let gtmp = g_at_gen(mtmp.mx, mtmp.my, game.fgold);
+        if (gtmp) {
+          gtmp.gflag += stmp.sgold + d(game.dlevel, 30);
+        } else {
+          gtmp = makeGen(mtmp.mx, mtmp.my, stmp.sgold + d(game.dlevel, 30));
+          gtmp.ngen = game.fgold; game.fgold = gtmp;
+        }
+        if (game.levl[gtmp.gx][gtmp.gy].cansee) atl(mtmp.mx, mtmp.my, '$');
+      }
+      if (stmp.sobj) {
+        let otmp = stmp.sobj;
+        while (otmp.nobj) { otmp.ox = mtmp.mx; otmp.oy = mtmp.my; otmp = otmp.nobj; }
+        otmp.ox = mtmp.mx; otmp.oy = mtmp.my;
+        otmp.nobj = game.fobj; game.fobj = stmp.sobj;
+        if (game.levl[otmp.ox][otmp.oy].cansee) atl(otmp.ox, otmp.oy, otmp.olet);
+      }
+      // Remove from stole list
+      if (!stmpPrev) game.fstole = stmp.nstole;
+      else stmpPrev.nstole = stmp.nstole;
+      break;
+    }
+    stmpPrev = stmp; stmp = stmp.nstole;
+  }
+
+  // Leprechaun drops gold if no stolen items
+  if (!foundStole && mtmp.data.mlet === 'L') {
+    let gtmp = g_at_gen(mtmp.mx, mtmp.my, game.fgold);
+    if (gtmp) {
+      gtmp.gflag += d(game.dlevel, 35);
+    } else {
+      gtmp = makeGen(mtmp.mx, mtmp.my, d(game.dlevel, 35));
+      gtmp.ngen = game.fgold; game.fgold = gtmp;
+    }
+    if (game.levl[gtmp.gx][gtmp.gy].cansee) atl(gtmp.gx, gtmp.gy, '$');
+  }
+
+  // Random object drop: certain monsters always, others 1/5 chance
+  if (game.levl[mtmp.mx][mtmp.my].typ >= SDOOR && !game.u.uswallow &&
+      ('gNTV&'.includes(mtmp.data.mlet) || !rn2(5))) {
+    mkobj(0);
+    if (game.levl[game.fobj.ox = mtmp.mx][game.fobj.oy = mtmp.my].cansee)
+      atl(mtmp.mx, mtmp.my, game.fobj.olet);
+  }
+
+  delmon(mtmp);
+  if (game.levl[mtmp.mx][mtmp.my].scrsym === mtmp.data.mlet) newsym(mtmp.mx, mtmp.my);
+  if (game.u.uswallow) {
+    game.u.uswldtim = 0; game.u.uswallow = false;
+    if (_docrt) await _docrt();
+  }
+
+  // C ref: level up — if(u.uexp < 10*pow(ulevel-1)) return; if(ulevel>13) return;
+  // pow(n) = 2^n (custom function in hack.c)
+  if (game.u.uexp < 10 * Math.pow(2, game.u.ulevel - 1)) return;
+  if (game.u.ulevel > 13) return;
+  await pline('Welcome to level %d.', ++game.u.ulevel);
+  let hpgain = rnd(10);
+  if (hpgain < 3) hpgain = rnd(10);
+  game.u.uhpmax += hpgain;
+  game.u.uhp += hpgain;
+  game.flags.botl |= (HP | HPM | ULV);
 }
 
 // C ref: delmon(mon) — remove monster from list

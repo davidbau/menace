@@ -51,6 +51,7 @@ async function startGame() {
     dosearch,
     losestr,
     ndaminc,
+    docrt,
   });
 
   // do1.js needs nomul

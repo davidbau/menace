@@ -57,7 +57,7 @@ function wireDeps() {
     },
     newsym, setsee
   );
-  _setMonDeps({ setsee, tele, nomul, killed, rloc, newcham, mnexto, attmon, amon, buzz, dosearch, losestr, ndaminc });
+  _setMonDeps({ setsee, tele, nomul, killed, rloc, newcham, mnexto, attmon, amon, buzz, dosearch, losestr, ndaminc, docrt });
   _setDo1Deps(nomul);
   _setHackDeps({ dodown, doup, docrt, poisoned });
   setRhack(rhack);
