@@ -1035,6 +1035,9 @@ describe('polyok / extra_nasty / throws_rocks', () => {
     it('throws_rocks: little dog does not throw rocks', () => {
         assert.equal(throws_rocks(mons[PM_LITTLE_DOG]), false);
     });
+    it('throws_rocks: undefined monster data is treated as non-rockthrower', () => {
+        assert.equal(throws_rocks(undefined), false);
+    });
 });
 
 // ========================================================================

@@ -1794,7 +1794,7 @@ export function polyok(ptr) { return !(ptr.mflags2 & M2_NOPOLY); }
 export function extra_nasty(ptr) { return !!(ptr.mflags2 & M2_NASTY); }
 
 // C ref: #define throws_rocks(ptr) (((ptr)->mflags2 & M2_ROCKTHROW) != 0L)
-export function throws_rocks(ptr) { return !!(ptr.mflags2 & M2_ROCKTHROW); }
+export function throws_rocks(ptr) { return !!((ptr?.mflags2 || 0) & M2_ROCKTHROW); }
 
 // Combat predicates — C ref: mondata.h
 // C ref: #define is_armed(ptr) attacktype(ptr, AT_WEAP)
