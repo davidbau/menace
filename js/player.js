@@ -6,7 +6,9 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FEMALE, MALE,
          CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES, SICK, FAST,
-         TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
+         TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE,
+         DEAF, INVIS, SEE_INVIS, TELEPAT, STEALTH, REGENERATION,
+         TELEPORT, TELEPORT_CONTROL, PROTECTION, FUMBLING } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight } from './mkobj.js';
@@ -543,5 +545,26 @@ export class Player {
         if (!entry) return 0;
         return (entry.intrinsic & ~INTRINSIC) || entry.extrinsic || 0;
     }
+
+    // --- C macro aliases (youprop.h) ---
+    // These match C macro names used throughout autotranslated code.
+    get Hallucination() { return this.hallucinating; }
+    get Blind() { return this.blind; }
+    get Deaf() { return this.hasProp(DEAF); }
+    get deaf() { return this.hasProp(DEAF); }
+    get Invis() { return this.hasProp(INVIS); }
+    get invisible() { return this.hasProp(INVIS); }
+    get See_invisible() { return this.hasProp(SEE_INVIS); }
+    get Blind_telepat() { return this.hasProp(TELEPAT) && this.blind; }
+    get Fumbling() { return this.hasProp(FUMBLING); }
+    get fumbling() { return this.hasProp(FUMBLING); }
+    get Stunned() { return this.stunned; }
+    get Confusion() { return this.confused; }
+    get regeneration() { return this.hasProp(REGENERATION); }
+    get teleportation() { return this.hasProp(TELEPORT); }
+    get telepathy() { return this.hasProp(TELEPAT); }
+    get stealth() { return this.hasProp(STEALTH); }
+    get protection() { return this.hasProp(PROTECTION); }
+    get teleport_control() { return this.hasProp(TELEPORT_CONTROL); }
 
 }
