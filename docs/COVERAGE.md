@@ -383,6 +383,9 @@ Recommended naming:
 - example: `theme04_seed512_valkyrie_digging-branch-transition.session.json`
 - root index for theme coordination:
   - `test/comparison/sessions/coverage/README.md`
+- filename limit (new/renamed sessions): keep full filename
+  (`<name>.session.json`) <= 40 chars; use abbreviated intent tags
+  (example: `t04_s512_valk_dig-branch.session.json`).
 
 ## Coverage Campaign Plan (Theme-Driven)
 

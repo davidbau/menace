@@ -27,6 +27,12 @@ All sessions live in `test/comparison/sessions/`.
 
 Naming convention: `seed<N>_<description>.session.json`
 
+Filename length guideline (process rule):
+- For new or renamed session files, keep the full filename
+  (`<name>.session.json`) at **40 characters or fewer**.
+- Prefer compact intent tokens over long prose in `<description>`.
+- Legacy longer names may exist; do not introduce new long names.
+
 Examples:
 - `seed42_gameplay.session.json`
 - `seed1_chargen_valkyrie.session.json`

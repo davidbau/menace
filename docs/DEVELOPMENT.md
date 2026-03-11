@@ -313,6 +313,12 @@ npm run test:e2e
 # Session comparison — replay C reference sessions
 npm run test:session
 
+# Session filename policy check (changed files only)
+npm run session:names
+
+# Session filename policy check (full tree)
+npm run session:names -- test/comparison/sessions test/comparison/maps
+
 # Dump raw JS replay trace from a C gameplay session
 npm run replay:dump -- test/comparison/sessions/<file>.session.json --out /tmp/<file>.js-replay.json
 
