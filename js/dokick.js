@@ -1169,7 +1169,7 @@ export async function kick_ouch(x, y, kickobjnam, game, map, player) {
   }
   if (!rn2(3)) set_wounded_legs(RIGHT_SIDE, 5 + rnd(5), player);
   dmg = rnd(ACURR(player, A_CON) > 15 ? 3 : 5);
-  await losehp(Maybe_Half_Phys(dmg), kickstr(buf, kickobjnam), KILLED_BY, player, game?.display, game);
+  await losehp(Maybe_Half_Phys(dmg, player), kickstr(buf, kickobjnam), KILLED_BY, player, game?.display, game);
   if (Is_airlevel(player.uz) || player.levitating) {
       await hurtle(-player.dx, -player.dy, rn1(2, 4), true);
   }
