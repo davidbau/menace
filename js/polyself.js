@@ -92,7 +92,9 @@ import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
 import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
-import { losehp } from './hack.js';
+import { losehp, spoteffects } from './hack.js';
+import { find_ac } from './do_wear.js';
+import { dismount_steed, can_ride } from './steed.js';
 import { mksobj } from './mkobj.js';
 import { AMULET_OF_STRANGULATION } from './objects.js';
 import { were_summon } from './were.js';
@@ -650,7 +652,7 @@ async function polyman(player, fmt, arg) {
         await uunstick(player);
 
     // find_ac
-    if (player.findAC) player.findAC();
+    find_ac(player);
 
     // Clear mimicking state
     if (player.mappearance) {
@@ -1124,7 +1126,7 @@ export async function polymon(player, mntmp, map) {
         await skinback(player, false);
     await break_armor(player);
     await drop_weapon(player, 1);
-    if (player.findAC) player.findAC();
+    find_ac(player);
 
     // Pit escape timer reset
     if (player.utrap && player.utraptype === TT_PIT) {
@@ -1166,15 +1168,15 @@ export async function polymon(player, mntmp, map) {
 
     // Steed handling
     if (player.usteed) {
-        if (player.canRide && !player.canRide(player.usteed)) {
-            if (player.dismount) player.dismount();
+        if (!can_ride(player.usteed, player)) {
+            await dismount_steed(player);
         }
     }
 
-    if (player.findAC) player.findAC();
+    find_ac(player);
 
     // Pool/lava spoteffects
-    if (player.spoteffects) await player.spoteffects(true);
+    await spoteffects(true, player);
 
     // Passes_walls trap handling
     if (passes_walls(mons[mntmp]) && player.utrap) {
