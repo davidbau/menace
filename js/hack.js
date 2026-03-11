@@ -38,7 +38,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { more, nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
@@ -277,7 +277,7 @@ export async function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
 function could_move_onto_boulder(_sx, _sy, player) {
     if (player?.passesWalls) return true;
     if (player?.usteed) return false;
-    if (player?.throwsRocks) return true;
+    if (throws_rocks(player?.data || player?.type)) return true;
     if (player?.verysmall) return true;
     return inv_weight(player) <= -850; // extremely light inventory
 }
@@ -347,7 +347,7 @@ function boulderPushShouldMessage(otmp, game) {
 export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display, player, game) {
     const name = (otmp?.otyp === BOULDER) ? 'the boulder' : 'that object';
     if (boulderPushShouldMessage(otmp, game)) {
-        const effort = player?.throwsRocks ? 'little' : 'great';
+        const effort = throws_rocks(player?.data || player?.type) ? 'little' : 'great';
         await display?.putstr_message(`With ${effort} effort you move ${name}.`);
     }
     movobj(otmp, rx, ry, map);
@@ -378,7 +378,7 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
         movobj(otmp, sx, sy, map);
     }
     // C ref: hack.c dopush() — strength exercise happens before moving rock.
-    if (player && !player.throwsRocks) await exercise(player, A_STR, true);
+    if (player && !throws_rocks(player.data || player.type)) await exercise(player, A_STR, true);
     await dopush(sx, sy, rx, ry, otmp, false, map, display, player, game);
     if (game) game.lastMoveDir = [dx, dy];
     return 1;

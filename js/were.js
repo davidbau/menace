@@ -9,6 +9,7 @@ import { mon_break_armor } from './worn.js';
 import { newsym } from './display.js';
 import { possibly_unwield } from './weapon.js';
 import { nhimport } from './origin_awaits.js';
+import { set_uasmon } from './polyself.js';
 import {
     mons,
     PM_WERERAT,
@@ -316,7 +317,5 @@ export async function you_unwere(player, purify, ctx = {}) {
 export function set_ulycn(player, which) {
     if (!player) return;
     player.ulycn = which;
-    if (typeof player.set_uasmon === 'function') {
-        player.set_uasmon(player);
-    }
+    set_uasmon(player);
 }

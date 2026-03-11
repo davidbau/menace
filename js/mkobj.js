@@ -41,7 +41,7 @@ import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { level_difficulty } from './dungeon.js';
-import { rnd_class, safe_typename, makeplural, obj_typename } from './objnam.js';
+import { rnd_class, safe_typename, makeplural, obj_typename, simpleonames } from './objnam.js';
 import { extract_from_minvent } from './worn.js';
 import { g_at, carried, sobj_at } from './invent.js';
 import { impossible, pline, Your, You_see, You_hear } from './pline.js';

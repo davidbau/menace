@@ -49,10 +49,13 @@ test('spell rejectcasting blocks stunned casters', async () => {
 });
 
 test('spell spelleffects handles forgotten spell path', async () => {
+    const uprops = {};
     const player = {
         spells: [{ otyp: SPE_CURE_BLINDNESS, sp_know: 0, sp_lev: 1 }],
         power: 20,
         attributes: [10, 10, 10, 10, 10, 10],
+        ensureUProp(prop) { if (!uprops[prop]) uprops[prop] = { intrinsic: 0 }; return uprops[prop]; },
+        getPropTimeout(prop) { return uprops[prop] ? (uprops[prop].intrinsic & 0xffffff) : 0; },
     };
     const elapsed = await spelleffects(SPE_CURE_BLINDNESS, true, player, null, null);
     assert.equal(elapsed, 1);

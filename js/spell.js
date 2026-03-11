@@ -43,7 +43,8 @@ import { pline, You, Your, You_feel, pline_The, You_hear } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_CHANGE, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_CHANGE, DISP_END, CONFUSION, STUNNED } from './const.js';
+import { incr_itimeout, make_confused, make_stunned } from './potion.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 
 // ── Constants ──
@@ -790,7 +791,8 @@ export async function rejectcasting(player) {
 }
 
 // C ref: spell.c spell_backfire() — forgotten spell backfire effects
-export function spell_backfire(player, spellIdx) {
+// C pattern: make_confused(itimeout_incr(HConfusion, duration), TRUE)
+export async function spell_backfire(player, spellIdx) {
     const lev = spellev(player, spellIdx);
     const duration = (lev + 1) * 3; // 6..24
 
@@ -798,21 +800,27 @@ export function spell_backfire(player, spellIdx) {
     switch (rn2(10)) {
     case 0: case 1: case 2: case 3:
         // 40% — all confusion
-        if (player.addConfusion) player.addConfusion(duration);
+        incr_itimeout(player, CONFUSION, duration);
+        await make_confused(player, player.getPropTimeout(CONFUSION), true);
         break;
     case 4: case 5: case 6:
         // 30% — 2/3 confusion + 1/3 stun
-        if (player.addConfusion) player.addConfusion(Math.floor(2 * duration / 3));
-        if (player.addStun) player.addStun(Math.floor(duration / 3));
+        incr_itimeout(player, CONFUSION, Math.floor(2 * duration / 3));
+        await make_confused(player, player.getPropTimeout(CONFUSION), true);
+        incr_itimeout(player, STUNNED, Math.floor(duration / 3));
+        await make_stunned(player, player.getPropTimeout(STUNNED), true);
         break;
     case 7: case 8:
         // 20% — 2/3 stun + 1/3 confusion
-        if (player.addStun) player.addStun(Math.floor(2 * duration / 3));
-        if (player.addConfusion) player.addConfusion(Math.floor(duration / 3));
+        incr_itimeout(player, STUNNED, Math.floor(2 * duration / 3));
+        await make_stunned(player, player.getPropTimeout(STUNNED), true);
+        incr_itimeout(player, CONFUSION, Math.floor(duration / 3));
+        await make_confused(player, player.getPropTimeout(CONFUSION), true);
         break;
     case 9:
         // 10% — all stun
-        if (player.addStun) player.addStun(duration);
+        incr_itimeout(player, STUNNED, duration);
+        await make_stunned(player, player.getPropTimeout(STUNNED), true);
         break;
     }
 }
@@ -1098,7 +1106,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     if (sp.sp_know <= 0) {
         await Your("knowledge of this spell is twisted.");
         await pline("It invokes nightmarish images in your mind...");
-        spell_backfire(player, idx);
+        await spell_backfire(player, idx);
         const drain = rnd(energy);
         if (player.power !== undefined) {
             player.power = Math.max(0, (player.power || 0) - drain);
@@ -1605,7 +1613,7 @@ export async function spelleffects_check(spell, res, energy, game, player) {
   if (spellknow(spell) <= 0) {
     await Your("knowledge of this spell is twisted.");
     await pline("It invokes nightmarish images in your mind...");
-    spell_backfire(spell);
+    await spell_backfire(player, spell);
     player.uen -= rnd( energy);
     if (player.uen < 0) player.uen = 0;
     game.disp.botl = true;

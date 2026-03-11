@@ -92,7 +92,10 @@ import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
 import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
-import { losehp, spoteffects, nomul } from './hack.js';
+import { losehp, spoteffects, nomul, getdir } from './hack.js';
+import { ubuzz, ubreatheu } from './zap.js';
+import { throwit } from './dothrow.js';
+import { is_home_elemental } from './makemon.js';
 import { find_ac, Armor_gone } from './do_wear.js';
 import { dismount_steed, can_ride } from './steed.js';
 import { mksobj } from './mkobj.js';
@@ -108,6 +111,7 @@ import { game as _gstate } from './gstate.js';
 import { adjabil, redist_attr } from './attrib.js';
 import { expels } from './mhitu.js';
 import { dropx } from './do.js';
+import { unpunish } from './read.js';
 import { newuhs } from './eat.js';
 import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS, KILLED_BY_AN, DIED, STONING } from './const.js';
 
@@ -569,23 +573,41 @@ export function set_uasmon(player) {
 // float_vs_flight() — cf. polyself.c:131
 // ============================================================================
 
-// Autotranslated from polyself.c:130
+// C ref: polyself.c:130 — float_vs_flight()
+// C macros: HLevitation = u.uprops[LEVITATION].intrinsic
+//           ELevitation = u.uprops[LEVITATION].extrinsic
+//           BFlying = u.uprops[FLYING].blocked
+//           BLevitation = u.uprops[LEVITATION].blocked
 export function float_vs_flight(game, player) {
-  let stuck_in_floor = (player.utrap && player.utraptype !== TT_PIT);
-  if ((HLevitation || ELevitation) || ((HFlying || EFlying) && stuck_in_floor)) {
-    BFlying |= I_SPECIAL;
+  if (!player) return;
+  const stuck_in_floor = (player.utrap && player.utraptype !== TT_PIT);
+  const hLev = player.getPropTimeout ? player.getPropTimeout(LEVITATION) : 0;
+  const eLev = player.hasProp ? player.hasProp(LEVITATION, 'extrinsic') : false;
+  const hFly = player.getPropTimeout ? player.getPropTimeout(FLYING) : 0;
+  const eFly = player.hasProp ? player.hasProp(FLYING, 'extrinsic') : false;
+
+  // Set/clear I_SPECIAL blocked bit on flying
+  const flyEntry = player.ensureUProp ? player.ensureUProp(FLYING) : null;
+  if (flyEntry) {
+    if ((hLev || eLev) || ((hFly || eFly) && stuck_in_floor)) {
+      flyEntry.blocked = (flyEntry.blocked || 0) | I_SPECIAL;
+    } else {
+      flyEntry.blocked = (flyEntry.blocked || 0) & ~I_SPECIAL;
+    }
   }
-  else {
-    BFlying &= ~I_SPECIAL;
+
+  // Set/clear I_SPECIAL blocked bit on levitation
+  const levEntry = player.ensureUProp ? player.ensureUProp(LEVITATION) : null;
+  if (levEntry) {
+    if ((hLev || eLev) && stuck_in_floor) {
+      levEntry.blocked = (levEntry.blocked || 0) | I_SPECIAL;
+    } else {
+      levEntry.blocked = (levEntry.blocked || 0) & ~I_SPECIAL;
+    }
   }
-  if ((HLevitation || ELevitation) && stuck_in_floor) {
-    BLevitation |= I_SPECIAL;
-  }
-  else {
-    BLevitation &= ~I_SPECIAL;
-  }
+
   steed_vs_stealth();
-  game.disp.botl = true;
+  if (game?.disp) game.disp.botl = true;
 }
 
 // ============================================================================
@@ -1119,7 +1141,7 @@ export async function polymon(player, mntmp, map) {
             player.mhmax = rnd(4);
         else
             player.mhmax = d(mlvl, 8);
-        if (player.isHomeElemental && player.isHomeElemental(mons[mntmp]))
+        if (is_home_elemental(mons[mntmp]))
             player.mhmax *= 3;
     }
     player.mh = player.mhmax;
@@ -1345,15 +1367,9 @@ export async function rehumanize(player) {
 
 // C ref: polyself.c:1119 — dropp()
 // Wrapper over dropx used by break_armor/drop_weapon paths.
-export async function dropp(obj, player) {
+export async function dropp(obj, player, map) {
     if (!obj || !player) return;
-    if (typeof player.dropx === 'function') {
-        await player.dropx(obj);
-        return;
-    }
-    if (typeof player.dropp === 'function') {
-        await player.dropp(obj);
-    }
+    await dropx(obj, player, map);
 }
 
 export async function break_armor(player) {
@@ -1535,7 +1551,7 @@ export function polysense(player) {
 // ============================================================================
 
 // cf. polyself.c:1405 — dobreathe(): breath weapon attack
-export async function dobreathe(player, map) {
+export async function dobreathe(player, map, display, game) {
     // Breath weapon attack for polymorphed player.
     if (!player || !player.type) return 0;
 
@@ -1549,46 +1565,43 @@ export async function dobreathe(player, map) {
     }
     player.uen -= 15;
 
-    // In C, getdir() is called here for direction input.
-    // If player.dx/dy/dz are set by the caller (or a getdir wrapper),
-    // use them. Otherwise this is a no-op for the breath itself.
-    if (player.getdir && !player.getdir()) {
+    // C: if(!getdir((char *)0)) { ... return ECMD_CANCEL; }
+    const dir = await getdir(null, display);
+    if (!dir) {
         player.uen += 15; // refund energy on cancel
         return 0; // ECMD_CANCEL
     }
 
     const mattk = attacktype_fordmg(player.type, AT_BREA, AD_ANY);
     if (!mattk) {
-        await pline("bad breath attack?"); // impossible
+        await impossible("bad breath attack?");
     } else {
-        if (!player.dx && !player.dy && !player.dz) {
+        if (!dir.dx && !dir.dy && !dir.dz) {
             // Breathe on self
-            if (player.ubreatheu) {
-                player.ubreatheu(mattk);
-            }
+            await ubreatheu(mattk.adtyp, mattk.damn || 0,
+                player.x, player.y, dir.dx, dir.dy, map, player);
         } else {
             // Directed breath: ubuzz subsystem
-            if (player.ubuzz) {
-                player.ubuzz(mattk.adtyp, mattk.damn || 0);
-            }
+            ubuzz(mattk.adtyp, mattk.damn || 0, player);
         }
     }
     return 1; // ECMD_TIME
 }
 
 // cf. polyself.c:1434 — dospit(): spit venom attack
-export async function dospit(player, map) {
+export async function dospit(player, map, display, game) {
     // Spit venom attack for polymorphed player.
     if (!player || !player.type) return 0;
 
-    // In C, getdir() is called for direction input.
-    if (player.getdir && !player.getdir()) {
+    // C: if(!getdir((char *)0)) return ECMD_CANCEL;
+    const dir = await getdir(null, display);
+    if (!dir) {
         return 0; // ECMD_CANCEL
     }
 
     const mattk = attacktype_fordmg(player.type, AT_SPIT, AD_ANY);
     if (!mattk) {
-        await pline("bad spit attack?"); // impossible
+        await impossible("bad spit attack?");
     } else {
         let otmp;
         switch (mattk.adtyp) {
@@ -1603,9 +1616,7 @@ export async function dospit(player, map) {
         }
         if (otmp) {
             otmp.spe = 1; // indicates it's yours
-            if (player.throwit) {
-                await player.throwit(otmp, 0, false, null);
-            }
+            await throwit(otmp, 0, false, null, player, map, game);
         }
     }
     return 1; // ECMD_TIME
@@ -1628,11 +1639,7 @@ export async function doremove(player) {
         return 0;
     }
     // unpunish() — remove ball and chain punishment
-    if (player.unpunish) {
-        player.unpunish();
-    } else {
-        player.punished = false;
-    }
+    unpunish(player);
     return 1; // ECMD_TIME
 }
 
@@ -1869,7 +1876,8 @@ export async function dogaze(player, map) {
                     dmg = 0;
                 }
                 if (lev > rn2(20)) {
-                    if (player.destroyItems) dmg += player.destroyItems(mtmp, AD_FIRE, orig_dmg);
+                    // TODO: C calls destroy_mitem(mtmp, AD_FIRE, orig_dmg) here
+                // but destroy_mitem signature is (mon, osym, dmgtyp) — needs audit
                     ignite_items(player, _gstate);
                 }
                 if (dmg) {

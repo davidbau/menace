@@ -22,7 +22,7 @@ import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF, Upolyd, DIED, POISONING } fr
 import { roles, races } from './player.js';
 import { pline, You, Your, You_feel, pline_The, livelog_printf } from './pline.js';
 import { sgn, strstri } from './hacklib.js';
-import { losehp } from './hack.js';
+import { losehp, near_capacity } from './hack.js';
 import { done } from './end.js';
 import { game as _gstate } from './gstate.js';
 import { DUNCE_CAP, GAUNTLETS_OF_POWER, HELM_OF_OPPOSITE_ALIGNMENT, LUCKSTONE } from './objects.js';
@@ -703,7 +703,7 @@ async function exerper(player) {
         }
 
         // Encumbrance checks
-        const cap = player.near_capacity ? player.near_capacity() : 0;
+        const cap = near_capacity();
         switch (cap) {
         case 2: // MOD_ENCUMBER
             await exercise(player, A_STR, true);
