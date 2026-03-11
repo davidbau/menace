@@ -48,7 +48,7 @@ import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          mondead, mpickobj, mdrop_obj,
          mon_track_add,
          should_displace } from './monmove.js';
-import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY, PROT_FROM_SHAPE_CHANGERS } from './const.js';
+import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY, PROT_FROM_SHAPE_CHANGERS, CONFLICT } from './const.js';
 import { newsym, canspotmon, glyph_at } from './display.js';
 import { pline, You, Your } from './pline.js';
 import { an } from './objnam.js';
@@ -1278,7 +1278,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                 const balk = (mon.m_lev || 1)
                     + Math.floor((5 * (mon.mhp || 1)) / Math.max(1, mon.mhpmax || 1))
                     - 2;
-                const conflictActive = false; // JS Conflict not implemented yet.
+                const conflictActive = !!(player?.hasProp?.(CONFLICT));
                 const targetMpeaceful = !!(target.mpeaceful ?? target.peaceful);
                 const targetMtame = !!((target.mtame || 0) > 0 || target.tame);
                 const monMtame = !!((mon.mtame || 0) > 0 || mon.tame);
