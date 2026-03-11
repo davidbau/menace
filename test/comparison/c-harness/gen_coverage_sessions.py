@@ -595,3 +595,71 @@ def capture_inventory_management(seed=670):
                     character=CHARACTER_WIZ,
                     record_more_spaces=True)
     print(f'  → {outpath}')
+
+
+def capture_eat_corpse(seed=680):
+    """Eat from the ground, test eating code paths.
+
+    Wish for food items and eat them.
+    Targets: eat.js food consumption code
+    """
+    print(f'Capturing eat-corpse (seed {seed})...')
+    moves = ''
+
+    # Wish for a food ration
+    moves += wish('food ration')
+
+    # Eat the wished food ('e' = eat, then select from inventory)
+    # The food ration should be the first wished item
+    moves += 'e' + 'o' + SP * 5  # eat, select, dismiss prompts
+
+    # Wish for and eat an apple
+    moves += wish('apple')
+
+    # Eat the apple
+    moves += 'e' + 'p' + SP * 5
+
+    # Wait a bit (search = no-move, passes time for digestion)
+    for _ in range(3):
+        moves += 's'
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme04_seed{seed:03d}_wiz_eat-food_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
+
+
+def capture_read_scroll(seed=690):
+    """Read scrolls to test read.js code paths.
+
+    Wish for scrolls and read them.
+    Targets: read.js scroll reading code
+    """
+    print(f'Capturing read-scroll (seed {seed})...')
+    moves = ''
+
+    # Wish for scroll of light
+    moves += wish('scroll of light')
+
+    # Read it
+    moves += 'r' + 'o' + SP * 5
+
+    # Wish for scroll of identify
+    moves += wish('scroll of identify')
+
+    # Read identify (will prompt for item to identify)
+    moves += 'r' + 'p' + 'a' + SP * 5  # read, select scroll, identify item a
+
+    # Wait
+    moves += 's' + 's' + 's'
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme05_seed{seed:03d}_wiz_read-scroll_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
