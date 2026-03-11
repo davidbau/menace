@@ -8265,3 +8265,34 @@ hard-won wisdom:
 - Validation:
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t01_s650_w_sit_gp.session.json` → PASS.
   - `scripts/run-and-report.sh --failures` remained green (`104/104`).
+
+## 2026-03-11: Fix blessed monster-detection redraw semantics (t06_s621, t06_s622)
+
+- Problem:
+  - Pending wizard quaff sessions had residual screen/color drift while
+    RNG/events were aligned.
+  - `t06_s621_w_qstat_gp` diverged at step 136 around monster detection
+    prompt/map redraw behavior.
+  - `t06_s622_w_qabil_gp` had out-of-FOV remembered-glyph screen drift
+    (resolved earlier in same cycle by remembered glyph handling).
+- Changes:
+  - `js/potion.js`:
+    - `peffect_monster_detection()` now matches C `potion.c` flow:
+      - scans map squares for invisible glyph cleanup (`unmap_object` + `newsym`);
+      - detects `MON_AT` presence to clear `potion_unkn`;
+      - uses C-faithful `!swallowed && !Underwater` gate before
+        `see_monsters()` / `You_feel("lonely.")`.
+    - removed eager prompt row clearing before applying potion effects in
+      quaff selection; prompt lifetime now matches C interaction timing.
+  - `js/display.js`:
+    - in out-of-FOV `newsym()`, when `Detect_monsters` is active, render
+      detected monster glyph in inverse video (attr=1), matching C tty
+      detected-monster presentation.
+- Result:
+  - Pending gameplay sessions moved to full green: `6/6`.
+  - Full gameplay report is all green: `104/104`, with PRNG/events/screen all
+    `100%`.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose --sessions test/comparison/sessions/pending/t06_s621_w_qstat_gp.session.json` → PASS.
+  - `scripts/run-and-report.sh --pending` → `6/6` PASS.
+  - `scripts/run-and-report.sh` → gameplay `104/104` PASS.
