@@ -7948,3 +7948,33 @@ hard-won wisdom:
     - pass (`159/159`).
   - `scripts/run-and-report.sh --failures`
     - gameplay baseline remains green (`41/41`).
+
+## 2026-03-11: split wizard level-port vs level-change semantics (pending seed500)
+
+- Problem:
+  - `seed500_extcmd_enhance` was diverging early with prompt/action mismatch:
+    JS drove `#levelchange` through dungeon-level teleport flow, while C uses
+    `#levelchange` for experience-level changes and `^V` (`wizlevelport`) for
+    dungeon-level teleport.
+- Change:
+  - `js/wizcmds.js`:
+    - added `wizLevelPort(game)` for C `wiz_level_tele` semantics (dungeon level teleport prompt).
+    - rewired `wizLevelChange(game)` to call `wiz_level_change(player, display)`
+      (experience-level prompt: `To what experience level do you want to be set? `).
+    - fixed missing dependencies in `wiz_level_change` path (`MAXULEV`,
+      `pluslvl`, `ECMD_OK`).
+  - `js/cmd.js`:
+    - changed `Ctrl+V` wizard binding from `wizLevelChange` to `wizLevelPort`.
+    - kept extcmd autocompletion C-faithful for this path: bare `#e` resolves
+      to `#enhance`.
+    - for wizard `#enhance` with no advanceable skills, added C-like
+      `Advance skills without practice? [yn] (n) ` prompt gate.
+- Result:
+  - `seed500` parity improved from deep RNG/event divergence to pure screen-only
+    tail mismatch:
+    - before: `rng 3062/5356`, `events 34/70`
+    - now: `rng 3073/3073`, `events 34/34` (remaining `screens 27/29`).
+  - Main gameplay baseline remains green.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed500_extcmd_enhance.session.json --parallel=1 --verbose`
+  - `scripts/run-and-report.sh --failures` (`42/42` gameplay passing on this branch state).

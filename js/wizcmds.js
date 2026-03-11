@@ -186,9 +186,9 @@ import { resetLevelState, withFinalizeContext, withSpecialLevelDepth } from './s
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, isok, SIZE, MM_NOEXCLAM,
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
-    Never_mind } from './const.js';
+    Never_mind, ECMD_OK } from './const.js';
 import { makemon } from './makemon.js';
 import { mons } from './monsters.js';
 import { makewish } from './zap.js';
@@ -196,7 +196,7 @@ import { encumber_msg } from './pickup.js';
 import { schedule_goto } from './do.js';
 import { check_wornmask_slots } from './worn.js';
 import { impossible, pline, pline1, You } from './pline.js';
-import { losexp } from './exper.js';
+import { losexp, pluslvl } from './exper.js';
 import { m_at } from './trap.js';
 import { u_at } from './hack.js';
 import {
@@ -268,8 +268,7 @@ export async function handleWizLoadDes(game) {
 
 // cf. wizcmds.c:399 — wiz_level_tele(): level teleportation wizard command
 // cf. wizcmds.c:446 — wiz_level_change(): adjust hero experience level
-// JS combines both into wizLevelChange — prompts for dungeon level number.
-export async function wizLevelChange(game) {
+export async function wizLevelPort(game) {
     const { player, display } = game;
     if (!game.wizard) {
         await display.putstr_message('Unavailable command.');
@@ -289,6 +288,19 @@ export async function wizLevelChange(game) {
         return { moved: false, tookTime: false };
     }
     schedule_goto(player, level, 0, null, 'You materialize on a different level!');
+    return { moved: false, tookTime: false };
+}
+
+// cf. wizcmds.c:446 — #levelchange adjusts hero experience level.
+export async function wizLevelChange(game) {
+    const { player, display } = game;
+    if (!game.wizard) {
+        await display.putstr_message('Unavailable command.');
+        return { moved: false, tookTime: false };
+    }
+    // C-ref: #levelchange maps to wiz_level_change() (experience level),
+    // not wiz_level_tele().
+    await wiz_level_change(player, display);
     return { moved: false, tookTime: false };
 }
 
@@ -657,9 +669,9 @@ export function migrsort_cmp(vptr1, vptr2) {
 }
 
 // Autotranslated from wizcmds.c:445
-export async function wiz_level_change(player) {
+export async function wiz_level_change(player, display) {
   let newlevel = 0, ret;
-  let buf = await getlin("To what experience level do you want to be set?");
+  let buf = await getlin("To what experience level do you want to be set? ", display);
   if (typeof buf === 'string') buf = buf.trim();
   if (!buf || buf[0] === '\x1b') ret = 0;
   else {
@@ -691,7 +703,7 @@ export async function wiz_level_change(player) {
     }
     if (newlevel > MAXULEV) newlevel = MAXULEV;
     while (player.ulevel < newlevel) {
-      await pluslvl(false);
+      await pluslvl(player, display, false);
     }
   }
   player.ulevelmax = player.ulevel;

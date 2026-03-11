@@ -8,7 +8,7 @@ import { RACE_ORC, SQKY_BOARD,
          xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING, SIZE, nul_glyphinfo,
          isok, Never_mind } from './const.js';
 import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
-import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
+import { handleWizLoadDes, wizLevelChange, wizLevelPort, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
 import { handleKnownSpells, docast } from './spell.js';
 import { handleEngrave } from './engrave.js';
@@ -590,10 +590,10 @@ export async function rhack(ch, game) {
         }
     }
 
-    // Wizard mode: Ctrl+V = #levelchange
-    // C ref: cmd.c wiz_level_change()
+    // Wizard mode: Ctrl+V = #wizlevelport (level teleport)
+    // C ref: cmd.c wiz_level_tele()
     if (ch === 22 && game.wizard) {
-        return await wizLevelChange(game);
+        return await wizLevelPort(game);
     }
 
     // Wizard mode: Ctrl+F = magic mapping (reveal map)
@@ -774,6 +774,14 @@ async function handleExtendedCommand(game) {
                 await display.putstr_message('You have no skills to show.');
                 return { moved: false, tookTime: false };
             }
+            if (!advanceable.length && game?.wizard) {
+                await display.putstr_message('Advance skills without practice? [yn] (n) ');
+                const resp = await nhgetch();
+                const rc = String.fromCharCode(resp).toLowerCase();
+                if (resp === 27 || rc === 'n') {
+                    return { moved: false, tookTime: false };
+                }
+            }
             const heading = advanceable.length > 0 ? 'Pick a skill to advance:' : 'Current skills:';
             await display.putstr_message(heading);
             const letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -905,6 +913,8 @@ function displayCompletedExtcmd(typed, game) {
     const raw = String(typed || '');
     const lowered = raw.toLowerCase();
     if (!lowered) return raw;
+    // C autocomplete table resolves bare "#e" to "#enhance".
+    if (lowered === 'e') return 'enhance';
     // C shows literal one-letter progress for some extcmds while typing.
     // Keep these literal so typed echo matches C.
     if (lowered === 'd' || lowered === 's' || lowered === 'c' || lowered === 'ch') return raw;
