@@ -8,15 +8,25 @@ This file defines how coding agents should work in this repository.
 
 This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the authoritative source for goals, scope, and milestone priorities.
 
-## Current Mission (Temporary Priority)
-1. Burndown phase is complete (gameplay/session parity is green at current checkpoint).
-2. Spend a short cleanup pass on repo hygiene:
-   - remove temporary debug scaffolding not needed for ongoing work,
-   - close/update stale issues and docs status notes,
-   - keep main clean and coordinated across agents.
-3. Then prioritize **CODEMATCH coverage expansion** as the top active workstream.
-4. While expanding coverage, preserve current parity (no regressions) and avoid architectural/harness cruft.
-5. Phase 3 execution model: use C-parity session coverage as the primary signal, add theme-organized sessions, and push toward 90%+ parity-session coverage while staying green.
+## Current Mission: Coverage Campaign (Phase 3)
+
+The primary objective is **growing parity-session coverage toward 90%+**.
+
+The metric is **coverage percentage**, not session count. Sessions that don't
+add new coverage are pure cost. Sessions that exercise code without comparing
+to C ground truth are worthless. The ideal is maximum C-grounded coverage with
+minimum session count and runtime.
+
+Every agent's work must connect to this pipeline:
+1. Identify low-coverage code using `npm run coverage:session-parity:report`.
+2. Create targeted C-recorded sessions that exercise uncovered branches.
+3. Fix JS parity divergences until new sessions pass.
+4. Promote passing sessions and verify coverage gain.
+5. Never regress existing parity — fix code, don't mask sessions.
+
+Read `docs/COVERAGE.md` for the full mandatory workflow, commands, and
+session lifecycle rules. **Code fixes without corresponding coverage
+evidence don't count.**
 
 ## Source of Truth and Priorities
 1. NetHack C 3.7.0 behavior is the gameplay source of truth.
@@ -64,6 +74,11 @@ Historical/reference docs:
 6. Keep tests fast to expose hangs early:
    - unit tests: 1000ms timeout per test
    - single-session parity runs: 10000ms timeout per session
+   - full suite must complete in minutes, not hours — treat creeping slowdown
+     as a regression
+   - fail fast on hangs; never sit for minutes producing no output
+   - a 30-minute deadlock is worse than a test failure — it wastes time with
+     zero signal
 7. Avoid cruft in parity fixes:
    - no broad refactors unrelated to the active divergence
    - no compatibility shims unless required for immediate correctness
@@ -106,15 +121,21 @@ When running rebuilds/regenerations that can take several minutes:
 5. Coverage credit is based on C-recorded parity sessions only (see
    `docs/COVERAGE.md`); ordinary unit-test coverage does not count toward parity
    coverage progress.
-6. Follow the session lifecycle in `docs/COVERAGE.md`:
+6. **Every session must compare against C ground truth.** Coverage that isn't
+   C-grounded is not parity coverage. Sessions that merely execute code without
+   validating against C traces are useless.
+7. Follow the session lifecycle in `docs/COVERAGE.md`:
    - record new sessions in `test/comparison/sessions/pending/`,
    - debug/fix parity until green,
    - promote passing sessions into `test/comparison/sessions/coverage/<theme>/`.
-7. Coverage sessions under `sessions/coverage/` are part of the default parity
+8. Coverage sessions under `sessions/coverage/` are part of the default parity
    suite; do not regress them.
-8. While parity coverage is below target, keep active issue work on both:
-   - fixing failing pending sessions,
-   - recording/promoting new targeted coverage sessions.
+9. **Do not add sessions that don't increase coverage.** Every session costs
+   CI time; it must pay for itself in new lines/branches covered.
+10. While parity coverage is below target, keep active issue work on both:
+    - fixing failing pending sessions,
+    - recording/promoting new targeted coverage sessions.
+11. Track progress by **coverage percentage delta**, not session count.
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.

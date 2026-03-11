@@ -235,13 +235,14 @@ gates. Per-commit parity metrics are recorded in
    - Sub-campaigns completed: early parity push, Iron Parity (pivoted), More Needed (merged).
    - Direct parity burndown completed to current full-green checkpoint.
 4. **Phase 3: Full-coverage closure** *(active)*
-   - Maintain the [C-to-JS code correspondence ledger](docs/CODEMATCH.md) (file-by-file and function-by-function mapping).
-   - Refactor JS files to match C file/function naming (one GitHub issue per C file, labeled `codematch`; [issues #32–#138](https://github.com/davidbau/menace/issues?q=label%3Acodematch)).
-   - Run and maintain JS code-coverage tooling to identify unexercised codepaths.
+   - **Primary metric: parity-session coverage percentage** (lines/branches/functions exercised by C-grounded sessions).
    - Drive coverage using C-parity session tests as the authoritative signal (not unit-test-only coverage).
-   - Organize new parity sessions by theme in dedicated directories and expand those themes incrementally.
-   - Preserve full-green baseline parity while adding new sessions, and debug/fix parity on each new session set.
+   - Every session must compare against C ground truth — coverage without parity validation is meaningless.
+   - Maximize coverage per session; do not add sessions that don't measurably increase coverage.
+   - Organize new parity sessions by theme; preserve full-green parity while adding sessions.
    - Reach and hold session-parity coverage north of 90% while keeping the parity suite green.
+   - Maintain the [C-to-JS code correspondence ledger](docs/CODEMATCH.md) for structural tracking.
+   - See [docs/COVERAGE.md](docs/COVERAGE.md) for the mandatory pipeline and workflow.
 5. **Phase 4: Architectural stabilization** *(planned)*
    - Refactor for robustness, readability, maintainability, performance, and design quality while preserving parity.
 6. **Phase 5: Self-play agent** *(parallel track, running across Phases 2–4)*
@@ -402,16 +403,24 @@ Authoritative doc: [docs/MORE_NEEDED_CAMPAIGN.md](docs/MORE_NEEDED_CAMPAIGN.md)
 
 ## Immediate Focus
 
-Phase 3 execution is a coverage campaign rooted in C-parity session replay:
+Phase 3 execution is a coverage campaign rooted in C-parity session replay.
+The metric is **parity-session coverage percentage** — the fraction of JS
+gameplay code exercised by sessions that compare against C ground truth.
 
-1. Use session-parity coverage artifacts to identify untested/under-tested JS
-   gameplay paths.
-2. Add deterministic C-recorded sessions that specifically exercise those paths.
-3. Group new sessions by gameplay theme so coverage growth is deliberate and
-   auditable.
-4. Require parity-green outcomes on each new session set and avoid regression on
-   baseline core sessions.
+1. Use session-parity coverage reports to identify under-covered JS files and
+   branches.
+2. Create targeted C-recorded sessions that exercise those specific paths.
+3. Fix JS parity divergences until new sessions pass against C traces.
+4. Promote passing sessions and verify measurable coverage gain.
 5. Drive aggregate session-parity coverage above 90% and hold it there.
+
+Key principles:
+- **Coverage percentage is the metric, not session count.** Sessions that don't
+  add coverage are pure cost.
+- **Sessions must compare against C ground truth.** Exercising code without
+  validating against C is not parity coverage.
+- **Maximum coverage with minimum cost.** Prefer a few high-yield sessions over
+  many redundant ones.
 
 Coverage process details and theme taxonomy are maintained in
 [docs/COVERAGE.md](docs/COVERAGE.md).

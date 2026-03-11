@@ -2,30 +2,51 @@
 
 ## Goal
 
-Measure JS code coverage using only deterministic C-parity session replays, not
-unit tests.
+Grow JS code coverage using deterministic C-parity session replays until
+session-parity coverage exceeds 90%. This is the **primary execution focus** of
+Phase 3.
 
-Coverage progress credit policy:
+### What counts
+
+The metric is **parity-session coverage percentage** — the fraction of JS
+gameplay code exercised by sessions that replay deterministic C-recorded traces
+and compare every output channel (RNG, events, screen) against C ground truth.
+
 - Credit is awarded only for code executed by C-recorded parity sessions.
 - Ordinary unit-test coverage does not count toward parity coverage goals.
-- To raise this metric, add/improve C-recorded sessions that exercise real
-  gameplay paths.
+- **Code fixes without corresponding test coverage don't count.** If you fix a
+  bug, you must either verify it's exercised by existing sessions or create a
+  new session that exercises the fix. Nice-looking code that isn't tested is
+  unverified code.
+- **Sessions that merely exercise code without comparing to C ground truth are
+  useless.** Every session must replay a C-recorded trace and validate against
+  it. Coverage that isn't C-grounded is not parity coverage.
 
-This coverage signal is intended to answer:
-- "How much of the JS gameplay code is exercised by tests with C-grounded
-  behavior expectations?"
+### What does NOT count
 
-It is explicitly **not** intended to measure:
-- total project coverage from all tests,
-- unit-test-only path coverage.
+- Adding sessions that don't increase coverage is pure cost — they consume CI
+  time without improving the metric. Prefer a few high-yield sessions over many
+  redundant ones.
+- Sessions that duplicate coverage already provided by existing sessions should
+  be avoided. Check the coverage report before adding new sessions.
+- Inflating session count without coverage gain is explicitly anti-goal.
 
-Phase 3 objective:
-- reach and hold session-parity coverage north of 90%,
-- while keeping parity green on the established baseline core sessions,
-- and keeping newly added themed parity sessions green as they are introduced.
+### The ideal
 
-Latest baseline (`2026-03-11`, commit `8aa34219`):
-- Gameplay parity sessions: `34/34` green.
+Maximum parity-session coverage with minimum session count and runtime. Every
+session should justify its existence by exercising code that no other session
+covers, while validating against C ground truth on all channels.
+
+### Phase 3 objective
+
+- Reach and hold session-parity coverage north of 90%.
+- Keep parity green on all promoted sessions (baseline + coverage).
+- Each new session batch must demonstrably increase coverage in targeted files.
+- Measure progress by coverage percentage delta, not session count delta.
+
+### Latest baseline (`2026-03-11`, commit `8aa34219`)
+
+- Gameplay parity sessions: `34/34` green (+ 7 coverage sessions).
 - Overall session-parity coverage:
   - lines: `50.93%`
   - branches: `60.68%`
@@ -36,6 +57,91 @@ Latest baseline (`2026-03-11`, commit `8aa34219`):
   - `js/lock.js` (`23.58%`)
   - `js/shk.js` (`26.27%`)
   - `js/zap.js` (`20.81%`)
+
+## The Coverage Pipeline (Mandatory Workflow)
+
+Every agent working on this project must follow this pipeline. It connects
+code inspection, bug fixing, session creation, and coverage measurement into
+a single continuous loop.
+
+### Step 1: Identify untested code
+
+Run coverage reports to find low-coverage files and uncovered branches.
+Scan those files for bugs, autotranslation artifacts, or missing functionality.
+
+```bash
+npm run coverage:session-parity:report
+```
+
+The report ranks gameplay files by coverage and highlights which files will
+yield the largest coverage gains. Focus on files where a single targeted
+session can cover many uncovered branches.
+
+### Step 2: Create pending sessions targeting the gap
+
+Record deterministic C sessions that exercise the untested scenarios. Place
+them in `test/comparison/sessions/pending/`. Sessions should be **targeted** —
+designed to hit specific branches, commands, or effects in the low-coverage
+files identified in Step 1.
+
+```bash
+# Record a C session (see test/comparison/c-harness/ for tooling)
+# Or use the coverplay engine once available
+```
+
+Before recording, check which branches are already covered. Don't create
+sessions that duplicate existing coverage — every session must pay for itself
+in new lines/branches covered.
+
+### Step 3: Run pending sessions and fix divergences
+
+Run the pending session against JS. It will likely fail initially. Fix the
+JS code until the session passes. **This is where bug fixes happen** — driven by
+concrete test evidence, not just code inspection.
+
+```bash
+# Run one pending session
+node test/comparison/session_test_runner.js \
+  --sessions=test/comparison/sessions/pending/<name>.session.json \
+  --parallel=1 --verbose
+
+# Debug first divergence
+node test/comparison/rng_step_diff.js \
+  test/comparison/sessions/pending/<name>.session.json --step <N> --window 8
+```
+
+### Step 4: Promote passing sessions
+
+Move green pending sessions to the appropriate coverage theme directory:
+```bash
+mv test/comparison/sessions/pending/<name>.session.json \
+   test/comparison/sessions/coverage/<theme>/
+```
+Once promoted, the session is part of the default parity suite and must stay
+green.
+
+### Step 5: Verify coverage gain
+
+Run the coverage refresh and **confirm the intended coverage improvement**:
+```bash
+npm run coverage:session-parity:refresh
+```
+Inspect `coverage/session-parity-diff.txt` to verify the gain in the
+targeted files. If a promoted session doesn't measurably improve coverage,
+consider whether it's worth the runtime cost — remove it if it adds no value.
+
+### Step 6: Prevent regressions
+
+Run the full session suite regularly. Fix regressions immediately — do not
+remove or mask sessions to preserve a green suite.
+```bash
+npm run test:session   # all sessions including promoted coverage sessions
+```
+
+### Repeat
+
+Continue the loop: identify gaps → create sessions → fix code → promote →
+verify coverage gain. This is the steady-state workflow for all agents.
 
 ## Scope
 
@@ -76,6 +182,13 @@ Promotion rule:
 Demotion rule:
 - If a coverage session regresses, fix gameplay code; do not remove/mask the
   session to preserve a green suite.
+
+Efficiency rule:
+- Before promoting a session, verify it adds measurable coverage (new
+  lines/branches in the diff report). Sessions that add no new coverage
+  should not be promoted — they waste CI time.
+- Periodically review the session suite for redundancy. If two sessions cover
+  the same code, keep the shorter/faster one and remove the other.
 
 ## Runner
 
@@ -159,19 +272,21 @@ npm run coverage:session-parity:refresh
 
 ## Metrics and Gates
 
-Primary metrics:
-- statement/branch/function/line coverage from parity sessions only
+Primary metric:
+- **Session-parity coverage percentage** (lines, branches, functions) — this is
+  the single number that matters. All other metrics are supporting detail.
+
+Supporting metrics:
 - per-file low-coverage ranking (gameplay-relevant files)
-- parity pass/fail status for baseline and newly added themed sessions
+- parity pass/fail status for all promoted sessions
+- coverage delta per batch of new sessions (must be positive to justify addition)
 
 Required gates for each themed batch:
-1. baseline parity sessions remain green
-2. new themed sessions are green
-3. promoted coverage sessions are included in default parity replay
-4. coverage snapshot improves or remains justified (with explicit rationale)
-5. pending backlog count is tracked, and failing pending sessions have active
-   debugging issues/owners
-6. no comparator/harness masking used to hide gameplay mismatches
+1. all existing promoted sessions remain green (no regressions)
+2. new themed sessions are parity-green against C ground truth
+3. coverage snapshot shows measurable improvement in targeted files
+4. no comparator/harness masking used to hide gameplay mismatches
+5. session runtime cost is justified by coverage gained
 
 Campaign target:
 - session-parity line coverage `>= 90%` with all parity suites green
@@ -179,57 +294,59 @@ Campaign target:
 ## Targeted Session Checklist (Priority Order)
 
 Use this checklist to create new deterministic parity sessions that raise
-coverage where C-grounded exercise is currently sparse.
+coverage where C-grounded exercise is currently sparse. **Priority is determined
+by coverage report data**, not by this list order — always check current coverage
+before choosing a target.
 
 1. Furniture + throne/fountain/sink interactions
    - Primary files: `js/sit.js`, `js/fountain.js`, `js/kick.js`
    - Session goal: trigger multiple `#sit` outcomes, fountain/sink interactions, and furniture kicks.
-   - Stop condition: at least 10 distinct interaction outcomes captured.
+   - Stop condition: coverage of targeted files increases by at least 20 percentage points.
 
 2. Locking + container + pickup flow
    - Primary files: `js/lock.js`, `js/pickup.js`, `js/do_wear.js`
    - Session goal: unlock/lock doors and boxes with multiple tools; mix pickup/drop/unpaid-like flows.
-   - Stop condition: exercise door + container paths and at least two failure prompts.
+   - Stop condition: `js/lock.js` coverage exceeds 50%.
 
 3. Mount/steed behavior (wizard-assisted)
    - Primary files: `js/steed.js`
    - Session goal: mount, dismount, move mounted, and hit at least one forced dismount scenario.
-   - Stop condition: session includes successful mount and dismount transitions.
+   - Stop condition: `js/steed.js` coverage exceeds 40%.
 
 4. Maze/mines topology and digging
    - Primary files: `js/mkmaze.js`, `js/mkmap.js`, `js/extralev.js`, `js/dig.js`
    - Session goal: traverse maze/mines branch transitions and perform multiple dig actions.
-   - Stop condition: branch transition + at least three dig outcomes captured.
+   - Stop condition: `js/dig.js` coverage exceeds 40%.
 
 5. Shopkeeper economy stress
    - Primary files: `js/shk.js`, `js/pickup.js`, `js/steal.js`
    - Session goal: buy/sell/unpaid interactions, drop/take in shop, payment prompts.
-   - Stop condition: at least one full purchase and one non-trivial unpaid resolution.
+   - Stop condition: `js/shk.js` coverage exceeds 40%.
 
 6. Spellbook/read/zap item effects
    - Primary files: `js/spell.js`, `js/read.js`, `js/potion.js`, `js/zap.js`
    - Session goal: read multiple scroll/spellbook types; cast/zap with directional and prompt paths.
-   - Stop condition: at least one confusion-adjacent or failure branch plus one successful cast/zap branch.
+   - Stop condition: `js/zap.js` coverage exceeds 40%.
 
 7. Prayer + altar + conduct-sensitive behavior
    - Primary files: `js/pray.js`, `js/attrib.js`, `js/end.js`
    - Session goal: include timing-sensitive prayer outcomes and altar interaction paths.
-   - Stop condition: at least one favorable and one unfavorable prayer-related outcome.
+   - Stop condition: `js/pray.js` coverage exceeds 40%.
 
 8. Monster AI + combat complexity
    - Primary files: `js/monmove.js`, `js/mhitu.js`, `js/mhitm.js`, `js/muse.js`
    - Session goal: sustained combat with pets/hostiles/traps/ranged actions in one run.
-   - Stop condition: multiple monster behavior modes observed (move, attack, item/spell use).
+   - Stop condition: measurable branch coverage increase across targeted files.
 
 9. Quest/special-level traversal by role
    - Primary files: `js/chargen.js`, `js/extralev.js`, `js/special_levels.js`
    - Session goal: role-specific branch entry and level transitions with quest/special hooks.
-   - Stop condition: quest/special level transitions represented in replay.
+   - Stop condition: quest/special level code coverage exceeds 30%.
 
 10. Inventory/name/write long-form flow
-   - Primary files: `js/invent.js`, `js/do_name.js`, `js/write.js`, `js/objnam.js`
-   - Session goal: name objects/monsters, write/engrave flows, complex inventory menu operations.
-   - Stop condition: at least one long prompt flow and one rename/write action chain.
+    - Primary files: `js/invent.js`, `js/do_name.js`, `js/write.js`, `js/objnam.js`
+    - Session goal: name objects/monsters, write/engrave flows, complex inventory menu operations.
+    - Stop condition: measurable coverage increase in targeted files.
 
 ## Theme Organization and Session Layout
 
@@ -253,10 +370,11 @@ test/comparison/sessions/
 
 Rules:
 - each theme directory should include a short README describing target codepaths
-  and completion criteria
+  and completion criteria (expressed as coverage percentage targets)
 - sessions should remain deterministic (seed, fixed datetime, canonical options)
 - avoid blending many unrelated themes into one long session unless necessary
-- prefer a few high-yield sessions per theme over many low-signal sessions
+- **prefer a few high-yield sessions per theme over many low-signal sessions** —
+  the goal is maximum coverage with minimum runtime
 
 Recommended naming:
 - `themeNN_seedXXX_<role>_<intent>.session.json`
@@ -267,16 +385,17 @@ Recommended naming:
 ## Coverage Campaign Plan (Theme-Driven)
 
 1. Run parity-only coverage and produce the actionable low-coverage report.
-2. Pick the top 1-2 under-covered themes/files with highest gameplay impact.
-3. Record C sessions for that theme and add them under `sessions/coverage/<theme>/`.
-4. Run parity suite for baseline + new theme sessions; fix JS parity divergences.
-5. Refresh coverage snapshot and diff results.
+2. Pick the top 1-2 under-covered files with highest coverage-per-session potential.
+3. Record minimal C sessions that exercise uncovered branches in those files.
+4. Run parity suite for baseline + new sessions; fix JS parity divergences.
+5. Refresh coverage snapshot and verify the delta justifies the new sessions.
 6. Repeat until 90%+ coverage is reached and stable.
 
 Execution cadence (required while under 90% coverage):
 - Keep at least one active issue focused on fixing failing `pending` sessions.
-- Keep at least one active issue focused on recording/promoting new sessions.
-- Run parity and coverage metrics frequently (at minimum once per merged batch).
+- Keep at least one active issue focused on recording targeted new sessions.
+- Run coverage metrics after every merged batch — track the percentage, not the
+  session count.
 
 ## Issue-Driven Labor Split
 
@@ -286,19 +405,19 @@ Issue types:
 1. Theme planning issues
    - Goal: identify low-coverage files/branches for one theme and propose
      concrete session scenarios to hit them.
-   - Deliverable: a short scenario list with target files/functions and success
-     criteria.
+   - Deliverable: a short scenario list with target files/functions, current
+     coverage numbers, and target coverage numbers.
 2. Session recording issues
    - Goal: record deterministic C sessions for a theme and add them under the
      theme directory.
-   - Deliverable: new session files + brief notes on seeds/options/datetime.
+   - Deliverable: new session files + coverage delta showing improvement.
 3. Parity bring-up issues
    - Goal: make newly added sessions parity-green in JS without masking.
    - Deliverable: JS fixes, evidence of first-divergence movement, and green
      replay results.
 4. Coverage verification issues
    - Goal: run coverage refresh, publish snapshot/diff, and verify gains.
-   - Deliverable: updated metrics artifact and a summary of delta by theme.
+   - Deliverable: updated metrics artifact and a summary of delta by file.
 
 Suggested labels:
 - `coverage`
@@ -314,18 +433,20 @@ Suggested dependency chain:
 4. Coverage verification issue (Blocked by parity bring-up)
 
 Tracking checklist per theme issue:
-1. Target low-coverage files/functions listed
-2. Session scenarios approved
+1. Target low-coverage files/functions listed with current coverage %
+2. Session scenarios designed to maximize coverage gain per session
 3. Sessions recorded and committed
 4. New sessions parity-green
 5. Baseline sessions still green
-6. Coverage snapshot/diff captured
+6. Coverage snapshot/diff shows measurable improvement
 7. Follow-up gaps spun into new issues
 
 ### Session Authoring Rules
 
 - Keep sessions deterministic and replay-stable (seed + fixed datetime + canonical options).
 - Prefer C-faithful behavior exercise over synthetic harness tricks.
+- Every session must compare against C ground truth — coverage without parity
+  validation is meaningless.
 - Validate new sessions with `npm run test:session` before using them for coverage deltas.
 - Validate pending sessions directly before promotion:
   - `node test/comparison/session_test_runner.js --sessions=<path-to-pending-session> --parallel=1 --verbose`
@@ -383,9 +504,33 @@ Single session:
 bash scripts/run-session-parity-coverage.sh --text --sessions=seed033_manual_direct.session.json
 ```
 
+## Runtime Efficiency (Non-Negotiable)
+
+Test runtime is a critical resource. Slow tests waste agent time and block
+progress. Fast feedback loops are what make the coverage campaign viable.
+
+Rules:
+- **Individual sessions must complete in seconds, not minutes.** The per-session
+  timeout is 10 seconds. Sessions that approach this limit should be
+  investigated for JS hangs or infinite loops, not given more time.
+- **The full suite must complete in minutes, not hours.** Monitor total suite
+  runtime and treat creeping slowdown as a regression to fix.
+- **Fail fast, never deadlock.** Test frameworks must detect hangs and abort
+  quickly with actionable diagnostics. A 30-minute hang that produces no
+  output is worse than a test failure — it's wasted time with zero signal.
+- **New sessions must justify their runtime cost.** A session that takes 5
+  seconds and adds 0.1% coverage may not be worth it if a different session
+  can add 2% coverage in the same time.
+- **Track and report runtime.** When adding sessions, note their runtime.
+  When coverage gain per second of test time starts declining, optimize the
+  session suite instead of adding more sessions.
+
 ## Notes and Limits
 
-- Coverage percentages are "executed by parity sessions," not a claim of full
-  behavioral correctness.
+- Coverage percentages are "executed by C-grounded parity sessions," not a
+  claim of full behavioral correctness.
 - This report is best used alongside parity outcomes (`PRNG/events/screens`) as
   a guidance tool for where C-grounded scenarios are still sparse.
+- The goal is maximum coverage with minimum cost. A session suite that takes
+  10 minutes and covers 90% is better than one that takes 60 minutes and
+  covers 91%.
