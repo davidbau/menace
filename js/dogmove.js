@@ -1626,6 +1626,7 @@ export async function quickmimic(mtmp, player) {
     else {
       await You("sense that %s feels rather %s-ish.", buf, what);
     }
-    await display_nhwindow(WIN_MAP, true);
+    // TODO: display_nhwindow(WIN_MAP, true) — map refresh after mimicry change
+    // newsym() above already updated the cell; full window refresh not yet wired
   }
 }

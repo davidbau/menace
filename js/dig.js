@@ -79,6 +79,9 @@ import { cvt_sdoor_to_door } from './detect.js';
 import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
 import { You_hear } from './pline.js';
+import { abon } from './weapon.js';
+import { acurr } from './attrib.js';
+import { A_STR, A_DEX } from './const.js';
 
 // ============================================================================
 // Constants (cf. dig.c:19-27)
@@ -1187,7 +1190,7 @@ export async function dig(map, player) {
     }
 
     // Add digging effort
-    const abon_val = player.abon ? player.abon() : 0;
+    const abon_val = abon(acurr(player, A_STR), acurr(player, A_DEX), player.ulevel || 0);
     const spe_val = uwep.spe || 0;
     const erosion = Math.max(uwep.oeroded || 0, uwep.oeroded2 || 0);
     const udaminc = player.udaminc || 0;
