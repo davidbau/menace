@@ -38,7 +38,7 @@ import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
 import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES, CHOOSE_ALL } from './const.js';
 import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
-import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu, putstr, display_nhwindow } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE,
          LOST_THROWN, LOST_DROPPED, LOST_EXPLODING } from './const.js';
 import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2 } from './objnam.js';
@@ -1462,7 +1462,13 @@ async function containerMenu(game, container) {
         if (cols >= 80 && Number.isInteger(fallback80)) return fallback80;
         return Math.max(0, Math.floor((cols - text.length) / 2));
     };
-    const putMenuPrompt = async (msg) => {
+    const putMenuPrompt = async (msg, col = null) => {
+        if (typeof display?.putstr === 'function') {
+            if (typeof display.clearRow === 'function') display.clearRow(0);
+            const x = Number.isInteger(col) ? col : Math.max(0, Math.floor(((display.cols || 80) - msg.length) / 2));
+            display.putstr(x, 0, msg, 7, 1);
+            return;
+        }
         const prevNoConcat = !!display?.noConcatenateMessages;
         if (display) display.noConcatenateMessages = true;
         await display.putstr_message(msg);
@@ -1493,7 +1499,7 @@ async function containerMenu(game, container) {
             const classPad = centeredPad(classPrompt, 23);
             const hasUnknownBUC = currentContents.some((o) => !o?.bknown);
             clearMenuOptionRows(classPad);
-            await putMenuPrompt(`${' '.repeat(classPad)}${classPrompt}`);
+            await putMenuPrompt(classPrompt, classPad);
             drawMenuOptionLine(classPad, 2, 'A - Auto-select every relevant item');
             drawMenuOptionLine(classPad + 4, 3, '(ignored unless some other choices are also picked)');
             const menuItems = new Map();
@@ -1582,18 +1588,31 @@ async function containerMenu(game, container) {
         while (true) {
             const cur = getContainerContents(container);
             if (!cur.length) break;
-            const visible = cContainerOrder(cur).filter((o) => {
+            const visible = cur.filter((o) => {
                 if (allowedClasses === null) return true;
                 return allowedClasses.has(CLASS_SYMBOLS[o?.oclass]);
             });
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
-            await putMenuPrompt('Take out what?');
+            const menuPad = centeredPad('Take out what?', 41);
+            clearMenuOptionRows(38);
+            await putMenuPrompt('Take out what?', menuPad);
+            if (typeof display?.putstr === 'function') display.putstr(menuPad, 2, 'Comestibles', 7, 1);
+            else drawMenuOptionLine(menuPad, 2, 'Comestibles');
+            for (let i = 0; i < visible.length; i++) {
+                const mark = selected.has(available[i]) ? '+' : '-';
+                drawMenuOptionLine(menuPad, 3 + i, `${available[i]} ${mark} ${doname(visible[i], player)}`);
+            }
+            drawMenuOptionLine(menuPad, 3 + visible.length, '(end)');
+            if (typeof display?.setCursor === 'function') {
+                const endCol = Math.min((display?.cols || 80) - 1, menuPad + '(end)'.length + 1);
+                display.setCursor(endCol, 3 + visible.length);
+            }
             const tch = await nhgetch();
             if (tch === 27) break;
             const tchar = String.fromCharCode(tch).toLowerCase();
             if (tch === 10 || tch === 13) {
-                const chosen = visible.filter((o) => selected.has(o));
+                const chosen = visible.filter((_, idx) => selected.has(available[idx]));
                 if (!chosen.length) break;
                 for (const item of chosen) {
                     const res = await out_container(item, player, map);
@@ -1604,7 +1623,7 @@ async function containerMenu(game, container) {
                 continue;
             }
             if (tchar === '@' || tchar === '*') {
-                for (const item of visible) selected.add(item);
+                for (const letter of available) selected.add(letter);
                 continue;
             }
             if (tchar === '.' || tchar === '-') {
@@ -1613,10 +1632,14 @@ async function containerMenu(game, container) {
             }
             const tidx = letters.indexOf(tchar);
             if (tidx < 0 || tidx >= visible.length) continue;
-            const item = visible[tidx];
-            if (selected.has(item)) selected.delete(item);
-            else selected.add(item);
+            const selectKey = available[tidx];
+            if (selected.has(selectKey)) selected.delete(selectKey);
+            else selected.add(selectKey);
+            const indicator = selected.has(selectKey) ? '+' : '-';
+            drawMenuOptionLine(menuPad, 3 + tidx, `${available[tidx]} ${indicator} ${doname(visible[tidx], player)}`);
         }
+        if (typeof display?.clearRow === 'function') display.clearRow(0);
+        clearMenuOptionRows(38);
         return didTake;
     };
 
@@ -1690,7 +1713,7 @@ async function containerMenu(game, container) {
             : `The ${cname} is empty.  Do what with it?`;
         const pad = centeredPad(prompt, 38);
         clearMenuOptionRows(pad);
-        await putMenuPrompt(`${' '.repeat(pad)}${prompt}`);
+        await putMenuPrompt(prompt, pad);
         if (outmaybe) {
             drawMenuOptionLine(pad, 2, `: - Look inside the ${cname}`);
             if (hasContents || !container?.cknown) {
@@ -1705,10 +1728,10 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(pad, 9, 'q * do nothing');
             drawMenuOptionLine(pad, 10, '(end)');
         }
-        if (typeof display?.setCursor === 'function'
-            && Number.isInteger(player?.x) && Number.isInteger(player?.y)) {
-            // C keeps map cursor active while waiting for in-or-out menu input.
-            display.setCursor(player.x, player.y);
+        if (typeof display?.setCursor === 'function' && outmaybe) {
+            // Keep cursor on the active menu block while waiting for in/out choice.
+            const endCol = Math.min((display?.cols || 80) - 1, pad + '(end)'.length + 1);
+            display.setCursor(endCol, 10);
         }
 
         const ch = await nhgetch();
@@ -1723,10 +1746,21 @@ async function containerMenu(game, container) {
                 await display.putstr_message(`The ${cname} is empty.`);
                 container.cknown = true;
             } else {
-                await display.putstr_message(`Contents of the ${cname}:`);
-                for (const item of contents) {
-                    await display.putstr_message(`  ${doname(item, player)}`);
+                // C uses a blocking text/menu window for ":" look-inside. Using
+                // NHW_TEXT preserves step ownership (contents on ':' step, prompt
+                // redraw on the subsequent dismiss key step).
+                const win = create_nhwindow(NHW_MENU);
+                if (typeof display?.clearRow === 'function') {
+                    display.clearRow(0);
+                    display.clearRow(1);
                 }
+                await putstr(win, ATR_NONE, `Contents of the ${cname}:`);
+                await putstr(win, ATR_NONE, '');
+                for (const item of contents) {
+                    await putstr(win, ATR_NONE, `  ${doname(item, player)}`);
+                }
+                await display_nhwindow(win, true);
+                destroy_nhwindow(win);
                 container.cknown = true;
             }
         } else if (c === 'o') {
@@ -1760,7 +1794,12 @@ async function containerMenu(game, container) {
             const letters = inv.map((o) => o.invlet).join('');
             const compact = compactInvletPromptChars(letters);
             clearMenuOptionRows(pad);
-            await putMenuPrompt(`What do you want to stash? [${compact} or ?*] `);
+            {
+                const prevNoConcat = !!display?.noConcatenateMessages;
+                if (display) display.noConcatenateMessages = true;
+                await display.putstr_message(`What do you want to stash? [${compact} or ?*] `);
+                if (display) display.noConcatenateMessages = prevNoConcat;
+            }
             const sch = await nhgetch();
             const item = inv.find((o) => o.invlet === String.fromCharCode(sch));
             if (item) {
