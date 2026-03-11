@@ -111,7 +111,8 @@ import { random_engraving_rng, deltrap } from './dungeon.js';
 import { discoverObject } from './o_init.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock } from './lock.js';
-import { cansee } from './vision.js';
+import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
+import { newsym, vision_recalc } from './display.js';
 import {
     tmp_at, nh_delay_output,
 } from './animation.js';
@@ -1068,7 +1069,23 @@ export async function zapnodir(obj, player, map, display, game) {
   switch (obj.otyp) {
   case WAN_LIGHT:
   case SPE_LIGHT:
-    await pline("A lit field surrounds you.");
+    // C ref: zap.c zapnodir() -> litroom(TRUE, obj) before message.
+    // Non-rogue path lights a radius around hero and refreshes affected cells.
+    if (map && player) {
+      const radius = obj?.blessed ? 9 : 5;
+      await do_clear_area(game?.fov || null, map, player.x, player.y, radius, async (x, y, val) => {
+        const loc = map.at ? map.at(x, y) : null;
+        if (!loc) return;
+        loc.lit = !!val;
+        newsym(x, y);
+      }, true);
+      if (!player.blind) {
+        vision_recalc();
+      }
+      mark_vision_dirty();
+    }
+    await pline("A lit field surrounds you!");
+    await lightdamage(obj, player, 5, true);
     known = !!obj.dknown;
     break;
   case WAN_SECRET_DOOR_DETECTION:

@@ -81,18 +81,41 @@ export async function wizGenesis(game) {
     if (input === null || input.trim() === '') {
         return { moved: false, tookTime: false };
     }
-    const name = input.trim().toLowerCase();
-    let mndx = mons.findIndex(m => m.mname.toLowerCase() === name);
-    if (mndx < 0) {
-        mndx = mons.findIndex(m => m.mname.toLowerCase().includes(name));
+    const spec = input.trim();
+    let mndx = name_to_mon(spec);
+    if (!Number.isInteger(mndx)) mndx = NON_PM;
+    let monclass = MAXMCLASSES;
+
+    if (mndx === NON_PM) {
+        const mref = { value: NON_PM };
+        monclass = name_to_monclass(spec, mref);
+        if (Number.isInteger(mref.value) && mref.value !== NON_PM) {
+            mndx = mref.value;
+            monclass = MAXMCLASSES;
+        } else if (monclass === S_invisible) {
+            mndx = PM_STALKER;
+            monclass = MAXMCLASSES;
+        } else if (monclass === S_WORM_TAIL) {
+            mndx = PM_LONG_WORM;
+            monclass = MAXMCLASSES;
+        }
     }
-    if (mndx < 0) {
+
+    if (mndx === NON_PM && monclass <= 0) {
         await display.putstr_message(`Unknown monster: "${input.trim()}".`);
         return { moved: false, tookTime: false };
     }
-    // C-ref faithful shape: create_particular_creation() calls
-    // makemon(whichpm, u.ux, u.uy, mmflags) with MM_NOEXCLAM.
-    const mon = makemon(mndx, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
+
+    let whichpm = null;
+    if (monclass !== MAXMCLASSES) {
+        const chosen = mkclass(monclass, 0, player.dungeonLevel);
+        if (chosen !== NON_PM) whichpm = mons[chosen];
+    } else if (mndx !== NON_PM) {
+        whichpm = mons[mndx];
+    }
+
+    // C-ref faithful shape: create_particular_creation() uses MM_NOEXCLAM.
+    const mon = makemon(whichpm, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
     if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
     } else {
@@ -186,11 +209,11 @@ import { resetLevelState, withFinalizeContext, withSpecialLevelDepth } from './s
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM,
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, NON_PM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
     Never_mind, ECMD_OK } from './const.js';
-import { makemon } from './makemon.js';
-import { mons } from './monsters.js';
+import { makemon, mkclass } from './makemon.js';
+import { mons, PM_LONG_WORM, PM_STALKER, MAXMCLASSES, S_invisible, S_WORM_TAIL } from './monsters.js';
 import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
 import { schedule_goto } from './do.js';
@@ -205,6 +228,7 @@ import {
 } from './symbols.js';
 import { glyph_to_cmap } from './glyphs.js';
 import { defsyms } from './symbols.js';
+import { name_to_mon, name_to_monclass } from './mondata.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {

@@ -246,6 +246,11 @@ export function terrainSymbol(loc, gameMap = null, x = -1, y = -1, flags = {}) {
         return TERRAIN_SYMBOLS[wallType] || TERRAIN_SYMBOLS[VWALL];
     }
 
+    // Lit corridor coloring: C tty renders lit corridors as bright '#'.
+    if (typ === CORR && loc.lit) {
+        return { ch: '#', color: CLR_WHITE };
+    }
+
     // Lit corridor option
     if (typ === CORR && flags.lit_corridor) {
         return { ch: '#', color: CLR_CYAN };
