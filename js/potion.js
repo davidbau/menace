@@ -62,6 +62,7 @@ import { you_were, you_unwere, set_ulycn } from './were.js';
 import { can_reach_floor } from './engrave.js';
 import { is_pool } from './dbridge.js';
 import { glyph_is_invisible } from './symbols.js';
+import { delayed_killer, find_delayed_killer, dealloc_killer } from './end.js';
 
 // C ref: invent.c compactify() — compress inventory letter list for prompts
 // Inlined here to avoid circular import issues with invent.js
@@ -247,13 +248,17 @@ async function make_sick(player, xtime, cause, talk, type) {
         player._botl = true;
     }
 
+    const kptr = find_delayed_killer(SICK);
     if (player.getPropTimeout(SICK)) {
         await exercise(player, A_CON, false);
-        // C ref: delayed_killer tracking — store cause for death message
-        if (xtime || !old) {
-            player.usick_cause = cause || "unknown illness";
+        // C ref: potion.c make_sick() delayed_killer update condition.
+        if (xtime || !old || !kptr) {
+            const kpfx = (cause && cause === "#wizintrinsic") ? KILLED_BY : KILLED_BY_AN;
+            delayed_killer(SICK, kpfx, cause || "");
         }
+        player.usick_cause = find_delayed_killer(SICK)?.name || "";
     } else {
+        dealloc_killer(kptr);
         player.usick_cause = "";
     }
 }
@@ -409,15 +414,23 @@ async function make_slimed(player, xtime, msg) {
         player._botl = true;
         if (msg) await pline("%s", msg);
     }
+    if (!player.getPropTimeout(SLIMED)) {
+        dealloc_killer(find_delayed_killer(SLIMED));
+    }
 }
 
 // cf. potion.c make_stoned() — C ref: potion.c:221-240
-export async function make_stoned(player, xtime, msg) {
+export async function make_stoned(player, xtime, msg, killedby = KILLED_BY_AN, killername = "petrification") {
     const old = player.getPropTimeout(STONED);
     set_itimeout(player, STONED, xtime);
     if ((!!xtime) !== (!!old)) {
         player._botl = true;
         if (msg) await pline("%s", msg);
+    }
+    if (!player.getPropTimeout(STONED)) {
+        dealloc_killer(find_delayed_killer(STONED));
+    } else if (!old) {
+        delayed_killer(STONED, killedby, killername);
     }
 }
 

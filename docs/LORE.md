@@ -8296,3 +8296,25 @@ hard-won wisdom:
   - `node test/comparison/session_test_runner.js --verbose --sessions test/comparison/sessions/pending/t06_s621_w_qstat_gp.session.json` → PASS.
   - `scripts/run-and-report.sh --pending` → `6/6` PASS.
   - `scripts/run-and-report.sh` → gameplay `104/104` PASS.
+
+## 2026-03-11: Potion status delayed-killer parity + petrification cure call fix
+
+- C-faithful status lifecycle tightening in `js/potion.js`:
+  - `make_sick()` now mirrors `potion.c` delayed-killer semantics:
+    - checks existing delayed killer (`find_delayed_killer(SICK)`),
+    - updates only when `xtime || !old || !kptr`,
+    - uses `KILLED_BY` for `"#wizintrinsic"` and `KILLED_BY_AN` otherwise,
+    - deallocates delayed killer when sickness clears.
+  - `make_stoned()` now mirrors `potion.c` delayed-killer lifecycle:
+    - deallocates on cure,
+    - installs delayed killer on fresh petrification onset.
+  - `make_slimed()` now deallocates delayed killer when sliming clears.
+- Runtime bug fix in `js/eat.js`:
+  - `fix_petrification()` now imports `make_stoned`, passes `player` correctly,
+    and no-ops safely when player context is absent.
+  - Before this fix, `fix_petrification()` called `make_stoned(...)` without import
+    and without player, which could fail at runtime on stoning-cure paths.
+
+Validation:
+- `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
+- `scripts/run-and-report.sh --pending --failures` -> `6/6` passing.

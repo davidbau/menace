@@ -61,7 +61,7 @@ import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } fro
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
 import { nomul, end_running, near_capacity } from './hack.js';
-import { incr_itimeout } from './potion.js';
+import { incr_itimeout, make_stoned } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
@@ -928,13 +928,14 @@ async function maybe_cannibal(player, pm, allowmsg) {
 export async function fix_petrification() {
   let buf;
   const player = _gstate?.player;
+  if (!player) return;
   if (player?.Hallucination) {
     buf = `What a pity--you just ruined a future piece of ${acurr(player, A_CHA) > 15 ? "fine " : ""}art!`;
   }
   else {
     buf = "You feel limber!";
   }
-  await make_stoned(0, buf, 0,  0);
+  await make_stoned(player, 0, buf, 0, 0);
 }
 
 // cf. eat.c cprefx() — corpse prefix effects (before eating)
