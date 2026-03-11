@@ -2427,7 +2427,7 @@ export async function munslime(mon, by_you, map, player) {
     // slimeproof check
     if (mptr.mflags3 && (mptr.mflags3 & 0x00002000)) return false; // MH_SLIME
     if (mon.meating || monHelpless(mon)) return false;
-    mon.mstrategy = (mon.mstrategy || 0) & ~0x08000000;
+    mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITFORU;
 
     // Fire breath on self
     if (!mon.mcan && !mon.mspec_used

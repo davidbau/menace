@@ -69,7 +69,7 @@ import { gulp_blnd_check } from './mhitu.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
-         SICK, BLINDED, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
+         SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT, HAND, FACE } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
@@ -97,6 +97,7 @@ import { body_part } from './polyself.js';
 import { freehand } from './engrave.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
+import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
 import { is_wet_towel, gloves_simple_name, makeplural } from './objnam.js';
@@ -181,7 +182,7 @@ export async function use_towel(obj, player) {
     let old;
     switch (rn2(3)) {
       case 2:
-        old = (Glib & TIMEOUT);
+        old = ((player.getPropTimeout(GLIB) || 0) & TIMEOUT);
       make_glib(player, old + rn1(10, 3));
       await Your("%s %s!", makeplural(body_part(HAND)), (old ? "are filthier than ever" : "get slimy"));
       if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -191,7 +192,7 @@ export async function use_towel(obj, player) {
           old = player.ucreamed;
           player.ucreamed += rn1(10, 3);
           await pline("Yecch! Your %s %s gunk on it!", body_part(FACE), (old ? "has more" : "now has"));
-          await make_blinded(BlindedTimeout +  player.ucreamed - old, true);
+          await make_blinded(player, (player.getPropTimeout(BLINDED) || 0) + player.ucreamed - old, true);
         }
         else {
           let what;
@@ -203,7 +204,7 @@ export async function use_towel(obj, player) {
             let saved_ublindf = player.blindfold;
             await You("push your %s off.", what);
             await Blindf_off(player.blindfold);
-            await dropx(saved_ublindf);
+            await dropx(saved_ublindf, player, _gstate?.map);
           }
         }
       if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -212,18 +213,18 @@ export async function use_towel(obj, player) {
         break;
     }
   }
-  if (Glib) {
+  if (player.getPropTimeout(GLIB)) {
     make_glib(player, 0);
     await You("wipe off your %s.", !player.gloves ? makeplural(body_part(HAND)) : gloves_simple_name(player.gloves));
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
     return ECMD_TIME;
   }
   else if (player.ucreamed) {
-    incr_itimeout( HBlinded, (-1 *  player.ucreamed));
+    incr_itimeout(player, BLINDED, (-1 * player.ucreamed));
     player.ucreamed = 0;
-    if (!Blinded) {
+    if (!player.Blind) {
       await pline("You've got the glop off.");
-      if (!gulp_blnd_check()) { set_itimeout( HBlinded, 1); await make_blinded(0, true); }
+      if (!gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }
     }
     else { await Your("%s feels clean now.", body_part(FACE)); }
     if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);
@@ -487,7 +488,7 @@ export async function use_lamp(obj) {
     if (obj.cursed && !rn2(2)) {
         if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) && !rn2(3)) {
             await pline("The lamp spills and covers your fingers with oil.");
-            make_glib(player, (player?.glib_intrinsic || 0) + d(2, 10));
+            make_glib(player, (player.getPropTimeout(GLIB) || 0) + d(2, 10));
         } else {
             await pline("%s flickers for a moment, then dies.", xname(obj));
         }

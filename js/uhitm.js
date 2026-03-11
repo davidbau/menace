@@ -14,7 +14,7 @@ import {
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
-    RLOC_NOMSG,
+    RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -177,7 +177,7 @@ export async function attack_checks(mtmp, wep, opts = {}) {
     const pets_too = !!opts.pets_too;
     const forcefight = !!(context && context.forcefight);
     // C: alerts waiting monster, checks forcefight, invisible, mimic, peaceful
-    if (mtmp.mstrategy) mtmp.mstrategy &= ~0x08000000; // ~STRAT_WAITMASK
+    if (mtmp.mstrategy) mtmp.mstrategy &= ~STRAT_WAITMASK;
     if (!mtmp) return true;
     if (mtmp.msleeping) {
         mtmp.msleeping = 0;
@@ -1135,7 +1135,7 @@ export function mhitm_ad_rust(magr, mattk, mdef, mhm) {
         return;
     }
     erode_armor(mdef, ERODE_RUST);
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     mhm.damage = 0;
 }
 
@@ -1143,7 +1143,7 @@ export function mhitm_ad_rust(magr, mattk, mdef, mhm) {
 export function mhitm_ad_corr(magr, mattk, mdef, mhm) {
     if (magr?.mcan) return;
     erode_armor(mdef, ERODE_CORRODE);
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     mhm.damage = 0;
 }
 
@@ -1163,7 +1163,7 @@ export function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
         return;
     }
     erode_armor(mdef, ERODE_ROT);
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     mhm.damage = 0;
 }
 
@@ -1175,7 +1175,7 @@ export function mhitm_ad_sgld(magr, mattk, mdef, mhm) {
     if (!gold) return;
     extract_from_minvent(mdef, gold, false, true);
     addToMonsterInventory(magr, gold);
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     if (!tele_restrict(magr, null)) {
         mhm.hitflags = M_ATTK_AGR_DONE;
     }
@@ -1190,7 +1190,7 @@ export function mhitm_ad_tlpt(magr, mattk, mdef, mhm) {
     if (Number(mhm.damage || 0) >= Number(mdef.mhp || 0)) return;
     if (tele_restrict(mdef, null)) return;
     if (mhitm_mgc_atk_negated(magr, mdef)) return;
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
 }
 
 // Async mhitm path for C-faithful relocation when map/runtime context is present.
@@ -1200,7 +1200,7 @@ export async function mhitm_ad_tlpt_async(magr, mattk, mdef, mhm, ctx = {}) {
     if (Number(mhm.damage || 0) >= Number(mdef.mhp || 0)) return;
     if (tele_restrict(mdef, ctx.map || null)) return;
     if (mhitm_mgc_atk_negated(magr, mdef)) return;
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     if (ctx.map) {
         await rloc(mdef, RLOC_NOMSG, ctx.map, ctx.player || null, ctx.display || null, ctx.fov || null);
     }
@@ -1213,7 +1213,7 @@ export function mhitm_ad_curs(magr, mattk, mdef, mhm) {
     if (!night() && pa === mons[PM_GREMLIN]) return;
     if (!magr?.mcan && !rn2(10)) {
         mdef.mcan = 1;
-        if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+        if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
         // Full were_change transform path is modeled elsewhere.
         if (is_were(pd) && pd.mlet !== S_HUMAN) {
             mdef.mcan = 1;
@@ -1239,7 +1239,7 @@ export function mhitm_ad_slim(magr, mattk, mdef, mhm) {
         // Full munslime/newcham pipeline is not yet wired on this path.
         mhm.damage = 0;
         mhm.hitflags |= M_ATTK_HIT;
-        if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+        if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     }
 }
 
@@ -1264,7 +1264,7 @@ export async function mhitm_ad_slim_async(magr, mattk, mdef, mhm, ctx = {}) {
             !!(ctx.display && ctx.map)
         );
         if (transformed) {
-            if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+            if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
             mhm.hitflags |= M_ATTK_HIT;
         }
     }
@@ -1391,7 +1391,7 @@ export function mhitm_ad_sedu(magr, mattk, mdef, mhm) {
     extract_from_minvent(mdef, obj, true, false);
     addToMonsterInventory(magr, obj);
     possibly_unwield(mdef, false);
-    if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+    if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     mselftouch(mdef, null, false);
     if (DEADMONSTER(mdef)) {
         mhm.hitflags |= M_ATTK_DEF_DIED;
@@ -1434,7 +1434,7 @@ export function mhitm_ad_halu(magr, mattk, mdef, mhm) {
     const pd = mdef?.data || mdef?.type || {};
     if (!magr?.mcan && haseyes(pd) && mdef?.mcansee) {
         mdef.mconf = 1;
-        if (mdef.mstrategy != null) mdef.mstrategy &= ~0x08000000; // STRAT_WAITFORU
+        if (mdef.mstrategy != null) mdef.mstrategy &= ~STRAT_WAITFORU;
     }
     mhm.damage = 0;
 }

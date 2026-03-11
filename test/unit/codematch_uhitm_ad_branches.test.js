@@ -75,12 +75,12 @@ test('mhitm_ad_rust kills iron golem target and marks defender death', () => {
 test('mhitm_ad_corr erodes m-vs-m branch and zeroes base damage', () => {
     initRng(101);
     const magr = { mcan: false, data: {} };
-    const mdef = { data: {}, mstrategy: 0x08000000 };
+    const mdef = { data: {}, mstrategy: 0x20000000 };
     const mhm = { damage: 7, hitflags: 0 };
 
     mhitm_ad_corr(magr, {}, mdef, mhm);
     assert.equal(mhm.damage, 0);
-    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+    assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
 });
 
 test('mhitm_ad_dcay kills rot-vulnerable golem and marks defender death', () => {
@@ -118,12 +118,12 @@ test('mhitm_ad_curs can cancel defender and preserve base damage', () => {
     const magr = { mcan: false, data: { mlet: 'd' } };
     let observed = false;
     for (let i = 0; i < 200; i++) {
-        const mdef = { data: {}, mcan: 0, mstrategy: 0x08000000 };
+        const mdef = { data: {}, mcan: 0, mstrategy: 0x20000000 };
         const mhm = { damage: 6, hitflags: 0, done: false };
         mhitm_ad_curs(magr, {}, mdef, mhm);
         if (mdef.mcan === 1) {
             assert.equal(mhm.damage, 6);
-            assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+            assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
             observed = true;
             break;
         }
@@ -151,7 +151,7 @@ test('mhitm_ad_curs destroys clay golem target on curse branch', () => {
 test('mhitm_ad_sgld transfers defender gold to attacker inventory', () => {
     const magr = { mcan: false, data: { mlet: 'n' }, minvent: [] };
     const gold = { otyp: GOLD_PIECE, quan: 77 };
-    const mdef = { data: { mlet: 'o' }, minvent: [gold], mstrategy: 0x08000000 };
+    const mdef = { data: { mlet: 'o' }, minvent: [gold], mstrategy: 0x20000000 };
     const mhm = { damage: 5, hitflags: 0 };
 
     mhitm_ad_sgld(magr, {}, mdef, mhm);
@@ -177,7 +177,7 @@ test('mhitm_ad_sgld steals from same-class target in m-vs-m branch', () => {
 test('mhitm_ad_sedu steals an item and marks AGR_DONE for nymphs', () => {
     const magr = { mcan: false, mtame: 0, data: { mlet: S_NYMPH }, minvent: [] };
     const item = { otyp: DAGGER, cursed: false, owornmask: 0 };
-    const mdef = { minvent: [item], mstrategy: 0x08000000 };
+    const mdef = { minvent: [item], mstrategy: 0x20000000 };
     const mhm = { damage: 4, hitflags: 0 };
 
     mhitm_ad_sedu(magr, {}, mdef, mhm);
@@ -246,29 +246,29 @@ test('mhitm_ad_dgst marks aggressor death when digesting a Rider', () => {
 
 test('mhitm_ad_halu confuses seeing, eyeful defender and zeroes damage', () => {
     const mhm = { damage: 5 };
-    const mdef = { data: {}, mcansee: true, mconf: 0, mstrategy: 0x08000000 };
+    const mdef = { data: {}, mcansee: true, mconf: 0, mstrategy: 0x20000000 };
     mhitm_ad_halu({ mcan: false }, {}, mdef, mhm);
     assert.equal(mhm.damage, 0);
     assert.equal(mdef.mconf, 1);
-    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+    assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
 });
 
 test('mhitm_ad_tlpt keeps damage and clears wait strategy when teleport branch is eligible', () => {
     const mhm = { damage: 3 };
     const magr = { mcan: false, data: {} };
-    const mdef = { mhp: 10, data: {}, mstrategy: 0x08000000 };
+    const mdef = { mhp: 10, data: {}, mstrategy: 0x20000000 };
     mhitm_ad_tlpt(magr, {}, mdef, mhm);
     assert.equal(mhm.damage, 3);
-    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+    assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
 });
 
 test('mhitm_ad_tlpt_async keeps damage and clears wait strategy without map context', async () => {
     const mhm = { damage: 3 };
     const magr = { mcan: false, data: {} };
-    const mdef = { mhp: 10, data: {}, mstrategy: 0x08000000 };
+    const mdef = { mhp: 10, data: {}, mstrategy: 0x20000000 };
     await mhitm_ad_tlpt_async(magr, {}, mdef, mhm, {});
     assert.equal(mhm.damage, 3);
-    assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+    assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
 });
 
 test('mhitm_ad_ench preserves incoming damage in m-vs-m branch', () => {
@@ -292,10 +292,10 @@ test('mhitm_ad_slim can enter zero-damage slime branch under RNG gating', () => 
     let observed = false;
     for (let i = 0; i < 300; i++) {
         const mhm = { damage: 5, hitflags: 0 };
-        const mdef = { data: {}, mstrategy: 0x08000000 };
+        const mdef = { data: {}, mstrategy: 0x20000000 };
         mhitm_ad_slim(magr, {}, mdef, mhm);
         if (mhm.damage === 0 && (mhm.hitflags & M_ATTK_HIT) !== 0) {
-            assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+            assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
             observed = true;
             break;
         }
@@ -312,7 +312,7 @@ test('mhitm_ad_slim_async can transform defender into green slime under RNG gate
             data: { mflags3: 0, mattk: [{ aatyp: AT_WEAP }], mlet: 'o', ac: 10 },
             type: { mflags3: 0, mattk: [{ aatyp: AT_WEAP }], mlet: 'o', ac: 10 },
             minvent: [],
-            mstrategy: 0x08000000,
+            mstrategy: 0x20000000,
             mhp: 10,
             mhpmax: 10,
             m_lev: 1,
@@ -322,7 +322,7 @@ test('mhitm_ad_slim_async can transform defender into green slime under RNG gate
         if (mdef.mndx === PM_GREEN_SLIME) {
             assert.equal(mhm.damage, 0);
             assert.equal((mhm.hitflags & M_ATTK_HIT) !== 0, true);
-            assert.equal((mdef.mstrategy & 0x08000000) !== 0, false);
+            assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
             observed = true;
             break;
         }

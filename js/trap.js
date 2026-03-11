@@ -1755,12 +1755,8 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 1:
       case 0:
         await pline(`A cloud of ${(player.Blind ? blindgas[rn2(blindgas.length)] : rndcolor())} gas billows from ${the(xname(obj))}.`);
-        const oldStun = typeof player?.getPropTimeout === 'function'
-          ? (player.getPropTimeout(STUNNED) || 0)
-          : ((player.HStun & TIMEOUT) || 0);
-        const oldHall = typeof player?.getPropTimeout === 'function'
-          ? (player.getPropTimeout(HALLUC) || 0)
-          : ((player.HHallucination & TIMEOUT) || 0);
+        const oldStun = (player.getPropTimeout(STUNNED) || 0);
+        const oldHall = (player.getPropTimeout(HALLUC) || 0);
         if (!oldStun) {
           if (player.Hallucination) {
             await pline("What a groovy feeling!");

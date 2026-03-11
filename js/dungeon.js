@@ -5259,7 +5259,7 @@ export async function surface(x, y, map, player) {
   let lev =  map.locations[x][y], levtyp = SURFACE_AT(x, y);
   if (u_at(player, x, y) && player.uswallow && is_animal(player.ustuck.data)) return digests(player.ustuck.data) ? "maw" : enfolds(player.ustuck.data) ? "husk" : "nonesuch";
   else if (IS_AIR(levtyp)) return Is_waterlevel(map.uz) ? "air bubble" : (levtyp === CLOUD) ? "cloud" : "air";
-  else if (is_pool(x, y)) return (Underwater && !Is_waterlevel(map.uz)) ? "bottom" : hliquid("water");
+  else if (is_pool(x, y)) return (player?.underwater && !Is_waterlevel(map.uz)) ? "bottom" : hliquid("water");
   else if (is_ice(x, y)) return "ice";
   else if (is_lava(x, y)) return hliquid("lava");
   else if (lev.typ === DRAWBRIDGE_DOWN) return "bridge";

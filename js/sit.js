@@ -8,7 +8,7 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          INTRINSIC, FROMOUTSIDE, TIMEOUT,
          FIRE_RES, COLD_RES, POISON_RES, SHOCK_RES,
          SEE_INVIS, INVIS, TELEPORT, TELEPAT,
-         FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER,
+         FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER, CONFUSION,
          isok, W_SADDLE,
          TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
          PIT, SPIKED_PIT } from './const.js';
@@ -278,7 +278,7 @@ async function throne_sit_effect(player, map, display) {
                     await pline("A terrible drone fills your head!");
                     // RNG parity: rnd(30) for confusion
                     const confDur = rnd(30);
-                    make_confused(player, (player.confusion_intrinsic || 0) + confDur, false);
+                    await make_confused(player, (player.getPropTimeout(CONFUSION) || 0) + confDur, false);
                 } else {
                     await pline("An image forms in your mind.");
                     await do_mapping(player, map, display);
