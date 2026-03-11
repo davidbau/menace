@@ -9,7 +9,7 @@ import { rn2, rnd, rn1 } from './rng.js';
 import { pline, pline_The, You, Your, You_feel, impossible } from './pline.js';
 import { newsym } from './display.js';
 import { dist2, distmin } from './hacklib.js';
-import { movobj, near_capacity, losehp, nomul, spoteffects, Maybe_Half_Phys } from './hack.js';
+import { movobj, near_capacity, losehp, nomul, spoteffects, Maybe_Half_Phys, weight_cap } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { flooreffects } from './do.js';
 import { placeFloorObject, carried } from './invent.js';
