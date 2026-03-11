@@ -156,7 +156,7 @@ export async function dogushforth(drinking, player) {
   if (!madepool) {
     if (drinking) await Your("thirst is quenched.");
     else {
-      await pline("Water sprays all over yoplayer.");
+      await pline("Water sprays all over you.");
     }
   }
 }
