@@ -38,7 +38,8 @@ import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
          livelog_printf } from './pline.js';
 import { S_altar } from './symbols.js';
 import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE, ACH_TUNE, A_MAX,
-         STOMACH, FOOT, EYE } from './const.js';
+         STOMACH, FOOT, EYE,
+         SHOCK_RES, DISINT_RES, ANTIMAGIC } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { resists_elec, resists_disint } from './mondata.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
@@ -472,19 +473,17 @@ function Reflecting(player) {
     return player.reflecting;
 }
 
-// Helper: Shock_resistance check
+// C macro wrappers using hasProp() with property indices from const.js
 function Shock_resistance(player) {
-    return player.shock_resistance;
+    return player.hasProp(SHOCK_RES);
 }
 
-// Helper: Disint_resistance check
 function Disint_resistance(player) {
-    return player.disint_resistance;
+    return player.hasProp(DISINT_RES);
 }
 
-// Helper: Antimagic check
 function Antimagic(player) {
-    return player.antimagic;
+    return player.hasProp(ANTIMAGIC);
 }
 
 // Helper: Deaf check

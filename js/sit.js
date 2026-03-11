@@ -6,7 +6,7 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FOUNTAIN, ICE, DRAWBRIDGE_DOWN,
          A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
          INTRINSIC, FROMOUTSIDE, TIMEOUT,
-         FIRE_RES, COLD_RES, POISON_RES, SHOCK_RES,
+         FIRE_RES, COLD_RES, POISON_RES, SHOCK_RES, ACID_RES,
          SEE_INVIS, INVIS, TELEPORT, TELEPAT,
          FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER, CONFUSION,
          isok, W_SADDLE,
@@ -133,7 +133,7 @@ async function special_throne_effect(effect, player, map, display) {
         await pline("The throne is covered in acid!");
         {
             // RNG parity: rnd(16) or rnd(80) for damage
-            const dmg = player.acid_resistance ? rnd(16) : rnd(80);
+            const dmg = player.hasProp(ACID_RES) ? rnd(16) : rnd(80);
             // TODO: losehp(dmg, "acidic chair", KILLED_BY_AN)
         }
         await exercise(player, A_CON, false);
@@ -188,9 +188,9 @@ async function throne_sit_effect(player, map, display) {
         case 3:
             // electric shock
             await pline("A%s electric shock shoots through your body!",
-                  player.shock_resistance ? "n" : " massive");
+                  player.hasProp(SHOCK_RES) ? "n" : " massive");
             {
-                const dmg = player.shock_resistance ? rnd(6) : rnd(30);
+                const dmg = player.hasProp(SHOCK_RES) ? rnd(6) : rnd(30);
                 // TODO: losehp(dmg, "electric chair", KILLED_BY_AN)
             }
             await exercise(player, A_CON, false);
@@ -204,12 +204,12 @@ async function throne_sit_effect(player, map, display) {
                     player.mhmax += 4;
                 player.mh = player.mhmax;
             }
-            if (player.uhp >= (player.maxhp - 5)) {
-                player.maxhp += 4;
-                if (player.maxhp > (player.hppeak || player.maxhp))
-                    player.hppeak = player.maxhp;
+            if (player.uhp >= (player.hpmax - 5)) {
+                player.hpmax += 4;
+                if (player.hpmax > (player.hppeak || player.hpmax))
+                    player.hppeak = player.hpmax;
             }
-            player.uhp = player.maxhp;
+            player.uhp = player.hpmax;
             player.ucreamed = 0;
             // TODO: make_blinded(0, TRUE) — cure blindness
             // TODO: make_sick(0, null, FALSE, SICK_ALL) — cure sickness
@@ -480,7 +480,7 @@ export async function dosit(player, map, display) {
         }
     } else if (is_ice(px, py, map)) {
         await You(sit_message, "ice");
-        if (!player.cold_resistance)
+        if (!player.hasProp(COLD_RES))
             await pline_The("ice feels cold.");
     } else if (typ === DRAWBRIDGE_DOWN) {
         await You(sit_message, "drawbridge");

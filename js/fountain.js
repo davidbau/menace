@@ -22,7 +22,7 @@ import { losehp } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
 import { water_damage_chain, water_damage, delfloortrap } from './trap.js';
-import { ER_NOTHING, ER_DAMAGED, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
+import { ER_NOTHING, ER_DAMAGED, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE, POISON_RES } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';
 import { hliquid, hcolor, a_monnam, Amonnam, rndmonnam } from './do_name.js';
@@ -333,7 +333,7 @@ export async function drinkfountain(player, map, display, fov) {
             break;
         case 21: // Poisonous
             await pline_The("water is contaminated!");
-            if (player.poison_resistance) {
+            if (player.hasProp(POISON_RES)) {
                 await pline("Perhaps it is runoff from the nearby %s farm.", "slime mold");
                 await losehp(rnd(4), "unrefrigerated sip of juice", 0, player, display, _gstate);
                 break;
