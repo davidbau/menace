@@ -1985,13 +1985,13 @@ function zap_ok(obj) {
 }
 
 // C ref: zap.c zapsetup()/zapwrapup() naming surfaces.
-function zapsetup(player, dx = 0, dy = 0, dz = 0) {
+function zapsetup(player, dx = null, dy = null, dz = null) {
   go_obj_zapped = false;
   gp_poly_zapped = -1;
   if (!player) return;
-  player.dx = dx;
-  player.dy = dy;
-  player.dz = dz;
+  if (dx !== null) player.dx = dx;
+  if (dy !== null) player.dy = dy;
+  if (dz !== null) player.dz = dz;
 }
 
 async function zapwrapup(_obj, _disclose = false, player = null, display = null) {

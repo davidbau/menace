@@ -3747,8 +3747,19 @@ export { dosearch0 as search_demand };
 // Note: getdir() is actually in cmd.c in C; included here as it was
 // mentioned in the task. Uses DIRECTION_KEYS from dothrow.js.
 export async function getdir(prompt, display) {
-    if (display && prompt) await display.putstr_message(prompt);
+    const dirPrompt = prompt || 'In what direction?';
+    if (display && dirPrompt) {
+        await display.putstr_message(dirPrompt);
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.min(dirPrompt.length, (display.cols || 80) - 1), 0);
+        }
+    }
     const ch = await nhgetch();
+    if (display) {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    }
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
     if (dir) return { dx: dir[0], dy: dir[1], dz: 0 };

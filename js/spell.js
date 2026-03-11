@@ -10,10 +10,11 @@
 //   getspell(): prompt user to select a spell.
 //   dospellmenu(): display spell menu UI.
 
-import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE, nul_glyphinfo } from './const.js';
+import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE, nul_glyphinfo, P_CLERIC_SPELL, P_UNSKILLED } from './const.js';
 import { PM_KNIGHT, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { mark_vision_dirty, cansee } from './vision.js';
+import { docrt } from './display.js';
 import {
     SPBOOK_CLASS,
     objectData, ROBE, QUARTERSTAFF, SMALL_SHIELD, LENSES,
@@ -37,12 +38,16 @@ import { discover_object } from './o_init.js';
 import { is_metallic } from './objdata.js';
 import { is_undead, is_vampshifter } from './mondata.js';
 import { nhgetch } from './input.js';
+import { getdir } from './hack.js';
+import { mksobj } from './mkobj.js';
+import { weffects } from './zap.js';
 import { create_nhwindow, destroy_nhwindow, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, ATR_NONE, PICK_ONE, NO_COLOR, MENU_ITEMFLAGS_NONE, MENU_ITEMFLAGS_SELECTED } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { pline, You, Your, You_feel, pline_The, You_hear } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
+import { P_SKILL } from './weapon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_CHANGE, DISP_END, CONFUSION, STUNNED } from './const.js';
 import { incr_itimeout, make_confused, make_stunned } from './potion.js';
@@ -276,17 +281,16 @@ function percent_success(player, spell_idx) {
     const otyp = sp.otyp;
     const od = objectData[otyp] || {};
     const spellName = String(od.oc_name || '').toLowerCase();
-    const category = spellCategoryForName(spellName);
+    const skilltype = Number(od.oc_subtyp || 0);
     const spellLevel = Math.max(1, Number(od.oc_oc2 || sp.sp_lev || 1));
 
     const role = ROLE_SPELLCAST.get(player.roleIndex)
         || { spelbase: 10, spelheal: 0, spelshld: 2, spelarmr: 10, spelstat: A_INT, spelspec: '', spelsbon: 0 };
-    const statValue = Math.max(3, Math.min(25, Number(player.attributes?.[role.spelstat] || 10)));
-    const spellSkill = spellSkillRank(player, category);
+    const statValue = Math.max(3, Math.min(25, Number(acurr(player, role.spelstat) || 10)));
     const heroLevel = Math.max(1, Number(player.ulevel || 1));
 
     // C ref: Role_if(PM_KNIGHT) && skilltype == P_CLERIC_SPELL
-    const paladinBonus = player.roleMnum === PM_KNIGHT && category === SPELL_CATEGORY_CLERICAL;
+    const paladinBonus = player.roleMnum === PM_KNIGHT && skilltype === P_CLERIC_SPELL;
     const armor = player.armor || null;
     const cloak = player.cloak || null;
     const shield = player.shield || null;
@@ -313,7 +317,8 @@ function percent_success(player, spell_idx) {
     if (splcaster > 20) splcaster = 20;
 
     let chance = Math.floor((11 * statValue) / 2);
-    const skill = Math.max(spellSkill, SPELL_SKILL_UNSKILLED) - 1;
+    let skill = P_SKILL(skilltype);
+    skill = Math.max(skill, P_UNSKILLED) - 1; // unskilled => 0
     const difficulty = (spellLevel - 1) * 4 - ((skill * 6) + Math.floor(heroLevel / 3) + 1);
 
     if (difficulty > 0) {
@@ -488,7 +493,6 @@ export function spell_skilltype(booktype) {
 }
 
 // C ref: spell.c num_spells() — count known spells
-// JS uses per-player spell storage, so accept `player`.
 export function num_spells(player) {
     let i;
     for (i = 0; i < MAXSPELL; i++) {
@@ -1050,7 +1054,7 @@ export async function getspell(prompt, player, display) {
         const spellLevel = Math.max(1, Number(od?.oc_oc2 || sp.sp_lev || 1));
         const category = spellCategoryForName(spellNameStr);
         const turnsLeft = Math.max(0, sp.sp_know);
-        const fail = estimateSpellFailPercent(player, spellNameStr, spellLevel, category);
+        const fail = 100 - percent_success(player, i);
         const skillRank = spellSkillRank(player, category);
         const retention = spellRetentionText(turnsLeft, skillRank);
         const menuLet = spellet(i);
@@ -1060,10 +1064,15 @@ export async function getspell(prompt, player, display) {
     rows.push('(end)');
 
     if (display) {
+        let offx = 0;
         if (typeof display.renderOverlayMenu === 'function') {
-            display.renderOverlayMenu(rows);
+            offx = display.renderOverlayMenu(rows) || 0;
         } else if (typeof display.renderChargenMenu === 'function') {
-            display.renderChargenMenu(rows, false);
+            offx = display.renderChargenMenu(rows, false) || 0;
+        }
+        // C tty menu leaves cursor at first selectable spell entry.
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.max(0, offx + 6), 5);
         }
     }
 
@@ -1076,6 +1085,7 @@ export async function getspell(prompt, player, display) {
                 display.topMessage = null;
                 display.messageNeedsMore = false;
             }
+            await docrt();
             return -1;
         }
         const letter = String.fromCharCode(ch);
@@ -1086,6 +1096,7 @@ export async function getspell(prompt, player, display) {
                 display.topMessage = null;
                 display.messageNeedsMore = false;
             }
+            await docrt();
             return idx;
         }
         // Invalid letter, keep waiting
@@ -1114,9 +1125,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
         await pline("It invokes nightmarish images in your mind...");
         await spell_backfire(player, idx);
         const drain = rnd(energy);
-        if (player.pw !== undefined) {
-            player.pw = Math.max(0, (player.pw || 0) - drain);
-        }
+        player.uen = Math.max(0, (player.uen || 0) - drain);
         return 1; // time elapsed
     }
 
@@ -1145,19 +1154,17 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     }
 
     // Energy check
-    const currentPower = (player.pw ?? player.power ?? 0);
+    const currentPower = player.uen || 0;
     if (energy > currentPower) {
         await You("don't have enough energy to cast that spell.");
         return 0;
     }
 
     // Deduct energy
-    if (player.pw !== undefined) {
-        player.pw = Math.max(0, currentPower - energy);
-    }
-
-    // Exercise wisdom for casting
-    await exercise(player, A_WIS, true);
+    player.uen = Math.max(0, currentPower - energy);
+    player._botl = true;
+    if (display && typeof display.renderStatus === 'function') {
+        display.renderStatus(player);
 
     // Roll for success
     const confused = !!(player.confused);
@@ -1165,12 +1172,23 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     if (confused || (rnd(100) > chance)) {
         await You("fail to cast the spell correctly.");
         // Partial energy refund on failure
-        if (player.pw !== undefined) {
-            const pwmax = player.pwmax ?? player.powermax ?? 100;
-            player.pw = Math.min(pwmax, (player.pw || 0) + Math.floor(energy / 2));
-        }
+        const maxPower = (player.uenmax ?? player.uen ?? 0);
+        player.uen = Math.min(maxPower,
+            (player.uen || 0) + Math.floor(energy / 2));
         return 1; // time elapsed
     }
+
+    const otyp = sp.otyp;
+
+    // C ref: spell.c spelleffects() — successful cast exercises wisdom.
+    await exercise(player, A_WIS, true);
+
+    // C ref: spell.c spelleffects() creates a temporary pseudo object before
+    // spell-direction selection; preserve this ordering for RNG parity.
+    const pseudo = mksobj(otyp, false, false);
+    pseudo.blessed = 0;
+    pseudo.cursed = 0;
+    pseudo.quan = 20;
 
     // Dispatch spell effect
     // The actual spell effects are complex and involve many subsystems.
@@ -1178,8 +1196,6 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     // scroll-like spells through seffects(), potion-like through peffects().
     // This dispatch provides the framework; specific effects are handled
     // by the game engine when it processes the spell.
-    const otyp = sp.otyp;
-
     switch (otyp) {
     // Wand-like directed spells
     case SPE_FORCE_BOLT:
@@ -1202,7 +1218,18 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     case SPE_STONE_TO_FLESH:
     case SPE_FIREBALL:
     case SPE_CONE_OF_COLD:
-        // These are dispatched through weffects in the game engine
+        if (atme) {
+            player.dx = 0;
+            player.dy = 0;
+            player.dz = 0;
+        } else {
+            const gotDir = await getdir(null, display);
+            if (!gotDir) return 0;
+            player.dx = gotDir.dx;
+            player.dy = gotDir.dy;
+            player.dz = gotDir.dz;
+        }
+        await weffects(pseudo, player, map, display);
         break;
 
     // Scroll-like spells
