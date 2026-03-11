@@ -3,7 +3,7 @@
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { nhgetch } from './input.js';
-import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj } from './invent.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useupall } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
          POT_SLEEPING, POT_SICKNESS, POT_HALLUCINATION,
@@ -1563,7 +1563,7 @@ async function dip_potion_explosion(player, obj, dmg) {
         await exercise(player, A_STR, false);
         await potionbreathe(player, obj);
         // useupall(obj) — remove entire stack
-        if (player.removeFromInventory) player.removeFromInventory(obj);
+        useupall(obj, player);
         player.uhp -= dmg;
         if (player.uhp < 1) player.uhp = 1;
         return true;
@@ -1617,7 +1617,7 @@ async function potion_dip(player, obj, potion) {
                 break;
             default:
                 // evaporates — remove obj
-                if (player.removeFromInventory) player.removeFromInventory(obj);
+                useupall(obj, player);
                 await pline("The mixture glows brightly and evaporates.");
                 return true;
             }

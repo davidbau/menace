@@ -46,6 +46,8 @@ import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
 import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON, P_BOW } from './const.js';
 import { ammo_and_launcher, multishot_class_bonus } from './dothrow.js';
+import { losehp } from './hack.js';
+import { KILLED_BY_AN } from './const.js';
 import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
 import { breaktest } from './dothrow.js';
@@ -380,8 +382,7 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
         await display.putstr_message(msg);
         throwTrace(game?.map || null, display, 'thitu:hit:after_putstr', `msg=${JSON.stringify(msg)}`);
     }
-    if (player.takeDamage) player.takeDamage(dam, mon ? x_monnam(mon) : 'an object');
-    else player.uhp -= dam;
+    await losehp(dam, name || "thrown object", KILLED_BY_AN, player, display, game);
     await exercise(player, A_STR, false);
     return 1;
 }
