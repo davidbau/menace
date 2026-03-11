@@ -48,14 +48,13 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          FIRE_RES, COLD_RES,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
-import { makeplural } from './objnam.js';
-import { doname } from './objnam.js';
+import { makeplural, doname, fruitname } from './objnam.js';
 import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
 import { mons } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
-import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym } from './display.js';
+import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
 import { eatmupdate, newuhs } from './eat.js';
 import { you_were, you_unwere, set_ulycn } from './were.js';
@@ -63,6 +62,7 @@ import { can_reach_floor } from './engrave.js';
 import { is_pool } from './dbridge.js';
 import { glyph_is_invisible } from './symbols.js';
 import { delayed_killer, find_delayed_killer, dealloc_killer } from './end.js';
+import { aggravate } from './wizard.js';
 
 // C ref: invent.c compactify() — compress inventory letter list for prompts
 // Inlined here to avoid circular import issues with invent.js
@@ -119,6 +119,17 @@ function hungerStateForBooze(player) {
     if (h > 50) return 2;   // HUNGRY
     if (h > 0) return 3;    // WEAK
     return 4;               // FAINTING
+}
+
+function isHeroBlind(player) {
+    return !!(player?.Blind || player?.blind);
+}
+
+function isHeroInvisible(player) {
+    const p = player?.uprops?.[INVIS] || {};
+    const intrinsic = Number(p.intrinsic || 0);
+    const hasInvis = !!((intrinsic & TIMEOUT) || (intrinsic & FROMOUTSIDE) || p.extrinsic);
+    return hasInvis && !p.blocked;
 }
 
 // ============================================================
@@ -859,41 +870,64 @@ export async function peffect_acid(player, otmp, display) {
 // cf. potion.c peffect_invisibility()
 export async function peffect_invisibility(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
-    // C: blessed path checks !rn2(HInvis ? 15 : 30) for permanent invis
-    const HInvis = player.uprops?.[INVIS]?.intrinsic || 0;
-    if (otmp.blessed && !rn2(HInvis ? 15 : 30)) {
-        // grant permanent invisibility (FROMOUTSIDE)
-        if (!player.uprops) player.uprops = {};
-        if (!player.uprops[INVIS]) player.uprops[INVIS] = {};
-        player.uprops[INVIS].intrinsic = (player.uprops[INVIS].intrinsic || 0) | FROMOUTSIDE;
+    const invisProp = player.ensureUProp(INVIS);
+    const intrinsic = Number(invisProp.intrinsic || 0);
+    if (isHeroInvisible(player) || isHeroBlind(player) || invisProp.blocked) {
+        gp.potion_nothing++;
     } else {
-        // C: incr_itimeout(&HInvis, d(6 - 3*bcsign, 100) + 100)
+        await self_invis_message(player);
+    }
+    if (otmp.blessed && !rn2((intrinsic & TIMEOUT) ? 15 : 30)) {
+        invisProp.intrinsic = intrinsic | FROMOUTSIDE;
+    } else {
         incr_itimeout(player, INVIS, c_d(6 - 3 * bcsign, 100) + 100);
     }
+    const mapRef = activeMap();
+    if (Number.isInteger(player?.x) && Number.isInteger(player?.y)) newsym(player.x, player.y, mapRef);
     if (otmp.cursed) {
-        // C: aggravate() and remove permanent invis
-        if (player.uprops?.[INVIS]) {
-            player.uprops[INVIS].intrinsic = (player.uprops[INVIS].intrinsic || 0) & ~FROMOUTSIDE;
-        }
+        await pline("For some reason, you feel your presence is known.");
+        aggravate(mapRef, player);
+        invisProp.intrinsic = Number(invisProp.intrinsic || 0) & ~FROMOUTSIDE;
     }
     return true;
 }
 
 // cf. potion.c peffect_see_invisible()
 export async function peffect_see_invisible(player, otmp, display) {
-    // C: blessed = permanent (FROMOUTSIDE), no RNG consumed
-    // C: non-blessed = rn1(100, 750)
+    const msg = isHeroInvisible(player) && !isHeroBlind(player);
+    gp.potion_unkn++;
+    if (otmp.cursed) {
+        await pline("Yecch!  This tastes %s.",
+            (player.hallucinating || player.Hallucination) ? "overripe" : "rotten");
+    } else {
+        const diluted = otmp.odiluted ? "reconstituted " : "";
+        if (player.hallucinating || player.Hallucination) {
+            await pline("This tastes like 10%% real %s%s all-natural beverage.", diluted, fruitname(true));
+        } else {
+            await pline("This tastes like %s%s.", diluted, fruitname(true));
+        }
+    }
+    if (otmp.otyp === POT_FRUIT_JUICE) {
+        const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
+        player.uhunger = (player.uhunger || 0) + (otmp.odiluted ? 5 : 10) * (2 + bcsign);
+        await newuhs(player, false);
+        return false;
+    }
     if (!otmp.cursed) {
-        // C: make_blinded(0L, TRUE) — cure blindness for non-cursed
         await make_blinded(player, 0, true);
     }
+    const seeInvisProp = player.ensureUProp(SEE_INVIS);
     if (otmp.blessed) {
-        // Grant permanent see invisible — no RNG consumed
-        if (!player.uprops) player.uprops = {};
-        if (!player.uprops[SEE_INVIS]) player.uprops[SEE_INVIS] = {};
-        player.uprops[SEE_INVIS].intrinsic = (player.uprops[SEE_INVIS].intrinsic || 0) | FROMOUTSIDE;
+        seeInvisProp.intrinsic = Number(seeInvisProp.intrinsic || 0) | FROMOUTSIDE;
     } else {
         incr_itimeout(player, SEE_INVIS, rn1(100, 750));
+    }
+    set_mimic_blocking();
+    see_monsters(activeMap());
+    if (Number.isInteger(player?.x) && Number.isInteger(player?.y)) newsym(player.x, player.y, activeMap());
+    if (msg && !isHeroBlind(player)) {
+        await You("can see through yourself, but you are visible!");
+        gp.potion_unkn--;
     }
     return false;
 }

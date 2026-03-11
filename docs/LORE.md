@@ -8318,3 +8318,25 @@ hard-won wisdom:
 Validation:
 - `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
 - `scripts/run-and-report.sh --pending --failures` -> `6/6` passing.
+
+## 2026-03-11: C-faithful invisibility / see-invisible potion semantics
+
+- Tightened `js/potion.js` to mirror C `potion.c` behavior for:
+  - `peffect_invisibility()`:
+    - now applies C pre-message gate (`Invis || Blind || BInvis` => `potion_nothing++`, else `self_invis_message()`),
+    - keeps blessed/per-timeout invisibility flow,
+    - calls `newsym(u.ux,u.uy)` equivalent,
+    - adds cursed path message + `aggravate()` + clears permanent invis (`FROMOUTSIDE`).
+  - `peffect_see_invisible()`:
+    - now increments `potion_unkn` at entry,
+    - emits C-shaped cursed/non-cursed taste messages,
+    - handles `POT_FRUIT_JUICE` hunger path in this effect,
+    - keeps blindness cure/non-cursed semantics,
+    - applies mimic/monster refresh path (`set_mimic_blocking(); see_monsters(); newsym(...)`),
+    - applies C post-message (`"can see through yourself..."`) and `potion_unkn--` adjustment when applicable.
+- Added small shared helpers for hero blindness/invisibility state checks to keep property handling explicit.
+
+Validation:
+- `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js`
+- `scripts/run-and-report.sh --pending --failures` -> `6/6` passing
+- `scripts/run-and-report.sh --failures` -> gameplay `104/104` passing
