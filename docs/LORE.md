@@ -8417,3 +8417,16 @@ Validation:
 Validation:
 - `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing
 - `scripts/run-and-report.sh --pending --failures` -> still failing pending frontier (`t05_s692`, `t08_s700`), with `t05_s692` now past prompt/layout mismatches
+
+## 2026-03-11: Spell casting state alignment (`pw`) and wizard school baseline
+
+- Corrected two structural spellcasting mismatches in `js/spell.js`:
+  - Wizard starting spell-school baseline in fail-rate estimation now matches C startup skill init (`attack` + `enchantment` only).
+  - `spelleffects()` now reads/writes mana from `player.pw/pwmax` (with `power/powermax` fallback) instead of relying on `player.power`.
+- This removes a JS-only "out of mana" false path and advances pending cast replay localization deeper into directional spell dispatch ordering.
+
+Validation:
+- `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t05_s692_w_cast_gp.session.json`:
+  - improved from `2738/3095` matched RNG to `2785/3095`
+  - first divergence moved from early spell-menu checks to directional spell execution boundary

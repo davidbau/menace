@@ -158,7 +158,9 @@ const ROLE_BASIC_SPELL_CATEGORIES = new Map([
     [9, new Set([SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_DIVINATION, SPELL_CATEGORY_CLERICAL])],
     [10, new Set([SPELL_CATEGORY_DIVINATION, SPELL_CATEGORY_ENCHANTMENT, SPELL_CATEGORY_ESCAPE])],
     [11, new Set([SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_ESCAPE])],
-    [12, new Set([SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_HEALING, SPELL_CATEGORY_DIVINATION, SPELL_CATEGORY_ENCHANTMENT, SPELL_CATEGORY_CLERICAL, SPELL_CATEGORY_ESCAPE, SPELL_CATEGORY_MATTER])],
+    // C ref: weapon.c skill_init_from_inventory() — wizards start basic in
+    // attack and enchantment spell schools only.
+    [12, new Set([SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_ENCHANTMENT])],
 ]);
 
 const HEALING_BONUS_SPELLS = new Set([
@@ -1112,8 +1114,8 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
         await pline("It invokes nightmarish images in your mind...");
         await spell_backfire(player, idx);
         const drain = rnd(energy);
-        if (player.power !== undefined) {
-            player.power = Math.max(0, (player.power || 0) - drain);
+        if (player.pw !== undefined) {
+            player.pw = Math.max(0, (player.pw || 0) - drain);
         }
         return 1; // time elapsed
     }
@@ -1143,15 +1145,15 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     }
 
     // Energy check
-    const currentPower = player.power || 0;
+    const currentPower = (player.pw ?? player.power ?? 0);
     if (energy > currentPower) {
         await You("don't have enough energy to cast that spell.");
         return 0;
     }
 
     // Deduct energy
-    if (player.power !== undefined) {
-        player.power = Math.max(0, currentPower - energy);
+    if (player.pw !== undefined) {
+        player.pw = Math.max(0, currentPower - energy);
     }
 
     // Exercise wisdom for casting
@@ -1163,9 +1165,9 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     if (confused || (rnd(100) > chance)) {
         await You("fail to cast the spell correctly.");
         // Partial energy refund on failure
-        if (player.power !== undefined) {
-            player.power = Math.min(player.powermax || 100,
-                (player.power || 0) + Math.floor(energy / 2));
+        if (player.pw !== undefined) {
+            const pwmax = player.pwmax ?? player.powermax ?? 100;
+            player.pw = Math.min(pwmax, (player.pw || 0) + Math.floor(energy / 2));
         }
         return 1; // time elapsed
     }
