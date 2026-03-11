@@ -79,17 +79,11 @@ export function free_epri(mtmp) {
     mtmp.ispriest = false;
 }
 
-// C ref: priest.c:42 — move_special()
-// Shared movement helper lives in monmove.js.
-export function move_special(...args) {
-    return move_special_monmove(...args);
-}
+// C ref: priest.c:42 — move_special(): canonical in monmove.js; re-exported
+export { move_special_monmove as move_special };
 
-// C ref: priest.c:220 — priestini()
-// Temple setup helper lives in mkroom.js generation flow.
-export function priestini(...args) {
-    return priestini_mkroom(...args);
-}
+// C ref: priest.c:220 — priestini(): canonical in mkroom.js; re-exported
+export { priestini_mkroom as priestini };
 
 // ============================================================================
 // temple_occupied — cf. priest.c:142

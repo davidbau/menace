@@ -2584,7 +2584,7 @@ export function zombie_can_dig(arg1, arg2, arg3, arg4) {
   return typ === 1 || typ === 2 || typ === 12;
 }
 export function spell_hit_bonus(skill, player) {
-  const dex = (player?.attributes?.[A_DEX] || 10);
+  const dex = acurr(player, A_DEX);
   const prof = Number(player?.spellSkill?.[skill] ?? 1); // 0..3 => unskilled..expert
   let hit_bon = 0;
   if (prof <= 0) hit_bon = -4;
@@ -2599,7 +2599,7 @@ export function spell_hit_bonus(skill, player) {
 }
 export function spell_damage_bonus(dmg, player) {
   let out = Number(dmg || 0);
-  const intell = (player?.attributes?.[A_INT] || 10);
+  const intell = acurr(player, A_INT);
   const level = player?.ulevel ?? player?.level ?? 1;
   if (intell <= 9) {
     if (out > 1) out = (out <= 3) ? 1 : out - 3;

@@ -74,7 +74,7 @@ import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
-import { in_rooms } from './hack.js';
+import { in_rooms, may_dig } from './hack.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
@@ -94,14 +94,8 @@ import { A_STR, A_DEX } from './const.js';
 
 
 
-// C ref: may_dig(x, y) — is digging allowed at this location?
-export function may_dig(x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc) return false;
-    const wallInfo = Number(loc.wall_info ?? loc.flags ?? 0);
-    return !((IS_STWALL(loc.typ) || IS_TREE(loc.typ))
-             && (wallInfo & W_NONDIGGABLE));
-}
+// C ref: may_dig(x, y) — canonical in hack.js (from hack.c); re-exported for dig consumers
+export { may_dig };
 
 // C ref: *in_rooms(x, y, SHOPBASE) — is (x,y) inside a shop?
 function in_rooms_shopbase(x, y, map) {

@@ -1310,7 +1310,7 @@ export function check_unpaid_usage(otmp, altusage, map) {
     }
 
     if (!muteshk(shkp)) {
-        verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);
+        void verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);
     }
 
     shkp.debit = (shkp.debit || 0) + tmp;

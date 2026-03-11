@@ -5,7 +5,8 @@
 import { RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
-         xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING, SIZE, nul_glyphinfo } from './const.js';
+         xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING, SIZE, nul_glyphinfo,
+         isok } from './const.js';
 import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
@@ -1481,11 +1482,6 @@ export function directionname(dir) {
   const dirnames = [ "west", "northwest", "north", "northeast", "east", "southeast", "south", "southwest", "down", "up", ];
   if (dir < 0 || dir >= N_DIRS_Z) return "invalid";
   return dirnames[dir];
-}
-
-// Autotranslated from cmd.c:4437
-export function isok(x, y) {
-  return x >= 1 && x <= COLNO - 1 && y >= 0 && y <= ROWNO - 1;
 }
 
 // Autotranslated from cmd.c:4635
