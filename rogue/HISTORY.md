@@ -14,9 +14,7 @@ This document draws primarily on Glenn Wichman's own [account](https://web.archi
 
 Some background for anyone who wasn't around computers in 1980. The main home computers were the [Atari 400/800](https://en.wikipedia.org/wiki/Atari_8-bit_family), the [Commodore 64](https://en.wikipedia.org/wiki/Commodore_64), and the [Apple II](https://en.wikipedia.org/wiki/Apple_II). No Macintosh. Hardly any IBM PCs. At university computer labs, students used dumb terminals connected to minicomputers or mainframes. The terminals had no graphics. Programs output text, which scrolled off the screen and was gone.
 
-> Even though the terminals had a screen like a TV screen, they were based on the earlier technology of paper printers, so you did not treat the screen as an integrated output device, you treated it as if it were a printer, you would just send text to the output and it would appear at the bottom of the screen and everything else would scroll up; once it scrolled off the top of the screen it was gone forever.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> Even though the terminals had a screen like a TV screen, they were based on the earlier technology of paper printers, so you did not treat the screen as an integrated output device, you treated it as if it were a printer, you would just send text to the output and it would appear at the bottom of the screen and everything else would scroll up; once it scrolled off the top of the screen it was gone forever. — Glenn Wichman, [Spillhistorie.no (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
 
 A popular game on college computers was [Adventure](https://en.wikipedia.org/wiki/Colossal_Cave_Adventure) (also known as Colossal Cave): a text-only game where the computer described your surroundings and you typed commands like "go west" or "pick up bird."
 
@@ -24,11 +22,9 @@ A popular game on college computers was [Adventure](https://en.wikipedia.org/wik
 
 ## Two Freshmen in Santa Cruz
 
-Glenn Wichman and Michael Toy met as freshmen at [UC Santa Cruz](https://en.wikipedia.org/wiki/University_of_California,_Santa_Cruz) in 1978. Wichman wanted to be a game designer, by which he meant board games. When he got to college he discovered Adventure, taught himself BASIC, and started writing a text adventure.
+Glenn Wichman and Michael Toy met as freshmen at [UC Santa Cruz](https://en.wikipedia.org/wiki/University_of_California,_Santa_Cruz) in 1978. Wichman wanted to be a game designer, by which he meant board games. When he got to college he discovered Adventure, taught himself BASIC, and started writing a text adventure. Toy had built his own computer in high school and was never anywhere except the computer lab.
 
-> One day while struggling with getting it to work, a tall stranger came up and asked me what I was working on, and that turned out to be Michael Toy. He knew much more about computers and programming than I did, and had also made several games, so he helped me debug my game.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> I felt a presence behind me and looked over my shoulder to see Michael Toy watching me code. He had built his own computer in high school, he was also a big fan of text adventure games, and had also created his own, but he actually knew how to code. We immediately started trading ideas back and forth and I ended up, mostly through osmosis, becoming a really good coder just by watching how he approached problems. — Wichman, [*Gamereactor* (2020)](https://www.gamereactor.eu/40-years-on-the-making-of-rogue-with-glenn-wichman/)
 
 From then on they played each other's games. It was never any fun to play your own text adventure, of course, because you already knew all the answers.
 
@@ -44,29 +40,33 @@ The university had a [DEC VAX 11/780](https://en.wikipedia.org/wiki/VAX-11) that
 
 Meanwhile, 120 kilometers away at [UC Berkeley](https://en.wikipedia.org/wiki/University_of_California,_Berkeley), [Bill Joy](https://en.wikipedia.org/wiki/Bill_Joy) had written [vi](https://en.wikipedia.org/wiki/Vi_(text_editor)), a visual editor that worked on any terminal by maintaining a database of terminal escape codes. A Berkeley student named [Ken Arnold](https://en.wikipedia.org/wiki/Ken_Arnold) extracted the cursor-handling code from vi and turned it into a general-purpose library called [curses](https://en.wikipedia.org/wiki/Curses_(programming_library)). Any C program could now treat a terminal as an addressable grid.
 
-> Michael got ahold of this library and we both started using it to make simple graphical games, and then Michael asked me if I thought it would be possible to use this to make a graphical Adventure game. I didn't think it would be possible but as we began to talk about it more we realized that not only could we make an adventure game with this, but we could make one where the computer itself created the environment you were exploring, we could create a game that could surprise even its creators, and that was the beginning of Rogue.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> There would not be a Rogue without curses. — Michael Toy, [Roguelike Celebration panel (2016)](https://www.youtube.com/watch?v=4IkrZkUV01I)
+
+Arnold himself was taken aback when someone on the Roguelike Celebration stage asked: "So curses is like the very first cross-platform graphics API?" He paused, then: "Yeah, I guess that's true." He had written curses for vi, and hadn't thought of it that way.
+
+> Michael got ahold of this library and we both started using it to make simple graphical games, and then Michael asked me if I thought it would be possible to use this to make a graphical Adventure game. I didn't think it would be possible but as we began to talk about it more we realized that not only could we make an adventure game with this, but we could make one where the computer itself created the environment you were exploring, we could create a game that could surprise even its creators, and that was the beginning of Rogue. — Wichman, Spillhistorie.no
 
 ---
 
 ## Making Rogue
 
-The first version was written in the fall of 1980. Wichman was a novice C programmer, so Toy did most of the coding. Wichman [pretty much learned C by looking over his shoulder](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html). The ideas came from both of them. The name was [Wichman's](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html).
+The first version was written in the fall of 1980. Wichman was a novice C programmer, so Toy did most of the coding. Wichman [pretty much learned C by looking over his shoulder](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html). The ideas came from both of them. The name was [Wichman's](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html). (As Toy put it, they wrote it "instead of attending class at UC Santa Cruz.")
 
 The main inspiration was [Dungeons & Dragons](https://en.wikipedia.org/wiki/Dungeons_%26_Dragons). Early versions had monster stats copied straight from D&D. The player character was named Rodney, envisioned as [kind of a goofy loser, not a brave warrior](https://en.wikipedia.org/wiki/Rogue_(video_game)). The Amulet of Yendor is "Rodney" spelled backward.
 
-The game had 26 monster types (one per capital letter), 26 dungeon levels, and permadeath. No save-scumming. The dungeon was different every time.
+The game had 26 monster types (one per capital letter), 26 dungeon levels, and permadeath. No save-scumming. The dungeon was different every time. The procedural generation was simpler than it looked:
 
-> We knew that our game was more fun, imaginative, and engaging than anything else running on the college computers. We saw our friends scream and pound the keyboard when killed by a troll, or stand up and dance when they found the amulet. And we had those same reactions ourselves, playing our own game.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> I was a dumb kid, I didn't know anything about computer science... It's a tic-tac-toe board with a room randomly placed in each square. — Michael Toy, Roguelike Celebration panel
+
+Their test audience was whoever happened to be at the computer lab.
+
+> There would be like 20 terminals around, and there would be 10 people, and they would all be playing Rogue — and then you'd hear somebody scream. They'd have been startled because a "T" appeared on the screen. — Toy, Roguelike Celebration panel
+
+> The eureka moments happened as we realized just how immersive our game had become. Yes, you were looking at ASCII characters, dots for floors and dashes for walls, and letters for monsters... but there was a genuine emotional response when playing the game. Your heart would skip a beat when a 'T' appeared on the screen because it really felt like a troll had entered the room. — Wichman, *Gamereactor*
 
 They shared it with about twenty friends. That was the intended audience.
 
-> I think we knew we had something special from the start. But also we didn't have an idea of what "big" was at that time. We were creating a game to play with our friends and didn't really think beyond the 20 or so people we knew who would play it with us.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> I think we knew we had something special from the start. But also we didn't have an idea of what "big" was at that time. We were creating a game to play with our friends and didn't really think beyond the 20 or so people we knew who would play it with us. — Wichman, Spillhistorie.no
 
 ---
 
@@ -74,11 +74,15 @@ They shared it with about twenty friends. That was the intended audience.
 
 They had a playable game, without all the features yet (no armor, for instance), when Toy transferred to UC Berkeley. Around 1982, his attention to Rogue [caused him to suffer poor academic performance](https://en.wikipedia.org/wiki/Rogue_(video_game)). He was kicked out of school, then got a job at Berkeley's computer lab. He took the code with him.
 
-For a while both maintained their own versions, Toy in Berkeley and Wichman in Santa Cruz. This didn't work. Wichman let Toy take over. At Berkeley, Toy connected with Ken Arnold, the creator of curses, who had become a fan. Arnold's library was so closely associated with the game that [many thought curses had been written for Rogue](https://spillhistorie.no/2024/07/14/the-story-of-rogue/).
+For a while both maintained their own versions, Toy in Berkeley and Wichman in Santa Cruz. This didn't work well. Wichman let Toy take over.
 
-> Michael and I worked on it for months and then Michael moved to U.C. Berkeley and then I was out of the picture for a while, but Ken Arnold joined in and the game was completed by the two of them.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> If there had been such a thing as forking a codebase... that just meant that I was sort of orphaned out there in Santa Cruz. — Wichman, Roguelike Celebration panel
+
+> For a while, we each moved forward with our own versions of the game, him in Berkeley and me in Santa Cruz. This proved to be too difficult to keep up logistically, so I just let Michael and Ken take over Rogue development completely. To this day, there are a lot of folks who think of it as Michael and Ken's game. — Wichman, ["A Brief History of Rogue" (1997)](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html)
+
+Arnold's curses library was so closely associated with the game that many thought it had been written for Rogue. In fact the relationship went the other direction — when Toy arrived at Berkeley, it was Arnold who sought him out.
+
+> Michael transferred up to Berkeley... I came to him because he had been using curses and I said, "You're doing this cool thing with my package." — Ken Arnold, Roguelike Celebration panel
 
 ---
 
@@ -86,15 +90,19 @@ For a while both maintained their own versions, Toy in Berkeley and Wichman in S
 
 UC Berkeley was the home of [BSD Unix](https://en.wikipedia.org/wiki/Berkeley_Software_Distribution), the most widely used version of Unix in academia. Rogue was included in the [4.2 BSD](https://en.wikipedia.org/wiki/History_of_the_Berkeley_Software_Distribution) distribution. This put it on university computers everywhere.
 
-> Rogue became widely known when it was included as part of the Berkeley UNIX standard distribution... most of the games included with the distribution were mild diversions, and none of them were graphical in nature. Rogue was among the very first games to treat a text-based terminal as a graphic canvas by using ASCII "art," which made the game much more visually interesting.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> Rogue's move to Berkeley was fortuitous. Version 4.2 of BSD UNIX included Rogue — suddenly, the game was available on university computers all over the world. At the time, there was no other game like it. Over the next three years, Rogue became the undisputed most popular game on college campuses. — Wichman, "A Brief History of Rogue"
+
+Toy's summary of what BSD distribution meant:
+
+> If you got Unix — if you got the operating system — you got our game. Which, if you can get that kind of distribution, like you're *on* the operating system — if you have that opportunity for your game, I would say take it. We were the Minesweeper of Unix. — Toy, Roguelike Celebration panel
+
+Among the Unix developers who encountered Rogue that way was Dennis Ritchie, co-creator of C and Unix:
+
+> I'm at Dennis Ritchie — who's one of the people who created the C programming language and Unix, and he's like a god of everything that we're doing — and he says, "You're the Michael Toy?" I was like: okay, I can die now. — Toy, Roguelike Celebration panel
 
 Wichman's analysis of why the game held up:
 
-> Rogue was also a very well balanced game. It was notoriously hard to beat, but you did not have to beat it to enjoy it. It was easy to learn and understand. The world was rich enough to surprise you, but it was not overwhelming... a single explorer, no classes or races or other complexities to set up your character, you could just start playing. 26 monster types total, large enough to keep the game fresh and interesting but small enough that you could keep it all in your head without having to refer to a monster manual.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> Rogue was also a very well balanced game. It was notoriously hard to beat, but you did not have to beat it to enjoy it. It was easy to learn and understand. The world was rich enough to surprise you, but it was not overwhelming... a single explorer, no classes or races or other complexities to set up your character, you could just start playing. 26 monster types total, large enough to keep the game fresh and interesting but small enough that you could keep it all in your head without having to refer to a monster manual. — Wichman, Spillhistorie.no
 
 Over the next three years Rogue became, by Wichman's account, the [most popular game on college campuses](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html).
 
@@ -110,17 +118,17 @@ The authors kept tight control of the source code, mostly to prevent cheating. B
 
 ## Going Commercial
 
-After leaving school, Toy got a job at [Olivetti](https://en.wikipedia.org/wiki/Olivetti) in Italy. There he met **Jon Lane**, a system administrator who played Rogue and was convinced it could sell in the home market. They founded **A.I. Design** and ported the game to the [IBM PC](https://en.wikipedia.org/wiki/IBM_Personal_Computer).
+After leaving school, Toy got a job at [Olivetti](https://en.wikipedia.org/wiki/Olivetti) in Italy. There he met **Jon Lane**, a system administrator who had noticed that Rogue was consuming more CPU cycles on the Olivetti network than anything else. Lane was convinced it could sell in the home market. They founded **A.I. Design** and ported the game to the [IBM PC](https://en.wikipedia.org/wiki/IBM_Personal_Computer).
 
 Lane used the PC's [Code page 437](https://en.wikipedia.org/wiki/Code_page_437) character set to expand the visual symbols. The player character became a happy face. They funded publishing themselves at first but could only break even.
 
 The game company [Epyx](https://en.wikipedia.org/wiki/Epyx) took over marketing. A.I. Design produced versions for several platforms: Toy wrote the [Amiga](https://en.wikipedia.org/wiki/Amiga) version, Wichman wrote the [Atari ST](https://en.wikipedia.org/wiki/Atari_ST) version (with graphics by Epyx's Michael Kosaka), and Wichman did the graphic design for the [Macintosh](https://en.wikipedia.org/wiki/Macintosh) version in exchange for a used Mac.
 
-It didn't work out. Epyx went bankrupt. The Atari ST and Amiga faded. Wichman was [paid $15,000 for the Atari ST work](https://spillhistorie.no/2024/07/14/the-story-of-rogue/). That was all the money he ever made from Rogue.
+It didn't work out. Epyx went bankrupt. The Atari ST and Amiga faded. The problem, Wichman later concluded, was the audience:
 
-> Even though Rogue was way ahead of its time in 1980, by the time we did the commercial version in 1984, the expectations of what a computer game should do had changed drastically, and we really never sat down and said, "What does Rogue need to be in order to compete in today's marketplace?"
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> The people who made it the most popular game on campuses in the early '80s were used to playing it for free. The idea was we would give them that same experience on their home computer, but charge them money for it. I think that wasn't the audience that was looking for games in software stores. — Wichman, *Dungeon Hacks* (2015)
+
+The total income Wichman made from Rogue was $15,000 — advances on royalties for the Atari ST version. That was all the money he ever made from it.
 
 ---
 
@@ -128,19 +136,23 @@ It didn't work out. Epyx went bankrupt. The Atari ST and Amiga faded. Wichman wa
 
 The term "roguelike" became [official around 1993](https://en.wikipedia.org/wiki/Roguelike). Usenet needed a category name for the `rec.games.roguelike.*` hierarchy. After some discussion, the term stuck.
 
-> I just feel incredibly lucky that it happened to catch on. Most genres don't get named after the first major example of the genre, and if the name had not been "Roguelike," I don't know if Rogue would be remembered nearly as well as it has been.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> I just feel incredibly lucky that it happened to catch on. Most genres don't get named after the first major example of the genre, and if the name had not been "Roguelike," I don't know if Rogue would be remembered nearly as well as it has been. — Wichman, Spillhistorie.no
 
 ---
 
 ## Wisdom
 
+At the 2016 Roguelike Celebration, Wichman gave permadeath its best defense:
+
+> "Permadeath" is an example of what I call "consequence persistence." The name that we needed, right? We're trying to make it more immersive by making things *matter* — not to make it more painful and not to make it more fun, but immersive. — Wichman, Roguelike Celebration panel
+
+Toy agreed, but with a clarification people often miss:
+
+> The good stuff is just as permanent as the bad stuff. — Toy, Roguelike Celebration panel
+
 Wichman has never beaten the game himself. He has noticed something about the people who do:
 
-> The people who do beat Rogue never ever hit a key twice in a row without waiting to see the consequences of the previous move, reevaluate, and calculate. You need a good strategy of course but you need to treat it as a turn-based puzzle game to survive. I always got lost in the feeling of being in that world and I never had the patience to stop and think after every move.
->
-> -- Glenn Wichman, [Spillhistorie.no interview (2024)](https://spillhistorie.no/2024/07/14/the-story-of-rogue/)
+> The people who do beat Rogue never ever hit a key twice in a row without waiting to see the consequences of the previous move, reevaluate, and calculate. You need a good strategy of course but you need to treat it as a turn-based puzzle game to survive. I always got lost in the feeling of being in that world and I never had the patience to stop and think after every move. — Wichman, Spillhistorie.no
 
 And:
 
@@ -168,6 +180,10 @@ Jon Lane continued to run his own small company, [The Code Dogs](https://web.arc
 
 ---
 
+In 2016, Toy, Wichman, and Arnold appeared together on stage at Roguelike Celebration in San Francisco — the first time all three had been in the same room in 30 years. The panel was moderated by Arnold, who observed that their roles had reversed since 1982: Wichman had sought out Toy, Toy had sought out Arnold, and now Arnold was introducing them to the audience.
+
+---
+
 ## From Rogue to Hack to NetHack
 
 The source code leak around June 1981 set off a chain reaction. At [Lincoln-Sudbury Regional High School](https://en.wikipedia.org/wiki/Lincoln-Sudbury_Regional_High_School) in Massachusetts, a junior named [Jay Fenlason](../hack/HISTORY.md) wrote [Hack](https://en.wikipedia.org/wiki/Hack_(video_game)) in 1982. It had more monsters, more items, and a persistent dungeon. Hack spread through Usenet, was substantially rewritten by [Andries Brouwer](https://en.wikipedia.org/wiki/Andries_Brouwer) in the Netherlands, and went out as Hack 1.0 in December 1984. The traffic was so heavy that [Gene Spafford](https://en.wikipedia.org/wiki/Gene_Spafford) had to create a dedicated newsgroup.
@@ -183,8 +199,12 @@ The source code leak around June 1981 set off a chain reaction. At [Lincoln-Sudb
 ### Primary Accounts
 - Glenn Wichman, ["A Brief History of Rogue"](https://web.archive.org/web/20070622153327/http://www.wichman.org/roguehistory.html) (1997, via Wayback Machine)
 - Glenn Wichman, ["Rogue Stories"](https://web.archive.org/web/20070622153512/http://www.wichman.org/roguestories.html) (fan letters, via Wayback Machine)
-- Joachim Froholt, ["The Story of Rogue"](https://spillhistorie.no/2024/07/14/the-story-of-rogue/) -- interview with Glenn Wichman (Spillhistorie.no, 2024)
-- Gamereactor, ["40 Years On: The Making of Rogue with Glenn Wichman"](https://www.gamereactor.eu/40-years-on-the-making-of-rogue-with-glenn-wichman/)
+- Joachim Froholt, ["The Story of Rogue"](https://spillhistorie.no/2024/07/14/the-story-of-rogue/) — interview with Glenn Wichman (Spillhistorie.no, 2024)
+- Gamereactor, ["40 Years On: The Making of Rogue with Glenn Wichman"](https://www.gamereactor.eu/40-years-on-the-making-of-rogue-with-glenn-wichman/) (2020)
+- David L. Craddock, [*Dungeon Hacks: How NetHack, Angband, and Other Roguelikes Changed the Course of Video Games*](https://press.etc.cmu.edu/index.php/product/dungeon-hacks/) (ETC Press, 2015) — interviews with Toy, Wichman, Arnold, and Lane
+
+### Video
+- Roguelike Celebration, ["Rogue Panel" (2016)](https://www.youtube.com/watch?v=4IkrZkUV01I) — Toy, Wichman, and Arnold together on stage for the first time in 30 years
 
 ### Technical History
 - Roguelike Gallery, ["Rogue V3: Development History"](https://rlgallery.org/about/rogue3.html)
@@ -197,10 +217,9 @@ The source code leak around June 1981 set off a chain reaction. At [Lincoln-Sudb
 - Wikipedia, ["Glenn Wichman"](https://en.wikipedia.org/wiki/Glenn_Wichman)
 - en-academic.com, ["Michael Toy"](https://en-academic.com/dic.nsf/enwiki/2832054)
 - Wikipedia, ["Code Rush"](https://en.wikipedia.org/wiki/Code_Rush)
-- Roguelike Celebration, ["Rogue Panel" (2016)](https://www.youtube.com/watch?v=4IkrZkUV01I) -- Toy, Wichman, and Arnold together on stage
 
 ### The Descendants
-- [Hack HISTORY.md](../hack/HISTORY.md) -- Jay Fenlason's 1982 Hack
+- [Hack HISTORY.md](../hack/HISTORY.md) — Jay Fenlason's 1982 Hack
 - Wikipedia, ["NetHack"](https://en.wikipedia.org/wiki/NetHack)
 - The Rogue Archive, [britzl.github.io/roguearchive](https://britzl.github.io/roguearchive/)
 
