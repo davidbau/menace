@@ -37,7 +37,7 @@ import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural } from './objnam.js';
-import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM } from './const.js';
+import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
 //          end_menu, select_menu, display_nhwindow,
@@ -203,7 +203,7 @@ export async function mstatusline(mtmp, game) {
         info += ', asleep';
     else if (mtmp.mfrozen || mtmp.mcanmove === false || mtmp.mcanmove === 0)
         info += ", can't move";
-    else if ((mtmp.mstrategy & 0x20000000) !== 0) // STRAT_WAITMASK
+    else if ((mtmp.mstrategy & STRAT_WAITMASK) !== 0)
         info += ', meditating';
     if (mtmp.mflee)
         info += ', scared';
