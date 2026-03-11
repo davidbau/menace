@@ -91,6 +91,9 @@ When running rebuilds/regenerations that can take several minutes:
 2. During translation coverage work, maintain a C-to-JS mapping ledger.
 3. For low-coverage parity-critical areas, add targeted deterministic sessions.
 4. Keep parity suites green while expanding coverage.
+5. Coverage credit is based on C-recorded parity sessions only (see
+   `docs/COVERAGE.md`); ordinary unit-test coverage does not count toward parity
+   coverage progress.
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.

@@ -5,6 +5,12 @@
 Measure JS code coverage using only deterministic C-parity session replays, not
 unit tests.
 
+Coverage progress credit policy:
+- Credit is awarded only for code executed by C-recorded parity sessions.
+- Ordinary unit-test coverage does not count toward parity coverage goals.
+- To raise this metric, add/improve C-recorded sessions that exercise real
+  gameplay paths.
+
 This coverage signal is intended to answer:
 - "How much of the JS gameplay code is exercised by tests with C-grounded
   behavior expectations?"
