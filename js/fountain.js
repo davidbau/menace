@@ -21,7 +21,7 @@ import { distmin } from './hacklib.js';
 import { losehp } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
-import { water_damage_chain, delfloortrap } from './trap.js';
+import { water_damage_chain, water_damage, delfloortrap } from './trap.js';
 import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';

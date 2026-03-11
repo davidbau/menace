@@ -22,6 +22,7 @@ import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { RUMOR_PAD_LENGTH, A_WIS, BY_ORACLE, BY_COOKIE, BY_PAPER, ECMD_OK } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { pline, pline1, verbalize } from './pline.js';
+import { is_fainted } from './eat.js';
 
 // Rumor data — parsed at module load from the compiled-in encrypted constant.
 // cf. rumors.c init_rumors() + global gt/gf structs (true_rumor_size etc.)
@@ -211,7 +212,7 @@ export async function outrumor(truth, mechanism, player) {
   let fortune_msg = "This cookie has a scrap of paper inside.", line, buf;
   let reading = (mechanism === BY_COOKIE || mechanism === BY_PAPER);
   if (reading) {
-    if (is_fainted() && mechanism === BY_COOKIE) { return; }
+    if (is_fainted(player) && mechanism === BY_COOKIE) { return; }
     else if ((player?.Blind || player?.blind || false)) {
       if (mechanism === BY_COOKIE) await pline(fortune_msg);
       await pline("What a pity that you cannot read it!");
