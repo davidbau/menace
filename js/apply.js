@@ -94,6 +94,7 @@ import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, IS_FURNITURE, nothing_happens,
          P_AXE, P_PICK_AXE, P_TRIDENT, P_LANCE } from './const.js';
 import { break_wand } from './zap.js';
+import { wield_tool } from './wield.js';
 import { body_part } from './polyself.js';
 import { freehand } from './engrave.js';
 import { Blindf_off } from './do_wear.js';
@@ -1105,6 +1106,13 @@ export async function handleApply(player, map, display, game) {
                 },
             };
             return { moved: false, tookTime: true };
+        }
+
+        // C ref: dig.c use_pick_axe() — auto-wield pick-axe/mattock before use
+        if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK) {
+            if (!await wield_tool(player, display, selected, "dig")) {
+                return { moved: false, tookTime: false };
+            }
         }
 
         if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK
