@@ -7,7 +7,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
-import { W_WEP, A_DEX } from './const.js';
+import { W_WEP, W_ARMOR, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
 import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
@@ -322,7 +322,7 @@ export async function chwepon(player, display, otmp, amount) {
 // cf. wield.c:677 — wield_tool(obj, verb): wield a tool during #apply
 async function wield_tool(player, display, obj, _verb) {
     if (player.weapon && obj === player.weapon) return true;
-    if (obj.owornmask & (0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040)) {
+    if (obj.owornmask & W_ARMOR) {
         // W_ARMOR | W_ACCESSORY bits — can't wield worn item
         if (display) await display.putstr_message("You can't wield that while wearing it.");
         return false;

@@ -24,7 +24,7 @@
 import { rn2 } from './rng.js';
 import { ACCESSIBLE, MM_NONAME } from './const.js';
 import { CLASS_SYMBOLS } from './objects.js';
-import { mons, PM_GHOST } from './monsters.js';
+import { mons, PM_GHOST, G_UNIQ } from './monsters.js';
 import { placeFloorObject } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { makemon } from './makemon.js';
@@ -207,7 +207,7 @@ export function remove_mon_from_bones(map) {
         // C ref: bones.c:171 — remove temple priests (ispriest)
         if (mon.ispriest) return false;
         // C ref: bones.c:180 — remove unique monsters
-        if ((mon.data || mon.type) && ((mon.data || mon.type).geno & 0x8000)) return false; // G_UNIQ
+        if ((mon.data || mon.type) && ((mon.data || mon.type).geno & G_UNIQ)) return false;
         return true;
     });
 }

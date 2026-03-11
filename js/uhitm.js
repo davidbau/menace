@@ -14,7 +14,7 @@ import {
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
-    RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU,
+    RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU, STUNNED,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
@@ -2202,7 +2202,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
         break;
     case AD_STUN:
         if (player) {
-            const oldTimeout = player.getPropTimeout ? (player.getPropTimeout('stunned') || 0) : 0;
+            const oldTimeout = player.getPropTimeout ? (player.getPropTimeout(STUNNED) || 0) : 0;
             await make_stunned(player, oldTimeout + Math.max(1, tmp), true);
         }
         tmp = 0;

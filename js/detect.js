@@ -29,7 +29,7 @@ import { body_part } from './polyself.js';
 import { distu } from './hacklib.js';
 import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_FLASH, DISP_CHANGE, DISP_END } from './const.js';
+import { DISP_FLASH, DISP_CHANGE, DISP_END, TER_FULL } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
@@ -1047,7 +1047,7 @@ export function dump_map() { /* dumplog not applicable in JS */ }
 // cf. detect.c:2168 -- reveal_terrain_getglyph
 // ========================================================================
 export function reveal_terrain_getglyph(x, y, swallowed, default_glyph, which_subset, map) {
-    const full = !!(which_subset & 0x80); // TER_FULL
+    const full = !!(which_subset & TER_FULL);
     if (!isok(x, y)) return default_glyph;
     const lev = map?.at?.(x, y);
     if (!lev) return default_glyph;
@@ -1063,7 +1063,7 @@ export function reveal_terrain_getglyph(x, y, swallowed, default_glyph, which_su
 // cf. detect.c:2356 -- reveal_terrain
 // ========================================================================
 export async function reveal_terrain(which_subset, player, map, display) {
-    const full = !!(which_subset & 0x80);
+    const full = !!(which_subset & TER_FULL);
     if ((player.hallucinating || player.stunned || player.confused) && !full) {
         await You("are too disoriented for this."); return;
     }

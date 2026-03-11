@@ -38,7 +38,7 @@ import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam } from './do_nam
 import { an, makeplural } from './objnam.js';
 import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
-import { FACE, HAND, LEG, STOMACH } from './const.js';
+import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED } from './const.js';
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
@@ -1136,7 +1136,7 @@ export async function doup(player, map, display, game) {
 // In C this sets u.utotype and u.utolev for deferred_goto() to process
 // at end of turn. In JS we store on the player object.
 export function schedule_goto(player, tolev, utotype_flags, pre_msg, post_msg) {
-    player.utotype = (utotype_flags || 0) | 0x80; // UTOTYPE_DEFERRED
+    player.utotype = (utotype_flags || 0) | UTOTYPE_DEFERRED;
     player.utolev = tolev;
     player.dfr_pre_msg = pre_msg || null;
     player.dfr_post_msg = post_msg || null;

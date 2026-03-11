@@ -2086,7 +2086,7 @@ async function domagictrap(player, game, map) {
         const blindRes = !!(player?.blind_resistance || player?.Blind_resistance);
         if (!blindRes) {
             await You('are momentarily blinded by a flash of light!');
-            make_blinded(player, rn1(5, 10), false);
+            await make_blinded(player, rn1(5, 10), false);
         } else if (!(player?.Blind || player?.blind)) {
             await pline('You see a flash of light!');
         }

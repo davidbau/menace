@@ -38,7 +38,7 @@ import {
     MS_NEMESIS, MS_GUARDIAN, MS_DJINNI,
     PM_PRISONER, mons,
 } from './monsters.js';
-import { MAGIC_PORTAL, STRAT_WAITMASK } from './const.js';
+import { MAGIC_PORTAL, STRAT_WAITMASK, UTOTYPE_PORTAL } from './const.js';
 import { A_WIS } from './const.js';
 import { the, xname } from './objnam.js';
 
@@ -209,7 +209,7 @@ export function expulsion(seal, game) {
     // In C, this finds the quest branch and schedules a goto to the parent dungeon.
     // In JS, the quest branch structure may differ. We use schedule_goto with
     // the quest start level or parent dungeon level.
-    const portal_flag = (player.uevent && player.uevent.qexpelled) ? 0 : 0x40; // UTOTYPE_PORTAL
+    const portal_flag = (player.uevent && player.uevent.qexpelled) ? 0 : UTOTYPE_PORTAL;
 
     // Find the destination — in C this is the parent side of "The Quest" branch.
     // In JS, we go back to the level the player entered from, or quest start depth.

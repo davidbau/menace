@@ -23,6 +23,7 @@ import {
     D_NODOOR,
     VAULT_GUARD_TIME, GD_EATGOLD, GD_DESTROYGOLD,
     RLOC_NOMSG, RLOC_MSG, RLOC_ERR, ARTICLE_A,
+    MM_EGD, MM_NOMSG,
 } from './const.js';
 import { PM_GUARD } from './monsters.js';
 import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE } from './objects.js';
@@ -719,7 +720,7 @@ export async function invault(map, player, fov) {
     }
 
     // Create the guard
-    guard = makemon(PM_GUARD, x, y, 0x0200 /* MM_EGD */ | 0x0800 /* MM_NOMSG */,
+    guard = makemon(PM_GUARD, x, y, MM_EGD | MM_NOMSG,
         player.depth || 1, map);
     if (!guard) return;
 

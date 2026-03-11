@@ -259,7 +259,7 @@ describe('removeMonFromBones', () => {
     it('removes unique monsters (G_UNIQ flag)', () => {
         const map = new GameMap();
         map.monsters = [
-            { name: 'Medusa', type: { geno: 0x8000 }, dead: false },
+            { name: 'Medusa', type: { geno: 0x1000 }, dead: false },  // G_UNIQ
             { name: 'snake', type: { geno: 0 }, dead: false },
         ];
         removeMonFromBones(map);

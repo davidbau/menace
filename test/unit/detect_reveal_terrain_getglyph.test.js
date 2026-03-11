@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
 import { reveal_terrain_getglyph } from '../../js/detect.js';
+import { TER_FULL } from '../../js/const.js';
 
 describe('detect.reveal_terrain_getglyph', () => {
   function makeMap(tile) {
@@ -27,7 +28,7 @@ describe('detect.reveal_terrain_getglyph', () => {
 
   it('returns remembered glyph for full reveal even if unseen', () => {
     const map = makeMap({ glyph: 777, seenv: 0 });
-    const glyph = reveal_terrain_getglyph(2, 3, 0, 123, 0x80, map);
+    const glyph = reveal_terrain_getglyph(2, 3, 0, 123, TER_FULL, map);
     assert.strictEqual(glyph, 777);
   });
 });
