@@ -45,6 +45,7 @@ import {
     mkcorpstat,
     next_ident,
     weight,
+    add_to_buried,
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, SIZE, nul_glyphinfo,
@@ -4693,11 +4694,12 @@ export function mineralize(map, depth, opts = null) {
                     otmp.quan = 1 + rnd(goldprob * 3);
                     otmp.owt = weight(otmp);
                     // C ref: !rn2(3) → add_to_buried, else place_object
-                    // C uses place_object directly (no stackobj) — use same here
+                    // C uses place_object directly (no stackobj) — use same here.
                     if (rn2(3) !== 0) {
                         place_object(otmp, otmp.ox, otmp.oy, map);
+                    } else {
+                        add_to_buried(otmp, map);
                     }
-                    // else: buried — don't add to map.objects
                 }
             }
             // Try to place gems
@@ -4713,11 +4715,12 @@ export function mineralize(map, depth, opts = null) {
                             otmp.ox = x;
                             otmp.oy = y;
                             // C ref: !rn2(3) → add_to_buried, else place_object
-                            // C uses place_object directly (no stackobj) — use same here
+                            // C uses place_object directly (no stackobj) — use same here.
                             if (rn2(3) !== 0) {
                                 place_object(otmp, otmp.ox, otmp.oy, map);
+                            } else {
+                                add_to_buried(otmp, map);
                             }
-                            // else: buried — don't add to map.objects
                         }
                     }
                 }

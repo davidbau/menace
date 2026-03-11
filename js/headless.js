@@ -909,6 +909,19 @@ export class HeadlessDisplay {
                 offx = Math.min(halfCols, this.cols - maxcol - 1);
             }
         }
+        const hasMoreLine = (renderLines[menuRows - 1] || '').endsWith('--More--');
+        const left = hasMoreLine ? Math.max(0, offx - 1) : offx;
+        const savedCells = [];
+        for (let r = 0; r < menuRows; r++) {
+            savedCells[r] = [];
+            for (let c = left; c < this.cols; c++) {
+                savedCells[r][c] = {
+                    ch: this.grid[r][c],
+                    color: this.colors[r][c],
+                    attr: this.attrs[r][c] || 0,
+                };
+            }
+        }
         // Clear the popup area
         for (let r = 0; r < menuRows; r++) {
             for (let c = Math.max(0, offx); c < this.cols; c++) {
@@ -942,18 +955,35 @@ export class HeadlessDisplay {
             offx,
             rows: menuRows,
             hasMoreLine: isMore,
+            isTextWindow: !!opts.isTextWindow,
+            savedCells,
         };
     }
 
     clearTextPopup() {
         const popup = this._lastTextPopup;
         if (!popup) return;
-        const left = popup.hasMoreLine ? Math.max(0, popup.offx - 1) : popup.offx;
-        for (let r = 0; r < popup.rows && r < this.rows; r++) {
-            for (let c = left; c < this.cols; c++) {
-                this.grid[r][c] = ' ';
-                this.colors[r][c] = CLR_GRAY;
-                this.attrs[r][c] = 0;
+        const savedCells = popup.savedCells;
+        if (Array.isArray(savedCells)) {
+            for (let r = 0; r < popup.rows && r < this.rows; r++) {
+                const row = savedCells[r];
+                if (!row) continue;
+                for (let c = 0; c < this.cols; c++) {
+                    const saved = row[c];
+                    if (!saved) continue;
+                    this.grid[r][c] = saved.ch;
+                    this.colors[r][c] = saved.color;
+                    this.attrs[r][c] = saved.attr || 0;
+                }
+            }
+        } else {
+            const left = popup.hasMoreLine ? Math.max(0, popup.offx - 1) : popup.offx;
+            for (let r = 0; r < popup.rows && r < this.rows; r++) {
+                for (let c = left; c < this.cols; c++) {
+                    this.grid[r][c] = ' ';
+                    this.colors[r][c] = CLR_GRAY;
+                    this.attrs[r][c] = 0;
+                }
             }
         }
         this._lastTextPopup = null;

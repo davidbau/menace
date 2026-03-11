@@ -34,6 +34,7 @@ import { defsyms, trap_to_defsym } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
 import { sobj_at } from './invent.js';
+import { getpos_async } from './getpos.js';
 
 // detect.js -- Detection spells, scrolls, and searching
 // cf. detect.c -- Full port of all detection routines.
@@ -82,11 +83,36 @@ function trapDiscoveryName(ttyp) {
     default: return 'trap';
     }
 }
+function buried_objects(map) {
+    if (!map) return [];
+    if (Array.isArray(map.buried)) return map.buried;
+    if (Array.isArray(map.buriedobjlist)) return map.buriedobjlist;
+    if (map.buriedobjlist && typeof map.buriedobjlist === 'object') {
+        const out = [];
+        for (let obj = map.buriedobjlist; obj; obj = obj.nobj) out.push(obj);
+        return out;
+    }
+    return [];
+}
 
 // ========================================================================
 // Display stubs
 // ========================================================================
-export function browse_map() {}
+export async function browse_map(ter_typ = 0, ter_explain = 'anything of interest',
+    player = null, map = null, display = null, flags = null) {
+    if (!player || !map || !display || typeof getpos_async !== 'function') return;
+    const cc = { x: player.x, y: player.y };
+    const gpFlags = { ...(flags || display.flags || {}), autodescribe: true, terrainmode: ter_typ };
+    await getpos_async(cc, false, ter_explain, {
+        map,
+        display,
+        flags: gpFlags,
+        goalPrompt: ter_explain,
+        player,
+        forceVerbosePrompt: true,
+    });
+    gpFlags.terrainmode = 0;
+}
 export function map_monst() {}
 export function display_self() {}
 export function show_glyph(x, y, glyph) {
@@ -296,7 +322,7 @@ async function _gold_detect_outgoldmap(sobj, player, map, display) {
     if (!ugold) newsym(player.x, player.y);
     await You_feel("very greedy, and sense gold!");
     await exercise(player, A_WIS, true);
-    browse_map(); await map_redisplay(player, map);
+    await browse_map(0, 'gold', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 
@@ -368,7 +394,7 @@ export async function food_detect(sobj, player, map, display, game) {
             } else await Your("%s tingles and you smell %s.", body_part(NOSE, player), what);
         } else await You("sense %s.", what);
         await exercise(player, A_WIS, true);
-        browse_map(); await map_redisplay(player, map);
+        await browse_map(0, 'food', player, map, display); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -387,8 +413,16 @@ export async function object_detect(detector, oclass, player, map, display, game
     const boulder = 0;
     const stuff = (player.hallucinating || (player.confused && oclass === SCROLL_CLASS))
         ? 'something' : 'objects';
+    const buried = buried_objects(map);
     if (do_dknown) for (const obj of (player.inventory || [])) observe_recursively(obj);
     for (const obj of (map.objects || [])) {
+        if (obj?.buried) continue;
+        if ((!oclass && !boulder) || o_in(obj, oclass)) {
+            if (u_at(player, obj.ox, obj.oy)) ctu++; else ct++;
+        }
+        if (do_dknown) observe_recursively(obj);
+    }
+    for (const obj of buried) {
         if ((!oclass && !boulder) || o_in(obj, oclass)) {
             if (u_at(player, obj.ox, obj.oy)) ctu++; else ct++;
         }
@@ -415,7 +449,7 @@ export async function object_detect(detector, oclass, player, map, display, game
         await You("sense %s nearby.", stuff); return 0;
     }
     cls(); unconstrain_map(player);
-    for (const obj of (map.objects || [])) {
+    for (const obj of buried) {
         let otmp = null;
         if ((!oclass && !boulder) || (otmp = o_in(obj, oclass))) {
             if (oclass || boulder) {
@@ -423,6 +457,22 @@ export async function object_detect(detector, oclass, player, map, display, game
                 if (otmp !== obj) { otmp.ox = obj.ox; otmp.oy = obj.oy; }
                 map_object(otmp, 1);
             } else map_object(obj, 1);
+        }
+    }
+    for (let x = 1; x < COLNO; x++) for (let y = 0; y < ROWNO; y++) {
+        const pile = map.objectsAt ? map.objectsAt(x, y) : [];
+        for (let i = pile.length - 1; i >= 0; i--) {
+            const obj = pile[i];
+            if (!obj || obj.buried) continue;
+            let otmp = null;
+            if ((!oclass && !boulder) || (otmp = o_in(obj, oclass))) {
+                if (oclass || boulder) {
+                    otmp = otmp || obj;
+                    if (otmp !== obj) { otmp.ox = obj.ox; otmp.oy = obj.oy; }
+                    map_object(otmp, 1);
+                } else map_object(obj, 1);
+                break;
+            }
         }
     }
     for (const mtmp of (map.monsters || [])) {
@@ -444,7 +494,7 @@ export async function object_detect(detector, oclass, player, map, display, game
     }
     newsym(player.x, player.y);
     await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
-    browse_map(); await map_redisplay(player, map);
+    await browse_map(0, 'object', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 
@@ -484,7 +534,7 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
         if (!swallowed) display_self();
         await You("sense the presence of monsters.");
         if (woken) await pline("Monsters sense the presence of you.");
-        browse_map(); await map_redisplay(player, map);
+        await browse_map(0, 'monster of interest', player, map, display); await map_redisplay(player, map);
     }
     return 0;
 }
@@ -558,7 +608,7 @@ async function display_trap_map(cursed_src, player, map, display) {
     }
     newsym(player.x, player.y);
     await You_feel("%s.", cursed_src ? 'very greedy' : 'entrapped');
-    browse_map(); await map_redisplay(player, map);
+    await browse_map(0, (cursed_src ? 'gold' : 'trap of interest'), player, map, display); await map_redisplay(player, map);
 }
 
 // ========================================================================
@@ -1070,7 +1120,7 @@ export async function reveal_terrain(which_subset, player, map, display) {
             show_map_spot(x, y, false, map);
     flush_screen(1);
     await pline("Showing terrain only...");
-    browse_map(); await map_redisplay(player, map);
+    await browse_map(which_subset, 'anything of interest', player, map, display); await map_redisplay(player, map);
 }
 
 // Autotranslated from detect.c:94

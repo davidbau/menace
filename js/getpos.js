@@ -558,6 +558,13 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
 
     let showGoalMsg = false;
     let tipShownThisCall = false;
+    const hasVisibleMoreMarker = () => {
+        if (!display || typeof display.getScreenLines !== 'function') return false;
+        const lines = display.getScreenLines();
+        const l0 = (lines && lines[0]) ? lines[0] : '';
+        const l1 = (lines && lines[1]) ? lines[1] : '';
+        return l0.includes('--More--') || l1.includes('--More--');
+    };
     if (typeof display?.putstr_message === 'function') {
         // C ref: getpos.c emits one-time tip + verbose instructions before the
         // goal prompt; this ordering creates real --More-- boundaries in replay.
@@ -622,6 +629,15 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 restoreCursor(display, cursorState);
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
+            }
+            // When getpos posts consecutive topline messages ("For instructions..."
+            // then "Move cursor..."), consume any pending --More-- boundary before
+            // interpreting the next key as a getpos command.
+            if (display?.messageNeedsMore && hasVisibleMoreMarker()) {
+                await more(display, { site: 'getpos.pending.more', forceVisual: true });
+                restoreCursor(display, cursorState);
+                cursorState = putCursor(display, cx, cy);
+                continue;
             }
             const ch = await nhgetch();
             const c = String.fromCharCode(ch);
@@ -802,11 +818,14 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 if (typeof display?.putstr_message === 'function') {
                     await display.putstr_message('Done.');
                 }
-                // C getpos(force=FALSE) can leave these two plines pending at
-                // --More-- before returning to normal command flow.
-                if (hadUnknownDirection && display?.messageNeedsMore) {
+                // C getpos(force=FALSE) returns with a pending Done --More--
+                // boundary; consume it here so the dismiss key is not treated
+                // as a gameplay command on return to the main loop.
+                if (display?.messageNeedsMore) {
                     await more(display, {
-                        site: 'getpos.forcefalse.unknown.more',
+                        site: hadUnknownDirection
+                            ? 'getpos.forcefalse.unknown.more'
+                            : 'getpos.forcefalse.done.more',
                         forceVisual: true,
                     });
                     display.topMessage = null;

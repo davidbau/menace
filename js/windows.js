@@ -137,9 +137,9 @@ export async function display_nhwindow(win, blocking) {
                 && typeof _display?.clearTextPopup === 'function') {
                 _display.clearTextPopup();
             }
-            if (_rerenderCallback && (w.type === NHW_TEXT || w.type === NHW_MENU)) {
-                _rerenderCallback();
-            }
+            // For text-popups with no menu entries, clearTextPopup() restores the
+            // covered cells; forcing a full rerender here can wipe temporary
+            // detect/overview overlays that C keeps visible during getpos.
         }
     }
 }
@@ -151,7 +151,7 @@ export function destroy_nhwindow(win) {
     if (!w) return;
     const type = w.type;
     wins[win] = null;
-    if ((type === NHW_MENU || type === NHW_TEXT) && _rerenderCallback) {
+    if (type === NHW_MENU && _rerenderCallback) {
         _rerenderCallback();
     }
 }

@@ -1953,6 +1953,9 @@ export class NetHackGame {
     // replay-side rendering policy logic.
     renderInputBlockedState() {
         if (!hasActiveTextPopupWindow()) return;
+        // Preserve detect/getpos NHW_TEXT overlays while blocked on input:
+        // docrt() here can erase temporary detect symbols before dismissal.
+        if (this.display?._lastTextPopup?.isTextWindow) return;
         this.docrt();
         redrawActiveTextPopupWindows();
     }

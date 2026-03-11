@@ -1921,14 +1921,14 @@ export async function peffect_monster_detection(otmp, map, player) {
       return 0;
     }
   }
-  if (await monster_detect(otmp, 0, player, activeMap(), gstateGame?.disp, gstateGame)) return 1;
+  if (await monster_detect(otmp, 0, player, activeMap(), gstateGame?.display || gstateGame?.disp, gstateGame)) return 1;
   await exercise(player, A_WIS, true);
   return 0;
 }
 
 // Autotranslated from potion.c:950
 export async function peffect_object_detection(otmp, player) {
-  if (await object_detect(otmp, 0, player, activeMap(), gstateGame?.disp, gstateGame)) return 1;
+  if (await object_detect(otmp, 0, player, activeMap(), gstateGame?.display || gstateGame?.disp, gstateGame)) return 1;
   await exercise(player, A_WIS, true);
   return 0;
 }
