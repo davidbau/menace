@@ -347,14 +347,14 @@ export function m_harmless_trap(mon, trap, map) {
 // C ref: trap.c trapeffect_*() — else branch (mtmp != &gy.youmonst)
 // ========================================================================
 
-function trapeffect_arrow_trap_mon(mon, trap, map, player, fov) {
+async function trapeffect_arrow_trap_mon(mon, trap, map, player, fov) {
     let trapkilled = false;
     const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
     const see_it = cansee(mon.mx, mon.my);
 
     if (trap.once && trap.tseen && !rn2(15)) {
         if (in_sight && see_it) {
-            pline_mon(mon, '%s triggers a trap but nothing happens.', Monnam(mon));
+            await pline_mon(mon, '%s triggers a trap but nothing happens.', Monnam(mon));
         }
         deltrap(map, trap);
         newsym(mon.mx, mon.my);
@@ -370,14 +370,14 @@ function trapeffect_arrow_trap_mon(mon, trap, map, player, fov) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_dart_trap_mon(mon, trap, map, player, fov) {
+async function trapeffect_dart_trap_mon(mon, trap, map, player, fov) {
     let trapkilled = false;
     const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
     const see_it = cansee(mon.mx, mon.my);
 
     if (trap.once && trap.tseen && !rn2(15)) {
         if (in_sight && see_it) {
-            pline_mon(mon, '%s triggers a trap but nothing happens.', Monnam(mon));
+            await pline_mon(mon, '%s triggers a trap but nothing happens.', Monnam(mon));
         }
         deltrap(map, trap);
         newsym(mon.mx, mon.my);
@@ -395,14 +395,14 @@ function trapeffect_dart_trap_mon(mon, trap, map, player, fov) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_rocktrap_mon(mon, trap, map, player, fov) {
+async function trapeffect_rocktrap_mon(mon, trap, map, player, fov) {
     let trapkilled = false;
     const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
     const see_it = cansee(mon.mx, mon.my);
 
     if (trap.once && trap.tseen && !rn2(15)) {
         if (in_sight && see_it) {
-            pline_mon(mon, 'A trap door above %s opens, but nothing falls out!',
+            await pline_mon(mon, 'A trap door above %s opens, but nothing falls out!',
                       mon_nam(mon));
         }
         deltrap(map, trap);
@@ -446,7 +446,7 @@ async function trapeffect_sqky_board_mon(mon, trap, player, fov) {
     return Trap_Effect_Finished;
 }
 
-function trapeffect_bear_trap_mon(mon, trap, trflags, map, player) {
+async function trapeffect_bear_trap_mon(mon, trap, trflags, map, player) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
     const in_sight = canseemon(mon, player) || (mon === player?.usteed);
@@ -458,14 +458,14 @@ function trapeffect_bear_trap_mon(mon, trap, trflags, map, player) {
         && !is_whirly(mptr) && !unsolid(mptr)) {
         mon.mtrapped = 1;
         if (in_sight) {
-            pline_mon(mon, '%s is caught in %s bear trap!', Monnam(mon),
+            await pline_mon(mon, '%s is caught in %s bear trap!', Monnam(mon),
                       trap.madeby_u ? 'your' : 'a');
             seetrap(trap);
         } else if (mon.mndx === PM_OWLBEAR || mon.mndx === PM_BUGBEAR) {
-            You_hear('the roaring of an angry bear!');
+            await You_hear('the roaring of an angry bear!');
         }
     } else if (forcetrap && in_sight) {
-        pline_mon(mon, '%s evades %s bear trap!', Monnam(mon),
+        await pline_mon(mon, '%s evades %s bear trap!', Monnam(mon),
                   trap.madeby_u ? 'your' : 'a');
         seetrap(trap);
     }
@@ -476,13 +476,13 @@ function trapeffect_bear_trap_mon(mon, trap, trflags, map, player) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
+async function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
     const mdat = mons[mon.mndx] || {};
     if (!resists_sleep(mon) && !breathless(mdat) && !monHelpless(mon)) {
         // C ref: trap.c:1568-1574 — seetrap only if sleep_monst() returns true AND in_sight
         const in_sight = canseemon(mon, player, fov);
         if (sleep_monst(mon, rnd(25), -1) && in_sight) {
-            pline_mon(mon, '%s suddenly falls asleep!', Monnam(mon));
+            await pline_mon(mon, '%s suddenly falls asleep!', Monnam(mon));
             seetrap(trap);
         }
     }
@@ -959,17 +959,17 @@ function trapeffect_vibrating_square_mon(/* mon, trap */) {
 async function trapeffect_selector_mon(mon, trap, trflags, map, player, display, fov) {
     switch (trap.ttyp) {
     case ARROW_TRAP:
-        return trapeffect_arrow_trap_mon(mon, trap, map, player, fov);
+        return await trapeffect_arrow_trap_mon(mon, trap, map, player, fov);
     case DART_TRAP:
-        return trapeffect_dart_trap_mon(mon, trap, map, player, fov);
+        return await trapeffect_dart_trap_mon(mon, trap, map, player, fov);
     case ROCKTRAP:
-        return trapeffect_rocktrap_mon(mon, trap, map, player, fov);
+        return await trapeffect_rocktrap_mon(mon, trap, map, player, fov);
     case SQKY_BOARD:
         return await trapeffect_sqky_board_mon(mon, trap, player, fov);
     case BEAR_TRAP:
-        return trapeffect_bear_trap_mon(mon, trap, trflags, map, player);
+        return await trapeffect_bear_trap_mon(mon, trap, trflags, map, player);
     case SLP_GAS_TRAP:
-        return trapeffect_slp_gas_trap_mon(mon, trap, player, fov);
+        return await trapeffect_slp_gas_trap_mon(mon, trap, player, fov);
     case RUST_TRAP:
         return trapeffect_rust_trap_mon(mon, trap, map, player);
     case FIRE_TRAP:
