@@ -23,7 +23,7 @@ import {
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
 import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE } from './const.js';
-import { doname, bcsign, blessorcurse, uncurse, mksobj, weight, place_object } from './mkobj.js';
+import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
@@ -54,7 +54,7 @@ import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon } from './display.js';
 import { S_goodpos } from './symbols.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup } from './invent.js';
-import { nhimport } from './origin_awaits.js';
+// nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
 import { kill_genocided_monsters, wake_nearto, wakeup, setmangry } from './mon.js';
@@ -66,6 +66,8 @@ import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, 
 import { closed_door } from './monmove.js';
 import { is_pool, is_lava } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
+import { create_gas_cloud } from './region.js';
+import { placebc } from './ball.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -1904,11 +1906,8 @@ export async function do_stinking_cloud(sobj, mention_stinking, player, game) {
         }
         return;
     }
-    const { create_gas_cloud } = await nhimport('./region.js');
-    if (create_gas_cloud) {
-        await create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj),
-            map, player, game);
-    }
+    await create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj),
+        map, player, game);
 }
 
 // ---------------------------------------------------------------------------
@@ -1922,11 +1921,10 @@ export async function drop_boulder_on_player(confused, helmet_protects, byu, ski
         return;
     }
 
-    const { mksobj, weight: objWeight, place_object, stackobj } = await nhimport('./mkobj.js');
     const otmp2 = mksobj(confused ? ROCK : BOULDER, false, false);
     if (!otmp2) return;
     otmp2.quan = confused ? rn1(5, 2) : 1;
-    otmp2.owt = objWeight(otmp2);
+    otmp2.owt = weight(otmp2);
 
     let dmg = 0;
     if (!amorphous(player.data) && !player.Passes_walls
@@ -1967,7 +1965,6 @@ export async function punish(sobj, player, map = null) {
         return;
     }
     if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {
-        const { mkobj, place_object } = await nhimport('./mkobj.js');
         if (!reuse_ball) {
             await pline("A ball and chain appears, then falls away.");
             const looseBall = mkobj(BALL_CLASS, true, false);
@@ -1986,7 +1983,6 @@ export async function punish(sobj, player, map = null) {
     if (!reuse_ball) {
         await pline("You are being punished!");
     }
-    const { mkobj } = await nhimport('./mkobj.js');
     const chainObj = mkobj(CHAIN_CLASS, true, false);
     const ballObj = reuse_ball || mkobj(BALL_CLASS, true, false);
     if (chainObj) chainObj.owornmask = (chainObj.owornmask || 0) | W_CHAIN;
@@ -1998,7 +1994,6 @@ export async function punish(sobj, player, map = null) {
     player.Punished = true;
     player.punished = true;
     if (!player.uswallow && map) {
-        const { placebc } = await nhimport('./ball.js');
         await placebc(player, map);
         newsym(player.x, player.y);
     }

@@ -40,7 +40,7 @@ import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -2173,7 +2173,6 @@ export class NetHackGame {
     async _gameLoopStep() {
         // Travel continuation
         if (this.travelPath && this.travelStep < this.travelPath.length) {
-            const { dotravel_target } = await nhimport('./hack.js');
             const result = await dotravel_target(this);
             if (result.tookTime) {
                 await moveloop_core(this);

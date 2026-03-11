@@ -34,7 +34,8 @@ import {
 import { wake_nearto } from './mon.js';
 import { night, midnight } from './calendar.js';
 import { vault_occupied, findgd } from './vault.js';
-import { nhimport } from './origin_awaits.js';
+import { nhgetch } from './input.js';
+import { DIRECTION_KEYS } from './const.js';
 import { cansee } from './vision.js';
 
 // ============================================================================
@@ -1146,9 +1147,6 @@ export async function dotalk(game) {
     }
 
     // cf. sounds.c:1287 — prompt for direction
-    // Lazy import to avoid circular dependency.
-    const { nhgetch } = await nhimport('./input.js');
-    const { DIRECTION_KEYS } = await nhimport('./const.js');
     await display.putstr_message('Talk to whom? (in what direction)');
     const ch = await nhgetch();
     const c = String.fromCharCode(ch);
