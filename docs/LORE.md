@@ -7816,7 +7816,7 @@ hard-won wisdom:
     - `events=460/460`
     - `screens=30/30`
   - Added parity-green fixture:
-    - `test/comparison/sessions/coverage/furniture-thrones-fountains/theme01_seed005_valk_fountain-realdip1_gameplay.session.json`
+    - `test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s005_v_frealdip1_gp.session.json`
 
 ## 2026-03-11: extcmd sit support + completion timing parity guard
 
@@ -7835,7 +7835,7 @@ hard-won wisdom:
   - `node test/comparison/session_test_runner.js --no-parallel --verbose /tmp/theme01_seed005_sit_floor_trial.session.json`
     - full parity green (`rng/events/screens/cursor` all matched).
   - Added parity-green fixture:
-    - `test/comparison/sessions/coverage/furniture-thrones-fountains/theme01_seed005_valk_sit-floor1_gameplay.session.json`
+    - `test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s005_v_sit1_gp.session.json`
 
 ## 2026-03-11: `#dip` no-potion branch needs object-specific topline
 

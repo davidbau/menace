@@ -381,6 +381,8 @@ Rules:
 Recommended naming:
 - `themeNN_seedXXX_<role>_<intent>.session.json`
 - example: `theme04_seed512_valkyrie_digging-branch-transition.session.json`
+- keep session filename length `<= 40` characters (including `.session.json`);
+  prefer compact IDs if needed (for example `t04_s512_v_dig1_gp.session.json`)
 - root index for theme coordination:
   - `test/comparison/sessions/coverage/README.md`
 - filename limit (new/renamed sessions): keep full filename

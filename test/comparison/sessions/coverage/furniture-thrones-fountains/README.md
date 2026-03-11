@@ -13,23 +13,23 @@ Coverage baseline (2026-03-11 parity-session run):
 - `fountain.js`: 11.22% lines
 
 Session plan:
-1. `theme01_seed005_valk_fountain-drink3_gameplay` (captured)
+1. `t01_s005_v_fdrink3_gp` (captured)
 - Spawn near accessible fountain via wizard mode setup.
 - Execute repeated `q`/`d` interaction with fountain:
   - drink while normal state (done)
   - alternate drink branch ("cool draught refreshes you") (done)
   - dip at least two object classes (done)
   - trigger at least one dry-up/loot-warning path (pending)
-2. `theme01_seed005_valk_fountain-drink2-refresh_gameplay` (captured)
+2. `t01_s005_v_fdrink2r_gp` (captured)
 - Same deterministic route to fountain, but ends after the second drink branch.
 - Adds a parity-green capture of the refresh variant without entering the
   currently divergent dry-up/monster ordering window.
-3. `theme01_seed005_valk_fountain-realdip1_gameplay` (captured)
+3. `t01_s005_v_frealdip1_gp` (captured)
 - Exercises C-faithful `#dip` flow at a fountain:
   - `What do you want to dip? [..]`
   - object-specific fountain confirmation prompt
   - real `dipfountain` erosion result (`Your spear rusts!`)
-4. `theme01_seed005_valk_sit-floor1_gameplay` (captured)
+4. `t01_s005_v_sit1_gp` (captured)
 - Exercises C-faithful `#sit` extcmd flow on regular floor:
   - extcmd entry echo timing (`# s` → `# sit`) parity
   - `dosit()` base branch (`Having fun sitting on the floor?`)
@@ -70,12 +70,12 @@ Completion criteria:
 4. Coverage delta captured in docs/metrics snapshot and diff.
 
 Captured sessions:
-1. `theme01_seed005_valk_fountain-drink3_gameplay.session.json`
-2. `theme01_seed005_valk_fountain-gush3_gameplay.session.json`
-3. `theme01_seed005_valk_fountain-dip2_gameplay.session.json`
-4. `theme01_seed005_valk_fountain-drink2-refresh_gameplay.session.json`
-5. `theme01_seed005_valk_fountain-realdip1_gameplay.session.json`
-6. `theme01_seed005_valk_sit-floor1_gameplay.session.json`
+1. `t01_s005_v_fdrink3_gp.session.json`
+2. `t01_s005_v_fgush3_gp.session.json`
+3. `t01_s005_v_fdip2_gp.session.json`
+4. `t01_s005_v_fdrink2r_gp.session.json`
+5. `t01_s005_v_frealdip1_gp.session.json`
+6. `t01_s005_v_sit1_gp.session.json`
 
 Current blockers:
 1. Dry-up/monster follow-up branch from the seed5 fountain path currently
