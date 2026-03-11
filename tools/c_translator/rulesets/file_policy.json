@@ -173,11 +173,6 @@
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
     },
     {
-      "path": "js/exec_guard.js",
-      "policy": "manual_only",
-      "reason": "SYNCLOCK execution guard infrastructure; JS-only boundary enforcement."
-    },
-    {
       "path": "js/engrave.js",
       "policy": "auto",
       "reason": "C-mapped gameplay module; eligible for rule-driven translation."
@@ -612,11 +607,6 @@
       "path": "js/symbols.js",
       "policy": "manual_only",
       "reason": "Late-bound symbol/deferred-constant aggregation module used for phase-3 constants architecture experiments."
-    },
-    {
-      "path": "js/suspend.js",
-      "policy": "manual_only",
-      "reason": "SYNCLOCK typed suspension wrappers for input/more/anim boundaries."
     },
     {
       "path": "js/teleport.js",
