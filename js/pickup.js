@@ -35,7 +35,7 @@ import { touch_artifact } from './artifact.js';
 import { makemon, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
-import { ARTICLE_THE, SUPPRESS_SADDLE } from './const.js';
+import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES } from './const.js';
 import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
@@ -2238,7 +2238,7 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     if (!olist) return { count: 0, pick_list: [] };
 
     const FOLLOW = (obj, flags) => ((flags & 1) ? obj.nexthere : obj.nobj);
-    const do_worn = !!(qflags & 0x0020); // WORN_TYPES
+    const do_worn = !!(qflags & WORN_TYPES);
     const ofilter = do_worn ? is_worn : null;
 
     // count categories

@@ -88,6 +88,7 @@ import { vtense, an } from './objnam.js';
 import { pline, pline1, Norep, set_msg_xy, pline_mon, impossible } from './pline.js';
 import { mondied, mongone } from './mon.js';
 import { update_inventory } from './invent.js';
+import { makeknown } from './do_wear.js';
 import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
 import { new_light_source } from './light.js';
 import { PIT, SPIKED_PIT, LOW_PM,

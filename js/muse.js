@@ -81,7 +81,7 @@ import { arti_reflects } from './artifact.js';
 import { can_carry } from './dogmove.js';
 import { sobj_at, carrying } from './invent.js';
 import { welded } from './wield.js';
-import { ZAP_POS, STRAT_WAITFORU } from './const.js';
+import { ZAP_POS, STRAT_WAITFORU, D_LOCKED, D_CLOSED } from './const.js';
 import { is_pool, is_lava, is_ice,
          is_drawbridge_wall } from './dbridge.js';
 import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
@@ -1673,7 +1673,7 @@ async function mbhit(mon, range, fhitm, fhito, obj, map, player) {
             const ltyp = loc ? loc.typ : 0;
 
             if (!ZAP_POS(ltyp)
-                || (loc && (loc.flags & 0x03) /* D_LOCKED | D_CLOSED */)) {
+                || (loc && (loc.flags & (D_LOCKED | D_CLOSED)))) {
                 bhitpos.x -= ddx;
                 bhitpos.y -= ddy;
                 break;
