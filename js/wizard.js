@@ -50,7 +50,9 @@ import { monster_census, msummon } from './minion.js';
 import { sgn, distu, ROLL_FROM } from './hacklib.js';
 import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
-import { builds_up, In_endgame, In_W_tower, In_hell, Is_astralevel } from './dungeon.js';
+import { builds_up, In_endgame, In_W_tower, In_hell, Is_astralevel, Is_rogue_level } from './dungeon.js';
+import { inhistemple } from './priest.js';
+import { game as _gstate } from './gstate.js';
 
 // Strategy constants imported from const.js (monst.h)
 
@@ -130,11 +132,6 @@ const Inhell = In_hell;
 
 // Is_astralevel imported from dungeon.js
 
-// Is_rogue_level — stub
-function Is_rogue_level() { return false; }
-
-// inhistemple — stub (temple/epri tracking not available)
-function inhistemple(/*mtmp*/) { return false; }
 
 // inhishop — simplified check
 function inhishop(mtmp) { return !!(mtmp.isshk && mtmp.shoproom); }
@@ -255,7 +252,7 @@ export function target_on(mask, mtmp, player) {
       mtmp.mgoal.y = otmp.oy;
       return (STRAT_GROUND | mask);
     }
-    else if ((mtmp2 = other_mon_has_arti(mtmp, otyp)) != null   && (otyp !== AMULET_OF_YENDOR || (!mtmp2.iswiz && !inhistemple(mtmp2)))) {
+    else if ((mtmp2 = other_mon_has_arti(mtmp, otyp)) != null   && (otyp !== AMULET_OF_YENDOR || (!mtmp2.iswiz && !inhistemple(mtmp2, _gstate.lev || _gstate.map)))) {
       mtmp.mgoal.x = mtmp2.mx;
       mtmp.mgoal.y = mtmp2.my;
       return (STRAT_MONSTR | mask);
@@ -275,7 +272,7 @@ function strategy(mtmp, map, player) {
 
     if (!is_covetous(ptr)
         || (mtmp.isshk && inhishop(mtmp))
-        || (mtmp.ispriest && inhistemple(mtmp)))
+        || (mtmp.ispriest && inhistemple(mtmp, map)))
         return STRAT_NONE;
 
     let dstrat;

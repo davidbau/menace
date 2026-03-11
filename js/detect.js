@@ -4,6 +4,7 @@ import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP,
          BOLT_LIM } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
+import { Is_rogue_level } from './dungeon.js';
 import { hidden_gold } from './vault.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, FOOD_CLASS, POTION_CLASS, COIN_CLASS,
@@ -63,7 +64,6 @@ function get_obj_location(otmp) {
     return null;
 }
 // M_AP_TYPE imported from mondata.js
-function Is_rogue_level() { return false; }
 function random_object(rn2func) { return rn2func(400) || 1; }
 function random_monster(rn2func) { return rn2func(400); }
 function seemimic_local(mtmp) {
@@ -732,7 +732,7 @@ export async function do_vicinity_map(sobj, player, map, display) {
 // Autotranslated from detect.c:1589
 export function cvt_sdoor_to_door(lev, map) {
   let newmask = (lev.flags || 0) & ~WM_MASK;
-  if (Is_rogue_level(map.uz)) { newmask = D_NODOOR; }
+  if (Is_rogue_level(map)) { newmask = D_NODOOR; }
   else {
     if (!(newmask & D_LOCKED)) {
       newmask |= D_CLOSED;
