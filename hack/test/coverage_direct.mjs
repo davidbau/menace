@@ -2921,4 +2921,895 @@ async function testGAt() {
 }
 await testGAt();
 
+// ===== Wave 6: timed effects, multi paths, ring/scroll paths, piercer, mon.js swallow =====
+
+// Timed effects expiring — covers main.js lines 240-243
+// Set uconfused/ublind/uinvis/ufast to 1, then run 2 turns so they decrement to 0 and fire.
+async function testTimedEffectsExpire() {
+  // uconfused expiry
+  await runWith(42, (g) => {
+    g.u.uconfused = 2; // will decrement to 0 after 2 turns
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, '  ');  // 2 space turns
+  // ublind expiry
+  await runWith(42, (g) => {
+    g.u.ublind = 2;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, '  ');
+  // uinvis expiry
+  await runWith(42, (g) => {
+    g.u.uinvis = 2;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, '  ');
+  // ufast expiry
+  await runWith(42, (g) => {
+    g.u.ufast = 2;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, '  ');
+  console.log('testTimedEffectsExpire: PASS (main.js timed effects expiry covered)');
+}
+await testTimedEffectsExpire();
+
+// multi < 0 (paralysis) — covers main.js lines 291-292
+// Set multi to -3, run turns — each turn: multi increments toward 0; when 0 prints "You can move again."
+async function testParalysis() {
+  await runWith(42, (g) => {
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    g.multi = -3; // paralyzed for 3 turns
+  }, ' '.repeat(6));  // 6 turns: first 3 stay paralyzed, turn 3 prints "move again", then normal
+  console.log('testParalysis: PASS (main.js multi<0 paralysis path covered)');
+}
+await testParalysis();
+
+// multi > 0 && !flags.mv — covers main.js lines 297-299 (repeated command rhack(save_cm))
+// Uppercase movement causes multi > 0; after hitting wall multi stays > 0 but mv=false
+// Actually: multi > 0 and flags.mv=false fires when 'count + cmd' prefix (not implemented yet).
+// In current hack.js rhack, when multi > 0 comes from uppercase runs. After moving multi>0 && mv=true.
+// The path multi > 0 && !mv fires only if save_cm is set. We test via nomul(-1) which goes negative.
+// The easiest way to cover line 297-299 is to set multi > 0 and flags.mv = false with save_cm set.
+async function testMultiPositiveSaveCm() {
+  await runWith(42, (g) => {
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    g.multi = 2;
+    g.flags.mv = false;
+    g.save_cm = ' '; // space = no-op command
+  }, '  ');
+  console.log('testMultiPositiveSaveCm: PASS (main.js multi>0 save_cm path covered)');
+}
+await testMultiPositiveSaveCm();
+
+// do.js rescham() — covers lines 177-184
+// rescham() is called when ring of chameleon (otyp=12) is put ON (applyRingOn→ucham=true),
+// but the JS does NOT call rescham() in applyRingOn. In the C, it's called from ring put-on.
+// The function is dead code in JS (never called). Cover it directly.
+async function testReschamDirect() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(42);
+  g.u.ux = 10; g.u.uy = 10;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags.topl = 0;
+  // Place a chameleon monster
+  const mdat = mon[0][6];
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.cham = true;
+  mtmp.mhp = 200; mtmp.orig_hp = 200;
+  g.fmon = mtmp;
+  // Call rescham via applyRingOn(ring otyp=12) — sets ucham=true but NOT rescham()
+  // Actually, rescham is never called in JS. Call it directly via a hack:
+  // Import and call do.js internal via the ring-wear path using a different approach.
+  // Since it's unreachable, we call it by making ucham get set and triggering the path.
+  // Actually, to cover lines 177-184, we need to call rescham() directly.
+  // rescham() is not exported from do.js. We cover it by triggering it from ring path.
+  // Since applyRingOn doesn't call it, the only way is to export it or live with it uncovered.
+  // Accept that rescham() is dead code in the JS port (the C calls it but JS doesn't).
+  // Mark the test as covered for documentation purposes.
+  console.log('testReschamDirect: SKIP (do.js rescham() is dead code — never called in JS port)');
+}
+await testReschamDirect();
+
+// do.js nothin() — covers lines 343-350
+// nothin() fires when potion type 6 (sense monsters) but !fmon.
+// Key sequence: 'q' = drink, then the item letter directly (no space between command and item).
+// Item 'a' is the FIRST item in invent. With a single prependItem, it becomes item 'a'.
+async function testNothin() {
+  // Potion type 6 (sense monsters) with no monsters → nothin fires
+  await runWith(42, (g) => {
+    g.fmon = null;
+    prependItem(g, { olet: '!', otyp: 6, quan: 1 }); // item 'a' = sense monsters
+  }, 'qa \r');  // q=drink, a=select potion; ' '=dismiss --More-- in docall; '\r'=end getlin
+  console.log('testNothin: PASS (do.js nothin covered)');
+}
+await testNothin();
+
+// do.js litroom() in a room — covers lines 553-571 (lit room boundary scan)
+// Read scroll of light (type 9) while in an unlit room.
+// Single prependItem: scroll of light becomes item 'a'.
+async function testLitroom() {
+  await runWith(42, (g) => {
+    g.levl[g.u.ux][g.u.uy].lit = false;
+    prependItem(g, { olet: '?', otyp: 9, quan: 1 }); // item 'a' = scroll of light
+  }, 'ra ');  // r=read, a=select (no space), space=dismiss
+  console.log('testLitroom: PASS (do.js litroom room boundary scan covered)');
+}
+await testLitroom();
+
+// do.js identify scroll — covers lines 459-477 (identify a ring with RINN)
+// Items prepended LAST become item 'a'. So prepend identify scroll last.
+// Order: prependItem(ring), prependItem(identify) → invent = identify('?'12) → ring('=') → ...
+// 'r' = read, 'a' = select identify scroll (item 'a'); then item select for identify = 'b' (ring)
+async function testIdentifyScroll() {
+  // Key insight: identify scroll is consumed by useup BEFORE getobj(null,'identify') is called.
+  // So after useup, the item at index 0 becomes item 'a'.
+  // Sequence: 'r'=read, 'a'=select identify scroll, ' '=dismiss --More-- after "identify scroll",
+  //           'a'=select item-to-identify (now at index 0 after scroll removed), ' '=dismiss prinv.
+  //
+  // Item layout: prependItem(item_to_identify) then prependItem(identify_scroll):
+  //   invent = identify_scroll('?'12)(idx 0='a') → item_to_identify(idx 1='b') → food → ...
+  //   After useup: invent = item_to_identify(idx 0='a') → food → ...
+  //
+  // Identify a ring — covers case '=' in identify (lines 471-474)
+  await runWith(42, (g) => {
+    prependItem(g, { olet: '=', otyp: 3, spe: 1, minus: false, quan: 1 }); // becomes item 'a' after useup
+    prependItem(g, { olet: '?', otyp: 12, quan: 1 }); // item 'a' = identify scroll (consumed first)
+  }, 'ra a ');  // r=read, a=identify_scroll, ' '=--More--, a=select ring, ' '=dismiss prinv
+  // Identify a wand — covers case '/' in identify (lines 470-471)
+  await runWith(42, (g) => {
+    prependItem(g, { olet: '/', otyp: 2, spe: 3, known: false, quan: 1 });
+    prependItem(g, { olet: '?', otyp: 12, quan: 1 });
+  }, 'ra a ');
+  // Identify a scroll — covers case '?' in identify (line 469 second branch)
+  await runWith(42, (g) => {
+    prependItem(g, { olet: '?', otyp: 1, quan: 1 });  // a different scroll type
+    prependItem(g, { olet: '?', otyp: 12, quan: 1 });
+  }, 'ra a ');
+  // Identify armor — covers case '[' in identify (line 469 first branch)
+  await runWith(42, (g) => {
+    prependItem(g, { olet: '[', otyp: 3, spe: 1, minus: false, quan: 1, known: false });
+    prependItem(g, { olet: '?', otyp: 12, quan: 1 });
+  }, 'ra a ');
+  // Identify a potion — covers case '!' in identify (lines 467-468)
+  await runWith(42, (g) => {
+    prependItem(g, { olet: '!', otyp: 3, quan: 1 });
+    prependItem(g, { olet: '?', otyp: 12, quan: 1 });
+  }, 'ra a ');
+  console.log('testIdentifyScroll: PASS (do.js identify scroll covered)');
+}
+await testIdentifyScroll();
+
+// do.js ring removal (uright) — covers lines 748-753
+// Strategy: put ring 'a' on left (uleft=null → asks L/R, type 'l'); then put ring 'b' on right
+// (uleft is now set → auto-assigns to uright without asking); then remove ring 'b' (uright path).
+// Items: prependItem ring(3) then ring(5) → invent = ring(5) → ring(3) → food → ...
+// item 'a' = ring(5), item 'b' = ring(3)
+async function testRingRemoveRight() {
+  await runWith(42, (g) => {
+    g.uleft = null; g.uright = null;
+    prependItem(g, { olet: '=', otyp: 3, spe: 1, minus: false, quan: 1, cursed: false }); // item 'b' after
+    prependItem(g, { olet: '=', otyp: 5, spe: 1, minus: false, quan: 1, cursed: false }); // item 'a'
+  // Pa l = put ring a on left; Pb = put ring b (auto-right); Rb = remove ring b (uright path)
+  }, 'Pa l Pb Rb ');
+  console.log('testRingRemoveRight: PASS (do.js ring removal uright path covered)');
+}
+await testRingRemoveRight();
+
+// hack.js lines 317-320: pow2() — exported but never called in game
+// Call it directly to cover the function
+import { pow2 } from '../js/hack.js';
+async function testPow2() {
+  if (pow2(0) !== 1) throw new Error('pow2(0) failed');
+  if (pow2(4) !== 16) throw new Error('pow2(4) failed');
+  if (pow2(8) !== 256) throw new Error('pow2(8) failed');
+  console.log('testPow2: PASS (hack.js pow2 covered)');
+}
+await testPow2();
+
+// hack.js lines 156-162: piercer path in domove()
+// mlet='p' with sinv=true; when player walks into it, impaled or duck message fires.
+// Run many seeds to ensure rnd(20) branch fires both ways.
+async function testPiercerImpact() {
+  for (let seed = 1; seed <= 30; seed++) {
+    await runWith(seed, (g) => {
+      g.u.uhp = 10000; g.u.uhpmax = 10000;
+      const ROOM = 5;
+      const nx = g.u.ux + 1, ny = g.u.uy;
+      g.levl[nx][ny].typ = ROOM;
+      // Remove any monster already there
+      let prev = null;
+      for (let m = g.fmon; m; m = m.nmon) {
+        if (m.mx === nx && m.my === ny) {
+          if (!prev) g.fmon = m.nmon; else prev.nmon = m.nmon; break;
+        }
+        prev = m;
+      }
+      const mdat = mon[2][3]; // piercer mlet='p' (tier=2, idx=3)
+      const mtmp = makeMonst(mdat);
+      mtmp.mx = nx; mtmp.my = ny;
+      mtmp.sinv = true;  // invisible to player — triggers piercer/purple worm/mimic path
+      mtmp.invis = true;
+      mtmp.mhp = 200; mtmp.orig_hp = 200;
+      mtmp.nmon = g.fmon; g.fmon = mtmp;
+    }, 'l ');
+  }
+  console.log('testPiercerImpact: PASS (hack.js piercer sinv path covered)');
+}
+await testPiercerImpact();
+
+// hack.js line 294: "Bad trap" path — ttype >= TRAPNUM (ttype > 6)
+// Place trap with type >= TRAPNUM, walk onto it to trigger "Bad trap" message.
+async function testBadTrap() {
+  await runWith(42, (g) => {
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    const ROOM = 5;
+    const nx = g.u.ux + 1, ny = g.u.uy;
+    g.levl[nx][ny].typ = ROOM;
+    // Remove any monster there
+    let prev = null;
+    for (let m = g.fmon; m; m = m.nmon) {
+      if (m.mx === nx && m.my === ny) {
+        if (!prev) g.fmon = m.nmon; else prev.nmon = m.nmon; break;
+      }
+      prev = m;
+    }
+    // Trap type 99 — beyond TRAPNUM (7), triggers "Bad trap" default case
+    // Do NOT set SEEN flag: the escape check is (trap.gflag & SEEN && !rn2(6));
+    // without SEEN, it goes straight to switch(ttype=99) → default → "Bad trap"
+    const trap = makeGen(nx, ny, 99);
+    // trap.gflag = 0 (no SEEN), ttype = 99 → default case guaranteed
+    trap.ngen = g.ftrap; g.ftrap = trap;
+  }, 'l ');
+  console.log('testBadTrap: PASS (hack.js bad trap default case covered)');
+}
+await testBadTrap();
+
+// mon.js lines 554-579: killed() with stole data (sgold + sobj restore on kill)
+// Place a leprechaun that has stolen gold. Kill it → restores stolen gold on monster's tile.
+async function testKilledWithStole() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(42);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 0; g.u.ulevel = 20;
+  g.u.uhp = 10000; g.u.uhpmax = 10000;
+  g.u.uswallow = false; g.u.ustuck = null;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0; g.u.upres = false;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++) g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.levl[11][10] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags.topl = 0;
+
+  const mdat = mon[3][0]; // leprechaun mlet='L'
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1; mtmp.orig_hp = 10; // 1 HP → dies on first hit
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+
+  // Set up a stole entry for this monster with both sgold and sobj
+  const { makeStole } = await import('../js/game.js');
+  const stmp = makeStole(mtmp, null, 50); // 50 gold stolen
+  const stolenObj = makeObj();
+  stolenObj.olet = '!'; stolenObj.otyp = 3; stolenObj.quan = 1; stolenObj.nobj = null;
+  stmp.sobj = stolenObj;
+  stmp.nstole = g.fstole; g.fstole = stmp;
+
+  // Also add existing gold at monster's position to cover the gtmp branch (line 559)
+  const existingGold = makeGen(11, 10, 10);
+  existingGold.ngen = g.fgold; g.fgold = existingGold;
+
+  g.input.getKey = async () => { throw new SessionDone(); };
+  // Direct call to killed — simulates player killing leprechaun with stole
+  try { await killed(mtmp); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testKilledWithStole: PASS (mon.js killed stole sgold+sobj restore covered)');
+}
+await testKilledWithStole();
+
+// mon.js lines 596-598: killed() drops object (gNTV&... or 1/5 chance)
+// Kill a giant 'g' which has gNTV& letter → always drops object.
+async function testKilledDropsObject() {
+  await runWith(42, (g) => {
+    const ROOM = 5;
+    g.levl[g.u.ux + 1][g.u.uy].typ = ROOM;
+    const mdat = mon[2][1]; // gnome 'g' (drops object)
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = g.u.ux + 1; mtmp.my = g.u.uy;
+    mtmp.mhp = 1; mtmp.orig_hp = 1; // dies on first hit
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.u.ulevel = 20; g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'l ');
+  console.log('testKilledDropsObject: PASS (mon.js killed object drop covered)');
+}
+await testKilledDropsObject();
+
+// mon.js lines 603-606: killed() when player uswallow=true (swallowed by monster that was killed)
+// This is a very specific path: player is swallowed, then kills the monster from inside.
+// After kill: uswallow=false, docrt() is called.
+async function testKilledWhileSwallowed() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(42);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uac = 0; g.u.ulevel = 20; g.u.udaminc = 100; // massive damage → guaranteed kill
+  g.u.uhp = 10000; g.u.uhpmax = 10000;
+  g.u.uswallow = true; // player is swallowed
+  g.u.ustuck = null; g.u.uswldtim = 3;
+  g.u.umconf = 0; g.u.ublind = 0; g.u.uinvis = 0; g.u.upres = false;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++) g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags.topl = 0;
+
+  const mdat = mon[5][4]; // purple worm 'P' (swallows)
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1; mtmp.orig_hp = 10;
+  mtmp.mcan = false;
+  g.fmon = mtmp;
+
+  g.input.getKey = async () => { throw new SessionDone(); };
+  try { await killed(mtmp); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  if (g.u.uswallow) throw new Error('uswallow should be false after killing swallower');
+  console.log('testKilledWhileSwallowed: PASS (mon.js killed uswallow path covered)');
+}
+await testKilledWhileSwallowed();
+
+// hack.js doname ring with oiden&RINN but !known — covers lines 404-405
+// Need oiden[otyp] & RINN set, but obj.known=false → "a ring of X" (not "+N ring")
+async function testDonamRingIdentified() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  g.oiden = new Array(30).fill(0);
+  g.rinnam = ['iron ring', 'jade ring', 'silver ring', 'golden ring', 'copper ring'];
+  g.ringcall = {};
+  const RINN = 8; // from const.js
+  g.oiden[3] |= RINN; // identified ring type 3
+  const ring = makeObj();
+  ring.olet = '='; ring.otyp = 3; ring.spe = 2; ring.minus = false; ring.known = false; ring.quan = 1;
+  g.uleft = null; g.uright = null;
+  const result = doname(ring);
+  if (!result.includes('ring of')) throw new Error('Expected "ring of" but got: ' + result);
+  console.log('testDonamRingIdentified: PASS (hack.js doname ring oiden&RINN !known covered)');
+}
+await testDonamRingIdentified();
+
+// do.js lines 224-226: drink1() potion type 4 (heal) — uhp+num <= uhpmax path (line 225)
+// By default uhp=12, uhpmax=12, so uhp+num > uhpmax (line 223). We need uhp low enough.
+// Set uhp=1 so uhp+num < uhpmax (num=12/3=4, uhp+4=5 < 12 → else branch line 225).
+async function testHealPotionElseBranch() {
+  await runWith(42, (g) => {
+    g.u.uhp = 1; // very low
+    g.u.uhpmax = 100;
+    prependItem(g, { olet: '!', otyp: 4, quan: 1 }); // healing potion
+  }, 'qa ');  // 'q'=drink command, 'a'=select item immediately (no space between)
+  console.log('testHealPotionElseBranch: PASS (do.js drink1 heal else-branch covered)');
+}
+await testHealPotionElseBranch();
+
+// ===== Wave 7: Additional coverage for remaining uncovered lines =====
+
+// do.js L311: "feel much better" (potion otyp=14) else branch (uhp+num <= uhpmax)
+// uhp=1, uhpmax=100 → num = 50+25=75, uhp+75=76 < 100 → else branch
+async function testMuchBetterElseBranch() {
+  await runWith(42, (g) => {
+    g.u.uhp = 1;
+    g.u.uhpmax = 100;
+    prependItem(g, { olet: '!', otyp: 14, quan: 1 });
+  }, 'qa ');
+  console.log('testMuchBetterElseBranch: PASS (do.js drink1 much-better else-branch covered)');
+}
+await testMuchBetterElseBranch();
+
+// do.js L326: docall for otyp=0 (restore strength) potion, not identified, no potcall[0]
+// docall() prompts "What do you call this potion?" then reads line
+async function testPotionDocallTyp0() {
+  await runWith(42, (g) => {
+    // Clear identification so docall is triggered
+    g.oiden[0] = 0;
+    g.potcall = {};
+    prependItem(g, { olet: '!', otyp: 0, quan: 1 }); // restore strength
+  }, 'qa \r');  // 'q'=drink, 'a'=select, ' '=dismiss --More-- from pline, '\r'=end docall getlin
+  console.log('testPotionDocallTyp0: PASS (do.js drink1 docall for typ<=1 covered)');
+}
+await testPotionDocallTyp0();
+
+// do.js L346: nothin() scroll path — enchant weapon (otyp=0) when no weapon
+// nothin() is called, obj.olet='?', oiden[0] & SCRN is 0, no scrcall → L346 docall
+async function testNothinScrollDocall() {
+  await runWith(42, (g) => {
+    g.uwep = null;  // no weapon → read1() case 0 calls nothin()
+    g.oiden[0] = 0; // scroll type 0 (enchant weapon) not identified
+    g.scrcall = {};
+    prependItem(g, { olet: '?', otyp: 0, quan: 1 }); // enchant weapon scroll
+  }, 'ra \r');  // r=read, a=select, ' '=dismiss --More-- from pline, '\r'=end docall getlin
+  console.log('testNothinScrollDocall: PASS (do.js nothin scroll docall path covered)');
+}
+await testNothinScrollDocall();
+
+// do.js L429-437: genocide scroll loop body — need a monster present
+// We read genocide scroll (otyp=8), press the monster letter, monster gets removed
+async function testGenocideScroll() {
+  let dirKey = 'l';
+  await runWith(42, (g) => {
+    // Place a jackal 'j' next to player
+    const ROOM = 5;
+    const nx = g.u.ux + 1, ny = g.u.uy;
+    g.levl[nx][ny].typ = ROOM;
+    const mdat = mon[0][3]; // jackal, mlet='j'
+    const mtmp = makeMonst(mdat);
+    mtmp.mx = nx; mtmp.my = ny;
+    mtmp.mhp = 100; mtmp.orig_hp = 100;
+    mtmp.nmon = g.fmon; g.fmon = mtmp;
+    g.levl[nx][ny].scrsym = 'j';
+    prependItem(g, { olet: '?', otyp: 8, quan: 1 }); // genocide scroll
+  }, 'ra j ');  // r=read, a=select genocide scroll, ' '=--More-- dismiss, 'j'=monster letter, ' '=dismiss
+  console.log('testGenocideScroll: PASS (do.js genocide scroll loop body covered)');
+}
+await testGenocideScroll();
+
+// do.js L494-495: magic mapping stair detection — upstair not seen
+// Normally xupstair is seen (player starts there). But we can mark it unseen.
+async function testMagicMappingStairDetect() {
+  await runWith(42, (g) => {
+    // Mark up-stair and down-stair as not seen
+    if (g.levl[g.xupstair] && g.levl[g.xupstair][g.yupstair]) {
+      g.levl[g.xupstair][g.yupstair].seen = false;
+    }
+    if (g.levl[g.xdnstair] && g.levl[g.xdnstair][g.ydnstair]) {
+      g.levl[g.xdnstair][g.ydnstair].seen = false;
+    }
+    prependItem(g, { olet: '?', otyp: 13, quan: 1 }); // magic mapping scroll
+  }, 'ra ');  // r=read, a=select, ' '=dismiss
+  console.log('testMagicMappingStairDetect: PASS (do.js magic mapping stair detection covered)');
+}
+await testMagicMappingStairDetect();
+
+// do.js L512-513: scroll default case ("Nothing happens.") — otyp=99 (out of range)
+async function testScrollDefault() {
+  await runWith(42, (g) => {
+    prependItem(g, { olet: '?', otyp: 99, quan: 1 }); // invalid scroll type
+  }, 'ra ');  // r=read, a=select, ' '=dismiss
+  console.log('testScrollDefault: PASS (do.js scroll default Nothing-happens covered)');
+}
+await testScrollDefault();
+
+// do.js L535: plusone() when obj.minus=true — enchant weapon scroll on minus weapon
+// read1() case 0: enchant weapon calls plusone(game.uwep) when uwep is present
+// plusone: if (obj.minus) { if (!--obj.spe) obj.minus=false; }
+async function testPlusoneMinusPath() {
+  await runWith(42, (g) => {
+    // Set uwep to a weapon with minus=true, spe=1 (so --spe=0 → minus becomes false)
+    g.uwep.minus = true;
+    g.uwep.spe = 1;
+    prependItem(g, { olet: '?', otyp: 0, quan: 1 }); // enchant weapon scroll
+  }, 'ra ');  // r=read, a=select scroll, ' '=dismiss
+  console.log('testPlusoneMinusPath: PASS (do.js plusone minus=true path covered)');
+}
+await testPlusoneMinusPath();
+
+// do.js L543: minusone() when spe=0 — curse weapon scroll on spe=0 weapon
+// read1() case 6: curse weapon calls minusone(game.uwep)
+// minusone: if (obj.minus) spe++; else if (obj.spe) spe--; else { obj.minus=true; obj.spe=1; }
+async function testMinusoneSpeZero() {
+  await runWith(42, (g) => {
+    g.uwep.minus = false;
+    g.uwep.spe = 0;
+    prependItem(g, { olet: '?', otyp: 6, quan: 1 }); // curse weapon scroll
+  }, 'ra ');
+  console.log('testMinusoneSpeZero: PASS (do.js minusone spe=0 path covered)');
+}
+await testMinusoneSpeZero();
+
+// do.js L549-560: litroom() at DOOR cell — player stands in a doorway
+// need levl[ux][uy].typ === DOOR, and adjacent ROOM cells
+async function testLitroomAtDoor() {
+  await runWith(42, (g) => {
+    const ux = g.u.ux, uy = g.u.uy;
+    const DOOR = 4, ROOM = 5;
+    // Place player in a doorway: set current cell to DOOR
+    g.levl[ux][uy].typ = DOOR;
+    g.levl[ux][uy].lit = false;
+    // Set adjacent cells to ROOM so litroom can find the room
+    g.levl[ux][uy + 1].typ = ROOM;
+    g.levl[ux][uy - 1].typ = ROOM;
+    g.levl[ux + 1][uy].typ = ROOM;
+    g.levl[ux - 1][uy].typ = ROOM;
+    prependItem(g, { olet: '?', otyp: 9, quan: 1 }); // light room scroll
+  }, 'ra ');
+  console.log('testLitroomAtDoor: PASS (do.js litroom DOOR cell path covered)');
+}
+await testLitroomAtDoor();
+
+// do1.js L57-66: ringoff() for otyp=15 (AC ring) and otyp=16 (HP ring) removal
+// Key: P=put on, a=select, 'l'=left hand (from "Right or Left?" prompt), R=remove, a=select
+// When both uleft and uright are null, 'P' asks "Right or Left?"; 'l' puts on left.
+// After the 'l', applyRingOn is called, then prinv. Then gameLoop reads next key.
+// Wait — after prinv, there's no prompt. Next key from gameLoop → 'R' = remove command.
+// getobj('=','remove') calls pline(...) → topl set, reads 'a' immediately (no --More-- because
+// getobj sets topl=1). ringoff(ring) is called → covers L57-59 (or L61-66 for HP ring).
+async function testRingoffAcHp() {
+  // AC ring (otyp=15): ringoff L57-59
+  // Key sequence: P=puton, a=select, ' '=dismiss "Right or Left?" --More--, l=left side,
+  //   R=remove, a=select ring, ' '=dismiss
+  // Actually: pline("Right or Left?") sets topl=2 (if it was 1 from getobj).
+  // After getobj reads 'a', topl=1. Then pline("Right or Left?") → topl=1 → else → topl=2.
+  // Then getKey reads 'l' (topl=1 was set by getobj, but pline just set it to 2).
+  // Wait: the "Right or Left?" code is:
+  //   do { await pline('Right or Left? '); side = await game.input.getKey(); game.flags.topl=1; } ...
+  // pline('Right or Left?') → topl was 1 (from getobj) → else → topl=2. Displays "Right or Left?"
+  // Then getKey reads next key (not --More-- because getKey is called directly, not via pline).
+  // So 'l' goes directly to getKey for side selection.
+  // After uleft=otmp, applyRingOn, prinv → no more prompts in this turn.
+  // Next iteration: gameLoop → parse() → pline("--More--"?) no, parse just calls getKey.
+  // Actually parse() reads the next key directly. So 'R' is next command.
+  await runWith(42, (g) => {
+    g.uleft = null; g.uright = null;
+    prependItem(g, { olet: '=', otyp: 15, spe: 2, minus: false, quan: 1, cursed: false });
+  }, 'PalRa ');  // P=put on, a=select, l=left hand, R=remove, a=select, ' '=dismiss
+  // HP ring (otyp=16): ringoff L61-66
+  await runWith(42, (g) => {
+    g.uleft = null; g.uright = null;
+    g.u.uhp = 50; g.u.uhpmax = 100;
+    prependItem(g, { olet: '=', otyp: 16, spe: 3, minus: false, quan: 1, cursed: false });
+  }, 'PalRa ');
+  console.log('testRingoffAcHp: PASS (do1.js ringoff AC and HP ring covered)');
+}
+await testRingoffAcHp();
+
+// do1.js L280-282: dosave() 'n' answer path
+async function testDosaveNo() {
+  await runWith(42, (g) => {
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'Sn ');  // S=save, 'n'=no, ' '=dismiss
+  console.log('testDosaveNo: PASS (do1.js dosave no-answer path covered)');
+}
+await testDosaveNo();
+
+// do1.js L318-319: dosearch() SDOOR find body — typ=SDOOR and !rn2(7)
+// With 8 adjacent SDOOR cells, P(at least one converts) = 1 - (6/7)^8 = ~69% per search.
+// Repeat search 20 times to achieve near-certainty of covering L318-319.
+// We place ALL 8 adjacent cells as SDOOR. After enough searches, at least one converts.
+async function testDosearchSdoor() {
+  const SDOOR = 7; // from const.js
+  await runWith(42, (g) => {
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    // Place SDOOR in all 8 adjacent cells
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = g.u.ux + dx, ny = g.u.uy + dy;
+        if (nx >= 0 && nx < 80 && ny >= 0 && ny < 22) {
+          g.levl[nx][ny].typ = SDOOR;
+        }
+      }
+    }
+  }, 's'.repeat(20));  // search 20 times — statistically certain to convert at least one SDOOR
+  console.log('testDosearchSdoor: PASS (do1.js dosearch SDOOR body covered)');
+}
+await testDosearchSdoor();
+
+// do1.js L272: findInventIdx() returning -1 when ref exists but is not in inventArr
+// L270 handles the !ref case; L272 handles the case where ref is set but not found in array.
+// Trigger: set game.uwep to an object that is NOT in game.invent.
+async function testDosaveMissingWep() {
+  await runWith(42, (g) => {
+    g.u.uhp = 200; g.u.uhpmax = 200;
+    // Create a sword object that is NOT in inventory
+    const floatingWep = makeObj();
+    floatingWep.olet = ')'; floatingWep.otyp = 4; floatingWep.quan = 1; floatingWep.spe = 1;
+    floatingWep.known = true; floatingWep.cursed = false; floatingWep.minus = false;
+    // Don't add floatingWep to g.invent; just set uwep to it
+    g.uwep = floatingWep; // not in inventory → findInventIdx loops to end → returns -1 (L272)
+    g.uarm = null; g.uleft = null; g.uright = null;
+  }, 'Sy ');  // S=save, 'y'=yes → dosave runs, then gameLoop reads ' '
+  console.log('testDosaveMissingWep: PASS (do1.js findInventIdx -1 not-found path covered)');
+}
+await testDosaveMissingWep();
+
+// do1.js L106: findit() fake gold second entry — need 2 fgold items, fake is second
+// findit() L101: if (gold && !gold.gflag) → if (gold === game.fgold) remove first; else L106 remove other
+// Need fgold = [real_gold (gflag>0), fake_gold (gflag=0)] so the fake is second
+// (findit iterates room bounds; player must be in a room with the fake gold NOT at room center)
+async function testFinditFakeGoldSecond() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+
+  const ROOM = 5;
+  // Set up a minimal room around the player
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: ROOM, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags = { botl: 0, move: true, mv: 0, mdone: false, dscr: false, topl: 0 };
+  g.u = { ux: 10, uy: 10, ulevel: 1, uhp: 12, uhpmax: 12, ustr: 16, ustrmax: 16,
+          udaminc: 1, uac: 6, uswallow: false, uswldtim: 0, ustuck: null,
+          umconf: 0, uexp: 0, urexp: 0, uhunger: 900, uhs: 0,
+          ublind: 0, uinvis: 0, ufast: 0, uconfused: 0, upit: false, utel: false,
+          uregen: false, usearch: 0, ucinvis: false, ustelth: false, ufloat: false,
+          upres: false, uagmon: false, ufeed: false, ufireres: false, ucoldres: false,
+          ucham: false, utrap: 0 };
+  g.fmon = null; g.fobj = null; g.ftrap = null; g.fstole = null;
+  g.oiden = new Array(30).fill(0);
+  g.wannam = []; g.potcol = []; g.rinnam = []; g.scrnam = [];
+  g.savedLevels = {}; g.dlevel = 1; g.initialSeed = 42; g.rngSeed = 42;
+  g.lock = 'hack'; g.buf = ''; g.killer = '';
+  g.xupstair = 8; g.yupstair = 9; g.xdnstair = 15; g.ydnstair = 10;
+  g.moves = 0; g.multi = 0;
+  seedRng(42);
+
+  // Place two gold items: real first (gflag=5), fake second (gflag=0)
+  // Both within the room boundary (5-20, 5-15)
+  const real_gold = makeGen(10, 8, 0);  // gflag=0 initially but we'll set it
+  real_gold.gflag = 5; // positive → not fake
+  const fake_gold = makeGen(10, 9, 0);  // gflag=0 → fake
+  fake_gold.gflag = 0;
+  // g.fgold = real_gold → fake_gold
+  real_gold.ngen = fake_gold; fake_gold.ngen = null;
+  g.fgold = real_gold;
+  g.levl[10][8].scrsym = '$'; g.levl[10][9].scrsym = '$';
+
+  // Call findit() directly — it scans room from player's position
+  // Player at (10, 10): room bounds lx=5, hx=20, ly=5, hy=15
+  // Scans (5,5)→(20,15): when (10,9) is scanned: gold=fake_gold, !gold.gflag → remove it
+  // Since real_gold === g.fgold but fake_gold ≠ g.fgold → L106 else branch
+  g.input.getKey = async () => { throw new SessionDone(); };
+  await findit();
+  console.log('testFinditFakeGoldSecond: PASS (do1.js findit fake-gold else-branch covered)');
+}
+await testFinditFakeGoldSecond();
+
+// do.js L752-753: "You can't remove that" — R command when ring not being worn
+// Put a ring in inventory but don't put it on (uleft=null, uright=null).
+// R=remove, a=select ring → ring is not uleft or uright → L752 "can't remove"
+async function testCantRemoveThat() {
+  await runWith(42, (g) => {
+    g.uleft = null; g.uright = null;
+    prependItem(g, { olet: '=', otyp: 3, spe: 1, minus: false, quan: 1, cursed: false });
+  }, 'Ra ');  // R=remove, a=select (ring not worn), ' '=dismiss
+  console.log('testCantRemoveThat: PASS (do.js R cant-remove-that path covered)');
+}
+await testCantRemoveThat();
+
+// hack.js L195-196: domove() multi > 80 door path
+// When flags.mv > 1 and tmpr.typ === DOOR: if multi > 80, multi = multi - 1
+// Set multi = 82, flags.mv = 2, and place player adjacent to a DOOR
+async function testDomoveMultiDoor() {
+  await runWith(42, (g) => {
+    const DOOR = 4, ROOM = 5;
+    const nx = g.u.ux + 1, ny = g.u.uy;
+    g.levl[nx][ny].typ = DOOR;
+    // Set up walls beyond the door so movement makes sense
+    g.levl[nx + 1][ny].typ = ROOM;
+    g.multi = 82; // > 80
+    g.flags.mv = 2;
+    g.u.uhp = 200; g.u.uhpmax = 200;
+  }, 'L ');  // L = move right multiple times
+  console.log('testDomoveMultiDoor: PASS (hack.js domove multi>80 door path covered)');
+}
+await testDomoveMultiDoor();
+
+// hack.js L534-536: uswallow + purple worm — reduced damage path
+// (tmp -= uswldtim) < 1 → skip damage, just hit message
+// Need uswallow=true, ustuck=purple worm, uswldtim high enough that tmp-uswldtim < 1
+async function testSwallowedReducedDamage() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+
+  // Set up minimal level
+  const ROOM = 5;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: ROOM, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags = { botl: 0, move: true, mv: 0, mdone: false, dscr: false, topl: 0 };
+  g.moves = 0; g.multi = 0;
+  g.u = { ux: 10, uy: 10, ulevel: 5, uhp: 200, uhpmax: 200, ustr: 16, ustrmax: 16,
+          udaminc: 1, uac: 6, uswallow: true, uswldtim: 10, ustuck: null,
+          umconf: 0, ublind: 0, uinvis: 0, ufast: 0, uconfused: 0,
+          uexp: 0, urexp: 0, uhunger: 900, uhs: 0, upit: false, utel: false,
+          uregen: false, usearch: 0, ucinvis: false, ustelth: false, ufloat: false,
+          upres: false, uagmon: false, ufeed: false, ufireres: false, ucoldres: false,
+          ucham: false, utrap: 0, upit: false };
+  const sword = makeObj();
+  sword.olet = ')'; sword.otyp = 4; sword.quan = 1; sword.spe = 1; sword.known = 1; sword.cursed = false; sword.minus = false;
+  g.invent = sword; g.uwep = sword; g.uarm = null; g.uleft = null; g.uright = null;
+  g.fmon = null; g.fobj = null; g.ftrap = null; g.fgold = null; g.fstole = null;
+  g.oiden = new Array(30).fill(0);
+  g.potcall = {}; g.scrcall = {}; g.wandcall = {}; g.ringcall = {};
+  g.wannam = []; g.potcol = []; g.rinnam = []; g.scrnam = [];
+  g.levl[10][10].scrsym = '@';
+  g.savedLevels = {}; g.dlevel = 1; g.initialSeed = 42; g.rngSeed = 42;
+  g.lock = 'hack'; g.buf = ''; g.killer = ''; g.dx = 0; g.dy = 0;
+  g.xupstair = 10; g.yupstair = 9; g.xdnstair = 15; g.ydnstair = 10;
+
+  // Create purple worm as the ustuck monster
+  const mdat = mon[5][4]; // purple worm 'P'
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 10; mtmp.my = 11;
+  mtmp.mhp = 200; mtmp.orig_hp = 200;
+  g.fmon = mtmp;
+  g.u.ustuck = mtmp;
+  // uswldtim = 10 so tmp (weapon dmg ~1-8) - 10 < 1 → reduced damage path
+
+  g.input.getKey = async () => { throw new SessionDone(); };
+  try {
+    // Call amon directly to test the swallow+purple worm reduced damage path
+    const { amon: amonFn } = await import('../js/hack.js');
+    await amonFn(mtmp, sword, 0);
+  } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testSwallowedReducedDamage: PASS (hack.js uswallow purple worm reduced dmg covered)');
+}
+await testSwallowedReducedDamage();
+
+// mon.js L561-563: killed() stole sgold but NO existing gold at monster location
+// (need stmp.sgold set, g_at_gen returns null → create new gold gen)
+async function testKilledSgoldNoExisting() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+
+  const ROOM = 5;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: ROOM, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags = { botl: 0, move: true, mv: 0, mdone: false, dscr: false, topl: 0 };
+  g.moves = 1; g.multi = 0;
+  g.u = { ux: 10, uy: 10, ulevel: 5, uhp: 200, uhpmax: 200, ustr: 16, ustrmax: 16,
+          udaminc: 1, uac: 6, uswallow: false, uswldtim: 0, ustuck: null,
+          umconf: 0, uexp: 0, urexp: 0, uhunger: 900, uhs: 0,
+          ublind: 0, uinvis: 0, ufast: 0, uconfused: 0, upit: false, utel: false,
+          uregen: false, usearch: 0, ucinvis: false, ustelth: false, ufloat: false,
+          upres: false, uagmon: false, ufeed: false, ufireres: false, ucoldres: false,
+          ucham: false, utrap: 0 };
+  g.fmon = null; g.fobj = null; g.ftrap = null; g.fgold = null; g.fstole = null;
+  g.oiden = new Array(30).fill(0);
+  g.wannam = []; g.potcol = []; g.rinnam = []; g.scrnam = [];
+  g.levl[11][10].scrsym = '.';
+  g.savedLevels = {}; g.dlevel = 1; g.initialSeed = 42; g.rngSeed = 42;
+  g.lock = 'hack'; g.buf = ''; g.killer = '';
+  g.xupstair = 8; g.yupstair = 9; g.xdnstair = 15; g.ydnstair = 10;
+
+  const mdat = mon[3][0]; // leprechaun 'L'
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  mtmp.mhp = 1; mtmp.orig_hp = 10;
+  g.fmon = mtmp;
+
+  // fgold = null so g_at_gen returns null → new gold is created (L561-563)
+  const stmp = makeStole(mtmp, null, 50);
+  stmp.nstole = g.fstole; g.fstole = stmp;
+
+  g.input.getKey = async () => { throw new SessionDone(); };
+  try { await killed(mtmp); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  if (!g.fgold) throw new Error('Expected gold to be placed on map');
+  console.log('testKilledSgoldNoExisting: PASS (mon.js killed sgold no-existing-gold path covered)');
+}
+await testKilledSgoldNoExisting();
+
+// mon.js L575, L578-579: killed() with second stole entry matching (stmpPrev != null path)
+// Need 2 stole entries, kill monster that has the SECOND entry
+async function testKilledStoleSecondEntry() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+
+  const ROOM = 5;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: ROOM, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true, new_: false };
+  g.flags = { botl: 0, move: true, mv: 0, mdone: false, dscr: false, topl: 0 };
+  g.moves = 1; g.multi = 0;
+  g.u = { ux: 10, uy: 10, ulevel: 5, uhp: 200, uhpmax: 200, ustr: 16, ustrmax: 16,
+          udaminc: 1, uac: 6, uswallow: false, uswldtim: 0, ustuck: null,
+          umconf: 0, uexp: 0, urexp: 0, uhunger: 900, uhs: 0,
+          ublind: 0, uinvis: 0, ufast: 0, uconfused: 0, upit: false, utel: false,
+          uregen: false, usearch: 0, ucinvis: false, ustelth: false, ufloat: false,
+          upres: false, uagmon: false, ufeed: false, ufireres: false, ucoldres: false,
+          ucham: false, utrap: 0 };
+  g.fmon = null; g.fobj = null; g.ftrap = null; g.fgold = null; g.fstole = null;
+  g.oiden = new Array(30).fill(0);
+  g.wannam = []; g.potcol = []; g.rinnam = []; g.scrnam = [];
+  g.savedLevels = {}; g.dlevel = 1; g.initialSeed = 42; g.rngSeed = 42;
+  g.lock = 'hack'; g.buf = ''; g.killer = '';
+  g.xupstair = 8; g.yupstair = 9; g.xdnstair = 15; g.ydnstair = 10;
+
+  // Create two monsters
+  const mdat = mon[3][0]; // leprechaun
+  const mon1 = makeMonst(mdat); mon1.mx = 11; mon1.my = 10; mon1.mhp = 1; mon1.orig_hp = 10;
+  const mon2 = makeMonst(mdat); mon2.mx = 12; mon2.my = 10; mon2.mhp = 1; mon2.orig_hp = 10;
+  mon1.nmon = mon2; mon2.nmon = null; g.fmon = mon1;
+  g.levl[11][10].scrsym = 'L'; g.levl[12][10].scrsym = 'L';
+
+  // Create stole entries: stmp_other for mon1 first (index 0), stmp_target for mon2 second
+  const stmp_other = makeStole(mon1, null, 20);
+  stmp_other.nstole = g.fstole; g.fstole = stmp_other;  // g.fstole = [stmp_other]
+
+  const stmp_target = makeStole(mon2, null, 30);
+  stmp_target.nstole = g.fstole; g.fstole = stmp_target; // g.fstole = [stmp_target, stmp_other]
+
+  // Kill mon2 → stmpPrev=stmp_target, stmp=stmp_other → stmpPrev.nstole iteration (L578)
+  // Actually: loop: stmp=stmp_target (mon=mon2? no, stmp_target.smon=mon2)
+  // Wait: g.fstole = stmp_target (first), stmp_target.nstole = stmp_other
+  // Loop: stmp=stmp_target → stmp.smon === mon2 → foundStole, stmpPrev=null → L574 taken
+  // That hits L574, not L575. We need stmpPrev != null when the matching entry is found.
+  // So: put stmp_other FIRST (smon=mon1), then stmp_target (smon=mon2) second
+  // Restart: g.fstole = stmp_other (first) → stmp_target is second
+  g.fstole = stmp_other;       // [stmp_other → stmp_target]
+  stmp_other.nstole = stmp_target;
+  stmp_target.nstole = null;
+
+  g.input.getKey = async () => { throw new SessionDone(); };
+  // Kill mon2: loop goes stmp=stmp_other (smon=mon1 ≠ mon2 → stmpPrev=stmp_other)
+  //   then stmp=stmp_target (smon=mon2 == mon2 → foundStole, stmpPrev!=null → L575)
+  try { await killed(mon2); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testKilledStoleSecondEntry: PASS (mon.js killed stole stmpPrev path covered)');
+}
+await testKilledStoleSecondEntry();
+
+// lev.js L68-70: getlev() stole restore with smon_key set
+// This requires a savedLevel with fstole where smon_key is present
+async function testGetlevSmonKey() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+
+  // Build a minimal level snapshot with fstole including smon_key
+  const ROOM = 5;
+  const fakeLevl = [];
+  for (let x = 0; x < 80; x++) {
+    fakeLevl[x] = [];
+    for (let y = 0; y < 24; y++) {
+      fakeLevl[x][y] = { typ: x >= 5 && x <= 20 && y >= 5 && y <= 15 ? ROOM : 0,
+                          cansee: false, seen: false, isnew: false, scrsym: ' ', lit: false, new_: false };
+    }
+  }
+
+  // Build a snapshot as savelev() would create
+  const snapshot = {
+    levl: fakeLevl,
+    fmon: [{
+      _id: 'mon_001', mlet: 'j', mx: 10, my: 10, mhp: 5, orig_hp: 5,
+      mstat: 2, cham: false, sinv: false, invis: false, mcan: false,
+      data: { mname: 'jackal', mlet: 'j', mhd: 0, mmove: 12, ac: 7, damn: 1, damd: 2 }
+    }],
+    fobj: [], ftrap: [], fgold: [],
+    fstole: [{ smon_key: 'mon_001', sgold: 25, sobj: [] }],
+    xupstair: 8, yupstair: 9, xdnstair: 15, ydnstair: 10,
+  };
+
+  // getlev() needs game to be set up minimally
+  g.flags = { botl: 0, move: true, mv: 0, mdone: false, dscr: false, topl: 0 };
+  g.u = { ux: 10, uy: 10, ulevel: 1, uhp: 12, uhpmax: 12, ustr: 16, ustrmax: 16,
+          udaminc: 1, uac: 6, uswallow: false, uswldtim: 0, ustuck: null,
+          umconf: 0, uexp: 0, urexp: 0, uhunger: 900, uhs: 0,
+          ublind: 0, uinvis: 0, ufast: 0, uconfused: 0, upit: false, utel: false,
+          uregen: false, usearch: 0, ucinvis: false, ustelth: false, ufloat: false,
+          upres: false, uagmon: false, ufeed: false, ufireres: false, ucoldres: false,
+          ucham: false, utrap: 0 };
+  g.fmon = null; g.fobj = null; g.ftrap = null; g.fgold = null; g.fstole = null;
+  g.savedLevels = {};
+  g.oiden = new Array(30).fill(0);
+  g.wannam = []; g.potcol = []; g.rinnam = []; g.scrnam = [];
+  g.dlevel = 1; g.initialSeed = 42; g.rngSeed = 42;
+  g.lock = 'hack'; g.buf = ''; g.killer = '';
+  g.xupstair = 8; g.yupstair = 9; g.xdnstair = 15; g.ydnstair = 10;
+  g.moves = 0; g.multi = 0;
+
+  // Call getlev with the snapshot containing smon_key
+  getlev(snapshot);
+
+  // After getlev, fstole should have an entry with _smon_key set
+  if (!g.fstole) throw new Error('Expected fstole to be restored');
+  if (!g.fstole._smon_key) throw new Error('Expected _smon_key to be set on stole entry');
+  console.log('testGetlevSmonKey: PASS (lev.js getlev stole smon_key path covered)');
+}
+await testGetlevSmonKey();
+
 console.log('coverage_direct: all tests complete');
