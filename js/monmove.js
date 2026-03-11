@@ -757,9 +757,10 @@ function m_search_items_goal(mon, map, player, fov, ggx, ggy, appr) {
 // ========================================================================
 
 // C ref: mon.c:4084 — m_respond_shrieker(mtmp)
+// NOTE: C has NO distance check here — the caller guards proximity.
+// RNG calls (rn2(10), rn2(13)) must always be consumed for stream parity.
 async function m_respond_shrieker(mon, map, player, display = null, game = null) {
-    if (distmin(mon.mx, mon.my, player.x, player.y) > 1) return;
-    if (!player?.deaf) {
+    if (!player?.deaf && distmin(mon.mx, mon.my, player.x, player.y) <= 1) {
         if (display) {
             await display.putstr_message(`${Monnam(mon)} shrieks.`);
         }
