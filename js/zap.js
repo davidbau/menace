@@ -1232,7 +1232,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
 
       // Check for player hit
       if (player && sx === player.x && sy === player.y && range >= 0) {
-        if (zap_hit(player.uac || 10, 0)) {
+        if (zap_hit(player.ac ?? 10, 0)) {
           range -= 2;
           // C ref: zap.c:4920 — zhitu / zap_over_floor player damage
           const damgtype = zaptype(type) % 10;

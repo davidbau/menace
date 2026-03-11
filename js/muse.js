@@ -1544,7 +1544,7 @@ async function mbhitm(mtmp, otmp, map, player) {
             if (player.antimagic) {
                 await pline('Boing!');
                 learnit = true;
-            } else if (rnd(20) < 10 + (player.uac || 10)) {
+            } else if (rnd(20) < 10 + (player.ac ?? 10)) {
                 await pline('The wand hits you!');
                 tmp = d(2, 12);
                 if (player.halfSpellDamage) tmp = Math.floor((tmp + 1) / 2);

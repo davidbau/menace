@@ -830,7 +830,7 @@ export async function cast_protection(player) {
     let l = player.ulevel || 1;
     let loglev = 0;
     const uspellprot = player.uspellprot || 0;
-    const uac = player.uac || 10;
+    const uac = player.ac ?? 10;
     let natac = uac + uspellprot;
 
     // loglev = log2(u.ulevel) + 1
