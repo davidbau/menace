@@ -703,7 +703,7 @@ async function exerper(player) {
         }
 
         // Encumbrance checks
-        const cap = near_capacity();
+        const cap = near_capacity(player);
         switch (cap) {
         case 2: // MOD_ENCUMBER
             await exercise(player, A_STR, true);
