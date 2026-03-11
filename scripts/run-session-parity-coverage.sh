@@ -60,6 +60,7 @@ npx c8 \
 echo "Applying NetHack theme..."
 cp rogue/scripts/nethack.css coverage/nethack.css
 node rogue/scripts/nethack-theme.mjs coverage
+node scripts/annotate-session-parity-coverage.mjs coverage
 
 echo ""
 echo "Coverage report written to: coverage/index.html"
