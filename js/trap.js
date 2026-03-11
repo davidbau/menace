@@ -63,7 +63,7 @@ import { dist2 } from './hacklib.js';
 import { losehp, u_at, Maybe_Half_Phys } from './hack.js';
 import { an, xname, the, Tobjnam, Has_contents } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
-import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';
+import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF, FIRE_RES, HALLUC_RES, FUMBLING } from './const.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
@@ -1765,7 +1765,7 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
           if (player.Hallucination) {
             await pline("What a groovy feeling!");
           } else {
-            const blur = player.Halluc_resistance
+            const blur = player.hasProp(HALLUC_RES)
               ? ""
               : (player.Blind ? " and get dizzy" : " and your vision blurs");
             const yourData = player.data || game?.youmonst?.data || null;
@@ -1792,7 +1792,7 @@ export async function disarm_box(box, force, confused, player) {
     if (Role_if(player, PM_ROGUE)) {
       ch *= 2;
     }
-    if (!force && (confused || Fumbling || rnd(75 + Math.floor(level_difficulty() / 2)) > ch)) { await chest_trap(box, FINGER, true); }
+    if (!force && (confused || player?.fumbling || rnd(75 + Math.floor(level_difficulty() / 2)) > ch)) { await chest_trap(box, FINGER, true); }
     else {
       await You("disarm it!");
       box.otrapped = 0;
@@ -1914,7 +1914,7 @@ export async function sink_into_lava(player) {
   }
   else if (!is_lava(player.x, player.y)) { await reset_utrap(false); }
   else if (!player.uinvulnerable) {
-    if (!Fire_resistance) player.hp = Math.floor((player.hp + 2) / 3);
+    if (!player.hasProp(FIRE_RES)) player.hp = Math.floor((player.hp + 2) / 3);
     player.utrap -= (1 << 8);
     if (player.utrap < (1 << 8)) {
       svk.killer.format = KILLED_BY;
@@ -2036,7 +2036,7 @@ async function dofiretrap(box, player, game, map) {
     if (underwater) {
         await pline('A cascade of steamy bubbles erupts from %s!',
                     box ? 'a box' : 'the ground beneath you');
-        if (!(player?.Fire_resistance || player?.fireResistance)) {
+        if (!player?.hasProp(FIRE_RES)) {
             await losehp(rnd(3), 'boiling water', KILLED_BY, player, game?.display, game);
         } else {
             await You('are uninjured.');
@@ -2046,7 +2046,7 @@ async function dofiretrap(box, player, game, map) {
     await pline('A %s %s from %s!', tower_of_flame,
                 box ? 'bursts' : 'erupts',
                 box ? 'a box' : 'the ground beneath you');
-    if (player?.Fire_resistance || player?.fireResistance) {
+    if (player?.hasProp(FIRE_RES)) {
         // shieldeff() — visual only, not ported
         num = rn2(2);
     } else {

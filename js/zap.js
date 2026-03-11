@@ -103,7 +103,7 @@ import {
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
-import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR } from './const.js';
+import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
 import { discoverObject } from './o_init.js';
@@ -2041,7 +2041,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
   }
   case WAN_FIRE: {
     const orig_dmg = d(12, 6);
-    if (player.fire_resistance) {
+    if (player.hasProp(FIRE_RES)) {
       await pline('You feel rather warm.');
     } else {
       await pline("You've set yourself afire!");

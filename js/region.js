@@ -24,7 +24,7 @@
 
 import { rn1, rn2, rnd, d } from './rng.js';
 import { pline, You, You_feel, pline_The, You_see } from './pline.js';
-import { isok, ACCESSIBLE, COLNO, ROWNO, M_POISONGAS_OK } from './const.js';
+import { isok, ACCESSIBLE, COLNO, ROWNO, M_POISONGAS_OK, POISON_RES } from './const.js';
 import { newsym } from './display.js';
 import { cansee, block_point, unblock_point, mark_vision_dirty } from './vision.js';
 import { nonliving, haseyes, is_silent, resists_poison, canseemon } from './mondata.js';
@@ -650,7 +650,7 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
             // make_blinded(1, false) — simplified
             player.blindedTimeout = Math.max(player.blindedTimeout || 0, 1);
         }
-        if (!player.poisonResistance) {
+        if (!player.hasProp(POISON_RES)) {
             await pline("%s is burning your %s!", "Something",
                   makeplural(body_part(LUNG, player)));
             await You("cough and spit blood!");
@@ -841,7 +841,7 @@ export function region_danger(map, player) {
             const mdat = player.type || {};
             if (nonliving(mdat) || (mdat.mflags1 && (mdat.mflags1 & 0x00000020))) // M1_BREATHLESS
                 continue;
-            if (player.poisonResistance) continue;
+            if (player.hasProp(POISON_RES)) continue;
             ++n;
         }
     }

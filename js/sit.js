@@ -475,7 +475,7 @@ export async function dosit(player, map, display) {
         }
         await pline_The("lava burns you!");
         {
-            const dmg = d(player.fire_resistance ? 2 : 10, 10);
+            const dmg = d(player.hasProp(FIRE_RES) ? 2 : 10, 10);
             // TODO: losehp(dmg, "sitting on lava", KILLED_BY)
         }
     } else if (is_ice(px, py, map)) {

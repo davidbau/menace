@@ -854,7 +854,7 @@ async function really_kick_object(x, y, player, map, game) {
 
     if (!player.boots && kickedobj.otyp === CORPSE
         && touch_petrifies(mons[kickedobj.corpsenm])
-        && !player.stoneResistance) {
+        && !player.hasProp(STONE_RES)) {
         await You("kick %s with your bare %s.",
             corpse_xname(kickedobj, null, 0),
             makeplural(body_part(FOOT, player)));
@@ -1421,7 +1421,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
 }
 
 // A_LAWFUL import
-import { A_LAWFUL, NATTK, NON_PM, KILLED_BY, OBJ_MIGRATING } from './const.js';
+import { A_LAWFUL, NATTK, NON_PM, KILLED_BY, OBJ_MIGRATING, STONE_RES } from './const.js';
 
 // ============================================================================
 // 15. dokick — the #kick command handler

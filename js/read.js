@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -1335,7 +1335,7 @@ async function seffect_fire(sobj, player, display, game) {
     const map = game?.map;
     const cc = { x: player.x, y: player.y };
     const underwater = !!(player?.Underwater || player?.underwater || player?.uinwater);
-    const fireRes = !!(player?.Fire_resistance || player?.fireResistance);
+    const fireRes = !!player?.hasProp?.(FIRE_RES);
 
     // Use up scroll first
     useup_scroll(sobj, player);

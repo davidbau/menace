@@ -19,7 +19,7 @@ import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './
 import { mons, PM_HOUSECAT, PM_ICE_TROLL } from './monsters.js';
 import { is_rider, touch_petrifies, nohands, nolimbs,
          poly_when_stoned } from './mondata.js';
-import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo } from './const.js';
+import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo, STONE_RES } from './const.js';
 import { rn2, rnd, d } from './rng.js';
 import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';
@@ -144,7 +144,7 @@ export function u_safe_from_fatal_corpse(obj, tests, player) {
   if (((tests & st_gloves) && player?.gloves)
       || ((tests & st_corpse) && obj.otyp !== CORPSE)
       || ((tests & st_petrifies) && !touch_petrifies(mons[obj.corpsenm]))
-      || ((tests & st_resists) && player?.Stone_resistance)) return true;
+      || ((tests & st_resists) && player?.hasProp?.(STONE_RES))) return true;
   return false;
 }
 

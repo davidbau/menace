@@ -43,7 +43,7 @@ import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
 import { RACE_ORC, RACE_ELF, RACE_DWARF,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES,
-         POISON_RES, ACID_RES, STONE_RES,
+         POISON_RES, ACID_RES, STONE_RES, SICK_RES,
          TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
          FROMOUTSIDE, INTRINSIC, TIMEOUT,
          SLT_ENCUMBER, DEAF,
@@ -1221,7 +1221,7 @@ async function eatcorpse(player, otmp) {
         } else {
             await You('seem unaffected by the poison.');
         }
-    } else if ((rotted > 5 || (rotted > 3 && rn2(5))) && !player.Sick_resistance) {
+    } else if ((rotted > 5 || (rotted > 3 && rn2(5))) && !player.hasProp(SICK_RES)) {
         tp++;
         const prefix = player.Sick ? 'very ' : '';
         await You_feel(`${prefix}sick.`);
@@ -1248,7 +1248,7 @@ async function eatcorpse(player, otmp) {
             if (otmp.oeaten) otmp.oeaten >>= 2;
         }
     } else if ((mnum === PM_COCKATRICE || mnum === PM_CHICKATRICE)
-               && (player.Stone_resistance || player.Hallucination)) {
+               && (player.hasProp(STONE_RES) || player.Hallucination)) {
         await pline('This tastes just like chicken!');
     } else if (mnum === PM_FLOATING_EYE && player.umonnum === PM_RAVEN) {
         await You('peck the eyeball with delight.');

@@ -1010,10 +1010,8 @@ export async function peffect_oil(player, otmp, display) {
         } else {
             await You("burn your %s.", body_part(FACE));
             // C: vulnerable = !Fire_resistance || Cold_resistance
-            const fireRes = player.Fire_resistance || player.fireResistance ||
-                (player.uprops?.[FIRE_RES]?.intrinsic || player.uprops?.[FIRE_RES]?.extrinsic);
-            const coldRes = player.Cold_resistance || player.coldResistance ||
-                (player.uprops?.[COLD_RES]?.intrinsic || player.uprops?.[COLD_RES]?.extrinsic);
+            const fireRes = player.hasProp(FIRE_RES);
+            const coldRes = player.hasProp(COLD_RES);
             const vulnerable = !fireRes || coldRes;
             const dmg = d(vulnerable ? 4 : 2, 4);
             await losehp(dmg, "quaffing a burning potion of oil", KILLED_BY, player, display, gstateGame);

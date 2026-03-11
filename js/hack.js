@@ -2666,7 +2666,7 @@ function slippery_ice_fumbling(player, map) {
     // C: snow boots, flying, floater/clinger/whirly exempt from ice fumbling
     if (player.flying) return;
     // C: Cold_resistance reduces chance (rn2(3) vs rn2(2)) but doesn't exempt
-    if (!rn2(player.coldResistant ? 3 : 2)) {
+    if (!rn2(player.hasProp(COLD_RES) ? 3 : 2)) {
         player.fumbling = true;
     }
 }
@@ -3713,7 +3713,7 @@ export function feel_newsym(a, b, c) {
 // Returns true if hero moved while surviving.
 export async function lava_effects(player, map, display) {
     if (!is_lava(player.x, player.y, map)) return false;
-    if (player.fireResistant) {
+    if (player.hasProp(FIRE_RES)) {
         if (display) await display.putstr_message('The lava feels warm.');
         return false;
     }

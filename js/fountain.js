@@ -22,7 +22,7 @@ import { losehp } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
 import { water_damage, water_damage_chain } from './trap.js';
-import { ER_NOTHING, ER_DESTROYED, ER_GREASED } from './const.js';
+import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';
 import { hliquid, hcolor, a_monnam, Amonnam, rndmonnam } from './do_name.js';
@@ -635,7 +635,7 @@ export async function drinksink(player, map, display, fov) {
         break;
     case 2:
         await You("take a sip of scalding hot %s.", hliquid("water"));
-        if (player.fire_resistance) {
+        if (player.hasProp(FIRE_RES)) {
             await pline("It seems quite tasty.");
         } else {
             // losehp(rnd(6), "sipping boiling water", KILLED_BY)
