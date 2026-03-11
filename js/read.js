@@ -47,7 +47,7 @@ import { gold_detect, food_detect, trap_detect, do_mapping, cvt_sdoor_to_door } 
 import { explode } from './explode.js';
 import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
-import { DISP_BEAM, DISP_END, thats_enough_tries } from './const.js';
+import { DISP_BEAM, DISP_END, thats_enough_tries, MAX_SPELL_STUDY } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
@@ -70,7 +70,7 @@ import { create_gas_cloud } from './region.js';
 import { placebc } from './ball.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
-const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
+// MAX_SPELL_STUDY imported from const.js
 const STINKING_CLOUD_TARGET_DIST = 6;
 
 

@@ -30,7 +30,7 @@ import { objectData, WEAPON_CLASS, ROCK_CLASS, POTION_CLASS,
          PAPER, WAX, VEGGY, FLESH, GLASS, WOOD,
        } from './objects.js';
 import { doname, xname } from './mkobj.js';
-import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
+import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, P_FLAIL, P_LANCE } from './const.js';
 import { handleLoot, show_invalid_direction_cmdassist_help } from './pickup.js';
 import { pline, pline_The, You, You_cant, You_hear, There,
          verbalize } from './pline.js';
@@ -51,9 +51,7 @@ import { is_blade, greatest_erosion } from './dothrow.js';
 // Local helpers (cf. obj.h macros)
 // ============================================================================
 
-// Skill constants for weapon classification
-const P_FLAIL = 13;
-const P_LANCE = 19;
+// P_FLAIL, P_LANCE imported from const.js
 
 // cf. obj.h: is_pick(otmp)
 function is_pick(otmp) {

@@ -16,6 +16,7 @@ import {
     HOLE, TRAPDOOR, TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL, WEB,
     STATUE_TRAP, POLY_TRAP, VIBRATING_SQUARE, TRAPPED_DOOR, TRAPPED_CHEST, TRAPNUM,
     MKTRAP_NOFLAGS, MKTRAP_NOSPIDERONWEB, is_hole, isok,
+    DOORINC, DUNGEONS_OF_DOOM, KNOX, GEHENNOM,
 } from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
 import { makeRoom } from './mkroom.js';
@@ -38,10 +39,7 @@ import { mazexy } from './mkmaze.js';
 import { somex, somey, somexy, somexyspace, inside_room } from './mkroom.js';
 import { envFlag } from './runtime_env.js';
 
-const DOORINC = 20;
-const DUNGEONS_OF_DOOM = 0;
-const KNOX = 4;
-const GEHENNOM = 5;
+// DOORINC, DUNGEONS_OF_DOOM, KNOX, GEHENNOM imported from const.js
 
 // C ref: mkobj.c mksobj_at() — create object and place it on map tile.
 function mksobj_at(map, otyp, x, y, init, artif) {
