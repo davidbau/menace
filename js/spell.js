@@ -1090,7 +1090,7 @@ export async function getspell(prompt, player, display, map = null) {
         }
         // C tty menu leaves cursor at first selectable spell entry.
         if (typeof display.setCursor === 'function') {
-            display.setCursor(Math.max(0, offx + 7), 5);
+            display.setCursor(Math.max(0, offx + 6), 5);
         }
     }
 
@@ -1167,7 +1167,12 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     // Energy check
     const currentPower = player.uen || 0;
     if (energy > currentPower) {
-        await You("don't have enough energy to cast that spell.");
+        const suffix = (currentPower < (player.uenmax || 0))
+            ? ''
+            : (energy > (player.uenpeak || 0))
+                ? ' yet'
+                : ' anymore';
+        await You(`don't have enough energy to cast that spell${suffix}.`);
         return 0;
     }
 
@@ -1247,6 +1252,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
                 } else {
                     // C fallback: cancelled getdir still releases magical energy.
                     await pline_The('magical energy is released!');
+                    return 1;
                 }
                 if (display && typeof display.clearRow === 'function') {
                     display.clearRow(0);
