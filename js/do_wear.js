@@ -68,7 +68,8 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
          W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
          W_AMUL, W_WEP, W_SWAPWEP, W_QUIVER, W_RINGL, W_RINGR, W_TOOL,
-         W_RING, W_ACCESSORY, W_ARMOR } from './const.js';
+         W_RING, W_ACCESSORY, W_ARMOR,
+         GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS } from './const.js';
 import { set_itimeout, incr_itimeout, toggle_blindness } from './potion.js';
 import { float_down } from './trap.js';
 import { nomul, unmul } from './hack.js';
@@ -1757,10 +1758,6 @@ async function inaccessible_equipment(player, obj, verb, only_if_known_cursed) {
 
 // cf. do_wear.c equip_ok() — general equipment validation callback
 // Returns a classification code for getobj-style filtering.
-const GETOBJ_EXCLUDE = 0;
-const GETOBJ_EXCLUDE_INACCESS = 1;
-const GETOBJ_DOWNPLAY = 2;
-const GETOBJ_SUGGEST = 3;
 
 async function equip_ok(player, obj, removing, accessory) {
     if (!obj) return GETOBJ_EXCLUDE;

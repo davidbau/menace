@@ -35,7 +35,7 @@ import { touch_artifact } from './artifact.js';
 import { makemon, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
-import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES } from './const.js';
+import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES, CHOOSE_ALL } from './const.js';
 import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
@@ -2269,7 +2269,6 @@ async function query_category(qstr, olist, qflags, how, player, game) {
     const win = create_nhwindow(NHW_MENU);
     start_menu(win, MENU_BEHAVE_STANDARD);
 
-    const CHOOSE_ALL = 0x0100;
     const ALL_TYPES_SELECTED = -2;
     const show_a = ccount > 1;
     let invlet = 'a'.charCodeAt(0);

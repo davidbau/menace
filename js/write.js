@@ -18,11 +18,7 @@ import {
     objectData,
 } from './objects.js';
 
-// cf. hack.h:510 — getobj() callback return values (shared protocol, defined here
-// until a dedicated getobj module exists)
-const GETOBJ_EXCLUDE    = -3;
-const GETOBJ_DOWNPLAY   =  1;
-const GETOBJ_SUGGEST    =  2;
+import { GETOBJ_EXCLUDE, GETOBJ_DOWNPLAY, GETOBJ_SUGGEST } from './const.js';
 
 // cf. write.c:14 — returns base cost of writing a scroll or spellbook
 // Cost is the number of marker charges consumed.
