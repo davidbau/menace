@@ -2026,7 +2026,7 @@ export async function dopoly(player, map) {
     // Vampire shape change ability — transform between vampire forms.
     if (!player || !player.type) return 0;
 
-    const POLY_MONSTER = 4;
+    // POLY_MONSTER imported from const.js
 
     if (is_vampire(player.type)) {
         const savedat = player.type;

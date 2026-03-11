@@ -37,7 +37,7 @@ import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural } from './objnam.js';
-import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW } from './const.js';
+import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
 //          end_menu, select_menu, display_nhwindow,
@@ -55,9 +55,7 @@ const MAGICENLIGHTENMENT = 2;
 
 // Trap types imported from trap.js (canonical C values)
 
-// Half-damage categories
-const HALF_PHDAM = 0;
-const HALF_SPDAM = 1;
+// HALF_PHDAM, HALF_SPDAM imported from const.js (property indices 56, 55)
 
 
 // Vanquished sort modes
