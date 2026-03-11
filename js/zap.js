@@ -16,6 +16,8 @@ import {
     MELT_ICE_AWAY,
     HALLUC,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
+    BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
+    CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -141,11 +143,7 @@ const ZT_ACID = 7;
 const ZT_WAND = (x) => x;
 const ZT_SPELL = (x) => 10 + x;
 const ZT_BREATH = (x) => 20 + x;
-const BURIED_TOO = 1;
-const CONTAINED_TOO = 2;
-const PICK_NONE = 0;
-const MINV_NOLET = 0x04;
-const MINV_ALL = 0x08;
+// BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL imported from const.js
 
 let go_obj_zapped = false;
 let gp_poly_zapped = -1;
@@ -693,9 +691,7 @@ function destroyable_by(obj, dmgtyp) {
 // ============================================================
 // cf. zap.c revive() — revive a corpse into a living monster
 // ============================================================
-const CORPSTAT_GENDER = 0x03;
-const CORPSTAT_FEMALE = 1;
-const CORPSTAT_MALE = 2;
+// CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE imported from const.js
 
 export async function revive(obj, by_hero, map, player = null) {
   if (!obj || obj.otyp !== CORPSE) return null;

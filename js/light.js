@@ -19,7 +19,8 @@
 //   snuff_light_source(): extinguish light at a location.
 //   save/restore_light_sources: persistence (N/A in JS, uses storage.js).
 
-import { COLNO, ROWNO, isok, LS_OBJECT, LS_MONSTER, OBJ_INVENT, OBJ_CONTAINED, OBJ_MINVENT } from './const.js';
+import { COLNO, ROWNO, isok, LS_OBJECT, LS_MONSTER, OBJ_INVENT, OBJ_CONTAINED, OBJ_MINVENT,
+         COULD_SEE, TEMP_LIT, MAX_RADIUS } from './const.js';
 import {
     CANDELABRUM_OF_INVOCATION, TALLOW_CANDLE, WAX_CANDLE,
     BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP, POT_OIL,
@@ -34,11 +35,7 @@ import { clear_path, mark_vision_dirty } from './vision.js';
 const LSF_SHOW = 0x1;
 const LSF_NEEDS_FIXUP = 0x2;
 
-const MAX_RADIUS = 16;
-
-// TEMP_LIT / COULD_SEE must match vision.js values
-const COULD_SEE = 0x1;
-const TEMP_LIT  = 0x4;  // C ref: vision.h — TEMP_LIT marks temporarily-lit cells
+// COULD_SEE, TEMP_LIT, MAX_RADIUS imported from const.js
 
 // ---------- Module State ----------
 // Linked list head for all light sources.  In JS we use a simple array.

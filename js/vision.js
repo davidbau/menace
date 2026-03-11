@@ -11,11 +11,7 @@ import { COLNO, ROWNO, DOOR, SDOOR, POOL,
          CROSSWALL, TRWALL } from './const.js';
 import { BOULDER } from './objects.js';
 import { is_pool } from './dbridge.js';
-import { TT_PIT } from './const.js';
-
-// Vision bit flags (C ref: vision.h)
-const COULD_SEE = 0x1;
-const IN_SIGHT  = 0x2;
+import { TT_PIT, COULD_SEE, IN_SIGHT, MAX_RADIUS } from './const.js';
 const TEMP_LIT  = 0x4;  // C ref: vision.h — set by do_light_sources() for dynamic light
 
 // Module-level state for Algorithm C (C ref: vision.c lines 1125-1133)
@@ -31,7 +27,7 @@ export function clear_vision_full_recalc() { vision_full_recalc = 0; }
 let vis_func = null;
 let varg = null;
 
-const MAX_RADIUS = 16;
+// MAX_RADIUS imported from const.js
 
 function getMapCloudVisibility(map, x, y) {
     if (!map || !Array.isArray(map.gasClouds)) return false;
