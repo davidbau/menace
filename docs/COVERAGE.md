@@ -34,6 +34,7 @@ NPM command:
 - `npm run coverage:session-parity:report`
 - `npm run coverage:session-parity:snapshot`
 - `npm run coverage:session-parity:diff -- --base <snapshot.json>`
+- `npm run coverage:session-parity:refresh`
 
 Behavior:
 1. Runs `c8` against `node test/comparison/session_test_runner.js`.
@@ -93,6 +94,12 @@ Useful options:
 node scripts/session-parity-coverage-diff.mjs --base old.json --head new.json --top 30
 node scripts/session-parity-coverage-diff.mjs --base old.json --json
 node scripts/session-parity-coverage-diff.mjs --base old.json --show-zero
+```
+
+One-shot refresh (coverage + snapshot + report + diff-vs-previous):
+
+```bash
+npm run coverage:session-parity:refresh
 ```
 
 ## Command Examples

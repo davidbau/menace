@@ -24,6 +24,7 @@
     "coverage:session-parity:report": "node scripts/session-parity-coverage-report.mjs",
     "coverage:session-parity:snapshot": "node scripts/session-parity-coverage-snapshot.mjs",
     "coverage:session-parity:diff": "node scripts/session-parity-coverage-diff.mjs",
+    "coverage:session-parity:refresh": "bash scripts/run-session-parity-coverage-refresh.sh --text",
     "serve": "python3 -m http.server 8080",
     "postinstall": "./scripts/setup-testing.sh"
   },
