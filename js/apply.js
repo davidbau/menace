@@ -118,6 +118,7 @@ const MAXLEASHED = 2;
 const DIRECTION_KEYS = {
     'h': [-1, 0], 'j': [0, 1], 'k': [0, -1], 'l': [1, 0],
     'y': [-1, -1], 'u': [1, -1], 'b': [-1, 1], 'n': [1, 1],
+    '.': [0, 0],
 };
 
 // nothing_happens imported from const.js
@@ -380,12 +381,12 @@ export function beautiful(player) {
 }
 
 // cf. apply.c:1014 -- STUB: use_mirror (depends on bhit, Medusa, etc.)
-async function use_mirror(obj) {
+async function use_mirror(obj, player = null) {
     if (obj.cursed && !rn2(2)) {
         await pline("The mirror fogs up and doesn't reflect!");
         return;
     }
-    await pline("You look as ugly as ever.");
+    await pline(`You look as ${beautiful(player)} as ever.`);
 }
 
 // cf. apply.c:1198 -- STUB: use_bell (depends on invocation_pos, makemon)
@@ -967,6 +968,22 @@ export function isApplyDownplay(obj) {
     return false;
 }
 
+function compactInvlets(letters) {
+    const sorted = [...new Set(String(letters || '').split(''))].sort();
+    if (sorted.length <= 5) return sorted.join('');
+    const out = [];
+    let i = 0;
+    while (i < sorted.length) {
+        let j = i;
+        while (j + 1 < sorted.length
+               && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
+        if (j - i >= 2) out.push(sorted[i], '-', sorted[j]);
+        else for (let k = i; k <= j; k++) out.push(sorted[k]);
+        i = j + 1;
+    }
+    return out.join('');
+}
+
 // ====================================================================
 // cf. apply.c:4209 -- doapply / handleApply
 // ====================================================================
@@ -985,7 +1002,7 @@ export async function handleApply(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    const letters = candidates.map((item) => item.invlet).join('');
+    const letters = compactInvlets(candidates.map((item) => item.invlet).join(''));
     const candidateByInvlet = new Map(
         candidates
             .filter((item) => item?.invlet)
@@ -1142,6 +1159,10 @@ export async function handleApply(player, map, display, game) {
                 return { moved: false, tookTime: false };
             }
             replacePromptMessage();
+            if (selected.otyp === MIRROR) {
+                await use_mirror(selected, player);
+                return { moved: false, tookTime: true };
+            }
             return { moved: false, tookTime: false };
         }
 
@@ -1158,6 +1179,11 @@ export async function handleApply(player, map, display, game) {
 
         if (selected.otyp === LAND_MINE || selected.otyp === BEARTRAP) {
             return await use_trap(selected, player, map, display, game);
+        }
+
+        if (selected.otyp === TINNING_KIT) {
+            await display.putstr_message("You don't have anything to tin.");
+            return { moved: false, tookTime: true };
         }
 
         if (selected.oclass === WAND_CLASS) {
