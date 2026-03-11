@@ -2,7 +2,7 @@
 
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { statSync, readFileSync } from 'node:fs';
+import { statSync, readFileSync, existsSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 
@@ -1083,6 +1083,7 @@ export async function runSessionBundle({
     }).filter((session) => !SKIP_SESSIONS.has(session.file));
 
     const requested = new Set();
+    const requestedPaths = new Set();
     if (sessionListPath) {
         const text = readFileSync(sessionListPath, 'utf8');
         for (const raw of text.split(/\r?\n/)) {
@@ -1108,9 +1109,38 @@ export async function runSessionBundle({
             if (name) requested.add(name);
         }
     }
-    const filteredSessions = requested.size > 0
+    let filteredSessions = requested.size > 0
         ? sessions.filter((session) => requested.has(session.file))
         : sessions;
+
+    // Allow --sessions entries to include file paths (for example subdirs
+    // under sessions/, such as coverage fixtures).
+    if (requested.size > 0) {
+        for (const req of requested) {
+            if (!req.includes('/') && !req.includes('\\')) continue;
+            const resolvedReq = resolve(process.cwd(), req);
+            if (!existsSync(resolvedReq)) continue;
+            requestedPaths.add(resolvedReq);
+        }
+        for (const resolvedReq of requestedPaths) {
+            const loaded = loadAllSessions({
+                sessionPath: resolvedReq,
+                useGolden,
+                goldenBranch,
+                typeFilter,
+            }).filter((session) => !SKIP_SESSIONS.has(session.file));
+            if (loaded.length > 0) filteredSessions.push(...loaded);
+        }
+        if (filteredSessions.length > 1) {
+            const seen = new Set();
+            filteredSessions = filteredSessions.filter((session) => {
+                const key = `${session.file}::${session.meta?.type || ''}::${session.seed ?? ''}::${session.steps?.length ?? 0}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+    }
 
     if (isComparisonArtifactsEnabled() && !process.env.WEBHACK_COMPARISON_DIR) {
         process.env.WEBHACK_COMPARISON_DIR = initComparisonArtifactsRunDir();
@@ -1278,7 +1308,7 @@ export async function runSessionCli() {
             console.log('  --fail-fast       Stop on first failure');
             console.log('  --type=TYPE       Filter by session type (chargen,gameplay,etc)');
             console.log('  --session-list=FILE  Run only session files listed in FILE (one per line)');
-            console.log('  --sessions=a,b,c  Run only these session files (comma-separated)');
+            console.log('  --sessions=a,b,c  Run only these session files (comma-separated; basename or path)');
             console.log('  --failed[=FILE]   Run sessions marked failed in FILE (default: oracle/pending.jsonl)');
             console.log('  --session-timeout-ms=N  Timeout for single-session runs (default: 20000)');
             console.log('  --datetime-source=MODE  session|recorded-at-prefer|recorded-at-only');
