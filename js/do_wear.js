@@ -1,7 +1,7 @@
 // do_wear.js -- Armor wearing/removing mechanics
 // cf. do_wear.c — dowear, doputon, dotakeoff, doremring, doddoremarm, find_ac
 
-import { nhgetch } from './input.js';
+import { nhgetch, more } from './input.js';
 import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          WEAPON_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS,
@@ -2245,10 +2245,14 @@ async function handleWear(player, display, game = null) {
 
         const selected = (player.inventory || []).find((o) => o.invlet === c);
         if (!selected) {
+            // C ref: getobj() — invalid inventory letter shows error and re-prompts.
             resetTopline(display);
-            await display.putstr_message('Never mind.');
-            updateLastPlineMessage('Never mind.');
-            return { moved: false, tookTime: false };
+            await display.putstr_message("You don't have that object.");
+            updateLastPlineMessage("You don't have that object.");
+            await more(display, { forceVisual: true });
+            resetTopline(display);
+            await display.putstr_message(wearPrompt);
+            continue;
         }
         if (!isAccessoryOrArmorItem(selected)) {
             resetTopline(display);
@@ -2325,10 +2329,14 @@ async function handlePutOn(player, display, game = null) {
 
         const selected = (player.inventory || []).find((o) => o.invlet === c);
         if (!selected) {
-            if (typeof display.clearRow === 'function') display.clearRow(0);
+            // C ref: getobj() — invalid inventory letter shows error and re-prompts.
             resetTopline(display);
-            await display.putstr_message('Never mind.');
-            return { moved: false, tookTime: false };
+            await display.putstr_message("You don't have that object.");
+            updateLastPlineMessage("You don't have that object.");
+            await more(display, { forceVisual: true });
+            resetTopline(display);
+            await display.putstr_message(putOnPrompt);
+            continue;
         }
         if (!putOnCandidates.includes(selected)) {
             resetTopline(display);
@@ -2391,8 +2399,14 @@ async function handleTakeOff(player, display, game = null) {
             }
             item = wornAll.find((a) => a.invlet === c);
             if (!item) {
-                await display.putstr_message('Never mind.');
-                return { moved: false, tookTime: false };
+                // C ref: getobj() — invalid inventory letter shows error and re-prompts.
+                resetTopline(display);
+                await display.putstr_message("You don't have that object.");
+                updateLastPlineMessage("You don't have that object.");
+                await more(display, { forceVisual: true });
+                resetTopline(display);
+                await display.putstr_message(takeOffPrompt);
+                continue;
             }
             break;
         }
@@ -2449,8 +2463,14 @@ async function handleRemove(player, display, game = null) {
             }
             item = wornAll.find((a) => a.invlet === c);
             if (!item) {
-                await display.putstr_message('Never mind.');
-                return { moved: false, tookTime: false };
+                // C ref: getobj() — invalid inventory letter shows error and re-prompts.
+                resetTopline(display);
+                await display.putstr_message("You don't have that object.");
+                updateLastPlineMessage("You don't have that object.");
+                await more(display, { forceVisual: true });
+                resetTopline(display);
+                await display.putstr_message(removePrompt);
+                continue;
             }
             break;
         }

@@ -123,6 +123,7 @@ export async function display_nhwindow(win, blocking) {
         if (_display?.renderTextPopup) {
             _display.renderTextPopup(lines, popupOpts);
         }
+        w._popupRendered = true;
         if (blocking) {
             // C ref: tty_more() semantics for text/menu blocking prompts:
             // only specific keys dismiss --More-- style windows.
@@ -235,6 +236,10 @@ function forEachActiveTextPopupWindow(visitor) {
         if (!w) continue;
         if (w.type !== NHW_MENU && w.type !== NHW_TEXT) continue;
         if (w.mlist.length !== 0 || w.data.length === 0) continue;
+        // Only include windows whose popup has actually been rendered via
+        // display_nhwindow.  Windows still waiting for a pre-popup --More--
+        // dismissal should not be redrawn yet.
+        if (!w._popupRendered) continue;
         visitor(w);
     }
 }
