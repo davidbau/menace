@@ -7575,3 +7575,23 @@ hard-won wisdom:
   - `node --test test/unit/codematch_blindness_restore_surface.test.js`
   - `node --test test/unit/command_quaff_prompt.test.js`
   - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
+
+## 2026-03-11: invent.c surface de-stub batch (`display_used_invlets`/`doperminv`/`dotypeinv`/`dounpaid`/`menu_identify`/`reroll_menu`)
+
+- Problem:
+  - Several `invent.c` compatibility surfaces were still explicit stubs in `invent.js`, and `count_unidentified()` still used linked-list iteration against JS arrays.
+- Change:
+  - `js/invent.js`:
+    - `count_unidentified()` now correctly counts against JS array inventories.
+    - `display_used_invlets()` now reports current used inventory letters on the message line.
+    - `doperminv()` now toggles `flags.perm_invent`, invokes `perm_invent_toggled()`, and emits an on/off status message.
+    - `dotypeinv()` now emits current inventory categories/items (instead of no-op stub).
+    - `dounpaid()` now lists unpaid carried items (including container-held unpaid contents) and reports the no-unpaid case.
+    - `menu_identify()` now routes into `identify_pack()` with a normalized limit; `reroll_menu()` now reuses that path.
+  - `docs/CODEMATCH.md`:
+    - Updated the above `invent.c` rows from `Implemented (stub)` to `Implemented`.
+  - Added `test/unit/invent_surface_behavior.test.js` covering these surfaces.
+- Validation:
+  - `node --test test/unit/invent_surface_behavior.test.js`
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`

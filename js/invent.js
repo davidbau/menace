@@ -1666,11 +1666,12 @@ export async function identify(otmp) {
 // C ref: invent.c count_unidentified() — count unidentified objects
 // Autotranslated from invent.c:2697
 export function count_unidentified(objchn) {
-  let unid_cnt = 0, obj;
-  for (obj = objchn; obj; obj = obj.nobj) {
-    if (not_fully_identified(obj)) ++unid_cnt;
-  }
-  return unid_cnt;
+    const list = Array.isArray(objchn) ? objchn : [];
+    let unid_cnt = 0;
+    for (const obj of list) {
+        if (obj && not_fully_identified(obj)) ++unid_cnt;
+    }
+    return unid_cnt;
 }
 
 // C ref: invent.c identify_pack() — identify pack items
@@ -2542,27 +2543,82 @@ export function cinv_doname(obj, player) {
 // cf. invent.c:3467 — display_used_invlets()
 // Show which inventory letters are in use. Debug/UI function.
 export function display_used_invlets() {
-    // No-op stub: inventory letter display not needed for gameplay parity.
+    const player = _gstate?.player || null;
+    const display = _gstate?.display || null;
+    if (!player || !display || typeof display.putstr_message !== 'function') return '';
+
+    const letters = (player.inventory || [])
+        .map((obj) => String(obj?.invlet || ''))
+        .filter((ch) => ch.length > 0)
+        .sort((a, b) => invletSortValue(a) - invletSortValue(b));
+
+    const msg = letters.length > 0
+        ? `Used inventory letters: ${letters.join('')}`
+        : 'No inventory letters are in use.';
+    void Promise.resolve(display.putstr_message(msg));
+    return msg;
 }
 
 // cf. invent.c:2814 — doperminv()
 // Show permanent inventory window. UI function.
 export async function doperminv() {
-    // Stub: permanent inventory window not implemented in JS.
+    const game = _gstate || null;
+    if (!game) return 0;
+    if (!game.flags) game.flags = {};
+    game.flags.perm_invent = !game.flags.perm_invent;
+    perm_invent_toggled();
+    if (game.display && typeof game.display.putstr_message === 'function') {
+        await game.display.putstr_message(
+            `Permanent inventory display ${game.flags.perm_invent ? 'enabled' : 'disabled'}.`
+        );
+    }
     return 0;
 }
 
 // cf. invent.c:3827 — dotypeinv()
 // Display inventory filtered by type. UI function.
 export async function dotypeinv() {
-    // Stub: type-filtered inventory display uses JS menu system.
+    const player = _gstate?.player || null;
+    const display = _gstate?.display || null;
+    if (!player || !display || typeof display.putstr_message !== 'function') return 0;
+
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    if (!inv.length) {
+        await display.putstr_message('Not carrying anything.');
+        return 0;
+    }
+
+    const lines = buildInventoryOverlayLines(player).filter((line) => line !== '(end)');
+    for (const line of lines) {
+        await display.putstr_message(line);
+    }
     return 0;
 }
 
 // cf. invent.c:3654 — dounpaid()
 // List unpaid items. UI function.
 export async function dounpaid() {
-    // Stub: unpaid item listing not needed for gameplay parity.
+    const player = _gstate?.player || null;
+    const display = _gstate?.display || null;
+    if (!player || !display || typeof display.putstr_message !== 'function') return 0;
+
+    const inv = Array.isArray(player.inventory) ? player.inventory : [];
+    const hasUnpaid = (obj) => {
+        if (!obj) return false;
+        if (obj.unpaid) return true;
+        const contents = Array.isArray(obj.cobj) ? obj.cobj : [];
+        return contents.some((child) => hasUnpaid(child));
+    };
+    const unpaid = inv.filter((obj) => hasUnpaid(obj));
+    if (!unpaid.length) {
+        await display.putstr_message('You are not carrying any unpaid objects.');
+        return 0;
+    }
+
+    await display.putstr_message('Unpaid items:');
+    for (const obj of unpaid) {
+        await display.putstr_message(xprname(obj, null, obj.invlet || NOINVSYM, true, 0, 0, player));
+    }
     return 0;
 }
 
@@ -2588,7 +2644,10 @@ export function loot_xname(obj, player) {
 // cf. invent.c:2660 — menu_identify(id_limit)
 // Identify items via menu. UI function.
 export async function menu_identify(id_limit, player) {
-    // Stub: identification via identify_pack is already implemented.
+    const p = player || _gstate?.player || null;
+    if (!p) return 0;
+    const limit = Number.isFinite(id_limit) ? Math.max(0, Math.floor(id_limit)) : 0;
+    await identify_pack(limit, p, false);
     return 0;
 }
 
@@ -2598,7 +2657,9 @@ export async function menu_identify(id_limit, player) {
 // cf. invent.c:2552 — reroll_menu()
 // Re-roll identification selection menu. UI function.
 export async function reroll_menu() {
-    // Stub: reroll UI not needed for gameplay parity.
+    const p = _gstate?.player || null;
+    if (!p) return 0;
+    await menu_identify(0, p);
     return 0;
 }
 

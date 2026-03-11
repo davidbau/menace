@@ -2223,11 +2223,11 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 3428 | `display_inventory` | invent.js:1868 | Implemented |
 | 5341 | `display_minventory` | invent.js:2279 | Implemented |
 | 3057 | `display_pickinv` | invent.js:1812 | Implemented (approx) |
-| 3467 | `display_used_invlets` | invent.js:display_used_invlets | Implemented (stub) |
+| 3467 | `display_used_invlets` | invent.js:display_used_invlets | Implemented |
 | 4319 | `dolook` | invent.js:2071 | Implemented |
 | 4981 | `doorganize` | invent.js:463 | Implemented (inline in item action menu 'i' handler; prompt + letter swap) |
 | 5068 | `doorganize_core` | invent.js:463 | Implemented (inline; see doorganize) |
-| 2814 | `doperminv` | invent.js:doperminv | Implemented (stub) |
+| 2814 | `doperminv` | invent.js:doperminv | Implemented |
 | 4679 | `dopramulet` | invent.js:2165 | Implemented |
 | 4601 | `doprarm` | invent.js:2141 | Implemented |
 | 4503 | `doprgold` | invent.js:2117 | Implemented |
@@ -2235,8 +2235,8 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4642 | `doprring` | invent.js:2155 | Implemented |
 | 4715 | `doprtool` | invent.js:2182 | Implemented |
 | 4550 | `doprwep` | invent.js:2127 | Implemented |
-| 3827 | `dotypeinv` | invent.js:dotypeinv | Implemented (stub) |
-| 3654 | `dounpaid` | invent.js:dounpaid | Implemented (stub) |
+| 3827 | `dotypeinv` | invent.js:dotypeinv | Implemented |
+| 3654 | `dounpaid` | invent.js:dounpaid | Implemented |
 | 4343 | `feel_cockatrice` | invent.js:2085 | Implemented |
 | 3021 | `find_unpaid` | invent.js:1766 | Implemented |
 | 4845 | `free_invbuf` | invent.js:free_invbuf | Implemented (no-op) |
@@ -2261,7 +2261,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4104 | `look_here` | invent.js:2038 | Implemented |
 | 149 | `loot_classify` | invent.js:800 | Implemented |
 | 309 | `loot_xname` | invent.js:loot_xname | Implemented |
-| 2660 | `menu_identify` | invent.js:menu_identify | Implemented (stub) |
+| 2660 | `menu_identify` | invent.js:menu_identify | Implemented |
 | 4379 | `mergable` | invent.js:2109 (re-export from mkobj) | Implemented |
 | 775 | `merge_choice` | invent.js:976 | Implemented |
 | 814 | `merged` | invent.js:986 | Implemented |
@@ -2278,7 +2278,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 4855 | `reassign` | invent.js:2231 | Implemented |
 | 739 | `reorder_invent` | invent.js:918 | Implemented |
 | 3456 | `repopulate_perminvent` | invent.js:2394 | Implemented |
-| 2552 | `reroll_menu` | invent.js:reroll_menu | Implemented (stub) |
+| 2552 | `reroll_menu` | invent.js:reroll_menu | Implemented |
 | 2188 | `safeq_shortxprname` | invent.js:1606 | Implemented |
 | 2180 | `safeq_xprname` | invent.js:1602 | Implemented |
 | 2624 | `set_cknown_lknown` | invent.js:1624 | Implemented |
