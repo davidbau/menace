@@ -107,7 +107,7 @@ async function flash_glyph_at(x, y, glyph, repeatCount = 1) {
     }
     tmp_at(DISP_END, 0);
 }
-function feel_location() {}
+// feel_location: canonical version in hack.js (stub)
 // flush_screen imported from display.js
 export async function strange_feeling(sobj, msg, player, display) {
     if (display && msg) await display.putstr_message(msg);

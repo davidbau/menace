@@ -4,6 +4,7 @@
 
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
+import { golemhp } from './polyself.js';
 import { rn2, rnd, rn1, d, c_d, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
 import { def_monsyms } from './symbols.js';
@@ -723,22 +724,7 @@ export function dump_mongen() {
 // C ref: makemon.c:1013-1055
 // ========================================================================
 
-function golemhp(mndx) {
-    switch (mndx) {
-    case PM_STRAW_GOLEM: return 20;
-    case PM_PAPER_GOLEM: return 20;
-    case PM_ROPE_GOLEM: return 30;
-    case PM_LEATHER_GOLEM: return 40;
-    case PM_GOLD_GOLEM: return 60;
-    case PM_WOOD_GOLEM: return 50;
-    case PM_FLESH_GOLEM: return 40;
-    case PM_CLAY_GOLEM: return 70;
-    case PM_STONE_GOLEM: return 100;
-    case PM_GLASS_GOLEM: return 80;
-    case PM_IRON_GOLEM: return 120;
-    default: return 0;
-    }
-}
+// golemhp imported from polyself.js (canonical home: polyself.c)
 
 export function newmonhp(mndx, depth = 1) {
     const ptr = mons[mndx];

@@ -83,6 +83,8 @@ import { aggravate } from './wizard.js';
 import { spelleffects } from './spell.js';
 import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
+import { unpunish, punish } from './read.js';
+import { you_unwere } from './were.js';
 import { Luck, change_luck } from './attrib.js';
 import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
@@ -319,34 +321,13 @@ function init_uhunger(player) {
 
 // done imported from end.js
 
-// Helper: unpunish
-function unpunish(player) {
-    player.punished = false;
-}
+// unpunish imported from read.js
 
-// Helper: punish
-function punish(player) {
-    player.punished = true;
-}
+// punish imported from read.js
 
 // heal_legs imported from do.js
 
-// Helper: you_unwere -- cure lycanthropy
-function you_unwere(player, _talk) {
-    player.ulycn = -1;
-}
-
-
-// Helper: setuhpmax
-function setuhpmax(player, newmax, alwaysSetBase) {
-    if (alwaysSetBase || !player.Upolyd) {
-        player.uhpmax = newmax;
-    }
-    if (player.Upolyd) {
-        player.mhmax = newmax;
-    }
-}
-
+// you_unwere imported from were.js
 
 // Helper: reset_utrap
 function reset_utrap(player, _talk) {
@@ -873,7 +854,7 @@ async function fix_worst_trouble(trouble, player, map) {
         await fix_curse_trouble(otmp, what, player);
         break;
     case TROUBLE_LYCANTHROPE:
-        you_unwere(player, true);
+        await you_unwere(player, true);
         break;
     case TROUBLE_PUNISHED:
         await Your("chain disappears.");
@@ -1062,7 +1043,7 @@ async function angrygods(resp_god, player, map) {
     case 6:
         if (!Punished(player)) {
             await gods_angry(resp_god, player);
-            punish(player);
+            await punish(null, player, map);
             break;
         }
         // FALLTHRU

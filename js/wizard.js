@@ -52,6 +52,7 @@ import { is_quest_artifact } from './objdata.js';
 import { rndcurse } from './sit.js';
 import { builds_up, In_endgame, In_W_tower, In_hell, Is_astralevel, Is_rogue_level } from './dungeon.js';
 import { inhistemple } from './priest.js';
+import { inhishop } from './shk.js';
 import { game as _gstate } from './gstate.js';
 
 // Strategy constants imported from const.js (monst.h)
@@ -133,8 +134,7 @@ const Inhell = In_hell;
 // Is_astralevel imported from dungeon.js
 
 
-// inhishop — simplified check
-function inhishop(mtmp) { return !!(mtmp.isshk && mtmp.shoproom); }
+// inhishop imported from shk.js
 
 // ptr accessor for monster data
 function mptr(mtmp) { return mtmp.data || mtmp.type || {}; }
@@ -271,7 +271,7 @@ function strategy(mtmp, map, player) {
     const ptr = mptr(mtmp);
 
     if (!is_covetous(ptr)
-        || (mtmp.isshk && inhishop(mtmp))
+        || (mtmp.isshk && inhishop(mtmp, map))
         || (mtmp.ispriest && inhistemple(mtmp, map)))
         return STRAT_NONE;
 

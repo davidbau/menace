@@ -111,6 +111,7 @@ import { m_in_out_region } from './region.js';
 import { set_apparxy } from './monmove.js';
 import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
+import { abuse_dog } from './dog.js';
 import { is_watch, bigmonst, verysmall, mhis } from './mondata.js';
 import { water_damage, mintrap_postmove, instapetrify, t_at, b_trapped, chest_trap } from './trap.js';
 import { makemon } from './makemon.js';
@@ -272,15 +273,7 @@ function special_dmgval(youmonst, mon, wslot, longptr) {
     return 0;
 }
 
-// ============================================================================
-// abuse_dog stub
-// ============================================================================
-function abuse_dog(mon) {
-    // cf. dog.c abuse_dog() — reduce tameness, maybe untame
-    if (mon.mtame) {
-        mon.mtame--;
-    }
-}
+// abuse_dog imported from dog.js
 
 // ============================================================================
 // remove_monster / place_monster helpers

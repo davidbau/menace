@@ -12,6 +12,9 @@ import { dist2, distmin } from './hacklib.js';
 import { movobj, near_capacity, losehp, nomul, spoteffects } from './hack.js';
 import { flooreffects } from './do.js';
 import { placeFloorObject, carried } from './invent.js';
+import { body_part } from './polyself.js';
+import { is_pool } from './dbridge.js';
+import { place_object, remove_object } from './mkobj.js';
 import { IS_OBSTRUCTED, IS_DOOR, D_CLOSED, D_LOCKED, POOL,
          is_pit, is_hole, A_STR, SLT_ENCUMBER,
          W_BALL, W_CHAIN, W_WEAPONS,
@@ -39,13 +42,7 @@ const BCPOS_CHAIN = 1;  // chain on top of ball
 const BCPOS_BALL = 2;   // ball on top of chain
 
 // hard_helmet imported from do_wear.js
-
-// Helper: body_part
-function body_part(part) {
-    // Simplified mapping
-    const parts = { HEAD: 'head', LEG: 'leg', HAND: 'hand', FOOT: 'foot' };
-    return parts[part] || part;
-}
+// body_part imported from polyself.js
 
 // Helper: Maybe_Half_Phys — half physical damage if player has the property
 function Maybe_Half_Phys(n, player) {
@@ -56,12 +53,7 @@ function Maybe_Half_Phys(n, player) {
 // Helper: Soundeffect stub
 function Soundeffect() { }
 
-// Helper: is_pool
-function is_pool(x, y, map) {
-    const loc = map && map.at(x, y);
-    if (!loc) return false;
-    return loc.typ >= 16 && loc.typ <= 22; // POOL..DRAWBRIDGE_UP range
-}
+// is_pool imported from dbridge.js
 
 // Helper: IS_CHAIN_ROCK — is position solid rock or closed/locked door?
 function IS_CHAIN_ROCK(x, y, map) {
@@ -85,19 +77,7 @@ function cls(display) {
     if (display && display.clear) display.clear();
 }
 
-// Helper: place_object — place object on map floor
-function place_object(obj, x, y, map) {
-    obj.ox = x;
-    obj.oy = y;
-    obj.where = 'OBJ_FLOOR';
-    placeFloorObject(map, obj);
-}
-
-// Helper: remove_object — remove object from map floor
-function remove_object(obj, map) {
-    if (map && map.removeObject) map.removeObject(obj);
-    obj.where = 'OBJ_FREE';
-}
+// place_object, remove_object imported from mkobj.js
 
 // cf. ball.c:23 — ballrelease(showmsg): drop carried ball
 export async function ballrelease(showmsg, player, map) {

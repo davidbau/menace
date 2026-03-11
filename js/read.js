@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -64,6 +64,8 @@ import { obfree } from './shk.js';
 import { which_armor } from './worn.js';
 import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
 import { closed_door } from './monmove.js';
+import { is_pool, is_lava } from './dbridge.js';
+import { game as _gstate } from './gstate.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -1592,8 +1594,9 @@ export async function forget(howmuch, game, map, player) {
 
 // Autotranslated from read.c:1067
 export function valid_cloud_pos(x, y, map) {
-  if (!isok(x,y)) return false;
-  return ACCESSIBLE(map.locations[x][y].typ) || is_pool(x, y) || is_lava(x, y);
+  const m = map || _gstate?.lev || _gstate?.map;
+  if (!isok(x,y) || !m?.locations?.[x]?.[y]) return false;
+  return ACCESSIBLE(m.locations[x][y].typ) || is_pool(x, y, m) || is_lava(x, y, m);
 }
 
 // Autotranslated from read.c:2287

@@ -87,6 +87,7 @@ import { in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
 import { monsterAtWithSegments, worm_cross } from './worm.js';
 import { ansimpleoname, Has_contents, vtense, makeplural } from './objnam.js';
+import { corpse_intrinsic } from './eat.js';
 import { game as _gstate } from './gstate.js';
 import { sengr_at, del_engr_at } from './engrave.js';
 import { adjalign, change_luck } from './attrib.js';
@@ -1963,30 +1964,7 @@ function should_givit(type, ptr) {
     return (ptr.mlevel || 0) > rn2(chance);
 }
 
-// C ref: eat.c:1339 corpse_intrinsic() — pick which intrinsic to try giving
-function corpse_intrinsic(ptr) {
-    if (!ptr) return 0;
-    const conveys_STR = is_giant(ptr);
-    let count = 0;
-    let prop = 0;
-
-    if (conveys_STR) {
-        count = 1;
-        prop = -1; // fake prop index for STR
-    }
-    // C ref: LAST_PROP scan — check all props that intrinsic_possible handles
-    for (let i = 1; i <= LAST_PROP; i++) {
-        if (!intrinsic_possible(i, ptr)) continue;
-        ++count;
-        if (!rn2(count)) {
-            prop = i;
-        }
-    }
-    // If strength is the only candidate, give it 50% chance
-    if (conveys_STR && count === 1 && !rn2(2))
-        prop = 0;
-    return prop;
-}
+// corpse_intrinsic imported from eat.js (canonical home: eat.c:1339)
 
 // C ref: mon.c:1711 mon_give_prop() — grant a resistance intrinsic to monster
 export function mon_give_prop(mon, prop) {

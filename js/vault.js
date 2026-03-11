@@ -37,9 +37,12 @@ import { Monnam, noit_Monnam, noit_mon_nam, Some_Monnam, x_monnam,
 import { m_carrying } from './mthrowu.js';
 import { upstart, distu } from './hacklib.js';
 import { money_cnt } from './hack.js';
-import { currency, sobj_at } from './invent.js';
+import { currency, sobj_at, g_at } from './invent.js';
 import { placeFloorObject } from './invent.js';
 import { deltrap } from './dungeon.js';
+import { del_engr_at } from './engrave.js';
+import { is_fainted } from './eat.js';
+import { in_rooms } from './hack.js';
 import { add_to_minv } from './mkobj.js';
 import { makemon } from './makemon.js';
 import { cansee, couldsee, block_point, unblock_point, recalc_block_point } from './vision.js';
@@ -54,56 +57,19 @@ const FCSIZ = ROWNO + COLNO;
 
 // ---------- Local helpers ----------
 
-// C ref: g_at(x, y) — find gold object at location
-function g_at(x, y, map) {
-    if (!map) return null;
-    const objects = map.objectsAt ? map.objectsAt(x, y) : [];
-    for (const obj of objects) {
-        if (!obj || obj.buried) continue;
-        if (obj.oclass === COIN_CLASS) return obj;
-    }
-    return null;
-}
-
-
-// C ref: del_engr_at(x, y) — delete engravings at location (stub)
-function del_engr_at(x, y, map) {
-    // Engravings not fully tracked in JS yet
-}
+// g_at imported from invent.js
+// del_engr_at imported from engrave.js
+// is_fainted imported from eat.js
+// in_rooms imported from hack.js
 
 // C ref: um_dist(x, y, n) — is hero within n steps of (x,y)?
 function um_dist(x, y, n, player) {
     return (Math.abs(player.x - x) <= n && Math.abs(player.y - y) <= n);
 }
 
-
-// C ref: in_rooms(x, y, typewanted) — check if (x,y) is in a room of given type
-// Returns a string of room chars (like urooms), or '' if none.
-function in_rooms(x, y, rtype, map) {
-    if (!map || !map.rooms) return '';
-    let result = '';
-    for (let i = 0; i < map.rooms.length; i++) {
-        const room = map.rooms[i];
-        if (!room) continue;
-        if (rtype !== undefined && room.rtype !== rtype) continue;
-        if (x >= room.lx && x <= room.hx && y >= room.ly && y <= room.hy) {
-            result += String.fromCharCode(i + ROOMOFFSET);
-        }
-    }
-    return result;
-}
-
-
-
 // C ref: mon_visible(mon) — is monster actually visible (not invis/hiding)?
 function mon_visible(grd, player) {
     return monVisibleForMap(grd, player);
-}
-
-
-// C ref: is_fainted() — is hero fainted?
-function is_fainted(player) {
-    return !!(player && player.fainted);
 }
 
 // ========================================================================

@@ -37,6 +37,7 @@ import { is_pool, is_lava } from './dbridge.js';
 import { safe_teleds } from './teleport.js';
 import { losehp } from './hack.js';
 import { dist2 } from './hacklib.js';
+import { valid_cloud_pos } from './read.js';
 import { S_poisoncloud, S_cloud } from './symbols.js';
 import { AD_DRST } from './monsters.js';
 import { PM_FOG_CLOUD } from './monsters.js';
@@ -732,15 +733,7 @@ async function make_gas_cloud(cloud, damage, inside_cloud, map, player, game) {
     }
 }
 
-// ========================================================================
-// cf. region.c:1068 (read.c) — valid_cloud_pos(x, y): can gas cloud exist here?
-// ========================================================================
-function valid_cloud_pos(x, y, map) {
-    if (!isok(x, y)) return false;
-    const loc = map.at(x, y);
-    if (!loc) return false;
-    return ACCESSIBLE(loc.typ) || is_pool(x, y, map) || is_lava(x, y, map);
-}
+// valid_cloud_pos imported from read.js
 
 // ========================================================================
 // cf. region.c:1213 — create_gas_cloud(x, y, cloudsize, damage): BFS gas cloud

@@ -157,18 +157,6 @@ export function u_at(player, x, y) {
 
 // M_AP_TYPE imported from mondata.js
 
-function remove_object(obj, map) {
-    if (!obj || !map) return;
-    if (typeof map.removeObject === 'function') {
-        map.removeObject(obj);
-        return;
-    }
-    if (Array.isArray(map.objects)) {
-        const idx = map.objects.indexOf(obj);
-        if (idx >= 0) map.objects.splice(idx, 1);
-    }
-}
-
 function ensure_context(game) {
     if (game?.svc) {
         if (!game.svc.context) game.svc.context = {};

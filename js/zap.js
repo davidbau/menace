@@ -8,7 +8,7 @@ import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
-    TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE,
+    TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE, is_magical_trap,
     MM_NOWAIT, MM_NOMSG, MM_NOCOUNTBIRTH, MM_MALE, MM_FEMALE,
     W_ARMOR, W_ACCESSORY, W_WEP, W_ARMC, W_ARM, W_ARMU, W_ARMH, W_ARMG,
     W_ARMF, W_ARMS, W_AMUL, W_TOOL, W_RING, W_RINGL, W_RINGR,
@@ -2280,10 +2280,7 @@ export function item_what(_osym_or_dmgtyp, maybe_dmgtyp = null, maybe_player = n
 
 // Is_box imported from objnam.js
 
-function is_magical_trap(ttyp) {
-  return ttyp === MAGIC_TRAP || ttyp === ANTI_MAGIC || ttyp === POLY_TRAP
-    || ttyp === TELEP_TRAP || ttyp === LEVEL_TELEP;
-}
+// is_magical_trap imported from const.js
 
 function undestroyable_trap(ttyp) {
   return ttyp === MAGIC_PORTAL || ttyp === VIBRATING_SQUARE;

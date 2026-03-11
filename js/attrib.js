@@ -1060,60 +1060,8 @@ export async function adjabil(player, oldlevel, newlevel) {
     }
 }
 
-// cf. attrib.c:1077 — newhp()
-// Already ported in exper.js as newhp(). Re-export here for completeness.
-export function newhp(player) {
-    const role = roles[player.roleIndex];
-    const race = races[player.race];
-    if (!role || !race) return 1;
-    const roleHpadv = role.hpadv || {infix:10, inrnd:0, lofix:0, lornd:8, hifix:1, hirnd:0};
-    const raceHpadv = race.hpadv || {infix:2, inrnd:0, lofix:0, lornd:2, hifix:1, hirnd:0};
-    let hp;
-
-    if ((player.ulevel || 0) === 0) {
-        hp = roleHpadv.infix + raceHpadv.infix;
-        if (roleHpadv.inrnd > 0)
-            hp += rnd(roleHpadv.inrnd);
-        if (raceHpadv.inrnd > 0)
-            hp += rnd(raceHpadv.inrnd);
-
-        if ((player.turns || 0) === 0) {
-            // Initialize alignment
-            // Already done in u_init; included here for C parity
-        }
-    } else {
-        if (player.ulevel < (role.xlev || 14)) {
-            hp = roleHpadv.lofix + raceHpadv.lofix;
-            if (roleHpadv.lornd > 0) hp += rnd(roleHpadv.lornd);
-            if (raceHpadv.lornd > 0) hp += rnd(raceHpadv.lornd);
-        } else {
-            hp = roleHpadv.hifix + raceHpadv.hifix;
-            if (roleHpadv.hirnd > 0) hp += rnd(roleHpadv.hirnd);
-            if (raceHpadv.hirnd > 0) hp += rnd(raceHpadv.hirnd);
-        }
-        const con = acurr(player, A_CON);
-        let conplus;
-        if (con <= 3) conplus = -2;
-        else if (con <= 6) conplus = -1;
-        else if (con <= 14) conplus = 0;
-        else if (con <= 16) conplus = 1;
-        else if (con === 17) conplus = 2;
-        else if (con === 18) conplus = 3;
-        else conplus = 4;
-        hp += conplus;
-    }
-    if (hp <= 0) hp = 1;
-
-    if ((player.ulevel || 0) < MAXULEV) {
-        if (!player.uhpinc) player.uhpinc = [];
-        player.uhpinc[player.ulevel || 0] = hp;
-    } else {
-        let lim = 5 - Math.floor((player.uhpmax || 0) / 300);
-        lim = Math.max(lim, 1);
-        if (hp > lim) hp = lim;
-    }
-    return hp;
-}
+// newhp: canonical version is in exper.js. Re-export for C parity (attrib.c:1077).
+export { newhp } from './exper.js';
 
 // cf. attrib.c:1144 — minuhpmax(altmin)
 export function minuhpmax(player, altmin) {
