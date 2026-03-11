@@ -78,6 +78,7 @@ import {
 import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, MR_STONE, S_EEL, MAXMCLASSES } from './monsters.js';
 import { roles } from './role.js';
 import { poly_when_stoned } from './mondata.js';
+import { is_organic } from './objdata.js';
 import { getSpecialLevel, findSpecialLevelByName } from './special_levels.js';
 import { placeFloorObject, stackobj } from './invent.js';
 import { mongone } from './mon.js';
@@ -4213,11 +4214,22 @@ export async function object(name_or_opts, x, y) {
             place_object(obj, absX, absY, levelState.map);
             alreadyPlaced = true;
         }
-        rn2(100);
+        rn2(100); // C: obj_resists(otmp, 0, 0) in bury_an_obj — dig.c:2007
         // C ref: bury_an_obj() removes object from floor after obj_resists check,
         // emitting ^remove. Match by removing from map.objects here.
         if (alreadyPlaced && levelState.map) {
             levelState.map.removeObject(obj);
+        }
+        // C ref: bury_an_obj() dig.c:2030-2035 — for non-corpse organic items,
+        // calls obj_resists(otmp, 5, 95) and if item doesn't resist, rnd(250)
+        // for rot timer. under_ice checks POTION_CLASS instead of is_organic.
+        // Note: "under_ice" is not tracked during sp_lev generation, so we
+        // use the standard is_organic path (matching C's non-ice case).
+        if (obj.otyp !== CORPSE && is_organic(obj)) {
+            const chance = rn2(100); // obj_resists(otmp, 5, 95)
+            if (chance >= 5) { // !obj_resists → start rot timer
+                rnd(250);
+            }
         }
     }
 

@@ -54,11 +54,12 @@ import { mb_trapped, closed_door } from './monmove.js';
 import { canseemon, is_whirly, digests, unique_corpstat, is_flyer, is_floater } from './mondata.js';
 import { mksobj } from './mkobj.js';
 import { placeFloorObject, sobj_at } from './invent.js';
+import { obj_resists, is_organic } from './objdata.js';
 import { makemon, mkclass } from './makemon.js';
 import {
     BOULDER, ROCK, STATUE, HEAVY_IRON_BALL, CORPSE,
     APPLE, ORANGE, PEAR, BANANA, EUCALYPTUS_LEAF,
-    PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE, WEAPON_CLASS,
+    PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE, WEAPON_CLASS, POTION_CLASS,
 } from './objects.js';
 import { S_ZOMBIE, S_MUMMY } from './monsters.js';
 import { PM_EARTH_ELEMENTAL, PM_XORN } from './monsters.js';
@@ -1629,8 +1630,8 @@ export function bury_an_obj(otmp, map, player) {
 
     // C: if (otmp == uchain || obj_resists(otmp, 0, 0)) return otmp2
     // Skip chain and resistant objects (Amulet, invocation tools, Rider corpses)
-    // Simplified: skip if marked as no_bury
-    if (otmp.no_bury) return null;
+    if (player && player.uchain && otmp === player.uchain) return null;
+    if (obj_resists(otmp, 0, 0)) return null;
 
     // C: if (otmp->otyp == LEASH && otmp->leashmon != 0) o_unleash(otmp)
     if (otmp.leashmon) {
@@ -1656,7 +1657,8 @@ export function bury_an_obj(otmp, map, player) {
     // Start a rot timer on organic material (not corpses)
     if (otmp.otyp === CORPSE) {
         // Corpses already have their own timers; cancel if under ice
-    } else if (otmp.organic || under_ice) {
+    } else if ((under_ice ? (otmp.oclass === POTION_CLASS) : is_organic(otmp))
+               && !obj_resists(otmp, 5, 95)) {
         // C: start_timer((under_ice ? 0 : 250) + rnd(250), TIMER_OBJECT, ROT_ORGANIC, otmp)
         const rot_time = (under_ice ? 0 : 250) + rnd(250);
         // Timer integration would go here
