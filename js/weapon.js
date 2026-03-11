@@ -24,6 +24,7 @@ import { rnd, d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
          thick_skinned, strongmonst, is_giant, resists_ston, likes_gems,
          is_animal, is_mindless, touch_petrifies, attacktype, x_monnam,
+         throws_rocks,
        } from './mondata.js';
 import { MZ_LARGE, S_EEL, S_SNAKE, S_XORN, S_DRAGON, S_JABBERWOCK,
          S_NAGA, S_WORM_TAIL, S_KOP, S_GIANT,
@@ -407,7 +408,7 @@ export function select_rwep(mtmp) {
         return { weapon: otmp, propellor: null };
 
     // Giants prefer boulders
-    if (((mtmp.data || mtmp.type)?.mflags2 || 0) & 0x00002000 /* M2_ROCKTHROW */ &&
+    if (throws_rocks(mtmp.data || mtmp.type || {}) &&
         (otmp = oselect(mtmp, BOULDER)) != null)
         return { weapon: otmp, propellor: null };
 
