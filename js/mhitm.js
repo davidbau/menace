@@ -900,7 +900,7 @@ export function gulpmm(magr, mdef, mattk, map, vis, display) {
 export function mon_poly(magr, mdef, dmg) {
     // C ref: newcham not ported — just apply damage
     // Cooldown: can't poly again next turn
-    if (magr) magr.mspec_used = (magr.mspec_used || 0) + rnd(2);
+    if (magr) magr.mspec_used = (magr.mspec_used || 0) + c_d(1, 2);
     return dmg;
 }
 
