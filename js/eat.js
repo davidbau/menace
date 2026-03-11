@@ -256,9 +256,15 @@ export function maybe_extend_timed_resist(prop, player) {
 async function gethungry(player) {
     if (player.uinvulnerable) return; // C: no hunger when invulnerable
 
-    // C: (!Unaware || !rn2(10)) — slow metabolism while asleep
-    // Unaware = sleeping or unconscious. Normal play: always true.
-    const unaware = player.Unaware || false;
+    // C Unaware macro (youprop.h): gm.multi < 0 && (unconscious() || is_fainted()).
+    // unconscious() (trap.c) checks usleep or specific nomovemsg wakeup strings.
+    const game = _gstate;
+    const nomovemsg = String(game?.nomovemsg || '');
+    const unconsciousNow = !!(player?.usleep
+        || nomovemsg.startsWith('You awake')
+        || nomovemsg.startsWith('You regain con')
+        || nomovemsg.startsWith('You are consci'));
+    const unaware = ((game?.multi ?? 0) < 0) && (unconsciousNow || is_fainted(player));
     const canEat = !unaware || !rn2(10);
     // C: (carnivorous || herbivorous || metallivorous) && !Slow_digestion
     // Humans are omnivorous (carnivorous|herbivorous), so canEat is usually true.

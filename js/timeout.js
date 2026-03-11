@@ -796,13 +796,20 @@ async function _fireExpiryEffect(player, prop, context = {}) {
 
 export function fall_asleep(howLong, wakeupMsg) {
     const player = _timeoutContext.player;
-    if (!player) return;
-    player.sleeping = true;
-    player.sleepTimeout = Math.max(0, Math.trunc(howLong));
-    player.sleepWakeupMessage = wakeupMsg || 'You wake up.';
+    const game = _gstate;
+    if (!player || !game) return;
+    const howLongI = Math.trunc(howLong);
 
-    // In C this would set the global Slept flag and trigger sleep status logic.
-    // That additional behavior is not yet modeled in this JS foundation.
+    // C ref: timeout.c fall_asleep() -> nomul(how_long), multi_reason="sleeping".
+    if (typeof game.multi !== 'number') game.multi = 0;
+    if (!(game.multi < howLongI)) {
+        game.multi = howLongI;
+    }
+    game.multi_reason = 'sleeping';
+
+    // C ref: u.usleep = moves; nomovemsg chosen by wakeup_msg.
+    player.usleep = Number.isFinite(game.moves) ? game.moves : 0;
+    game.nomovemsg = wakeupMsg ? 'You wake up.' : 'You can move again.';
 }
 
 export function done_timeout(how, which) {

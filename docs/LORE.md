@@ -8176,3 +8176,42 @@ hard-won wisdom:
     - pass, full parity.
   - `node test/comparison/session_test_runner.js --no-parallel --verbose test/comparison/sessions/seed033_manual_direct.session.json`
     - pass (guard check after `#monster` dispatch tightening).
+
+## 2026-03-11: C-faithful immobile-turn draining in run_command (pending session lift)
+
+- Problem:
+  - Pending session `t06_s620_w_qheal_gp` diverged at step 131 with
+    `moveloop_turnend` vs `gethungry`, and JS ended the step without the C-side
+    wakeup/monster-turn sequence.
+  - Root cause: JS `run_command()` only auto-advanced timed turns for
+    `multi > 0` (repeat commands), but C `moveloop()` also keeps advancing turns
+    without fresh input while `multi < 0` (sleep/paralysis/immobile states).
+- Changes:
+  - `js/allmain.js`:
+    - added `drainImmobileTurns()` in `run_command()` and invoked it after the
+      first post-command timed turn (`advanceTimedTurn()`), looping while
+      `game.multi < 0`.
+  - `js/timeout.js`:
+    - corrected `fall_asleep()` to C shape:
+      - sets `game.multi` via nomul-like semantics,
+      - sets `game.multi_reason = "sleeping"`,
+      - sets `player.usleep` and `game.nomovemsg` (`"You wake up."` or
+        `"You can move again."`).
+  - `js/potion.js`:
+    - migrated potion immobilization/sleep paths from legacy
+      `player.sleepTimeout` bookkeeping to `fall_asleep(...)`:
+      - `ghost_from_bottle`,
+      - `peffect_sleeping`,
+      - `peffect_paralysis`,
+      - legacy potion-side sleeping/paralysis branches.
+- Result:
+  - `t06_s620_w_qheal_gp` flipped to full green.
+  - Pending set improved from `2/12` passing to `3/12` passing.
+  - Promoted gameplay suite stayed fully green.
+- Validation:
+  - `node test/comparison/session_test_runner.js --no-parallel --verbose --sessions=test/comparison/sessions/pending/t06_s620_w_qheal_gp.session.json,test/comparison/sessions/pending/t07_s640_w_pray1_gp.session.json,test/comparison/sessions/pending/t07_s641_w_prayt_gp.session.json`
+    - `t06_s620...` pass; two pray sessions still failing.
+  - `scripts/run-and-report.sh --pending --failures`
+    - `3/12` passing, `9/12` failing.
+  - `scripts/run-and-report.sh --failures`
+    - full promoted gameplay remains green (`83/83`).

@@ -31,7 +31,8 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          COLNO, ROWNO, A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, NORMAL_SPEED,
          FEMALE, MALE, TERMINAL_COLS, MAXULEV,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE } from './const.js';
+         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE,
+         TELEPORT, POLYMORPH } from './const.js';
 import { ageSpells } from './spell.js';
 import { wipe_engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
@@ -365,12 +366,22 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c:306-338 — Teleportation/Polymorph/Lycanthropy checks
     {
         const p = (game.u || game.player);
+        const propActive = (propIdx, legacyName, legacyName2 = null) => {
+            if (typeof p?.hasProp === 'function') return !!p.hasProp(propIdx);
+            if (p?.uprops && p.uprops[propIdx]) {
+                const e = p.uprops[propIdx];
+                return !!(e.intrinsic || e.extrinsic || e.blocked);
+            }
+            return !!(p?.[legacyName] || (legacyName2 ? p?.[legacyName2] : 0));
+        };
+        const teleportation = propActive(TELEPORT, 'Teleportation', 'teleportation');
+        const polymorph = propActive(POLYMORPH, 'Polymorph', 'polymorph');
         if (!p.uinvulnerable) {
-            if (p.Teleportation && !rn2(85)) {
+            if (teleportation && !rn2(85)) {
                 // tele() — full teleportation not ported; consume RNG only
                 // TODO: wire tele() when available
             }
-            if (p.Polymorph && !rn2(100)) {
+            if (polymorph && !rn2(100)) {
                 // polyself() — full polymorph not ported; consume RNG only
                 // TODO: wire polyself() when available
             } else if (p.ulycn != null && p.ulycn >= 0 && !p.Upolyd) {
@@ -631,6 +642,19 @@ export async function run_command(game, ch, opts = {}) {
         await display_sync();
     };
 
+    // C ref: allmain.c moveloop() is a perpetual loop; when multi < 0
+    // (sleep/paralysis/etc), it keeps advancing timed turns without reading
+    // fresh command input until recovery.
+    const drainImmobileTurns = async () => {
+        let safety = 0;
+        while (game.multi < 0 && !(game?.playerDied)) {
+            await advanceTimedTurn();
+            if (++safety > 5000) {
+                break;
+            }
+        }
+    };
+
     // Set advanceRunTurn for running mode (G/g commands process monster
     // turns between each movement step rather than batching all movement).
     game.advanceRunTurn = async () => {
@@ -666,6 +690,8 @@ export async function run_command(game, ch, opts = {}) {
         if (typeof result.onAfterTurn === 'function') {
             await result.onAfterTurn(game);
         }
+
+        await drainImmobileTurns();
 
         // Drain any occupation created by the command
         await _drainOccupation(game, coreOpts);

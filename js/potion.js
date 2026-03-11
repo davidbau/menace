@@ -51,7 +51,7 @@ import { hliquid } from './do_name.js';
 import { makeplural } from './objnam.js';
 import { doname } from './objnam.js';
 import { mon_hates_blessings, likes_fire } from './mondata.js';
-import { burn_away_slime } from './timeout.js';
+import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
 import { mons } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
@@ -454,10 +454,12 @@ export async function ghost_from_bottle(player, map) {
         await pline("As you open the bottle, an enormous ghost emerges!");
     }
     await You("are frightened to death, and unable to move.");
-    // nomul(-3) — immobilization
-    player.sleeping = true;
-    player.sleepTimeout = 3;
-    player.sleepWakeupMessage = "You regain your composure.";
+    // C ref: potion.c ghost_from_bottle() uses nomul(-3), multi_reason, nomovemsg.
+    fall_asleep(-3, false);
+    if (gstateGame) {
+        gstateGame.multi_reason = 'being frightened to death';
+        gstateGame.nomovemsg = 'You regain your composure.';
+    }
 }
 
 // cf. potion.c drink_ok() — validate object is drinkable
@@ -642,9 +644,8 @@ export async function peffect_sleeping(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     const duration = rn1(10, 25 - 12 * bcsign);
     await You("suddenly fall asleep!");
-    player.sleeping = true;
-    player.sleepTimeout = duration;
-    player.sleepWakeupMessage = 'You wake up.';
+    // C ref: potion.c peffect_sleeping() -> fall_asleep(-duration, TRUE).
+    fall_asleep(-duration, true);
     return true;
 }
 
@@ -660,9 +661,10 @@ export async function peffect_paralysis(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     const duration = rn1(10, 25 - 12 * bcsign);
     await You_cant("move!");
-    player.sleeping = true;
-    player.sleepTimeout = duration;
-    player.sleepWakeupMessage = 'You can move again.';
+    // C ref: potion.c peffect_paralysis() uses nomul(-duration), not fall_asleep.
+    // Use fall_asleep(..., FALSE) for shared nomul/usleep wiring, then override reason.
+    fall_asleep(-duration, false);
+    if (gstateGame) gstateGame.multi_reason = 'frozen by a potion';
     // C ref: potion.c:892 — exercise(A_DEX, FALSE)
     await exercise(player, A_DEX, false);
     return true;
@@ -1430,9 +1432,7 @@ async function potionbreathe(player, obj) {
         if (!(player.uprops[FREE_ACTION] &&
               (player.uprops[FREE_ACTION].intrinsic || player.uprops[FREE_ACTION].extrinsic))) {
             await pline("Something seems to be holding you.");
-            player.sleeping = true;
-            player.sleepTimeout = rnd(5);
-            player.sleepWakeupMessage = "You can move again.";
+            fall_asleep(-rnd(5), false);
             await exercise(player, A_DEX, false);
         } else {
             await You("stiffen momentarily.");
@@ -1444,9 +1444,7 @@ async function potionbreathe(player, obj) {
             !(player.uprops[SLEEP_RES] &&
               (player.uprops[SLEEP_RES].intrinsic || player.uprops[SLEEP_RES].extrinsic))) {
             await You_feel("rather tired.");
-            player.sleeping = true;
-            player.sleepTimeout = rnd(5);
-            player.sleepWakeupMessage = "You can move again.";
+            fall_asleep(-rnd(5), false);
             await exercise(player, A_DEX, false);
         } else {
             await You("yawn.");
