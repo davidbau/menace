@@ -8215,3 +8215,30 @@ hard-won wisdom:
     - `3/12` passing, `9/12` failing.
   - `scripts/run-and-report.sh --failures`
     - full promoted gameplay remains green (`83/83`).
+
+## 2026-03-11: Fix booze confusion RNG drift via canonical hunger-state defaults
+
+- Problem:
+  - Pending session `t06_s623_w_qmisc_gp` first diverged at step 207 with
+    `rn2(2)` mismatch in `peffect_booze`.
+  - Root cause: JS mixed hunger fields (`hunger` vs `uhunger`) and could enter
+    `peffect_booze` with missing `uhs`, causing fallback `0` and wrong dice
+    count (`d(2,8)` vs C-faithful `d(3,8)` for default `NOT_HUNGRY`).
+- Changes:
+  - `js/player.js`
+    - added C-style `uhunger` accessor aliasing canonical `hunger`.
+    - initialized `uhs` and `hungerState` to `NOT_HUNGRY` in constructor.
+  - `js/potion.js`
+    - added defensive hunger-state derivation helper for booze confusion path.
+    - `peffect_booze` now uses derived hunger state when `uhs` is absent.
+- Result:
+  - `t06_s623_w_qmisc_gp` now has full RNG/event parity:
+    - RNG `2584/2584`
+    - Events `78/78`
+  - Remaining difference is screen-only prompt letters at step 226
+    (`[gho-u]` vs `[ho-u]`), now isolated from RNG/event state drift.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t06_s623_w_qmisc_gp.session.json`
+    - RNG full, events full.
+  - `scripts/run-and-report.sh --failures`
+    - promoted gameplay still green (`92/92`).

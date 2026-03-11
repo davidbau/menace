@@ -108,6 +108,17 @@ function isUpolyd(player) {
     return Number(player.umonnum) !== Number(player.umonster);
 }
 
+function hungerStateForBooze(player) {
+    if (Number.isInteger(player?.uhs)) return player.uhs;
+    if (Number.isInteger(player?.hungerState)) return player.hungerState;
+    const h = Number(player?.uhunger ?? player?.hunger ?? 0);
+    if (h > 1000) return 0; // SATIATED
+    if (h > 150) return 1;  // NOT_HUNGRY
+    if (h > 50) return 2;   // HUNGRY
+    if (h > 0) return 3;    // WEAK
+    return 4;               // FAINTING
+}
+
 // ============================================================
 // 1. Intrinsic timeouts
 // ============================================================
@@ -948,7 +959,7 @@ export async function peffect_booze(player, otmp, display) {
         hallu ? "dandelion wine" : "liquid fire");
     if (!otmp.blessed) {
         // C: d(2 + u.uhs, 8) where uhs = hunger state (0=satiated..5=fainting)
-        const uhs = player.uhs || 0;
+        const uhs = hungerStateForBooze(player);
         await make_confused(player, itimeout_incr(player.getPropTimeout(CONFUSION),
             c_d(2 + uhs, 8)), false);
     }

@@ -79,16 +79,15 @@ export class Player {
         // Hunger: 900 = normal starting value
         // C ref: you.h u.uhunger (starts at 900)
         this.hunger = 900;
-        // C ref: you.h u.uhs (initial hunger state)
-        this.uhs = NOT_HUNGRY;
-        // Keep legacy uhunger callsites synchronized with canonical hunger field.
         Object.defineProperty(this, 'uhunger', {
             get: () => this.hunger,
-            set: (v) => { this.hunger = v; },
+            set: (v) => { this.hunger = Number(v || 0); },
             enumerable: true,
             configurable: true,
         });
         this.nutrition = 900;
+        this.uhs = NOT_HUNGRY;
+        this.hungerState = NOT_HUNGRY;
 
         // Movement
         this.movement = NORMAL_SPEED;
