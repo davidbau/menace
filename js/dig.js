@@ -50,7 +50,7 @@ import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
 import { cansee } from './vision.js';
 import { mb_trapped, closed_door } from './monmove.js';
-import { canseemon, is_whirly, digests, unique_corpstat } from './mondata.js';
+import { canseemon, is_whirly, digests, unique_corpstat, is_flyer, is_floater } from './mondata.js';
 import { mksobj } from './mkobj.js';
 import { placeFloorObject, sobj_at } from './invent.js';
 import { makemon, mkclass } from './makemon.js';
@@ -1791,7 +1791,7 @@ export function bury_monst(mtmp, map, player) {
 
     if (canseemon(mtmp, player)) {
         // C: is_flyer/is_floater check — flying monsters aren't swallowed
-        if (mtmp.mflags && (mtmp.mflags.flyer || mtmp.mflags.floater)) {
+        if (is_flyer(mtmp.data || mtmp.type) || is_floater(mtmp.data || mtmp.type)) {
             // "The ground opens up, but <monster> is not swallowed!"
             return;
         }

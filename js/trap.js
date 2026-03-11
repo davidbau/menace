@@ -63,7 +63,9 @@ import { dist2 } from './hacklib.js';
 import { losehp, u_at, Maybe_Half_Phys } from './hack.js';
 import { an, xname, the, Tobjnam, Has_contents } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
-import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF, FIRE_RES, HALLUC_RES, FUMBLING } from './const.js';
+import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF, FIRE_RES, HALLUC_RES, FUMBLING,
+    VIS_EFFECTS, MAY_DESTROY, MAY_HIT, MAY_FRACTURE } from './const.js';
+import { scatter } from './explode.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';

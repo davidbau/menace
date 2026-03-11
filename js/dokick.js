@@ -1987,7 +1987,7 @@ export function deliver_obj_to_mon(mtmp, cnt, deliverflags, game) {
 
         const monData = mtmp.data || mtmp.type;
         if (otmp.migr_species !== NON_PM
-            && ((monData.mflags2 || monData.mflags2 || 0) & DELIVER_PM) === otmp.migr_species) {
+            && ((monData.mflags2 || 0) & DELIVER_PM) === otmp.migr_species) {
             otmp.owornmask = 0;
             otmp.ox = otmp.oy = 0;
 
