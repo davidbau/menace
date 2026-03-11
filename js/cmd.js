@@ -29,6 +29,7 @@ import { handleInventory, currency, doorganize } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { dodip } from './potion.js';
 import { handleCallObjectTypePrompt, mon_nam, x_monnam } from './do_name.js';
+import { dobreathe } from './polyself.js';
 import { upstart } from './hacklib.js';
 import { handleDiscoveries } from './o_init.js';
 import {
@@ -49,7 +50,8 @@ import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
 import { cnv_trap_obj, t_at, m_at } from './trap.js';
 import { an } from './objnam.js';
-import { PM_GRID_BUG } from './monsters.js';
+import { PM_GRID_BUG, AT_BREA } from './monsters.js';
+import { attacktype } from './mondata.js';
 import { canspotmon, glyph_at } from './display.js';
 import { glyph_is_invisible } from './symbols.js';
 import { IS_STWALL, IS_DOOR, IS_TREE, IS_WATERWALL,
@@ -870,6 +872,10 @@ async function handleExtendedCommand(game) {
             // cf. cmd.c domonability() — use polymorphed monster special ability.
             const isPolyd = !!(player.Upolyd || (player.mtimedone && player.mtimedone > 0));
             if (isPolyd) {
+                if (player?.type && attacktype(player.type, AT_BREA)) {
+                    const rv = await dobreathe(player, game.map, display, game);
+                    return { moved: false, tookTime: !!rv };
+                }
                 await display.putstr_message('Any special ability you may have is purely reflexive.');
             } else {
                 await display.putstr_message("You don't have a special ability in your normal form!");

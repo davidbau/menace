@@ -405,9 +405,18 @@ export function wallAngleTWall(typ, seenv, wallInfo) {
 export function formatStatusLine1(player, rankOfFn) {
     const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
     const female = player.gender === 1;
-    const rank = rankOfFn(level, player.roleIndex, female);
+    const isPoly = Number(player?.mtimedone || 0) > 0 && typeof player?.type?.mname === 'string';
+    const rank = isPoly
+        ? String(player.type.mname)
+            .split(' ')
+            .map((w) => w ? (w.charAt(0).toUpperCase() + w.slice(1)) : w)
+            .join(' ')
+        : rankOfFn(level, player.roleIndex, female);
     const title = `${player.name} the ${rank}`;
-    const strDisplay = player._screenStrength || player.strDisplay;
+    const strVal = Number.isFinite(player?.acurr?.str) ? player.acurr.str : player?.attributes?.[0];
+    const strDisplay = player._screenStrength || (Number.isFinite(strVal)
+        ? (strVal <= 18 ? String(strVal) : (strVal === 118 ? '18/**' : `18/${String(strVal - 18).padStart(2, '0')}`))
+        : player.strDisplay);
     const parts = [];
     parts.push(`St:${strDisplay}`);
     parts.push(`Dx:${player.attributes[3]}`);
@@ -428,8 +437,13 @@ export function formatStatusLine1(player, rankOfFn) {
  * @returns {string} Complete line 2 string, ready for putstr
  */
 export function formatStatusLine2(player) {
-    const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
-    const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
+    const upolyd = Number(player?.mtimedone || 0) > 0;
+    const heroHp = upolyd
+        ? (Number.isFinite(player?.mh) ? player.mh : 0)
+        : (Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0));
+    const heroHpMax = upolyd
+        ? (Number.isFinite(player?.mhmax) ? player.mhmax : 0)
+        : (Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0));
     const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
     const parts = [];
     const levelLabel = player.inTutorial ? 'Tutorial' : 'Dlvl';
@@ -438,7 +452,10 @@ export function formatStatusLine2(player) {
     parts.push(`HP:${heroHp}(${heroHpMax})`);
     parts.push(`Pw:${player.pw}(${player.pwmax})`);
     parts.push(`AC:${player.ac}`);
-    if (player.showExp) {
+    if (upolyd) {
+        const hd = Number.isFinite(player?.type?.mlevel) ? player.type.mlevel : level;
+        parts.push(`HD:${hd}`);
+    } else if (player.showExp) {
         parts.push(`Xp:${level}/${player.exp}`);
     } else {
         parts.push(`Xp:${level}`);
@@ -457,5 +474,6 @@ export function formatStatusLine2(player) {
     if (player.confused) parts.push('Conf');
     if (player.stunned) parts.push('Stun');
     if (player.hallucinating) parts.push('Hallu');
+    if (player.flying || player.Flying) parts.push('Fly');
     return parts.join(' ');
 }

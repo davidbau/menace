@@ -89,6 +89,7 @@ import {
 } from './mondata.js';
 import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
+import { xname } from './objnam.js';
 import { s_suffix, mungspaces } from './hacklib.js';
 import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
@@ -679,6 +680,7 @@ async function polyman(player, fmt, arg) {
     player.mh = 0;
     player.mhmax = 0;
     player.mtimedone = 0;
+    player._screenStrength = null;
     await skinback(player, false);
     player.uundetected = 0;
 
@@ -1128,6 +1130,9 @@ export async function polymon(player, mntmp, map) {
 
     // New stats — currently only strength gets changed
     const newMaxStr = uasmon_maxStr(player);
+    player._screenStrength = (newMaxStr <= 18)
+        ? String(newMaxStr)
+        : (newMaxStr === 118 ? '18/**' : `18/${String(newMaxStr - 18).padStart(2, '0')}`);
     if (strongmonst(mons[mntmp])) {
         if (player.acurr) player.acurr.str = newMaxStr;
         if (player.amax) player.amax.str = newMaxStr;
@@ -1522,7 +1527,7 @@ export async function drop_weapon(player, alone) {
     if (player.weapon) {
         if (!alone || cantwield(player.type)) {
             if (alone) {
-                await You("find you must drop your weapon!");
+                await You("find you must drop your %s!", xname(player.weapon));
             }
             // Handle twoweapon: drop swap weapon first
             if (player.twoweap && player.swapWeapon) {

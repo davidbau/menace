@@ -121,6 +121,27 @@ function monsterShownOnMap(mon, player, map) {
     return detectMonsters || warnOfMon || telepathySensesMonsterForMap(mon, player);
 }
 
+function playerMapGlyph(player) {
+    if (player && Number(player?.mtimedone || 0) > 0 && player?.type) {
+        const symIdx = Number.isInteger(player.type?.mlet) ? player.type.mlet : 0;
+        const pseudoMon = {
+            type: player.type,
+            data: player.type,
+            mndx: Number.isInteger(player.umonnum) ? player.umonnum : 0,
+            female: !!player.female,
+            mfemale: !!player.female,
+            minvis: !!(player.Invis || player.invisible),
+            mundetected: !!player.uundetected,
+            m_ap_type: Number(player.m_ap_type || 0),
+            displayChar: def_monsyms[symIdx]?.sym || '?',
+            displayColor: Number.isInteger(player.type?.mcolor) ? player.type.mcolor : CLR_WHITE,
+        };
+        const glyph = monsterMapGlyph(pseudoMon, false);
+        if (glyph && glyph.ch) return glyph;
+    }
+    return { ch: '@', color: CLR_WHITE };
+}
+
 
 /**
  * Compute the optimal line-height for seamless box-drawing characters.
@@ -628,8 +649,13 @@ span.nh-cursor {
 
                 // Check for player at this position
                 if (player && x === player.x && y === player.y) {
-                    this.setCell(col, row, '@', CLR_WHITE);
-                    this.cellInfo[row][col] = { name: player.name || 'you', desc: 'you, the adventurer', color: CLR_WHITE };
+                    const heroGlyph = playerMapGlyph(player);
+                    this.setCell(col, row, heroGlyph.ch, heroGlyph.color);
+                    this.cellInfo[row][col] = {
+                        name: player.name || 'you',
+                        desc: 'you, the adventurer',
+                        color: heroGlyph.color,
+                    };
                     continue;
                 }
 
@@ -1775,7 +1801,7 @@ export async function swallowed(first, player) {
     if (rght_ok) show_glyph(player.x + 1, player.y - 1, swallow_to_glyph(swallower, S_sw_tr));
   }
   if (left_ok) show_glyph(player.x - 1, player.y, swallow_to_glyph(swallower, S_sw_ml));
-  show_glyph(player.x, player.y, { ch: '@', color: CLR_WHITE }, ctx);
+  show_glyph(player.x, player.y, playerMapGlyph(player), ctx);
   if (rght_ok) show_glyph(player.x + 1, player.y, swallow_to_glyph(swallower, S_sw_mr));
   if (isok(player.x, player.y + 1)) {
     if (left_ok) show_glyph(player.x - 1, player.y + 1, swallow_to_glyph(swallower, S_sw_bl));
@@ -2176,7 +2202,8 @@ export function newsym(x, y, ctxOrMap = null) {
 
     // Player glyph
     if (player && x === player.x && y === player.y) {
-        display.setCell(col, row, '@', CLR_WHITE);
+        const heroGlyph = playerMapGlyph(player);
+        display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
         return;
     }
 
