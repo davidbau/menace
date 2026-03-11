@@ -29,7 +29,8 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          AM_SANCTUM, ALTAR, ROOM, SDOOR, SCORR, isok, Amask2align, Align2amask,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          HVY_ENCUMBER, EXT_ENCUMBER, W_SADDLE, TT_NONE, TT_LAVA, TT_BURIEDBALL,
-         BOLT_LIM, NATTK, Upolyd, DIED, ESCAPED, ASCENDED } from './const.js';
+         BOLT_LIM, NATTK, Upolyd, DIED, ESCAPED, ASCENDED, DROWNING, BURNING, DISSOLVED,
+         IS_AIR, IS_WATERWALL } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
 import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
@@ -99,11 +100,11 @@ import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
 import { get_mtraits } from './mkobj.js';
 import { rider_corpse_revival, encumber_msg } from './pickup.js';
-import { In_sokoban, Is_astralevel, Is_sanctum } from './dungeon.js';
+import { In_sokoban, Is_astralevel, Is_sanctum, Is_waterlevel } from './dungeon.js';
 import { nomul, near_capacity } from './hack.js';
 import { welded } from './wield.js';
 import { heal_legs } from './do.js';
-import { is_pool_or_lava } from './dbridge.js';
+import { is_pool_or_lava, is_pool, is_lava } from './dbridge.js';
 
 // cf. pray.c:58 -- Moloch constant
 const Moloch = "Moloch";
@@ -320,8 +321,49 @@ function useupf(obj, quan, map) {
 
 // reset_utrap imported from trap.js
 
-// Helper: rescued_from_terrain stub
-function rescued_from_terrain() { }
+// C ref: trap.c:4922 rescued_from_terrain()
+async function rescued_from_terrain(how, player, map) {
+    if (!player || !map) return;
+    const x = Number(player.x || 0);
+    const y = Number(player.y || 0);
+    const loc = map.at?.(x, y);
+    const findYourself = "find yourself";
+    let mesggiven = false;
+
+    switch (how) {
+    case DROWNING:
+        if (is_pool(x, y, map)) {
+            const where = (Is_waterlevel(map.uz) || IS_WATERWALL(loc?.typ || 0))
+                ? "in the midst"
+                : "on top";
+            await You("%s %s of %s.", findYourself, where, hliquid("water"));
+            mesggiven = true;
+        } else if (IS_AIR(loc?.typ || 0)) {
+            await You("%s in %s.", findYourself,
+                Is_waterlevel(map.uz) ? "an air bubble" : "mid air");
+            mesggiven = true;
+        }
+        break;
+    case BURNING:
+    case DISSOLVED:
+        if (is_pool(x, y, map)) {
+            await You("%s %s %s.", findYourself,
+                player.uinwater ? "in" : "on", hliquid("water"));
+            mesggiven = true;
+        } else if (is_lava(x, y, map)) {
+            await You("%s on top of %s.", findYourself, hliquid("molten lava"));
+            mesggiven = true;
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (!mesggiven) {
+        const preposit = (Levitation(player) || Flying(player)) ? "over" : "on";
+        await You("%s %s solid ground.", findYourself, preposit);
+    }
+}
 
 
 // makeknown imported from do_wear.js
@@ -747,7 +789,15 @@ async function fix_worst_trouble(trouble, player, map) {
     case TROUBLE_LAVA:
         if (!await safe_teleds(0, { player, map }))
             await reset_utrap(true, player, _gstate);
-        rescued_from_terrain();
+        await rescued_from_terrain(
+            is_pool(player.x, player.y, map)
+                ? DROWNING
+                : is_lava(player.x, player.y, map)
+                    ? BURNING
+                    : 0,
+            player,
+            map
+        );
         break;
     case TROUBLE_STARVING:
         // FALLTHRU

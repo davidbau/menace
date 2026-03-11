@@ -7665,3 +7665,20 @@ hard-won wisdom:
 - Validation:
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed322_barbarian_wizard_gameplay.session.json`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: prayer lava-trouble rescue path no longer silently no-ops
+
+- Problem:
+  - `fix_worst_trouble(TROUBLE_LAVA)` called `rescued_from_terrain()` in `pray.js`, but that helper was an empty stub.
+  - This meant divine rescue after lava trouble did not emit the terrain context feedback expected by C.
+- Change:
+  - Implemented `rescued_from_terrain(how, player, map)` in `js/pray.js` (C ref: `trap.c:4922`):
+    - handles `DROWNING` with water/air-specific messaging,
+    - handles `BURNING`/`DISSOLVED` with water/lava messaging,
+    - falls back to a grounded status message when no terrain-specific branch applies.
+  - Wired `fix_worst_trouble(TROUBLE_LAVA)` to call the helper with a computed `how` based on current tile (`pool`/`lava`/fallback).
+  - Updated CODEMATCH row for `rescued_from_terrain` from `STUB` to implemented.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)

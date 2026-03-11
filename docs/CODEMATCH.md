@@ -5298,7 +5298,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 6159 | `openfallingtrap` | trap.js:2999 | Implemented |
 | 6008 | `openholdingtrap` | trap.js:2992 | Implemented |
 | 4564 | `pot_acid_damage` | trap.js:2906 | Implemented |
-| 4921 | `rescued_from_terrain` | pray.js:438 | STUB |
+| 4921 | `rescued_from_terrain` | pray.js:325 | Implemented (terrain-aware rescue messaging with fallback) |
 | 1045 | `reset_utrap` | trap.js:1449 | Implemented (async) |
 | 5437 | `reward_untrap` | trap.js:1567 | Implemented (async) |
 | 4854 | `rnd_nextto_goodpos` | worm.js:512 | Implemented (as _rnd_nextto_goodpos) |
