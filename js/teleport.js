@@ -20,6 +20,7 @@ import {
     GP_CHECKSCARY, GP_ALLOW_U, GP_AVOID_MONPOS, GP_ALLOW_XY,
     RLOC_NONE, RLOC_NOMSG, RLOC_MSG, RLOC_TELE, RLOC_ERR,
     TELEDS_TELEPORT, ANTIMAGIC, VAULT, STRAT_APPEARMSG,
+    FORCETRAP, VIASITTING,
 } from './const.js';
 import { somexyspace, search_special } from './mkroom.js';
 import { BOULDER, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
@@ -963,7 +964,7 @@ export async function tele_trap(trap, game) {
 export async function level_tele_trap(trap, trflags, game) {
     const player = (game.u || game.player);
     const map = (game.lev || game.map);
-    const intentional = (trflags & 0x02) !== 0; // FORCETRAP or VIASITTING
+    const intentional = (trflags & (FORCETRAP | VIASITTING)) !== 0;
 
     await pline("You step onto a level teleport trap!");
 

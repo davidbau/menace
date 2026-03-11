@@ -37,7 +37,7 @@ import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural } from './objnam.js';
-import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK } from './const.js';
+import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
 //          end_menu, select_menu, display_nhwindow,
@@ -252,10 +252,10 @@ export async function ustatusline(game) {
     const sickProp = player.uprops && player.uprops[SICK];
     if (sickProp && (sickProp.intrinsic || sickProp.extrinsic)) {
         info += ', dying from';
-        if (player.usick_type & 0x01) // SICK_VOMITABLE
+        if (player.usick_type & SICK_VOMITABLE)
             info += ' food poisoning';
-        if (player.usick_type & 0x02) { // SICK_NONVOMITABLE
-            if (player.usick_type & 0x01) info += ' and';
+        if (player.usick_type & SICK_NONVOMITABLE) {
+            if (player.usick_type & SICK_VOMITABLE) info += ' and';
             info += ' illness';
         }
     }
