@@ -14,7 +14,7 @@
 //   ghitm(): gold/object thrown at monster with shop interaction.
 
 import { rn2, rnd, rnl, rn1 } from './rng.js';
-import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines, dunlev, dunlevs_in_dungeon } from './dungeon.js';
+import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines, dunlev, dunlevs_in_dungeon, surface } from './dungeon.js';
 import { sgn, upstart } from './hacklib.js';
 import { Role_if } from './role.js';
 import { exercise } from './attrib_exercise.js';
@@ -220,10 +220,7 @@ function useup(obj, map) {
     }
 }
 
-// surface — name of surface at location
-function surface(x, y) {
-    return "floor";
-}
+// surface imported from dungeon.js
 
 // singular — call fn with obj.quan temporarily set to 1
 async function singular(obj, fn, ...args) {
@@ -1097,7 +1094,7 @@ async function really_kick_object(x, y, player, map, game) {
     const slide = is_ice(x, y, map) || kickedobj.greased;
     if (slide && !player.blind)
         await pline("Whee!  %s %s across the %s.", Doname2(kickedobj, player),
-            otense(kickedobj, "slide"), await surface(x, y));
+            otense(kickedobj, "slide"), await surface(x, y, map, player));
 
     obj_extract_self(kickedobj, map);
     await snuff_candle(kickedobj);

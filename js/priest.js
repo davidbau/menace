@@ -33,7 +33,7 @@ import { a_gname_at, halu_gname } from './pray.js';
 import { adjalign } from './attrib.js';
 import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
-import { RLOC_NOMSG, SPINE, EPRI, EMIN } from './const.js';
+import { RLOC_NOMSG, SPINE, EPRI, EMIN, MM_EMIN, MM_ADJACENTOK, MM_NOMSG, NO_MM_FLAGS } from './const.js';
 import { buzz } from './zap.js';
 import { money_cnt, nomul } from './hack.js';
 
@@ -52,11 +52,7 @@ const ARTICLE_YOUR = 3;
 // BZ_M_SPELL(x) = x + 20
 const BZ_M_SPELL_ELEC = 24;
 
-// MM_EMIN flag (cf. makemon.h)
-const MM_EMIN = 0x00000400;
-const MM_ADJACENTOK = 0x00000200;
-const MM_NOMSG = 0x00000800;
-const NO_MM_FLAGS = 0;
+// MM flags imported from const.js
 // ============================================================================
 // newepri — cf. priest.c:16
 // Allocates EPRI struct on mtmp for temple/alignment/room tracking.

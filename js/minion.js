@@ -7,7 +7,7 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You_feel, verbalize } from './pline.js';
 import { makemon, mkclass } from './makemon.js';
-import { NO_MM_FLAGS } from './const.js';
+import { NO_MM_FLAGS, MM_EMIN, MM_NOMSG } from './const.js';
 import { AMULET_OF_YENDOR } from './objects.js';
 import { mons, S_ANGEL, S_DEMON, PM_WIZARD_OF_YENDOR, PM_ANGEL, PM_ARCHON, PM_BONE_DEVIL, PM_SKELETON, PM_JUIBLEX, PM_YEENOGHU, PM_ORCUS, PM_DEMOGORGON, PM_AIR_ELEMENTAL, PM_FIRE_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_WATER_ELEMENTAL, PM_SHOPKEEPER, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, G_UNIQ } from './monsters.js';
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from './const.js';
@@ -26,10 +26,7 @@ const elementals = [
     PM_EARTH_ELEMENTAL, PM_WATER_ELEMENTAL,
 ];
 
-// MM_EMIN flag — add emin structure
-const MM_EMIN = 0x00000400;
-// MM_NOMSG flag — suppress appear message
-const MM_NOMSG = 0x00020000;
+// MM flags imported from const.js
 
 // ============================================================================
 // newemin / free_emin — minion extra data

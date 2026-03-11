@@ -56,9 +56,9 @@ import { game as _gstate } from './gstate.js';
 
 // Strategy constants imported from const.js (monst.h)
 
+import { MM_NOWAIT, MM_NOMSG } from './const.js';
+
 const MAXNASTIES = 10;
-const MM_NOWAIT = 0x00000002;
-const MM_NOMSG  = 0x00020000;
 
 // ============================================================================
 // Data tables

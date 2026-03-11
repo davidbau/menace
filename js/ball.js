@@ -25,6 +25,7 @@ import { maybe_unhide_at } from './mon.js';
 import { obj_extract_self } from './mkobj.js';
 import { t_at } from './trap.js';
 import { welded } from './wield.js';
+import { Is_waterlevel } from './dungeon.js';
 
 // cf. ball.c:17 — static restriction state
 let bcrestriction = 0;
@@ -80,10 +81,7 @@ function CHAIN_IN_MIDDLE(chx, chy, x, y, uball) {
         && distmin(chx, chy, uball.ox, uball.oy) <= 1;
 }
 
-// Helper: Is_waterlevel — are we on the water level?
-function Is_waterlevel(map) {
-    return !!(map && map.flags && map.flags.is_waterlevel);
-}
+// Is_waterlevel imported from dungeon.js
 
 // Helper: cls — clear screen
 function cls(display) {
