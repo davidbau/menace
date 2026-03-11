@@ -639,7 +639,7 @@ export async function cursed_book(spellbook, player) {
         await pline_The("book was coated with contact poison!");
         break;
     case 6:
-        if (player.magicResistance) {
+        if (player.antimagic) {
             await pline_The("book radiates explosive energy, but you are unharmed!");
         } else {
             await pline("As you read the book, it radiates explosive energy in your face!");

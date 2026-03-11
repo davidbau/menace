@@ -561,6 +561,7 @@ export class Player {
     // These match C macro names used throughout autotranslated code.
     get Hallucination() { return this.hallucinating; }
     get Blind() { return this.blind; }
+    get Blinded() { return this.blind; }
     get Deaf() { return this.hasProp(DEAF); }
     get deaf() { return this.hasProp(DEAF); }
     get Invis() { return this.hasProp(INVIS); }

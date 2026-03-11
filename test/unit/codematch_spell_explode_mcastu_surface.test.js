@@ -85,7 +85,7 @@ test('mcastu cursetxt and touch_of_death provide effects', () => {
     assert.match(text, /lich/);
     assert.equal(mtmp.lastCurseText, text);
 
-    const player = { uhp: 100, magicResistance: true };
+    const player = { uhp: 100, antimagic: true };
     const dmg = touch_of_death(mtmp, player);
     assert.ok(dmg >= 8);
     assert.ok(dmg <= 48);

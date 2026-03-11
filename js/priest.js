@@ -10,7 +10,7 @@ import { A_NONE, A_LAWFUL, A_CHAOTIC, A_NEUTRAL,
          AM_MASK, AM_SHRINE, ROOMOFFSET, TEMPLE,
          Amask2align, A_WIS, ALL_TRAPS,
          isok } from './const.js';
-import { IS_ALTAR, IS_DOOR } from './const.js';
+import { IS_ALTAR, IS_DOOR, PROTECTION, FROMOUTSIDE } from './const.js';
 import { rn2, rn1, c_d } from './rng.js';
 import { pline, verbalize, You, Your, You_feel,
          livelog_printf } from './pline.js';
@@ -567,12 +567,12 @@ export async function priest_talk(priest, map, player, display) {
                 player.clairvoyantTimeout += rn1(500, 500);
             }
         } else if (offer < ((player.ulevel || 1) * 600)
-                   && (!(player.protectionIntrinsic)
+                   && (!player.hasProp(PROTECTION)
                        || ((player.ublessed || 0) < 20
                            && ((player.ublessed || 0) < 9 || !rn2(player.ublessed || 1))))) {
             await verbalize("Thou hast been rewarded for thy devotion.");
-            if (!player.protectionIntrinsic) {
-                player.protectionIntrinsic = true;
+            if (!player.hasProp(PROTECTION)) {
+                player.ensureUProp(PROTECTION).intrinsic |= FROMOUTSIDE;
                 if (!player.ublessed) player.ublessed = rn1(3, 2);
             } else {
                 player.ublessed = (player.ublessed || 0) + 1;

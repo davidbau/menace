@@ -88,7 +88,7 @@ export function m_cure_self(mtmp, dmg) {
 export function touch_of_death(mtmp, player) {
   if (!player) return 0;
   // C-like shape: fatal touch unless protected by antimagic/magic resistance.
-  const resisted = !!(player.magicResistance || player.antimagic);
+  const resisted = !!player.antimagic;
   const dmg = resisted ? d(8, 6) : (50 + d(8, 6));
   if (player.uhp !== undefined) {
     player.uhp = Math.max(0, player.uhp - dmg);
