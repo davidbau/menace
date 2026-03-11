@@ -30,6 +30,7 @@ import { seffect_taming, recharge, charge_ok } from './read.js';
 import { dountrap } from './trap.js';
 import { use_crystal_ball } from './detect.js';
 import { obfree } from './shk.js';
+import { has_head, noncorporeal, amorphous, nonliving } from './mondata.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -1178,10 +1179,12 @@ export async function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
 }
 
 // Simple helpers for mondata checks used above, avoiding circular imports
-function has_head_simple(ptr) { return !(ptr.mflags1 & 0x00008000); /* M1_NOHEAD */ }
-function noncorporeal_simple(ptr) { return ptr.mlet === 'W' || ptr.mlet === ' '; /* S_GHOST */ }
-function amorphous_simple(ptr) { return !!(ptr.mflags1 & 0x00000004); /* M1_AMORPHOUS */ }
-function nonliving_simple(ptr) { return !!(ptr.mflags1 & 0x00004000); /* M1_NONLIVING - approximation */ }
+// These previously used _simple inline approximations with wrong flag values.
+// Now using proper functions from mondata.js.
+const has_head_simple = has_head;
+const noncorporeal_simple = noncorporeal;
+const amorphous_simple = amorphous;
+const nonliving_simple = nonliving;
 
 function playerEnergy(player) {
   if (!player) return 0;
