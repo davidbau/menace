@@ -7749,3 +7749,15 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: polymorph trap monster visibility-gating parity
+
+- Problem:
+  - `trapeffect_poly_trap_mon` still revealed traps unconditionally after failed resistance, while C gates trap reveal on monster visibility (`in_sight`).
+- Change:
+  - `trapeffect_poly_trap_mon` now accepts `player`/`fov`, computes C-shaped `in_sight`, and gates `seetrap(trap)` on visibility.
+  - Updated selector dispatch to pass `player`/`fov` into the polymorph trap monster branch.
+  - Kept polymorph transform behavior unchanged (still pending broader `newcham` parity in trap callchain).
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)

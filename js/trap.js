@@ -756,13 +756,14 @@ function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_poly_trap_mon(mon, trap) {
+function trapeffect_poly_trap_mon(mon, trap, player, fov) {
+    const in_sight = !!(canseemon(mon, player, fov) || mon === player?.usteed);
     if (resists_magm(mon)) {
-        // shieldeff — immune
+        // C ref: shieldeff_mon(mtmp) — visual-only immunity feedback.
     } else if (!resist(mon, WAND_CLASS)) {
         // C ref: newcham(mtmp, NULL, NC_SHOW_MSG) — not ported
         // Just consume the resist() RNG and skip polymorph
-        seetrap(trap);
+        if (in_sight) seetrap(trap);
     }
     return Trap_Effect_Finished;
 }
@@ -1005,7 +1006,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case ANTI_MAGIC:
         return trapeffect_anti_magic_mon(mon, trap, map, player, fov);
     case POLY_TRAP:
-        return trapeffect_poly_trap_mon(mon, trap);
+        return trapeffect_poly_trap_mon(mon, trap, player, fov);
     case LANDMINE:
         return trapeffect_landmine_mon(mon, trap, trflags, map, player);
     case ROLLING_BOULDER_TRAP:
