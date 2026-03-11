@@ -88,6 +88,13 @@ Compare a previous snapshot against the latest:
 npm run coverage:session-parity:diff -- --base docs/metrics/session_parity_coverage_prev.json
 ```
 
+Useful options:
+```bash
+node scripts/session-parity-coverage-diff.mjs --base old.json --head new.json --top 30
+node scripts/session-parity-coverage-diff.mjs --base old.json --json
+node scripts/session-parity-coverage-diff.mjs --base old.json --show-zero
+```
+
 ## Command Examples
 
 Default gameplay-only parity coverage:
