@@ -79,7 +79,7 @@ import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_
          FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES,
          ACID_RES, STONE_RES, TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
          EDOG, ESHK, has_emin, has_epri, has_eshk,
-         ACH_MEDU } from './const.js';
+         ACH_MEDU, I_SPECIAL } from './const.js';
 import { S_poisoncloud } from './symbols.js';
 import { m_harmless_trap, m_at } from './trap.js';
 import { dist2, distmin } from './hacklib.js';
@@ -890,7 +890,7 @@ export function lifesaved_monster(mon) {
 
 // C ref: mon.c check_gear_next_turn() — flag for next-turn equipment evaluation
 export function check_gear_next_turn(mon) {
-    mon.misc_worn_check = (mon.misc_worn_check || 0) | 0x20000000; // I_SPECIAL
+    mon.misc_worn_check = (mon.misc_worn_check || 0) | I_SPECIAL;
 }
 
 // C ref: mon.c m_detach() — detach monster from map
@@ -2104,7 +2104,6 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
             // C ref: mon.c:1250-1251 — minliquid() before gear/hider logic.
             if (await minliquid(mon, map, player)) continue;
             // C ref: mon.c:1254-1267 — monster may spend turn equipping gear (I_SPECIAL check)
-            const I_SPECIAL = 0x20000000;
             if (mon.misc_worn_check & I_SPECIAL) {
                 const mux = Number.isInteger(mon.mux) ? mon.mux : 0;
                 const muy = Number.isInteger(mon.muy) ? mon.muy : 0;

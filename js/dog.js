@@ -287,7 +287,7 @@ export function makedog(map, player, depth) {
         if (saddleObj) {
             saddleObj.owornmask = W_SADDLE;
             mpickobj(pet, saddleObj);
-            pet.misc_worn_check = 0x100000;
+            pet.misc_worn_check = W_SADDLE;
         }
     }
 
