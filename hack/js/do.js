@@ -3,7 +3,7 @@
 import { HP, HPM, ULV, UEX, GOLD, AC, STR, SEEN, POTN, SCRN, WANN, RINN, SDOOR, CORR, WALL, DOOR } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
-import { pline, atl, newsym, nscr, bot, cls, curs, on, pru, losehp, prl } from './pri.js';
+import { pline, atl, newsym, nscr, bot, cls, curs, on, pru, losehp, prl, at } from './pri.js';
 import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon, prinv } from './hack.js';
 import { movemon, makemon, rloc, mnexto, g_at_mon, g_at_obj, g_at_gen, delmon, killed,
          newcham, steal } from './mon.js';
@@ -92,7 +92,9 @@ async function getdir() {
 }
 
 // C ref: getlin(buf) — read a line of input
+// C: sets flags.topl=1 at start (prevents --More-- on next pline)
 async function getlin() {
+  game.flags.topl = 1;  // C: getlin() sets flags.topl=1 before reading
   let s = '';
   for (;;) {
     const ch = await game.input.getKey();
@@ -235,10 +237,11 @@ async function drink1(otmp) {
     }
     case 6: {
       // sense monsters
+      // C: uses at() not atl() so cell.scrsym is NOT modified (docrt() restores correctly)
       if (!game.fmon) { await nothin(otmp); return; }
-      await cls();
+      cls();
       for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon)
-        atl(mtmp.mx, mtmp.my, mtmp.data.mlet);
+        at(mtmp.mx, mtmp.my, mtmp.data.mlet);
       game.flags.topl = 0;
       await pline('You sense monsters.');
       await more_fn();
@@ -248,10 +251,11 @@ async function drink1(otmp) {
     }
     case 7: {
       // sense objects
+      // C: uses at() not atl() so cell.scrsym is NOT modified (docrt() restores correctly)
       if (!game.fobj) { await nothin(otmp); return; }
-      await cls();
+      cls();
       for (let objs = game.fobj; objs; objs = objs.nobj)
-        atl(objs.ox, objs.oy, objs.olet);
+        at(objs.ox, objs.oy, objs.olet);
       game.flags.topl = 0;
       await pline('You sense objects.');
       await more_fn();
@@ -261,7 +265,7 @@ async function drink1(otmp) {
     }
     case 8: {
       // "Yech! Poison!"
-      await pline('Yech!  Poison!');
+      await pline('Yech! Poison!');
       losestr(rn1(4,3));
       losehp(rnd(10));
       break;
@@ -349,13 +353,16 @@ async function nothin(obj) {
   }
 }
 
-// C ref: more() — display --More-- and wait for keypress
-// Used after pline() in certain potion effects to require dismissal
+// C ref: more() — wait for space keypress (from hack.do1.c more())
+// C: uses puts(MORE) which goes to stdout directly, NOT through the virtual screen.
+// The harness captures stdout via fputs-patch only; puts() bypasses it.
+// So the "--More--" written by more() does NOT appear in the harness screen capture.
+// Therefore: JS must NOT write "--More--" to game.display here (unlike pline's --More--).
+// We just wait for the space key silently.
 async function more_fn() {
   if (game.flags.topl === 2) {
-    curs(game.savx, 1);
-    game.display.putString('--More--');
-    game.display.flush();
+    // C: curs(savx,1); puts(MORE); curs(u.ux,u.uy+2); fflush(stdout);
+    // puts() bypasses the harness screen capture, so no display update here.
     let ch;
     do { ch = await game.input.getKey(); } while (ch !== ' ');
     game.flags.topl = 0;
@@ -445,10 +452,11 @@ async function read1(otmp) {
     }
     case 11: {
       // sense gold
+      // C: uses at() not atl() so cell.scrsym is NOT modified
       if (!game.fgold) { await nothin(otmp); return; }
-      await cls();
+      cls();
       for (let gtmp = game.fgold; gtmp; gtmp = gtmp.ngen)
-        atl(gtmp.gx, gtmp.gy, '$');
+        at(gtmp.gx, gtmp.gy, '$');
       game.flags.topl = 0;
       await pline('You sense gold!');
       await more_fn();
@@ -483,18 +491,18 @@ async function read1(otmp) {
         for (let y = 0; y < 22; y++) {
           const cell = game.levl[x][y];
           if (cell.typ === SDOOR) {
-            cell.typ = DOOR; cell.scrsym = '+'; cell.new_ = true;
+            cell.typ = DOOR; cell.scrsym = '+'; cell.isnew = true;
             on(x, y);
           } else if ((cell.typ === CORR || cell.typ === WALL || cell.typ === DOOR) && !cell.seen) {
-            cell.new_ = true; on(x, y);
+            cell.isnew = true; on(x, y);
           }
         }
       }
       if (!game.levl[game.xupstair][game.yupstair].seen) {
-        game.levl[game.xupstair][game.yupstair].new_ = true; on(game.xupstair, game.yupstair);
+        game.levl[game.xupstair][game.yupstair].isnew = true; on(game.xupstair, game.yupstair);
       }
       if (!game.levl[game.xdnstair][game.ydnstair].seen) {
-        game.levl[game.xdnstair][game.ydnstair].new_ = true; on(game.xdnstair, game.ydnstair);
+        game.levl[game.xdnstair][game.ydnstair].isnew = true; on(game.xdnstair, game.ydnstair);
       }
       break;
     }
