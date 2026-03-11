@@ -5,6 +5,7 @@
 import {
     mons, NUMMONS,
     M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M2_DOMESTIC,
+    M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC,
     S_BLOB, S_JELLY, S_FUNGUS, S_VORTEX, S_LIGHT, S_ELEMENTAL,
     S_GOLEM, S_GHOST, S_YETI, S_KOBOLD, S_ORC, S_OGRE,
     PM_MEDUSA,
@@ -102,7 +103,7 @@ function polyfood(obj) { return false; }
 const humanoid = is_humanoid;
 
 function same_race(ptr1, ptr2) {
-    const race_flags = 0x00004000 | 0x00008000 | 0x00010000 | 0x00020000 | 0x00040000;
+    const race_flags = M2_HUMAN | M2_ELF | M2_DWARF | M2_GNOME | M2_ORC;
     return !!(ptr1.mflags2 & ptr2.mflags2 & race_flags);
 }
 

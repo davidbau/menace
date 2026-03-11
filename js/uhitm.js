@@ -20,6 +20,7 @@ import { spec_dbon } from './artifact.js';
 import {
     PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
+    M1_FLY, M1_NOHEAD, M1_UNSOLID,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
     PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM,
@@ -1098,7 +1099,7 @@ export function mhitm_ad_dren(magr, mattk, mdef, mhm) {
 // m-vs-m: uhitm.c:3241-3280
 export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
     const pd = mdef.data || mdef.type || {};
-    if (!pd.mflags1 || (pd.mflags1 & 0x00008000 /* M1_NOHEAD */)) {
+    if (!pd.mflags1 || (pd.mflags1 & M1_NOHEAD)) {
         // Can't drain brain from headless monster
         mhm.damage = 0;
         return;
@@ -1671,7 +1672,7 @@ export function m_is_steadfast(mtmp) {
     // C: checks Flying/Levitation, Giantslayer artifact, loadstone
     // Simplified: check for flying/floating
     const ptr = mtmp.data || mtmp.type || {};
-    if (ptr.mflags1 && (ptr.mflags1 & 0x00000001)) return false; // M1_FLY — not steadfast
+    if (ptr.mflags1 && (ptr.mflags1 & M1_FLY)) return false; // not steadfast if flying
     // loadstone check would require inventory search
     return false;
 }
@@ -1700,7 +1701,7 @@ export function mhitm_knockback(magr, mdef, mattk, hitflags, weapon_used) {
 
     // Unsolid attacker can't knock back
     const agrPtr = magr.data || magr.type || {};
-    if (agrPtr.mflags1 && (agrPtr.mflags1 & 0x00100000 /* M1_UNSOLID */)) return false;
+    if (agrPtr.mflags1 && (agrPtr.mflags1 & M1_UNSOLID)) return false;
 
     // Generate message
     rn2(2); // "forceful" vs "powerful"
