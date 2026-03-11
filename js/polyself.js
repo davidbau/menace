@@ -102,7 +102,9 @@ import { encumber_msg } from './pickup.js';
 import { update_inventory } from './invent.js';
 import { retouch_equipment } from './artifact.js';
 import { selftouch } from './trap.js';
-import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS, KILLED_BY_AN } from './const.js';
+import { done } from './end.js';
+import { game as _gstate } from './gstate.js';
+import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS, KILLED_BY_AN, DIED, STONING } from './const.js';
 
 // resists_fire already imported from mondata.js above
 
@@ -730,7 +732,7 @@ export async function newman(player) {
     if (newlvl > 127 || newlvl < 1) {
         // level went below 0 or overflowed — fatal
         await pline("Your new form doesn't seem healthy enough to survive.");
-        if (player.done) await player.done('DIED', "unsuccessful polymorph");
+        await done(DIED, _gstate);
         // Must have been life-saved to continue
         return;
     }
@@ -1293,7 +1295,7 @@ export async function rehumanize(player) {
     if (Unchanging) {
         if ((player.mh || 0) < 1) {
             // killed while stuck in creature form
-            if (player.done) await player.done('DIED');
+            await done(DIED, _gstate);
             return; // don't rehumanize after all (lifesaved)
         }
     }
@@ -1306,7 +1308,7 @@ export async function rehumanize(player) {
 
     if ((player.uhp || 0) < 1) {
         await Your("old form was not healthy enough to survive.");
-        if (player.done) await player.done('DIED');
+        await done(DIED, _gstate);
     }
 
     // nomul(0) — cancel any multi-turn action
@@ -1900,7 +1902,7 @@ export async function dogaze(player, map) {
                 await pline("Gazing at the awake %s is not a very good idea.",
                     mon_nam(mtmp));
                 await pline("You turn to stone...");
-                if (player.done) await player.done('STONING', "deliberately meeting Medusa's gaze");
+                await done(STONING, _gstate);
             }
         }
     }
