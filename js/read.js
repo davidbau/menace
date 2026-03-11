@@ -57,6 +57,7 @@ import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
 import { kill_genocided_monsters } from './mon.js';
+import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
@@ -1598,7 +1599,7 @@ export function display_stinking_cloud_positions(on_off, player) {
       for (dy = -dist; dy <= dist; dy++) {
         x = player.x + dx;
         y = player.y + dy;
-        if (u_at(x, y)) {
+        if (u_at(player, x, y)) {
           continue;
         }
         if (can_center_cloud(x, y)) tmp_at(x, y);

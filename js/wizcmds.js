@@ -209,6 +209,7 @@ import { schedule_goto } from './do.js';
 import { check_wornmask_slots } from './worn.js';
 import { impossible } from './pline.js';
 import { m_at } from './trap.js';
+import { u_at } from './hack.js';
 import {
     glyph_is_cmap, glyph_is_cmap_zap, glyph_is_monster, glyph_is_object,
     glyph_to_mon, glyph_to_obj,
@@ -479,7 +480,7 @@ export async function wiz_show_seenv(map, player) {
   if (stopx - startx === COLNO / 2) startx++;
   for (y = 0; y < ROWNO; y++) {
     for (x = startx, curx = 0; x < stopx; x++, curx += 2) {
-      if (u_at(x, y)) { row = row = '@'; }
+      if (u_at(player, x, y)) { row = row = '@'; }
       else {
         v = map.locations[x][y].seenv & 0xff;
         if (v === 0) row = row = ' ';
@@ -502,14 +503,14 @@ export async function wiz_show_seenv(map, player) {
 }
 
 // Autotranslated from wizcmds.c:656
-export async function wiz_show_wmodes(map) {
+export async function wiz_show_wmodes(map, player) {
   let win, x, y, row, lev, istty = false; // C: WINDOWPORT(tty) — JS always non-tty
   win = create_nhwindow(NHW_TEXT);
   if (istty) await putstr(win, 0, "");
   for (y = 0; y < ROWNO; y++) {
     for (x = 0; x < COLNO; x++) {
       lev = map.locations[x][y];
-      if (u_at(x, y)) row = '@';
+      if (u_at(player, x, y)) row = '@';
       else if (IS_WALL(lev.typ) || lev.typ === SDOOR) row = '0' + (lev.wall_info & WM_MASK);
       else if (lev.typ === CORR) row = '#';
       else if (IS_ROOM(lev.typ) || IS_DOOR(lev.typ)) row = '.';

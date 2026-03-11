@@ -196,6 +196,7 @@ async function themerooms_generate(map, depth) {
 }
 
 import { parseEncryptedDataFile, strchr } from './hacklib.js';
+import { u_at } from './hack.js';
 import { get_rnd_line_index, getrumor, random_epitaph_text } from './rumors.js';
 
 // Branch type constants (C ref: include/dungeon.h)
@@ -5291,7 +5292,7 @@ export async function u_on_newpos(x, y, map, player) {
 // Autotranslated from dungeon.c:1743
 export async function surface(x, y, map, player) {
   let lev =  map.locations[x][y], levtyp = SURFACE_AT(x, y);
-  if (u_at(x, y) && player.uswallow && is_animal(player.ustuck.data)) return digests(player.ustuck.data) ? "maw" : enfolds(player.ustuck.data) ? "husk" : "nonesuch";
+  if (u_at(player, x, y) && player.uswallow && is_animal(player.ustuck.data)) return digests(player.ustuck.data) ? "maw" : enfolds(player.ustuck.data) ? "husk" : "nonesuch";
   else if (IS_AIR(levtyp)) return Is_waterlevel(map.uz) ? "air bubble" : (levtyp === CLOUD) ? "cloud" : "air";
   else if (is_pool(x, y)) return (Underwater && !Is_waterlevel(map.uz)) ? "bottom" : hliquid("water");
   else if (is_ice(x, y)) return "ice";
