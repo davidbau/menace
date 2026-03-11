@@ -84,7 +84,7 @@ import { scatter } from './explode.js';
 import { sobj_at, delobj } from './invent.js';
 import { snuff_candle } from './apply.js';
 import { bhit } from './zap.js';
-import { dealloc_obj, obj_extract_self, doname } from './mkobj.js';
+import { dealloc_obj, obj_extract_self, doname, mkgold, mksobj_at, rnd_treefruit_at } from './mkobj.js';
 import { find_trap } from './detect.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import {
@@ -112,7 +112,10 @@ import { set_apparxy } from './monmove.js';
 import { maybe_unhide_at } from './mon.js';
 import { finish_meating } from './dogmove.js';
 import { is_watch, bigmonst, verysmall, mhis } from './mondata.js';
-import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
+import { water_damage, mintrap_postmove, instapetrify, t_at, b_trapped, chest_trap } from './trap.js';
+import { makemon } from './makemon.js';
+import { breakchestlock } from './lock.js';
+import { remove_worn_item } from './steal.js';
 
 // ============================================================================
 // Constants
@@ -311,64 +314,10 @@ function enexto(cc, x, y, data, map) {
 }
 
 // ============================================================================
-// makemon stub
-// ============================================================================
-function makemon(montype, x, y, flags, map) {
-    // TODO: implement
-    return null;
-}
-
-// ============================================================================
-// mkgold stub
-// ============================================================================
-function mkgold(amount, x, y, map) {
-    // TODO: implement
-}
-
-// ============================================================================
-// mksobj_at stub
-// ============================================================================
-function mksobj_at(otyp, x, y, init, artif, map) {
-    // TODO: implement
-    return null;
-}
-
-// ============================================================================
-// rnd_treefruit_at stub
-// ============================================================================
-function rnd_treefruit_at(x, y, map) {
-    // TODO: implement
-    return null;
-}
-
-// ============================================================================
-// fall_through stub
+// fall_through stub — no canonical export exists yet
 // ============================================================================
 function fall_through(tression, typ, player, map) {
-    // TODO: implement
-}
-
-// ============================================================================
-// b_trapped — triggered door/chest trap
-// ============================================================================
-async function b_trapped(what, bodypart, player, map) {
-    // TODO: implement
-    await pline("KABOOM!!  You triggered a trap on the %s!", what);
-}
-
-// ============================================================================
-// chest_trap stub
-// ============================================================================
-function chest_trap(obj, bodypart, force, player, map) {
-    // TODO: implement
-    return 0;
-}
-
-// ============================================================================
-// breakchestlock stub
-// ============================================================================
-function breakchestlock(box, destroyit, game, player) {
-    if (box) box.olocked = false;
+    // TODO: implement when multi-level support is added
 }
 
 import { touch_petrifies, engulfing_u } from './mondata.js';
@@ -385,13 +334,6 @@ function is_unpaid(obj) {
         }
     }
     return false;
-}
-
-
-
-// remove_worn_item stub
-function remove_worn_item(obj, osync) {
-    // TODO: implement
 }
 
 // ============================================================================
@@ -1020,9 +962,9 @@ async function really_kick_object(x, y, player, map, game) {
         if (kickedobj.olocked) {
             if (!rn2(5) || (martial(player) && !rn2(2))) {
                 await You("break open the lock!");
-                await breakchestlock(kickedobj, false, game, player);
+                await breakchestlock(game, kickedobj, false);
                 if (otrp)
-                    chest_trap(kickedobj, LEG, false, player, map);
+                    await chest_trap(kickedobj, LEG, false, game, player);
                 return 1;
             }
         } else {
@@ -1030,7 +972,7 @@ async function really_kick_object(x, y, player, map, game) {
                 await pline_The("lid slams open, then falls shut.");
                 kickedobj.lknown = 1;
                 if (otrp)
-                    chest_trap(kickedobj, LEG, false, player, map);
+                    await chest_trap(kickedobj, LEG, false, game, player);
                 return 1;
             }
         }
@@ -1336,18 +1278,18 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     if ((Luck < 0 || game.maploc.looted) && !rn2(3)) {
       game.maploc.looted = 0;
       game.maploc.typ = ROOM;
-      mkgold( rnd(200), x, y);
+      mkgold( rnd(200), x, y, map);
       if (player.Blind) await pline("CRASH! You destroy it.");
       else { await pline("CRASH! You destroy the throne."); newsym(x, y); }
       await exercise(player, A_DEX, true);
       return ECMD_TIME;
     }
     else if (Luck > 0 && !rn2(3) && !game.maploc.looted) {
-      mkgold( rn1(201, 300), x, y);
+      mkgold( rn1(201, 300), x, y, map);
       i = Luck + 1;
       if (i > 6) i = 6;
       while (i--) {
-        mksobj_at( rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1), x, y, false, true);
+        mksobj_at( rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1), x, y, false, true, map);
       }
       if (player.Blind) await You("kick %s loose!", something);
       else {
@@ -1392,7 +1334,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       game.maploc.typ = ROOM;
       game.maploc.emptygrave = 0;
       game.maploc.disturbed = 0;
-      mksobj_at(ROCK, x, y, true, false);
+      mksobj_at(ROCK, x, y, true, false, map);
       del_engr_at(x, y);
       if (player.Blind) { await pline("Crack! %s broke!", Something); }
       else { await pline_The("headstone topples over and breaks!"); newsym(x, y); }
@@ -1892,7 +1834,7 @@ export async function ship_object(otmp, x, y, shop_floor_obj, player, map, game)
     }
 
     if (otmp.owornmask)
-        remove_worn_item(otmp, true);
+        remove_worn_item(player, otmp);
 
     if (breaktest(otmp)) {
         let result;

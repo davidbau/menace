@@ -46,6 +46,7 @@ import { extract_from_minvent } from './worn.js';
 import { g_at, carried, sobj_at } from './invent.js';
 import { impossible, pline, Your, You_see, You_hear } from './pline.js';
 import { newsym } from './display.js';
+import { MON_WEP } from './muse.js';
 import { cansee } from './vision.js';
 import { artifact_exists } from './artifact.js';
 import { safe_oname, pmname, Mgender } from './do_name.js';
@@ -1811,15 +1812,7 @@ export function dealloc_obj_real(obj) {
 export const dealloc_obj = dealloc_obj_real;
 
 
-// C ref: MON_WEP(mon) — wielded weapon (local copy to avoid circular import with muse.js)
-function MON_WEP(mon) {
-    if (mon.weapon) return mon.weapon;
-    if (!mon.minvent) return null;
-    for (const obj of mon.minvent) {
-        if (obj.owornmask && (obj.owornmask & W_WEP)) return obj;
-    }
-    return null;
-}
+// MON_WEP imported from muse.js
 
 // Autotranslated from mkobj.c:3203
 export function mon_obj_sanity(monlist, mesg) {
