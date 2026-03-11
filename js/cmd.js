@@ -900,6 +900,8 @@ function displayCompletedExtcmd(typed, game) {
     const raw = String(typed || '');
     const lowered = raw.toLowerCase();
     if (!lowered) return raw;
+    // C shows literal "# d" while entering dip; don't auto-expand this alias.
+    if (lowered === 'd') return raw;
     const cmds = knownExtendedCommands(game);
     const exact = cmds.find((c) => c === lowered);
     if (exact) return raw;

@@ -1,6 +1,6 @@
 # Theme: furniture-thrones-fountains
 
-Status: in_progress (sessions 2 captured and parity-green)
+Status: in_progress (sessions 3 captured and parity-green)
 
 Target codepaths:
 - `js/sit.js` (`dosit`, throne branches, seat-context branches)
@@ -17,7 +17,7 @@ Session plan:
 - Spawn near accessible fountain via wizard mode setup.
 - Execute repeated `q`/`d` interaction with fountain:
   - drink while normal state (done)
-  - dip at least two object classes (pending)
+  - dip at least two object classes (done)
   - trigger at least one dry-up/loot-warning path (pending)
 2. `theme01_seed542_tourist_sink-and-kick`
 - Reach/force sink cell and exercise:
@@ -58,3 +58,4 @@ Completion criteria:
 Captured sessions:
 1. `theme01_seed005_valk_fountain-drink3_gameplay.session.json`
 2. `theme01_seed005_valk_fountain-gush3_gameplay.session.json`
+3. `theme01_seed005_valk_fountain-dip2_gameplay.session.json`
