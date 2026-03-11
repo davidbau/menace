@@ -8471,3 +8471,22 @@ Validation:
   - now passes gameplay channels (`rng/events/screens/colors/mapdump` fully matched)
 - `scripts/run-and-report.sh --pending --failures` -> gameplay `2/2` passing
 - `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing
+
+## 2026-03-11: pick-axe direction prompt made C-faithful (dynamic dig dir list)
+
+- `js/apply.js` previously used a fixed pick-axe prompt:
+  - `In what direction do you want to dig? [njb>]`
+- C (`dig.c use_pick_axe`) builds this list dynamically based on per-neighbor
+  diggability (`dig_typ`) plus down-dig availability (`can_reach_floor`).
+- Updated JS to compute the prompt dynamically for pick-axe/mattock:
+  - scans planar directions in C order (`h y k u l n j b`),
+  - includes only directions where `dig_typ(...) != DIGTYP_UNDIGGABLE`,
+  - appends `>` when floor-dig is reachable.
+- This removed prompt-only screen drift in new dig-focused session recording
+  while preserving existing passing coverage sessions.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t04_s701_w_digedges_gp.session.json` -> PASS (RNG/events/screens/colors all matched)
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/maze-mines-digging/t08_s700_w_apply_gp.session.json` -> PASS
+- `scripts/run-and-report.sh --pending --failures` -> gameplay `1/1` passing
+- `scripts/run-and-report.sh --failures` -> gameplay `113/113` passing

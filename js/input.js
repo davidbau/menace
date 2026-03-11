@@ -487,6 +487,12 @@ function nhgetch_raw() {
         });
 }
 
+// Display-managed --More-- dismissal should read raw runtime keys directly,
+// bypassing higher-level boundary helpers to avoid nested nhgetch waits.
+export function nhgetch_display_raw() {
+    return nhgetch_raw();
+}
+
 // Get a character of input (async)
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch

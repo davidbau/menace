@@ -92,11 +92,11 @@ import { begin_burn, end_burn,
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, IS_FURNITURE, nothing_happens,
-         P_AXE, P_PICK_AXE, P_TRIDENT, P_LANCE } from './const.js';
+         P_AXE, P_PICK_AXE, P_TRIDENT, P_LANCE, DIGTYP_UNDIGGABLE } from './const.js';
 import { break_wand } from './zap.js';
 import { wield_tool } from './wield.js';
 import { body_part } from './polyself.js';
-import { freehand } from './engrave.js';
+import { freehand, can_reach_floor } from './engrave.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
@@ -110,6 +110,7 @@ import { S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
+import { dig_typ } from './dig.js';
 
 // -- Inline helpers --
 
@@ -1020,6 +1021,28 @@ export async function handleApply(player, map, display, game) {
         replacePromptMessage();
         await display.putstr_message(prompt);
     };
+    const buildPickaxeDirPrompt = (obj) => {
+        if (!(obj && (obj.otyp === PICK_AXE || obj.otyp === DWARVISH_MATTOCK))) {
+            return 'In what direction? ';
+        }
+        const dirChars = [];
+        const planarDirs = ['h', 'y', 'k', 'u', 'l', 'n', 'j', 'b'];
+        for (const dch of planarDirs) {
+            const d = DIRECTION_KEYS[dch];
+            if (!d) continue;
+            const nx = player.x + d[0];
+            const ny = player.y + d[1];
+            if (!isok(nx, ny)) continue;
+            if (dig_typ(obj, nx, ny, map) !== DIGTYP_UNDIGGABLE) {
+                dirChars.push(dch);
+            }
+        }
+        if (can_reach_floor(player, map, false)) {
+            dirChars.push('>');
+        }
+        const bracket = dirChars.join('') || '>';
+        return `In what direction do you want to dig? [${bracket}] `;
+    };
     await showApplyPrompt();
     const resolveApplySelection = async (selected) => {
         if (selected.otyp === OIL_LAMP || selected.otyp === MAGIC_LAMP
@@ -1137,7 +1160,7 @@ export async function handleApply(player, map, display, game) {
                 //   key 1: dismiss wield message, then show dig prompt
                 //   key 2+: handle dig direction/cancel.
                 let promptArmed = false;
-                const dirPrompt = 'In what direction do you want to dig? [njb>] ';
+                const dirPrompt = buildPickaxeDirPrompt(selected);
                 const promptHandler = {
                     source: 'apply_pickaxe_wield',
                     onKey: async (ch, g) => {
@@ -1205,7 +1228,7 @@ export async function handleApply(player, map, display, game) {
             || selected.otyp === EXPENSIVE_CAMERA || selected.otyp === MIRROR
             || selected.otyp === FIGURINE || isApplyPolearm(selected)) {
             const dirPrompt = (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK)
-                ? 'In what direction do you want to dig? [njb>] '
+                ? buildPickaxeDirPrompt(selected)
                 : 'In what direction? ';
             replacePromptMessage();
             await display.putstr_message(dirPrompt);

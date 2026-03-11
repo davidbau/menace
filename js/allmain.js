@@ -53,7 +53,7 @@ import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          restGameState, restLev, listSavedData, clearAllData } from './storage.js';
 import { buildEntry, saveScore, loadScores, formatTopTenEntry, formatTopTenHeader } from './topten.js';
 import { startRecording } from './keylog.js';
-import { nhgetch, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
+import { nhgetch, nhgetch_display_raw, getCount, setInputRuntime, cmdq_clear, cmdq_add_int, cmdq_add_key,
          cmdq_copy, cmdq_peek, cmdq_restore, setCmdqInputMode,
          setCmdqRepeatRecordMode, more } from './input.js';
 import { CQ_CANNED, CQ_REPEAT, CMDQ_INT, CMDQ_KEY } from './const.js';
@@ -1523,10 +1523,10 @@ export class NetHackGame {
 
         // Wire up nhwindow infrastructure
         init_nhwindows(this.display, nhgetch, () => this._rerenderGame());
-        // Give the display access to nhgetch so putstr_message can block
-        // on --More-- when message overflow occurs (C ref: topl.c more()).
+        // Display-managed --More-- waits should use raw runtime key reads to
+        // avoid nested boundary helpers re-entering nhgetch.
         if (this.display && typeof this.display.setNhgetch === 'function') {
-            this.display.setNhgetch(nhgetch);
+            this.display.setNhgetch(nhgetch_display_raw);
         }
         // Handle ?reset=1 — prompt to delete all saved data
         if (urlOpts.reset) {
