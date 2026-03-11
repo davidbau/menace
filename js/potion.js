@@ -158,6 +158,16 @@ export async function make_confused(player, xtime, talk) {
                      player.hallucinating ? "trippy" : "confused");
     }
 
+    // C ref: potion.c:95-100 — onset message when first becoming confused
+    if (xtime && !old) {
+        if (talk) {
+            if (player.hallucinating || player.Hallucination)
+                await pline("What a trippy feeling!");
+            else
+                await pline("Huh, What?  Where am I?");
+        }
+    }
+
     if ((xtime && !old) || (!xtime && old))
         player._botl = true;
 
@@ -601,7 +611,7 @@ export async function peffect_confusion(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     const duration = itimeout_incr(player.getPropTimeout(CONFUSION),
         rn1(7, 16 - 8 * bcsign));
-    await make_confused(player, duration, false);
+    await make_confused(player, duration, true);
     return true;
 }
 
