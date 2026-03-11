@@ -7,7 +7,7 @@ Usage:
     python3 run_session.py --from-config
 
     # Special level session (via #wizloaddes)
-    python3 run_session.py <seed> <output_json> --wizload <level_name>
+    python3 run_session.py <seed> <output_json> --wizload <level_name> [move_sequence]
 
     # Character generation session
     python3 run_session.py <seed> <output_json> --chargen <selections>
@@ -20,6 +20,8 @@ Modes:
 
     Wizload (--wizload): loads a special level via #wizloaddes command,
     capturing the level generation RNG, screen, typGrid, and checkpoints.
+    If move_sequence is provided, replay keys after load and record per-key
+    RNG/screen/cursor steps.
 
     Chargen (--chargen): captures character generation with manual selections.
     The selections string specifies role/race/gender/align choices, e.g.:
@@ -1079,8 +1081,12 @@ def load_seeds_config():
         return json.load(f)
 
 
-def run_wizload_session(seed, output_json, level_name, verbose=False):
-    """Capture a special level session using #wizloaddes."""
+def run_wizload_session(seed, output_json, level_name, move_str='', verbose=False):
+    """Capture a special level session using #wizloaddes.
+
+    If move_str is provided, replay those keys after level load and capture
+    per-key RNG/screen/cursor steps (same key expansion semantics as gameplay).
+    """
     output_json = os.path.abspath(output_json)
 
     if not os.path.isfile(NETHACK_BINARY):
@@ -1228,6 +1234,70 @@ def run_wizload_session(seed, output_json, level_name, verbose=False):
         if checkpoints:
             final_step['checkpoints'] = checkpoints
         steps.append(final_step)
+
+        if move_str:
+            session_data['regen']['moves'] = move_str
+            replay_keys = []
+            for key_seq, _ in parse_moves(move_str):
+                replay_keys.extend(list(key_seq))
+
+            def send_char(ch):
+                code = ord(ch)
+                if code == 10 or code == 13:
+                    tmux_send_special(session_name, 'Enter')
+                elif code == 27:
+                    tmux_send_special(session_name, 'Escape')
+                elif code == 127:
+                    tmux_send_special(session_name, 'BSpace')
+                elif code < 32:
+                    tmux_send_special(session_name, f'C-{chr(code + 96)}')
+                else:
+                    tmux_send(session_name, ch)
+
+            key_delay_s = float(os.environ.get('NETHACK_KEY_DELAY_S', '0.02'))
+            key_delay_overrides = parse_key_delay_overrides(os.environ.get('NETHACK_KEY_DELAYS_S'))
+            if abs(key_delay_s - 0.02) > 1e-9:
+                session_data['regen']['key_delay_s'] = key_delay_s
+            if key_delay_overrides:
+                session_data['regen']['key_delays_s'] = key_delay_overrides
+
+            prev_depth_recorded = None
+            prev_rng_count = final_rng_count
+            print(f'\n=== POST-WIZLOAD MOVES ({len(replay_keys)} steps, key_delay={key_delay_s:.3f}s) ===')
+            if key_delay_overrides:
+                print(f'Per-turn key delay overrides: {len(key_delay_overrides)} steps')
+            for idx, ch in enumerate(replay_keys):
+                step_num = idx + 1
+                send_char(ch)
+                step_delay = key_delay_overrides.get(step_num, key_delay_s)
+                time.sleep(max(0.0, step_delay))
+
+                screen_compressed = capture_screen_compressed(session_name)
+                screen_lines = screen_to_plain_lines(screen_compressed)
+                rng_count, rng_lines = read_rng_log(rng_log_file)
+                step_cursor = capture_cursor(session_name)
+                delta_lines = rng_lines[prev_rng_count:rng_count]
+                rng_entries = parse_rng_lines(delta_lines)
+                depth = detect_depth(screen_lines)
+                delta = rng_count - prev_rng_count
+
+                step = {
+                    'key': ch,
+                    'action': describe_key(ch),
+                    'rng': rng_entries,
+                    'screen': screen_compressed,
+                    'cursor': step_cursor,
+                }
+                if depth != prev_depth_recorded:
+                    step['depth'] = depth
+                    prev_depth_recorded = depth
+                if step_num in key_delay_overrides:
+                    step['capture'] = {
+                        'key_delay_s': step_delay,
+                    }
+                steps.append(step)
+                print(f'  [{idx+1:03d}] {ch!r:5s} ({describe_key(ch):20s}) +{delta:4d} RNG calls (total {rng_count})')
+                prev_rng_count = rng_count
 
         # Quit the game cleanly
         quit_game(session_name)
@@ -1861,7 +1931,7 @@ def main():
 
     if len(args) < 2:
         print(f"Usage: {sys.argv[0]} <seed> <output_json> [move_sequence] [--character <preset>]")
-        print(f"       {sys.argv[0]} <seed> <output_json> --wizload <level_name>")
+        print(f"       {sys.argv[0]} <seed> <output_json> --wizload <level_name> [move_sequence]")
         print(f"       {sys.argv[0]} <seed> <output_json> --chargen <selections> [--tutorial y|n]")
         print(f"       {sys.argv[0]} <seed> <output_json> --interface <keys>")
         print(f"       {sys.argv[0]} --from-config")
@@ -1872,6 +1942,7 @@ def main():
         print(f"Character presets: {', '.join(CHARACTER_PRESETS.keys())} (default: valkyrie)")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42.session.json ':hhlhhhh.hhs'")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_castle.session.json --wizload castle")
+        print(f"Example: {sys.argv[0]} 42 /tmp/castle_sit.session.json --wizload castle '#sit\\r#sit\\r'")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_chargen.session.json --chargen vhfn")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_chargen_tut.session.json --chargen vhfn --tutorial y")
         print(f"Example: {sys.argv[0]} 42 sessions/seed42_options.session.json --interface 'O><q'")
@@ -1881,7 +1952,8 @@ def main():
     output_json = os.path.abspath(args[1])
 
     if wizload_level:
-        run_wizload_session(seed, output_json, wizload_level, verbose)
+        move_str = args[2] if len(args) >= 3 else ''
+        run_wizload_session(seed, output_json, wizload_level, move_str, verbose)
     elif chargen_selections:
         run_chargen_session(seed, output_json, chargen_selections, tutorial_response, verbose)
     elif interface_keys:
