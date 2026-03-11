@@ -4,7 +4,7 @@
 import { rn2, rn1 } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
     MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER,
-    CLAIRVOYANT, REGENERATION, INTRINSIC, TIMEOUT } from './const.js';
+    CLAIRVOYANT, REGENERATION, INTRINSIC, TIMEOUT, Upolyd } from './const.js';
 import { PM_MONK } from './monsters.js';
 import { acurr, adjattrib, AVAL } from './attrib.js';
 import { sgn } from './hacklib.js';
@@ -38,10 +38,7 @@ function ensureExerciseState(player) {
     }
 }
 
-// C: Upolyd — player is polymorphed
-function Upolyd(player) {
-    return !!(player.Upolyd || (player.mtimedone && player.mtimedone > 0));
-}
+// Upolyd imported from const.js
 
 // C: ABASE(i) — base attribute value
 function ABASE(player, i) { return player.attributes[i]; }

@@ -18,7 +18,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          CONFUSION, HALLUC, FUMBLING, STUNNED,
          FROM_ROLE as FROMEXPER_BIT, FROM_RACE as FROMRACE_BIT,
          FROM_FORM as FROMFORM_BIT, FROMOUTSIDE } from './const.js';
-import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF } from './const.js';
+import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF, Upolyd } from './const.js';
 import { roles, races } from './player.js';
 import { pline, You, Your, You_feel, pline_The, livelog_printf } from './pline.js';
 import { sgn, strstri } from './hacklib.js';
@@ -280,10 +280,7 @@ function Fixed_abil(player) {
     return !!(getIntrinsic(player, FIXED_ABIL) || getExtrinsic(player, FIXED_ABIL));
 }
 
-// C: Upolyd
-function Upolyd(player) {
-    return !!(player.Upolyd || (player.mtimedone && player.mtimedone > 0));
-}
+// Upolyd imported from const.js
 
 // C: Poison_resistance
 function hasPoisonRes(player) {

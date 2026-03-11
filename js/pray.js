@@ -29,7 +29,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          AM_SANCTUM, ALTAR, ROOM, SDOOR, SCORR, isok, Amask2align, Align2amask,
          A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          HVY_ENCUMBER, EXT_ENCUMBER, W_SADDLE, TT_NONE, TT_LAVA, TT_BURIEDBALL,
-         BOLT_LIM, NATTK } from './const.js';
+         BOLT_LIM, NATTK, Upolyd } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
 import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
@@ -488,10 +488,7 @@ function Deaf(player) {
     return player.deaf;
 }
 
-// Helper: Upolyd check
-function Upolyd(player) {
-    return player.Upolyd || false;
-}
+// Upolyd imported from const.js
 
 // Helper: Unchanging check
 function Unchanging(player) {

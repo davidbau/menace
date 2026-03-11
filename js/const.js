@@ -4262,3 +4262,8 @@ export function has_oname(obj) { return !!obj?.oextra?.oname; }
 export function OMONST(obj) { return obj?.oextra?.omonst; }
 export function MGIVENNAME(mtmp) { return mtmp?.mextra?.mgivenname || mtmp?.mgivenname || ''; }
 export function has_mgivenname(mtmp) { return !!(mtmp?.mextra?.mgivenname || mtmp?.mgivenname); }
+
+// C: you.h — #define Upolyd (u.mtimedone != 0)
+export function Upolyd(player) {
+    return !!(player && player.mtimedone && player.mtimedone > 0);
+}
