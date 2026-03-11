@@ -51,8 +51,8 @@ import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs } from './stairs.js';
 import { float_down } from './trap.js';
-import { check_special_room, move_update } from './hack.js';
-import { W_ART, W_ARTI } from './const.js';
+import { check_special_room, move_update, losehp } from './hack.js';
+import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
 import { finesse_ahriman } from './artifact.js';
@@ -1171,12 +1171,7 @@ export async function deferred_goto(player, game) {
         if (typmask & 0x02) {
             const dist = Math.max(1, Math.abs((Number(dest) || fromDepth) - fromDepth));
             const dmg = c_d(dist, 6);
-            if (typeof player.takeDamage === 'function') {
-                player.takeDamage(Math.max(0, dmg), 'falling down a mine shaft');
-            } else {
-                const hp = Number(player.uhp);
-                if (Number.isFinite(hp)) player.uhp = Math.max(0, hp - Math.max(0, dmg));
-            }
+            await losehp(Math.max(0, dmg), "falling down a mine shaft", KILLED_BY, player);
         }
     }
     // C ref: do.c goto_level() calls u_entered_or_left_rooms(TRUE) then

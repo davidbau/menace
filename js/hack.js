@@ -61,7 +61,7 @@ import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './p
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
-import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS } from './const.js';
+import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN } from './const.js';
 import { MZ_LARGE, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE } from './monsters.js';
 import { stackobj } from './invent.js';
@@ -1126,7 +1126,7 @@ export async function domove_core(dir, player, map, display, game) {
             const origDmg = d(2, 4);
             const fireDmg = d(2, 4);
             await display.putstr_message('A tower of flame erupts from the floor!');
-            player.takeDamage(Math.max(0, fireDmg), 'a fire trap');
+            await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player);
             // C ref: burnarmor(&youmonst) || rn2(3)
             if (!_burnarmor(player, player)) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
@@ -1146,9 +1146,8 @@ export async function domove_core(dir, player, map, display, game) {
             player.utrap = trapTurns;
             player.utraptype = TT_PIT;
             const pitDmg = rnd(trap.ttyp === SPIKED_PIT ? 10 : 6);
-            player.takeDamage(Math.max(0, pitDmg), trap.ttyp === SPIKED_PIT
-                ? 'a pit of spikes'
-                : 'a pit');
+            await losehp(Math.max(0, pitDmg), trap.ttyp === SPIKED_PIT
+                ? "a pit of spikes" : "a pit", KILLED_BY_AN, player);
             if (trap.ttyp === SPIKED_PIT) {
                 rn2(6); // C ref: 1-in-6 poison-spike branch gate.
                 // C ref: trap.c trapeffect_pit() emits both lines when falling
@@ -3358,6 +3357,7 @@ export async function overexertion(game) {
 
 // C ref: hack.c maybe_wail() — low HP warning for certain roles
 export async function maybe_wail(player, game, display) {
+    if (!game) return;
     const moves = game.moves || 0;
     if (moves <= (game.wailmsg || 0) + 50) return;
     game.wailmsg = moves;
@@ -3654,9 +3654,7 @@ export async function dosinkfall(player, map, display) {
     if (display) await display.putstr_message('You crash to the floor!');
     const con = acurr(player, A_CON);
     const dmg = rn1(8, 25 - con); // C: rn1(8, 25-ACURR(A_CON))
-    if (typeof player.takeDamage === 'function') {
-        player.takeDamage(dmg, 'fell onto a sink');
-    }
+    await losehp(dmg, "fell onto a sink", KILLED_BY, player);
     await exercise(player, A_DEX, false);
 }
 
@@ -3719,9 +3717,7 @@ export async function lava_effects(player, map, display) {
     // Damage from lava
     const dmg = d(6, 6);
     if (display) await display.putstr_message("The lava burns you!");
-    if (typeof player.takeDamage === 'function') {
-        player.takeDamage(dmg, 'molten lava');
-    }
+    await losehp(dmg, "molten lava", KILLED_BY, player);
     return false;
 }
 

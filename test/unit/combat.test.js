@@ -480,12 +480,7 @@ describe('Combat system', () => {
         p.ac = 10;
         p.x = 5;
         p.y = 5;
-        let damageCalls = 0;
-        const origTakeDamage = p.takeDamage.bind(p);
-        p.takeDamage = (...args) => {
-            damageCalls += 1;
-            return origTakeDamage(...args);
-        };
+        const startHp = p.uhp;
 
         const mon = makeMonster({
             level: 30, // force hit
@@ -496,7 +491,7 @@ describe('Combat system', () => {
         mon.mspec_used = 0;
 
         await mattacku(mon, p, mockDisplay);
-        assert.ok(damageCalls > 0, 'negated AD_POLY should apply direct takeDamage path');
+        assert.ok(p.uhp < startHp, 'negated AD_POLY should apply damage via losehp');
     });
 
 

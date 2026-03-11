@@ -70,7 +70,7 @@ import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
-import { nomul } from './hack.js';
+import { nomul, losehp } from './hack.js';
 import { body_part, polymon, rehumanize } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
 import { night } from './calendar.js';
@@ -1433,7 +1433,8 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // Apply damage
         // ================================================================
         if (mhm.damage > 0) {
-            const died = player.takeDamage(mhm.damage, x_monnam(monster));
+            await losehp(mhm.damage, x_monnam(monster), KILLED_BY_AN, player, display, game);
+            const died = (player.uhp || 0) <= 0;
 
             if (died) {
                 player.deathCause = `killed by a ${x_monnam(monster)}`;
@@ -1993,10 +1994,8 @@ export async function gazemu(mtmp, mattk, player, map, display) {
                 await display.putstr_message('You turn to stone...');
             }
             // Petrification death
-            if (player.takeDamage) {
-                player.deathCause = `turned to stone by a ${x_monnam(mtmp)}`;
-                player.takeDamage(player.uhp || 999, x_monnam(mtmp));
-            }
+            player.deathCause = `turned to stone by a ${x_monnam(mtmp)}`;
+            await losehp(player.uhp || 999, x_monnam(mtmp), KILLED_BY_AN, player, display, game);
         }
         break;
     }
@@ -2086,9 +2085,9 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
     if (!player) return;
     if (n < 0) n = 0;
 
-    if (n > 0 && player.takeDamage) {
-        const died = player.takeDamage(n, x_monnam(mtmp));
-        if (died) {
+    if (n > 0) {
+        await losehp(n, x_monnam(mtmp), KILLED_BY_AN, player, display, game);
+        if ((player.uhp || 0) <= 0) {
             player.deathCause = `killed by a ${x_monnam(mtmp)}`;
             if (game) {
                 game.playerDied = true;
