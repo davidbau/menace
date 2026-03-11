@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">30.22% </span>
+                <span class="strong">30.34% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>175/579</span>
+                <span class='fraction'>176/580</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">30.22% </span>
+                <span class="strong">30.34% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>175/579</span>
+                <span class='fraction'>176/580</span>
             </div>
         
             
@@ -642,7 +642,9 @@
 <a name='L577'></a><a href='#L577'>577</a>
 <a name='L578'></a><a href='#L578'>578</a>
 <a name='L579'></a><a href='#L579'>579</a>
-<a name='L580'></a><a href='#L580'>580</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1246,6 +1248,7 @@ import {
     W_NONDIGGABLE,
     D_NODOOR,
     XKILL_NOMSG, XKILL_NOCORPSE,
+    CRUSHING, DROWNING, BURNING,
 } from './const.js';
 import { rnd, rn2 } from './rng.js';
 import { block_point, unblock_point } from './vision.js';
@@ -1589,7 +1592,7 @@ export <span class="fstat-no" title="function not covered" >function automiss(et
 <span class="cstat-no" title="statement not covered" >    } else {</span>
 <span class="cstat-no" title="statement not covered" >        if (loc &amp;&amp; loc.typ === DRAWBRIDGE_DOWN) {</span>
 <span class="cstat-no" title="statement not covered" >            // Crushed underneath — no jump possible</span>
-<span class="cstat-no" title="statement not covered" >            e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);</span>
+<span class="cstat-no" title="statement not covered" >            e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);</span>
 <span class="cstat-no" title="statement not covered" >            return;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        must_jump = true;</span>
@@ -1600,7 +1603,7 @@ export <span class="fstat-no" title="function not covered" >function automiss(et
 <span class="cstat-no" title="statement not covered" >            if (e_jumps(etmp)) {</span>
 <span class="cstat-no" title="statement not covered" >                relocates = true;</span>
 <span class="cstat-no" title="statement not covered" >            } else {</span>
-<span class="cstat-no" title="statement not covered" >                e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);</span>
+<span class="cstat-no" title="statement not covered" >                e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);</span>
 <span class="cstat-no" title="statement not covered" >                return;</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
@@ -1648,9 +1651,9 @@ export <span class="fstat-no" title="function not covered" >function automiss(et
 <span class="cstat-no" title="statement not covered" >    // Check survival at final position</span>
 <span class="cstat-no" title="statement not covered" >    if (!e_survives_at(etmp, etmp.ex, etmp.ey, map)) {</span>
 <span class="cstat-no" title="statement not covered" >        e_died(etmp, XKILL_NOMSG | XKILL_NOCORPSE,</span>
-<span class="cstat-no" title="statement not covered" >               is_pool(etmp.ex, etmp.ey, map) ? 1 /* DROWNING */</span>
-<span class="cstat-no" title="statement not covered" >               : is_lava(etmp.ex, etmp.ey, map) ? 2 /* BURNING */</span>
-<span class="cstat-no" title="statement not covered" >               : 0 /* CRUSHING */, map);</span>
+<span class="cstat-no" title="statement not covered" >               is_pool(etmp.ex, etmp.ey, map) ? DROWNING</span>
+<span class="cstat-no" title="statement not covered" >               : is_lava(etmp.ex, etmp.ey, map) ? BURNING</span>
+<span class="cstat-no" title="statement not covered" >               : CRUSHING, map);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -1783,7 +1786,7 @@ export <span class="fstat-no" title="function not covered" >function destroy_dra
 <span class="cstat-no" title="statement not covered" >    set_entity(wall.x, wall.y, occupants[1], map, player);</span>
 <span class="cstat-no" title="statement not covered" >    if (occupants[1].edata) {</span>
 <span class="cstat-no" title="statement not covered" >        if (!automiss(occupants[1])) {</span>
-<span class="cstat-no" title="statement not covered" >            e_died(occupants[1], XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);</span>
+<span class="cstat-no" title="statement not covered" >            e_died(occupants[1], XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    set_entity(x, y, occupants[0], map, player);</span>
@@ -1791,7 +1794,7 @@ export <span class="fstat-no" title="function not covered" >function destroy_dra
 <span class="cstat-no" title="statement not covered" >        if (e_missed(occupants[0], true, map)) {</span>
 <span class="cstat-no" title="statement not covered" >            // Spared — but may fall into liquid</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
-<span class="cstat-no" title="statement not covered" >            e_died(occupants[0], XKILL_NOMSG | XKILL_NOCORPSE, 0 /* CRUSHING */, map);</span>
+<span class="cstat-no" title="statement not covered" >            e_died(occupants[0], XKILL_NOMSG | XKILL_NOCORPSE, CRUSHING, map);</span>
 <span class="cstat-no" title="statement not covered" >            if (map.at(occupants[0].ex, occupants[0].ey) &amp;&amp;</span>
 <span class="cstat-no" title="statement not covered" >                map.at(occupants[0].ex, occupants[0].ey).typ === MOAT) {</span>
 <span class="cstat-no" title="statement not covered" >                do_entity(occupants[0], occupants, map, player);</span>
@@ -1807,7 +1810,7 @@ export <span class="fstat-no" title="function not covered" >function destroy_dra
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

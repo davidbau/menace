@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">29.03% </span>
+                <span class="strong">28.96% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>919/3165</span>
+                <span class='fraction'>916/3162</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">29.03% </span>
+                <span class="strong">28.96% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>919/3165</span>
+                <span class='fraction'>916/3162</span>
             </div>
         
             
@@ -3225,10 +3225,10 @@
 <a name='L3160'></a><a href='#L3160'>3160</a>
 <a name='L3161'></a><a href='#L3161'>3161</a>
 <a name='L3162'></a><a href='#L3162'>3162</a>
-<a name='L3163'></a><a href='#L3163'>3163</a>
-<a name='L3164'></a><a href='#L3164'>3164</a>
-<a name='L3165'></a><a href='#L3165'>3165</a>
-<a name='L3166'></a><a href='#L3166'>3166</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L3163'></a><a href='#L3163'>3163</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3328,12 +3328,6 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -6409,6 +6403,9 @@ import {
     ER_NOTHING, ER_GREASED, ER_DAMAGED, ER_DESTROYED,
     EF_NONE, EF_GREASE, EF_DESTROY, EF_VERBOSE, EF_PAY,
     KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX,
+    Trap_Effect_Finished, Trap_Caught_Mon, Trap_Killed_Mon, Trap_Moved_Mon,
+    LEFT_SIDE, RIGHT_SIDE,
+    BOLT_LIM,
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
 import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
@@ -6494,13 +6491,7 @@ function trapnote(trap) {
     return an(tn);  // "an F note", "a C note", etc.
 }
 &nbsp;
-const BOLT_LIM = 8;
-&nbsp;
 // Trap result constants
-const Trap_Effect_Finished = 0;
-const Trap_Caught_Mon = 1;
-const Trap_Killed_Mon = 2;
-const Trap_Moved_Mon = 3;
 &nbsp;
 // ========================================================================
 // Helper stubs for functions not yet ported
@@ -7249,7 +7240,7 @@ function trapeffect_magic_trap_mon(mon, trap, map, player) {
 <span class="cstat-no" title="statement not covered" >            x = launch2.x;</span>
 <span class="cstat-no" title="statement not covered" >            y = launch2.y;</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
-<span class="cstat-no" title="statement not covered" >            deltrap(trap, map);</span>
+<span class="cstat-no" title="statement not covered" >            deltrap(map, trap);</span>
 <span class="cstat-no" title="statement not covered" >            if (typeof newsym === 'function') newsym(trap.tx, trap.ty);</span>
 <span class="cstat-no" title="statement not covered" >            return Trap_Effect_Finished;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
@@ -7309,14 +7300,14 @@ function trapeffect_magic_trap_mon(mon, trap, map, player) {
 <span class="cstat-no" title="statement not covered" >                case PIT:</span>
 <span class="cstat-no" title="statement not covered" >                case SPIKED_PIT:</span>
 <span class="cstat-no" title="statement not covered" >                    // C ref: fill_pit() consumes boulder and neutralizes pit-family trap.</span>
-<span class="cstat-no" title="statement not covered" >                    deltrap(hitTrap, map);</span>
+<span class="cstat-no" title="statement not covered" >                    deltrap(map, hitTrap);</span>
 <span class="cstat-no" title="statement not covered" >                    removeBoulder(boulder);</span>
 <span class="cstat-no" title="statement not covered" >                    if (typeof newsym === 'function') newsym(x, y);</span>
 <span class="cstat-no" title="statement not covered" >                    return Trap_Effect_Finished;</span>
 <span class="cstat-no" title="statement not covered" >                case HOLE:</span>
 <span class="cstat-no" title="statement not covered" >                case TRAPDOOR:</span>
 <span class="cstat-no" title="statement not covered" >                    // C ref: boulder falls into hole/trapdoor and is removed.</span>
-<span class="cstat-no" title="statement not covered" >                    deltrap(hitTrap, map);</span>
+<span class="cstat-no" title="statement not covered" >                    deltrap(map, hitTrap);</span>
 <span class="cstat-no" title="statement not covered" >                    removeBoulder(boulder);</span>
 <span class="cstat-no" title="statement not covered" >                    if (typeof newsym === 'function') newsym(x, y);</span>
 <span class="cstat-no" title="statement not covered" >                    return Trap_Effect_Finished;</span>
@@ -7784,7 +7775,7 @@ export <span class="fstat-no" title="function not covered" >function hole_destin
 // Autotranslated from trap.c:908
 export <span class="fstat-no" title="function not covered" >function activate_statue_trap(trap, x, y, shatter) {</span>
 <span class="cstat-no" title="statement not covered" >  let mtmp = null, otmp = sobj_at(STATUE, x, y), fail_reason;</span>
-<span class="cstat-no" title="statement not covered" >  deltrap(trap);</span>
+<span class="cstat-no" title="statement not covered" >  deltrap(_gstate?.map || null, trap);</span>
 <span class="cstat-no" title="statement not covered" >  while (otmp) {</span>
 <span class="cstat-no" title="statement not covered" >    mtmp = animate_statue(otmp, x, y, shatter ? ANIMATE_SHATTER : ANIMATE_NORMAL, fail_reason);</span>
 <span class="cstat-no" title="statement not covered" >    if (mtmp || fail_reason !== AS_MON_IS_UNIQUE) {</span>
@@ -7910,7 +7901,7 @@ export <span class="fstat-no" title="function not covered" >async function blow_
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  trap = t_at(x, y, map);</span>
 <span class="cstat-no" title="statement not covered" >  if (trap) {</span>
-<span class="cstat-no" title="statement not covered" >    if (Is_waterlevel(map.uz) || Is_airlevel(map.uz)) { deltrap(trap); }</span>
+<span class="cstat-no" title="statement not covered" >    if (Is_waterlevel(map.uz) || Is_airlevel(map.uz)) { deltrap(map, trap); }</span>
 <span class="cstat-no" title="statement not covered" >    else {</span>
 <span class="cstat-no" title="statement not covered" >      typ = fillholetyp(x, y, false);</span>
 <span class="cstat-no" title="statement not covered" >      if (typ !== ROOM) {</span>
@@ -8044,7 +8035,7 @@ export <span class="fstat-no" title="function not covered" >async function disar
 <span class="cstat-no" title="statement not covered" >  if (obj.otyp === CAN_OF_GREASE) { consume_obj_charge(obj, true); }</span>
 <span class="cstat-no" title="statement not covered" >  else { useup(obj); makeknown(POT_OIL); }</span>
 <span class="cstat-no" title="statement not covered" >  await You("repair the squeaky board.");</span>
-<span class="cstat-no" title="statement not covered" >  deltrap(ttmp);</span>
+<span class="cstat-no" title="statement not covered" >  deltrap(_gstate?.map || null, ttmp);</span>
 <span class="cstat-no" title="statement not covered" >  newsym(player.x + player.dx, player.y + player.dy);</span>
 <span class="cstat-no" title="statement not covered" >  more_experienced(1, 5);</span>
 <span class="cstat-no" title="statement not covered" >  await newexplevel();</span>
@@ -8348,7 +8339,7 @@ export <span class="fstat-no" title="function not covered" >async function trap_
 <span class="cstat-no" title="statement not covered" >      await cnv_trap_obj(otyp, 1, ttmp, true);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    else {</span>
-<span class="cstat-no" title="statement not covered" >      if (!undestroyable_trap(ttmp.ttyp)) deltrap(ttmp);</span>
+<span class="cstat-no" title="statement not covered" >      if (!undestroyable_trap(ttmp.ttyp)) deltrap(map, ttmp);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -8715,7 +8706,7 @@ export <span class="fstat-no" title="function not covered" >function trap_sanity
 <span class="cstat-no" title="statement not covered" >    } else {</span>
 <span class="cstat-no" title="statement not covered" >        await pline('%s bear trap closes on your foot!',</span>
 <span class="cstat-no" title="statement not covered" >                    A_Your[trap.madeby_u ? 1 : 0]);</span>
-<span class="cstat-no" title="statement not covered" >        set_wounded_legs(rn2(2) ? 1/*RIGHT_SIDE*/ : 0/*LEFT_SIDE*/, rn1(10, 10), player);</span>
+<span class="cstat-no" title="statement not covered" >        set_wounded_legs(rn2(2) ? RIGHT_SIDE : LEFT_SIDE, rn1(10, 10), player);</span>
 <span class="cstat-no" title="statement not covered" >        await losehp(dmg, 'bear trap', KILLED_BY_AN, player, game?.display, game);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    await exercise(player, A_DEX, false);</span>
@@ -8864,7 +8855,7 @@ export <span class="fstat-no" title="function not covered" >function trap_sanity
 <span class="cstat-no" title="statement not covered" >                         : (conj_pit || already_known) ? 'stepped into a pit of iron spikes'</span>
 <span class="cstat-no" title="statement not covered" >                         : adj_pit ? 'stumbled into a pit of iron spikes'</span>
 <span class="cstat-no" title="statement not covered" >                         : 'fell into a pit of iron spikes',</span>
-<span class="cstat-no" title="statement not covered" >                         0 /*NO_KILLER_PREFIX*/, player, game?.display, game);</span>
+<span class="cstat-no" title="statement not covered" >                         NO_KILLER_PREFIX, player, game?.display, game);</span>
 <span class="cstat-no" title="statement not covered" >            if (!rn2(6))</span>
 <span class="cstat-no" title="statement not covered" >                await poisoned(player, 'spikes', A_STR,</span>
 <span class="cstat-no" title="statement not covered" >                               (player.umortality || 0) &gt; oldumort ? 0 : 8, false);</span>
@@ -8874,7 +8865,7 @@ export <span class="fstat-no" title="function not covered" >function trap_sanity
 <span class="cstat-no" title="statement not covered" >                await losehp(rnd(adj_pit ? 3 : 6),</span>
 <span class="cstat-no" title="statement not covered" >                             plunged ? 'deliberately plunged into a pit'</span>
 <span class="cstat-no" title="statement not covered" >                             : 'fell into a pit',</span>
-<span class="cstat-no" title="statement not covered" >                             0 /*NO_KILLER_PREFIX*/, player, game?.display, game);</span>
+<span class="cstat-no" title="statement not covered" >                             NO_KILLER_PREFIX, player, game?.display, game);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        // C: Punished ball handling, selftouch, vision recalc</span>
 <span class="cstat-no" title="statement not covered" >        if (!conj_pit) selftouch('Falling, you', player);</span>
@@ -9079,8 +9070,8 @@ export <span class="fstat-no" title="function not covered" >function trap_sanity
 <span class="cstat-no" title="statement not covered" >        await pline('KAABLAMM!!!  You triggered %s land mine!',</span>
 <span class="cstat-no" title="statement not covered" >                    a_your[trap.madeby_u ? 1 : 0]);</span>
 <span class="cstat-no" title="statement not covered" >        if (player.usteed) await steedintrap(trap, null, player, game, map);</span>
-<span class="cstat-no" title="statement not covered" >        set_wounded_legs(0 /*LEFT_SIDE*/, rn1(35, 41), player);</span>
-<span class="cstat-no" title="statement not covered" >        set_wounded_legs(1 /*RIGHT_SIDE*/, rn1(35, 41), player);</span>
+<span class="cstat-no" title="statement not covered" >        set_wounded_legs(LEFT_SIDE, rn1(35, 41), player);</span>
+<span class="cstat-no" title="statement not covered" >        set_wounded_legs(RIGHT_SIDE, rn1(35, 41), player);</span>
 <span class="cstat-no" title="statement not covered" >        await exercise(player, A_DEX, false);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    // C: trap-&gt;ttyp = PIT; blow_up_landmine(trap); fall_into_pit</span>
@@ -9565,7 +9556,7 @@ export <span class="fstat-no" title="function not covered" >function animate_sta
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

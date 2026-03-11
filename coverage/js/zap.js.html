@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.92% </span>
+                <span class="strong">20.81% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>569/2719</span>
+                <span class='fraction'>565/2714</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.92% </span>
+                <span class="strong">20.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>569/2719</span>
+                <span class='fraction'>565/2714</span>
             </div>
         
             
@@ -2777,14 +2777,7 @@
 <a name='L2712'></a><a href='#L2712'>2712</a>
 <a name='L2713'></a><a href='#L2713'>2713</a>
 <a name='L2714'></a><a href='#L2714'>2714</a>
-<a name='L2715'></a><a href='#L2715'>2715</a>
-<a name='L2716'></a><a href='#L2716'>2716</a>
-<a name='L2717'></a><a href='#L2717'>2717</a>
-<a name='L2718'></a><a href='#L2718'>2718</a>
-<a name='L2719'></a><a href='#L2719'>2719</a>
-<a name='L2720'></a><a href='#L2720'>2720</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
+<a name='L2715'></a><a href='#L2715'>2715</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3473,9 +3466,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -5509,7 +5499,7 @@
 import { rn2, rnd, d, rn1, rnz } from './rng.js';
 import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
-    ICE, POOL,
+    STONE, ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
     TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE, is_magical_trap,
     MM_NOWAIT, MM_NOMSG, MM_NOCOUNTBIRTH, MM_MALE, MM_FEMALE,
@@ -5519,6 +5509,8 @@ import {
     MELT_ICE_AWAY,
     HALLUC,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
+    BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
+    CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -5558,7 +5550,7 @@ import { mons, M1_NOEYES,
          PM_LEATHER_GOLEM, PM_ROPE_GOLEM, PM_SKELETON, PM_GOLD_GOLEM,
          PM_GLASS_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM,
          PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC,
-         AD_DRLI } from './monsters.js';
+         AD_DRLI, AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM } from './monsters.js';
 import {
   rndmonnum, makemon,
 } from './makemon.js';
@@ -5644,11 +5636,7 @@ const ZT_ACID = 7;
 const ZT_WAND = <span class="fstat-no" title="function not covered" >(x) =&gt; x;</span>
 const ZT_SPELL = <span class="fstat-no" title="function not covered" >(x) =&gt; 10 + x;</span>
 const ZT_BREATH = <span class="fstat-no" title="function not covered" >(x) =&gt; 20 + x;</span>
-const BURIED_TOO = 1;
-const CONTAINED_TOO = 2;
-const PICK_NONE = 0;
-const MINV_NOLET = 0x04;
-const MINV_ALL = 0x08;
+// BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL imported from const.js
 &nbsp;
 let go_obj_zapped = false;
 let gp_poly_zapped = -1;
@@ -6180,7 +6168,6 @@ export <span class="fstat-no" title="function not covered" >function destroy_mit
 &nbsp;
 // Check if object is destroyable by damage type
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function destroyable_by(obj, dmgtyp) {</span></span>
-<span class="cstat-no" title="statement not covered" >  const { AD_FIRE, AD_COLD, AD_ELEC } = { AD_FIRE: 2, AD_COLD: 3, AD_ELEC: 6 };</span>
 <span class="cstat-no" title="statement not covered" >  if (dmgtyp === AD_FIRE) {</span>
 <span class="cstat-no" title="statement not covered" >    return obj.oclass === POTION_CLASS || obj.oclass === SCROLL_CLASS ||</span>
 <span class="cstat-no" title="statement not covered" >           obj.oclass === SPBOOK_CLASS;</span>
@@ -6197,9 +6184,7 @@ export <span class="fstat-no" title="function not covered" >function destroy_mit
 // ============================================================
 // cf. zap.c revive() — revive a corpse into a living monster
 // ============================================================
-const CORPSTAT_GENDER = 0x03;
-const CORPSTAT_FEMALE = 1;
-const CORPSTAT_MALE = 2;
+// CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE imported from const.js
 &nbsp;
 export async function revive(obj, by_hero, map, player = null) {
   if (!obj || obj.otyp !== CORPSE) <span class="branch-0 cbranch-no" title="branch not covered" >return null;</span>
@@ -6694,7 +6679,7 @@ export <span class="fstat-no" title="function not covered" >async function zapno
 <span class="cstat-no" title="statement not covered" >      if (!loc) { sx = lsx; sy = lsy; break; }</span>
 <span class="cstat-no" title="statement not covered" >      tmp_at(sx, sy);</span>
 <span class="cstat-no" title="statement not covered" >      await nh_delay_output();</span>
-<span class="cstat-no" title="statement not covered" >      if (loc.typ === 0) goto_bounce(); // STONE</span>
+<span class="cstat-no" title="statement not covered" >      if (loc.typ === STONE) goto_bounce();</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >      // C ref: zap.c:4797-4802 — zap_over_floor for non-fireball, non-gas</span>
 <span class="cstat-no" title="statement not covered" >      if (damgtype !== ZT_POISON_GAS) {</span>
@@ -6761,7 +6746,7 @@ export <span class="fstat-no" title="function not covered" >async function zapno
 <span class="cstat-no" title="statement not covered" >      if (loc &amp;&amp; (IS_WALL(loc.typ) || IS_DOOR(loc.typ))) {</span>
 <span class="cstat-no" title="statement not covered" >        // Bounce logic</span>
 <span class="cstat-no" title="statement not covered" >        // C ref: STONE→10, mine walls→20, else→75</span>
-<span class="cstat-no" title="statement not covered" >        const bchance = (loc.typ === 0 /*STONE*/) ? 10 : IS_WALL(loc.typ) ? 75 : 75;</span>
+<span class="cstat-no" title="statement not covered" >        const bchance = (loc.typ === STONE) ? 10 : IS_WALL(loc.typ) ? 75 : 75;</span>
 <span class="cstat-no" title="statement not covered" >        if (!dx || !dy || !rn2(bchance)) {</span>
 <span class="cstat-no" title="statement not covered" >          dx = -dx;</span>
 <span class="cstat-no" title="statement not covered" >          dy = -dy;</span>
@@ -7088,15 +7073,15 @@ export <span class="fstat-no" title="function not covered" >async function break
 <span class="cstat-no" title="statement not covered" >  let expltype = EXPL_DARK;</span>
 <span class="cstat-no" title="statement not covered" >  switch (beamType) {</span>
 <span class="cstat-no" title="statement not covered" >  case ZT_MAGIC_MISSILE:</span>
-<span class="cstat-no" title="statement not covered" >    adtyp = 1; // AD_MAGM</span>
+<span class="cstat-no" title="statement not covered" >    adtyp = AD_MAGM;</span>
 <span class="cstat-no" title="statement not covered" >    expltype = EXPL_MAGICAL;</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >  case ZT_FIRE:</span>
-<span class="cstat-no" title="statement not covered" >    adtyp = 2; // AD_FIRE</span>
+<span class="cstat-no" title="statement not covered" >    adtyp = AD_FIRE;</span>
 <span class="cstat-no" title="statement not covered" >    expltype = EXPL_FIERY;</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >  case ZT_COLD:</span>
-<span class="cstat-no" title="statement not covered" >    adtyp = 3; // AD_COLD</span>
+<span class="cstat-no" title="statement not covered" >    adtyp = AD_COLD;</span>
 <span class="cstat-no" title="statement not covered" >    expltype = EXPL_FROSTY;</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >  case ZT_SLEEP:</span>
@@ -7971,7 +7956,7 @@ export <span class="fstat-no" title="function not covered" >function maybe_explo
 <span class="cstat-no" title="statement not covered" >    return true;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  if (!is_magical_trap(trap.ttyp)) return false;</span>
-<span class="cstat-no" title="statement not covered" >  deltrap(trap, map);</span>
+<span class="cstat-no" title="statement not covered" >  deltrap(map, trap);</span>
 <span class="cstat-no" title="statement not covered" >  return true;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 export <span class="fstat-no" title="function not covered" >function melt_ice(x, y, _range, map) {</span>
@@ -8048,7 +8033,7 @@ export <span class="fstat-no" title="function not covered" >function u_adtyp_res
 <span class="cstat-no" title="statement not covered" >  const xtrinsic = Number(player?.uprops?.[prop]?.extrinsic || 0);</span>
 <span class="cstat-no" title="statement not covered" >  if ((xtrinsic &amp; (W_ARMOR | W_ACCESSORY | W_WEP | W_ART)) !== 0) return 99;</span>
 <span class="cstat-no" title="statement not covered" >  if ((xtrinsic &amp; W_ARMC) &amp;&amp; player?.cloak?.otyp === DWARVISH_CLOAK</span>
-<span class="cstat-no" title="statement not covered" >      &amp;&amp; (adtyp === 2 /* AD_FIRE */ || adtyp === 3 /* AD_COLD */)) return 90;</span>
+<span class="cstat-no" title="statement not covered" >      &amp;&amp; (adtyp === AD_FIRE || adtyp === AD_COLD)) return 90;</span>
 <span class="cstat-no" title="statement not covered" >  return 0;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 // Autotranslated from zap.c:4699
@@ -8227,7 +8212,7 @@ export <span class="fstat-no" title="function not covered" >function destroyable
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

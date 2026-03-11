@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.45% </span>
+                <span class="strong">90.42% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1289/1425</span>
+                <span class='fraction'>1285/1421</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.45% </span>
+                <span class="strong">90.42% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1289/1425</span>
+                <span class='fraction'>1285/1421</span>
             </div>
         
             
@@ -1484,11 +1484,9 @@
 <a name='L1419'></a><a href='#L1419'>1419</a>
 <a name='L1420'></a><a href='#L1420'>1420</a>
 <a name='L1421'></a><a href='#L1421'>1421</a>
-<a name='L1422'></a><a href='#L1422'>1422</a>
-<a name='L1423'></a><a href='#L1423'>1423</a>
-<a name='L1424'></a><a href='#L1424'>1424</a>
-<a name='L1425'></a><a href='#L1425'>1425</a>
-<a name='L1426'></a><a href='#L1426'>1426</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1422'></a><a href='#L1422'>1422</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2369,8 +2367,6 @@
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
-<span class="cline-any cline-yes">34x</span>
-<span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">34x</span>
@@ -2534,10 +2530,6 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">256x</span>
 <span class="cline-any cline-yes">34x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3008,7 +3000,9 @@ import { roles, races } from './player.js';
 import { discoverObject } from './o_init.js';
 import { mons } from './monsters.js';
 import { makedog, mon_arrive } from './dog.js';
-import { MON_ARRIVE_WITH_YOU } from './const.js';
+import { MON_ARRIVE_WITH_YOU,
+         P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW,
+         WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP } from './const.js';
 import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
     W_WEP, W_SWAPWEP, W_QUIVER,
@@ -3787,9 +3781,7 @@ function initAttributes(player) {
 &nbsp;
 // C ref: hack.c weight_cap()/inv_weight() + u_init.c u_init_carry_attr_boost()
 function startupWeightCap(player) {
-    const WT_WEIGHTCAP_STRCON = 25;
-    const WT_WEIGHTCAP_SPARE = 50;
-    const MAX_CARR_CAP = 1000;
+    // Weight constants imported from const.js
     const str = player.attributes[A_STR] <span class="branch-0 cbranch-no" title="branch not covered" >|| 3;</span>
     const con = player.attributes[A_CON] <span class="branch-0 cbranch-no" title="branch not covered" >|| 3;</span>
     let carrcap = WT_WEIGHTCAP_STRCON * (str + con) + WT_WEIGHTCAP_SPARE;
@@ -3962,18 +3954,14 @@ function applyStartupDiscoveries(player) {
 &nbsp;
 // C ref: u_init.c knows_class()/knows_object() role pre-knowledge.
 // Mirrors C role-specific startup recognition of object classes/types.
-const WEAPON_SKILL_DAGGER = 1;
-const WEAPON_SKILL_POLEARM = 16;
-const WEAPON_SKILL_SPEAR = 17;
-const WEAPON_SKILL_BOW = 20;
-const WEAPON_SKILL_CROSSBOW = 22;
+// P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW imported from const.js
 &nbsp;
 function isLauncherSkill(skill) {
-    return skill &gt;= WEAPON_SKILL_BOW &amp;&amp; skill &lt;= WEAPON_SKILL_CROSSBOW;
+    return skill &gt;= P_BOW &amp;&amp; skill &lt;= P_CROSSBOW;
 }
 &nbsp;
 function isAmmoSkill(skill) {
-    return skill &lt;= -WEAPON_SKILL_BOW &amp;&amp; skill &gt;= -WEAPON_SKILL_CROSSBOW;
+    return skill &lt;= -P_BOW &amp;&amp; skill &gt;= -P_CROSSBOW;
 }
 &nbsp;
 function discoverClassByRule(oclass, shouldKnow) {
@@ -3990,16 +3978,16 @@ function discoverWeaponClassForRole(roleMnum) {
     discoverClassByRule(WEAPON_CLASS, (od) =&gt; {
         const skill = Number(od.oc_subtyp || 0);
         if (roleMnum !== PM_KNIGHT &amp;&amp; roleMnum !== PM_SAMURAI
-            &amp;&amp; skill === WEAPON_SKILL_POLEARM) {
+            &amp;&amp; skill === P_POLEARMS) {
             return false; // C: knows_class(WEAPON_CLASS) excludes polearms
         }
         if (roleMnum === PM_RANGER) {
             return isLauncherSkill(skill)
                 || isAmmoSkill(skill)
-                || skill === WEAPON_SKILL_SPEAR;
+                || skill === P_SPEAR;
         }
         if (roleMnum === PM_ROGUE) {
-            return skill === WEAPON_SKILL_DAGGER;
+            return skill === P_DAGGER;
         }
         return true;
     });
@@ -4345,7 +4333,7 @@ export <span class="fstat-no" title="function not covered" >function u_init_skil
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

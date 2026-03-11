@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">27.38% </span>
+                <span class="strong">27.16% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>460/1680</span>
+                <span class='fraction'>455/1675</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">27.38% </span>
+                <span class="strong">27.16% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>460/1680</span>
+                <span class='fraction'>455/1675</span>
             </div>
         
             
@@ -1738,12 +1738,9 @@
 <a name='L1673'></a><a href='#L1673'>1673</a>
 <a name='L1674'></a><a href='#L1674'>1674</a>
 <a name='L1675'></a><a href='#L1675'>1675</a>
-<a name='L1676'></a><a href='#L1676'>1676</a>
-<a name='L1677'></a><a href='#L1677'>1677</a>
-<a name='L1678'></a><a href='#L1678'>1678</a>
-<a name='L1679'></a><a href='#L1679'>1679</a>
-<a name='L1680'></a><a href='#L1680'>1680</a>
-<a name='L1681'></a><a href='#L1681'>1681</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1676'></a><a href='#L1676'>1676</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1917,13 +1914,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3451,7 +3441,9 @@ import { placeFloorObject } from './invent.js';
 import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
 import { GEM_CLASS, RANDOM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
 import { makemon, rndmonnum, getMakemonRoleIndex } from './makemon.js';
-import { NO_MM_FLAGS } from './const.js';
+import { NO_MM_FLAGS,
+         LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
+         LR_TELE, LR_UPTELE, LR_DOWNTELE } from './const.js';
 import { mons, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, MR_STONE } from './monsters.js';
 import { roles } from './role.js';
 import {
@@ -3598,14 +3590,7 @@ export <span class="fstat-no" title="function not covered" >function maze0xy(map
 <span class="cstat-no" title="statement not covered" >    return mazexy(map);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
-// Region type constants (C ref: mkmaze.h)
-const LR_TELE = 0;
-const LR_DOWNTELE = 1;
-const LR_UPTELE = 2;
-const LR_PORTAL = 3;
-const LR_BRANCH = 4;
-const LR_UPSTAIR = 5;
-const LR_DOWNSTAIR = 6;
+// LR_* region type constants imported from const.js
 &nbsp;
 // C ref: mkmaze.c within_bounded_area()
 function within_bounded_area(x, y, lx, ly, hx, hy) {
@@ -3737,7 +3722,7 @@ export async function makemaz(map, protofile, dnum, dlevel, depth) {
     // (e.g., wizard teleport path passes only depth, not dnum/dlevel).
     // C always calls find_branch_room() to consume RNG even for BR_NO_END1 (no stair placed).
     // Use branchResult.found (not placement !== 'none') to match C's RNG consumption.
-    const branchDnum = Number.isInteger(dnum) <span class="branch-0 cbranch-no" title="branch not covered" >? dnum </span>: (Number.isInteger(map._genDnum) ? map._genDnum <span class="branch-0 cbranch-no" title="branch not covered" >: 0 </span>/* DUNGEONS_OF_DOOM */);
+    const branchDnum = Number.isInteger(dnum) <span class="branch-0 cbranch-no" title="branch not covered" >? dnum </span>: (Number.isInteger(map._genDnum) ? map._genDnum <span class="branch-0 cbranch-no" title="branch not covered" >: DUNGEONS_OF_DOOM)</span>;
     const branchDlevel = Number.isInteger(dlevel) <span class="branch-0 cbranch-no" title="branch not covered" >? dlevel </span>: (Number.isInteger(map._genDlevel) ? map._genDlevel <span class="branch-0 cbranch-no" title="branch not covered" >: depth)</span>;
     const branchResult = resolveBranchPlacementForLevel(branchDnum, branchDlevel);
     if (branchResult.found) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
@@ -5110,7 +5095,7 @@ export { bound_digging, repair_irregular_room_boundaries };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

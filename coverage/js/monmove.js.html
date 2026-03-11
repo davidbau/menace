@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.91% </span>
+                <span class="strong">71.86% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1956/2720</span>
+                <span class='fraction'>1951/2715</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.91% </span>
+                <span class="strong">71.86% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1956/2720</span>
+                <span class='fraction'>1951/2715</span>
             </div>
         
             
@@ -2778,17 +2778,7 @@
 <a name='L2713'></a><a href='#L2713'>2713</a>
 <a name='L2714'></a><a href='#L2714'>2714</a>
 <a name='L2715'></a><a href='#L2715'>2715</a>
-<a name='L2716'></a><a href='#L2716'>2716</a>
-<a name='L2717'></a><a href='#L2717'>2717</a>
-<a name='L2718'></a><a href='#L2718'>2718</a>
-<a name='L2719'></a><a href='#L2719'>2719</a>
-<a name='L2720'></a><a href='#L2720'>2720</a>
-<a name='L2721'></a><a href='#L2721'>2721</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
+<a name='L2716'></a><a href='#L2716'>2716</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -5620,12 +5610,7 @@ import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
-import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED } from './const.js';
-&nbsp;
-// STRAT_*, MMOVE_* imported from const.js
-const MMOVE_DIED = 2;
-const MMOVE_DONE = 3;
-const MMOVE_NOMOVES = 4;
+import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED, MMOVE_DIED, MMOVE_DONE, MMOVE_NOMOVES, Trap_Killed_Mon, Trap_Moved_Mon, MAX_CARR_CAP } from './const.js';
 &nbsp;
 // Re-export mthrowu.c functions
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
@@ -6044,7 +6029,7 @@ export function m_avoid_soko_push_loc(mon, nx, ny, map, player) {
 // ========================================================================
 // m_search_items — C ref: monmove.c:1333
 // ========================================================================
-const MAX_CARR_CAP = 1000;
+// MAX_CARR_CAP imported from const.js
 const PRACTICAL_CLASSES = new Set([WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS, FOOD_CLASS]);
 const MAGICAL_CLASSES = new Set([AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_CLASS, RING_CLASS, SPBOOK_CLASS]);
 &nbsp;
@@ -7770,9 +7755,9 @@ export <span class="fstat-no" title="function not covered" >async function postm
 <span class="cstat-no" title="statement not covered" >    if (mon.dead) return mmoved;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Trap trigger after movement</span>
-<span class="cstat-no" title="statement not covered" >    if (mmoved === 1 /* MMOVE_MOVED */) {</span>
+<span class="cstat-no" title="statement not covered" >    if (mmoved === MMOVE_MOVED) {</span>
 <span class="cstat-no" title="statement not covered" >        const trapResult = await mintrap_postmove(mon, map, player);</span>
-<span class="cstat-no" title="statement not covered" >        if (trapResult === 2 /* Trap_Killed_Mon */ || trapResult === 3 /* Trap_Moved_Mon */) {</span>
+<span class="cstat-no" title="statement not covered" >        if (trapResult === Trap_Killed_Mon || trapResult === Trap_Moved_Mon) {</span>
 <span class="cstat-no" title="statement not covered" >            return -1; // MMOVE_DIED</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -8230,7 +8215,7 @@ export <span class="fstat-no" title="function not covered" >function vamp_shift(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.48% </span>
+                <span class="strong">73.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2112/2874</span>
+                <span class='fraction'>2111/2873</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.48% </span>
+                <span class="strong">73.47% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2112/2874</span>
+                <span class='fraction'>2111/2873</span>
             </div>
         
             
@@ -2936,8 +2936,7 @@
 <a name='L2871'></a><a href='#L2871'>2871</a>
 <a name='L2872'></a><a href='#L2872'>2872</a>
 <a name='L2873'></a><a href='#L2873'>2873</a>
-<a name='L2874'></a><a href='#L2874'>2874</a>
-<a name='L2875'></a><a href='#L2875'>2875</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2874'></a><a href='#L2874'>2874</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -5066,7 +5065,6 @@
 <span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-yes">15x</span>
-<span class="cline-any cline-yes">15x</span>
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
@@ -5834,7 +5832,7 @@ import {
     MM_IGNORELAVA,
     BOLT_LIM, LS_MONSTER,
 } from './const.js';
-import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, SIZE } from './const.js';
+import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, SIZE, ALIGNWEIGHT } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
 import { get_shop_item } from './shknam.js';
 import { mons, SPECIAL_PM, MAXMCLASSES, G_FREQ, G_NOGEN, G_UNIQ, G_HELL, G_NOHELL, G_SGROUP, G_LGROUP, G_NOCORPSE, G_IGNORE, G_GENOD, G_EXTINCT, G_GONE, S_ANT, S_BLOB, S_COCKATRICE, S_DOG, S_EYE, S_FELINE, S_GREMLIN, S_HUMANOID, S_IMP, S_JELLY, S_KOBOLD, S_LEPRECHAUN, S_MIMIC, S_NYMPH, S_ORC, S_PIERCER, S_QUADRUPED, S_RODENT, S_SPIDER, S_TRAPPER, S_UNICORN, S_VORTEX, S_WORM, S_XAN, S_LIGHT, S_ZRUTY, S_ANGEL, S_BAT, S_CENTAUR, S_DRAGON, S_ELEMENTAL, S_FUNGUS, S_GNOME, S_GIANT, S_JABBERWOCK, S_KOP, S_LICH, S_MUMMY, S_NAGA, S_OGRE, S_PUDDING, S_QUANTMECH, S_RUSTMONST, S_SNAKE, S_TROLL, S_UMBER, S_VAMPIRE, S_WRAITH, S_XORN, S_YETI, S_ZOMBIE, S_HUMAN, S_GHOST, S_GOLEM, S_DEMON, S_EEL, S_LIZARD, S_MIMIC_DEF, M2_MERC, M2_LORD, M2_PRINCE, M2_NASTY, M2_FEMALE, M2_MALE, M2_STRONG, M2_ROCKTHROW, M2_HOSTILE, M2_PEACEFUL, M2_DOMESTIC, M2_NEUTER, M2_GREEDY, M2_SHAPESHIFTER, M2_NOPOLY, M2_ELF, M2_DWARF, M2_MINION, M2_DEMON, M3_WAITFORU, M3_CLOSE, M3_WAITMASK, M3_COVETOUS, M1_FLY, M1_NOHANDS, M1_SWIM, M1_AMPHIBIOUS, M1_WALLWALK, M1_AMORPHOUS, PM_ORC, PM_GIANT, PM_ELF, PM_HUMAN, PM_ETTIN, PM_MINOTAUR, PM_NAZGUL, PM_ELVEN_MONARCH, PM_MASTER_LICH, PM_ARCH_LICH, PM_GRAY_DRAGON, PM_STRAW_GOLEM, PM_PAPER_GOLEM, PM_ROPE_GOLEM, PM_GOLD_GOLEM, PM_LEATHER_GOLEM, PM_WOOD_GOLEM, PM_FLESH_GOLEM, PM_CLAY_GOLEM, PM_STONE_GOLEM, PM_GLASS_GOLEM, PM_IRON_GOLEM, PM_DEATH, PM_FAMINE, PM_WUMPUS, PM_LONG_WORM, PM_GIANT_EEL, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_GUARD, PM_SHOPKEEPER, AT_WEAP, AT_EXPL, PM_PESTILENCE, PM_GOBLIN, PM_ORC_CAPTAIN, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_SHAMAN, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_GHOST, PM_ERINYS, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_VLAD_THE_IMPALER, PM_WOLF, PM_FOG_CLOUD, PM_VAMPIRE_BAT, PM_CHAMELEON, PM_ROTHE, PM_CAVE_DWELLER, PM_BARBARIAN, PM_NEANDERTHAL, PM_HORNED_DEVIL, PM_BALROG, PM_ASMODEUS, PM_DISPATER, PM_YEENOGHU, PM_ORCUS, PM_HUMAN_WEREJACKAL, PM_HUMAN_WERERAT, PM_HUMAN_WEREWOLF, PM_WEREJACKAL, PM_WERERAT, PM_WEREWOLF, PM_OWLBEAR, PM_STEAM_VORTEX, PM_GREEN_SLIME, PM_VIOLET_FUNGUS, PM_SHRIEKER, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_JELLYFISH, PM_AIR_ELEMENTAL, PM_FIRE_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_WATER_ELEMENTAL, PM_HIGH_CLERIC, MS_LEADER, MS_NEMESIS, MS_GUARDIAN, MS_PRIEST, PM_CROESUS, PM_ARCHEOLOGIST, PM_WIZARD, PM_QUANTUM_MECHANIC, PM_HOUSECAT, PM_PONY, PM_FOREST_CENTAUR } from './monsters.js';
@@ -6195,7 +6193,7 @@ export function uncommon(mndx) {
     return !!(ptr.geno &amp; G_HELL);
 }
 &nbsp;
-const ALIGNWEIGHT = 4; // C ref: global.h ALIGNWEIGHT
+// ALIGNWEIGHT imported from const.js
 &nbsp;
 // C ref: makemon.c align_shift()
 function align_shift(ptr) {
@@ -6890,7 +6888,7 @@ function m_initweap(mon, mndx, depth) {
     default:
         // Generic weapon assignment for armed monsters
         // C ref: makemon.c:534-571
-        if (ptr.mattk &amp;&amp; ptr.mattk.some(a =&gt; a.aatyp === 254)) { // AT_WEAP
+        if (ptr.mattk &amp;&amp; ptr.mattk.some(a =&gt; a.aatyp === AT_WEAP)) {
             const w = rnd(Math.max(1, 14 - 2 * bias));
             switch (w) {
             case 1:
@@ -7892,7 +7890,7 @@ function enexto_core(cx, cy, ptr, map, mmflags) {
 }
 &nbsp;
 function makemon_rnd_goodpos(map, ptr, mmflags = NO_MM_FLAGS) {
-    const COLNO = 80, ROWNO = 21;
+    // COLNO, ROWNO imported from const.js
     let lastNx = 2;
     let lastNy = 0;
     for (let tryct = 0; tryct &lt; 50; tryct++) {
@@ -7932,8 +7930,7 @@ function makemon_rnd_goodpos(map, ptr, mmflags = NO_MM_FLAGS) {
 &nbsp;
 // C ref: teleport.c collect_coords() + enexto() for group placement.
 function group_collect_coords(cx, cy, maxradius) {
-    const COLNO = 80;
-    const ROWNO = 21;
+    // COLNO, ROWNO imported from const.js
     const rowrange = (cy &lt; Math.floor(ROWNO / 2)) ? (ROWNO - 1 - cy) : cy;
     const colrange = (cx &lt; Math.floor(COLNO / 2)) ? (COLNO - 1 - cx) : cx;
     const k = Math.max(rowrange, colrange);
@@ -8692,7 +8689,7 @@ export <span class="fstat-no" title="function not covered" >function clone_mon(m
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

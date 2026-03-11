@@ -24,6 +24,19 @@ Phase 3 objective:
 - while keeping parity green on the established baseline core sessions,
 - and keeping newly added themed parity sessions green as they are introduced.
 
+Latest baseline (`2026-03-11`, commit `8aa34219`):
+- Gameplay parity sessions: `34/34` green.
+- Overall session-parity coverage:
+  - lines: `50.93%`
+  - branches: `60.68%`
+  - functions: `30.88%`
+- Current highest-impact low-coverage candidates from report:
+  - `js/sit.js` (`9.00%`)
+  - `js/fountain.js` (`11.21%`)
+  - `js/lock.js` (`23.58%`)
+  - `js/shk.js` (`26.27%`)
+  - `js/zap.js` (`20.81%`)
+
 ## Scope
 
 Coverage input:

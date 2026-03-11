@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.05% </span>
+                <span class="strong">33.06% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>825/2496</span>
+                <span class='fraction'>825/2495</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.05% </span>
+                <span class="strong">33.06% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>825/2496</span>
+                <span class='fraction'>825/2495</span>
             </div>
         
             
@@ -2558,8 +2558,7 @@
 <a name='L2493'></a><a href='#L2493'>2493</a>
 <a name='L2494'></a><a href='#L2494'>2494</a>
 <a name='L2495'></a><a href='#L2495'>2495</a>
-<a name='L2496'></a><a href='#L2496'>2496</a>
-<a name='L2497'></a><a href='#L2497'>2497</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2496'></a><a href='#L2496'>2496</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2984,7 +2983,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -5075,7 +5073,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          IS_FURNITURE, IS_DRAWBRIDGE,
          XKILL_NOMSG, XKILL_NOCONDUCT,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
-         BOLT_LIM, MFAST } from './const.js';
+         BOLT_LIM, MFAST, P_DAGGER, P_KNIFE } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
@@ -5090,7 +5088,7 @@ import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          can_blow, x_monnam, canseemon, needspick,
          dmgtype_fromattack, is_bat, nonliving, acidic,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
-import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP } from './monsters.js';
+import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP, AD_HEAL } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
          POTION_CLASS, WAND_CLASS, SCROLL_CLASS, FOOD_CLASS,
          AMULET_CLASS, TOOL_CLASS, WEAPON_CLASS,
@@ -5489,8 +5487,7 @@ export <span class="fstat-no" title="function not covered" >function mcould_eat_
 <span class="cstat-no" title="statement not covered" >        if (obj.otyp === TIN_OPENER) return true;</span>
 <span class="cstat-no" title="statement not covered" >        const od = objectData[obj.otyp];</span>
 <span class="cstat-no" title="statement not covered" >        if (od &amp;&amp; od.oc_class === WEAPON_CLASS) {</span>
-<span class="cstat-no" title="statement not covered" >            // P_DAGGER = 1, P_KNIFE = 2 in C; check by skill</span>
-<span class="cstat-no" title="statement not covered" >            if (od.oc_skill === 1 || od.oc_skill === 2) return true;</span>
+<span class="cstat-no" title="statement not covered" >            if (od.oc_skill === P_DAGGER || od.oc_skill === P_KNIFE) return true;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    return false;</span>
@@ -6447,7 +6444,7 @@ export async function find_offensive(mtmp, map, player) {
         return false;
     if (player.uswallow) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
     if (onscary(map, mtmp.mx, mtmp.my, mtmp)) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
-    if (dmgtype(mdat, 11 /* AD_HEAL */)
+    if (dmgtype(mdat, AD_HEAL)
 <span class="branch-0 cbranch-no" title="branch not covered" >        &amp;&amp; !player.weapon <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !player.shirt <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !player.armor <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !player.helmet</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >        &amp;&amp; !player.shield <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !player.gloves <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !player.cloak <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !player.boots)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >        return false;</span>
@@ -7558,7 +7555,7 @@ export <span class="fstat-no" title="function not covered" >function cures_slimi
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

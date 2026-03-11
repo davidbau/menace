@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.44% </span>
+                <span class="strong">60.52% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>622/1029</span>
+                <span class='fraction'>624/1031</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60.44% </span>
+                <span class="strong">60.52% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>622/1029</span>
+                <span class='fraction'>624/1031</span>
             </div>
         
             
@@ -1092,7 +1092,11 @@
 <a name='L1027'></a><a href='#L1027'>1027</a>
 <a name='L1028'></a><a href='#L1028'>1028</a>
 <a name='L1029'></a><a href='#L1029'>1029</a>
-<a name='L1030'></a><a href='#L1030'>1030</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1030'></a><a href='#L1030'>1030</a>
+<a name='L1031'></a><a href='#L1031'>1031</a>
+<a name='L1032'></a><a href='#L1032'>1032</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2150,6 +2154,7 @@ import {
     BALL_CLASS, CHAIN_CLASS, COIN_CLASS, SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
     TALLOW_CANDLE, WAX_CANDLE, LENSES, TIN_WHISTLE, MAGIC_WHISTLE, STATUE,
     MEAT_STICK, ENORMOUS_MEATBALL,
+    ARM_GLOVES,
 } from './objects.js';
 import { doname, xname, mkcorpstat, mksobj, add_to_minv } from './mkobj.js';
 import { couldsee, m_cansee } from './vision.js';
@@ -2167,7 +2172,8 @@ import { flush_screen, canSeeMonsterForMap } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
-import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON, P_BOW } from './const.js';
+import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON,
+         P_DAGGER, P_SPEAR, P_BOW, P_CROSSBOW, P_DART, P_SHURIKEN } from './const.js';
 import { ammo_and_launcher, multishot_class_bonus } from './dothrow.js';
 import { losehp } from './hack.js';
 import { KILLED_BY_AN } from './const.js';
@@ -2571,16 +2577,16 @@ export <span class="fstat-no" title="function not covered" >async function hits_
 <span class="cstat-no" title="statement not covered" >        case WEAPON_CLASS: {</span>
 <span class="cstat-no" title="statement not covered" >            const skill = objectData[obj.otyp]?.oc_subtyp || 0;</span>
 <span class="cstat-no" title="statement not covered" >            // Most missiles pass through; bigger melee weapons hit.</span>
-<span class="cstat-no" title="statement not covered" >            hits = !(skill === -20 /* bow ammo skill */</span>
-<span class="cstat-no" title="statement not covered" >                || skill === -22 /* crossbow ammo skill */</span>
-<span class="cstat-no" title="statement not covered" >                || skill === -23 /* dart */</span>
-<span class="cstat-no" title="statement not covered" >                || skill === -24 /* shuriken */</span>
-<span class="cstat-no" title="statement not covered" >                || skill === 17 /* spear */</span>
-<span class="cstat-no" title="statement not covered" >                || skill === 1 /* dagger-ish */);</span>
+<span class="cstat-no" title="statement not covered" >            hits = !(skill === -P_BOW</span>
+<span class="cstat-no" title="statement not covered" >                || skill === -P_CROSSBOW</span>
+<span class="cstat-no" title="statement not covered" >                || skill === -P_DART</span>
+<span class="cstat-no" title="statement not covered" >                || skill === -P_SHURIKEN</span>
+<span class="cstat-no" title="statement not covered" >                || skill === P_SPEAR</span>
+<span class="cstat-no" title="statement not covered" >                || skill === P_DAGGER);</span>
 <span class="cstat-no" title="statement not covered" >            break;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        case ARMOR_CLASS:</span>
-<span class="cstat-no" title="statement not covered" >            hits = (objectData[obj.otyp]?.armcat !== 3); // gloves pass through</span>
+<span class="cstat-no" title="statement not covered" >            hits = (objectData[obj.otyp]?.armcat !== ARM_GLOVES);</span>
 <span class="cstat-no" title="statement not covered" >            break;</span>
 <span class="cstat-no" title="statement not covered" >        case TOOL_CLASS:</span>
 <span class="cstat-no" title="statement not covered" >            hits = ![SKELETON_KEY, LOCK_PICK, CREDIT_CARD, TALLOW_CANDLE,</span>
@@ -3157,7 +3163,7 @@ export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, n
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>

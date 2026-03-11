@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.44% </span>
+                <span class="strong">54.45% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>907/1666</span>
+                <span class='fraction'>910/1671</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.77% </span>
+                <span class="strong">66.55% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>205/307</span>
+                <span class='fraction'>205/308</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.44% </span>
+                <span class="strong">54.45% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>907/1666</span>
+                <span class='fraction'>910/1671</span>
             </div>
         
             
@@ -1729,7 +1729,13 @@
 <a name='L1664'></a><a href='#L1664'>1664</a>
 <a name='L1665'></a><a href='#L1665'>1665</a>
 <a name='L1666'></a><a href='#L1666'>1666</a>
-<a name='L1667'></a><a href='#L1667'>1667</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1667'></a><a href='#L1667'>1667</a>
+<a name='L1668'></a><a href='#L1668'>1668</a>
+<a name='L1669'></a><a href='#L1669'>1669</a>
+<a name='L1670'></a><a href='#L1670'>1670</a>
+<a name='L1671'></a><a href='#L1671'>1671</a>
+<a name='L1672'></a><a href='#L1672'>1672</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2537,6 +2543,9 @@
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2632,6 +2641,7 @@
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">33x</span>
 <span class="cline-any cline-yes">33x</span>
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">33x</span>
@@ -3438,6 +3448,7 @@ import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './picku
 import { dotalk } from './sounds.js';
 import { add_skills_to_menu, skill_advance } from './weapon.js';
 import { handleSet } from './options.js';
+import { dosit } from './sit.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
@@ -4200,6 +4211,9 @@ async function handleExtendedCommand(game) {
 <span class="cstat-no" title="statement not covered" >            const tookTimeOffer = await dosacrifice(player, game.map);</span>
 <span class="cstat-no" title="statement not covered" >            return { moved: false, tookTime: !!tookTimeOffer };</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case 'sit':</span>
+<span class="cstat-no" title="statement not covered" >            queueRepeatExtcmd((g) =&gt; dosit(g.player, g.map, g.display).then(t =&gt; ({ moved: false, tookTime: !!t })));</span>
+<span class="cstat-no" title="statement not covered" >            return { moved: false, tookTime: !!(await dosit(player, game.map, display)) };</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >        case 'monster': {</span>
 <span class="cstat-no" title="statement not covered" >            // cf. cmd.c domonability() — use polymorphed monster special ability.</span>
 <span class="cstat-no" title="statement not covered" >            const isPolyd = !!(player.Upolyd || (player.mtimedone &amp;&amp; player.mtimedone &gt; 0));</span>
@@ -4285,7 +4299,7 @@ async function handleExtendedCommand(game) {
 function knownExtendedCommands(game) {
     const cmds = [
         'options', 'optionsfull', 'adjust', 'wipe', 'pray', 'turn', 'dip',
-        'enhance', 'chat', 'offer', 'monster', 'name', 'force', 'loot',
+        'enhance', 'chat', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
         'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
     ];
     if (game?.wizard) {
@@ -4299,7 +4313,8 @@ function displayCompletedExtcmd(typed, game) {
     const lowered = raw.toLowerCase();
     if (!lowered) return raw;
     // C shows literal "# d" while entering dip; don't auto-expand this alias.
-    if (lowered === 'd') <span class="branch-0 cbranch-no" title="branch not covered" >return raw;</span>
+    // Likewise, keep "# s" literal so "#sit" can be entered progressively.
+    if (lowered === 'd' || lowered === 's') <span class="branch-0 cbranch-no" title="branch not covered" >return raw;</span>
     const cmds = knownExtendedCommands(game);
     const exact = cmds.find((c) =&gt; c === lowered);
     if (exact) return raw;
@@ -5068,7 +5083,7 @@ export <span class="fstat-no" title="function not covered" >function doc_extcmd_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T09:06:36.530Z
+                at 2026-03-11T09:46:04.464Z
             </div>
         <script src="../prettify.js"></script>
         <script>
