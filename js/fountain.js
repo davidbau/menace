@@ -22,7 +22,7 @@ import { losehp } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
 import { water_damage_chain, water_damage, delfloortrap } from './trap.js';
-import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
+import { ER_NOTHING, ER_DAMAGED, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';
 import { hliquid, hcolor, a_monnam, Amonnam, rndmonnam } from './do_name.js';
@@ -474,6 +474,11 @@ export async function dipfountain(obj, player, map, display, fov) {
         er = await wash_hands(player, map, display);
     } else if (obj) {
         er = water_damage(obj, null, true);
+        // C dipfountain() surfaces carried-item erosion messaging
+        // through water_damage()/erode_obj side effects.
+        if (er === ER_DAMAGED) {
+            await Your("%s rusts!", xname(obj));
+        }
     }
 
     if (er === ER_DESTROYED || (er !== ER_NOTHING && !rn2(2))) {

@@ -7793,3 +7793,27 @@ hard-won wisdom:
   - Full C prompt parity for `#dip` still depends on interactive `getobj()` (object-letter prompt handling), which remains a separate gap.
 - Validation:
   - `./scripts/run-session-tests.sh` (`151/151` passing)
+
+## 2026-03-11: #dip prompt parity + dipfountain erosion topline alignment
+
+- Problem:
+  - `dodip()` still did not consume inventory-letter input in C order (`What do you want to dip?`), causing extcmd boundary mismatches.
+  - Fountain dip confirmation prompt was generic ("Dip it...") instead of object-specific.
+  - `dipfountain()` left the prior prompt topline when the first effect was item erosion (missing `Your ... rusts!` topline), producing screen-only drift.
+- Change:
+  - `js/potion.js`:
+    - Added local interactive getobj prompt helper for `dodip()`:
+      - prompts `What do you want to dip? [.. or ?*]`,
+      - consumes explicit inventory-letter key via `nhgetch()`,
+      - then asks object-specific `Dip <object> into the fountain/sink?`.
+    - Fixed `ynFunction` default argument typing (`charCodeAt(0)`).
+  - `js/fountain.js`:
+    - In `dipfountain()`, when forced water damage erodes the dipped object,
+      emit `Your <object> rusts!` topline to match C-visible outcome ordering.
+- Validation:
+  - `node test/comparison/session_test_runner.js --no-parallel --verbose /tmp/theme01_seed005_fountain_real_dip_trial.session.json`
+    - `rng=2952/2952`
+    - `events=460/460`
+    - `screens=30/30`
+  - Added parity-green fixture:
+    - `test/comparison/sessions/coverage/furniture-thrones-fountains/theme01_seed005_valk_fountain-realdip1_gameplay.session.json`

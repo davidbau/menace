@@ -1,6 +1,6 @@
 # Theme: furniture-thrones-fountains
 
-Status: in_progress (sessions 4 captured and parity-green)
+Status: in_progress (sessions 5 captured and parity-green)
 
 Target codepaths:
 - `js/sit.js` (`dosit`, throne branches, seat-context branches)
@@ -24,12 +24,17 @@ Session plan:
 - Same deterministic route to fountain, but ends after the second drink branch.
 - Adds a parity-green capture of the refresh variant without entering the
   currently divergent dry-up/monster ordering window.
-3. `theme01_seed542_tourist_sink-and-kick`
+3. `theme01_seed005_valk_fountain-realdip1_gameplay` (captured)
+- Exercises C-faithful `#dip` flow at a fountain:
+  - `What do you want to dip? [..]`
+  - object-specific fountain confirmation prompt
+  - real `dipfountain` erosion result (`Your spear rusts!`)
+4. `theme01_seed542_tourist_sink-and-kick`
 - Reach/force sink cell and exercise:
   - `drinksink` path
   - `dipsink` path
   - nearby kick/furniture interaction branch
-4. `theme01_seed543_knight_throne-sit-branches`
+5. `theme01_seed543_knight_throne-sit-branches`
 - Force throne context and execute `#sit` repeatedly until multiple throne
   outcomes are observed (good + bad branch families).
 
@@ -65,6 +70,7 @@ Captured sessions:
 2. `theme01_seed005_valk_fountain-gush3_gameplay.session.json`
 3. `theme01_seed005_valk_fountain-dip2_gameplay.session.json`
 4. `theme01_seed005_valk_fountain-drink2-refresh_gameplay.session.json`
+5. `theme01_seed005_valk_fountain-realdip1_gameplay.session.json`
 
 Current blockers:
 1. Dry-up/monster follow-up branch from the seed5 fountain path currently

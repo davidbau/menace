@@ -49,6 +49,7 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
 import { makeplural } from './objnam.js';
+import { doname } from './objnam.js';
 import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
@@ -1550,6 +1551,45 @@ function hold_potion(player, potobj) {
     }
 }
 
+function getobjChoicesForPrompt(player, obj_ok) {
+    const inv = Array.isArray(player?.inventory) ? player.inventory : [];
+    const choices = [];
+    for (const obj of inv) {
+        if (!obj || typeof obj_ok !== 'function') continue;
+        const verdict = obj_ok(obj);
+        if (verdict !== GETOBJ_EXCLUDE) choices.push(obj);
+    }
+    return choices;
+}
+
+async function getobj_prompt_local(word, obj_ok, display, player) {
+    const choices = getobjChoicesForPrompt(player, obj_ok);
+    if (!choices.length) return null;
+
+    const letters = [];
+    const seen = new Set();
+    for (const obj of choices) {
+        const invlet = typeof obj.invlet === 'string' ? obj.invlet : '';
+        if (!invlet || seen.has(invlet)) continue;
+        seen.add(invlet);
+        letters.push(invlet);
+    }
+    const menuLetters = letters.join('');
+    await display.putstr_message(`What do you want to ${word}? [${menuLetters} or ?*] `);
+
+    while (true) {
+        const ch = await nhgetch();
+        if (ch === 27) return null; // ESC
+        const c = String.fromCharCode(ch);
+        if (c === '?' || c === '*') {
+            await display.putstr_message(`What do you want to ${word}? [${menuLetters} or ?*] `);
+            continue;
+        }
+        const chosen = choices.find((obj) => obj.invlet === c);
+        if (chosen) return chosen;
+    }
+}
+
 // cf. potion.c dodip() — dip command entry point
 async function dodip(player, map, display) {
     // C ref: potion.c:2252-2358
@@ -1560,10 +1600,10 @@ async function dodip(player, map, display) {
     const at_sink = !!(here && IS_SINK(here.typ));
 
     // C chooses object first (dip target), then possibly asks about floor feature.
-    const obj = getobj(
+    const obj = await getobj_prompt_local(
         'dip',
         (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
+        display,
         player
     );
     if (!obj) {
@@ -1572,15 +1612,16 @@ async function dodip(player, map, display) {
     }
 
     if (pmap && can_reach_floor(player, pmap, false)) {
+        const obuf = doname(obj, player);
         if (at_fountain) {
-            const ans = await ynFunction('Dip it into the fountain?', 'yn', 'n', display, player, pmap);
-            if (ans === 'y') {
+            const ans = await ynFunction(`Dip ${obuf} into the fountain?`, 'yn', 'n'.charCodeAt(0), display);
+            if (ans === 'y'.charCodeAt(0)) {
                 await dipfountain(obj, player, pmap, display, null);
                 return true;
             }
         } else if (at_sink) {
-            const ans = await ynFunction('Dip it into the sink?', 'yn', 'n', display, player, pmap);
-            if (ans === 'y') {
+            const ans = await ynFunction(`Dip ${obuf} into the sink?`, 'yn', 'n'.charCodeAt(0), display);
+            if (ans === 'y'.charCodeAt(0)) {
                 await dipsink(obj, player, pmap, display, null);
                 return true;
             }
@@ -1589,10 +1630,10 @@ async function dodip(player, map, display) {
         }
     }
 
-    const potion = getobj(
-        'dip into',
+    const potion = await getobj_prompt_local(
+        `dip ${obj.invlet ? 'it' : ''} into`.trim(),
         (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
+        display,
         player
     );
     if (!potion) {
