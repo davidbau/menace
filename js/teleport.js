@@ -19,7 +19,7 @@ import {
     NO_MM_FLAGS, MM_IGNOREWATER, MM_IGNORELAVA,
     GP_CHECKSCARY, GP_ALLOW_U, GP_AVOID_MONPOS, GP_ALLOW_XY,
     RLOC_NONE, RLOC_NOMSG, RLOC_MSG, RLOC_TELE, RLOC_ERR,
-    TELEDS_TELEPORT, ANTIMAGIC, VAULT,
+    TELEDS_TELEPORT, ANTIMAGIC, VAULT, STRAT_APPEARMSG,
 } from './const.js';
 import { somexyspace, search_special } from './mkroom.js';
 import { BOULDER, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
@@ -49,7 +49,7 @@ const CC_UNSHUFFLED = 0x02;
 const CC_RING_PAIRS = 0x04;
 const CC_SKIP_MONS = 0x08;
 const CC_SKIP_INACCS = 0x10;
-const STRAT_APPEARMSG = 0x80000000;
+// STRAT_APPEARMSG imported from const.js
 
 // ============================================================================
 // noteleport_level — cf. teleport.c:29

@@ -31,6 +31,7 @@ import {
     XLIM, YLIM,
     LA_UP, LA_DOWN,
     W_NONDIGGABLE,
+    W_NORTH, W_SOUTH, W_EAST, W_WEST, W_ANY,
 } from './const.js';
 import { GameMap } from './game.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
@@ -1347,9 +1348,7 @@ export function create_room(map, x, y, w, h, xal, yal, rtype, rlit, depth, inThe
 // mklev.c -- Core level generation
 // ========================================================================
 
-// Wall direction constants for sp_create_door (sp_lev.h)
-const W_NORTH = 1, W_SOUTH = 2, W_EAST = 4, W_WEST = 8;
-const W_ANY = W_NORTH | W_SOUTH | W_EAST | W_WEST;
+// W_NORTH/W_SOUTH/W_EAST/W_WEST/W_ANY imported from const.js
 
 // C ref: sp_lev.c create_door() — place a door on a room wall
 // dd = { secret, mask, pos, wall }
