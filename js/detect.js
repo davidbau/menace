@@ -29,7 +29,7 @@ import { body_part } from './polyself.js';
 import { distu } from './hacklib.js';
 import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_FLASH, DISP_CHANGE, DISP_END, TER_FULL } from './const.js';
+import { DISP_FLASH, DISP_CHANGE, DISP_END, TER_FULL, TER_DETECT, TER_OBJ, TER_MON } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
@@ -411,6 +411,7 @@ export async function object_detect(detector, oclass, player, map, display, game
         && detector.blessed;
     let ct = 0, ctu = 0;
     const boulder = 0;
+    let ter_typ = TER_DETECT | TER_OBJ;
     const stuff = (player.hallucinating || (player.confused && oclass === SCROLL_CLASS))
         ? 'something' : 'objects';
     const buried = buried_objects(map);
@@ -492,9 +493,12 @@ export async function object_detect(detector, oclass, player, map, display, game
             map_object({ otyp: GOLD_PIECE, quan: gq, ox: mtmp.mx, oy: mtmp.my }, 1);
         }
     }
-    newsym(player.x, player.y);
+    if (!ctu) {
+        newsym(player.x, player.y);
+        ter_typ |= TER_MON; // C: include hero for autodescribe when no object at hero
+    }
     await You("detect the %s of %s.", ct ? 'presence' : 'absence', stuff);
-    await browse_map(0, 'object', player, map, display); await map_redisplay(player, map);
+    await browse_map(ter_typ, 'object', player, map, display); await map_redisplay(player, map);
     return 0;
 }
 

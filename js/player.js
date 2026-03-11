@@ -12,7 +12,7 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING,
          HALF_PHDAM, HALF_SPDAM, CONFLICT,
          POLYMORPH, POLYMORPH_CONTROL, AGGRAVATE_MONSTER, WARNING,
-         WARN_OF_MON } from './const.js';
+         WARN_OF_MON, NOT_HUNGRY } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight } from './mkobj.js';
@@ -79,6 +79,15 @@ export class Player {
         // Hunger: 900 = normal starting value
         // C ref: you.h u.uhunger (starts at 900)
         this.hunger = 900;
+        // C ref: you.h u.uhs (initial hunger state)
+        this.uhs = NOT_HUNGRY;
+        // Keep legacy uhunger callsites synchronized with canonical hunger field.
+        Object.defineProperty(this, 'uhunger', {
+            get: () => this.hunger,
+            set: (v) => { this.hunger = v; },
+            enumerable: true,
+            configurable: true,
+        });
         this.nutrition = 900;
 
         // Movement

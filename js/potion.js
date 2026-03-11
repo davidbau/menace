@@ -57,7 +57,7 @@ import { mons } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
-import { eatmupdate } from './eat.js';
+import { eatmupdate, newuhs } from './eat.js';
 import { you_were, you_unwere, set_ulycn } from './were.js';
 import { can_reach_floor } from './engrave.js';
 import { is_pool } from './dbridge.js';
@@ -561,6 +561,14 @@ async function handleQuaff(player, map, display) {
             gp.potion_nothing = 0;
             gp.potion_unkn = 0;
             const retval = await peffects(player, item, display, map);
+            // C parity: dodrink consumes one potion after effects resolve.
+            if ((item.quan || 1) > 1) {
+                item.quan -= 1;
+                item.in_use = false;
+                update_inventory(player);
+            } else {
+                player.removeFromInventory(item);
+            }
             if (retval >= 0) {
                 item.in_use = false;
                 return { moved: false, tookTime: !!retval };
@@ -953,6 +961,7 @@ export async function peffect_booze(player, otmp, display) {
     // C: hunger += 10 * (2 + bcsign)
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     player.uhunger = (player.uhunger || 0) + 10 * (2 + bcsign);
+    await newuhs(player, false);
     await exercise(player, A_WIS, false);
     if (otmp.cursed) {
         // C: multi = -rnd(15) — pass out
