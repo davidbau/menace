@@ -22,6 +22,8 @@
     "coverage:hack": "bash hack/scripts/run-coverage.sh --text",
     "coverage:session-parity": "bash scripts/run-session-parity-coverage.sh --text",
     "coverage:session-parity:report": "node scripts/session-parity-coverage-report.mjs",
+    "coverage:session-parity:snapshot": "node scripts/session-parity-coverage-snapshot.mjs",
+    "coverage:session-parity:diff": "node scripts/session-parity-coverage-diff.mjs",
     "serve": "python3 -m http.server 8080",
     "postinstall": "./scripts/setup-testing.sh"
   },

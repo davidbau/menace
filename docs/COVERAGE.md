@@ -32,6 +32,8 @@ Script:
 NPM command:
 - `npm run coverage:session-parity`
 - `npm run coverage:session-parity:report`
+- `npm run coverage:session-parity:snapshot`
+- `npm run coverage:session-parity:diff -- --base <snapshot.json>`
 
 Behavior:
 1. Runs `c8` against `node test/comparison/session_test_runner.js`.
@@ -67,6 +69,23 @@ Useful options:
 node scripts/session-parity-coverage-report.mjs --top 40 --min-lines 100
 node scripts/session-parity-coverage-report.mjs --include-levels --include-generated
 node scripts/session-parity-coverage-report.mjs --json
+```
+
+## Snapshot + Diff Workflow
+
+Create a diff-friendly snapshot in `docs/metrics`:
+
+```bash
+npm run coverage:session-parity:snapshot
+```
+
+Default output:
+- `/docs/metrics/session_parity_coverage_latest.json`
+
+Compare a previous snapshot against the latest:
+
+```bash
+npm run coverage:session-parity:diff -- --base docs/metrics/session_parity_coverage_prev.json
 ```
 
 ## Command Examples
