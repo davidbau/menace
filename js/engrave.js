@@ -20,7 +20,8 @@
 
 import { pushRngLogEntry, rn1, rn2, rnd, withRngTag } from './rng.js';
 import { more, nhgetch } from './input.js';
-import { WAND_CLASS } from './objects.js';
+import { WAND_CLASS, WEAPON_CLASS, GEM_CLASS, RING_CLASS, TOOL_CLASS,
+         TOWEL, MAGIC_MARKER } from './objects.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';
 import {
@@ -450,11 +451,11 @@ export function freehand(player) {
 // In JS, returns true if the object is a suggested engraving tool.
 export function stylus_ok(obj) {
     if (!obj) return true; // fingers
-    if (obj.oclass === 'WEAPON_CLASS' || obj.oclass === WAND_CLASS
-        || obj.oclass === 'GEM_CLASS' || obj.oclass === 'RING_CLASS')
+    if (obj.oclass === WEAPON_CLASS || obj.oclass === WAND_CLASS
+        || obj.oclass === GEM_CLASS || obj.oclass === RING_CLASS)
         return true;
-    if (obj.oclass === 'TOOL_CLASS'
-        && (obj.otyp === 'TOWEL' || obj.otyp === 'MAGIC_MARKER'))
+    if (obj.oclass === TOOL_CLASS
+        && (obj.otyp === TOWEL || obj.otyp === MAGIC_MARKER))
         return true;
     return false;
 }
