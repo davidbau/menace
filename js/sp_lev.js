@@ -14,7 +14,7 @@
  */
 
 import { GameMap } from './game.js';
-import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU } from './const.js';
+import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU, MM_NOTAIL, NO_INVENT, CUSTOM_INVENT, DEFAULT_INVENT } from './const.js';
 import { rn2, rnd, rn1, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight, place_object } from './mkobj.js';
 import { game as _gstate } from './gstate.js';
@@ -6160,11 +6160,6 @@ async function createScriptMonster(deferred) {
     const traceMon = envFlag('WEBHACK_MON_TRACE');
     const traceStart = traceMon ? getRngCallCount() : 0;
     const traceSeq = ++monsterExecSeq;
-    const MM_NOTAIL = 0x00004000;
-    const NO_INVENT = 0;
-    const CUSTOM_INVENT = 0x01;
-    const DEFAULT_INVENT = 0x02;
-
     const resolveMonsterIndex = (monsterId, depth) => {
         if (typeof monsterId === 'string' && monsterId.length === 1) {
             const mclass = def_char_to_monclass(monsterId);

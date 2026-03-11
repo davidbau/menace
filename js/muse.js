@@ -18,7 +18,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          IS_FURNITURE, IS_DRAWBRIDGE,
          XKILL_NOMSG, XKILL_NOCONDUCT,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
-         BOLT_LIM } from './const.js';
+         BOLT_LIM, MFAST } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
@@ -241,9 +241,6 @@ const MUSE_MISC_BAG = 10;
 export function m_next2u(mtmp, player) {
     return dist2(mtmp.mx, mtmp.my, player.x, player.y) <= 2;
 }
-
-// MFAST speed constant
-const MFAST = 2;
 
 
 

@@ -29,7 +29,7 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
          BOLT_LIM, LS_MONSTER,
          IS_ALTAR,
-         STRAT_WAITMASK, A_CHAOTIC, A_NONE, NORMAL_SPEED } from './const.js';
+         STRAT_WAITMASK, A_CHAOTIC, A_NONE, NORMAL_SPEED, MSLOW, MFAST } from './const.js';
 import { M2_COLLECT, MS_NEMESIS, MS_GUARDIAN, MR_ACID, MR_STONE,
          PM_KILLER_BEE, PM_SCORPION } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
@@ -101,13 +101,6 @@ import { place_monster } from './steed.js';
 
 // C macro: ismnum(mndx) — valid monster index check
 // ismnum imported from mondata.js
-
-// ========================================================================
-// Monster speed constants — C ref: include/monsym.h
-// ========================================================================
-const MSLOW = 1;
-const MFAST = 2;
-
 
 // NODIAG imported from mondata.js
 

@@ -37,7 +37,7 @@ import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural } from './objnam.js';
-import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE } from './const.js';
+import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
 //          end_menu, select_menu, display_nhwindow,
@@ -147,9 +147,6 @@ export function piousness(showneg, suffix, player) {
 // cf. insight.c:3295
 // Stethoscope or probing applied to monster — one-line feedback.
 // ============================================================================
-
-const MFAST = 2;
-const MSLOW = 1;
 
 // cf. insight.c:3295 — mstatusline(mtmp): monster probe/stethoscope status
 export async function mstatusline(mtmp, game) {
