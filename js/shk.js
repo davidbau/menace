@@ -2845,18 +2845,18 @@ export async function special_stock(obj, shkp, quietly, player) {
   if (ESHK(shkp).shoptype === CANDLESHOP && obj.otyp === CANDELABRUM_OF_INVOCATION) {
     if (!quietly) {
       if (is_izchak(shkp, true) && !player.uevent.invoked) {
-        if (Deaf || muteshk(shkp)) {
+        if (player.Deaf || muteshk(shkp)) {
           await pline("%s seems %s that you want to sell that.", Shknam(shkp), (obj.spe < 7) ? "horrified" : "concerned");
         }
         else {
-          await verbalize("No thanks, I'd hang onto that if I were yoplayer.");
+          await verbalize("No thanks, I'd hang onto that if I were you.");
           if (obj.spe < 7) {
             await verbalize( "You'll need %d%s candle%s to go along with it.", (7 - obj.spe), (obj.spe > 0) ? " more" : "", plur(7 - obj.spe));
           }
         }
       }
       else {
-        if (!Deaf && !muteshk(shkp)) {
+        if (!player.Deaf && !muteshk(shkp)) {
           await verbalize("I won't stock that. Take it out of here!");
         }
         else {

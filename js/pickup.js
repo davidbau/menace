@@ -889,7 +889,7 @@ export async function observe_quantum_cat(box, makecat, givemsg, game) {
       livecat.mpeaceful = 1;
       set_malign(livecat);
       if (givemsg) {
-        if (!canspotmon(livecat)) await You("think %s brushed your %s.", something, body_part(FOOT));
+        if (!canspotmon(livecat)) await You("think %s brushed your %s.", "something", body_part(FOOT));
         else {
           await pline("%s inside the box is still alive!", Monnam(livecat));
         }
@@ -907,7 +907,7 @@ export async function observe_quantum_cat(box, makecat, givemsg, game) {
       set_corpsenm(deadcat, PM_HOUSECAT);
       deadcat = await oname(deadcat, sc, ONAME_NO_FLAGS);
     }
-    if (givemsg) await pline_The("%s inside the box is dead!", Hallucination ? rndmonnam( 0) : "housecat");
+    if (givemsg) await pline_The("%s inside the box is dead!", (game?.player?.Hallucination || game?.player?.hallucinating) ? rndmonnam( 0) : "housecat");
   }
   return;
 }
