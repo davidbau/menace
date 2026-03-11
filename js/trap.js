@@ -97,7 +97,7 @@ const tnnames = [
     'E note', 'F note', 'F sharp', 'G note',
     'G sharp', 'A note', 'B flat', 'B note',
 ];
-function trapnote(trap) {
+export function trapnote(trap) {
     const tn = tnnames[trap.tnote] || 'C note';
     return an(tn);  // "an F note", "a C note", etc.
 }

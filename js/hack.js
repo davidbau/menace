@@ -49,7 +49,7 @@ import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon } from './display.js';
 import { couldsee } from './vision.js';
-import { helpless, monnear, onscary } from './mon.js';
+import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
 import { ynFunction } from './input.js';
 import { water_friction, maybe_adjust_hero_bubble } from './mkmaze.js';
@@ -73,7 +73,7 @@ import { dmgval } from './weapon.js';
 import { poisoned, acurr, acurrstr } from './attrib.js';
 import { intemple } from './priest.js';
 import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto, floor_trigger,
-       } from './trap.js';
+         trapnote } from './trap.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
 import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
@@ -1106,12 +1106,12 @@ export async function domove_core(dir, player, map, display, game) {
             }
             return trap;
         }
-        // Trap-specific effects (no RNG for SQKY_BOARD)
+        // C ref: trap.c trapeffect_sqky_board_you() — no RNG, just message + wake
         if (trap.ttyp === SQKY_BOARD) {
-            await display.putstr_message('A board beneath you squeaks loudly.');
-            // Match tty topline behavior where later same-turn messages replace
-            // this trap notice rather than concatenating with it.
-            display.messageNeedsMore = false;
+            seetrap(trap);
+            const note = trapnote(trap);
+            await pline('A board beneath you squeaks %s loudly.', note);
+            wake_nearby(false, player, map);
         }
         // C ref: trap.c trapeffect_slp_gas_trap() for hero path
         else if (trap.ttyp === SLP_GAS_TRAP) {
