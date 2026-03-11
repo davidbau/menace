@@ -229,6 +229,50 @@ Recommended naming:
 5. Refresh coverage snapshot and diff results.
 6. Repeat until 90%+ coverage is reached and stable.
 
+## Issue-Driven Labor Split
+
+Use GitHub issues as the work partitioning mechanism for the coverage campaign.
+
+Issue types:
+1. Theme planning issues
+   - Goal: identify low-coverage files/branches for one theme and propose
+     concrete session scenarios to hit them.
+   - Deliverable: a short scenario list with target files/functions and success
+     criteria.
+2. Session recording issues
+   - Goal: record deterministic C sessions for a theme and add them under the
+     theme directory.
+   - Deliverable: new session files + brief notes on seeds/options/datetime.
+3. Parity bring-up issues
+   - Goal: make newly added sessions parity-green in JS without masking.
+   - Deliverable: JS fixes, evidence of first-divergence movement, and green
+     replay results.
+4. Coverage verification issues
+   - Goal: run coverage refresh, publish snapshot/diff, and verify gains.
+   - Deliverable: updated metrics artifact and a summary of delta by theme.
+
+Suggested labels:
+- `coverage`
+- `parity`
+- `sessions`
+- `codematch` (when tied to structural mapping closure)
+- `agent:<name>` while actively worked
+
+Suggested dependency chain:
+1. Theme planning issue
+2. Session recording issue (Blocked by planning)
+3. Parity bring-up issue (Blocked by recording)
+4. Coverage verification issue (Blocked by parity bring-up)
+
+Tracking checklist per theme issue:
+1. Target low-coverage files/functions listed
+2. Session scenarios approved
+3. Sessions recorded and committed
+4. New sessions parity-green
+5. Baseline sessions still green
+6. Coverage snapshot/diff captured
+7. Follow-up gaps spun into new issues
+
 ### Session Authoring Rules
 
 - Keep sessions deterministic and replay-stable (seed + fixed datetime + canonical options).
