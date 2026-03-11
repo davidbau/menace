@@ -217,7 +217,7 @@ export function status_finish(game) {
 export function percentage(bl, maxbl) {
   let result = 0, anytype, ival, mval, lval, uval, ulval, fld, use_rawval;
   if (!bl || !maxbl) {
-    impossible("percentage: bad istat pointer %s, %s", fmt_ptr( bl), fmt_ptr( maxbl));
+    impossible("percentage: bad istat pointer %s, %s", String(bl), String(maxbl));
     return 0;
   }
   fld = bl.fld;

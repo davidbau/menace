@@ -15,7 +15,7 @@ import { newsym } from './display.js';
 import { isok, xdir, ydir, N_DIRS, NORMAL_SPEED, COLNO, ROWNO } from './const.js';
 import { mcalcmove } from './mon.js';
 import { mon_nam, Monnam } from './do_name.js';
-import { s_suffix, distmin, distu } from './hacklib.js';
+import { s_suffix, distmin, distu, plur } from './hacklib.js';
 import { PM_LONG_WORM, mons } from './monsters.js';
 import { goodpos } from './teleport.js';
 import { cansee } from './vision.js';
@@ -828,6 +828,6 @@ export function wormno_sanity_check() {
     ++wt;
   }
   if (wh || wt) {
-    impossible( "phantom worm tail #0 [head=%s, %d segment%s; tail=%s, %d segment%s]", fmt_ptr(wheads[0]), wh, plur(wh), fmt_ptr(wtails[0]), wt, plur(wt));
+    impossible( "phantom worm tail #0 [head=%s, %d segment%s; tail=%s, %d segment%s]", String(wheads[0]), wh, plur(wh), String(wtails[0]), wt, plur(wt));
   }
 }
