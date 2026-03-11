@@ -68,7 +68,14 @@ const SESSIONS_DIR = join(__dirname, 'sessions');
 const MAPS_DIR = join(__dirname, 'maps');
 const SKIP_SESSIONS = new Set();
 const DEFAULT_FIXED_DATETIME = '20000110090000';
+const DEFAULT_MAX_PARALLEL_WORKERS = 8;
 const _sessionTestMoveHintCache = new Map();
+
+function defaultParallelWorkers() {
+    // Keep defaults stable across high-core hosts; callers can still override
+    // with --parallel / --parallel=N / --parallel=auto when needed.
+    return Math.max(1, Math.min(availableParallelism(), DEFAULT_MAX_PARALLEL_WORKERS));
+}
 
 function envEnabled(value) {
     if (value == null) return false;
@@ -928,7 +935,6 @@ async function runSingleSessionWithTimeout(session, timeoutMs) {
 }
 
 async function runSessionsParallel(sessions, { numWorkers, verbose, onProgress, sessionTimeoutMs }) {
-    const workerPath = join(__dirname, 'session_worker.js');
     const results = new Array(sessions.length);
 
     // Sort by file size (largest first) for better load balancing
@@ -942,115 +948,36 @@ async function runSessionsParallel(sessions, { numWorkers, verbose, onProgress, 
     let nextTask = 0;
     let completed = 0;
 
-    return new Promise((resolve, reject) => {
-        const workerStates = new Set();
-        let settled = false;
-
-        const maybeResolve = () => {
-            if (settled) return;
-            if (completed !== sessions.length) return;
-            settled = true;
-            for (const state of workerStates) {
-                clearTimeout(state.timer);
-                state.timer = null;
-                try {
-                    state.worker.postMessage({ type: 'exit' });
-                } catch {
-                    // Worker may already be terminated.
-                }
+    const workerLoop = async () => {
+        while (true) {
+            const taskIndex = nextTask++;
+            if (taskIndex >= indexed.length) return;
+            const task = indexed[taskIndex];
+            let result;
+            try {
+                // Run one worker process per session to avoid cross-session
+                // module state leaks inside reused workers.
+                result = await runSingleSessionWithTimeout(task.session, sessionTimeoutMs);
+            } catch (error) {
+                result = {
+                    session: task.session.file,
+                    type: task.session?.meta?.type || task.session?.type || null,
+                    seed: task.session.seed,
+                    passed: false,
+                    error: error?.message || String(error),
+                    errorStack: (error && typeof error.stack === 'string') ? error.stack : undefined,
+                };
             }
-            resolve(results);
-        };
-
-        const deliverResult = (id, result) => {
-            if (settled) return;
-            if (results[id]) return;
-            results[id] = result;
+            results[task.index] = result;
             completed++;
             if (onProgress) onProgress(completed, sessions.length, result);
             if (verbose) console.log(formatResult(result));
-            maybeResolve();
-        };
+        }
+    };
 
-        const assignNextTask = (state) => {
-            if (settled) return false;
-            if (nextTask >= indexed.length) {
-                state.task = null;
-                return false;
-            }
-            const task = indexed[nextTask++];
-            state.task = task;
-            state.lastProgress = null;
-            if (Number.isInteger(sessionTimeoutMs) && sessionTimeoutMs > 0) {
-                clearTimeout(state.timer);
-                state.timer = setTimeout(() => {
-                    const timedOutTask = state.task;
-                    if (!timedOutTask || settled) return;
-                    state.terminatedForTimeout = true;
-                    clearTimeout(state.timer);
-                    state.timer = null;
-                    state.task = null;
-                    deliverResult(
-                        timedOutTask.index,
-                        createSessionTimeoutResult(timedOutTask.session, sessionTimeoutMs, state.lastProgress)
-                    );
-                    state.worker.terminate().catch(() => {});
-                    if (!settled && nextTask < indexed.length) spawnWorker();
-                }, sessionTimeoutMs);
-            }
-            state.worker.postMessage({
-                type: 'run',
-                id: task.index,
-                filePath: task.filePath,
-            });
-            return true;
-        };
-
-        const spawnWorker = () => {
-            if (settled) return;
-            const state = {
-                worker: new Worker(workerPath),
-                task: null,
-                timer: null,
-                terminatedForTimeout: false,
-                lastProgress: null,
-            };
-            workerStates.add(state);
-
-            state.worker.on('message', (msg) => {
-                if (settled) return;
-                if (msg.type === 'progress') {
-                    if (state.task && msg.id === state.task.index) {
-                        state.lastProgress = msg.progress;
-                    }
-                    return;
-                }
-                if (msg.type !== 'result') return;
-                clearTimeout(state.timer);
-                state.timer = null;
-                state.task = null;
-                state.lastProgress = null;
-                deliverResult(msg.id, msg.result);
-                assignNextTask(state);
-            });
-
-            state.worker.on('error', (error) => {
-                if (settled) return;
-                if (state.terminatedForTimeout) return;
-                reject(error);
-            });
-
-            state.worker.on('exit', () => {
-                workerStates.delete(state);
-            });
-
-            assignNextTask(state);
-        };
-
-        const count = Math.min(numWorkers, sessions.length);
-        for (let i = 0; i < count; i++) spawnWorker();
-        if (sessions.length === 0) resolve([]);
-    });
+    const count = Math.min(numWorkers, sessions.length);
+    await Promise.all(Array.from({ length: count }, () => workerLoop()));
+    return results;
 }
 
 export async function runSessionBundle({
@@ -1063,7 +990,7 @@ export async function runSessionBundle({
     sessionNames = null,
     failedFromPath = null,
     failFast = false,
-    parallel = availableParallelism(),
+    parallel = defaultParallelWorkers(),
     onProgress = null,
     sessionTimeoutMs = 20000,
 } = {}) {
@@ -1253,7 +1180,7 @@ export async function runSessionCli() {
         sessionNames: null,
         failedFromPath: null,
         failFast: false,
-        parallel: availableParallelism(),
+        parallel: defaultParallelWorkers(),
         sessionTimeoutMs: 20000,
     };
     const argv = process.argv.slice(2);
@@ -1263,10 +1190,10 @@ export async function runSessionCli() {
         else if (arg === '--golden') args.useGolden = true;
         else if (arg === '--fail-fast') args.failFast = true;
         else if (arg === '--no-parallel') args.parallel = 0;
-        else if (arg === '--parallel') args.parallel = availableParallelism();
+        else if (arg === '--parallel') args.parallel = defaultParallelWorkers();
         else if (arg.startsWith('--parallel=')) {
             const val = arg.slice('--parallel='.length);
-            args.parallel = val === 'auto' ? availableParallelism() : parseInt(val, 10);
+            args.parallel = val === 'auto' ? defaultParallelWorkers() : parseInt(val, 10);
         }
         else if (arg === '--session-timeout-ms' && argv[i + 1]) {
             args.sessionTimeoutMs = parseInt(argv[++i], 10);
@@ -1304,7 +1231,7 @@ export async function runSessionCli() {
             console.log('Usage: node session_test_runner.js [options] [session-file]');
             console.log('Options:');
             console.log('  --verbose         Show detailed output');
-            console.log('  --parallel[=N]    Run with N workers (default: auto-detect CPU count)');
+            console.log(`  --parallel[=N]    Run with N workers (default: auto capped at ${DEFAULT_MAX_PARALLEL_WORKERS})`);
             console.log('  --fail-fast       Stop on first failure');
             console.log('  --type=TYPE       Filter by session type (chargen,gameplay,etc)');
             console.log('  --session-list=FILE  Run only session files listed in FILE (one per line)');
