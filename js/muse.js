@@ -33,7 +33,7 @@ import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          can_blow, x_monnam, canseemon, needspick,
          dmgtype_fromattack, is_bat, nonliving,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
-import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP } from './monsters.js';
+import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP, MR_ACID } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
          POTION_CLASS, WAND_CLASS, SCROLL_CLASS, FOOD_CLASS,
          AMULET_CLASS, TOOL_CLASS, WEAPON_CLASS,
@@ -371,7 +371,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
     const food = obj.otyp === CORPSE || tinned;
     const acid = obj.otyp === POT_ACID
         || (food && obj.corpsenm >= 0 && mons[obj.corpsenm]
-            && !!(mons[obj.corpsenm].mresists & 0x08)); // MR_ACID
+            && !!(mons[obj.corpsenm].mconveys & MR_ACID));
     const lizard = food && obj.corpsenm === PM_LIZARD;
 
     if (stoning)
@@ -421,7 +421,7 @@ export function cures_stoning(mon, obj, tinok) {
     if (obj.otyp !== CORPSE && (obj.otyp !== TIN || !tinok)) return false;
     if ((obj.corpsenm ?? NON_PM) === NON_PM) return false;
     return (obj.corpsenm === PM_LIZARD
-        || (mons[obj.corpsenm] && !!(mons[obj.corpsenm].mresists & 0x08))); // MR_ACID => acidic
+        || (mons[obj.corpsenm] && !!(mons[obj.corpsenm].mconveys & MR_ACID)));
 }
 
 // C ref: mcould_eat_tin — can monster open a tin?
