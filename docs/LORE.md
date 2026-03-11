@@ -8101,3 +8101,32 @@ hard-won wisdom:
     - still failing, but with improved event alignment.
   - `npm run test:session`
     - full suite remains green (`160/160`).
+
+## 2026-03-11: discovery-credit parity for startup vs in-moveloop (seed503 advance)
+
+- Problem:
+  - `seed503` still missed one C `exercise(A_WIS, TRUE)` RNG call after
+    polymorph potion resolution.
+  - Root cause: JS discovery-credit behavior diverged from C:
+    - startup/role-preknowledge paths were calling `discoverObject(..., credit=true)`
+      (should not credit hero),
+    - runtime `discoverObject` had extra JS-only gating which could suppress
+      C-expected WIS exercise.
+- Change:
+  - `js/u_init.js`:
+    - startup discovery/preknowledge callsites now pass `creditClue=false`
+      explicitly, matching C's non-hero-credit startup behavior.
+  - `js/o_init.js`:
+    - removed JS-only class-known gating from WIS exercise trigger.
+    - `discoverObject` now follows C shape: when `markAsKnown` and `creditClue`
+      are true, credit hero with `exercise(A_WIS, TRUE)`.
+- Result:
+  - `seed503` RNG prefix improved `2753 -> 2758`.
+  - First RNG mismatch moved deeper from missing `rn2(19)` to later
+    `distfleeck`-adjacent divergence (`rn2(5)` in C with no JS counterpart).
+  - Remaining known screen mismatch (`@` vs `D`) remains open.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed503_extcmd_monster.session.json --parallel=1 --verbose`
+    - improved, still failing at a deeper index (`rng=2758/2779`).
+  - `npm run test:session`
+    - full suite green on current tree (`173/173`).

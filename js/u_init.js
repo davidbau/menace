@@ -1037,10 +1037,10 @@ function applyStartupDiscoveries(player) {
         // Startup inventory is effectively identified in our baseline traces.
         // Mark descriptor-bearing types as known+encountered.
         if (objectData[obj.otyp]?.oc_descr && obj.dknown) {
-            discoverObject(obj.otyp, true, true);
+            discoverObject(obj.otyp, true, true, false);
         }
         if (obj.otyp === OIL_LAMP) {
-            discoverObject(POT_OIL, true, true);
+            discoverObject(POT_OIL, true, true, false);
         }
     }
 }
@@ -1063,7 +1063,7 @@ function discoverClassByRule(oclass, shouldKnow) {
         if (!od || od.oc_class !== oclass || od.magic) continue;
         if (otyp === CORNUTHAUM || otyp === DUNCE_CAP) continue;
         if (shouldKnow && !shouldKnow(od)) continue;
-        discoverObject(otyp, true, false);
+        discoverObject(otyp, true, false, false);
     }
 }
 
@@ -1089,8 +1089,8 @@ function discoverWeaponClassForRole(roleMnum) {
 function applyRolePreknowledge(player) {
     switch (player.roleMnum) {
         case PM_ARCHEOLOGIST:
-            discoverObject(SACK, true, false);
-            discoverObject(TOUCHSTONE, true, false);
+            discoverObject(SACK, true, false, false);
+            discoverObject(TOUCHSTONE, true, false, false);
             break;
         case PM_BARBARIAN:
         case PM_KNIGHT:
@@ -1101,19 +1101,19 @@ function applyRolePreknowledge(player) {
             break;
         case PM_MONK:
             discoverClassByRule(ARMOR_CLASS);
-            discoverObject(SHURIKEN, true, false);
+            discoverObject(SHURIKEN, true, false, false);
             break;
         case PM_HEALER:
-            discoverObject(POT_FULL_HEALING, true, false);
+            discoverObject(POT_FULL_HEALING, true, false, false);
             break;
         case PM_CLERIC:
-            discoverObject(POT_WATER, true, false);
+            discoverObject(POT_WATER, true, false, false);
             break;
         case PM_RANGER:
             discoverWeaponClassForRole(player.roleMnum);
             break;
         case PM_ROGUE:
-            discoverObject(SACK, true, false);
+            discoverObject(SACK, true, false, false);
             discoverWeaponClassForRole(player.roleMnum);
             break;
         default:
@@ -1314,8 +1314,8 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
 
 // Autotranslated from u_init.c:1249
 export function ini_inv_use_obj(obj, player) {
-  if (objectData[obj.otyp].oc_descr && obj.known) discoverObject(obj.otyp, true, true);
-  if (obj.otyp === OIL_LAMP) discoverObject(POT_OIL, true, true);
+  if (objectData[obj.otyp].oc_descr && obj.known) discoverObject(obj.otyp, true, true, false);
+  if (obj.otyp === OIL_LAMP) discoverObject(POT_OIL, true, true, false);
   if (obj.oclass === ARMOR_CLASS) {
     if (is_shield(obj) && !player.shield && !(player.weapon && bimanual(player.weapon))) { setworn(obj, W_ARMS); set_twoweap(false); }
     else if (is_helmet(obj) && !player.helmet) setworn(obj, W_ARMH);
@@ -1340,7 +1340,7 @@ export function ini_inv_use_obj(obj, player) {
 // cf. u_init.c:575 — knows_object(obj, override_pauper)
 // Mark a single object type as known/discovered.
 export function knows_object(otyp, override_pauper) {
-    discoverObject(otyp, true, false);
+    discoverObject(otyp, true, false, false);
 }
 
 // cf. u_init.c:586 — knows_class(sym)
