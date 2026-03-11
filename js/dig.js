@@ -1470,7 +1470,7 @@ export function dig_check(madeby, x, y, map, player) {
 
     if (IS_ALTAR(loc.typ)
         && (madeby !== BY_OBJECT
-            || (loc.altarmask !== undefined && (loc.altarmask & AM_SANCTUM) !== 0))) {
+            || ((loc.flags & AM_SANCTUM) !== 0))) {
         return DIGCHECK_FAIL_ALTAR;
     }
 

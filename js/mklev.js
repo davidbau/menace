@@ -5,6 +5,7 @@ import {
     STONE, CORR, SCORR, ROOM, ICE, HWALL, VWALL, SDOOR, ROOMOFFSET,
     TLCORNER, TRCORNER, BLCORNER, BRCORNER,
     STAIRS, FOUNTAIN, SINK, ALTAR, GRAVE, OROOM, THEMEROOM, SHOPBASE,
+    Align2amask,
     DOOR, IRONBARS,
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED, D_TRAPPED,
     TREE,
@@ -600,11 +601,8 @@ export function mkaltar(map, croom) {
     const loc = map.at(pos.x, pos.y);
     if (!loc) return;
     loc.typ = ALTAR;
-    const altarAlign = rn2(3) - 1;
-    loc.altarAlign = altarAlign;
-    // C mkaltar stores altar alignment in low rm.flags bits (AM_* mask).
-    loc.flags = Align2amask(altarAlign);
-    loc.altarmask = loc.flags;
+    loc.altarAlign = rn2(3) - 1;
+    loc.flags = Align2amask(loc.altarAlign);
 }
 
 // C ref: mkroom.c mkgrave()

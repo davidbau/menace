@@ -455,7 +455,7 @@ export async function polymorph_sink(player, map) {
         // C ref: do.c:431-438 — rn2(3)-1 for alignment, second rn2(3) in Gehennom
         const algn = rn2(3) - 1; // -1 (A_Cha) or 0 (A_Neu) or +1 (A_Law)
         const inhell = !!(map && map.flags && map.flags.inhell);
-        loc.altarmask = (inhell && rn2(3)) ? AM_NONE : Align2amask(algn);
+        loc.flags = (inhell && rn2(3)) ? AM_NONE : Align2amask(algn);
         await pline_The("sink transforms into an altar!");
         break;
     }
