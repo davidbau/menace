@@ -1952,9 +1952,9 @@ export async function peffect_polymorph(otmp, player) {
   // C: Unchanging = intrinsic|extrinsic property check
   const unchanging = player.uprops?.[UNCHANGING]?.extrinsic || player.uprops?.[UNCHANGING]?.intrinsic;
   if (!unchanging) {
-    if (!otmp.blessed || (player.umonnum !== player.umonster)) await polyself(player, 0 /* POLY_NOFLAGS */);
+    if (!otmp.blessed || (player.umonnum !== player.umonster)) await polyself(player, POLY_NOFLAGS);
     else {
-      await polyself(player, 3 /* POLY_CONTROLLED|POLY_LOW_CTRL */);
+      await polyself(player, POLY_CONTROLLED | POLY_LOW_CTRL);
       if (player.mtimedone && player.umonnum !== player.umonster) player.mtimedone = Math.min(player.mtimedone, rn2(15) + 10);
     }
   }
