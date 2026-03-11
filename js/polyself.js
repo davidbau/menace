@@ -1496,11 +1496,11 @@ export async function drop_weapon(player, alone) {
             if (player.twoweap && player.swapWeapon) {
                 const swapwep = player.swapWeapon;
                 player.swapWeapon = null;
-                await dropx(swapwep, player);
+                await dropx(swapwep, player, _gstate?.map);
             }
             const wep = player.weapon;
             player.weapon = null;
-            await dropx(wep, player);
+            await dropx(wep, player, _gstate?.map);
             update_inventory(player);
         }
     }
