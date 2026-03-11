@@ -221,6 +221,7 @@ export class Display {
         this.messages = [];
         this.topMessage = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
+        this.moreMarkerActive = false;
         this.messageCursorCol = 0;
 
         // Game flags (updated by game, used for display options)
@@ -528,6 +529,7 @@ span.nh-cursor {
     // C ref: win/tty/topl.c more() — wraps to next row if curx >= CO - 8.
     renderMoreMarker() {
         const moreStr = '--More--';
+        this.moreMarkerActive = true;
         if (this._topMessageRow1 !== undefined) {
             // Message wrapped to row 1; place --More-- after row 1 content.
             // C: more() checks if curx >= CO - 8 to decide on a newline first,

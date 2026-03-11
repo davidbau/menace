@@ -531,6 +531,7 @@ export class HeadlessDisplay {
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
+        this.moreMarkerActive = false;
         // C ref: pline.c:274 — every pline() call does flush_screen(1) before
         // displaying, which shows --More-- on any pending message and clears it.
         // The selfplay harness auto-dismisses these, so each message replaces
@@ -576,6 +577,7 @@ export class HeadlessDisplay {
         // --More-- on the next putstr_message call (mirrors Display.clearScreen).
         this.topMessage = null;
         this.messageNeedsMore = false;
+        this.moreMarkerActive = false;
     }
 
     // No-op for headless mode; the browser display refreshes the DOM here.
@@ -627,6 +629,7 @@ export class HeadlessDisplay {
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this.moreMarkerActive = false;
         }
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
@@ -660,6 +663,7 @@ export class HeadlessDisplay {
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this.moreMarkerActive = false;
         }
 
         this.clearRow(0);
@@ -678,6 +682,7 @@ export class HeadlessDisplay {
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
+                    this.moreMarkerActive = false;
                 }
             }
             this.setCursor(Math.min(msg.length, this.cols - 1), 0);
@@ -724,6 +729,7 @@ export class HeadlessDisplay {
         this.clearRow(1);
         this.messageNeedsMore = false;
         this.topMessage = null;
+        this.moreMarkerActive = false;
         if (remainder.length > 0) {
             await this.putstr_message(remainder);
         }
@@ -736,6 +742,7 @@ export class HeadlessDisplay {
     // this before morePrompt so that screen comparisons match C captures.
     renderMoreMarker() {
         const moreStr = '--More--';
+        this.moreMarkerActive = true;
         const msgLen = (this.topMessage || '').length;
         const col = Math.min(msgLen, this.cols - moreStr.length);
         this.putstr(col, 0, moreStr, CLR_GRAY);

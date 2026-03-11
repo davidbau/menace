@@ -2213,7 +2213,7 @@ export class NetHackGame {
             return;
         }
 
-        const firstCh = await nhgetch();
+        const firstCh = await nhgetch({ commandBoundary: true });
         const commandResult = await this.runOneCommandCycle(firstCh);
         if (!commandResult) return;
         this.renderAndAutosave({ commandResult, autosave: true });
@@ -2240,7 +2240,7 @@ export class NetHackGame {
             ch = firstCh;
         }
 
-        if (!ch) return null;
+        if (ch == null) return null;
 
         if (firstCh !== 1) {
             this.lastCommand = { key: ch, count: countPrefix };

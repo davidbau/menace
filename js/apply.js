@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { more, nhgetch, ynFunction } from './input.js';
+import { more, nhgetch, ynFunction, cmdq_add_key } from './input.js';
 import { doname, xname } from './mkobj.js';
 import { make_glib, make_blinded, incr_itimeout, set_itimeout } from './potion.js';
 import { gulp_blnd_check } from './mhitu.js';
@@ -70,7 +70,8 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
-         TIMEOUT, HAND, FACE } from './const.js';
+         TIMEOUT, HAND, FACE,
+         CQ_CANNED } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -1022,7 +1023,6 @@ export async function handleApply(player, map, display, game) {
     };
     await showApplyPrompt();
     const resolveApplySelection = async (selected) => {
-        replacePromptMessage();
         if (selected.otyp === OIL_LAMP || selected.otyp === MAGIC_LAMP
             || selected.otyp === BRASS_LANTERN) {
             await use_lamp(selected);
@@ -1055,7 +1055,6 @@ export async function handleApply(player, map, display, game) {
                 const dirCh = await nhgetch();
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
-                    await display.putstr_message('Never mind.');
                     return { moved: false, tookTime: false };
                 }
                 const dch = String.fromCharCode(dirCh);
@@ -1127,13 +1126,19 @@ export async function handleApply(player, map, display, game) {
 
         // C ref: dig.c use_pick_axe() — auto-wield pick-axe/mattock before use
         if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK) {
+            const alreadyWielded = (player.weapon === selected);
             if (!await wield_tool(player, display, selected, "dig")) {
                 return { moved: false, tookTime: false };
             }
-            // C flow blocks on the wield message before the dig-direction prompt.
-            // Keep this explicit so the dismiss key isn't consumed as direction cancel.
-            if (display?.messageNeedsMore) {
-                await more(display, { game, site: 'apply.pickaxe.wield.morePrompt' });
+            if (!alreadyWielded && selected?.invlet) {
+                // C ref: dig.c use_pick_axe(): wielding consumes this turn and
+                // queues a canned doapply + invlet for next turn.
+                if (display && typeof display.renderMoreMarker === 'function') {
+                    display.renderMoreMarker();
+                }
+                cmdq_add_key(CQ_CANNED, 'a'.charCodeAt(0));
+                cmdq_add_key(CQ_CANNED, selected.invlet.charCodeAt(0));
+                return { moved: false, tookTime: true };
             }
         }
 
@@ -1144,6 +1149,7 @@ export async function handleApply(player, map, display, game) {
             const dirPrompt = (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK)
                 ? 'In what direction do you want to dig? [njb>] '
                 : 'In what direction? ';
+            replacePromptMessage();
             await display.putstr_message(dirPrompt);
             let dir = null;
             let dirChRaw = null;
@@ -1152,7 +1158,6 @@ export async function handleApply(player, map, display, game) {
                 dirChRaw = dirCh;
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
-                    await display.putstr_message('Never mind.');
                     return { moved: false, tookTime: false };
                 }
                 const dch = String.fromCharCode(dirCh);

@@ -450,6 +450,23 @@ function popQueuedInputKey(inDoAgain = false) {
     return null;
 }
 
+function hasVisibleMoreMarker(display) {
+    if (display?.moreMarkerActive) return true;
+    if (!display?.grid) return false;
+    const moreStr = '--More--';
+    const rowHasMore = (rowIndex) => {
+        const row = display.grid[rowIndex];
+        if (!Array.isArray(row)) return false;
+        const cols = Number.isInteger(display.cols) ? display.cols : row.length;
+        let text = '';
+        for (let c = 0; c < cols; c++) {
+            text += String(row[c]?.ch || ' ');
+        }
+        return text.includes(moreStr);
+    };
+    return rowHasMore(0) || rowHasMore(1);
+}
+
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
 // C analogue: raw windowproc read underneath readchar()/nhgetch().
 function nhgetch_raw() {
@@ -459,7 +476,10 @@ function nhgetch_raw() {
         .then((ch) => {
             // C ref: tty topline key acknowledgement semantics.
             // After any keypress, topline should no longer be in NEED_MORE state.
-            if (display) display.messageNeedsMore = false;
+            if (display) {
+                display.messageNeedsMore = false;
+                display.moreMarkerActive = false;
+            }
             return ch;
         })
         .finally(() => {
@@ -470,7 +490,8 @@ function nhgetch_raw() {
 // Get a character of input (async)
 // This is the JS equivalent of C's nhgetch().
 // C ref: winprocs.h win_nhgetch
-export function nhgetch(opts = {}) {
+export async function nhgetch(opts = {}) {
+    const commandBoundary = !!opts?.commandBoundary;
     const readUnifiedKey = async () => {
         const queuedKey = popQueuedInputKey(cmdqInputModeDoAgain);
         if (Number.isFinite(queuedKey)) {
@@ -511,10 +532,38 @@ export function nhgetch(opts = {}) {
 
     const display = getRuntimeDisplay();
 
-    // Clear message acknowledgement flag when user presses a key.
-    // C ref: win/tty/topl.c - toplin gets set to TOPLINE_EMPTY after keypress
-    if (display) {
+    // C-faithful command boundary: when a topline --More-- is pending,
+    // consume only a dismiss key and return "no command" (0), allowing
+    // queued canned commands to execute next.
+    if (commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display)) {
+        const readBoundaryKey = async () => {
+            if (isReplayMode()) {
+                const key = getNextReplayKey();
+                if (key !== null) {
+                    ynTrace('raw=replay(boundary)', key, String.fromCharCode(key));
+                    recordKey(key);
+                    return key;
+                }
+            }
+            if (_throwOnEmptyInput) {
+                const state = typeof activeInputRuntime.getInputState === 'function'
+                    ? activeInputRuntime.getInputState() : null;
+                if (!state || state.queueLength === 0) {
+                    throw new Error('Input queue empty - test may be missing keystrokes');
+                }
+            }
+            if (typeof activeInputRuntime?.setWaitContext === 'function') {
+                activeInputRuntime.setWaitContext(new Error('input wait context').stack || null);
+            }
+            const ch = await nhgetch_raw();
+            ynTrace('raw=runtime(boundary)', ch, Number.isFinite(ch) ? String.fromCharCode(ch) : String(ch));
+            recordKey(ch);
+            return ch;
+        };
+        await waitForMoreDismissKey(readBoundaryKey);
         display.messageNeedsMore = false;
+        display.moreMarkerActive = false;
+        return 0;
     }
 
     return readUnifiedKey();
@@ -553,6 +602,7 @@ export async function more(display, {
             }
         }
         if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+        if ('moreMarkerActive' in display) display.moreMarkerActive = false;
         if ('topMessage' in display) display.topMessage = null;
     }
     return ch;

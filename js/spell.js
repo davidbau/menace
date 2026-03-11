@@ -1171,6 +1171,13 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
         return 0;
     }
 
+    // Deduct energy
+    player.uen = Math.max(0, currentPower - energy);
+    player._botl = true;
+    if (display && typeof display.renderStatus === 'function') {
+        display.renderStatus(player);
+    }
+
     // Roll for success (C ref: spell.c spelleffects_check() before exercise)
     const confused = !!(player.confused);
     const chance = percent_success(player, idx);
