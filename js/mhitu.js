@@ -28,7 +28,7 @@ import {
     AD_ENCH, AD_DISE, AD_HALU, AD_CURS, AD_WERE, AD_HEAL, AD_LEGS,
     AD_DGST, AD_SAMU, AD_DETH, AD_PEST, AD_FAMN, AD_DRDX, AD_DRCO,
     AD_MAGM, AD_DISN,
-    mons,
+    mons, G_EXTINCT,
 } from './monsters.js';
 import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS } from './objects.js';
 import { xname } from './mkobj.js';
@@ -2393,7 +2393,6 @@ export function mon_avoiding_this_attack(mtmp, attkidx) {
 
 // cf. mhitu.c:2606 cloneu() — clone the hero as a tame monster
 export function cloneu(player, game, map) {
-    const G_EXTINCT = 0x02;
     const youmonst_data = player.data || player.monst;
     if (!youmonst_data) return null;
     const mndx = monsndx(youmonst_data);

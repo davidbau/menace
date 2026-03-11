@@ -12,7 +12,8 @@ import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS,
          GETOBJ_EXCLUDE_SELECTABLE, GETOBJ_EXCLUDE_NONINVENT,
          GETOBJ_ALLOWCNT, GETOBJ_PROMPT, GETOBJ_NOFLAGS,
-         ECMD_OK } from './const.js';
+         ECMD_OK,
+         SORTLOOT_PACK, SORTLOOT_INVLET, SORTLOOT_LOOT, SORTLOOT_INUSE } from './const.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          FLINT, ROCK, SLING, MAGIC_MARKER, COIN_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, TOOL_CLASS, POTION_CLASS, SCROLL_CLASS,
@@ -854,11 +855,6 @@ export function loot_classify(sort_item, obj) {
 // In JS, takes an array of objects and returns a sorted array of
 // {obj, indx, orderclass, subclass, disco, inuse, str} items.
 export function sortloot(objList, mode, filterfunc) {
-    const SORTLOOT_PACK = 0x01;
-    const SORTLOOT_INVLET = 0x02;
-    const SORTLOOT_LOOT = 0x04;
-    const SORTLOOT_INUSE = 0x08;
-
     const items = [];
     let i = 0;
     for (const o of objList) {

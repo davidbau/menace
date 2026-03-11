@@ -257,6 +257,11 @@ export const G_NOCORPSE = 0x0010;
 export const G_FREQ = 0x0007;
 export const G_IGNORE = 0x8000;
 
+// mvflags constants (for game.mvitals[mndx].mvflags genocide/extinction tracking)
+export const G_GENOD = 0x01;
+export const G_EXTINCT = 0x02;
+export const G_GONE = G_GENOD | G_EXTINCT;
+
 // Monster sounds (from monflag.h)
 export const MS_SILENT = 0;
 export const MS_BARK = 1;
