@@ -10,6 +10,7 @@
 #   scripts/run-and-report.sh --diagnose      # like --why but append full TL;DR section
 #   scripts/run-and-report.sh --failures       # show only failing sessions
 #   scripts/run-and-report.sh --golden        # compare against golden branch
+#   scripts/run-and-report.sh --pending       # run/report only pending sessions
 #
 # To skip the test run and report instantly from last recorded results:
 #   node scripts/pes-report.mjs
@@ -29,6 +30,7 @@ WHY=0
 DIAGNOSE=0
 REPORT_FLAGS=()
 RUNNER_ARGS=()
+PENDING=0
 for arg in "$@"; do
     if [ "$arg" = "--why" ]; then
         WHY=1
@@ -37,16 +39,40 @@ for arg in "$@"; do
         DIAGNOSE=1
     elif [ "$arg" = "--failures" ]; then
         REPORT_FLAGS+=("--failures")
+    elif [ "$arg" = "--pending" ]; then
+        PENDING=1
     else
         RUNNER_ARGS+=("$arg")
     fi
 done
 
-echo "Running gameplay session tests..."
+RUN_CMD=(node "$RUNNER")
+if [ "$PENDING" = "1" ]; then
+    shopt -s nullglob
+    pending_files=("$REPO_ROOT"/test/comparison/sessions/pending/*.session.json)
+    shopt -u nullglob
+    if [ "${#pending_files[@]}" -eq 0 ]; then
+        echo "No pending session files found in test/comparison/sessions/pending/."
+        exit 0
+    fi
+    sessions_csv=""
+    for file in "${pending_files[@]}"; do
+        if [ -n "$sessions_csv" ]; then
+            sessions_csv+=","
+        fi
+        sessions_csv+="$file"
+    done
+    echo "Running pending session tests (${#pending_files[@]} files)..."
+    RUN_CMD+=("--sessions=$sessions_csv")
+else
+    echo "Running gameplay session tests..."
+    RUN_CMD+=(--type=gameplay)
+fi
+RUN_CMD+=("${RUNNER_ARGS[@]}")
 
 # Run tests; accept non-zero exit (session failures are expected)
 set +e
-node "$RUNNER" --type=gameplay "${RUNNER_ARGS[@]}" > "$RAW_TMP" 2>&1
+"${RUN_CMD[@]}" > "$RAW_TMP" 2>&1
 set -e
 
 # Extract JSON from output
