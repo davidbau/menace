@@ -2174,9 +2174,10 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
 // Autotranslated from mon.c:1897
 export function curr_mon_load(mtmp) {
   let curload = 0, obj;
-  for (obj = mtmp.minvent; obj; obj = obj.nobj) {
-    if (obj.otyp !== BOULDER || !throws_rocks(mtmp.data)) {
-      curload += obj.owt;
+  const canThrowRocks = throws_rocks(mtmp?.data);
+  for (obj = mtmp?.minvent; obj; obj = obj.nobj) {
+    if (obj.otyp !== BOULDER || !canThrowRocks) {
+      curload += (obj?.owt || 0);
     }
   }
   return curload;
