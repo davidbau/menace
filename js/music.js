@@ -308,7 +308,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             player.utrap = rn1(6, 2);
             player.utraptype = TT_PIT;
             await losehp(Maybe_Half_Phys(rnd(6), player),
-                   'fell into a chasm', 2/*NO_KILLER_PREFIX*/, player);
+                   'fell into a chasm', 2/*NO_KILLER_PREFIX*/, player, null, null);
             selftouch('Falling, you', player);
         } else if (player.utrap && player.utraptype === TT_PIT) {
             const keepfooting =
@@ -320,7 +320,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             player.utrap = rn1(6, 2);
             player.utraptype = TT_PIT;
             await losehp(Maybe_Half_Phys(rnd(keepfooting ? 2 : 4), player),
-                   'hurt in a chasm', 2/*NO_KILLER_PREFIX*/, player);
+                   'hurt in a chasm', 2/*NO_KILLER_PREFIX*/, player, null, null);
             if (keepfooting)
                 await exercise(player, A_DEX, true);
             else {

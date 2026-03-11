@@ -92,6 +92,7 @@ import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix } from './hacklib.js';
 import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
+import { losehp } from './hack.js';
 import { mksobj } from './mkobj.js';
 import { AMULET_OF_STRANGULATION } from './objects.js';
 import { were_summon } from './were.js';
@@ -882,8 +883,7 @@ export async function polyself(player, psflags, map) {
         if (rn2(20) > acon) {
             await pline("You shudder for a moment.");
             const dmg = rnd(30);
-            player.uhp = (player.uhp || 1) - dmg;
-            if (player.losehp) await player.losehp(dmg, "system shock", 1 /* KILLED_BY_AN */);
+            await losehp(dmg, "system shock", 1 /* KILLED_BY_AN */, player);
             await exercise(player, A_CON, false);
             return;
         }

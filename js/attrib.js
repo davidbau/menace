@@ -22,6 +22,7 @@ import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF } from './const.js';
 import { roles, races } from './player.js';
 import { pline, You, Your, You_feel, pline_The, livelog_printf } from './pline.js';
 import { sgn, strstri } from './hacklib.js';
+import { losehp } from './hack.js';
 import { DUNCE_CAP, GAUNTLETS_OF_POWER, HELM_OF_OPPOSITE_ALIGNMENT, LUCKSTONE } from './objects.js';
 import { PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER,
          PM_KNIGHT, PM_MONK, PM_CLERIC, PM_ROGUE, PM_RANGER,
@@ -300,16 +301,6 @@ function see_monsters() {
 }
 
 
-// Stub for losehp
-function losehp(player, dmg, knam, _k_format) {
-    if (!player) return;
-    if (Upolyd(player)) {
-        player.mh = (player.mh || 0) - dmg;
-    } else {
-        player.uhp -= dmg;
-    }
-}
-
 // Stub for done
 function done(_how, _player) {
     // Death handling; in actual game this triggers the death screen
@@ -500,7 +491,7 @@ export async function losestr(player, num, knam, k_format) {
             knam = "terminal frailty";
             k_format = 1; // KILLED_BY
         }
-        await losehp(player, dmg, knam, k_format);
+        await losehp(dmg, knam, k_format, player);
 
         if (Upolyd(player)) {
             setuhpmax(player, Math.max((player.mhmax || 1) - dmg, 1), false);
@@ -516,9 +507,9 @@ export async function losestr(player, num, knam, k_format) {
 
 // cf. attrib.c:271 — poison_strdmg(strloss, dmg, knam, k_format)
 // Autotranslated from attrib.c:270
-export async function poison_strdmg(strloss, dmg, knam, k_format) {
-  await losestr(strloss, knam, k_format);
-  await losehp(dmg, knam, k_format);
+export async function poison_strdmg(player, strloss, dmg, knam, k_format) {
+  await losestr(player, strloss, knam, k_format);
+  await losehp(dmg, knam, k_format, player);
 }
 
 // cf. attrib.c:291 — poisontell(typ, exclaim)
@@ -573,7 +564,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
             setuhpmax(player, Math.max(newuhpmax, minuhpmax(player, 3)), true);
             const loss1 = adjuhploss(player, loss0, olduhp);
 
-            await losehp(player, loss1, pkiller, kprefix);
+            await losehp(loss1, pkiller, kprefix, player);
             if (await adjattrib(player, A_CON, (typ !== A_CON) ? -1 : -3, true))
                 await poisontell(player, A_CON, true);
             if (typ !== A_CON && await adjattrib(player, typ, -3, 1))
@@ -584,7 +575,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
         let loss = thrown_weapon ? rnd(6) : rn1(10, 6);
         if ((blast || cloud) && player.halfGasDamage)
             loss = Math.floor((loss + 1) / 2);
-        await losehp(player, loss, pkiller, kprefix);
+        await losehp(loss, pkiller, kprefix, player);
     } else {
         const loss = (thrown_weapon || !fatal) ? 1 : d(2, 2);
         if (await adjattrib(player, typ, -loss, 1))

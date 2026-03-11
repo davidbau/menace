@@ -1906,7 +1906,7 @@ export async function b_trapped(item, bodypart, player) {
   let lvl = level_difficulty(), dmg = rnd(5 + (lvl < 5 ? lvl : 2 + Math.floor(lvl / 2)));
   await pline("KABOOM!! %s was booby-trapped!", The(item));
   wake_nearby(false, player);
-  await losehp(Maybe_Half_Phys(dmg), "explosion", KILLED_BY_AN);
+  await losehp(Maybe_Half_Phys(dmg), "explosion", KILLED_BY_AN, player, _gstate?.display, _gstate);
   await exercise(player, A_STR, false);
   if (bodypart !== NO_PART) await exercise(player, A_CON, false);
   await make_stunned((HStun & TIMEOUT) +  dmg, true);
@@ -3027,7 +3027,7 @@ export async function climb_pit(player, map) {
 export async function lava_damage(player, game = null) {
     if (!player) return 0;
     const dmg = rnd(12);
-    await losehp(dmg, 'molten lava', 0, game?.display, game);
+    await losehp(dmg, 'molten lava', 0, player, game?.display, game);
     return dmg;
 }
 
@@ -3047,7 +3047,7 @@ export function back_on_ground(player) {
 // C ref: trap.c:4966
 export async function drown(player, game = null) {
     if (!player) return false;
-    await losehp(rnd(20), 'drowning', 0, game?.display, game);
+    await losehp(rnd(20), 'drowning', 0, player, game?.display, game);
     return true;
 }
 

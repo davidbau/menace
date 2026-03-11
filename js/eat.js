@@ -1635,7 +1635,7 @@ export async function doeat_nonfood(otmp, game, player) {
   if (otmp.oclass === WEAPON_CLASS && otmp.opoisoned) {
     await pline("Ecch - that must have been poisonous!");
     if (!player.hasProp?.(POISON_RES)) {
-      await poison_strdmg(rnd(4), rnd(15), xname(otmp), KILLED_BY_AN);
+      await poison_strdmg(player, rnd(4), rnd(15), xname(otmp), KILLED_BY_AN);
     }
     else {
       await You("seem unaffected by the poison.");

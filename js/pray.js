@@ -67,6 +67,7 @@ import { upstart, s_suffix, sgn } from './hacklib.js';
 import { body_part, rehumanize } from './polyself.js';
 import { which_armor } from './worn.js';
 import { killed, wake_nearby } from './mon.js';
+import { losehp } from './hack.js';
 import { losexp } from './exper.js';
 import { rndcurse, attrcurse } from './sit.js';
 import { safe_teleds } from './teleport.js';
@@ -312,13 +313,7 @@ function init_uhunger(player) {
 
 
 
-// Helper: losehp -- lose hit points
-function losehp(player, dmg, reason, _type) {
-    player.uhp -= dmg;
-    if (player.uhp <= 0) {
-        player.deathCause = reason;
-    }
-}
+// losehp imported from hack.js
 
 // Helper: done -- end the game
 function done(player, reason) {
@@ -2231,7 +2226,7 @@ export async function prayer_done(player, map) {
                     : "Walk no more, perversion of nature!", player);
         await You_feel("like you are falling apart.");
         await rehumanize(player);
-        await losehp(player, rnd(20), "residual undead turning effect");
+        await losehp(rnd(20), "residual undead turning effect", 0, player);
         await exercise(player, A_CON, false);
         return 1;
     }
