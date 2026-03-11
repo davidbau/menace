@@ -85,17 +85,16 @@ export function getlev(data) {
   if (data.fmon) {
     for (const m of data.fmon) {
       if (omoves) {
-        if (m.data_key) {
-          const [tier, idx] = m.data_key;
-          const mdat = mon[tier][idx];
-          if (mdat.mlet) {
-            if (mregen.includes(mdat.mlet)) m.mhp = Math.min(m.mhp + tmoves, m.orig_hp);
-            else m.mhp = Math.min(m.mhp + Math.floor(tmoves / 20), m.orig_hp);
-            if (m.mhp < 1) m.mhp = m.orig_hp;
-            const mtmp = Object.assign(makeMonst(mdat), m);
-            mtmp.nmon = game.fmon;
-            game.fmon = mtmp;
-          }
+        // C: uses raw data pointer from saved struct (valid in same process)
+        // JS: m.data is the permonst object reference (preserved in savedLevels)
+        const mdat = m.data;
+        if (mdat && mdat.mlet) {
+          if (mregen.includes(mdat.mlet)) m.mhp = Math.min(m.mhp + tmoves, m.orig_hp);
+          else m.mhp = Math.min(m.mhp + Math.floor(tmoves / 20), m.orig_hp);
+          if (m.mhp < 1) m.mhp = m.orig_hp;
+          const mtmp = Object.assign(makeMonst(mdat), m);
+          mtmp.nmon = game.fmon;
+          game.fmon = mtmp;
         }
       } else {
         // First time: m.mhp = tier index, m.orig_hp = monster index (from makemon_lev)
