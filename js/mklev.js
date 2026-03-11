@@ -18,6 +18,7 @@ import {
     MKTRAP_NOFLAGS, MKTRAP_NOSPIDERONWEB, is_hole, isok,
     DOORINC, DUNGEONS_OF_DOOM, KNOX, GEHENNOM,
     SHARED,
+    Align2amask,
 } from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
 import { makeRoom } from './mkroom.js';
@@ -599,7 +600,11 @@ export function mkaltar(map, croom) {
     const loc = map.at(pos.x, pos.y);
     if (!loc) return;
     loc.typ = ALTAR;
-    loc.altarAlign = rn2(3) - 1;
+    const altarAlign = rn2(3) - 1;
+    loc.altarAlign = altarAlign;
+    // C mkaltar stores altar alignment in low rm.flags bits (AM_* mask).
+    loc.flags = Align2amask(altarAlign);
+    loc.altarmask = loc.flags;
 }
 
 // C ref: mkroom.c mkgrave()

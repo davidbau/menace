@@ -8490,3 +8490,18 @@ Validation:
 - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/maze-mines-digging/t08_s700_w_apply_gp.session.json` -> PASS
 - `scripts/run-and-report.sh --pending --failures` -> gameplay `1/1` passing
 - `scripts/run-and-report.sh --failures` -> gameplay `113/113` passing
+### Theme06 quaff mapdump parity: engraving length + mkaltar flags (2026-03-11)
+
+- New C quaff coverage captures (`seed620/621/623`) initially failed **mapdump only** while all gameplay channels were full parity (`rng/events/screens/cursor` all matched).
+- Two root causes:
+  1. **Engraving `E` length semantics**: JS emitted `text.length`, but C mapdump emits `engr_lth`-style length (includes NUL). This produced off-by-one `E` diffs like `[11,4,3,19,0,0]` vs `[11,4,3,20,0,0]`.
+  2. **Altar union bits in `W`**: `mklev.mkaltar()` set `loc.altarAlign` only and did not populate low `flags` bits (`AM_*`) as C does. Result: mapdump `W` mismatches on altar squares (`0` vs `1`) despite full gameplay parity.
+- Fixes:
+  - `js/dungeon.js` mapdump `E` now emits C-faithful engraving length (`engr_lth`/`lth` when present, fallback `text.length + 1`).
+  - `js/mklev.js mkaltar()` now writes altar bits into `loc.flags` via `Align2amask()` (and mirrors `loc.altarmask`).
+  - `js/dungeon.js` `W` projection now also checks `ALTAR` + `altarmask` when `wall_info/flags` are zero.
+- Outcome:
+  - `theme06_seed620_wiz_quaff-healing_gameplay` mapdump fixed (`1/1`).
+  - `theme06_seed621_wiz_quaff-status_gameplay` mapdump fixed (`1/1`).
+  - `theme06_seed623_wiz_quaff-misc_gameplay` mapdump fixed (`1/1`).
+  - All three promoted from `sessions/pending/` into `sessions/coverage/spells-reads-zaps/`.

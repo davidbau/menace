@@ -351,6 +351,11 @@ function buildHarnessMapdumpGrid(map, which) {
                         ? (Math.trunc(loc.wall_info) & 0x1f)
                         : (Number(loc?.flags ?? 0) & 0x1f);
                     const typ = Number(loc?.typ ?? 0);
+                    // C stores altar alignment/shrine bits in the same union
+                    // field (rm.wall_info alias). JS also carries altarmask.
+                    if (value === 0 && typ === ALTAR) {
+                        value = Number(loc?.altarmask ?? 0) & 0x1f;
+                    }
                     // C stores stair direction in rm.flags low bits.
                     if (value === 0 && typ === STAIRS) {
                         if (map?.upstair?.x === x && map?.upstair?.y === y) value = LA_UP;
@@ -585,6 +590,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         if (!isok(ex, ey)) continue;
         const etype = typeof engr?.type === 'string' ? (engr.type.toLowerCase()) : '';
         const etypeNum = Number.isFinite(engr?.type) ? Math.trunc(engr.type) : (engrTypeToNum[etype] || 0);
+        // C harness patch 017 emits strlen(ep->engr_txt[actual_text]).
         const textLen = String(engr?.text || '').length | 0;
         const nowipeout = engr?.nowipeout ? 1 : 0;
         const guardobjects = engr?.guardobjects ? 1 : 0;
