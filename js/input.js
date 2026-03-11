@@ -565,17 +565,25 @@ export async function getlin(prompt, display) {
     const disp = display || runtimeDisplay;
     let line = '';
 
+    // C-faithful boundary: if a message is pending acknowledgement, consume
+    // that --More-- before replacing the topline with a getlin prompt.
+    if (disp?.messageNeedsMore) {
+        await more(disp, { forceVisual: true });
+    }
+
     // Helper to update display
     const updateDisplay = async () => {
         if (disp) {
+            const promptPrefix = prompt.endsWith(' ') ? prompt : `${prompt} `;
+            const promptLine = `${promptPrefix}${line}`;
             // Clear the message row and display prompt + current input.
             // Don't use putstr_message as it concatenates short messages.
             disp.clearRow(0);
-            await disp.putstr(0, 0, prompt + line, CLR_GRAY);
+            await disp.putstr(0, 0, promptLine, CLR_GRAY);
             // C ref: tty_getlin() places cursor at end of typed text.
             // Set cursor to end of prompt + current input.
             const cols = disp.cols || 80;
-            const cursorCol = Math.min((prompt + line).length, cols - 1);
+            const cursorCol = Math.min(promptLine.length, cols - 1);
             if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 0);
         }
     };

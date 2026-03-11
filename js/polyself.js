@@ -47,7 +47,7 @@
 //   domindblast(player, map): full port — mind flayer psychic blast with RNG parity
 //   polysense(player): full port — species awareness when polymorphed
 
-import { rn1, rn2, rnd, d } from './rng.js';
+import { rn1, rn2, rnd, d, c_d } from './rng.js';
 import { mark_vision_dirty } from './vision.js';
 import { exercise } from './attrib_exercise.js';
 import { newhp, newpw, rndexp } from './exper.js';
@@ -1165,14 +1165,14 @@ export async function polymon(player, mntmp, map) {
     const mlvl = mons[mntmp].mlevel || 0;
     if (mons[mntmp].mlet === S_DRAGON && mntmp >= PM_GRAY_DRAGON) {
         const inEndgame = player.inEndgame || false;
-        player.mhmax = inEndgame ? (8 * mlvl) : (4 * mlvl + d(mlvl, 4));
+        player.mhmax = inEndgame ? (8 * mlvl) : (4 * mlvl + c_d(mlvl, 4));
     } else if (is_golem(mons[mntmp])) {
         player.mhmax = golemhp(mntmp);
     } else {
         if (!mlvl)
             player.mhmax = rnd(4);
         else
-            player.mhmax = d(mlvl, 8);
+            player.mhmax = c_d(mlvl, 8);
         if (is_home_elemental(mons[mntmp]))
             player.mhmax *= 3;
     }

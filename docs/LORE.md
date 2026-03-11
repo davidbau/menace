@@ -8035,3 +8035,37 @@ hard-won wisdom:
     - improved but still failing (`seed503` remains open).
   - `npm run test:session`
     - baseline still green (`159/159`).
+
+## 2026-03-11: seed503 boundary and RNG-shape alignment (incremental, no regressions)
+
+- Problem:
+  - `seed503_extcmd_monster` still diverged around blessed polymorph prompt
+    boundary and post-transform RNG stream shape.
+  - JS was drawing `getlin` prompt over a pending topline message and logging
+    polymorph HP dice as per-die `rn2` calls instead of C-style composite `d()`.
+- Change:
+  - `js/input.js` (`getlin`):
+    - before painting prompt, consumes pending topline `--More--` via `more()`
+      when `display.messageNeedsMore` is set.
+    - renders prompt with C-style separator spacing (`"...] <typed>"`) and
+      matching cursor placement.
+  - `js/polyself.js`:
+    - switched polymon HP dice from `d(...)` to `c_d(...)` for C codepaths
+      (`d(mlvl,4)` dragon and `d(mlvl,8)` default), matching C RNG-log shape.
+  - `js/potion.js`:
+    - removed non-C explicit `await more()` from `peffect_polymorph`.
+    - replicated C `min()` macro side-effect behavior for
+      `u.mtimedone = min(u.mtimedone, rn2(15)+10)` so `rn2(15)` can be
+      evaluated twice when second arm is selected.
+- Result:
+  - `seed503` improved:
+    - RNG matched prefix advanced `2748 -> 2753`.
+    - prompt timing/spacing and cursor boundary around controlled polymorph now
+      align with C (`--More--` before prompt; no early prompt overwrite).
+  - Remaining `seed503` work is deeper (post-polymorph per-turn ordering and
+    missing `exercise`/glyph placement effects), but this slice is stable.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed503_extcmd_monster.session.json --parallel=1 --verbose`
+    - improved but still failing (`rng=2753/2779`, `screens=51/63`).
+  - `npm run test:session`
+    - full suite remains green (`160/160`).
