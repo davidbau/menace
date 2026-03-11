@@ -1844,20 +1844,31 @@ export function set_mimic_blocking() {
 }
 
 // Autotranslated from display.c:1546
+// C: vobj_at(x,y) == obj checks if obj is the topmost object at (x,y).
+// JS: map.objects is a flat array; we newsym each unique occupied cell.
 export function see_objects() {
-  let obj;
-  for (obj = fobj; obj; obj = obj.nobj) {
-    if (vobj_at(obj.ox, obj.oy) === obj) newsym(obj.ox, obj.oy);
+  const map = _gstate?.map;
+  if (map?.objects) {
+    const seen = new Set();
+    for (const obj of map.objects) {
+      const key = obj.ox * 1000 + obj.oy;
+      if (!seen.has(key)) {
+        seen.add(key);
+        newsym(obj.ox, obj.oy);
+      }
+    }
   }
   update_inventory();
 }
 
 // Autotranslated from display.c:1599
 export function see_traps() {
-  let trap, glyph;
-  for (trap = gf.ftrap; trap; trap = trap.ntrap) {
-    glyph = _glyph_at(trap.tx, trap.ty);
-    if (glyph_is_trap(glyph)) newsym(trap.tx, trap.ty);
+  const map = _gstate?.map;
+  if (map?.traps) {
+    for (const trap of map.traps) {
+      const glyph = glyph_at(trap.tx, trap.ty);
+      if (glyph_is_trap(glyph)) newsym(trap.tx, trap.ty);
+    }
   }
 }
 
