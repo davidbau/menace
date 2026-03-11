@@ -130,11 +130,18 @@ function buildInventoryPages(lines, rows = STATUS_ROW_1) {
     if (lines.length <= rows) {
         return [lines.slice()];
     }
+    // Strip trailing "(end)" before paginating — it gets replaced by "(N of M)".
+    // C ref: tty_end_menu sets morestr to "(end) " for single page,
+    // "(%d of %d) " for multi-page. The "(end)" from buildInventoryOverlayLines
+    // must not appear as a content line on the last page.
+    const content = (lines.length > 0 && lines[lines.length - 1] === '(end)')
+        ? lines.slice(0, -1)
+        : lines.slice();
     const contentRows = Math.max(1, rows - 1); // reserve one row for page counter
-    const totalPages = Math.max(1, Math.ceil(lines.length / contentRows));
+    const totalPages = Math.max(1, Math.ceil(content.length / contentRows));
     const pages = [];
-    for (let i = 0, page = 1; i < lines.length; i += contentRows, page++) {
-        const chunk = lines.slice(i, i + contentRows);
+    for (let i = 0, page = 1; i < content.length; i += contentRows, page++) {
+        const chunk = content.slice(i, i + contentRows);
         pages.push([...chunk, ` (${page} of ${totalPages})`]);
     }
     return pages.length > 0 ? pages : [[' (1 of 1)']];
