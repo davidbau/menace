@@ -83,7 +83,7 @@ import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_ndemon, is_mercenary, M_AP_TYPE, mhe, DEADMONSTER, is_placeholder } from './mondata.js';
 import { Amonnam, Mgender, pmname, YMonnam, mon_nam } from './do_name.js';
 import { vtense, an } from './objnam.js';
-import { pline, Norep, set_msg_xy, pline_mon } from './pline.js';
+import { pline, Norep, set_msg_xy, pline_mon, impossible } from './pline.js';
 import { mondied } from './mon.js';
 import { update_inventory } from './invent.js';
 import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
