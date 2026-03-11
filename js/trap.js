@@ -1904,7 +1904,7 @@ export async function b_trapped(item, bodypart, player) {
   await losehp(Maybe_Half_Phys(dmg, player), "explosion", KILLED_BY_AN, player, _gstate?.display, _gstate);
   await exercise(player, A_STR, false);
   if (bodypart !== NO_PART) await exercise(player, A_CON, false);
-  await make_stunned((HStun & TIMEOUT) +  dmg, true);
+  await make_stunned(player, ((player.getPropTimeout?.(STUNNED) || 0) & TIMEOUT) + dmg, true);
 }
 
 // Autotranslated from trap.c:6899

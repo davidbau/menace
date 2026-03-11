@@ -954,10 +954,10 @@ export async function god_zaps_you(resp_god, player, map) {
     } else {
         await pline("A wide-angle disintegration beam hits you!");
         // Destroy armor before disintegrating
-        if (player.shield) await destroy_arm();
-        if (player.cloak) await destroy_arm();
-        if (player.armor && !player.cloak) await destroy_arm();
-        if (player.shirt && !player.armor && !player.cloak) await destroy_arm();
+        if (player.shield) await destroy_arm(player);
+        if (player.cloak) await destroy_arm(player);
+        if (player.armor && !player.cloak) await destroy_arm(player);
+        if (player.shirt && !player.armor && !player.cloak) await destroy_arm(player);
         if (!Disint_resistance(player)) {
             await fry_by_god(resp_god, true, player);
         } else {

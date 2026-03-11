@@ -1887,6 +1887,6 @@ export async function drop(obj, game, map, player) {
     if (!IS_ALTAR(map.locations[player.x][player.y].typ) && game.flags.verbose) await You("drop %s.", doname(obj));
   }
   obj.how_lost = LOST_DROPPED;
-  await dropx(obj);
+  await dropx(obj, player, map);
   return ECMD_TIME;
 }

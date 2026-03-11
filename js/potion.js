@@ -31,7 +31,7 @@ import { tmp_at } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { float_up, float_down } from './trap.js';
-import { float_vs_flight } from './polyself.js';
+import { float_vs_flight, polyself } from './polyself.js';
 import { rndexp, pluslvl } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
@@ -1885,9 +1885,9 @@ export async function peffect_polymorph(otmp, player) {
   // C: Unchanging = intrinsic|extrinsic property check
   const unchanging = player.uprops?.[UNCHANGING]?.extrinsic || player.uprops?.[UNCHANGING]?.intrinsic;
   if (!unchanging) {
-    if (!otmp.blessed || (player.umonnum !== player.umonster)) await polyself(POLY_NOFLAGS);
+    if (!otmp.blessed || (player.umonnum !== player.umonster)) await polyself(player, 0 /* POLY_NOFLAGS */);
     else {
-      await polyself(POLY_CONTROLLED|POLY_LOW_CTRL);
+      await polyself(player, 3 /* POLY_CONTROLLED|POLY_LOW_CTRL */);
       if (player.mtimedone && player.umonnum !== player.umonster) player.mtimedone = Math.min(player.mtimedone, rn2(15) + 10);
     }
   }
