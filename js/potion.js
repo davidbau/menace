@@ -1637,7 +1637,9 @@ async function dodip(player, map, display) {
         player
     );
     if (!potion) {
-        await You("don't have anything to dip into.");
+        // C-like getobj messaging is object-specific for this prompt branch.
+        const obuf = doname(obj, player);
+        await You(`don't have anything to dip ${obuf} into.`);
         return false;
     }
 

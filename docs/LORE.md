@@ -7836,3 +7836,20 @@ hard-won wisdom:
     - full parity green (`rng/events/screens/cursor` all matched).
   - Added parity-green fixture:
     - `test/comparison/sessions/coverage/furniture-thrones-fountains/theme01_seed005_valk_sit-floor1_gameplay.session.json`
+
+## 2026-03-11: `#dip` no-potion branch needs object-specific topline
+
+- Problem:
+  - In `dodip()`, when selecting an object to dip but having no potion to dip into,
+    JS emitted a generic topline: `You don't have anything to dip into.`
+  - C/getobj behavior is object-specific in this branch; parity trial on sink interaction
+    expected `You don't have anything to dip <object> into.`
+- Change:
+  - `js/potion.js` (`dodip`):
+    - changed null-potion message to use `doname(obj, player)`:
+      - `You don't have anything to dip <object> into.`
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose /tmp/theme01_seed032_sink_trial.session.json`
+    - rng/events/screens now fully matched for this branch; remaining mismatch is mapdump-only (`W` cell), unrelated to topline wording.
+  - `./scripts/run-session-tests.sh`
+    - `151/151` passed.
