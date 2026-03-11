@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">37.5% </span>
+                <span class="strong">37.14% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>794/2117</span>
+                <span class='fraction'>796/2143</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">37.5% </span>
+                <span class="strong">37.14% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>794/2117</span>
+                <span class='fraction'>796/2143</span>
             </div>
         
             
@@ -2180,7 +2180,35 @@
 <a name='L2115'></a><a href='#L2115'>2115</a>
 <a name='L2116'></a><a href='#L2116'>2116</a>
 <a name='L2117'></a><a href='#L2117'>2117</a>
-<a name='L2118'></a><a href='#L2118'>2118</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">112x</span>
+<a name='L2118'></a><a href='#L2118'>2118</a>
+<a name='L2119'></a><a href='#L2119'>2119</a>
+<a name='L2120'></a><a href='#L2120'>2120</a>
+<a name='L2121'></a><a href='#L2121'>2121</a>
+<a name='L2122'></a><a href='#L2122'>2122</a>
+<a name='L2123'></a><a href='#L2123'>2123</a>
+<a name='L2124'></a><a href='#L2124'>2124</a>
+<a name='L2125'></a><a href='#L2125'>2125</a>
+<a name='L2126'></a><a href='#L2126'>2126</a>
+<a name='L2127'></a><a href='#L2127'>2127</a>
+<a name='L2128'></a><a href='#L2128'>2128</a>
+<a name='L2129'></a><a href='#L2129'>2129</a>
+<a name='L2130'></a><a href='#L2130'>2130</a>
+<a name='L2131'></a><a href='#L2131'>2131</a>
+<a name='L2132'></a><a href='#L2132'>2132</a>
+<a name='L2133'></a><a href='#L2133'>2133</a>
+<a name='L2134'></a><a href='#L2134'>2134</a>
+<a name='L2135'></a><a href='#L2135'>2135</a>
+<a name='L2136'></a><a href='#L2136'>2136</a>
+<a name='L2137'></a><a href='#L2137'>2137</a>
+<a name='L2138'></a><a href='#L2138'>2138</a>
+<a name='L2139'></a><a href='#L2139'>2139</a>
+<a name='L2140'></a><a href='#L2140'>2140</a>
+<a name='L2141'></a><a href='#L2141'>2141</a>
+<a name='L2142'></a><a href='#L2142'>2142</a>
+<a name='L2143'></a><a href='#L2143'>2143</a>
+<a name='L2144'></a><a href='#L2144'>2144</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">112x</span>
+<span class="cline-any cline-yes">112x</span>
+<span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
@@ -2913,6 +2941,30 @@
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -4323,7 +4375,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL, COLNO, ROWNO,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib } from './attrib.js';
+import { adjattrib, poisontell } from './attrib.js';
 import { drinkfountain, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
@@ -4353,6 +4405,7 @@ import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
 import { mons } from './monsters.js';
+import { PM_HEALER } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
@@ -4363,6 +4416,7 @@ import { is_pool } from './dbridge.js';
 import { glyph_is_invisible } from './symbols.js';
 import { delayed_killer, find_delayed_killer, dealloc_killer } from './end.js';
 import { aggravate } from './wizard.js';
+import { Role_if } from './role.js';
 &nbsp;
 // C ref: invent.c compactify() — compress inventory letter list for prompts
 // Inlined here to avoid circular import issues with invent.js
@@ -5032,30 +5086,54 @@ export <span class="fstat-no" title="function not covered" >async function peffe
 export <span class="fstat-no" title="function not covered" >async function peffect_sickness(player, otmp, display) {</span>
 <span class="cstat-no" title="statement not covered" >    await pline("Yecch!  This stuff tastes like poison.");</span>
 <span class="cstat-no" title="statement not covered" >    if (otmp.blessed) {</span>
-<span class="cstat-no" title="statement not covered" >        // C: blessed = "mildly stale fruit juice", losehp(1) unless Healer</span>
-<span class="cstat-no" title="statement not covered" >        // RNG: none consumed for blessed path</span>
+<span class="cstat-no" title="statement not covered" >        await pline("(But in fact it was mildly stale %s.)", fruitname(true));</span>
+<span class="cstat-no" title="statement not covered" >        if (!Role_if(player, PM_HEALER)) {</span>
+<span class="cstat-no" title="statement not covered" >            await losehp(1, "mildly contaminated potion", KILLED_BY_AN, player, display || gstateGame?.display, gstateGame);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        return true;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    // C: non-blessed, non-Healer path</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    const poisRes = player.uprops?.[POISON_RES];</span>
 <span class="cstat-no" title="statement not covered" >    const hasPoisonRes = poisRes &amp;&amp; (poisRes.intrinsic || poisRes.extrinsic);</span>
-<span class="cstat-no" title="statement not covered" >    const typ = rn2(A_MAX); // always consumed: pick stat to drain</span>
-<span class="cstat-no" title="statement not covered" >    // C: adjattrib(typ, Poison_resistance ? -1 : -rn1(4, 3), 1)</span>
-<span class="cstat-no" title="statement not covered" >    if (!hasPoisonRes) {</span>
-<span class="cstat-no" title="statement not covered" >        const drain = -rn1(4, 3);</span>
-<span class="cstat-no" title="statement not covered" >        // adjattrib stub — stat drain effect (RNG consumed above)</span>
-<span class="cstat-no" title="statement not covered" >    } // if poison resistant, no rn1 consumed</span>
-<span class="cstat-no" title="statement not covered" >    if (!hasPoisonRes) {</span>
-<span class="cstat-no" title="statement not covered" >        // losehp(rnd(10) + 5 * !!(otmp.cursed), ...)</span>
-<span class="cstat-no" title="statement not covered" >        rnd(10); // HP damage roll consumed</span>
-<span class="cstat-no" title="statement not covered" >    } else {</span>
-<span class="cstat-no" title="statement not covered" >        // losehp(1 + rn2(2), ...)</span>
-<span class="cstat-no" title="statement not covered" >        rn2(2); // HP damage roll consumed</span>
+<span class="cstat-no" title="statement not covered" >    if (hasPoisonRes) {</span>
+<span class="cstat-no" title="statement not covered" >        await pline("(But in fact it was biologically contaminated %s.)", fruitname(true));</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    await exercise(player, A_CON, false);</span>
+<span class="cstat-no" title="statement not covered" >    if (Role_if(player, PM_HEALER)) {</span>
+<span class="cstat-no" title="statement not covered" >        await pline("Fortunately, you have been immunized.");</span>
+<span class="cstat-no" title="statement not covered" >    } else {</span>
+<span class="cstat-no" title="statement not covered" >        const contaminant = `${hasPoisonRes ? "mildly " : ""}${otmp.fromsink ? "contaminated tap water" : "contaminated potion"}`;</span>
+<span class="cstat-no" title="statement not covered" >        const typ = rn2(A_MAX);</span>
+<span class="cstat-no" title="statement not covered" >        const fixedAbil = player.uprops?.[FIXED_ABIL];</span>
+<span class="cstat-no" title="statement not covered" >        if (!(fixedAbil &amp;&amp; (fixedAbil.intrinsic || fixedAbil.extrinsic))) {</span>
+<span class="cstat-no" title="statement not covered" >            await poisontell(player, typ, false);</span>
+<span class="cstat-no" title="statement not covered" >            await adjattrib(player, typ, hasPoisonRes ? -1 : -rn1(4, 3), 1);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        if (!hasPoisonRes) {</span>
+<span class="cstat-no" title="statement not covered" >            await losehp(</span>
+<span class="cstat-no" title="statement not covered" >                rnd(10) + 5 * !!otmp.cursed,</span>
+<span class="cstat-no" title="statement not covered" >                contaminant,</span>
+<span class="cstat-no" title="statement not covered" >                otmp.fromsink ? KILLED_BY : KILLED_BY_AN,</span>
+<span class="cstat-no" title="statement not covered" >                player,</span>
+<span class="cstat-no" title="statement not covered" >                display || gstateGame?.display,</span>
+<span class="cstat-no" title="statement not covered" >                gstateGame,</span>
+<span class="cstat-no" title="statement not covered" >            );</span>
+<span class="cstat-no" title="statement not covered" >        } else {</span>
+<span class="cstat-no" title="statement not covered" >            await losehp(</span>
+<span class="cstat-no" title="statement not covered" >                1 + rn2(2),</span>
+<span class="cstat-no" title="statement not covered" >                contaminant,</span>
+<span class="cstat-no" title="statement not covered" >                otmp.fromsink ? KILLED_BY : KILLED_BY_AN,</span>
+<span class="cstat-no" title="statement not covered" >                player,</span>
+<span class="cstat-no" title="statement not covered" >                display || gstateGame?.display,</span>
+<span class="cstat-no" title="statement not covered" >                gstateGame,</span>
+<span class="cstat-no" title="statement not covered" >            );</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        await exercise(player, A_CON, false);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // C: if Hallucination, cure it</span>
 <span class="cstat-no" title="statement not covered" >    const hh = player.uprops?.[HALLUC];</span>
 <span class="cstat-no" title="statement not covered" >    if (hh &amp;&amp; (hh.intrinsic || hh.extrinsic)) {</span>
+<span class="cstat-no" title="statement not covered" >        await You("are shocked back to your senses!");</span>
 <span class="cstat-no" title="statement not covered" >        await make_hallucinated(player, 0, false);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    return true;</span>
@@ -6421,7 +6499,7 @@ export async function peffect_polymorph(otmp, player) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T18:59:23.696Z
+                at 2026-03-11T20:45:39.806Z
             </div>
         <script src="../prettify.js"></script>
         <script>

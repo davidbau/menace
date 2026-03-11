@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.44% </span>
+                <span class="strong">68.24% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2635/3850</span>
+                <span class='fraction'>2635/3861</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.44% </span>
+                <span class="strong">68.24% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2635/3850</span>
+                <span class='fraction'>2635/3861</span>
             </div>
         
             
@@ -3913,7 +3913,18 @@
 <a name='L3848'></a><a href='#L3848'>3848</a>
 <a name='L3849'></a><a href='#L3849'>3849</a>
 <a name='L3850'></a><a href='#L3850'>3850</a>
-<a name='L3851'></a><a href='#L3851'>3851</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">112x</span>
+<a name='L3851'></a><a href='#L3851'>3851</a>
+<a name='L3852'></a><a href='#L3852'>3852</a>
+<a name='L3853'></a><a href='#L3853'>3853</a>
+<a name='L3854'></a><a href='#L3854'>3854</a>
+<a name='L3855'></a><a href='#L3855'>3855</a>
+<a name='L3856'></a><a href='#L3856'>3856</a>
+<a name='L3857'></a><a href='#L3857'>3857</a>
+<a name='L3858'></a><a href='#L3858'>3858</a>
+<a name='L3859'></a><a href='#L3859'>3859</a>
+<a name='L3860'></a><a href='#L3860'>3860</a>
+<a name='L3861'></a><a href='#L3861'>3861</a>
+<a name='L3862'></a><a href='#L3862'>3862</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
@@ -7662,6 +7673,17 @@
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
 <span class="cline-any cline-yes">112x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -11512,8 +11534,19 @@ export { dosearch0 as search_demand };
 // Note: getdir() is actually in cmd.c in C; included here as it was
 // mentioned in the task. Uses DIRECTION_KEYS from dothrow.js.
 export <span class="fstat-no" title="function not covered" >async function getdir(prompt, display) {</span>
-<span class="cstat-no" title="statement not covered" >    if (display &amp;&amp; prompt) await display.putstr_message(prompt);</span>
+<span class="cstat-no" title="statement not covered" >    const dirPrompt = prompt || 'In what direction?';</span>
+<span class="cstat-no" title="statement not covered" >    if (display &amp;&amp; dirPrompt) {</span>
+<span class="cstat-no" title="statement not covered" >        await display.putstr_message(dirPrompt);</span>
+<span class="cstat-no" title="statement not covered" >        if (typeof display.setCursor === 'function') {</span>
+<span class="cstat-no" title="statement not covered" >            display.setCursor(Math.min(dirPrompt.length, (display.cols || 80) - 1), 0);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    const ch = await nhgetch();</span>
+<span class="cstat-no" title="statement not covered" >    if (display) {</span>
+<span class="cstat-no" title="statement not covered" >        if (typeof display.clearRow === 'function') display.clearRow(0);</span>
+<span class="cstat-no" title="statement not covered" >        display.topMessage = null;</span>
+<span class="cstat-no" title="statement not covered" >        display.messageNeedsMore = false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    const c = String.fromCharCode(ch);</span>
 <span class="cstat-no" title="statement not covered" >    const dir = DIRECTION_KEYS[c.toLowerCase()];</span>
 <span class="cstat-no" title="statement not covered" >    if (dir) return { dx: dir[0], dy: dir[1], dz: 0 };</span>
@@ -11620,7 +11653,7 @@ export { monsterNearby as monster_nearby };
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T18:59:23.696Z
+                at 2026-03-11T20:45:39.806Z
             </div>
         <script src="../prettify.js"></script>
         <script>
