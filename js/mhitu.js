@@ -30,7 +30,7 @@ import {
     AD_MAGM, AD_DISN,
     mons, G_EXTINCT,
 } from './monsters.js';
-import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS } from './objects.js';
+import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS, PIERCE } from './objects.js';
 import { xname } from './mkobj.js';
 import {
     x_monnam, is_humanoid, thick_skinned, hides_under,
@@ -78,7 +78,7 @@ import { attrcurse } from './sit.js';
 import { pline, pline_mon, verbalize } from './pline.js';
 import { game as activeGame } from './gstate.js';
 
-const PIERCE = 1;
+// PIERCE imported from objects.js
 
 let _hitmsg_mid = 0;
 let _hitmsg_prev_idx = -1;

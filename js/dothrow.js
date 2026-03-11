@@ -39,6 +39,7 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          EUCALYPTUS_LEAF, KELP_FROND, SPRIG_OF_WOLFSBANE, FORTUNE_COOKIE, PANCAKE,
          WAN_STRIKING,
          GLASS, GEMSTONE, MINERAL, CLOTH,
+         PIERCE,
        } from './objects.js';
 import { compactInvletPromptChars, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
 import { doname, next_ident, xname, is_crackable } from './mkobj.js';
@@ -92,8 +93,7 @@ function objectTmpGlyph(otmp) {
     return GLYPH_OBJ_OFF + otyp;
 }
 
-// Direction flags (cf. objclass.h)
-const PIERCE = 1;
+// PIERCE imported from objects.js
 
 // cf. obj.h: is_ammo(otmp)
 export function is_ammo(otmp) {

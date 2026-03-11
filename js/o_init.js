@@ -44,11 +44,8 @@ import {
     // Gem probability constants
     LAST_REAL_GEM, oclass_prob_totals,
     MAGIC_HARP, WOODEN_HARP,
+    NODIR, IMMEDIATE,
 } from './objects.js';
-
-// C ref: objclass.h
-const NODIR = 1;
-const IMMEDIATE = 2;
 
 // Save canonical (unshuffled) object properties on first call.
 // Since JS may call init_objects() multiple times (once per makelevel),

@@ -31,6 +31,7 @@ import {
     SPE_CANCELLATION, SPE_PROTECTION, SPE_JUMPING,
     SPE_STONE_TO_FLESH, SPE_CHAIN_LIGHTNING,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
+    NODIR,
 } from './objects.js';
 import { discover_object } from './o_init.js';
 import { is_metallic } from './objdata.js';
@@ -67,8 +68,7 @@ function SPELL_LEV_PW(lvl) { return lvl * 5; }
 const SPELLMENU_CAST = -2;
 const SPELLMENU_VIEW = -1;
 
-// Direction constants from objects
-const NODIR = 1;
+// NODIR imported from objects.js
 
 const SPELL_CATEGORY_ATTACK = 'attack';
 const SPELL_CATEGORY_HEALING = 'healing';
