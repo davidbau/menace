@@ -7682,3 +7682,22 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: mapseen_temple parity closure (remove last explicit STUB row)
+
+- Problem:
+  - `mapseen_temple` in `priest.js` was an explicit stub despite being called from `intemple()`.
+  - CODEMATCH still had this as the last explicit `STUB` row.
+- Change:
+  - Added `Is_valley()` helper in `dungeon.js` (matching C concept of Valley level identity).
+  - Implemented and exported `mapseen_temple()` in `priest.js`:
+    - resolves current level/mapseen entry via `find_mapseen`,
+    - sets `mptr.flags.valley` when on valley level,
+    - sets `mptr.flags.msanctum` when on sanctum level.
+  - Updated `intemple()` callsite to pass explicit map/game context.
+  - Added unit test `test/unit/priest_mapseen_temple.test.js`.
+  - Updated CODEMATCH row `mapseen_temple` from `STUB` to `Implemented`.
+- Validation:
+  - `node --test test/unit/priest_mapseen_temple.test.js`
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)

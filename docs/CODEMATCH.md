@@ -1585,7 +1585,7 @@ Rows under these `[N/A]` C files are non-gameplay/system and should not count ag
 | 380 | `level_range` | dungeon.js:5533 | Implemented |
 | 2609 | `load_exclusions` | dungeon.js:5321 | Implemented |
 | 2713 | `load_mapseen` | dungeon.js:5677 | Implemented |
-| 3259 | `mapseen_temple` | priest.js:293 | STUB |
+| 3259 | `mapseen_temple` | priest.js:267 | Implemented |
 | 1392 | `maxledgerno` | dungeon.js:314 | Aligned |
 | 1497 | `next_level` | dungeon.js:5157 | Implemented |
 | 1439 | `on_level` | dungeon.js:340 | Aligned |

@@ -855,6 +855,11 @@ export function Is_sanctum(lev) {
     return dnum === GEHENNOM && dlevel === dunlevs_in_dungeon(dnum);
 }
 
+export function Is_valley(lev) {
+    const { dnum, dlevel } = _coerceLevelArg(lev);
+    return dnum === GEHENNOM && dlevel === 1;
+}
+
 export function Is_rogue_level(map) {
     return !!(map && map.flags && map.flags.is_rogue);
 }

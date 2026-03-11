@@ -19,7 +19,7 @@ import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
 import { mon_nam, Monnam, mon_pmname, rndmonnam } from './do_name.js';
 import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict, m_canseeu } from './mondata.js';
 import { newsym } from './display.js';
-import { In_endgame, Is_astralevel, Is_sanctum } from './dungeon.js';
+import { In_endgame, Is_astralevel, Is_sanctum, Is_valley, find_mapseen } from './dungeon.js';
 import { m_next2u } from './muse.js';
 import { move_special as move_special_monmove } from './monmove.js';
 import { priestini as priestini_mkroom } from './mkroom.js';
@@ -264,7 +264,17 @@ export function priestname(mon, article, reveal_high_priest, player) {
 
 // helpless: use monHelpless from mon.js
 // resist_conflict imported from mondata.js
-function mapseen_temple(/*priest*/) { /* stub */ }
+export function mapseen_temple(_priest = null, map = null, game = null) {
+    const useMap = map || _gstate?.map || null;
+    const useGame = game || useMap?.game || _gstate;
+    const lev = useMap?.uz || useGame?.uz || null;
+    if (!lev) return;
+    const mptr = find_mapseen(lev, useGame);
+    if (!mptr) return;
+    mptr.flags = mptr.flags || {};
+    if (Is_valley(lev)) mptr.flags.valley = 1;
+    else if (Is_sanctum(lev)) mptr.flags.msanctum = 1;
+}
 // in_rooms imported from hack.js
 
 // linedup: check if (ax,ay) and (bx,by) are on a line (horiz/vert/diag)
@@ -411,7 +421,7 @@ export async function intemple(roomno, map, player, display, fov) {
                 }
             }
         }
-        mapseen_temple(priest);
+        mapseen_temple(priest, map, map?.game || _gstate);
     } else {
         // untended temple
         switch (rn2(4)) {
