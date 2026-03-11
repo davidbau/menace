@@ -790,7 +790,7 @@ async function in_container(obj, player) {
     }
 
     if (current_container) {
-        await You("put %s into %s.", doname(obj, player), xname(current_container));
+        await You("put %s into %s.", doname(obj, player), thesimpleoname(current_container));
         const cur = getContainerContents(current_container);
         setContainerContents(current_container, [...cur, obj]);
         current_container.owt = weight(current_container);
@@ -1443,9 +1443,15 @@ async function containerMenu(game, container) {
         }
     }
 
-    const clearMenuOptionRows = () => {
-        if (typeof display?.clearRow !== 'function') return;
-        for (let r = 2; r <= 10; r++) display.clearRow(r);
+    const clearMenuOptionRows = (startCol = 0) => {
+        const cols = display?.cols || 80;
+        for (let r = 2; r <= 10; r++) {
+            if (startCol > 0 && typeof display?.putstr === 'function') {
+                display.putstr(startCol, r, ' '.repeat(Math.max(0, cols - startCol)));
+            } else if (typeof display?.clearRow === 'function') {
+                display.clearRow(r);
+            }
+        }
     };
     const drawMenuOptionLine = (col, row, text) => {
         if (typeof display?.putstr !== 'function') return;
@@ -1486,7 +1492,7 @@ async function containerMenu(game, container) {
             const classPrompt = 'Take out what type of objects?';
             const classPad = centeredPad(classPrompt, 23);
             const hasUnknownBUC = currentContents.some((o) => !o?.bknown);
-            clearMenuOptionRows();
+            clearMenuOptionRows(classPad);
             await putMenuPrompt(`${' '.repeat(classPad)}${classPrompt}`);
             drawMenuOptionLine(classPad, 2, 'A - Auto-select every relevant item');
             drawMenuOptionLine(classPad + 4, 3, '(ignored unless some other choices are also picked)');
@@ -1683,11 +1689,11 @@ async function containerMenu(game, container) {
             ? `Do what with the ${cname}?`
             : `The ${cname} is empty.  Do what with it?`;
         const pad = centeredPad(prompt, 38);
-        clearMenuOptionRows();
+        clearMenuOptionRows(pad);
         await putMenuPrompt(`${' '.repeat(pad)}${prompt}`);
         if (outmaybe) {
             drawMenuOptionLine(pad, 2, `: - Look inside the ${cname}`);
-            if (hasContents) {
+            if (hasContents || !container?.cknown) {
                 drawMenuOptionLine(pad, 3, 'o - take something out');
                 drawMenuOptionLine(pad, 4, 'i - put something in');
                 drawMenuOptionLine(pad, 5, 'b - both; take out, then put in');
