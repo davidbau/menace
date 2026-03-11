@@ -3167,33 +3167,41 @@ export async function pooleffects(newspot, player, map, display) {
 
 // C ref: hack.c spoteffects() — effects of stepping on current square
 export async function spoteffects(pick, player, map, display, game) {
+    const gameRef = game || _gstate || null;
+    const playerRef = player || gameRef?.player || null;
+    const mapRef = map || gameRef?.map || null;
+    const displayRef = display || gameRef?.display || gameRef?.disp || null;
+    if (!playerRef || !mapRef || typeof mapRef.at !== 'function') return;
+
     // Prevent recursion
-    if (player._inSpoteffects) return;
-    player._inSpoteffects = true;
+    if (playerRef._inSpoteffects) return;
+    playerRef._inSpoteffects = true;
 
     try {
         // Terrain-dependent levitation/flight changes
-        const oldLoc = map.at(game.ux0 || player.x, game.uy0 || player.y);
-        const curLoc = map.at(player.x, player.y);
+        const ux0 = Number.isInteger(gameRef?.ux0) ? gameRef.ux0 : playerRef.x;
+        const uy0 = Number.isInteger(gameRef?.uy0) ? gameRef.uy0 : playerRef.y;
+        const oldLoc = mapRef.at(ux0, uy0);
+        const curLoc = mapRef.at(playerRef.x, playerRef.y);
         if (curLoc && oldLoc && curLoc.typ !== oldLoc.typ) {
-            await switch_terrain(player, map, display);
+            await switch_terrain(playerRef, mapRef, displayRef);
         }
 
         // Pool/lava effects
-        if (await pooleffects(true, player, map, display)) {
+        if (await pooleffects(true, playerRef, mapRef, displayRef)) {
             return;
         }
 
         // Room entry messages
-        await check_special_room(false, player, map, display, game?.fov || null);
+        await check_special_room(false, playerRef, mapRef, displayRef, gameRef?.fov || null);
 
         // Sink + levitation
-        if (curLoc && curLoc.typ === SINK && player.levitating) {
+        if (curLoc && curLoc.typ === SINK && playerRef.levitating) {
             // dosinkfall() would be called
         }
 
         // Trap effects
-        const trap = map.trapAt ? map.trapAt(player.x, player.y) : null;
+        const trap = mapRef.trapAt ? mapRef.trapAt(playerRef.x, playerRef.y) : null;
         const isPit = trap && is_pit(trap.ttyp);
 
         // Pick up before trap (unless pit)
@@ -3209,7 +3217,7 @@ export async function spoteffects(pick, player, map, display, game) {
         }
 
     } finally {
-        player._inSpoteffects = false;
+        playerRef._inSpoteffects = false;
     }
 }
 

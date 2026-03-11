@@ -7853,3 +7853,25 @@ hard-won wisdom:
     - rng/events/screens now fully matched for this branch; remaining mismatch is mapdump-only (`W` cell), unrelated to topline wording.
   - `./scripts/run-session-tests.sh`
     - `151/151` passed.
+
+## 2026-03-11: harden `spoteffects` runtime context to unblock pending polymorph session
+
+- Problem:
+  - `seed503_extcmd_monster.session.json` crashed at runtime with
+    `Cannot read properties of undefined (reading 'at')` from `hack.js::spoteffects`.
+  - `polyself` and `potion` paths could call `spoteffects` without full
+    `(player, map, display, game)` context.
+- Change:
+  - `js/hack.js::spoteffects` now resolves missing context from `_gstate`
+    (`player/map/display/game`) and returns early if map access is unavailable.
+  - Updated wrong-arity callsites:
+    - `js/polyself.js`: pass map/display/game explicitly to `spoteffects`.
+    - `js/potion.js`: pass player/map/display/game explicitly for sink-while-levitating path.
+- Result:
+  - `seed503_extcmd_monster` now replays to a normal parity divergence
+    (no runtime crash), enabling real debugging instead of harness abort.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed503_extcmd_monster.session.json --parallel=1 --verbose`
+    - crash resolved; replay runs and reports first divergence.
+  - `scripts/run-and-report.sh --failures`
+    - gameplay baseline remains green (`41/41` passing on rerun).

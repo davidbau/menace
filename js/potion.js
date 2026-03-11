@@ -1944,7 +1944,15 @@ export async function peffect_levitation(otmp, map, player) {
     }
     player.levitating = !!(player.getPropTimeout(LEVITATION) || prop.extrinsic) && !blockedLev;
     const here = mapRef?.at?.(player.x, player.y);
-    if (player.levitating && here && IS_SINK(here.typ)) await spoteffects(false);
+    if (player.levitating && here && IS_SINK(here.typ)) {
+        await spoteffects(
+            false,
+            player,
+            mapRef || gstateGame?.map || null,
+            gstateGame?.display || gstateGame?.disp || null,
+            gstateGame || null,
+        );
+    }
     float_vs_flight(gameRef, player);
 }
 

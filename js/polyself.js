@@ -1205,7 +1205,7 @@ export async function polymon(player, mntmp, map) {
     find_ac(player);
 
     // Pool/lava spoteffects
-    await spoteffects(true, player);
+    await spoteffects(true, player, map || _gstate?.map || null, _gstate?.display || _gstate?.disp || null, _gstate || null);
 
     // Passes_walls trap handling
     if (passes_walls(mons[mntmp]) && player.utrap) {
