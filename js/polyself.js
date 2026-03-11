@@ -95,7 +95,7 @@ import { killed, wakeup, setmangry } from './mon.js';
 import { mksobj } from './mkobj.js';
 import { AMULET_OF_STRANGULATION } from './objects.js';
 import { were_summon } from './were.js';
-import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM } from './const.js';
+import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS } from './const.js';
 
 // resists_fire already imported from mondata.js above
 
@@ -884,7 +884,7 @@ export async function polyself(player, psflags, map) {
             const dmg = rnd(30);
             player.uhp = (player.uhp || 1) - dmg;
             if (player.losehp) await player.losehp(dmg, "system shock", 1 /* KILLED_BY_AN */);
-            await exercise('A_CON', false);
+            await exercise(player, A_CON, false);
             return;
         }
     }
@@ -1005,8 +1005,8 @@ export async function polymon(player, mntmp, map) {
     player.uconduct.polyselfs = (player.uconduct.polyselfs || 0) + 1;
 
     // Exercise — must match C RNG consumption order
-    await exercise('A_CON', false);
-    await exercise('A_WIS', true);
+    await exercise(player, A_CON, false);
+    await exercise(player, A_WIS, true);
 
     const Upolyd = player.mtimedone > 0;
 
@@ -1362,7 +1362,7 @@ export async function break_armor(player) {
         // Large form breaks out of armor
         if (player.armor) {
             await You("break out of your armor!");
-            await exercise('A_STR', false);
+            await exercise(player, A_STR, false);
             if (player.Armor_gone) player.Armor_gone();
             if (player.useup) player.useup(player.armor);
             player.armor = null;
@@ -1676,7 +1676,7 @@ export async function dospinweb(player, map) {
         return 0;
     }
 
-    await exercise('A_DEX', true);
+    await exercise(player, A_DEX, true);
 
     // Check for existing trap on tile
     const ttmp = loc ? loc.trap : null;
@@ -1754,7 +1754,7 @@ export async function dosummon(player, map) {
     player.uen -= 10;
 
     await You("call upon your brethren for help!");
-    await exercise('A_WIS', true);
+    await exercise(player, A_WIS, true);
 
     // Call were_summon — matches C's RNG consumption
     const result = were_summon(player.type, player.x, player.y,

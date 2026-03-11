@@ -66,7 +66,7 @@ import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned, acurr, change_luck } from './attrib.js';
+import { poisoned, acurr, change_luck, adjalign } from './attrib.js';
 import { sgn } from './hacklib.js';
 import { xytod } from './cmd.js';
 import { wake_nearby } from './mon.js';
@@ -1611,7 +1611,7 @@ export async function reward_untrap(ttmp, mtmp, game, player) {
       set_malign(mtmp, player);
       await pline("%s is grateful.", Monnam(mtmp));
     }
-    if (!rn2(3) && !rnl(8) && player.alignment === A_LAWFUL) { adjalign(1); await You_feel("that you did the right thing."); }
+    if (!rn2(3) && !rnl(8) && player.alignment === A_LAWFUL) { adjalign(player, 1); await You_feel("that you did the right thing."); }
   }
 }
 
