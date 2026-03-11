@@ -1,5 +1,5 @@
 // C ref: hack.c — player movement, combat, teleport, item naming
-import { WALL, SDOOR, DOOR, CORR, ROOM, SEEN, HP, GOLD, AC, STR, RINN, WANN } from './const.js';
+import { WALL, SDOOR, DOOR, CORR, ROOM, SEEN, HP, GOLD, AC, STR, RINN, WANN, POTN } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { pline, atl, newsym, nscr, pru, prl, prl1, nose1, nosee, on, cls, curs, losehp } from './pri.js';
@@ -356,9 +356,19 @@ export function doname(obj) {
       return s + '.';
     }
     case '!': {
-      let s = obj.known ? pottyp[obj.otyp] || 'potion' :
-              (game.potcol && game.potcol[obj.otyp]) ? `${game.potcol[obj.otyp]} potion` : 'a potion';
-      return obj.quan > 1 ? `${obj.quan} ${s}s.` : `a ${s}.`;
+      // C ref: hack.c doname() case '!'
+      // if oiden&POTN or potcall[otyp]: "a potion of X." or "a potion called X."
+      // else: "a COLORNAME potion." (using setan for article)
+      const pcall = game.potcall && game.potcall[obj.otyp];
+      if ((game.oiden[obj.otyp] & POTN) || pcall) {
+        const base = obj.quan > 1 ? `${obj.quan} potions` : 'a potion';
+        if (!pcall) return `${base} of ${pottyp[obj.otyp]}.`;
+        else return `${base} called ${pcall}.`;
+      } else {
+        const col = game.potcol && game.potcol[obj.otyp];
+        if (obj.quan > 1) return `${obj.quan} ${col} potions.`;
+        return setan(col) + ' potion.';
+      }
     }
     case '?': {
       // C: if(quan>1) "%d scrolls" else "a scroll"; then " of X." / " called X." / " labeled 'X'."

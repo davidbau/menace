@@ -120,7 +120,7 @@ g_at(xdnstair,ydnstair,ftrap));
 	}
 	levl[xdnstair][ydnstair].scrsym='>';
 #ifdef HARNESS
-	harness_log_event("mklev_dn");
+	harness_log_event("mklev_dn[x=%d,y=%d]", xdnstair, ydnstair);
 #endif
 #ifdef DEBUG
 	out("dn @%d,%d\n",xdnstair,ydnstair);

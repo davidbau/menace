@@ -8,6 +8,7 @@ import { mon } from './data.js';
 
 // Level-local state (mirrors mklev.c globals, reset each call)
 let lev_room, lev_croom, lev_troom, lev_nroom, lev_rnum;
+let lev_croomWriteIdx;  // C ref: croom pointer — tracks where next room is written
 let lev_x, lev_y, lev_dx, lev_dy, lev_tx, lev_ty;
 let lev_nxcor;
 let lev_xdnstair, lev_xupstair, lev_ydnstair, lev_yupstair;
@@ -348,9 +349,10 @@ function maker(lowx, hix, lowy, hiy) {
       }
     }
   }
-  // Record room
+  // Record room — C: writes to *croom and increments croom pointer
+  // JS: writes to lev_room[lev_croomWriteIdx] and increments the write index
   const room = { lx: lowx, hx: hix, ly: lowy, hy: hiy };
-  lev_room.push(room);
+  lev_room[lev_croomWriteIdx++] = room;
   // Draw walls and floor
   let tmpx = lowx - 1;
   // Left wall column
@@ -475,10 +477,26 @@ export function generatelevel(dlevel) {
 }
 
 function _generatelevel_attempt(dlevel) {
-  initLevl();
-  lev_room = [];
-  lev_nroom = 0;
-  lev_fmon = null; lev_fobj = null; lev_fgold = null; lev_ftrap = null;
+  // C harness: mklev.c globals (levl, room[], nroom) are NOT reset between calls
+  // to mklev_main() since it runs inline. We carry over state via game.mklev_persist.
+  // On the first call (level 1), game.mklev_persist is undefined → use fresh state.
+  const persist = game.mklev_persist;
+  if (persist) {
+    // Restore carried-over C globals: levl, room[], nroom, fmon all carry over between
+    // inline calls to mklev_main() in the C harness.
+    lev_levl = persist.levl;
+    lev_room = persist.room.slice();   // copy so we can mutate
+    lev_nroom = persist.nroom;         // nroom carries over (NOT reset to 0)
+    lev_fmon = persist.fmon;           // fmon carries over (C global persists)
+  } else {
+    initLevl();
+    lev_room = [];
+    lev_nroom = 0;
+    lev_fmon = null;
+  }
+  // C ref: croom = room (reset pointer to start of array — like resetting write index to 0)
+  lev_croomWriteIdx = 0;
+  lev_fobj = null; lev_fgold = null; lev_ftrap = null;
   lev_nxcor = 0;
 
   const isMaze = (dlevel === game.flags.maze);
@@ -515,10 +533,24 @@ function _generatelevel_attempt(dlevel) {
     }
   }
 
-  // Mark end of room array (C sets croom->hx=-1 BEFORE qsort; sentinel stays at end)
-  // In JS we push AFTER sorting later, or give lx=999 so it sorts last.
-  // Push sentinel now with lx=999 so sort keeps it at end.
-  lev_room.push({ lx: 999, hx: -1, ly: 0, hy: 0 }); // sentinel
+  // C ref: croom->hx = -1 — set sentinel at current write position.
+  // In C, this overwrites whatever was at croom (which is room[nroom_at_start_of_call]
+  // if no rooms were added, or room[nroom_added] if rooms were added).
+  // The sentinel keeps the lx/ly/hy values of whatever was there before.
+  // On first call (fresh state): lev_room[lev_croomWriteIdx] doesn't exist → create with lx=0
+  // On subsequent calls: lev_room[lev_croomWriteIdx] has leftover data from previous generation
+  if (lev_croomWriteIdx >= lev_room.length) {
+    lev_room[lev_croomWriteIdx] = { lx: 0, hx: -1, ly: 0, hy: 0 };
+  } else {
+    lev_room[lev_croomWriteIdx] = Object.assign({}, lev_room[lev_croomWriteIdx], { hx: -1 });
+  }
+  // qsort sorts lev_nroom entries (NOT including the sentinel position itself,
+  // since C's qsort(room, nroom, ...) only sorts nroom entries — the sentinel at
+  // room[nroom] is NOT included in the sort). BUT the sentinel's lx value affects
+  // its position relative to other rooms when it's within the nroom range.
+  // C: qsort(room, nroom, ...) where sentinel is at room[nroom] — outside the sort range
+  // UNLESS nroom <= lev_croomWriteIdx. When no rooms were added (lev_croomWriteIdx=0),
+  // the sentinel is at index 0, and qsort(room, nroom=9, ...) DOES include it.
 
   logEvent('mklev_rooms');
   // Place downstairs
@@ -537,7 +569,7 @@ function _generatelevel_attempt(dlevel) {
   lev_levl[dnx][dny].scrsym = '>';
   lev_xdnstair = dnx; lev_ydnstair = dny;
 
-  logEvent('mklev_dn');
+  logEvent(`mklev_dn[x=${dnx},y=${dny}]`);
   // Place upstairs (in a different room)
   // C ref: somex/somey called INSIDE do-while — must match C behavior
   const troom_save = lev_croom;
@@ -551,8 +583,10 @@ function _generatelevel_attempt(dlevel) {
 
   logEvent(`mklev_up[x=${upx},y=${upy}]`);
   logEvent('mklev_up');
-  // Populate rooms
-  for (let ri = 0; ri < lev_nroom; ri++) {
+  // C ref: for(croom=room; croom->hx>0; croom++) — iterate real rooms (hx>0), stop at sentinel
+  // Starts from room[0] (the beginning of the array), NOT from lev_nroom.
+  // If sentinel is at index 0 (no rooms added this call), the loop runs zero times.
+  for (let ri = 0; ri < lev_room.length && lev_room[ri].hx > 0; ri++) {
     lev_croom = lev_room[ri];
     if (!rn2(3)) {
       const mtmp = makemon_lev();
@@ -579,10 +613,14 @@ function _generatelevel_attempt(dlevel) {
   }
 
   logEvent('mklev_populate');
-  // Sort rooms by lx, then draw corridors
-  lev_room.sort(comp);
-  // Log room layout for parity comparison
-  logEvent(`rooms[${lev_room.map((r,i) => `${i}:${r.lx}-${r.hx},${r.ly}-${r.hy}`).join('|')}]`);
+  // C ref: qsort(room, nroom, sizeof(struct mkroom), comp) — sort only lev_nroom entries
+  // We sort the slice of lev_room that C would sort (indices 0..lev_nroom-1),
+  // leaving any entries beyond lev_nroom unchanged.
+  const toSort = lev_room.slice(0, lev_nroom);
+  toSort.sort(comp);
+  for (let i = 0; i < lev_nroom; i++) lev_room[i] = toSort[i];
+  // Log room layout for parity comparison (lev_nroom entries, matching C's qsort range)
+  logEvent(`rooms[${lev_room.slice(0, lev_nroom).map((r,i) => `${i}:${r.lx}-${r.hx},${r.ly}-${r.hy}`).join('|')}]`);
   lev_croom = lev_room[0];
   lev_troom = lev_room[1];
   lev_nxcor = 0;
@@ -599,6 +637,19 @@ function _generatelevel_attempt(dlevel) {
   }
   logEvent('mklev_corridors');
   if (game._corTrace) process.stderr.write(`corridor done: total_rng=${game.rawRngLog?game.rawRngLog.length:'?'}\n`);
+
+  // C harness: save mklev globals for reuse by the next call to mklev_main().
+  // The C harness runs mklev inline, so levl[], room[], nroom, fmon all carry over.
+  // We deep-copy levl (since lev.js will modify game.levl from this data).
+  // room[], nroom, and fmon are saved as-is (carry leftover state from this call).
+  const levlCopy = [];
+  for (let x = 0; x < 80; x++) {
+    levlCopy[x] = [];
+    for (let y = 0; y < 22; y++) {
+      levlCopy[x][y] = Object.assign({}, lev_levl[x][y]);
+    }
+  }
+  game.mklev_persist = { levl: levlCopy, room: lev_room.slice(), nroom: lev_nroom, fmon: lev_fmon };
 
   return packageLevel();
 }

@@ -10,7 +10,7 @@ import { movemon, makemon, rloc, mnexto, g_at_mon, g_at_obj, g_at_gen, delmon, k
 import { ringoff, hit, miss, bhit, buzz, dosearch, dosave, dorecover, zhit } from './do1.js';
 import { dodown, doup, done, done1, losestr, ndaminc } from './main.js';
 import { mon, pottyp, scrtyp, wantyp, ringtyp, foodnam, wepnam, armnam,
-         NOTHIN, CURSED, EMPTY, DONTH, WEARI, MORE } from './data.js';
+         NOTHIN, CURSED, EMPTY, DONTH, WEARI, MORE, RUST } from './data.js';
 import { savelev, getlev, mkobj } from './lev.js';
 import { docrt } from './pri.js';
 
