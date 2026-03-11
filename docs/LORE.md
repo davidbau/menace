@@ -8069,3 +8069,35 @@ hard-won wisdom:
     - improved but still failing (`rng=2753/2779`, `screens=51/63`).
   - `npm run test:session`
     - full suite remains green (`160/160`).
+
+## 2026-03-11: seed503 polymorph equipment-drop slot fix (incremental)
+
+- Problem:
+  - `seed503_extcmd_monster` still missed C `^place[148,...]` during polymorph
+    equipment handling and had event-stream lag downstream.
+  - Root cause: `polyself.break_armor()` mixed C slot names (`uarmc/uarmh/...`)
+    with this JS model's actual fields (`cloak/helmet/gloves/shield/boots`),
+    so several removal branches no-op'd.
+- Change:
+  - `js/polyself.js`:
+    - corrected break_armor slot references to live player fields.
+    - awaited previously un-awaited armor removals.
+    - hardened `dropp()` to resolve map from `player.map`/`gstate` when not
+      explicitly supplied.
+  - `js/o_init.js`:
+    - tightened `discoverObject()` wisdom exercise behavior to C shape by
+      removing JS-only class-known gating while preserving in-game guard
+      (`turnCount > 0`) to avoid chargen drift.
+  - `js/potion.js`:
+    - marked selected quaff item as `dknown` before effect resolution
+      (inventory-selected object parity with C `otmp->dknown` flow).
+- Result:
+  - `seed503` event parity improved (`26/54 -> 32/54`), including expected
+    `^place[148,...]` alignment before `^place[79,...]`.
+  - Remaining first divergence unchanged at step 54 (`rn2(19)` exercise call
+    before `mcalcmove`) and hero-glyph screen mismatch still open.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed503_extcmd_monster.session.json --parallel=1 --verbose`
+    - still failing, but with improved event alignment.
+  - `npm run test:session`
+    - full suite remains green (`160/160`).

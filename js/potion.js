@@ -541,6 +541,9 @@ async function handleQuaff(player, map, display) {
 
         const item = potions.find(p => p.invlet === c);
         if (item) {
+            // C parity: inventory-selected items are description-known by the
+            // time they are acted on (otmp->dknown guards makeknown/trycall).
+            item.dknown = true;
             player.removeFromInventory(item);
             replacePromptMessage();
             item.in_use = true;

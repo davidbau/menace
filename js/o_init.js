@@ -472,23 +472,11 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
         pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
         if (!ocNameKnown[otyp] && markAsKnown) ocNameKnown[otyp] = true;
-        // C ref: o_init.c:477 — exercise(A_WIS, TRUE) on object discovery
-        // C guard: credit_clue && ct<NUM_OBJECTS (another item in class already known).
-        // JS: markAsKnown maps to C's mark_as_known; C's ini_inv passes credit_clue=FALSE
-        // so exercise never fires during chargen. We approximate with turnCount>0.
+        // C ref: o_init.c:474-477 — when a name transitions unknown->known,
+        // exercise wisdom iff credit_hero (creditClue in JS) is true.
         if (creditClue && markAsKnown && _gstate && _gstate.turnCount > 0) {
-            const od = objectData[otyp];
-            if (od) {
-                const cls = od.oc_class;
-                // Check if any OTHER item in this class is already name-known
-                const classItems = discoByClass.get(cls);
-                const hasOtherKnown = classItems && classItems.some(
-                    t => t !== otyp && ocNameKnown[t]);
-                if (hasOtherKnown) {
-                    const player = _gstate.u || _gstate.player;
-                    if (player) exercise(player, A_WIS, true);
-                }
-            }
+            const player = _gstate.u || _gstate.player;
+            if (player) exercise(player, A_WIS, true);
         }
     }
 }

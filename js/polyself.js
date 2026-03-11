@@ -1401,7 +1401,7 @@ export async function rehumanize(player) {
 // Wrapper over dropx used by break_armor/drop_weapon paths.
 export async function dropp(obj, player, map) {
     if (!obj || !player) return;
-    await dropx(obj, player, map);
+    await dropx(obj, player, map || player.map || _gstate?.map || null);
 }
 
 export async function break_armor(player) {
@@ -1431,7 +1431,7 @@ export async function break_armor(player) {
         if (player.cloak) {
             // Mummy wrapping adapts to some sizes — skip if allowed
             await pline_The("clasp on your cloak breaks open!");
-            await removeArmor('uarmc', 'Cloak_off');
+            await removeArmor('cloak', 'Cloak_off');
         }
         if (player.shirt) {
             await Your("shirt rips to shreds!");
@@ -1451,7 +1451,7 @@ export async function break_armor(player) {
                 await Your("cloak falls, unsupported!");
             else
                 await You("shrink out of your cloak!");
-            await removeArmor('uarmc', 'Cloak_off');
+            await removeArmor('cloak', 'Cloak_off');
         }
         if (player.shirt) {
             if (is_whirly(uptr))
@@ -1467,7 +1467,7 @@ export async function break_armor(player) {
     if (has_horns(uptr)) {
         if (player.helmet) {
             await Your("helmet falls to the ground!");
-            await removeArmor('uarmh', 'Helmet_off');
+            await removeArmor('helmet', 'Helmet_off');
         }
     }
 
@@ -1476,15 +1476,15 @@ export async function break_armor(player) {
         if (player.gloves) {
             await You("drop your gloves%s!", player.weapon ? " and weapon" : "");
             await drop_weapon(player, 0);
-            await removeArmor('uarmg', 'Gloves_off');
+            await removeArmor('gloves', 'Gloves_off');
         }
         if (player.shield) {
             await You("can no longer hold your shield!");
-            await removeArmor('uarms', 'Shield_off');
+            await removeArmor('shield', 'Shield_off');
         }
         if (player.helmet) {
             await Your("helmet falls to the ground!");
-            await removeArmor('uarmh', 'Helmet_off');
+            await removeArmor('helmet', 'Helmet_off');
         }
     }
 
@@ -1497,14 +1497,14 @@ export async function break_armor(player) {
             else
                 await Your("boots %s off your feet!",
                     (uptr.msize !== undefined && uptr.msize <= MZ_SMALL) ? "slide" : "are pushed");
-            removeArmor('uarmf', 'Boots_off');
+            await removeArmor('boots', 'Boots_off');
         }
     }
 
     // Eyewear falls off without a head
     if (player.ublindf && !has_head(uptr)) {
         await Your("eyewear falls off!");
-        removeArmor('ublindf', 'Blindf_off');
+        await removeArmor('ublindf', 'Blindf_off');
     }
     // rings stay worn even when no hands
 }
