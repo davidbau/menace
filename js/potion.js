@@ -36,7 +36,7 @@ import { rndexp, pluslvl } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
 import { monster_detect, object_detect } from './detect.js';
-import { spoteffects, losehp } from './hack.js';
+import { spoteffects, losehp, Maybe_Half_Phys } from './hack.js';
 import { stairway_at } from './stairs.js';
 import { has_ceiling, ceiling } from './dungeon.js';
 import { hard_helmet } from './do_wear.js';
@@ -56,7 +56,7 @@ import { mons } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
-import { eatmupdate, newuhs } from './eat.js';
+import { eatmupdate, newuhs, fix_petrification } from './eat.js';
 import { you_were, you_unwere, set_ulycn } from './were.js';
 import { can_reach_floor } from './engrave.js';
 import { is_pool } from './dbridge.js';
@@ -853,18 +853,27 @@ export async function peffect_gain_energy(player, otmp, display) {
 
 // cf. potion.c peffect_acid()
 export async function peffect_acid(player, otmp, display) {
-    // C ref: check Acid_resistance
-    const acidRes = player.uprops[ACID_RES];
+    const acidRes = player.uprops?.[ACID_RES];
     if (acidRes && (acidRes.intrinsic || acidRes.extrinsic)) {
-        await pline("This tastes %s.", otmp.blessed ? "sweet" : "sour");
-        return !otmp.blessed;
+        await pline("This tastes %s.",
+            (player.hallucinating || player.Hallucination) ? "tangy" : "sour");
+    } else {
+        await pline("This burns%s!",
+            otmp.blessed ? " a little" : (otmp.cursed ? " a lot" : " like acid"));
+        const dmg = c_d(otmp.cursed ? 2 : 1, otmp.blessed ? 4 : 8);
+        await losehp(
+            Maybe_Half_Phys(dmg, player),
+            "potion of acid",
+            KILLED_BY_AN,
+            player,
+            display || gstateGame?.display,
+            gstateGame,
+        );
+        await exercise(player, A_CON, false);
     }
-    const dmg = rnd(otmp.cursed ? 10 : 5);
-    await pline("This burns%s!", otmp.blessed ? " a little" : " like acid");
-    player.uhp -= dmg;
-    if (player.uhp < 1) player.uhp = 1;
-    await exercise(player, A_CON, false);
-    return otmp.cursed;
+    if (player.getPropTimeout(STONED)) await fix_petrification();
+    gp.potion_unkn++;
+    return false;
 }
 
 // cf. potion.c peffect_invisibility()

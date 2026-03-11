@@ -8340,3 +8340,21 @@ Validation:
 - `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js`
 - `scripts/run-and-report.sh --pending --failures` -> `6/6` passing
 - `scripts/run-and-report.sh --failures` -> gameplay `104/104` passing
+
+## 2026-03-11: C-faithful `peffect_acid` behavior and side effects
+
+- Reworked `js/potion.js:peffect_acid()` to match C `potion.c` semantics:
+  - Acid-resistant path now uses C message flavor (`tangy` under hallucination, otherwise `sour`).
+  - Non-resistant path now uses C damage distribution `d(cursed?2:1, blessed?4:8)`.
+  - Damage now routes through `losehp(Maybe_Half_Phys(...), "potion of acid", KILLED_BY_AN)` rather than local HP clamping, restoring proper lethal behavior.
+  - Added C side effects:
+    - `exercise(A_CON, FALSE)` on non-resistant burn.
+    - `if (Stoned) fix_petrification();`
+    - unconditional `potion_unkn++` bookkeeping.
+- Supporting integration:
+  - imported `Maybe_Half_Phys` from `hack.js` and `fix_petrification` from `eat.js`.
+
+Validation:
+- `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
+- `scripts/run-and-report.sh --pending --failures` -> `6/6` passing
+- `scripts/run-and-report.sh --failures` -> gameplay `104/104` passing
