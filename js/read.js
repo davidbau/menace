@@ -47,7 +47,7 @@ import { gold_detect, food_detect, trap_detect, do_mapping, cvt_sdoor_to_door } 
 import { explode } from './explode.js';
 import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
-import { DISP_BEAM, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_END, thats_enough_tries } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';

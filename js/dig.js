@@ -82,6 +82,7 @@ import { You_hear } from './pline.js';
 import { abon } from './weapon.js';
 import { acurr } from './attrib.js';
 import { A_STR, A_DEX } from './const.js';
+import { bimanual } from './pray.js';
 
 // ============================================================================
 // Constants (cf. dig.c:19-27)

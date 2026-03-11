@@ -226,11 +226,13 @@ function freehand(player) {
     return !player.shield || !player.weapon;
 }
 
-// Helper: bimanual weapon check
-function bimanual(obj) {
+// cf. obj.h bimanual(otmp) macro — weapon/tool that requires two hands
+export function bimanual(obj) {
     if (!obj) return false;
     const od = objectData[obj.otyp];
-    return od && od.bimanual;
+    if (!od) return false;
+    return (obj.oclass === WEAPON_CLASS || obj.oclass === TOOL_CLASS)
+        && !!(od.oc_bimanual || od.big);
 }
 
 // Helper: unchanger -- returns amulet of unchanging if worn

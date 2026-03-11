@@ -100,6 +100,7 @@ import {
 } from './const.js';
 export { mon_arrive } from './dog.js';
 export { MON_ARRIVE_WITH_YOU } from './const.js';
+import { bimanual } from './pray.js';
 
 // ========================================================================
 // Inventory Creation

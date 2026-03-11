@@ -2860,7 +2860,7 @@ export async function special_stock(obj, shkp, quietly, player) {
           await verbalize("I won't stock that. Take it out of here!");
         }
         else {
-          await pline("%s shakes %s %s in refusal.", Shknam(shkp), noit_mhis(shkp), mbodypart(shkp, HEAD));
+          await pline("%s shakes %s %s in refusal.", Shknam(shkp), mhis(shkp), mbodypart(shkp, HEAD));
         }
       }
     }

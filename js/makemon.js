@@ -92,7 +92,8 @@ import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
 import { new_light_source } from './light.js';
 import { PIT, SPIKED_PIT, LOW_PM,
     EPRI, EMIN, EDOG, ESHK, MGIVENNAME, has_mgivenname, has_emin, has_edog,
-    M_AP_NOTHING, M_AP_MONSTER } from './const.js';
+    M_AP_NOTHING, M_AP_MONSTER,
+    nothing_happens, nothing_seems_to_happen } from './const.js';
 import { In_sokoban, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty } from './dungeon.js';
 import { newemin } from './minion.js';
 

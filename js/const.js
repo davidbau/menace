@@ -306,6 +306,12 @@ export const KILLED_BY_AN = 0;
 export const KILLED_BY = 1;
 export const NO_KILLER_PREFIX = 2;
 
+// cf. decl.c c_common_strings — frequently used string constants
+export const nothing_happens = "Nothing happens.";
+export const nothing_seems_to_happen = "Nothing seems to happen.";
+export const thats_enough_tries = "That's enough tries!";
+export const Never_mind = "Never mind.";
+
 // Command queue type IDs and queue selectors (include/hack.h cmdq_cmdtypes/CQ_*)
 // Runtime fields:
 // - input cmdq node fields: node.typ/node.key/node.dir*/node.intval
