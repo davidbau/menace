@@ -1388,7 +1388,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     else if (!game.maploc.disturbed && !rn2(2)) { await disturb_grave(x, y); }
     else {
       await exercise(player, A_WIS, false);
-      if (Role_if(player, PM_ARCHEOLOGIST) || Role_if(player, PM_SAMURAI) || (player.ualign.type === A_LAWFUL && player.ualign.record > -10)) adjalign(-sgn(player.ualign.type));
+      if (Role_if(player, PM_ARCHEOLOGIST) || Role_if(player, PM_SAMURAI) || (player.alignment === A_LAWFUL && player.alignmentRecord > -10)) adjalign(-sgn(player.alignment));
       game.maploc.typ = ROOM;
       game.maploc.emptygrave = 0;
       game.maploc.disturbed = 0;

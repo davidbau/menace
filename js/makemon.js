@@ -209,7 +209,6 @@ function _getMakemonPlayerCtx() {
         alignment: player.alignment,
         alignmentRecord: player.alignmentRecord,
         alignmentAbuse: player.alignmentAbuse,
-        ualign: player.ualign,
         race: player.race,
         ulevel: player.ulevel ?? player.level,
         hasAmulet: !!player.uhave?.amulet || inventory.some(o => o?.otyp === AMULET_OF_YENDOR),
@@ -273,7 +272,6 @@ function _normalizeMakemonOverride(playerLike) {
         alignment: playerLike?.alignment,
         alignmentRecord: playerLike?.alignmentRecord,
         alignmentAbuse: playerLike?.alignmentAbuse,
-        ualign: playerLike?.ualign,
         race: playerLike?.race,
         ulevel: playerLike?.ulevel,
         level: playerLike?.level,
@@ -2610,7 +2608,7 @@ export function m_initgrp(mtmp, x, y, n, mmflags, player) {
       if (mon) {
         mon.mpeaceful = false;
         mon.mavenge = 0;
-        set_malign(mon);
+        set_malign(mon, player);
       }
     }
   }
@@ -2740,7 +2738,7 @@ export async function grow_up(mtmp, victim, game) {
 }
 
 // Autotranslated from makemon.c:2315
-export function set_malign(mtmp, game, player) {
+export function set_malign(mtmp, player) {
   let mal = mtmp.data.maligntyp, coaligned;
   if (mtmp.ispriest || mtmp.isminion) {
     if (mtmp.ispriest && EPRI(mtmp)) mal = EPRI(mtmp).shralign;
@@ -2749,7 +2747,7 @@ export function set_malign(mtmp, game, player) {
       mal *= 5;
     }
   }
-  coaligned = (sgn(mal) === sgn(player.ualign.type));
+  coaligned = player ? (sgn(mal) === sgn(player.alignment)) : false;
   if (mtmp.data.msound === MS_LEADER) { mtmp.malign = -20; }
   else if (mal === A_NONE) {
     if (mtmp.mpeaceful) mtmp.malign = 0;
@@ -2886,14 +2884,14 @@ export function clone_mon(mon, x, y, game, player) {
     if (!has_emin(m2) || !has_emin(mon)) { console.error("propagate_mextra: missing emin"); }
      m2.mextra.emin = { ...mon.mextra.emin };
     atyp = m2.mextra.emin.min_align;
-    m2.mextra.emin.renegade = (atyp !== player.ualign.type) ^ !m2.mpeaceful;
+    m2.mextra.emin.renegade = (atyp !== player.alignment) ^ !m2.mpeaceful;
   }
   else if (m2.mtame) {
     m2.mtame = 0;
     // TODO: tamedog not yet ported to JS
     // if (tamedog(m2, 0, false)) { assert(has_edog(m2) && has_edog(mon)); EDOG(m2) = EDOG(mon); }
   }
-  set_malign(m2);
+  set_malign(m2, player);
   newsym(m2.mx, m2.my);
   return m2;
 }

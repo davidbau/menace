@@ -620,9 +620,9 @@ export async function choke(food, player) {
     if (player.uhs !== SATIATED) {
         if (!food || food.otyp !== AMULET_OF_STRANGULATION) return;
     } else if (player.roleMnum === PM_KNIGHT
-               && player.ualign && player.ualign.type === A_LAWFUL) {
+               && player.alignment === A_LAWFUL) {
         // C: adjalign(-1) — gluttony is unchivalrous
-        if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
+        player.alignmentRecord = (player.alignmentRecord || 0) - 1;
         await You_feel("like a glutton!");
     }
     await exercise(player, A_CON, false);
@@ -1105,7 +1105,7 @@ export async function violated_vegetarian(player) {
   player.uconduct.unvegetarian = (player.uconduct.unvegetarian || 0) + 1;
   if (player.roleMnum === PM_MONK) {
       await You_feel("guilty.");
-      if (player.ualign) player.ualign.record = (player.ualign.record || 0) - 1;
+      player.alignmentRecord = (player.alignmentRecord || 0) - 1;
   }
 }
 

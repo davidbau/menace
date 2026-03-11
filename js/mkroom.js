@@ -9,7 +9,7 @@ import {
     isok, FILL_NONE, FILL_NORMAL,
 } from './const.js';
 import { rn1, rn2, rnd } from './rng.js';
-import { mkclass, makemon } from './makemon.js';
+import { mkclass, makemon, set_malign } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
 import { ndemon } from './minion.js';
 import { mkobj, mksobj } from './mkobj.js';
@@ -571,27 +571,7 @@ export function antholemon(depth) {
     return mons[mtyp];
 }
 
-function set_malign(mtmp) {
-    if (!mtmp || !mtmp.data) return;
-    let mal = mtmp.data.maligntyp || 0;
-    const coaligned = (Math.sign(mal) === 0);
-    if (mtmp.data.msound === MS_LEADER) {
-        mtmp.malign = -20;
-    } else if (mal === A_NONE) {
-        mtmp.malign = mtmp.mpeaceful ? 0 : 20;
-    } else if (mtmp.data.mflags2 & M2_PEACEFUL) {
-        const absmal = Math.abs(mal);
-        mtmp.malign = mtmp.mpeaceful ? -3 * Math.max(5, absmal) : 3 * Math.max(5, absmal);
-    } else if (mtmp.data.mflags2 & M2_HOSTILE) {
-        const absmal = Math.abs(mal);
-        mtmp.malign = coaligned ? 0 : Math.max(5, absmal);
-    } else if (coaligned) {
-        const absmal = Math.abs(mal);
-        mtmp.malign = mtmp.mpeaceful ? -3 * Math.max(5, absmal) : 3 * Math.max(5, absmal);
-    } else {
-        mtmp.malign = mtmp.mpeaceful ? 0 : Math.max(5, Math.abs(mal));
-    }
-}
+// set_malign imported from makemon.js
 
 // C ref: mkroom.c:257 mk_zoo_thronemon() — place throne ruler for COURT rooms.
 export function mk_zoo_thronemon(map, x, y, depth) {

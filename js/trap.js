@@ -47,7 +47,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
 import { game as _gstate } from './gstate.js';
-import { makemon } from './makemon.js';
+import { makemon, set_malign } from './makemon.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
          is_crackable, erosion_matters, mksobj, weight, place_object, obj_extract_self } from './mkobj.js';
 import { CORPSE,
@@ -1338,7 +1338,7 @@ export function mk_trap_statue(x, y, game, player) {
   let mtmp, otmp, statue, mptr, trycount = 10;
   do {
     mptr = mons[rndmonnum()]; // C: &mons[rndmonnum()]
-  } while (--trycount > 0 && is_unicorn(mptr) && sgn(player.ualign.type) === sgn(mptr.maligntyp));
+  } while (--trycount > 0 && is_unicorn(mptr) && sgn(player.alignment) === sgn(mptr.maligntyp));
   const mndx = Number.isInteger(mptr?.mndx) ? mptr.mndx : mons.indexOf(mptr);
   statue = mkcorpstat(STATUE, mndx, false, x, y, game?.lev || game?.map || null);
   mtmp = makemon(mptr, 0, 0, MM_NOCOUNTBIRTH | MM_NOMSG);
@@ -1608,10 +1608,10 @@ export async function reward_untrap(ttmp, mtmp, game, player) {
     const _mdata = mtmp.data || mtmp.type || mons[mtmp.mndx]; // C: mon->data alias
     if (rnl(10) < 8 && !mtmp.mpeaceful && !monHelpless(mtmp) && !mtmp.mfrozen && !mindless(_mdata) && !unique_corpstat(_mdata) && _mdata.mlet !== S_HUMAN) {
       mtmp.mpeaceful = 1;
-      set_malign(mtmp);
+      set_malign(mtmp, player);
       await pline("%s is grateful.", Monnam(mtmp));
     }
-    if (!rn2(3) && !rnl(8) && player.ualign.type === A_LAWFUL) { adjalign(1); await You_feel("that you did the right thing."); }
+    if (!rn2(3) && !rnl(8) && player.alignment === A_LAWFUL) { adjalign(1); await You_feel("that you did the right thing."); }
   }
 }
 

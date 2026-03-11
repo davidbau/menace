@@ -875,7 +875,7 @@ export function initedog(mtmp, everything, player, game) {
     mtmp.mtame = Math.max(minimumtame, mtmp.mtame || 0);
     mtmp.mpeaceful = 1;
     mtmp.mavenge = 0;
-    set_malign(mtmp);
+    set_malign(mtmp, player);
 
     if (everything) {
         mtmp.mleashed = 0;
@@ -979,7 +979,7 @@ export async function tamedog(mtmp, obj, givemsg, player, game, map) {
         givemsg = false;
     }
     mtmp.mpeaceful = 1;
-    set_malign(mtmp);
+    set_malign(mtmp, player);
 
     // Full moon + night + dog: may resist
     // C: flags.moonphase == FULL_MOON && night() && rn2(6) — simplified

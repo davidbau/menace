@@ -74,6 +74,7 @@ import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
+import { in_rooms } from './hack.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
@@ -99,11 +100,9 @@ export function may_dig(x, y, map) {
              && (wallInfo & W_NONDIGGABLE));
 }
 
-// C ref: in_rooms(x, y, SHOPBASE) — is (x,y) inside a shop?
-// Simplified: check if the location's roomno indicates a shop.
+// C ref: *in_rooms(x, y, SHOPBASE) — is (x,y) inside a shop?
 function in_rooms_shopbase(x, y, map) {
-    // Stub: shop damage tracking not yet wired
-    return false;
+    return in_rooms(x, y, SHOPBASE, map).length > 0;
 }
 
 // C ref: in_town(x, y) — is (x,y) in a town?
@@ -632,10 +631,10 @@ export async function draft_message(unexpected, player = null) {
     }
 
     const draft_reaction = ['enlisting', 'marching', 'protesting', 'fleeing'];
-    const alignType = Number.isInteger(player?.ualign?.type) ? player.ualign.type : 0;
+    const alignType = player?.alignment ?? 0;
     const alignSign = alignType > 0 ? 1 : alignType < 0 ? -1 : 0;
     let dridx = rn1(2, 1 - alignSign);
-    if ((player?.ualign?.record ?? 0) < 4) {
+    if ((player?.alignmentRecord ?? 0) < 4) {
         dridx += rn1(3, alignSign - 1);
     }
     if (dridx < 0) dridx = 0;

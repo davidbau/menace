@@ -429,7 +429,7 @@ export async function dipfountain(obj, player, map, display, fov) {
         && (obj.quan || 1) === 1 && !obj.oartifact
         && !exist_artifact(LONG_SWORD, artiname(ART_EXCALIBUR))) {
 
-        if ((player.alignment || (player.ualign && player.ualign.type)) !== A_LAWFUL) {
+        if (player.alignment !== A_LAWFUL) {
             // Ha! Trying to cheat her.
             await pline("A freezing mist rises from the %s"
                   + " and envelopes the sword.", hliquid("water"));

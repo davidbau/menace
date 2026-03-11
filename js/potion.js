@@ -881,7 +881,7 @@ export async function peffect_water(player, otmp, display) {
         return;
     }
     gp.potion_unkn++;
-    const playerAlign = player.ualign?.type ?? player.alignment ?? 0;
+    const playerAlign = player.alignment ?? 0;
     // C: mon_hates_blessings checks if player is undead or demon form
     const hatesBlessings = mon_hates_blessings(player.youmonst || player);
     if (hatesBlessings || playerAlign === A_CHAOTIC) {

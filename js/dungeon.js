@@ -45,7 +45,7 @@ import {
     next_ident,
     weight,
 } from './mkobj.js';
-import { makemon, mkclass, rndmonnum_adj } from './makemon.js';
+import { makemon, mkclass, rndmonnum_adj, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, SIZE, nul_glyphinfo } from './const.js';
 
 // C serialization stubs (JS uses storage.js, not binary save files)
@@ -195,7 +195,7 @@ async function themerooms_generate(map, depth) {
     return result;
 }
 
-import { parseEncryptedDataFile, strchr } from './hacklib.js';
+import { parseEncryptedDataFile, strchr, sgn } from './hacklib.js';
 import { u_at } from './hack.js';
 import { get_rnd_line_index, getrumor, random_epitaph_text } from './rumors.js';
 
@@ -3690,31 +3690,7 @@ function mkgold(map, amount, x, y) {
     return gold;
 }
 
-// C ref: makemon.c:2316 set_malign() — set monster alignment value.
-// No RNG calls. Determines alignment penalty for killing.
-function set_malign(mtmp) {
-    if (!mtmp || !mtmp.data) return;
-    let mal = mtmp.data.maligntyp || 0;
-    // C: priest/minion alignment checks — skipped (not relevant for zoo monsters)
-    // Player alignment assumed A_NEUTRAL for level gen context
-    const coaligned = (Math.sign(mal) === Math.sign(0));
-    if (mtmp.data.msound === MS_LEADER) {
-        mtmp.malign = -20;
-    } else if (mal === A_NONE) {
-        mtmp.malign = mtmp.mpeaceful ? 0 : 20;
-    } else if (mtmp.data.mflags2 & M2_PEACEFUL) {
-        const absmal = Math.abs(mal);
-        mtmp.malign = mtmp.mpeaceful ? -3 * Math.max(5, absmal) : 3 * Math.max(5, absmal);
-    } else if (mtmp.data.mflags2 & M2_HOSTILE) {
-        const absmal = Math.abs(mal);
-        mtmp.malign = coaligned ? 0 : Math.max(5, absmal);
-    } else if (coaligned) {
-        const absmal = Math.abs(mal);
-        mtmp.malign = mtmp.mpeaceful ? -3 * Math.max(5, absmal) : 3 * Math.max(5, absmal);
-    } else {
-        mtmp.malign = mtmp.mpeaceful ? 0 : Math.max(5, Math.abs(mal));
-    }
-}
+// set_malign imported from makemon.js
 
 // C ref: mkobj.c mksobj_at() — make specific object at location.
 function mksobj_at(map, otyp, x, y, init, artif) {

@@ -32,7 +32,7 @@ import { currency, compactInvletPromptChars, freeinv, addinv,
          inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
-import { makemon } from './makemon.js';
+import { makemon, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
 import { ARTICLE_THE, SUPPRESS_SADDLE } from './const.js';

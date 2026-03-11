@@ -24,7 +24,7 @@ import { m_next2u } from './muse.js';
 import { move_special as move_special_monmove } from './monmove.js';
 import { priestini as priestini_mkroom } from './mkroom.js';
 import { newemin, bribe } from './minion.js';
-import { makemon } from './makemon.js';
+import { makemon, set_malign } from './makemon.js';
 import { monnear, wakeup, setmangry, mongone, helpless as monHelpless } from './mon.js';
 import { exercise } from './attrib_exercise.js';
 import { s_suffix, sgn } from './hacklib.js';
@@ -174,7 +174,7 @@ export function findpriest(roomno, map) {
 // Autotranslated from priest.c:369
 export function p_coaligned(priest, player) {
   // C ref: u.ualign.type; JS stores alignment as player.alignment (numeric).
-  const playerAlign = player.ualign?.type ?? player.alignment ?? 0;
+  const playerAlign = player.alignment ?? 0;
   return (playerAlign === mon_aligntyp(priest));
 }
 
@@ -264,22 +264,7 @@ export function priestname(mon, article, reveal_high_priest, player) {
 
 // Is_astralevel, Is_sanctum, In_endgame imported from dungeon.js
 
-// set_malign — cf. makemon.c:2316
-// Not exported from any module; define locally.
-function set_malign(mtmp) {
-    if (!mtmp) return;
-    const data = mtmp.data || mtmp.type || {};
-    let mal = data.maligntyp || 0;
-    if (data.msound === MS_LEADER) {
-        mtmp.malign = -20;
-    } else if (mal === A_NONE) {
-        mtmp.malign = mtmp.mpeaceful ? 0 : 20;
-    } else if (mtmp.mpeaceful) {
-        mtmp.malign = -3 * Math.max(5, Math.abs(mal));
-    } else {
-        mtmp.malign = Math.max(5, Math.abs(mal));
-    }
-}
+// set_malign imported from makemon.js
 
 // helpless: use monHelpless from mon.js
 // resist_conflict imported from mondata.js
@@ -403,7 +388,7 @@ export async function intemple(roomno, map, player, display, fov) {
                 msg1 = "Infidel, you have entered Moloch's Sanctum!";
                 msg2 = "Be gone!";
                 priest.mpeaceful = false;
-                set_malign(priest);
+                set_malign(priest, player);
             } else {
                 msg1 = "You desecrate this place by your presence!";
             }
@@ -475,7 +460,7 @@ export async function intemple(roomno, map, player, display, fov) {
                     await You("sense a presence close by!");
                 }
                 mtmp.mpeaceful = false;
-                set_malign(mtmp);
+                set_malign(mtmp, player);
                 if (player.verbose !== false) {
                     await You("are frightened to death, and unable to move.");
                 }
@@ -648,7 +633,7 @@ export async function mk_roamer(ptr, alignment, x, y, peaceful, depth, map, play
     roamer.mpeaceful = peaceful;
     roamer.msleeping = false;
     roamer.sleeping = false;
-    set_malign(roamer);
+    set_malign(roamer, player);
 
     return roamer;
 }
@@ -667,7 +652,7 @@ export function reset_hostility(roamer, map, player) {
     if (roamer.emin.min_align !== (player.alignment || 0)) {
         roamer.mpeaceful = false;
         roamer.mtame = 0;
-        set_malign(roamer);
+        set_malign(roamer, player);
     }
     newsym(roamer.mx, roamer.my);
 }

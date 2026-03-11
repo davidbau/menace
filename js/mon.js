@@ -1035,7 +1035,7 @@ export function xkilled(mon, xkill_flags, map, player) {
             && (!always_hostile(mdat) && (mon.malign || 0) <= 0)
             && (mndx < PM_ARCHEOLOGIST || mndx > PM_WIZARD)
             && mndx !== PM_HUMAN
-            && (player.ualign?.type ?? 0) !== A_CHAOTIC) {
+            && (player.alignment ?? 0) !== A_CHAOTIC) {
             // HTelepat &= ~INTRINSIC; // TODO: intrinsic telepathy loss
             change_luck(-2, player);
             // You("murderer!"); // cosmetic
@@ -1044,7 +1044,7 @@ export function xkilled(mon, xkill_flags, map, player) {
         if ((mon.peaceful && !rn2(2)) || mon.mtame)
             change_luck(-1, player);
         // Unicorn guilt — same alignment
-        if (is_unicorn(mdat) && sgn(player.ualign?.type ?? 0) === sgn(mdat.maligntyp || 0)) {
+        if (is_unicorn(mdat) && sgn(player.alignment ?? 0) === sgn(mdat.maligntyp || 0)) {
             change_luck(-5, player);
             // You_feel("guilty..."); // cosmetic
         }
@@ -1059,7 +1059,7 @@ export function xkilled(mon, xkill_flags, map, player) {
         const msound = mdat.msound ?? 0;
         if (game?.quest_status?.leader_m_id && mon.m_id === game.quest_status.leader_m_id) {
             // REAL BAD! Killed quest leader
-            adjalign(player, -((player.ualign?.record || 0) + Math.floor(14 / 2)));
+            adjalign(player, -((player.alignmentRecord || 0) + Math.floor(14 / 2)));
             // u.ugangr += 7; // TODO: god anger
             change_luck(-20, player);
         } else if (msound === MS_NEMESIS) {
@@ -1364,7 +1364,7 @@ export function setmangry(mon, via_attack, map, player) {
         && sengr_at(map, "Elbereth", player.x, player.y, true)
         && (onscary(map, player.x, player.y, mon) || mon.peaceful)) {
         // C: You_feel("like a hypocrite.");
-        const record = player.ualign?.record ?? 0;
+        const record = player.alignmentRecord ?? 0;
         adjalign(player, (record > 5) ? -5 : -rnd(5));
         // C: del_engr_at(u.ux, u.uy) — remove the Elbereth
         del_engr_at(map, player.x, player.y);
@@ -2628,8 +2628,8 @@ export function adj_erinys(abuse, game, player) {
     pm.mattk[2].damn = 3;
     pm.mattk[2].damd = 4;
   }
-  pm.mlevel = Math.min(7 + player.ualign.abuse, 50);
-  pm.difficulty = Math.min(10 + Math.floor(player.ualign.abuse / 3), 25);
+  pm.mlevel = Math.min(7 + player.alignmentAbuse, 50);
+  pm.difficulty = Math.min(10 + Math.floor(player.alignmentAbuse / 3), 25);
 }
 
 // Autotranslated from mon.c:2499

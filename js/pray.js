@@ -1577,7 +1577,7 @@ export async function gods_angry(g_align) {
 // ================================================================
 // Autotranslated from pray.c:1435
 export async function gods_upset(g_align, player) {
-  if (g_align === player.ualign.type) player.ugangr++;
+  if (g_align === player.alignment) player.ugangr++;
   else if (player.ugangr) player.ugangr--;
   await angrygods(g_align);
 }
@@ -1600,9 +1600,9 @@ export async function consume_offering(otmp, player) {
       break;
     }
   }
-  else if (Blind && player.ualign.type === A_LAWFUL) await Your("sacrifice disappears!");
+  else if (Blind && player.alignment === A_LAWFUL) await Your("sacrifice disappears!");
   else {
-    await Your("sacrifice is consumed in a %s!", (player.ualign.type === A_LAWFUL) ? "flash of light" : (player.ualign.type === A_NEUTRAL) ? "plume of smoke" : "burst of flame");
+    await Your("sacrifice is consumed in a %s!", (player.alignment === A_LAWFUL) ? "flash of light" : (player.alignment === A_NEUTRAL) ? "plume of smoke" : "burst of flame");
   }
   if (carried(otmp)) useup(otmp);
   else {
@@ -1962,7 +1962,7 @@ export async function eval_offering(otmp, altaralign, player) {
   if (!value) return 0;
   ptr = mons[otmp.corpsenm];
   if (is_undead(ptr)) {
-    if (player.ualign.type !== A_CHAOTIC   || (ptr === mons[PM_WRAITH] && player.uconduct.unvegetarian)) {
+    if (player.alignment !== A_CHAOTIC   || (ptr === mons[PM_WRAITH] && player.uconduct.unvegetarian)) {
       value += 1;
     }
   }
@@ -1973,15 +1973,15 @@ export async function eval_offering(otmp, altaralign, player) {
       await adjattrib(player, A_WIS, -1, true);
       return -1;
     }
-    else if (player.ualign.type === altaralign) {
-      if (player.ualign.record < ALIGNLIM) await You_feel("appropriately %s.", align_str(player.ualign.type));
+    else if (player.alignment === altaralign) {
+      if (player.alignmentRecord < ALIGNLIM) await You_feel("appropriately %s.", align_str(player.alignment));
       else {
         await You_feel("you are thoroughly on the right path.");
       }
       adjalign(player, 5);
       value += 3;
     }
-    else if (unicalign === player.ualign.type) { player.ualign.record = -1; value = 1; }
+    else if (unicalign === player.alignment) { player.alignmentRecord = -1; value = 1; }
     else { value += 3; }
   }
   return value;
@@ -2309,7 +2309,7 @@ async function maybe_turn_mon_iter(mtmp, player, map) {
                 if ((player.ulevel || 1) >= xlev && !resist(mtmp, 0)) {
                     if (player.alignment === A_CHAOTIC) {
                         mtmp.mpeaceful = true;
-                        set_malign(mtmp);
+                        set_malign(mtmp, player);
                     } else {
                         await killed(mtmp, map, player);
                     }
@@ -2419,7 +2419,7 @@ export function a_gname_at(x, y, player, map) {
 // cf. pray.c:2524 -- u_gname(): player's own deity name
 // Autotranslated from pray.c:2523
 export function u_gname(player) {
-  return align_gname(player.ualign.type);
+  return align_gname(player.alignment);
 }
 
 // cf. pray.c:2530 -- align_gname(alignment): alignment to deity name
