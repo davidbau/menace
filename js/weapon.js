@@ -19,6 +19,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLAS
          DART, FLINT, ROCK, LOADSTONE, LUCKSTONE,
          GLAIVE, BEC_DE_CORBIN, FAUCHARD, LANCE, GRAPPLING_HOOK,
          BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW,
+         SILVER,
        } from './objects.js';
 import { rnd, d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
@@ -161,7 +162,7 @@ export function dmgval(otmp, mon) {
             bonus += rnd(4);
         if (info.oc_subtyp === P_AXE && ptr.body === 'wood')
             bonus += rnd(4);
-        if (mon && info.oc_material === 14 /* SILVER */ && mon_hates_silver(mon))
+        if (mon && info.oc_material === SILVER && mon_hates_silver(mon))
             bonus += rnd(20);
         // C ref: weapon.c:333-334 — artifact light bonus vs light-hating
         if (artifact_light(otmp) && otmp.lamplit && mon_hates_light(mon))
@@ -177,7 +178,7 @@ export function special_dmgval(mon, obj = null) {
     let bonus = 0;
     if (obj && obj.blessed && mon_hates_blessings(mon)) bonus += rnd(4);
     const mat = obj ? objectData[obj.otyp]?.oc_material : null;
-    if (mat === 14 /* SILVER */ && mon_hates_silver(mon)) bonus += rnd(20);
+    if (mat === SILVER && mon_hates_silver(mon)) bonus += rnd(20);
     return bonus;
 }
 
@@ -422,7 +423,7 @@ export function select_rwep(mtmp) {
             if (!od) continue;
             if (((strongmonst(mtmp.data || mtmp.type) && !(mtmp.misc_worn_check & W_ARMS))
                  || !od.big)
-                && (od.oc_material !== 14 /* SILVER */ || !mon_hates_silver(mtmp))) {
+                && (od.oc_material !== SILVER || !mon_hates_silver(mtmp))) {
                 if ((otmp = oselect(mtmp, pw)) != null
                     && (otmp === mwep || !mweponly)) {
                     return { weapon: otmp, propellor: otmp }; // force wield polearm
@@ -437,7 +438,7 @@ export function select_rwep(mtmp) {
             && dist2(mtmp.mx, mtmp.my, mtmp.mux || 0, mtmp.muy || 0) <= arw.range) {
             const od = objectData[arw.otyp];
             if ((!(mtmp.misc_worn_check & W_ARMS) || !(od && od.big))
-                && (!(od && od.oc_material === 14) || !mon_hates_silver(mtmp))) {
+                && (!(od && od.oc_material === SILVER) || !mon_hates_silver(mtmp))) {
                 if ((otmp = oselect(mtmp, arw.otyp)) != null
                     && (otmp === mwep || !mweponly)) {
                     return { weapon: otmp, propellor: otmp };
@@ -557,7 +558,7 @@ export function select_hwep(mtmp) {
 
         // Only strong monsters can wield bimanual weapons (unless wearing shield)
         if (((strong && !wearing_shield) || !od.big)
-            && (od.oc_material !== 14 /* SILVER */ || !mon_hates_silver(mtmp))) {
+            && (od.oc_material !== SILVER || !mon_hates_silver(mtmp))) {
             const otmp = oselect(mtmp, hw);
             if (otmp) return otmp;
         }

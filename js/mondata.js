@@ -10,7 +10,9 @@ import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, 
 import { m_cansee, couldsee } from './vision.js';
 
 import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
-         GRAY_DRAGON_SCALES, ARMOR_CLASS, WEAPON_CLASS,
+         GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES,
+         GRAY_DRAGON_SCALE_MAIL, YELLOW_DRAGON_SCALE_MAIL,
+         ARMOR_CLASS, WEAPON_CLASS,
          ALCHEMY_SMOCK, CREAM_PIE, BLINDING_VENOM, POT_BLINDNESS,
          objectData } from './objects.js';
 import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, W_ACCESSORY, LOW_PM, A_CHA, ANTIMAGIC, DRAIN_RES, BLND_RES, NATTK,
@@ -972,9 +974,10 @@ export function defended(mon, adtyp) {
             for (let o = inv; o; o = o.nobj) {
                 if ((o.owornmask & W_ARMOR) && o.oartifact && defends(adtyp, o))
                     return true;
-                // Dragon scales/mail check
-                if ((o.owornmask & W_ARMOR) && o.otyp >= GRAY_DRAGON_SCALES
-                    && o.otyp <= GRAY_DRAGON_SCALES + 19 // scales + mail variants
+                // Dragon scales/mail check (C: Is_dragon_armor)
+                if ((o.owornmask & W_ARMOR)
+                    && ((o.otyp >= GRAY_DRAGON_SCALES && o.otyp <= YELLOW_DRAGON_SCALES)
+                        || (o.otyp >= GRAY_DRAGON_SCALE_MAIL && o.otyp <= YELLOW_DRAGON_SCALE_MAIL))
                     && defends(adtyp, o))
                     return true;
             }

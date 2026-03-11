@@ -38,7 +38,7 @@ import { ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          GOLD_DRAGON_SCALES, GOLD_DRAGON_SCALE_MAIL,
          ORANGE_DRAGON_SCALES, ORANGE_DRAGON_SCALE_MAIL,
          WHITE_DRAGON_SCALES, WHITE_DRAGON_SCALE_MAIL,
-         SILVER_DRAGON_SCALES, SILVER_DRAGON_SCALE_MAIL } from './objects.js';
+         SILVER_DRAGON_SCALES, SILVER_DRAGON_SCALE_MAIL, LEATHER } from './objects.js';
 import { doname, is_crackable } from './mkobj.js';
 import { acurr, extremeattr } from './attrib.js';
 import { armor_simple_name, suit_simple_name, cloak_simple_name, helm_simple_name, gloves_simple_name, boots_simple_name, shield_simple_name, shirt_simple_name, safe_typename } from './objnam.js';
@@ -1026,7 +1026,7 @@ async function canwearobj(player, obj, display, silent = false) {
     const weapon = player?.weapon || null;
     const bimanualWep = !!(weapon && objectData[weapon.otyp]?.bimanual);
     const weldedWep = !!(weapon && weapon.cursed);
-    const isFlimsy = (o) => Number(objectData[o?.otyp]?.oc_material || 0) <= 7;
+    const isFlimsy = (o) => Number(objectData[o?.otyp]?.oc_material || 0) <= LEATHER;
 
     // C: verysmall/nohands gate
     if (verysmall || (!!mdat && nohands(mdat))) {

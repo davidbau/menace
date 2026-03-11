@@ -6,6 +6,7 @@ import { objectData, ARMOR_CLASS, AMULET_CLASS, RING_CLASS, WEAPON_CLASS,
          BLINDFOLD, TOWEL, LENSES, SADDLE, MEAT_RING, SPEED_BOOTS,
          MUMMY_WRAPPING, AMULET_OF_GUARDING, TIN_OPENER,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
+         LEATHER,
        } from './objects.js';
 import { nohands, is_animal, is_mindless, cantweararm, slithy, has_horns,
          is_humanoid, breakarm, sliparm, is_whirly, noncorporeal,
@@ -591,7 +592,7 @@ function m_dowear_type(mon, flag, creation, racialexception) {
         case W_ARMH:
             if (armcat !== ARM_HELM) continue;
             // Horned monsters can only wear flimsy helms
-            if (has_horns(mon.data || mon.type) && (od.oc_material || 0) > 7) // LEATHER=7
+            if (has_horns(mon.data || mon.type) && (od.oc_material || 0) > LEATHER)
                 continue;
             break;
         case W_ARMS: if (armcat !== ARM_SHIELD) continue; break;
@@ -767,7 +768,7 @@ export async function mon_break_armor(mon, polyspot, map, opts = {}) {
 
     if (handless_or_tiny || has_horns(mdat)) {
         if ((otmp = which_armor(mon, W_ARMH)) != null
-            && (handless_or_tiny || (objectData[otmp.otyp]?.oc_material || 0) > 7)) {
+            && (handless_or_tiny || (objectData[otmp.otyp]?.oc_material || 0) > LEATHER)) {
             if (!vis) await emitClank();
             m_lose_armor(mon, otmp, polyspot, map);
         }
