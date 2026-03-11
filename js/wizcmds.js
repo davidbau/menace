@@ -77,7 +77,7 @@ export async function wizGenesis(game) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
-    const input = await getlin('Create what monster? ', display);
+    const input = await getlin('Create what kind of monster? ', display);
     if (input === null || input.trim() === '') {
         return { moved: false, tookTime: false };
     }
@@ -103,7 +103,6 @@ export async function wizGenesis(game) {
             const mon = makemon(mndx, mx, my, 0, player.dungeonLevel, map);
             if (mon) {
                 mon.sleeping = false;
-                await display.putstr_message(`A ${mons[mndx].mname} appears!`);
                 placed = true;
             }
         }

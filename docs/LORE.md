@@ -7875,3 +7875,24 @@ hard-won wisdom:
     - crash resolved; replay runs and reports first divergence.
   - `scripts/run-and-report.sh --failures`
     - gameplay baseline remains green (`41/41` passing on rerun).
+
+## 2026-03-11: wizGenesis prompt parity improvements for pending extcmd chat session
+
+- Problem:
+  - `seed501_extcmd_chat` diverged immediately on wizard genesis prompt wording
+    and cursor spacing.
+  - JS used `Create what monster?` while C uses
+    `Create what kind of monster? ` (with trailing prompt spacing).
+- Change:
+  - `js/wizcmds.js::wizGenesis` prompt updated to C wording and spacing.
+  - Removed an extra post-creation message from `wizGenesis` so creation output
+    is driven by core monster-creation messaging paths.
+- Result:
+  - `seed501_extcmd_chat` screen parity improved materially (`screens 0/15 -> 7/15`)
+    and cursor parity now matches through the prompt phase (`7/7`).
+  - Remaining divergence is deeper in creation/placement behavior
+    (`create_particular_creation`/`makemon` path), not prompt scaffolding.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed501_extcmd_chat.session.json --parallel=1 --verbose`
+  - `scripts/run-and-report.sh --failures`
+    - gameplay baseline preserved (`41/41` passing).
