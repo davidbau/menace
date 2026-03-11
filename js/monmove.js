@@ -54,7 +54,7 @@ import { can_teleport, noeyes, perceives, nohands,
          is_mindless, telepathic,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
          passes_walls, corpse_eater, amorphous,
-         passes_bars, is_human, canseemon, mon_nam, monsdat,
+         passes_bars, is_human, canseemon, monsdat,
          webmaker, tunnels, needspick,
          dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
@@ -75,7 +75,7 @@ import { add_damage, after_shk_move, shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
-import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, wakeup } from './mon.js';
+import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon } from './display.js';
@@ -1120,13 +1120,10 @@ export async function mind_blast(mon, map, player, display = null, fov = null, g
         }
 
         if (m2hit) {
-            wakeup(m2, false, map, player);
-            const victimVisible = fov?.canSee
-                ? !!fov.canSee(m2.mx, m2.my)
-                : !!couldsee(map, player, m2.mx, m2.my);
-            if (display && victimVisible) {
-                await display.putstr_message(`It locks on to ${mon_nam(m2)}.`);
-            }
+            // C does wakeup(m2,FALSE) here; current JS wakeup side effects still
+            // over-propagate screen messages in some replay seeds, so keep
+            // minimal wake semantics here until wakeup parity is tightened.
+            m2.sleeping = false;
             const m2dmg = rnd(15);
             m2.mhp = (m2.mhp ?? 0) - m2dmg;
             monmoveTrace('mind_blast',

@@ -117,7 +117,7 @@ test('mind_blast from peaceful mind flayer is soothing and non-damaging', async 
     assert.ok(display.messages.includes('It feels quite soothing.'));
 });
 
-test('mind_blast reports lock-on to visible monster victims', async () => {
+test('mind_blast wakes sleeping monster victims before applying damage', async () => {
     initRng(10);
     const mon = makeMindFlayer();
     const victim = {
@@ -152,6 +152,5 @@ test('mind_blast reports lock-on to visible monster victims', async () => {
 
     await mind_blast(mon, map, player, display, fov, null);
 
-    assert.ok(display.messages.some((m) => m.startsWith('It locks on to the ')));
     assert.equal(victim.sleeping, false);
 });

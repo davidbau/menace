@@ -7636,3 +7636,15 @@ hard-won wisdom:
   - `node --test test/unit/monmove.test.js`
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
+
+## 2026-03-11: mind_blast victim-message experiment rollback (parity hygiene)
+
+- Observation:
+  - Attempting to add visible-victim lock-on text (`"It locks on to ..."`) inside the monster-victim branch increased screen drift risk in active wizard sessions.
+- Action:
+  - Kept the validated hero-side fidelity improvements from the prior `mind_blast` slice.
+  - Rolled back the victim lock-on message emission and retained minimal wake semantics (`sleeping=false`) in the victim loop pending tighter `wakeup()` parity work.
+  - Updated `docs/CODEMATCH.md` notes to reflect current, accurate status.
+- Validation:
+  - `node --test test/unit/monmove_mind_blast.test.js`
+  - `node --test test/unit/monmove.test.js`
