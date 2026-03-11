@@ -30,7 +30,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
-import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object } from './mkobj.js';
+import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object, obj_extract_self } from './mkobj.js';
 import { Has_contents } from './objnam.js';
 import { currency, o_on } from './invent.js';
 import { Hello } from './player.js';

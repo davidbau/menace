@@ -34,7 +34,7 @@ import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
-import { hcolor, hliquid, rndmonnam, Monnam } from './do_name.js';
+import { hcolor, hliquid, rndmonnam, Monnam, mon_nam } from './do_name.js';
 import { an, makeplural } from './objnam.js';
 import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH } from './const.js';
