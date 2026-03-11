@@ -8131,37 +8131,48 @@ hard-won wisdom:
   - `npm run test:session`
     - full suite green on current tree (`173/173`).
 
-## 2026-03-11: seed503 full parity restoration (polymorph movement/render/status/ability)
+## 2026-03-11: seed503 fully green (movement RNG + polymorph/status fidelity)
 
 - Problem:
-  - `seed503_extcmd_monster` had coupled parity drift after polymorph:
-    missing tail `movemon` work (RNG/event mismatch), then polymorph-only screen
-    mismatches (hero glyph and status lines), and finally `#monster` message drift.
-- C-faithful fixes:
+  - `seed503_extcmd_monster` had been stuck with:
+    - missing/misaligned monster-turn RNG around step 54,
+    - polymorph screen mismatches (`@` vs `D`, stale title/HP/HD/AC),
+    - `#monster` stub text mismatch instead of breath-energy failure text.
+- Changes:
   - `js/allmain.js`
-    - `u_calc_moveamt()` now uses current form speed (`youmonst.data->mmove` via
-      `player.type.mmove`) and steed `mcalcmove()` path when mounted, matching C.
+    - `u_calc_moveamt()` now uses current form movement (`youmonst.data->mmove`)
+      instead of cached hero speed field, matching C `u_calc_moveamt`.
   - `js/mthrowu.js`
-    - `m_lined_up()` now mirrors C concealment gate:
-      `Upolyd && rn2(25) && concealed` before lined-up success.
+    - added C `m_lined_up()` polymorph concealment gate:
+      `utarget && Upolyd && rn2(25) && (...)`.
+    - This restores required RNG consumption even when concealment is false.
   - `js/display.js`
-    - player map glyph now reflects polymorphed form glyph/color (not hardcoded `@`).
+    - player map glyph now uses polymorph form symbol/color when `Upolyd`
+      (instead of always `@`).
   - `js/render.js`
-    - polymorphed status botl now shows form title, polymorph HP (`mh/mhmax`),
-      `HD:<mlevel>` (not `Xp`), and `Fly` when active.
+    - polymorph-aware status formatting:
+      - title shows current form name (`Wizard the Red Dragon`),
+      - polymorph HP (`mh/mhmax`) and `HD:<mlevel>`,
+      - retains form state markers (e.g. `Fly`).
   - `js/do_wear.js`
-    - `find_ac()` base AC now uses current polymorph form AC while polymorphed.
+    - `find_ac()` now starts from current form AC (`mons[u.umonnum].ac` shape)
+      when polymorphed, not always human base AC.
   - `js/polyself.js`
-    - persist/clear `_screenStrength` across polymorph/rehumanize transitions.
-    - `drop_weapon()` message now names the dropped weapon (`xname`) like C.
+    - `drop_weapon()` message now uses object name (`xname`) so text matches C
+      (`...drop your quarterstaff!`).
   - `js/cmd.js`
-    - `#monster` now routes breath-capable forms through `dobreathe()` instead of
-      always printing the generic reflexive message.
+    - `#monster` breath path now dispatches to `dobreathe()` for valid
+      polymorph breath forms (`can_breathe && AT_BREA`) instead of always
+      returning stub text.
 - Result:
-  - `seed503_extcmd_monster` now passes fully on all comparable channels.
+  - `seed503_extcmd_monster` is now fully green:
+    - RNG `2779/2779`
+    - Events `54/54`
+    - Screens `63/63`
+    - Colors `1512/1512`
+    - Cursor `63/63`
 - Validation:
-  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed503_extcmd_monster.session.json --parallel=1 --verbose`
-    - `PASS` (`rng 2779/2779`, `events 54/54`, `screens 63/63`, `colors 1512/1512`).
-  - `node test/comparison/session_test_runner.js --parallel=4`
-    - suite summary `173/174` passed; remaining failure is unrelated existing
-      `seed304_healer_selfplay200_gameplay` screen-only drift.
+  - `node test/comparison/session_test_runner.js --no-parallel --verbose test/comparison/sessions/pending/seed503_extcmd_monster.session.json`
+    - pass, full parity.
+  - `node test/comparison/session_test_runner.js --no-parallel --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+    - pass (guard check after `#monster` dispatch tightening).

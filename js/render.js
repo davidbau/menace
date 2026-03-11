@@ -23,6 +23,7 @@ import {
     WM_MASK, WM_C_OUTER, WM_C_INNER,
 } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
+import { strongmonst } from './mondata.js';
 
 // Re-export shared render constants from const.js for existing imports.
 export {
@@ -403,20 +404,18 @@ export function wallAngleTWall(typ, seenv, wallInfo) {
  * @returns {string} Complete line 1 string, ready for putstr
  */
 export function formatStatusLine1(player, rankOfFn) {
+    const upolyd = !!((Number(player?.mtimedone) || 0) > 0 && player?.type);
     const level = Number.isFinite(player?.ulevel) ? player.ulevel : (player?.level || 1);
     const female = player.gender === 1;
-    const isPoly = Number(player?.mtimedone || 0) > 0 && typeof player?.type?.mname === 'string';
-    const rank = isPoly
-        ? String(player.type.mname)
-            .split(' ')
-            .map((w) => w ? (w.charAt(0).toUpperCase() + w.slice(1)) : w)
-            .join(' ')
-        : rankOfFn(level, player.roleIndex, female);
-    const title = `${player.name} the ${rank}`;
-    const strVal = Number.isFinite(player?.acurr?.str) ? player.acurr.str : player?.attributes?.[0];
-    const strDisplay = player._screenStrength || (Number.isFinite(strVal)
-        ? (strVal <= 18 ? String(strVal) : (strVal === 118 ? '18/**' : `18/${String(strVal - 18).padStart(2, '0')}`))
-        : player.strDisplay);
+    const rank = rankOfFn(level, player.roleIndex, female);
+    const polyName = String(player?.type?.mname || '')
+        .replace(/\b([a-z])/g, (m) => m.toUpperCase());
+    const title = upolyd && polyName
+        ? `${player.name} the ${polyName}`
+        : `${player.name} the ${rank}`;
+    const strDisplay = upolyd && strongmonst(player.type)
+        ? '18/**'
+        : (player._screenStrength || player.strDisplay);
     const parts = [];
     parts.push(`St:${strDisplay}`);
     parts.push(`Dx:${player.attributes[3]}`);
@@ -437,7 +436,7 @@ export function formatStatusLine1(player, rankOfFn) {
  * @returns {string} Complete line 2 string, ready for putstr
  */
 export function formatStatusLine2(player) {
-    const upolyd = Number(player?.mtimedone || 0) > 0;
+    const upolyd = !!((Number(player?.mtimedone) || 0) > 0 && player?.type);
     const heroHp = upolyd
         ? (Number.isFinite(player?.mh) ? player.mh : 0)
         : (Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0));
@@ -453,7 +452,7 @@ export function formatStatusLine2(player) {
     parts.push(`Pw:${player.pw}(${player.pwmax})`);
     parts.push(`AC:${player.ac}`);
     if (upolyd) {
-        const hd = Number.isFinite(player?.type?.mlevel) ? player.type.mlevel : level;
+        const hd = Number.isFinite(player?.type?.mlevel) ? player.type.mlevel : 0;
         parts.push(`HD:${hd}`);
     } else if (player.showExp) {
         parts.push(`Xp:${level}/${player.exp}`);
@@ -474,6 +473,6 @@ export function formatStatusLine2(player) {
     if (player.confused) parts.push('Conf');
     if (player.stunned) parts.push('Stun');
     if (player.hallucinating) parts.push('Hallu');
-    if (player.flying || player.Flying) parts.push('Fly');
+    if (upolyd && player.flying) parts.push('Fly');
     return parts.join(' ');
 }

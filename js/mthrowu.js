@@ -226,13 +226,16 @@ export function m_lined_up(mtarg, mtmp, map, player, fov = null) {
     const tx = utarget ? (Number.isInteger(mtmp?.mux) ? mtmp.mux : player.x) : mtarg?.mx;
     const ty = utarget ? (Number.isInteger(mtmp?.muy) ? mtmp.muy : player.y) : mtarg?.my;
     if (!Number.isInteger(tx) || !Number.isInteger(ty)) return 0;
-    // C ref: mthrowu.c m_lined_up(): hero concealment usually hides lined-up
-    // status, but only when polymorphed and rn2(25) gate succeeds.
-    const upolyd = Number(player?.mtimedone || 0) > 0;
-    const apType = Number(player?.m_ap_type ?? M_AP_NOTHING);
-    const concealed = !!player?.uundetected
-        || (apType !== M_AP_NOTHING && apType !== M_AP_MONSTER);
-    if (utarget && upolyd && rn2(25) && concealed) return 0;
+    // C ref: mthrowu.c m_lined_up() concealment gate:
+    // if (utarget && Upolyd && rn2(25) && concealed/disguised) return FALSE;
+    // Important: rn2(25) is evaluated whenever utarget && Upolyd, even if
+    // concealment is false; this affects RNG parity.
+    const upolyd = !!((Number(player?.mtimedone) || 0) > 0);
+    const apType = Number(player?.m_ap_type || 0);
+    const disguisedAsNonMonster = apType !== M_AP_NOTHING && apType !== M_AP_MONSTER;
+    if (utarget && upolyd && rn2(25) && (player?.uundetected || disguisedAsNonMonster || player?.disguised)) {
+        return 0;
+    }
     const ignoreBoulders = utarget && !!(m_carrying(mtmp, WAN_STRIKING)
         || throws_rocks(mtmp?.type || {}));
     return linedup(tx, ty, mtmp.mx, mtmp.my, utarget ? (ignoreBoulders ? 1 : 2) : 0, map, player, fov) ? 1 : 0;

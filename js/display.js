@@ -122,22 +122,12 @@ function monsterShownOnMap(mon, player, map) {
 }
 
 function playerMapGlyph(player) {
-    if (player && Number(player?.mtimedone || 0) > 0 && player?.type) {
-        const symIdx = Number.isInteger(player.type?.mlet) ? player.type.mlet : 0;
-        const pseudoMon = {
-            type: player.type,
-            data: player.type,
-            mndx: Number.isInteger(player.umonnum) ? player.umonnum : 0,
-            female: !!player.female,
-            mfemale: !!player.female,
-            minvis: !!(player.Invis || player.invisible),
-            mundetected: !!player.uundetected,
-            m_ap_type: Number(player.m_ap_type || 0),
-            displayChar: def_monsyms[symIdx]?.sym || '?',
-            displayColor: Number.isInteger(player.type?.mcolor) ? player.type.mcolor : CLR_WHITE,
-        };
-        const glyph = monsterMapGlyph(pseudoMon, false);
-        if (glyph && glyph.ch) return glyph;
+    const upolyd = !!((Number(player?.mtimedone) || 0) > 0);
+    const mlet = Number(player?.type?.mlet);
+    if (upolyd && Number.isInteger(mlet) && mlet >= 0) {
+        const sym = def_monsyms[mlet]?.sym || '@';
+        const color = Number.isInteger(player?.type?.mcolor) ? player.type.mcolor : CLR_WHITE;
+        return { ch: sym, color };
     }
     return { ch: '@', color: CLR_WHITE };
 }
@@ -1801,7 +1791,7 @@ export async function swallowed(first, player) {
     if (rght_ok) show_glyph(player.x + 1, player.y - 1, swallow_to_glyph(swallower, S_sw_tr));
   }
   if (left_ok) show_glyph(player.x - 1, player.y, swallow_to_glyph(swallower, S_sw_ml));
-  show_glyph(player.x, player.y, playerMapGlyph(player), ctx);
+  show_glyph(player.x, player.y, { ch: '@', color: CLR_WHITE }, ctx);
   if (rght_ok) show_glyph(player.x + 1, player.y, swallow_to_glyph(swallower, S_sw_mr));
   if (isok(player.x, player.y + 1)) {
     if (left_ok) show_glyph(player.x - 1, player.y + 1, swallow_to_glyph(swallower, S_sw_bl));

@@ -1248,8 +1248,10 @@ function stop_donning(_stolenobj) {
 // C ref: ARM_BONUS(obj) = objects[otyp].a_ac + obj->spe - min(greatest_erosion, a_ac)
 // Rings contribute only spe (enchantment), not base AC.
 export function find_ac(player) {
-    // C ref: do_wear.c find_ac() — base AC is current form AC when polymorphed.
-    let uac = (Number(player?.mtimedone || 0) > 0 && Number.isFinite(player?.type?.ac))
+    // C ref: do_wear.c find_ac() starts from mons[u.umonnum].ac (current form),
+    // then applies worn armor/ring adjustments.
+    const upolyd = !!((Number(player?.mtimedone) || 0) > 0 && player?.type);
+    let uac = upolyd && Number.isFinite(player?.type?.ac)
         ? Number(player.type.ac)
         : 10; // human base AC
     const arm_bonus = (obj) => {
