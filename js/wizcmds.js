@@ -102,7 +102,7 @@ export async function wizGenesis(game) {
     }
 
     if (mndx === NON_PM && monclass <= 0) {
-        await display.putstr_message(`Unknown monster: "${input.trim()}".`);
+        await display.putstr_message("I've never heard of such monsters.");
         return { moved: false, tookTime: false };
     }
 

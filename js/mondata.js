@@ -1577,7 +1577,7 @@ export function name_to_monclass(in_str, mndx_ref) {
 
     // Check individual species
     const i = name_to_mon(in_str);
-    if (i !== NON_PM) {
+    if (i !== NON_PM && i >= LOW_PM && i < NUMMONS && mons[i]) {
         if (mndx_ref) mndx_ref.value = i;
         return mons[i].mlet;
     }
