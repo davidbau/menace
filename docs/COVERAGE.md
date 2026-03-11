@@ -56,8 +56,9 @@ Behavior:
 1. Runs `c8` against `node test/comparison/session_test_runner.js`.
 2. Forces `--no-parallel` so coverage is collected in a single process path.
 3. Applies `--type=gameplay` by default (unless overridden).
-4. Writes HTML/text coverage report to `/coverage/`.
-5. Applies the NetHack HTML theme used by existing hack/rogue coverage reports.
+4. Clears `/coverage/` first to avoid stale artifacts from prior runs.
+5. Writes HTML/text coverage report to `/coverage/`.
+6. Applies the NetHack HTML theme used by existing hack/rogue coverage reports.
 
 ## Output
 

@@ -44,6 +44,10 @@ else
   echo "Session filter: all session types"
 fi
 
+# Ensure each run writes a clean, deterministic report tree.
+rm -rf coverage
+mkdir -p coverage
+
 npx c8 \
   ${REPORTERS} \
   --report-dir=coverage \
