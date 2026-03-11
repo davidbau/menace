@@ -71,7 +71,7 @@ import {
 } from './objects.js';
 import { place_monster } from './steed.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
-import { mpickobj } from './steal.js';
+import { mpickobj, findgold } from './steal.js';
 import { dist2, sgn } from './hacklib.js';
 import { newsym, senseMonsterForMap, canspotmon, sensemon } from './display.js';
 import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
@@ -1288,10 +1288,7 @@ function rnd_offensive_item(mon) {
 // Simplified: only port branches that consume RNG
 // ========================================================================
 
-function findgold(minvent) {
-    if (!Array.isArray(minvent)) return false;
-    return minvent.some((obj) => obj && obj.otyp === GOLD_PIECE && Number(obj.quan || 0) > 0);
-}
+// findgold imported from steal.js
 export function mkmonmoney(mon, amount) {
     if (!Number.isFinite(amount) || amount <= 0) return;
     const gold = mksobj(GOLD_PIECE, false, false);

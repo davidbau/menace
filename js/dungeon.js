@@ -36,7 +36,7 @@ import {
 import { GameMap } from './game.js';
 import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } from './rng.js';
 import { getbones } from './bones.js';
-import { make_engr_at, wipe_engr_at } from './engrave.js';
+import { make_engr_at, wipe_engr_at, make_grave } from './engrave.js';
 import { game as _gstate } from './gstate.js';
 import { impossible, You } from './pline.js';
 import {
@@ -3731,17 +3731,7 @@ function mk_tt_object(map, objtype, x, y) {
     return otmp;
 }
 
-// C ref: engrave.c make_grave() — create a grave tile with random epitaph.
-function make_grave(map, x, y) {
-    const loc = map.at(x, y);
-    if (!loc) return;
-    if (loc.typ !== ROOM && loc.typ !== GRAVE) return;
-    if (map.trapAt && map.trapAt(x, y)) return;
-    loc.typ = GRAVE;
-    // C: del_engr_at(x, y) then get_rnd_text(EPITAPHFILE, buf, rn2, MD_PAD_RUMORS)
-    const text = random_epitaph_text();
-    make_engr_at(map, x, y, text, 'headstone');
-}
+// make_grave imported from engrave.js
 
 // C ref: mkroom.c fill_zoo() — fill a zoo-type room with appropriate monsters/objects.
 function fill_zoo_room(map, sroom, depth) {

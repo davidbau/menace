@@ -26,6 +26,7 @@ import { obj_extract_self } from './mkobj.js';
 import { t_at } from './trap.js';
 import { welded } from './wield.js';
 import { Is_waterlevel } from './dungeon.js';
+import { hard_helmet } from './do_wear.js';
 
 // cf. ball.c:17 — static restriction state
 let bcrestriction = 0;
@@ -37,12 +38,7 @@ const BCPOS_DIFFER = 0; // ball & chain at different positions
 const BCPOS_CHAIN = 1;  // chain on top of ball
 const BCPOS_BALL = 2;   // ball on top of chain
 
-// Helper: hard_helmet — is the helmet hard (not cloth)?
-function hard_helmet(obj) {
-    if (!obj) return false;
-    // Simplified: metal/bone helmets are hard; cloth ones are not
-    return !!(obj.material && obj.material !== 'CLOTH');
-}
+// hard_helmet imported from do_wear.js
 
 // Helper: body_part
 function body_part(part) {

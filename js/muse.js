@@ -58,7 +58,7 @@ import { CORPSE, TIN, EGG, BOULDER,
          GLOB_OF_GREEN_SLIME,
          objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
 import { bcsign, splitobj, Is_container, unknow_object } from './mkobj.js';
-import { m_carrying } from './weapon.js';
+import { m_carrying } from './mthrowu.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';
 import { which_armor, extract_from_minvent,
          mon_set_minvis, mon_adjust_speed } from './worn.js';

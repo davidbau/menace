@@ -34,7 +34,7 @@ import { relobj } from './steal.js';
 import { rloc } from './teleport.js';
 import { Monnam, noit_Monnam, noit_mon_nam, Some_Monnam, x_monnam,
          Mgender, pmname, mon_nam } from './do_name.js';
-import { m_carrying } from './weapon.js';
+import { m_carrying } from './mthrowu.js';
 import { upstart, distu } from './hacklib.js';
 import { money_cnt } from './hack.js';
 import { currency, sobj_at } from './invent.js';

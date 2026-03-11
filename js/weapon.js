@@ -354,13 +354,8 @@ export function oselect(mtmp, type) {
     return null;
 }
 
-// m_carrying: find object of given type in monster inventory
-function m_carrying(mtmp, type) {
-    for (const otmp of (mtmp.minvent || [])) {
-        if (otmp.otyp === type) return otmp;
-    }
-    return null;
-}
+// m_carrying: canonical export in mthrowu.js (C's mthrowu.c)
+import { m_carrying } from './mthrowu.js';
 export { m_carrying };
 
 // ============================================================================
