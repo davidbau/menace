@@ -7761,3 +7761,17 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: trap/zap deltrap callsite argument-order correctness pass
+
+- Problem:
+  - Multiple trap/zap callsites invoked `deltrap(...)` with wrong argument order or missing map context, despite canonical signature `deltrap(map, trap)`.
+  - These paths could silently fail to remove traps (or remove from wrong context), especially in rolling-boulder and cancellation flows.
+- Change:
+  - Corrected `deltrap` callsites in `js/trap.js` and `js/zap.js` to consistently pass `(map, trap)`.
+  - Added `_gstate.map` fallback where local map context was absent but trap removal was still required.
+  - Added regression test in `test/unit/codematch_batch_sweep.test.js`:
+    - `zap.maybe_explode_trap removes magical trap on cancellation`.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)

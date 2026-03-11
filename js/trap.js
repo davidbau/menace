@@ -851,7 +851,7 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
             x = launch2.x;
             y = launch2.y;
         } else {
-            deltrap(trap, map);
+            deltrap(map, trap);
             if (typeof newsym === 'function') newsym(trap.tx, trap.ty);
             return Trap_Effect_Finished;
         }
@@ -911,14 +911,14 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
                 case PIT:
                 case SPIKED_PIT:
                     // C ref: fill_pit() consumes boulder and neutralizes pit-family trap.
-                    deltrap(hitTrap, map);
+                    deltrap(map, hitTrap);
                     removeBoulder(boulder);
                     if (typeof newsym === 'function') newsym(x, y);
                     return Trap_Effect_Finished;
                 case HOLE:
                 case TRAPDOOR:
                     // C ref: boulder falls into hole/trapdoor and is removed.
-                    deltrap(hitTrap, map);
+                    deltrap(map, hitTrap);
                     removeBoulder(boulder);
                     if (typeof newsym === 'function') newsym(x, y);
                     return Trap_Effect_Finished;
@@ -1386,7 +1386,7 @@ export function hole_destination(dst, map) {
 // Autotranslated from trap.c:908
 export function activate_statue_trap(trap, x, y, shatter) {
   let mtmp = null, otmp = sobj_at(STATUE, x, y), fail_reason;
-  deltrap(trap);
+  deltrap(_gstate?.map || null, trap);
   while (otmp) {
     mtmp = animate_statue(otmp, x, y, shatter ? ANIMATE_SHATTER : ANIMATE_NORMAL, fail_reason);
     if (mtmp || fail_reason !== AS_MON_IS_UNIQUE) {
@@ -1512,7 +1512,7 @@ export async function blow_up_landmine(trap, map) {
   }
   trap = t_at(x, y, map);
   if (trap) {
-    if (Is_waterlevel(map.uz) || Is_airlevel(map.uz)) { deltrap(trap); }
+    if (Is_waterlevel(map.uz) || Is_airlevel(map.uz)) { deltrap(map, trap); }
     else {
       typ = fillholetyp(x, y, false);
       if (typ !== ROOM) {
@@ -1646,7 +1646,7 @@ export async function disarm_squeaky_board(ttmp, player) {
   if (obj.otyp === CAN_OF_GREASE) { consume_obj_charge(obj, true); }
   else { useup(obj); makeknown(POT_OIL); }
   await You("repair the squeaky board.");
-  deltrap(ttmp);
+  deltrap(_gstate?.map || null, ttmp);
   newsym(player.x + player.dx, player.y + player.dy);
   more_experienced(1, 5);
   await newexplevel();
@@ -1950,7 +1950,7 @@ export async function trap_ice_effects(x, y, ice_is_melting, map) {
       await cnv_trap_obj(otyp, 1, ttmp, true);
     }
     else {
-      if (!undestroyable_trap(ttmp.ttyp)) deltrap(ttmp);
+      if (!undestroyable_trap(ttmp.ttyp)) deltrap(map, ttmp);
     }
   }
 }

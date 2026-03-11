@@ -16,6 +16,9 @@ import { PM_ROGUE } from '../../js/monsters.js';
 import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
 import { dodip, dip_into } from '../../js/potion.js';
 import { seffect_charging, seffect_taming, seffect_punishment } from '../../js/read.js';
+import { maybe_explode_trap } from '../../js/zap.js';
+import { MAGIC_TRAP } from '../../js/const.js';
+import { WAN_CANCELLATION } from '../../js/objects.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -311,4 +314,12 @@ test('read.seffect_punishment applies punishment when not blessed/confused', asy
     assert.equal(!!player.Punished, true);
     assert.equal(!!player.punished, true);
     assert.equal(!!player.uball, true);
+});
+
+test('zap.maybe_explode_trap removes magical trap on cancellation', () => {
+    const map = new GameMap();
+    map.traps.push({ ttyp: MAGIC_TRAP, tx: 5, ty: 5, tseen: 0 });
+    const exploded = maybe_explode_trap(5, 5, WAN_CANCELLATION, map, null);
+    assert.equal(exploded, true);
+    assert.equal(map.traps.length, 0);
 });

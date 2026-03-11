@@ -2467,7 +2467,7 @@ export function maybe_explode_trap(x, y, type, map, _player) {
     return true;
   }
   if (!is_magical_trap(trap.ttyp)) return false;
-  deltrap(trap, map);
+  deltrap(map, trap);
   return true;
 }
 export function melt_ice(x, y, _range, map) {
