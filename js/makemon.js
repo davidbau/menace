@@ -69,6 +69,7 @@ import {
     CANDELABRUM_OF_INVOCATION, BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD,
     CORPSE, LARGE_BOX, LUCKSTONE, MAXOCLASSES, objectData,
 } from './objects.js';
+import { place_monster } from './steed.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj } from './steal.js';
 import { dist2, sgn } from './hacklib.js';

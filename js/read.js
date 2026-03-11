@@ -60,6 +60,7 @@ import { kill_genocided_monsters, wake_nearto, wakeup, setmangry } from './mon.j
 import { tamedog } from './dog.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
+import { which_armor } from './worn.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY

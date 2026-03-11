@@ -47,6 +47,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
 import { game as _gstate } from './gstate.js';
+import { makemon } from './makemon.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
          is_crackable, erosion_matters, mksobj, weight, place_object, obj_extract_self } from './mkobj.js';
 import { CORPSE,

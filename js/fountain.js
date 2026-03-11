@@ -33,6 +33,7 @@ import { ART_EXCALIBUR } from './artifacts.js';
 import { artiname, exist_artifact, discover_artifact } from './artifact.js';
 import { somegold } from './steal.js';
 import { IS_FOUNTAIN, MM_NOMSG, A_MAX, DOOR } from './const.js';
+import { morehungry } from './eat.js';
 
 // fountain.js -- Fountain and sink effects: quaff, dip, wash
 // cf. fountain.c -- floating_above, dowatersnakes, dowaterdemon, dowaternymph,

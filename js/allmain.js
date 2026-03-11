@@ -68,7 +68,7 @@ import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
 import { nhimport, nhload, display_sync } from './origin_awaits.js';
-import { phase_of_the_moon, friday_13th } from './calendar.js';
+import { phase_of_the_moon, friday_13th, night } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
 import { amulet } from './wizard.js';

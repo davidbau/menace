@@ -47,6 +47,7 @@ import { NO_MINVENT, MAXMONNO } from './const.js';
 import { mksobj, xname } from './mkobj.js';
 import { mpickobj } from './steal.js';
 import { mark_vision_dirty } from './display.js';
+import { place_monster } from './steed.js';
 import { pline, pline_The, pline_mon, You, There, impossible } from './pline.js';
 import { helpless } from './mon.js';
 import { Monnam } from './do_name.js';

@@ -19,6 +19,7 @@ import { handleEat } from './eat.js';
 import { handleQuaff } from './potion.js';
 import { handleRead } from './read.js';
 import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll, reset_remarm } from './do_wear.js';
+import { which_armor } from './worn.js';
 import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
 import { handleInventory, currency, doorganize } from './invent.js';

@@ -48,6 +48,7 @@ import { getpos_async } from './getpos.js';
 import { o_unleash } from './apply.js';
 import { food_disappears } from './eat.js';
 import { book_disappears } from './spell.js';
+import { makemon } from './makemon.js';
 
 // ============================================================
 // Constants
