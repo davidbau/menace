@@ -58,7 +58,7 @@ import { isok, COLNO, ROWNO, PIT, is_pit,
          AM_MASK, AM_SANCTUM, Amask2align,
          DRAWBRIDGE_DOWN, DRAWBRIDGE_UP, SHOPBASE,
          IS_DRAWBRIDGE, XKILL_NOMSG, TT_NONE, TT_PIT, TT_BURIEDBALL,
-         DEAF } from './const.js';
+         DEAF, NO_KILLER_PREFIX } from './const.js';
 import { getlin, ynFunction } from './input.js';
 
 // ============================================================================
@@ -308,7 +308,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             player.utrap = rn1(6, 2);
             player.utraptype = TT_PIT;
             await losehp(Maybe_Half_Phys(rnd(6), player),
-                   'fell into a chasm', 2/*NO_KILLER_PREFIX*/, player, null, null);
+                   'fell into a chasm', NO_KILLER_PREFIX, player, null, null);
             selftouch('Falling, you', player);
         } else if (player.utrap && player.utraptype === TT_PIT) {
             const keepfooting =
@@ -320,7 +320,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             player.utrap = rn1(6, 2);
             player.utraptype = TT_PIT;
             await losehp(Maybe_Half_Phys(rnd(keepfooting ? 2 : 4), player),
-                   'hurt in a chasm', 2/*NO_KILLER_PREFIX*/, player, null, null);
+                   'hurt in a chasm', NO_KILLER_PREFIX, player, null, null);
             if (keepfooting)
                 await exercise(player, A_DEX, true);
             else {

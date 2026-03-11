@@ -1486,7 +1486,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
 }
 
 // A_LAWFUL import
-import { A_LAWFUL, NATTK, NON_PM } from './const.js';
+import { A_LAWFUL, NATTK, NON_PM, KILLED_BY } from './const.js';
 
 // ============================================================================
 // 15. dokick — the #kick command handler

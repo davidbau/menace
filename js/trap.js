@@ -13,6 +13,7 @@ import {
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, ERODE_CRACK,
     ER_NOTHING, ER_GREASED, ER_DAMAGED, ER_DESTROYED,
     EF_NONE, EF_GREASE, EF_DESTROY, EF_VERBOSE, EF_PAY,
+    KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX,
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
 import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
@@ -1712,7 +1713,7 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 22:
       case 21:
         await pline(`${Tobjnam(obj, "explode")}!`);
-        await losehp(d(6, 6), `exploding ${xname(obj)}`, "KILLED_BY_AN", player, null, game);
+        await losehp(d(6, 6), `exploding ${xname(obj)}`, KILLED_BY_AN, player, null, game);
         await exercise(player, A_STR, false);
         return true;
       case 20:
@@ -1743,7 +1744,7 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 7:
       case 6:
         await You("are jolted by a surge of electricity!");
-        await losehp(d(4, 4), "electric shock", "KILLED_BY_AN", player, null, game);
+        await losehp(d(4, 4), "electric shock", KILLED_BY_AN, player, null, game);
         break;
       case 5:
       case 4:
@@ -2042,7 +2043,7 @@ async function dofiretrap(box, player, game, map) {
         await pline('A cascade of steamy bubbles erupts from %s!',
                     box ? 'a box' : 'the ground beneath you');
         if (!(player?.Fire_resistance || player?.fireResistance)) {
-            await losehp(rnd(3), 'boiling water', 2 /*KILLED_BY*/, player, game?.display, game);
+            await losehp(rnd(3), 'boiling water', KILLED_BY, player, game?.display, game);
         } else {
             await You('are uninjured.');
         }
@@ -2078,7 +2079,7 @@ async function dofiretrap(box, player, game, map) {
     if (!num)
         await You('are uninjured.');
     else
-        await losehp(num, tower_of_flame, 3 /*KILLED_BY_AN*/, player, game?.display, game);
+        await losehp(num, tower_of_flame, KILLED_BY_AN, player, game?.display, game);
     // C ref: if (burnarmor(&youmonst) || rn2(3)) { destroy_items; ignite_items }
     if (burnarmor(player, player) || rn2(3)) {
         // destroy_items/ignite_items — not ported (cosmetic)
@@ -2254,7 +2255,7 @@ async function trapeffect_rocktrap_you(trap, trflags, player, game, map) {
     stackobj(otmp, map);
     newsym(player.x, player.y);
     if (!harmless) {
-        await losehp(dmg, 'falling rock', 3 /*KILLED_BY_AN*/, player, game?.display, game);
+        await losehp(dmg, 'falling rock', KILLED_BY_AN, player, game?.display, game);
         await exercise(player, A_STR, false);
     }
     return Trap_Effect_Finished;
@@ -2319,7 +2320,7 @@ async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
         await pline('%s bear trap closes on your foot!',
                     A_Your[trap.madeby_u ? 1 : 0]);
         set_wounded_legs(rn2(2) ? 1/*RIGHT_SIDE*/ : 0/*LEFT_SIDE*/, rn1(10, 10), player);
-        await losehp(dmg, 'bear trap', 3 /*KILLED_BY_AN*/, player, game?.display, game);
+        await losehp(dmg, 'bear trap', KILLED_BY_AN, player, game?.display, game);
     }
     await exercise(player, A_DEX, false);
     return Trap_Effect_Finished;
@@ -2381,7 +2382,7 @@ async function trapeffect_rust_trap_you(trap, trflags, player, game, map) {
         await You('are covered with rust!');
         // C: losehp(u.mhmax, "rusting away", KILLED_BY)
         const dam = player.mhmax || player.uhpmax || 1;
-        await losehp(dam, 'rusting away', 2 /*KILLED_BY*/, player, game?.display, game);
+        await losehp(dam, 'rusting away', KILLED_BY, player, game?.display, game);
     } else if (umonnum === PM_GREMLIN && rn2(3)) {
         // C: split_mon(&youmonst, NULL) — not ported
     }
@@ -2580,7 +2581,7 @@ async function trapeffect_magic_trap_you(trap, trflags, player, game, map) {
         deltrap(map, trap);
         newsym(player.x, player.y);
         await You('are caught in a magical explosion!');
-        await losehp(rnd(10), 'magical explosion', 3 /*KILLED_BY_AN*/,
+        await losehp(rnd(10), 'magical explosion', KILLED_BY_AN,
                      player, game?.display, game);
         await pline('Your body absorbs some of the magical energy!');
         if (player.uen !== undefined) {
@@ -2615,7 +2616,7 @@ async function trapeffect_anti_magic_you(trap, trflags, player, game, map) {
             : dmgval2 >= Math.floor(hp / 4) ? 'very lethargic.'
             : 'sluggish.';
         await pline('You feel %s', feeling);
-        await losehp(dmgval2, 'anti-magic implosion', 3 /*KILLED_BY_AN*/,
+        await losehp(dmgval2, 'anti-magic implosion', KILLED_BY_AN,
                      player, game?.display, game);
     }
     // Energy drain
@@ -2689,7 +2690,7 @@ async function trapeffect_landmine_you(trap, trflags, player, game, map) {
     // C: trap->ttyp = PIT; blow_up_landmine(trap); fall_into_pit
     trap.ttyp = PIT;
     trap.madeby_u = false;
-    await losehp(rnd(16), 'land mine', 3 /*KILLED_BY_AN*/, player, game?.display, game);
+    await losehp(rnd(16), 'land mine', KILLED_BY_AN, player, game?.display, game);
     await blow_up_landmine(trap, map);
     newsym(player.x, player.y);
     // C: dotrap(trap, RECURSIVETRAP) — recursive fall into pit
@@ -3027,7 +3028,7 @@ export async function climb_pit(player, map) {
 export async function lava_damage(player, game = null) {
     if (!player) return 0;
     const dmg = rnd(12);
-    await losehp(dmg, 'molten lava', 0, player, game?.display, game);
+    await losehp(dmg, 'molten lava', KILLED_BY, player, game?.display, game);
     return dmg;
 }
 
@@ -3047,7 +3048,7 @@ export function back_on_ground(player) {
 // C ref: trap.c:4966
 export async function drown(player, game = null) {
     if (!player) return false;
-    await losehp(rnd(20), 'drowning', 0, player, game?.display, game);
+    await losehp(rnd(20), 'drowning', KILLED_BY, player, game?.display, game);
     return true;
 }
 
