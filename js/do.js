@@ -1642,7 +1642,11 @@ export async function revive_corpse(corpse, player, map) {
         else if (ptr === mons[PM_PESTILENCE]) effect = " in a churning pillar of flies";
         else if (ptr === mons[PM_FAMINE]) effect = " in a ring of withered crops";
 
-        if (!player.blind) {
+        const canSeeReviver = !player.blind
+            && cansee(map, player, null, mtmp.mx, mtmp.my)
+            && !mtmp.mundetected
+            && (!mtmp.minvis || !!player.seeInvisible);
+        if (canSeeReviver) {
             const name = chewed ? `A bite-covered ${ptr?.mname || "monster"}`
                                 : (ptr?.mname || "Something");
             await pline("%s rises from the dead%s!", name, effect);
