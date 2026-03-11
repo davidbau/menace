@@ -1010,7 +1010,7 @@ export async function docast(player, display, map) {
     }
 
     // Get spell selection
-    const result = await getspell("Cast which spell?", player, display);
+    const result = await getspell("Choose which spell to cast", player, display);
     if (result < 0) {
         return { moved: false, tookTime: false };
     }
@@ -1034,8 +1034,11 @@ export async function getspell(prompt, player, display) {
     }
 
     // Build and show spell menu
-    const rows = [prompt || 'Cast which spell?', ''];
-    rows.push('    Name                 Level Category     Fail Retention');
+    const rows = [prompt || 'Choose which spell to cast', ''];
+    const showTurns = !!player?.wizard;
+    rows.push(showTurns
+        ? '    Name                 Level Category     Fail Retention  turns'
+        : '    Name                 Level Category     Fail Retention');
 
     const spells = player.spells || [];
     for (let i = 0; i < spells.length && i < 52; i++) {
@@ -1049,7 +1052,8 @@ export async function getspell(prompt, player, display) {
         const skillRank = spellSkillRank(player, category);
         const retention = spellRetentionText(turnsLeft, skillRank);
         const menuLet = spellet(i);
-        rows.push(`${menuLet} - ${spellNameStr.padEnd(20)}  ${String(spellLevel).padStart(2)}   ${category.padEnd(12)} ${String(fail).padStart(3)}% ${retention.padStart(9)}`);
+        const base = `${menuLet} - ${spellNameStr.padEnd(20)}  ${String(spellLevel).padStart(2)}   ${category.padEnd(12)} ${String(fail).padStart(3)}% ${retention.padStart(9)}`;
+        rows.push(showTurns ? `${base}  ${String(turnsLeft).padStart(5)}` : base);
     }
     rows.push('(end)');
 

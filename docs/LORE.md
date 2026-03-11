@@ -8405,3 +8405,15 @@ Validation:
 Validation:
 - `scripts/run-and-report.sh --failures` -> gameplay `110/110` passing
 - `scripts/run-and-report.sh --pending --failures` -> still `0/3` (same pending frontier; no regression)
+
+## 2026-03-11: `docast/getspell` menu text and wizard column alignment
+
+- Tightened spell-cast menu rendering in `js/spell.js`:
+  - `docast()` now prompts with C wording: `"Choose which spell to cast"`.
+  - `getspell()` default prompt aligned to same C wording.
+  - Added wizard-mode turns column (`... Retention  turns`) to match C wizard replay screens.
+- This moved pending cast replay comparison deeper (from top prompt text mismatch to spell-failure percent mismatch), improving localization for the remaining divergence.
+
+Validation:
+- `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing
+- `scripts/run-and-report.sh --pending --failures` -> still failing pending frontier (`t05_s692`, `t08_s700`), with `t05_s692` now past prompt/layout mismatches
