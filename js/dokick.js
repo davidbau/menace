@@ -412,7 +412,6 @@ function remove_worn_item(obj, osync) {
 // In_endgame imported from dungeon.js
 // Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines imported from dungeon.js
 // on_level available from dungeon.js if needed
-function ok_to_quest() { return true; }
 // dunlev, dunlevs_in_dungeon imported from dungeon.js
 
 // ============================================================================

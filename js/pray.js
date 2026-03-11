@@ -529,8 +529,6 @@ function peek_at_iced_corpse_age(otmp) {
 }
 
 
-// Helper: P_RESTRICTED stub
-function P_RESTRICTED() { return false; }
 
 
 // ================================================================
