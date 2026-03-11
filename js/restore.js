@@ -26,6 +26,7 @@
 //   format — no direct equivalents to these file-based restore functions.
 //   Bones/ghost level handling is not yet implemented in JS.
 import { pushRngLogEntry } from './rng.js';
+import { pline } from './pline.js';
 import { MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES } from './const.js';
 import { newegd } from './vault.js';
 import { newepri } from './priest.js';

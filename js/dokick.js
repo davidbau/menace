@@ -13,9 +13,9 @@
 //   obj_delivery(): deliver migrating objects when arriving on a level.
 //   ghitm(): gold/object thrown at monster with shop interaction.
 
-import { rn2, rnd, rnl } from './rng.js';
+import { rn2, rnd, rnl, rn1 } from './rng.js';
 import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_mines, dunlev, dunlevs_in_dungeon } from './dungeon.js';
-import { sgn } from './hacklib.js';
+import { sgn, upstart } from './hacklib.js';
 import { Role_if } from './role.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr as ACURR, acurrstr as ACURRSTR, change_luck, adjalign } from './attrib.js';
@@ -60,7 +60,7 @@ import {
 } from './objects.js';
 import { obj_resists } from './objdata.js';
 import { mondead, setmangry, seemimic, wakeup, wake_nearto, wake_nearby, angry_guards } from './mon.js';
-import { newsym, map_invisible, canspotmon } from './display.js';
+import { newsym, map_invisible, canspotmon, glyph_at } from './display.js';
 import { mpickobj } from './steal.js';
 import { monflee, closed_door } from './monmove.js';
 import { cansee, couldsee } from './vision.js';

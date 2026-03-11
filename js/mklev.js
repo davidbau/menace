@@ -32,6 +32,7 @@ import {
     mineralize,
     set_wall_state,
     wallify_region,
+    Is_waterlevel,
 } from './dungeon.js';
 import { mazexy } from './mkmaze.js';
 import { somex, somey, somexy, somexyspace, inside_room } from './mkroom.js';

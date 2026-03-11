@@ -1,4 +1,6 @@
 import { COLNO } from './const.js';
+import { rn2, rn1 } from './rng.js';
+import { canseemon } from './display.js';
 // topten.js -- High score list persistence and display
 // C ref: topten.c — struct toptenentry, topten(), outentry()
 //

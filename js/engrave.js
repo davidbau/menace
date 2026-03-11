@@ -28,6 +28,7 @@ import {
     ACCESSIBLE, is_hole, is_pit, isok,
 } from './const.js';
 import { is_lava, is_pool, is_pool_or_lava } from './dbridge.js';
+import { surface } from './dungeon.js';
 import { IS_GRAVE, IS_AIR } from './const.js';
 import { newsym } from './display.js';
 import { goodpos } from './teleport.js';

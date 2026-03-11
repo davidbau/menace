@@ -75,6 +75,7 @@ import { body_part, polymon, rehumanize } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
 import { night } from './calendar.js';
 import { attrcurse } from './sit.js';
+import { pline, pline_mon, verbalize } from './pline.js';
 
 const PIERCE = 1;
 

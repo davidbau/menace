@@ -178,6 +178,7 @@ import { STRANGE_OBJECT } from './objects.js';
 import { goodpos } from './teleport.js';
 import { nhimport } from './origin_awaits.js';
 import { rank_of } from './botl.js';
+import { verbalize } from './pline.js';
 
 // Autotranslated from mplayer.c:94
 export function mk_mplayer_armor(mon, typ) {

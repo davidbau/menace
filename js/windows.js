@@ -11,6 +11,7 @@ import {
     ATR_NONE, ATR_ULINE, ATR_BOLD, ATR_BLINK, ATR_INVERSE, ATR_URGENT, ATR_NOHISTORY,
     nul_glyphinfo,
 } from './const.js';
+import { pline } from './pline.js';
 
 // Window ID globals (mirrors decl.c WIN_MESSAGE / WIN_MAP etc.)
 let WIN_MESSAGE, WIN_STATUS, WIN_MAP, WIN_INVEN, BASE_WINDOW;

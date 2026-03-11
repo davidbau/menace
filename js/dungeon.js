@@ -37,7 +37,7 @@ import { rn2, rnd, rn1, d, getRngCallCount, advanceRngRaw, pushRngLogEntry } fro
 import { getbones } from './bones.js';
 import { make_engr_at, wipe_engr_at } from './engrave.js';
 import { game as _gstate } from './gstate.js';
-import { impossible } from './pline.js';
+import { impossible, You } from './pline.js';
 import {
     mkobj,
     mksobj,

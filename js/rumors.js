@@ -21,6 +21,7 @@ import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { RUMOR_PAD_LENGTH, A_WIS, BY_ORACLE, BY_COOKIE, BY_PAPER, ECMD_OK } from './const.js';
 import { exercise } from './attrib_exercise.js';
+import { pline } from './pline.js';
 
 // Rumor data — parsed at module load from the compiled-in encrypted constant.
 // cf. rumors.c init_rumors() + global gt/gf structs (true_rumor_size etc.)

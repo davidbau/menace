@@ -25,7 +25,7 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER } from './mondata.js';
-import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto } from './mon.js';
+import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
@@ -35,7 +35,7 @@ import { mtele_trap, mlevel_tele_trap,
 import { rloco } from './teleport.js';
 import { resist, burnarmor } from './zap.js';
 import { dmgval } from './weapon.js';
-import { deltrap, In_sokoban, level_difficulty, In_hell } from './dungeon.js';
+import { deltrap, In_sokoban, level_difficulty, In_hell, Is_waterlevel } from './dungeon.js';
 import { Role_if } from './role.js';
 import { mons, PM_IRON_GOLEM, PM_RUST_MONSTER, PM_XORN, PM_PIT_FIEND, PM_PIT_VIPER, PM_OWLBEAR, PM_BUGBEAR, PM_GREMLIN, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_WOOD_GOLEM, PM_LEATHER_GOLEM, PM_PURPLE_WORM, PM_JABBERWOCK, PM_BALROG, PM_KRAKEN, PM_MASTODON, PM_ORION, PM_NORN, PM_CYCLOPS, PM_LORD_SURTUR, PM_TITANOTHERE, PM_BALUCHITHERIUM, PM_ROGUE, MZ_SMALL, MZ_HUGE, S_GIANT, S_DRAGON, AT_MAGC, AT_BREA, AD_PHYS, AD_FIRE, AD_RUST, AD_MAGM, AD_SLEE, AD_RBRE } from './monsters.js';
 import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,

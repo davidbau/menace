@@ -12,7 +12,7 @@
 
 import { m_at } from './trap.js';
 import { rn2, rn1, rn2_on_display_rng } from './rng.js';
-import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, update_inventory } from './invent.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, update_inventory, carried } from './invent.js';
 import { mons, SPECIAL_PM, G_NOGEN, G_UNIQ, PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER } from './monsters.js';
 import { highc, upstart, s_suffix } from './hacklib.js';
 import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE, SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME, LOW_PM, SIZE,
@@ -25,9 +25,11 @@ import { u_at } from './hack.js';
 import { getpos_async } from './getpos.js';
 import { beautiful } from './apply.js';
 import { nhgetch, getlin } from './input.js';
-import { impossible } from './pline.js';
+import { impossible, pline, You, verbalize, livelog_printf } from './pline.js';
 import { discoverObject, undiscoverObject } from './o_init.js';
-import { doname } from './mkobj.js';
+import { doname, xname } from './mkobj.js';
+import { an } from './objnam.js';
+import { helpless } from './mon.js';
 import { objectData,
          AMULET_CLASS, SCROLL_CLASS, POTION_CLASS, WAND_CLASS, RING_CLASS,
          GEM_CLASS, SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, VENOM_CLASS,
