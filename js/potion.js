@@ -948,7 +948,7 @@ export async function peffect_water(player, otmp, display) {
             }
             const dmg = d(2, 6);
             const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
-            await losehp(halfPhys, "potion of holy water", KILLED_BY_AN, player, display);
+            await losehp(halfPhys, "potion of holy water", KILLED_BY_AN, player, display, gstateGame);
         } else if (otmp.cursed) {
             await You_feel("quite proud of yourself.");
             await healup(player, d(2, 6), 0, false, false);
@@ -972,7 +972,7 @@ export async function peffect_water(player, otmp, display) {
                 await pline("This burns like %s!", hliquid("acid"));
                 const dmg = d(2, 6);
                 const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
-                await losehp(halfPhys, "potion of unholy water", KILLED_BY_AN, player, display);
+                await losehp(halfPhys, "potion of unholy water", KILLED_BY_AN, player, display, gstateGame);
             } else {
                 await You_feel("full of dread.");
             }
@@ -1016,7 +1016,7 @@ export async function peffect_oil(player, otmp, display) {
                 (player.uprops?.[COLD_RES]?.intrinsic || player.uprops?.[COLD_RES]?.extrinsic);
             const vulnerable = !fireRes || coldRes;
             const dmg = d(vulnerable ? 4 : 2, 4);
-            await losehp(dmg, "quaffing a burning potion of oil", KILLED_BY, player, display);
+            await losehp(dmg, "quaffing a burning potion of oil", KILLED_BY, player, display, gstateGame);
         }
         await burn_away_slime();
     } else if (otmp.cursed) {
@@ -1867,7 +1867,7 @@ export async function peffect_levitation(otmp, map, player) {
                 let dmg = rnd(!helm ? 10 : !hard_helmet(helm) ? 6 : 3);
                 if (player.halfPhysDamage) dmg = Math.max(1, Math.floor(dmg / 2));
                 await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y, mapRef));
-                await losehp(dmg, "colliding with the ceiling", KILLED_BY, player, null, null);
+                await losehp(dmg, "colliding with the ceiling", KILLED_BY, player, gstateGame?.display, gstateGame);
                 gp.potion_nothing = 0;
             }
         }

@@ -42,6 +42,7 @@ import { placeFloorObject } from './invent.js';
 import { deltrap } from './dungeon.js';
 import { del_engr_at } from './engrave.js';
 import { is_fainted } from './eat.js';
+import { game as _gstate } from './gstate.js';
 import { in_rooms } from './hack.js';
 import { add_to_minv } from './mkobj.js';
 import { makemon } from './makemon.js';
@@ -767,7 +768,7 @@ export async function invault(map, player, fov) {
     }
 
     // If hero can't speak (strangled, silent, paralyzed)
-    if (player.strangled || (player.multi && player.multi < 0)) {
+    if (player.strangled || ((_gstate?.multi || 0) < 0)) {
         if (player.deaf) {
             await pline("%s huffs and turns to leave.", noit_Monnam(guard));
         } else {
@@ -971,7 +972,7 @@ export async function gd_move(grd, map, player, fov) {
                 return -1;
             }
             // Not fair to get mad when (s)he's fainted or paralyzed
-            if (!is_fainted(player) && (player.multi || 0) >= 0)
+            if (!is_fainted(player) && (_gstate?.multi || 0) >= 0)
                 egrd.warncnt++;
             return 0;
         }

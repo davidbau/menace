@@ -1413,7 +1413,7 @@ export async function find_offensive(mtmp, map, player) {
                 m.has_offense = MUSE_OFF_WAN_DEATH;
             }
             if (m.has_offense === MUSE_OFF_WAN_SLEEP) continue;
-            if (obj.otyp === WAN_SLEEP && obj.spe > 0 && !(player.multi < 0)) {
+            if (obj.otyp === WAN_SLEEP && obj.spe > 0 && !((_gstate?.multi || 0) < 0)) {
                 m.offensive = obj;
                 m.has_offense = MUSE_OFF_WAN_SLEEP;
             }
@@ -1470,7 +1470,7 @@ export async function find_offensive(mtmp, map, player) {
         }
 
         if (m.has_offense === MUSE_OFF_POT_PARALYSIS) continue;
-        if (obj.otyp === POT_PARALYSIS && !(player.multi < 0)) {
+        if (obj.otyp === POT_PARALYSIS && !((_gstate?.multi || 0) < 0)) {
             m.offensive = obj;
             m.has_offense = MUSE_OFF_POT_PARALYSIS;
         }

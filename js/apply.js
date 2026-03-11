@@ -91,7 +91,7 @@ import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END, IS_FURNITURE } from './const.js';
+import { DISP_BEAM, DISP_END, IS_FURNITURE, nothing_happens } from './const.js';
 import { break_wand } from './zap.js';
 import { body_part } from './polyself.js';
 import { freehand } from './engrave.js';
@@ -117,7 +117,7 @@ const DIRECTION_KEYS = {
     'y': [-1, -1], 'u': [1, -1], 'b': [-1, 1], 'n': [1, 1],
 };
 
-function _nothing_happens() { return "Nothing happens."; }
+// nothing_happens imported from const.js
 
 
 
@@ -137,13 +137,13 @@ function _ignitable(obj) {
 // cf. apply.c:61 -- STUB: depends on bhit, flash_hits_mon
 export async function do_blinding_ray(_obj, player = null, map = null) {
     if (!player || !map) {
-        await pline(_nothing_happens());
+        await pline(nothing_happens);
         return;
     }
     const dx = Number.isInteger(player.dx) ? player.dx : 0;
     const dy = Number.isInteger(player.dy) ? player.dy : 0;
     if (!dx && !dy) {
-        await pline(_nothing_happens());
+        await pline(nothing_happens);
         return;
     }
     tmp_at(DISP_BEAM, { ch: '*', color: 14 });
@@ -166,7 +166,7 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
 
 // cf. apply.c:79 -- STUB: depends on getdir, bhit, zapyourself
 export async function use_camera(obj) {
-    if (obj.spe <= 0) { await pline(_nothing_happens()); return; }
+    if (obj.spe <= 0) { await pline(nothing_happens); return; }
     obj.spe--;
     await pline("You take a picture.");
 }
@@ -691,7 +691,7 @@ export async function use_unicorn_horn(obj, player) {
         if (prop && (prop.intrinsic & TIMEOUT)) trouble_count++;
     }
     if (trouble_count === 0) {
-        await pline(_nothing_happens());
+        await pline(nothing_happens);
         return;
     }
     // C: shuffle_int_array(trouble_list, trouble_count) — Fisher-Yates shuffle
@@ -703,7 +703,7 @@ export async function use_unicorn_horn(obj, player) {
     // C: val_limit = rn2(d(2, blessed ? 4 : 2))
     const val_limit = rn2(d(2, obj.blessed ? 4 : 2));
     // Actual trouble curing is simplified — RNG consumed above is what matters
-    await pline(_nothing_happens());
+    await pline(nothing_happens);
 }
 
 // cf. apply.c:2394 -- STUB: fig_transform timer callback
@@ -900,7 +900,7 @@ export function display_grapple_positions(player, map) {
 }
 
 // cf. apply.c:3725 -- STUB: use_grapple
-async function use_grapple() { await pline(_nothing_happens()); }
+async function use_grapple() { await pline(nothing_happens); }
 
 // cf. apply.c:3872 -- STUB: discard_broken_wand
 function discard_broken_wand() {}

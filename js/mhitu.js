@@ -1764,7 +1764,7 @@ export async function gulpmu(mtmp, mattk, player, map, display) {
             tim_tmp = Math.floor(tim_tmp / (mtmp.m_lev || 1));
             tim_tmp += 3;
         } else {
-            tim_tmp = rnd(Math.floor((mtmp.m_lev || 1) + 10 / 2));
+            tim_tmp = Math.trunc(rnd((mtmp.m_lev || 1) + 10) / 2);
         }
         player.uswldtim = (tim_tmp < 2) ? 2 : tim_tmp;
     }

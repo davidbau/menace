@@ -758,7 +758,7 @@ export async function exerchk(player) {
 
     // Are we ready for a test?
     if (!player.nextAttrCheck) player.nextAttrCheck = 600;
-    if (moves >= player.nextAttrCheck && !player.multi) {
+    if (moves >= player.nextAttrCheck && !_gstate?.multi) {
         for (let i = 0; i < NUM_ATTRS; ++i) {
             let ax = AEXE(player, i);
             if (!ax) continue;

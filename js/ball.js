@@ -10,6 +10,7 @@ import { pline, pline_The, You, Your, You_feel, impossible } from './pline.js';
 import { newsym } from './display.js';
 import { dist2, distmin } from './hacklib.js';
 import { movobj, near_capacity, losehp, nomul, spoteffects } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { flooreffects } from './do.js';
 import { placeFloorObject, carried } from './invent.js';
 import { body_part } from './polyself.js';
@@ -123,7 +124,7 @@ export async function ballfall(player, map) {
             }
         }
         await losehp(Maybe_Half_Phys(dmg, player), "crunched in the head by an iron ball",
-               NO_KILLER_PREFIX, player, null, null);
+               NO_KILLER_PREFIX, player, _gstate?.display, _gstate);
     }
 }
 
@@ -779,7 +780,7 @@ export async function drop_ball(x, y, player, map, game) {
                          body_part('LEG'));
                     await losehp(Maybe_Half_Phys(2, player),
                            "leg damage from being pulled out of a bear trap",
-                           KILLED_BY, player, null, null);
+                           KILLED_BY, player, game?.display, game);
                 }
                 break;
             }

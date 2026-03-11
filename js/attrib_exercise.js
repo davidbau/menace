@@ -8,6 +8,7 @@ import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
 import { PM_MONK } from './monsters.js';
 import { acurr, adjattrib, AVAL } from './attrib.js';
 import { sgn } from './hacklib.js';
+import { game as _gstate } from './gstate.js';
 import { You } from './pline.js';
 import { races } from './player.js';
 
@@ -88,7 +89,7 @@ export async function exerchk(player, moves) {
 
     if (moves < player.nextAttrCheck) return;
     // C ref: attrib.c:610 — if (multi) return; (skip while multi-turn action)
-    if (player.multi) return;
+    if (_gstate?.multi) return;
 
     for (let i = 0; i < ATTR_COUNT; i++) {
         let ax = player.aexercise[i] || 0;

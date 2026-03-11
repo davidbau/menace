@@ -36,6 +36,7 @@ import { dist2, highc, mungspaces, plur, ROLL_FROM } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';
 import { losehp, in_rooms, u_at } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { maketrap, In_sokoban, In_V_tower } from './dungeon.js';
 import { set_levltyp } from './mkmaze.js';
 import { fillholetyp, liquid_flow } from './dig.js';
@@ -308,7 +309,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             player.utrap = rn1(6, 2);
             player.utraptype = TT_PIT;
             await losehp(Maybe_Half_Phys(rnd(6), player),
-                   'fell into a chasm', NO_KILLER_PREFIX, player, null, null);
+                   'fell into a chasm', NO_KILLER_PREFIX, player, _gstate?.display, _gstate);
             selftouch('Falling, you', player);
         } else if (player.utrap && player.utraptype === TT_PIT) {
             const keepfooting =
@@ -320,7 +321,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
             player.utrap = rn1(6, 2);
             player.utraptype = TT_PIT;
             await losehp(Maybe_Half_Phys(rnd(keepfooting ? 2 : 4), player),
-                   'hurt in a chasm', NO_KILLER_PREFIX, player, null, null);
+                   'hurt in a chasm', NO_KILLER_PREFIX, player, _gstate?.display, _gstate);
             if (keepfooting)
                 await exercise(player, A_DEX, true);
             else {

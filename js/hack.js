@@ -74,6 +74,7 @@ import { t_missile, seetrap, conjoined_pits, adj_nonconjoined_pit, into_vs_onto,
 import { envFlag, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
 import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
+import { game as _gstate } from './gstate.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -3649,7 +3650,7 @@ export async function dosinkfall(player, map, display) {
     if (display) await display.putstr_message('You crash to the floor!');
     const con = acurr(player, A_CON);
     const dmg = rn1(8, 25 - con); // C: rn1(8, 25-ACURR(A_CON))
-    await losehp(dmg, "fell onto a sink", KILLED_BY, player, display, null);
+    await losehp(dmg, "fell onto a sink", KILLED_BY, player, display, _gstate);
     await exercise(player, A_DEX, false);
 }
 
@@ -3712,7 +3713,7 @@ export async function lava_effects(player, map, display) {
     // Damage from lava
     const dmg = d(6, 6);
     if (display) await display.putstr_message("The lava burns you!");
-    await losehp(dmg, "molten lava", KILLED_BY, player, display, null);
+    await losehp(dmg, "molten lava", KILLED_BY, player, display, _gstate);
     return false;
 }
 

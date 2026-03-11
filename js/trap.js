@@ -1707,7 +1707,7 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 22:
       case 21:
         await pline(`${Tobjnam(obj, "explode")}!`);
-        await losehp(d(6, 6), `exploding ${xname(obj)}`, KILLED_BY_AN, player, null, game);
+        await losehp(d(6, 6), `exploding ${xname(obj)}`, KILLED_BY_AN, player, game?.display, game);
         await exercise(player, A_STR, false);
         return true;
       case 20:
@@ -1738,14 +1738,14 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 7:
       case 6:
         await You("are jolted by a surge of electricity!");
-        await losehp(d(4, 4), "electric shock", KILLED_BY_AN, player, null, game);
+        await losehp(d(4, 4), "electric shock", KILLED_BY_AN, player, game?.display, game);
         break;
       case 5:
       case 4:
       case 3:
         if (!player.Free_action) {
           await pline("Suddenly you are frozen in place!");
-          player.multi = -(d(5, 6));
+          if (game) game.multi = -(d(5, 6));
           await exercise(player, A_DEX, false);
         } else {
           await You("momentarily stiffen.");
@@ -2891,7 +2891,7 @@ export async function drain_en(n, max_already_drained) {
         }
         mesg = "momentarily lethargic";
     } else {
-        if (n > ((player.pw || 0) + (player.pwmax || 0)) / 3)
+        if (n > Math.trunc(((player.pw || 0) + (player.pwmax || 0)) / 3))
             n = rnd(n);
         mesg = "your magical energy drain away";
         let actualPunct = punct;
