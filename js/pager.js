@@ -7,6 +7,7 @@ import {
     STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE, POOL, LAVAPOOL,
     DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
     STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL, TER_MAP,
+    BEAR_TRAP, TRAPPED_DOOR, TRAPPED_CHEST,
 } from './const.js';
 import { def_monsyms, glyph_is_trap, glyph_to_trap } from './symbols.js';
 import { more, nhgetch, ynFunction } from './input.js';
@@ -19,6 +20,7 @@ import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEM
 import { getpos_async } from './getpos.js';
 import { x_monnam } from './mondata.js';
 import { engr_at, can_reach_floor } from './engrave.js';
+import { trapped_chest_at, trapped_door_at } from './detect.js';
 import { objectData, STRANGE_OBJECT } from './objects.js';
 import { visctrl } from './hacklib.js';
 import { terrainSymbol, wallIsVisible } from './render.js';

@@ -10,6 +10,7 @@ import { COLNO, ROWNO, DOOR, SDOOR, POOL,
          WATER, CLOUD, LAVAWALL, MOAT, ROOMOFFSET,
          CROSSWALL, TRWALL } from './const.js';
 import { BOULDER } from './objects.js';
+import { is_pool } from './dbridge.js';
 import { TT_PIT } from './const.js';
 
 // Vision bit flags (C ref: vision.h)
