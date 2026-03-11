@@ -32,6 +32,8 @@ import {
     TT_PIT, TT_WEB, TT_BEARTRAP, P_NONE, P_MARTIAL_ARTS,
     MIGR_NOWHERE, MIGR_RANDOM, MIGR_STAIRS_UP, MIGR_LADDER_UP,
     MIGR_SSTAIRS, MIGR_WITH_HERO, MIGR_NOBREAK, MIGR_NOSCATTER, MIGR_TO_SPECIES,
+    T_LOOTED, TREE_LOOTED, TREE_SWARM, D_WARNED, S_LPUDDING, S_LDWASHER,
+    NO_TRAP_FLAGS, SHOP_DOOR_COST,
 } from './const.js';
 import {
     IS_TREE, IS_THRONE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR,
@@ -118,22 +120,8 @@ import { water_damage, mintrap_postmove, instapetrify, t_at } from './trap.js';
 
 const kick_passes_thru = "kick passes harmlessly through";
 
-// C ref: hack.h — SHOP_DOOR_COST
-const SHOP_DOOR_COST = 400;
-
-// looted flags for various terrain types (rm.h)
-const T_LOOTED = 1;
-const TREE_LOOTED = 1;
-const TREE_SWARM = 2;
-const D_WARNED = 16;
-const S_LPUDDING = 1;
-const S_LDWASHER = 2;
-
-// MIGR_* imported from const.js
-
-// Trap result
-const Trap_Killed_Mon = 2;
-const NO_TRAP_FLAGS = 0;
+// SHOP_DOOR_COST, looted/trap flags imported from const.js
+const Trap_Killed_Mon = 2; // cf. trap.h — not yet exported from const.js
 
 // KICKED_WEAPON for bhit
 const KICKED_WEAPON = 2;

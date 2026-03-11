@@ -2363,7 +2363,7 @@ export async function vamp_stone(mtmp, game) {
   if (is_vampshifter(mtmp)) {
     let mndx = mtmp.cham, x = mtmp.mx, y = mtmp.my;
     if (mndx >= LOW_PM && mndx !== monsndx(mtmp.data) && !(game.mvitals[mndx].mvflags & G_GENO)) {
-      let buf = `The lapidifying ${x_monnam(mtmp, ARTICLE_NONE,  0, (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION | SUPPRESS_INVISIBLE | SUPPRESS_IT), false)} ${amorphous(mtmp.data) ? "coalesces on the" : is_flyer(mtmp.data) ? "drops to the" : "writhes on the"} ${await surface(x, y)}`;
+      let buf = `The lapidifying ${x_monnam(mtmp, ARTICLE_NONE,  0, (SUPPRESS_SADDLE | SUPPRESS_HALLUCINATION | SUPPRESS_INVISIBLE | SUPPRESS_IT), false)} ${amorphous(mtmp.data) ? "coalesces on the" : is_flyer(mtmp.data) ? "drops to the" : "writhes on the"} ${await surface(x, y, game.map || game.lev, game.player)}`;
       mtmp.mcanmove = 1;
       mtmp.mfrozen = 0;
       set_mon_min_mhpmax(mtmp, 10);
@@ -2380,7 +2380,7 @@ export async function vamp_stone(mtmp, game) {
         mtmp.cham = mndx;
       }
       if (canspotmon(mtmp)) {
-        await pline_mon(mtmp, "%s rises from the %s with renewed agility!", Amonnam(mtmp), await surface(mtmp.mx, mtmp.my));
+        await pline_mon(mtmp, "%s rises from the %s with renewed agility!", Amonnam(mtmp), await surface(mtmp.mx, mtmp.my, game.map || game.lev, game.player));
       }
       newsym(mtmp.mx, mtmp.my);
       return false;

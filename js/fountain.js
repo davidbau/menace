@@ -32,7 +32,7 @@ import { polymorph_sink } from './do.js';
 import { ART_EXCALIBUR } from './artifacts.js';
 import { artiname, exist_artifact, discover_artifact } from './artifact.js';
 import { somegold } from './steal.js';
-import { IS_FOUNTAIN, MM_NOMSG, A_MAX, DOOR } from './const.js';
+import { IS_FOUNTAIN, MM_NOMSG, A_MAX, DOOR, F_LOOTED, F_WARNED, S_LPUDDING, S_LDWASHER, S_LRING } from './const.js';
 import { morehungry } from './eat.js';
 
 // fountain.js -- Fountain and sink effects: quaff, dip, wash
@@ -41,13 +41,7 @@ import { morehungry } from './eat.js';
 //                   dryup, drinkfountain, dipfountain, wash_hands,
 //                   breaksink, drinksink, dipsink, sink_backs_up
 
-// Fountain looted/warned flags (rm.h:243-250)
-const F_LOOTED = 1;
-const F_WARNED = 2;
-// Sink looted flags (rm.h:262-264)
-const S_LPUDDING = 1;
-const S_LDWASHER = 2;
-const S_LRING = 4;
+// F_LOOTED, F_WARNED, S_LPUDDING, S_LDWASHER, S_LRING imported from const.js
 
 // A_MAX, DOOR imported from const.js
 

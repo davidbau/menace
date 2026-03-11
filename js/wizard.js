@@ -734,7 +734,7 @@ export async function nasty(summoner, map, player, display, fov) {
                     m_cls = mptr(mtmp).mlet;
                     if ((difcap > 0 && (mptr(mtmp).difficulty || 0) >= difcap
                          // in endgame, rn2(3); otherwise rn2(7)
-                         && rn2(In_endgame() ? 3 : 7) // usually cap
+                         && rn2(In_endgame(map) ? 3 : 7) // usually cap
                          && attacktype(mptr(mtmp), AT_MAGC))
                         || (s_cls === S_DEMON && m_cls === S_ANGEL)
                         || (s_cls === S_ANGEL && m_cls === S_DEMON)) {
@@ -836,7 +836,7 @@ export async function resurrect(map, player, display) {
 
 export async function intervene(map, player, display, fov) {
     // C: int which = Is_astralevel(&u.uz) ? rnd(4) : rn2(6);
-    const which = Is_astralevel() ? rnd(4) : rn2(6);
+    const which = Is_astralevel(map) ? rnd(4) : rn2(6);
 
     switch (which) {
     case 0:

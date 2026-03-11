@@ -254,7 +254,7 @@ export function priestname(mon, article, reveal_high_priest, player) {
 
     // "of <deity>"
     if (do_hallu || !high_priest || reveal_high_priest
-        || !Is_astralevel()
+        || !Is_astralevel(player?.uz)
         || m_next2u(mon, player) || false /* program_state.gameover */) {
         pname += " of ";
         pname += halu_gname(mon_aligntyp(mon), player);
@@ -370,7 +370,7 @@ export async function intemple(roomno, map, player, display, fov) {
         const epri_p = priest.epri;
         const shrined = has_shrine(priest, map);
         const sanctum = (priest.mndx === PM_HIGH_CLERIC || (priest.data || priest.type) === mons[PM_HIGH_CLERIC])
-            && (Is_sanctum() || In_endgame());
+            && (Is_sanctum(map) || In_endgame(map));
         const can_speak = !monHelpless(priest);
         const moves = player.turns || 0;
 
@@ -398,7 +398,7 @@ export async function intemple(roomno, map, player, display, fov) {
         }
 
         let msg1 = null, msg2 = null;
-        if (sanctum && Is_sanctum()) {
+        if (sanctum && Is_sanctum(map)) {
             if (priest.mpeaceful) {
                 msg1 = "Infidel, you have entered Moloch's Sanctum!";
                 msg2 = "Be gone!";

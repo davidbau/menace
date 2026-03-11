@@ -21,11 +21,8 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          SICK, SICK_RES, DEAF,
          VOMITING, GLIB, FAST, STONED, SLIMED,
          FREE_ACTION, ACID_RES, SLEEP_RES, POISON_RES,
-         SICK_VOMITABLE, SICK_NONVOMITABLE,
+         SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
-
-// A_MAX imported from const.js
-const SICK_ALL = (SICK_VOMITABLE | SICK_NONVOMITABLE);
 import { exercise } from './attrib_exercise.js';
 import { adjattrib } from './attrib.js';
 import { drinkfountain } from './fountain.js';

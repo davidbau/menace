@@ -1008,7 +1008,7 @@ export async function god_zaps_you(resp_god, player, map) {
             await You("bask in its black glow for a minute...");
             await godvoice(resp_god, "I believe it not!", player);
         }
-        if (Is_astralevel() || Is_sanctum()) {
+        if (Is_astralevel(map) || Is_sanctum(map)) {
             await verbalize("Thou cannot escape my wrath, mortal!");
             await summon_minion(resp_god, false, map, player);
             await summon_minion(resp_god, false, map, player);
