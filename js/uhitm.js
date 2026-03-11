@@ -77,7 +77,7 @@ import {
     erode_obj, erode_obj_player, mselftouch,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL } from './const.js';
+import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL, STONED } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { tele_restrict, rloc } from './teleport.js';
@@ -1442,7 +1442,7 @@ export function mhitm_ad_halu(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:3902 — do_stone_u: hero touched by petrifying monster
 export async function do_stone_u(mtmp, player, game) {
-    const STONED = 26; // const.js STONED property index
+    // STONED imported from const.js
     if (player.getPropTimeout?.(STONED)) return 0; // already Stoned
     // Stone_resistance check
     if (resists_ston({ data: game?.youmonst?.data || player.monst })) return 0;

@@ -37,7 +37,8 @@ import { rn2_on_display_rng } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
          livelog_printf } from './pline.js';
 import { S_altar } from './symbols.js';
-import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE, ACH_TUNE, A_MAX } from './const.js';
+import { IS_OBSTRUCTED, POOL, LAVAPOOL, M_AP_FURNITURE, ACH_TUNE, A_MAX,
+         STOMACH, FOOT, EYE } from './const.js';
 import { mark_vision_dirty } from './vision.js';
 import { resists_elec, resists_disint } from './mondata.js';
 import { S_LICH, S_GHOST, S_VAMPIRE, S_WRAITH, S_MUMMY, S_ZOMBIE, S_HUMAN,
@@ -169,10 +170,7 @@ const MAXVALUE = 24;
 const LUCKMAX = 10;
 // NATTK, A_MAX imported from const.js
 
-// Body part constants (cf. mondata.h)
-const STOMACH = 6;
-const FOOT = 9;
-const EYE = 8;
+// STOMACH, FOOT, EYE imported from const.js
 
 // Hunger thresholds (cf. hunger.h)
 // In JS, player.hunger is a numeric value; higher = more fed
