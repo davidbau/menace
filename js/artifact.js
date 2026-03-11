@@ -276,7 +276,7 @@ export function defends(adtyp, otmp) {
 // Autotranslated from artifact.c:686
 export function defends_when_carried(adtyp, otmp) {
   let weap;
-  if ((weap = get_artifact(otmp)) !== artilist[ART_NONARTIFACT]) return  (weap.cary.adtyptyp === adtyp);
+  if ((weap = get_artifact(otmp)) !== artilist[ART_NONARTIFACT]) return  (weap.cary.adtyp === adtyp);
   return false;
 }
 
@@ -296,7 +296,7 @@ export function arti_immune(obj, dtyp) {
   const weap = get_artifact(obj);
   if (weap === artilist[ART_NONARTIFACT]) return false;
   if (dtyp === AD_PHYS) return false;
-  return weap.attk.adtyp === dtyp || weap.defn.adtyptyp === dtyp || weap.cary.adtyptyp === dtyp;
+  return weap.attk.adtyp === dtyp || weap.defn.adtyp === dtyp || weap.cary.adtyp === dtyp;
 }
 
 // cf. artifact.c:2299 — artifact_has_invprop(otmp, inv_prop)

@@ -38,6 +38,7 @@ import {
 import {
     IS_TREE, IS_THRONE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR,
     IS_DRAWBRIDGE, IS_SOFT, ZAP_POS,
+    VIS_EFFECTS, MAY_HIT,
 } from './const.js';
 import {
     pline, pline_The, You, Your, You_hear, You_cant, There, Norep,
@@ -995,7 +996,7 @@ async function really_kick_object(x, y, player, map, game) {
                 if (!player.deaf)
                     await pline("Thwwpingg!");
                 await You("%s!", flyingcoinmsg[rn2(flyingcoinmsg.length)]);
-                scatter(x, y, rnd(3), 0x10 | 0x08, kickedobj, map); // VIS_EFFECTS | MAY_HIT
+                scatter(x, y, rnd(3), VIS_EFFECTS | MAY_HIT, kickedobj, map);
                 newsym(x, y, map);
                 return 1;
             }
