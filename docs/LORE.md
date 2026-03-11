@@ -7775,3 +7775,21 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: dodip fountain/sink object-first flow correction
+
+- Problem:
+  - `potion.js::dodip()` incorrectly required a potion first (`"don't have anything to dip into"`), even when standing on a fountain/sink.
+  - C `dodip()` is object-first and offers floor-feature dip prompts before potion selection.
+- Change:
+  - `js/potion.js` `dodip()` now:
+    - selects dip target object first,
+    - detects local fountain/sink/pool context,
+    - asks `Dip it into the fountain/sink?` and executes `dipfountain`/`dipsink` on `y`,
+    - falls back to potion-dip path only after declining/absence of floor feature dip.
+  - Added `can_reach_floor` and `is_pool` gating consistent with C control flow shape.
+- Notes:
+  - This fixes the incorrect hard-fail mode and unblocks floor-feature dip behavior.
+  - Full C prompt parity for `#dip` still depends on interactive `getobj()` (object-letter prompt handling), which remains a separate gap.
+- Validation:
+  - `./scripts/run-session-tests.sh` (`151/151` passing)

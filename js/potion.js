@@ -25,7 +25,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { adjattrib } from './attrib.js';
-import { drinkfountain } from './fountain.js';
+import { drinkfountain, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
@@ -58,6 +58,8 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc } from '
 import { update_inventory, learn_unseen_invent } from './invent.js';
 import { eatmupdate } from './eat.js';
 import { you_were, you_unwere, set_ulycn } from './were.js';
+import { can_reach_floor } from './engrave.js';
+import { is_pool } from './dbridge.js';
 
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
@@ -1551,10 +1553,45 @@ function hold_potion(player, potobj) {
 // cf. potion.c dodip() — dip command entry point
 async function dodip(player, map, display) {
     // C ref: potion.c:2252-2358
-    // Use existing getobj flow (non-interactive first-suggest in this port).
+    const pmap = activeMap(map);
+    const here = (pmap && player) ? pmap.at(player.x, player.y) : null;
+    const at_pool = !!(pmap && player && is_pool(player.x, player.y, pmap));
+    const at_fountain = !!(here && here.typ === FOUNTAIN);
+    const at_sink = !!(here && IS_SINK(here.typ));
+
+    // C chooses object first (dip target), then possibly asks about floor feature.
+    const obj = getobj(
+        'dip',
+        (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+        0,
+        player
+    );
+    if (!obj) {
+        await You("don't have anything to dip.");
+        return false;
+    }
+
+    if (pmap && can_reach_floor(player, pmap, false)) {
+        if (at_fountain) {
+            const ans = await ynFunction('Dip it into the fountain?', 'yn', 'n', display, player, pmap);
+            if (ans === 'y') {
+                await dipfountain(obj, player, pmap, display, null);
+                return true;
+            }
+        } else if (at_sink) {
+            const ans = await ynFunction('Dip it into the sink?', 'yn', 'n', display, player, pmap);
+            if (ans === 'y') {
+                await dipsink(obj, player, pmap, display, null);
+                return true;
+            }
+        } else if (at_pool) {
+            // TODO(C-faithful): pool dipping path (water_damage/wash_hands etc.).
+        }
+    }
+
     const potion = getobj(
         'dip into',
-        (obj) => (obj && obj.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
+        (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
         0,
         player
     );
@@ -1563,18 +1600,7 @@ async function dodip(player, map, display) {
         return false;
     }
 
-    const target = getobj(
-        'dip',
-        (obj) => dip_ok(obj) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
-        player
-    );
-    if (!target) {
-        await You("don't have anything to dip.");
-        return false;
-    }
-
-    await potion_dip(player, target, potion);
+    await potion_dip(player, obj, potion);
     return true;
 }
 
