@@ -25,7 +25,7 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
          canseemon, stagger
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
-         resists_magm, defended, DEADMONSTER } from './mondata.js';
+         resists_magm, defended, DEADMONSTER, is_metallivore } from './mondata.js';
 import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
@@ -107,13 +107,8 @@ const Trap_Moved_Mon = 3;
 // Helper stubs for functions not yet ported
 // ========================================================================
 
-// C ref: metallivorous(mptr) — eats metal
-function metallivorous(mptr) {
-    if (!mptr) return false;
-    // PM_RUST_MONSTER and PM_XORN eat metal in C
-    const ndx = mptr._index ?? -1;
-    return ndx === PM_RUST_MONSTER || ndx === PM_XORN;
-}
+// metallivorous → is_metallivore imported from mondata.js
+const metallivorous = is_metallivore;
 
 // resists_fire, resists_magm, resists_sleep, defended imported from mondata.js above
 
