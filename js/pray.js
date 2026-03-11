@@ -85,13 +85,15 @@ import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
 import { unpunish, punish } from './read.js';
 import { you_unwere } from './were.js';
-import { Luck, change_luck } from './attrib.js';
+import { Luck, change_luck, adjalign, adjattrib } from './attrib.js';
 import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
 import { set_itimeout, make_sick, make_stunned, make_confused,
          make_hallucinated, make_blinded, make_stoned, make_slimed } from './potion.js';
-import { feel_cockatrice, sobj_at, carried } from './invent.js';
+import { feel_cockatrice, sobj_at, carried, update_inventory } from './invent.js';
+import { reset_utrap } from './trap.js';
 import { destroy_arm, makeknown } from './do_wear.js';
+import { init_uhunger } from './eat.js';
 import { record_achievement, align_str } from './insight.js';
 import { obfree } from './shk.js';
 import { region_danger, region_safety } from './region.js';
@@ -292,30 +294,15 @@ function useupf(obj, quan, map) {
     }
 }
 
-// Helper: update_inventory display refresh
-function update_inventory() {
-    // Display update stub -- handled by game loop
-}
+// update_inventory imported from invent.js
 
-// Helper: adjalign -- adjust alignment record
-function adjalign(player, delta) {
-    player.alignmentRecord = (player.alignmentRecord || 0) + delta;
-}
+// adjalign imported from attrib.js
 
-// Helper: adjattrib -- adjust an attribute
-function adjattrib(player, attr, delta, _silent) {
-    if (attr >= 0 && attr < A_MAX && player.attributes) {
-        player.attributes[attr] = Math.max(3, player.attributes[attr] + delta);
-    }
-    return delta !== 0;
-}
+// adjattrib imported from attrib.js
 
 // change_luck imported from attrib.js
 
-// Helper: init_uhunger -- reset hunger to normal
-function init_uhunger(player) {
-    player.hunger = 900;
-}
+// init_uhunger imported from eat.js
 
 
 
@@ -331,11 +318,7 @@ function init_uhunger(player) {
 
 // you_unwere imported from were.js
 
-// Helper: reset_utrap
-function reset_utrap(player, _talk) {
-    player.utrap = 0;
-    player.utraptype = TT_NONE;
-}
+// reset_utrap imported from trap.js
 
 // Helper: rescued_from_terrain stub
 function rescued_from_terrain() { }
@@ -763,14 +746,14 @@ async function fix_worst_trouble(trouble, player, map) {
         break;
     case TROUBLE_LAVA:
         if (!await safe_teleds(0, { player, map }))
-            await reset_utrap(player, true);
+            await reset_utrap(true, player, _gstate);
         rescued_from_terrain();
         break;
     case TROUBLE_STARVING:
         // FALLTHRU
     case TROUBLE_HUNGRY:
         await Your("%s feels content.", body_part(STOMACH, player));
-        await init_uhunger(player);
+        await init_uhunger(_gstate, player);
         break;
     case TROUBLE_SICK:
         await You_feel("better.");
@@ -1416,7 +1399,7 @@ async function pleased(g_align, player, map) {
                 player.attributes[A_STR] = player.attrMax[A_STR];
                 await encumber_msg(player);
             }
-            if ((player.hunger || 0) < 900) await init_uhunger(player);
+            if ((player.hunger || 0) < 900) await init_uhunger(_gstate, player);
             if ((player.luck || 0) < 0) player.luck = 0;
             player.ucreamed = 0;
             await make_blinded(player, 0, true);
