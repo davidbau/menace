@@ -8,7 +8,8 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES, SICK, FAST,
          TIMEOUT, INTRINSIC, SICK_VOMITABLE, SICK_NONVOMITABLE,
          DEAF, INVIS, SEE_INVIS, TELEPAT, STEALTH, REGENERATION,
-         TELEPORT, TELEPORT_CONTROL, PROTECTION, FUMBLING } from './const.js';
+         TELEPORT, TELEPORT_CONTROL, PROTECTION, FUMBLING,
+         SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight } from './mkobj.js';
@@ -415,6 +416,16 @@ export class Player {
         return (entry.intrinsic !== 0) || (entry.extrinsic !== 0);
     }
 
+    // Set/clear a property's intrinsic flag (for setter aliases).
+    _setPropBool(prop, val) {
+        const entry = this.ensureUProp(prop);
+        if (val) {
+            entry.intrinsic = entry.intrinsic | INTRINSIC;
+        } else {
+            entry.intrinsic = 0;
+        }
+    }
+
     // --- Backward-compatible getter/setters for status effects ---
     // Getters return truthy (timeout value) or falsy (0).
     // Setters accept boolean for backward compat: true → default timeout, false → clear.
@@ -558,6 +569,7 @@ export class Player {
     get Blind_telepat() { return this.hasProp(TELEPAT) && this.blind; }
     get Fumbling() { return this.hasProp(FUMBLING); }
     get fumbling() { return this.hasProp(FUMBLING); }
+    set fumbling(val) { this._setPropBool(FUMBLING, val); }
     get Stunned() { return this.stunned; }
     get Confusion() { return this.confused; }
     get regeneration() { return this.hasProp(REGENERATION); }
@@ -566,5 +578,17 @@ export class Player {
     get stealth() { return this.hasProp(STEALTH); }
     get protection() { return this.hasProp(PROTECTION); }
     get teleport_control() { return this.hasProp(TELEPORT_CONTROL); }
+    get Sleep_resistance() { return this.hasProp(SLEEP_RES); }
+    get sleepResistance() { return this.hasProp(SLEEP_RES); }
+    get Antimagic() { return this.hasProp(ANTIMAGIC); }
+    get antimagic() { return this.hasProp(ANTIMAGIC); }
+    get Levitation() { return this.hasProp(LEVITATION); }
+    set Levitation(val) { this._setPropBool(LEVITATION, val); }
+    get levitating() { return this.hasProp(LEVITATION); }
+    set levitating(val) { this._setPropBool(LEVITATION, val); }
+    get Flying() { return this.hasProp(FLYING); }
+    set Flying(val) { this._setPropBool(FLYING, val); }
+    get flying() { return this.hasProp(FLYING); }
+    set flying(val) { this._setPropBool(FLYING, val); }
 
 }
