@@ -1159,6 +1159,10 @@ span.nh-cursor {
                 offx = Math.min(halfCols, this.cols - maxcol - 1);
             }
         }
+        // C ref: tty_display_nhwindow clamps cw->offx >= 0.
+        // Without this, wide text lines can produce negative offx and
+        // incorrectly clear the left side of the map.
+        offx = Math.max(0, offx);
 
         const hasMoreLine = (renderLines[menuRows - 1] || '').endsWith('--More--');
         const left = hasMoreLine ? Math.max(0, offx - 1) : offx;
@@ -1166,10 +1170,11 @@ span.nh-cursor {
         for (let r = 0; r < menuRows; r++) {
             savedCells[r] = [];
             for (let c = left; c < this.cols; c++) {
+                const cell = this.grid[r][c];
                 savedCells[r][c] = {
-                    ch: this.grid[r][c],
-                    color: this.colors[r][c],
-                    attr: this.attrs[r][c] || 0,
+                    ch: cell?.ch ?? ' ',
+                    color: cell?.color ?? CLR_GRAY,
+                    attr: cell?.attr || 0,
                 };
             }
         }
@@ -2181,23 +2186,23 @@ export function newsym(x, y, ctxOrMap = null) {
             display.setCell(col, row, glyph.ch, glyph.color);
             return;
         }
+        if (loc.mem_obj) {
+            const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
+                ? loc.mem_obj_color : 0;
+            display.setCell(col, row, loc.mem_obj, rememberedObjColor);
+            return;
+        }
+        if (loc.mem_trap) {
+            const memTrapColor = Number.isInteger(loc.mem_trap_color)
+                ? loc.mem_trap_color : 0;
+            display.setCell(col, row, loc.mem_trap, memTrapColor);
+            return;
+        }
         if (loc.mem_invis) {
             display.setCell(col, row, 'I', CLR_GRAY);
             return;
         }
         if (loc.seenv) {
-            if (loc.mem_obj) {
-                const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
-                    ? loc.mem_obj_color : 0;
-                display.setCell(col, row, loc.mem_obj, rememberedObjColor);
-                return;
-            }
-            if (loc.mem_trap) {
-                const memTrapColor = Number.isInteger(loc.mem_trap_color)
-                    ? loc.mem_trap_color : 0;
-                display.setCell(col, row, loc.mem_trap, memTrapColor);
-                return;
-            }
             if (typeof loc.mem_terrain_ch === 'string') {
                 const rememberedColor = Number.isInteger(loc.mem_terrain_color)
                     ? loc.mem_terrain_color

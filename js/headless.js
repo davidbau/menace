@@ -909,6 +909,10 @@ export class HeadlessDisplay {
                 offx = Math.min(halfCols, this.cols - maxcol - 1);
             }
         }
+        // C ref: tty_display_nhwindow clamps cw->offx >= 0.
+        // Without this, wide text lines can produce negative offx and
+        // clear map cells outside the popup.
+        offx = Math.max(0, offx);
         const hasMoreLine = (renderLines[menuRows - 1] || '').endsWith('--More--');
         const left = hasMoreLine ? Math.max(0, offx - 1) : offx;
         const savedCells = [];
