@@ -21,7 +21,7 @@ import { distmin } from './hacklib.js';
 import { losehp } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
-import { water_damage, water_damage_chain } from './trap.js';
+import { water_damage_chain, delfloortrap } from './trap.js';
 import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';
@@ -178,9 +178,9 @@ async function gush(x, y, poolcnt, player, map, display, fov) {
         || nexttodoor(x, y, map))
         return;
 
-    // Check for traps -- delfloortrap not fully ported
+    // C: if trap is present and cannot be deleted as a floor trap, skip cell.
     const trap = map.trapAt ? map.trapAt(x, y) : null;
-    if (trap) return; // simplified: skip if trap present
+    if (trap && !(await delfloortrap(trap, player, map))) return;
 
     if (!(poolcnt.count++))
         await pline("Water gushes forth from the overflowing fountain!");
@@ -190,13 +190,10 @@ async function gush(x, y, poolcnt, player, map, display, fov) {
     loc.typ = POOL;
     loc.flags = 0;
     del_engr_at(map, x, y);
-    // water_damage_chain for floor objects
+    // C: water_damage_chain(svl.level.objects[x][y], TRUE)
+    // 'TRUE' here means "here list", not force=true for water_damage.
     const objs = map.objectsAt ? map.objectsAt(x, y) : [];
-    if (objs) {
-        for (const obj of objs) {
-            water_damage(obj, null, true);
-        }
-    }
+    water_damage_chain(objs, true);
 
     const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;
     if (mtmp)

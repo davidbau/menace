@@ -1,6 +1,6 @@
 # Theme: furniture-thrones-fountains
 
-Status: in_progress (session 1 captured and parity-green)
+Status: in_progress (sessions 2 captured and parity-green)
 
 Target codepaths:
 - `js/sit.js` (`dosit`, throne branches, seat-context branches)
@@ -57,3 +57,4 @@ Completion criteria:
 
 Captured sessions:
 1. `theme01_seed005_valk_fountain-drink3_gameplay.session.json`
+2. `theme01_seed005_valk_fountain-gush3_gameplay.session.json`

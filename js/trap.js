@@ -1883,14 +1883,15 @@ export function uescaped_shaft(trap, player) {
 }
 
 // Autotranslated from trap.c:6576
-export async function delfloortrap(ttmp, player) {
+export async function delfloortrap(ttmp, player, mapOverride = null) {
   if (ttmp && ((ttmp.ttyp === SQKY_BOARD) || (ttmp.ttyp === BEAR_TRAP) || (ttmp.ttyp === LANDMINE) || (ttmp.ttyp === FIRE_TRAP) || is_pit(ttmp.ttyp) || is_hole(ttmp.ttyp) || (ttmp.ttyp === TELEP_TRAP) || (ttmp.ttyp === LEVEL_TELEP) || (ttmp.ttyp === WEB) || (ttmp.ttyp === MAGIC_TRAP) || (ttmp.ttyp === ANTI_MAGIC))) {
     let mtmp;
+    const mapRef = mapOverride || player?.lev || player?.map || _gstate?.lev || null;
     if (u_at(player, ttmp.tx, ttmp.ty)) {
       if (player.utraptype !== TT_BURIEDBALL) await reset_utrap(true);
     }
-    else if ((mtmp = m_at(ttmp.tx, ttmp.ty, player?.lev || player?.map)) != null) { mtmp.mtrapped = 0; }
-    deltrap(ttmp);
+    else if ((mtmp = m_at(ttmp.tx, ttmp.ty, mapRef)) != null) { mtmp.mtrapped = 0; }
+    deltrap(mapRef, ttmp);
     return true;
   }
   return false;
