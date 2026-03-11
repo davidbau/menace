@@ -61,7 +61,7 @@ import { CORPSE,
 import { stackobj, sobj_at, useup } from './invent.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_END, xdir, ydir, N_DIRS, DIR_180, DIR_ERR } from './const.js';
-import { cansee, couldsee } from './vision.js';
+import { cansee, couldsee, recalc_block_point } from './vision.js';
 import { pline, Norep, You, pline_mon, You_hear, You_feel, impossible } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { dist2 } from './hacklib.js';
@@ -1505,7 +1505,11 @@ export async function blow_up_landmine(trap, map) {
   scatter(x, y, 4, MAY_DESTROY | MAY_HIT | MAY_FRACTURE | VIS_EFFECTS,  0);
   del_engr_at(x, y);
   wake_nearto(x, y, 400, map);
-  if (IS_DOOR(lev.typ)) lev.flags = D_BROKEN;
+  if (IS_DOOR(lev.typ)) {
+    lev.flags = D_BROKEN;
+    // C ref: trap.c blow_up_landmine — newsym after door break
+    newsym(x, y);
+  }
   if (lev.typ === DRAWBRIDGE_DOWN || is_drawbridge_wall(x, y) >= 0) {
     dbx = x, dby = y;
     if (find_drawbridge( dbx, dby)) destroy_drawbridge(dbx, dby);

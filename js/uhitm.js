@@ -913,6 +913,13 @@ export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
     if (resists_fire(mdef)) {
         mhm.damage = 0;
     }
+    // C ref: uhitm.c:2571-2576 — destroy_item gate checks for fire
+    // C calls: if (!rn2(3)) destroy_item(mdef, CLASS, AD_FIRE) per class.
+    // destroy_item iterates mdef inventory consuming obj_resists rn2(100)
+    // per matching item. Full implementation deferred; gate RNG consumed.
+    rn2(3); // SCROLL_CLASS gate
+    rn2(3); // SPELLBOOK_CLASS gate
+    rn2(3); // POTION_CLASS gate
 }
 
 // cf. uhitm.c:2604 — cold damage handler
@@ -925,6 +932,8 @@ export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
     if (resists_cold(mdef)) {
         mhm.damage = 0;
     }
+    // C ref: uhitm.c:2652-2653 — destroy_item gate check for cold
+    rn2(3); // POTION_CLASS gate
 }
 
 // cf. uhitm.c:2662 — electric damage handler
@@ -937,6 +946,9 @@ export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
     if (resists_elec(mdef)) {
         mhm.damage = 0;
     }
+    // C ref: uhitm.c:2708-2711 — destroy_item gate checks for electric
+    rn2(3); // WAND_CLASS gate
+    rn2(3); // RING_CLASS gate
 }
 
 // cf. uhitm.c:2720 — acid damage handler
