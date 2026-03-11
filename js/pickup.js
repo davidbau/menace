@@ -866,7 +866,7 @@ export async function mbag_item_gone(held, item, silent, player) {
   if (!silent) {
     if (item.dknown) await pline("%s %s vanished!", Doname2(item), otense(item, "have"));
     else {
-      await You("%s %s disappear!", Blind ? "notice" : "see", doname(item));
+      await You("%s %s disappear!", player.blind ? "notice" : "see", doname(item));
     }
   }
   if ( player.ushops && (shkp = shop_keeper( player.ushops)) != null) {

@@ -36,7 +36,7 @@ import { makemon } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import { t_at } from './trap.js';
 import { attacktype, ceiling_hider, sticks } from './mondata.js';
-import { AT_HUGS, MZ_HUGE } from './monsters.js';
+import { AT_HUGS, MZ_HUGE, mons, PM_GHOUL } from './monsters.js';
 import { envFlag } from './runtime_env.js';
 import { random_epitaph_text } from './rumors.js';
 
@@ -784,7 +784,7 @@ export async function disturb_grave(map, x, y, player, depth) {
         loc.disturbed = true;
         // C: makemon(&mons[PM_GHOUL], x, y, NO_MM_FLAGS)
         if (typeof makemon === 'function') {
-            makemon('PM_GHOUL', x, y, 0, depth, map);
+            makemon(mons[PM_GHOUL], x, y, 0, depth, map);
         }
         // C: exercise(A_WIS, FALSE)
         if (player) {

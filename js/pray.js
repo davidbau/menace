@@ -1600,7 +1600,7 @@ export async function consume_offering(otmp, player) {
       break;
     }
   }
-  else if (Blind && player.alignment === A_LAWFUL) await Your("sacrifice disappears!");
+  else if (player.blind && player.alignment === A_LAWFUL) await Your("sacrifice disappears!");
   else {
     await Your("sacrifice is consumed in a %s!", (player.alignment === A_LAWFUL) ? "flash of light" : (player.alignment === A_NEUTRAL) ? "plume of smoke" : "burst of flame");
   }
