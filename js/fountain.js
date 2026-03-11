@@ -151,15 +151,22 @@ function nexttodoor(x, y, map) {
 
 // cf. fountain.c:120 -- dogushforth(drinking): fountain gushes
 // Autotranslated from fountain.c:119
-export async function dogushforth(drinking, player) {
-  let madepool = 0;
-  await do_clear_area(player.x, player.y, 7, gush, madepool);
-  if (!madepool) {
-    if (drinking) await Your("thirst is quenched.");
-    else {
-      await pline("Water sprays all over you.");
+export async function dogushforth(drinking, player, map, display, fov) {
+    // C passes &madepool; we mirror with a mutable counter object.
+    const madepool = { count: 0 };
+    await do_clear_area(
+        fov, map, player.x, player.y, 7,
+        async (x, y, poolcnt) => {
+            await gush(x, y, poolcnt, player, map, display, fov);
+        },
+        madepool
+    );
+    if (!madepool.count) {
+        if (drinking) await Your("thirst is quenched.");
+        else {
+            await pline("Water sprays all over you.");
+        }
     }
-  }
 }
 
 // cf. fountain.c:134 [static] -- gush(x, y, poolcnt): place pool at location
