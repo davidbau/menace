@@ -13,6 +13,11 @@ It is explicitly **not** intended to measure:
 - total project coverage from all tests,
 - unit-test-only path coverage.
 
+Phase 3 objective:
+- reach and hold session-parity coverage north of 90%,
+- while keeping parity green on the established baseline core sessions,
+- and keeping newly added themed parity sessions green as they are introduced.
+
 ## Scope
 
 Coverage input:
@@ -23,6 +28,11 @@ Coverage input:
 Coverage exclusions by design:
 - `test:unit`
 - other standalone script/test harnesses not executed through session replay
+
+Authoritative discipline:
+- use C-grounded session traces to exercise codepaths,
+- do not inflate coverage using non-parity-only synthetic tests,
+- fix JS behavior for divergences exposed by new sessions instead of masking.
 
 ## Runner
 
@@ -102,6 +112,22 @@ One-shot refresh (coverage + snapshot + report + diff-vs-previous):
 npm run coverage:session-parity:refresh
 ```
 
+## Metrics and Gates
+
+Primary metrics:
+- statement/branch/function/line coverage from parity sessions only
+- per-file low-coverage ranking (gameplay-relevant files)
+- parity pass/fail status for baseline and newly added themed sessions
+
+Required gates for each themed batch:
+1. baseline parity sessions remain green
+2. new themed sessions are green
+3. coverage snapshot improves or remains justified (with explicit rationale)
+4. no comparator/harness masking used to hide gameplay mismatches
+
+Campaign target:
+- session-parity line coverage `>= 90%` with all parity suites green
+
 ## Targeted Session Checklist (Priority Order)
 
 Use this checklist to create new deterministic parity sessions that raise
@@ -156,6 +182,46 @@ coverage where C-grounded exercise is currently sparse.
    - Primary files: `js/invent.js`, `js/do_name.js`, `js/write.js`, `js/objnam.js`
    - Session goal: name objects/monsters, write/engrave flows, complex inventory menu operations.
    - Stop condition: at least one long prompt flow and one rename/write action chain.
+
+## Theme Organization and Session Layout
+
+Organize new sessions under a theme-based tree so progression is explicit and
+auditable:
+
+```text
+test/comparison/sessions/
+  coverage/
+    furniture-thrones-fountains/
+    locks-containers-pickup/
+    steed-mounted-combat/
+    maze-mines-digging/
+    shops-economy/
+    spells-reads-zaps/
+    prayer-altars/
+    monster-ai-combat/
+    quest-special-levels/
+    inventory-naming-writing/
+```
+
+Rules:
+- each theme directory should include a short README describing target codepaths
+  and completion criteria
+- sessions should remain deterministic (seed, fixed datetime, canonical options)
+- avoid blending many unrelated themes into one long session unless necessary
+- prefer a few high-yield sessions per theme over many low-signal sessions
+
+Recommended naming:
+- `themeNN_seedXXX_<role>_<intent>.session.json`
+- example: `theme04_seed512_valkyrie_digging-branch-transition.session.json`
+
+## Coverage Campaign Plan (Theme-Driven)
+
+1. Run parity-only coverage and produce the actionable low-coverage report.
+2. Pick the top 1-2 under-covered themes/files with highest gameplay impact.
+3. Record C sessions for that theme and add them under `sessions/coverage/<theme>/`.
+4. Run parity suite for baseline + new theme sessions; fix JS parity divergences.
+5. Refresh coverage snapshot and diff results.
+6. Repeat until 90%+ coverage is reached and stable.
 
 ### Session Authoring Rules
 

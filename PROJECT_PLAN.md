@@ -5,8 +5,8 @@
 
 **Current phase:** Phase 3 (full-coverage closure / CODEMATCH expansion) with
 Phase 5 (self-play) running in parallel. Phase 2 parity burndown is complete at
-the current checkpoint; active execution on `main` is short cleanup plus
-CODEMATCH coverage expansion while preserving full-green parity.
+the current checkpoint; active execution on `main` is C-parity-session coverage
+expansion while preserving full-green parity on baseline sessions.
 Active cleanup campaign: `docs/ASYNC_CLEANUP.md` (currently Phase 3e,
 removing legacy `_pendingMore`/queued-`--More--` fallback paths).
 
@@ -164,12 +164,12 @@ hide-under detection, `mkobj` floor placement, and postmov trap/effect
 ordering. After the green checkpoint, execution priority shifted to cleanup and
 CODEMATCH coverage expansion.
 
-### Phase 3–4: Full-Coverage Closure and Stabilization (groundwork started)
+### Phase 3–4: Full-Coverage Closure and Stabilization (active)
 
 The [CODEMATCH.md](docs/CODEMATCH.md) correspondence ledger is maintained.
 Per-file refactoring issues ([#32–#138](https://github.com/davidbau/menace/issues?q=label%3Acodematch))
 track structural alignment. Code-coverage tooling and targeted sessions for
-uncovered paths are planned but not yet the primary execution focus.
+uncovered paths are now the primary execution focus in Phase 3.
 
 ### Phase 5: Self-Play Agent (parallel track, ongoing)
 
@@ -238,7 +238,10 @@ gates. Per-commit parity metrics are recorded in
    - Maintain the [C-to-JS code correspondence ledger](docs/CODEMATCH.md) (file-by-file and function-by-function mapping).
    - Refactor JS files to match C file/function naming (one GitHub issue per C file, labeled `codematch`; [issues #32–#138](https://github.com/davidbau/menace/issues?q=label%3Acodematch)).
    - Run and maintain JS code-coverage tooling to identify unexercised codepaths.
-   - Build targeted sessions to drive coverage toward 100% and debug residual parity gaps.
+   - Drive coverage using C-parity session tests as the authoritative signal (not unit-test-only coverage).
+   - Organize new parity sessions by theme in dedicated directories and expand those themes incrementally.
+   - Preserve full-green baseline parity while adding new sessions, and debug/fix parity on each new session set.
+   - Reach and hold session-parity coverage north of 90% while keeping the parity suite green.
 5. **Phase 4: Architectural stabilization** *(planned)*
    - Refactor for robustness, readability, maintainability, performance, and design quality while preserving parity.
 6. **Phase 5: Self-play agent** *(parallel track, running across Phases 2–4)*
@@ -399,22 +402,18 @@ Authoritative doc: [docs/MORE_NEEDED_CAMPAIGN.md](docs/MORE_NEEDED_CAMPAIGN.md)
 
 ## Immediate Focus
 
-The current work is direct parity burndown on `main`, targeting the three
-remaining divergence clusters:
+Phase 3 execution is a coverage campaign rooted in C-parity session replay:
 
-1. **Monster movement / pet AI** (~14 sessions): `dochug` sequencing, `dog_move`
-   ordering, `mcalcmove` allocation, `distfleeck` decision paths. This is the
-   dominant blocker. See [#213](https://github.com/davidbau/menace/issues/213).
-2. **Level-generation wizard sessions** (~7 sessions): `themeroom_fill`,
-   `makerooms`, `sp_lev` placement divergences on new dungeon levels. See
-   [#214](https://github.com/davidbau/menace/issues/214) (historical) and
-   related open issues.
-3. **Late-game combat and miscellaneous** (~5 sessions): scattered divergences
-   in combat, bones loading, and long-session drift.
+1. Use session-parity coverage artifacts to identify untested/under-tested JS
+   gameplay paths.
+2. Add deterministic C-recorded sessions that specifically exercise those paths.
+3. Group new sessions by gameplay theme so coverage growth is deliberate and
+   auditable.
+4. Require parity-green outcomes on each new session set and avoid regression on
+   baseline core sessions.
+5. Drive aggregate session-parity coverage above 90% and hold it there.
 
-Secondary priorities: shop economy (`shk.c` — [#245](https://github.com/davidbau/menace/issues/245)),
-player trap effects (`dotrap` — [#238](https://github.com/davidbau/menace/issues/238)),
-and dig/passwall parity ([#250](https://github.com/davidbau/menace/issues/250),
-[#255](https://github.com/davidbau/menace/issues/255)).
-
-The canonical parity test matrix is published at [docs/PARITY_TEST_MATRIX.md](docs/PARITY_TEST_MATRIX.md) — it defines session categories, test commands, comparison channels, deterministic controls, and quality gates.
+Coverage process details and theme taxonomy are maintained in
+[docs/COVERAGE.md](docs/COVERAGE.md).
+The canonical parity test matrix remains
+[docs/PARITY_TEST_MATRIX.md](docs/PARITY_TEST_MATRIX.md).
