@@ -7817,3 +7817,22 @@ hard-won wisdom:
     - `screens=30/30`
   - Added parity-green fixture:
     - `test/comparison/sessions/coverage/furniture-thrones-fountains/theme01_seed005_valk_fountain-realdip1_gameplay.session.json`
+
+## 2026-03-11: extcmd sit support + completion timing parity guard
+
+- Problem:
+  - `#sit` was missing from extended-command dispatch in `cmd.js`.
+  - Extcmd display completion could over-expand 1-char prefixes, causing
+    screen-boundary mismatch (`# sit` shown too early where C still shows `# s`).
+- Change:
+  - Added `sit` extcmd mapping in `cmd.js` to `dosit(...)`.
+  - Added completion guard in `displayCompletedExtcmd()`:
+    - keep `# d` literal while entering `#dip`,
+    - keep `# s` literal while entering `#sit`,
+    - retain one-char auto-expansion for other unique prefixes (`#u`→`untrap`,
+      `#l`→`loot`) used by existing parity fixtures.
+- Validation:
+  - `node test/comparison/session_test_runner.js --no-parallel --verbose /tmp/theme01_seed005_sit_floor_trial.session.json`
+    - full parity green (`rng/events/screens/cursor` all matched).
+  - Added parity-green fixture:
+    - `test/comparison/sessions/coverage/furniture-thrones-fountains/theme01_seed005_valk_sit-floor1_gameplay.session.json`

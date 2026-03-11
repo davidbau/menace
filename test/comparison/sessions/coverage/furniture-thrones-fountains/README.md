@@ -1,6 +1,6 @@
 # Theme: furniture-thrones-fountains
 
-Status: in_progress (sessions 5 captured and parity-green)
+Status: in_progress (sessions 6 captured and parity-green)
 
 Target codepaths:
 - `js/sit.js` (`dosit`, throne branches, seat-context branches)
@@ -29,12 +29,16 @@ Session plan:
   - `What do you want to dip? [..]`
   - object-specific fountain confirmation prompt
   - real `dipfountain` erosion result (`Your spear rusts!`)
-4. `theme01_seed542_tourist_sink-and-kick`
+4. `theme01_seed005_valk_sit-floor1_gameplay` (captured)
+- Exercises C-faithful `#sit` extcmd flow on regular floor:
+  - extcmd entry echo timing (`# s` → `# sit`) parity
+  - `dosit()` base branch (`Having fun sitting on the floor?`)
+5. `theme01_seed542_tourist_sink-and-kick`
 - Reach/force sink cell and exercise:
   - `drinksink` path
   - `dipsink` path
   - nearby kick/furniture interaction branch
-5. `theme01_seed543_knight_throne-sit-branches`
+6. `theme01_seed543_knight_throne-sit-branches`
 - Force throne context and execute `#sit` repeatedly until multiple throne
   outcomes are observed (good + bad branch families).
 
@@ -71,6 +75,7 @@ Captured sessions:
 3. `theme01_seed005_valk_fountain-dip2_gameplay.session.json`
 4. `theme01_seed005_valk_fountain-drink2-refresh_gameplay.session.json`
 5. `theme01_seed005_valk_fountain-realdip1_gameplay.session.json`
+6. `theme01_seed005_valk_sit-floor1_gameplay.session.json`
 
 Current blockers:
 1. Dry-up/monster follow-up branch from the seed5 fountain path currently

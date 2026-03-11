@@ -41,6 +41,7 @@ import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './picku
 import { dotalk } from './sounds.js';
 import { add_skills_to_menu, skill_advance } from './weapon.js';
 import { handleSet } from './options.js';
+import { dosit } from './sit.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
@@ -803,6 +804,9 @@ async function handleExtendedCommand(game) {
             const tookTimeOffer = await dosacrifice(player, game.map);
             return { moved: false, tookTime: !!tookTimeOffer };
         }
+        case 'sit':
+            queueRepeatExtcmd((g) => dosit(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!t })));
+            return { moved: false, tookTime: !!(await dosit(player, game.map, display)) };
         case 'monster': {
             // cf. cmd.c domonability() — use polymorphed monster special ability.
             const isPolyd = !!(player.Upolyd || (player.mtimedone && player.mtimedone > 0));
@@ -888,7 +892,7 @@ async function handleExtendedCommand(game) {
 function knownExtendedCommands(game) {
     const cmds = [
         'options', 'optionsfull', 'adjust', 'wipe', 'pray', 'turn', 'dip',
-        'enhance', 'chat', 'offer', 'monster', 'name', 'force', 'loot',
+        'enhance', 'chat', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
         'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
     ];
     if (game?.wizard) {
@@ -902,7 +906,8 @@ function displayCompletedExtcmd(typed, game) {
     const lowered = raw.toLowerCase();
     if (!lowered) return raw;
     // C shows literal "# d" while entering dip; don't auto-expand this alias.
-    if (lowered === 'd') return raw;
+    // Likewise, keep "# s" literal so "#sit" can be entered progressively.
+    if (lowered === 'd' || lowered === 's') return raw;
     const cmds = knownExtendedCommands(game);
     const exact = cmds.find((c) => c === lowered);
     if (exact) return raw;
