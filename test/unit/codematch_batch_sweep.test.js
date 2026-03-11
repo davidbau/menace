@@ -15,7 +15,7 @@ import { CRYSTAL_BALL } from '../../js/objects.js';
 import { PM_ROGUE } from '../../js/monsters.js';
 import { ART_MASTER_KEY_OF_THIEVERY } from '../../js/artifacts.js';
 import { dodip, dip_into } from '../../js/potion.js';
-import { seffect_charging } from '../../js/read.js';
+import { seffect_charging, seffect_taming } from '../../js/read.js';
 
 test('artifact.count_surround_traps counts hidden trap/door/container but not shown trap', () => {
     const map = new GameMap();
@@ -230,4 +230,54 @@ test('read.seffect_charging non-confused recharges selected chargeable object', 
     const consumed = await seffect_charging(scroll, player, display, { disp: { botl: false }, display });
     assert.equal(consumed, true);
     assert.equal(wand.spe > 0, true);
+});
+
+test('read.seffect_taming cursed scroll angers peaceful nearby monster', async () => {
+    initRng(78);
+    const map = new GameMap();
+    const mon = {
+        mx: 11, my: 10,
+        dead: false, mhp: 10,
+        mndx: PM_WEREWOLF,
+        peaceful: true, tame: false,
+        mpeaceful: 1, mtame: 0,
+        data: { mlet: 'd', mr: 0, mflags1: 0, mflags2: 0, mflags3: 0 },
+    };
+    map.monsters.push(mon);
+    const player = {
+        x: 10, y: 10, confused: 0,
+        usteed: null, uswallow: false, ustuck: null,
+        ualign: { type: 0, record: 0 },
+        data: {},
+    };
+    const display = { putstr_message: async () => {} };
+    const scroll = { cursed: 1, blessed: 0 };
+
+    const consumed = await seffect_taming(scroll, player, display, { map, fov: null });
+    assert.equal(consumed, false);
+    assert.equal(!!mon.peaceful || !!mon.mpeaceful, false);
+});
+
+test('read.seffect_taming uses u.ustuck path when player is swallowed', async () => {
+    initRng(79);
+    const map = new GameMap();
+    const stuck = {
+        mx: 10, my: 10,
+        dead: false, mhp: 12,
+        mndx: PM_WEREWOLF,
+        peaceful: true, tame: false,
+        mpeaceful: 1, mtame: 0,
+        data: { mlet: 'h', mr: 0, mflags1: 0, mflags2: 0, mflags3: 0 },
+    };
+    map.monsters.push(stuck);
+    const player = {
+        x: 10, y: 10, confused: 0,
+        usteed: null, uswallow: true, ustuck: stuck,
+    };
+    const display = { putstr_message: async () => {} };
+    const scroll = { cursed: 1, blessed: 0 };
+
+    const consumed = await seffect_taming(scroll, player, display, { map, fov: null, moves: 1 });
+    assert.equal(consumed, false);
+    assert.equal(!!stuck.peaceful || !!stuck.mpeaceful, false);
 });

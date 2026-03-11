@@ -4151,7 +4151,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1866 | `seffect_earth` | read.js:1043 | Approximate (messages match; no boulder drop_boulder_on_monster/player yet) |
 | 1114 | `seffect_enchant_armor` | read.js:686 | Implemented (faithful: evaporation check, enchant calc, vibration warning) |
 | 1576 | `seffect_enchant_weapon` | read.js:606 | Implemented (faithful: confused erodeproof; chwepon RNG: rn2(spe), rnd(3-spe/3)) |
-| 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; no explode() area effect yet) |
+| 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; explosion routes through `explode()`, but blessed targeting/UX remains simplified) |
 | 1993 | `seffect_food_detection` | read.js:901 | Implemented (routes to `food_detect`) |
 | 1669 | `seffect_genocide` | read.js:993 | Approximate (routes to `do_class_genocide`/`do_genocide`; prompt UX simplified) |
 | 1982 | `seffect_gold_detection` | read.js:884 | Implemented (routes to `gold_detect`) |
@@ -4163,7 +4163,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1438 | `seffect_remove_curse` | read.js:556 | Implemented (faithful: inventory iteration, blessorcurse(2) for confused, uncurse worn) |
 | 1403 | `seffect_scare_monster` | read.js:515 | Implemented (faithful: resist() per monster, monflee, cansee check, ct counting) |
 | 1938 | `seffect_stinking_cloud` | read.js:1078 | Implemented (routes to `do_stinking_cloud` targeting + gas cloud creation) |
-| 1626 | `seffect_taming` | read.js:960 | Approximate (simplified: no resist/maybe_tame, just sets tame flag in radius) |
+| 1626 | `seffect_taming` | read.js:1253 | Implemented (C-shaped `maybe_tame`: cursed->anger via `setmangry`, non-cursed uses `resist`/`tamedog`; includes swallow `u.ustuck` path, steed-at-center check, and `canspotmon`-gated visible result messaging) |
 | 1962 | `seffect_teleportation` | read.js:867 | Implemented (routes to `scrolltele`/`level_tele`) |
 | 2141 | `seffects` | read.js:1097 | Implemented (full dispatch to all 22 scroll types; exercise(A_WIS) for magic scrolls) |
 | 2418 | `set_lit` | read.js:1596 | Implemented |

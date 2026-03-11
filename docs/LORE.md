@@ -7396,3 +7396,33 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (17/17)
   - `npm run -s test:unit` (2754/2754)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: read.seffect_taming maybe_tame flow aligned to C
+
+- Problem:
+  - `seffect_taming` was still approximate: it directly toggled tame flags in a
+    radius and skipped C's `maybe_tame` decision flow and visibility accounting.
+- Change:
+  - `js/read.js`:
+    - implemented async `maybe_tame` with C-shaped branching:
+      - cursed scroll: anger via `setmangry(...)`, return `-1` when peacefulness
+        is lost;
+      - non-cursed: apply `resist(...)` gate and call `tamedog(...)` when
+        allowed; return `+1` when tame/peaceful state improves.
+    - `seffect_taming` now follows C control flow:
+      - swallowed branch uses `u.ustuck` directly;
+      - non-swallowed branch scans `bd = confused ? 5 : 1`, checks map bounds,
+        includes center-steed fallback, and computes `vis_results` via
+        `canspotmon(...)`.
+  - `test/unit/codematch_batch_sweep.test.js`:
+    - added deterministic coverage for cursed-nearby angering and swallowed
+      (`u.ustuck`) path behavior.
+  - `docs/CODEMATCH.md`:
+    - marked `seffect_taming` implemented and corrected stale `seffect_fire`
+      note to reflect current `explode()` routing.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (19/19)
+  - `npm run -s test:unit` (2756/2756)
+  - `npm run -s test:session -- --max-failures=5` (151/151)
+  - Note: one initial full-suite run hit a single timeout on seed033, but the
+    session passed in isolated rerun and in a subsequent full-suite rerun.

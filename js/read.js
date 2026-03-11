@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -56,7 +56,8 @@ import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismis
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
-import { kill_genocided_monsters, wake_nearto, wakeup } from './mon.js';
+import { kill_genocided_monsters, wake_nearto, wakeup, setmangry } from './mon.js';
+import { tamedog } from './dog.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 
@@ -1221,28 +1222,38 @@ async function seffect_amnesia(sobj, player, display) {
     return false;
 }
 
+function mon_tame_state(mon) {
+    const mtame = Number(mon?.mtame || 0);
+    return mtame > 0 || !!mon?.tame;
+}
+
+function mon_peaceful_state(mon) {
+    if (mon?.mpeaceful != null) return !!mon.mpeaceful;
+    return !!mon?.peaceful;
+}
+
 // cf. read.c maybe_tame() — taming effect on a monster
-function maybe_tame(mtmp, sobj) {
-    const was_tame = !!mtmp.tame;
-    const was_peaceful = !!mtmp.mpeaceful;
+async function maybe_tame(mtmp, sobj, player, game, map) {
+    const was_tame = mon_tame_state(mtmp);
+    const was_peaceful = mon_peaceful_state(mtmp);
 
     if (sobj.cursed) {
         // Cursed: anger the monster
-        if (mtmp.mpeaceful) {
-            mtmp.mpeaceful = false;
+        setmangry(mtmp, false, map, player);
+        if (was_peaceful && mon_peaceful_state(mtmp)) {
+            // Keep mpeaceful/peaceful aliases coherent for C-style checks.
+            if ('mpeaceful' in mtmp || !('peaceful' in mtmp)) mtmp.mpeaceful = 0;
+            if ('peaceful' in mtmp || !('mpeaceful' in mtmp)) mtmp.peaceful = false;
         }
-        if (was_peaceful && !mtmp.mpeaceful) return -1;
+        if (was_peaceful && !mon_peaceful_state(mtmp)) return -1;
     } else {
         // cf. C: if (!resist(mtmp, sobj->oclass, 0, NOTELL) || mtmp->isshk)
         //     tamedog(mtmp, sobj, FALSE)
         if (!resist(mtmp, SCROLL_CLASS) || mtmp.isshk) {
-            // Simplified tamedog: tame the monster
-            if (!mtmp.tame) {
-                mtmp.tame = true;
-                mtmp.mpeaceful = true;
-            }
+            await tamedog(mtmp, sobj, false, player, game, map);
         }
-        if ((!was_peaceful && mtmp.mpeaceful) || was_tame !== !!mtmp.tame) {
+        if ((!was_peaceful && mon_peaceful_state(mtmp))
+            || was_tame !== mon_tame_state(mtmp)) {
             return 1;
         }
     }
@@ -1253,20 +1264,27 @@ function maybe_tame(mtmp, sobj) {
 export async function seffect_taming(sobj, player, display, game) {
     const confused = !!player.confused;
     const map = game?.map;
-    const bd = confused ? 5 : 1;
     let candidates = 0, results = 0, vis_results = 0;
+    const fov = game?.fov || null;
 
-    if (map) {
+    if (player.uswallow && player.ustuck) {
+        candidates = 1;
+        results = await maybe_tame(player.ustuck, sobj, player, game, map);
+        vis_results = results;
+    } else {
+        const bd = confused ? 5 : 1;
         for (let i = -bd; i <= bd; i++) {
             for (let j = -bd; j <= bd; j++) {
                 const mx = player.x + i;
                 const my = player.y + j;
-                const mtmp = map.monsterAt ? map.monsterAt(mx, my) : null;
+                if (!isok(mx, my)) continue;
+                let mtmp = m_at(mx, my, map);
+                if (!mtmp && i === 0 && j === 0) mtmp = player.usteed || null;
                 if (!mtmp || mtmp.dead || (mtmp.mhp != null && mtmp.mhp <= 0)) continue;
                 candidates++;
-                const res = maybe_tame(mtmp, sobj);
+                const res = await maybe_tame(mtmp, sobj, player, game, map);
                 results += res;
-                vis_results += res; // simplified: assume all visible
+                if (canspotmon(mtmp, player, fov, map)) vis_results += res;
             }
         }
     }
