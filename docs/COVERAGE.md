@@ -64,6 +64,7 @@ Behavior:
 Primary artifact:
 - `/coverage/index.html`
 - `/coverage/coverage-summary.json`
+- published site path: `https://mazesofmenace.net/coverage/`
 
 Directory:
 - `/coverage/` (repo root)

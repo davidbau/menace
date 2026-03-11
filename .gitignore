@@ -21,7 +21,9 @@ oracle/pending.jsonl
 oracle/pes-diagnoses.json
 tmp/
 tmp/session-comparisons/
-/coverage/
+/coverage/*
+!/coverage/index.html
+!/coverage/coverage-summary.json
 
 # Debug scripts should go in scripts/debug/, not root
 /*.mjs
