@@ -3075,7 +3075,7 @@ No function symbols parsed from isaac64.c.
 | 1334 | `m_search_items` | monmove.js:m_search_items_goal | Implemented |
 | 1273 | `maybe_spin_web` | monmove.js:2480 | Implemented |
 | 55 | `mb_trapped` | monmove.js:2301 | Implemented |
-| 584 | `mind_blast` | monmove.js | Partial — RNG-faithful: rn2(20) gate, hero lock-on (sensemon/Blind_telepat/rn2(10)), rnd(15) damage, monster loop with telepathic/rn2(2)/rn2(10)/rnd(15); losehp stubbed, hero unhide stubbed |
+| 584 | `mind_blast` | monmove.js | Partial — hero path now applies real damage via `mdamageu` and reveals hidden/disguised hero (`uundetected`/`m_ap_type`) before lock-on message; remaining gaps are exact `losehp(\"psychic blast\")` killer text and per-target `mon_nam` lock-on messaging for monster victims |
 | 308 | `mon_regen` | monmove.js:384 | Implemented |
 | 79 | `mon_track_add` | monmove.js:154 | Implemented — ring buffer push |
 | 90 | `mon_track_clear` | monmove.js:162 | Implemented — zero all entries |

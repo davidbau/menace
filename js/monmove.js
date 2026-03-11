@@ -31,7 +31,7 @@ import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
-import { mattacku, ranged_attk_available } from './mhitu.js';
+import { mattacku, mdamageu, ranged_attk_available } from './mhitu.js';
 import { makemon } from './makemon.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
@@ -75,7 +75,7 @@ import { add_damage, after_shk_move, shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
-import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
+import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse, wakeup } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
 import { canSpotMonsterForMap, map_invisible, newsym, canspotmon } from './display.js';
@@ -106,7 +106,7 @@ import { m_harmless_trap, floor_trigger, mintrap_postmove, t_at } from './trap.j
 export { m_harmless_trap, floor_trigger, mintrap_postmove };
 import { maketrap } from './dungeon.js';
 import { mdig_tunnel, may_dig, bury_an_obj } from './dig.js';
-import { IS_TREE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
+import { IS_TREE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER } from './const.js';
 import { stairway_at } from './stairs.js';
 import { mwelded } from './wield.js';
 import { extract_from_minvent } from './worn.js';
@@ -1030,7 +1030,7 @@ async function run_dochug_postmove_tail_current_js(
     return { moveStatus, mmoved };
 }
 
-async function mind_blast(mon, map, player, display = null, fov = null) {
+export async function mind_blast(mon, map, player, display = null, fov = null, game = null) {
     const BOLT_LIM_SQ = BOLT_LIM * BOLT_LIM;
 
     // C ref: monmove.c:590 — canseemon message
@@ -1054,7 +1054,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
     if (mon_is_peaceful(mon)) {
         // C: "It feels quite soothing." (no Conflict check — not implemented)
         if (display) await display.putstr_message('It feels quite soothing.');
-    } else {
+    } else if (!player?.uinvulnerable) {
         // C ref: monmove.c:602 — lock-on check
         // C: sensemon(mtmp) — true if hero has telepathy and monster is not mindless
         // JS: approximate via player.telepathy (intrinsic or helmet)
@@ -1073,12 +1073,25 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
         }
 
         if (locksOn) {
+            if (player.uundetected) {
+                player.uundetected = 0;
+                newsym(player.x, player.y);
+            } else if ((player.m_ap_type || M_AP_NOTHING) !== M_AP_NOTHING
+                       && (player.m_ap_type || M_AP_NOTHING) !== M_AP_MONSTER) {
+                player.m_ap_type = M_AP_NOTHING;
+                player.mappearance = 0;
+                newsym(player.x, player.y);
+            }
+            if (display) {
+                await display.putstr_message(
+                    `It locks on to your ${m_sen ? 'telepathy' : blind_telepat ? 'latent telepathy' : 'mind'}!`
+                );
+            }
             // C ref: monmove.c:620 — damage
             let dmg = rnd(15);
             // C: Half_spell_damage halves
             if (player.halfSpellDamage) dmg = Math.floor((dmg + 1) / 2);
-            // TODO: losehp(dmg, "psychic blast", KILLED_BY_AN)
-            // TODO: unhide hero if hidden
+            await mdamageu(mon, dmg, player, display, game);
             monmoveTrace('mind_blast',
                 `step=${monmoveStepLabel(map)}`,
                 `id=${mon.m_id ?? '?'}`,
@@ -1107,8 +1120,7 @@ async function mind_blast(mon, map, player, display = null, fov = null) {
         }
 
         if (m2hit) {
-            // C: wakeup(m2, FALSE) — not yet ported
-            m2.sleeping = false;
+            wakeup(m2, false, map, player);
             const m2dmg = rnd(15);
             m2.mhp = (m2.mhp ?? 0) - m2dmg;
             monmoveTrace('mind_blast',
@@ -1346,7 +1358,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:832-836 — mind flayer psychic blast
     const mdat = mon.data || mon.type || {};
     if (is_mind_flayer(mdat) && !rn2(20)) {
-        await mind_blast(mon, map, player, display, fov);
+        await mind_blast(mon, map, player, display, fov, game);
         set_apparxy(mon, map, player);
         // C ref: monmove.c:835 — recalculate distfleeck after mind_blast
         ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));

@@ -7595,3 +7595,26 @@ hard-won wisdom:
   - `node --test test/unit/invent_surface_behavior.test.js`
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
+
+## 2026-03-11: monmove `mind_blast` hero-effect fidelity slice
+
+- Problem:
+  - `mind_blast()` in `monmove.js` was still marked partial with two gameplay-significant TODOs: hero damage application and hidden/disguised hero reveal side effects.
+- Change:
+  - `js/monmove.js`:
+    - Exported `mind_blast` for focused unit testing.
+    - Wired hero damage path to `mdamageu(...)` so lock-on now applies real HP loss/death handling instead of a no-op.
+    - Ported C-faithful reveal side effects before damage:
+      - clear `uundetected` and refresh with `newsym`, or
+      - clear non-monster `m_ap_type` disguise (`mappearance=0`) and refresh with `newsym`.
+    - Added lock-on message text by lock source (`telepathy` / `latent telepathy` / `mind`).
+    - Replaced monster-target wakeup simplification (`sleeping=false`) with `wakeup(...)` call before damage.
+    - Updated `dochug` callsite to pass `game` into `mind_blast` for full damage/death context.
+  - `docs/CODEMATCH.md`:
+    - Refreshed `mind_blast` row notes to remove the old hero-damage/unhide TODOs and document remaining partial gaps precisely.
+  - Added tests: `test/unit/monmove_mind_blast.test.js`.
+- Validation:
+  - `node --test test/unit/monmove_mind_blast.test.js`
+  - `node --test test/unit/monmove.test.js`
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
