@@ -19,10 +19,10 @@ import {
     WAN_MAGIC_MISSILE, WAN_NOTHING, NODIR,
     OIL_LAMP, BRASS_LANTERN, MAGIC_MARKER, TINNING_KIT, EXPENSIVE_CAMERA,
     BELL_OF_OPENING, UNICORN_HORN, BOULDER, ROCK,
-    HEAVY_IRON_BALL,
+    HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -1469,7 +1469,7 @@ export async function seffect_punishment(sobj, player, display) {
         await display.putstr_message('You feel guilty.');
         return false;
     }
-    await punish(sobj, player);
+    await punish(sobj, player, player?.map || null);
     return false;
 }
 
@@ -1660,11 +1660,16 @@ export function set_lit(x, y, val, map) {
 }
 
 // Autotranslated from read.c:3012
-export function unpunish() {
-  let savechain = uchain;
-  setworn( 0, W_CHAIN);
-  delobj(savechain);
-  setworn( 0, W_BALL);
+export function unpunish(player, map = null) {
+  if (!player) return;
+  const savechain = player.uchain || player.chain || null;
+  player.uchain = null;
+  player.chain = null;
+  if (savechain) delobj(savechain);
+  player.uball = null;
+  player.ball = null;
+  player.Punished = false;
+  player.punished = false;
 }
 
 // Autotranslated from read.c:1078
@@ -1941,31 +1946,59 @@ export async function drop_boulder_on_player(confused, helmet_protects, byu, ski
 // cf. read.c:2966 — punish(sobj)
 // Apply punishment (ball & chain).
 // ---------------------------------------------------------------------------
-export async function punish(sobj, player) {
+export async function punish(sobj, player, map = null) {
     const reuse_ball = (sobj && sobj.otyp === HEAVY_IRON_BALL) ? sobj : null;
     const cursed_levy = (sobj && sobj.cursed) ? 1 : 0;
+    const punished = !!(player?.Punished || player?.punished || player?.uball || player?.ball);
 
     if (!reuse_ball)
         await You("are being punished for your misbehavior!");
-    if (player.Punished) {
+    if (punished) {
         await pline("Your iron ball gets heavier.");
-        if (!player.uball) player.uball = { owt: 0 };
+        const heldBall = player.uball || player.ball || null;
+        if (!heldBall) {
+            player.uball = { owt: 0, owornmask: W_BALL };
+            player.ball = player.uball;
+        }
         player.uball.owt = (player.uball.owt || 0) + 160 * (1 + cursed_levy);
         return;
     }
     if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {
+        const { mkobj, place_object } = await nhimport('./mkobj.js');
         if (!reuse_ball) {
             await pline("A ball and chain appears, then falls away.");
+            const looseBall = mkobj(BALL_CLASS, true, false);
+            if (looseBall && map) {
+                place_object(looseBall, player.x, player.y, map);
+                stackobj(looseBall);
+                newsym(player.x, player.y);
+            }
+        } else if (map) {
+            place_object(reuse_ball, player.x, player.y, map);
+            stackobj(reuse_ball);
+            newsym(player.x, player.y);
         }
         return;
     }
     if (!reuse_ball) {
         await pline("You are being punished!");
     }
+    const { mkobj } = await nhimport('./mkobj.js');
+    const chainObj = mkobj(CHAIN_CLASS, true, false);
+    const ballObj = reuse_ball || mkobj(BALL_CLASS, true, false);
+    if (chainObj) chainObj.owornmask = (chainObj.owornmask || 0) | W_CHAIN;
+    if (ballObj) ballObj.owornmask = (ballObj.owornmask || 0) | W_BALL;
+    player.uchain = chainObj || {};
+    player.chain = player.uchain;
+    player.uball = ballObj || { owornmask: W_BALL };
+    player.ball = player.uball;
     player.Punished = true;
     player.punished = true;
-    if (!player.uball) player.uball = { owt: 0 };
-    if (!player.uchain) player.uchain = {};
+    if (!player.uswallow && map) {
+        const { placebc } = await nhimport('./ball.js');
+        await placebc(player, map);
+        newsym(player.x, player.y);
+    }
 }
 
 // ---------------------------------------------------------------------------

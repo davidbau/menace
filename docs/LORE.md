@@ -7501,3 +7501,32 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (21/21)
   - `npm run -s test:unit` (2758/2758)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: punish/unpunish state moved from flag-only to object-backed flow
+
+- Problem:
+  - `seffect_punishment` delegated to `punish()`, but `punish()` still mostly
+    toggled scalar flags and did not create/attach concrete ball+chain objects
+    compatible with ball-chain movement helpers.
+- Change:
+  - `js/read.js`:
+    - `punish(sobj, player, map)` now:
+      - detects existing punishment and applies heavier-ball levy on the active
+        ball object,
+      - creates concrete chain/ball objects (`CHAIN_CLASS`/`BALL_CLASS`) when
+        first applying punishment,
+      - populates both compatibility aliases (`uball`/`uchain` and
+        `ball`/`chain`),
+      - places objects via `placebc(player,map)` when not swallowed.
+    - non-solid form branch now materializes a loose ball on the floor when map
+      context is available.
+    - `unpunish(player, map)` now clears both alias sets and resets punishment
+      flags instead of referencing stale globals.
+    - `seffect_punishment` now passes map context into `punish(...)`.
+  - `docs/CODEMATCH.md`:
+    - updated `seffect_punishment` and stale `seffect_fire` wording to reflect
+      current implementation status.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (21/21)
+  - `npm run -s test:unit` (2758/2758)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

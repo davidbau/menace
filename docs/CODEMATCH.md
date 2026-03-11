@@ -4151,7 +4151,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1866 | `seffect_earth` | read.js:1411 | Partial (now includes C-shaped level gating `!Is_rogue_level && has_ceiling && (!In_endgame || Is_earthlevel)`, `avoid_ceiling` message branch, Sokoban guilt, and square suitability filters (`!closed_door`, `!IS_OBSTRUCTED`, `!IS_AIR`); remaining gap is full message/terrain nuance and steed handling) |
 | 1114 | `seffect_enchant_armor` | read.js:686 | Implemented (faithful: evaporation check, enchant calc, vibration warning) |
 | 1576 | `seffect_enchant_weapon` | read.js:606 | Implemented (faithful: confused erodeproof; chwepon RNG: rn2(spe), rnd(3-spe/3)) |
-| 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; explosion routes through `explode()`, but blessed targeting/UX remains simplified) |
+| 1797 | `seffect_fire` | read.js:1007 | Partial (faithful RNG: rn1(3,3)+bcsign; blessed target prompt + fallback and confused/non-confused branch messaging now C-shaped; remaining gaps are finer visibility/status side-effects) |
 | 1993 | `seffect_food_detection` | read.js:901 | Implemented (routes to `food_detect`) |
 | 1669 | `seffect_genocide` | read.js:993 | Approximate (routes to `do_class_genocide`/`do_genocide`; prompt UX simplified) |
 | 1982 | `seffect_gold_detection` | read.js:884 | Implemented (routes to `gold_detect`) |
@@ -4159,7 +4159,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1688 | `seffect_light` | read.js:425 | Implemented (non-confused now routes through `litroom` + `lightdamage`; confused path keeps faithful rn1(2,3)+makemon lights) |
 | 2049 | `seffect_magic_mapping` | read.js:909 | Approximate (messages match; no do_mapping() level reveal yet) |
 | 2104 | `seffect_mail` | read.js:seffect_mail | Implemented |
-| 1923 | `seffect_punishment` | read.js:1444 | Partial (confused/blessed guilty path faithful; now calls shared `punish()` path, but full ball-and-chain object placement/wear semantics remain simplified) |
+| 1923 | `seffect_punishment` | read.js:1444 | Partial (confused/blessed guilty path faithful; now calls `punish()` with concrete ball+chain object state (`uball/uchain`, floor placement via `placebc` when possible); remaining gaps are detailed worn/extrinsic parity and blind `set_bc` bookkeeping) |
 | 1438 | `seffect_remove_curse` | read.js:556 | Implemented (faithful: inventory iteration, blessorcurse(2) for confused, uncurse worn) |
 | 1403 | `seffect_scare_monster` | read.js:515 | Implemented (faithful: resist() per monster, monflee, cansee check, ct counting) |
 | 1938 | `seffect_stinking_cloud` | read.js:1078 | Implemented (routes to `do_stinking_cloud` targeting + gas cloud creation) |
