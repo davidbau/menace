@@ -1923,13 +1923,10 @@ async function handleEat(player, display, game) {
                     await display.putstr_message('You cannot eat that!');
                     return { moved: false, tookTime: false };
                 }
-                // cf. eat.c getobj() handles invalid letters differently depending
-                // on mode. In non-wizard mode, it emits a "--More--" that blocks
-                // until Space/Enter/Esc; in wizard mode it silently re-prompts.
-                if (!player.wizard) {
-                    await display.putstr_message("You don't have that object.");
-                    await more(display, { game, site: 'eat.handleEat.moreDismiss' });
-                }
+                // C ref: getobj() always shows error for invalid invlet,
+                // regardless of wizard mode.
+                await display.putstr_message("You don't have that object.");
+                await more(display, { game, site: 'eat.handleEat.moreDismiss' });
                 continue;
             }
 

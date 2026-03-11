@@ -1175,7 +1175,8 @@ export async function handleApply(player, map, display, game) {
 
                         if (ch === 27 || ch === 32 || ch === 10 || ch === 13) {
                             replacePromptMessage();
-                            await display.putstr_message('Never mind.');
+                            // C ref: dig.c use_pick_axe() — getdir() cancel
+                            // returns 0 silently; no "Never mind." message.
                             g.pendingPrompt = null;
                             return { handled: true, tookTime: false, moved: false, prompt: true };
                         }
@@ -1239,7 +1240,11 @@ export async function handleApply(player, map, display, game) {
                 dirChRaw = dirCh;
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
-                    if (selected.otyp !== MIRROR) {
+                    // C ref: dig.c use_pick_axe() cancels silently (no message).
+                    // Other tools (mirror, etc.) go through their own cancel paths.
+                    if (selected.otyp !== MIRROR
+                        && selected.otyp !== PICK_AXE
+                        && selected.otyp !== DWARVISH_MATTOCK) {
                         await display.putstr_message('Never mind.');
                     }
                     return { moved: false, tookTime: false };
