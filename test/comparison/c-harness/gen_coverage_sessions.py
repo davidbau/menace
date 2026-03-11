@@ -663,3 +663,144 @@ def capture_read_scroll(seed=690):
                     character=CHARACTER_WIZ,
                     record_more_spaces=True)
     print(f'  → {outpath}')
+
+
+def capture_apply_tools(seed=700):
+    """Apply various tools to test apply.js code paths.
+
+    Wish for tools and apply them.
+    Targets: apply.js tool application code
+    """
+    print(f'Capturing apply-tools (seed {seed})...')
+    moves = ''
+
+    # Wish for a pickaxe
+    moves += wish('pick-axe')
+
+    # Apply the pick-axe (dig down)
+    moves += 'a' + 'o' + '<' + SP * 3  # apply, select, direction down
+
+    # Wish for a mirror
+    moves += wish('mirror')
+
+    # Apply mirror (look at self)
+    moves += 'a' + 'p' + SP * 5
+
+    # Wish for a tinning kit
+    moves += wish('tinning kit')
+
+    # Apply tinning kit (nothing to tin)
+    moves += 'a' + 'q' + SP * 5
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme08_seed{seed:03d}_wiz_apply-tools_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
+
+
+def capture_engrave_test(seed=710):
+    """Engrave on the floor to test engrave.js code paths.
+
+    Targets: engrave.js engraving code
+    """
+    print(f'Capturing engrave-test (seed {seed})...')
+    moves = ''
+
+    # Engrave with fingers ('E' + '-' = write with fingers)
+    moves += 'E' + '-' + 'hello' + ENTER + SP * 3
+
+    # Walk away and come back
+    moves += 'l' + 'h'
+
+    # Read what was written (':' = look)
+    moves += ':' + SP * 3
+
+    # Engrave again (append)
+    moves += 'E' + '-' + 'n' + 'world' + ENTER + SP * 3  # n = don't overwrite
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme09_seed{seed:03d}_wiz_engrave_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
+
+
+def capture_simple_commands(seed=720):
+    """Test simple commands that don't need wishes.
+
+    Just basic movement, searching, resting.
+    Targets: cmd.js, hack.js basic command dispatch
+    """
+    print(f'Capturing simple-commands (seed {seed})...')
+    moves = ''
+
+    # Rest/search pattern
+    for _ in range(10):
+        moves += 's'  # search (takes time)
+
+    # Walk around
+    moves += 'h' + 'h' + 'j' + 'j' + 'l' + 'l' + 'k' + 'k'
+
+    # More searching
+    for _ in range(5):
+        moves += 's'
+
+    # Look at ground
+    moves += ':' + SP
+
+    # Check inventory
+    moves += 'i' + SP
+
+    # Walk more
+    moves += 'j' + 'j' + 'j' + 'l' + 'l' + 'l'
+
+    # Rest again
+    for _ in range(5):
+        moves += 's'
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme10_seed{seed:03d}_wiz_simple-cmds_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
+
+
+def capture_simple_combat(seed=730):
+    """Walk into a monster for basic combat.
+
+    Uses wizard mode genesis to create a weak monster, then fight it.
+    Targets: uhitm.js, hack.js combat path
+    """
+    print(f'Capturing simple-combat (seed {seed})...')
+    moves = ''
+
+    # Create a weak monster next to us
+    moves += genesis('newt')
+
+    # Walk into it to attack
+    moves += 'j' + SP * 3  # attack south
+
+    # Walk around
+    for d in 'lllkkkhhh':
+        moves += d
+
+    # Create another monster
+    moves += genesis('lichen')
+
+    # Attack it
+    moves += 'j' + SP * 3
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme11_seed{seed:03d}_wiz_simple-combat_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
