@@ -2260,7 +2260,7 @@ export async function moveloop(resuming) {
 
 // Autotranslated from allmain.c:955
 export async function interrupt_multi(msg, game) {
-  if (game.multi > 0 && !game.svc.context.travel && !(game?.svc?.context?.run || 0)) { nomul(0); if (game.flags.verbose && msg) await Norep("%s", msg); }
+  if (game.multi > 0 && !game.svc.context.travel && !(game?.svc?.context?.run || 0)) { nomul(0, game); if (game.flags.verbose && msg) await Norep("%s", msg); }
 }
 
 // Autotranslated from allmain.c:1187

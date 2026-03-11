@@ -1905,7 +1905,7 @@ export async function delfloortrap(ttmp, player) {
 export async function b_trapped(item, bodypart, player) {
   let lvl = level_difficulty(), dmg = rnd(5 + (lvl < 5 ? lvl : 2 + Math.floor(lvl / 2)));
   await pline("KABOOM!! %s was booby-trapped!", The(item));
-  wake_nearby(false);
+  wake_nearby(false, player);
   await losehp(Maybe_Half_Phys(dmg), "explosion", KILLED_BY_AN);
   await exercise(player, A_STR, false);
   if (bodypart !== NO_PART) await exercise(player, A_CON, false);
