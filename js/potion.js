@@ -587,9 +587,6 @@ async function handleQuaff(player, map, display) {
                     trycall(item);
                 }
             }
-            // C ref: dodrink() calls useup() after peffects to consume one
-            // from a stack (quan > 1 decrements, quan == 1 removes entirely).
-            useup(item, player);
             item.in_use = false;
             return { moved: false, tookTime: true };
         }
