@@ -342,9 +342,9 @@ function get_cost(obj, shkp) {
     tmp *= multiplier;
     if (divisor > 1) {
         tmp *= 10;
-        tmp = Math.floor(tmp / divisor);
+        tmp = Math.trunc(tmp / divisor);
         tmp += 5;
-        tmp = Math.floor(tmp / 10);
+        tmp = Math.trunc(tmp / 10);
     }
 
     if (tmp <= 0) tmp = 1;
@@ -435,9 +435,9 @@ export function set_cost(obj, shkp, player) {
     tmp *= multiplier;
     if (divisor > 1) {
       tmp *= 10;
-      tmp /= divisor;
+      tmp = Math.trunc(tmp / divisor);
       tmp += 5;
-      tmp /= 10;
+      tmp = Math.trunc(tmp / 10);
     }
     if (tmp < 1) tmp = 1;
   }
@@ -3239,7 +3239,7 @@ export function getprice(obj, shk_buying, player) {
   if (obj.oartifact) {
     tmp = arti_cost(obj);
     if (shk_buying) {
-      tmp /= 4;
+      tmp = Math.floor(tmp / 4);
     }
   }
   switch (obj.oclass) {
@@ -3264,7 +3264,7 @@ export function getprice(obj, shk_buying, player) {
     break;
     case TOOL_CLASS:
       if (Is_candle(obj) && obj.age < 20 *  objectData[obj.otyp].oc_cost) {
-        tmp /= 2;
+        tmp = Math.floor(tmp / 2);
       }
     break;
   }

@@ -671,7 +671,7 @@ export async function mon_catchup_elapsed_time(mtmp, nmv, game) {
   }
   if (!mtmp.mtame && mtmp.mleashed) { impossible("catching up for leashed monster?"); await m_unleash(mtmp, false); }
   if (!regenerates(mtmp.data)) {
-    imv /= 20;
+    imv = Math.floor(imv / 20);
   }
   healmon(mtmp, imv, 0);
   set_mon_lastmove(mtmp);
@@ -786,7 +786,7 @@ export async function migrate_to_level(mtmp, tolev, xyloc, cc, game, map) {
 export async function abuse_dog(mtmp) {
   if (!mtmp.mtame) return;
   if (Aggravate_monster || Conflict) {
-    mtmp.mtame /= 2;
+    mtmp.mtame = Math.floor(mtmp.mtame / 2);
   }
   else {
     mtmp.mtame--;

@@ -1667,14 +1667,14 @@ export async function spelleffects_check(spell, res, energy, game, player) {
                           hungr = 0;
         break;
         case 16:
-          hungr /= 4;
+          hungr = Math.floor(hungr / 4);
         break;
         case 15:
-          hungr /= 2;
+          hungr = Math.floor(hungr / 2);
         break;
       }
       if (hungr > player.uhunger - 3) hungr = player.uhunger - 3;
-      await morehungry(hungr);
+      await morehungry(player, hungr);
     }
   }
   chance = percent_success(spell);

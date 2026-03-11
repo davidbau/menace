@@ -1452,7 +1452,7 @@ export function obj_shudders(obj, game) {
     zap_odds = 8;
   }
   if (obj.quan > 4) {
-    zap_odds /= 2;
+    zap_odds = Math.floor(zap_odds / 2);
   }
   return !rn2(zap_odds);
 }
