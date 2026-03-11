@@ -203,6 +203,40 @@ cd hack/hack-c/patched && make clean && make
 
 ---
 
+## Session Coverage: A Critical Blind Spot
+
+Parity sessions verify that the JS port matches C *for the paths they exercise*. They say
+nothing about paths they never take. After Phase 4, all 22 sessions at 100% parity — but
+measuring **sessions-only coverage** (without direct unit tests) reveals a structural gap:
+
+```
+All files  |  62% stmts  |  65% branch  |  53% funcs
+  do.js    |  26%   ← item commands: eat, quaff, read, wield, wear, zap, throw
+  do1.js   |  20%   ← more item/combat commands
+  mon.js   |  52%   ← combat, monster AI
+  hack.js  |  63%   ← mixed
+  lev.js   |  54%   ← traps, special cells
+```
+
+**The root cause**: all 22 Phase 4 sessions are pure navigation — movement only, no combat,
+no item use, no traps. They exercise the dungeon generator and renderer thoroughly but never
+fight a single monster or pick up a single item.
+
+This means the combat system (`hitu()`, `amon()`, `m_move()`), the item use system (every
+`do.js` command), trap handling, and the death sequence have **zero parity coverage**. We could
+have systematic divergences in these systems — wrong damage formulas, wrong message text, wrong
+monster AI — and the 22 sessions would all still pass at 100%.
+
+Phase 4 fixed `amon()` and `hitu()` formulas, and parity was verified during development via
+combat-exercising seeds. But those sessions were not committed as fixtures. To achieve long-term
+confidence, Phase 5 must add committed sessions that exercise all major game systems.
+
+**Target**: 100% sessions-only coverage of all C-reachable game logic. Every command,
+item type, trap type, monster attack, and combat outcome must have a committed parity session.
+The only accepted exceptions are JS-only paths with no C analog (save/load, death UI screens).
+
+---
+
 ## Results: Phase 4
 
 Starting from 0/22 sessions passing, all 22 reached **100% screen parity** and **≥95% RNG

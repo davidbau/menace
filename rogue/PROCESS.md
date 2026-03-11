@@ -97,6 +97,29 @@ designed to trigger particular game events (wand firing, armor equipping, stair 
 Wizard mode sessions gave direct access to item creation and teleportation, bypassing RNG-dependent
 exploration.
 
+**Note on combined vs. sessions-only coverage**: The 89.6% figure includes direct JS unit tests
+(category 4 above). **Sessions-only** parity coverage — measuring only what the C replay sessions
+exercise — is **82%**. The remaining gap reveals paths still uncovered by any session:
+
+```
+All files    |  82% stmts  |  80% branch  |  78% funcs
+  rip.js     |  25%   ← death/tombstone/total_winner (C calls exit(); JS cannot replicate via sessions)
+  save.js    |  11%   ← browser localStorage save/load (no C harness analog)
+  score.js   |  32%   ← score screen (no C harness analog)
+  fight.js   |  73%   ← some combat paths still uncovered
+  monsters   |  75%   ← some monster AI paths uncovered
+  daemons.js |  81%   ← some daemon paths uncovered
+```
+
+`rip.js`, `save.js`, and `score.js` contain JS-only UI code that C handles with a bare `exit()`
+call — these can only be covered by direct unit tests. The remaining gaps in `fight.js`,
+`monsters.js`, and `daemons.js` represent game logic that existing sessions don't exercise
+deeply enough. Target: **100% sessions-only parity coverage** of all C-reachable game logic — every
+command, item type, monster attack, scroll/potion/ring effect, trap type, and level feature
+must have a committed parity session that passes at 100% screen match. The only accepted
+exceptions are `rip.js` (death/victory UI — C calls exit()), `save.js`, and `score.js`
+(browser localStorage/DOM — no C analog).
+
 ---
 
 ## How Much Was Autonomous vs. Human-Guided
