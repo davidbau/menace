@@ -1,18 +1,19 @@
 Coverage diff
-  base: /tmp/tmp.fXITJs5HDs
+  base: /tmp/tmp.6CrTxUkIZI
   head: docs/metrics/session_parity_coverage_latest.json
-  overall lines: 52.68% -> 52.64% (-0.04%)
-  overall branches: 59.86% -> 59.84% (-0.02%)
-  overall functions: 34.04% -> 34.02% (-0.02%)
+  overall lines: 52.64% -> 52.87% (+0.23%)
+  overall branches: 59.84% -> 59.64% (-0.20%)
+  overall functions: 34.02% -> 34.30% (+0.28%)
   tracked file set: +0 / -0
 
 Most regressed tracked files (top 20)
 File                                   Base     Head    Delta
 -------------------------------------  -------  ------- -------
-js/potion.js                            37.50%   37.14%  -0.36%
-js/spell.js                             23.40%   23.09%  -0.31%
-js/apply.js                             41.56%   41.36%  -0.20%
-js/display.js                           34.28%   34.26%  -0.02%
-js/zap.js                               25.94%   25.92%  -0.02%
+js/apply.js                             41.36%   39.59%  -1.77%
 
-No improved tracked files.
+Most improved tracked files (top 20)
+File                                   Base     Head    Delta
+-------------------------------------  -------  ------- -------
+js/spell.js                             23.09%   41.84% +18.75%
+js/zap.js                               25.92%   28.50%  +2.58%
+js/display.js                           34.26%   34.41%  +0.15%
