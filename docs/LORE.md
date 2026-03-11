@@ -8430,3 +8430,24 @@ Validation:
 - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t05_s692_w_cast_gp.session.json`:
   - improved from `2738/3095` matched RNG to `2785/3095`
   - first divergence moved from early spell-menu checks to directional spell execution boundary
+
+## 2026-03-11: C-faithful directional spell dispatch (`spelleffects`/`weffects`)
+
+- Ported the core C `spell.c spelleffects()` flow for wand-duplicate spells:
+  - success check ordering now matches C (`rnd(100)` failure check before post-check exercise),
+  - success/failure energy deductions use C-style behavior (`full` on success, `half` on fail),
+  - creates a pseudo spell object via `mksobj(otyp, FALSE, FALSE)`,
+  - directional spells now call `getdir("In what direction?")` and dispatch through `weffects(pseudo, ...)`.
+- Fixed a hidden direction-loss bug in `js/zap.js`:
+  - `zapsetup(player)` was zeroing `dx/dy/dz`, which skipped `bhit(..., rn1(8,6))`.
+  - now preserves existing direction unless explicit overrides are passed.
+- Added spell menu overlay lifecycle cleanup:
+  - clear cast-menu overlay back to map on selection/cancel,
+  - clear direction prompt row after direction input,
+  - keep status row in sync after mana changes during casting checks.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t05_s692_w_cast_gp.session.json`
+  - now passes full gameplay channels (`rng/events/screens/colors` all matched)
+- `scripts/run-and-report.sh --pending --failures` -> now `1/2` passing (`t05` fixed, `t08_s700` still open)
+- `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing

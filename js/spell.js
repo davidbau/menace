@@ -1016,7 +1016,7 @@ export async function docast(player, display, map) {
     }
 
     // Get spell selection
-    const result = await getspell("Choose which spell to cast", player, display);
+    const result = await getspell("Choose which spell to cast", player, display, map);
     if (result < 0) {
         return { moved: false, tookTime: false };
     }
@@ -1028,7 +1028,25 @@ export async function docast(player, display, map) {
 }
 
 // cf. spell.c getspell() — prompt user to select a spell
-export async function getspell(prompt, player, display) {
+function clearSpellMenuOverlay(display, map, player) {
+    if (!display) return;
+    if (map && typeof display.renderMap === 'function') {
+        const fov = display?._lastMapState?.fov || null;
+        const flags = display?.flags || {};
+        display.renderMap(map, player, fov, flags);
+    }
+    if (typeof display.clearRow === 'function') display.clearRow(0);
+    display.topMessage = null;
+    display.messageNeedsMore = false;
+}
+
+function refreshSpellStatus(display, player) {
+    if (display && typeof display.renderStatus === 'function') {
+        display.renderStatus(player);
+    }
+}
+
+export async function getspell(prompt, player, display, map = null) {
     const nspells = num_spells(player);
     if (nspells === 0) {
         if (display) await display.putstr_message("You don't know any spells right now.");
@@ -1072,7 +1090,7 @@ export async function getspell(prompt, player, display) {
         }
         // C tty menu leaves cursor at first selectable spell entry.
         if (typeof display.setCursor === 'function') {
-            display.setCursor(Math.max(0, offx + 6), 5);
+            display.setCursor(Math.max(0, offx + 7), 5);
         }
     }
 
@@ -1080,22 +1098,14 @@ export async function getspell(prompt, player, display) {
     while (true) {
         const ch = await nhgetch();
         if (ch === 27 || ch === 32) { // ESC or space = cancel
-            if (display) {
-                if (typeof display.clearRow === 'function') display.clearRow(0);
-                display.topMessage = null;
-                display.messageNeedsMore = false;
-            }
+            clearSpellMenuOverlay(display, map, player);
             await docrt();
             return -1;
         }
         const letter = String.fromCharCode(ch);
         const idx = spell_let_to_idx(letter);
         if (idx >= 0 && idx < nspells) {
-            if (display) {
-                if (typeof display.clearRow === 'function') display.clearRow(0);
-                display.topMessage = null;
-                display.messageNeedsMore = false;
-            }
+            clearSpellMenuOverlay(display, map, player);
             await docrt();
             return idx;
         }
@@ -1126,6 +1136,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
         await spell_backfire(player, idx);
         const drain = rnd(energy);
         player.uen = Math.max(0, (player.uen || 0) - drain);
+        refreshSpellStatus(display, player);
         return 1; // time elapsed
     }
 
@@ -1160,36 +1171,25 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
         return 0;
     }
 
-    // Deduct energy
-    player.uen = Math.max(0, currentPower - energy);
-    player._botl = true;
-    if (display && typeof display.renderStatus === 'function') {
-        display.renderStatus(player);
-
-    // Roll for success
+    // Roll for success (C ref: spell.c spelleffects_check() before exercise)
     const confused = !!(player.confused);
     const chance = percent_success(player, idx);
     if (confused || (rnd(100) > chance)) {
         await You("fail to cast the spell correctly.");
-        // Partial energy refund on failure
-        const maxPower = (player.uenmax ?? player.uen ?? 0);
-        player.uen = Math.min(maxPower,
-            (player.uen || 0) + Math.floor(energy / 2));
+        // C ref: spell.c spelleffects_check() — lose half of the spell energy.
+        player.uen = Math.max(0, currentPower - Math.floor(energy / 2));
+        refreshSpellStatus(display, player);
         return 1; // time elapsed
     }
 
-    const otyp = sp.otyp;
+    // Deduct full energy on successful cast.
+    player.uen = Math.max(0, currentPower - energy);
+    player._botl = true;
+    refreshSpellStatus(display, player);
 
-    // C ref: spell.c spelleffects() — successful cast exercises wisdom.
+    // C ref: spell.c spelleffects() — exercise wisdom after checks.
     await exercise(player, A_WIS, true);
-
-    // C ref: spell.c spelleffects() creates a temporary pseudo object before
-    // spell-direction selection; preserve this ordering for RNG parity.
-    const pseudo = mksobj(otyp, false, false);
-    pseudo.blessed = 0;
-    pseudo.cursed = 0;
-    pseudo.quan = 20;
-
+    const otyp = sp.otyp;
     // Dispatch spell effect
     // The actual spell effects are complex and involve many subsystems.
     // In the JS port, spell effects for directed spells go through weffects(),
@@ -1197,7 +1197,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     // This dispatch provides the framework; specific effects are handled
     // by the game engine when it processes the spell.
     switch (otyp) {
-    // Wand-like directed spells
+    // Wand-like directed spells (C: "duplicates of wand effects")
     case SPE_FORCE_BOLT:
     case SPE_SLEEP:
     case SPE_MAGIC_MISSILE:
@@ -1218,19 +1218,37 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
     case SPE_STONE_TO_FLESH:
     case SPE_FIREBALL:
     case SPE_CONE_OF_COLD:
-        if (atme) {
-            player.dx = 0;
-            player.dy = 0;
-            player.dz = 0;
-        } else {
-            const gotDir = await getdir(null, display);
-            if (!gotDir) return 0;
-            player.dx = gotDir.dx;
-            player.dy = gotDir.dy;
-            player.dz = gotDir.dz;
+    {
+        // C ref: spell.c spelleffects() — create pseudo object and dispatch via weffects().
+        const pseudo = mksobj(otyp, false, false);
+        pseudo.blessed = false;
+        pseudo.cursed = false;
+        pseudo.quan = 20; // "do not let useup get it"
+
+        const dirType = objectData[otyp]?.oc_dir || 0;
+        if (dirType !== NODIR) {
+            if (atme) {
+                player.dx = 0;
+                player.dy = 0;
+                player.dz = 0;
+            } else {
+                const dir = await getdir('In what direction?', display);
+                if (dir) {
+                    player.dx = dir.dx;
+                    player.dy = dir.dy;
+                    player.dz = dir.dz;
+                } else {
+                    // C fallback: cancelled getdir still releases magical energy.
+                    await pline_The('magical energy is released!');
+                }
+                if (display && typeof display.clearRow === 'function') {
+                    display.clearRow(0);
+                }
+            }
         }
         await weffects(pseudo, player, map, display);
         break;
+    }
 
     // Scroll-like spells
     case SPE_REMOVE_CURSE:
