@@ -2628,8 +2628,8 @@ export function adj_erinys(abuse, game, player) {
     pm.mattk[2].damn = 3;
     pm.mattk[2].damd = 4;
   }
-  pm.mlevel = Math.min(7 + player.ualigame.gn.abuse, 50);
-  pm.difficulty = Math.min(10 + Math.floor(player.ualigame.gn.abuse / 3), 25);
+  pm.mlevel = Math.min(7 + player.ualign.abuse, 50);
+  pm.difficulty = Math.min(10 + Math.floor(player.ualign.abuse / 3), 25);
 }
 
 // Autotranslated from mon.c:2499

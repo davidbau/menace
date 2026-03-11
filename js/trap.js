@@ -1338,7 +1338,7 @@ export function mk_trap_statue(x, y, game, player) {
   let mtmp, otmp, statue, mptr, trycount = 10;
   do {
     mptr = mons[rndmonnum()]; // C: &mons[rndmonnum()]
-  } while (--trycount > 0 && is_unicorn(mptr) && sgn(player.ualigame.gn.type) === sgn(mptr.maligntyp));
+  } while (--trycount > 0 && is_unicorn(mptr) && sgn(player.ualign.type) === sgn(mptr.maligntyp));
   const mndx = Number.isInteger(mptr?.mndx) ? mptr.mndx : mons.indexOf(mptr);
   statue = mkcorpstat(STATUE, mndx, false, x, y, game?.lev || game?.map || null);
   mtmp = makemon(mptr, 0, 0, MM_NOCOUNTBIRTH | MM_NOMSG);
@@ -1611,7 +1611,7 @@ export async function reward_untrap(ttmp, mtmp, game, player) {
       set_malign(mtmp);
       await pline("%s is grateful.", Monnam(mtmp));
     }
-    if (!rn2(3) && !rnl(8) && player.ualigame.gn.type === A_LAWFUL) { adjalign(1); await You_feel("that you did the right thing."); }
+    if (!rn2(3) && !rnl(8) && player.ualign.type === A_LAWFUL) { adjalign(1); await You_feel("that you did the right thing."); }
   }
 }
 

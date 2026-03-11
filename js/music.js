@@ -460,9 +460,9 @@ async function do_earthquake(force, map, player, fov) {
 // Returns a generic description of the current level type for messages.
 export function generic_lvl_desc(map) {
     /* Is_astralevel, Is_sanctum, In_endgame not yet ported */
-    if (In_sokoban && map && In_sokoban(map.uz || map))
+    if (map && In_sokoban(map.uz || map))
         return 'puzzle';
-    if (In_V_tower && map && In_V_tower(map.uz || map))
+    if (map && In_V_tower(map.uz || map))
         return 'tower';
     return 'dungeon';
 }

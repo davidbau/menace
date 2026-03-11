@@ -2749,7 +2749,7 @@ export function set_malign(mtmp, game, player) {
       mal *= 5;
     }
   }
-  coaligned = (sgn(mal) === sgn(player.ualigame.gn.type));
+  coaligned = (sgn(mal) === sgn(player.ualign.type));
   if (mtmp.data.msound === MS_LEADER) { mtmp.malign = -20; }
   else if (mal === A_NONE) {
     if (mtmp.mpeaceful) mtmp.malign = 0;

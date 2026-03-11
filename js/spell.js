@@ -1548,7 +1548,7 @@ export { KEEN, SPELL_LEV_PW, SPELL_CATEGORY_ATTACK, SPELL_CATEGORY_HEALING, SPEL
 export async function deadbook_pacify_undead(mtmp, game, player) {
   if ((is_undead(mtmp.data) || is_vampshifter(mtmp)) && cansee(mtmp.mx, mtmp.my)) {
     mtmp.mpeaceful = true;
-    if (sgn(mtmp.data.maligntyp) === sgn(player.ualigame.gn.type) && mdistu(mtmp) < 4) {
+    if (sgn(mtmp.data.maligntyp) === sgn(player.ualign.type) && mdistu(mtmp) < 4) {
       if (mtmp.mtame) { if (mtmp.mtame < 20) mtmp.mtame++; }
       else {
         // TODO: tamedog not yet ported to JS
