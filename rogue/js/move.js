@@ -260,7 +260,7 @@ export async function be_trapped(tc) {
         await _msg('Oh no! An arrow shot you');
         if ((g.player.t_stats.s_hpt -= roll(1, 6)) <= 0) {
           await _msg('The arrow killed you.');
-          if (_death) _death('a');
+          if (_death) await _death('a');
         }
       } else {
         await _msg('An arrow shoots past you.');
@@ -284,7 +284,7 @@ export async function be_trapped(tc) {
         await _msg('A small dart just hit you in the shoulder');
         if ((g.player.t_stats.s_hpt -= roll(1, 4)) <= 0) {
           await _msg('The dart killed you.');
-          if (_death) _death('d');
+          if (_death) await _death('d');
         }
         if (!(_ISWEARING && _ISWEARING(R_SUSTSTR))) {
           if (_chg_str) _chg_str(-1);

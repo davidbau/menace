@@ -194,8 +194,8 @@ export async function command() {
     if (!g.running) g.door_stop = false;
   }
 
-  // Run AFTER daemons/fuses
-  if (g.after) {
+  // Run AFTER daemons/fuses (skip if game ended, e.g. after death)
+  if (g.after && g.playing) {
     await _look(false);
     await do_daemons(AFTER);
     await do_fuses(AFTER);

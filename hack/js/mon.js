@@ -514,7 +514,9 @@ export async function killed(mtmp) {
     await pline('Welcome to level %d.', game.u.ulevel);
   }
   game.flags.botl |= 2; // GOLD (score)
+  const { mx, my } = mtmp;
   delmon(mtmp);
+  if (game.levl[mx][my].cansee) newsym(mx, my);
 }
 
 function _levelXP(lev) {

@@ -130,7 +130,7 @@ export async function attack(mp) {
   if (roll_em(mp.t_stats, g.player.t_stats, null, false)) {
     if (mp.t_type !== 'E') await hit(mname, null);
     if (g.player.t_stats.s_hpt <= 0) {
-      if (_death) _death(mp.t_type);
+      if (_death) await _death(mp.t_type);
       return;
     }
     if (!(mp.t_flags & ISCANC)) {
@@ -166,7 +166,7 @@ export async function attack(mp) {
         case 'W':
           if (rnd(100) < 15) {
             if (g.player.t_stats.s_exp === 0) {
-              if (_death) _death('W');
+              if (_death) await _death('W');
               return;
             }
             await _msg('You suddenly feel weaker.');
@@ -181,7 +181,7 @@ export async function attack(mp) {
             g.max_hp -= fewer;
             if (g.player.t_stats.s_hpt < 1) g.player.t_stats.s_hpt = 1;
             if (g.max_hp < 1) {
-              if (_death) _death('W');
+              if (_death) await _death('W');
               return;
             }
           }
@@ -238,7 +238,7 @@ export async function attack(mp) {
     if (mp.t_type === 'F') {
       g.player.t_stats.s_hpt -= g.fung_hit;
       if (g.player.t_stats.s_hpt <= 0) {
-        if (_death) _death(mp.t_type);
+        if (_death) await _death(mp.t_type);
         return;
       }
     }
