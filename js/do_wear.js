@@ -51,7 +51,7 @@ import {
 import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing } from './invent.js';
 import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
-import { newsym } from './display.js';
+import { newsym, see_monsters, set_mimic_blocking } from './display.js';
 import { retouch_object } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
@@ -2503,15 +2503,15 @@ export async function Ring_off_or_gone(obj, gone, game, player) {
                                     case MEAT_RING:
                                       break;
     case RIN_STEALTH:
-      toggle_stealth(obj, (EStealth & ~mask), false);
+      toggle_stealth(player, false);
     break;
     case RIN_WARNING:
-      see_monsters();
+      see_monsters(game?.map);
     break;
     case RIN_SEE_INVISIBLE:
       // C: if (!See_invisible) { set_mimic_blocking(); see_monsters(); }
-      // Intrinsic property tracking not fully wired; conservative no-op
-      set_mimic_blocking(); see_monsters(game?.map);
+      set_mimic_blocking(game?.map);
+      see_monsters(game?.map);
       mark_vision_dirty();
     break;
     case RIN_INVISIBILITY:

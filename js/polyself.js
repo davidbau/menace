@@ -606,7 +606,7 @@ export function float_vs_flight(game, player) {
     }
   }
 
-  steed_vs_stealth();
+  steed_vs_stealth(player);
   if (game?.disp) game.disp.botl = true;
 }
 
