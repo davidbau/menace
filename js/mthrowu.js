@@ -29,7 +29,7 @@ import {
     MEAT_STICK, ENORMOUS_MEATBALL,
     ARM_GLOVES,
 } from './objects.js';
-import { doname, xname, mkcorpstat, mksobj, add_to_minv } from './mkobj.js';
+import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mkobj.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
@@ -53,7 +53,9 @@ import { KILLED_BY_AN } from './const.js';
 import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
 import { breaktest } from './dothrow.js';
+import { omon_adj } from './dothrow.js';
 import { find_mac } from './worn.js';
+import { spec_abon } from './artifact.js';
 import { more, nhgetch } from './input.js';
 import {
     buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
@@ -434,6 +436,16 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
     obj.ox = x;
     obj.oy = y;
     placeFloorObject(map, obj);
+    if (ohit) {
+        // C ref: mthrowu.c drop_throw() applies passive_obj() for impacted
+        // target standing on the impact square (monster or hero).
+        const target = map.monsterAt?.(x, y)
+            || ((player && player.x === x && player.y === y) ? player : null);
+        if (target) {
+            const { passive_obj } = await import('./uhitm.js');
+            await passive_obj(target, obj, null);
+        }
+    }
     return false;
 }
 
@@ -499,10 +511,20 @@ export async function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodid
 }
 
 // C ref: mthrowu.c ohitmon().
-export async function ohitmon(mtmp, otmp, range, verbose, map, player, display, game) {
+export async function ohitmon(
+    mtmp, otmp, range, verbose, map, player, display, game,
+    archer = null, intendedTarget = null, launcher = null
+) {
     if (!mtmp || !otmp) return { stop: true, deathMessage: null };
     const od = objectData[otmp.otyp] || {};
-    const hitThreshold = 5 + find_mac(mtmp);
+    let hitThreshold = 5 + find_mac(mtmp) + omon_adj(mtmp, otmp, false);
+    // C ref: mthrowu.c ohitmon() grants extra accuracy when archer hits its
+    // intended target; higher level archers get a bonus, plus launcher artifact.
+    if (archer && intendedTarget && intendedTarget === mtmp) {
+        const archerLevel = Number.isInteger(archer.m_lev) ? archer.m_lev : 0;
+        if (archerLevel > 5) hitThreshold += (archerLevel - 5);
+        if (launcher?.oartifact) hitThreshold += spec_abon(launcher, mtmp);
+    }
     const dieRoll = rnd(20);
     if (hitThreshold >= dieRoll) {
         let deathMessage = null;
@@ -573,11 +595,15 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     const ddy = Math.sign(ty - mon.my);
     for (let i = 0; i < shots; i++) {
         throwTrace(map, display, 'monshoot:loop:before_m_throw_timed', `shot=${i + 1}/${shots}`);
+        const splittingStack = Number.isInteger(otmp?.quan) && otmp.quan > 1;
         const projectile = { ...otmp, quan: 1, ox: mon.mx, oy: mon.my, invlet: null };
+        // C ref: mthrowu.c uses splitobj() for stack throws; splitobj assigns
+        // a fresh object id via next_ident() (consumes rnd(2)).
+        if (splittingStack) projectile.o_id = next_ident();
         m_useup(mon, otmp);
         const result = await m_throw_timed(
             mon, mon.mx, mon.my, ddx, ddy, dm, projectile, map, player, display, game,
-            { tethered_weapon }
+            { tethered_weapon, intendedTarget: mtarg, launcher: mwep }
         );
         throwTrace(map, display, 'monshoot:loop:after_m_throw_timed', `shot=${i + 1}/${shots}`);
         if (result?.hitPlayer) hitPlayer = true;
@@ -611,6 +637,8 @@ export async function m_throw_timed(
     options = {}
 ) {
     const tethered_weapon = !!options.tethered_weapon;
+    const intendedTarget = options.intendedTarget || null;
+    const launcher = options.launcher || null;
     let hitPlayer = false;
     let dropHandledInImpact = false;
     let promptedForTopline = false;
@@ -662,7 +690,10 @@ export async function m_throw_timed(
 
         const mtmp = map.monsterAt(x, y);
         if (mtmp && !mtmp.dead) {
-            const impact = await ohitmon(mtmp, weapon, range, true, map, player, display, game);
+            const impact = await ohitmon(
+                mtmp, weapon, range, true, map, player, display, game,
+                mon, intendedTarget, launcher
+            );
             if (impact.stop) {
                 if (display
                     && typeof display.morePrompt === 'function'

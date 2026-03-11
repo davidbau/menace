@@ -23,7 +23,7 @@ import {
     M1_FLY, M1_NOHEAD, M1_UNSOLID,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
-    PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM,
+    PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM, PM_STEAM_VORTEX,
     PM_BLACK_PUDDING, PM_BROWN_PUDDING, PM_IRON_GOLEM, PM_GHOUL, PM_GREEN_SLIME,
     AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC,
     AD_DRST, AD_ACID, AD_BLND, AD_STUN, AD_SLOW, AD_PLYS, AD_DRLI,
@@ -1754,12 +1754,20 @@ export function hmonas(player, mon, display, map) {
 export async function passive_obj(mon, obj, mattk) {
     if (!obj) return;
     const ptr = mon.data || mon.type || {};
-    const adtyp = mattk ? (mattk.adtyp ?? AD_PHYS) : AD_PHYS;
+    let attk = mattk || null;
+    if (!attk) {
+        const list = Array.isArray(ptr.mattk) ? ptr.mattk : [];
+        attk = list.find((a) => a && a.aatyp === AT_NONE) || null;
+    }
+    if (!attk) return;
+    const adtyp = attk.adtyp ?? AD_PHYS;
 
     switch (adtyp) {
     case AD_FIRE:
         // C: if (!rn2(6) && !mon->mcan) erode_obj(obj, ERODE_BURN)
-        if (!rn2(6) && !mon.mcan) {
+        if (!rn2(6) && !mon.mcan
+            // C ref: uhitm.c passive_obj() steam vortex exemption.
+            && (ptr !== mons[PM_STEAM_VORTEX])) {
             await erode_obj_player(obj, xname(obj), ERODE_BURN, 0);
         }
         break;
