@@ -217,23 +217,10 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     }
     // C ref: throw/firing direction commands smudge floor engravings before resolve.
     await u_wipe_engr(player, map, 2);
-    const targetX = player.x + dx;
-    const targetY = player.y + dy;
-    const targetMonster = map.monsterAt(targetX, targetY);
+    let targetMonster = null;
     let throwMessage = null;
-    let landingX = targetX;
-    let landingY = targetY;
-    if (targetMonster) {
-        rnd(20);
-        rn2(3);
-        obj_resists(item, 0, 0);
-        const od = objectData[item.otyp];
-        const baseName = od?.oc_name || item.oname || 'item';
-        const named = (typeof item.oname === 'string' && item.oname.length > 0)
-            ? `${baseName} named ${item.oname}`
-            : baseName;
-        throwMessage = `The ${named} misses the ${x_monnam(targetMonster)}.`;
-    }
+    let landingX = player.x;
+    let landingY = player.y;
     replacePromptMessage();
     if (
         player.armor === item
@@ -252,6 +239,51 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
             rnd(matchedLauncher ? 2 : 1);
         }
     }
+    const crossbowing = ammoAndLauncher(item, player.weapon)
+        && weapon_type(player.weapon) === P_CROSSBOW;
+    let urange = (crossbowing ? 18 : acurr(player, A_STR)) >> 1;
+    let range;
+    if (item.otyp === HEAVY_IRON_BALL) range = urange - Math.floor((item.owt || 0) / 100);
+    else range = urange - Math.floor((item.owt || 0) / 40);
+    if (range < 1) range = 1;
+    if (is_ammo(item)) {
+        if (ammoAndLauncher(item, player.weapon)) {
+            if (crossbowing) range = 8;
+            else range++;
+        } else if (item.oclass !== GEM_CLASS) {
+            range = Math.floor(range / 2);
+        }
+    }
+    if (item.otyp === BOULDER) range = 20;
+    let bx = player.x;
+    let by = player.y;
+    for (let i = 0; i < range; i++) {
+        const nx = bx + dx;
+        const ny = by + dy;
+        if (!isok(nx, ny)) break;
+        const loc = typeof map.at === 'function' ? map.at(nx, ny) : null;
+        if (!loc || !ZAP_POS(loc.typ)) break;
+        bx = nx;
+        by = ny;
+        const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
+        if (mon) {
+            targetMonster = mon;
+            break;
+        }
+    }
+    landingX = bx;
+    landingY = by;
+    if (targetMonster) {
+        rnd(20);
+        rn2(3);
+        obj_resists(item, 0, 0);
+        const od = objectData[item.otyp];
+        const baseName = od?.oc_name || item.oname || 'item';
+        const named = (typeof item.oname === 'string' && item.oname.length > 0)
+            ? `${baseName} named ${item.oname}`
+            : baseName;
+        throwMessage = `The ${named} misses the ${x_monnam(targetMonster)}.`;
+    }
     let thrownItem = item;
     if ((item.quan || 1) > 1) {
         item.quan = (item.quan || 1) - 1;
@@ -266,7 +298,7 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         obj_resists(thrownItem, 0, 0);
     }
     // C-style visual parity hook: show transient projectile flight frame.
-    if (isok(targetX, targetY)) {
+    if (isok(landingX, landingY)) {
         const projGlyph = objectTmpGlyph(thrownItem);
         tmp_at(DISP_FLASH, projGlyph);
         try {
