@@ -219,6 +219,8 @@ Rules:
 Recommended naming:
 - `themeNN_seedXXX_<role>_<intent>.session.json`
 - example: `theme04_seed512_valkyrie_digging-branch-transition.session.json`
+- root index for theme coordination:
+  - `test/comparison/sessions/coverage/README.md`
 
 ## Coverage Campaign Plan (Theme-Driven)
 
