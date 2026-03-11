@@ -70,7 +70,7 @@ import { monflee, closed_door } from './monmove.js';
 import { cansee, couldsee } from './vision.js';
 import { recalc_block_point, unblock_point } from './vision.js';
 import { game as _gstate } from './gstate.js';
-import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym, money_cnt } from './hack.js';
+import { near_capacity, inv_weight, weight_cap, overexertion, feel_location, feel_newsym, money_cnt, Maybe_Half_Phys } from './hack.js';
 import { in_rooms, in_town } from './hack.js';
 import { is_pool, is_ice, is_drawbridge_wall, find_drawbridge } from './dbridge.js';
 import { noteleport_level, goodpos, rloco } from './teleport.js';

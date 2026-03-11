@@ -60,7 +60,7 @@ import { cansee, couldsee } from './vision.js';
 import { pline, Norep, You, pline_mon, You_hear, You_feel, impossible } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { dist2 } from './hacklib.js';
-import { losehp, u_at } from './hack.js';
+import { losehp, u_at, Maybe_Half_Phys } from './hack.js';
 import { an, xname, the, Tobjnam, Has_contents } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
 import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF } from './const.js';

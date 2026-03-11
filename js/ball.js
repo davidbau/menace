@@ -9,7 +9,7 @@ import { rn2, rnd, rn1 } from './rng.js';
 import { pline, pline_The, You, Your, You_feel, impossible } from './pline.js';
 import { newsym } from './display.js';
 import { dist2, distmin } from './hacklib.js';
-import { movobj, near_capacity, losehp, nomul, spoteffects } from './hack.js';
+import { movobj, near_capacity, losehp, nomul, spoteffects, Maybe_Half_Phys } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { flooreffects } from './do.js';
 import { placeFloorObject, carried } from './invent.js';
@@ -45,11 +45,7 @@ const BCPOS_BALL = 2;   // ball on top of chain
 // hard_helmet imported from do_wear.js
 // body_part imported from polyself.js
 
-// Helper: Maybe_Half_Phys — half physical damage if player has the property
-function Maybe_Half_Phys(n, player) {
-    if (player && player.halfPhysDamage) return Math.max(1, Math.floor(n / 2));
-    return n;
-}
+// Maybe_Half_Phys imported from hack.js
 
 // Helper: Soundeffect stub
 function Soundeffect() { }

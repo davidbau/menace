@@ -35,7 +35,7 @@ import { newsym } from './display.js';
 import { dist2, highc, mungspaces, plur, ROLL_FROM } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';
-import { losehp, in_rooms, u_at } from './hack.js';
+import { losehp, in_rooms, u_at, Maybe_Half_Phys } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { maketrap, In_sokoban, In_V_tower } from './dungeon.js';
 import { set_levltyp } from './mkmaze.js';
@@ -74,11 +74,7 @@ import { getlin, ynFunction } from './input.js';
 // M_AP_TYPE imported from mondata.js; M_AP_NOTHING, M_AP_MONSTER from const.js
 
 
-// C: Maybe_Half_Phys — if player has half physical damage, halve it
-function Maybe_Half_Phys(n, player) {
-    if (player && player.halfPhysDamage) return Math.max(1, Math.floor(n / 2));
-    return n;
-}
+// Maybe_Half_Phys imported from hack.js
 
 
 // Autotranslated from music.c:44 — awaken_scare(mtmp, scary)

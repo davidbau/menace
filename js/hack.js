@@ -3427,6 +3427,13 @@ export async function showdamage(dmg, player, display, game) {
     if (display) await display.putstr_message(`[HP ${-dmg}, ${hp} left]`);
 }
 
+// C ref: hack.c Maybe_Half_Phys() macro — halve physical damage if player has Half_physical_damage
+export function Maybe_Half_Phys(n, player) {
+    const p = player || _gstate?.player;
+    if (p && p.halfPhysDamage) return Math.max(1, Math.floor(n / 2));
+    return n;
+}
+
 // C ref: hack.c losehp() — hero loses hit points
 export async function losehp(n, knam, k_format, player, display, game) {
     end_running(true, game);
