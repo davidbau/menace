@@ -677,7 +677,16 @@ async function handleQuiver(player, display) {
         }
 
         const item = inventory.find((o) => o.invlet === c);
-        if (!item) continue;
+        if (!item) {
+            // C ref: getobj() always shows error for invalid invlet.
+            replacePromptMessage(display);
+            await display.putstr_message("You don't have that object.");
+            await more(display, {
+                site: 'wield.handleQuiver.invalidInvletMorePrompt',
+            });
+            await display.putstr_message(prompt);
+            continue;
+        }
 
         replacePromptMessage(display);
         setuqwep(player, item);

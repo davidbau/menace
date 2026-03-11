@@ -582,8 +582,10 @@ export async function handleEngrave(player, display) {
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
+    // C ref: doengrave() uses getobj(stylus_ok, ...) which includes
+    // weapons, wands, gems, rings, and certain tools (towel, marker).
     const writeLetters = compactInvletPromptChars((player.inventory || [])
-        .filter((item) => item && item.oclass === WAND_CLASS && item.invlet)
+        .filter((item) => item && item.invlet && stylus_ok(item))
         .map((item) => item.invlet)
         .join(''));
     const writePrompt = writeLetters

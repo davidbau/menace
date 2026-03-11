@@ -25,7 +25,7 @@ import { cansee } from './vision.js';
 import { u_at } from './hack.js';
 import { getpos_async } from './getpos.js';
 import { beautiful } from './apply.js';
-import { nhgetch, getlin } from './input.js';
+import { more, nhgetch, getlin } from './input.js';
 import { impossible, pline, You, verbalize, livelog_printf } from './pline.js';
 import { discoverObject, undiscoverObject } from './o_init.js';
 import { doname, xname } from './mkobj.js';
@@ -1175,6 +1175,12 @@ export async function handleCallObjectTypePrompt(player, display) {
 
         const selected = inventory.find((obj) => obj && obj.invlet === c);
         if (!selected) {
+            // C ref: getobj() always shows error for invalid invlet.
+            replacePromptMessage();
+            await display.putstr_message("You don't have that object.");
+            await more(display, {
+                site: 'do_name.handleCall.invalidInvletMorePrompt',
+            });
             continue;
         }
         if (!isObjectTypeCallable(selected)) {
