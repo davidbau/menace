@@ -776,7 +776,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 continue;
             }
 
-            if (isShiftedPrintable(c, ch) || isUnshiftedPrintable(c, ch)) {
+            if (!isQuitChar && (isShiftedPrintable(c, ch) || isUnshiftedPrintable(c, ch))) {
                 const found = findMatchingMapChar(display, runtimeCtx.map, cx, cy, c, !isShiftedPrintable(c, ch));
                 if (found) {
                     restoreCursor(display, cursorState);
