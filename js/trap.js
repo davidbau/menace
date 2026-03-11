@@ -720,16 +720,21 @@ function trapeffect_magic_trap_mon(mon, trap, map, player) {
     return Trap_Effect_Finished;
 }
 
-function trapeffect_anti_magic_mon(mon, trap, map, player) {
+function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
+    const in_sight = !!(canseemon(mon, player, fov) || mon === player?.usteed);
+    const see_it = !!cansee(mon.mx, mon.my);
 
     if (!resists_magm(mon)) {
         // lose spell energy
         if (!mon.mcan && (attacktype(mptr, AT_MAGC)
                           || attacktype(mptr, AT_BREA))) {
             mon.mspec_used = (mon.mspec_used || 0) + d(2, 6);
-            seetrap(trap);
+            if (in_sight) {
+                seetrap(trap);
+                pline_mon(mon, "%s seems lethargic.", Monnam(mon));
+            }
         }
     } else {
         // take damage — magic resistance makes anti-magic hurt
@@ -738,13 +743,14 @@ function trapeffect_anti_magic_mon(mon, trap, map, player) {
         if (passes_walls(mptr))
             dmgval2 = Math.floor((dmgval2 + 3) / 4);
 
-        seetrap(trap);
+        if (in_sight) seetrap(trap);
         mon.mhp -= dmgval2;
         if (DEADMONSTER(mon)) {
-            monkilled(mon, null, -AD_MAGM, map, player);
+            monkilled(mon, in_sight ? "compression from an anti-magic field" : null, -AD_MAGM, map, player);
             if (DEADMONSTER(mon))
                 trapkilled = true;
         }
+        if (see_it) newsym(trap.tx, trap.ty);
     }
     return trapkilled ? Trap_Killed_Mon
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
@@ -997,7 +1003,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case MAGIC_TRAP:
         return trapeffect_magic_trap_mon(mon, trap, map, player);
     case ANTI_MAGIC:
-        return trapeffect_anti_magic_mon(mon, trap, map, player);
+        return trapeffect_anti_magic_mon(mon, trap, map, player, fov);
     case POLY_TRAP:
         return trapeffect_poly_trap_mon(mon, trap);
     case LANDMINE:

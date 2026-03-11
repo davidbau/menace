@@ -7731,3 +7731,21 @@ hard-won wisdom:
 - Validation:
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: anti-magic trap monster-visibility gating parity
+
+- Problem:
+  - `trapeffect_anti_magic_mon` in `trap.js` did not follow C visibility gating:
+    - trap reveal (`seetrap`) and lethargy feedback were not tied to `in_sight`,
+    - `see_it` map refresh behavior after damage was missing.
+- Change:
+  - `trapeffect_anti_magic_mon(...)` now takes `fov` and applies C-shaped gating:
+    - `in_sight = canseemon(mon, player, fov) || mon===usteed` for reveal/message paths,
+    - `see_it = cansee(mon.x, mon.y)` for `newsym` refresh on damage branch.
+  - Added visible lethargy message for the non-resistant magical-attacker energy-drain case.
+  - Added in-sight-only death reason text (`compression from an anti-magic field`) on kill path.
+  - Updated selector call to pass `fov` into the anti-magic branch.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
