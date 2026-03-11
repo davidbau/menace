@@ -187,10 +187,9 @@ export function mkobj(let_char) {
   game.fobj = otmp;
   otmp.minus = false; otmp.known = false; otmp.cursed = false; otmp.spe = 0;
 
-  const roll = let_char ? let_char.charCodeAt(0) : _rnd(20);
-  // This matches hack.lev.c mkobj() which uses rnd(20) when let==0
-  // For brevity, delegate to a shared function
-  _mkobj_fill(otmp, let_char || _rnd(20));
+  // C: switch(let?let:rnd(20)) — call rnd(20) exactly once when let==0
+  const roll = let_char ? (typeof let_char === 'string' ? let_char.charCodeAt(0) : let_char) : _rnd(20);
+  _mkobj_fill(otmp, roll);
   return otmp;
 }
 

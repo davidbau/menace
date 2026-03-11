@@ -176,7 +176,7 @@ export async function buzz(type, sx, sy, bdx, bdy) {
 }
 
 function at_buzz(x, y, ch) {
-  const sy = y + 2 + 1; // 1-based, map rows at row 3+
+  const sy = y + 2;  // same as at() in pri.js: map row y -> screen row y+2 (1-based)
   game.display.moveCursor(x, sy);
   game.display.putCharAtCursor(ch);
   game.curx++;

@@ -3,7 +3,7 @@ import { HP, STR, DHS, GOLD, AC, HPM, ULV, UEX } from './const.js';
 import { rn1, rn2, rnd, d, seedRng, logEvent } from './rng.js';
 import { game } from './gstate.js';
 import { makeObj } from './game.js';
-import { pline, bot, nscr, cls, panic, losehp } from './pri.js';
+import { pline, bot, nscr, cls, panic, losehp, pru } from './pri.js';
 import { setsee, unsee, seeoff, domove, movecm, tele, parse, nomul, doname } from './hack.js';
 import { movemon, makemon, rloc, delmon, mnexto } from './mon.js';
 import { dosave, dosearch } from './do1.js';
