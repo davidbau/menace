@@ -48,7 +48,7 @@ import { an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon } from './display.js';
-import { couldsee } from './vision.js';
+import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
 import { ynFunction } from './input.js';
@@ -912,6 +912,9 @@ export async function domove_core(dir, player, map, display, game) {
         const luck = (player.uluck ?? player.luck) || 0;
         if (rnl(20, luck) < threshold) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
+            // C ref: doopen_indir (lock.c) — update vision and display
+            recalc_block_point(nx, ny);
+            newsym(nx, ny);
             await display.putstr_message("The door opens.");
             domoveNotime('closed-door-autoopen-opened');
         } else {

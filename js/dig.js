@@ -832,7 +832,7 @@ export async function zap_dig(map, player) {
                 room.flags = D_NODOOR;
                 recalc_block_point(zx, zy);
                 digdepth -= 2;
-                if (maze_dig) break;
+                if (maze_dig) { newsym(zx, zy); break; }
             } else if (maze_dig) {
                 if (IS_WALL(room.typ)) {
                     const roomWallInfo = Number(room.wall_info ?? room.flags ?? 0);
@@ -847,6 +847,7 @@ export async function zap_dig(map, player) {
                     } else if (!(player?.Blind || player?.blind)) {
                         _gstate?.display?.putstr_message?.('The wall glows then fades.');
                     }
+                    newsym(zx, zy);
                     break;
                 } else if (IS_TREE(room.typ)) {
                     const roomWallInfo = Number(room.wall_info ?? room.flags ?? 0);
@@ -857,6 +858,7 @@ export async function zap_dig(map, player) {
                     } else if (!(player?.Blind || player?.blind)) {
                         _gstate?.display?.putstr_message?.('The tree shudders but is unharmed.');
                     }
+                    newsym(zx, zy);
                     break;
                 } else if (room.typ === STONE || room.typ === SCORR) {
                     const roomWallInfo = Number(room.wall_info ?? room.flags ?? 0);
@@ -867,6 +869,7 @@ export async function zap_dig(map, player) {
                     } else if (!(player?.Blind || player?.blind)) {
                         _gstate?.display?.putstr_message?.('The rock glows then fades.');
                     }
+                    newsym(zx, zy);
                     break;
                 }
             } else if (IS_OBSTRUCTED(room.typ)) {
