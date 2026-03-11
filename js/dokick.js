@@ -18,7 +18,7 @@ import { In_endgame, Is_botlevel, Is_stronghold, Is_airlevel, Is_waterlevel, In_
 import { sgn, upstart } from './hacklib.js';
 import { Role_if } from './role.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr as ACURR, acurrstr as ACURRSTR, change_luck, adjalign } from './attrib.js';
+import { acurr as ACURR, acurrstr as ACURRSTR, change_luck, adjalign, Luck } from './attrib.js';
 import {
     A_STR, A_DEX, A_CON, A_CHA, A_WIS,
     D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED, D_TRAPPED,
@@ -1268,7 +1268,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
   if (IS_THRONE(game.maploc.typ)) {
     let i;
     if (player.levitating) { await kick_dumb(x, y); return ECMD_TIME; }
-    if ((Luck < 0 || game.maploc.looted) && !rn2(3)) {
+    if ((Luck(player) < 0 || game.maploc.looted) && !rn2(3)) {
       game.maploc.looted = 0;
       game.maploc.typ = ROOM;
       mkgold( rnd(200), x, y, map);
@@ -1277,9 +1277,9 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       await exercise(player, A_DEX, true);
       return ECMD_TIME;
     }
-    else if (Luck > 0 && !rn2(3) && !game.maploc.looted) {
+    else if (Luck(player) > 0 && !rn2(3) && !game.maploc.looted) {
       mkgold( rn1(201, 300), x, y, map);
-      i = Luck + 1;
+      i = Luck(player) + 1;
       if (i > 6) i = 6;
       while (i--) {
         mksobj_at( rnd_class(DILITHIUM_CRYSTAL, LUCKSTONE - 1), x, y, false, true, map);

@@ -20,8 +20,8 @@ import {
 import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
-import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
+import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
@@ -30,7 +30,7 @@ import { seffect_taming, recharge, charge_ok } from './read.js';
 import { dountrap } from './trap.js';
 import { use_crystal_ball } from './detect.js';
 import { obfree } from './shk.js';
-import { has_head, noncorporeal, amorphous, nonliving } from './mondata.js';
+import { has_head, noncorporeal, amorphous, nonliving, resists_drli } from './mondata.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -382,18 +382,18 @@ export function spec_applies(weap, mon) {
     // Check element resistances
     switch (weap.attk.adtyp) {
       case AD_FIRE:
-        return !(mon.mintrinsics & 0x01) ? 1 : 0; // MR_FIRE
+        return !(mon.mintrinsics & MR_FIRE) ? 1 : 0;
       case AD_COLD:
-        return !(mon.mintrinsics & 0x02) ? 1 : 0; // MR_COLD
+        return !(mon.mintrinsics & MR_COLD) ? 1 : 0;
       case AD_ELEC:
-        return !(mon.mintrinsics & 0x10) ? 1 : 0; // MR_ELEC
+        return !(mon.mintrinsics & MR_ELEC) ? 1 : 0;
       case AD_MAGM:
       case AD_STUN:
         return (rn2(100) >= (ptr.mr || 0)) ? 1 : 0;
       case AD_DRST:
-        return !(mon.mintrinsics & 0x20) ? 1 : 0; // MR_POISON
+        return !(mon.mintrinsics & MR_POISON) ? 1 : 0;
       case AD_DRLI:
-        return !(mon.mintrinsics & 0x40) ? 1 : 0; // MR_DRLI
+        return !resists_drli(mon) ? 1 : 0;
       default:
         return 0;
     }
@@ -745,7 +745,7 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
   for (const [bit, prop] of spfxMap) {
     if (!(spfx & bit)) continue;
     // SPFX_REFLECT from artifact only applies when wielded
-    if (bit === SPFX_REFLECT && !(wp_mask & 0x00000100 /* W_WEP */)) continue;
+    if (bit === SPFX_REFLECT && !(wp_mask & W_WEP)) continue;
     const p = ensureProp(prop);
     if (p) {
       if (on) p.extrinsic |= wp_mask;
@@ -787,7 +787,7 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
   }
 
   // Sunsword blindness resistance when wielded
-  if (wp_mask === 0x00000100 /* W_WEP */ && is_art(otmp, ART_SUNSWORD)) {
+  if (wp_mask === W_WEP && is_art(otmp, ART_SUNSWORD)) {
     // BLINDED property doesn't map directly; skip for now
     // In C this sets EBlnd_resist
   }

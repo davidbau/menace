@@ -24,7 +24,7 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          OBJ_BURIED, OBJ_MINVENT, OBJ_MIGRATING } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
-import { mons } from './monsters.js';
+import { mons, M1_NOLIMBS } from './monsters.js';
 import { POT_OIL, TALLOW_CANDLE, WAX_CANDLE, CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { big_to_little } from './mondata.js';
 import { enexto } from './teleport.js';
@@ -1048,7 +1048,6 @@ export async function stoned_dialogue(player) {
     if (i > 0 && i <= stoned_texts.length) {
         let msg = stoned_texts[stoned_texts.length - i];
         // C: nolimbs(ptr) — M1_NOLIMBS flag; use "extremities" instead of "limbs"
-        const M1_NOLIMBS = 0x00040000;
         if (p.data && (p.data.mflags1 & M1_NOLIMBS) && msg.includes('limbs'))
             msg = msg.replace('limbs', 'extremities');
         await pline(msg);
@@ -1247,7 +1246,6 @@ export async function slime_dialogue(player) {
     if ((t % 2) !== 0 && i >= 0 && i < slime_texts.length) {
         let msg = slime_texts[slime_texts.length - i - 1];
         // C: nolimbs(ptr) — M1_NOLIMBS flag
-        const M1_NOLIMBS = 0x00040000;
         if (p.data && (p.data.mflags1 & M1_NOLIMBS) && msg.includes('limbs'))
             msg = msg.replace('limbs', 'extremities');
         if (msg.includes('%s')) {
