@@ -1130,28 +1130,43 @@ export async function handleApply(player, map, display, game) {
             if (!await wield_tool(player, display, selected, "dig")) {
                 return { moved: false, tookTime: false };
             }
+            // C flow blocks on the wield message before the dig-direction prompt.
+            // Keep this explicit so the dismiss key isn't consumed as direction cancel.
+            if (display?.messageNeedsMore) {
+                await more(display, { game, site: 'apply.pickaxe.wield.morePrompt' });
+            }
         }
 
         if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK
             || selected.otyp === BULLWHIP || selected.otyp === STETHOSCOPE
             || selected.otyp === EXPENSIVE_CAMERA || selected.otyp === MIRROR
             || selected.otyp === FIGURINE || isApplyPolearm(selected)) {
-            await display.putstr_message('In what direction? ');
+            const dirPrompt = (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK)
+                ? 'In what direction do you want to dig? [njb>] '
+                : 'In what direction? ';
+            await display.putstr_message(dirPrompt);
             let dir = null;
+            let dirChRaw = null;
             while (!dir) {
                 const dirCh = await nhgetch();
+                dirChRaw = dirCh;
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
                     await display.putstr_message('Never mind.');
                     return { moved: false, tookTime: false };
                 }
                 const dch = String.fromCharCode(dirCh);
+                if ((selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK)
+                    && (dch === '<' || dch === '>')) {
+                    dir = [0, 0];
+                    break;
+                }
                 dir = DIRECTION_KEYS[dch] || null;
                 if (dir) break;
                 replacePromptMessage();
                 if (game?.flags?.cmdassist !== false) {
                     await show_invalid_direction_cmdassist_help(display);
-                    await display.putstr_message('In what direction? ');
+                    await display.putstr_message(dirPrompt);
                     continue;
                 }
                 if (!player?.wizard)
@@ -1159,6 +1174,14 @@ export async function handleApply(player, map, display, game) {
                 return { moved: false, tookTime: false };
             }
             replacePromptMessage();
+            if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK) {
+                const dch = String.fromCharCode(dirChRaw || 0);
+                if (dch === '<') {
+                    await You_cant('reach the ceiling.');
+                    return { moved: false, tookTime: true };
+                }
+                return { moved: false, tookTime: true };
+            }
             if (selected.otyp === MIRROR) {
                 await use_mirror(selected, player);
                 return { moved: false, tookTime: true };
