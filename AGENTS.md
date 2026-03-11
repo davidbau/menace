@@ -16,13 +16,25 @@ This project uses GitHub Issues for work tracking. `PROJECT_PLAN.md` is the auth
    - keep main clean and coordinated across agents.
 3. Then prioritize **CODEMATCH coverage expansion** as the top active workstream.
 4. While expanding coverage, preserve current parity (no regressions) and avoid architectural/harness cruft.
+5. Phase 3 execution model: use C-parity session coverage as the primary signal, add theme-organized sessions, and push toward 90%+ parity-session coverage while staying green.
 
 ## Source of Truth and Priorities
 1. NetHack C 3.7.0 behavior is the gameplay source of truth.
 2. `PROJECT_PLAN.md` is the execution roadmap and phase gate definition.
-3. For Iron Parity work, `docs/IRON_PARITY_PLAN.md` milestone IDs (`M0..M6`) are the authoritative campaign gates.
+3. `docs/COVERAGE.md` is the authoritative execution guide for the current Phase 3 coverage campaign.
 4. Test harness outputs are evidence for divergences, not a place to hide or special-case them.
 5. For gameplay parity sign-off, session replay results are authoritative over unit tests.
+
+## Current-Phase Resources
+Read these first for active work:
+1. `PROJECT_PLAN.md`
+2. `docs/COVERAGE.md`
+3. `docs/CODEMATCH.md`
+4. `docs/PARITY_TEST_MATRIX.md`
+5. `docs/ASYNC_CLEANUP.md`
+
+Historical/reference docs:
+1. `docs/IRON_PARITY_PLAN.md` (campaign history and architecture lessons)
 
 ## Work Types and Primary Metrics
 1. Porting Work
@@ -193,9 +205,12 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
 ## Priority Docs (Read Order)
 1. Always start with:
    - `PROJECT_PLAN.md`
-   - `docs/IRON_PARITY_PLAN.md` (for parity/state/translator campaign work)
+   - `docs/COVERAGE.md` (Phase 3 execution guide)
+   - `docs/CODEMATCH.md`
+   - `docs/PARITY_TEST_MATRIX.md`
    - `docs/DEVELOPMENT.md`
    - `docs/LORE.md`
+   - `docs/ASYNC_CLEANUP.md`
 2. For porting/parity divergence work:
    - `docs/C_FAITHFUL_STATE_REFACTOR_PLAN.md`
    - `docs/C_TRANSLATOR_ARCHITECTURE_SPEC.md`
@@ -213,6 +228,9 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
 5. For known issue deep-dives:
    - `docs/bugs/pet-ai-rng-divergence.md`
    - `docs/NONWIZARD_PARITY_NOTES_2026-02-17.md`
+6. Historical campaign references (non-primary for current phase):
+   - `docs/IRON_PARITY_PLAN.md`
+   - `docs/MORE_NEEDED_CAMPAIGN.md`
 
 ## Completion Discipline
 When a task is complete:
