@@ -61,7 +61,9 @@ import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './p
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
-import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE } from './const.js';
+import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
+         WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
+         SHARED, SHARED_PLUS } from './const.js';
 import { MZ_LARGE, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE,
          M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK } from './monsters.js';
@@ -2193,12 +2195,7 @@ function clearTopline(display) {
 // combat helper functions.
 // ========================================================================
 
-// Weight constants (weight.h)
-const WT_WEIGHTCAP_STRCON = 25;
-const WT_WEIGHTCAP_SPARE = 50;
-const MAX_CARR_CAP = 1000;
-const WT_HUMAN = 1450;
-const WT_WOUNDEDLEG_REDUCT = 100;
+// Weight constants imported from const.js
 
 // --------------------------------------------------------------------
 // Utility
@@ -2886,8 +2883,7 @@ export function in_rooms(x, y, typewanted, map) {
     if (roomno === undefined || roomno === null) return [];
 
     const NO_ROOM = 0;
-    const SHARED = 1;
-    const SHARED_PLUS = 2;
+    // SHARED, SHARED_PLUS imported from const.js
 
     const result = [];
 

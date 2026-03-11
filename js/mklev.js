@@ -17,6 +17,7 @@ import {
     STATUE_TRAP, POLY_TRAP, VIBRATING_SQUARE, TRAPPED_DOOR, TRAPPED_CHEST, TRAPNUM,
     MKTRAP_NOFLAGS, MKTRAP_NOSPIDERONWEB, is_hole, isok,
     DOORINC, DUNGEONS_OF_DOOM, KNOX, GEHENNOM,
+    SHARED,
 } from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
 import { makeRoom } from './mkroom.js';
@@ -421,7 +422,7 @@ export function pos_to_room(map, x, y) {
     return null;
 }
 
-const SHARED = 1; // C ref: rm.h SHARED room marker
+// SHARED imported from const.js
 
 // C ref: mklev.c topologize()
 export function topologize(map, croom, do_ordinary = false) {

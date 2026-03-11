@@ -59,7 +59,7 @@ import { isok, COLNO, ROWNO, PIT, is_pit,
          AM_MASK, AM_SANCTUM, Amask2align,
          DRAWBRIDGE_DOWN, DRAWBRIDGE_UP, SHOPBASE,
          IS_DRAWBRIDGE, XKILL_NOMSG, TT_NONE, TT_PIT, TT_BURIEDBALL,
-         DEAF, NO_KILLER_PREFIX } from './const.js';
+         DEAF, NO_KILLER_PREFIX, ARTICLE_THE } from './const.js';
 import { getlin, ynFunction } from './input.js';
 
 // ============================================================================
@@ -277,7 +277,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
                     } else {
                         await You(`destroy ${
                             mtmp.mtame
-                            ? x_monnam(mtmp, 2/*ARTICLE_THE*/, 'poor',
+                            ? x_monnam(mtmp, ARTICLE_THE, 'poor',
                                        has_mgivenname(mtmp) ? SUPPRESS_SADDLE : 0,
                                        false)
                             : mon_nam(mtmp)}!`);

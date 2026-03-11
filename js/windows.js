@@ -10,6 +10,7 @@ import {
     MENU_ITEMFLAGS_SELECTED,
     ATR_NONE, ATR_ULINE, ATR_BOLD, ATR_BLINK, ATR_INVERSE, ATR_URGENT, ATR_NOHISTORY,
     nul_glyphinfo,
+    MAXWIN,
 } from './const.js';
 import { pline } from './pline.js';
 
@@ -19,7 +20,6 @@ let WIN_MESSAGE, WIN_STATUS, WIN_MAP, WIN_INVEN, BASE_WINDOW;
 export function getWinMessage() { return WIN_MESSAGE; }
 
 // --- Internal module state ---
-const MAXWIN = 20;
 const wins = new Array(MAXWIN).fill(null);
 
 const ttyDisplay = {

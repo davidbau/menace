@@ -18,7 +18,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          IS_FURNITURE, IS_DRAWBRIDGE,
          XKILL_NOMSG, XKILL_NOCONDUCT,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
-         BOLT_LIM, MFAST } from './const.js';
+         BOLT_LIM, MFAST, P_DAGGER, P_KNIFE } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
@@ -33,7 +33,7 @@ import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          can_blow, x_monnam, canseemon, needspick,
          dmgtype_fromattack, is_bat, nonliving, acidic,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
-import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP } from './monsters.js';
+import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP, AD_HEAL } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
          POTION_CLASS, WAND_CLASS, SCROLL_CLASS, FOOD_CLASS,
          AMULET_CLASS, TOOL_CLASS, WEAPON_CLASS,
@@ -432,8 +432,7 @@ export function mcould_eat_tin(mon) {
         if (obj.otyp === TIN_OPENER) return true;
         const od = objectData[obj.otyp];
         if (od && od.oc_class === WEAPON_CLASS) {
-            // P_DAGGER = 1, P_KNIFE = 2 in C; check by skill
-            if (od.oc_skill === 1 || od.oc_skill === 2) return true;
+            if (od.oc_skill === P_DAGGER || od.oc_skill === P_KNIFE) return true;
         }
     }
     return false;
@@ -1390,7 +1389,7 @@ export async function find_offensive(mtmp, map, player) {
         return false;
     if (player.uswallow) return false;
     if (onscary(map, mtmp.mx, mtmp.my, mtmp)) return false;
-    if (dmgtype(mdat, 11 /* AD_HEAL */)
+    if (dmgtype(mdat, AD_HEAL)
         && !player.weapon && !player.shirt && !player.armor && !player.helmet
         && !player.shield && !player.gloves && !player.cloak && !player.boots) {
         return false;

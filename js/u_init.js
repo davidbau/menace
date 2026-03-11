@@ -94,7 +94,8 @@ import { discoverObject } from './o_init.js';
 import { mons } from './monsters.js';
 import { makedog, mon_arrive } from './dog.js';
 import { MON_ARRIVE_WITH_YOU,
-         P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW } from './const.js';
+         P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW,
+         WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP } from './const.js';
 import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
     W_WEP, W_SWAPWEP, W_QUIVER,
@@ -873,9 +874,7 @@ function initAttributes(player) {
 
 // C ref: hack.c weight_cap()/inv_weight() + u_init.c u_init_carry_attr_boost()
 function startupWeightCap(player) {
-    const WT_WEIGHTCAP_STRCON = 25;
-    const WT_WEIGHTCAP_SPARE = 50;
-    const MAX_CARR_CAP = 1000;
+    // Weight constants imported from const.js
     const str = player.attributes[A_STR] || 3;
     const con = player.attributes[A_CON] || 3;
     let carrcap = WT_WEIGHTCAP_STRCON * (str + con) + WT_WEIGHTCAP_SPARE;

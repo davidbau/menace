@@ -34,7 +34,7 @@ import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          monsndx, flesh_petrifies, touch_petrifies,
          likes_fire, mon_hates_silver, has_head, haseyes, M_AP_TYPE, ismnum } from './mondata.js';
 import { PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_GELATINOUS_CUBE, PM_LONG_WORM, PM_COCKATRICE, PM_CHICKATRICE, PM_MEDUSA, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_GIANT_RAT, NUMMONS, mons, AT_NONE, AT_CLAW, AT_BITE, AT_KICK, AT_BUTT, AT_TUCH, AT_STNG, AT_WEAP, AT_ENGL, AT_HUGS, AT_TENT, AT_BOOM, AD_PHYS, AD_FIRE, AD_COLD, AD_ELEC, AD_ACID, AD_DCAY, AD_RUST, MR_POISON, MR_ACID, MR_STONE, MR_FIRE, M1_SWIM, M1_NEEDPICK, M1_TUNNEL, M1_SEE_INVIS, M1_NOTAKE, M1_NOHANDS, M1_UNSOLID, M1_NOHEAD, M1_NOLIMBS, M2_STRONG, M2_ROCKTHROW, S_DOG, S_MIMIC, S_DRAGON, S_NYMPH, MS_GUARDIAN, MS_LEADER, MZ_HUMAN, MZ_TINY, MZ_SMALL, MZ_MEDIUM, MZ_LARGE, MZ_HUGE, MZ_GIGANTIC, G_FREQ } from './monsters.js';
-import { MAGIC_PORTAL, WT_HUMAN } from './const.js';
+import { MAGIC_PORTAL, WT_HUMAN, MAX_CARR_CAP } from './const.js';
 import { gettrack } from './track.js';
 import { On_stairs } from './stairs.js';
 import { helpless, onscary } from './mon.js';
@@ -63,7 +63,6 @@ const DOG_HUNGRY = 300;
 const DOG_WEAK   = 500;
 const DOG_STARVE = 750;
 
-const MAX_CARR_CAP = 1000; // C ref: weight.h
 const NON_PM = -1;
 
 // C ref: dogmove.c:1422 — quickmimic choices table

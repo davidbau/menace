@@ -115,7 +115,7 @@ import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
-import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED, MMOVE_DIED, MMOVE_DONE, MMOVE_NOMOVES, Trap_Killed_Mon, Trap_Moved_Mon } from './const.js';
+import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED, MMOVE_DIED, MMOVE_DONE, MMOVE_NOMOVES, Trap_Killed_Mon, Trap_Moved_Mon, MAX_CARR_CAP } from './const.js';
 
 // Re-export mthrowu.c functions
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
@@ -534,7 +534,7 @@ export function m_avoid_soko_push_loc(mon, nx, ny, map, player) {
 // ========================================================================
 // m_search_items — C ref: monmove.c:1333
 // ========================================================================
-const MAX_CARR_CAP = 1000;
+// MAX_CARR_CAP imported from const.js
 const PRACTICAL_CLASSES = new Set([WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS, FOOD_CLASS]);
 const MAGICAL_CLASSES = new Set([AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_CLASS, RING_CLASS, SPBOOK_CLASS]);
 

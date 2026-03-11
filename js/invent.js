@@ -14,7 +14,8 @@ import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          GETOBJ_ALLOWCNT, GETOBJ_PROMPT, GETOBJ_NOFLAGS,
          ECMD_OK,
          SORTLOOT_PACK, SORTLOOT_INVLET, SORTLOOT_LOOT, SORTLOOT_INUSE,
-         LEFT_SIDE, RIGHT_SIDE } from './const.js';
+         LEFT_SIDE, RIGHT_SIDE,
+         WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_WOUNDEDLEG_REDUCT } from './const.js';
 import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          FLINT, ROCK, SLING, MAGIC_MARKER, COIN_CLASS, ARMOR_CLASS,
          RING_CLASS, AMULET_CLASS, TOOL_CLASS, POTION_CLASS, SCROLL_CLASS,
@@ -1078,10 +1079,7 @@ export async function addinv_nomerge(obj, player) {
     return result;
 }
 
-const WT_WEIGHTCAP_STRCON = 25;
-const WT_WEIGHTCAP_SPARE = 50;
-const MAX_CARR_CAP = 1000;
-const WT_WOUNDEDLEG_REDUCT = 100;
+// Weight constants imported from const.js
 
 function weight_cap_for_inventory(player) {
     const str = acurrstr(player);

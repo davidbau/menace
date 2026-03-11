@@ -49,7 +49,7 @@ import {
 import { makemon, mkclass, rndmonnum_adj, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, SIZE, nul_glyphinfo,
          LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
-         LR_TELE, LR_UPTELE, LR_DOWNTELE } from './const.js';
+         LR_TELE, LR_UPTELE, LR_DOWNTELE, SHARED } from './const.js';
 
 // C serialization stubs (JS uses storage.js, not binary save files)
 function update_file() { return false; }
@@ -1551,7 +1551,7 @@ export function repair_irregular_room_boundaries(map) {
 export function floodFillAndRegister(map, sx, sy, rtype, lit) {
     const startTyp = map.at(sx, sy).typ;
     const rno = map.nroom + ROOMOFFSET;
-    const SHARED = 1; // C ref: rm.h NO_ROOM=0, SHARED=1
+    // SHARED imported from const.js
 
     // BFS flood fill
     let minX = sx, maxX = sx, minY = sy, maxY = sy;
