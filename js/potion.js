@@ -15,7 +15,7 @@ import { POTION_CLASS, POT_WATER,
          POT_ENLIGHTENMENT, POT_FRUIT_JUICE,
          POT_MONSTER_DETECTION, POT_OBJECT_DETECTION,
          STRANGE_OBJECT, UNICORN_HORN, AMETHYST,
-         COIN_CLASS, WEAPON_CLASS } from './objects.js';
+         COIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS } from './objects.js';
 import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          TIMEOUT, CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES,
          SICK, SICK_RES, DEAF,
@@ -1898,14 +1898,14 @@ export async function peffect_monster_detection(otmp, map, player) {
       return 0;
     }
   }
-  if (await monster_detect(otmp, 0)) return 1;
+  if (await monster_detect(otmp, 0, player, activeMap(), gstateGame?.disp, gstateGame)) return 1;
   await exercise(player, A_WIS, true);
   return 0;
 }
 
 // Autotranslated from potion.c:950
 export async function peffect_object_detection(otmp, player) {
-  if (await object_detect(otmp, 0)) return 1;
+  if (await object_detect(otmp, 0, player, activeMap(), gstateGame?.disp, gstateGame)) return 1;
   await exercise(player, A_WIS, true);
   return 0;
 }
