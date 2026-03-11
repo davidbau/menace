@@ -8007,3 +8007,31 @@ hard-won wisdom:
 - Validation:
   - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed500_extcmd_enhance.session.json --parallel=1 --verbose` -> PASS
   - `npm run test:session` -> `159/159` PASS.
+
+## 2026-03-11: seed503 controlled-polymorph path bring-up (partial)
+
+- Problem:
+  - `seed503_extcmd_monster` diverged at blessed polymorph control flow:
+    C prompts `Become what kind of monster? [type the name]`, while JS jumped
+    through random/non-interactive polymorph behavior.
+- Change:
+  - `js/polyself.js`:
+    - implemented controlled-polymorph `getlin` prompt loop (C-shaped) using
+      `name_to_mon` + validation for explicit monster-form selection.
+    - applied C low-control forcecontrol suppression for special cases and moved
+      draconian/were/vamp special-branch gating under `mntmp < LOW_PM`.
+  - `js/timeout.js`:
+    - hardened `learn_egg_type()` to avoid runtime crashes when called without
+      initialized `game.mvitals` context.
+  - `js/potion.js`:
+    - added a controlled-poly `more()` boundary call before entering
+      polymorph prompt path (boundary timing still under investigation).
+- Result:
+  - Session moved forward (more matched screen/rng prefix) and no longer crashes
+    on `little_to_big` / `mvitals` path.
+  - Remaining mismatch is still in prompt boundary timing + downstream RNG.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed503_extcmd_monster.session.json --parallel=1 --verbose`
+    - improved but still failing (`seed503` remains open).
+  - `npm run test:session`
+    - baseline still green (`159/159`).

@@ -26,7 +26,7 @@ import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { mons, M1_NOLIMBS } from './monsters.js';
 import { POT_OIL, TALLOW_CANDLE, WAX_CANDLE, CANDELABRUM_OF_INVOCATION } from './objects.js';
-import { big_to_little } from './mondata.js';
+import { big_to_little, little_to_big } from './mondata.js';
 import { enexto } from './teleport.js';
 import { new_light_source, del_light_source, candle_light_range } from './light.js';
 import { revive_mon, zombify_mon, heal_legs } from './do.js';
@@ -1380,8 +1380,13 @@ export function relinkTimers() {
 
 // Autotranslated from timeout.c:1192
 export async function learn_egg_type(mnum, game) {
+  const g = game || _gstate;
   mnum = little_to_big(mnum);
-  game.mvitals[mnum].mvflags |= MV_KNOWS_EGG;
+  if (!g?.mvitals || !g.mvitals[mnum]) return;
+  if (!Number.isFinite(g.mvitals[mnum].mvflags)) g.mvitals[mnum].mvflags = 0;
+  if (Number.isFinite(NHC.MV_KNOWS_EGG)) {
+    g.mvitals[mnum].mvflags |= NHC.MV_KNOWS_EGG;
+  }
   update_inventory();
 }
 

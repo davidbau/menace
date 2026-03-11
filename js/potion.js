@@ -2,7 +2,7 @@
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
-import { nhgetch, ynFunction } from './input.js';
+import { nhgetch, ynFunction, more } from './input.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useupall } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
@@ -1991,6 +1991,7 @@ export async function peffect_polymorph(otmp, player) {
   if (!unchanging) {
     if (!otmp.blessed || (player.umonnum !== player.umonster)) await polyself(player, POLY_NOFLAGS);
     else {
+      await more();
       await polyself(player, POLY_CONTROLLED | POLY_LOW_CTRL);
       if (player.mtimedone && player.umonnum !== player.umonster) player.mtimedone = Math.min(player.mtimedone, rn2(15) + 10);
     }

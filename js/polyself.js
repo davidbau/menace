@@ -84,12 +84,12 @@ import {
     can_be_strangled, infravision, regenerates,
     passes_walls, pm_invisible, is_swimmer,
     can_teleport, control_teleport, likes_lava,
-    poly_when_stoned,
+    poly_when_stoned, name_to_mon,
     attacktype_fordmg,
 } from './mondata.js';
 import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
-import { s_suffix } from './hacklib.js';
+import { s_suffix, mungspaces } from './hacklib.js';
 import { dist2 } from './hacklib.js';
 import { killed, wakeup, setmangry } from './mon.js';
 import { losehp, spoteffects, nomul, getdir } from './hack.js';
@@ -108,6 +108,7 @@ import { selftouch, dotrap, ignite_items } from './trap.js';
 import { learn_egg_type } from './timeout.js';
 import { done } from './end.js';
 import { game as _gstate } from './gstate.js';
+import { getlin } from './input.js';
 import { adjabil, redist_attr } from './attrib.js';
 import { expels } from './mhitu.js';
 import { dropx } from './do.js';
@@ -894,7 +895,7 @@ export async function polyself(player, psflags, map) {
 
     // POLY_CONTROLLED, POLY_LOW_CTRL, POLY_MONSTER, POLY_REVERT imported from const.js
 
-    const forcecontrol = !!(psflags & POLY_CONTROLLED);
+    let forcecontrol = !!(psflags & POLY_CONTROLLED);
     const low_control = !!(psflags & POLY_LOW_CTRL);
     let monsterpoly = !!(psflags & POLY_MONSTER);
     const formrevert = !!(psflags & POLY_REVERT);
@@ -929,6 +930,12 @@ export async function polyself(player, psflags, map) {
         mntmp = player.cham || NON_PM;
         monsterpoly = true;
     }
+    if (forcecontrol && low_control
+        && (draconian || monsterpoly || isvamp || iswere)) {
+        // C ref: polyself.c — low_control blessed-poly does not force control
+        // for special/suppressed cases.
+        forcecontrol = false;
+    }
 
     // Vampire special handling
     if (monsterpoly && isvamp) {
@@ -949,10 +956,36 @@ export async function polyself(player, psflags, map) {
         return;
     }
 
-    // Controlled poly: in C this uses getlin() for interactive input.
-    // We skip the interactive part but handle draconian merge and were shift.
+    // Controlled polymorph prompt (C ref: polyself.c getlin loop).
+    if (controllable_poly || forcecontrol) {
+        let buf = '';
+        let tryct = 5;
+        do {
+            mntmp = NON_PM;
+            buf = await getlin('Become what kind of monster? [type the name]', _gstate?.display);
+            buf = mungspaces(String(buf || ''));
+            if (!buf || buf[0] === '\x1b') {
+                if (forcecontrol) {
+                    await pline('Never mind.');
+                    return;
+                }
+                buf = '*';
+            }
+            if (buf === '*' || buf.toLowerCase() === 'random') {
+                tryct = 0;
+                continue;
+            }
+            mntmp = name_to_mon(buf);
+            if (mntmp < LOW_PM) {
+                await pline("I've never heard of such monsters.");
+            } else if (!polyok(mons[mntmp])) {
+                await You_cant('polymorph into that.');
+                mntmp = NON_PM;
+            }
+        } while (mntmp < LOW_PM && --tryct > 0);
+    }
 
-    if (draconian || iswere || isvamp) {
+    if (mntmp < LOW_PM && (draconian || iswere || isvamp)) {
         // special changes that don't require polyok()
         if (draconian) {
             // Dragon scale merge
