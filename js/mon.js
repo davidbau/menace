@@ -50,7 +50,7 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG, ismnum } from './mondata.js';
 import { Is_rogue_level, surface } from './dungeon.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
-import { impossible, pline_mon } from './pline.js';
+import { impossible, pline_mon, pline, pline_The, livelog_printf } from './pline.js';
 import { next_ident } from './mkobj.js';
 import { is_metallic, is_organic, obj_resists, hasPoisonTrapBit } from './objdata.js';
 import { newsym, canSpotMonsterForMap, canspotmon, sensemon } from './display.js';

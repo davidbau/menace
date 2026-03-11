@@ -24,7 +24,8 @@ import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe }
 import { handleInventory, currency, doorganize } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { dodip } from './potion.js';
-import { handleCallObjectTypePrompt, mon_nam } from './do_name.js';
+import { handleCallObjectTypePrompt, mon_nam, x_monnam } from './do_name.js';
+import { upstart } from './hacklib.js';
 import { handleDiscoveries } from './o_init.js';
 import {
     handlePrevMessages, handleHelp, handleWhatdoes, handleHistory,
@@ -38,7 +39,7 @@ import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './picku
 import { dotalk } from './sounds.js';
 import { add_skills_to_menu, skill_advance } from './weapon.js';
 import { handleSet } from './options.js';
-import { pline, impossible } from './pline.js';
+import { pline, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
 import { cnv_trap_obj, t_at, m_at } from './trap.js';

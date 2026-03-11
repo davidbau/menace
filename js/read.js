@@ -23,7 +23,7 @@ import {
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
 import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok } from './const.js';
-import { doname, bcsign, blessorcurse, uncurse } from './mkobj.js';
+import { doname, bcsign, blessorcurse, uncurse, mksobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
@@ -48,7 +48,7 @@ import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
-import { pline, impossible, You } from './pline.js';
+import { pline, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon } from './display.js';
 import { S_goodpos } from './symbols.js';

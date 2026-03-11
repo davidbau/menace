@@ -27,7 +27,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          IRONBARS, STAIRS, LADDER, W_NONDIGGABLE,
          INVIS, DISPLACED,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
-import { rn2, rnd, d, c_d, pushRngLogEntry } from './rng.js';
+import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
@@ -47,7 +47,7 @@ import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
 import { can_carry, cursed_object_at } from './dogmove.js';
 import { cansee, couldsee, m_cansee } from './vision.js';
-import { pline, pline_mon, verbalize } from './pline.js';
+import { pline, pline_mon, pline_The, You_hear, set_msg_xy, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
          hides_under, is_mercenary, YMonnam, Monnam,
          mon_knows_traps, is_rider, is_mind_flayer,
