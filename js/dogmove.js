@@ -53,6 +53,9 @@ import { newsym, canspotmon, glyph_at } from './display.js';
 import { pline, You, Your } from './pline.js';
 import { an } from './objnam.js';
 
+// C macro: #define something "something"
+const something = "something";
+
 // ========================================================================
 // Constants — C ref: dogmove.c:11-13
 // ========================================================================

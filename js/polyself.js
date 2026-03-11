@@ -96,6 +96,9 @@ import { losehp } from './hack.js';
 import { mksobj } from './mkobj.js';
 import { AMULET_OF_STRANGULATION } from './objects.js';
 import { were_summon } from './were.js';
+import { encumber_msg } from './pickup.js';
+import { retouch_equipment } from './artifact.js';
+import { selftouch } from './trap.js';
 import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS } from './const.js';
 
 // resists_fire already imported from mondata.js above
@@ -838,10 +841,10 @@ export async function newman(player) {
     }
 
     // encumber_msg, retouch_equipment, selftouch
-    if (player.encumber_msg) await player.encumber_msg();
-    if (player.retouch_equipment) player.retouch_equipment(2);
-    if (!player.gloves && player.selftouch) {
-        player.selftouch("No longer petrify-resistant, you");
+    await encumber_msg(player);
+    retouch_equipment(2, player);
+    if (!player.gloves) {
+        selftouch("No longer petrify-resistant, you", player);
     }
 }
 
@@ -1225,10 +1228,10 @@ export async function polymon(player, mntmp, map) {
     await check_strangling(player, true); // maybe start strangling
 
     // Encumbrance, retouch equipment, selftouch
-    if (player.encumber_msg) await player.encumber_msg();
-    if (player.retouch_equipment) player.retouch_equipment(2);
-    if (!player.gloves && player.selftouch) {
-        player.selftouch("No longer petrify-resistant, you");
+    await encumber_msg(player);
+    retouch_equipment(2, player);
+    if (!player.gloves) {
+        selftouch("No longer petrify-resistant, you", player);
     }
 
     // Verbose #monster hints
@@ -1306,7 +1309,7 @@ export async function rehumanize(player) {
     // nomul(0) — cancel any multi-turn action
     if (player.nomul) player.nomul(0);
 
-    if (player.encumber_msg) await player.encumber_msg();
+    await encumber_msg(player);
 
     // Steed landing message
     if (was_flying && player.usteed) {
@@ -1319,9 +1322,9 @@ export async function rehumanize(player) {
         }
     }
 
-    if (player.retouch_equipment) player.retouch_equipment(2);
-    if (!player.gloves && player.selftouch) {
-        player.selftouch("No longer petrify-resistant, you");
+    retouch_equipment(2, player);
+    if (!player.gloves) {
+        selftouch("No longer petrify-resistant, you", player);
     }
 }
 

@@ -193,7 +193,7 @@ export async function init_uhunger(game, player) {
   game.disp.botl = (player.uhs !== NOT_HUNGRY || player.atemp[A_STR] < 0);
   player.uhunger = 900;
   player.uhs = NOT_HUNGRY;
-  if (player.atemp[A_STR] < 0) { player.atemp[A_STR] = 0; await encumber_msg(); }
+  if (player.atemp[A_STR] < 0) { player.atemp[A_STR] = 0; await encumber_msg(player); }
 }
 
 
