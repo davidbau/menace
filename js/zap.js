@@ -714,7 +714,7 @@ export async function revive(obj, by_hero, map, player = null) {
 
   // C ref: zap.c:948-950 — container checks
   // If in a bag of holding, rn2(40) chance to fail
-  if (obj.where === 'contained' && obj.ocontainer) {
+  if (obj.where === OBJ_CONTAINED && obj.ocontainer) {
     const container = obj.ocontainer;
     if (container.olocked) return null;
     if (container.otyp === BAG_OF_HOLDING && rn2(40)) return null;

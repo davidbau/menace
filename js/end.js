@@ -21,7 +21,7 @@
 //   renderTombstone → display.js:1135 (PARTIAL — tombstone rendering)
 //   renderTopTen → display.js:1186 (PARTIAL — high score display)
 
-import { A_CON, isok, DIED, CHOKING, POISONING, STARVING, DROWNING, BURNING, DISSOLVED, CRUSHING, STONING, TURNED_SLIME, GENOCIDED, PANICKED, TRICKED, QUIT, ESCAPED, ASCENDED, KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX, NON_PM } from './const.js';
+import { A_CON, isok, DIED, CHOKING, POISONING, STARVING, DROWNING, BURNING, DISSOLVED, CRUSHING, STONING, TURNED_SLIME, GENOCIDED, PANICKED, TRICKED, QUIT, ESCAPED, ASCENDED, KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX, NON_PM, OBJ_FREE, OBJ_FLOOR } from './const.js';
 import { pline, You, Your, You_feel, pline_The, impossible } from './pline.js';
 import { mons, G_UNIQ, PM_GHOST, PM_HIGH_CLERIC, PM_WRAITH, PM_VAMPIRE, PM_GHOUL, S_WRAITH, S_MUMMY, S_VAMPIRE, M2_PNAME, PM_TOURIST, PM_HUMAN, PM_GREEN_SLIME, PM_HOUSECAT } from './monsters.js';
 import { x_monnam, hasGivenName, is_vampshifter } from './mondata.js';
@@ -980,16 +980,16 @@ export function done_object_cleanup(game) {
     const py = (isok(ox, oy) && (game.lev || game.map) && (game.lev || game.map).at(ox, oy)
                 && (game.lev || game.map).at(ox, oy).accessible) ? oy : player.y;
 
-    if (game.thrownobj && game.thrownobj.where === 'free') {
+    if (game.thrownobj && game.thrownobj.where === OBJ_FREE) {
         game.thrownobj.x = px;
         game.thrownobj.y = py;
-        game.thrownobj.where = 'floor';
+        game.thrownobj.where = OBJ_FLOOR;
         game.thrownobj = null;
     }
-    if (game.kickedobj && game.kickedobj.where === 'free') {
+    if (game.kickedobj && game.kickedobj.where === OBJ_FREE) {
         game.kickedobj.x = px;
         game.kickedobj.y = py;
-        game.kickedobj.where = 'floor';
+        game.kickedobj.where = OBJ_FLOOR;
         game.kickedobj = null;
     }
 }

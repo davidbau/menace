@@ -1031,7 +1031,7 @@ async function really_kick_object(x, y, player, map, game) {
     }
 
     // the object might have fallen down a hole
-    if (kickedobj.where === 'migrating')
+    if (kickedobj.where === OBJ_MIGRATING)
         return 1;
 
     const bhitpos = game.bhitpos || { x: x + dx, y: y + dy };
@@ -1421,7 +1421,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
 }
 
 // A_LAWFUL import
-import { A_LAWFUL, NATTK, NON_PM, KILLED_BY } from './const.js';
+import { A_LAWFUL, NATTK, NON_PM, KILLED_BY, OBJ_MIGRATING } from './const.js';
 
 // ============================================================================
 // 15. dokick — the #kick command handler
