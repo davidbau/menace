@@ -2050,7 +2050,10 @@ export async function look_here(player, map, obj_cnt) {
     // the most recently placed object comes first.  JS place_object appends
     // to the end, so we reverse to match C's newest-first iteration order.
     const objects = (map?.objects || []).filter(o => o.ox === x && o.oy === y && !o.buried).reverse();
-    const dfeature = dfeature_at(x, y, map, { depth: player.dungeonLevel, dnum: player.dnum });
+    const dfeature = dfeature_at(x, y, map, {
+        depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
+        dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
+    });
 
     if (objects.length >= 2 || dfeature) {
         const tmpwin = create_nhwindow(NHW_MENU);
@@ -2061,6 +2064,7 @@ export async function look_here(player, map, obj_cnt) {
             await win_putstr(tmpwin, 0, 'Things that are here:');
         }
         for (const obj of objects) {
+            observeObject(obj);
             await win_putstr(tmpwin, 0, doname(obj));
         }
         await win_putstr(tmpwin, 0, '');
@@ -2070,6 +2074,7 @@ export async function look_here(player, map, obj_cnt) {
         if (dfeature) {
             await pline(`There is ${an(dfeature)} here.`);
         }
+        observeObject(objects[0]);
         await You('see here %s.', doname(objects[0]));
     } else if (!dfeature) {
         await You('see no objects here.');

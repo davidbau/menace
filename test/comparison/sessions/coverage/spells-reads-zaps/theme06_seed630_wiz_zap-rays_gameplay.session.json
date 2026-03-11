@@ -2,7 +2,7 @@
 "version":3,
 "seed":630,
 "source":"c",
-"recorded_with":{"menace": "abe0445c", "nethack_c": "79c688cc6"},
+"recorded_with":{"menace": "a2af76a3", "nethack_c": "79c688cc6"},
 "regen":{"mode": "gameplay", "moves": "\u0017wand of fire\n \u0017wand of cold\n \u0017wand of lightning\n \u0017wand of magic missile\n \u0017wand of sleep\n \u0017wand of death\n \u0007kobold\n \u0007orc\n k k zej   zfj   zgj   zhj   zij   zjj   \u0017wand of polymorph\n zk.        ", "record_more_spaces": true},
 "options":{"name": "Wizard", "role": "Wizard", "race": "human", "gender": "male", "align": "neutral", "wizard": true, "symset": "DECgraphics", "autopickup": false, "pickup_types": ""},
 "steps":[

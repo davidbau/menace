@@ -71,10 +71,11 @@ function terrain_here_description(loc, ctx = {}) {
     if (!loc) return '';
     const player = ctx.player || null;
     const map = ctx.map || null;
-    const dnum = Number.isInteger(player?.dnum)
-        ? player.dnum
-        : (Number.isInteger(map?._genDnum) ? map._genDnum : undefined);
-    const depth = Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : undefined;
+    const dnum = (player?.uz ? player.uz.dnum : undefined)
+        ?? (map?.uz ? map.uz.dnum : undefined)
+        ?? (Number.isInteger(map?._genDnum) ? map._genDnum : undefined);
+    const depth = Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel
+        : (map?.uz ? map.uz.dlevel : undefined);
     const outOfDungeonExit = (loc.typ === STAIRS && loc.flags === 1 && dnum === 0 && depth === 1);
     if (outOfDungeonExit) return 'There is a staircase up out of the dungeon here.';
     if (loc.typ === STAIRS && loc.flags === 1) return 'There is a staircase up here.';

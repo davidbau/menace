@@ -1353,7 +1353,10 @@ export async function domove_core(dir, player, map, display, game) {
     if (!pickedUp && objs.length > 0) {
         if (objs.length === 1) {
             // C ref: invent.c look_here() — show dfeature BEFORE object.
-            const dfeature = dfeature_at(player.x, player.y, map, { depth: player.dungeonLevel });
+            const dfeature = dfeature_at(player.x, player.y, map, {
+                depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
+                dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
+            });
             if (dfeature) {
                 await display.putstr_message(`There is ${an(dfeature)} here.`);
             }

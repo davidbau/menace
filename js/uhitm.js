@@ -48,6 +48,7 @@ import {
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
 import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
 import { near_capacity, overexertion } from './hack.js';
+import { will_hurtle } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
 import {
     nonliving, x_monnam, y_monnam, is_undead, is_demon,
@@ -2386,11 +2387,15 @@ export async function do_attack_core(player, monster, display, map, game = null)
                 // Size: hero (MZ_HUMAN) must be > mdef.msize + 1
                 const msize = (monster.data || monster.type)?.msize ?? MZ_HUMAN;
                 if (msize + 1 < MZ_HUMAN) {
-                    // cf. uhitm.c:5350-5352 — knockback message
+                    // cf. uhitm.c:5334-5352 — knockback message
+                    const dx = Math.sign((monster.mx || 0) - (player.x || 0));
+                    const dy = Math.sign((monster.my || 0) - (player.y || 0));
+                    const knockedhow = will_hurtle(monster, (monster.mx || 0) + dx, (monster.my || 0) + dy, map, player)
+                        ? 'backward' : 'back';
                     const adj = rn2(2) ? 'forceful' : 'powerful';
                     const noun = rn2(2) ? 'blow' : 'strike';
                     await display.putstr_message(
-                        `You knock the ${x_monnam(monster)} back with a ${adj} ${noun}!`
+                        `You knock the ${x_monnam(monster)} ${knockedhow} with a ${adj} ${noun}!`
                     );
                     // cf. uhitm.c:5384 — stun check after knockback
                     // C: mhurtle(mdef,...) then if (!DEADMONSTER(mdef) && !rn2(4)) mdef->mstun=1
