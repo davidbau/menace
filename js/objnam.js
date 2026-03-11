@@ -2157,10 +2157,16 @@ export function readobjnam(bp, no_wish, opts = {}) {
     }
     otyp = otmp.otyp;
 
+    // C ref: objnam.c readobjnam() — apply requested quantity.
+    // When no explicit count was given (quan==1 from init), force quan=1
+    // to override any random quantity set by mksobj_init (e.g. food 1/6
+    // chance of quan=2, multigen weapons, gems, etc.).
     if (state.quan > 1) {
         otmp.quan = state.quan;
-        otmp.owt = weight(otmp);
+    } else {
+        otmp.quan = 1;
     }
+    otmp.owt = weight(otmp);
     if (state.buc === 1) bless(otmp);
     else if (state.buc === -1) curse(otmp);
     else if (state.buc === 2) uncurse(otmp);
