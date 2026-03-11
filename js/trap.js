@@ -36,7 +36,7 @@ import { mtele_trap, mlevel_tele_trap,
 import { rloco } from './teleport.js';
 import { resist, burnarmor } from './zap.js';
 import { dmgval } from './weapon.js';
-import { deltrap, In_sokoban, level_difficulty, In_hell, Is_waterlevel } from './dungeon.js';
+import { deltrap, In_sokoban, level_difficulty, In_hell, Is_waterlevel, dunlevs_in_dungeon } from './dungeon.js';
 import { Role_if } from './role.js';
 import { mons, PM_IRON_GOLEM, PM_RUST_MONSTER, PM_XORN, PM_PIT_FIEND, PM_PIT_VIPER, PM_OWLBEAR, PM_BUGBEAR, PM_GREMLIN, PM_PAPER_GOLEM, PM_STRAW_GOLEM, PM_WOOD_GOLEM, PM_LEATHER_GOLEM, PM_PURPLE_WORM, PM_JABBERWOCK, PM_BALROG, PM_KRAKEN, PM_MASTODON, PM_ORION, PM_NORN, PM_CYCLOPS, PM_LORD_SURTUR, PM_TITANOTHERE, PM_BALUCHITHERIUM, PM_ROGUE, MZ_SMALL, MZ_HUGE, S_GIANT, S_DRAGON, AT_MAGC, AT_BREA, AD_PHYS, AD_FIRE, AD_RUST, AD_MAGM, AD_SLEE, AD_RBRE } from './monsters.js';
 import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
@@ -1350,13 +1350,10 @@ export function mk_trap_statue(x, y, game, player) {
 
 // Autotranslated from trap.c:417
 export function dng_bottom(lev, player) {
+  const usePlayer = player || _gstate?.player || {};
   let bottom = dunlevs_in_dungeon(lev);
-  if (In_quest(lev)) {
-    let qlocate_depth = qlocate_level.dlevel;
-    if (dunlev_reached(lev) < qlocate_depth) bottom = qlocate_depth;
-  }
-  else if (In_hell(lev)) {
-    if (!player.uevent.invoked) {
+  if (In_hell(lev)) {
+    if (!usePlayer?.uevent?.invoked) {
       bottom -= 1;
     }
   }
@@ -1365,9 +1362,11 @@ export function dng_bottom(lev, player) {
 
 // Autotranslated from trap.c:441
 export function hole_destination(dst, map) {
-  let bottom = dng_bottom(map.uz);
-  dst.dnum = map.uz.dnum;
-  dst.dlevel = dunlev(map.uz);
+  const useMap = map || _gstate?.map || null;
+  const usePlayer = useMap?.player || _gstate?.player || null;
+  let bottom = dng_bottom(useMap?.uz || map?.uz, usePlayer);
+  dst.dnum = useMap?.uz?.dnum;
+  dst.dlevel = dunlev(useMap?.uz || map?.uz);
   while (dst.dlevel < bottom) {
     dst.dlevel++;
     if (rn2(4)) {

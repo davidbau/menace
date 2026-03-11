@@ -2721,10 +2721,14 @@ export function deltrap(map, trap) {
 }
 
 function dng_bottom(map) {
-    const dnum = Number.isInteger(map?._genDnum) ? map._genDnum : DUNGEONS_OF_DOOM;
+    const useLev = map?.uz || null;
+    const dnum = Number.isInteger(map?._genDnum)
+        ? map._genDnum
+        : (Number.isInteger(useLev?.dnum) ? useLev.dnum : DUNGEONS_OF_DOOM);
     let bottom = dunlevs_in_dungeon(dnum);
     // C ref: trap.c dng_bottom() — before invocation, Sanctum is not reachable.
-    if (dnum === GEHENNOM && !map?._invoked) {
+    const invoked = !!(map?._invoked || map?.game?.player?.uevent?.invoked || _gstate?.player?.uevent?.invoked);
+    if (dnum === GEHENNOM && !invoked) {
         bottom = Math.max(1, bottom - 1);
     }
     // Optional quest cut-off hook for parity contexts that track quest locate.
@@ -2739,8 +2743,13 @@ function dng_bottom(map) {
 
 // C ref: trap.c:441 hole_destination() — consume RNG for fall depth
 function hole_destination(map) {
-    const dnum = Number.isInteger(map?._genDnum) ? map._genDnum : DUNGEONS_OF_DOOM;
-    let dlevel = Number.isInteger(map?._genDlevel) ? map._genDlevel : 1;
+    const useLev = map?.uz || null;
+    const dnum = Number.isInteger(map?._genDnum)
+        ? map._genDnum
+        : (Number.isInteger(useLev?.dnum) ? useLev.dnum : DUNGEONS_OF_DOOM);
+    let dlevel = Number.isInteger(map?._genDlevel)
+        ? map._genDlevel
+        : (Number.isInteger(useLev?.dlevel) ? useLev.dlevel : 1);
     const bottom = dng_bottom(map);
     while (dlevel < bottom) {
         dlevel++;

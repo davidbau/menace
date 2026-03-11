@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
 import { GameMap } from '../../js/game.js';
 import { count_surround_traps, invoke_ok, invoke_energy_boost, arti_invoke_cost, is_magic_key, doinvoke, invoke_healing, invoke_charge_obj, arti_invoke } from '../../js/artifact.js';
-import { check_in_air } from '../../js/trap.js';
+import { check_in_air, dng_bottom } from '../../js/trap.js';
 import { nohandglow } from '../../js/uhitm.js';
 import { summonmu } from '../../js/mhitu.js';
 import { return_from_mtoss } from '../../js/mthrowu.js';
-import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS, ECMD_TIME, ECMD_CANCEL, BLINDED, SICK, SLIMED, TIMEOUT } from '../../js/const.js';
+import { DOOR, D_TRAPPED, TOOKPLUNGE, PROT_FROM_SHAPE_CHANGERS, ECMD_TIME, ECMD_CANCEL, BLINDED, SICK, SLIMED, TIMEOUT, GEHENNOM } from '../../js/const.js';
 import { CHEST, DAGGER, POTION_CLASS, POT_WATER, POT_OIL, WEAPON_CLASS, SCR_CHARGING, WAND_CLASS, WAN_FIRE } from '../../js/objects.js';
 import { PM_FLOATING_EYE, PM_HUMAN_WEREWOLF, PM_WEREWOLF, mons } from '../../js/monsters.js';
 import { CRYSTAL_BALL } from '../../js/objects.js';
@@ -48,6 +48,14 @@ test('trap.check_in_air honors floater and plunged flyer logic', () => {
         flying: true,
     };
     assert.equal(check_in_air(you, TOOKPLUNGE), false);
+});
+
+test('trap.dng_bottom handles missing player context and invocation gate', () => {
+    const lev = { dnum: GEHENNOM, dlevel: 1 };
+    const withoutPlayer = dng_bottom(lev);
+    const invokedBottom = dng_bottom(lev, { uevent: { invoked: true } });
+    assert.equal(Number.isInteger(withoutPlayer), true);
+    assert.equal(withoutPlayer, invokedBottom - 1);
 });
 
 test('uhitm.nohandglow decrements umconf when applicable', () => {

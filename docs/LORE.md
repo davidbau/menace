@@ -7701,3 +7701,21 @@ hard-won wisdom:
   - `node --test test/unit/priest_mapseen_temple.test.js`
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
+
+## 2026-03-11: trap dng_bottom/hole_destination context hardening
+
+- Problem:
+  - While auditing hole/trapdoor destination parity, `trap.js::dng_bottom()` still referenced undefined quest-era symbols (`In_quest`, `qlocate_level`, `dunlev_reached`) and could throw when called without explicit player context.
+  - `trap.js::hole_destination()` also assumed fully-populated map/player context.
+- Change:
+  - `js/trap.js`:
+    - `dng_bottom()` now uses imported dungeon primitives and safe player fallback (`_gstate.player`) for invocation gating.
+    - Removed undefined quest-symbol references from runtime path (avoids latent `ReferenceError`).
+    - `hole_destination()` now resolves map/player context defensively before computing destination depth.
+  - `js/dungeon.js`:
+    - generation-side `dng_bottom()` / `hole_destination()` now prefer `map.uz` when present and honor invocation state from map/game/gstate fallbacks.
+  - Added regression test in `test/unit/codematch_batch_sweep.test.js` for missing-player invocation behavior.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed033_manual_direct.session.json`
+  - `scripts/run-and-report.sh --failures` (gameplay `34/34` passing)
