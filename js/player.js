@@ -10,7 +10,9 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          DEAF, INVIS, SEE_INVIS, TELEPAT, STEALTH, REGENERATION,
          TELEPORT, TELEPORT_CONTROL, PROTECTION, FUMBLING,
          SLEEP_RES, ANTIMAGIC, LEVITATION, FLYING,
-         HALF_PHDAM, HALF_SPDAM, CONFLICT } from './const.js';
+         HALF_PHDAM, HALF_SPDAM, CONFLICT,
+         POLYMORPH, POLYMORPH_CONTROL, AGGRAVATE_MONSTER, WARNING,
+         WARN_OF_MON } from './const.js';
 import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
 import { weight } from './mkobj.js';
@@ -597,5 +599,13 @@ export class Player {
     get halfSpellDamage() { return this.hasProp(HALF_SPDAM); }
     get Half_spell_damage() { return this.hasProp(HALF_SPDAM); }
     get conflict() { return this.hasProp(CONFLICT); }
+    get aggravateMonster() { return this.hasProp(AGGRAVATE_MONSTER); }
+    get Aggravate_monster() { return this.hasProp(AGGRAVATE_MONSTER); }
+    get warning() { return this.hasProp(WARNING); }
+    get polymorph() { return this.hasProp(POLYMORPH); }
+    get polyControl() { return this.hasProp(POLYMORPH_CONTROL); }
+    get Polymorph_control() { return this.hasProp(POLYMORPH_CONTROL); }
+    get warnOfMon() { return this.hasProp(WARN_OF_MON); }
+    set warnOfMon(val) { this._setPropBool(WARN_OF_MON, val); }
 
 }
