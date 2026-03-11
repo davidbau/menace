@@ -44,19 +44,20 @@ covers, while validating against C ground truth on all channels.
 - Each new session batch must demonstrably increase coverage in targeted files.
 - Measure progress by coverage percentage delta, not session count delta.
 
-### Latest baseline (`2026-03-11`, commit `8aa34219`)
+### Latest baseline snapshot
 
-- Gameplay parity sessions: `34/34` green (+ 7 coverage sessions).
-- Overall session-parity coverage:
-  - lines: `50.93%`
-  - branches: `60.68%`
-  - functions: `30.88%`
-- Current highest-impact low-coverage candidates from report:
-  - `js/sit.js` (`9.00%`)
-  - `js/fountain.js` (`11.21%`)
-  - `js/lock.js` (`23.58%`)
-  - `js/shk.js` (`26.27%`)
-  - `js/zap.js` (`20.81%`)
+This doc intentionally avoids hardcoding a rapidly stale pass-count baseline.
+Use the committed snapshot as the source of truth:
+
+```bash
+node -e "const fs=require('fs');const p='docs/metrics/session_parity_coverage_latest.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));console.log({generatedAt:j.generatedAt,commit:j.commit,overall:j.overall});"
+```
+
+And use the current parity suite report for up-to-date pass/fail counts:
+
+```bash
+scripts/run-and-report.sh --failures
+```
 
 ## The Coverage Pipeline (Mandatory Workflow)
 
@@ -148,10 +149,11 @@ verify coverage gain. This is the steady-state workflow for all agents.
 Coverage input:
 - `test/comparison/session_test_runner.js` session replay suite
 - default filter: `--type=gameplay`
-- default session set includes:
+- default gameplay suite set includes:
   - baseline roots: `test/comparison/sessions/*.session.json`
   - accepted coverage sessions: `test/comparison/sessions/coverage/**/*.session.json`
-  - map sessions: `test/comparison/maps/*.session.json`
+- map sessions in `test/comparison/maps/*.session.json` are loaded by the
+  runner but filtered out by default gameplay mode (`--type=gameplay`)
 - proposed sessions in `test/comparison/sessions/pending/*.session.json` are
   intentionally excluded from the default suite until they are parity-green
 - optional: all session types (`--all-types`) or explicit `--type=...`
@@ -193,7 +195,7 @@ Efficiency rule:
 ## Runner
 
 Script:
-- [run-session-parity-coverage.sh](/share/u/davidbau/git/mazesofmenace/game/scripts/run-session-parity-coverage.sh)
+- [run-session-parity-coverage.sh](/share/u/davidbau/git/mazesofmenace/mazes/scripts/run-session-parity-coverage.sh)
 
 NPM command:
 - `npm run coverage:session-parity`
@@ -458,7 +460,8 @@ Tracking checklist per theme issue:
 
 Run all pending sessions:
 ```bash
-node test/comparison/session_test_runner.js --sessions="$(printf "%s," test/comparison/sessions/pending/*.session.json | sed 's/,$//')" --parallel=1 --verbose
+PENDING="$(find test/comparison/sessions/pending -maxdepth 1 -name '*.session.json' -print | paste -sd, -)"
+[ -n "$PENDING" ] && node test/comparison/session_test_runner.js --sessions="$PENDING" --parallel=1 --verbose
 ```
 
 Run one pending session:
@@ -510,9 +513,10 @@ Test runtime is a critical resource. Slow tests waste agent time and block
 progress. Fast feedback loops are what make the coverage campaign viable.
 
 Rules:
-- **Individual sessions must complete in seconds, not minutes.** The per-session
-  timeout is 10 seconds. Sessions that approach this limit should be
-  investigated for JS hangs or infinite loops, not given more time.
+- **Individual sessions must complete in seconds, not minutes.**
+  Policy target is 10 seconds per session; current runner default is 20 seconds
+  unless `--session-timeout-ms=10000` is passed. Sessions approaching either
+  limit should be investigated for hangs/livelocks, not given more time.
 - **The full suite must complete in minutes, not hours.** Monitor total suite
   runtime and treat creeping slowdown as a regression to fix.
 - **Fail fast, never deadlock.** Test frameworks must detect hangs and abort

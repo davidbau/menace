@@ -187,7 +187,7 @@ NetHack parity campaign. See [hack/PLAN.md](hack/PLAN.md).
 
 ---
 
-## Current Status (as of March 9, 2026)
+## Current Status (rolling)
 
 > *"You sense the presence of determinism. It feels reassuring."*
 
@@ -195,14 +195,17 @@ NetHack parity campaign. See [hack/PLAN.md](hack/PLAN.md).
 source structure, plus 131 special level modules in `js/levels/`. Total JS
 source: ~180,000 lines.
 
-**Testing:** Full suite currently green at checkpoint:
-`3345/3345` passing (`npm test -- --runInBand`), including gameplay
-`34/34` and session failures sweep `34/34` passing (`./scripts/run-and-report.sh --failures`).
+**Testing:** Treat status as rolling, not static. Use live commands:
+- `npm test`
+- `./scripts/run-and-report.sh --failures`
+- `npm run test:session`
 
-**Parity:** Gameplay/session parity is at a full-green checkpoint across all
-maintained comparison channels (RNG, screen, cursor, events, mapdump).
-Current priority is to preserve this parity baseline while expanding structural
-coverage through CODEMATCH closure.
+Do not rely on hardcoded pass counts in this document; session totals are
+expected to grow during Phase 3 as coverage sessions are promoted.
+
+**Parity:** Goal is to keep all promoted sessions green across maintained
+comparison channels (RNG, screen, cursor, events, mapdump) while expanding
+coverage through targeted C-grounded session additions.
 
 **Coverage:** The [CODEMATCH.md](docs/CODEMATCH.md) ledger tracks ~5,000 C
 functions. Of these, ~1,758 have JS counterparts; ~3,242 remain unported
