@@ -61,7 +61,7 @@ import { erode_obj } from './trap.js';
 import { goodpos } from './teleport.js';
 import { mpickobj } from './steal.js';
 import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
-import { makemon } from './makemon.js';
+import { makemon, set_malign } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, change_luck } from './attrib.js';
 import { A_STR, A_DEX } from './const.js';
@@ -72,7 +72,7 @@ import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { shop_keeper, in_rooms, costly_spot, is_unpaid,
          stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
-import { SHOPBASE, OBJ_MINVENT } from './const.js';
+import { SHOPBASE, OBJ_MINVENT, MM_NOMSG } from './const.js';
 
 // ============================================================================
 // C macro equivalents -- weapon classification helpers
@@ -1409,10 +1409,11 @@ export async function breaks(obj, x, y, player, map) {
 export async function release_camera_demon(obj, x, y, map) {
     if (!rn2(3)) {
         const pm = rn2(3) ? PM_HOMUNCULUS : PM_IMP;
-        const mtmp = makemon(mons[pm], x, y, 0x08, 0, map);
+        const mtmp = makemon(mons[pm], x, y, MM_NOMSG, 0, map);
         if (mtmp) {
             await pline("The picture-painting demon is released!");
             mtmp.mpeaceful = !obj.cursed ? 1 : 0;
+            set_malign(mtmp);
         }
     }
 }

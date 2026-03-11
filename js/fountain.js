@@ -5,7 +5,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS, LONG_SWORD, BOULDER,
          DILITHIUM_CRYSTAL, LUCKSTONE,
          POT_POLYMORPH, POT_OIL, POT_ACID, POT_LEVITATION,
          POT_OBJECT_DETECTION, POT_GAIN_LEVEL, POT_GAIN_ENERGY,
-         POT_MONSTER_DETECTION, POT_FRUIT_JUICE, POT_WATER } from './objects.js';
+         POT_MONSTER_DETECTION, POT_FRUIT_JUICE, POT_WATER, GOLD_PIECE } from './objects.js';
 import { pline, You, Your, You_feel, You_hear, You_see, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
@@ -563,7 +563,7 @@ export async function dipfountain(obj, player, map, display, fov) {
         const maxdepth = map.maxDepth || 30;
         const goldamt = rnd((maxdepth - depth + 1) * 2) + 5;
         // Place gold on map
-        const gold = mksobj(484 /* GOLD_PIECE */, false, false);
+        const gold = mksobj(GOLD_PIECE, false, false);
         if (gold && map.addObject) {
             gold.quan = goldamt;
             gold.ox = player.x;
