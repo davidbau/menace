@@ -804,3 +804,51 @@ def capture_simple_combat(seed=730):
                     character=CHARACTER_WIZ,
                     record_more_spaces=True)
     print(f'  → {outpath}')
+
+
+def capture_long_exploration(seed=740):
+    """Longer exploration session with more varied movement.
+
+    Walk extensively, encounter various map features.
+    Targets: hack.js, monmove.js, sounds.js movement + idle code
+    """
+    print(f'Capturing long-exploration (seed {seed})...')
+    moves = ''
+
+    # Walk in a big pattern
+    for _ in range(5):
+        moves += 'l'
+    for _ in range(5):
+        moves += 'j'
+    for _ in range(5):
+        moves += 'h'
+    for _ in range(5):
+        moves += 'k'
+
+    # Search a lot (exercises mon movement)
+    for _ in range(20):
+        moves += 's'
+
+    # Walk diagonally
+    for d in 'yyuubbn':
+        moves += d
+
+    # More searching
+    for _ in range(10):
+        moves += 's'
+
+    # Try to open/close a door
+    moves += 'o' + 'l' + SP * 3  # open east
+    moves += 'c' + 'l' + SP * 3  # close east
+
+    # Look at self
+    moves += extcmd('attributes')
+    moves += SP * 3
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme12_seed{seed:03d}_wiz_long-explore_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')

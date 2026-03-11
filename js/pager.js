@@ -5,7 +5,8 @@
 import {
     TERMINAL_COLS, TERMINAL_ROWS, VERSION_STRING,
     STAIRS, LADDER, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE, POOL, LAVAPOOL,
-    DOOR, IRONBARS, TREE, CORR, SCORR, ICE,
+    DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
+    IRONBARS, TREE, CORR, SCORR, ICE,
     STONE, ROOM, COLNO, ROWNO, MAP_ROW_START, CLR_GRAY, NO_COLOR, IS_WALL, TER_MAP,
     BEAR_TRAP, TRAPPED_DOOR, TRAPPED_CHEST,
 } from './const.js';
@@ -89,8 +90,13 @@ function terrain_here_description(loc, ctx = {}) {
     if (loc.typ === GRAVE) return 'There is a grave here.';
     if (loc.typ === POOL) return 'There is a pool of water here.';
     if (loc.typ === LAVAPOOL) return 'There is molten lava here.';
-    if (loc.typ === DOOR && loc.flags > 0) return 'There is an open door here.';
-    if (loc.typ === DOOR && loc.flags === 0) return 'There is a closed door here.';
+    // C ref: pager.c look_at_room_clue — door state from flags
+    if (loc.typ === DOOR) {
+        if (loc.flags & D_ISOPEN) return 'There is an open door here.';
+        if (loc.flags & (D_CLOSED | D_LOCKED)) return 'There is a closed door here.';
+        if (loc.flags & D_BROKEN) return 'There is a broken door here.';
+        return 'There is a doorway here.';
+    }
     if (loc.typ === IRONBARS) return 'There are iron bars here.';
     if (loc.typ === TREE) return 'There is a tree here.';
     return '';

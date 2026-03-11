@@ -2,7 +2,8 @@
 // cf. getpos.c -- getpos_sethilite(), getpos_toggle_hilite_state(),
 // getpos_refresh(), getpos() lifecycle.
 
-import { MAP_ROW_START, COLNO, ROWNO, DOOR, ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
+import { MAP_ROW_START, COLNO, ROWNO, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
+    ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
 import { more, nhgetch } from './input.js';
 import { flush_screen } from './display.js';
 import {
@@ -168,7 +169,12 @@ function cursorDesc(display, map, x, y) {
         if (loc) {
             if (!loc.seenv) return 'unexplored area';
             if (IS_WALL(loc.typ) || loc.typ === SDOOR) return 'wall';
-            if (loc.typ === DOOR) return (loc.flags > 0) ? 'open door' : 'closed door';
+            if (loc.typ === DOOR) {
+                if (loc.flags & D_ISOPEN) return 'open door';
+                if (loc.flags & (D_CLOSED | D_LOCKED)) return 'closed door';
+                if (loc.flags & D_BROKEN) return 'broken door';
+                return 'doorway';
+            }
             if (loc.typ === ROOM) return 'floor of a room';
             if (loc.typ === CORR) return 'corridor';
         }
