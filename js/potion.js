@@ -62,6 +62,27 @@ import { you_were, you_unwere, set_ulycn } from './were.js';
 import { can_reach_floor } from './engrave.js';
 import { is_pool } from './dbridge.js';
 
+// C ref: invent.c compactify() — compress inventory letter list for prompts
+// Inlined here to avoid circular import issues with invent.js
+function compactifyLetters(chars) {
+    if (!chars) return '';
+    const sorted = [...new Set(chars.split(''))].sort();
+    if (sorted.length <= 5) return sorted.join('');
+    const out = [];
+    let i = 0;
+    while (i < sorted.length) {
+        let j = i;
+        while (j + 1 < sorted.length && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
+        if (j - i >= 2) {
+            out.push(sorted[i], '-', sorted[j]);
+        } else {
+            for (let k = i; k <= j; k++) out.push(sorted[k]);
+        }
+        i = j + 1;
+    }
+    return out.join('');
+}
+
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
 const gp = { potion_nothing: 0, potion_unkn: 0 };
@@ -467,7 +488,8 @@ async function handleQuaff(player, map, display) {
         return { moved: false, tookTime: false };
     }
 
-    const drinkPrompt = `What do you want to drink? [${potions.map(p => p.invlet).join('')} or ?*] `;
+    const rawLetters = potions.map(p => p.invlet).join('');
+    const drinkPrompt = `What do you want to drink? [${compactifyLetters(rawLetters)} or ?*] `;
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -727,7 +749,10 @@ export async function peffect_full_healing(player, otmp, display) {
     await You_feel("completely healed.");
     await healup(player, 400, 4 + 4 * bcsign, !otmp.cursed, true);
     // C: blessed restores one lost level via pluslvl(FALSE)
-    // (deferred: pluslvl consumes RNG but requires full level infrastructure)
+    if (otmp.blessed && player.ulevel < (player.ulevelmax || player.ulevel)) {
+        player.ulevelmax = (player.ulevelmax || player.ulevel) - 1;
+        await pluslvl(player, display, false);
+    }
     await make_hallucinated(player, 0, true);
     // C: exercise order is A_STR then A_CON
     await exercise(player, A_STR, true);
@@ -743,10 +768,7 @@ export async function peffect_gain_level(player, otmp, display) {
         await You("have an uneasy feeling.");
         return true;
     }
-    // C: pluslvl(FALSE) — consumes RNG for HP gain etc.
-    // (deferred: pluslvl consumes RNG but requires full level infrastructure)
-    player.ulevel = (player.ulevel || 1) + 1;
-    await You_feel("more experienced.");
+    await pluslvl(player, display, false);
     // C: blessed also calls rndexp(TRUE) to randomize experience
     if (otmp.blessed)
         player.uexp = rndexp(player, true);
@@ -904,7 +926,7 @@ export async function peffect_booze(player, otmp, display) {
         // C: d(2 + u.uhs, 8) where uhs = hunger state (0=satiated..5=fainting)
         const uhs = player.uhs || 0;
         await make_confused(player, itimeout_incr(player.getPropTimeout(CONFUSION),
-            d(2 + uhs, 8)), false);
+            c_d(2 + uhs, 8)), false);
     }
     // C: healup(1, 0, 0, 0) if not diluted
     if (!otmp.odiluted)

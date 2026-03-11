@@ -122,6 +122,27 @@ import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';
 
+// C ref: invent.c compactify() — compress inventory letter list for prompts
+// Inlined here to avoid circular import issues with invent.js
+function compactifyLetters(chars) {
+    if (!chars) return '';
+    const sorted = [...new Set(chars.split(''))].sort();
+    if (sorted.length <= 5) return sorted.join('');
+    const out = [];
+    let i = 0;
+    while (i < sorted.length) {
+        let j = i;
+        while (j + 1 < sorted.length && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
+        if (j - i >= 2) {
+            out.push(sorted[i], '-', sorted[j]);
+        } else {
+            for (let k = i; k <= j; k++) out.push(sorted[k]);
+        }
+        i = j + 1;
+    }
+    return out.join('');
+}
+
 // Direction vectors matching cmd.js DIRECTION_KEYS
 const DIRECTION_KEYS = {
     'h': [-1,  0],  'j': [ 0,  1],  'k': [ 0, -1],  'l': [ 1,  0],
@@ -512,7 +533,7 @@ export async function handleZap(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    const zapPrompt = `What do you want to zap? [${wands.map(w => w.invlet).join('')} or ?*] `;
+    const zapPrompt = `What do you want to zap? [${compactifyLetters(wands.map(w => w.invlet).join(''))} or ?*] `;
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -556,7 +577,7 @@ export async function handleZap(player, map, display, game) {
         const selected = player.inventory.find(o => o.invlet === itemChar);
         if (selected && selected.oclass !== WAND_CLASS) {
             replacePromptMessage();
-            await pline("That's not a wand!");
+            await pline("That is a silly thing to zap.");
             return { moved: false, tookTime: false };
         }
         wand = wands.find(w => w.invlet === itemChar);
