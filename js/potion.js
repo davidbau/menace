@@ -35,6 +35,7 @@ import { float_vs_flight, polyself } from './polyself.js';
 import { rndexp, pluslvl } from './exper.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { trycall } from './do.js';
+import { heal_legs } from './do.js';
 import { monster_detect, object_detect } from './detect.js';
 import { spoteffects, losehp, Maybe_Half_Phys } from './hack.js';
 import { stairway_at } from './stairs.js';
@@ -44,7 +45,7 @@ import { body_part } from './polyself.js';
 import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL,
          DETECT_MONSTERS, IS_SINK,
-         I_SPECIAL,
+         I_SPECIAL, INTRINSIC, FIXED_ABIL,
          FIRE_RES, COLD_RES,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
@@ -671,14 +672,18 @@ export async function peffect_blindness(player, otmp, display) {
 // cf. potion.c:1048 — peffect_speed
 export async function peffect_speed(player, otmp, display) {
     const is_speed = (otmp.otyp === POT_SPEED);
-    // C ref: potion.c:1053-1056 — Wounded_legs heal (not fully ported)
+    if (is_speed && !!player.woundedLegs && !otmp.cursed && !player.steed) {
+        await heal_legs(0, player);
+        gp.potion_unkn++;
+        return;
+    }
     await speed_up(player, rn1(10, 100 + 60 * (otmp.blessed ? 1 : (otmp.cursed ? -1 : 0))));
     // C ref: potion.c:1062-1065 — non-cursed potion grants intrinsic speed
     if (is_speed && !otmp.cursed) {
-        const fastProp = player.uprops?.[FAST];
-        if (!(fastProp?.intrinsic & ~TIMEOUT)) {
+        const fastProp = player.ensureUProp(FAST);
+        if (!(Number(fastProp.intrinsic || 0) & INTRINSIC)) {
             await Your("quickness feels very natural.");
-            if (fastProp) fastProp.intrinsic = (fastProp.intrinsic || 0) | FROMOUTSIDE;
+            fastProp.intrinsic = Number(fastProp.intrinsic || 0) | FROMOUTSIDE;
         }
     }
 }
@@ -822,6 +827,7 @@ export async function peffect_full_healing(player, otmp, display) {
 // cf. potion.c peffect_gain_level()
 export async function peffect_gain_level(player, otmp, display) {
     if (otmp.cursed) {
+        gp.potion_unkn++;
         // C: level teleport upward — no RNG consumed in the teleport itself
         // Simplified: just print message (goto_level not wired)
         await You("have an uneasy feeling.");
@@ -991,7 +997,13 @@ export async function peffect_gain_ability(player, otmp, display) {
     if (otmp.cursed) {
         // C: "Ulch! That potion tasted foul!" — no RNG consumed
         await pline("Ulch!  That potion tasted foul!");
+        gp.potion_unkn++;
         return true;
+    }
+    const fixedAbil = player.uprops?.[FIXED_ABIL];
+    if (fixedAbil && (fixedAbil.intrinsic || fixedAbil.extrinsic)) {
+        gp.potion_nothing++;
+        return false;
     }
     // C: blessed iterates sequentially (i=0..5), no rn2 calls
     // C: uncursed tries up to 6 times with rn2(A_MAX) each time

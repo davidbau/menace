@@ -8358,3 +8358,22 @@ Validation:
 - `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
 - `scripts/run-and-report.sh --pending --failures` -> `6/6` passing
 - `scripts/run-and-report.sh --failures` -> gameplay `104/104` passing
+
+## 2026-03-11: Additional C-faithful potion alignment (speed/ability/gain-level)
+
+- `js/potion.js` parity tightening:
+  - `peffect_speed()`:
+    - added C wounded-legs fast-path for `POT_SPEED` (heal legs, set `potion_unkn`, return),
+    - switched intrinsic-speed grant check to C-style `!(HFast & INTRINSIC)` semantics,
+    - preserves `FROMOUTSIDE` grant + message for non-cursed speed potion.
+  - `peffect_gain_ability()`:
+    - cursed branch now increments `potion_unkn` like C,
+    - added `Fixed_abil` (sustain ability) gate to set `potion_nothing` and skip gains.
+  - `peffect_gain_level()`:
+    - cursed branch now increments `potion_unkn` before the simplified "uneasy feeling" path.
+- Wired required dependencies (`heal_legs`, `INTRINSIC`, `FIXED_ABIL`) for explicit C-meaningful checks.
+
+Validation:
+- `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
+- `scripts/run-and-report.sh --pending --failures` -> `6/6` passing
+- `scripts/run-and-report.sh --failures` -> gameplay `104/104` passing
