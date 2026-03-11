@@ -832,7 +832,7 @@ export async function dotele(break_the_rules, game) {
     if (trap) {
         if (trap.ttyp === LEVEL_TELEP && trap.tseen) {
             // level teleport trap — trigger it
-            await level_tele_trap(trap, 0x02 /* FORCETRAP */, game);
+            await level_tele_trap(trap, FORCETRAP, game);
             return 1;
         } else if (trap.ttyp === TELEP_TRAP) {
             if (trap.once) {

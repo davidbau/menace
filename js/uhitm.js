@@ -77,7 +77,7 @@ import {
     erode_obj, erode_obj_player, mselftouch,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER } from './const.js';
+import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL } from './const.js';
 import { pline, pline_The, You, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { tele_restrict, rloc } from './teleport.js';
@@ -1799,7 +1799,6 @@ export async function passive_obj(mon, obj, mattk) {
 //   Reveal that a hidden monster is actually a mimic.
 //   Prints "Wait! That's a <monster>!" and optionally reveals it.
 export function that_is_a_mimic(mtmp, mimic_flags) {
-    const MIM_REVEAL = 0x1;
     const reveal_it = (mimic_flags || 0) & MIM_REVEAL;
 
     // C: complex message formatting based on glyph, blind, hallucination
@@ -1814,7 +1813,7 @@ export function that_is_a_mimic(mtmp, mimic_flags) {
 //   Hero stumbles onto a hidden mimic while moving.
 //   Calls that_is_a_mimic(MIM_REVEAL), may set ustuck, wakes mimic.
 export function stumble_onto_mimic(mtmp) {
-    that_is_a_mimic(mtmp, 0x1 /* MIM_REVEAL */);
+    that_is_a_mimic(mtmp, MIM_REVEAL);
 
     // C: if (!u.ustuck && !mtmp->mflee && dmgtype(mtmp->data, AD_STCK))
     //       set_ustuck(mtmp);
