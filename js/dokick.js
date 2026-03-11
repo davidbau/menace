@@ -313,7 +313,7 @@ function fall_through(tression, typ, player, map) {
     // TODO: implement when multi-level support is added
 }
 
-import { touch_petrifies, engulfing_u } from './mondata.js';
+import { touch_petrifies, engulfing_u, digests } from './mondata.js';
 
 // ============================================================================
 // is_unpaid helper
@@ -1519,7 +1519,7 @@ export async function dokick(player, map, display, game) {
             break;
         case 1:
             if (player.ustuck && player.ustuck.data
-                && (player.ustuck.data.mflags1 & 0x4000000)) { // digests
+                && digests(player.ustuck.data)) {
                 await pline("%s burps loudly.", Monnam(player.ustuck));
                 break;
             }

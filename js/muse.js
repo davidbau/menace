@@ -88,7 +88,7 @@ import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower, Is_rogue_level } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_END, NON_PM, OBJ_FLOOR } from './const.js';
-import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall, NODIAG } from './mondata.js';
+import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall, NODIAG, slimeproof } from './mondata.js';
 import { u_at } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { Has_contents, Is_mbag } from './objnam.js';
@@ -2288,7 +2288,7 @@ export function searches_for_item(mon, obj) {
         break;
     case AMULET_CLASS:
         if (typ === AMULET_OF_LIFE_SAVING)
-            return !(mdat.mflags3 & 0x00000040); // !nonliving
+            return !nonliving(mdat);
         if (typ === AMULET_OF_REFLECTION || typ === AMULET_OF_GUARDING)
             return true;
         break;
@@ -2425,7 +2425,7 @@ export async function munslime(mon, by_you, map, player) {
     const mptr = mon.data || mon.type || {};
 
     // slimeproof check
-    if (mptr.mflags3 && (mptr.mflags3 & 0x00002000)) return false; // MH_SLIME
+    if (slimeproof(mptr)) return false;
     if (mon.meating || monHelpless(mon)) return false;
     mon.mstrategy = (mon.mstrategy || 0) & ~STRAT_WAITFORU;
 

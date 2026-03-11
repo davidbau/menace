@@ -2256,9 +2256,9 @@ export function bad_rock(mdat, x, y, map) {
     if (!loc) return true;
     // Sokoban boulder check omitted (Sokoban not yet modeled)
     if (!IS_OBSTRUCTED(loc.typ)) return false;
-    const tunnels = !!(mdat && mdat.mflags2 & 0x00000040); // M2_TUNNEL placeholder
-    const needspick = !!(mdat && mdat.mflags1 & 0x00002000); // M1_NEEDPICK placeholder
-    const passes = !!(mdat && mdat.mflags1 & 0x00000100); // M1_WALLWALK placeholder
+    const tunnels = !!(mdat && mdat.mflags1 & 0x00000020); // M1_TUNNEL
+    const needspick = !!(mdat && mdat.mflags1 & 0x00000040); // M1_NEEDPICK
+    const passes = !!(mdat && mdat.mflags1 & 0x00000008); // M1_WALLWALK
     if (tunnels && !needspick) return false;
     if (passes && may_passwall(x, y, map)) return false;
     return true;

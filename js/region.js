@@ -39,7 +39,7 @@ import { losehp } from './hack.js';
 import { dist2 } from './hacklib.js';
 import { valid_cloud_pos } from './read.js';
 import { S_poisoncloud, S_cloud } from './symbols.js';
-import { AD_DRST } from './monsters.js';
+import { AD_DRST, M1_BREATHLESS } from './monsters.js';
 import { PM_FOG_CLOUD } from './monsters.js';
 import { PM_LONG_WORM } from './monsters.js';
 import { EYE, LUNG } from './const.js';
@@ -839,7 +839,7 @@ export function region_danger(map, player) {
         const f_indx = regions[i].inside_f;
         if (f_indx === INSIDE_GAS_CLOUD) {
             const mdat = player.type || {};
-            if (nonliving(mdat) || (mdat.mflags1 && (mdat.mflags1 & 0x00000020))) // M1_BREATHLESS
+            if (nonliving(mdat) || (mdat.mflags1 && (mdat.mflags1 & M1_BREATHLESS)))
                 continue;
             if (player.hasProp(POISON_RES)) continue;
             ++n;

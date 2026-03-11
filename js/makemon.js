@@ -1195,8 +1195,7 @@ function rnd_misc_item(mon) {
 
     // Non-living monsters and vampshifters don't get amulet of life saving
     // Note: is_vampshifter check omitted (only applies to existing monsters)
-    const nonliving_monster = !!(ptr.mflags3 & 0x00000040); // MZ_NONLIVING
-    if (!rn2(40) && !nonliving_monster) {
+    if (!rn2(40) && !nonliving(ptr)) {
         return AMULET_OF_LIFE_SAVING;
     }
 

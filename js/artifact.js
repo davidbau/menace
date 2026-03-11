@@ -1178,7 +1178,7 @@ export async function artifact_hit(magr, mdef, otmp, dmgptr, dieroll) {
 }
 
 // Simple helpers for mondata checks used above, avoiding circular imports
-function has_head_simple(ptr) { return !(ptr.mflags1 & 0x00000020); /* M1_NOHEAD */ }
+function has_head_simple(ptr) { return !(ptr.mflags1 & 0x00008000); /* M1_NOHEAD */ }
 function noncorporeal_simple(ptr) { return ptr.mlet === 'W' || ptr.mlet === ' '; /* S_GHOST */ }
 function amorphous_simple(ptr) { return !!(ptr.mflags1 & 0x00000004); /* M1_AMORPHOUS */ }
 function nonliving_simple(ptr) { return !!(ptr.mflags1 & 0x00004000); /* M1_NONLIVING - approximation */ }
