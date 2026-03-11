@@ -31,6 +31,7 @@ Script:
 
 NPM command:
 - `npm run coverage:session-parity`
+- `npm run coverage:session-parity:report`
 
 Behavior:
 1. Runs `c8` against `node test/comparison/session_test_runner.js`.
@@ -51,6 +52,22 @@ Directory:
 This is intentionally separate from:
 - `hack/coverage/`
 - `rogue/coverage/`
+
+## Actionable Report
+
+To list the lowest-covered gameplay-relevant JS files from session-parity
+coverage:
+
+```bash
+npm run coverage:session-parity:report
+```
+
+Useful options:
+```bash
+node scripts/session-parity-coverage-report.mjs --top 40 --min-lines 100
+node scripts/session-parity-coverage-report.mjs --include-levels --include-generated
+node scripts/session-parity-coverage-report.mjs --json
+```
 
 ## Command Examples
 
