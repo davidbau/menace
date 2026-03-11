@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { Player } from '../../js/player.js';
-import { BLINDED, W_TOOL } from '../../js/const.js';
-import { BLINDFOLD, LENSES, POT_RESTORE_ABILITY } from '../../js/objects.js';
+import { BLINDED, W_TOOL, A_CHAOTIC } from '../../js/const.js';
+import { BLINDFOLD, LENSES, POT_RESTORE_ABILITY, POT_WATER } from '../../js/objects.js';
+import { PM_WEREWOLF, PM_HUMAN_WEREWOLF } from '../../js/monsters.js';
 import { Blindf_on, Blindf_off } from '../../js/do_wear.js';
 import { peffects } from '../../js/potion.js';
 
@@ -61,3 +62,33 @@ test('peffects POT_RESTORE_ABILITY restores attributes and lost levels when bles
     assert.equal(player.ulevel, 4);
 });
 
+test('peffects POT_WATER blessed cures chaotic lycanthropy state', async () => {
+    const player = new Player();
+    player.alignment = A_CHAOTIC;
+    player.ulycn = PM_WEREWOLF;
+    player.umonster = PM_HUMAN_WEREWOLF;
+    player.umonnum = PM_WEREWOLF;
+    player.mtimedone = 10;
+
+    const potion = { otyp: POT_WATER, blessed: true, cursed: false, odiluted: false };
+    const rc = await peffects(player, potion, makeDisplay(), null);
+
+    assert.equal(rc, -1);
+    assert.equal(player.ulycn, -1);
+    assert.equal(player.umonnum, PM_HUMAN_WEREWOLF);
+});
+
+test('peffects POT_WATER cursed can trigger lycanthrope beast form when not Upolyd', async () => {
+    const player = new Player();
+    player.alignment = A_CHAOTIC;
+    player.ulycn = PM_WEREWOLF;
+    player.umonster = PM_HUMAN_WEREWOLF;
+    player.umonnum = PM_HUMAN_WEREWOLF;
+    player.mtimedone = 0;
+
+    const potion = { otyp: POT_WATER, blessed: false, cursed: true, odiluted: false };
+    const rc = await peffects(player, potion, makeDisplay(), null);
+
+    assert.equal(rc, -1);
+    assert.equal(player.umonnum, PM_WEREWOLF);
+});

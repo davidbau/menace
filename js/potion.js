@@ -48,13 +48,16 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          FIRE_RES, COLD_RES,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
+import { makeplural } from './objnam.js';
 import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
+import { mons } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
 import { eatmupdate } from './eat.js';
+import { you_were, you_unwere, set_ulycn } from './were.js';
 
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
@@ -64,6 +67,21 @@ function activeMap(mapArg = null) {
     if (mapArg) return mapArg;
     if (gstateGame?.map) return gstateGame.map;
     return null;
+}
+
+function isValidPm(pm) {
+    return Number.isInteger(pm) && pm >= 0;
+}
+
+function isCurrentlyLycanForm(player) {
+    return isValidPm(player?.ulycn)
+        && isValidPm(player?.umonnum)
+        && Number(player.umonnum) === Number(player.ulycn);
+}
+
+function isUpolyd(player) {
+    if (!isValidPm(player?.umonnum) || !isValidPm(player?.umonster)) return false;
+    return Number(player.umonnum) !== Number(player.umonster);
 }
 
 // ============================================================
@@ -911,19 +929,32 @@ export async function peffect_water(player, otmp, display) {
     }
     gp.potion_unkn++;
     const playerAlign = player.alignment ?? 0;
+    const hasLycan = isValidPm(player?.ulycn);
     // C: mon_hates_blessings checks if player is undead or demon form
-    const hatesBlessings = mon_hates_blessings(player.youmonst || player);
+    const hatesBlessings = mon_hates_blessings(player);
     if (hatesBlessings || playerAlign === A_CHAOTIC) {
         if (otmp.blessed) {
             await pline("This burns like %s!", hliquid("acid"));
             await exercise(player, A_CON, false);
             // C: cure lycanthropy if applicable
+            if (hasLycan) {
+                const mdat = mons[player.ulycn];
+                const mname = String(mdat?.mname || 'beast');
+                await Your("affinity to %s disappears!", makeplural(mname));
+                if (isCurrentlyLycanForm(player)) {
+                    await you_unwere(player, false);
+                }
+                set_ulycn(player, -1);
+            }
             const dmg = d(2, 6);
             const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
             await losehp(halfPhys, "potion of holy water", KILLED_BY_AN, player, display);
         } else if (otmp.cursed) {
             await You_feel("quite proud of yourself.");
             await healup(player, d(2, 6), 0, false, false);
+            if (hasLycan && !isUpolyd(player)) {
+                await you_were(player);
+            }
             await exercise(player, A_CON, true);
         }
     } else {
@@ -932,6 +963,9 @@ export async function peffect_water(player, otmp, display) {
             await make_sick(player, 0, null, true, SICK_ALL);
             await exercise(player, A_WIS, true);
             await exercise(player, A_CON, true);
+            if (hasLycan) {
+                await you_unwere(player, true);
+            }
         } else {
             // cursed (unholy water) for non-chaotic
             if (playerAlign === A_LAWFUL) {
@@ -941,6 +975,9 @@ export async function peffect_water(player, otmp, display) {
                 await losehp(halfPhys, "potion of unholy water", KILLED_BY_AN, player, display);
             } else {
                 await You_feel("full of dread.");
+            }
+            if (hasLycan && !isUpolyd(player)) {
+                await you_were(player);
             }
             await exercise(player, A_CON, false);
         }

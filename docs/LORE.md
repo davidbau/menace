@@ -7558,3 +7558,20 @@ hard-won wisdom:
   - `node --test test/unit/codematch_blindness_restore_surface.test.js`
   - `node --test test/unit/codematch_batch_sweep.test.js`
   - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
+
+## 2026-03-11: POT_WATER lycanthropy side-effects aligned to C branches
+
+- Problem:
+  - `peffect_water()` covered core damage/exercise branches but missed the C lycanthropy transitions (`you_were`/`you_unwere`/`set_ulycn`) that depend on bless/curse and alignment/monster state.
+- Change:
+  - `js/potion.js`:
+    - Added C-branch lycan effects:
+      - holy water in undead/chaotic branch now cures lycanthropy (`you_unwere(..., false)` if currently beast form, then `set_ulycn(-1)`).
+      - cursed holy/unholy water now triggers `you_were()` when hero has lycanthropy and is not currently polymorphed (`!Upolyd`).
+      - blessed lawful/non-chaotic path now uses purification (`you_unwere(..., true)`) when lycanthropic.
+    - Added small helper predicates for PM validity, lycan form detection, and `Upolyd` shape checks.
+    - Affinity message now uses `makeplural(...)` for C-like wording.
+- Validation:
+  - `node --test test/unit/codematch_blindness_restore_surface.test.js`
+  - `node --test test/unit/command_quaff_prompt.test.js`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`
