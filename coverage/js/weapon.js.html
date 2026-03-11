@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.33% </span>
+                <span class="strong">70.36% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>716/1018</span>
+                <span class='fraction'>717/1019</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.33% </span>
+                <span class="strong">70.36% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>716/1018</span>
+                <span class='fraction'>717/1019</span>
             </div>
         
             
@@ -1081,7 +1081,9 @@
 <a name='L1016'></a><a href='#L1016'>1016</a>
 <a name='L1017'></a><a href='#L1017'>1017</a>
 <a name='L1018'></a><a href='#L1018'>1018</a>
-<a name='L1019'></a><a href='#L1019'>1019</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1019'></a><a href='#L1019'>1019</a>
+<a name='L1020'></a><a href='#L1020'>1020</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2120,6 +2122,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLAS
          DART, FLINT, ROCK, LOADSTONE, LUCKSTONE,
          GLAIVE, BEC_DE_CORBIN, FAUCHARD, LANCE, GRAPPLING_HOOK,
          BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW,
+         SILVER,
        } from './objects.js';
 import { rnd, d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
@@ -2262,7 +2265,7 @@ export function dmgval(otmp, mon) {
 <span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(4);</span>
         if (info.oc_subtyp === P_AXE <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ptr.body === 'wood')</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(4);</span>
-        if (mon &amp;&amp; info.oc_material === 14 /* SILVER */ <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; mon_hates_silver(mon))</span>
+        if (mon &amp;&amp; info.oc_material === SILVER <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; mon_hates_silver(mon))</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(20);</span>
         // C ref: weapon.c:333-334 — artifact light bonus vs light-hating
         if (artifact_light(otmp) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; otmp.lamplit <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; mon_hates_light(mon))</span>
@@ -2278,7 +2281,7 @@ export <span class="fstat-no" title="function not covered" >function special_dmg
 <span class="cstat-no" title="statement not covered" >    let bonus = 0;</span>
 <span class="cstat-no" title="statement not covered" >    if (obj &amp;&amp; obj.blessed &amp;&amp; mon_hates_blessings(mon)) bonus += rnd(4);</span>
 <span class="cstat-no" title="statement not covered" >    const mat = obj ? objectData[obj.otyp]?.oc_material : null;</span>
-<span class="cstat-no" title="statement not covered" >    if (mat === 14 /* SILVER */ &amp;&amp; mon_hates_silver(mon)) bonus += rnd(20);</span>
+<span class="cstat-no" title="statement not covered" >    if (mat === SILVER &amp;&amp; mon_hates_silver(mon)) bonus += rnd(20);</span>
 <span class="cstat-no" title="statement not covered" >    return bonus;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -2523,7 +2526,7 @@ export function select_rwep(mtmp) {
             if (!od) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
             if (((strongmonst(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type)</span> <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !(mtmp.misc_worn_check &amp; W_ARMS))</span>
                  || !od.big)
-                &amp;&amp; (od.oc_material !== 14 /* SILVER */ <span class="branch-0 cbranch-no" title="branch not covered" >|| !mon_hates_silver(mtmp))</span>) {
+                &amp;&amp; (od.oc_material !== SILVER <span class="branch-0 cbranch-no" title="branch not covered" >|| !mon_hates_silver(mtmp))</span>) {
                 if ((otmp = oselect(mtmp, pw)) != null
 <span class="branch-0 cbranch-no" title="branch not covered" >                    &amp;&amp; (otmp === mwep || !mweponly))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >                    return { weapon: otmp, propellor: otmp }; // force wield polearm</span>
@@ -2538,7 +2541,7 @@ export function select_rwep(mtmp) {
             &amp;&amp; dist2(mtmp.mx, mtmp.my, mtmp.mux <span class="branch-0 cbranch-no" title="branch not covered" >|| 0,</span> mtmp.muy <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> &lt;= arw.range) {
             const od = objectData[arw.otyp];
             if ((!(mtmp.misc_worn_check &amp; W_ARMS) <span class="branch-0 cbranch-no" title="branch not covered" >|| !(od &amp;&amp; od.big))</span>
-                &amp;&amp; (!(od &amp;&amp; od.oc_material === 14) <span class="branch-0 cbranch-no" title="branch not covered" >|| !mon_hates_silver(mtmp))</span>) {
+                &amp;&amp; (!(od &amp;&amp; od.oc_material === SILVER) <span class="branch-0 cbranch-no" title="branch not covered" >|| !mon_hates_silver(mtmp))</span>) {
                 if ((otmp = oselect(mtmp, arw.otyp)) != null
 <span class="branch-0 cbranch-no" title="branch not covered" >                    &amp;&amp; (otmp === mwep || !mweponly))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >                    return { weapon: otmp, propellor: otmp };</span>
@@ -2658,7 +2661,7 @@ export function select_hwep(mtmp) {
 &nbsp;
         // Only strong monsters can wield bimanual weapons (unless wearing shield)
         if (((strong &amp;&amp; !wearing_shield) || !od.big)
-            &amp;&amp; (od.oc_material !== 14 /* SILVER */ || !mon_hates_silver(mtmp))) {
+            &amp;&amp; (od.oc_material !== SILVER || !mon_hates_silver(mtmp))) {
             const otmp = oselect(mtmp, hw);
             if (otmp) return otmp;
         }
@@ -3124,7 +3127,7 @@ export <span class="fstat-no" title="function not covered" >function uwep_skill_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T08:34:19.018Z
+                at 2026-03-11T09:06:36.530Z
             </div>
         <script src="../prettify.js"></script>
         <script>

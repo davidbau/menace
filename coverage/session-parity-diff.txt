@@ -1,50 +1,11 @@
 Coverage diff
-  base: /tmp/tmp.nlDFcKRLCX
+  base: /tmp/tmp.ke2MJCcDH6
   head: docs/metrics/session_parity_coverage_latest.json
-  overall lines: 51.09% -> 50.96% (-0.13%)
-  overall branches: 60.70% -> 60.68% (-0.02%)
-  overall functions: 30.73% -> 30.89% (+0.16%)
-  tracked file set: +1 / -1
+  overall lines: 50.96% -> 50.96% (0.00%)
+  overall branches: 60.68% -> 60.69% (+0.01%)
+  overall functions: 30.89% -> 30.89% (0.00%)
+  tracked file set: +0 / -0
 
-Most regressed tracked files (top 20)
-File                                   Base     Head    Delta
--------------------------------------  -------  ------- -------
-js/invent.js                            42.05%   41.16%  -0.89%
-js/priest.js                            45.79%   45.39%  -0.40%
-js/insight.js                           28.77%   28.46%  -0.31%
-js/potion.js                            19.35%   19.16%  -0.19%
-js/dig.js                               23.66%   23.51%  -0.15%
-js/muse.js                              33.13%   33.05%  -0.08%
-js/do_wear.js                           31.62%   31.54%  -0.08%
-js/pray.js                              21.97%   21.91%  -0.06%
-js/trap.js                              29.07%   29.03%  -0.04%
+No regressed tracked files.
 
-Most improved tracked files (top 20)
-File                                   Base     Head    Delta
--------------------------------------  -------  ------- -------
-js/attrib.js                            36.37%   37.87%  +1.50%
-js/polyself.js                          20.38%   21.39%  +1.01%
-js/artifact.js                          22.33%   22.71%  +0.38%
-js/display.js                           31.83%   32.08%  +0.25%
-js/dothrow.js                           40.41%   40.65%  +0.24%
-js/region.js                            44.18%   44.41%  +0.23%
-js/read.js                              23.89%   24.10%  +0.21%
-js/music.js                             18.41%   18.60%  +0.19%
-js/vault.js                             20.51%   20.70%  +0.19%
-js/dog.js                               42.40%   42.54%  +0.14%
-js/apply.js                             38.31%   38.44%  +0.13%
-js/sounds.js                            32.71%   32.83%  +0.12%
-js/dbridge.js                           30.10%   30.22%  +0.12%
-js/wizard.js                            32.32%   32.43%  +0.11%
-js/detect.js                            29.58%   29.67%  +0.09%
-js/mhitu.js                             34.82%   34.90%  +0.08%
-js/shk.js                               26.22%   26.29%  +0.07%
-js/zap.js                               20.86%   20.92%  +0.06%
-js/wizcmds.js                           39.45%   39.51%  +0.06%
-js/fountain.js                          11.22%   11.27%  +0.05%
-
-Newly tracked files in head (top 20)
-  + js/ball.js (13.66%)
-
-Removed tracked files from base (top 20)
-  - js/were.js (45.96%)
+No improved tracked files.
