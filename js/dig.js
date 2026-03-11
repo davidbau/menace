@@ -43,7 +43,7 @@ import {
     DIGCHECK_FAIL_OBJ_POOL_OR_TRAP,
     DIR_ERR, N_DIRS, DIR_180, xdir, ydir,
 } from './const.js';
-import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE } from './const.js';
+import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY_AN } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
@@ -74,7 +74,7 @@ import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
-import { in_rooms, may_dig } from './hack.js';
+import { in_rooms, may_dig, losehp, Maybe_Half_Phys } from './hack.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
@@ -736,8 +736,9 @@ export async function zap_dig(map, player) {
                 }
                 _gstate?.display?.putstr_message?.('You loosen a rock from the ceiling.');
                 _gstate?.display?.putstr_message?.('It falls on your head!');
-                const helmet = u.helmet || u.uarmh || null;
-                rnd(hard_helmet(helmet) ? 2 : 6);
+                const helmet = u.helmet || null;
+                await losehp(Maybe_Half_Phys(rnd(hard_helmet(helmet) ? 2 : 6), u),
+                    "falling rock", KILLED_BY_AN, u, _gstate?.display, _gstate);
                 mksobj_at(map, ROCK, u.x, u.y, false, false);
                 newsym(u.x, u.y);
             } else {
