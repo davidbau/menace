@@ -18,7 +18,8 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          CONFUSION, HALLUC, FUMBLING, STUNNED,
          FROM_ROLE as FROMEXPER_BIT, FROM_RACE as FROMRACE_BIT,
          FROM_FORM as FROMFORM_BIT, FROMOUTSIDE } from './const.js';
-import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF, Upolyd, DIED, POISONING } from './const.js';
+import { A_CG_CONVERT, A_CG_HELM_ON, A_CG_HELM_OFF, Upolyd, DIED, POISONING,
+         SATIATED, NOT_HUNGRY, HUNGRY, WEAK, FAINTING, MAXULEV } from './const.js';
 import { roles, races } from './player.js';
 import { pline, You, Your, You_feel, pline_The, livelog_printf } from './pline.js';
 import { sgn, strstri } from './hacklib.js';
@@ -43,7 +44,6 @@ const FROMFORM = FROMFORM_BIT;
 function STR18(x) { return 18 + x; }
 function STR19(y) { return 100 + y; }
 
-const MAXULEV = 30;
 const LUCKMIN = -10;
 const LUCKMAX = 10;
 const LUCKADD = 3;
@@ -677,27 +677,27 @@ async function exerper(player) {
     if (!(moves % 10)) {
         // Hunger checks
         const uhunger = player.nutrition || player.hunger || 0;
-        const hs = (uhunger > 1000) ? 0 /* SATIATED */
-                 : (uhunger > 150) ? 1 /* NOT_HUNGRY */
-                 : (uhunger > 50) ? 2 /* HUNGRY */
-                 : (uhunger > 0) ? 3 /* WEAK */
-                 : 4; /* FAINTING */
+        const hs = (uhunger > 1000) ? SATIATED
+                 : (uhunger > 150) ? NOT_HUNGRY
+                 : (uhunger > 50) ? HUNGRY
+                 : (uhunger > 0) ? WEAK
+                 : FAINTING;
 
         switch (hs) {
-        case 0: // SATIATED
+        case SATIATED:
             await exercise(player, A_DEX, false);
             if (player.roleMnum === PM_MONK)
                 await exercise(player, A_WIS, false);
             break;
-        case 1: // NOT_HUNGRY
+        case NOT_HUNGRY:
             await exercise(player, A_CON, true);
             break;
-        case 3: // WEAK
+        case WEAK:
             await exercise(player, A_STR, false);
             if (player.roleMnum === PM_MONK)
                 await exercise(player, A_WIS, true);
             break;
-        case 4: // FAINTING
+        case FAINTING:
             await exercise(player, A_CON, false);
             break;
         }

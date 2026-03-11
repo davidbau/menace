@@ -27,6 +27,7 @@ import {
     BALL_CLASS, CHAIN_CLASS, COIN_CLASS, SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
     TALLOW_CANDLE, WAX_CANDLE, LENSES, TIN_WHISTLE, MAGIC_WHISTLE, STATUE,
     MEAT_STICK, ENORMOUS_MEATBALL,
+    ARM_GLOVES,
 } from './objects.js';
 import { doname, xname, mkcorpstat, mksobj, add_to_minv } from './mkobj.js';
 import { couldsee, m_cansee } from './vision.js';
@@ -44,7 +45,8 @@ import { flush_screen, canSeeMonsterForMap } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
-import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON, P_BOW } from './const.js';
+import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON,
+         P_DAGGER, P_SPEAR, P_BOW, P_CROSSBOW, P_DART, P_SHURIKEN } from './const.js';
 import { ammo_and_launcher, multishot_class_bonus } from './dothrow.js';
 import { losehp } from './hack.js';
 import { KILLED_BY_AN } from './const.js';
@@ -448,16 +450,16 @@ export async function hits_bars(objp, x, y, barsx, barsy, always_hit = 0, whodid
         case WEAPON_CLASS: {
             const skill = objectData[obj.otyp]?.oc_subtyp || 0;
             // Most missiles pass through; bigger melee weapons hit.
-            hits = !(skill === -20 /* bow ammo skill */
-                || skill === -22 /* crossbow ammo skill */
-                || skill === -23 /* dart */
-                || skill === -24 /* shuriken */
-                || skill === 17 /* spear */
-                || skill === 1 /* dagger-ish */);
+            hits = !(skill === -P_BOW
+                || skill === -P_CROSSBOW
+                || skill === -P_DART
+                || skill === -P_SHURIKEN
+                || skill === P_SPEAR
+                || skill === P_DAGGER);
             break;
         }
         case ARMOR_CLASS:
-            hits = (objectData[obj.otyp]?.armcat !== 3); // gloves pass through
+            hits = (objectData[obj.otyp]?.armcat !== ARM_GLOVES);
             break;
         case TOOL_CLASS:
             hits = ![SKELETON_KEY, LOCK_PICK, CREDIT_CARD, TALLOW_CANDLE,

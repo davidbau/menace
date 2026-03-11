@@ -840,7 +840,7 @@ function score_targ(mon, target, map, player) {
         if (!target.peaceful) score += 10;
         // C ref: dogmove.c:800-801 — passive monster penalty
         const mdat = mons[target.mndx];
-        if (mdat && mdat.mattk && mdat.mattk[0] && mdat.mattk[0].aatyp === 0) {
+        if (mdat && mdat.mattk && mdat.mattk[0] && mdat.mattk[0].aatyp === AT_NONE) {
             score -= 1000;
         }
         // C ref: dogmove.c:804-807 — weak target penalty

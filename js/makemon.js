@@ -1077,7 +1077,7 @@ function m_initweap(mon, mndx, depth) {
     default:
         // Generic weapon assignment for armed monsters
         // C ref: makemon.c:534-571
-        if (ptr.mattk && ptr.mattk.some(a => a.aatyp === 254)) { // AT_WEAP
+        if (ptr.mattk && ptr.mattk.some(a => a.aatyp === AT_WEAP)) {
             const w = rnd(Math.max(1, 14 - 2 * bias));
             switch (w) {
             case 1:

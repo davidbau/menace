@@ -6,7 +6,7 @@
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
          OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
-         ESHK } from './const.js';
+         ESHK, MAXULEV } from './const.js';
 // C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 function ANGRY(mon) { return !mon.mpeaceful; }
 import { PM_TOURIST } from './monsters.js';
@@ -57,7 +57,6 @@ import { makemon } from './makemon.js';
 
 const BILLSZ = 200;
 const REPAIR_DELAY = 5;
-const MAXULEV = 30;
 const CANDLESHOP = 25;
 const LITTER_UPDATE = 0x80;
 

@@ -26,7 +26,9 @@ import { placeFloorObject } from './invent.js';
 import { mkobj, mksobj, mkcorpstat, set_corpsenm, weight } from './mkobj.js';
 import { GEM_CLASS, RANDOM_CLASS, BOULDER, GOLD_PIECE, STATUE } from './objects.js';
 import { makemon, rndmonnum, getMakemonRoleIndex } from './makemon.js';
-import { NO_MM_FLAGS } from './const.js';
+import { NO_MM_FLAGS,
+         LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
+         LR_TELE, LR_UPTELE, LR_DOWNTELE } from './const.js';
 import { mons, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, MR_STONE } from './monsters.js';
 import { roles } from './role.js';
 import {
@@ -173,14 +175,7 @@ export function maze0xy(map) {
     return mazexy(map);
 }
 
-// Region type constants (C ref: mkmaze.h)
-const LR_TELE = 0;
-const LR_DOWNTELE = 1;
-const LR_UPTELE = 2;
-const LR_PORTAL = 3;
-const LR_BRANCH = 4;
-const LR_UPSTAIR = 5;
-const LR_DOWNSTAIR = 6;
+// LR_* region type constants imported from const.js
 
 // C ref: mkmaze.c within_bounded_area()
 function within_bounded_area(x, y, lx, ly, hx, hy) {

@@ -72,25 +72,16 @@ import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { shop_keeper, in_rooms, costly_spot, is_unpaid,
          stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
-import { SHOPBASE, OBJ_MINVENT, MM_NOMSG } from './const.js';
+import { SHOPBASE, OBJ_MINVENT, MM_NOMSG,
+         P_DAGGER, P_KNIFE, P_SHORT_SWORD, P_SABER, P_SPEAR,
+         P_BOW, P_SLING, P_CROSSBOW, P_DART, P_SHURIKEN, P_BOOMERANG } from './const.js';
 
 // ============================================================================
 // C macro equivalents -- weapon classification helpers
 // cf. obj.h macros: is_ammo, is_missile, is_spear, is_blade, is_sword, etc.
 // ============================================================================
 
-// Skill constants (matching weapon.js P_* values)
-const P_DAGGER = 1;
-const P_KNIFE = 2;
-const P_SHORT_SWORD = 5;
-const P_SABER = 9;
-const P_SPEAR = 17;
-const P_BOW = 20;
-const P_SLING = 21;
-const P_CROSSBOW = 22;
-const P_DART = 23;
-const P_SHURIKEN = 24;
-const P_BOOMERANG = 25;
+// P_* skill constants imported from const.js
 
 // C ref: include/display.h GLYPH_OBJ_OFF/obj_to_glyph().
 // tmp_at event payloads are numeric glyph ids in C harness logs.

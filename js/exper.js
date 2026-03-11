@@ -3,7 +3,7 @@
 
 import { rn1, rn2, rnd } from './rng.js';
 import { roles, races } from './player.js';
-import { A_CON, A_WIS, NORMAL_SPEED, NATTK } from './const.js';
+import { A_CON, A_WIS, NORMAL_SPEED, NATTK, MAXULEV } from './const.js';
 import { mons, PM_ACID_BLOB,
          PM_CLERIC, PM_WIZARD, PM_HEALER, PM_KNIGHT,
          PM_BARBARIAN, PM_VALKYRIE,
@@ -13,8 +13,6 @@ import { mons, PM_ACID_BLOB,
 import { Role_if } from './role.js';
 import { find_mac } from './worn.js';
 import { extra_nasty } from './mondata.js';
-
-const MAXULEV = 30;
 
 // cf. exper.c:14 — newuexp(): experience points threshold for given level
 export function newuexp(lev) {

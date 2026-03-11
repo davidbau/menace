@@ -18,12 +18,10 @@ import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE,
          S_JABBERWOCK, PM_KNIGHT } from './monsters.js';
 import { which_armor } from './worn.js';
 import { SADDLE } from './objects.js';
+import { MAXULEV } from './const.js';
 
 // Monsters that might be ridden
 const STEEDS = [S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON, S_JABBERWOCK];
-
-// MAXULEV for steed taming checks
-const MAXULEV = 30;
 
 // cf. steed.c:17 -- rider_cant_reach(): print message when rider can't reach something
 export async function rider_cant_reach(player) {

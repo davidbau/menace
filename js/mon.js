@@ -2521,7 +2521,7 @@ export async function golemeffects(mon, damtype, dam) {
   }
   else { return; }
   if (slow) {
-    if (mon.mspeed !== 1 /* MSLOW */) mon_adjust_speed(mon, -1, null);
+    if (mon.mspeed !== MSLOW) mon_adjust_speed(mon, -1, null);
   }
   if (heal) {
     if (healmon(mon, heal, 0)) {

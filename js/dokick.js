@@ -106,7 +106,7 @@ import { hidden_gold } from './vault.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
 import { nhgetch } from './input.js';
-import { DIRECTION_KEYS, RIGHT_SIDE } from './const.js';
+import { DIRECTION_KEYS, RIGHT_SIDE, Trap_Killed_Mon } from './const.js';
 import { place_monster } from './steed.js';
 import { m_in_out_region } from './region.js';
 import { set_apparxy } from './monmove.js';
@@ -126,7 +126,6 @@ import { remove_worn_item } from './steal.js';
 const kick_passes_thru = "kick passes harmlessly through";
 
 // SHOP_DOOR_COST, looted/trap flags imported from const.js
-const Trap_Killed_Mon = 2; // cf. trap.h — not yet exported from const.js
 
 // KICKED_WEAPON for bhit
 const KICKED_WEAPON = 2;

@@ -91,7 +91,8 @@ import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END, IS_FURNITURE, nothing_happens } from './const.js';
+import { DISP_BEAM, DISP_END, IS_FURNITURE, nothing_happens,
+         P_AXE, P_PICK_AXE, P_TRIDENT, P_LANCE } from './const.js';
 import { break_wand } from './zap.js';
 import { body_part } from './polyself.js';
 import { freehand } from './engrave.js';
@@ -933,7 +934,7 @@ export function isApplyCandidate(obj) {
     if (obj.oclass === WEAPON_CLASS) {
         const skill = objectData[obj.otyp]?.oc_subtyp;
         if (obj.otyp === BULLWHIP || obj.otyp === LANCE
-            || skill === 3 || skill === 4 || skill === 18 || skill === 19)
+            || skill === P_AXE || skill === P_PICK_AXE || skill === P_TRIDENT || skill === P_LANCE)
             return true;
     }
     if (obj.otyp === CREAM_PIE || obj.otyp === EUCALYPTUS_LEAF
@@ -949,13 +950,13 @@ export function isApplyCandidate(obj) {
 export function isApplyChopWeapon(obj) {
     if (!obj || obj.oclass !== WEAPON_CLASS) return false;
     const skill = objectData[obj.otyp]?.oc_subtyp;
-    return skill === 3 || skill === 4;
+    return skill === P_AXE || skill === P_PICK_AXE;
 }
 
 export function isApplyPolearm(obj) {
     if (!obj || obj.oclass !== WEAPON_CLASS) return false;
     const skill = objectData[obj.otyp]?.oc_subtyp;
-    return skill === 18 || skill === 19;
+    return skill === P_TRIDENT || skill === P_LANCE;
 }
 
 export function isApplyDownplay(obj) {

@@ -115,12 +115,7 @@ import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
-import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED } from './const.js';
-
-// STRAT_*, MMOVE_* imported from const.js
-const MMOVE_DIED = 2;
-const MMOVE_DONE = 3;
-const MMOVE_NOMOVES = 4;
+import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED, MMOVE_DIED, MMOVE_DONE, MMOVE_NOMOVES, Trap_Killed_Mon, Trap_Moved_Mon } from './const.js';
 
 // Re-export mthrowu.c functions
 import { hasWeaponAttack, maybeMonsterWieldBeforeAttack, linedUpToPlayer } from './mthrowu.js';
@@ -2265,9 +2260,9 @@ export async function postmov(mon, map, player, mmoved) {
     if (mon.dead) return mmoved;
 
     // Trap trigger after movement
-    if (mmoved === 1 /* MMOVE_MOVED */) {
+    if (mmoved === MMOVE_MOVED) {
         const trapResult = await mintrap_postmove(mon, map, player);
-        if (trapResult === 2 /* Trap_Killed_Mon */ || trapResult === 3 /* Trap_Moved_Mon */) {
+        if (trapResult === Trap_Killed_Mon || trapResult === Trap_Moved_Mon) {
             return -1; // MMOVE_DIED
         }
     }

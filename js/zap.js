@@ -6,7 +6,7 @@
 import { rn2, rnd, d, rn1, rnz } from './rng.js';
 import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
-    ICE, POOL,
+    STONE, ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
     TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE, is_magical_trap,
     MM_NOWAIT, MM_NOMSG, MM_NOCOUNTBIRTH, MM_MALE, MM_FEMALE,
@@ -55,7 +55,7 @@ import { mons, M1_NOEYES,
          PM_LEATHER_GOLEM, PM_ROPE_GOLEM, PM_SKELETON, PM_GOLD_GOLEM,
          PM_GLASS_GOLEM, PM_PAPER_GOLEM, PM_STRAW_GOLEM,
          PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC,
-         AD_DRLI } from './monsters.js';
+         AD_DRLI, AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM } from './monsters.js';
 import {
   rndmonnum, makemon,
 } from './makemon.js';
@@ -677,7 +677,6 @@ export function destroy_mitem(mon, osym, dmgtyp) {
 
 // Check if object is destroyable by damage type
 function destroyable_by(obj, dmgtyp) {
-  const { AD_FIRE, AD_COLD, AD_ELEC } = { AD_FIRE: 2, AD_COLD: 3, AD_ELEC: 6 };
   if (dmgtyp === AD_FIRE) {
     return obj.oclass === POTION_CLASS || obj.oclass === SCROLL_CLASS ||
            obj.oclass === SPBOOK_CLASS;
@@ -1191,7 +1190,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
       if (!loc) { sx = lsx; sy = lsy; break; }
       tmp_at(sx, sy);
       await nh_delay_output();
-      if (loc.typ === 0) goto_bounce(); // STONE
+      if (loc.typ === STONE) goto_bounce();
 
       // C ref: zap.c:4797-4802 — zap_over_floor for non-fireball, non-gas
       if (damgtype !== ZT_POISON_GAS) {
@@ -1258,7 +1257,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
       if (loc && (IS_WALL(loc.typ) || IS_DOOR(loc.typ))) {
         // Bounce logic
         // C ref: STONE→10, mine walls→20, else→75
-        const bchance = (loc.typ === 0 /*STONE*/) ? 10 : IS_WALL(loc.typ) ? 75 : 75;
+        const bchance = (loc.typ === STONE) ? 10 : IS_WALL(loc.typ) ? 75 : 75;
         if (!dx || !dy || !rn2(bchance)) {
           dx = -dx;
           dy = -dy;
@@ -1585,15 +1584,15 @@ export async function break_wand(obj, player, map) {
   let expltype = EXPL_DARK;
   switch (beamType) {
   case ZT_MAGIC_MISSILE:
-    adtyp = 1; // AD_MAGM
+    adtyp = AD_MAGM;
     expltype = EXPL_MAGICAL;
     break;
   case ZT_FIRE:
-    adtyp = 2; // AD_FIRE
+    adtyp = AD_FIRE;
     expltype = EXPL_FIERY;
     break;
   case ZT_COLD:
-    adtyp = 3; // AD_COLD
+    adtyp = AD_COLD;
     expltype = EXPL_FROSTY;
     break;
   case ZT_SLEEP:
@@ -2545,7 +2544,7 @@ export function u_adtyp_resistance_obj(player, adtyp) {
   const xtrinsic = Number(player?.uprops?.[prop]?.extrinsic || 0);
   if ((xtrinsic & (W_ARMOR | W_ACCESSORY | W_WEP | W_ART)) !== 0) return 99;
   if ((xtrinsic & W_ARMC) && player?.cloak?.otyp === DWARVISH_CLOAK
-      && (adtyp === 2 /* AD_FIRE */ || adtyp === 3 /* AD_COLD */)) return 90;
+      && (adtyp === AD_FIRE || adtyp === AD_COLD)) return 90;
   return 0;
 }
 // Autotranslated from zap.c:4699

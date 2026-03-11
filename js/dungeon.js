@@ -47,7 +47,9 @@ import {
     weight,
 } from './mkobj.js';
 import { makemon, mkclass, rndmonnum_adj, set_malign } from './makemon.js';
-import { NO_MM_FLAGS, SIZE, nul_glyphinfo } from './const.js';
+import { NO_MM_FLAGS, SIZE, nul_glyphinfo,
+         LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
+         LR_TELE, LR_UPTELE, LR_DOWNTELE } from './const.js';
 
 // C serialization stubs (JS uses storage.js, not binary save files)
 function update_file() { return false; }
@@ -5119,14 +5121,7 @@ export async function mklev(depth, dnum, dlevel, opts = {}) {
 // Region placement (place_lregion) — C ref: mkmaze.c:317-469
 // =============================================================================
 
-// Region type constants (C ref: mkmaze.h)
-const LR_TELE = 0;
-const LR_DOWNTELE = 1;
-const LR_UPTELE = 2;
-const LR_PORTAL = 3;
-const LR_BRANCH = 4;
-const LR_UPSTAIR = 5;
-const LR_DOWNSTAIR = 6;
+// LR_* region type constants imported from const.js
 
 // C ref: mkmaze.c:346 — within_bounded_area
 // Check if (x,y) is within the inclusive rectangle (lx,ly,hx,hy)

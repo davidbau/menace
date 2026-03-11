@@ -2616,6 +2616,11 @@ export const HURTLING = 0x80;
 export const MMOVE_NOTHING = 0;
 // hack.h
 export const MMOVE_MOVED = 1;
+// trap.h — mintrap return values
+export const Trap_Effect_Finished = 0;
+export const Trap_Caught_Mon = 1;
+export const Trap_Killed_Mon = 2;
+export const Trap_Moved_Mon = 3;
 // hack.h
 export const MMOVE_DIED = 2;
 // hack.h

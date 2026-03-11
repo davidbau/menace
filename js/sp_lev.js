@@ -14,7 +14,9 @@
  */
 
 import { GameMap } from './game.js';
-import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU, MM_NOTAIL, NO_INVENT, CUSTOM_INVENT, DEFAULT_INVENT } from './const.js';
+import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU, MM_NOTAIL, NO_INVENT, CUSTOM_INVENT, DEFAULT_INVENT,
+         LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
+         LR_TELE, LR_UPTELE, LR_DOWNTELE } from './const.js';
 import { rn2, rnd, rn1, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight, place_object } from './mkobj.js';
 import { game as _gstate } from './gstate.js';
@@ -1127,13 +1129,7 @@ function canPlaceStair(direction) {
 async function fixupSpecialLevel() {
     if (!levelState.map || levelState.branchPlaced) return;
     // C ref: mkmaze.c fixup_special()
-    const LR_TELE = 0;
-    const LR_DOWNTELE = 1;
-    const LR_UPTELE = 2;
-    const LR_PORTAL = 3;
-    const LR_BRANCH = 4;
-    const LR_UPSTAIR = 5;
-    const LR_DOWNSTAIR = 6;
+    // LR_* constants imported from const.js
     const ctx = levelState.finalizeContext || {};
     const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
 
@@ -5127,13 +5123,7 @@ export function levregion(opts) {
     }
 
     // C ref: sp_lev.c lspo_levregion() + levregion_add().
-    const LR_TELE = 0;
-    const LR_DOWNTELE = 1;
-    const LR_UPTELE = 2;
-    const LR_PORTAL = 3;
-    const LR_BRANCH = 4;
-    const LR_UPSTAIR = 5;
-    const LR_DOWNSTAIR = 6;
+    // LR_* constants imported from const.js
 
     const lregion = l_get_lregion(opts);
 
