@@ -1705,6 +1705,11 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(pad, 9, 'q * do nothing');
             drawMenuOptionLine(pad, 10, '(end)');
         }
+        if (typeof display?.setCursor === 'function'
+            && Number.isInteger(player?.x) && Number.isInteger(player?.y)) {
+            // C keeps map cursor active while waiting for in-or-out menu input.
+            display.setCursor(player.x, player.y);
+        }
 
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
@@ -1754,6 +1759,7 @@ async function containerMenu(game, container) {
             }
             const letters = inv.map((o) => o.invlet).join('');
             const compact = compactInvletPromptChars(letters);
+            clearMenuOptionRows(pad);
             await putMenuPrompt(`What do you want to stash? [${compact} or ?*] `);
             const sch = await nhgetch();
             const item = inv.find((o) => o.invlet === String.fromCharCode(sch));
