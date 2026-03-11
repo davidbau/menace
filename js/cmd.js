@@ -5,6 +5,8 @@
 import { RACE_ORC, SQKY_BOARD,
          DART_TRAP, ARROW_TRAP,
          DIRECTION_KEYS, RUN_KEYS, CQ_REPEAT, P_NUM_SKILLS,
+         P_FIRST_H_TO_H, P_LAST_H_TO_H, P_FIRST_WEAPON, P_LAST_WEAPON,
+         P_FIRST_SPELL, P_LAST_SPELL,
          xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING, SIZE, nul_glyphinfo,
          isok, Never_mind } from './const.js';
 import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
@@ -39,7 +41,7 @@ import { handleSave } from './storage.js';
 import { handleForce, handleOpen, handleClose, reset_pick } from './lock.js';
 import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './pickup.js';
 import { dotalk } from './sounds.js';
-import { add_skills_to_menu, skill_advance } from './weapon.js';
+import { add_skills_to_menu, skill_advance, skill_practice_value } from './weapon.js';
 import { handleSet } from './options.js';
 import { dosit } from './sit.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
@@ -781,6 +783,55 @@ async function handleExtendedCommand(game) {
                 if (resp === 27 || rc === 'n') {
                     return { moved: false, tookTime: false };
                 }
+                const ranges = [
+                    { first: P_FIRST_H_TO_H, last: P_LAST_H_TO_H, name: 'Fighting Skills' },
+                    { first: P_FIRST_WEAPON, last: P_LAST_WEAPON, name: 'Weapon Skills' },
+                    { first: P_FIRST_SPELL, last: P_LAST_SPELL, name: 'Spellcasting Skills' },
+                ];
+                const longest = rows.reduce((m, r) => Math.max(m, (r.name || '').length), 0);
+                const slots = Number.isInteger(player?.weapon_slots) ? player.weapon_slots : 4;
+                const menuLines = [` Current skills:  (${slots} slots available)`, ''];
+                for (const range of ranges) {
+                    const group = rows.filter((r) => Number.isInteger(r.skill)
+                        && r.skill >= range.first && r.skill <= range.last);
+                    if (!group.length) continue;
+                    menuLines.push(` ${range.name}`);
+                    for (const r of group) {
+                        const displayName = String(r.name || '').replace('bare-handed', 'bare handed');
+                        const label = displayName.padEnd(longest, ' ');
+                        const levelLabel = String(r.levelName || '').padEnd(12, ' ');
+                        const practice = String(skill_practice_value(r.skill)).padStart(5, ' ');
+                        const needed = String(Math.max(1, r.level || 0) * Math.max(1, r.level || 0) * 20).padStart(4, ' ');
+                        menuLines.push(` ${label} ${levelLabel} ${practice}(${needed})`);
+                    }
+                }
+                const rowsCap = Number.isInteger(display?.rows) ? display.rows : 24;
+                const contentRows = Math.max(1, rowsCap - 1);
+                const totalPages = Math.max(1, Math.ceil(menuLines.length / contentRows));
+                const firstPage = menuLines.slice(0, contentRows);
+                firstPage.push(`(1 of ${totalPages})`);
+                if (display) {
+                    if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+                    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+                    if (typeof display.clearRow === 'function') display.clearRow(0);
+                }
+                if (typeof display.renderOverlayMenu === 'function') {
+                    display.renderOverlayMenu(firstPage);
+                }
+                if (typeof display?.setCursor === 'function') {
+                    const cols = display.cols || 80;
+                    const row = Math.max(0, Math.min(rowsCap, firstPage.length) - 1);
+                    const marker = String(firstPage[row] || '');
+                    display.setCursor(Math.min(cols - 1, 1 + marker.length), row);
+                }
+                await nhgetch();
+                const last = display?._lastMapState;
+                if (last?.gameMap && typeof display.renderMap === 'function') {
+                    display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});
+                    if (typeof display.renderStatus === 'function') display.renderStatus(last.player);
+                    if (typeof display.renderMessageWindow === 'function') display.renderMessageWindow();
+                }
+                return { moved: false, tookTime: false };
             }
             const heading = advanceable.length > 0 ? 'Pick a skill to advance:' : 'Current skills:';
             await display.putstr_message(heading);

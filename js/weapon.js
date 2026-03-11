@@ -1002,6 +1002,11 @@ export function show_skills() {
     return add_skills_to_menu();
 }
 
+export function skill_practice_value(skill) {
+    if (!Number.isInteger(skill) || skill < 0 || skill >= P_NUM_SKILLS) return 0;
+    return heroSkillAdvance[skill] || 0;
+}
+
 // C ref: weapon.c give_may_advance_msg().
 export async function give_may_advance_msg(display = null) {
     const any = add_skills_to_menu().some((row) => row.canAdvance);

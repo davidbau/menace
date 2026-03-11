@@ -7978,3 +7978,32 @@ hard-won wisdom:
 - Validation:
   - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed500_extcmd_enhance.session.json --parallel=1 --verbose`
   - `scripts/run-and-report.sh --failures` (`42/42` gameplay passing on this branch state).
+
+## 2026-03-11: close `seed500_extcmd_enhance` with C-faithful wizard enhance menu rendering
+
+- Problem:
+  - After fixing wizard levelchange semantics, `seed500_extcmd_enhance` still
+    had a final screen/cursor mismatch in wizard `#enhance` no-practice flow.
+  - RNG/events were fully aligned; only menu presentation differed.
+- Change:
+  - `js/cmd.js` (`#enhance` path, wizard + no advanceable skills + accepted prompt):
+    - switched from `putstr_message` list rendering to C-shaped overlay menu lines.
+    - rendered `Current skills:  (<slots> slots available)` prompt + grouped
+      sections (`Fighting Skills`, `Weapon Skills`, `Spellcasting Skills`)
+      with wizard-style skill columns (`practice(needed)`).
+    - applied single-page first-view pagination marker formatting (`(1 of N)`),
+      plus explicit cursor placement on marker row and proper prompt-state clear
+      before overlay render.
+    - restored map/status/message window after menu dismissal to preserve
+      boundary behavior.
+  - `js/display.js`, `js/headless.js`:
+    - recognized skill-section headers as menu category headers so inverse-video
+      header rendering/indent match C tty behavior.
+  - `js/weapon.js`:
+    - added `skill_practice_value(skill)` accessor for wizard-column formatting.
+- Result:
+  - `seed500_extcmd_enhance` now full parity (`rng/events/screens/colors/cursor` all matched).
+  - This was achieved without comparator exceptions or replay_core masking.
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/seed500_extcmd_enhance.session.json --parallel=1 --verbose` -> PASS
+  - `npm run test:session` -> `159/159` PASS.

@@ -1033,6 +1033,9 @@ span.nh-cursor {
             if (/^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Other)\b/.test(text)) {
                 return true;
             }
+            if (/^(Fighting Skills|Weapon Skills|Spellcasting Skills)\b/.test(text)) {
+                return true;
+            }
             if (text === 'Currently known spells') return true;
             if (/^Name\s+Level\s+Category\s+Fail\s+Retention/.test(text)) return true;
             return false;
