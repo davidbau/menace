@@ -1171,7 +1171,7 @@ export async function deferred_goto(player, game) {
         if (typmask & 0x02) {
             const dist = Math.max(1, Math.abs((Number(dest) || fromDepth) - fromDepth));
             const dmg = c_d(dist, 6);
-            await losehp(Math.max(0, dmg), "falling down a mine shaft", KILLED_BY, player);
+            await losehp(Math.max(0, dmg), "falling down a mine shaft", KILLED_BY, player, game?.display, game);
         }
     }
     // C ref: do.c goto_level() calls u_entered_or_left_rooms(TRUE) then

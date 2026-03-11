@@ -2202,7 +2202,7 @@ export async function prayer_done(player, map) {
                     : "Walk no more, perversion of nature!", player);
         await You_feel("like you are falling apart.");
         await rehumanize(player);
-        await losehp(rnd(20), "residual undead turning effect", 0, player);
+        await losehp(rnd(20), "residual undead turning effect", 0, player, _gstate?.display, _gstate);
         await exercise(player, A_CON, false);
         return 1;
     }

@@ -918,7 +918,7 @@ export async function polyself(player, psflags, map) {
         if (rn2(20) > acon) {
             await pline("You shudder for a moment.");
             const dmg = rnd(30);
-            await losehp(dmg, "system shock", KILLED_BY_AN, player);
+            await losehp(dmg, "system shock", KILLED_BY_AN, player, _gstate?.display, _gstate);
             await exercise(player, A_CON, false);
             return;
         }

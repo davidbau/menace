@@ -487,7 +487,7 @@ export async function losestr(player, num, knam, k_format) {
             knam = "terminal frailty";
             k_format = 1; // KILLED_BY
         }
-        await losehp(dmg, knam, k_format, player);
+        await losehp(dmg, knam, k_format, player, _gstate?.display, _gstate);
 
         if (Upolyd(player)) {
             setuhpmax(player, Math.max((player.mhmax || 1) - dmg, 1), false);
@@ -505,7 +505,7 @@ export async function losestr(player, num, knam, k_format) {
 // Autotranslated from attrib.c:270
 export async function poison_strdmg(player, strloss, dmg, knam, k_format) {
   await losestr(player, strloss, knam, k_format);
-  await losehp(dmg, knam, k_format, player);
+  await losehp(dmg, knam, k_format, player, _gstate?.display, _gstate);
 }
 
 // cf. attrib.c:291 — poisontell(typ, exclaim)
@@ -560,7 +560,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
             setuhpmax(player, Math.max(newuhpmax, minuhpmax(player, 3)), true);
             const loss1 = adjuhploss(player, loss0, olduhp);
 
-            await losehp(loss1, pkiller, kprefix, player);
+            await losehp(loss1, pkiller, kprefix, player, _gstate?.display, _gstate);
             if (await adjattrib(player, A_CON, (typ !== A_CON) ? -1 : -3, true))
                 await poisontell(player, A_CON, true);
             if (typ !== A_CON && await adjattrib(player, typ, -3, 1))
@@ -571,7 +571,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
         let loss = thrown_weapon ? rnd(6) : rn1(10, 6);
         if ((blast || cloud) && player.halfGasDamage)
             loss = Math.floor((loss + 1) / 2);
-        await losehp(loss, pkiller, kprefix, player);
+        await losehp(loss, pkiller, kprefix, player, _gstate?.display, _gstate);
     } else {
         const loss = (thrown_weapon || !fatal) ? 1 : d(2, 2);
         if (await adjattrib(player, typ, -loss, 1))
