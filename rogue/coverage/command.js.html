@@ -31,9 +31,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">83.42% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>155/186</span>
+                <span class='fraction'>156/187</span>
             </div>
         
             
@@ -658,45 +658,45 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1332,8 +1332,8 @@ export async function command() {
     if (!g.running) g.door_stop = false;
   }
 &nbsp;
-  // Run AFTER daemons/fuses
-  if (g.after) {
+  // Run AFTER daemons/fuses (skip if game ended, e.g. after death)
+  if (g.after &amp;&amp; g.playing) {
     await _look(false);
     await do_daemons(AFTER);
     await do_fuses(AFTER);
@@ -1677,7 +1677,7 @@ export async function identify() {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-08T19:29:30.548Z
+                at 2026-03-11T19:51:22.149Z
             </div>
         <script src="prettify.js"></script>
         <script>

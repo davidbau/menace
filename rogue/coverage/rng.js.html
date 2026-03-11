@@ -31,16 +31,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">88.88% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>10/12</span>
+                <span class='fraction'>8/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>4/6</span>
             </div>
         
             
@@ -132,20 +132,20 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
-<span class="cline-any cline-yes">212x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">201x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">126166x</span>
-<span class="cline-any cline-yes">126166x</span>
-<span class="cline-any cline-yes">126166x</span>
-<span class="cline-any cline-yes">126166x</span>
-<span class="cline-any cline-yes">126166x</span>
-<span class="cline-any cline-yes">126166x</span>
-<span class="cline-any cline-yes">126166x</span>
+<span class="cline-any cline-yes">119615x</span>
+<span class="cline-any cline-yes">119615x</span>
+<span class="cline-any cline-yes">119615x</span>
+<span class="cline-any cline-yes">119615x</span>
+<span class="cline-any cline-yes">119615x</span>
+<span class="cline-any cline-yes">119615x</span>
+<span class="cline-any cline-yes">119615x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -153,15 +153,15 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">126511x</span>
-<span class="cline-any cline-yes">126511x</span>
+<span class="cline-any cline-yes">119945x</span>
+<span class="cline-any cline-yes">119945x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2605x</span>
-<span class="cline-any cline-yes">2605x</span>
-<span class="cline-any cline-yes">2605x</span>
-<span class="cline-any cline-yes">2605x</span>
+<span class="cline-any cline-yes">2076x</span>
+<span class="cline-any cline-yes">2076x</span>
+<span class="cline-any cline-yes">2076x</span>
+<span class="cline-any cline-yes">2076x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * rng.js — Seeded RNG for Rogue 3.6 JS port
  *
@@ -195,8 +195,8 @@ export function rand() {
   return _seed;  // Return FULL value (used by rnd() for modulo)
 }
 &nbsp;
-export function getRngSeed() { return _seed; }
-export function setRngSeed(s) { _seed = Number(s) &gt;&gt;&gt; 0; if (_seed === 0) <span class="branch-0 cbranch-no" title="branch not covered" >_seed = 1; </span>}
+export <span class="fstat-no" title="function not covered" >function getRngSeed() { return _seed; }</span>
+export <span class="fstat-no" title="function not covered" >function setRngSeed(s) { _seed = Number(s) &gt;&gt;&gt; 0; if (_seed === 0) _seed = 1; }</span>
 &nbsp;
 // rnd(range): 0 to range-1
 // C: rand() % range — uses full Park-Miller value, NOT masked to 15 bits
@@ -216,7 +216,7 @@ export function roll(number, sides) {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-08T19:29:30.548Z
+                at 2026-03-11T19:51:22.149Z
             </div>
         <script src="prettify.js"></script>
         <script>
