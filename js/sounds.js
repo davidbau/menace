@@ -35,6 +35,7 @@ import { wake_nearto } from './mon.js';
 import { night, midnight } from './calendar.js';
 import { vault_occupied, findgd } from './vault.js';
 import { nhimport } from './origin_awaits.js';
+import { cansee } from './vision.js';
 
 // ============================================================================
 // Hallucination sound table (cf. sounds.c:341)

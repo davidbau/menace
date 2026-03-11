@@ -27,7 +27,7 @@ import { doname, bcsign, blessorcurse, uncurse } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
-import { s_suffix } from './hacklib.js';
+import { s_suffix, distu } from './hacklib.js';
 import { make_confused, make_stunned } from './potion.js';
 import { makemon } from './makemon.js';
 import { NO_MINVENT, HEAD, STOMACH } from './const.js';
@@ -50,13 +50,13 @@ import { DISP_BEAM, DISP_END } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 import { pline, impossible, You } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
-import { newsym, cmap_to_glyph } from './display.js';
+import { newsym, cmap_to_glyph, canspotmon } from './display.js';
 import { S_goodpos } from './symbols.js';
-import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj } from './invent.js';
+import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup } from './invent.js';
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
-import { kill_genocided_monsters, wake_nearto } from './mon.js';
+import { kill_genocided_monsters, wake_nearto, wakeup } from './mon.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 

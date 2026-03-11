@@ -24,7 +24,7 @@ import { doname, next_ident, weight } from './mkobj.js';
 import { obj_resists, is_organic, is_metallic, is_rustprone } from './objdata.js';
 import { observeObject } from './o_init.js';
 import { dogfood } from './dog.js';
-import { couldsee, m_cansee, do_clear_area } from './vision.js';
+import { cansee, couldsee, m_cansee, do_clear_area } from './vision.js';
 import { mattackm } from './mhitm.js';
 import { is_animal, is_mindless, nohands, nolimbs, unsolid,
          carnivorous, herbivorous, is_metallivore,
@@ -49,7 +49,9 @@ import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          mon_track_add,
          should_displace } from './monmove.js';
 import { ALLOW_M, ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, MTSZ, SQSRCHRADIUS, FARAWAY, PROT_FROM_SHAPE_CHANGERS } from './const.js';
-import { newsym } from './display.js';
+import { newsym, canspotmon, glyph_at } from './display.js';
+import { pline, You, Your } from './pline.js';
+import { an } from './objnam.js';
 
 // ========================================================================
 // Constants — C ref: dogmove.c:11-13

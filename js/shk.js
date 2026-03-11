@@ -39,7 +39,7 @@ import { rn2, rnd } from './rng.js';
 import { pline, You, Your, You_hear, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
 import { s_suffix, strchr, plur, sgn } from './hacklib.js';
-import { helpless as monHelpless } from './mon.js';
+import { helpless as monHelpless, angry_guards } from './mon.js';
 import { newsym, canspotmon } from './display.js';
 import { canseemon, y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER } from './mondata.js';
 import { game as _gstate } from './gstate.js';

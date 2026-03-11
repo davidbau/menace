@@ -66,7 +66,8 @@ import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
 import { pluslvl } from './exper.js';
-import { sgn } from './hacklib.js';
+import { sgn, distu } from './hacklib.js';
+import { monflee } from './monmove.js';
 import { is_rider, is_giant, acidic, poisonous, flesh_petrifies,
          vegan, vegetarian, carnivorous, herbivorous,
          is_humanoid, is_undead, attacktype, dmgtype,

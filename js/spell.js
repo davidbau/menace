@@ -853,7 +853,8 @@ export async function cast_protection(player) {
     }
 }
 
-import { distmin } from './hacklib.js';
+import { distmin, sgn } from './hacklib.js';
+import { monflee } from './monmove.js';
 export function can_center_spell_location(player, map, x, y) {
     if (!player || !map) return false;
     if (distmin(player.x, player.y, x, y) > SPELL_TARGET_DIST) return false;

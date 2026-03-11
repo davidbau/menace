@@ -16,7 +16,7 @@ import {
     destroy_nhwindow,
 } from './windows.js';
 import { NHW_MENU, NHW_TEXT, PICK_ONE, ATR_NONE } from './const.js';
-import { visctrl } from './hacklib.js';
+import { visctrl, sgn } from './hacklib.js';
 import { game as _gstate } from './gstate.js';
 import { t_at } from './trap.js';
 import { glyph_is_cmap } from './symbols.js';

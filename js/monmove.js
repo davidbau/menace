@@ -41,13 +41,13 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
-import { an, vtense } from './objnam.js';
+import { an, vtense, makeplural } from './objnam.js';
 import { delobj, g_at, sobj_at } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
 import { can_carry, cursed_object_at } from './dogmove.js';
-import { couldsee, m_cansee } from './vision.js';
-import { pline_mon, verbalize } from './pline.js';
+import { cansee, couldsee, m_cansee } from './vision.js';
+import { pline, pline_mon, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
          hides_under, is_mercenary, YMonnam, Monnam,
          mon_knows_traps, is_rider, is_mind_flayer,
@@ -74,11 +74,11 @@ import { cuss } from './wizard.js';
 import { add_damage, after_shk_move, shk_move } from './shk.js';
 
 // Shared utilities — re-exported for consumers
-import { dist2, distmin } from './hacklib.js';
+import { dist2, distmin, distu } from './hacklib.js';
 import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
-import { canSpotMonsterForMap, map_invisible, newsym } from './display.js';
+import { canSpotMonsterForMap, map_invisible, newsym, canspotmon } from './display.js';
 import { addToMonsterInventory, canMergeMonsterInventoryObj } from './invent.js';
 import { mpickobj, mdrop_obj, findgold } from './steal.js';
 import { game as _gstate } from './gstate.js';

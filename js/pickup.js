@@ -27,7 +27,7 @@ import { body_part } from './polyself.js';
 import { HAND, FOOT } from './const.js';
 import { instapetrify, m_at } from './trap.js';
 import { exercise } from './attrib_exercise.js';
-import { newsym } from './display.js';
+import { newsym, canspotmon } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
          inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
@@ -45,7 +45,7 @@ import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 import { nhimport } from './origin_awaits.js';
-import { obfree } from './shk.js';
+import { obfree, costly_spot } from './shk.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c

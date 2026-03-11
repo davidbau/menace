@@ -53,7 +53,7 @@ import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_objec
 import { impossible, pline_mon } from './pline.js';
 import { next_ident } from './mkobj.js';
 import { is_metallic, is_organic, obj_resists, hasPoisonTrapBit } from './objdata.js';
-import { newsym, canSpotMonsterForMap } from './display.js';
+import { newsym, canSpotMonsterForMap, canspotmon, sensemon } from './display.js';
 import { mpickobj, mdrop_obj } from './steal.js';
 import { delobj } from './invent.js';
 import { stackobj } from './invent.js';
@@ -86,7 +86,7 @@ import { dist2, distmin } from './hacklib.js';
 import { in_rooms } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
 import { monsterAtWithSegments, worm_cross } from './worm.js';
-import { ansimpleoname, Has_contents, vtense } from './objnam.js';
+import { ansimpleoname, Has_contents, vtense, makeplural } from './objnam.js';
 import { game as _gstate } from './gstate.js';
 import { sengr_at, del_engr_at } from './engrave.js';
 import { adjalign, change_luck } from './attrib.js';

@@ -28,7 +28,7 @@ import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE } from './objects.js';
 import { pline, pline_The, You, You_hear, verbalize } from './pline.js';
 import { newsym, map_invisible, canspotmon, monVisibleForMap } from './display.js';
 import { place_monster } from './steed.js';
-import { mongone, mpickgold } from './mon.js';
+import { mongone, mpickgold, setmangry } from './mon.js';
 import { relobj } from './steal.js';
 import { rloc } from './teleport.js';
 import { Monnam, noit_Monnam, noit_mon_nam, Some_Monnam, x_monnam,
