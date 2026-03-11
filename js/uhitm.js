@@ -1707,6 +1707,13 @@ export function mhitm_knockback(magr, mdef, mattk, hitflags, weapon_used) {
     rn2(2); // "forceful" vs "powerful"
     rn2(2); // "blow" vs "strike"
 
+    // cf. uhitm.c:5377-5390 — knockback effect + stun check
+    // C: mhurtle(mdef,...) then if (!DEADMONSTER(mdef) && !rn2(4)) mdef->mstun=1
+    // (Hero-as-defender path at line 5375: if (!Stunned && !rn2(4)) make_stunned())
+    if (!rn2(4)) {
+        if (mdef) mdef.mstun = 1;
+    }
+
     return true;
 }
 
@@ -2385,6 +2392,11 @@ export async function do_attack_core(player, monster, display, map, game = null)
                     await display.putstr_message(
                         `You knock the ${x_monnam(monster)} back with a ${adj} ${noun}!`
                     );
+                    // cf. uhitm.c:5384 — stun check after knockback
+                    // C: mhurtle(mdef,...) then if (!DEADMONSTER(mdef) && !rn2(4)) mdef->mstun=1
+                    if (!rn2(4)) {
+                        monster.mstun = 1;
+                    }
                 }
             }
         } else if (!player.weapon && damage > 1 && !unarmedStaggerRolled) {
