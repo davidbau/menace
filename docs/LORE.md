@@ -7530,3 +7530,31 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (21/21)
   - `npm run -s test:unit` (2758/2758)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-11: potion blindness/hallucination/levitation state transitions aligned to C order
+
+- Problem:
+  - `potion.js` had shallow status-transition hooks for blindness/hallucination and a brittle `peffect_levitation()` path (mixed state flags, incomplete C ordering).
+  - `toggle_blindness()` refreshed with no map context, so `see_monsters()` could no-op in headless/runtime contexts.
+- Change:
+  - `js/potion.js`:
+    - `toggle_blindness()` now mirrors C's immediate-visibility update shape:
+      - marks vision dirty,
+      - runs immediate `vision_recalc()`,
+      - refreshes monster visibility with active map context,
+      - calls `learn_unseen_invent()` when sight returns.
+    - `make_hallucinated()` changed-state path now mirrors C redraw ordering:
+      - on hallucination end, refresh mimic/eat message state (`eatmupdate()`),
+      - redraw swallowed view if engulfed (`swallowed(0, player)`), else refresh monsters/objects/traps,
+      - update inventory and only then emit the hallucination message.
+    - `peffect_levitation()` now follows C flow and flag semantics:
+      - startup timeout-to-1 before `float_up()`,
+      - cursed path clears `I_SPECIAL`,
+      - blessed path adds timeout and sets `I_SPECIAL`,
+      - sink interaction via `spoteffects(false)`,
+      - final `float_vs_flight()` sync.
+- Validation:
+  - `node --test test/unit/command_quaff_prompt.test.js`
+  - `node --test test/unit/codematch_blindness_restore_surface.test.js`
+  - `node --test test/unit/codematch_batch_sweep.test.js`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/seed303_caveman_selfplay200_gameplay.session.json`

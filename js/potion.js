@@ -44,17 +44,27 @@ import { body_part } from './polyself.js';
 import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          POLY_NOFLAGS, POLY_CONTROLLED, POLY_LOW_CTRL,
          DETECT_MONSTERS, IS_SINK,
+         I_SPECIAL,
          FIRE_RES, COLD_RES,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
 import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
-import { see_monsters } from './display.js';
+import { game as gstateGame } from './gstate.js';
+import { see_monsters, see_objects, see_traps, swallowed, vision_recalc } from './display.js';
+import { update_inventory, learn_unseen_invent } from './invent.js';
+import { eatmupdate } from './eat.js';
 
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
 const gp = { potion_nothing: 0, potion_unkn: 0 };
+
+function activeMap(mapArg = null) {
+    if (mapArg) return mapArg;
+    if (gstateGame?.map) return gstateGame.map;
+    return null;
+}
 
 // ============================================================
 // 1. Intrinsic timeouts
@@ -252,9 +262,15 @@ export async function toggle_blindness(player) {
     if (!player) return;
     player._botl = true;
     mark_vision_dirty();
+    // C ref: potion.c toggle_blindness() forces immediate vision recalc.
+    vision_recalc();
     // C calls see_monsters() when blind telepathy/infravision/stinging are active.
     // JS keeps this broad as a safe display refresh hook.
-    see_monsters();
+    see_monsters(activeMap());
+    if (!player.blind) {
+        // C ref: learn_unseen_invent() when blindness ends.
+        learn_unseen_invent(player);
+    }
 }
 
 // cf. potion.c make_hallucinated() — C ref: potion.c:368-430
@@ -285,6 +301,19 @@ async function make_hallucinated(player, xtime, talk, mask) {
     }
 
     if (changed) {
+        // C ref: when hallucination ends, refresh mimic appearance messaging.
+        if (!player.getPropTimeout(HALLUC)) {
+            eatmupdate(player);
+        }
+        if (player.uswallow) {
+            await swallowed(0, player);
+        } else {
+            // C ref: refresh visual overlays before announcing message.
+            see_monsters(activeMap());
+            see_objects();
+            see_traps();
+        }
+        update_inventory(player);
         if (talk) {
             if (!xtime)
                 await pline("Everything %s SO boring now.", verb);
@@ -1776,32 +1805,45 @@ export async function peffect_object_detection(otmp, player) {
 
 // cf. potion.c:1160 — peffect_levitation
 export async function peffect_levitation(otmp, map, player) {
-  if (!player.levitating) {
-    set_itimeout(player, LEVITATION, 1);
-    player.levitating = true;
-    await float_up(player, null);
-  } else {
-    gp.potion_nothing++;
-  }
-  if (otmp.cursed) {
-    let stway;
-    if ((stway = await stairway_at(player.x, player.y)) != null && stway.up) {
-      /* doup() not yet ported */ gp.potion_nothing = 0;
-    } else if (has_ceiling(map.uz || map)) {
-      const uarmh = player.helmet;
-      let dmg = rnd(!uarmh ? 10 : !hard_helmet(uarmh) ? 6 : 3);
-      if (player.halfPhysDamage) dmg = Math.max(1, Math.floor(dmg / 2));
-      await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y, map));
-      await losehp(dmg, "colliding with the ceiling", KILLED_BY, player, display);
-      gp.potion_nothing = 0;
+    const prop = player.ensureUProp(LEVITATION);
+    const hadLev = !!(player.getPropTimeout(LEVITATION) || prop.extrinsic);
+    const blockedLev = !!(prop.blocked || 0);
+    const gameRef = gstateGame || { disp: {} };
+    const mapRef = activeMap(map);
+    if (!hadLev && !blockedLev) {
+        // C ref: set timeout to 1 first so float_up() sees active levitation.
+        set_itimeout(player, LEVITATION, 1);
+        await float_up(player, gameRef);
+    } else {
+        gp.potion_nothing++;
     }
-  } else if (otmp.blessed) {
-    incr_itimeout(player, LEVITATION, rn1(50, 250));
-  } else {
-    incr_itimeout(player, LEVITATION, rn1(140, 10));
-  }
-  if (player.levitating && IS_SINK(map.locations[player.x][player.y].typ)) await spoteffects(false);
-  float_vs_flight({ disp: {} }, player);
+    if (otmp.cursed) {
+        // C ref: can't descend at will from cursed levitation.
+        prop.intrinsic &= ~I_SPECIAL;
+        if (!blockedLev) {
+            const stway = await stairway_at(player.x, player.y);
+            if (stway && stway.up) {
+                // doup() side-effect path isn't ported here yet.
+                gp.potion_nothing = 0;
+            } else if (has_ceiling((player && player.uz) || (mapRef && mapRef.uz) || mapRef)) {
+                const helm = player.helmet;
+                let dmg = rnd(!helm ? 10 : !hard_helmet(helm) ? 6 : 3);
+                if (player.halfPhysDamage) dmg = Math.max(1, Math.floor(dmg / 2));
+                await You("hit your %s on the %s.", body_part(HEAD), ceiling(player.x, player.y, mapRef));
+                await losehp(dmg, "colliding with the ceiling", KILLED_BY, player);
+                gp.potion_nothing = 0;
+            }
+        }
+    } else if (otmp.blessed) {
+        incr_itimeout(player, LEVITATION, rn1(50, 250));
+        prop.intrinsic |= I_SPECIAL;
+    } else {
+        incr_itimeout(player, LEVITATION, rn1(140, 10));
+    }
+    player.levitating = !!(player.getPropTimeout(LEVITATION) || prop.extrinsic) && !blockedLev;
+    const here = mapRef?.at?.(player.x, player.y);
+    if (player.levitating && here && IS_SINK(here.typ)) await spoteffects(false);
+    float_vs_flight(gameRef, player);
 }
 
 // Autotranslated from potion.c:1313
