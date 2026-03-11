@@ -515,3 +515,83 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+def capture_exploration_basic(seed=660):
+    """Basic exploration: walk, search, look, kick walls.
+
+    Simple session on level 1 without wizard mode tricks.
+    Targets: hack.js, cmd.js, kick.js movement code
+    """
+    print(f'Capturing exploration-basic (seed {seed})...')
+    moves = ''
+
+    # Walk in each direction
+    for d in 'hjkljhklhj':
+        moves += d
+
+    # Search multiple times
+    for _ in range(5):
+        moves += 's'
+
+    # Look around (':' = look at floor)
+    moves += ':'
+    moves += SP
+
+    # Walk more and kick (Ctrl-D = kick) in a direction
+    moves += 'llll'
+    moves += '\x04' + 'l'  # kick east
+    moves += SP * 3
+
+    # Walk back and search
+    moves += 'hhhh'
+    for _ in range(3):
+        moves += 's'
+
+    # Try going down stairs (will fail if not on stairs)
+    moves += '>'
+    moves += SP
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme02_seed{seed:03d}_wiz_explore-basic_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
+
+
+def capture_inventory_management(seed=670):
+    """Inventory management: wish items, wield, wear, drop, pickup.
+
+    Targets: invent.js, wield.js, do_wear.js, pickup.js
+    """
+    print(f'Capturing inventory-management (seed {seed})...')
+    moves = ''
+
+    # Wish for a long sword
+    moves += wish('long sword')
+
+    # Wield it ('w' = wield, then select item)
+    moves += 'w' + 'o' + SP * 3  # wield wished item
+
+    # Wish for leather armor
+    moves += wish('leather armor')
+
+    # Wear it
+    moves += 'W' + 'p' + SP * 3  # wear wished item
+
+    # Drop the worn armor (will ask to take off first)
+    moves += 'd' + 'p' + SP * 3
+
+    # Pick it up
+    moves += ','  # pickup
+    moves += SP * 3
+
+    outpath = os.path.join(SESSIONS_DIR,
+        f'theme03_seed{seed:03d}_wiz_inventory-mgmt_gameplay.session.json')
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+    _rs.run_session(seed, outpath, moves, raw_moves=True, wizard_mode=True,
+                    character=CHARACTER_WIZ,
+                    record_more_spaces=True)
+    print(f'  → {outpath}')
