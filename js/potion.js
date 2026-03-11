@@ -783,7 +783,7 @@ export async function peffect_gain_energy(player, otmp, display) {
         await pline("Magical energies course through your body.");
     }
     // C: num = d(blessed ? 3 : !cursed ? 2 : 1, 6)
-    let num = d(otmp.blessed ? 3 : !otmp.cursed ? 2 : 1, 6);
+    let num = c_d(otmp.blessed ? 3 : !otmp.cursed ? 2 : 1, 6);
     if (otmp.cursed) num = -num;
     // C: u.uenmax += num, u.uen += 3*num (with clamping)
     player.pwmax = Math.max(0, (player.pwmax || 0) + num);
@@ -820,7 +820,7 @@ export async function peffect_invisibility(player, otmp, display) {
         player.uprops[INVIS].intrinsic = (player.uprops[INVIS].intrinsic || 0) | FROMOUTSIDE;
     } else {
         // C: incr_itimeout(&HInvis, d(6 - 3*bcsign, 100) + 100)
-        incr_itimeout(player, INVIS, d(6 - 3 * bcsign, 100) + 100);
+        incr_itimeout(player, INVIS, c_d(6 - 3 * bcsign, 100) + 100);
     }
     if (otmp.cursed) {
         // C: aggravate() and remove permanent invis
@@ -969,12 +969,12 @@ export async function peffect_water(player, otmp, display) {
                 }
                 set_ulycn(player, -1);
             }
-            const dmg = d(2, 6);
+            const dmg = c_d(2, 6);
             const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
             await losehp(halfPhys, "potion of holy water", KILLED_BY_AN, player, display, gstateGame);
         } else if (otmp.cursed) {
             await You_feel("quite proud of yourself.");
-            await healup(player, d(2, 6), 0, false, false);
+            await healup(player, c_d(2, 6), 0, false, false);
             if (hasLycan && !isUpolyd(player)) {
                 await you_were(player);
             }
@@ -993,7 +993,7 @@ export async function peffect_water(player, otmp, display) {
             // cursed (unholy water) for non-chaotic
             if (playerAlign === A_LAWFUL) {
                 await pline("This burns like %s!", hliquid("acid"));
-                const dmg = d(2, 6);
+                const dmg = c_d(2, 6);
                 const halfPhys = player.halfPhysDamage ? Math.max(1, Math.floor(dmg / 2)) : dmg;
                 await losehp(halfPhys, "potion of unholy water", KILLED_BY_AN, player, display, gstateGame);
             } else {
@@ -1036,7 +1036,7 @@ export async function peffect_oil(player, otmp, display) {
             const fireRes = player.hasProp(FIRE_RES);
             const coldRes = player.hasProp(COLD_RES);
             const vulnerable = !fireRes || coldRes;
-            const dmg = d(vulnerable ? 4 : 2, 4);
+            const dmg = c_d(vulnerable ? 4 : 2, 4);
             await losehp(dmg, "quaffing a burning potion of oil", KILLED_BY, player, display, gstateGame);
         }
         await burn_away_slime();
