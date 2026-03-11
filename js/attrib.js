@@ -636,7 +636,7 @@ export async function restore_attrib(player) {
     let botl = false;
 
     for (let i = 0; i < NUM_ATTRS; i++) {
-        const equilibrium = ((i === A_STR && (player.uhs || 0) >= 3 /* WEAK */)
+        const equilibrium = ((i === A_STR && (player.uhs || 0) >= WEAK)
                             || (i === A_DEX && player.woundedLegs)) ? -1 : 0;
         if (ATEMP(player, i) !== equilibrium && ATIME(player, i) !== 0) {
             setATIME(player, i, ATIME(player, i) - 1);

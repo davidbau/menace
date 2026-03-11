@@ -15,6 +15,7 @@ import {
     EF_NONE, EF_GREASE, EF_DESTROY, EF_VERBOSE, EF_PAY,
     KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX,
     Trap_Effect_Finished, Trap_Caught_Mon, Trap_Killed_Mon, Trap_Moved_Mon,
+    LEFT_SIDE, RIGHT_SIDE,
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
 import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
@@ -2317,7 +2318,7 @@ async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
     } else {
         await pline('%s bear trap closes on your foot!',
                     A_Your[trap.madeby_u ? 1 : 0]);
-        set_wounded_legs(rn2(2) ? 1/*RIGHT_SIDE*/ : 0/*LEFT_SIDE*/, rn1(10, 10), player);
+        set_wounded_legs(rn2(2) ? RIGHT_SIDE : LEFT_SIDE, rn1(10, 10), player);
         await losehp(dmg, 'bear trap', KILLED_BY_AN, player, game?.display, game);
     }
     await exercise(player, A_DEX, false);
@@ -2466,7 +2467,7 @@ async function trapeffect_pit_you(trap, trflags, player, game, map) {
                          : (conj_pit || already_known) ? 'stepped into a pit of iron spikes'
                          : adj_pit ? 'stumbled into a pit of iron spikes'
                          : 'fell into a pit of iron spikes',
-                         0 /*NO_KILLER_PREFIX*/, player, game?.display, game);
+                         NO_KILLER_PREFIX, player, game?.display, game);
             if (!rn2(6))
                 await poisoned(player, 'spikes', A_STR,
                                (player.umortality || 0) > oldumort ? 0 : 8, false);
@@ -2476,7 +2477,7 @@ async function trapeffect_pit_you(trap, trflags, player, game, map) {
                 await losehp(rnd(adj_pit ? 3 : 6),
                              plunged ? 'deliberately plunged into a pit'
                              : 'fell into a pit',
-                             0 /*NO_KILLER_PREFIX*/, player, game?.display, game);
+                             NO_KILLER_PREFIX, player, game?.display, game);
         }
         // C: Punished ball handling, selftouch, vision recalc
         if (!conj_pit) selftouch('Falling, you', player);
@@ -2681,8 +2682,8 @@ async function trapeffect_landmine_you(trap, trflags, player, game, map) {
         await pline('KAABLAMM!!!  You triggered %s land mine!',
                     a_your[trap.madeby_u ? 1 : 0]);
         if (player.usteed) await steedintrap(trap, null, player, game, map);
-        set_wounded_legs(0 /*LEFT_SIDE*/, rn1(35, 41), player);
-        set_wounded_legs(1 /*RIGHT_SIDE*/, rn1(35, 41), player);
+        set_wounded_legs(LEFT_SIDE, rn1(35, 41), player);
+        set_wounded_legs(RIGHT_SIDE, rn1(35, 41), player);
         await exercise(player, A_DEX, false);
     }
     // C: trap->ttyp = PIT; blow_up_landmine(trap); fall_into_pit

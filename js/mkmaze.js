@@ -307,7 +307,7 @@ export async function makemaz(map, protofile, dnum, dlevel, depth) {
     // (e.g., wizard teleport path passes only depth, not dnum/dlevel).
     // C always calls find_branch_room() to consume RNG even for BR_NO_END1 (no stair placed).
     // Use branchResult.found (not placement !== 'none') to match C's RNG consumption.
-    const branchDnum = Number.isInteger(dnum) ? dnum : (Number.isInteger(map._genDnum) ? map._genDnum : 0 /* DUNGEONS_OF_DOOM */);
+    const branchDnum = Number.isInteger(dnum) ? dnum : (Number.isInteger(map._genDnum) ? map._genDnum : DUNGEONS_OF_DOOM);
     const branchDlevel = Number.isInteger(dlevel) ? dlevel : (Number.isInteger(map._genDlevel) ? map._genDlevel : depth);
     const branchResult = resolveBranchPlacementForLevel(branchDnum, branchDlevel);
     if (branchResult.found) {

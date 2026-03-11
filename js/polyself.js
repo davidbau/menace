@@ -113,7 +113,9 @@ import { expels } from './mhitu.js';
 import { dropx } from './do.js';
 import { unpunish } from './read.js';
 import { newuhs } from './eat.js';
-import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS, KILLED_BY_AN, DIED, STONING, MAXULEV } from './const.js';
+import { FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES, ACID_RES, STONE_RES, DRAIN_RES, SICK_RES, ANTIMAGIC, STUNNED, BLINDED, HALLUC_RES, SEE_INVIS, TELEPAT, INFRAVISION, INVIS, TELEPORT, TELEPORT_CONTROL, LEVITATION, FLYING, SWIMMING, PASSES_WALLS, REGENERATION, REFLECTING, FROM_FORM, FROM_RACE, FROMOUTSIDE, I_SPECIAL, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, TT_BEARTRAP, ARM, EYE, FACE, FINGER, FINGERTIP, FOOT, HAND, HANDED, HEAD, LEG, LIGHT_HEADED, NECK, SPINE, TOE, HAIR, BLOOD, LUNG, NOSE, STOMACH, BOLT_LIM, LOW_PM, NON_PM, A_STR, A_CON, A_DEX, A_WIS, KILLED_BY_AN, DIED, STONING, MAXULEV,
+WEB, HOLE, TRAPDOOR, VIBRATING_SQUARE,
+PIT, SPIKED_PIT, SQKY_BOARD, TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL, ROLLING_BOULDER_TRAP } from './const.js';
 
 // resists_fire already imported from mondata.js above
 
@@ -1702,11 +1704,7 @@ export async function dospinweb(player, map) {
 
     if (ttmp) {
         // Handle various trap types as in C
-        // C trap type enum values (from const.js)
-        const PIT = 11, SPIKED_PIT = 12, SQKY_BOARD = 4;
-        const TELEP_TRAP = 15, LEVEL_TELEP = 16, MAGIC_PORTAL = 17;
-        const VIBRATING_SQUARE = 23, WEB = 18, HOLE = 13, TRAPDOOR = 14;
-        const ROLLING_BOULDER_TRAP = 7;
+        // Trap type constants imported from const.js
         const ttyp = ttmp.ttyp !== undefined ? ttmp.ttyp : ttmp.type;
 
         switch (ttyp) {
@@ -1751,7 +1749,7 @@ export async function dospinweb(player, map) {
 
     // Create a web trap
     if (map.maketrap) {
-        const newTrap = map.maketrap(x, y, 18 /* WEB */);
+        const newTrap = map.maketrap(x, y, WEB);
         if (newTrap) {
             newTrap.madeby_u = 1;
         }
