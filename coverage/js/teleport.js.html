@@ -1,0 +1,3310 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/teleport.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> teleport.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">62.32% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>670/1075</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">39.58% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>76/192</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">52.5% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>21/40</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">62.32% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>670/1075</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line medium'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a>
+<a name='L449'></a><a href='#L449'>449</a>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a>
+<a name='L481'></a><a href='#L481'>481</a>
+<a name='L482'></a><a href='#L482'>482</a>
+<a name='L483'></a><a href='#L483'>483</a>
+<a name='L484'></a><a href='#L484'>484</a>
+<a name='L485'></a><a href='#L485'>485</a>
+<a name='L486'></a><a href='#L486'>486</a>
+<a name='L487'></a><a href='#L487'>487</a>
+<a name='L488'></a><a href='#L488'>488</a>
+<a name='L489'></a><a href='#L489'>489</a>
+<a name='L490'></a><a href='#L490'>490</a>
+<a name='L491'></a><a href='#L491'>491</a>
+<a name='L492'></a><a href='#L492'>492</a>
+<a name='L493'></a><a href='#L493'>493</a>
+<a name='L494'></a><a href='#L494'>494</a>
+<a name='L495'></a><a href='#L495'>495</a>
+<a name='L496'></a><a href='#L496'>496</a>
+<a name='L497'></a><a href='#L497'>497</a>
+<a name='L498'></a><a href='#L498'>498</a>
+<a name='L499'></a><a href='#L499'>499</a>
+<a name='L500'></a><a href='#L500'>500</a>
+<a name='L501'></a><a href='#L501'>501</a>
+<a name='L502'></a><a href='#L502'>502</a>
+<a name='L503'></a><a href='#L503'>503</a>
+<a name='L504'></a><a href='#L504'>504</a>
+<a name='L505'></a><a href='#L505'>505</a>
+<a name='L506'></a><a href='#L506'>506</a>
+<a name='L507'></a><a href='#L507'>507</a>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a>
+<a name='L511'></a><a href='#L511'>511</a>
+<a name='L512'></a><a href='#L512'>512</a>
+<a name='L513'></a><a href='#L513'>513</a>
+<a name='L514'></a><a href='#L514'>514</a>
+<a name='L515'></a><a href='#L515'>515</a>
+<a name='L516'></a><a href='#L516'>516</a>
+<a name='L517'></a><a href='#L517'>517</a>
+<a name='L518'></a><a href='#L518'>518</a>
+<a name='L519'></a><a href='#L519'>519</a>
+<a name='L520'></a><a href='#L520'>520</a>
+<a name='L521'></a><a href='#L521'>521</a>
+<a name='L522'></a><a href='#L522'>522</a>
+<a name='L523'></a><a href='#L523'>523</a>
+<a name='L524'></a><a href='#L524'>524</a>
+<a name='L525'></a><a href='#L525'>525</a>
+<a name='L526'></a><a href='#L526'>526</a>
+<a name='L527'></a><a href='#L527'>527</a>
+<a name='L528'></a><a href='#L528'>528</a>
+<a name='L529'></a><a href='#L529'>529</a>
+<a name='L530'></a><a href='#L530'>530</a>
+<a name='L531'></a><a href='#L531'>531</a>
+<a name='L532'></a><a href='#L532'>532</a>
+<a name='L533'></a><a href='#L533'>533</a>
+<a name='L534'></a><a href='#L534'>534</a>
+<a name='L535'></a><a href='#L535'>535</a>
+<a name='L536'></a><a href='#L536'>536</a>
+<a name='L537'></a><a href='#L537'>537</a>
+<a name='L538'></a><a href='#L538'>538</a>
+<a name='L539'></a><a href='#L539'>539</a>
+<a name='L540'></a><a href='#L540'>540</a>
+<a name='L541'></a><a href='#L541'>541</a>
+<a name='L542'></a><a href='#L542'>542</a>
+<a name='L543'></a><a href='#L543'>543</a>
+<a name='L544'></a><a href='#L544'>544</a>
+<a name='L545'></a><a href='#L545'>545</a>
+<a name='L546'></a><a href='#L546'>546</a>
+<a name='L547'></a><a href='#L547'>547</a>
+<a name='L548'></a><a href='#L548'>548</a>
+<a name='L549'></a><a href='#L549'>549</a>
+<a name='L550'></a><a href='#L550'>550</a>
+<a name='L551'></a><a href='#L551'>551</a>
+<a name='L552'></a><a href='#L552'>552</a>
+<a name='L553'></a><a href='#L553'>553</a>
+<a name='L554'></a><a href='#L554'>554</a>
+<a name='L555'></a><a href='#L555'>555</a>
+<a name='L556'></a><a href='#L556'>556</a>
+<a name='L557'></a><a href='#L557'>557</a>
+<a name='L558'></a><a href='#L558'>558</a>
+<a name='L559'></a><a href='#L559'>559</a>
+<a name='L560'></a><a href='#L560'>560</a>
+<a name='L561'></a><a href='#L561'>561</a>
+<a name='L562'></a><a href='#L562'>562</a>
+<a name='L563'></a><a href='#L563'>563</a>
+<a name='L564'></a><a href='#L564'>564</a>
+<a name='L565'></a><a href='#L565'>565</a>
+<a name='L566'></a><a href='#L566'>566</a>
+<a name='L567'></a><a href='#L567'>567</a>
+<a name='L568'></a><a href='#L568'>568</a>
+<a name='L569'></a><a href='#L569'>569</a>
+<a name='L570'></a><a href='#L570'>570</a>
+<a name='L571'></a><a href='#L571'>571</a>
+<a name='L572'></a><a href='#L572'>572</a>
+<a name='L573'></a><a href='#L573'>573</a>
+<a name='L574'></a><a href='#L574'>574</a>
+<a name='L575'></a><a href='#L575'>575</a>
+<a name='L576'></a><a href='#L576'>576</a>
+<a name='L577'></a><a href='#L577'>577</a>
+<a name='L578'></a><a href='#L578'>578</a>
+<a name='L579'></a><a href='#L579'>579</a>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a>
+<a name='L582'></a><a href='#L582'>582</a>
+<a name='L583'></a><a href='#L583'>583</a>
+<a name='L584'></a><a href='#L584'>584</a>
+<a name='L585'></a><a href='#L585'>585</a>
+<a name='L586'></a><a href='#L586'>586</a>
+<a name='L587'></a><a href='#L587'>587</a>
+<a name='L588'></a><a href='#L588'>588</a>
+<a name='L589'></a><a href='#L589'>589</a>
+<a name='L590'></a><a href='#L590'>590</a>
+<a name='L591'></a><a href='#L591'>591</a>
+<a name='L592'></a><a href='#L592'>592</a>
+<a name='L593'></a><a href='#L593'>593</a>
+<a name='L594'></a><a href='#L594'>594</a>
+<a name='L595'></a><a href='#L595'>595</a>
+<a name='L596'></a><a href='#L596'>596</a>
+<a name='L597'></a><a href='#L597'>597</a>
+<a name='L598'></a><a href='#L598'>598</a>
+<a name='L599'></a><a href='#L599'>599</a>
+<a name='L600'></a><a href='#L600'>600</a>
+<a name='L601'></a><a href='#L601'>601</a>
+<a name='L602'></a><a href='#L602'>602</a>
+<a name='L603'></a><a href='#L603'>603</a>
+<a name='L604'></a><a href='#L604'>604</a>
+<a name='L605'></a><a href='#L605'>605</a>
+<a name='L606'></a><a href='#L606'>606</a>
+<a name='L607'></a><a href='#L607'>607</a>
+<a name='L608'></a><a href='#L608'>608</a>
+<a name='L609'></a><a href='#L609'>609</a>
+<a name='L610'></a><a href='#L610'>610</a>
+<a name='L611'></a><a href='#L611'>611</a>
+<a name='L612'></a><a href='#L612'>612</a>
+<a name='L613'></a><a href='#L613'>613</a>
+<a name='L614'></a><a href='#L614'>614</a>
+<a name='L615'></a><a href='#L615'>615</a>
+<a name='L616'></a><a href='#L616'>616</a>
+<a name='L617'></a><a href='#L617'>617</a>
+<a name='L618'></a><a href='#L618'>618</a>
+<a name='L619'></a><a href='#L619'>619</a>
+<a name='L620'></a><a href='#L620'>620</a>
+<a name='L621'></a><a href='#L621'>621</a>
+<a name='L622'></a><a href='#L622'>622</a>
+<a name='L623'></a><a href='#L623'>623</a>
+<a name='L624'></a><a href='#L624'>624</a>
+<a name='L625'></a><a href='#L625'>625</a>
+<a name='L626'></a><a href='#L626'>626</a>
+<a name='L627'></a><a href='#L627'>627</a>
+<a name='L628'></a><a href='#L628'>628</a>
+<a name='L629'></a><a href='#L629'>629</a>
+<a name='L630'></a><a href='#L630'>630</a>
+<a name='L631'></a><a href='#L631'>631</a>
+<a name='L632'></a><a href='#L632'>632</a>
+<a name='L633'></a><a href='#L633'>633</a>
+<a name='L634'></a><a href='#L634'>634</a>
+<a name='L635'></a><a href='#L635'>635</a>
+<a name='L636'></a><a href='#L636'>636</a>
+<a name='L637'></a><a href='#L637'>637</a>
+<a name='L638'></a><a href='#L638'>638</a>
+<a name='L639'></a><a href='#L639'>639</a>
+<a name='L640'></a><a href='#L640'>640</a>
+<a name='L641'></a><a href='#L641'>641</a>
+<a name='L642'></a><a href='#L642'>642</a>
+<a name='L643'></a><a href='#L643'>643</a>
+<a name='L644'></a><a href='#L644'>644</a>
+<a name='L645'></a><a href='#L645'>645</a>
+<a name='L646'></a><a href='#L646'>646</a>
+<a name='L647'></a><a href='#L647'>647</a>
+<a name='L648'></a><a href='#L648'>648</a>
+<a name='L649'></a><a href='#L649'>649</a>
+<a name='L650'></a><a href='#L650'>650</a>
+<a name='L651'></a><a href='#L651'>651</a>
+<a name='L652'></a><a href='#L652'>652</a>
+<a name='L653'></a><a href='#L653'>653</a>
+<a name='L654'></a><a href='#L654'>654</a>
+<a name='L655'></a><a href='#L655'>655</a>
+<a name='L656'></a><a href='#L656'>656</a>
+<a name='L657'></a><a href='#L657'>657</a>
+<a name='L658'></a><a href='#L658'>658</a>
+<a name='L659'></a><a href='#L659'>659</a>
+<a name='L660'></a><a href='#L660'>660</a>
+<a name='L661'></a><a href='#L661'>661</a>
+<a name='L662'></a><a href='#L662'>662</a>
+<a name='L663'></a><a href='#L663'>663</a>
+<a name='L664'></a><a href='#L664'>664</a>
+<a name='L665'></a><a href='#L665'>665</a>
+<a name='L666'></a><a href='#L666'>666</a>
+<a name='L667'></a><a href='#L667'>667</a>
+<a name='L668'></a><a href='#L668'>668</a>
+<a name='L669'></a><a href='#L669'>669</a>
+<a name='L670'></a><a href='#L670'>670</a>
+<a name='L671'></a><a href='#L671'>671</a>
+<a name='L672'></a><a href='#L672'>672</a>
+<a name='L673'></a><a href='#L673'>673</a>
+<a name='L674'></a><a href='#L674'>674</a>
+<a name='L675'></a><a href='#L675'>675</a>
+<a name='L676'></a><a href='#L676'>676</a>
+<a name='L677'></a><a href='#L677'>677</a>
+<a name='L678'></a><a href='#L678'>678</a>
+<a name='L679'></a><a href='#L679'>679</a>
+<a name='L680'></a><a href='#L680'>680</a>
+<a name='L681'></a><a href='#L681'>681</a>
+<a name='L682'></a><a href='#L682'>682</a>
+<a name='L683'></a><a href='#L683'>683</a>
+<a name='L684'></a><a href='#L684'>684</a>
+<a name='L685'></a><a href='#L685'>685</a>
+<a name='L686'></a><a href='#L686'>686</a>
+<a name='L687'></a><a href='#L687'>687</a>
+<a name='L688'></a><a href='#L688'>688</a>
+<a name='L689'></a><a href='#L689'>689</a>
+<a name='L690'></a><a href='#L690'>690</a>
+<a name='L691'></a><a href='#L691'>691</a>
+<a name='L692'></a><a href='#L692'>692</a>
+<a name='L693'></a><a href='#L693'>693</a>
+<a name='L694'></a><a href='#L694'>694</a>
+<a name='L695'></a><a href='#L695'>695</a>
+<a name='L696'></a><a href='#L696'>696</a>
+<a name='L697'></a><a href='#L697'>697</a>
+<a name='L698'></a><a href='#L698'>698</a>
+<a name='L699'></a><a href='#L699'>699</a>
+<a name='L700'></a><a href='#L700'>700</a>
+<a name='L701'></a><a href='#L701'>701</a>
+<a name='L702'></a><a href='#L702'>702</a>
+<a name='L703'></a><a href='#L703'>703</a>
+<a name='L704'></a><a href='#L704'>704</a>
+<a name='L705'></a><a href='#L705'>705</a>
+<a name='L706'></a><a href='#L706'>706</a>
+<a name='L707'></a><a href='#L707'>707</a>
+<a name='L708'></a><a href='#L708'>708</a>
+<a name='L709'></a><a href='#L709'>709</a>
+<a name='L710'></a><a href='#L710'>710</a>
+<a name='L711'></a><a href='#L711'>711</a>
+<a name='L712'></a><a href='#L712'>712</a>
+<a name='L713'></a><a href='#L713'>713</a>
+<a name='L714'></a><a href='#L714'>714</a>
+<a name='L715'></a><a href='#L715'>715</a>
+<a name='L716'></a><a href='#L716'>716</a>
+<a name='L717'></a><a href='#L717'>717</a>
+<a name='L718'></a><a href='#L718'>718</a>
+<a name='L719'></a><a href='#L719'>719</a>
+<a name='L720'></a><a href='#L720'>720</a>
+<a name='L721'></a><a href='#L721'>721</a>
+<a name='L722'></a><a href='#L722'>722</a>
+<a name='L723'></a><a href='#L723'>723</a>
+<a name='L724'></a><a href='#L724'>724</a>
+<a name='L725'></a><a href='#L725'>725</a>
+<a name='L726'></a><a href='#L726'>726</a>
+<a name='L727'></a><a href='#L727'>727</a>
+<a name='L728'></a><a href='#L728'>728</a>
+<a name='L729'></a><a href='#L729'>729</a>
+<a name='L730'></a><a href='#L730'>730</a>
+<a name='L731'></a><a href='#L731'>731</a>
+<a name='L732'></a><a href='#L732'>732</a>
+<a name='L733'></a><a href='#L733'>733</a>
+<a name='L734'></a><a href='#L734'>734</a>
+<a name='L735'></a><a href='#L735'>735</a>
+<a name='L736'></a><a href='#L736'>736</a>
+<a name='L737'></a><a href='#L737'>737</a>
+<a name='L738'></a><a href='#L738'>738</a>
+<a name='L739'></a><a href='#L739'>739</a>
+<a name='L740'></a><a href='#L740'>740</a>
+<a name='L741'></a><a href='#L741'>741</a>
+<a name='L742'></a><a href='#L742'>742</a>
+<a name='L743'></a><a href='#L743'>743</a>
+<a name='L744'></a><a href='#L744'>744</a>
+<a name='L745'></a><a href='#L745'>745</a>
+<a name='L746'></a><a href='#L746'>746</a>
+<a name='L747'></a><a href='#L747'>747</a>
+<a name='L748'></a><a href='#L748'>748</a>
+<a name='L749'></a><a href='#L749'>749</a>
+<a name='L750'></a><a href='#L750'>750</a>
+<a name='L751'></a><a href='#L751'>751</a>
+<a name='L752'></a><a href='#L752'>752</a>
+<a name='L753'></a><a href='#L753'>753</a>
+<a name='L754'></a><a href='#L754'>754</a>
+<a name='L755'></a><a href='#L755'>755</a>
+<a name='L756'></a><a href='#L756'>756</a>
+<a name='L757'></a><a href='#L757'>757</a>
+<a name='L758'></a><a href='#L758'>758</a>
+<a name='L759'></a><a href='#L759'>759</a>
+<a name='L760'></a><a href='#L760'>760</a>
+<a name='L761'></a><a href='#L761'>761</a>
+<a name='L762'></a><a href='#L762'>762</a>
+<a name='L763'></a><a href='#L763'>763</a>
+<a name='L764'></a><a href='#L764'>764</a>
+<a name='L765'></a><a href='#L765'>765</a>
+<a name='L766'></a><a href='#L766'>766</a>
+<a name='L767'></a><a href='#L767'>767</a>
+<a name='L768'></a><a href='#L768'>768</a>
+<a name='L769'></a><a href='#L769'>769</a>
+<a name='L770'></a><a href='#L770'>770</a>
+<a name='L771'></a><a href='#L771'>771</a>
+<a name='L772'></a><a href='#L772'>772</a>
+<a name='L773'></a><a href='#L773'>773</a>
+<a name='L774'></a><a href='#L774'>774</a>
+<a name='L775'></a><a href='#L775'>775</a>
+<a name='L776'></a><a href='#L776'>776</a>
+<a name='L777'></a><a href='#L777'>777</a>
+<a name='L778'></a><a href='#L778'>778</a>
+<a name='L779'></a><a href='#L779'>779</a>
+<a name='L780'></a><a href='#L780'>780</a>
+<a name='L781'></a><a href='#L781'>781</a>
+<a name='L782'></a><a href='#L782'>782</a>
+<a name='L783'></a><a href='#L783'>783</a>
+<a name='L784'></a><a href='#L784'>784</a>
+<a name='L785'></a><a href='#L785'>785</a>
+<a name='L786'></a><a href='#L786'>786</a>
+<a name='L787'></a><a href='#L787'>787</a>
+<a name='L788'></a><a href='#L788'>788</a>
+<a name='L789'></a><a href='#L789'>789</a>
+<a name='L790'></a><a href='#L790'>790</a>
+<a name='L791'></a><a href='#L791'>791</a>
+<a name='L792'></a><a href='#L792'>792</a>
+<a name='L793'></a><a href='#L793'>793</a>
+<a name='L794'></a><a href='#L794'>794</a>
+<a name='L795'></a><a href='#L795'>795</a>
+<a name='L796'></a><a href='#L796'>796</a>
+<a name='L797'></a><a href='#L797'>797</a>
+<a name='L798'></a><a href='#L798'>798</a>
+<a name='L799'></a><a href='#L799'>799</a>
+<a name='L800'></a><a href='#L800'>800</a>
+<a name='L801'></a><a href='#L801'>801</a>
+<a name='L802'></a><a href='#L802'>802</a>
+<a name='L803'></a><a href='#L803'>803</a>
+<a name='L804'></a><a href='#L804'>804</a>
+<a name='L805'></a><a href='#L805'>805</a>
+<a name='L806'></a><a href='#L806'>806</a>
+<a name='L807'></a><a href='#L807'>807</a>
+<a name='L808'></a><a href='#L808'>808</a>
+<a name='L809'></a><a href='#L809'>809</a>
+<a name='L810'></a><a href='#L810'>810</a>
+<a name='L811'></a><a href='#L811'>811</a>
+<a name='L812'></a><a href='#L812'>812</a>
+<a name='L813'></a><a href='#L813'>813</a>
+<a name='L814'></a><a href='#L814'>814</a>
+<a name='L815'></a><a href='#L815'>815</a>
+<a name='L816'></a><a href='#L816'>816</a>
+<a name='L817'></a><a href='#L817'>817</a>
+<a name='L818'></a><a href='#L818'>818</a>
+<a name='L819'></a><a href='#L819'>819</a>
+<a name='L820'></a><a href='#L820'>820</a>
+<a name='L821'></a><a href='#L821'>821</a>
+<a name='L822'></a><a href='#L822'>822</a>
+<a name='L823'></a><a href='#L823'>823</a>
+<a name='L824'></a><a href='#L824'>824</a>
+<a name='L825'></a><a href='#L825'>825</a>
+<a name='L826'></a><a href='#L826'>826</a>
+<a name='L827'></a><a href='#L827'>827</a>
+<a name='L828'></a><a href='#L828'>828</a>
+<a name='L829'></a><a href='#L829'>829</a>
+<a name='L830'></a><a href='#L830'>830</a>
+<a name='L831'></a><a href='#L831'>831</a>
+<a name='L832'></a><a href='#L832'>832</a>
+<a name='L833'></a><a href='#L833'>833</a>
+<a name='L834'></a><a href='#L834'>834</a>
+<a name='L835'></a><a href='#L835'>835</a>
+<a name='L836'></a><a href='#L836'>836</a>
+<a name='L837'></a><a href='#L837'>837</a>
+<a name='L838'></a><a href='#L838'>838</a>
+<a name='L839'></a><a href='#L839'>839</a>
+<a name='L840'></a><a href='#L840'>840</a>
+<a name='L841'></a><a href='#L841'>841</a>
+<a name='L842'></a><a href='#L842'>842</a>
+<a name='L843'></a><a href='#L843'>843</a>
+<a name='L844'></a><a href='#L844'>844</a>
+<a name='L845'></a><a href='#L845'>845</a>
+<a name='L846'></a><a href='#L846'>846</a>
+<a name='L847'></a><a href='#L847'>847</a>
+<a name='L848'></a><a href='#L848'>848</a>
+<a name='L849'></a><a href='#L849'>849</a>
+<a name='L850'></a><a href='#L850'>850</a>
+<a name='L851'></a><a href='#L851'>851</a>
+<a name='L852'></a><a href='#L852'>852</a>
+<a name='L853'></a><a href='#L853'>853</a>
+<a name='L854'></a><a href='#L854'>854</a>
+<a name='L855'></a><a href='#L855'>855</a>
+<a name='L856'></a><a href='#L856'>856</a>
+<a name='L857'></a><a href='#L857'>857</a>
+<a name='L858'></a><a href='#L858'>858</a>
+<a name='L859'></a><a href='#L859'>859</a>
+<a name='L860'></a><a href='#L860'>860</a>
+<a name='L861'></a><a href='#L861'>861</a>
+<a name='L862'></a><a href='#L862'>862</a>
+<a name='L863'></a><a href='#L863'>863</a>
+<a name='L864'></a><a href='#L864'>864</a>
+<a name='L865'></a><a href='#L865'>865</a>
+<a name='L866'></a><a href='#L866'>866</a>
+<a name='L867'></a><a href='#L867'>867</a>
+<a name='L868'></a><a href='#L868'>868</a>
+<a name='L869'></a><a href='#L869'>869</a>
+<a name='L870'></a><a href='#L870'>870</a>
+<a name='L871'></a><a href='#L871'>871</a>
+<a name='L872'></a><a href='#L872'>872</a>
+<a name='L873'></a><a href='#L873'>873</a>
+<a name='L874'></a><a href='#L874'>874</a>
+<a name='L875'></a><a href='#L875'>875</a>
+<a name='L876'></a><a href='#L876'>876</a>
+<a name='L877'></a><a href='#L877'>877</a>
+<a name='L878'></a><a href='#L878'>878</a>
+<a name='L879'></a><a href='#L879'>879</a>
+<a name='L880'></a><a href='#L880'>880</a>
+<a name='L881'></a><a href='#L881'>881</a>
+<a name='L882'></a><a href='#L882'>882</a>
+<a name='L883'></a><a href='#L883'>883</a>
+<a name='L884'></a><a href='#L884'>884</a>
+<a name='L885'></a><a href='#L885'>885</a>
+<a name='L886'></a><a href='#L886'>886</a>
+<a name='L887'></a><a href='#L887'>887</a>
+<a name='L888'></a><a href='#L888'>888</a>
+<a name='L889'></a><a href='#L889'>889</a>
+<a name='L890'></a><a href='#L890'>890</a>
+<a name='L891'></a><a href='#L891'>891</a>
+<a name='L892'></a><a href='#L892'>892</a>
+<a name='L893'></a><a href='#L893'>893</a>
+<a name='L894'></a><a href='#L894'>894</a>
+<a name='L895'></a><a href='#L895'>895</a>
+<a name='L896'></a><a href='#L896'>896</a>
+<a name='L897'></a><a href='#L897'>897</a>
+<a name='L898'></a><a href='#L898'>898</a>
+<a name='L899'></a><a href='#L899'>899</a>
+<a name='L900'></a><a href='#L900'>900</a>
+<a name='L901'></a><a href='#L901'>901</a>
+<a name='L902'></a><a href='#L902'>902</a>
+<a name='L903'></a><a href='#L903'>903</a>
+<a name='L904'></a><a href='#L904'>904</a>
+<a name='L905'></a><a href='#L905'>905</a>
+<a name='L906'></a><a href='#L906'>906</a>
+<a name='L907'></a><a href='#L907'>907</a>
+<a name='L908'></a><a href='#L908'>908</a>
+<a name='L909'></a><a href='#L909'>909</a>
+<a name='L910'></a><a href='#L910'>910</a>
+<a name='L911'></a><a href='#L911'>911</a>
+<a name='L912'></a><a href='#L912'>912</a>
+<a name='L913'></a><a href='#L913'>913</a>
+<a name='L914'></a><a href='#L914'>914</a>
+<a name='L915'></a><a href='#L915'>915</a>
+<a name='L916'></a><a href='#L916'>916</a>
+<a name='L917'></a><a href='#L917'>917</a>
+<a name='L918'></a><a href='#L918'>918</a>
+<a name='L919'></a><a href='#L919'>919</a>
+<a name='L920'></a><a href='#L920'>920</a>
+<a name='L921'></a><a href='#L921'>921</a>
+<a name='L922'></a><a href='#L922'>922</a>
+<a name='L923'></a><a href='#L923'>923</a>
+<a name='L924'></a><a href='#L924'>924</a>
+<a name='L925'></a><a href='#L925'>925</a>
+<a name='L926'></a><a href='#L926'>926</a>
+<a name='L927'></a><a href='#L927'>927</a>
+<a name='L928'></a><a href='#L928'>928</a>
+<a name='L929'></a><a href='#L929'>929</a>
+<a name='L930'></a><a href='#L930'>930</a>
+<a name='L931'></a><a href='#L931'>931</a>
+<a name='L932'></a><a href='#L932'>932</a>
+<a name='L933'></a><a href='#L933'>933</a>
+<a name='L934'></a><a href='#L934'>934</a>
+<a name='L935'></a><a href='#L935'>935</a>
+<a name='L936'></a><a href='#L936'>936</a>
+<a name='L937'></a><a href='#L937'>937</a>
+<a name='L938'></a><a href='#L938'>938</a>
+<a name='L939'></a><a href='#L939'>939</a>
+<a name='L940'></a><a href='#L940'>940</a>
+<a name='L941'></a><a href='#L941'>941</a>
+<a name='L942'></a><a href='#L942'>942</a>
+<a name='L943'></a><a href='#L943'>943</a>
+<a name='L944'></a><a href='#L944'>944</a>
+<a name='L945'></a><a href='#L945'>945</a>
+<a name='L946'></a><a href='#L946'>946</a>
+<a name='L947'></a><a href='#L947'>947</a>
+<a name='L948'></a><a href='#L948'>948</a>
+<a name='L949'></a><a href='#L949'>949</a>
+<a name='L950'></a><a href='#L950'>950</a>
+<a name='L951'></a><a href='#L951'>951</a>
+<a name='L952'></a><a href='#L952'>952</a>
+<a name='L953'></a><a href='#L953'>953</a>
+<a name='L954'></a><a href='#L954'>954</a>
+<a name='L955'></a><a href='#L955'>955</a>
+<a name='L956'></a><a href='#L956'>956</a>
+<a name='L957'></a><a href='#L957'>957</a>
+<a name='L958'></a><a href='#L958'>958</a>
+<a name='L959'></a><a href='#L959'>959</a>
+<a name='L960'></a><a href='#L960'>960</a>
+<a name='L961'></a><a href='#L961'>961</a>
+<a name='L962'></a><a href='#L962'>962</a>
+<a name='L963'></a><a href='#L963'>963</a>
+<a name='L964'></a><a href='#L964'>964</a>
+<a name='L965'></a><a href='#L965'>965</a>
+<a name='L966'></a><a href='#L966'>966</a>
+<a name='L967'></a><a href='#L967'>967</a>
+<a name='L968'></a><a href='#L968'>968</a>
+<a name='L969'></a><a href='#L969'>969</a>
+<a name='L970'></a><a href='#L970'>970</a>
+<a name='L971'></a><a href='#L971'>971</a>
+<a name='L972'></a><a href='#L972'>972</a>
+<a name='L973'></a><a href='#L973'>973</a>
+<a name='L974'></a><a href='#L974'>974</a>
+<a name='L975'></a><a href='#L975'>975</a>
+<a name='L976'></a><a href='#L976'>976</a>
+<a name='L977'></a><a href='#L977'>977</a>
+<a name='L978'></a><a href='#L978'>978</a>
+<a name='L979'></a><a href='#L979'>979</a>
+<a name='L980'></a><a href='#L980'>980</a>
+<a name='L981'></a><a href='#L981'>981</a>
+<a name='L982'></a><a href='#L982'>982</a>
+<a name='L983'></a><a href='#L983'>983</a>
+<a name='L984'></a><a href='#L984'>984</a>
+<a name='L985'></a><a href='#L985'>985</a>
+<a name='L986'></a><a href='#L986'>986</a>
+<a name='L987'></a><a href='#L987'>987</a>
+<a name='L988'></a><a href='#L988'>988</a>
+<a name='L989'></a><a href='#L989'>989</a>
+<a name='L990'></a><a href='#L990'>990</a>
+<a name='L991'></a><a href='#L991'>991</a>
+<a name='L992'></a><a href='#L992'>992</a>
+<a name='L993'></a><a href='#L993'>993</a>
+<a name='L994'></a><a href='#L994'>994</a>
+<a name='L995'></a><a href='#L995'>995</a>
+<a name='L996'></a><a href='#L996'>996</a>
+<a name='L997'></a><a href='#L997'>997</a>
+<a name='L998'></a><a href='#L998'>998</a>
+<a name='L999'></a><a href='#L999'>999</a>
+<a name='L1000'></a><a href='#L1000'>1000</a>
+<a name='L1001'></a><a href='#L1001'>1001</a>
+<a name='L1002'></a><a href='#L1002'>1002</a>
+<a name='L1003'></a><a href='#L1003'>1003</a>
+<a name='L1004'></a><a href='#L1004'>1004</a>
+<a name='L1005'></a><a href='#L1005'>1005</a>
+<a name='L1006'></a><a href='#L1006'>1006</a>
+<a name='L1007'></a><a href='#L1007'>1007</a>
+<a name='L1008'></a><a href='#L1008'>1008</a>
+<a name='L1009'></a><a href='#L1009'>1009</a>
+<a name='L1010'></a><a href='#L1010'>1010</a>
+<a name='L1011'></a><a href='#L1011'>1011</a>
+<a name='L1012'></a><a href='#L1012'>1012</a>
+<a name='L1013'></a><a href='#L1013'>1013</a>
+<a name='L1014'></a><a href='#L1014'>1014</a>
+<a name='L1015'></a><a href='#L1015'>1015</a>
+<a name='L1016'></a><a href='#L1016'>1016</a>
+<a name='L1017'></a><a href='#L1017'>1017</a>
+<a name='L1018'></a><a href='#L1018'>1018</a>
+<a name='L1019'></a><a href='#L1019'>1019</a>
+<a name='L1020'></a><a href='#L1020'>1020</a>
+<a name='L1021'></a><a href='#L1021'>1021</a>
+<a name='L1022'></a><a href='#L1022'>1022</a>
+<a name='L1023'></a><a href='#L1023'>1023</a>
+<a name='L1024'></a><a href='#L1024'>1024</a>
+<a name='L1025'></a><a href='#L1025'>1025</a>
+<a name='L1026'></a><a href='#L1026'>1026</a>
+<a name='L1027'></a><a href='#L1027'>1027</a>
+<a name='L1028'></a><a href='#L1028'>1028</a>
+<a name='L1029'></a><a href='#L1029'>1029</a>
+<a name='L1030'></a><a href='#L1030'>1030</a>
+<a name='L1031'></a><a href='#L1031'>1031</a>
+<a name='L1032'></a><a href='#L1032'>1032</a>
+<a name='L1033'></a><a href='#L1033'>1033</a>
+<a name='L1034'></a><a href='#L1034'>1034</a>
+<a name='L1035'></a><a href='#L1035'>1035</a>
+<a name='L1036'></a><a href='#L1036'>1036</a>
+<a name='L1037'></a><a href='#L1037'>1037</a>
+<a name='L1038'></a><a href='#L1038'>1038</a>
+<a name='L1039'></a><a href='#L1039'>1039</a>
+<a name='L1040'></a><a href='#L1040'>1040</a>
+<a name='L1041'></a><a href='#L1041'>1041</a>
+<a name='L1042'></a><a href='#L1042'>1042</a>
+<a name='L1043'></a><a href='#L1043'>1043</a>
+<a name='L1044'></a><a href='#L1044'>1044</a>
+<a name='L1045'></a><a href='#L1045'>1045</a>
+<a name='L1046'></a><a href='#L1046'>1046</a>
+<a name='L1047'></a><a href='#L1047'>1047</a>
+<a name='L1048'></a><a href='#L1048'>1048</a>
+<a name='L1049'></a><a href='#L1049'>1049</a>
+<a name='L1050'></a><a href='#L1050'>1050</a>
+<a name='L1051'></a><a href='#L1051'>1051</a>
+<a name='L1052'></a><a href='#L1052'>1052</a>
+<a name='L1053'></a><a href='#L1053'>1053</a>
+<a name='L1054'></a><a href='#L1054'>1054</a>
+<a name='L1055'></a><a href='#L1055'>1055</a>
+<a name='L1056'></a><a href='#L1056'>1056</a>
+<a name='L1057'></a><a href='#L1057'>1057</a>
+<a name='L1058'></a><a href='#L1058'>1058</a>
+<a name='L1059'></a><a href='#L1059'>1059</a>
+<a name='L1060'></a><a href='#L1060'>1060</a>
+<a name='L1061'></a><a href='#L1061'>1061</a>
+<a name='L1062'></a><a href='#L1062'>1062</a>
+<a name='L1063'></a><a href='#L1063'>1063</a>
+<a name='L1064'></a><a href='#L1064'>1064</a>
+<a name='L1065'></a><a href='#L1065'>1065</a>
+<a name='L1066'></a><a href='#L1066'>1066</a>
+<a name='L1067'></a><a href='#L1067'>1067</a>
+<a name='L1068'></a><a href='#L1068'>1068</a>
+<a name='L1069'></a><a href='#L1069'>1069</a>
+<a name='L1070'></a><a href='#L1070'>1070</a>
+<a name='L1071'></a><a href='#L1071'>1071</a>
+<a name='L1072'></a><a href='#L1072'>1072</a>
+<a name='L1073'></a><a href='#L1073'>1073</a>
+<a name='L1074'></a><a href='#L1074'>1074</a>
+<a name='L1075'></a><a href='#L1075'>1075</a>
+<a name='L1076'></a><a href='#L1076'>1076</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">71x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-yes">32x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">113x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">585x</span>
+<span class="cline-any cline-yes">585x</span>
+<span class="cline-any cline-yes">3237x</span>
+<span class="cline-any cline-yes">3237x</span>
+<span class="cline-any cline-yes">1872x</span>
+<span class="cline-any cline-yes">1872x</span>
+<span class="cline-any cline-yes">3237x</span>
+<span class="cline-any cline-yes">3237x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1872x</span>
+<span class="cline-any cline-yes">1872x</span>
+<span class="cline-any cline-yes">1872x</span>
+<span class="cline-any cline-yes">1872x</span>
+<span class="cline-any cline-yes">585x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">1755x</span>
+<span class="cline-any cline-yes">1755x</span>
+<span class="cline-any cline-yes">1486x</span>
+<span class="cline-any cline-yes">1486x</span>
+<span class="cline-any cline-yes">1486x</span>
+<span class="cline-any cline-yes">1486x</span>
+<span class="cline-any cline-yes">1755x</span>
+<span class="cline-any cline-yes">1755x</span>
+<span class="cline-any cline-yes">1755x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">77x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// teleport.js -- Teleportation mechanics (player, monster, objects, levels)
+// cf. teleport.c — goodpos, enexto, teleds, safe_teleds, tele, scrolltele,
+//                  dotele, level_tele, domagicportal, tele_trap, rloc,
+//                  rloco, random_teleport_level, u_teleport_mon, and helpers
+//
+// Runtime teleport functions for monster relocation (rloc/rloc_to),
+// position validation (goodpos), and hero teleport helpers.
+&nbsp;
+import {
+    COLNO, ROWNO, isok, ACCESSIBLE,
+    POOL, MOAT, WATER, LAVAPOOL, ICE,
+    DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, DBWALL, DOOR,
+    IS_POOL, IS_LAVA, IS_DRAWBRIDGE,
+    D_CLOSED, D_LOCKED,
+    NO_TRAP, TELEP_TRAP, LEVEL_TELEP, VIBRATING_SQUARE,
+    MAGIC_PORTAL,
+    HOLE, TRAPDOOR,
+    is_pit, is_hole,
+    NO_MM_FLAGS, MM_IGNOREWATER, MM_IGNORELAVA,
+    GP_CHECKSCARY, GP_ALLOW_U, GP_AVOID_MONPOS, GP_ALLOW_XY,
+    RLOC_NONE, RLOC_NOMSG, RLOC_MSG, RLOC_TELE, RLOC_ERR,
+    TELEDS_TELEPORT, ANTIMAGIC, VAULT, STRAT_APPEARMSG,
+} from './const.js';
+import { somexyspace, search_special } from './mkroom.js';
+import { BOULDER, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
+import { M1_SWIM, M1_AMPHIBIOUS, M1_FLY, M1_WALLWALK, M1_AMORPHOUS, M2_ROCKTHROW, S_EEL } from './monsters.js';
+import { rn2, rnd, rn1 } from './rng.js';
+import { is_pool, is_lava, is_waterwall } from './dbridge.js';
+import { passes_walls, is_swimmer, is_flyer, is_floater,
+         likes_lava, canseemon,
+         is_rider, is_dlord, is_dprince, control_teleport,
+         } from './mondata.js';
+import { newsym, mark_vision_dirty } from './display.js';
+import { mondead, onscary } from './mon.js';
+import { set_apparxy, mon_track_clear } from './monmove.js';
+import { pline } from './pline.js';
+import { Monnam, Amonnam, mon_nam } from './do_name.js';
+import { deltrap } from './dungeon.js';
+import { couldsee } from './vision.js';
+&nbsp;
+// ============================================================================
+// Flags (cf. hack.h)
+// ============================================================================
+&nbsp;
+// CC flags for collect_coords
+const CC_NO_FLAGS = 0;
+const CC_INCL_CENTER = 0x01;
+const CC_UNSHUFFLED = 0x02;
+const CC_RING_PAIRS = 0x04;
+const CC_SKIP_MONS = 0x08;
+const CC_SKIP_INACCS = 0x10;
+// STRAT_APPEARMSG imported from const.js
+&nbsp;
+// ============================================================================
+// noteleport_level — cf. teleport.c:29
+// ============================================================================
+&nbsp;
+export function noteleport_level(mon, map) {
+    // demon court in Gehennom prevents others from teleporting
+    // Simplified: check map.flags.noteleport
+    if (map &amp;&amp; map.flags &amp;&amp; map.flags.noteleport) <span class="branch-0 cbranch-no" title="branch not covered" >return true;</span>
+    return false;
+}
+&nbsp;
+function hasAntimagic(player) {
+    if (!player) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    const prop = player.uprops?.[ANTIMAGIC];
+    return !!(player.antimagic || player.Antimagic
+        || prop<span class="branch-0 cbranch-no" title="branch not covered" >?.intrinsic </span>|| prop<span class="branch-0 cbranch-no" title="branch not covered" >?.extrinsic</span>
+        || player?.cloak?.otyp === CLOAK_OF_MAGIC_RESISTANCE);
+}
+&nbsp;
+// ============================================================================
+// goodpos — cf. teleport.c:80
+// Full runtime version: checks terrain, monsters, scary locations.
+// ============================================================================
+&nbsp;
+export function goodpos(x, y, mtmp, gpflags, map, player) {
+    if (!isok(x, y)) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    const loc = map.at(x, y);
+    if (!loc) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+&nbsp;
+    const ignorewater = (gpflags &amp; MM_IGNOREWATER) !== 0;
+    const ignorelava = (gpflags &amp; MM_IGNORELAVA) !== 0;
+    const checkscary = (gpflags &amp; GP_CHECKSCARY) !== 0;
+    const allow_u = (gpflags &amp; GP_ALLOW_U) !== 0;
+    const avoid_monpos = (gpflags &amp; GP_AVOID_MONPOS) !== 0;
+&nbsp;
+    // Check player location
+    if (!allow_u &amp;&amp; player) {
+        if (x === player.x <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; y === player.y <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; mtmp !== player)</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            return false;</span>
+    }
+&nbsp;
+    // Check monster at location
+    if (avoid_monpos) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const mtmp2 = map.monsterAt(x, y);</span>
+<span class="cstat-no" title="statement not covered" >        if (mtmp2) return false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    if (mtmp &amp;&amp; mtmp !== player) {
+        const mtmp2 = map.monsterAt(x, y);
+        if (mtmp2 &amp;&amp; (mtmp2 !== mtmp <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.wormno)</span>)
+            return false;
+&nbsp;
+        const mdat = mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {};</span>
+        const f1 = mdat.mflags1 <span class="branch-0 cbranch-no" title="branch not covered" >|| 0;</span>
+&nbsp;
+        if (is_pool(x, y, map) &amp;&amp; !ignorewater) {
+            return !!(f1 &amp; (M1_SWIM | M1_AMPHIBIOUS | M1_FLY));
+        } else if (mdat.mlet === S_EEL <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; rn2(13) <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !ignorewater)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+        } else if (is_lava(x, y, map) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !ignorelava)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            if (likes_lava(mdat) || (f1 &amp; M1_FLY)) return true;</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+        if ((f1 &amp; M1_WALLWALK) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; loc.typ &lt; DOOR)</span> <span class="branch-0 cbranch-no" title="branch not covered" >return true;</span>
+        if ((f1 &amp; M1_AMORPHOUS) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; loc.typ === DOOR</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            &amp;&amp; (loc.flags &amp; (D_CLOSED | D_LOCKED)))</span> <span class="branch-0 cbranch-no" title="branch not covered" >return true;</span>
+&nbsp;
+        // C ref: teleport.c goodpos() checks onscary for real monsters and
+        // goodpos_onscary for fake placement probes (m_id==0 path). In JS,
+        // onscary(map,x,y,mon) handles both when given the probe monster data.
+        if (checkscary) {
+            if (typeof onscary === 'function' &amp;&amp; onscary(map, x, y, mtmp))
+<span class="branch-0 cbranch-no" title="branch not covered" >                return false;</span>
+        }
+    }
+&nbsp;
+    // Check accessible terrain
+    if (!ACCESSIBLE(loc.typ)) {
+        if (!(is_pool(x, y, map) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ignorewater)</span>
+            &amp;&amp; !(is_lava(x, y, map) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ignorelava)</span>)
+            return false;
+    }
+&nbsp;
+    // Skip boulder locations for most creatures
+    if (map.objects) {
+        const hasBoulder = map.objects.some(o =&gt; o &amp;&amp; o.otyp === BOULDER
+            &amp;&amp; o.ox === x <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; o.oy === y)</span>;
+        if (hasBoulder) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            if (!mtmp) return false;</span>
+<span class="cstat-no" title="statement not covered" >            const mdat = mtmp.data || mtmp.type || {};</span>
+<span class="cstat-no" title="statement not covered" >            if (!((mdat.mflags2 || 0) &amp; M2_ROCKTHROW)) return false;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+    }
+&nbsp;
+    return true;
+}
+&nbsp;
+// teleport.c:48 — approximation of onscary() using only monster data.
+// In JS we delegate to mon.js onscary() with a lightweight probe monster.
+export <span class="fstat-no" title="function not covered" >function goodpos_onscary(x, y, mptr, map) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!mptr || !isok(x, y) || !map || typeof onscary !== 'function') return false;</span>
+<span class="cstat-no" title="statement not covered" >    const probe = { data: mptr, type: mptr, mx: x, my: y, wormno: 0 };</span>
+<span class="cstat-no" title="statement not covered" >    return !!onscary(map, x, y, probe);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// collect_coords — cf. teleport.c:572
+// Runtime version with full cc_flags support.
+// ============================================================================
+&nbsp;
+export function collect_coords(cx, cy, maxradius, cc_flags, map) {
+    const include_cxcy = (cc_flags &amp; CC_INCL_CENTER) !== 0;
+    const scramble = (cc_flags &amp; CC_UNSHUFFLED) === 0;
+    const ring_pairs = scramble &amp;&amp; (cc_flags &amp; CC_RING_PAIRS) !== 0;
+    const skip_mons = (cc_flags &amp; CC_SKIP_MONS) !== 0;
+    const skip_inaccessible = (cc_flags &amp; CC_SKIP_INACCS) !== 0;
+&nbsp;
+    const rowrange = (cy &lt; Math.floor(ROWNO / 2)) ? (ROWNO - 1 - cy) : cy;
+    const colrange = (cx &lt; Math.floor(COLNO / 2)) ? (COLNO - 1 - cx) : cx;
+    const k = Math.max(rowrange, colrange);
+    if (!maxradius) <span class="branch-0 cbranch-no" title="branch not covered" >maxradius = k;</span>
+    else maxradius = Math.min(maxradius, k);
+&nbsp;
+    const result = [];
+    let passIdx = 0;
+    let n = 0;
+&nbsp;
+    for (let radius = include_cxcy <span class="branch-0 cbranch-no" title="branch not covered" >? 0 </span>: 1; radius &lt;= maxradius; radius++) {
+        let newpass, passend;
+        if (!ring_pairs) {
+            newpass = passend = true;
+        }<span class="branch-0 cbranch-no" title="branch not covered" > else {</span>
+<span class="cstat-no" title="statement not covered" >            newpass = ((radius % 2) !== 0 || radius === 0);</span>
+<span class="cstat-no" title="statement not covered" >            passend = ((radius % 2) === 0 || radius === maxradius);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+        if (newpass) {
+            passIdx = result.length;
+            n = 0;
+        }
+&nbsp;
+        const lox = cx - radius, hix = cx + radius;
+        const loy = cy - radius, hiy = cy + radius;
+        for (let y = Math.max(loy, 0); y &lt;= hiy; y++) {
+            if (y &gt; ROWNO - 1) <span class="branch-0 cbranch-no" title="branch not covered" >break;</span>
+            for (let x = Math.max(lox, 1); x &lt;= hix; x++) {
+                if (x &gt; COLNO - 1) <span class="branch-0 cbranch-no" title="branch not covered" >break;</span>
+                if (x !== lox &amp;&amp; x !== hix &amp;&amp; y !== loy &amp;&amp; y !== hiy) continue;
+&nbsp;
+                // Quick filters
+                if (skip_mons <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; map <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; map.monsterAt(x, y))</span> <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
+                if (skip_inaccessible) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >                    const loc = map &amp;&amp; map.at(x, y);</span>
+<span class="cstat-no" title="statement not covered" >                    if (!loc || !ACCESSIBLE(loc.typ)) {</span>
+<span class="cstat-no" title="statement not covered" >                        // ZAP_POS allows pools and lava but not walls</span>
+<span class="cstat-no" title="statement not covered" >                        if (!IS_POOL(loc.typ) &amp;&amp; !IS_LAVA(loc.typ)) continue;</span>
+<span class="cstat-no" title="statement not covered" >                    }</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+&nbsp;
+                result.push({ x, y });
+                n++;
+            }
+        }
+&nbsp;
+        if (scramble &amp;&amp; passend) {
+            let shuffleIdx = passIdx;
+            let shuffleN = n;
+            while (shuffleN &gt; 1) {
+                const swap = rn2(shuffleN);
+                if (swap) {
+                    const tmp = result[shuffleIdx];
+                    result[shuffleIdx] = result[shuffleIdx + swap];
+                    result[shuffleIdx + swap] = tmp;
+                }
+                shuffleIdx++;
+                shuffleN--;
+            }
+        }
+    }
+&nbsp;
+    return result;
+}
+&nbsp;
+// ============================================================================
+// enexto — cf. teleport.c:190 (runtime version)
+// ============================================================================
+&nbsp;
+// Autotranslated from teleport.c:190
+export function enexto(cc, xx, yy, mdat, map, player) {
+  return (enexto_core(cc, xx, yy, mdat, GP_CHECKSCARY, map, player) <span class="branch-0 cbranch-no" title="branch not covered" >|| enexto_core(cc, xx, yy, mdat, NO_MM_FLAGS, map, player))</span>;
+}
+&nbsp;
+export function enexto_core(cc_out, xx, yy, mdat, entflags, map, player) {
+    const fakemon = { data: mdat <span class="branch-0 cbranch-no" title="branch not covered" >|| {},</span> type: mdat <span class="branch-0 cbranch-no" title="branch not covered" >|| {},</span> wormno: 0 };
+&nbsp;
+    // First pass: radius 3
+    const nearCoords = collect_coords(xx, yy, 3, CC_NO_FLAGS, map);
+    for (const cc of nearCoords) {
+        if (goodpos(cc.x, cc.y, fakemon, entflags, map, player)) {
+            cc_out.x = cc.x;
+            cc_out.y = cc.y;
+            return true;
+        }
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >    // Second pass: full map</span>
+<span class="cstat-no" title="statement not covered" >    const allCoords = collect_coords(xx, yy, 0, CC_NO_FLAGS, map);</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = nearCoords.length; i &lt; allCoords.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        const cc = allCoords[i];</span>
+<span class="cstat-no" title="statement not covered" >        if (goodpos(cc.x, cc.y, fakemon, entflags, map, player)) {</span>
+<span class="cstat-no" title="statement not covered" >            cc_out.x = cc.x;</span>
+<span class="cstat-no" title="statement not covered" >            cc_out.y = cc.y;</span>
+<span class="cstat-no" title="statement not covered" >            return true;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Try (xx,yy) itself if GP_ALLOW_XY</span>
+<span class="cstat-no" title="statement not covered" >    cc_out.x = xx;</span>
+<span class="cstat-no" title="statement not covered" >    cc_out.y = yy;</span>
+    if ((entflags &amp; GP_ALLOW_XY) &amp;&amp; goodpos(xx, yy, fakemon, entflags, map, player))
+<span class="branch-0 cbranch-no" title="branch not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
+}
+&nbsp;
+// ============================================================================
+// rloc_pos_ok — cf. teleport.c:1570
+// ============================================================================
+&nbsp;
+function rloc_pos_ok(x, y, mtmp, map, player) {
+    if (!goodpos(x, y, mtmp, GP_CHECKSCARY, map, player))
+        return false;
+&nbsp;
+    const xx = mtmp.mx;
+    const yy = mtmp.my;
+&nbsp;
+    if (!xx) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        // Migrating monster arrival — simplified, skip restricted area checks</span>
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    // Shopkeeper stays in shop
+    if (mtmp.isshk) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const loc = map.at(x, y);</span>
+<span class="cstat-no" title="statement not covered" >        if (loc &amp;&amp; mtmp.shoproom &amp;&amp; loc.roomno !== mtmp.shoproom)</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    // Priest stays in temple
+    if (mtmp.ispriest) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const loc = map.at(x, y);</span>
+<span class="cstat-no" title="statement not covered" >        if (loc &amp;&amp; mtmp.shroom &amp;&amp; loc.roomno !== mtmp.shroom)</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    return true;
+}
+&nbsp;
+// ============================================================================
+// rloc_to_core — cf. teleport.c:1640
+// Core monster relocation.
+// ============================================================================
+&nbsp;
+async function rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov) {
+    const oldx = mtmp.mx;
+    const oldy = mtmp.my;
+    const preventmsg = (rlocflags &amp; RLOC_NOMSG) !== 0;
+    const vanishmsg = (rlocflags &amp; RLOC_MSG) !== 0;
+    let appearmsg = ((Number(mtmp.mstrategy || 0) &amp; STRAT_APPEARMSG) !== 0);
+    const domsg = !!display &amp;&amp; (vanishmsg || appearmsg) &amp;&amp; !preventmsg;
+    let telemsg = false;
+    const heroDist2 = <span class="fstat-no" title="function not covered" >(tx, ty) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if (!player) return Number.MAX_SAFE_INTEGER;</span>
+<span class="cstat-no" title="statement not covered" >        const dx = tx - player.x;</span>
+<span class="cstat-no" title="statement not covered" >        const dy = ty - player.y;</span>
+<span class="cstat-no" title="statement not covered" >        return (dx * dx) + (dy * dy);</span>
+    };
+    const canSeePos = (tx, ty) =&gt; {
+        if (!player) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+        if (fov<span class="branch-0 cbranch-no" title="branch not covered" >?.canSee)</span> <span class="branch-0 cbranch-no" title="branch not covered" >return !!fov.canSee(tx, ty);</span>
+        return !!couldsee(map, player, tx, ty);
+    };
+&nbsp;
+    if (x === mtmp.mx <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; y === mtmp.my <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; map.monsterAt(x, y) === mtmp)</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        return; </span>// already there
+&nbsp;
+    // "pick up" monster from old location
+    if (oldx) {
+        if (domsg &amp;&amp; canSeePos(mtmp.mx, mtmp.my)) {
+            const seenAfter = canSeePos(x, y);
+            if (seenAfter) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >                telemsg = true;</span>
+            } else {
+                await pline(`${Monnam(mtmp)} vanishes!`);
+            }
+            // C ref: teleport.c suppresses appearmsg when we just emitted a
+            // vanish message and won't see an immediate post-teleport arrival.
+            appearmsg = false;
+        }
+        // Remove from old position (update grid)
+        newsym(oldx, oldy);
+    }
+&nbsp;
+    // Clear track
+    mon_track_clear(mtmp);
+&nbsp;
+    // Place monster at new position
+    mtmp.mx = x;
+    mtmp.my = y;
+&nbsp;
+    // Update display
+    newsym(x, y);
+&nbsp;
+    // Orient monster toward player
+    if (player) {
+        set_apparxy(mtmp, map, player);
+    }
+&nbsp;
+    if (domsg &amp;&amp; telemsg <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; canSeePos(mtmp.mx, mtmp.my))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const du = heroDist2(x, y);</span>
+<span class="cstat-no" title="statement not covered" >        const olddu = heroDist2(oldx, oldy);</span>
+<span class="cstat-no" title="statement not covered" >        const next = du &lt;= 2 ? ' next to you' : '';</span>
+<span class="cstat-no" title="statement not covered" >        const nearu = du &lt;= (BOLT_LIM * BOLT_LIM) ? ' close by' : '';</span>
+<span class="cstat-no" title="statement not covered" >        const where = next || nearu || (du === olddu ? '' : (du &lt; olddu ? ' closer to you' : ' farther away'));</span>
+<span class="cstat-no" title="statement not covered" >        await pline(`${Monnam(mtmp)} vanishes and reappears${where}.`);</span>
+    } else if (domsg &amp;&amp; (canSeePos(mtmp.mx, mtmp.my)
+        || appearmsg)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const du = heroDist2(x, y);</span>
+<span class="cstat-no" title="statement not covered" >        const next = du &lt;= 2 ? ' next to you' : '';</span>
+<span class="cstat-no" title="statement not covered" >        const nearu = du &lt;= (BOLT_LIM * BOLT_LIM) ? ' close by' : '';</span>
+<span class="cstat-no" title="statement not covered" >        mtmp.mstrategy = Number(mtmp.mstrategy || 0) &amp; ~STRAT_APPEARMSG;</span>
+<span class="cstat-no" title="statement not covered" >        await pline(`${appearmsg ? Amonnam(mtmp) : Monnam(mtmp)} ${appearmsg ? 'suddenly ' : ''}${player?.blind ? 'arrives' : 'appears'}${next || nearu}!`);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    // Trapped monster teleported away — clear trap state
+    if (mtmp.mtrapped <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !mtmp.wormno)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        mtmp.mtrapped = 0;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+}
+&nbsp;
+// cf. teleport.c:1766 — rloc_to(mon, x, y)
+// Autotranslated from teleport.c:1765
+export <span class="fstat-no" title="function not covered" >async function rloc_to(mtmp, x, y) {</span>
+<span class="cstat-no" title="statement not covered" >  await rloc_to_core(mtmp, x, y, RLOC_NOMSG);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. teleport.c:1772 — rloc_to_flag(mon, x, y, rflags)
+// Autotranslated from teleport.c:1771
+export <span class="fstat-no" title="function not covered" >async function rloc_to_flag(mtmp, x, y, rlocflags) {</span>
+<span class="cstat-no" title="statement not covered" >  await rloc_to_core(mtmp, x, y, rlocflags);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// rloc — cf. teleport.c:1794
+// Relocate monster to random location. Returns true if successful.
+// ============================================================================
+&nbsp;
+export async function rloc(mtmp, rlocflags, map, player, display, fov) {
+    let x, y;
+&nbsp;
+    // Try random positions (up to 50 times)
+    for (let trycount = 0; trycount &lt; 50; trycount++) {
+        x = rnd(COLNO - 1); // 1..COLNO-1
+        y = rn2(ROWNO);     // 0..ROWNO-1
+        if (rloc_pos_ok(x, y, mtmp, map, player)) {
+            await rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov);
+            return true;
+        }
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >    // Exhaustive search with shuffled order</span>
+<span class="cstat-no" title="statement not covered" >    const cc_flags = CC_INCL_CENTER | CC_UNSHUFFLED | CC_SKIP_MONS;</span>
+    const mdat = mtmp.data || mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" >|| {};</span>
+    if (!((mdat.mflags1 <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> &amp; M1_WALLWALK))
+        // Note: CC_SKIP_INACCS is OR'd in below
+<span class="branch-0 cbranch-no" title="branch not covered" >        ;</span>
+<span class="cstat-no" title="statement not covered" >    const candy = collect_coords(</span>
+<span class="cstat-no" title="statement not covered" >        Math.floor(COLNO / 2), Math.floor(ROWNO / 2), 0,</span>
+        cc_flags | (((mdat.mflags1 || 0) &amp; M1_WALLWALK) <span class="branch-0 cbranch-no" title="branch not covered" >? 0 <span class="branch-0 cbranch-no" title="branch not covered" ></span>: CC_SKIP_INACCS)</span>,
+        map
+    );
+    let backupX = 0, backupY = 0;
+    const candycount = candy.length;
+&nbsp;
+    for (let i = 0; i &lt; candycount; i++) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        // Fisher-Yates in-place</span>
+<span class="cstat-no" title="statement not covered" >        const j = rn2(candycount - i);</span>
+<span class="cstat-no" title="statement not covered" >        if (j &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            const tmp = candy[i];</span>
+<span class="cstat-no" title="statement not covered" >            candy[i] = candy[i + j];</span>
+<span class="cstat-no" title="statement not covered" >            candy[i + j] = tmp;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        x = candy[i].x;</span>
+<span class="cstat-no" title="statement not covered" >        y = candy[i].y;</span>
+<span class="cstat-no" title="statement not covered" >        if (rloc_pos_ok(x, y, mtmp, map, player)) {</span>
+<span class="cstat-no" title="statement not covered" >            await rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov);</span>
+<span class="cstat-no" title="statement not covered" >            return true;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        if (!backupX &amp;&amp; goodpos(x, y, mtmp, NO_MM_FLAGS, map, player)) {</span>
+<span class="cstat-no" title="statement not covered" >            backupX = x;</span>
+<span class="cstat-no" title="statement not covered" >            backupY = y;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Use backup position</span>
+<span class="cstat-no" title="statement not covered" >    if (!backupX) {</span>
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    await rloc_to_core(mtmp, backupX, backupY, rlocflags, map, player, display, fov);</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+}
+&nbsp;
+// teleport.c:1894 — optional wizard destination override for monster teleports.
+// JS keeps this deterministic and UI-free: caller can prefill cc_p and set
+// monTelecontrol=true to request validation of the provided destination.
+export <span class="fstat-no" title="function not covered" >function control_mon_tele(mon, cc_p, rlocflags, via_rloc, map, player, opts = {}) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!cc_p || typeof cc_p !== 'object') return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (!isok(cc_p.x ?? -1, cc_p.y ?? -1)) {</span>
+<span class="cstat-no" title="statement not covered" >        cc_p.x = mon?.mx ?? player?.x ?? 0;</span>
+<span class="cstat-no" title="statement not covered" >        cc_p.y = mon?.my ?? player?.y ?? 0;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if (!opts.monTelecontrol) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (player &amp;&amp; cc_p.x === player.x &amp;&amp; cc_p.y === player.y) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (opts.force === true) return true;</span>
+<span class="cstat-no" title="statement not covered" >    return via_rloc</span>
+<span class="cstat-no" title="statement not covered" >        ? !!rloc_pos_ok(cc_p.x, cc_p.y, mon, map, player)</span>
+<span class="cstat-no" title="statement not covered" >        : !!goodpos(cc_p.x, cc_p.y, mon, rlocflags, map, player);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// tele_restrict — cf. teleport.c:1945
+// ============================================================================
+&nbsp;
+export function tele_restrict(mon, map) {
+    if (noteleport_level(mon, map)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    return false;
+}
+&nbsp;
+// ============================================================================
+// u_teleport_mon — cf. teleport.c:2254
+// Player teleports a monster (via wand/spell). Returns false if fails.
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >async function u_teleport_mon(mtmp, give_feedback, map, player, display, fov) {</span>
+<span class="cstat-no" title="statement not covered" >    const cc = {};</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (mtmp.ispriest) {</span>
+<span class="cstat-no" title="statement not covered" >        const loc = map.at(mtmp.mx, mtmp.my);</span>
+<span class="cstat-no" title="statement not covered" >        // If priest is in temple, resist</span>
+<span class="cstat-no" title="statement not covered" >        if (loc &amp;&amp; mtmp.shroom &amp;&amp; loc.roomno === mtmp.shroom) {</span>
+<span class="cstat-no" title="statement not covered" >            if (give_feedback) {</span>
+<span class="cstat-no" title="statement not covered" >                // "resists your magic!"</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const mdat = mtmp.data || mtmp.type || {};</span>
+<span class="cstat-no" title="statement not covered" >    if ((is_rider(mdat) || control_teleport(mdat))</span>
+<span class="cstat-no" title="statement not covered" >        &amp;&amp; rn2(13)</span>
+<span class="cstat-no" title="statement not covered" >        &amp;&amp; enexto(cc, player ? player.x : mtmp.mx, player ? player.y : mtmp.my,</span>
+<span class="cstat-no" title="statement not covered" >                  mdat, map, player)) {</span>
+<span class="cstat-no" title="statement not covered" >        await rloc_to(mtmp, cc.x, cc.y, map, player, display, fov);</span>
+<span class="cstat-no" title="statement not covered" >    } else {</span>
+<span class="cstat-no" title="statement not covered" >        if (!await rloc(mtmp, RLOC_MSG, map, player, display, fov))</span>
+<span class="cstat-no" title="statement not covered" >            return false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// mtele_trap — cf. teleport.c:1957
+// Monster steps on teleport trap.
+// ============================================================================
+&nbsp;
+export async function mtele_trap(mtmp, trap, in_sight, map, player, display, fov) {
+    if (tele_restrict(mtmp, map)) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
+    if (!teleport_pet(mtmp, false)) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
+&nbsp;
+    // C ref: teleport.c mtele_trap() — preserve pre-teleport visible name.
+    const monname = Monnam(mtmp);
+&nbsp;
+    if (trap?.once) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        await mvault_tele(mtmp, map, player);</span>
+    } else if (isok(trap?.teledest<span class="branch-0 cbranch-no" title="branch not covered" >?.x </span>?? -1, trap?.teledest<span class="branch-0 cbranch-no" title="branch not covered" >?.y </span>?? -1)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const tx = trap.teledest.x;</span>
+<span class="cstat-no" title="statement not covered" >        const ty = trap.teledest.y;</span>
+<span class="cstat-no" title="statement not covered" >        const blockedByMon = !!(map?.monsterAt &amp;&amp; map.monsterAt(tx, ty));</span>
+<span class="cstat-no" title="statement not covered" >        const blockedByHero = !!(player &amp;&amp; player.x === tx &amp;&amp; player.y === ty);</span>
+<span class="cstat-no" title="statement not covered" >        if (!(blockedByMon || blockedByHero)) {</span>
+<span class="cstat-no" title="statement not covered" >            await rloc_to_core(mtmp, tx, ty, RLOC_MSG, map, player, display, fov);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+    } else {
+        await rloc(mtmp, RLOC_NONE, map, player, display, fov);
+    }
+&nbsp;
+    if (in_sight) {
+        if (canseemon(mtmp, player, fov)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            await pline(`${monname} seems disoriented.`);</span>
+        } else {
+            await pline(`${monname} suddenly disappears!`);
+        }
+        if (trap &amp;&amp; !trap.tseen) {
+            trap.tseen = 1;
+            newsym(trap.tx, trap.ty);
+        }
+    }
+}
+&nbsp;
+// ============================================================================
+// mlevel_tele_trap — cf. teleport.c:1998
+// Monster level teleport trap. Returns 0 if still on level, 1 if moved.
+// ============================================================================
+&nbsp;
+export async function mlevel_tele_trap(mtmp, trap, force_it, in_sight, map, player) {
+    const tt = trap ? trap.ttyp <span class="branch-0 cbranch-no" title="branch not covered" >: NO_TRAP;</span>
+    if (!mtmp) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    if (mtmp === player?.ustuck) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    if (!teleport_pet(mtmp, force_it)) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+&nbsp;
+    // C ref: teleport.c mlevel_tele_trap() -&gt; migrate_to_level() -&gt; Trap_Moved_Mon.
+    // For gameplay parity, treat all level-changing trap variants as migration
+    // off the current level.
+    if (tt === MAGIC_PORTAL || tt === LEVEL_TELEP || tt === HOLE || tt === TRAPDOOR) {
+        if (in_sight) {
+            const action = (tt === HOLE)
+<span class="branch-0 cbranch-no" title="branch not covered" >                ? 'falls into a hole'</span>
+                : (tt === TRAPDOOR)
+                    ? 'falls through a trap door'
+<span class="branch-0 cbranch-no" title="branch not covered" >                    : 'disappears out of sight';</span>
+            await pline('Suddenly, %s %s.', mon_nam(mtmp), action);
+            // C ref: teleport.c:2082 — seetrap(trap) when in_sight
+            if (trap &amp;&amp; !trap.tseen) { trap.tseen = 1; newsym(trap.tx, trap.ty); }
+        }
+        const _omx = mtmp.mx, _omy = mtmp.my;
+        if (map?.removeMonster) map.removeMonster(mtmp);
+        mtmp.mx = 0;
+        mtmp.my = 0;
+        newsym(_omx, _omy);
+        return 3; // Trap_Moved_Mon
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >    // Remaining level-teleport cases are still simplified.</span>
+<span class="cstat-no" title="statement not covered" >    return 0;</span>
+}
+&nbsp;
+// ============================================================================
+// rloco — cf. teleport.c:2094
+// Scatter object randomly on level.
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function rloco(obj, map, player) {</span>
+<span class="cstat-no" title="statement not covered" >    let tx, ty;</span>
+<span class="cstat-no" title="statement not covered" >    let try_limit = 4000;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (!obj) return true;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const otx = obj.ox;</span>
+<span class="cstat-no" title="statement not covered" >    const oty = obj.oy;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    do {</span>
+<span class="cstat-no" title="statement not covered" >        tx = rn1(COLNO - 3, 2);</span>
+<span class="cstat-no" title="statement not covered" >        ty = rn2(ROWNO);</span>
+<span class="cstat-no" title="statement not covered" >        if (!--try_limit) break;</span>
+<span class="cstat-no" title="statement not covered" >    } while (!goodpos(tx, ty, null, 0, map, player));</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Move object</span>
+<span class="cstat-no" title="statement not covered" >    obj.ox = tx;</span>
+<span class="cstat-no" title="statement not covered" >    obj.oy = ty;</span>
+<span class="cstat-no" title="statement not covered" >    newsym(otx, oty);</span>
+<span class="cstat-no" title="statement not covered" >    newsym(tx, ty);</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// random_teleport_level — cf. teleport.c:2182
+// Returns absolute depth for random level teleport.
+// ============================================================================
+&nbsp;
+// cf. teleport.c:2182 — random_teleport_level()
+// Returns absolute depth for random level teleport.
+export <span class="fstat-no" title="function not covered" >function random_teleport_level(cur_depth, game) {</span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:2187 — 1/5 chance of staying on same level</span>
+<span class="cstat-no" title="statement not covered" >    if (!rn2(5)) return cur_depth;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (!game || !game.dungeon) return cur_depth;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const dng = game.dungeon;</span>
+<span class="cstat-no" title="statement not covered" >    const min_depth = dng.depth_start || 1;</span>
+<span class="cstat-no" title="statement not covered" >    const max_depth_raw = (dng.num_dunlevs || 1) + min_depth - 1;</span>
+<span class="cstat-no" title="statement not covered" >    let max_depth = max_depth_raw;</span>
+<span class="cstat-no" title="statement not covered" >    let min_d = min_depth;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:2230 — range is 1 to current+3, current not counting</span>
+<span class="cstat-no" title="statement not covered" >    let nlev = rn2(cur_depth + 3 - min_d) + min_d;</span>
+<span class="cstat-no" title="statement not covered" >    if (nlev &gt;= cur_depth) nlev++;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (nlev &gt; max_depth) {</span>
+<span class="cstat-no" title="statement not covered" >        nlev = max_depth;</span>
+<span class="cstat-no" title="statement not covered" >        // teleport up if already on bottom</span>
+<span class="cstat-no" title="statement not covered" >        if (cur_depth &gt;= max_depth)</span>
+<span class="cstat-no" title="statement not covered" >            nlev -= rnd(3);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if (nlev &lt; min_d) {</span>
+<span class="cstat-no" title="statement not covered" >        nlev = min_d;</span>
+<span class="cstat-no" title="statement not covered" >        if (nlev === cur_depth) {</span>
+<span class="cstat-no" title="statement not covered" >            nlev += rnd(3);</span>
+<span class="cstat-no" title="statement not covered" >            if (nlev &gt; max_depth) nlev = max_depth;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return nlev;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// Hero teleport helper: teleok — cf. teleport.c:414
+// ============================================================================
+&nbsp;
+// cf. teleport.c:380 — tele_jump_ok: check teleport region restrictions
+function tele_jump_ok(x1, y1, x2, y2, map) {
+    if (!isok(x2, y2)) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    // Simplified: no restricted region tracking in JS yet
+    // Full implementation would check dndest/updest bounded areas
+    return true;
+}
+&nbsp;
+// cf. teleport.c:414 — teleok: is (x,y) a valid hero teleport destination?
+function teleok(x, y, trapok, game) {
+    const map = (game.lev <span class="branch-0 cbranch-no" title="branch not covered" >|| game.map)</span>;
+    const player = (game.u <span class="branch-0 cbranch-no" title="branch not covered" >|| game.player)</span>;
+&nbsp;
+    if (!trapok) {
+        const trap = map.trapAt(x, y);
+        if (!trap) {
+            trapok = true;
+        }<span class="branch-0 cbranch-no" title="branch not covered" > else if (trap.ttyp === VIBRATING_SQUARE) {</span>
+<span class="cstat-no" title="statement not covered" >            trapok = true;</span>
+<span class="cstat-no" title="statement not covered" >        } else if ((is_pit(trap.ttyp) || is_hole(trap.ttyp))</span>
+<span class="cstat-no" title="statement not covered" >                   &amp;&amp; (player.levitating || player.flying)) {</span>
+<span class="cstat-no" title="statement not covered" >            trapok = true;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+        if (!trapok) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    }
+    if (!goodpos(x, y, player, 0, map, player)) return false;
+    if (!tele_jump_ok(player.x, player.y, x, y, map)) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    return true;
+}
+&nbsp;
+// ============================================================================
+// cf. teleport.c:442 — teleds(nx, ny, flags): move hero to new position
+// ============================================================================
+&nbsp;
+export async function teleds(nx, ny, flags, game) {
+    const player = (game.u <span class="branch-0 cbranch-no" title="branch not covered" >|| game.player)</span>;
+    const map = (game.lev <span class="branch-0 cbranch-no" title="branch not covered" >|| game.map)</span>;
+    const is_teleport = (flags &amp; TELEDS_TELEPORT) !== 0;
+&nbsp;
+    const ux0 = player.x;
+    const uy0 = player.y;
+&nbsp;
+    // Clear trap state
+    if (player.utrap) <span class="branch-0 cbranch-no" title="branch not covered" >player.utrap = 0;</span>
+&nbsp;
+    // Move hero
+    player.x = nx;
+    player.y = ny;
+    if (player.ux0 !== undefined) <span class="branch-0 cbranch-no" title="branch not covered" >{ player.ux0 = ux0; player.uy0 = uy0; }</span>
+&nbsp;
+    // C ref: teleds() — player position changed, mark FOV dirty for moveloop_core
+    newsym(ux0, uy0);       // clear old position
+    mark_vision_dirty();    // FOV recomputed at start of moveloop_core
+    newsym(nx, ny);         // show '@' at new position
+&nbsp;
+    if (is_teleport) {
+        const same = (nx === ux0 <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ny === uy0)</span>;
+        await pline(`You materialize in ${same <span class="branch-0 cbranch-no" title="branch not covered" >? "the same" </span>: "a different"} location!`);
+    }
+}
+&nbsp;
+// ============================================================================
+// cf. teleport.c:712 — safe_teleds(flags): find safe spot and teleport hero
+// ============================================================================
+&nbsp;
+export async function safe_teleds(flags, game) {
+    const map = (game.lev <span class="branch-0 cbranch-no" title="branch not covered" >|| game.map)</span>;
+    const player = (game.u <span class="branch-0 cbranch-no" title="branch not covered" >|| game.player)</span>;
+&nbsp;
+    // cf. teleport.c:731 — try 40 random spots first (RNG must match C)
+    for (let tcnt = 0; tcnt &lt; 40; tcnt++) {
+        const nux = rnd(COLNO - 1);
+        const nuy = rn2(ROWNO);
+        if (teleok(nux, nuy, false, game)) {
+            await teleds(nux, nuy, flags, game);
+            return true;
+        }
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:742 — exhaustive search via collect_coords</span>
+<span class="cstat-no" title="statement not covered" >    // Use the same ring-pair shuffled search as C</span>
+<span class="cstat-no" title="statement not covered" >    const cc_flags = CC_RING_PAIRS | CC_SKIP_MONS</span>
+        | (player.passesWalls ? 0 <span class="branch-0 cbranch-no" title="branch not covered" >: CC_SKIP_INACCS)</span>;
+    const candy = collect_coords(player.x, player.y, 0, cc_flags, map, player);
+    let backupX = 0, backupY = 0;
+&nbsp;
+    for (let tcnt = 0; tcnt &lt; candy.length; tcnt++) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const nux = candy[tcnt].x;</span>
+<span class="cstat-no" title="statement not covered" >        const nuy = candy[tcnt].y;</span>
+<span class="cstat-no" title="statement not covered" >        if (teleok(nux, nuy, false, game)) {</span>
+<span class="cstat-no" title="statement not covered" >            await teleds(nux, nuy, flags, game);</span>
+<span class="cstat-no" title="statement not covered" >            return true;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        if (!backupX) {</span>
+<span class="cstat-no" title="statement not covered" >            const trap = map.trapAt(nux, nuy);</span>
+<span class="cstat-no" title="statement not covered" >            if (trap &amp;&amp; teleok(nux, nuy, true, game)) {</span>
+<span class="cstat-no" title="statement not covered" >                backupX = nux;</span>
+<span class="cstat-no" title="statement not covered" >                backupY = nuy;</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Fall back to trap spot</span>
+<span class="cstat-no" title="statement not covered" >    if (backupX) {</span>
+<span class="cstat-no" title="statement not covered" >        await teleds(backupX, backupY, flags, game);</span>
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
+}
+&nbsp;
+// ============================================================================
+// cf. teleport.c:837 — tele(): hero teleport via non-scroll method
+// ============================================================================
+&nbsp;
+// Autotranslated from teleport.c:836
+export async function tele(game) {
+  await scrolltele(0, game);
+}
+&nbsp;
+// ============================================================================
+// cf. teleport.c:844 — scrolltele(scroll): hero teleport, possibly controlled
+// ============================================================================
+&nbsp;
+export async function scrolltele(scroll, game) {
+    const player = (game.u <span class="branch-0 cbranch-no" title="branch not covered" >|| game.player)</span>;
+    const map = (game.lev <span class="branch-0 cbranch-no" title="branch not covered" >|| game.map)</span>;
+&nbsp;
+    // cf. teleport.c:849 — check no-teleport level
+    if (noteleport_level(player, map)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        await pline("A mysterious force prevents you from teleporting!");</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    // cf. teleport.c:860 — Amulet of Yendor interference
+    if (player.hasAmulet <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !rn2(3))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        await pline("You feel disoriented for a moment.");</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    // cf. teleport.c:867 — controlled teleport (player chooses destination)
+    // In JS automated play, we can't prompt; fall through to random
+    // TODO: implement controlled teleport with UI
+&nbsp;
+    // cf. teleport.c:909 — random teleport
+    await safe_teleds(TELEDS_TELEPORT, game);
+}
+&nbsp;
+// ============================================================================
+// cf. teleport.c:1029 — dotele(break_the_rules): #teleport command
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >async function dotele(break_the_rules, game) {</span>
+<span class="cstat-no" title="statement not covered" >    const player = (game.u || game.player);</span>
+<span class="cstat-no" title="statement not covered" >    const map = (game.lev || game.map);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1036-1064 — check for teleport trap at current position</span>
+<span class="cstat-no" title="statement not covered" >    let trap = map.trapAt(player.x, player.y);</span>
+<span class="cstat-no" title="statement not covered" >    if (trap &amp;&amp; !trap.tseen) trap = null;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (trap) {</span>
+<span class="cstat-no" title="statement not covered" >        if (trap.ttyp === LEVEL_TELEP &amp;&amp; trap.tseen) {</span>
+<span class="cstat-no" title="statement not covered" >            // level teleport trap — trigger it</span>
+<span class="cstat-no" title="statement not covered" >            await level_tele_trap(trap, 0x02 /* FORCETRAP */, game);</span>
+<span class="cstat-no" title="statement not covered" >            return 1;</span>
+<span class="cstat-no" title="statement not covered" >        } else if (trap.ttyp === TELEP_TRAP) {</span>
+<span class="cstat-no" title="statement not covered" >            if (trap.once) {</span>
+<span class="cstat-no" title="statement not covered" >                deltrap(map, trap);</span>
+<span class="cstat-no" title="statement not covered" >                newsym(player.x, player.y);</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >        } else {</span>
+<span class="cstat-no" title="statement not covered" >            trap = null;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (!trap &amp;&amp; !break_the_rules) {</span>
+<span class="cstat-no" title="statement not covered" >        // cf. teleport.c:1069 — check Teleportation intrinsic</span>
+<span class="cstat-no" title="statement not covered" >        if (!player.teleportation) {</span>
+<span class="cstat-no" title="statement not covered" >            await pline("You don't know that spell.");</span>
+<span class="cstat-no" title="statement not covered" >            return 0;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1140-1157 — perform the teleport</span>
+<span class="cstat-no" title="statement not covered" >    tele(game);</span>
+<span class="cstat-no" title="statement not covered" >    return 1;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// cf. teleport.c:1160 — level_tele(): level teleportation
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >async function level_tele(game) {</span>
+<span class="cstat-no" title="statement not covered" >    const player = (game.u || game.player);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1180 — Amulet/endgame prevention</span>
+<span class="cstat-no" title="statement not covered" >    if (player.hasAmulet) {</span>
+<span class="cstat-no" title="statement not covered" >        await pline("You feel very disoriented for a moment.");</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:2182 — get random level</span>
+<span class="cstat-no" title="statement not covered" >    const cur_depth = player.depth || 1;</span>
+<span class="cstat-no" title="statement not covered" >    const nlev = random_teleport_level(cur_depth, game);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (nlev === cur_depth) {</span>
+<span class="cstat-no" title="statement not covered" >        await pline("You shudder for a moment.");</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Schedule level change</span>
+<span class="cstat-no" title="statement not covered" >    // TODO: implement schedule_goto for actual level changes</span>
+<span class="cstat-no" title="statement not covered" >    await pline(`You are teleported to level ${nlev}!`);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// cf. teleport.c:1439 — domagicportal(trap): magic portal handler
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >async function domagicportal(trap, game) {</span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1458</span>
+<span class="cstat-no" title="statement not covered" >    await pline("You activated a magic portal!");</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1464 — endgame without amulet</span>
+<span class="cstat-no" title="statement not covered" >    if (game &amp;&amp; (game.u || game.player) &amp;&amp; (game.u || game.player).inEndgame &amp;&amp; !(game.u || game.player).hasAmulet) {</span>
+<span class="cstat-no" title="statement not covered" >        await pline("You feel dizzy for a moment, but nothing happens...");</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // TODO: implement schedule_goto for portal destination</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// cf. teleport.c:1487 — tele_trap(trap): hero teleport trap activation
+// ============================================================================
+&nbsp;
+let in_tele_trap = false;
+&nbsp;
+export async function tele_trap(trap, game) {
+    const player = (game.u <span class="branch-0 cbranch-no" title="branch not covered" >|| game.player)</span>;
+    const map = (game.lev <span class="branch-0 cbranch-no" title="branch not covered" >|| game.map)</span>;
+&nbsp;
+    // cf. teleport.c:1493 — prevent recursive activation
+    if (in_tele_trap) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
+    in_tele_trap = true;
+&nbsp;
+    try {
+        // cf. teleport.c:1497 — endgame or antimagic resistance
+        if (hasAntimagic(player)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            await pline("You feel a wrenching sensation.");</span>
+<span class="cstat-no" title="statement not covered" >            return;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+        // cf. teleport.c:1503 — vault teleport (one-use trap)
+        if (trap.once) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            deltrap(map, trap);</span>
+<span class="cstat-no" title="statement not covered" >            newsym(player.x, player.y);</span>
+<span class="cstat-no" title="statement not covered" >            // vault_tele — falls through to tele()</span>
+<span class="cstat-no" title="statement not covered" >            await tele(game);</span>
+<span class="cstat-no" title="statement not covered" >            return;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+        // cf. teleport.c:1507 — fixed-destination teleport
+        const tx = Number.isInteger(trap?.teledest_x) <span class="branch-0 cbranch-no" title="branch not covered" >? trap.teledest_x</span>
+            : (Number.isInteger(trap?.teledest<span class="branch-0 cbranch-no" title="branch not covered" >?.x)</span> <span class="branch-0 cbranch-no" title="branch not covered" >? trap.teledest.x </span>: -1);
+        const ty = Number.isInteger(trap?.teledest_y) <span class="branch-0 cbranch-no" title="branch not covered" >? trap.teledest_y</span>
+            : (Number.isInteger(trap?.teledest<span class="branch-0 cbranch-no" title="branch not covered" >?.y)</span> <span class="branch-0 cbranch-no" title="branch not covered" >? trap.teledest.y </span>: -1);
+        if (isok(tx, ty)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            const mtmp = map.monsterAt(tx, ty);</span>
+<span class="cstat-no" title="statement not covered" >            if (mtmp) {</span>
+<span class="cstat-no" title="statement not covered" >                const dest = {x: 0, y: 0};</span>
+<span class="cstat-no" title="statement not covered" >                if (enexto(dest, mtmp.mx, mtmp.my, mtmp.data, map, player)) {</span>
+<span class="cstat-no" title="statement not covered" >                    await rloc_to(mtmp, dest.x, dest.y, map, player);</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            if (!map.monsterAt(tx, ty)) {</span>
+<span class="cstat-no" title="statement not covered" >                await teleds(tx, ty, TELEDS_TELEPORT, game);</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            return;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+        // cf. teleport.c:1527 — random teleport
+        await tele(game);
+    } finally {
+        in_tele_trap = false;
+    }
+}
+&nbsp;
+// ============================================================================
+// cf. teleport.c:1533 — level_tele_trap(trap, trflags): level teleport trap
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >async function level_tele_trap(trap, trflags, game) {</span>
+<span class="cstat-no" title="statement not covered" >    const player = (game.u || game.player);</span>
+<span class="cstat-no" title="statement not covered" >    const map = (game.lev || game.map);</span>
+<span class="cstat-no" title="statement not covered" >    const intentional = (trflags &amp; 0x02) !== 0; // FORCETRAP or VIASITTING</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    await pline("You step onto a level teleport trap!");</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1545 — antimagic resistance</span>
+<span class="cstat-no" title="statement not covered" >    if (hasAntimagic(player) &amp;&amp; !intentional) {</span>
+<span class="cstat-no" title="statement not covered" >        await pline("You feel a wrenching sensation.");</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // cf. teleport.c:1552 — remove trap and perform level teleport</span>
+<span class="cstat-no" title="statement not covered" >    deltrap(map, trap);</span>
+<span class="cstat-no" title="statement not covered" >    newsym(player.x, player.y);</span>
+<span class="cstat-no" title="statement not covered" >    await level_tele(game);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// cf. teleport.c:914 — dotelecmd(): the #teleport command (wizard mode)
+// ============================================================================
+&nbsp;
+export <span class="fstat-no" title="function not covered" >async function dotelecmd(game) {</span>
+<span class="cstat-no" title="statement not covered" >    return await dotele(false, game) ? 1 : 0;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// cf. teleport.c:781 — teleport_pet(mtmp, force): check if pet can teleport
+// ============================================================================
+&nbsp;
+export function teleport_pet(mtmp, force) {
+    // cf. teleport.c:788 — can't teleport steed
+    if (mtmp.isSteed) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+&nbsp;
+    // cf. teleport.c:788 — leashed pet
+    if (mtmp.mleashed) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        if (!force) return false;</span>
+<span class="cstat-no" title="statement not covered" >        mtmp.mleashed = false;</span>
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    return true;
+}
+&nbsp;
+// teleport.c:809 — teleport hero near a random pet (if valid and not adjacent).
+export <span class="fstat-no" title="function not covered" >async function tele_to_rnd_pet(game) {</span>
+<span class="cstat-no" title="statement not covered" >    const map = game?.lev || game?.map;</span>
+<span class="cstat-no" title="statement not covered" >    const player = game?.u || game?.player;</span>
+<span class="cstat-no" title="statement not covered" >    if (!map || !player) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (noteleport_level(player, map)) return false;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    let pet = null;</span>
+<span class="cstat-no" title="statement not covered" >    let cnt = 0;</span>
+<span class="cstat-no" title="statement not covered" >    for (const mtmp of (map.monsters || [])) {</span>
+<span class="cstat-no" title="statement not covered" >        if (!mtmp || mtmp.dead) continue;</span>
+<span class="cstat-no" title="statement not covered" >        const tame = Number(mtmp.mtame || 0) &gt; 0 || !!mtmp.tame;</span>
+<span class="cstat-no" title="statement not covered" >        if (!tame) continue;</span>
+<span class="cstat-no" title="statement not covered" >        if (!isok(mtmp.mx, mtmp.my)) continue;</span>
+<span class="cstat-no" title="statement not covered" >        cnt++;</span>
+<span class="cstat-no" title="statement not covered" >        if (!rn2(cnt)) pet = mtmp;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if (!pet) return false;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const adjacent = Math.abs((pet.mx || 0) - player.x) &lt;= 1</span>
+<span class="cstat-no" title="statement not covered" >        &amp;&amp; Math.abs((pet.my || 0) - player.y) &lt;= 1;</span>
+<span class="cstat-no" title="statement not covered" >    if (adjacent) return false;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    const tx = pet.mx + rn2(3) - 1;</span>
+<span class="cstat-no" title="statement not covered" >    const ty = pet.my + rn2(3) - 1;</span>
+<span class="cstat-no" title="statement not covered" >    if (!isok(tx, ty) || !teleok(tx, ty, false, game)) return false;</span>
+<span class="cstat-no" title="statement not covered" >    await teleds(tx, ty, TELEDS_TELEPORT, game);</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from teleport.c:20
+export <span class="fstat-no" title="function not covered" >function m_blocks_teleporting(mtmp) {</span>
+<span class="cstat-no" title="statement not covered" >  if (is_dlord(mtmp.data) || is_dprince(mtmp.data)) return true;</span>
+<span class="cstat-no" title="statement not covered" >  return false;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from teleport.c:200
+export <span class="fstat-no" title="function not covered" >function enexto_gpflags(cc, xx, yy, mdat, entflags, map, player) {</span>
+<span class="cstat-no" title="statement not covered" >  return (enexto_core(cc, xx, yy, mdat, GP_CHECKSCARY | entflags, map, player) || enexto_core(cc, xx, yy, mdat, entflags, map, player));</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from teleport.c:767
+export <span class="fstat-no" title="function not covered" >async function vault_tele(map, player, game) {</span>
+<span class="cstat-no" title="statement not covered" >  const croom = search_special(map, VAULT);</span>
+<span class="cstat-no" title="statement not covered" >  if (croom) {</span>
+<span class="cstat-no" title="statement not covered" >    const c = somexyspace(map, croom);</span>
+<span class="cstat-no" title="statement not covered" >    if (c &amp;&amp; teleok(c.x, c.y, false)) { await teleds(c.x, c.y, TELEDS_TELEPORT, game); return; }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  await tele();</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from teleport.c:1780
+export <span class="fstat-no" title="function not covered" >function stairway_find_forwiz(isladder, up, map) {</span>
+<span class="cstat-no" title="statement not covered" >  let stway = gs.stairs;</span>
+<span class="cstat-no" title="statement not covered" >  while (stway &amp;&amp; !(stway.isladder === isladder &amp;&amp; stway.up === up &amp;&amp; stway.tolev.dnum === map.uz.dnum)) {</span>
+<span class="cstat-no" title="statement not covered" >    stway = stway.next;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  return stway;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from teleport.c:1931
+export <span class="fstat-no" title="function not covered" >async function mvault_tele(mtmp, map, player) {</span>
+<span class="cstat-no" title="statement not covered" >  const croom = search_special(map, VAULT);</span>
+<span class="cstat-no" title="statement not covered" >  if (croom) {</span>
+<span class="cstat-no" title="statement not covered" >    const c = somexyspace(map, croom);</span>
+<span class="cstat-no" title="statement not covered" >    if (c &amp;&amp; goodpos(c.x, c.y, mtmp, 0, map, player)) { await rloc_to(mtmp, c.x, c.y, map, player); return; }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  await rloc(mtmp, RLOC_NONE, map, player);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

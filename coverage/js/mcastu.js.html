@@ -1,0 +1,1240 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/mcastu.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> mcastu.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">41.55% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>160/385</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">39.28% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>33/84</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">42.85% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>6/14</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">41.55% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>160/385</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">190x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// mcastu.js -- Monster spellcasting: wizard and cleric spell dispatch
+// cf. mcastu.c — castmu, buzzmu, choose_magic_spell, choose_clerical_spell,
+//                cursetxt, m_cure_self, touch_of_death, death_inflicted_by,
+//                cast_wizard_spell, cast_cleric_spell,
+//                is_undirected_spell, spell_would_be_useless
+&nbsp;
+import { rn2, rnd, d } from './rng.js';
+import {
+  AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM, AD_SLEE, AD_DISN, AD_DRST, AD_ACID, AD_SPC2, AD_SPEL, AD_CLRC, AT_MAGC,
+} from './monsters.js';
+import {
+  buzz, ZT_BREATH, ZT_MAGIC_MISSILE, ZT_FIRE, ZT_COLD, ZT_SLEEP,
+  ZT_DEATH, ZT_LIGHTNING, ZT_POISON_GAS, ZT_ACID,
+} from './zap.js';
+import { lined_up } from './mthrowu.js';
+import {
+  MGC_PSI_BOLT, MGC_CURE_SELF, MGC_HASTE_SELF, MGC_STUN_YOU, MGC_DISAPPEAR,
+  MGC_WEAKEN_YOU, MGC_DESTRY_ARMR, MGC_CURSE_ITEMS, MGC_AGGRAVATION,
+  MGC_SUMMON_MONS, MGC_CLONE_WIZ, MGC_DEATH_TOUCH, CLC_OPEN_WOUNDS,
+  CLC_CURE_SELF, CLC_CONFUSE_YOU, CLC_PARALYZE, CLC_BLIND_YOU, CLC_INSECTS,
+  CLC_CURSE_ITEMS, CLC_LIGHTNING, CLC_FIRE_PILLAR, CLC_GEYSER,
+} from './const.js';
+&nbsp;
+// cf. mcastu.c:48 — cursetxt(mtmp, vis)
+export function cursetxt(mtmp, vis) {
+  if (!vis) <span class="branch-0 cbranch-no" title="branch not covered" >return '';</span>
+  const mname = mtmp?.name <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp?.data?.mname <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| 'monster';</span>
+  const text = `The ${mname} points at you, then curses.`;
+  if (mtmp) mtmp.lastCurseText = text;
+  return text;
+}
+&nbsp;
+// cf. mcastu.c:75 — choose_magic_spell(n)
+// Maps a spell value to a wizard spell type
+export function choose_magic_spell(n) {
+  // C ref: mcastu.c choose_magic_spell()
+  while (n &gt; 24 <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; rn2(25))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    n = rn2(n);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+&nbsp;
+  if (n &gt;= 20) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_DEATH_TOUCH;</span>
+  if (n &gt;= 18) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_CLONE_WIZ;</span>
+  if (n &gt;= 15) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_SUMMON_MONS;</span>
+  if (n &gt;= 13) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_AGGRAVATION;</span>
+  if (n &gt;= 10) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_CURSE_ITEMS;</span>
+  if (n &gt;= 8) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_DESTRY_ARMR;</span>
+  if (n &gt;= 6) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_WEAKEN_YOU;</span>
+  if (n &gt;= 4) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_DISAPPEAR;</span>
+  if (n === 3) <span class="branch-0 cbranch-no" title="branch not covered" >return MGC_STUN_YOU;</span>
+  if (n === 2) return MGC_HASTE_SELF;
+  if (n === 1) return MGC_CURE_SELF;
+  return MGC_PSI_BOLT;
+}
+&nbsp;
+// cf. mcastu.c:129 — choose_clerical_spell(n)
+export function choose_clerical_spell(n) {
+  // C ref: mcastu.c choose_clerical_spell()
+  while (n &gt; 15 <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; rn2(16))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    n = rn2(n);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+&nbsp;
+  if (n === 15 || n === 14) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    if (rn2(3)) return CLC_OPEN_WOUNDS;</span>
+<span class="cstat-no" title="statement not covered" >    return CLC_GEYSER;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+  if (n === 13) return CLC_GEYSER;
+  if (n === 12) return CLC_FIRE_PILLAR;
+  if (n === 11) return CLC_LIGHTNING;
+  if (n === 10 || n === 9) return CLC_CURSE_ITEMS;
+  if (n === 8) return CLC_INSECTS;
+  if (n === 7 || n === 6) return CLC_BLIND_YOU;
+  if (n === 5 || n === 4) return CLC_PARALYZE;
+  if (n === 3 || n === 2) return CLC_CONFUSE_YOU;
+  if (n === 1) return CLC_CURE_SELF;
+  return CLC_OPEN_WOUNDS;
+}
+&nbsp;
+// cf. mcastu.c:359 — m_cure_self(mtmp, dmg)
+export <span class="fstat-no" title="function not covered" >function m_cure_self(mtmp, dmg) {</span>
+<span class="cstat-no" title="statement not covered" >  const heal = d(3, 6);</span>
+<span class="cstat-no" title="statement not covered" >  if (mtmp.mhp &lt; mtmp.mhpmax) {</span>
+<span class="cstat-no" title="statement not covered" >    mtmp.mhp = Math.min(mtmp.mhpmax, mtmp.mhp + heal);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  return Math.max(0, dmg - heal);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c:374 — touch_of_death(mtmp)
+export <span class="fstat-no" title="function not covered" >function touch_of_death(mtmp, player) {</span>
+<span class="cstat-no" title="statement not covered" >  if (!player) return 0;</span>
+<span class="cstat-no" title="statement not covered" >  // C-like shape: fatal touch unless protected by antimagic/magic resistance.</span>
+<span class="cstat-no" title="statement not covered" >  const resisted = !!(player.magicResistance || player.antimagic);</span>
+<span class="cstat-no" title="statement not covered" >  const dmg = resisted ? d(8, 6) : (50 + d(8, 6));</span>
+<span class="cstat-no" title="statement not covered" >  if (player.uhp !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >    player.uhp = Math.max(0, player.uhp - dmg);</span>
+<span class="cstat-no" title="statement not covered" >  } else if (player.hp !== undefined) {</span>
+<span class="cstat-no" title="statement not covered" >    player.hp = Math.max(0, player.hp - dmg);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  player.lastDamageReason = death_inflicted_by('a touch of death', mtmp);</span>
+<span class="cstat-no" title="statement not covered" >  return dmg;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c:409 — death_inflicted_by(who, mtmp)
+export <span class="fstat-no" title="function not covered" >function death_inflicted_by(who, mtmp) {</span>
+<span class="cstat-no" title="statement not covered" >  // Format death message for spell-induced deaths</span>
+<span class="cstat-no" title="statement not covered" >  return `killed by a spell cast by ${who}`;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c:448 — cast_wizard_spell(mtmp, dmg, spellid)
+export <span class="fstat-no" title="function not covered" >function cast_wizard_spell(mtmp, dmg, spellid, player, map) {</span>
+<span class="cstat-no" title="statement not covered" >  switch (spellid) {</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_DEATH_TOUCH:</span>
+<span class="cstat-no" title="statement not covered" >      // Touch of death</span>
+<span class="cstat-no" title="statement not covered" >      touch_of_death(mtmp, player);</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_CLONE_WIZ:</span>
+<span class="cstat-no" title="statement not covered" >      // Clone wizard — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_SUMMON_MONS:</span>
+<span class="cstat-no" title="statement not covered" >      // Summon nasties — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_AGGRAVATION:</span>
+<span class="cstat-no" title="statement not covered" >      // Aggravate monsters</span>
+<span class="cstat-no" title="statement not covered" >      aggravation(map);</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_CURSE_ITEMS:</span>
+<span class="cstat-no" title="statement not covered" >      // Curse hero items</span>
+<span class="cstat-no" title="statement not covered" >      curse_objects(player);</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_DESTRY_ARMR:</span>
+<span class="cstat-no" title="statement not covered" >      // Destroy armor — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_WEAKEN_YOU:</span>
+<span class="cstat-no" title="statement not covered" >      // Weaken (drain STR)</span>
+<span class="cstat-no" title="statement not covered" >      if (player &amp;&amp; dmg &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >        // Would drain rnd(dmg) STR</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_DISAPPEAR:</span>
+<span class="cstat-no" title="statement not covered" >      // Monster goes invisible</span>
+<span class="cstat-no" title="statement not covered" >      if (mtmp) mtmp.minvis = true;</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_STUN_YOU:</span>
+<span class="cstat-no" title="statement not covered" >      // Stun hero — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_HASTE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >      // Monster hastes itself</span>
+<span class="cstat-no" title="statement not covered" >      if (mtmp) mtmp.mspeed = 2; // fast</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_CURE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >      m_cure_self(mtmp, 0);</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case MGC_PSI_BOLT:</span>
+<span class="cstat-no" title="statement not covered" >      // Psi bolt: dmg to player</span>
+<span class="cstat-no" title="statement not covered" >      if (player) {</span>
+<span class="cstat-no" title="statement not covered" >        // Would apply dmg with Antimagic halving</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c:631 — cast_cleric_spell(mtmp, dmg, spellid)
+export <span class="fstat-no" title="function not covered" >function cast_cleric_spell(mtmp, dmg, spellid, player, map) {</span>
+<span class="cstat-no" title="statement not covered" >  switch (spellid) {</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_GEYSER:</span>
+<span class="cstat-no" title="statement not covered" >      // Geyser: d(8, 6) physical damage</span>
+<span class="cstat-no" title="statement not covered" >      if (player) {</span>
+<span class="cstat-no" title="statement not covered" >        const gdam = d(8, 6);</span>
+<span class="cstat-no" title="statement not covered" >        // Would apply physical damage</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_FIRE_PILLAR:</span>
+<span class="cstat-no" title="statement not covered" >      // Fire pillar: d(8, 6) fire damage</span>
+<span class="cstat-no" title="statement not covered" >      if (player) {</span>
+<span class="cstat-no" title="statement not covered" >        const fdam = d(8, 6);</span>
+<span class="cstat-no" title="statement not covered" >        // Would apply fire damage + burnarmor</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_LIGHTNING:</span>
+<span class="cstat-no" title="statement not covered" >      // Lightning: d(8, 6) electrical damage</span>
+<span class="cstat-no" title="statement not covered" >      if (player) {</span>
+<span class="cstat-no" title="statement not covered" >        const edam = d(8, 6);</span>
+<span class="cstat-no" title="statement not covered" >        // Would apply electrical damage + blind via flashburn(rnd(100))</span>
+<span class="cstat-no" title="statement not covered" >        rnd(100); // blind duration RNG consumed</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_INSECTS:</span>
+<span class="cstat-no" title="statement not covered" >      // Summon insects</span>
+<span class="cstat-no" title="statement not covered" >      if (mtmp) {</span>
+<span class="cstat-no" title="statement not covered" >        const mlev = mtmp.m_lev || 1;</span>
+<span class="cstat-no" title="statement not covered" >        let quan = (mlev &lt; 2) ? 1 : rnd(Math.floor(mlev / 2));</span>
+<span class="cstat-no" title="statement not covered" >        if (quan &lt; 3) quan = 3;</span>
+<span class="cstat-no" title="statement not covered" >        // Would spawn quan insects</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_CURSE_ITEMS:</span>
+<span class="cstat-no" title="statement not covered" >      curse_objects(player);</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_BLIND_YOU:</span>
+<span class="cstat-no" title="statement not covered" >      // Blind hero — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_PARALYZE:</span>
+<span class="cstat-no" title="statement not covered" >      // Paralyze hero — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_CONFUSE_YOU:</span>
+<span class="cstat-no" title="statement not covered" >      // Confuse hero — stub</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_OPEN_WOUNDS:</span>
+<span class="cstat-no" title="statement not covered" >      // Open wounds: direct damage</span>
+<span class="cstat-no" title="statement not covered" >      if (player) {</span>
+<span class="cstat-no" title="statement not covered" >        // Would apply dmg</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >    case CLC_CURE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >      m_cure_self(mtmp, 0);</span>
+<span class="cstat-no" title="statement not covered" >      break;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c:176 — castmu(mtmp, mattk, vis, thrown)
+// Monster casts a spell at the hero
+// Returns 1 if spell was cast, 0 if failed
+export async function castmu(mtmp, mattk, vis, thrown, player, map) {
+  if (!mtmp || !mattk) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+&nbsp;
+  const ml = mtmp.m_lev <span class="branch-0 cbranch-no" title="branch not covered" >|| 1;</span>
+  const aatyp = mattk.aatyp <span class="branch-0 cbranch-no" title="branch not covered" >|| 0;</span>
+  const adtyp = mattk.adtyp <span class="branch-0 cbranch-no" title="branch not covered" >|| 0;</span>
+  let spellnum = 0;
+&nbsp;
+  // C ref: mcastu.c castmu() — when using AD_SPEL/AD_CLRC and ml&gt;0,
+  // choose spell first (consumes rn2(ml) and possibly choose_* RNG).
+  if ((adtyp === AD_SPEL <span class="branch-0 cbranch-no" title="branch not covered" >|| adtyp === AD_CLRC)</span> &amp;&amp; ml &gt; 0) {
+    spellnum = rn2(ml);
+    if (adtyp === AD_SPEL) spellnum = choose_magic_spell(spellnum);
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    else spellnum = choose_clerical_spell(spellnum);</span></span>
+    if (spell_would_be_useless(mtmp, adtyp, spellnum)) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+  }
+&nbsp;
+  // C ref: mcastu.c castmu() — disabled casters fail before fumble roll.
+  if (mtmp.mcan || mtmp.mspec_used <span class="branch-0 cbranch-no" title="branch not covered" >|| !ml)</span> {
+    if (vis) cursetxt(mtmp, vis);
+    return 0;
+  }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >  // C ref: mcastu.c castmu() — spellcasters spend mspec_used before fumble.</span>
+  if (adtyp === AD_SPEL || adtyp === AD_CLRC) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    mtmp.mspec_used = (ml &lt; 8) ? (10 - ml) : 2;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // Spell fumble check (after spell choice + mspec_used setup in C).</span>
+  if (rn2(ml * 10) &lt; (mtmp.mconf ? 100 <span class="branch-0 cbranch-no" title="branch not covered" >: 20)</span>) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    if (vis) cursetxt(mtmp, vis);</span>
+<span class="cstat-no" title="statement not covered" >    return 0; // fumbled</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // Non-spell adtyp path still picks a raw spell number for downstream logic.</span>
+  if (!(adtyp === AD_SPEL || adtyp === AD_CLRC)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    spellnum = rn2(ml);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  let dmg;</span>
+<span class="cstat-no" title="statement not covered" >  if (mattk.damd) {</span>
+<span class="cstat-no" title="statement not covered" >    dmg = d(Math.floor(ml / 2) + (mattk.damn || 0), mattk.damd);</span>
+<span class="cstat-no" title="statement not covered" >  } else {</span>
+<span class="cstat-no" title="statement not covered" >    dmg = d(Math.floor(ml / 2) + 1, 6);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // Determine spell type (wizard vs cleric)</span>
+<span class="cstat-no" title="statement not covered" >  const isWizard = (aatyp === AT_MAGC);</span>
+<span class="cstat-no" title="statement not covered" >  // In C, AT_MAGC = wizard spells; AT_CLER would be cleric</span>
+<span class="cstat-no" title="statement not covered" >  // For simplicity, check monster data for caster type</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  if (isWizard) {</span>
+<span class="cstat-no" title="statement not covered" >    const spell = (adtyp === AD_SPEL || adtyp === AD_CLRC)</span>
+<span class="cstat-no" title="statement not covered" >      ? spellnum</span>
+<span class="cstat-no" title="statement not covered" >      : choose_magic_spell(spellnum);</span>
+<span class="cstat-no" title="statement not covered" >    if (spell_would_be_useless(mtmp, aatyp, spell)) return 0;</span>
+<span class="cstat-no" title="statement not covered" >    cast_wizard_spell(mtmp, dmg, spell, player, map);</span>
+<span class="cstat-no" title="statement not covered" >  } else {</span>
+<span class="cstat-no" title="statement not covered" >    const spell = (adtyp === AD_SPEL || adtyp === AD_CLRC)</span>
+<span class="cstat-no" title="statement not covered" >      ? spellnum</span>
+<span class="cstat-no" title="statement not covered" >      : choose_clerical_spell(spellnum);</span>
+<span class="cstat-no" title="statement not covered" >    if (spell_would_be_useless(mtmp, aatyp, spell)) return 0;</span>
+<span class="cstat-no" title="statement not covered" >    cast_cleric_spell(mtmp, dmg, spell, player, map);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  return 1;</span>
+}
+&nbsp;
+// cf. mcastu.c:884 — is_undirected_spell(aatyp, spellid)
+export <span class="fstat-no" title="function not covered" >function is_undirected_spell(aatyp, spellid) {</span>
+<span class="cstat-no" title="statement not covered" >  if (aatyp === AT_MAGC) {</span>
+<span class="cstat-no" title="statement not covered" >    switch (spellid) {</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_CLONE_WIZ:</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_SUMMON_MONS:</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_AGGRAVATION:</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_DISAPPEAR:</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_HASTE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_CURE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  } else {</span>
+<span class="cstat-no" title="statement not covered" >    switch (spellid) {</span>
+<span class="cstat-no" title="statement not covered" >      case CLC_INSECTS:</span>
+<span class="cstat-no" title="statement not covered" >      case CLC_CURE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >        return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  return false;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c:912 — spell_would_be_useless(mtmp, aatyp, spellid)
+export function spell_would_be_useless(mtmp, aatyp, spellid) {
+  if (aatyp === AT_MAGC) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >    switch (spellid) {</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_HASTE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >        return mtmp.mspeed &gt;= 2; // already fast</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_CURE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >        return mtmp.mhp &gt;= mtmp.mhpmax; // already at full HP</span>
+<span class="cstat-no" title="statement not covered" >      case MGC_DISAPPEAR:</span>
+<span class="cstat-no" title="statement not covered" >        return !!mtmp.minvis; // already invisible</span>
+<span class="cstat-no" title="statement not covered" >      default:</span>
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+  } else {
+    switch (spellid) {
+<span class="branch-0 cbranch-no" title="branch not covered" >      case CLC_CURE_SELF:</span>
+<span class="cstat-no" title="statement not covered" >        return mtmp.mhp &gt;= mtmp.mhpmax;</span>
+      default:
+        return false;
+    }
+  }
+}
+&nbsp;
+// cf. mcastu.c:980 — buzzmu(mtmp, mattk)
+// Monster fires a directed beam at hero
+export async function buzzmu(mtmp, mattk, player, map) {
+  if (!mtmp || !mattk || !player || !map) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+&nbsp;
+  const adtyp = mattk.adtyp <span class="branch-0 cbranch-no" title="branch not covered" >|| AD_MAGM;</span>
+  // C ref: mcastu.c buzzmu() — only AD_MAGM..AD_SPC2 are valid beam adtypes.
+  if (adtyp &lt; AD_MAGM || adtyp &gt; AD_SPC2) return 0;
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >  // C ref: mcastu.c buzzmu() — cancelled monsters don't cast beam spells.</span></span>
+<span class="cstat-no" title="statement not covered" >  if (mtmp.mcan) return 0;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  // C ref: mcastu.c buzzmu() — line-up check with 2/3 chance to fire.</span>
+  if (!(lined_up(mtmp, map, player) &amp;&amp; rn2(3))) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+  const nd = Math.max(1, mattk.damn || 6);
+  const dx = Math.sign((player.x <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> - (mtmp.mx <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span>);
+  const dy = Math.sign((player.y <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> - (mtmp.my <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span>);
+  if (dx === 0 <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; dy === 0)</span> <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  let ztyp = ZT_MAGIC_MISSILE;</span>
+<span class="cstat-no" title="statement not covered" >  switch (adtyp) {</span>
+<span class="cstat-no" title="statement not covered" >  case AD_FIRE: ztyp = ZT_FIRE; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_COLD: ztyp = ZT_COLD; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_SLEE: ztyp = ZT_SLEEP; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_DISN: ztyp = ZT_DEATH; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_ELEC: ztyp = ZT_LIGHTNING; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_DRST: ztyp = ZT_POISON_GAS; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_ACID: ztyp = ZT_ACID; break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  case AD_MAGM:</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >  default:</span>
+<span class="cstat-no" title="statement not covered" >    ztyp = ZT_MAGIC_MISSILE;</span>
+<span class="cstat-no" title="statement not covered" >    break;</span>
+  }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >  await buzz(ZT_BREATH(ztyp), nd, mtmp.mx, mtmp.my, dx, dy, map, player);</span>
+<span class="cstat-no" title="statement not covered" >  return 1;</span>
+}
+&nbsp;
+// ── Helper functions ──
+&nbsp;
+// cf. mcastu.c aggravation — wake all monsters
+export <span class="fstat-no" title="function not covered" >function aggravation(map) {</span>
+<span class="cstat-no" title="statement not covered" >  if (!map) return;</span>
+<span class="cstat-no" title="statement not covered" >  // Would iterate all monsters and set msleeping = false</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. mcastu.c curse_objects — curse hero inventory items
+export <span class="fstat-no" title="function not covered" >function curse_objects(player) {</span>
+<span class="cstat-no" title="statement not covered" >  if (!player) return;</span>
+<span class="cstat-no" title="statement not covered" >  // Would iterate inventory and curse random items</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

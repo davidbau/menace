@@ -1,0 +1,1717 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/light.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> light.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">60.11% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>327/544</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">52.08% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>25/48</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">20% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>6/30</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">60.11% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>327/544</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line medium'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a>
+<a name='L449'></a><a href='#L449'>449</a>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a>
+<a name='L481'></a><a href='#L481'>481</a>
+<a name='L482'></a><a href='#L482'>482</a>
+<a name='L483'></a><a href='#L483'>483</a>
+<a name='L484'></a><a href='#L484'>484</a>
+<a name='L485'></a><a href='#L485'>485</a>
+<a name='L486'></a><a href='#L486'>486</a>
+<a name='L487'></a><a href='#L487'>487</a>
+<a name='L488'></a><a href='#L488'>488</a>
+<a name='L489'></a><a href='#L489'>489</a>
+<a name='L490'></a><a href='#L490'>490</a>
+<a name='L491'></a><a href='#L491'>491</a>
+<a name='L492'></a><a href='#L492'>492</a>
+<a name='L493'></a><a href='#L493'>493</a>
+<a name='L494'></a><a href='#L494'>494</a>
+<a name='L495'></a><a href='#L495'>495</a>
+<a name='L496'></a><a href='#L496'>496</a>
+<a name='L497'></a><a href='#L497'>497</a>
+<a name='L498'></a><a href='#L498'>498</a>
+<a name='L499'></a><a href='#L499'>499</a>
+<a name='L500'></a><a href='#L500'>500</a>
+<a name='L501'></a><a href='#L501'>501</a>
+<a name='L502'></a><a href='#L502'>502</a>
+<a name='L503'></a><a href='#L503'>503</a>
+<a name='L504'></a><a href='#L504'>504</a>
+<a name='L505'></a><a href='#L505'>505</a>
+<a name='L506'></a><a href='#L506'>506</a>
+<a name='L507'></a><a href='#L507'>507</a>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a>
+<a name='L511'></a><a href='#L511'>511</a>
+<a name='L512'></a><a href='#L512'>512</a>
+<a name='L513'></a><a href='#L513'>513</a>
+<a name='L514'></a><a href='#L514'>514</a>
+<a name='L515'></a><a href='#L515'>515</a>
+<a name='L516'></a><a href='#L516'>516</a>
+<a name='L517'></a><a href='#L517'>517</a>
+<a name='L518'></a><a href='#L518'>518</a>
+<a name='L519'></a><a href='#L519'>519</a>
+<a name='L520'></a><a href='#L520'>520</a>
+<a name='L521'></a><a href='#L521'>521</a>
+<a name='L522'></a><a href='#L522'>522</a>
+<a name='L523'></a><a href='#L523'>523</a>
+<a name='L524'></a><a href='#L524'>524</a>
+<a name='L525'></a><a href='#L525'>525</a>
+<a name='L526'></a><a href='#L526'>526</a>
+<a name='L527'></a><a href='#L527'>527</a>
+<a name='L528'></a><a href='#L528'>528</a>
+<a name='L529'></a><a href='#L529'>529</a>
+<a name='L530'></a><a href='#L530'>530</a>
+<a name='L531'></a><a href='#L531'>531</a>
+<a name='L532'></a><a href='#L532'>532</a>
+<a name='L533'></a><a href='#L533'>533</a>
+<a name='L534'></a><a href='#L534'>534</a>
+<a name='L535'></a><a href='#L535'>535</a>
+<a name='L536'></a><a href='#L536'>536</a>
+<a name='L537'></a><a href='#L537'>537</a>
+<a name='L538'></a><a href='#L538'>538</a>
+<a name='L539'></a><a href='#L539'>539</a>
+<a name='L540'></a><a href='#L540'>540</a>
+<a name='L541'></a><a href='#L541'>541</a>
+<a name='L542'></a><a href='#L542'>542</a>
+<a name='L543'></a><a href='#L543'>543</a>
+<a name='L544'></a><a href='#L544'>544</a>
+<a name='L545'></a><a href='#L545'>545</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">22164x</span>
+<span class="cline-any cline-yes">22164x</span>
+<span class="cline-any cline-yes">22164x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3027x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">3066x</span>
+<span class="cline-any cline-yes">3066x</span>
+<span class="cline-any cline-yes">16206x</span>
+<span class="cline-any cline-yes">16206x</span>
+<span class="cline-any cline-yes">16206x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">9081x</span>
+<span class="cline-any cline-yes">27243x</span>
+<span class="cline-any cline-yes">27243x</span>
+<span class="cline-any cline-yes">27243x</span>
+<span class="cline-any cline-yes">27243x</span>
+<span class="cline-any cline-yes">9081x</span>
+<span class="cline-any cline-yes">12147x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">22164x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">2190x</span>
+<span class="cline-any cline-yes">2190x</span>
+<span class="cline-any cline-yes">2190x</span>
+<span class="cline-any cline-yes">2190x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">438x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">3465x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// light.js -- Light source management, vision illumination
+// cf. light.c — new_light_source, new_light_core, del_light_source,
+//               delete_ls, do_light_sources, show_transient_light,
+//               transient_light_cleanup, discard_flashes, find_mid,
+//               whereis_mon, save_light_sources, restore_light_sources,
+//               light_stats, relink_light_sources, maybe_write_ls,
+//               light_sources_sanity_check, write_ls, obj_move_light_source,
+//               any_light_source, snuff_light_source, obj_sheds_light,
+//               obj_is_burning, obj_split_light_source,
+//               obj_merge_light_sources, obj_adjust_light_radius,
+//               candle_light_range, arti_light_radius,
+//               arti_light_description, wiz_light_sources
+//
+// light.c manages dynamic light sources during play:
+//   new_light_source(): create light source for object or monster.
+//   del_light_source(): remove light source when object/monster gone.
+//   do_light_sources(): mark temporarily lit locations for vision system.
+//   candle_light_range(): calculate candle illumination radius.
+//   snuff_light_source(): extinguish light at a location.
+//   save/restore_light_sources: persistence (N/A in JS, uses storage.js).
+&nbsp;
+import { COLNO, ROWNO, isok, LS_OBJECT, LS_MONSTER, OBJ_INVENT, OBJ_CONTAINED, OBJ_MINVENT } from './const.js';
+import {
+    CANDELABRUM_OF_INVOCATION, TALLOW_CANDLE, WAX_CANDLE,
+    BRASS_LANTERN, OIL_LAMP, MAGIC_LAMP, POT_OIL,
+    GOLD_DRAGON_SCALE_MAIL,
+} from './objects.js';
+import { artifact_light } from './artifact.js';
+import { end_burn } from './timeout.js';
+import { clear_path, mark_vision_dirty } from './vision.js';
+&nbsp;
+// ---------- Constants ----------
+// cf. light.c:41-43
+const LSF_SHOW = 0x1;
+const LSF_NEEDS_FIXUP = 0x2;
+&nbsp;
+const MAX_RADIUS = 16;
+&nbsp;
+// TEMP_LIT / COULD_SEE must match vision.js values
+const COULD_SEE = 0x1;
+const TEMP_LIT  = 0x4;  // C ref: vision.h — TEMP_LIT marks temporarily-lit cells
+&nbsp;
+// ---------- Module State ----------
+// Linked list head for all light sources.  In JS we use a simple array.
+let light_base = [];
+&nbsp;
+// ---------- Internal helpers ----------
+&nbsp;
+// cf. obj.h:382 — Is_candle
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function Is_candle(obj) {</span></span>
+<span class="cstat-no" title="statement not covered" >    return obj.otyp === TALLOW_CANDLE || obj.otyp === WAX_CANDLE;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. obj.h:397 — ignitable
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function ignitable(obj) {</span></span>
+<span class="cstat-no" title="statement not covered" >    return obj.otyp === BRASS_LANTERN</span>
+<span class="cstat-no" title="statement not covered" >        || obj.otyp === OIL_LAMP</span>
+<span class="cstat-no" title="statement not covered" >        || (obj.otyp === MAGIC_LAMP &amp;&amp; (obj.spe || 0) &gt; 0)</span>
+<span class="cstat-no" title="statement not covered" >        || obj.otyp === CANDELABRUM_OF_INVOCATION</span>
+<span class="cstat-no" title="statement not covered" >        || obj.otyp === TALLOW_CANDLE</span>
+<span class="cstat-no" title="statement not covered" >        || obj.otyp === WAX_CANDLE</span>
+<span class="cstat-no" title="statement not covered" >        || obj.otyp === POT_OIL;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:62 — new_light_source(x, y, range, type, id)
+// Creates a new light source.
+// ========================================================================
+export function new_light_source(x, y, range, type, id) {
+    return new_light_core(x, y, range, type, id);
+}
+&nbsp;
+// cf. light.c:68 [static] — new_light_core
+function new_light_core(x, y, range, type, id) {
+    if (range &gt; MAX_RADIUS || range &lt; 0
+        || (range === 0 <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; (type !== LS_OBJECT || id != null))</span>) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        // impossible("new_light_source: illegal range %d", range);</span>
+<span class="cstat-no" title="statement not covered" >        return null;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    const ls = {
+        x, y,
+        range,
+        type,
+        id,       // object or monster reference
+        flags: 0,
+    };
+    light_base.push(ls);
+    mark_vision_dirty();
+    return ls;
+}
+&nbsp;
+// ========================================================================
+// cf. light.c:99 — del_light_source(type, id)
+// Finds and deletes a light source by type and ID.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function del_light_source(type, id) {</span>
+<span class="cstat-no" title="statement not covered" >    const idx = light_base.findIndex(ls =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if (ls.type !== type) return false;</span>
+<span class="cstat-no" title="statement not covered" >        return ls.id === id;</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    if (idx &gt;= 0) {</span>
+<span class="cstat-no" title="statement not covered" >        delete_ls(idx);</span>
+<span class="cstat-no" title="statement not covered" >    } else {</span>
+<span class="cstat-no" title="statement not covered" >        // impossible("del_light_source: not found type=%d", type);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. light.c:141 [static] — delete_ls
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function delete_ls(idx) {</span></span>
+<span class="cstat-no" title="statement not covered" >    if (idx &gt;= 0 &amp;&amp; idx &lt; light_base.length) {</span>
+<span class="cstat-no" title="statement not covered" >        light_base.splice(idx, 1);</span>
+<span class="cstat-no" title="statement not covered" >        mark_vision_dirty();</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:169 — do_light_sources(cs_rows)
+// Marks locations temporarily lit via mobile light sources.
+// cs_rows is a 2D array [y][x] of visibility flags (Uint8Array per row).
+// ========================================================================
+export function do_light_sources(cs_rows, map, player) {
+    let at_hero_range = 0;
+&nbsp;
+    for (const ls of light_base) {
+        ls.flags &amp;= ~LSF_SHOW;
+&nbsp;
+        // Update position from object/monster location
+        if (ls.type === LS_OBJECT) {
+            if (ls.range === 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >                // Camera flash — caller has already set ls.x, ls.y</span>
+<span class="cstat-no" title="statement not covered" >                ls.flags |= LSF_SHOW;</span>
+            } else if (ls.id) {
+                // Try to get object location
+                const obj = ls.id;
+                const loc = get_obj_light_location(obj, map, player);
+                if (loc) {
+                    ls.x = loc.x;
+                    ls.y = loc.y;
+                    ls.flags |= LSF_SHOW;
+                }
+            }
+        } else if (ls.type === LS_MONSTER) {
+            const mon = ls.id;
+            if (mon &amp;&amp; mon.mx &gt; 0) {
+                ls.x = mon.mx;
+                ls.y = mon.my;
+                ls.flags |= LSF_SHOW;
+            }
+        }
+&nbsp;
+        // Optimization: skip duplicate hero-position light sources
+        if (player &amp;&amp; ls.x === player.x &amp;&amp; ls.y === player.y) {
+            if (at_hero_range &gt;= ls.range) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >                ls.flags &amp;= ~LSF_SHOW;</span>
+            } else {
+                at_hero_range = ls.range;
+            }
+        }
+&nbsp;
+        if (ls.flags &amp; LSF_SHOW) {
+            // Walk points in circle and mark TEMP_LIT if visible from center
+            const limits = get_circle_limits(ls.range);
+            const max_y = Math.min(ls.y + ls.range, ROWNO - 1);
+            let y = Math.max(ls.y - ls.range, 0);
+&nbsp;
+            for (; y &lt;= max_y; y++) {
+                const row = cs_rows[y];
+                if (!row) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
+                const offset = limits[Math.abs(y - ls.y)] <span class="branch-0 cbranch-no" title="branch not covered" >|| 0;</span>
+                const min_x = Math.max(ls.x - offset, 1);
+                const max_x = Math.min(ls.x + offset, COLNO - 1);
+&nbsp;
+                if (player &amp;&amp; ls.x === player.x &amp;&amp; ls.y === player.y) {
+                    // At hero: use COULD_SEE bits already calculated
+                    for (let x = min_x; x &lt;= max_x; x++) {
+                        if (row[x] &amp; COULD_SEE)
+                            row[x] |= TEMP_LIT;
+                    }
+                } else {
+                    for (let x = min_x; x &lt;= max_x; x++) {
+                        if ((ls.x === x &amp;&amp; ls.y === y)
+                            || clear_path(ls.x, ls.y, x, y))
+                            row[x] |= TEMP_LIT;
+                    }
+                }
+            }
+        }
+    }
+}
+&nbsp;
+// Helper: get object location for light source tracking
+function get_obj_light_location(obj, map, player, depth = 0) {
+    if (!obj) <span class="branch-0 cbranch-no" title="branch not covered" >return null;</span>
+    if (depth &gt; 8) <span class="branch-0 cbranch-no" title="branch not covered" >return null;</span>
+    if (player &amp;&amp; Number.isFinite(player.x) &amp;&amp; Number.isFinite(player.y)
+        &amp;&amp; objectInContainerTree(obj, player.inventory)) {
+        return { x: player.x, y: player.y };
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    // Object on floor</span></span>
+    if ((obj.where == null || obj.where === 1)
+<span class="branch-0 cbranch-no" title="branch not covered" >        &amp;&amp; typeof obj.ox === 'number' <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; typeof obj.oy === 'number'</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        &amp;&amp; obj.ox &gt; 0)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        return { x: obj.ox, y: obj.oy };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    // Object in hero inventory.</span>
+    if (obj.where === OBJ_INVENT || obj.where === 'inventory') <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        if (player &amp;&amp; Number.isFinite(player.x) &amp;&amp; Number.isFinite(player.y)) {</span>
+<span class="cstat-no" title="statement not covered" >            return { x: player.x, y: player.y };</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        return null;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    // Object inside another object/container.</span>
+    if (obj.where === OBJ_CONTAINED || obj.where === 'contained') <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        if (obj.ocontainer) return get_obj_light_location(obj.ocontainer, map, player, depth + 1);</span>
+<span class="cstat-no" title="statement not covered" >        return null;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    // Object carried by a monster.</span>
+    if (obj.where === OBJ_MINVENT || obj.where === 'minvent') <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const mon = obj.ocarry;</span>
+<span class="cstat-no" title="statement not covered" >        if (mon &amp;&amp; Number.isFinite(mon.mx) &amp;&amp; Number.isFinite(mon.my) &amp;&amp; mon.mx &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            return { x: mon.mx, y: mon.my };</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        return null;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    // Fallback for loose objects with map coordinates.</span>
+    if (typeof obj.ox === 'number' &amp;&amp; typeof obj.oy === 'number' <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; obj.ox &gt; 0)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        return { x: obj.ox, y: obj.oy };</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
+}
+&nbsp;
+function objectInContainerTree(target, list, depth = 0) {
+    if (!target || !Array.isArray(list) || depth &gt; 12) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    for (const obj of list) {
+        if (obj === target) return true;
+        const cobj = obj?.cobj;
+        if (Array.isArray(cobj) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; objectInContainerTree(target, cobj, depth + 1))</span> <span class="branch-0 cbranch-no" title="branch not covered" >return true;</span>
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    return false;</span></span>
+}
+&nbsp;
+// Circle data for range-limited scans (matches vision.js CIRCLE_DATA/CIRCLE_START)
+const CIRCLE_DATA = [
+    0,
+    1, 1,
+    2, 2, 1,
+    3, 3, 2, 1,
+    4, 4, 4, 3, 2,
+    5, 5, 5, 4, 3, 2,
+    6, 6, 6, 5, 5, 4, 2,
+    7, 7, 7, 6, 6, 5, 4, 2,
+    8, 8, 8, 7, 7, 6, 6, 4, 2,
+    9, 9, 9, 9, 8, 8, 7, 6, 5, 3,
+    10, 10, 10, 10, 9, 9, 8, 7, 6, 5, 3,
+    11, 11, 11, 11, 10, 10, 9, 9, 8, 7, 5, 3,
+    12, 12, 12, 12, 11, 11, 10, 10, 9, 8, 7, 5, 3,
+    13, 13, 13, 13, 12, 12, 12, 11, 10, 10, 9, 7, 6, 3,
+    14, 14, 14, 14, 13, 13, 13, 12, 12, 11, 10, 9, 8, 6, 3,
+    15, 15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10, 9, 8, 6, 3,
+    16,
+];
+const CIRCLE_START = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105, 120];
+&nbsp;
+function get_circle_limits(range) {
+    if (range &lt; 1 || range &gt; 15) <span class="branch-0 cbranch-no" title="branch not covered" >return [0];</span>
+    const base = CIRCLE_START[range];
+    // Return a subarray view: limits[offset] = CIRCLE_DATA[base + offset]
+    return {
+        // Access via limits[abs(dy)]
+        __proto__: null,
+        ...Array.from({ length: range + 1 }, (_, i) =&gt; CIRCLE_DATA[base + i]),
+    };
+}
+&nbsp;
+// ========================================================================
+// cf. light.c:257 — show_transient_light(obj, x, y)
+// Shows light from a thrown/kicked lit object or camera flash.
+// TODO: vision_recalc and monster mtemplit flagging
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function show_transient_light(_obj, _x, _y) {</span>
+<span class="cstat-no" title="statement not covered" >    // TODO: light.c:257 — show_transient_light(): transient object light display</span>
+<span class="cstat-no" title="statement not covered" >    // Requires vision_recalc() integration and monster mtemplit tracking</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:330 — transient_light_cleanup()
+// Cleans up camera flashes and redraws monsters.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function transient_light_cleanup() {</span>
+<span class="cstat-no" title="statement not covered" >    discard_flashes();</span>
+<span class="cstat-no" title="statement not covered" >    // TODO: monster mtemplit cleanup and map_invisible</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. light.c:360 [static] — discard_flashes()
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function discard_flashes() {</span></span>
+<span class="cstat-no" title="statement not covered" >    for (let i = light_base.length - 1; i &gt;= 0; i--) {</span>
+<span class="cstat-no" title="statement not covered" >        if (light_base[i].type === LS_OBJECT &amp;&amp; !light_base[i].id) {</span>
+<span class="cstat-no" title="statement not covered" >            light_base.splice(i, 1);</span>
+<span class="cstat-no" title="statement not covered" >            mark_vision_dirty();</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:376 — find_mid(nid, fmflags)
+// Finds a monster by its ID number.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function find_mid(nid, fmflags, map, player) {</span>
+<span class="cstat-no" title="statement not covered" >    const FM_YOU     = 0x01;</span>
+<span class="cstat-no" title="statement not covered" >    const FM_FMON    = 0x02;</span>
+<span class="cstat-no" title="statement not covered" >    // const FM_MIGRATE = 0x04;</span>
+<span class="cstat-no" title="statement not covered" >    // const FM_MYDOGS  = 0x08;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if ((fmflags &amp; FM_YOU) &amp;&amp; nid === 1 &amp;&amp; player) {</span>
+<span class="cstat-no" title="statement not covered" >        return player; // youmonst equivalent</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if ((fmflags &amp; FM_FMON) &amp;&amp; map &amp;&amp; map.monsters) {</span>
+<span class="cstat-no" title="statement not covered" >        for (const mtmp of map.monsters) {</span>
+<span class="cstat-no" title="statement not covered" >            if (!mtmp.dead &amp;&amp; mtmp.m_id === nid) return mtmp;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    // TODO: FM_MIGRATE, FM_MYDOGS chains</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:706 — obj_move_light_source(src, dest)
+// Changes a light source's object ID from src to dest.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function obj_move_light_source(src, dest) {</span>
+<span class="cstat-no" title="statement not covered" >    for (const ls of light_base) {</span>
+<span class="cstat-no" title="statement not covered" >        if (ls.type === LS_OBJECT &amp;&amp; ls.id === src) {</span>
+<span class="cstat-no" title="statement not covered" >            ls.id = dest;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    src.lamplit = false;</span>
+<span class="cstat-no" title="statement not covered" >    dest.lamplit = true;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:719 — any_light_source()
+// Returns true if there are any active light sources.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function any_light_source() {</span>
+<span class="cstat-no" title="statement not covered" >    return light_base.length &gt; 0;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:729 — snuff_light_source(x, y)
+// Snuffs out burning light sources at a location.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function snuff_light_source(x, y) {</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = 0; i &lt; light_base.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        const ls = light_base[i];</span>
+<span class="cstat-no" title="statement not covered" >        if (ls.type === LS_OBJECT &amp;&amp; ls.x === x &amp;&amp; ls.y === y) {</span>
+<span class="cstat-no" title="statement not covered" >            const obj = ls.id;</span>
+<span class="cstat-no" title="statement not covered" >            if (obj &amp;&amp; obj_is_burning(obj)) {</span>
+<span class="cstat-no" title="statement not covered" >                // Sunsword (artifact light) cannot be snuffed by darkness</span>
+<span class="cstat-no" title="statement not covered" >                if (artifact_light(obj)) continue;</span>
+<span class="cstat-no" title="statement not covered" >                end_burn(obj, obj.otyp !== MAGIC_LAMP);</span>
+<span class="cstat-no" title="statement not covered" >                // ls was just removed by end_burn -&gt; del_light_source;</span>
+<span class="cstat-no" title="statement not covered" >                // only one light source per object, so return</span>
+<span class="cstat-no" title="statement not covered" >                return;</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:763 — obj_sheds_light(obj)
+// Returns true if object emits any light.
+// ========================================================================
+// Autotranslated from light.c:762
+export <span class="fstat-no" title="function not covered" >function obj_sheds_light(obj) {</span>
+<span class="cstat-no" title="statement not covered" >  return obj_is_burning(obj);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:771 — obj_is_burning(obj)
+// Returns true if object is lit and will be snuffed by end_burn().
+// ========================================================================
+// Autotranslated from light.c:770
+export <span class="fstat-no" title="function not covered" >function obj_is_burning(obj) {</span>
+<span class="cstat-no" title="statement not covered" >  return (obj.lamplit &amp;&amp; (ignitable(obj) || artifact_light(obj)));</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:779 — obj_split_light_source(src, dest)
+// Copies light source from src and attaches it to dest (for object splitting).
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function obj_split_light_source(src, dest) {</span>
+<span class="cstat-no" title="statement not covered" >    for (const ls of light_base) {</span>
+<span class="cstat-no" title="statement not covered" >        if (ls.type === LS_OBJECT &amp;&amp; ls.id === src) {</span>
+<span class="cstat-no" title="statement not covered" >            const new_ls = {</span>
+<span class="cstat-no" title="statement not covered" >                x: ls.x,</span>
+<span class="cstat-no" title="statement not covered" >                y: ls.y,</span>
+<span class="cstat-no" title="statement not covered" >                range: ls.range,</span>
+<span class="cstat-no" title="statement not covered" >                type: ls.type,</span>
+<span class="cstat-no" title="statement not covered" >                id: dest,</span>
+<span class="cstat-no" title="statement not covered" >                flags: ls.flags,</span>
+<span class="cstat-no" title="statement not covered" >            };</span>
+<span class="cstat-no" title="statement not covered" >            if (Is_candle(src)) {</span>
+<span class="cstat-no" title="statement not covered" >                // Split candles may emit less light than original group</span>
+<span class="cstat-no" title="statement not covered" >                ls.range = candle_light_range(src);</span>
+<span class="cstat-no" title="statement not covered" >                new_ls.range = candle_light_range(dest);</span>
+<span class="cstat-no" title="statement not covered" >                mark_vision_dirty();</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            light_base.push(new_ls);</span>
+<span class="cstat-no" title="statement not covered" >            dest.lamplit = true;</span>
+<span class="cstat-no" title="statement not covered" >            break; // only one light source per object</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:808 — obj_merge_light_sources(src, dest)
+// Merges light sources when objects are combined (candles into candelabrum).
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function obj_merge_light_sources(src, dest) {</span>
+<span class="cstat-no" title="statement not covered" >    // src === dest implies adding candles to candelabrum</span>
+<span class="cstat-no" title="statement not covered" >    if (src !== dest) {</span>
+<span class="cstat-no" title="statement not covered" >        end_burn(src, true); // extinguish candles</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    for (const ls of light_base) {</span>
+<span class="cstat-no" title="statement not covered" >        if (ls.type === LS_OBJECT &amp;&amp; ls.id === dest) {</span>
+<span class="cstat-no" title="statement not covered" >            ls.range = candle_light_range(dest);</span>
+<span class="cstat-no" title="statement not covered" >            mark_vision_dirty();</span>
+<span class="cstat-no" title="statement not covered" >            break;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:826 — obj_adjust_light_radius(obj, new_radius)
+// Changes a light source's radius for an object.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function obj_adjust_light_radius(obj, new_radius) {</span>
+<span class="cstat-no" title="statement not covered" >    for (const ls of light_base) {</span>
+<span class="cstat-no" title="statement not covered" >        if (ls.type === LS_OBJECT &amp;&amp; ls.id === obj) {</span>
+<span class="cstat-no" title="statement not covered" >            if (new_radius !== ls.range) {</span>
+<span class="cstat-no" title="statement not covered" >                mark_vision_dirty();</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            ls.range = new_radius;</span>
+<span class="cstat-no" title="statement not covered" >            return;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    // impossible("obj_adjust_light_radius: can't find obj");</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:843 — candle_light_range(obj)
+// Calculates the light range for a candle or candelabrum based on quantity.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function candle_light_range(obj) {</span>
+<span class="cstat-no" title="statement not covered" >    let radius;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    if (obj.otyp === CANDELABRUM_OF_INVOCATION) {</span>
+<span class="cstat-no" title="statement not covered" >        // 1..3 candles → range 2; 4..6 → range 3; 7 → range 4</span>
+<span class="cstat-no" title="statement not covered" >        radius = (obj.spe &lt; 4) ? 2 : (obj.spe &lt; 7) ? 3 : 4;</span>
+<span class="cstat-no" title="statement not covered" >    } else if (Is_candle(obj)) {</span>
+<span class="cstat-no" title="statement not covered" >        // Range incremented quadratically</span>
+<span class="cstat-no" title="statement not covered" >        // 1..3 → range 2; 4..8 → range 3; 9..15 → range 4; etc.</span>
+<span class="cstat-no" title="statement not covered" >        const n = obj.quan || 1;</span>
+<span class="cstat-no" title="statement not covered" >        radius = 1;</span>
+<span class="cstat-no" title="statement not covered" >        while (radius * radius &lt;= n &amp;&amp; radius &lt; MAX_RADIUS) {</span>
+<span class="cstat-no" title="statement not covered" >            radius++;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    } else {</span>
+<span class="cstat-no" title="statement not covered" >        radius = 3; // lamp's value</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return radius;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:881 — arti_light_radius(obj)
+// Returns the light radius for a light-emitting artifact.
+// ========================================================================
+// Autotranslated from light.c:880
+export <span class="fstat-no" title="function not covered" >function arti_light_radius(obj, player) {</span>
+<span class="cstat-no" title="statement not covered" >  let res;</span>
+<span class="cstat-no" title="statement not covered" >  if (!obj.lamplit || !artifact_light(obj)) return 0;</span>
+<span class="cstat-no" title="statement not covered" >  res = (obj.blessed ? 3 : !obj.cursed ? 2 : 1);</span>
+<span class="cstat-no" title="statement not covered" >  if (obj === player.uskin) res = 1;</span>
+<span class="cstat-no" title="statement not covered" >  else if (obj.otyp === GOLD_DRAGON_SCALE_MAIL) ++res;</span>
+<span class="cstat-no" title="statement not covered" >  return res;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:916 — arti_light_description(obj)
+// Returns an adverb describing a lit artifact's light intensity.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function arti_light_description(obj) {</span>
+<span class="cstat-no" title="statement not covered" >    switch (arti_light_radius(obj)) {</span>
+<span class="cstat-no" title="statement not covered" >    case 4: return "radiantly";     // blessed gold dragon scale mail</span>
+<span class="cstat-no" title="statement not covered" >    case 3: return "brilliantly";   // blessed artifact, uncursed gold DSM</span>
+<span class="cstat-no" title="statement not covered" >    case 2: return "brightly";      // uncursed artifact, cursed gold DSM</span>
+<span class="cstat-no" title="statement not covered" >    case 1: return "dimly";         // cursed artifact, embedded scales</span>
+<span class="cstat-no" title="statement not covered" >    default: break;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return "strangely";</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:935 — wiz_light_sources()
+// Wizard mode: display all active light sources (debug).
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function wiz_light_sources() {</span>
+<span class="cstat-no" title="statement not covered" >    // TODO: wizard mode display</span>
+<span class="cstat-no" title="statement not covered" >    return light_base.map(ls =&gt; ({</span>
+<span class="cstat-no" title="statement not covered" >        x: ls.x, y: ls.y,</span>
+<span class="cstat-no" title="statement not covered" >        range: ls.range,</span>
+<span class="cstat-no" title="statement not covered" >        type: ls.type === LS_OBJECT ? 'obj' : ls.type === LS_MONSTER ? 'mon' : '???',</span>
+<span class="cstat-no" title="statement not covered" >        flags: ls.flags,</span>
+<span class="cstat-no" title="statement not covered" >    }));</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// Utility: reset light sources (for level changes / new games)
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function reset_light_sources() {</span>
+<span class="cstat-no" title="statement not covered" >    light_base = [];</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// cf. light.c:606 — light_sources_sanity_check()
+// Validates all light source object/monster pointers.
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function light_sources_sanity_check() {</span>
+<span class="cstat-no" title="statement not covered" >    for (const ls of light_base) {</span>
+<span class="cstat-no" title="statement not covered" >        if (!ls.id &amp;&amp; ls.range &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >            // panic("insane light source: no id!");</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ========================================================================
+// Export the light_base for save/restore and sanity checks
+// ========================================================================
+export <span class="fstat-no" title="function not covered" >function get_light_base() {</span>
+<span class="cstat-no" title="statement not covered" >    return light_base;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+export <span class="fstat-no" title="function not covered" >function set_light_base(base) {</span>
+<span class="cstat-no" title="statement not covered" >    light_base = base || [];</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

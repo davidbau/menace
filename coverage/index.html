@@ -1,35 +1,133 @@
+
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mazes of Menace Coverage</title>
-  <style>
-    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 2rem; color: #111; }
-    h1 { margin: 0 0 0.5rem 0; }
-    p { margin: 0.25rem 0 1rem 0; }
-    table { border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: right; }
-    th:first-child, td:first-child { text-align: left; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-  </style>
+    <title>Coverage Oracle: All files</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prettify.css" />
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="nethack.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(sort-arrow-sprite.png);
+        }
+    </style>
 </head>
+    
 <body>
-  <h1>C-Parity Session Coverage</h1>
-  <p>Coverage computed from deterministic C-parity session replay only.</p>
-  <p class="mono">Updated: 2026-03-11T02:38:57.786Z</p>
-  <table>
-    <thead>
-      <tr><th>Metric</th><th>Covered</th><th>Total</th><th>Percent</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Lines</td><td>94606</td><td>185160</td><td>51.09%</td></tr>
-      <tr><td>Statements</td><td>94606</td><td>185160</td><td>51.09%</td></tr>
-      <tr><td>Functions</td><td>2058</td><td>6699</td><td>30.72%</td></tr>
-      <tr><td>Branches</td><td>12218</td><td>20132</td><td>60.68%</td></tr>
-    </tbody>
-  </table>
-  <p>Raw summary: <a href="coverage-summary.json">coverage-summary.json</a></p>
-  <p>Coverage process doc: <a href="/docs/COVERAGE.md">docs/COVERAGE.md</a></p>
-</body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1>All files</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">51.09% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>94619/185166</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">60.7% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>12221/20132</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">30.73% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>2058/6697</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">51.09% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>94619/185166</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+        <div class="nh-fortune nh-dire"><span class="nh-bracket">[</span> You are dead.  The Oracle remarks: 'I could have told you this would happen.' <span class="nh-bracket">]</span></div>
+        
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line medium'></div>
+    <div class="pad1">
+<table class="coverage-summary">
+<thead>
+<tr>
+   <th data-col="file" data-fmt="html" data-html="true" class="file">File</th>
+   <th data-col="pic" data-type="number" data-fmt="html" data-html="true" class="pic"></th>
+   <th data-col="statements" data-type="number" data-fmt="pct" class="pct">Statements</th>
+   <th data-col="statements_raw" data-type="number" data-fmt="html" class="abs"></th>
+   <th data-col="branches" data-type="number" data-fmt="pct" class="pct">Branches</th>
+   <th data-col="branches_raw" data-type="number" data-fmt="html" class="abs"></th>
+   <th data-col="functions" data-type="number" data-fmt="pct" class="pct">Functions</th>
+   <th data-col="functions_raw" data-type="number" data-fmt="html" class="abs"></th>
+   <th data-col="lines" data-type="number" data-fmt="pct" class="pct">Lines</th>
+   <th data-col="lines_raw" data-type="number" data-fmt="html" class="abs"></th>
+</tr>
+</thead>
+<tbody><tr>
+	<td class="file medium" data-value="js"><a href="js/index.html">js</a></td>
+	<td data-value="54.22" class="pic medium">
+	<div class="chart"><div class="cover-fill" style="width: 54%"></div><div class="cover-empty" style="width: 46%"></div></div>
+	</td>
+	<td data-value="54.22" class="pct medium">54.22%</td>
+	<td data-value="169700" class="abs medium">92025/169700</td>
+	<td data-value="60.39" class="pct medium">60.39%</td>
+	<td data-value="19873" class="abs medium">12003/19873</td>
+	<td data-value="30.89" class="pct low">30.89%</td>
+	<td data-value="6476" class="abs low">2001/6476</td>
+	<td data-value="54.22" class="pct medium">54.22%</td>
+	<td data-value="169700" class="abs medium">92025/169700</td>
+	</tr>
+
+<tr>
+	<td class="file low" data-value="js/levels"><a href="js/levels/index.html">js/levels</a></td>
+	<td data-value="16.77" class="pic low">
+	<div class="chart"><div class="cover-fill" style="width: 16%"></div><div class="cover-empty" style="width: 84%"></div></div>
+	</td>
+	<td data-value="16.77" class="pct low">16.77%</td>
+	<td data-value="15466" class="abs low">2594/15466</td>
+	<td data-value="84.16" class="pct high">84.16%</td>
+	<td data-value="259" class="abs high">218/259</td>
+	<td data-value="25.79" class="pct low">25.79%</td>
+	<td data-value="221" class="abs low">57/221</td>
+	<td data-value="16.77" class="pct low">16.77%</td>
+	<td data-value="15466" class="abs low">2594/15466</td>
+	</tr>
+
+</tbody>
+</table>
+</div>
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Coverage divined by the Oracle of Istanbul
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="sorter.js"></script>
+        <script src="block-navigation.js"></script>
+    </body>
 </html>
+    

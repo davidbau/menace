@@ -1,0 +1,3151 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/weapon.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> weapon.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">70.35% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>719/1022</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">50.48% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>155/307</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">40% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>18/45</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">70.35% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>719/1022</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line medium'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a>
+<a name='L357'></a><a href='#L357'>357</a>
+<a name='L358'></a><a href='#L358'>358</a>
+<a name='L359'></a><a href='#L359'>359</a>
+<a name='L360'></a><a href='#L360'>360</a>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a>
+<a name='L376'></a><a href='#L376'>376</a>
+<a name='L377'></a><a href='#L377'>377</a>
+<a name='L378'></a><a href='#L378'>378</a>
+<a name='L379'></a><a href='#L379'>379</a>
+<a name='L380'></a><a href='#L380'>380</a>
+<a name='L381'></a><a href='#L381'>381</a>
+<a name='L382'></a><a href='#L382'>382</a>
+<a name='L383'></a><a href='#L383'>383</a>
+<a name='L384'></a><a href='#L384'>384</a>
+<a name='L385'></a><a href='#L385'>385</a>
+<a name='L386'></a><a href='#L386'>386</a>
+<a name='L387'></a><a href='#L387'>387</a>
+<a name='L388'></a><a href='#L388'>388</a>
+<a name='L389'></a><a href='#L389'>389</a>
+<a name='L390'></a><a href='#L390'>390</a>
+<a name='L391'></a><a href='#L391'>391</a>
+<a name='L392'></a><a href='#L392'>392</a>
+<a name='L393'></a><a href='#L393'>393</a>
+<a name='L394'></a><a href='#L394'>394</a>
+<a name='L395'></a><a href='#L395'>395</a>
+<a name='L396'></a><a href='#L396'>396</a>
+<a name='L397'></a><a href='#L397'>397</a>
+<a name='L398'></a><a href='#L398'>398</a>
+<a name='L399'></a><a href='#L399'>399</a>
+<a name='L400'></a><a href='#L400'>400</a>
+<a name='L401'></a><a href='#L401'>401</a>
+<a name='L402'></a><a href='#L402'>402</a>
+<a name='L403'></a><a href='#L403'>403</a>
+<a name='L404'></a><a href='#L404'>404</a>
+<a name='L405'></a><a href='#L405'>405</a>
+<a name='L406'></a><a href='#L406'>406</a>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a>
+<a name='L411'></a><a href='#L411'>411</a>
+<a name='L412'></a><a href='#L412'>412</a>
+<a name='L413'></a><a href='#L413'>413</a>
+<a name='L414'></a><a href='#L414'>414</a>
+<a name='L415'></a><a href='#L415'>415</a>
+<a name='L416'></a><a href='#L416'>416</a>
+<a name='L417'></a><a href='#L417'>417</a>
+<a name='L418'></a><a href='#L418'>418</a>
+<a name='L419'></a><a href='#L419'>419</a>
+<a name='L420'></a><a href='#L420'>420</a>
+<a name='L421'></a><a href='#L421'>421</a>
+<a name='L422'></a><a href='#L422'>422</a>
+<a name='L423'></a><a href='#L423'>423</a>
+<a name='L424'></a><a href='#L424'>424</a>
+<a name='L425'></a><a href='#L425'>425</a>
+<a name='L426'></a><a href='#L426'>426</a>
+<a name='L427'></a><a href='#L427'>427</a>
+<a name='L428'></a><a href='#L428'>428</a>
+<a name='L429'></a><a href='#L429'>429</a>
+<a name='L430'></a><a href='#L430'>430</a>
+<a name='L431'></a><a href='#L431'>431</a>
+<a name='L432'></a><a href='#L432'>432</a>
+<a name='L433'></a><a href='#L433'>433</a>
+<a name='L434'></a><a href='#L434'>434</a>
+<a name='L435'></a><a href='#L435'>435</a>
+<a name='L436'></a><a href='#L436'>436</a>
+<a name='L437'></a><a href='#L437'>437</a>
+<a name='L438'></a><a href='#L438'>438</a>
+<a name='L439'></a><a href='#L439'>439</a>
+<a name='L440'></a><a href='#L440'>440</a>
+<a name='L441'></a><a href='#L441'>441</a>
+<a name='L442'></a><a href='#L442'>442</a>
+<a name='L443'></a><a href='#L443'>443</a>
+<a name='L444'></a><a href='#L444'>444</a>
+<a name='L445'></a><a href='#L445'>445</a>
+<a name='L446'></a><a href='#L446'>446</a>
+<a name='L447'></a><a href='#L447'>447</a>
+<a name='L448'></a><a href='#L448'>448</a>
+<a name='L449'></a><a href='#L449'>449</a>
+<a name='L450'></a><a href='#L450'>450</a>
+<a name='L451'></a><a href='#L451'>451</a>
+<a name='L452'></a><a href='#L452'>452</a>
+<a name='L453'></a><a href='#L453'>453</a>
+<a name='L454'></a><a href='#L454'>454</a>
+<a name='L455'></a><a href='#L455'>455</a>
+<a name='L456'></a><a href='#L456'>456</a>
+<a name='L457'></a><a href='#L457'>457</a>
+<a name='L458'></a><a href='#L458'>458</a>
+<a name='L459'></a><a href='#L459'>459</a>
+<a name='L460'></a><a href='#L460'>460</a>
+<a name='L461'></a><a href='#L461'>461</a>
+<a name='L462'></a><a href='#L462'>462</a>
+<a name='L463'></a><a href='#L463'>463</a>
+<a name='L464'></a><a href='#L464'>464</a>
+<a name='L465'></a><a href='#L465'>465</a>
+<a name='L466'></a><a href='#L466'>466</a>
+<a name='L467'></a><a href='#L467'>467</a>
+<a name='L468'></a><a href='#L468'>468</a>
+<a name='L469'></a><a href='#L469'>469</a>
+<a name='L470'></a><a href='#L470'>470</a>
+<a name='L471'></a><a href='#L471'>471</a>
+<a name='L472'></a><a href='#L472'>472</a>
+<a name='L473'></a><a href='#L473'>473</a>
+<a name='L474'></a><a href='#L474'>474</a>
+<a name='L475'></a><a href='#L475'>475</a>
+<a name='L476'></a><a href='#L476'>476</a>
+<a name='L477'></a><a href='#L477'>477</a>
+<a name='L478'></a><a href='#L478'>478</a>
+<a name='L479'></a><a href='#L479'>479</a>
+<a name='L480'></a><a href='#L480'>480</a>
+<a name='L481'></a><a href='#L481'>481</a>
+<a name='L482'></a><a href='#L482'>482</a>
+<a name='L483'></a><a href='#L483'>483</a>
+<a name='L484'></a><a href='#L484'>484</a>
+<a name='L485'></a><a href='#L485'>485</a>
+<a name='L486'></a><a href='#L486'>486</a>
+<a name='L487'></a><a href='#L487'>487</a>
+<a name='L488'></a><a href='#L488'>488</a>
+<a name='L489'></a><a href='#L489'>489</a>
+<a name='L490'></a><a href='#L490'>490</a>
+<a name='L491'></a><a href='#L491'>491</a>
+<a name='L492'></a><a href='#L492'>492</a>
+<a name='L493'></a><a href='#L493'>493</a>
+<a name='L494'></a><a href='#L494'>494</a>
+<a name='L495'></a><a href='#L495'>495</a>
+<a name='L496'></a><a href='#L496'>496</a>
+<a name='L497'></a><a href='#L497'>497</a>
+<a name='L498'></a><a href='#L498'>498</a>
+<a name='L499'></a><a href='#L499'>499</a>
+<a name='L500'></a><a href='#L500'>500</a>
+<a name='L501'></a><a href='#L501'>501</a>
+<a name='L502'></a><a href='#L502'>502</a>
+<a name='L503'></a><a href='#L503'>503</a>
+<a name='L504'></a><a href='#L504'>504</a>
+<a name='L505'></a><a href='#L505'>505</a>
+<a name='L506'></a><a href='#L506'>506</a>
+<a name='L507'></a><a href='#L507'>507</a>
+<a name='L508'></a><a href='#L508'>508</a>
+<a name='L509'></a><a href='#L509'>509</a>
+<a name='L510'></a><a href='#L510'>510</a>
+<a name='L511'></a><a href='#L511'>511</a>
+<a name='L512'></a><a href='#L512'>512</a>
+<a name='L513'></a><a href='#L513'>513</a>
+<a name='L514'></a><a href='#L514'>514</a>
+<a name='L515'></a><a href='#L515'>515</a>
+<a name='L516'></a><a href='#L516'>516</a>
+<a name='L517'></a><a href='#L517'>517</a>
+<a name='L518'></a><a href='#L518'>518</a>
+<a name='L519'></a><a href='#L519'>519</a>
+<a name='L520'></a><a href='#L520'>520</a>
+<a name='L521'></a><a href='#L521'>521</a>
+<a name='L522'></a><a href='#L522'>522</a>
+<a name='L523'></a><a href='#L523'>523</a>
+<a name='L524'></a><a href='#L524'>524</a>
+<a name='L525'></a><a href='#L525'>525</a>
+<a name='L526'></a><a href='#L526'>526</a>
+<a name='L527'></a><a href='#L527'>527</a>
+<a name='L528'></a><a href='#L528'>528</a>
+<a name='L529'></a><a href='#L529'>529</a>
+<a name='L530'></a><a href='#L530'>530</a>
+<a name='L531'></a><a href='#L531'>531</a>
+<a name='L532'></a><a href='#L532'>532</a>
+<a name='L533'></a><a href='#L533'>533</a>
+<a name='L534'></a><a href='#L534'>534</a>
+<a name='L535'></a><a href='#L535'>535</a>
+<a name='L536'></a><a href='#L536'>536</a>
+<a name='L537'></a><a href='#L537'>537</a>
+<a name='L538'></a><a href='#L538'>538</a>
+<a name='L539'></a><a href='#L539'>539</a>
+<a name='L540'></a><a href='#L540'>540</a>
+<a name='L541'></a><a href='#L541'>541</a>
+<a name='L542'></a><a href='#L542'>542</a>
+<a name='L543'></a><a href='#L543'>543</a>
+<a name='L544'></a><a href='#L544'>544</a>
+<a name='L545'></a><a href='#L545'>545</a>
+<a name='L546'></a><a href='#L546'>546</a>
+<a name='L547'></a><a href='#L547'>547</a>
+<a name='L548'></a><a href='#L548'>548</a>
+<a name='L549'></a><a href='#L549'>549</a>
+<a name='L550'></a><a href='#L550'>550</a>
+<a name='L551'></a><a href='#L551'>551</a>
+<a name='L552'></a><a href='#L552'>552</a>
+<a name='L553'></a><a href='#L553'>553</a>
+<a name='L554'></a><a href='#L554'>554</a>
+<a name='L555'></a><a href='#L555'>555</a>
+<a name='L556'></a><a href='#L556'>556</a>
+<a name='L557'></a><a href='#L557'>557</a>
+<a name='L558'></a><a href='#L558'>558</a>
+<a name='L559'></a><a href='#L559'>559</a>
+<a name='L560'></a><a href='#L560'>560</a>
+<a name='L561'></a><a href='#L561'>561</a>
+<a name='L562'></a><a href='#L562'>562</a>
+<a name='L563'></a><a href='#L563'>563</a>
+<a name='L564'></a><a href='#L564'>564</a>
+<a name='L565'></a><a href='#L565'>565</a>
+<a name='L566'></a><a href='#L566'>566</a>
+<a name='L567'></a><a href='#L567'>567</a>
+<a name='L568'></a><a href='#L568'>568</a>
+<a name='L569'></a><a href='#L569'>569</a>
+<a name='L570'></a><a href='#L570'>570</a>
+<a name='L571'></a><a href='#L571'>571</a>
+<a name='L572'></a><a href='#L572'>572</a>
+<a name='L573'></a><a href='#L573'>573</a>
+<a name='L574'></a><a href='#L574'>574</a>
+<a name='L575'></a><a href='#L575'>575</a>
+<a name='L576'></a><a href='#L576'>576</a>
+<a name='L577'></a><a href='#L577'>577</a>
+<a name='L578'></a><a href='#L578'>578</a>
+<a name='L579'></a><a href='#L579'>579</a>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a>
+<a name='L582'></a><a href='#L582'>582</a>
+<a name='L583'></a><a href='#L583'>583</a>
+<a name='L584'></a><a href='#L584'>584</a>
+<a name='L585'></a><a href='#L585'>585</a>
+<a name='L586'></a><a href='#L586'>586</a>
+<a name='L587'></a><a href='#L587'>587</a>
+<a name='L588'></a><a href='#L588'>588</a>
+<a name='L589'></a><a href='#L589'>589</a>
+<a name='L590'></a><a href='#L590'>590</a>
+<a name='L591'></a><a href='#L591'>591</a>
+<a name='L592'></a><a href='#L592'>592</a>
+<a name='L593'></a><a href='#L593'>593</a>
+<a name='L594'></a><a href='#L594'>594</a>
+<a name='L595'></a><a href='#L595'>595</a>
+<a name='L596'></a><a href='#L596'>596</a>
+<a name='L597'></a><a href='#L597'>597</a>
+<a name='L598'></a><a href='#L598'>598</a>
+<a name='L599'></a><a href='#L599'>599</a>
+<a name='L600'></a><a href='#L600'>600</a>
+<a name='L601'></a><a href='#L601'>601</a>
+<a name='L602'></a><a href='#L602'>602</a>
+<a name='L603'></a><a href='#L603'>603</a>
+<a name='L604'></a><a href='#L604'>604</a>
+<a name='L605'></a><a href='#L605'>605</a>
+<a name='L606'></a><a href='#L606'>606</a>
+<a name='L607'></a><a href='#L607'>607</a>
+<a name='L608'></a><a href='#L608'>608</a>
+<a name='L609'></a><a href='#L609'>609</a>
+<a name='L610'></a><a href='#L610'>610</a>
+<a name='L611'></a><a href='#L611'>611</a>
+<a name='L612'></a><a href='#L612'>612</a>
+<a name='L613'></a><a href='#L613'>613</a>
+<a name='L614'></a><a href='#L614'>614</a>
+<a name='L615'></a><a href='#L615'>615</a>
+<a name='L616'></a><a href='#L616'>616</a>
+<a name='L617'></a><a href='#L617'>617</a>
+<a name='L618'></a><a href='#L618'>618</a>
+<a name='L619'></a><a href='#L619'>619</a>
+<a name='L620'></a><a href='#L620'>620</a>
+<a name='L621'></a><a href='#L621'>621</a>
+<a name='L622'></a><a href='#L622'>622</a>
+<a name='L623'></a><a href='#L623'>623</a>
+<a name='L624'></a><a href='#L624'>624</a>
+<a name='L625'></a><a href='#L625'>625</a>
+<a name='L626'></a><a href='#L626'>626</a>
+<a name='L627'></a><a href='#L627'>627</a>
+<a name='L628'></a><a href='#L628'>628</a>
+<a name='L629'></a><a href='#L629'>629</a>
+<a name='L630'></a><a href='#L630'>630</a>
+<a name='L631'></a><a href='#L631'>631</a>
+<a name='L632'></a><a href='#L632'>632</a>
+<a name='L633'></a><a href='#L633'>633</a>
+<a name='L634'></a><a href='#L634'>634</a>
+<a name='L635'></a><a href='#L635'>635</a>
+<a name='L636'></a><a href='#L636'>636</a>
+<a name='L637'></a><a href='#L637'>637</a>
+<a name='L638'></a><a href='#L638'>638</a>
+<a name='L639'></a><a href='#L639'>639</a>
+<a name='L640'></a><a href='#L640'>640</a>
+<a name='L641'></a><a href='#L641'>641</a>
+<a name='L642'></a><a href='#L642'>642</a>
+<a name='L643'></a><a href='#L643'>643</a>
+<a name='L644'></a><a href='#L644'>644</a>
+<a name='L645'></a><a href='#L645'>645</a>
+<a name='L646'></a><a href='#L646'>646</a>
+<a name='L647'></a><a href='#L647'>647</a>
+<a name='L648'></a><a href='#L648'>648</a>
+<a name='L649'></a><a href='#L649'>649</a>
+<a name='L650'></a><a href='#L650'>650</a>
+<a name='L651'></a><a href='#L651'>651</a>
+<a name='L652'></a><a href='#L652'>652</a>
+<a name='L653'></a><a href='#L653'>653</a>
+<a name='L654'></a><a href='#L654'>654</a>
+<a name='L655'></a><a href='#L655'>655</a>
+<a name='L656'></a><a href='#L656'>656</a>
+<a name='L657'></a><a href='#L657'>657</a>
+<a name='L658'></a><a href='#L658'>658</a>
+<a name='L659'></a><a href='#L659'>659</a>
+<a name='L660'></a><a href='#L660'>660</a>
+<a name='L661'></a><a href='#L661'>661</a>
+<a name='L662'></a><a href='#L662'>662</a>
+<a name='L663'></a><a href='#L663'>663</a>
+<a name='L664'></a><a href='#L664'>664</a>
+<a name='L665'></a><a href='#L665'>665</a>
+<a name='L666'></a><a href='#L666'>666</a>
+<a name='L667'></a><a href='#L667'>667</a>
+<a name='L668'></a><a href='#L668'>668</a>
+<a name='L669'></a><a href='#L669'>669</a>
+<a name='L670'></a><a href='#L670'>670</a>
+<a name='L671'></a><a href='#L671'>671</a>
+<a name='L672'></a><a href='#L672'>672</a>
+<a name='L673'></a><a href='#L673'>673</a>
+<a name='L674'></a><a href='#L674'>674</a>
+<a name='L675'></a><a href='#L675'>675</a>
+<a name='L676'></a><a href='#L676'>676</a>
+<a name='L677'></a><a href='#L677'>677</a>
+<a name='L678'></a><a href='#L678'>678</a>
+<a name='L679'></a><a href='#L679'>679</a>
+<a name='L680'></a><a href='#L680'>680</a>
+<a name='L681'></a><a href='#L681'>681</a>
+<a name='L682'></a><a href='#L682'>682</a>
+<a name='L683'></a><a href='#L683'>683</a>
+<a name='L684'></a><a href='#L684'>684</a>
+<a name='L685'></a><a href='#L685'>685</a>
+<a name='L686'></a><a href='#L686'>686</a>
+<a name='L687'></a><a href='#L687'>687</a>
+<a name='L688'></a><a href='#L688'>688</a>
+<a name='L689'></a><a href='#L689'>689</a>
+<a name='L690'></a><a href='#L690'>690</a>
+<a name='L691'></a><a href='#L691'>691</a>
+<a name='L692'></a><a href='#L692'>692</a>
+<a name='L693'></a><a href='#L693'>693</a>
+<a name='L694'></a><a href='#L694'>694</a>
+<a name='L695'></a><a href='#L695'>695</a>
+<a name='L696'></a><a href='#L696'>696</a>
+<a name='L697'></a><a href='#L697'>697</a>
+<a name='L698'></a><a href='#L698'>698</a>
+<a name='L699'></a><a href='#L699'>699</a>
+<a name='L700'></a><a href='#L700'>700</a>
+<a name='L701'></a><a href='#L701'>701</a>
+<a name='L702'></a><a href='#L702'>702</a>
+<a name='L703'></a><a href='#L703'>703</a>
+<a name='L704'></a><a href='#L704'>704</a>
+<a name='L705'></a><a href='#L705'>705</a>
+<a name='L706'></a><a href='#L706'>706</a>
+<a name='L707'></a><a href='#L707'>707</a>
+<a name='L708'></a><a href='#L708'>708</a>
+<a name='L709'></a><a href='#L709'>709</a>
+<a name='L710'></a><a href='#L710'>710</a>
+<a name='L711'></a><a href='#L711'>711</a>
+<a name='L712'></a><a href='#L712'>712</a>
+<a name='L713'></a><a href='#L713'>713</a>
+<a name='L714'></a><a href='#L714'>714</a>
+<a name='L715'></a><a href='#L715'>715</a>
+<a name='L716'></a><a href='#L716'>716</a>
+<a name='L717'></a><a href='#L717'>717</a>
+<a name='L718'></a><a href='#L718'>718</a>
+<a name='L719'></a><a href='#L719'>719</a>
+<a name='L720'></a><a href='#L720'>720</a>
+<a name='L721'></a><a href='#L721'>721</a>
+<a name='L722'></a><a href='#L722'>722</a>
+<a name='L723'></a><a href='#L723'>723</a>
+<a name='L724'></a><a href='#L724'>724</a>
+<a name='L725'></a><a href='#L725'>725</a>
+<a name='L726'></a><a href='#L726'>726</a>
+<a name='L727'></a><a href='#L727'>727</a>
+<a name='L728'></a><a href='#L728'>728</a>
+<a name='L729'></a><a href='#L729'>729</a>
+<a name='L730'></a><a href='#L730'>730</a>
+<a name='L731'></a><a href='#L731'>731</a>
+<a name='L732'></a><a href='#L732'>732</a>
+<a name='L733'></a><a href='#L733'>733</a>
+<a name='L734'></a><a href='#L734'>734</a>
+<a name='L735'></a><a href='#L735'>735</a>
+<a name='L736'></a><a href='#L736'>736</a>
+<a name='L737'></a><a href='#L737'>737</a>
+<a name='L738'></a><a href='#L738'>738</a>
+<a name='L739'></a><a href='#L739'>739</a>
+<a name='L740'></a><a href='#L740'>740</a>
+<a name='L741'></a><a href='#L741'>741</a>
+<a name='L742'></a><a href='#L742'>742</a>
+<a name='L743'></a><a href='#L743'>743</a>
+<a name='L744'></a><a href='#L744'>744</a>
+<a name='L745'></a><a href='#L745'>745</a>
+<a name='L746'></a><a href='#L746'>746</a>
+<a name='L747'></a><a href='#L747'>747</a>
+<a name='L748'></a><a href='#L748'>748</a>
+<a name='L749'></a><a href='#L749'>749</a>
+<a name='L750'></a><a href='#L750'>750</a>
+<a name='L751'></a><a href='#L751'>751</a>
+<a name='L752'></a><a href='#L752'>752</a>
+<a name='L753'></a><a href='#L753'>753</a>
+<a name='L754'></a><a href='#L754'>754</a>
+<a name='L755'></a><a href='#L755'>755</a>
+<a name='L756'></a><a href='#L756'>756</a>
+<a name='L757'></a><a href='#L757'>757</a>
+<a name='L758'></a><a href='#L758'>758</a>
+<a name='L759'></a><a href='#L759'>759</a>
+<a name='L760'></a><a href='#L760'>760</a>
+<a name='L761'></a><a href='#L761'>761</a>
+<a name='L762'></a><a href='#L762'>762</a>
+<a name='L763'></a><a href='#L763'>763</a>
+<a name='L764'></a><a href='#L764'>764</a>
+<a name='L765'></a><a href='#L765'>765</a>
+<a name='L766'></a><a href='#L766'>766</a>
+<a name='L767'></a><a href='#L767'>767</a>
+<a name='L768'></a><a href='#L768'>768</a>
+<a name='L769'></a><a href='#L769'>769</a>
+<a name='L770'></a><a href='#L770'>770</a>
+<a name='L771'></a><a href='#L771'>771</a>
+<a name='L772'></a><a href='#L772'>772</a>
+<a name='L773'></a><a href='#L773'>773</a>
+<a name='L774'></a><a href='#L774'>774</a>
+<a name='L775'></a><a href='#L775'>775</a>
+<a name='L776'></a><a href='#L776'>776</a>
+<a name='L777'></a><a href='#L777'>777</a>
+<a name='L778'></a><a href='#L778'>778</a>
+<a name='L779'></a><a href='#L779'>779</a>
+<a name='L780'></a><a href='#L780'>780</a>
+<a name='L781'></a><a href='#L781'>781</a>
+<a name='L782'></a><a href='#L782'>782</a>
+<a name='L783'></a><a href='#L783'>783</a>
+<a name='L784'></a><a href='#L784'>784</a>
+<a name='L785'></a><a href='#L785'>785</a>
+<a name='L786'></a><a href='#L786'>786</a>
+<a name='L787'></a><a href='#L787'>787</a>
+<a name='L788'></a><a href='#L788'>788</a>
+<a name='L789'></a><a href='#L789'>789</a>
+<a name='L790'></a><a href='#L790'>790</a>
+<a name='L791'></a><a href='#L791'>791</a>
+<a name='L792'></a><a href='#L792'>792</a>
+<a name='L793'></a><a href='#L793'>793</a>
+<a name='L794'></a><a href='#L794'>794</a>
+<a name='L795'></a><a href='#L795'>795</a>
+<a name='L796'></a><a href='#L796'>796</a>
+<a name='L797'></a><a href='#L797'>797</a>
+<a name='L798'></a><a href='#L798'>798</a>
+<a name='L799'></a><a href='#L799'>799</a>
+<a name='L800'></a><a href='#L800'>800</a>
+<a name='L801'></a><a href='#L801'>801</a>
+<a name='L802'></a><a href='#L802'>802</a>
+<a name='L803'></a><a href='#L803'>803</a>
+<a name='L804'></a><a href='#L804'>804</a>
+<a name='L805'></a><a href='#L805'>805</a>
+<a name='L806'></a><a href='#L806'>806</a>
+<a name='L807'></a><a href='#L807'>807</a>
+<a name='L808'></a><a href='#L808'>808</a>
+<a name='L809'></a><a href='#L809'>809</a>
+<a name='L810'></a><a href='#L810'>810</a>
+<a name='L811'></a><a href='#L811'>811</a>
+<a name='L812'></a><a href='#L812'>812</a>
+<a name='L813'></a><a href='#L813'>813</a>
+<a name='L814'></a><a href='#L814'>814</a>
+<a name='L815'></a><a href='#L815'>815</a>
+<a name='L816'></a><a href='#L816'>816</a>
+<a name='L817'></a><a href='#L817'>817</a>
+<a name='L818'></a><a href='#L818'>818</a>
+<a name='L819'></a><a href='#L819'>819</a>
+<a name='L820'></a><a href='#L820'>820</a>
+<a name='L821'></a><a href='#L821'>821</a>
+<a name='L822'></a><a href='#L822'>822</a>
+<a name='L823'></a><a href='#L823'>823</a>
+<a name='L824'></a><a href='#L824'>824</a>
+<a name='L825'></a><a href='#L825'>825</a>
+<a name='L826'></a><a href='#L826'>826</a>
+<a name='L827'></a><a href='#L827'>827</a>
+<a name='L828'></a><a href='#L828'>828</a>
+<a name='L829'></a><a href='#L829'>829</a>
+<a name='L830'></a><a href='#L830'>830</a>
+<a name='L831'></a><a href='#L831'>831</a>
+<a name='L832'></a><a href='#L832'>832</a>
+<a name='L833'></a><a href='#L833'>833</a>
+<a name='L834'></a><a href='#L834'>834</a>
+<a name='L835'></a><a href='#L835'>835</a>
+<a name='L836'></a><a href='#L836'>836</a>
+<a name='L837'></a><a href='#L837'>837</a>
+<a name='L838'></a><a href='#L838'>838</a>
+<a name='L839'></a><a href='#L839'>839</a>
+<a name='L840'></a><a href='#L840'>840</a>
+<a name='L841'></a><a href='#L841'>841</a>
+<a name='L842'></a><a href='#L842'>842</a>
+<a name='L843'></a><a href='#L843'>843</a>
+<a name='L844'></a><a href='#L844'>844</a>
+<a name='L845'></a><a href='#L845'>845</a>
+<a name='L846'></a><a href='#L846'>846</a>
+<a name='L847'></a><a href='#L847'>847</a>
+<a name='L848'></a><a href='#L848'>848</a>
+<a name='L849'></a><a href='#L849'>849</a>
+<a name='L850'></a><a href='#L850'>850</a>
+<a name='L851'></a><a href='#L851'>851</a>
+<a name='L852'></a><a href='#L852'>852</a>
+<a name='L853'></a><a href='#L853'>853</a>
+<a name='L854'></a><a href='#L854'>854</a>
+<a name='L855'></a><a href='#L855'>855</a>
+<a name='L856'></a><a href='#L856'>856</a>
+<a name='L857'></a><a href='#L857'>857</a>
+<a name='L858'></a><a href='#L858'>858</a>
+<a name='L859'></a><a href='#L859'>859</a>
+<a name='L860'></a><a href='#L860'>860</a>
+<a name='L861'></a><a href='#L861'>861</a>
+<a name='L862'></a><a href='#L862'>862</a>
+<a name='L863'></a><a href='#L863'>863</a>
+<a name='L864'></a><a href='#L864'>864</a>
+<a name='L865'></a><a href='#L865'>865</a>
+<a name='L866'></a><a href='#L866'>866</a>
+<a name='L867'></a><a href='#L867'>867</a>
+<a name='L868'></a><a href='#L868'>868</a>
+<a name='L869'></a><a href='#L869'>869</a>
+<a name='L870'></a><a href='#L870'>870</a>
+<a name='L871'></a><a href='#L871'>871</a>
+<a name='L872'></a><a href='#L872'>872</a>
+<a name='L873'></a><a href='#L873'>873</a>
+<a name='L874'></a><a href='#L874'>874</a>
+<a name='L875'></a><a href='#L875'>875</a>
+<a name='L876'></a><a href='#L876'>876</a>
+<a name='L877'></a><a href='#L877'>877</a>
+<a name='L878'></a><a href='#L878'>878</a>
+<a name='L879'></a><a href='#L879'>879</a>
+<a name='L880'></a><a href='#L880'>880</a>
+<a name='L881'></a><a href='#L881'>881</a>
+<a name='L882'></a><a href='#L882'>882</a>
+<a name='L883'></a><a href='#L883'>883</a>
+<a name='L884'></a><a href='#L884'>884</a>
+<a name='L885'></a><a href='#L885'>885</a>
+<a name='L886'></a><a href='#L886'>886</a>
+<a name='L887'></a><a href='#L887'>887</a>
+<a name='L888'></a><a href='#L888'>888</a>
+<a name='L889'></a><a href='#L889'>889</a>
+<a name='L890'></a><a href='#L890'>890</a>
+<a name='L891'></a><a href='#L891'>891</a>
+<a name='L892'></a><a href='#L892'>892</a>
+<a name='L893'></a><a href='#L893'>893</a>
+<a name='L894'></a><a href='#L894'>894</a>
+<a name='L895'></a><a href='#L895'>895</a>
+<a name='L896'></a><a href='#L896'>896</a>
+<a name='L897'></a><a href='#L897'>897</a>
+<a name='L898'></a><a href='#L898'>898</a>
+<a name='L899'></a><a href='#L899'>899</a>
+<a name='L900'></a><a href='#L900'>900</a>
+<a name='L901'></a><a href='#L901'>901</a>
+<a name='L902'></a><a href='#L902'>902</a>
+<a name='L903'></a><a href='#L903'>903</a>
+<a name='L904'></a><a href='#L904'>904</a>
+<a name='L905'></a><a href='#L905'>905</a>
+<a name='L906'></a><a href='#L906'>906</a>
+<a name='L907'></a><a href='#L907'>907</a>
+<a name='L908'></a><a href='#L908'>908</a>
+<a name='L909'></a><a href='#L909'>909</a>
+<a name='L910'></a><a href='#L910'>910</a>
+<a name='L911'></a><a href='#L911'>911</a>
+<a name='L912'></a><a href='#L912'>912</a>
+<a name='L913'></a><a href='#L913'>913</a>
+<a name='L914'></a><a href='#L914'>914</a>
+<a name='L915'></a><a href='#L915'>915</a>
+<a name='L916'></a><a href='#L916'>916</a>
+<a name='L917'></a><a href='#L917'>917</a>
+<a name='L918'></a><a href='#L918'>918</a>
+<a name='L919'></a><a href='#L919'>919</a>
+<a name='L920'></a><a href='#L920'>920</a>
+<a name='L921'></a><a href='#L921'>921</a>
+<a name='L922'></a><a href='#L922'>922</a>
+<a name='L923'></a><a href='#L923'>923</a>
+<a name='L924'></a><a href='#L924'>924</a>
+<a name='L925'></a><a href='#L925'>925</a>
+<a name='L926'></a><a href='#L926'>926</a>
+<a name='L927'></a><a href='#L927'>927</a>
+<a name='L928'></a><a href='#L928'>928</a>
+<a name='L929'></a><a href='#L929'>929</a>
+<a name='L930'></a><a href='#L930'>930</a>
+<a name='L931'></a><a href='#L931'>931</a>
+<a name='L932'></a><a href='#L932'>932</a>
+<a name='L933'></a><a href='#L933'>933</a>
+<a name='L934'></a><a href='#L934'>934</a>
+<a name='L935'></a><a href='#L935'>935</a>
+<a name='L936'></a><a href='#L936'>936</a>
+<a name='L937'></a><a href='#L937'>937</a>
+<a name='L938'></a><a href='#L938'>938</a>
+<a name='L939'></a><a href='#L939'>939</a>
+<a name='L940'></a><a href='#L940'>940</a>
+<a name='L941'></a><a href='#L941'>941</a>
+<a name='L942'></a><a href='#L942'>942</a>
+<a name='L943'></a><a href='#L943'>943</a>
+<a name='L944'></a><a href='#L944'>944</a>
+<a name='L945'></a><a href='#L945'>945</a>
+<a name='L946'></a><a href='#L946'>946</a>
+<a name='L947'></a><a href='#L947'>947</a>
+<a name='L948'></a><a href='#L948'>948</a>
+<a name='L949'></a><a href='#L949'>949</a>
+<a name='L950'></a><a href='#L950'>950</a>
+<a name='L951'></a><a href='#L951'>951</a>
+<a name='L952'></a><a href='#L952'>952</a>
+<a name='L953'></a><a href='#L953'>953</a>
+<a name='L954'></a><a href='#L954'>954</a>
+<a name='L955'></a><a href='#L955'>955</a>
+<a name='L956'></a><a href='#L956'>956</a>
+<a name='L957'></a><a href='#L957'>957</a>
+<a name='L958'></a><a href='#L958'>958</a>
+<a name='L959'></a><a href='#L959'>959</a>
+<a name='L960'></a><a href='#L960'>960</a>
+<a name='L961'></a><a href='#L961'>961</a>
+<a name='L962'></a><a href='#L962'>962</a>
+<a name='L963'></a><a href='#L963'>963</a>
+<a name='L964'></a><a href='#L964'>964</a>
+<a name='L965'></a><a href='#L965'>965</a>
+<a name='L966'></a><a href='#L966'>966</a>
+<a name='L967'></a><a href='#L967'>967</a>
+<a name='L968'></a><a href='#L968'>968</a>
+<a name='L969'></a><a href='#L969'>969</a>
+<a name='L970'></a><a href='#L970'>970</a>
+<a name='L971'></a><a href='#L971'>971</a>
+<a name='L972'></a><a href='#L972'>972</a>
+<a name='L973'></a><a href='#L973'>973</a>
+<a name='L974'></a><a href='#L974'>974</a>
+<a name='L975'></a><a href='#L975'>975</a>
+<a name='L976'></a><a href='#L976'>976</a>
+<a name='L977'></a><a href='#L977'>977</a>
+<a name='L978'></a><a href='#L978'>978</a>
+<a name='L979'></a><a href='#L979'>979</a>
+<a name='L980'></a><a href='#L980'>980</a>
+<a name='L981'></a><a href='#L981'>981</a>
+<a name='L982'></a><a href='#L982'>982</a>
+<a name='L983'></a><a href='#L983'>983</a>
+<a name='L984'></a><a href='#L984'>984</a>
+<a name='L985'></a><a href='#L985'>985</a>
+<a name='L986'></a><a href='#L986'>986</a>
+<a name='L987'></a><a href='#L987'>987</a>
+<a name='L988'></a><a href='#L988'>988</a>
+<a name='L989'></a><a href='#L989'>989</a>
+<a name='L990'></a><a href='#L990'>990</a>
+<a name='L991'></a><a href='#L991'>991</a>
+<a name='L992'></a><a href='#L992'>992</a>
+<a name='L993'></a><a href='#L993'>993</a>
+<a name='L994'></a><a href='#L994'>994</a>
+<a name='L995'></a><a href='#L995'>995</a>
+<a name='L996'></a><a href='#L996'>996</a>
+<a name='L997'></a><a href='#L997'>997</a>
+<a name='L998'></a><a href='#L998'>998</a>
+<a name='L999'></a><a href='#L999'>999</a>
+<a name='L1000'></a><a href='#L1000'>1000</a>
+<a name='L1001'></a><a href='#L1001'>1001</a>
+<a name='L1002'></a><a href='#L1002'>1002</a>
+<a name='L1003'></a><a href='#L1003'>1003</a>
+<a name='L1004'></a><a href='#L1004'>1004</a>
+<a name='L1005'></a><a href='#L1005'>1005</a>
+<a name='L1006'></a><a href='#L1006'>1006</a>
+<a name='L1007'></a><a href='#L1007'>1007</a>
+<a name='L1008'></a><a href='#L1008'>1008</a>
+<a name='L1009'></a><a href='#L1009'>1009</a>
+<a name='L1010'></a><a href='#L1010'>1010</a>
+<a name='L1011'></a><a href='#L1011'>1011</a>
+<a name='L1012'></a><a href='#L1012'>1012</a>
+<a name='L1013'></a><a href='#L1013'>1013</a>
+<a name='L1014'></a><a href='#L1014'>1014</a>
+<a name='L1015'></a><a href='#L1015'>1015</a>
+<a name='L1016'></a><a href='#L1016'>1016</a>
+<a name='L1017'></a><a href='#L1017'>1017</a>
+<a name='L1018'></a><a href='#L1018'>1018</a>
+<a name='L1019'></a><a href='#L1019'>1019</a>
+<a name='L1020'></a><a href='#L1020'>1020</a>
+<a name='L1021'></a><a href='#L1021'>1021</a>
+<a name='L1022'></a><a href='#L1022'>1022</a>
+<a name='L1023'></a><a href='#L1023'>1023</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">54x</span>
+<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">323x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">323x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">325x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">21874x</span>
+<span class="cline-any cline-yes">18108x</span>
+<span class="cline-any cline-yes">85x</span>
+<span class="cline-any cline-yes">18108x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">69x</span>
+<span class="cline-any cline-yes">21805x</span>
+<span class="cline-any cline-yes">21874x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">148x</span>
+<span class="cline-any cline-yes">1924x</span>
+<span class="cline-any cline-yes">1924x</span>
+<span class="cline-any cline-yes">1924x</span>
+<span class="cline-any cline-yes">1924x</span>
+<span class="cline-any cline-yes">1924x</span>
+<span class="cline-any cline-yes">148x</span>
+<span class="cline-any cline-yes">148x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">148x</span>
+<span class="cline-any cline-yes">1924x</span>
+<span class="cline-any cline-yes">148x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-yes">164x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">2000x</span>
+<span class="cline-any cline-yes">2000x</span>
+<span class="cline-any cline-yes">2000x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">1440x</span>
+<span class="cline-any cline-yes">1440x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">4600x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">8928x</span>
+<span class="cline-any cline-yes">8928x</span>
+<span class="cline-any cline-yes">8928x</span>
+<span class="cline-any cline-yes">8928x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">360x</span>
+<span class="cline-any cline-yes">262x</span>
+<span class="cline-any cline-yes">262x</span>
+<span class="cline-any cline-yes">262x</span>
+<span class="cline-any cline-yes">360x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">9288x</span>
+<span class="cline-any cline-yes">336x</span>
+<span class="cline-any cline-yes">336x</span>
+<span class="cline-any cline-yes">400x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2794x</span>
+<span class="cline-any cline-yes">2794x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2794x</span>
+<span class="cline-any cline-yes">2794x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">2394x</span>
+<span class="cline-any cline-yes">2394x</span>
+<span class="cline-any cline-yes">2394x</span>
+<span class="cline-any cline-yes">2858x</span>
+<span class="cline-any cline-yes">59x</span>
+<span class="cline-any cline-yes">59x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">64x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">200x</span>
+<span class="cline-any cline-yes">200x</span>
+<span class="cline-any cline-yes">200x</span>
+<span class="cline-any cline-yes">200x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">259x</span>
+<span class="cline-any cline-yes">259x</span>
+<span class="cline-any cline-yes">265x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">1292x</span>
+<span class="cline-any cline-yes">1292x</span>
+<span class="cline-any cline-yes">1292x</span>
+<span class="cline-any cline-yes">1292x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">716x</span>
+<span class="cline-any cline-yes">716x</span>
+<span class="cline-any cline-yes">716x</span>
+<span class="cline-any cline-yes">716x</span>
+<span class="cline-any cline-yes">716x</span>
+<span class="cline-any cline-yes">716x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">244x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">57x</span>
+<span class="cline-any cline-yes">57x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">1292x</span>
+<span class="cline-any cline-yes">718x</span>
+<span class="cline-any cline-yes">718x</span>
+<span class="cline-any cline-yes">718x</span>
+<span class="cline-any cline-yes">1292x</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">256x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// weapon.js -- To-hit/damage bonuses, weapon skill system, monster weapon AI
+// cf. weapon.c — hitval, dmgval, abon, dbon, skill system, select_hwep/rwep
+&nbsp;
+import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLASS,
+         CREAM_PIE, CORPSE, EGG, BOULDER,
+         IRON_CHAIN, CROSSBOW_BOLT, MORNING_STAR, PARTISAN, RUNESWORD,
+         ELVEN_BROADSWORD, BROADSWORD, FLAIL, RANSEUR, VOULGE,
+         ACID_VENOM, HALBERD, SPETUM, BATTLE_AXE, BARDICHE, TRIDENT,
+         TSURUGI, DWARVISH_MATTOCK, TWO_HANDED_SWORD,
+         MACE, SILVER_MACE, WAR_HAMMER,
+         BILL_GUISARME, GUISARME, LUCERN_HAMMER, LEATHER,
+         KATANA, UNICORN_HORN, CRYSKNIFE, LONG_SWORD, SCIMITAR, SILVER_SABER,
+         SHORT_SWORD, ELVEN_SHORT_SWORD, DWARVISH_SHORT_SWORD, ORCISH_SHORT_SWORD,
+         AXE, BULLWHIP, QUARTERSTAFF, JAVELIN, AKLYS, CLUB, PICK_AXE, RUBBER_HOSE,
+         SILVER_DAGGER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, ATHAME, SCALPEL,
+         KNIFE, WORM_TOOTH,
+         DWARVISH_SPEAR, SILVER_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR,
+         SHURIKEN, YA, SILVER_ARROW, ELVEN_ARROW, ARROW, ORCISH_ARROW,
+         DART, FLINT, ROCK, LOADSTONE, LUCKSTONE,
+         GLAIVE, BEC_DE_CORBIN, FAUCHARD, LANCE, GRAPPLING_HOOK,
+         BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW,
+       } from './objects.js';
+import { rnd, d, rn2 } from './rng.js';
+import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
+         thick_skinned, strongmonst, is_giant, resists_ston, likes_gems,
+         is_animal, is_mindless, touch_petrifies, attacktype, x_monnam,
+       } from './mondata.js';
+import { MZ_LARGE, S_EEL, S_SNAKE, S_XORN, S_DRAGON, S_JABBERWOCK,
+         S_NAGA, S_WORM_TAIL, S_KOP, S_GIANT,
+         PM_BALROG, AT_WEAP,
+       } from './monsters.js';
+import { mons, PM_MONK, PM_SAMURAI, PM_HEALER, PM_CLERIC, PM_WIZARD } from './monsters.js';
+import {
+    W_ARMS, W_ARMG, W_WEP,
+    P_NONE, P_DAGGER, P_KNIFE, P_AXE, P_PICK_AXE, P_SHORT_SWORD, P_BROAD_SWORD,
+    P_LONG_SWORD, P_TWO_HANDED_SWORD, P_SABER, P_CLUB, P_MACE, P_MORNING_STAR,
+    P_FLAIL, P_HAMMER, P_QUARTERSTAFF, P_POLEARMS, P_SPEAR, P_TRIDENT, P_LANCE,
+    P_BOW, P_SLING, P_CROSSBOW, P_DART, P_SHURIKEN, P_BOOMERANG, P_WHIP,
+    P_UNICORN_HORN, P_ATTACK_SPELL, P_HEALING_SPELL, P_DIVINATION_SPELL,
+    P_ENCHANTMENT_SPELL, P_CLERIC_SPELL, P_ESCAPE_SPELL, P_MATTER_SPELL,
+    P_BARE_HANDED_COMBAT, P_TWO_WEAPON_COMBAT, P_RIDING, P_NUM_SKILLS,
+    P_FIRST_WEAPON, P_LAST_WEAPON, P_FIRST_SPELL, P_LAST_SPELL,
+    P_FIRST_H_TO_H, P_LAST_H_TO_H, P_MARTIAL_ARTS, P_SKILL_LIMIT,
+    P_ISRESTRICTED, P_UNSKILLED, P_BASIC, P_SKILLED, P_EXPERT, P_MASTER,
+    P_GRAND_MASTER, NO_WEAPON_WANTED, NEED_WEAPON, NEED_RANGED_WEAPON,
+    NEED_HTH_WEAPON, NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE,
+    BOLT_LIM, AKLYS_LIM,
+} from './const.js';
+import { which_armor } from './worn.js';
+import { spec_abon, artifact_light } from './artifact.js';
+import { dist2 } from './hacklib.js';
+import { couldsee } from './vision.js';
+import { game as _gstate } from './gstate.js';
+&nbsp;
+// Hero skill state (C: P_SKILL/P_MAX_SKILL/P_ADVANCE).
+let skillSystemActive = false;
+const heroSkill = new Array(P_NUM_SKILLS).fill(P_ISRESTRICTED);
+const heroMaxSkill = new Array(P_NUM_SKILLS).fill(P_ISRESTRICTED);
+const heroSkillAdvance = new Array(P_NUM_SKILLS).fill(0);
+&nbsp;
+// ============================================================================
+// hitval — cf. weapon.c:149
+// ============================================================================
+export function hitval(otmp, mon) {
+    if (!otmp) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    let tmp = 0;
+    const info = objectData[otmp.otyp];
+    if (!info) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    const Is_weapon = (info.oc_class === WEAPON_CLASS || info.weptool);
+&nbsp;
+    if (Is_weapon) tmp += (otmp.spe || 0);
+    tmp += (info.oc_oc1 || 0);
+&nbsp;
+    if (mon) {
+        const ptr = mon.type <span class="branch-0 cbranch-no" title="branch not covered" >|| mon.data <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {};</span>
+        if (Is_weapon &amp;&amp; otmp.blessed &amp;&amp; mon_hates_blessings(mon))
+<span class="branch-0 cbranch-no" title="branch not covered" >            tmp += 2;</span>
+        const mlet = ptr.mlet;
+        if (info.oc_subtyp === P_SPEAR &amp;&amp; isKebabable(mlet))
+<span class="branch-0 cbranch-no" title="branch not covered" >            tmp += 2;</span>
+        if (info.oc_subtyp === P_TRIDENT <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ptr.swim)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            if (mlet === S_EEL || mlet === S_SNAKE)</span>
+<span class="cstat-no" title="statement not covered" >                tmp += 2;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+        if (info.oc_subtyp === P_PICK_AXE <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ptr.passes_walls <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; ptr.thick_skinned)</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            tmp += 2;</span>
+    }
+&nbsp;
+    // C ref: weapon.c:182-184 — artifact to-hit bonus
+    if (otmp.oartifact)
+<span class="branch-0 cbranch-no" title="branch not covered" >        tmp += spec_abon(otmp, mon);</span>
+&nbsp;
+    return tmp;
+}
+&nbsp;
+function isKebabable(mlet) {
+    return mlet === S_XORN || mlet === S_DRAGON || mlet === S_JABBERWOCK
+        || mlet === S_NAGA || mlet === S_WORM_TAIL
+        || mlet === S_SNAKE;
+}
+&nbsp;
+// ============================================================================
+// dmgval — cf. weapon.c:216
+// ============================================================================
+export function dmgval(otmp, mon) {
+    if (!otmp) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    const otyp = otmp.otyp;
+    const info = objectData[otyp];
+    if (!info) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    if (otyp === CREAM_PIE) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+&nbsp;
+    const ptr = mon?.type || mon?.data || {};
+    const isLarge = (ptr.msize ?? 0) &gt;= MZ_LARGE;
+    let tmp = 0;
+&nbsp;
+    if (isLarge) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        if (info.oc_wldam) tmp = rnd(info.oc_wldam);</span>
+<span class="cstat-no" title="statement not covered" >        switch (otyp) {</span>
+<span class="cstat-no" title="statement not covered" >        case IRON_CHAIN: case CROSSBOW_BOLT: case MORNING_STAR:</span>
+<span class="cstat-no" title="statement not covered" >        case PARTISAN: case RUNESWORD: case ELVEN_BROADSWORD: case BROADSWORD:</span>
+<span class="cstat-no" title="statement not covered" >            tmp++; break;</span>
+<span class="cstat-no" title="statement not covered" >        case FLAIL: case RANSEUR: case VOULGE:</span>
+<span class="cstat-no" title="statement not covered" >            tmp += rnd(4); break;</span>
+<span class="cstat-no" title="statement not covered" >        case ACID_VENOM: case HALBERD: case SPETUM:</span>
+<span class="cstat-no" title="statement not covered" >            tmp += rnd(6); break;</span>
+<span class="cstat-no" title="statement not covered" >        case BATTLE_AXE: case BARDICHE: case TRIDENT:</span>
+<span class="cstat-no" title="statement not covered" >            tmp += d(2, 4); break;</span>
+<span class="cstat-no" title="statement not covered" >        case TSURUGI: case DWARVISH_MATTOCK: case TWO_HANDED_SWORD:</span>
+<span class="cstat-no" title="statement not covered" >            tmp += d(2, 6); break;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+    } else {
+        if (info.oc_wsdam) tmp = rnd(info.oc_wsdam);
+        switch (otyp) {
+<span class="branch-0 cbranch-no" title="branch not covered" >        case IRON_CHAIN: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case CROSSBOW_BOLT: </span>case MACE: case SILVER_MACE:
+        case WAR_HAMMER: case FLAIL: case SPETUM: case TRIDENT:
+            tmp++; break;
+<span class="branch-0 cbranch-no" title="branch not covered" >        case BATTLE_AXE: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case BARDICHE: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case BILL_GUISARME: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case GUISARME:</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case LUCERN_HAMMER: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case MORNING_STAR: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case RANSEUR:</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case BROADSWORD: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case ELVEN_BROADSWORD: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case RUNESWORD: <span class="branch-0 cbranch-no" title="branch not covered" ></span>case VOULGE:</span>
+<span class="cstat-no" title="statement not covered" >            tmp += rnd(4); break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case ACID_VENOM:</span>
+<span class="cstat-no" title="statement not covered" >            tmp += rnd(6); break;</span>
+        }
+    }
+&nbsp;
+    const Is_weapon = (info.oc_class === WEAPON_CLASS || info.weptool);
+    if (Is_weapon) {
+        tmp += (otmp.spe || 0);
+        if (tmp &lt; 0) <span class="branch-0 cbranch-no" title="branch not covered" >tmp = 0;</span>
+    }
+&nbsp;
+    if (info.oc_material !== undefined &amp;&amp; info.oc_material &lt;= LEATHER
+        &amp;&amp; thick_skinned(ptr))
+<span class="branch-0 cbranch-no" title="branch not covered" >        tmp = 0;</span>
+&nbsp;
+    if (Is_weapon || info.oc_class === GEM_CLASS || info.oc_class === BALL_CLASS
+        || info.oc_class === CHAIN_CLASS) {
+        let bonus = 0;
+        if (mon &amp;&amp; otmp.blessed &amp;&amp; mon_hates_blessings(mon))
+<span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(4);</span>
+        if (info.oc_subtyp === P_AXE <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; ptr.body === 'wood')</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(4);</span>
+        if (mon &amp;&amp; info.oc_material === 14 /* SILVER */ <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; mon_hates_silver(mon))</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(20);</span>
+        // C ref: weapon.c:333-334 — artifact light bonus vs light-hating
+        if (artifact_light(otmp) <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; otmp.lamplit <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; mon_hates_light(mon))</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            bonus += rnd(8);</span>
+        tmp += bonus;
+    }
+&nbsp;
+    return Math.max(tmp, 0);
+}
+&nbsp;
+// C ref: weapon.c special_dmgval() — unarmed blessed/silver damage.
+export <span class="fstat-no" title="function not covered" >function special_dmgval(mon, obj = null) {</span>
+<span class="cstat-no" title="statement not covered" >    let bonus = 0;</span>
+<span class="cstat-no" title="statement not covered" >    if (obj &amp;&amp; obj.blessed &amp;&amp; mon_hates_blessings(mon)) bonus += rnd(4);</span>
+<span class="cstat-no" title="statement not covered" >    const mat = obj ? objectData[obj.otyp]?.oc_material : null;</span>
+<span class="cstat-no" title="statement not covered" >    if (mat === 14 /* SILVER */ &amp;&amp; mon_hates_silver(mon)) bonus += rnd(20);</span>
+<span class="cstat-no" title="statement not covered" >    return bonus;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c silver_sears() — message/effect helper.
+export <span class="fstat-no" title="function not covered" >async function silver_sears(mon, display) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!mon || !display) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (!mon_hates_silver(mon)) return false;</span>
+<span class="cstat-no" title="statement not covered" >    await display.putstr_message(`The silver sears ${x_monnam(mon)}!`);</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// abon — cf. weapon.c:950
+// ============================================================================
+export function abon(str, dex, level) {
+    let sbon;
+    if (str &lt; 6) <span class="branch-0 cbranch-no" title="branch not covered" >sbon = -2;</span>
+    else if (str &lt; 8) sbon = -1;
+    else if (str &lt; 17) sbon = 0;
+    else if (str &lt;= 18) sbon = 1;
+    else if (str &lt; 22) sbon = 2;
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    else sbon = 3;</span></span>
+    sbon += (level &lt; 3) ? 1 <span class="branch-0 cbranch-no" title="branch not covered" >: 0;</span>
+    if (dex &lt; 4) <span class="branch-0 cbranch-no" title="branch not covered" >return sbon - 3;</span>
+    if (dex &lt; 6) <span class="branch-0 cbranch-no" title="branch not covered" >return sbon - 2;</span>
+    if (dex &lt; 8) <span class="branch-0 cbranch-no" title="branch not covered" >return sbon - 1;</span>
+    if (dex &lt; 14) return sbon;
+    return sbon + dex - 14;
+}
+&nbsp;
+// ============================================================================
+// dbon — cf. weapon.c:988
+// ============================================================================
+export function dbon(str) {
+    if (str &lt; 6) <span class="branch-0 cbranch-no" title="branch not covered" >return -1;</span>
+    if (str &lt; 16) return 0;
+    if (str &lt; 18) return 1;
+    if (str === 18) return 2;
+    if (str &lt;= 20) return 3;
+    if (str &lt;= 22) return 4;
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    if (str &lt; 25) return 5;</span></span>
+<span class="cstat-no" title="statement not covered" >    return 6;</span>
+}
+&nbsp;
+// ============================================================================
+// weapon_hit_bonus / weapon_dam_bonus — cf. weapon.c:1540
+// ============================================================================
+export function weapon_hit_bonus(weapon) {
+    if (!skillSystemActive) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    const wep_type = weapon_type(weapon);
+    // C ref: twoweap override — use P_TWO_WEAPON_COMBAT when dual-wielding
+    const player = _gstate?.u <span class="branch-0 cbranch-no" title="branch not covered" >?? _gstate?.player;</span>
+    const type = (player?.twoweap <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; weapon <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp;</span>
+                  (weapon === player?.weapon || weapon === player?.swapWeapon))
+<span class="branch-0 cbranch-no" title="branch not covered" >        ? P_TWO_WEAPON_COMBAT </span>: wep_type;
+    if (type === P_NONE) return 0;
+    let bonus = 0;
+    const level = heroSkill[type] <span class="branch-0 cbranch-no" title="branch not covered" >?? P_ISRESTRICTED;</span>
+    if (type &lt;= P_LAST_WEAPON) {
+        // C ref: weapon.c:1553-1572 — standard weapon skills
+        switch (level) {
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_ISRESTRICTED:</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_UNSKILLED: bonus = -4; break;</span>
+        case P_BASIC:     bonus = 0;  break;
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_SKILLED:   bonus = 2;  break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_EXPERT:    bonus = 3;  break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        default:          bonus = 0;  break;</span>
+        }
+    } else if (type === P_TWO_WEAPON_COMBAT) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        // C ref: weapon.c:1573-1595 — two-weapon combat</span>
+<span class="cstat-no" title="statement not covered" >        let skill = heroSkill[P_TWO_WEAPON_COMBAT] ?? P_ISRESTRICTED;</span>
+<span class="cstat-no" title="statement not covered" >        const wepSkill = heroSkill[wep_type] ?? P_ISRESTRICTED;</span>
+<span class="cstat-no" title="statement not covered" >        if (wepSkill &lt; skill) skill = wepSkill;</span>
+<span class="cstat-no" title="statement not covered" >        switch (skill) {</span>
+<span class="cstat-no" title="statement not covered" >        case P_ISRESTRICTED:</span>
+<span class="cstat-no" title="statement not covered" >        case P_UNSKILLED: bonus = -9; break;</span>
+<span class="cstat-no" title="statement not covered" >        case P_BASIC:     bonus = -7; break;</span>
+<span class="cstat-no" title="statement not covered" >        case P_SKILLED:   bonus = -5; break;</span>
+<span class="cstat-no" title="statement not covered" >        case P_EXPERT:    bonus = -3; break;</span>
+<span class="cstat-no" title="statement not covered" >        default:          bonus = -9; break;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+    } else if (type === P_BARE_HANDED_COMBAT) {
+        // C ref: weapon.c:1596-1609 — bare-handed / martial arts
+        const roleMnum = player?.roleMnum;
+        const martial = (roleMnum === PM_MONK <span class="branch-0 cbranch-no" title="branch not covered" >|| roleMnum === PM_SAMURAI)</span>;
+        bonus = Math.max(level, P_UNSKILLED) - 1;
+        bonus = Math.floor((bonus + 2) * (martial ? 2 <span class="branch-0 cbranch-no" title="branch not covered" >: 1)</span> / 2);
+    }
+    // C ref: weapon.c:1611-1625 — riding penalty
+    if (player?.usteed) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const ridingSkill = heroSkill[P_RIDING] ?? P_ISRESTRICTED;</span>
+<span class="cstat-no" title="statement not covered" >        if (ridingSkill &lt;= P_UNSKILLED) bonus -= 2;</span>
+<span class="cstat-no" title="statement not covered" >        else if (ridingSkill === P_BASIC) bonus -= 1;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    return bonus;
+}
+&nbsp;
+// cf. weapon.c:1638
+export function weapon_dam_bonus(weapon) {
+    if (!skillSystemActive) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    const wep_type = weapon_type(weapon);
+    const player = _gstate?.u <span class="branch-0 cbranch-no" title="branch not covered" >?? _gstate?.player;</span>
+    const type = (player?.twoweap <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; weapon <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp;</span>
+                  (weapon === player?.weapon || weapon === player?.swapWeapon))
+<span class="branch-0 cbranch-no" title="branch not covered" >        ? P_TWO_WEAPON_COMBAT </span>: wep_type;
+    if (type === P_NONE) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+    let bonus = 0;
+    const level = heroSkill[type] <span class="branch-0 cbranch-no" title="branch not covered" >?? P_ISRESTRICTED;</span>
+    if (type &lt;= P_LAST_WEAPON) {
+        switch (level) {
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_ISRESTRICTED:</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_UNSKILLED: bonus = -2; break;</span>
+        case P_BASIC:     bonus = 0;  break;
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_SKILLED:   bonus = 1;  break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        case P_EXPERT:    bonus = 2;  break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        default:          bonus = 0;  break;</span>
+        }
+    }<span class="branch-0 cbranch-no" title="branch not covered" > else if (type === P_TWO_WEAPON_COMBAT) {</span>
+<span class="cstat-no" title="statement not covered" >        let skill = heroSkill[P_TWO_WEAPON_COMBAT] ?? P_ISRESTRICTED;</span>
+<span class="cstat-no" title="statement not covered" >        const wepSkill = heroSkill[wep_type] ?? P_ISRESTRICTED;</span>
+<span class="cstat-no" title="statement not covered" >        if (wepSkill &lt; skill) skill = wepSkill;</span>
+<span class="cstat-no" title="statement not covered" >        switch (skill) {</span>
+<span class="cstat-no" title="statement not covered" >        case P_ISRESTRICTED:</span>
+<span class="cstat-no" title="statement not covered" >        case P_UNSKILLED: bonus = -3; break;</span>
+<span class="cstat-no" title="statement not covered" >        case P_BASIC:     bonus = -1; break;</span>
+<span class="cstat-no" title="statement not covered" >        case P_SKILLED:   bonus = 0;  break;</span>
+<span class="cstat-no" title="statement not covered" >        case P_EXPERT:    bonus = 1;  break;</span>
+<span class="cstat-no" title="statement not covered" >        default:          bonus = -3; break;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    } else if (type === P_BARE_HANDED_COMBAT) {</span>
+<span class="cstat-no" title="statement not covered" >        // C ref: weapon.c:1691-1704</span>
+<span class="cstat-no" title="statement not covered" >        const roleMnum = player?.roleMnum;</span>
+<span class="cstat-no" title="statement not covered" >        const martial = (roleMnum === PM_MONK || roleMnum === PM_SAMURAI);</span>
+<span class="cstat-no" title="statement not covered" >        bonus = Math.max(level, P_UNSKILLED) - 1;</span>
+<span class="cstat-no" title="statement not covered" >        bonus = Math.floor((bonus + 1) * (martial ? 3 : 1) / 2);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    // C ref: weapon.c:1706-1721 — riding thrust damage
+    if (player?.usteed <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; type !== P_TWO_WEAPON_COMBAT)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const ridingSkill = heroSkill[P_RIDING] ?? P_ISRESTRICTED;</span>
+<span class="cstat-no" title="statement not covered" >        if (ridingSkill === P_SKILLED) bonus += 1;</span>
+<span class="cstat-no" title="statement not covered" >        else if (ridingSkill === P_EXPERT) bonus += 2;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    return bonus;
+}
+&nbsp;
+// ============================================================================
+// weapon_type — cf. weapon.c:1512
+// ============================================================================
+// Autotranslated from weapon.c:1511
+export function weapon_type(obj) {
+    if (!obj) return P_BARE_HANDED_COMBAT;
+    const od = objectData[obj.otyp];
+    if (!od) <span class="branch-0 cbranch-no" title="branch not covered" >return P_NONE;</span>
+    if (od.oc_class !== WEAPON_CLASS &amp;&amp; od.oc_class !== TOOL_CLASS
+        &amp;&amp; od.oc_class !== GEM_CLASS)
+        return P_NONE;
+    const skill = od.oc_subtyp || 0; // mapped from C oc_skill
+    return skill &lt; 0 ? -skill : skill;
+}
+&nbsp;
+// ============================================================================
+// oselect — cf. weapon.c:475
+// ============================================================================
+// Find one item of given type in monster inventory.
+export function oselect(mtmp, type) {
+    for (const otmp of (mtmp.minvent <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
+        if (otmp.otyp !== type) continue;
+        // Never select non-cockatrice corpses/eggs
+        if ((type === CORPSE || type === EGG)) {
+            if (otmp.corpsenm === undefined || otmp.corpsenm &lt; 0) continue;
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >            if (!touch_petrifies(mons[otmp.corpsenm])) continue;</span></span>
+        }
+        return otmp;
+    }
+    return null;
+}
+&nbsp;
+// m_carrying: find object of given type in monster inventory
+function m_carrying(mtmp, type) {
+    for (const otmp of (mtmp.minvent <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
+        if (otmp.otyp === type) return otmp;
+    }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    return null;</span></span>
+}
+export { m_carrying };
+&nbsp;
+// ============================================================================
+// autoreturn_weapon — cf. weapon.c:520
+// ============================================================================
+const arwep = [
+    { otyp: AKLYS, range: AKLYS_LIM * AKLYS_LIM, tethered: 1 },
+];
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function autoreturn_weapon(otmp) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!otmp) return null;</span>
+<span class="cstat-no" title="statement not covered" >    for (const arw of arwep) {</span>
+<span class="cstat-no" title="statement not covered" >        if (otmp.otyp === arw.otyp) return arw;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return null;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// rwep[] — ranged weapon priority list cf. weapon.c:498
+// ============================================================================
+const rwep = [
+    DWARVISH_SPEAR, SILVER_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, JAVELIN,
+    SHURIKEN, YA, SILVER_ARROW, ELVEN_ARROW, ARROW, ORCISH_ARROW,
+    CROSSBOW_BOLT, SILVER_DAGGER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, KNIFE,
+    FLINT, ROCK, LOADSTONE, LUCKSTONE, DART, CREAM_PIE,
+];
+&nbsp;
+// polearms list
+const pwep = [
+    HALBERD, BARDICHE, SPETUM, BILL_GUISARME, VOULGE, RANSEUR,
+    GUISARME, GLAIVE, LUCERN_HAMMER, BEC_DE_CORBIN, FAUCHARD, PARTISAN, LANCE,
+];
+&nbsp;
+// ============================================================================
+// select_rwep — cf. weapon.c:533
+// ============================================================================
+// Select best ranged weapon for monster. Returns {weapon, propellor} or null.
+export function select_rwep(mtmp) {
+    let otmp;
+    let propellor = null; // null means "hands" (no launcher needed)
+&nbsp;
+    const mlet = (mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span>.mlet;
+&nbsp;
+    // cockatrice eggs first
+    if ((otmp = oselect(mtmp, EGG)) != null) <span class="branch-0 cbranch-no" title="branch not covered" >return { weapon: otmp, propellor: null };</span>
+&nbsp;
+    // Kops prefer pies
+    if (mlet === S_KOP <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; (otmp = oselect(mtmp, CREAM_PIE)) != null)</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >        return { weapon: otmp, propellor: null };</span>
+&nbsp;
+    // Giants prefer boulders
+    if (((mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type)</span>?.mflags2 <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> &amp; 0x00002000 /* M2_ROCKTHROW */ <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp;</span>
+        (otmp = oselect(mtmp, BOULDER)) != null)
+<span class="branch-0 cbranch-no" title="branch not covered" >        return { weapon: otmp, propellor: null };</span>
+&nbsp;
+    // Polearms: within distance 13 and can see
+    const mwep = mtmp.weapon;
+    const mweponly = mwep &amp;&amp; mwep.cursed <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; mtmp.weapon_check === NO_WEAPON_WANTED;</span>
+&nbsp;
+    if (dist2(mtmp.mx, mtmp.my, mtmp.mux <span class="branch-0 cbranch-no" title="branch not covered" >|| 0,</span> mtmp.muy <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> &lt;= 13) {
+        for (const pw of pwep) {
+            const od = objectData[pw];
+            if (!od) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
+            if (((strongmonst(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type)</span> <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !(mtmp.misc_worn_check &amp; W_ARMS))</span>
+                 || !od.big)
+                &amp;&amp; (od.oc_material !== 14 /* SILVER */ <span class="branch-0 cbranch-no" title="branch not covered" >|| !mon_hates_silver(mtmp))</span>) {
+                if ((otmp = oselect(mtmp, pw)) != null
+<span class="branch-0 cbranch-no" title="branch not covered" >                    &amp;&amp; (otmp === mwep || !mweponly))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >                    return { weapon: otmp, propellor: otmp }; // force wield polearm</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+            }
+        }
+    }
+&nbsp;
+    // Throw-and-return weapons (aklys)
+    for (const arw of arwep) {
+        if (!is_mindless(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span> &amp;&amp; !is_animal(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span> &amp;&amp; !mweponly
+            &amp;&amp; dist2(mtmp.mx, mtmp.my, mtmp.mux <span class="branch-0 cbranch-no" title="branch not covered" >|| 0,</span> mtmp.muy <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> &lt;= arw.range) {
+            const od = objectData[arw.otyp];
+            if ((!(mtmp.misc_worn_check &amp; W_ARMS) <span class="branch-0 cbranch-no" title="branch not covered" >|| !(od &amp;&amp; od.big))</span>
+                &amp;&amp; (!(od &amp;&amp; od.oc_material === 14) <span class="branch-0 cbranch-no" title="branch not covered" >|| !mon_hates_silver(mtmp))</span>) {
+                if ((otmp = oselect(mtmp, arw.otyp)) != null
+<span class="branch-0 cbranch-no" title="branch not covered" >                    &amp;&amp; (otmp === mwep || !mweponly))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >                    return { weapon: otmp, propellor: otmp };</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+            }
+        }
+    }
+&nbsp;
+    // Standard ranged weapon priority list
+    for (let i = 0; i &lt; rwep.length; i++) {
+        // Gem-slinging: right before darts
+        if (rwep[i] === DART &amp;&amp; likes_gems(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            &amp;&amp; m_carrying(mtmp, SLING))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            for (const invObj of (mtmp.minvent || [])) {</span>
+<span class="cstat-no" title="statement not covered" >                if (invObj.oclass === GEM_CLASS</span>
+<span class="cstat-no" title="statement not covered" >                    &amp;&amp; (invObj.otyp !== LOADSTONE || !invObj.cursed)) {</span>
+<span class="cstat-no" title="statement not covered" >                    return { weapon: invObj, propellor: m_carrying(mtmp, SLING) };</span>
+<span class="cstat-no" title="statement not covered" >                }</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+        propellor = null; // hands
+        const od = objectData[rwep[i]];
+        const skill = od ? (od.oc_subtyp || 0) <span class="branch-0 cbranch-no" title="branch not covered" >: 0;</span>
+        if (skill &lt; 0) {
+            switch (-skill) {
+            case P_BOW:
+                propellor = oselect(mtmp, YUMI) || oselect(mtmp, ELVEN_BOW)
+                    || oselect(mtmp, BOW) || oselect(mtmp, ORCISH_BOW);
+                break;
+            case P_SLING:
+                propellor = oselect(mtmp, SLING);
+                break;
+            case P_CROSSBOW:
+                propellor = oselect(mtmp, CROSSBOW);
+                break;
+            }
+            // If wielded weapon is welded and it's not the propellor, can't use
+            if (mwep &amp;&amp; mwep.cursed <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; mwep !== propellor</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >                &amp;&amp; mtmp.weapon_check === NO_WEAPON_WANTED)</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >                propellor = undefined; </span>// needed one and didn't have one
+        }
+&nbsp;
+        if (propellor !== undefined) {
+            if (rwep[i] !== LOADSTONE) {
+                otmp = oselect(mtmp, rwep[i]);
+                if (otmp &amp;&amp; !otmp.oartifact
+                    &amp;&amp; !(otmp === mwep &amp;&amp; mwep.cursed))
+                    return { weapon: otmp, propellor };
+            } else {
+                for (const invObj of (mtmp.minvent <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
+                    if (invObj.otyp === LOADSTONE <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !invObj.cursed)</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >                        return { weapon: invObj, propellor };</span>
+                }
+            }
+        }
+    }
+&nbsp;
+    return null;
+}
+&nbsp;
+// ============================================================================
+// monmightthrowwep — cf. weapon.c:680
+// ============================================================================
+export <span class="fstat-no" title="function not covered" >function monmightthrowwep(obj) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!obj) return false;</span>
+<span class="cstat-no" title="statement not covered" >    for (const r of rwep) {</span>
+<span class="cstat-no" title="statement not covered" >        if (obj.otyp === r) return true;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return false;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// hwep[] — melee weapon priority list cf. weapon.c:691
+// ============================================================================
+const hwep = [
+    CORPSE, // cockatrice corpse
+    TSURUGI, RUNESWORD, DWARVISH_MATTOCK, TWO_HANDED_SWORD, BATTLE_AXE,
+    KATANA, UNICORN_HORN, CRYSKNIFE, TRIDENT, LONG_SWORD, ELVEN_BROADSWORD,
+    BROADSWORD, SCIMITAR, SILVER_SABER, MORNING_STAR, ELVEN_SHORT_SWORD,
+    DWARVISH_SHORT_SWORD, SHORT_SWORD, ORCISH_SHORT_SWORD, SILVER_MACE, MACE,
+    AXE, DWARVISH_SPEAR, SILVER_SPEAR, ELVEN_SPEAR, SPEAR, ORCISH_SPEAR, FLAIL,
+    BULLWHIP, QUARTERSTAFF, JAVELIN, AKLYS, CLUB, PICK_AXE, RUBBER_HOSE,
+    WAR_HAMMER, SILVER_DAGGER, ELVEN_DAGGER, DAGGER, ORCISH_DAGGER, ATHAME,
+    SCALPEL, KNIFE, WORM_TOOTH,
+];
+&nbsp;
+// ============================================================================
+// select_hwep — cf. weapon.c:705
+// ============================================================================
+// Select best melee weapon for monster.
+export function select_hwep(mtmp) {
+    const strong = strongmonst(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span>;
+    const wearing_shield = !!(mtmp.misc_worn_check &amp; W_ARMS);
+&nbsp;
+    // Prefer artifacts (simplified: skip artifact check, not implemented)
+&nbsp;
+    // Giants prefer clubs
+    if (is_giant(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span>) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const otmp = oselect(mtmp, CLUB);</span>
+<span class="cstat-no" title="statement not covered" >        if (otmp) return otmp;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    // Balrog prefers bullwhip
+    if ((mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type)</span> === mons[PM_BALROG]) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const otmp = oselect(mtmp, BULLWHIP);</span>
+<span class="cstat-no" title="statement not covered" >        if (otmp) return otmp;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+&nbsp;
+    for (const hw of hwep) {
+        // Cockatrice corpse: needs gloves and stone resistance
+        if (hw === CORPSE &amp;&amp; !(mtmp.misc_worn_check &amp; W_ARMG)
+            &amp;&amp; !resists_ston(mtmp))
+            continue;
+&nbsp;
+        const od = objectData[hw];
+        if (!od) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
+&nbsp;
+        // Only strong monsters can wield bimanual weapons (unless wearing shield)
+        if (((strong &amp;&amp; !wearing_shield) || !od.big)
+            &amp;&amp; (od.oc_material !== 14 /* SILVER */ || !mon_hates_silver(mtmp))) {
+            const otmp = oselect(mtmp, hw);
+            if (otmp) return otmp;
+        }
+    }
+&nbsp;
+    return null;
+}
+&nbsp;
+// ============================================================================
+// setmnotwielded — cf. weapon.c:1809
+// ============================================================================
+export <span class="fstat-no" title="function not covered" >function setmnotwielded(mon, obj) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!obj) return;</span>
+<span class="cstat-no" title="statement not covered" >    // artifact light handling: simplified (no artifact system)</span>
+<span class="cstat-no" title="statement not covered" >    if (mon.weapon === obj) mon.weapon = null;</span>
+<span class="cstat-no" title="statement not covered" >    obj.owornmask = (obj.owornmask || 0) &amp; ~W_WEP;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// mwepgone — cf. weapon.c:938
+// ============================================================================
+export <span class="fstat-no" title="function not covered" >function mwepgone(mon) {</span>
+<span class="cstat-no" title="statement not covered" >    const mwep = mon.weapon;</span>
+<span class="cstat-no" title="statement not covered" >    if (mwep) {</span>
+<span class="cstat-no" title="statement not covered" >        setmnotwielded(mon, mwep);</span>
+<span class="cstat-no" title="statement not covered" >        mon.weapon_check = NEED_WEAPON;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// possibly_unwield — cf. weapon.c:747
+// ============================================================================
+export function possibly_unwield(mon, _polyspot) {
+    const mw_tmp = mon.weapon;
+    if (!mw_tmp) return;
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
+<span class="cstat-no" title="statement not covered" >    // Check if weapon is still in inventory</span>
+<span class="cstat-no" title="statement not covered" >    let found = false;</span>
+    for (const obj of (mon.minvent || [])) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        if (obj === mw_tmp) { found = true; break; }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    if (!found) {</span>
+<span class="cstat-no" title="statement not covered" >        // Weapon was stolen or destroyed</span>
+<span class="cstat-no" title="statement not covered" >        mon.weapon = null;</span>
+<span class="cstat-no" title="statement not covered" >        mon.weapon_check = NEED_WEAPON;</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+    if (!attacktype(mon.data || mon.type <span class="branch-0 cbranch-no" title="branch not covered" >|| {},</span> AT_WEAP)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        // Monster can no longer use weapons</span>
+<span class="cstat-no" title="statement not covered" >        setmnotwielded(mon, mw_tmp);</span>
+<span class="cstat-no" title="statement not covered" >        mon.weapon_check = NO_WEAPON_WANTED;</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    // Otherwise just mark for re-evaluation</span>
+    if (!(mw_tmp.cursed &amp;&amp; mon.weapon_check === NO_WEAPON_WANTED))
+<span class="branch-0 cbranch-no" title="branch not covered" >        mon.weapon_check = NEED_WEAPON;</span>
+}
+&nbsp;
+// ============================================================================
+// mon_wield_item — cf. weapon.c:801
+// ============================================================================
+// Monster wields appropriate weapon. Returns 1 if took time, 0 otherwise.
+export function mon_wield_item(mon) {
+    let obj;
+&nbsp;
+    if (mon.weapon_check === NO_WEAPON_WANTED) <span class="branch-0 cbranch-no" title="branch not covered" >return 0;</span>
+&nbsp;
+    switch (mon.weapon_check) {
+    case NEED_HTH_WEAPON:
+        obj = select_hwep(mon);
+        break;
+    case NEED_RANGED_WEAPON: {
+        const result = select_rwep(mon);
+        obj = result ? result.propellor : null;
+        break;
+    }
+    case NEED_PICK_AXE:
+        obj = m_carrying(mon, PICK_AXE);
+        if (!obj <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !which_armor(mon, W_ARMS))</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >            obj = m_carrying(mon, DWARVISH_MATTOCK);</span>
+        break;
+<span class="branch-0 cbranch-no" title="branch not covered" >    case NEED_AXE:</span>
+<span class="cstat-no" title="statement not covered" >        obj = m_carrying(mon, BATTLE_AXE);</span>
+<span class="cstat-no" title="statement not covered" >        if (!obj || which_armor(mon, W_ARMS))</span>
+<span class="cstat-no" title="statement not covered" >            obj = m_carrying(mon, AXE);</span>
+<span class="cstat-no" title="statement not covered" >        break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >    case NEED_PICK_OR_AXE:</span>
+<span class="cstat-no" title="statement not covered" >        obj = m_carrying(mon, DWARVISH_MATTOCK);</span>
+<span class="cstat-no" title="statement not covered" >        if (!obj) obj = m_carrying(mon, BATTLE_AXE);</span>
+<span class="cstat-no" title="statement not covered" >        if (!obj || which_armor(mon, W_ARMS)) {</span>
+<span class="cstat-no" title="statement not covered" >            obj = m_carrying(mon, PICK_AXE);</span>
+<span class="cstat-no" title="statement not covered" >            if (!obj) obj = m_carrying(mon, AXE);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        break;</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >    default:</span>
+<span class="cstat-no" title="statement not covered" >        return 0;</span>
+    }
+&nbsp;
+    if (obj) {
+        const mw_tmp = mon.weapon;
+        if (mw_tmp &amp;&amp; mw_tmp.otyp === obj.otyp) {
+            // Already wielding same type
+            mon.weapon_check = NEED_WEAPON;
+            return 0;
+        }
+        // Check for welded weapon
+        if (mw_tmp <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; mw_tmp.cursed)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >            mon.weapon_check = NO_WEAPON_WANTED;</span>
+<span class="cstat-no" title="statement not covered" >            return 1;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+        // Wield the new weapon
+        if (mw_tmp) <span class="branch-0 cbranch-no" title="branch not covered" >setmnotwielded(mon, mw_tmp);</span>
+        mon.weapon = obj;
+        mon.weapon_check = NEED_WEAPON;
+        obj.owornmask = (obj.owornmask || 0) | W_WEP;
+        return 1;
+    }
+    mon.weapon_check = NEED_WEAPON;
+    return 0;
+}
+&nbsp;
+// ============================================================================
+// Towel functions — cf. weapon.c:1014-1083
+// ============================================================================
+export <span class="fstat-no" title="function not covered" >function finish_towel_change(obj, newspe) {</span>
+<span class="cstat-no" title="statement not covered" >    newspe = Math.min(newspe, 7);</span>
+<span class="cstat-no" title="statement not covered" >    obj.spe = Math.max(newspe, 0);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function wet_a_towel(obj, amt, _verbose) {</span>
+<span class="cstat-no" title="statement not covered" >    const newspe = (amt &lt;= 0) ? (obj.spe || 0) - amt : amt;</span>
+<span class="cstat-no" title="statement not covered" >    if (newspe !== (obj.spe || 0))</span>
+<span class="cstat-no" title="statement not covered" >        finish_towel_change(obj, newspe);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function dry_a_towel(obj, amt, _verbose) {</span>
+<span class="cstat-no" title="statement not covered" >    const newspe = (amt &lt; 0) ? (obj.spe || 0) + amt : amt;</span>
+<span class="cstat-no" title="statement not covered" >    if (newspe !== (obj.spe || 0))</span>
+<span class="cstat-no" title="statement not covered" >        finish_towel_change(obj, newspe);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// Skill level helpers — cf. weapon.c:1087-1123
+// ============================================================================
+export <span class="fstat-no" title="function not covered" >function skill_level_name(level) {</span>
+<span class="cstat-no" title="statement not covered" >    switch (level) {</span>
+<span class="cstat-no" title="statement not covered" >    case P_UNSKILLED: return 'Unskilled';</span>
+<span class="cstat-no" title="statement not covered" >    case P_BASIC: return 'Basic';</span>
+<span class="cstat-no" title="statement not covered" >    case P_SKILLED: return 'Skilled';</span>
+<span class="cstat-no" title="statement not covered" >    case P_EXPERT: return 'Expert';</span>
+<span class="cstat-no" title="statement not covered" >    case P_MASTER: return 'Master';</span>
+<span class="cstat-no" title="statement not covered" >    case P_GRAND_MASTER: return 'Grand Master';</span>
+<span class="cstat-no" title="statement not covered" >    default: return 'Unknown';</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c weapon_descr()/skill_name() helper.
+export <span class="fstat-no" title="function not covered" >function weapon_descr(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    return skill_name(skill);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function skill_name(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    switch (skill) {</span>
+<span class="cstat-no" title="statement not covered" >    case P_DAGGER: return 'dagger';</span>
+<span class="cstat-no" title="statement not covered" >    case P_KNIFE: return 'knife';</span>
+<span class="cstat-no" title="statement not covered" >    case P_AXE: return 'axe';</span>
+<span class="cstat-no" title="statement not covered" >    case P_PICK_AXE: return 'pick-axe';</span>
+<span class="cstat-no" title="statement not covered" >    case P_SHORT_SWORD: return 'short sword';</span>
+<span class="cstat-no" title="statement not covered" >    case P_BROAD_SWORD: return 'broadsword';</span>
+<span class="cstat-no" title="statement not covered" >    case P_LONG_SWORD: return 'long sword';</span>
+<span class="cstat-no" title="statement not covered" >    case P_TWO_HANDED_SWORD: return 'two-handed sword';</span>
+<span class="cstat-no" title="statement not covered" >    case P_SABER: return 'saber';</span>
+<span class="cstat-no" title="statement not covered" >    case P_CLUB: return 'club';</span>
+<span class="cstat-no" title="statement not covered" >    case P_MACE: return 'mace';</span>
+<span class="cstat-no" title="statement not covered" >    case P_MORNING_STAR: return 'morning star';</span>
+<span class="cstat-no" title="statement not covered" >    case P_FLAIL: return 'flail';</span>
+<span class="cstat-no" title="statement not covered" >    case P_HAMMER: return 'hammer';</span>
+<span class="cstat-no" title="statement not covered" >    case P_QUARTERSTAFF: return 'quarterstaff';</span>
+<span class="cstat-no" title="statement not covered" >    case P_POLEARMS: return 'polearms';</span>
+<span class="cstat-no" title="statement not covered" >    case P_SPEAR: return 'spear';</span>
+<span class="cstat-no" title="statement not covered" >    case P_TRIDENT: return 'trident';</span>
+<span class="cstat-no" title="statement not covered" >    case P_LANCE: return 'lance';</span>
+<span class="cstat-no" title="statement not covered" >    case P_BOW: return 'bow';</span>
+<span class="cstat-no" title="statement not covered" >    case P_SLING: return 'sling';</span>
+<span class="cstat-no" title="statement not covered" >    case P_CROSSBOW: return 'crossbow';</span>
+<span class="cstat-no" title="statement not covered" >    case P_DART: return 'dart';</span>
+<span class="cstat-no" title="statement not covered" >    case P_SHURIKEN: return 'shuriken';</span>
+<span class="cstat-no" title="statement not covered" >    case P_BOOMERANG: return 'boomerang';</span>
+<span class="cstat-no" title="statement not covered" >    case P_WHIP: return 'whip';</span>
+<span class="cstat-no" title="statement not covered" >    case P_UNICORN_HORN: return 'unicorn horn';</span>
+<span class="cstat-no" title="statement not covered" >    case P_ATTACK_SPELL: return 'attack spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_HEALING_SPELL: return 'healing spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_DIVINATION_SPELL: return 'divination spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_ENCHANTMENT_SPELL: return 'enchantment spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_CLERIC_SPELL: return 'clerical spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_ESCAPE_SPELL: return 'escape spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_MATTER_SPELL: return 'matter spells';</span>
+<span class="cstat-no" title="statement not covered" >    case P_BARE_HANDED_COMBAT: return 'bare-handed combat';</span>
+<span class="cstat-no" title="statement not covered" >    case P_TWO_WEAPON_COMBAT: return 'two weapon combat';</span>
+<span class="cstat-no" title="statement not covered" >    case P_RIDING: return 'riding';</span>
+<span class="cstat-no" title="statement not covered" >    default: return 'unknown';</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// ============================================================================
+// ============================================================================
+// cf. u_init.c Skill_A through Skill_W — per-role skill tables.
+// Each entry: [skill_index, max_level]. Terminated by [P_NONE, 0].
+// ============================================================================
+&nbsp;
+// Role indices match roles[] in player.js (0=Arc, 1=Bar, 2=Cav, 3=Hea, 4=Kni,
+// 5=Mon, 6=Pri, 7=Ran, 8=Rog, 9=Sam, 10=Tou, 11=Val, 12=Wiz).
+const ROLE_SKILL_TABLES = [
+    // 0 = Archeologist
+    [[P_DAGGER,P_BASIC],[P_KNIFE,P_BASIC],[P_PICK_AXE,P_EXPERT],[P_SHORT_SWORD,P_BASIC],[P_SABER,P_EXPERT],[P_CLUB,P_SKILLED],[P_QUARTERSTAFF,P_SKILLED],[P_SLING,P_SKILLED],[P_DART,P_BASIC],[P_BOOMERANG,P_EXPERT],[P_WHIP,P_EXPERT],[P_UNICORN_HORN,P_SKILLED],[P_ATTACK_SPELL,P_BASIC],[P_HEALING_SPELL,P_BASIC],[P_DIVINATION_SPELL,P_EXPERT],[P_MATTER_SPELL,P_BASIC],[P_RIDING,P_BASIC],[P_TWO_WEAPON_COMBAT,P_BASIC],[P_BARE_HANDED_COMBAT,P_EXPERT]],
+    // 1 = Barbarian
+    [[P_DAGGER,P_BASIC],[P_AXE,P_EXPERT],[P_PICK_AXE,P_SKILLED],[P_SHORT_SWORD,P_EXPERT],[P_BROAD_SWORD,P_SKILLED],[P_LONG_SWORD,P_SKILLED],[P_TWO_HANDED_SWORD,P_EXPERT],[P_SABER,P_SKILLED],[P_CLUB,P_SKILLED],[P_MACE,P_SKILLED],[P_MORNING_STAR,P_SKILLED],[P_FLAIL,P_BASIC],[P_HAMMER,P_EXPERT],[P_QUARTERSTAFF,P_BASIC],[P_SPEAR,P_SKILLED],[P_TRIDENT,P_SKILLED],[P_BOW,P_BASIC],[P_ATTACK_SPELL,P_BASIC],[P_ESCAPE_SPELL,P_BASIC],[P_RIDING,P_BASIC],[P_TWO_WEAPON_COMBAT,P_BASIC],[P_BARE_HANDED_COMBAT,P_MASTER]],
+    // 2 = Caveman
+    [[P_DAGGER,P_BASIC],[P_KNIFE,P_SKILLED],[P_AXE,P_SKILLED],[P_PICK_AXE,P_BASIC],[P_CLUB,P_EXPERT],[P_MACE,P_EXPERT],[P_MORNING_STAR,P_BASIC],[P_FLAIL,P_SKILLED],[P_HAMMER,P_SKILLED],[P_QUARTERSTAFF,P_EXPERT],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_EXPERT],[P_TRIDENT,P_SKILLED],[P_BOW,P_SKILLED],[P_SLING,P_EXPERT],[P_ATTACK_SPELL,P_BASIC],[P_MATTER_SPELL,P_SKILLED],[P_BOOMERANG,P_EXPERT],[P_UNICORN_HORN,P_BASIC],[P_BARE_HANDED_COMBAT,P_MASTER]],
+    // 3 = Healer
+    [[P_DAGGER,P_SKILLED],[P_KNIFE,P_EXPERT],[P_SHORT_SWORD,P_SKILLED],[P_SABER,P_BASIC],[P_CLUB,P_SKILLED],[P_MACE,P_BASIC],[P_QUARTERSTAFF,P_EXPERT],[P_POLEARMS,P_BASIC],[P_SPEAR,P_BASIC],[P_TRIDENT,P_BASIC],[P_SLING,P_SKILLED],[P_DART,P_EXPERT],[P_SHURIKEN,P_SKILLED],[P_UNICORN_HORN,P_EXPERT],[P_HEALING_SPELL,P_EXPERT],[P_BARE_HANDED_COMBAT,P_BASIC]],
+    // 4 = Knight
+    [[P_DAGGER,P_BASIC],[P_KNIFE,P_BASIC],[P_AXE,P_SKILLED],[P_PICK_AXE,P_BASIC],[P_SHORT_SWORD,P_SKILLED],[P_BROAD_SWORD,P_SKILLED],[P_LONG_SWORD,P_EXPERT],[P_TWO_HANDED_SWORD,P_SKILLED],[P_SABER,P_SKILLED],[P_CLUB,P_BASIC],[P_MACE,P_SKILLED],[P_MORNING_STAR,P_SKILLED],[P_FLAIL,P_BASIC],[P_HAMMER,P_BASIC],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_SKILLED],[P_TRIDENT,P_BASIC],[P_LANCE,P_EXPERT],[P_BOW,P_BASIC],[P_CROSSBOW,P_SKILLED],[P_ATTACK_SPELL,P_SKILLED],[P_HEALING_SPELL,P_SKILLED],[P_CLERIC_SPELL,P_SKILLED],[P_RIDING,P_EXPERT],[P_TWO_WEAPON_COMBAT,P_SKILLED],[P_BARE_HANDED_COMBAT,P_EXPERT]],
+    // 5 = Monk
+    [[P_QUARTERSTAFF,P_BASIC],[P_SPEAR,P_BASIC],[P_CROSSBOW,P_BASIC],[P_SHURIKEN,P_BASIC],[P_ATTACK_SPELL,P_BASIC],[P_HEALING_SPELL,P_EXPERT],[P_DIVINATION_SPELL,P_BASIC],[P_ENCHANTMENT_SPELL,P_BASIC],[P_CLERIC_SPELL,P_SKILLED],[P_ESCAPE_SPELL,P_SKILLED],[P_MATTER_SPELL,P_BASIC],[P_BARE_HANDED_COMBAT,P_GRAND_MASTER]],
+    // 6 = Priest
+    [[P_CLUB,P_EXPERT],[P_MACE,P_EXPERT],[P_MORNING_STAR,P_EXPERT],[P_FLAIL,P_EXPERT],[P_HAMMER,P_EXPERT],[P_QUARTERSTAFF,P_EXPERT],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_SKILLED],[P_TRIDENT,P_SKILLED],[P_LANCE,P_BASIC],[P_BOW,P_BASIC],[P_SLING,P_BASIC],[P_CROSSBOW,P_BASIC],[P_DART,P_BASIC],[P_SHURIKEN,P_BASIC],[P_BOOMERANG,P_BASIC],[P_UNICORN_HORN,P_SKILLED],[P_HEALING_SPELL,P_EXPERT],[P_DIVINATION_SPELL,P_EXPERT],[P_CLERIC_SPELL,P_EXPERT],[P_BARE_HANDED_COMBAT,P_BASIC]],
+    // 7 = Ranger
+    [[P_DAGGER,P_EXPERT],[P_KNIFE,P_SKILLED],[P_AXE,P_SKILLED],[P_PICK_AXE,P_BASIC],[P_SHORT_SWORD,P_BASIC],[P_MORNING_STAR,P_BASIC],[P_FLAIL,P_SKILLED],[P_HAMMER,P_BASIC],[P_QUARTERSTAFF,P_BASIC],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_EXPERT],[P_TRIDENT,P_BASIC],[P_BOW,P_EXPERT],[P_SLING,P_EXPERT],[P_CROSSBOW,P_EXPERT],[P_DART,P_EXPERT],[P_SHURIKEN,P_SKILLED],[P_BOOMERANG,P_EXPERT],[P_WHIP,P_BASIC],[P_HEALING_SPELL,P_BASIC],[P_DIVINATION_SPELL,P_EXPERT],[P_ESCAPE_SPELL,P_BASIC],[P_RIDING,P_BASIC],[P_BARE_HANDED_COMBAT,P_BASIC]],
+    // 8 = Rogue
+    [[P_DAGGER,P_EXPERT],[P_KNIFE,P_EXPERT],[P_SHORT_SWORD,P_EXPERT],[P_BROAD_SWORD,P_SKILLED],[P_LONG_SWORD,P_SKILLED],[P_TWO_HANDED_SWORD,P_BASIC],[P_SABER,P_SKILLED],[P_CLUB,P_SKILLED],[P_MACE,P_SKILLED],[P_MORNING_STAR,P_BASIC],[P_FLAIL,P_BASIC],[P_HAMMER,P_BASIC],[P_POLEARMS,P_BASIC],[P_SPEAR,P_BASIC],[P_CROSSBOW,P_EXPERT],[P_DART,P_EXPERT],[P_SHURIKEN,P_SKILLED],[P_DIVINATION_SPELL,P_SKILLED],[P_ESCAPE_SPELL,P_SKILLED],[P_MATTER_SPELL,P_SKILLED],[P_RIDING,P_BASIC],[P_TWO_WEAPON_COMBAT,P_EXPERT],[P_BARE_HANDED_COMBAT,P_EXPERT]],
+    // 9 = Samurai
+    [[P_DAGGER,P_BASIC],[P_KNIFE,P_SKILLED],[P_SHORT_SWORD,P_EXPERT],[P_BROAD_SWORD,P_SKILLED],[P_LONG_SWORD,P_EXPERT],[P_TWO_HANDED_SWORD,P_EXPERT],[P_SABER,P_BASIC],[P_FLAIL,P_SKILLED],[P_QUARTERSTAFF,P_BASIC],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_SKILLED],[P_LANCE,P_SKILLED],[P_BOW,P_EXPERT],[P_SHURIKEN,P_EXPERT],[P_ATTACK_SPELL,P_BASIC],[P_DIVINATION_SPELL,P_BASIC],[P_CLERIC_SPELL,P_SKILLED],[P_RIDING,P_SKILLED],[P_TWO_WEAPON_COMBAT,P_EXPERT],[P_BARE_HANDED_COMBAT,P_MASTER]],
+    // 10 = Tourist
+    [[P_DAGGER,P_EXPERT],[P_KNIFE,P_SKILLED],[P_AXE,P_BASIC],[P_PICK_AXE,P_BASIC],[P_SHORT_SWORD,P_EXPERT],[P_BROAD_SWORD,P_BASIC],[P_LONG_SWORD,P_BASIC],[P_TWO_HANDED_SWORD,P_BASIC],[P_SABER,P_SKILLED],[P_MACE,P_BASIC],[P_MORNING_STAR,P_BASIC],[P_FLAIL,P_BASIC],[P_HAMMER,P_BASIC],[P_QUARTERSTAFF,P_BASIC],[P_POLEARMS,P_BASIC],[P_SPEAR,P_BASIC],[P_TRIDENT,P_BASIC],[P_LANCE,P_BASIC],[P_BOW,P_BASIC],[P_SLING,P_BASIC],[P_CROSSBOW,P_BASIC],[P_DART,P_EXPERT],[P_SHURIKEN,P_BASIC],[P_BOOMERANG,P_BASIC],[P_WHIP,P_BASIC],[P_UNICORN_HORN,P_SKILLED],[P_DIVINATION_SPELL,P_BASIC],[P_ENCHANTMENT_SPELL,P_BASIC],[P_ESCAPE_SPELL,P_SKILLED],[P_RIDING,P_BASIC],[P_TWO_WEAPON_COMBAT,P_SKILLED],[P_BARE_HANDED_COMBAT,P_SKILLED]],
+    // 11 = Valkyrie
+    [[P_DAGGER,P_EXPERT],[P_AXE,P_EXPERT],[P_PICK_AXE,P_SKILLED],[P_SHORT_SWORD,P_SKILLED],[P_BROAD_SWORD,P_SKILLED],[P_LONG_SWORD,P_EXPERT],[P_TWO_HANDED_SWORD,P_EXPERT],[P_SABER,P_BASIC],[P_HAMMER,P_EXPERT],[P_QUARTERSTAFF,P_BASIC],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_EXPERT],[P_TRIDENT,P_BASIC],[P_LANCE,P_SKILLED],[P_SLING,P_BASIC],[P_ATTACK_SPELL,P_BASIC],[P_ESCAPE_SPELL,P_BASIC],[P_RIDING,P_SKILLED],[P_TWO_WEAPON_COMBAT,P_SKILLED],[P_BARE_HANDED_COMBAT,P_EXPERT]],
+    // 12 = Wizard
+    [[P_DAGGER,P_EXPERT],[P_KNIFE,P_SKILLED],[P_AXE,P_SKILLED],[P_SHORT_SWORD,P_BASIC],[P_CLUB,P_SKILLED],[P_MACE,P_BASIC],[P_QUARTERSTAFF,P_EXPERT],[P_POLEARMS,P_SKILLED],[P_SPEAR,P_BASIC],[P_TRIDENT,P_BASIC],[P_SLING,P_SKILLED],[P_DART,P_EXPERT],[P_SHURIKEN,P_BASIC],[P_ATTACK_SPELL,P_EXPERT],[P_HEALING_SPELL,P_SKILLED],[P_DIVINATION_SPELL,P_EXPERT],[P_ENCHANTMENT_SPELL,P_SKILLED],[P_CLERIC_SPELL,P_SKILLED],[P_ESCAPE_SPELL,P_EXPERT],[P_MATTER_SPELL,P_EXPERT],[P_RIDING,P_BASIC],[P_BARE_HANDED_COMBAT,P_BASIC]],
+];
+&nbsp;
+// cf. u_init.c skills_for_role() — return skill table for given role index.
+export function skills_for_role(roleIndex) {
+    return ROLE_SKILL_TABLES[roleIndex] <span class="branch-0 cbranch-no" title="branch not covered" >|| null;</span>
+}
+&nbsp;
+// ============================================================================
+// Skill system — data structures and initialization
+// ============================================================================
+&nbsp;
+// cf. u_init.c skill_init() — initialize hero skill arrays for a role.
+// Accepts either:
+//   - an array of [skill_index, max_level] pairs (ROLE_SKILL_TABLES format), or
+//   - null/undefined to reset (no active skill system).
+export function skill_init(_class_skill) {
+    for (let i = 0; i &lt; P_NUM_SKILLS; i++) {
+        heroSkill[i] = P_ISRESTRICTED;
+        heroMaxSkill[i] = P_ISRESTRICTED;
+        heroSkillAdvance[i] = 0;
+    }
+    if (!_class_skill) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        skillSystemActive = false;</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    // C ref: weapon.c:1768-1776 — walk class_skill table, set maximums.
+    // Skills still at P_ISRESTRICTED become P_UNSKILLED (NOT P_BASIC).
+    // P_BASIC is only given to skills matching starting inventory weapons
+    // (done later by skill_init_from_inventory).
+    if (Array.isArray(_class_skill[0])) {
+        for (const [skill, maxLevel] of _class_skill) {
+            if (skill &lt; 0 || skill &gt;= P_NUM_SKILLS) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
+            heroMaxSkill[skill] = maxLevel;
+            if (heroSkill[skill] === P_ISRESTRICTED) {
+                heroSkill[skill] = P_UNSKILLED;
+            }
+        }
+    }<span class="branch-0 cbranch-no" title="branch not covered" > else {</span>
+<span class="cstat-no" title="statement not covered" >        for (let i = 0; i &lt; P_NUM_SKILLS; i++) {</span>
+<span class="cstat-no" title="statement not covered" >            const maxSkill = _class_skill[i] ?? P_BASIC;</span>
+<span class="cstat-no" title="statement not covered" >            heroMaxSkill[i] = maxSkill;</span>
+<span class="cstat-no" title="statement not covered" >            if (heroSkill[i] === P_ISRESTRICTED) {</span>
+<span class="cstat-no" title="statement not covered" >                heroSkill[i] = P_UNSKILLED;</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+    // C ref: weapon.c:1778-1780 — high-potential fighters start with basic
+    if (heroMaxSkill[P_BARE_HANDED_COMBAT] &gt; P_EXPERT) {
+        heroSkill[P_BARE_HANDED_COMBAT] = P_BASIC;
+    }
+    skillSystemActive = true;
+}
+&nbsp;
+// C ref: weapon.c:1745-1784 — Set P_BASIC for weapon skills matching
+// inventory items and role-specific magic skills.
+// Called after starting inventory is created.
+export function skill_init_from_inventory(inventory, roleMnum) {
+    if (!skillSystemActive) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
+    // C ref: weapon.c:1746-1756 — inventory weapon skills → P_BASIC
+    if (inventory) {
+        for (const obj of inventory) {
+            if (is_ammo_obj(obj)) continue;
+            const skill = weapon_type(obj);
+            if (skill !== P_NONE) {
+                heroSkill[skill] = P_BASIC;
+            }
+        }
+    }
+    // C ref: weapon.c:1759-1766 — magic skills by role
+    if (roleMnum === PM_HEALER || roleMnum === PM_MONK) {
+        heroSkill[P_HEALING_SPELL] = P_BASIC;
+    } else if (roleMnum === PM_CLERIC) {
+        heroSkill[P_CLERIC_SPELL] = P_BASIC;
+    } else if (roleMnum === PM_WIZARD) {
+        heroSkill[P_ATTACK_SPELL] = P_BASIC;
+        heroSkill[P_ENCHANTMENT_SPELL] = P_BASIC;
+    }
+    // C ref: weapon.c:1790-1797 — set advance values
+    // practice_needed_to_advance(level) = level * level * 20
+    for (let skill = 0; skill &lt; P_NUM_SKILLS; skill++) {
+        if (heroSkill[skill] &gt; P_ISRESTRICTED) {
+            const lvl = heroSkill[skill] - 1;
+            heroSkillAdvance[skill] = lvl * lvl * 20;
+        }
+    }
+}
+&nbsp;
+// C ref: obj.h is_ammo() — (WEAPON_CLASS || GEM_CLASS) &amp;&amp; oc_skill in [-P_CROSSBOW..-P_BOW]
+function is_ammo_obj(obj) {
+    if (!obj) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    const od = objectData[obj.otyp];
+    if (!od) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
+    if (od.oc_class !== WEAPON_CLASS &amp;&amp; od.oc_class !== GEM_CLASS) return false;
+    const sk = od.oc_subtyp <span class="branch-0 cbranch-no" title="branch not covered" >?? 0;</span>
+    return sk &gt;= -P_CROSSBOW &amp;&amp; sk &lt;= -P_BOW;
+}
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function use_skill(skill, degree = 1) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!skillSystemActive) return;</span>
+<span class="cstat-no" title="statement not covered" >    if (!Number.isInteger(skill) || skill &lt; 0 || skill &gt;= P_NUM_SKILLS) return;</span>
+<span class="cstat-no" title="statement not covered" >    heroSkillAdvance[skill] += Math.max(0, degree | 0);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function unrestrict_weapon_skill(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!Number.isInteger(skill) || skill &lt; 0 || skill &gt;= P_NUM_SKILLS) return;</span>
+<span class="cstat-no" title="statement not covered" >    if (heroMaxSkill[skill] === P_ISRESTRICTED) heroMaxSkill[skill] = P_BASIC;</span>
+<span class="cstat-no" title="statement not covered" >    if (heroSkill[skill] === P_ISRESTRICTED) heroSkill[skill] = P_UNSKILLED;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function add_weapon_skill(n) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!skillSystemActive) return;</span>
+<span class="cstat-no" title="statement not covered" >    heroSkillAdvance[P_NONE] = (heroSkillAdvance[P_NONE] || 0) + Math.max(0, n | 0);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function lose_weapon_skill(n) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!skillSystemActive) return;</span>
+<span class="cstat-no" title="statement not covered" >    heroSkillAdvance[P_NONE] = Math.max(0, (heroSkillAdvance[P_NONE] || 0) - Math.max(0, n | 0));</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function drain_weapon_skill(n = 1) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!skillSystemActive) return;</span>
+<span class="cstat-no" title="statement not covered" >    let tries = Math.max(1, n | 0);</span>
+<span class="cstat-no" title="statement not covered" >    while (tries-- &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >        const candidates = [];</span>
+<span class="cstat-no" title="statement not covered" >        for (let i = 0; i &lt; P_NUM_SKILLS; i++) {</span>
+<span class="cstat-no" title="statement not covered" >            if (heroSkill[i] &gt; P_UNSKILLED) candidates.push(i);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >        if (!candidates.length) return;</span>
+<span class="cstat-no" title="statement not covered" >        const pick = candidates[rn2(candidates.length)];</span>
+<span class="cstat-no" title="statement not covered" >        heroSkill[pick] = Math.max(P_UNSKILLED, heroSkill[pick] - 1);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function enhance_weapon_skill() {</span>
+<span class="cstat-no" title="statement not covered" >    if (!skillSystemActive) return 0;</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = 0; i &lt; P_NUM_SKILLS; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        if (can_advance(i)) {</span>
+<span class="cstat-no" title="statement not covered" >            skill_advance(i);</span>
+<span class="cstat-no" title="statement not covered" >            return 1;</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return 0;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c slots_required().
+export <span class="fstat-no" title="function not covered" >function slots_required(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!Number.isInteger(skill) || skill &lt; 0 || skill &gt;= P_NUM_SKILLS) return 1;</span>
+<span class="cstat-no" title="statement not covered" >    return Math.max(1, heroSkill[skill]);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c could_advance().
+export <span class="fstat-no" title="function not covered" >function could_advance(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!skillSystemActive) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (!Number.isInteger(skill) || skill &lt; 0 || skill &gt;= P_NUM_SKILLS) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (heroSkill[skill] &lt;= P_ISRESTRICTED) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (heroSkill[skill] &gt;= heroMaxSkill[skill]) return false;</span>
+<span class="cstat-no" title="statement not covered" >    return heroSkillAdvance[skill] &gt;= slots_required(skill);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c can_advance().
+export <span class="fstat-no" title="function not covered" >function can_advance(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!could_advance(skill)) return false;</span>
+<span class="cstat-no" title="statement not covered" >    const pool = heroSkillAdvance[P_NONE] || 0;</span>
+<span class="cstat-no" title="statement not covered" >    return pool &gt;= slots_required(skill);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c peaked_skill().
+export <span class="fstat-no" title="function not covered" >function peaked_skill(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!Number.isInteger(skill) || skill &lt; 0 || skill &gt;= P_NUM_SKILLS) return true;</span>
+<span class="cstat-no" title="statement not covered" >    return heroSkill[skill] &gt;= heroMaxSkill[skill];</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c skill_advance().
+export <span class="fstat-no" title="function not covered" >function skill_advance(skill) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!can_advance(skill)) return false;</span>
+<span class="cstat-no" title="statement not covered" >    const cost = slots_required(skill);</span>
+<span class="cstat-no" title="statement not covered" >    heroSkillAdvance[P_NONE] = Math.max(0, (heroSkillAdvance[P_NONE] || 0) - cost);</span>
+<span class="cstat-no" title="statement not covered" >    heroSkill[skill] = Math.min(heroMaxSkill[skill], heroSkill[skill] + 1);</span>
+<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c add_skills_to_menu()/show_skills().
+export <span class="fstat-no" title="function not covered" >function add_skills_to_menu() {</span>
+<span class="cstat-no" title="statement not covered" >    const rows = [];</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = 0; i &lt; P_NUM_SKILLS; i++) {</span>
+<span class="cstat-no" title="statement not covered" >        if (heroSkill[i] &lt;= P_ISRESTRICTED) continue;</span>
+<span class="cstat-no" title="statement not covered" >        rows.push({</span>
+<span class="cstat-no" title="statement not covered" >            skill: i,</span>
+<span class="cstat-no" title="statement not covered" >            name: skill_name(i),</span>
+<span class="cstat-no" title="statement not covered" >            level: heroSkill[i],</span>
+<span class="cstat-no" title="statement not covered" >            levelName: skill_level_name(heroSkill[i]),</span>
+<span class="cstat-no" title="statement not covered" >            canAdvance: can_advance(i),</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return rows;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+export <span class="fstat-no" title="function not covered" >function show_skills() {</span>
+<span class="cstat-no" title="statement not covered" >    return add_skills_to_menu();</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c give_may_advance_msg().
+export <span class="fstat-no" title="function not covered" >async function give_may_advance_msg(display = null) {</span>
+<span class="cstat-no" title="statement not covered" >    const any = add_skills_to_menu().some((row) =&gt; row.canAdvance);</span>
+<span class="cstat-no" title="statement not covered" >    if (any &amp;&amp; display) {</span>
+<span class="cstat-no" title="statement not covered" >        await display.putstr_message('You feel more confident in your weapon skills.');</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    return any;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// C ref: weapon.c uwep_skill_type().
+// Autotranslated from weapon.c:1526
+export <span class="fstat-no" title="function not covered" >function uwep_skill_type(player) {</span>
+<span class="cstat-no" title="statement not covered" >  if (player.twoweap) return P_TWO_WEAPON_COMBAT;</span>
+<span class="cstat-no" title="statement not covered" >  return weapon_type(player.weapon);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

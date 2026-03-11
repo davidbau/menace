@@ -1,0 +1,241 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/engrave_data.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> engrave_data.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>52/52</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/0</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>52/52</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// engrave_data.js -- Raw encrypted engrave file content from NetHack dat/engrave
+// Compiled makedefs output stored as JS constant. Decrypted at load time by hacklib.js.
+&nbsp;
+export const ENGRAVE_FILE_TEXT = `#	This data file is generated by 'makedefs'.  Do not edit. 
+Om\$equvaz0vjazu!{k}0fm((digvm0xmq(qsg*WO^][WO^][WO^][WO^][W
+DnfmbdvlWO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Wnel0vcw(xdpaWO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+\`f\$iuscvael][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Nuhjbdcp\`O^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+FchitskadO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Jkhzx"sic!jazu^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Gpkl!nm~ur][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+@,W&amp;0,&lt;[WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+=/\$I&gt;R,[WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Xmq(gnl#|0fgp(yu"qx0uja(cugt{O^][WO^][WO^][WO^][WO^][WO^][W
+Mcwky\`va(flm(cqgvi~{c\$g0wmm(si%afdscpm&gt;^][WO^][WO^][WO^][W
+Vghd0BmimO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Vg\$i\`nnkoy{g\$ns"p\`u!kjkotafydlgm&gt;^][WO^][WO^][WO^][WO^][W
+Rga(inw\$fuyv\$_uela{t\`{[WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+ompibx"wgz\`i[WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Gmv(q!ekgt!vmeu!aed|!:;?=4141O^][WO^][WO^][WO^][WO^][WO^][W
+Qnaicd"\`g~&amp;v\$nudf\$|xd"efylch{&gt;^][WO^][WO^][WO^][WO^][WO^][W
+Lc\`i}-"mf0Dfaf&lt;!K#e0@fee&gt;^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Uuk(diwijc!wt)O^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Ighd-"Sgbmf%WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Xmq/fd"cgd!oea| ][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+@q\$av ][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+CC@(GNNBWO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+@pkg "\$_usgsg|wgw(g"]m~emv)O^][WO^][WO^][WO^][WO^][WO^][W
+Ekc(vnp\$^ybvkzi!jazu^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Fcm}c!Hqdytq\$Xbhomouokq{0vcw(xdpa&amp;0!Ulq0\`pa(inw\$dqug;WO^][W
+Emj/d!ek(dikw(g\`{[WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Fm\$dugv\$%=,&lt;[WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+=/)%0Fm\$zyfjpWO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Y"iibjq\$|xd"wxu][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Y"8%=,"]ge!cvm0igvm&gt;^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Igvm0cg\$lb\`ekfc^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Rcrm0oms\$0\`l\`(tn"}ges"lg}dukz{ ][WO^][WO^][WO^][WO^][WO^][W
+Ujazu!ue{0\`"lg|d"lmbd,\$(Yu%w(wnla(~nu*WO^][WO^][WO^][WO^][W
+Uja(Fh\`vidhlc(Cpwezu^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Ujm{0hq\$i0qkp)O^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Ujm{0hq\$fu"p\`u!fqfwdmj(inw\$ibd"hgjkjo0gmv&amp;O^][WO^][WO^][W
+Vcpkx!mq|&lt;!vlmbd%w(q!ejg}d"sadi"e(g\`l\`(g"\`mquj\$juikjl0uje|0emkz1
+Ujm{0rsqibd"\`m|h\`azqughq0mgb|0cnef{/][WO^][WO^][WO^][WO^][W
+Icaz}tl\`(X\`p\`ihd"gibwg\`(digwm0swjmc^][WO^][WO^][WO^][WO^][W
+Ogal0\`"hawiv;(0Bmim0wkwad!vlm0Lkjmdnuj(rscjkx!mb(Y{ali{&amp;q\$Dyfjpa~f"W|sg%
+Rlecur"kf0uja(Qrvvi|!Rhi~d")(Cnmj(yo"e(ttlcmo"jmqs"}ge^][W
+Xmq(qsg\$|xd"kfu!omd|hmj|x!tm{yumv(dn"p\`yr"tdqbg%(0Qnaicd"siyu"68 !vqz~r"bgb!{k}b!ueft!mb(ghqla~f,
+Vcvfyoe((Uyrhgthlc(btla{1^][WO^][WO^][WO^][WO^][WO^][WO^][W
+Hd\$qt"gi~!pait!vlmcd"sgbeq\$|xdl\$qt"ezu!lk|0nlhq0\`"jmbe"f}d!rvgr\`\`hq0egel&gt;
+Uja(s\`ia(yr"e(|hg[WO^][WO^][WO^][WO^][WO^][WO^][WO^][WO^][W
+`;
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

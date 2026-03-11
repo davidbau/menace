@@ -1,0 +1,16 @@
+Coverage diff
+  base: /tmp/tmp.sxkehmI2fi
+  head: docs/metrics/session_parity_coverage_latest.json
+  overall lines: 51.09% -> 51.09% (0.00%)
+  overall branches: 60.68% -> 60.70% (+0.02%)
+  overall functions: 30.72% -> 30.73% (+0.01%)
+  tracked file set: +0 / -0
+
+No regressed tracked files.
+
+Most improved tracked files (top 20)
+File                                   Base     Head    Delta
+-------------------------------------  -------  ------- -------
+js/polyself.js                          20.13%   20.38%  +0.25%
+js/attrib.js                            36.18%   36.37%  +0.19%
+js/pray.js                              21.87%   21.97%  +0.10%

@@ -1,0 +1,487 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/artifacts.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> artifacts.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>134/134</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/0</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>134/134</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// artifacts.js — artifact constants and data
+// Auto-imported from nethack-c/include/artilist.h
+// Regenerate with: python3 scripts/generators/gen_artifacts.py
+// AUTO-IMPORT-BEGIN: ARTIFACTS
+// artifacts.js — Auto-generated from nethack-c/include/artilist.h
+// DO NOT EDIT — regenerate with: python3 scripts/generators/gen_artifacts.py
+&nbsp;
+// ── SPFX_ flags (artifact special effects) ──
+export const SPFX_NONE = 0x00000000;
+export const SPFX_NOGEN = 0x00000001;
+export const SPFX_RESTR = 0x00000002;
+export const SPFX_INTEL = 0x00000004;
+export const SPFX_SPEAK = 0x00000008;
+export const SPFX_SEEK = 0x00000010;
+export const SPFX_WARN = 0x00000020;
+export const SPFX_ATTK = 0x00000040;
+export const SPFX_DEFN = 0x00000080;
+export const SPFX_DRLI = 0x00000100;
+export const SPFX_SEARCH = 0x00000200;
+export const SPFX_BEHEAD = 0x00000400;
+export const SPFX_HALRES = 0x00000800;
+export const SPFX_ESP = 0x00001000;
+export const SPFX_STLTH = 0x00002000;
+export const SPFX_REGEN = 0x00004000;
+export const SPFX_EREGEN = 0x00008000;
+export const SPFX_HSPDAM = 0x00010000;
+export const SPFX_HPHDAM = 0x00020000;
+export const SPFX_TCTRL = 0x00040000;
+export const SPFX_LUCK = 0x00080000;
+export const SPFX_DMONS = 0x00100000;
+export const SPFX_DCLAS = 0x00200000;
+export const SPFX_DFLAG1 = 0x00400000;
+export const SPFX_DFLAG2 = 0x00800000;
+export const SPFX_DALIGN = 0x01000000;
+export const SPFX_DBONUS = 0x01F00000;
+export const SPFX_XRAY = 0x02000000;
+export const SPFX_REFLECT = 0x04000000;
+export const SPFX_PROTECT = 0x08000000;
+&nbsp;
+// ── Invoke property types ──
+export const TAMING = 64;
+export const HEALING = 65;
+export const ENERGY_BOOST = 66;
+export const UNTRAP = 67;
+export const CHARGE_OBJ = 68;
+export const LEV_TELE = 69;
+export const CREATE_PORTAL = 70;
+export const ENLIGHTENING = 71;
+export const CREATE_AMMO = 72;
+export const BANISH = 73;
+export const FLING_POISON = 74;
+export const FIRESTORM = 75;
+export const SNOWSTORM = 76;
+export const BLINDING_RAY = 77;
+&nbsp;
+// ── ART_ artifact index constants ──
+export const ART_NONARTIFACT = 0;
+export const ART_EXCALIBUR = 1;
+export const ART_STORMBRINGER = 2;
+export const ART_MJOLLNIR = 3;
+export const ART_CLEAVER = 4;
+export const ART_GRIMTOOTH = 5;
+export const ART_ORCRIST = 6;
+export const ART_STING = 7;
+export const ART_MAGICBANE = 8;
+export const ART_FROST_BRAND = 9;
+export const ART_FIRE_BRAND = 10;
+export const ART_DRAGONBANE = 11;
+export const ART_DEMONBANE = 12;
+export const ART_WEREBANE = 13;
+export const ART_GRAYSWANDIR = 14;
+export const ART_GIANTSLAYER = 15;
+export const ART_OGRESMASHER = 16;
+export const ART_TROLLSBANE = 17;
+export const ART_VORPAL_BLADE = 18;
+export const ART_SNICKERSNEE = 19;
+export const ART_SUNSWORD = 20;
+export const ART_ORB_OF_DETECTION = 21;
+export const ART_HEART_OF_AHRIMAN = 22;
+export const ART_SCEPTRE_OF_MIGHT = 23;
+export const ART_STAFF_OF_AESCULAPIUS = 24;
+export const ART_MAGIC_MIRROR_OF_MERLIN = 25;
+export const ART_EYES_OF_THE_OVERWORLD = 26;
+export const ART_MITRE_OF_HOLINESS = 27;
+export const ART_LONGBOW_OF_DIANA = 28;
+export const ART_MASTER_KEY_OF_THIEVERY = 29;
+export const ART_TSURUGI_OF_MURAMASA = 30;
+export const ART_YENDORIAN_EXPRESS_CARD = 31;
+export const ART_ORB_OF_FATE = 32;
+export const ART_EYE_OF_THE_AETHIOPICA = 33;
+export const AFTER_LAST_ARTIFACT = 35;
+export const NROFARTIFACTS = 34;
+&nbsp;
+// ── Artifact data table ──
+// Fields: otyp, name, spfx, cspfx, mtype, attk, defn, cary,
+//         inv_prop, alignment, role, race, gen_spe, gift_value, cost, acolor
+export const artilist = [
+  {otyp:0,name:"",spfx:0x00000000,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-128,role:-1,race:-1,gen_spe:0,gift_value:0,cost:0,acolor:8}, // [0] dummy
+  {otyp:54,name:"Excalibur",spfx:0x00000297,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:5,damd:10},defn:{aatyp:0,adtyp:15,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:1,role:335,race:-1,gen_spe:0,gift_value:10,cost:4000,acolor:8}, // [1] Excalibur
+  {otyp:58,name:"Stormbringer",spfx:0x000001C6,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:15,damn:5,damd:2},defn:{aatyp:0,adtyp:15,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-1,role:-1,race:-1,gen_spe:0,gift_value:9,cost:8000,acolor:8}, // [2] Stormbringer
+  {otyp:76,name:"Mjollnir",spfx:0x00000042,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:6,damn:5,damd:24},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:0,role:342,race:-1,gen_spe:0,gift_value:8,cost:4000,acolor:8}, // [3] Mjollnir
+  {otyp:45,name:"Cleaver",spfx:0x00000002,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:3,damd:6},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:0,role:332,race:-1,gen_spe:0,gift_value:8,cost:1500,acolor:8}, // [4] Cleaver
+  {otyp:36,name:"Grimtooth",spfx:0x00800022,cspfx:0x00000000,mtype:16,attk:{aatyp:0,adtyp:0,damn:2,damd:6},defn:{aatyp:0,adtyp:7,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:74,alignment:-1,role:-1,race:72,gen_spe:0,gift_value:5,cost:1200,acolor:1}, // [5] Grimtooth
+  {otyp:53,name:"Orcrist",spfx:0x00800020,cspfx:0x00000000,mtype:128,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-1,role:-1,race:264,gen_spe:3,gift_value:4,cost:2000,acolor:12}, // [6] Orcrist
+  {otyp:35,name:"Sting",spfx:0x00800020,cspfx:0x00000000,mtype:128,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-1,role:-1,race:264,gen_spe:3,gift_value:1,cost:800,acolor:12}, // [7] Sting
+  {otyp:38,name:"Magicbane",spfx:0x000000C2,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:12,damn:3,damd:4},defn:{aatyp:0,adtyp:1,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:0,role:343,race:-1,gen_spe:0,gift_value:7,cost:3500,acolor:8}, // [8] Magicbane
+  {otyp:54,name:"Frost Brand",spfx:0x000000C2,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:3,damn:5,damd:0},defn:{aatyp:0,adtyp:3,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:76,alignment:-128,role:-1,race:-1,gen_spe:0,gift_value:9,cost:3000,acolor:8}, // [9] Frost Brand
+  {otyp:54,name:"Fire Brand",spfx:0x000000C2,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:2,damn:5,damd:0},defn:{aatyp:0,adtyp:2,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:75,alignment:-128,role:-1,race:-1,gen_spe:0,gift_value:5,cost:3000,acolor:8}, // [10] Fire Brand
+  {otyp:52,name:"Dragonbane",spfx:0x04200002,cspfx:0x00000000,mtype:30,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-128,role:-1,race:-1,gen_spe:2,gift_value:5,cost:500,acolor:8}, // [11] Dragonbane
+  {otyp:74,name:"Demonbane",spfx:0x00800002,cspfx:0x00000000,mtype:256,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:73,alignment:1,role:337,race:-1,gen_spe:1,gift_value:3,cost:2500,acolor:8}, // [12] Demonbane
+  {otyp:51,name:"Werebane",spfx:0x00800002,cspfx:0x00000000,mtype:4,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:29,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-128,role:-1,race:-1,gen_spe:1,gift_value:4,cost:1500,acolor:8}, // [13] Werebane
+  {otyp:51,name:"Grayswandir",spfx:0x00000802,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:1,role:-1,race:-1,gen_spe:0,gift_value:10,cost:8000,acolor:8}, // [14] Grayswandir
+  {otyp:54,name:"Giantslayer",spfx:0x00800002,cspfx:0x00000000,mtype:8192,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:0,role:-1,race:-1,gen_spe:2,gift_value:4,cost:200,acolor:8}, // [15] Giantslayer
+  {otyp:76,name:"Ogresmasher",spfx:0x00200002,cspfx:0x00000000,mtype:41,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-128,role:-1,race:-1,gen_spe:2,gift_value:1,cost:200,acolor:8}, // [16] Ogresmasher
+  {otyp:75,name:"Trollsbane",spfx:0x00204002,cspfx:0x00000000,mtype:46,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-128,role:-1,race:-1,gen_spe:2,gift_value:1,cost:200,acolor:8}, // [17] Trollsbane
+  {otyp:54,name:"Vorpal Blade",spfx:0x00000402,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:5,damd:1},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:0,role:-1,race:-1,gen_spe:1,gift_value:5,cost:4000,acolor:8}, // [18] Vorpal Blade
+  {otyp:56,name:"Snickersnee",spfx:0x00000002,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:8},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:1,role:340,race:-1,gen_spe:0,gift_value:8,cost:1200,acolor:8}, // [19] Snickersnee
+  {otyp:54,name:"Sunsword",spfx:0x00800002,cspfx:0x00000000,mtype:2,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:11,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:77,alignment:1,role:-1,race:-1,gen_spe:0,gift_value:6,cost:1500,acolor:8}, // [20] Sunsword
+  {otyp:229,name:"The Orb of Detection",spfx:0x00000007,cspfx:0x00011000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:1,damn:0,damd:0},inv_prop:33,alignment:1,role:331,race:-1,gen_spe:0,gift_value:12,cost:2500,acolor:8}, // [21] The Orb of Detection
+  {otyp:467,name:"The Heart of Ahriman",spfx:0x00000007,cspfx:0x00002000,mtype:0,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:38,alignment:0,role:332,race:-1,gen_spe:0,gift_value:12,cost:2500,acolor:8}, // [22] The Heart of Ahriman
+  {otyp:73,name:"The Sceptre of Might",spfx:0x01000007,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:1,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:41,alignment:1,role:333,race:-1,gen_spe:0,gift_value:12,cost:2500,acolor:8}, // [23] The Sceptre of Might
+  {otyp:79,name:"The Staff of Aesculapius",spfx:0x00004147,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:15,damn:0,damd:0},defn:{aatyp:0,adtyp:15,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:65,alignment:0,role:334,race:-1,gen_spe:0,gift_value:12,cost:5000,acolor:8}, // [24] The Staff of Aesculapius
+  {otyp:228,name:"The Magic Mirror of Merlin",spfx:0x0000000F,cspfx:0x00001000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:1,damn:0,damd:0},inv_prop:0,alignment:1,role:335,race:-1,gen_spe:0,gift_value:12,cost:1500,acolor:8}, // [25] The Magic Mirror of Merlin
+  {otyp:230,name:"The Eyes of the Overworld",spfx:0x02000007,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:1,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:71,alignment:0,role:336,race:-1,gen_spe:0,gift_value:12,cost:2500,acolor:8}, // [26] The Eyes of the Overworld
+  {otyp:96,name:"The Mitre of Holiness",spfx:0x08800007,cspfx:0x00000000,mtype:2,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:2,damn:0,damd:0},inv_prop:66,alignment:1,role:337,race:-1,gen_spe:0,gift_value:12,cost:2000,acolor:8}, // [27] The Mitre of Holiness
+  {otyp:83,name:"The Longbow of Diana",spfx:0x04000007,cspfx:0x00001000,mtype:0,attk:{aatyp:0,adtyp:0,damn:5,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:72,alignment:-1,role:338,race:-1,gen_spe:0,gift_value:12,cost:4000,acolor:8}, // [28] The Longbow of Diana
+  {otyp:219,name:"The Master Key of Thievery",spfx:0x0000000F,cspfx:0x00060020,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:67,alignment:-1,role:339,race:-1,gen_spe:0,gift_value:12,cost:3500,acolor:8}, // [29] The Master Key of Thievery
+  {otyp:57,name:"The Tsurugi of Muramasa",spfx:0x08080407,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:8},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:1,role:340,race:-1,gen_spe:0,gift_value:12,cost:4500,acolor:8}, // [30] The Tsurugi of Muramasa
+  {otyp:221,name:"The Platinum Yendorian Express Card",spfx:0x00000087,cspfx:0x00011000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:1,damn:0,damd:0},inv_prop:68,alignment:0,role:341,race:-1,gen_spe:0,gift_value:12,cost:7000,acolor:8}, // [31] The Platinum Yendorian Express Card
+  {otyp:229,name:"The Orb of Fate",spfx:0x00080007,cspfx:0x00030020,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:69,alignment:0,role:342,race:-1,gen_spe:0,gift_value:12,cost:3500,acolor:8}, // [32] The Orb of Fate
+  {otyp:199,name:"The Eye of the Aethiopica",spfx:0x00000007,cspfx:0x00018000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:1,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:70,alignment:0,role:343,race:-1,gen_spe:0,gift_value:12,cost:4000,acolor:8}, // [33] The Eye of the Aethiopica
+  {otyp:0,name:"",spfx:0x00000000,cspfx:0x00000000,mtype:0,attk:{aatyp:0,adtyp:0,damn:0,damd:0},defn:{aatyp:0,adtyp:0,damn:0,damd:0},cary:{aatyp:0,adtyp:0,damn:0,damd:0},inv_prop:0,alignment:-128,role:-1,race:-1,gen_spe:0,gift_value:0,cost:0,acolor:8}, // [34] dummy
+];
+// AUTO-IMPORT-END: ARTIFACTS
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-11T03:01:01.101Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    
