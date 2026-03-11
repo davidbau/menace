@@ -7426,3 +7426,25 @@ hard-won wisdom:
   - `npm run -s test:session -- --max-failures=5` (151/151)
   - Note: one initial full-suite run hit a single timeout on seed033, but the
     session passed in isolated rerun and in a subsequent full-suite rerun.
+
+## 2026-03-10: read.seffect_fire blessed target flow and confused edge-cases
+
+- Problem:
+  - `seffect_fire` still used a simplified path: blessed scrolls always
+    exploded on the hero and confused/underwater/fire-resistance messaging did
+    not follow C branches.
+- Change:
+  - `js/read.js`:
+    - added blessed target selection prompt (`getpos_sethilite` + `getpos_async`)
+      and fallback-to-hero when target is invalid.
+    - aligned confused branch messaging/effects with C shape:
+      - underwater vaporize message,
+      - fire-resistance warm/pretty-hands message,
+      - otherwise burn hands and lose 1 HP.
+    - aligned non-confused pre-explosion behavior:
+      - underwater violent vaporize message,
+      - tower-of-flame message only when explosion is centered on hero.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (19/19)
+  - `npm run -s test:unit` (2756/2756)
+  - `npm run -s test:session -- --max-failures=5` (151/151)

@@ -1325,7 +1325,9 @@ async function seffect_fire(sobj, player, display, game) {
     const cval = bcsign(sobj);
     let dam = Math.floor((2 * (rn1(3, 3) + 2 * cval) + 1) / 3);
     const map = game?.map;
-    let ccx = player.x, ccy = player.y;
+    const cc = { x: player.x, y: player.y };
+    const underwater = !!(player?.Underwater || player?.underwater || player?.uinwater);
+    const fireRes = !!(player?.Fire_resistance || player?.fireResistance);
 
     // Use up scroll first
     useup_scroll(sobj, player);
@@ -1335,25 +1337,69 @@ async function seffect_fire(sobj, player, display, game) {
     }
 
     if (confused) {
-        // Confused: minor self-burn
-        await display.putstr_message('The scroll catches fire and you burn your hands.');
-        // cf. losehp(1, ...) simplified: take 1 damage
-        player.uhp = Math.max(0, (player.uhp || 0) - 1);
+        if (underwater) {
+            await display.putstr_message('A little water around you vaporizes.');
+        } else if (fireRes) {
+            if (!player.blind) {
+                await display.putstr_message(`Oh, look, what a pretty fire in your ${makeplural(body_part(HAND))}.`);
+            } else {
+                await display.putstr_message(`You feel a pleasant warmth in your ${makeplural(body_part(HAND))}.`);
+            }
+        } else {
+            await display.putstr_message(`The scroll catches fire and you burn your ${makeplural(body_part(HAND))}.`);
+            // cf. losehp(1, "scroll of fire", KILLED_BY_AN)
+            player.uhp = Math.max(0, (player.uhp || 0) - 1);
+        }
         return true; // consumed
     }
 
     // Non-confused: explosion
-    if (sblessed) {
-        // Blessed: damage multiplied by 5; in C, player can aim
-        // but in automated play, center on self
+    if (underwater) {
+        await display.putstr_message('The water around you vaporizes violently!');
+    } else if (sblessed) {
+        if (!already_known) {
+            await display.putstr_message('This is a scroll of fire!');
+        }
         dam *= 5;
+        await display.putstr_message('Where do you want to center the explosion?');
+
+        const display_fire_positions = (on) => {
+            if (on) {
+                tmp_at(DISP_BEAM, { ch: '*', color: 10 });
+                for (let dx = -STINKING_CLOUD_TARGET_DIST; dx <= STINKING_CLOUD_TARGET_DIST; dx++) {
+                    for (let dy = -STINKING_CLOUD_TARGET_DIST; dy <= STINKING_CLOUD_TARGET_DIST; dy++) {
+                        const x = player.x + dx;
+                        const y = player.y + dy;
+                        if (x === player.x && y === player.y) continue;
+                        if (!map?.at || !map.at(x, y)) continue;
+                        tmp_at(x, y);
+                    }
+                }
+            } else {
+                tmp_at(DISP_END, 0);
+            }
+        };
+        const can_center_fire = (x, y) => {
+            if (!map?.at || !map.at(x, y)) return false;
+            return Math.max(Math.abs(x - player.x), Math.abs(y - player.y)) <= STINKING_CLOUD_TARGET_DIST;
+        };
+        getpos_sethilite(display_fire_positions, can_center_fire);
+        await getpos_async(cc, true, "the desired position",
+            { map, display, flags: game?.flags, goalPrompt: "the desired position", player });
+        if (!can_center_fire(cc.x, cc.y)) {
+            cc.x = player.x;
+            cc.y = player.y;
+        }
     }
-    await display.putstr_message('The scroll erupts in a tower of flame!');
+
+    if (u_at(player, cc.x, cc.y)) {
+        await display.putstr_message('The scroll erupts in a tower of flame!');
+    }
 
     // cf. explode(cc.x, cc.y, ZT_SPELL_O_FIRE, dam, SCROLL_CLASS, EXPL_FIERY)
     const ZT_SPELL_O_FIRE = 11;
     if (map) {
-        await explode(ccx, ccy, ZT_SPELL_O_FIRE, dam, SCROLL_CLASS, EXPL_FIERY, map, player);
+        await explode(cc.x, cc.y, ZT_SPELL_O_FIRE, dam, SCROLL_CLASS, EXPL_FIERY, map, player);
     } else {
         // Fallback: take damage directly
         player.uhp = Math.max(0, (player.uhp || 0) - dam);
