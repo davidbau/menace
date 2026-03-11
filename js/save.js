@@ -26,7 +26,7 @@ import { DISP_FREEMEM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES, MCORPSENM } from './const.js';
 import { pushRngLogEntry } from './rng.js';
 import { monsndx } from './mondata.js';
-import { pline } from './pline.js';
+import { pline, pline1 } from './pline.js';
 
 // C serialization macros — stubs (JS uses storage.js, not binary save files)
 function release_data(nhfp) { return false; }

@@ -209,6 +209,10 @@ export async function verbalize(line, ...args) {
     return pline(`"${formatLine(line, args)}"`);
 }
 
+// C's pline1(line) = pline("%s", line) — avoids format-string interpretation.
+// In JS, pline() with no format args is safe, so pline1 is just an alias.
+export { pline as pline1 };
+
 export function You_buf(siz) {
     return ''.padEnd(Math.max(0, Math.trunc(siz || 0)), ' ');
 }

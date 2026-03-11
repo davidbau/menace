@@ -2397,7 +2397,7 @@ export async function mon_yells(mon, shout, player) {
   else {
     if (canspotmon(mon)) { await pline_mon(mon, "%s yells:", Amonnam(mon)); }
     else { await You_hear("someone yell:"); }
-    verbalize1(shout);
+    await verbalize(shout);
   }
 }
 

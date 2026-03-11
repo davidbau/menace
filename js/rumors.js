@@ -21,7 +21,7 @@ import { RUMORS_FILE_TEXT } from './rumor_data.js';
 import { EPITAPH_FILE_TEXT } from './epitaph_data.js';
 import { RUMOR_PAD_LENGTH, A_WIS, BY_ORACLE, BY_COOKIE, BY_PAPER, ECMD_OK } from './const.js';
 import { exercise } from './attrib_exercise.js';
-import { pline } from './pline.js';
+import { pline, pline1, verbalize } from './pline.js';
 
 // Rumor data — parsed at module load from the compiled-in encrypted constant.
 // cf. rumors.c init_rumors() + global gt/gf structs (true_rumor_size etc.)
@@ -227,10 +227,11 @@ export async function outrumor(truth, mechanism, player) {
   switch (mechanism) {
     case BY_ORACLE:
       await pline("True to her word, the Oracle %ssays: ", (!rn2(4) ? "offhandedly " : (!rn2(3) ? "casually " : (rn2(2) ? "nonchalantly " : ""))));
-    verbalize1(line);
+    await verbalize(line);
     return;
     case BY_COOKIE:
       await pline(fortune_msg);
+    // FALLTHROUGH
     case BY_PAPER:
       await pline("It reads:");
     break;

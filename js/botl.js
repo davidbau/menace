@@ -229,35 +229,35 @@ export function percentage(bl, maxbl) {
       case ANY_INT:
         ival = use_rawval ? bl.rawval.a_int : bl.a.a_int;
       mval = use_rawval ? maxbl.rawval.a_int : maxbl.a.a_int;
-      result = ((100 * ival) / mval);
+      result = Math.trunc((100 * ival) / mval);
       break;
       case ANY_LONG:
         lval = bl.a.a_long;
-      result =  ((100 * lval) / maxbl.a.a_long);
+      result = Math.trunc((100 * lval) / maxbl.a.a_long);
       break;
       case ANY_UINT:
         uval = bl.a.a_uint;
-      result =  ((100 * uval) / maxbl.a.a_uint);
+      result = Math.trunc((100 * uval) / maxbl.a.a_uint);
       break;
       case ANY_ULONG:
         ulval = bl.a.a_ulong;
-      result =  ((100 * ulval) / maxbl.a.a_ulong);
+      result = Math.trunc((100 * ulval) / maxbl.a.a_ulong);
       break;
       case ANY_IPTR:
         ival = bl.a.a_iptr;
-      result = ((100 * ival) / ( maxbl.a.a_iptr));
+      result = Math.trunc((100 * ival) / maxbl.a.a_iptr);
       break;
       case ANY_LPTR:
         lval = bl.a.a_lptr;
-      result =  ((100 * lval) / ( maxbl.a.a_lptr));
+      result = Math.trunc((100 * lval) / maxbl.a.a_lptr);
       break;
       case ANY_UPTR:
         uval = bl.a.a_uptr;
-      result =  ((100 * uval) / ( maxbl.a.a_uptr));
+      result = Math.trunc((100 * uval) / maxbl.a.a_uptr);
       break;
       case ANY_ULPTR:
         ulval = bl.a.a_ulptr;
-      result =  ((100 * ulval) / ( maxbl.a.a_ulptr));
+      result = Math.trunc((100 * ulval) / maxbl.a.a_ulptr);
       break;
     }
   }

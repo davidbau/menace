@@ -49,7 +49,7 @@ import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
-import { pline, impossible, You, You_hear } from './pline.js';
+import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon } from './display.js';
 import { S_goodpos } from './symbols.js';

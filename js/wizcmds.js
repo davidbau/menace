@@ -207,7 +207,7 @@ import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
 import { schedule_goto } from './do.js';
 import { check_wornmask_slots } from './worn.js';
-import { impossible, pline, You } from './pline.js';
+import { impossible, pline, pline1, You } from './pline.js';
 import { losexp } from './exper.js';
 import { m_at } from './trap.js';
 import { u_at } from './hack.js';
