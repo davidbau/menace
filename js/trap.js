@@ -25,7 +25,7 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER } from './mondata.js';
-import { helpless as monHelpless, monkilled, m_in_air, setmangry } from './mon.js';
+import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto } from './mon.js';
 import { newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';

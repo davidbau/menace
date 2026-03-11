@@ -56,7 +56,7 @@ import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismis
 import { nhimport } from './origin_awaits.js';
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
-import { kill_genocided_monsters } from './mon.js';
+import { kill_genocided_monsters, wake_nearto } from './mon.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 
