@@ -8,6 +8,8 @@ Rules:
 - Keep new theme sessions green.
 - Record deterministic sessions only (seed/fixed datetime/canonical options).
 - Prefer high-yield sessions targeting low-covered codepaths.
+- Promote from `sessions/pending/` only after parity-green validation.
+- Sessions in this tree are part of the default parity suite.
 
 Issue split:
 1. Theme planning issue

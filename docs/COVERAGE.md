@@ -29,6 +29,12 @@ Phase 3 objective:
 Coverage input:
 - `test/comparison/session_test_runner.js` session replay suite
 - default filter: `--type=gameplay`
+- default session set includes:
+  - baseline roots: `test/comparison/sessions/*.session.json`
+  - accepted coverage sessions: `test/comparison/sessions/coverage/**/*.session.json`
+  - map sessions: `test/comparison/maps/*.session.json`
+- proposed sessions in `test/comparison/sessions/pending/*.session.json` are
+  intentionally excluded from the default suite until they are parity-green
 - optional: all session types (`--all-types`) or explicit `--type=...`
 
 Coverage exclusions by design:
@@ -39,6 +45,24 @@ Authoritative discipline:
 - use C-grounded session traces to exercise codepaths,
 - do not inflate coverage using non-parity-only synthetic tests,
 - fix JS behavior for divergences exposed by new sessions instead of masking.
+
+## Session Lifecycle (Required)
+
+Session development pipeline:
+1. Record new deterministic C session into `test/comparison/sessions/pending/`.
+2. Run pending session directly and fix JS parity until it passes.
+3. Move passing session to the correct themed folder under
+   `test/comparison/sessions/coverage/<theme>/`.
+4. Once moved, it is part of the default parity suite and must stay green.
+5. Refresh coverage snapshot/diff to verify the intended gain.
+
+Promotion rule:
+- Any `pending` session that is parity-green should be moved into
+  `sessions/coverage/` in the same change (or immediately after).
+
+Demotion rule:
+- If a coverage session regresses, fix gameplay code; do not remove/mask the
+  session to preserve a green suite.
 
 ## Runner
 
@@ -130,8 +154,11 @@ Primary metrics:
 Required gates for each themed batch:
 1. baseline parity sessions remain green
 2. new themed sessions are green
-3. coverage snapshot improves or remains justified (with explicit rationale)
-4. no comparator/harness masking used to hide gameplay mismatches
+3. promoted coverage sessions are included in default parity replay
+4. coverage snapshot improves or remains justified (with explicit rationale)
+5. pending backlog count is tracked, and failing pending sessions have active
+   debugging issues/owners
+6. no comparator/harness masking used to hide gameplay mismatches
 
 Campaign target:
 - session-parity line coverage `>= 90%` with all parity suites green
@@ -233,6 +260,11 @@ Recommended naming:
 5. Refresh coverage snapshot and diff results.
 6. Repeat until 90%+ coverage is reached and stable.
 
+Execution cadence (required while under 90% coverage):
+- Keep at least one active issue focused on fixing failing `pending` sessions.
+- Keep at least one active issue focused on recording/promoting new sessions.
+- Run parity and coverage metrics frequently (at minimum once per merged batch).
+
 ## Issue-Driven Labor Split
 
 Use GitHub issues as the work partitioning mechanism for the coverage campaign.
@@ -282,9 +314,44 @@ Tracking checklist per theme issue:
 - Keep sessions deterministic and replay-stable (seed + fixed datetime + canonical options).
 - Prefer C-faithful behavior exercise over synthetic harness tricks.
 - Validate new sessions with `npm run test:session` before using them for coverage deltas.
+- Validate pending sessions directly before promotion:
+  - `node test/comparison/session_test_runner.js --sessions=<path-to-pending-session> --parallel=1 --verbose`
 - After adding sessions, run:
   - `npm run coverage:session-parity:refresh`
   - inspect `coverage/session-parity-diff.txt`
+
+### Pending Session Debugging Commands
+
+Run all pending sessions:
+```bash
+node test/comparison/session_test_runner.js --sessions="$(printf "%s," test/comparison/sessions/pending/*.session.json | sed 's/,$//')" --parallel=1 --verbose
+```
+
+Run one pending session:
+```bash
+node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/<name>.session.json --parallel=1 --verbose
+```
+
+First-RNG mismatch drilldown:
+```bash
+node test/comparison/rng_step_diff.js test/comparison/sessions/pending/<name>.session.json --step <N> --window 8
+```
+
+Mapdump state drilldown:
+```bash
+node test/comparison/dbgmapdump.js test/comparison/sessions/pending/<name>.session.json --first-divergence --window 1 --c-side
+```
+
+### Coverage Session Creation Tooling
+
+Current tools:
+- manual C record + keylog conversion (`test/comparison/c-harness/`)
+- scripted replay diagnostics (`dbgmapdump`, `rng_step_diff`, `comparison-window`)
+
+Planned tooling direction:
+- add a "coverplay" scripted scenario driver to generate targeted C sessions for
+  specific low-coverage branches (wizard-assisted when appropriate), with
+  explicit success criteria per scenario.
 
 ## Command Examples
 

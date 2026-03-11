@@ -386,13 +386,35 @@ function listGoldenDir(relativePath, goldenBranch) {
     }
 }
 
-function loadSessionsFromDir(dir, { useGolden = false, goldenBranch = 'golden' } = {}) {
+function loadSessionsFromDir(
+    dir,
+    {
+        useGolden = false,
+        goldenBranch = 'golden',
+        recursive = false,
+    } = {},
+) {
     const repoRoot = process.cwd();
     const relativePath = dir.startsWith(repoRoot) ? dir.slice(repoRoot.length + 1) : dir;
 
     if (useGolden) {
-        const files = listGoldenDir(relativePath, goldenBranch)
-            .filter((file) => file.endsWith('.session.json'));
+        const queue = [''];
+        const files = [];
+        while (queue.length > 0) {
+            const rel = queue.shift();
+            const fullRel = rel ? `${relativePath}/${rel}` : relativePath;
+            const entries = listGoldenDir(fullRel, goldenBranch);
+            for (const entry of entries) {
+                const child = rel ? `${rel}/${entry}` : entry;
+                if (entry.endsWith('.session.json')) {
+                    files.push(child);
+                    continue;
+                }
+                if (!recursive) continue;
+                // Heuristic: tree entries with no dot suffix are directories.
+                if (!entry.includes('.')) queue.push(child);
+            }
+        }
         return files
             .map((file) => {
                 const text = readGoldenFile(`${relativePath}/${file}`, goldenBranch);
@@ -411,17 +433,27 @@ function loadSessionsFromDir(dir, { useGolden = false, goldenBranch = 'golden' }
 
     if (!existsSync(dir)) return [];
 
-    return readdirSync(dir)
-        .filter((file) => file.endsWith('.session.json'))
-        .map((file) => {
-            try {
-                const text = readFileSync(join(dir, file), 'utf8');
-                return normalizeSession(JSON.parse(text), { file, dir });
-            } catch {
-                return null;
+    const queue = [dir];
+    const out = [];
+    while (queue.length > 0) {
+        const current = queue.shift();
+        const entries = readdirSync(current, { withFileTypes: true });
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                if (recursive) queue.push(join(current, entry.name));
+                continue;
             }
-        })
-        .filter(Boolean);
+            if (!entry.name.endsWith('.session.json')) continue;
+            try {
+                const fullPath = join(current, entry.name);
+                const text = readFileSync(fullPath, 'utf8');
+                out.push(normalizeSession(JSON.parse(text), { file: entry.name, dir: current }));
+            } catch {
+                // Keep session loading resilient to malformed files.
+            }
+        }
+    }
+    return out;
 }
 
 function asTypeSet(typeFilter) {
@@ -453,8 +485,10 @@ export function loadAllSessions({
         return [normalized];
     }
 
+    const coverageDir = join(sessionsDir, 'coverage');
     const sessions = [
         ...loadSessionsFromDir(sessionsDir, { useGolden, goldenBranch }),
+        ...loadSessionsFromDir(coverageDir, { useGolden, goldenBranch, recursive: true }),
         ...loadSessionsFromDir(mapsDir, { useGolden, goldenBranch }),
     ];
 

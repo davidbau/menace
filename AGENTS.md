@@ -106,6 +106,15 @@ When running rebuilds/regenerations that can take several minutes:
 5. Coverage credit is based on C-recorded parity sessions only (see
    `docs/COVERAGE.md`); ordinary unit-test coverage does not count toward parity
    coverage progress.
+6. Follow the session lifecycle in `docs/COVERAGE.md`:
+   - record new sessions in `test/comparison/sessions/pending/`,
+   - debug/fix parity until green,
+   - promote passing sessions into `test/comparison/sessions/coverage/<theme>/`.
+7. Coverage sessions under `sessions/coverage/` are part of the default parity
+   suite; do not regress them.
+8. While parity coverage is below target, keep active issue work on both:
+   - fixing failing pending sessions,
+   - recording/promoting new targeted coverage sessions.
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.
