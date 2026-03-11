@@ -10,7 +10,7 @@ Session plan:
 2. TODO
 
 Issue links:
-- Planning: TODO
+- Planning: https://github.com/davidbau/menace/issues/340
 - Recording: TODO
 - Parity bring-up: TODO
 - Coverage verification: TODO

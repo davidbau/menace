@@ -19,3 +19,10 @@ See:
 - docs/COVERAGE.md
 - PROJECT_PLAN.md
 - AGENTS.md
+
+Issue tracker:
+- Campaign tracker: https://github.com/davidbau/menace/issues/336
+- Theme 01 (furniture-thrones-fountains): https://github.com/davidbau/menace/issues/337
+- Theme 02 (locks-containers-pickup): https://github.com/davidbau/menace/issues/338
+- Theme 03 (steed-mounted-combat): https://github.com/davidbau/menace/issues/339
+- Theme 04 (maze-mines-digging): https://github.com/davidbau/menace/issues/340
