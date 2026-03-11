@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-11T22:44:16.586Z",
-  "commit": "c8aa525e27206f3bcb11d71e3b63e4ca8e18fd5c",
+  "generatedAt": "2026-03-11T23:11:38.145Z",
+  "commit": "8f5576281344e0997cc90134e7f15da0bf987053",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 53.13,
-    "branchesPct": 59.57,
-    "functionsPct": 34.58
+    "linesPct": 53.18,
+    "branchesPct": 59.51,
+    "functionsPct": 34.68
   },
   "filteredCount": 108,
   "lowestCovered": [
@@ -625,44 +625,6 @@
       }
     },
     {
-      "relPath": "js/lock.js",
-      "baseName": "lock.js",
-      "lines": {
-        "total": 1111,
-        "covered": 430,
-        "pct": 38.7
-      },
-      "branches": {
-        "total": 113,
-        "covered": 40,
-        "pct": 35.39
-      },
-      "functions": {
-        "total": 26,
-        "covered": 10,
-        "pct": 38.46
-      }
-    },
-    {
-      "relPath": "js/dothrow.js",
-      "baseName": "dothrow.js",
-      "lines": {
-        "total": 1527,
-        "covered": 616,
-        "pct": 40.34
-      },
-      "branches": {
-        "total": 241,
-        "covered": 116,
-        "pct": 48.13
-      },
-      "functions": {
-        "total": 62,
-        "covered": 19,
-        "pct": 30.64
-      }
-    },
-    {
       "relPath": "js/pickup.js",
       "baseName": "pickup.js",
       "lines": {
@@ -679,6 +641,25 @@
         "total": 98,
         "covered": 29,
         "pct": 29.59
+      }
+    },
+    {
+      "relPath": "js/dothrow.js",
+      "baseName": "dothrow.js",
+      "lines": {
+        "total": 1527,
+        "covered": 620,
+        "pct": 40.6
+      },
+      "branches": {
+        "total": 244,
+        "covered": 117,
+        "pct": 47.95
+      },
+      "functions": {
+        "total": 62,
+        "covered": 20,
+        "pct": 32.25
       }
     },
     {
@@ -823,9 +804,9 @@
         "pct": 43.39
       },
       "branches": {
-        "total": 345,
-        "covered": 212,
-        "pct": 61.44
+        "total": 346,
+        "covered": 213,
+        "pct": 61.56
       },
       "functions": {
         "total": 148,
@@ -964,6 +945,25 @@
         "total": 10,
         "covered": 4,
         "pct": 40
+      }
+    },
+    {
+      "relPath": "js/apply.js",
+      "baseName": "apply.js",
+      "lines": {
+        "total": 1380,
+        "covered": 646,
+        "pct": 46.81
+      },
+      "branches": {
+        "total": 180,
+        "covered": 122,
+        "pct": 67.77
+      },
+      "functions": {
+        "total": 81,
+        "covered": 14,
+        "pct": 17.28
       }
     }
   ]

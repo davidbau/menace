@@ -30,7 +30,7 @@ import { objectData, WEAPON_CLASS, ROCK_CLASS, POTION_CLASS,
          PAPER, WAX, VEGGY, FLESH, GLASS, WOOD,
        } from './objects.js';
 import { doname, xname } from './mkobj.js';
-import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, P_FLAIL, P_LANCE } from './const.js';
+import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, P_DAGGER, P_FLAIL, P_LANCE } from './const.js';
 import { handleLoot, show_invalid_direction_cmdassist_help } from './pickup.js';
 import { pline, pline_The, You, You_cant, You_hear, There,
          verbalize } from './pline.js';
@@ -906,7 +906,7 @@ export async function handleForce(game) {
         const qbuf = `There is ${doname(otmp)} here; force its lock?`;
         otmp.lknown = true;
 
-        const ansCode = await ynFunction(qbuf, 'ynq', 'n'.charCodeAt(0), display);
+        const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
         const ansChar = String.fromCharCode(ansCode);
         if (ansChar === 'q') {
             return { moved: false, tookTime: false };
@@ -914,9 +914,9 @@ export async function handleForce(game) {
         if (ansChar === 'n') continue;
 
         if (picktyp) {
-            await You(`force ${doname(wep)} into a crack and pry.`);
+            await You(`force your ${xname(wep)} into a crack and pry.`);
         } else {
-            await You(`start bashing it with ${doname(wep)}.`);
+            await You(`start bashing it with your ${xname(wep)}.`);
         }
         xlock.box = otmp;
         xlock.chance = (objectData[wep.otyp]?.oc_wldam || 4) * 2;
