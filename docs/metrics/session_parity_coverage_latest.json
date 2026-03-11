@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-11T18:16:00.874Z",
-  "commit": "74536e845890d179c7827bc058de4c96732b3cce",
+  "generatedAt": "2026-03-11T18:21:46.498Z",
+  "commit": "11ec7940997c8817c154d209d4396daee01050ab",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 52.63,
-    "branchesPct": 59.89,
-    "functionsPct": 33.94
+    "linesPct": 52.66,
+    "branchesPct": 59.87,
+    "functionsPct": 34
   },
   "filteredCount": 108,
   "lowestCovered": [
@@ -568,25 +568,6 @@
       }
     },
     {
-      "relPath": "js/potion.js",
-      "baseName": "potion.js",
-      "lines": {
-        "total": 2105,
-        "covered": 737,
-        "pct": 35.01
-      },
-      "branches": {
-        "total": 186,
-        "covered": 90,
-        "pct": 48.38
-      },
-      "functions": {
-        "total": 79,
-        "covered": 27,
-        "pct": 34.17
-      }
-    },
-    {
       "relPath": "js/mhitu.js",
       "baseName": "mhitu.js",
       "lines": {
@@ -622,6 +603,25 @@
         "total": 85,
         "covered": 31,
         "pct": 36.47
+      }
+    },
+    {
+      "relPath": "js/potion.js",
+      "baseName": "potion.js",
+      "lines": {
+        "total": 2105,
+        "covered": 791,
+        "pct": 37.57
+      },
+      "branches": {
+        "total": 211,
+        "covered": 99,
+        "pct": 46.91
+      },
+      "functions": {
+        "total": 79,
+        "covered": 31,
+        "pct": 39.24
       }
     },
     {
@@ -785,9 +785,9 @@
         "pct": 42.54
       },
       "branches": {
-        "total": 224,
-        "covered": 143,
-        "pct": 63.83
+        "total": 225,
+        "covered": 144,
+        "pct": 64
       },
       "functions": {
         "total": 31,
