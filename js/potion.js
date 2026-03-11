@@ -2,7 +2,7 @@
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
-import { nhgetch } from './input.js';
+import { nhgetch, ynFunction } from './input.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useupall } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
@@ -450,10 +450,8 @@ async function handleQuaff(player, map, display) {
     // cf. potion.c dodrink():540-550 — check for fountain first
     const loc = map.at(player.x, player.y);
     if (loc && loc.typ === FOUNTAIN) {
-        await display.putstr_message('Drink from the fountain?');
-        const ans = await nhgetch();
-        display.topMessage = null;
-        if (String.fromCharCode(ans) === 'y') {
+        const ans = await ynFunction('Drink from the fountain?', 'yn', 'n'.charCodeAt(0), display);
+        if (ans === 'y'.charCodeAt(0)) {
             await drinkfountain(player, map, display);
             return { moved: false, tookTime: true };
         }
