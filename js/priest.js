@@ -120,7 +120,8 @@ export function histemple_at(priest, x, y, map) {
     if (!roomsAtXY) return false;
     // Check if priest's shroom matches any temple room at (x,y)
     for (let i = 0; i < roomsAtXY.length; i++) {
-        if (roomsAtXY.charCodeAt(i) === priest.epri.shroom) return true;
+        const room = (typeof roomsAtXY === 'string') ? roomsAtXY.charCodeAt(i) : roomsAtXY[i];
+        if (room === priest.epri.shroom) return true;
     }
     return false;
     // C also checks on_level(&(EPRI(priest)->shrlevel), &u.uz) — in JS,
@@ -663,7 +664,8 @@ export function in_your_sanctuary(mon, x, y, map, player) {
     if (!roomsAtXY) return false;
     let found = false;
     for (let i = 0; i < roomsAtXY.length; i++) {
-        if (roomsAtXY.charCodeAt(i) === roomno) { found = true; break; }
+        const room = (typeof roomsAtXY === 'string') ? roomsAtXY.charCodeAt(i) : roomsAtXY[i];
+        if (room === roomno) { found = true; break; }
     }
     if (!found) return false;
 

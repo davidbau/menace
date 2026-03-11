@@ -262,10 +262,18 @@ export async function maybe_smudge_engr(map, oldX, oldY, newX, newY, player) {
 }
 
 // C ref: hack.c could_move_onto_boulder()
+function hero_data(player) {
+    return player?.youmonst?.data
+        || player?.youmonst?.type
+        || player?.data
+        || player?.type
+        || null;
+}
+
 function could_move_onto_boulder(_sx, _sy, player) {
     if (player?.passesWalls) return true;
     if (player?.usteed) return false;
-    if (throws_rocks(player?.data || player?.type)) return true;
+    if (throws_rocks(hero_data(player) || {})) return true;
     if (player?.verysmall) return true;
     return inv_weight(player) <= -850; // extremely light inventory
 }
@@ -335,7 +343,7 @@ function boulderPushShouldMessage(otmp, game) {
 export async function dopush(sx, sy, rx, ry, otmp, _costly, map, display, player, game) {
     const name = (otmp?.otyp === BOULDER) ? 'the boulder' : 'that object';
     if (boulderPushShouldMessage(otmp, game)) {
-        const effort = throws_rocks(player?.data || player?.type) ? 'little' : 'great';
+        const effort = throws_rocks(hero_data(player) || {}) ? 'little' : 'great';
         await display?.putstr_message(`With ${effort} effort you move ${name}.`);
     }
     movobj(otmp, rx, ry, map);
@@ -366,7 +374,7 @@ export async function moverock_core(sx, sy, dx, dy, player, map, display, game) 
         movobj(otmp, sx, sy, map);
     }
     // C ref: hack.c dopush() — strength exercise happens before moving rock.
-    if (player && !throws_rocks(player.data || player.type)) await exercise(player, A_STR, true);
+    if (player && !throws_rocks(hero_data(player) || {})) await exercise(player, A_STR, true);
     await dopush(sx, sy, rx, ry, otmp, false, map, display, player, game);
     if (game) game.lastMoveDir = [dx, dy];
     return 1;
