@@ -2041,7 +2041,12 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         # Execute moves - send each character individually (no grouping)
         prev_rng_count = startup_rng_count
         prev_depth_recorded = None  # Record depth only when it changes
-        replay_keys = list(move_str)
+        # Expand move-string escapes/shortcuts into the actual key stream.
+        # This makes advertised encodings (e.g. "\x14", "^Dh") replay as
+        # real control-key sequences rather than literal text.
+        replay_keys = []
+        for key_seq, _ in parse_moves(move_str):
+            replay_keys.extend(list(key_seq))
 
         # Helper to send a single character with proper control char handling
         def send_char(ch):
