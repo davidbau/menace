@@ -93,7 +93,8 @@ import { new_light_source } from './light.js';
 import { PIT, SPIKED_PIT, LOW_PM,
     EPRI, EMIN, EDOG, ESHK, MGIVENNAME, has_mgivenname, has_emin, has_edog,
     M_AP_NOTHING, M_AP_MONSTER,
-    nothing_happens, nothing_seems_to_happen } from './const.js';
+    nothing_happens, nothing_seems_to_happen,
+    STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import { In_sokoban, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty } from './dungeon.js';
 import { newemin } from './minion.js';
 
@@ -1794,7 +1795,6 @@ export async function runtimeDecideToShapeshift(mon, depth = 1, map = null, play
     }
 
     // Vampshifter — C ref: mon.c:4882 decide_to_shapeshift() vampshifter path
-    const STRAT_WAITFORU = 0x20000000;
     if (mon.mstrategy & STRAT_WAITFORU) return false;
 
     const currentMlet = mons[mon.mndx]?.mlet;
@@ -2527,9 +2527,6 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
 
     // C ref: makemon.c:1457-1463 — set mstrategy from mflags3 unless MM_NOWAIT.
     if ((ptr.mflags3 || 0) && !(mmflags & MM_NOWAIT)) {
-        const STRAT_WAITFORU  = 0x20000000;
-        const STRAT_CLOSE     = 0x10000000;
-        const STRAT_APPEARMSG = 0x80000000;
         if (ptr.mflags3 & M3_WAITFORU) mon.mstrategy = (mon.mstrategy || 0) | STRAT_WAITFORU;
         if (ptr.mflags3 & M3_CLOSE)    mon.mstrategy = (mon.mstrategy || 0) | STRAT_CLOSE;
         if (ptr.mflags3 & (M3_WAITMASK | M3_COVETOUS)) mon.mstrategy = (mon.mstrategy || 0) | STRAT_APPEARMSG;
