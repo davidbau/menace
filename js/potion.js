@@ -21,7 +21,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          SICK, SICK_RES, DEAF,
          VOMITING, GLIB, FAST, STONED, SLIMED,
          FREE_ACTION, ACID_RES, SLEEP_RES, POISON_RES,
-         SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL,
+         SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL, COLNO, ROWNO,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { adjattrib } from './attrib.js';
@@ -55,12 +55,13 @@ import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
 import { mons } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
-import { see_monsters, see_objects, see_traps, swallowed, vision_recalc } from './display.js';
+import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
 import { eatmupdate, newuhs } from './eat.js';
 import { you_were, you_unwere, set_ulycn } from './were.js';
 import { can_reach_floor } from './engrave.js';
 import { is_pool } from './dbridge.js';
+import { glyph_is_invisible } from './symbols.js';
 
 // C ref: invent.c compactify() — compress inventory letter list for prompts
 // Inlined here to avoid circular import issues with invent.js
@@ -567,7 +568,6 @@ async function handleQuaff(player, map, display) {
             // C parity: inventory-selected items are description-known by the
             // time they are acted on (otmp->dknown guards makeknown/trycall).
             item.dknown = true;
-            replacePromptMessage();
             item.in_use = true;
             gp.potion_nothing = 0;
             gp.potion_unkn = 0;
@@ -1945,9 +1945,21 @@ export async function peffect_monster_detection(otmp, map, player) {
       i = rn2(100) + 100;
     }
     incr_itimeout(player, DETECT_MONSTERS, i);
-    // C: scan map for invisible glyphs and MON_AT; simplified
-    if (!player.uswallow) {
-      see_monsters(map);
+    const gameMap = activeMap(map);
+    for (let x = 1; x < COLNO; x++) {
+      for (let y = 0; y < ROWNO; y++) {
+        const loc = gameMap?.at?.(x, y);
+        if (!loc) continue;
+        if (glyph_is_invisible(loc.glyph)) {
+          unmap_object(x, y, gameMap);
+          newsym(x, y, gameMap);
+        }
+        if (gameMap?.monsterAt?.(x, y)) gp.potion_unkn = 0;
+      }
+    }
+    const heroUnderwater = !!(player.uinwater || player.underwater || player.Underwater);
+    if (!player.uswallow && !heroUnderwater) {
+      see_monsters(gameMap);
       if (gp.potion_unkn) await You_feel("lonely.");
       return 0;
     }

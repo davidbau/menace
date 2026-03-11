@@ -2176,6 +2176,16 @@ export function newsym(x, y, ctxOrMap = null) {
     // --- Not visible (out of FOV) ---
     if (!fov || !fov.canSee(x, y)) {
         const mon = map.monsterAt(x, y);
+        const detectMonsters = hasPlayerProp(player, DETECT_MONSTERS, 'detectMonsters', 'Detect_monsters');
+        if (mon && detectMonsters) {
+            // C ref: display.c newsym() out-of-sight branch shows monsters
+            // when Detect_monsters is active; glyph is inverse-video.
+            const hallu = !!(player?.Hallucination || player?.hallucinating);
+            const glyph = monsterMapGlyph(mon, hallu);
+            display.setCell(col, row, glyph.ch, glyph.color, 1);
+            mon.meverseen = 1;
+            return;
+        }
         const monVisibleByOwnLight = !!(mon
             && emits_light(mon.data || mon.type || {}) > 0
             && couldsee(map, player, x, y)
