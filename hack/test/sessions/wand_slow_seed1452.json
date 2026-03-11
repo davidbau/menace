@@ -62,7 +62,7 @@
       ]
     },
     {
-      "key": "l",
+      "key": "p",
       "rng": ["^turn[moves=2]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=1]",22797,"^dochug[mlet=L,mstat=2,cansee=0]",3216],
       "screen": [
         "d - a steel wand.",
@@ -92,96 +92,6 @@
       ]
     },
     {
-      "key": "l",
-      "rng": ["^turn[moves=3]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=1]",8912,"^dochug[mlet=L,mstat=2,cansee=0]",26903],
-      "screen": [
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "           ----+-----",
-        "           |..@.....|",
-        "           |<.B.....|",
-        "           |........|",
-        "           |........|",
-        "           ----------",
-        "",
-        "",
-        "",
-        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
-      ]
-    },
-    {
-      "key": "l",
-      "rng": ["^turn[moves=4]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=1]",10524,"^dochug[mlet=L,mstat=2,cansee=0]",29325],
-      "screen": [
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "           ----+-----",
-        "           |...@....|",
-        "           |<.B.....|",
-        "           |........|",
-        "           |........|",
-        "           ----------",
-        "",
-        "",
-        "",
-        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
-      ]
-    },
-    {
-      "key": "p",
-      "rng": ["^turn[moves=5]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=1]",8767,"^dochug[mlet=L,mstat=2,cansee=0]",14076],
-      "screen": [
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "           ----+-----",
-        "           |....@...|",
-        "           |<.B.....|",
-        "           |........|",
-        "           |........|",
-        "           ----------",
-        "",
-        "",
-        "",
-        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
-      ]
-    },
-    {
       "key": "d",
       "rng": [],
       "screen": [
@@ -200,7 +110,7 @@
         "",
         "",
         "           ----+-----",
-        "           |....@...|",
+        "           |.@......|",
         "           |<.B.....|",
         "           |........|",
         "           |........|",
@@ -212,7 +122,7 @@
       ]
     },
     {
-      "key": "j",
+      "key": "n",
       "rng": [],
       "screen": [
         "What direction?",
@@ -230,7 +140,7 @@
         "",
         "",
         "           ----+-----",
-        "           |....@...|",
+        "           |.@......|",
         "           |<.B.....|",
         "           |........|",
         "           |........|",
@@ -243,9 +153,9 @@
     },
     {
       "key": " ",
-      "rng": [12724,"^turn[moves=6]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=1]",3094,18167,8392,"^m_move_debug[mlet=B,mx=15,my=15,dx=1,dy=-1,rfree=1,cell_typ=5,gat=-,ux=17,uy=14]",598,2085,24323,"^dochug[mlet=L,mstat=2,cansee=0]",14440],
+      "rng": [8912,"^turn[moves=3]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=L,mstat=2,cansee=0]",26903],
       "screen": [
-        "The bat hits!",
+        "What direction?",
         "",
         "",
         "",
@@ -260,37 +170,7 @@
         "",
         "",
         "           ----+-----",
-        "           |...B@...|",
-        "           |<.......|",
-        "           |........|",
-        "           |........|",
-        "           ----------",
-        "",
-        "",
-        "",
-        "Level 1   Gold 0      Hp   9(12) Ac 6   Str 16     Exp  1/0"
-      ]
-    },
-    {
-      "key": "Q",
-      "rng": ["^turn[moves=7]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=0,cansee=1]",16471,20647,23809,30114,3474,10671,27824,"^m_move_debug[mlet=B,mx=16,my=14,dx=-1,dy=1,rfree=1,cell_typ=5,gat=-,ux=17,uy=14]",7596,"^dochug[mlet=L,mstat=2,cansee=0]",11727],
-      "screen": [
-        "The bat misses",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "           ----+-----",
-        "           |....@...|",
+        "           |.@......|",
         "           |<.B.....|",
         "           |........|",
         "           |........|",
@@ -298,7 +178,37 @@
         "",
         "",
         "",
-        "Level 1   Gold 0      Hp   9(12) Ac 6   Str 16     Exp  1/0"
+        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
+      ]
+    },
+    {
+      "key": "Q",
+      "rng": ["^turn[moves=4]","^movemon[n=6]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=K,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=1]",10524,"^dochug[mlet=L,mstat=2,cansee=0]",29325],
+      "screen": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "           ----+-----",
+        "           |.@......|",
+        "           |<.B.....|",
+        "           |........|",
+        "           |........|",
+        "           ----------",
+        "",
+        "",
+        "",
+        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
       ]
     },
     {
@@ -320,7 +230,7 @@
         "",
         "",
         "           ----+-----",
-        "           |....@...|",
+        "           |.@......|",
         "           |<.B.....|",
         "           |........|",
         "           |........|",
@@ -328,7 +238,7 @@
         "",
         "",
         "",
-        "Level 1   Gold 0      Hp   9(12) Ac 6   Str 16     Exp  1/0"
+        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
       ]
     }
   ]
