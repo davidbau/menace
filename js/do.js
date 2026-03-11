@@ -53,7 +53,7 @@ import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs } from './stairs.js';
 import { float_down } from './trap.js';
-import { check_special_room, move_update, losehp } from './hack.js';
+import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
@@ -752,6 +752,7 @@ export async function handleDrop(player, map, display) {
 }
 
 async function dropSelectedItem(item, player, map, display) {
+    const prevCap = near_capacity(player);
     const isWornArmor =
         player.armor === item
         || player.shield === item
@@ -778,11 +779,42 @@ async function dropSelectedItem(item, player, map, display) {
     item.ox = player.x;
     item.oy = player.y;
     placeFloorObject(map, item);
+    const newCap = near_capacity(player);
+    const encMsg = dropEncumberMsgForChange(prevCap, newCap);
+    if (player) {
+        player.encumbrance = newCap;
+        player._oldcap = newCap;
+    }
     if (typeof display.clearRow === 'function') display.clearRow(0);
     display.topMessage = null;
     display.messageNeedsMore = false;
-    await display.putstr_message(`You drop ${doname(item, null)}.`);
+    const dropMsg = `You drop ${doname(item, null)}.`;
+    await display.putstr_message(encMsg ? `${dropMsg}  ${encMsg}` : dropMsg);
     return { moved: false, tookTime: true };
+}
+
+function dropEncumberMsgForChange(oldcap, newcap) {
+    if (oldcap < newcap) {
+        switch (newcap) {
+        case 1: return 'Your movements are slowed slightly because of your load.';
+        case 2: return 'You rebalance your load.  Movement is difficult.';
+        case 3: return 'You stagger under your heavy load.  Movement is very hard.';
+        default:
+            return (newcap === 4)
+                ? 'You can barely move a handspan with this load!'
+                : "You can't even move a handspan with this load!";
+        }
+    }
+    if (oldcap > newcap) {
+        switch (newcap) {
+        case 0: return 'Your movements are now unencumbered.';
+        case 1: return 'Your movements are only slowed slightly by your load.';
+        case 2: return 'You rebalance your load.  Movement is still difficult.';
+        case 3: return 'You stagger under your load.  Movement is still very hard.';
+        default: return null;
+        }
+    }
+    return null;
 }
 
 async function showDropCandidates(candidates, display) {

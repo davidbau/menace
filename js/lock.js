@@ -551,7 +551,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
             if (!autounlock) {
                 const qbuf = `There is ${doname(otmp)} here; ${verb} ${it ? 'it' : 'its lock'}?`;
                 otmp.lknown = true;
-                const ansCode = await ynFunction(qbuf, 'ynq', 'n'.charCodeAt(0), display);
+                const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
                 const ansChar = String.fromCharCode(ansCode);
                 if (ansChar === 'q') return PICKLOCK_DID_NOTHING;
                 if (ansChar === 'n') continue;
@@ -559,7 +559,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
                 // autounlock — simplified: proceed directly
                 if (!pick) return PICKLOCK_DID_NOTHING;
                 const qbuf = `Unlock it with ${doname(pick)}?`;
-                const ansCode = await ynFunction(qbuf, 'ynq', 'n'.charCodeAt(0), display);
+                const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
                 if (String.fromCharCode(ansCode) !== 'y') return PICKLOCK_DID_NOTHING;
             }
 
@@ -642,7 +642,7 @@ export async function pick_lock(game, pick, rx, ry, container) {
             const qbuf = autounlock
                 ? `${lockStr} it with ${doname(pick)}?`
                 : `${lockStr} it?`;
-            const ansCode = await ynFunction(qbuf, 'ynq', 'n'.charCodeAt(0), display);
+            const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
             if (String.fromCharCode(ansCode) !== 'y') {
                 return PICKLOCK_DID_NOTHING;
             }

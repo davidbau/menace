@@ -111,6 +111,7 @@ import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
 import { dig_typ } from './dig.js';
+import { pick_lock } from './lock.js';
 
 // -- Inline helpers --
 
@@ -1071,79 +1072,8 @@ export async function handleApply(player, map, display, game) {
 
         if (selected.otyp === CREDIT_CARD || selected.otyp === LOCK_PICK
             || selected.otyp === SKELETON_KEY) {
-            await display.putstr_message('In what direction? ');
-            let dir = null;
-            while (!dir) {
-                const dirCh = await nhgetch();
-                if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
-                    replacePromptMessage();
-                    return { moved: false, tookTime: false };
-                }
-                const dch = String.fromCharCode(dirCh);
-                dir = DIRECTION_KEYS[dch] || null;
-                if (dir) break;
-                replacePromptMessage();
-                if (game?.flags?.cmdassist !== false) {
-                    await show_invalid_direction_cmdassist_help(display);
-                    await display.putstr_message('In what direction? ');
-                    continue;
-                }
-                if (!player?.wizard)
-                    await display.putstr_message('What a strange direction!  Never mind.');
-                return { moved: false, tookTime: false };
-            }
-            replacePromptMessage();
-            const nx = player.x + dir[0];
-            const ny = player.y + dir[1];
-            const loc = map.at(nx, ny);
-            if (!loc || !IS_DOOR(loc.typ)) {
-                await display.putstr_message('You see no door there.');
-                return { moved: false, tookTime: true, terminalScreenOwned: true };
-            }
-            if (loc.flags === D_NODOOR) {
-                await display.putstr_message('This doorway has no door.');
-                return { moved: false, tookTime: true };
-            }
-            if (loc.flags & D_ISOPEN) {
-                await display.putstr_message('You cannot lock an open door.');
-                return { moved: false, tookTime: true };
-            }
-            if (loc.flags & D_BROKEN) {
-                await display.putstr_message('This door is broken.');
-                return { moved: false, tookTime: true };
-            }
-            if (selected.otyp === CREDIT_CARD && !(loc.flags & D_LOCKED)) {
-                await display.putstr_message("You can't lock a door with a credit card.");
-                return { moved: false, tookTime: true };
-            }
-            const isLocked = !!(loc.flags & D_LOCKED);
-            const ans = await ynFunction(`${isLocked ? 'Unlock' : 'Lock'} it?`, 'ynq',
-                'n'.charCodeAt(0), display);
-            if (String.fromCharCode(ans) !== 'y')
-                return { moved: false, tookTime: false };
-            const dex = acurr(player, A_DEX);
-            const isRogue = (player.roleMnum === PM_ROGUE) ? 1 : 0;
-            let chance;
-            if (selected.otyp === CREDIT_CARD) chance = 2 * dex + 20 * isRogue;
-            else if (selected.otyp === LOCK_PICK) chance = 3 * dex + 30 * isRogue;
-            else chance = 70 + dex;
-            let usedtime = 0;
-            game.occupation = {
-                occtxt: isLocked ? 'unlocking the door' : 'locking the door',
-                async fn() {
-                    if (usedtime++ >= 50) {
-                        await display.putstr_message(`You give up your attempt at ${isLocked ? 'unlocking' : 'locking'} the door.`);
-                        await exercise(player, A_DEX, true);
-                        return false;
-                    }
-                    if (rn2(100) >= chance) return true;
-                    await display.putstr_message(`You succeed in ${isLocked ? 'unlocking' : 'locking'} the door.`);
-                    loc.flags = isLocked ? D_CLOSED : D_LOCKED;
-                    await exercise(player, A_DEX, true);
-                    return false;
-                },
-            };
-            return { moved: false, tookTime: true };
+            const result = await pick_lock(game, selected, 0, 0, null);
+            return { moved: false, tookTime: result !== 0 };
         }
 
         // C ref: dig.c use_pick_axe() — when not wielded, wield first and
