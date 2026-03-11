@@ -33,7 +33,7 @@ import { a_gname_at, halu_gname } from './pray.js';
 import { adjalign } from './attrib.js';
 import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
-import { RLOC_NOMSG, SPINE, EPRI, EMIN, MM_EMIN, MM_ADJACENTOK, MM_NOMSG, NO_MM_FLAGS } from './const.js';
+import { RLOC_NOMSG, SPINE, EPRI, EMIN, MM_EMIN, MM_ADJACENTOK, MM_NOMSG, NO_MM_FLAGS, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR } from './const.js';
 import { buzz } from './zap.js';
 import { money_cnt, nomul } from './hack.js';
 
@@ -41,11 +41,7 @@ import { money_cnt, nomul } from './hack.js';
 const ALGN_SINNED = -4;
 const ALGN_DEVOUT = 14;
 
-// Article constants (cf. decl.h)
-const ARTICLE_NONE = 0;
-const ARTICLE_THE = 1;
-const ARTICLE_A = 2;
-const ARTICLE_YOUR = 3;
+// ARTICLE_* imported from const.js
 
 // BZ constants for buzz() (cf. zap.h)
 // AD_ELEC = 5 in C; BZ_OFS_AD(AD_ELEC) = AD_ELEC-1 = 4;

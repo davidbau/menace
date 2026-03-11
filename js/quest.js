@@ -38,7 +38,7 @@ import {
     MS_NEMESIS, MS_GUARDIAN, MS_DJINNI,
     PM_PRISONER, mons,
 } from './monsters.js';
-import { MAGIC_PORTAL } from './const.js';
+import { MAGIC_PORTAL, STRAT_WAITMASK } from './const.js';
 import { A_WIS } from './const.js';
 import { the, xname } from './objnam.js';
 
@@ -47,8 +47,7 @@ const MIN_QUEST_LEVEL = 14;
 // C: #define MIN_QUEST_ALIGN 20
 const MIN_QUEST_ALIGN = 20;
 
-// STRAT_WAITMASK constant (matches wizard.js)
-const STRAT_WAITMASK = 0x28000000; // STRAT_CLOSE | STRAT_WAITFORU
+// STRAT_WAITMASK imported from const.js
 
 // Helper: Qstat accessor — ensures game.quest_status exists
 function Qstat(game) {

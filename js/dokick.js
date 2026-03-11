@@ -30,6 +30,8 @@ import {
     PIT, SPIKED_PIT, WEB, HOLE, TRAPDOOR, STATUE_TRAP,
     is_pit, is_hole, W_ARMF,
     TT_PIT, TT_WEB, TT_BEARTRAP, P_NONE, P_MARTIAL_ARTS,
+    MIGR_NOWHERE, MIGR_RANDOM, MIGR_STAIRS_UP, MIGR_LADDER_UP,
+    MIGR_SSTAIRS, MIGR_WITH_HERO, MIGR_NOBREAK, MIGR_NOSCATTER, MIGR_TO_SPECIES,
 } from './const.js';
 import {
     IS_TREE, IS_THRONE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR,
@@ -127,16 +129,7 @@ const D_WARNED = 16;
 const S_LPUDDING = 1;
 const S_LDWASHER = 2;
 
-// Migration destination codes (dungeon.h)
-const MIGR_NOWHERE = -1;
-const MIGR_RANDOM = 0;
-const MIGR_STAIRS_UP = 3;
-const MIGR_LADDER_UP = 5;
-const MIGR_SSTAIRS = 7;
-const MIGR_WITH_HERO = 9;
-const MIGR_NOBREAK = 1024;
-const MIGR_NOSCATTER = 2048;
-const MIGR_TO_SPECIES = 4096;
+// MIGR_* imported from const.js
 
 // Trap result
 const Trap_Killed_Mon = 2;

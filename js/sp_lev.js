@@ -14,7 +14,7 @@
  */
 
 import { GameMap } from './game.js';
-import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM } from './const.js';
+import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU } from './const.js';
 import { rn2, rnd, rn1, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight, place_object } from './mkobj.js';
 import { game as _gstate } from './gstate.js';
@@ -127,7 +127,7 @@ const NON_PM = -1;
 const MALE = 0;
 const FEMALE = 1;
 const NEUTRAL = -1;
-const STRAT_WAITFORU = 0x20000000;
+// STRAT_WAITFORU imported from const.js
 
 const ALIGN_TYPE_MAP = {
     noalign: A_NONE,

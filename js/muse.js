@@ -81,7 +81,7 @@ import { arti_reflects } from './artifact.js';
 import { can_carry } from './dogmove.js';
 import { sobj_at, carrying } from './invent.js';
 import { welded } from './wield.js';
-import { ZAP_POS } from './const.js';
+import { ZAP_POS, STRAT_WAITFORU } from './const.js';
 import { is_pool, is_lava, is_ice,
          is_drawbridge_wall } from './dbridge.js';
 import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
@@ -96,7 +96,7 @@ import { awaken_soldiers } from './music.js';
 import { t_at, m_at } from './trap.js';
 import { makeknown, hard_helmet } from './do_wear.js';
 
-const STRAT_WAITFORU = 0x20000000; // C ref: mon.h
+// STRAT_WAITFORU imported from const.js
 
 // ========================================================================
 // Module-level state — C ref: gm.m struct (defense/offense/misc selections)

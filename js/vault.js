@@ -22,6 +22,7 @@ import {
     IS_WALL, IS_STWALL, IS_POOL, IS_ROOM, ACCESSIBLE, IS_OBSTRUCTED,
     D_NODOOR,
     VAULT_GUARD_TIME, GD_EATGOLD, GD_DESTROYGOLD,
+    RLOC_NOMSG, RLOC_MSG, RLOC_ERR, ARTICLE_A,
 } from './const.js';
 import { PM_GUARD } from './monsters.js';
 import { COIN_CLASS, ROCK, BOULDER, TIN_WHISTLE } from './objects.js';
@@ -49,13 +50,7 @@ import { Has_contents } from './objnam.js';
 // ---------- Constants ----------
 const FCSIZ = ROWNO + COLNO;
 
-// RLOC flags (matching teleport.js)
-const RLOC_NOMSG = 0x0001;
-const RLOC_MSG   = 0x0002;
-const RLOC_ERR   = 0x0100;
-
-// Article constants from do_name.js
-const ARTICLE_A = 2;
+// RLOC_*, ARTICLE_* imported from const.js
 
 // ---------- Local helpers ----------
 

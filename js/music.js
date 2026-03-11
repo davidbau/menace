@@ -20,7 +20,7 @@ import { acurr as ACURR } from './attrib.js';
 import { pline, pline_The, You, Your, You_hear, You_feel, You_cant,
          Norep, impossible } from './pline.js';
 import { Monnam, mon_nam, a_monnam, x_monnam, Amonnam } from './do_name.js';
-import { SUPPRESS_SADDLE, SIZE, M_AP_NOTHING, M_AP_MONSTER } from './const.js';
+import { SUPPRESS_SADDLE, SIZE, M_AP_NOTHING, M_AP_MONSTER, STRAT_WAITMASK } from './const.js';
 import { Role_if } from './role.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an, the } from './objnam.js';
 import { unique_corpstat, is_mindless, canseemon, is_mercenary,
@@ -65,7 +65,7 @@ import { getlin, ynFunction } from './input.js';
 // Local helpers (mirrors of C macros used locally in multiple files)
 // ============================================================================
 
-const STRAT_WAITMASK = 0x30000000; // STRAT_CLOSE | STRAT_WAITFORU
+// STRAT_WAITMASK imported from const.js
 
 
 function has_mgivenname(mon) {

@@ -32,7 +32,7 @@ import { polymorph_sink } from './do.js';
 import { ART_EXCALIBUR } from './artifacts.js';
 import { artiname, exist_artifact, discover_artifact } from './artifact.js';
 import { somegold } from './steal.js';
-import { IS_FOUNTAIN, MM_NOMSG } from './const.js';
+import { IS_FOUNTAIN, MM_NOMSG, A_MAX, DOOR } from './const.js';
 
 // fountain.js -- Fountain and sink effects: quaff, dip, wash
 // cf. fountain.c -- floating_above, dowatersnakes, dowaterdemon, dowaternymph,
@@ -48,8 +48,7 @@ const S_LPUDDING = 1;
 const S_LDWASHER = 2;
 const S_LRING = 4;
 
-const A_MAX = 6;
-const DOOR = 23;
+// A_MAX, DOOR imported from const.js
 
 function FOUNTAIN_IS_WARNED(loc) { return (loc.looted || 0) & F_WARNED; }
 function FOUNTAIN_IS_LOOTED(loc) { return (loc.looted || 0) & F_LOOTED; }

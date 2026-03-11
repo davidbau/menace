@@ -115,14 +115,9 @@ import { mon_wield_item } from './weapon.js';
 import { NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE } from './const.js';
 import { choose_magic_spell, choose_clerical_spell, cast_wizard_spell, cast_cleric_spell } from './mcastu.js';
 import { tele_restrict, rloc, enexto, rloc_to } from './teleport.js';
-import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS } from './const.js';
+import { MGC_CLONE_WIZ, MGC_SUMMON_MONS, MGC_AGGRAVATION, MGC_DISAPPEAR, MGC_HASTE_SELF, MGC_CURE_SELF, CLC_INSECTS, CLC_CURE_SELF, WT_HUMAN, PROT_FROM_SHAPE_CHANGERS, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK, MMOVE_NOTHING, MMOVE_MOVED } from './const.js';
 
-// C ref: monst.h strategy bits used by monmove.c:717 early dochug gate
-const STRAT_WAITFORU = 0x20000000;
-const STRAT_CLOSE = 0x10000000;
-const STRAT_WAITMASK = (STRAT_CLOSE | STRAT_WAITFORU);
-const MMOVE_NOTHING = 0;
-const MMOVE_MOVED = 1;
+// STRAT_*, MMOVE_* imported from const.js
 const MMOVE_DIED = 2;
 const MMOVE_DONE = 3;
 const MMOVE_NOMOVES = 4;
