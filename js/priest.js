@@ -35,7 +35,7 @@ import { record_achievement } from './insight.js';
 import { rloc } from './teleport.js';
 import { RLOC_NOMSG, SPINE, EPRI, EMIN, MM_EMIN, MM_ADJACENTOK, MM_NOMSG, NO_MM_FLAGS, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR } from './const.js';
 import { buzz } from './zap.js';
-import { money_cnt, nomul } from './hack.js';
+import { money_cnt, nomul, in_rooms } from './hack.js';
 
 // cf. priest.c:9-10 — alignment thresholds
 const ALGN_SINNED = -4;
@@ -269,20 +269,7 @@ export function priestname(mon, article, reveal_high_priest, player) {
 // helpless: use monHelpless from mon.js
 // resist_conflict imported from mondata.js
 function mapseen_temple(/*priest*/) { /* stub */ }
-// in_rooms helper (also in vault.js — local copy for self-containment)
-function in_rooms(x, y, rtype, map) {
-    if (!map || !map.rooms) return '';
-    let result = '';
-    for (let i = 0; i < map.rooms.length; i++) {
-        const room = map.rooms[i];
-        if (!room) continue;
-        if (rtype !== undefined && room.rtype !== rtype) continue;
-        if (x >= room.lx && x <= room.hx && y >= room.ly && y <= room.hy) {
-            result += String.fromCharCode(i + ROOMOFFSET);
-        }
-    }
-    return result;
-}
+// in_rooms imported from hack.js
 
 // linedup: check if (ax,ay) and (bx,by) are on a line (horiz/vert/diag)
 function linedup(ax, ay, bx, by /*, boteflag*/) {
