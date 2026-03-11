@@ -15,6 +15,8 @@ import {
 } from './objects.js';
 import { PM_DEATH, PM_PESTILENCE, PM_FAMINE } from './monsters.js';
 import { rn2 } from './rng.js';
+import { artilist } from './artifacts.js';
+import { game as _gstate } from './gstate.js';
 
 // ========================================================================
 // Material predicates — C ref: objclass.h
@@ -51,9 +53,12 @@ export function vegetarian(obj) {
 
 // C ref: obj.h — is_indestructible checks
 export function is_quest_artifact(obj) {
-    // Simplified — in C this checks artlist[]. For RNG alignment
-    // we only need to know if obj_resists returns true.
-    return false; // TODO: implement when artifacts are ported
+    // C ref: questpgr.c:66 — checks if obj->oartifact matches role's quest artifact
+    if (!obj || !obj.oartifact) return false;
+    const entry = artilist[obj.oartifact];
+    if (!entry || entry.role < 0) return false;
+    const player = _gstate?.player;
+    return player && entry.role === player.roleMnum;
 }
 
 // C ref: zap.c:1456 obj_resists() — check if object resists destruction
