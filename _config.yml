@@ -7,6 +7,7 @@ description: JavaScript port of NetHack 3.7
 # adding it here tells the plugin to process it anyway.
 include:
   - README.md
+  - coverage
 
 # Plugins (all are on the GitHub Pages whitelist)
 readme_index:
