@@ -416,6 +416,7 @@ export async function handleThrow(player, map, display) {
         }
         const selItem = player.inventory.find(o => o.invlet === c);
         if (!selItem) {
+            replacePromptMessage();
             await display.putstr_message("You don't have that object.");
             await more(display, { site: 'dothrow.handleThrow.invalidInvlet.more' });
             replacePromptMessage();

@@ -2,7 +2,7 @@
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
-import { nhgetch, ynFunction } from './input.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
@@ -629,9 +629,14 @@ async function handleQuaff(player, map, display) {
             return { moved: false, tookTime: true };
         }
 
+        // C ref: getobj() always shows error for invalid invlet and re-prompts.
         replacePromptMessage();
-        await display.putstr_message("Never mind.");
-        return { moved: false, tookTime: false };
+        await display.putstr_message("You don't have that object.");
+        await more(display, {
+            site: 'potion.handleQuaff.invalidInvletMorePrompt',
+        });
+        await showQuaffPrompt();
+        continue;
     }
 }
 
