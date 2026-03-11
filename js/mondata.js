@@ -18,7 +18,7 @@ import { ALL_TRAPS, NO_TRAP, W_ARMOR, W_AMUL, W_ARMC, W_ARMH, W_WEP, W_SWAPWEP, 
     REFLECTING, INTRINSIC, MALE, FEMALE, NEUTER, NON_PM, PRONOUN_NO_IT, PRONOUN_HALLU,
     M_SEEN_NOTHING, M_SEEN_MAGR, M_SEEN_FIRE, M_SEEN_COLD, M_SEEN_SLEEP,
     M_SEEN_DISINT, M_SEEN_ELEC, M_SEEN_POISON, M_SEEN_ACID, M_SEEN_REFL,
-    M_AP_NOTHING, A_LAWFUL } from './const.js';
+    M_AP_NOTHING, A_LAWFUL, W_SADDLE } from './const.js';
 import { dist2, highc, ROLL_FROM } from './hacklib.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { rn2, rnd } from './rng.js';
@@ -297,10 +297,7 @@ export function monsdat(mon) {
 // Monster naming — C ref: do_name.c x_monnam()
 // ========================================================================
 
-// C ref: include/worn.h — W_SADDLE = 0x100000
-// Note: canonical constant also exported from worn.js, but imported here
-// to avoid circular dependency (worn.js imports from mondata.js).
-const W_SADDLE = 0x100000;
+// W_SADDLE imported from const.js (canonical definition)
 
 // C ref: do_name.c x_monnam() — check for worn saddle
 // Returns true when the monster has a saddle in its inventory with

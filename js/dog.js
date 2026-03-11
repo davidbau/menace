@@ -58,7 +58,7 @@ import { A_CHA } from './const.js';
 import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
          is_rider, resists_poison, resists_acid, resists_ston, likes_fire,
          mon_hates_silver } from './mondata.js';
-import { EYE, has_oname, ONAME, EDOG, ESHK } from './const.js';
+import { EYE, has_oname, ONAME, EDOG, ESHK, W_SADDLE } from './const.js';
 import { Has_contents } from './objnam.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating, dog_eat } from './dogmove.js';
@@ -285,7 +285,7 @@ export function makedog(map, player, depth) {
     if (pmIdx === PM_PONY) {
         const saddleObj = mksobj(SADDLE, true, false);
         if (saddleObj) {
-            saddleObj.owornmask = 0x100000; // W_SADDLE
+            saddleObj.owornmask = W_SADDLE;
             mpickobj(pet, saddleObj);
             pet.misc_worn_check = 0x100000;
         }
