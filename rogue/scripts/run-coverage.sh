@@ -20,7 +20,7 @@ npx c8 \
 
 echo "Applying NetHack theme..."
 cp rogue/scripts/nethack.css rogue/coverage/nethack.css
-node rogue/scripts/nethack-theme.mjs rogue/coverage
+node rogue/scripts/nethack-theme.mjs rogue/coverage --game "Rogue 3.6"
 
 echo ""
 echo "Coverage report written to: rogue/coverage/index.html"
