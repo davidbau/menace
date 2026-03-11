@@ -47,7 +47,7 @@ describe('mkobj compatibility surface', () => {
     };
     const o = { ox: 3, oy: 4, otyp: POT_WATER };
     add_to_buried(o, map);
-    assert.equal(o.where, 'OBJ_BURIED');
+    assert.equal(o.where, 6); // OBJ_BURIED
     assert.equal(map.buried.length, 1);
     assert.equal(item_on_ice(o, map), true);
   });

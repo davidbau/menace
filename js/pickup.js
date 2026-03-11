@@ -39,7 +39,8 @@ import { ARTICLE_THE, SUPPRESS_SADDLE } from './const.js';
 import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
-import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE,
+         LOST_THROWN, LOST_DROPPED, LOST_EXPLODING } from './const.js';
 import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2 } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
@@ -329,11 +330,11 @@ function autopick_testobj(otmp, calc_costly, player) {
     // (costly_spot not yet ported, skip this check)
 
     // pickup_thrown/pickup_stolen/nopick_dropped
-    if (otmp.how_lost === 'LOST_THROWN')
+    if (otmp.how_lost === LOST_THROWN)
         return true;
-    if (otmp.how_lost === 'LOST_DROPPED')
+    if (otmp.how_lost === LOST_DROPPED)
         return false;
-    if (otmp.how_lost === 'LOST_EXPLODING')
+    if (otmp.how_lost === LOST_EXPLODING)
         return false;
 
     // check for pickup_types

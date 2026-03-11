@@ -43,7 +43,8 @@ import {
     DIGCHECK_FAIL_OBJ_POOL_OR_TRAP,
     DIR_ERR, N_DIRS, DIR_180, xdir, ydir,
 } from './const.js';
-import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY_AN } from './const.js';
+import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY_AN,
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
@@ -1752,8 +1753,8 @@ export function rot_corpse(arg, timeout, map, player) {
     if (!arg) return;
     const obj = arg.a_obj || arg;
     let x = 0, y = 0;
-    const on_floor = (obj.where === 'OBJ_FLOOR' || (!obj.where && !obj.buried && obj.ox !== undefined));
-    const in_invent = (obj.where === 'OBJ_INVENT');
+    const on_floor = (obj.where === OBJ_FLOOR || (!obj.where && !obj.buried && obj.ox !== undefined));
+    const in_invent = (obj.where === OBJ_INVENT);
 
     if (on_floor) {
         x = obj.ox;
@@ -1764,12 +1765,12 @@ export function rot_corpse(arg, timeout, map, player) {
         if (obj.owornmask) {
             obj.owornmask = 0;
         }
-    } else if (obj.where === 'OBJ_MINVENT') {
+    } else if (obj.where === OBJ_MINVENT) {
         // In monster inventory
         if (obj.owornmask && obj.ocarry) {
             obj.owornmask = 0;
         }
-    } else if (obj.where === 'OBJ_MIGRATING') {
+    } else if (obj.where === OBJ_MIGRATING) {
         obj.owornmask = 0;
     }
 

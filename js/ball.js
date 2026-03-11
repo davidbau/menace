@@ -21,7 +21,7 @@ import { IS_OBSTRUCTED, IS_DOOR, D_CLOSED, D_LOCKED, POOL,
          W_BALL, W_CHAIN, W_WEAPONS,
          NO_KILLER_PREFIX, KILLED_BY_AN, KILLED_BY,
          TT_NONE, TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, TT_INFLOOR, TT_BURIEDBALL,
-         BC_BALL, BC_CHAIN } from './const.js';
+         BC_BALL, BC_CHAIN, OBJ_FREE } from './const.js';
 import { xname } from './objnam.js';
 import { HEAVY_IRON_BALL, IRON_CHAIN } from './objects.js';
 import { exercise } from './attrib_exercise.js';
@@ -92,7 +92,7 @@ export async function ballrelease(showmsg, player, map) {
         // freeinv: remove from inventory but don't place on floor
         const idx = player.inventory ? player.inventory.indexOf(uball) : -1;
         if (idx >= 0) player.inventory.splice(idx, 1);
-        uball.where = 'OBJ_FREE';
+        uball.where = OBJ_FREE;
         // encumber_msg() — recalculate encumbrance
     }
 }
@@ -846,7 +846,7 @@ async function litter(player, map) {
                 xname(otmp), qstr, fallstr);
             // setnotworn + freeinv + hitfloor
             inventory.splice(i, 1);
-            otmp.where = 'OBJ_FREE';
+            otmp.where = OBJ_FREE;
             otmp.ox = player.x;
             otmp.oy = player.y;
             placeFloorObject(map, otmp);
@@ -913,8 +913,8 @@ export function bc_sanity_check(player, map) {
                    uball ? "iron ball" : "");
     }
 
-    const freechain = (!uchain || uchain.where === 'OBJ_FREE');
-    let freeball = (!uball || uball.where === 'OBJ_FREE'
+    const freechain = (!uchain || uchain.where === OBJ_FREE);
+    let freeball = (!uball || uball.where === OBJ_FREE
                     || (freechain && carried(uball)));
 
     if (uball && (uball.otyp !== HEAVY_IRON_BALL

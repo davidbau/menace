@@ -72,7 +72,7 @@ import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { shop_keeper, in_rooms, costly_spot, is_unpaid,
          stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
-import { SHOPBASE } from './const.js';
+import { SHOPBASE, OBJ_MINVENT } from './const.js';
 
 // ============================================================================
 // C macro equivalents -- weapon classification helpers
@@ -1105,7 +1105,7 @@ export function swallowit(obj, player, game) {
 // cf. dothrow.c:1481 -- throwit_mon_hit(obj, mon, player, map, game)
 export async function throwit_mon_hit(obj, mon, player, map, game) {
     if (mon) {
-        if (mon.isshk && obj.where === 'minvent' && obj.ocarry === mon) return true;
+        if (mon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === mon) return true;
         const obj_gone = await thitmonst(mon, obj, player, map, game);
         if (obj_gone && game) game.thrownobj = null;
     }

@@ -52,7 +52,7 @@ import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs } from './stairs.js';
 import { float_down } from './trap.js';
 import { check_special_room, move_update, losehp } from './hack.js';
-import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN } from './const.js';
+import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
 import { finesse_ahriman } from './artifact.js';
@@ -1626,16 +1626,16 @@ export async function revive_corpse(corpse, player, map) {
     const is_zomb = (mons[montype]?.mlet === S_ZOMBIE
                      || (corpse.buried && is_reviver(mons[montype])));
     const chewed = (corpse.oeaten || 0) !== 0;
-    const where = corpse.where || 'floor';
+    const where = corpse.where ?? OBJ_FLOOR;
 
     // Attempt to revive via zap.js revive()
     const mtmp = await revive(corpse, false, map, player);
     if (!mtmp) return false;
 
     // Give appropriate messages based on location
-    if (where === 'invent') {
+    if (where === OBJ_INVENT) {
         await You_feel("squirming in your backpack!");
-    } else if (where === 'floor' || !where) {
+    } else if (where === OBJ_FLOOR || where == null) {
         const ptr = mtmp.data || mtmp.type;
         let effect = "";
         if (ptr === mons[PM_DEATH]) effect = " in a whirl of spectral skulls";

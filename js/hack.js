@@ -1238,10 +1238,10 @@ export async function domove_core(dir, player, map, display, game) {
     // C ref: pickup.c pickup_filter() and flags.pickup_types
     function shouldAutopickup(obj, pickupTypes, costly) {
         const howLost = obj?.how_lost;
-        const wasThrown = howLost === LOST_THROWN || howLost === 'LOST_THROWN' || howLost === 'thrown';
-        const wasDropped = howLost === LOST_DROPPED || howLost === 'LOST_DROPPED' || howLost === 'dropped';
-        const wasStolen = howLost === LOST_STOLEN || howLost === 'LOST_STOLEN' || howLost === 'stolen';
-        const wasExploding = howLost === LOST_EXPLODING || howLost === 'LOST_EXPLODING' || howLost === 'exploding';
+        const wasThrown = howLost === LOST_THROWN;
+        const wasDropped = howLost === LOST_DROPPED;
+        const wasStolen = howLost === LOST_STOLEN;
+        const wasExploding = howLost === LOST_EXPLODING;
         const droppedNoPick = !!(game.flags?.nopick_dropped || game.flags?.dropped_nopick);
 
         // C ref: pickup.c autopick_testobj() loss-state overrides.

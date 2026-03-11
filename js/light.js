@@ -203,19 +203,19 @@ function get_obj_light_location(obj, map, player, depth = 0) {
         return { x: obj.ox, y: obj.oy };
     }
     // Object in hero inventory.
-    if (obj.where === OBJ_INVENT || obj.where === 'inventory') {
+    if (obj.where === OBJ_INVENT) {
         if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
             return { x: player.x, y: player.y };
         }
         return null;
     }
     // Object inside another object/container.
-    if (obj.where === OBJ_CONTAINED || obj.where === 'contained') {
+    if (obj.where === OBJ_CONTAINED) {
         if (obj.ocontainer) return get_obj_light_location(obj.ocontainer, map, player, depth + 1);
         return null;
     }
     // Object carried by a monster.
-    if (obj.where === OBJ_MINVENT || obj.where === 'minvent') {
+    if (obj.where === OBJ_MINVENT) {
         const mon = obj.ocarry;
         if (mon && Number.isFinite(mon.mx) && Number.isFinite(mon.my) && mon.mx > 0) {
             return { x: mon.mx, y: mon.my };

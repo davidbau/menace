@@ -37,7 +37,8 @@ import {
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
     PM_SAMURAI
 } from './monsters.js';
-import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE,
+         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { level_difficulty } from './dungeon.js';
@@ -72,7 +73,7 @@ export function place_object(obj, x, y, map) {
     obj.ox = x;
     obj.oy = y;
     // C ref: place_object() puts object on floor chain (OBJ_FLOOR).
-    obj.where = 'OBJ_FLOOR';
+    obj.where = OBJ_FLOOR;
     pushRngLogEntry(`^place[${obj.otyp},${obj.ox},${obj.oy}]`);
     mapRef.objects.push(obj);
     return obj;
@@ -1600,7 +1601,7 @@ export function bill_dummy_object(otmp, player) {
   dummy.owornmask = 0;
   addtobill(dummy, false, true, true);
   if (cost && dummy.where !== OBJ_DELETED) alter_cost(dummy, -cost);
-  otmp.no_charge = (otmp.where === 'OBJ_FLOOR' || otmp.where === OBJ_CONTAINED) ? 1 : 0;
+  otmp.no_charge = (otmp.where === OBJ_FLOOR || otmp.where === OBJ_CONTAINED) ? 1 : 0;
   otmp.unpaid = 0;
   return;
 }
@@ -1767,7 +1768,7 @@ export function add_to_minv(mon, obj) {
   for (otmp = mon.minvent; otmp; otmp = otmp.nobj) {
     if (merged( otmp, obj)) return 1;
   }
-  obj.where = 'OBJ_MINVENT';
+  obj.where = OBJ_MINVENT;
   obj.ocarry = mon;
   obj.nobj = mon.minvent;
   mon.minvent = obj;
@@ -1936,12 +1937,12 @@ export function obj_meld(obj1, obj2) {
     otmp2 = obj2;
     if (otmp1 && otmp2 && otmp1 !== otmp2) {
       ox = oy = 0;
-      if (!(otmp2.where === 'OBJ_FLOOR' && otmp1.where === OBJ_FREE) && (otmp1.owt > otmp2.owt || (otmp1.owt === otmp2.owt && rn2(2)))) {
-        if (otmp2.where === 'OBJ_FLOOR') ox = otmp2.ox, oy = otmp2.oy;
+      if (!(otmp2.where === OBJ_FLOOR && otmp1.where === OBJ_FREE) && (otmp1.owt > otmp2.owt || (otmp1.owt === otmp2.owt && rn2(2)))) {
+        if (otmp2.where === OBJ_FLOOR) ox = otmp2.ox, oy = otmp2.oy;
         result = obj_absorb(obj1, obj2);
       }
       else {
-        if (otmp1.where === 'OBJ_FLOOR') ox = otmp1.ox, oy = otmp1.oy;
+        if (otmp1.where === OBJ_FLOOR) ox = otmp1.ox, oy = otmp1.oy;
         result = obj_absorb(obj2, obj1);
       }
       if (ox) { if (cansee(ox, oy)) newsym(ox, oy); maybe_unhide_at(ox, oy); }
@@ -1955,7 +1956,7 @@ export function obj_meld(obj1, obj2) {
 
 // Autotranslated from mkobj.c:3817
 export async function pudding_merge_message(otmp, otmp2, player) {
-  let visible = (cansee(otmp.ox, otmp.oy) || cansee(otmp2.ox, otmp2.oy)), onfloor = (otmp.where === 'OBJ_FLOOR' || otmp2.where === 'OBJ_FLOOR'), inpack = (carried(otmp) || carried(otmp2));
+  let visible = (cansee(otmp.ox, otmp.oy) || cansee(otmp2.ox, otmp2.oy)), onfloor = (otmp.where === OBJ_FLOOR || otmp2.where === OBJ_FLOOR), inpack = (carried(otmp) || carried(otmp2));
   if ((!(player?.Blind || player?.blind || false) && visible) || inpack) {
     if ((player?.Hallucination || player?.hallucinating || false)) {
       if (onfloor) { await You_see("parts of the floor melting!"); }
@@ -1998,7 +1999,7 @@ export function mk_named_object(otyp, name = '', map = null, x = null, y = null)
 // C ref: mkobj.c:2717
 export function add_to_buried(obj, map = null) {
     if (!obj) return null;
-    obj.where = 'OBJ_BURIED';
+    obj.where = OBJ_BURIED;
     const mapRef = map || _gstate?.lev || _gstate?.map;
     if (mapRef) {
         if (!Array.isArray(mapRef.buried)) mapRef.buried = [];
@@ -2013,15 +2014,15 @@ export function remove_object(obj, map = null) {
     if (!obj || !Array.isArray(mapRef?.objects)) return false;
     const idx = mapRef.objects.indexOf(obj);
     if (idx >= 0) mapRef.objects.splice(idx, 1);
-    obj.where = 'OBJ_FREE';
+    obj.where = OBJ_FREE;
     return idx >= 0;
 }
 
 // C ref: mkobj.c:2554
 export function obj_extract_self(obj, map = null) {
     if (!obj) return false;
-    if (obj.where === 'OBJ_FLOOR') return remove_object(obj, map);
-    if (obj.where === 'OBJ_CONTAINED' && obj.ocontainer?.cobj) {
+    if (obj.where === OBJ_FLOOR) return remove_object(obj, map);
+    if (obj.where === OBJ_CONTAINED && obj.ocontainer?.cobj) {
         let prev = null;
         for (let cur = obj.ocontainer.cobj; cur; cur = cur.nobj) {
             if (cur === obj) {
@@ -2029,13 +2030,13 @@ export function obj_extract_self(obj, map = null) {
                 else obj.ocontainer.cobj = cur.nobj;
                 obj.nobj = null;
                 obj.ocontainer = null;
-                obj.where = 'OBJ_FREE';
+                obj.where = OBJ_FREE;
                 return true;
             }
             prev = cur;
         }
     }
-    obj.where = 'OBJ_FREE';
+    obj.where = OBJ_FREE;
     return true;
 }
 
@@ -2049,7 +2050,7 @@ export function replace_object(oldobj, newobj, map = null) {
     newobj.ox = oldobj.ox;
     newobj.oy = oldobj.oy;
     newobj.where = oldobj.where;
-    oldobj.where = 'OBJ_FREE';
+    oldobj.where = OBJ_FREE;
     return true;
 }
 

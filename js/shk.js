@@ -5,6 +5,7 @@
 
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
          ESHK } from './const.js';
 // C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 function ANGRY(mon) { return !mon.mpeaceful; }
@@ -1807,14 +1808,8 @@ function make_itemized_bill(shkp) {
     const bill = Array.isArray(eshkp.bill) ? eshkp.bill : [];
     const ebillct = Number(eshkp.billct || bill.length);
     const player = _gstate?.player || null;
-    const isOnBill = (obj) => {
-        const where = String(obj?.where ?? '').toUpperCase();
-        return where === 'OBJ_ONBILL' || Number(obj?.where) === OBJ_ONBILL;
-    };
-    const isContained = (obj) => {
-        const where = String(obj?.where ?? '').toUpperCase();
-        return where === 'OBJ_CONTAINED' || Number(obj?.where) === OBJ_CONTAINED;
-    };
+    const isOnBill = (obj) => obj?.where === OBJ_ONBILL;
+    const isContained = (obj) => obj?.where === OBJ_CONTAINED;
     const ibill = [];
     for (let i = 0; i < ebillct; i++) {
         const bp = bill[i];
@@ -1970,7 +1965,7 @@ async function buy_container(shkp, indx, ibillct, ibill) {
         const otmp = bp_to_obj(bp);
         if (!bp || !otmp) continue;
         const owhere = String(otmp.where ?? '').toUpperCase();
-        const isContained = (owhere === 'OBJ_CONTAINED' || Number(otmp.where) === OBJ_CONTAINED);
+        const isContained = (owhere === OBJ_CONTAINED);
         if (!isContained && !Has_contents(otmp)) continue;
         let top = otmp;
         while (top?.where === OBJ_CONTAINED && top.ocontainer) top = top.ocontainer;
@@ -2323,7 +2318,7 @@ function shk_owns(obj, map = _gstate?.map) {
     const x = Number(obj.ox);
     const y = Number(obj.oy);
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-    const isFloor = (obj.where === 'floor' || obj.where === 3 || obj.where === 'OBJ_FLOOR');
+    const isFloor = (obj.where === OBJ_FLOOR);
     if (!(obj.unpaid || (isFloor && !obj.no_charge && costly_spot(x, y, map)))) return null;
     const shkp = shop_keeper(map, inside_shop(x, y, map));
     return shkp ? sSuffix(shkname(shkp)) : 'the';
@@ -2333,7 +2328,7 @@ function shk_owns(obj, map = _gstate?.map) {
 function mon_owns(obj) {
     if (!obj) return null;
     const where = obj.where;
-    const minvent = (where === 'minvent' || where === 4 || where === 'OBJ_MINVENT');
+    const minvent = (where === OBJ_MINVENT);
     if (!minvent || !obj.ocarry) return null;
     return sSuffix(y_monnam(obj.ocarry));
 }
@@ -2349,7 +2344,7 @@ export function shk_your(obj, map) {
     if (!obj) return 'your ';
     const own = shk_owns(obj, map) || mon_owns(obj);
     if (own) return `${own} `;
-    const inInvent = (obj.where === 'invent' || obj.where === 1 || obj.where === 'OBJ_INVENT');
+    const inInvent = (obj.where === OBJ_INVENT);
     return inInvent || obj.carried ? 'your ' : 'the ';
 }
 

@@ -3,7 +3,7 @@
 
 import { nhgetch, getlin } from './input.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
-import { NHW_MENU } from './const.js';
+import { NHW_MENU, OBJ_INVENT } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
@@ -1316,7 +1316,7 @@ function obj_resists(obj) {
 
 // C ref: obj.h carried(o) macro — is object in player inventory?
 export function carried(obj) {
-    return !!(obj && (obj.where === 'OBJ_INVENT' || obj.where === 'invent'));
+    return !!(obj && obj.where === OBJ_INVENT);
 }
 
 // C ref: invent.c sobj_at() — find specific object type at location

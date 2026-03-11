@@ -87,7 +87,7 @@ import { is_pool, is_lava, is_ice,
 import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower, Is_rogue_level } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
+import { DISP_BEAM, DISP_END, NON_PM, OBJ_FLOOR } from './const.js';
 import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall, NODIAG } from './mondata.js';
 import { u_at } from './hack.js';
 import { game as _gstate } from './gstate.js';
@@ -2243,7 +2243,7 @@ export function searches_for_item(mon, obj) {
     const mdat = mon.data || mon.type || {};
 
     // Don't interact with protected items on scary squares
-    if (obj.where === 'floor' && obj.ox === mon.mx && obj.oy === mon.my
+    if (obj.where === OBJ_FLOOR && obj.ox === mon.mx && obj.oy === mon.my
         && onscary(null, obj.ox, obj.oy, mon))
         return false;
 

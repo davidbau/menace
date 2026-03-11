@@ -103,7 +103,7 @@ import {
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
-import { HOLE, TRAPDOOR } from './const.js';
+import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
 import { discoverObject } from './o_init.js';
@@ -2193,7 +2193,7 @@ export function get_mon_location(mon, out = null, locflags = 0, player = null) {
 export function get_container_location(container, out = null, container_nesting = null) {
   let obj = container;
   let nest = 0;
-  while (obj && String(obj.where || '').toUpperCase() === 'OBJ_CONTAINED') {
+  while (obj && obj.where === OBJ_CONTAINED) {
     nest++;
     obj = obj.ocontainer || null;
   }
@@ -2337,7 +2337,7 @@ function material_to_golem(okind) {
 function iterate_pile(objhdr) {
   if (!objhdr) return [];
   if (Array.isArray(objhdr)) return [...objhdr];
-  if (objhdr.nexthere || objhdr.where === 'OBJ_FLOOR' || objhdr.where === 'floor') {
+  if (objhdr.nexthere || objhdr.where === OBJ_FLOOR) {
     const out = [];
     let cur = objhdr;
     while (cur) {
