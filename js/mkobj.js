@@ -12,7 +12,7 @@ import {
     SPBOOK_no_NOVEL,
     WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS,
     CHAIN_CLASS, VENOM_CLASS,
-    IRON, COPPER, WOOD, PLASTIC, GLASS, DRAGON_HIDE, LIQUID,
+    IRON, COPPER, WOOD, PLASTIC, GLASS, DRAGON_HIDE, LIQUID, MINERAL,
     ARROW, ELVEN_ARROW, ORCISH_ARROW, YA, CROSSBOW_BOLT, DART, FLINT, ROCK,
     SHORT_SWORD,
     GOLD_PIECE, DILITHIUM_CRYSTAL, LOADSTONE,
@@ -1276,6 +1276,18 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
             base = od.oc_name;
         }
         break;
+    case GEM_CLASS: {
+        // C ref: objnam.c xname() GEM_CLASS — "stone" for MINERAL, "gem" for gems
+        const rock = (od.oc_material === MINERAL) ? 'stone' : 'gem';
+        if (!dknown) {
+            base = rock;
+        } else if (!nameKnown) {
+            base = od.oc_descr ? `${od.oc_descr} ${rock}` : od.oc_name;
+        } else {
+            base = od.oc_name;
+        }
+        break;
+    }
     default:
         // C ref: objnam.c xname() includes the monster descriptor for statues.
         if (obj.otyp === STATUE) {

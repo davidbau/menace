@@ -32,7 +32,7 @@ import {
 import { doname, xname, mkcorpstat, mksobj, add_to_minv } from './mkobj.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
-    x_monnam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
+    x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
     throws_rocks, is_unicorn,
 } from './mondata.js';
 import {
@@ -516,7 +516,7 @@ export async function ohitmon(mtmp, otmp, range, verbose, map, player, display, 
         if (damage < 1) damage = 1;
         // C ref: mthrowu.c ohitmon() — pline("The %s hits %s%s", xname, mon_nam, exclam)
         if (verbose && display && !player?.blind && couldsee(map, player, mtmp.mx, mtmp.my)) {
-            const msg = `The ${xname({ ...otmp, dknown: true })} hits ${x_monnam(mtmp, { article: 'none' })}${exclam(damage)}`;
+            const msg = `The ${xname({ ...otmp, dknown: true })} hits ${mon_nam(mtmp)}${exclam(damage)}`;
             await maybeFlushToplineBeforeMessage(display, msg, game);
             await display.putstr_message(msg);
         }
