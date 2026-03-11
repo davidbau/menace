@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.13% </span>
+                <span class="strong">33.05% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>828/2499</span>
+                <span class='fraction'>825/2496</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">34.56% </span>
+                <span class="strong">35.18% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>131/379</span>
+                <span class='fraction'>133/378</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.13% </span>
+                <span class="strong">33.05% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>828/2499</span>
+                <span class='fraction'>825/2496</span>
             </div>
         
             
@@ -2559,10 +2559,7 @@
 <a name='L2494'></a><a href='#L2494'>2494</a>
 <a name='L2495'></a><a href='#L2495'>2495</a>
 <a name='L2496'></a><a href='#L2496'>2496</a>
-<a name='L2497'></a><a href='#L2497'>2497</a>
-<a name='L2498'></a><a href='#L2498'>2498</a>
-<a name='L2499'></a><a href='#L2499'>2499</a>
-<a name='L2500'></a><a href='#L2500'>2500</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2497'></a><a href='#L2497'>2497</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2805,9 +2802,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -5081,7 +5075,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          IS_FURNITURE, IS_DRAWBRIDGE,
          XKILL_NOMSG, XKILL_NOCONDUCT,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
-         BOLT_LIM } from './const.js';
+         BOLT_LIM, MFAST } from './const.js';
 import { rn2, rnd, rn1, d } from './rng.js';
 import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
@@ -5094,7 +5088,7 @@ import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          resists_ston, touch_petrifies, amorphous, noncorporeal,
          unsolid, resists_fire, resists_acid, dmgtype, attacktype,
          can_blow, x_monnam, canseemon, needspick,
-         dmgtype_fromattack, is_bat, nonliving,
+         dmgtype_fromattack, is_bat, nonliving, acidic,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP } from './monsters.js';
 import { CORPSE, TIN, EGG, BOULDER,
@@ -5121,7 +5115,7 @@ import { CORPSE, TIN, EGG, BOULDER,
          GLOB_OF_GREEN_SLIME,
          objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
 import { bcsign, splitobj, Is_container, unknow_object } from './mkobj.js';
-import { m_carrying } from './weapon.js';
+import { m_carrying } from './mthrowu.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';
 import { which_armor, extract_from_minvent,
          mon_set_minvis, mon_adjust_speed } from './worn.js';
@@ -5144,14 +5138,14 @@ import { arti_reflects } from './artifact.js';
 import { can_carry } from './dogmove.js';
 import { sobj_at, carrying } from './invent.js';
 import { welded } from './wield.js';
-import { ZAP_POS, STRAT_WAITFORU } from './const.js';
+import { ZAP_POS, STRAT_WAITFORU, D_LOCKED, D_CLOSED } from './const.js';
 import { is_pool, is_lava, is_ice,
          is_drawbridge_wall } from './dbridge.js';
 import { Can_dig_down, Can_fall_thru, Can_rise_up, In_endgame,
          Is_earthlevel, On_W_tower_level, In_V_tower, Is_rogue_level } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END, NON_PM } from './const.js';
-import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall, NODIAG } from './mondata.js';
+import { DISP_BEAM, DISP_END, NON_PM, OBJ_FLOOR } from './const.js';
+import { resists_magm, monsndx, is_vampshifter, DEADMONSTER, mdistu, verysmall, NODIAG, slimeproof } from './mondata.js';
 import { u_at } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { Has_contents, Is_mbag } from './objnam.js';
@@ -5305,9 +5299,6 @@ export <span class="fstat-no" title="function not covered" >function m_next2u(mt
 <span class="cstat-no" title="statement not covered" >    return dist2(mtmp.mx, mtmp.my, player.x, player.y) &lt;= 2;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
-// MFAST speed constant
-const MFAST = 2;
-&nbsp;
 &nbsp;
 &nbsp;
 &nbsp;
@@ -5434,7 +5425,7 @@ export <span class="fstat-no" title="function not covered" >async function mon_c
 <span class="cstat-no" title="statement not covered" >    const food = obj.otyp === CORPSE || tinned;</span>
 <span class="cstat-no" title="statement not covered" >    const acid = obj.otyp === POT_ACID</span>
 <span class="cstat-no" title="statement not covered" >        || (food &amp;&amp; obj.corpsenm &gt;= 0 &amp;&amp; mons[obj.corpsenm]</span>
-<span class="cstat-no" title="statement not covered" >            &amp;&amp; !!(mons[obj.corpsenm].mresists &amp; 0x08)); // MR_ACID</span>
+<span class="cstat-no" title="statement not covered" >            &amp;&amp; acidic(mons[obj.corpsenm]));</span>
 <span class="cstat-no" title="statement not covered" >    const lizard = food &amp;&amp; obj.corpsenm === PM_LIZARD;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (stoning)</span>
@@ -5484,7 +5475,7 @@ export function cures_stoning(mon, obj, tinok) {
     if (obj.otyp !== CORPSE <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; (obj.otyp !== TIN || !tinok))</span> <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
     if ((obj.corpsenm <span class="branch-0 cbranch-no" title="branch not covered" >?? NON_PM)</span> === NON_PM) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
     return (obj.corpsenm === PM_LIZARD
-        || (mons[obj.corpsenm] &amp;&amp; !!(mons[obj.corpsenm].mresists &amp; 0x08))); // MR_ACID =&gt; acidic
+        || (mons[obj.corpsenm] &amp;&amp; acidic(mons[obj.corpsenm])));
 }
 &nbsp;
 // C ref: mcould_eat_tin — can monster open a tin?
@@ -6476,7 +6467,7 @@ export async function find_offensive(mtmp, map, player) {
 <span class="cstat-no" title="statement not covered" >                m.has_offense = MUSE_OFF_WAN_DEATH;</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
             if (m.has_offense === MUSE_OFF_WAN_SLEEP) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
-            if (obj.otyp === WAN_SLEEP <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; obj.spe &gt; 0 <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !(player.multi &lt; 0))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+            if (obj.otyp === WAN_SLEEP <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; obj.spe &gt; 0 <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; !((_gstate?.multi || 0) &lt; 0))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >                m.offensive = obj;</span>
 <span class="cstat-no" title="statement not covered" >                m.has_offense = MUSE_OFF_WAN_SLEEP;</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
@@ -6533,7 +6524,7 @@ export async function find_offensive(mtmp, map, player) {
 <span class="cstat-no" title="statement not covered" >        }</span>
 &nbsp;
         if (m.has_offense === MUSE_OFF_POT_PARALYSIS) <span class="branch-0 cbranch-no" title="branch not covered" >continue;</span>
-        if (obj.otyp === POT_PARALYSIS <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !(player.multi &lt; 0))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+        if (obj.otyp === POT_PARALYSIS <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !((_gstate?.multi || 0) &lt; 0))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >            m.offensive = obj;</span>
 <span class="cstat-no" title="statement not covered" >            m.has_offense = MUSE_OFF_POT_PARALYSIS;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
@@ -6607,7 +6598,7 @@ export async function find_offensive(mtmp, map, player) {
 <span class="cstat-no" title="statement not covered" >            if (player.antimagic) {</span>
 <span class="cstat-no" title="statement not covered" >                await pline('Boing!');</span>
 <span class="cstat-no" title="statement not covered" >                learnit = true;</span>
-<span class="cstat-no" title="statement not covered" >            } else if (rnd(20) &lt; 10 + (player.uac || 10)) {</span>
+<span class="cstat-no" title="statement not covered" >            } else if (rnd(20) &lt; 10 + (player.ac ?? 10)) {</span>
 <span class="cstat-no" title="statement not covered" >                await pline('The wand hits you!');</span>
 <span class="cstat-no" title="statement not covered" >                tmp = d(2, 12);</span>
 <span class="cstat-no" title="statement not covered" >                if (player.halfSpellDamage) tmp = Math.floor((tmp + 1) / 2);</span>
@@ -6736,7 +6727,7 @@ export async function find_offensive(mtmp, map, player) {
 <span class="cstat-no" title="statement not covered" >            const ltyp = loc ? loc.typ : 0;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >            if (!ZAP_POS(ltyp)</span>
-<span class="cstat-no" title="statement not covered" >                || (loc &amp;&amp; (loc.flags &amp; 0x03) /* D_LOCKED | D_CLOSED */)) {</span>
+<span class="cstat-no" title="statement not covered" >                || (loc &amp;&amp; (loc.flags &amp; (D_LOCKED | D_CLOSED)))) {</span>
 <span class="cstat-no" title="statement not covered" >                bhitpos.x -= ddx;</span>
 <span class="cstat-no" title="statement not covered" >                bhitpos.y -= ddy;</span>
 <span class="cstat-no" title="statement not covered" >                break;</span>
@@ -7306,8 +7297,8 @@ export function searches_for_item(mon, obj) {
     const mdat = mon.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mon.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {};</span>
 &nbsp;
     // Don't interact with protected items on scary squares
-    if (obj.where === 'floor' <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; obj.ox === mon.mx <span class="branch-0 cbranch-no" title="branch not covered" ></span>&amp;&amp; obj.oy === mon.my</span>
-<span class="branch-0 cbranch-no" title="branch not covered" >        &amp;&amp; onscary(null, obj.ox, obj.oy, mon))</span>
+    if (obj.where === OBJ_FLOOR &amp;&amp; obj.ox === mon.mx &amp;&amp; obj.oy === mon.my
+        &amp;&amp; onscary(null, obj.ox, obj.oy, mon))
 <span class="branch-0 cbranch-no" title="branch not covered" >        return false;</span>
 &nbsp;
     if (is_animal(mdat) || mindless(mdat) || mdat.mndx === PM_GHOST)
@@ -7351,7 +7342,7 @@ export function searches_for_item(mon, obj) {
         break;
     case AMULET_CLASS:
         if (typ === AMULET_OF_LIFE_SAVING)
-<span class="branch-0 cbranch-no" title="branch not covered" >            return !(mdat.mflags3 &amp; 0x00000040); </span>// !nonliving
+<span class="branch-0 cbranch-no" title="branch not covered" >            return !nonliving(mdat);</span>
         if (typ === AMULET_OF_REFLECTION || typ === AMULET_OF_GUARDING)
 <span class="branch-0 cbranch-no" title="branch not covered" >            return true;</span>
         break;
@@ -7488,9 +7479,9 @@ export <span class="fstat-no" title="function not covered" >async function munsl
 <span class="cstat-no" title="statement not covered" >    const mptr = mon.data || mon.type || {};</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // slimeproof check</span>
-<span class="cstat-no" title="statement not covered" >    if (mptr.mflags3 &amp;&amp; (mptr.mflags3 &amp; 0x00002000)) return false; // MH_SLIME</span>
+<span class="cstat-no" title="statement not covered" >    if (slimeproof(mptr)) return false;</span>
 <span class="cstat-no" title="statement not covered" >    if (mon.meating || monHelpless(mon)) return false;</span>
-<span class="cstat-no" title="statement not covered" >    mon.mstrategy = (mon.mstrategy || 0) &amp; ~0x08000000;</span>
+<span class="cstat-no" title="statement not covered" >    mon.mstrategy = (mon.mstrategy || 0) &amp; ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Fire breath on self</span>
 <span class="cstat-no" title="statement not covered" >    if (!mon.mcan &amp;&amp; !mon.mspec_used</span>
@@ -7567,7 +7558,7 @@ export <span class="fstat-no" title="function not covered" >function cures_slimi
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

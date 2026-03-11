@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.27% </span>
+                <span class="strong">71.91% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1955/2705</span>
+                <span class='fraction'>1956/2720</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.27% </span>
+                <span class="strong">71.91% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1955/2705</span>
+                <span class='fraction'>1956/2720</span>
             </div>
         
             
@@ -2768,7 +2768,22 @@
 <a name='L2703'></a><a href='#L2703'>2703</a>
 <a name='L2704'></a><a href='#L2704'>2704</a>
 <a name='L2705'></a><a href='#L2705'>2705</a>
-<a name='L2706'></a><a href='#L2706'>2706</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2706'></a><a href='#L2706'>2706</a>
+<a name='L2707'></a><a href='#L2707'>2707</a>
+<a name='L2708'></a><a href='#L2708'>2708</a>
+<a name='L2709'></a><a href='#L2709'>2709</a>
+<a name='L2710'></a><a href='#L2710'>2710</a>
+<a name='L2711'></a><a href='#L2711'>2711</a>
+<a name='L2712'></a><a href='#L2712'>2712</a>
+<a name='L2713'></a><a href='#L2713'>2713</a>
+<a name='L2714'></a><a href='#L2714'>2714</a>
+<a name='L2715'></a><a href='#L2715'>2715</a>
+<a name='L2716'></a><a href='#L2716'>2716</a>
+<a name='L2717'></a><a href='#L2717'>2717</a>
+<a name='L2718'></a><a href='#L2718'>2718</a>
+<a name='L2719'></a><a href='#L2719'>2719</a>
+<a name='L2720'></a><a href='#L2720'>2720</a>
+<a name='L2721'></a><a href='#L2721'>2721</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3800,6 +3815,21 @@
 <span class="cline-any cline-yes">14454x</span>
 <span class="cline-any cline-yes">14454x</span>
 <span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -5506,7 +5536,7 @@ import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
-import { mattacku, ranged_attk_available } from './mhitu.js';
+import { mattacku, mdamageu, ranged_attk_available } from './mhitu.js';
 import { makemon } from './makemon.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
@@ -5581,7 +5611,7 @@ import { m_harmless_trap, floor_trigger, mintrap_postmove, t_at } from './trap.j
 export { m_harmless_trap, floor_trigger, mintrap_postmove };
 import { maketrap } from './dungeon.js';
 import { mdig_tunnel, may_dig, bury_an_obj } from './dig.js';
-import { IS_TREE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
+import { IS_TREE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER } from './const.js';
 import { stairway_at } from './stairs.js';
 import { mwelded } from './wield.js';
 import { extract_from_minvent } from './worn.js';
@@ -6505,7 +6535,7 @@ async function run_dochug_postmove_tail_current_js(
     return { moveStatus, mmoved };
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function mind_blast(mon, map, player, display = null, fov = null) {</span></span>
+export <span class="fstat-no" title="function not covered" >async function mind_blast(mon, map, player, display = null, fov = null, game = null) {</span>
 <span class="cstat-no" title="statement not covered" >    const BOLT_LIM_SQ = BOLT_LIM * BOLT_LIM;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // C ref: monmove.c:590 — canseemon message</span>
@@ -6529,7 +6559,7 @@ async function run_dochug_postmove_tail_current_js(
 <span class="cstat-no" title="statement not covered" >    if (mon_is_peaceful(mon)) {</span>
 <span class="cstat-no" title="statement not covered" >        // C: "It feels quite soothing." (no Conflict check — not implemented)</span>
 <span class="cstat-no" title="statement not covered" >        if (display) await display.putstr_message('It feels quite soothing.');</span>
-<span class="cstat-no" title="statement not covered" >    } else {</span>
+<span class="cstat-no" title="statement not covered" >    } else if (!player?.uinvulnerable) {</span>
 <span class="cstat-no" title="statement not covered" >        // C ref: monmove.c:602 — lock-on check</span>
 <span class="cstat-no" title="statement not covered" >        // C: sensemon(mtmp) — true if hero has telepathy and monster is not mindless</span>
 <span class="cstat-no" title="statement not covered" >        // JS: approximate via player.telepathy (intrinsic or helmet)</span>
@@ -6548,12 +6578,25 @@ async function run_dochug_postmove_tail_current_js(
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        if (locksOn) {</span>
+<span class="cstat-no" title="statement not covered" >            if (player.uundetected) {</span>
+<span class="cstat-no" title="statement not covered" >                player.uundetected = 0;</span>
+<span class="cstat-no" title="statement not covered" >                newsym(player.x, player.y);</span>
+<span class="cstat-no" title="statement not covered" >            } else if ((player.m_ap_type || M_AP_NOTHING) !== M_AP_NOTHING</span>
+<span class="cstat-no" title="statement not covered" >                       &amp;&amp; (player.m_ap_type || M_AP_NOTHING) !== M_AP_MONSTER) {</span>
+<span class="cstat-no" title="statement not covered" >                player.m_ap_type = M_AP_NOTHING;</span>
+<span class="cstat-no" title="statement not covered" >                player.mappearance = 0;</span>
+<span class="cstat-no" title="statement not covered" >                newsym(player.x, player.y);</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            if (display) {</span>
+<span class="cstat-no" title="statement not covered" >                await display.putstr_message(</span>
+<span class="cstat-no" title="statement not covered" >                    `It locks on to your ${m_sen ? 'telepathy' : blind_telepat ? 'latent telepathy' : 'mind'}!`</span>
+<span class="cstat-no" title="statement not covered" >                );</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >            // C ref: monmove.c:620 — damage</span>
 <span class="cstat-no" title="statement not covered" >            let dmg = rnd(15);</span>
 <span class="cstat-no" title="statement not covered" >            // C: Half_spell_damage halves</span>
 <span class="cstat-no" title="statement not covered" >            if (player.halfSpellDamage) dmg = Math.floor((dmg + 1) / 2);</span>
-<span class="cstat-no" title="statement not covered" >            // TODO: losehp(dmg, "psychic blast", KILLED_BY_AN)</span>
-<span class="cstat-no" title="statement not covered" >            // TODO: unhide hero if hidden</span>
+<span class="cstat-no" title="statement not covered" >            await mdamageu(mon, dmg, player, display, game);</span>
 <span class="cstat-no" title="statement not covered" >            monmoveTrace('mind_blast',</span>
 <span class="cstat-no" title="statement not covered" >                `step=${monmoveStepLabel(map)}`,</span>
 <span class="cstat-no" title="statement not covered" >                `id=${mon.m_id ?? '?'}`,</span>
@@ -6582,7 +6625,9 @@ async function run_dochug_postmove_tail_current_js(
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        if (m2hit) {</span>
-<span class="cstat-no" title="statement not covered" >            // C: wakeup(m2, FALSE) — not yet ported</span>
+<span class="cstat-no" title="statement not covered" >            // C does wakeup(m2,FALSE) here; current JS wakeup side effects still</span>
+<span class="cstat-no" title="statement not covered" >            // over-propagate screen messages in some replay seeds, so keep</span>
+<span class="cstat-no" title="statement not covered" >            // minimal wake semantics here until wakeup parity is tightened.</span>
 <span class="cstat-no" title="statement not covered" >            m2.sleeping = false;</span>
 <span class="cstat-no" title="statement not covered" >            const m2dmg = rnd(15);</span>
 <span class="cstat-no" title="statement not covered" >            m2.mhp = (m2.mhp ?? 0) - m2dmg;</span>
@@ -6821,7 +6866,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     // C ref: monmove.c:832-836 — mind flayer psychic blast
     const mdat = mon.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mon.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {};</span>
     if (is_mind_flayer(mdat) &amp;&amp; !rn2(20)) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >        await mind_blast(mon, map, player, display, fov);</span>
+<span class="cstat-no" title="statement not covered" >        await mind_blast(mon, map, player, display, fov, game);</span>
 <span class="cstat-no" title="statement not covered" >        set_apparxy(mon, map, player);</span>
 <span class="cstat-no" title="statement not covered" >        // C ref: monmove.c:835 — recalculate distfleeck after mind_blast</span>
 <span class="cstat-no" title="statement not covered" >        ({ inrange, nearby, scared } = await distfleeck(mon, map, player, display, fov));</span>
@@ -7872,7 +7917,7 @@ export <span class="fstat-no" title="function not covered" >async function mon_y
 <span class="cstat-no" title="statement not covered" >  else {</span>
 <span class="cstat-no" title="statement not covered" >    if (canspotmon(mon)) { await pline_mon(mon, "%s yells:", Amonnam(mon)); }</span>
 <span class="cstat-no" title="statement not covered" >    else { await You_hear("someone yell:"); }</span>
-<span class="cstat-no" title="statement not covered" >    verbalize1(shout);</span>
+<span class="cstat-no" title="statement not covered" >    await verbalize(shout);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -8185,7 +8230,7 @@ export <span class="fstat-no" title="function not covered" >function vamp_shift(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

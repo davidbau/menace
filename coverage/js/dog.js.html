@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.4% </span>
+                <span class="strong">42.54% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>483/1139</span>
+                <span class='fraction'>485/1140</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.4% </span>
+                <span class="strong">42.54% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>483/1139</span>
+                <span class='fraction'>485/1140</span>
             </div>
         
             
@@ -1202,7 +1202,10 @@
 <a name='L1137'></a><a href='#L1137'>1137</a>
 <a name='L1138'></a><a href='#L1138'>1138</a>
 <a name='L1139'></a><a href='#L1139'>1139</a>
-<a name='L1140'></a><a href='#L1140'>1140</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1140'></a><a href='#L1140'>1140</a>
+<a name='L1141'></a><a href='#L1141'>1141</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2269,7 +2272,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2348,6 +2350,8 @@
 import {
     mons, NUMMONS,
     M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M2_DOMESTIC,
+    M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC,
+    M3_WANTSARTI,
     S_BLOB, S_JELLY, S_FUNGUS, S_VORTEX, S_LIGHT, S_ELEMENTAL,
     S_GOLEM, S_GHOST, S_YETI, S_KOBOLD, S_ORC, S_OGRE,
     PM_MEDUSA,
@@ -2401,7 +2405,7 @@ import { A_CHA } from './const.js';
 import { is_covetous, is_human, is_demon, haseyes, sticks, flesh_petrifies,
          is_rider, resists_poison, resists_acid, resists_ston, likes_fire,
          mon_hates_silver } from './mondata.js';
-import { EYE, has_oname, ONAME, EDOG, ESHK } from './const.js';
+import { EYE, has_oname, ONAME, EDOG, ESHK, W_SADDLE } from './const.js';
 import { Has_contents } from './objnam.js';
 import { wake_nearto } from './mon.js';
 import { finish_meating, dog_eat } from './dogmove.js';
@@ -2445,7 +2449,7 @@ function polyfood(obj) { return false; }
 const humanoid = is_humanoid;
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function same_race(ptr1, ptr2) {</span></span>
-<span class="cstat-no" title="statement not covered" >    const race_flags = 0x00004000 | 0x00008000 | 0x00010000 | 0x00020000 | 0x00040000;</span>
+<span class="cstat-no" title="statement not covered" >    const race_flags = M2_HUMAN | M2_ELF | M2_DWARF | M2_GNOME | M2_ORC;</span>
 <span class="cstat-no" title="statement not covered" >    return !!(ptr1.mflags2 &amp; ptr2.mflags2 &amp; race_flags);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -2628,9 +2632,9 @@ export function makedog(map, player, depth) {
     if (pmIdx === PM_PONY) {
         const saddleObj = mksobj(SADDLE, true, false);
         if (saddleObj) {
-            saddleObj.owornmask = 0x100000; // W_SADDLE
+            saddleObj.owornmask = W_SADDLE;
             mpickobj(pet, saddleObj);
-            pet.misc_worn_check = 0x100000;
+            pet.misc_worn_check = W_SADDLE;
         }
     }
 &nbsp;
@@ -3014,7 +3018,7 @@ export <span class="fstat-no" title="function not covered" >async function mon_c
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  if (!mtmp.mtame &amp;&amp; mtmp.mleashed) { impossible("catching up for leashed monster?"); await m_unleash(mtmp, false); }</span>
 <span class="cstat-no" title="statement not covered" >  if (!regenerates(mtmp.data)) {</span>
-<span class="cstat-no" title="statement not covered" >    imv /= 20;</span>
+<span class="cstat-no" title="statement not covered" >    imv = Math.floor(imv / 20);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  healmon(mtmp, imv, 0);</span>
 <span class="cstat-no" title="statement not covered" >  set_mon_lastmove(mtmp);</span>
@@ -3129,7 +3133,7 @@ export <span class="fstat-no" title="function not covered" >async function migra
 export <span class="fstat-no" title="function not covered" >async function abuse_dog(mtmp) {</span>
 <span class="cstat-no" title="statement not covered" >  if (!mtmp.mtame) return;</span>
 <span class="cstat-no" title="statement not covered" >  if (Aggravate_monster || Conflict) {</span>
-<span class="cstat-no" title="statement not covered" >    mtmp.mtame /= 2;</span>
+<span class="cstat-no" title="statement not covered" >    mtmp.mtame = Math.floor(mtmp.mtame / 2);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  else {</span>
 <span class="cstat-no" title="statement not covered" >    mtmp.mtame--;</span>
@@ -3313,7 +3317,6 @@ export <span class="fstat-no" title="function not covered" >async function tamed
 <span class="cstat-no" title="statement not covered" >    // Untameable monsters</span>
 <span class="cstat-no" title="statement not covered" >    if (mtmp.iswiz) return false;</span>
 <span class="cstat-no" title="statement not covered" >    if (mtmp.data === mons[PM_MEDUSA]) return false;</span>
-<span class="cstat-no" title="statement not covered" >    const M3_WANTSARTI = 0x0400;</span>
 <span class="cstat-no" title="statement not covered" >    if ((mtmp.data?.mflags3 || 0) &amp; M3_WANTSARTI) return false;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Pacify message</span>
@@ -3487,7 +3490,7 @@ export <span class="fstat-no" title="function not covered" >async function wary_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">47.29% </span>
+                <span class="strong">47.32% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1138/2406</span>
+                <span class='fraction'>1139/2407</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">47.29% </span>
+                <span class="strong">47.32% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1138/2406</span>
+                <span class='fraction'>1139/2407</span>
             </div>
         
             
@@ -2469,7 +2469,9 @@
 <a name='L2404'></a><a href='#L2404'>2404</a>
 <a name='L2405'></a><a href='#L2405'>2405</a>
 <a name='L2406'></a><a href='#L2406'>2406</a>
-<a name='L2407'></a><a href='#L2407'>2407</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2407'></a><a href='#L2407'>2407</a>
+<a name='L2408'></a><a href='#L2408'>2408</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4891,12 +4893,13 @@ import {
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
-    RLOC_NOMSG,
+    RLOC_NOMSG, STRAT_WAITMASK, STRAT_WAITFORU, STUNNED,
 } from './const.js';
 import { spec_dbon } from './artifact.js';
 import {
     PM_MONK, PM_SAMURAI, PM_BARBARIAN,
     G_FREQ, G_NOCORPSE, MZ_TINY, MZ_HUMAN, MZ_LARGE, M2_COLLECT,
+    M1_FLY, M1_NOHEAD, M1_UNSOLID,
     S_ZOMBIE, S_MUMMY, S_VAMPIRE, S_WRAITH, S_LICH, S_GHOST, S_DEMON, S_KOP,
     S_LIGHT, S_MIMIC, S_NYMPH, S_GOLEM, S_LEPRECHAUN, S_FUNGUS,
     PM_SHADE, PM_FLOATING_EYE, PM_GREMLIN, PM_CLAY_GOLEM,
@@ -5054,7 +5057,7 @@ export async function attack_checks(mtmp, wep, opts = {}) {
     const pets_too = !!opts.pets_too;
     const forcefight = !!(context &amp;&amp; context.forcefight);
     // C: alerts waiting monster, checks forcefight, invisible, mimic, peaceful
-    if (mtmp.mstrategy) <span class="branch-0 cbranch-no" title="branch not covered" >mtmp.mstrategy &amp;= ~0x08000000; </span>// ~STRAT_WAITMASK
+    if (mtmp.mstrategy) <span class="branch-0 cbranch-no" title="branch not covered" >mtmp.mstrategy &amp;= ~STRAT_WAITMASK;</span>
     if (!mtmp) <span class="branch-0 cbranch-no" title="branch not covered" >return true;</span>
     if (mtmp.msleeping) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >        mtmp.msleeping = 0;</span>
@@ -5975,7 +5978,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_dr
 // m-vs-m: uhitm.c:3241-3280
 export <span class="fstat-no" title="function not covered" >function mhitm_ad_drin(magr, mattk, mdef, mhm) {</span>
 <span class="cstat-no" title="statement not covered" >    const pd = mdef.data || mdef.type || {};</span>
-<span class="cstat-no" title="statement not covered" >    if (!pd.mflags1 || (pd.mflags1 &amp; 0x00040000 /* M1_NOHEAD */)) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!pd.mflags1 || (pd.mflags1 &amp; M1_NOHEAD)) {</span>
 <span class="cstat-no" title="statement not covered" >        // Can't drain brain from headless monster</span>
 <span class="cstat-no" title="statement not covered" >        mhm.damage = 0;</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
@@ -6012,7 +6015,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_ru
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    erode_armor(mdef, ERODE_RUST);</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    mhm.damage = 0;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -6020,7 +6023,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_ru
 export <span class="fstat-no" title="function not covered" >function mhitm_ad_corr(magr, mattk, mdef, mhm) {</span>
 <span class="cstat-no" title="statement not covered" >    if (magr?.mcan) return;</span>
 <span class="cstat-no" title="statement not covered" >    erode_armor(mdef, ERODE_CORRODE);</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    mhm.damage = 0;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -6040,7 +6043,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_dc
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    erode_armor(mdef, ERODE_ROT);</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    mhm.damage = 0;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -6052,7 +6055,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_sg
 <span class="cstat-no" title="statement not covered" >    if (!gold) return;</span>
 <span class="cstat-no" title="statement not covered" >    extract_from_minvent(mdef, gold, false, true);</span>
 <span class="cstat-no" title="statement not covered" >    addToMonsterInventory(magr, gold);</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    if (!tele_restrict(magr, null)) {</span>
 <span class="cstat-no" title="statement not covered" >        mhm.hitflags = M_ATTK_AGR_DONE;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -6067,7 +6070,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_tl
 <span class="cstat-no" title="statement not covered" >    if (Number(mhm.damage || 0) &gt;= Number(mdef.mhp || 0)) return;</span>
 <span class="cstat-no" title="statement not covered" >    if (tele_restrict(mdef, null)) return;</span>
 <span class="cstat-no" title="statement not covered" >    if (mhitm_mgc_atk_negated(magr, mdef)) return;</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // Async mhitm path for C-faithful relocation when map/runtime context is present.
@@ -6077,7 +6080,7 @@ export <span class="fstat-no" title="function not covered" >async function mhitm
 <span class="cstat-no" title="statement not covered" >    if (Number(mhm.damage || 0) &gt;= Number(mdef.mhp || 0)) return;</span>
 <span class="cstat-no" title="statement not covered" >    if (tele_restrict(mdef, ctx.map || null)) return;</span>
 <span class="cstat-no" title="statement not covered" >    if (mhitm_mgc_atk_negated(magr, mdef)) return;</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    if (ctx.map) {</span>
 <span class="cstat-no" title="statement not covered" >        await rloc(mdef, RLOC_NOMSG, ctx.map, ctx.player || null, ctx.display || null, ctx.fov || null);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -6090,7 +6093,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_cu
 <span class="cstat-no" title="statement not covered" >    if (!night() &amp;&amp; pa === mons[PM_GREMLIN]) return;</span>
 <span class="cstat-no" title="statement not covered" >    if (!magr?.mcan &amp;&amp; !rn2(10)) {</span>
 <span class="cstat-no" title="statement not covered" >        mdef.mcan = 1;</span>
-<span class="cstat-no" title="statement not covered" >        if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >        if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >        // Full were_change transform path is modeled elsewhere.</span>
 <span class="cstat-no" title="statement not covered" >        if (is_were(pd) &amp;&amp; pd.mlet !== S_HUMAN) {</span>
 <span class="cstat-no" title="statement not covered" >            mdef.mcan = 1;</span>
@@ -6116,7 +6119,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_sl
 <span class="cstat-no" title="statement not covered" >        // Full munslime/newcham pipeline is not yet wired on this path.</span>
 <span class="cstat-no" title="statement not covered" >        mhm.damage = 0;</span>
 <span class="cstat-no" title="statement not covered" >        mhm.hitflags |= M_ATTK_HIT;</span>
-<span class="cstat-no" title="statement not covered" >        if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >        if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -6141,7 +6144,7 @@ export <span class="fstat-no" title="function not covered" >async function mhitm
 <span class="cstat-no" title="statement not covered" >            !!(ctx.display &amp;&amp; ctx.map)</span>
 <span class="cstat-no" title="statement not covered" >        );</span>
 <span class="cstat-no" title="statement not covered" >        if (transformed) {</span>
-<span class="cstat-no" title="statement not covered" >            if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >            if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >            mhm.hitflags |= M_ATTK_HIT;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -6268,7 +6271,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_se
 <span class="cstat-no" title="statement not covered" >    extract_from_minvent(mdef, obj, true, false);</span>
 <span class="cstat-no" title="statement not covered" >    addToMonsterInventory(magr, obj);</span>
 <span class="cstat-no" title="statement not covered" >    possibly_unwield(mdef, false);</span>
-<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >    if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    mselftouch(mdef, null, false);</span>
 <span class="cstat-no" title="statement not covered" >    if (DEADMONSTER(mdef)) {</span>
 <span class="cstat-no" title="statement not covered" >        mhm.hitflags |= M_ATTK_DEF_DIED;</span>
@@ -6311,7 +6314,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_ad_ha
 <span class="cstat-no" title="statement not covered" >    const pd = mdef?.data || mdef?.type || {};</span>
 <span class="cstat-no" title="statement not covered" >    if (!magr?.mcan &amp;&amp; haseyes(pd) &amp;&amp; mdef?.mcansee) {</span>
 <span class="cstat-no" title="statement not covered" >        mdef.mconf = 1;</span>
-<span class="cstat-no" title="statement not covered" >        if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~0x08000000; // STRAT_WAITFORU</span>
+<span class="cstat-no" title="statement not covered" >        if (mdef.mstrategy != null) mdef.mstrategy &amp;= ~STRAT_WAITFORU;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    mhm.damage = 0;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -6548,7 +6551,7 @@ export <span class="fstat-no" title="function not covered" >function m_is_steadf
 <span class="cstat-no" title="statement not covered" >    // C: checks Flying/Levitation, Giantslayer artifact, loadstone</span>
 <span class="cstat-no" title="statement not covered" >    // Simplified: check for flying/floating</span>
 <span class="cstat-no" title="statement not covered" >    const ptr = mtmp.data || mtmp.type || {};</span>
-<span class="cstat-no" title="statement not covered" >    if (ptr.mflags1 &amp;&amp; (ptr.mflags1 &amp; 0x00000004)) return false; // M1_FLY — not steadfast</span>
+<span class="cstat-no" title="statement not covered" >    if (ptr.mflags1 &amp;&amp; (ptr.mflags1 &amp; M1_FLY)) return false; // not steadfast if flying</span>
 <span class="cstat-no" title="statement not covered" >    // loadstone check would require inventory search</span>
 <span class="cstat-no" title="statement not covered" >    return false;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -6577,7 +6580,7 @@ export <span class="fstat-no" title="function not covered" >function mhitm_knock
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Unsolid attacker can't knock back</span>
 <span class="cstat-no" title="statement not covered" >    const agrPtr = magr.data || magr.type || {};</span>
-<span class="cstat-no" title="statement not covered" >    if (agrPtr.mflags1 &amp;&amp; (agrPtr.mflags1 &amp; 0x00200000 /* M1_UNSOLID */)) return false;</span>
+<span class="cstat-no" title="statement not covered" >    if (agrPtr.mflags1 &amp;&amp; (agrPtr.mflags1 &amp; M1_UNSOLID)) return false;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Generate message</span>
 <span class="cstat-no" title="statement not covered" >    rn2(2); // "forceful" vs "powerful"</span>
@@ -7079,7 +7082,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >    case AD_STUN:</span>
 <span class="cstat-no" title="statement not covered" >        if (player) {</span>
-<span class="cstat-no" title="statement not covered" >            const oldTimeout = player.getPropTimeout ? (player.getPropTimeout('stunned') || 0) : 0;</span>
+<span class="cstat-no" title="statement not covered" >            const oldTimeout = player.getPropTimeout ? (player.getPropTimeout(STUNNED) || 0) : 0;</span>
 <span class="cstat-no" title="statement not covered" >            await make_stunned(player, oldTimeout + Math.max(1, tmp), true);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        tmp = 0;</span>
@@ -7288,7 +7291,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

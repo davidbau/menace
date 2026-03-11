@@ -1800,7 +1800,7 @@ export <span class="fstat-no" title="function not covered" >function status_fini
 export <span class="fstat-no" title="function not covered" >function percentage(bl, maxbl) {</span>
 <span class="cstat-no" title="statement not covered" >  let result = 0, anytype, ival, mval, lval, uval, ulval, fld, use_rawval;</span>
 <span class="cstat-no" title="statement not covered" >  if (!bl || !maxbl) {</span>
-<span class="cstat-no" title="statement not covered" >    impossible("percentage: bad istat pointer %s, %s", fmt_ptr( bl), fmt_ptr( maxbl));</span>
+<span class="cstat-no" title="statement not covered" >    impossible("percentage: bad istat pointer %s, %s", String(bl), String(maxbl));</span>
 <span class="cstat-no" title="statement not covered" >    return 0;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  fld = bl.fld;</span>
@@ -1812,35 +1812,35 @@ export <span class="fstat-no" title="function not covered" >function percentage(
 <span class="cstat-no" title="statement not covered" >      case ANY_INT:</span>
 <span class="cstat-no" title="statement not covered" >        ival = use_rawval ? bl.rawval.a_int : bl.a.a_int;</span>
 <span class="cstat-no" title="statement not covered" >      mval = use_rawval ? maxbl.rawval.a_int : maxbl.a.a_int;</span>
-<span class="cstat-no" title="statement not covered" >      result = ((100 * ival) / mval);</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * ival) / mval);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_LONG:</span>
 <span class="cstat-no" title="statement not covered" >        lval = bl.a.a_long;</span>
-<span class="cstat-no" title="statement not covered" >      result =  ((100 * lval) / maxbl.a.a_long);</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * lval) / maxbl.a.a_long);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_UINT:</span>
 <span class="cstat-no" title="statement not covered" >        uval = bl.a.a_uint;</span>
-<span class="cstat-no" title="statement not covered" >      result =  ((100 * uval) / maxbl.a.a_uint);</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * uval) / maxbl.a.a_uint);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_ULONG:</span>
 <span class="cstat-no" title="statement not covered" >        ulval = bl.a.a_ulong;</span>
-<span class="cstat-no" title="statement not covered" >      result =  ((100 * ulval) / maxbl.a.a_ulong);</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * ulval) / maxbl.a.a_ulong);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_IPTR:</span>
 <span class="cstat-no" title="statement not covered" >        ival = bl.a.a_iptr;</span>
-<span class="cstat-no" title="statement not covered" >      result = ((100 * ival) / ( maxbl.a.a_iptr));</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * ival) / maxbl.a.a_iptr);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_LPTR:</span>
 <span class="cstat-no" title="statement not covered" >        lval = bl.a.a_lptr;</span>
-<span class="cstat-no" title="statement not covered" >      result =  ((100 * lval) / ( maxbl.a.a_lptr));</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * lval) / maxbl.a.a_lptr);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_UPTR:</span>
 <span class="cstat-no" title="statement not covered" >        uval = bl.a.a_uptr;</span>
-<span class="cstat-no" title="statement not covered" >      result =  ((100 * uval) / ( maxbl.a.a_uptr));</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * uval) / maxbl.a.a_uptr);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >      case ANY_ULPTR:</span>
 <span class="cstat-no" title="statement not covered" >        ulval = bl.a.a_ulptr;</span>
-<span class="cstat-no" title="statement not covered" >      result =  ((100 * ulval) / ( maxbl.a.a_ulptr));</span>
+<span class="cstat-no" title="statement not covered" >      result = Math.trunc((100 * ulval) / maxbl.a.a_ulptr);</span>
 <span class="cstat-no" title="statement not covered" >      break;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -2347,7 +2347,7 @@ export <span class="fstat-no" title="function not covered" >function match_str2c
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">69.27% </span>
+                <span class="strong">69.54% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1576/2275</span>
+                <span class='fraction'>1578/2269</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">38.16% </span>
+                <span class="strong">38.46% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>50/131</span>
+                <span class='fraction'>50/130</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">69.27% </span>
+                <span class="strong">69.54% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1576/2275</span>
+                <span class='fraction'>1578/2269</span>
             </div>
         
             
@@ -2332,13 +2332,9 @@
 <a name='L2267'></a><a href='#L2267'>2267</a>
 <a name='L2268'></a><a href='#L2268'>2268</a>
 <a name='L2269'></a><a href='#L2269'>2269</a>
-<a name='L2270'></a><a href='#L2270'>2270</a>
-<a name='L2271'></a><a href='#L2271'>2271</a>
-<a name='L2272'></a><a href='#L2272'>2272</a>
-<a name='L2273'></a><a href='#L2273'>2273</a>
-<a name='L2274'></a><a href='#L2274'>2274</a>
-<a name='L2275'></a><a href='#L2275'>2275</a>
-<a name='L2276'></a><a href='#L2276'>2276</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2270'></a><a href='#L2270'>2270</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4152,14 +4148,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4652,15 +4640,17 @@ import {
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
     PM_SAMURAI
 } from './monsters.js';
-import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE } from './const.js';
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE,
+         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { level_difficulty } from './dungeon.js';
-import { rnd_class, safe_typename, makeplural, obj_typename } from './objnam.js';
+import { rnd_class, safe_typename, makeplural, obj_typename, simpleonames } from './objnam.js';
 import { extract_from_minvent } from './worn.js';
 import { g_at, carried, sobj_at } from './invent.js';
 import { impossible, pline, Your, You_see, You_hear } from './pline.js';
 import { newsym } from './display.js';
+import { MON_WEP } from './muse.js';
 import { cansee } from './vision.js';
 import { artifact_exists } from './artifact.js';
 import { safe_oname, pmname, Mgender } from './do_name.js';
@@ -4686,7 +4676,7 @@ export function place_object(obj, x, y, map) {
     obj.ox = x;
     obj.oy = y;
     // C ref: place_object() puts object on floor chain (OBJ_FLOOR).
-    obj.where = 'OBJ_FLOOR';
+    obj.where = OBJ_FLOOR;
     pushRngLogEntry(`^place[${obj.otyp},${obj.ox},${obj.oy}]`);
     mapRef.objects.push(obj);
     return obj;
@@ -6214,7 +6204,7 @@ export <span class="fstat-no" title="function not covered" >function bill_dummy_
 <span class="cstat-no" title="statement not covered" >  dummy.owornmask = 0;</span>
 <span class="cstat-no" title="statement not covered" >  addtobill(dummy, false, true, true);</span>
 <span class="cstat-no" title="statement not covered" >  if (cost &amp;&amp; dummy.where !== OBJ_DELETED) alter_cost(dummy, -cost);</span>
-<span class="cstat-no" title="statement not covered" >  otmp.no_charge = (otmp.where === 'OBJ_FLOOR' || otmp.where === OBJ_CONTAINED) ? 1 : 0;</span>
+<span class="cstat-no" title="statement not covered" >  otmp.no_charge = (otmp.where === OBJ_FLOOR || otmp.where === OBJ_CONTAINED) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >  otmp.unpaid = 0;</span>
 <span class="cstat-no" title="statement not covered" >  return;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -6381,7 +6371,7 @@ export <span class="fstat-no" title="function not covered" >function add_to_minv
 <span class="cstat-no" title="statement not covered" >  for (otmp = mon.minvent; otmp; otmp = otmp.nobj) {</span>
 <span class="cstat-no" title="statement not covered" >    if (merged( otmp, obj)) return 1;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >  obj.where = 'OBJ_MINVENT';</span>
+<span class="cstat-no" title="statement not covered" >  obj.where = OBJ_MINVENT;</span>
 <span class="cstat-no" title="statement not covered" >  obj.ocarry = mon;</span>
 <span class="cstat-no" title="statement not covered" >  obj.nobj = mon.minvent;</span>
 <span class="cstat-no" title="statement not covered" >  mon.minvent = obj;</span>
@@ -6426,15 +6416,7 @@ export <span class="fstat-no" title="function not covered" >function dealloc_obj
 export const dealloc_obj = dealloc_obj_real;
 &nbsp;
 &nbsp;
-// C ref: MON_WEP(mon) — wielded weapon (local copy to avoid circular import with muse.js)
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function MON_WEP(mon) {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (mon.weapon) return mon.weapon;</span>
-<span class="cstat-no" title="statement not covered" >    if (!mon.minvent) return null;</span>
-<span class="cstat-no" title="statement not covered" >    for (const obj of mon.minvent) {</span>
-<span class="cstat-no" title="statement not covered" >        if (obj.owornmask &amp;&amp; (obj.owornmask &amp; W_WEP)) return obj;</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    return null;</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+// MON_WEP imported from muse.js
 &nbsp;
 // Autotranslated from mkobj.c:3203
 export <span class="fstat-no" title="function not covered" >function mon_obj_sanity(monlist, mesg) {</span>
@@ -6558,12 +6540,12 @@ export <span class="fstat-no" title="function not covered" >function obj_meld(ob
 <span class="cstat-no" title="statement not covered" >    otmp2 = obj2;</span>
 <span class="cstat-no" title="statement not covered" >    if (otmp1 &amp;&amp; otmp2 &amp;&amp; otmp1 !== otmp2) {</span>
 <span class="cstat-no" title="statement not covered" >      ox = oy = 0;</span>
-<span class="cstat-no" title="statement not covered" >      if (!(otmp2.where === 'OBJ_FLOOR' &amp;&amp; otmp1.where === OBJ_FREE) &amp;&amp; (otmp1.owt &gt; otmp2.owt || (otmp1.owt === otmp2.owt &amp;&amp; rn2(2)))) {</span>
-<span class="cstat-no" title="statement not covered" >        if (otmp2.where === 'OBJ_FLOOR') ox = otmp2.ox, oy = otmp2.oy;</span>
+<span class="cstat-no" title="statement not covered" >      if (!(otmp2.where === OBJ_FLOOR &amp;&amp; otmp1.where === OBJ_FREE) &amp;&amp; (otmp1.owt &gt; otmp2.owt || (otmp1.owt === otmp2.owt &amp;&amp; rn2(2)))) {</span>
+<span class="cstat-no" title="statement not covered" >        if (otmp2.where === OBJ_FLOOR) ox = otmp2.ox, oy = otmp2.oy;</span>
 <span class="cstat-no" title="statement not covered" >        result = obj_absorb(obj1, obj2);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >      else {</span>
-<span class="cstat-no" title="statement not covered" >        if (otmp1.where === 'OBJ_FLOOR') ox = otmp1.ox, oy = otmp1.oy;</span>
+<span class="cstat-no" title="statement not covered" >        if (otmp1.where === OBJ_FLOOR) ox = otmp1.ox, oy = otmp1.oy;</span>
 <span class="cstat-no" title="statement not covered" >        result = obj_absorb(obj2, obj1);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >      if (ox) { if (cansee(ox, oy)) newsym(ox, oy); maybe_unhide_at(ox, oy); }</span>
@@ -6577,7 +6559,7 @@ export <span class="fstat-no" title="function not covered" >function obj_meld(ob
 &nbsp;
 // Autotranslated from mkobj.c:3817
 export <span class="fstat-no" title="function not covered" >async function pudding_merge_message(otmp, otmp2, player) {</span>
-<span class="cstat-no" title="statement not covered" >  let visible = (cansee(otmp.ox, otmp.oy) || cansee(otmp2.ox, otmp2.oy)), onfloor = (otmp.where === 'OBJ_FLOOR' || otmp2.where === 'OBJ_FLOOR'), inpack = (carried(otmp) || carried(otmp2));</span>
+<span class="cstat-no" title="statement not covered" >  let visible = (cansee(otmp.ox, otmp.oy) || cansee(otmp2.ox, otmp2.oy)), onfloor = (otmp.where === OBJ_FLOOR || otmp2.where === OBJ_FLOOR), inpack = (carried(otmp) || carried(otmp2));</span>
 <span class="cstat-no" title="statement not covered" >  if ((!(player?.Blind || player?.blind || false) &amp;&amp; visible) || inpack) {</span>
 <span class="cstat-no" title="statement not covered" >    if ((player?.Hallucination || player?.hallucinating || false)) {</span>
 <span class="cstat-no" title="statement not covered" >      if (onfloor) { await You_see("parts of the floor melting!"); }</span>
@@ -6620,7 +6602,7 @@ export <span class="fstat-no" title="function not covered" >function mk_named_ob
 // C ref: mkobj.c:2717
 export <span class="fstat-no" title="function not covered" >function add_to_buried(obj, map = null) {</span>
 <span class="cstat-no" title="statement not covered" >    if (!obj) return null;</span>
-<span class="cstat-no" title="statement not covered" >    obj.where = 'OBJ_BURIED';</span>
+<span class="cstat-no" title="statement not covered" >    obj.where = OBJ_BURIED;</span>
 <span class="cstat-no" title="statement not covered" >    const mapRef = map || _gstate?.lev || _gstate?.map;</span>
 <span class="cstat-no" title="statement not covered" >    if (mapRef) {</span>
 <span class="cstat-no" title="statement not covered" >        if (!Array.isArray(mapRef.buried)) mapRef.buried = [];</span>
@@ -6635,15 +6617,15 @@ export <span class="fstat-no" title="function not covered" >function remove_obje
 <span class="cstat-no" title="statement not covered" >    if (!obj || !Array.isArray(mapRef?.objects)) return false;</span>
 <span class="cstat-no" title="statement not covered" >    const idx = mapRef.objects.indexOf(obj);</span>
 <span class="cstat-no" title="statement not covered" >    if (idx &gt;= 0) mapRef.objects.splice(idx, 1);</span>
-<span class="cstat-no" title="statement not covered" >    obj.where = 'OBJ_FREE';</span>
+<span class="cstat-no" title="statement not covered" >    obj.where = OBJ_FREE;</span>
 <span class="cstat-no" title="statement not covered" >    return idx &gt;= 0;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // C ref: mkobj.c:2554
 export <span class="fstat-no" title="function not covered" >function obj_extract_self(obj, map = null) {</span>
 <span class="cstat-no" title="statement not covered" >    if (!obj) return false;</span>
-<span class="cstat-no" title="statement not covered" >    if (obj.where === 'OBJ_FLOOR') return remove_object(obj, map);</span>
-<span class="cstat-no" title="statement not covered" >    if (obj.where === 'OBJ_CONTAINED' &amp;&amp; obj.ocontainer?.cobj) {</span>
+<span class="cstat-no" title="statement not covered" >    if (obj.where === OBJ_FLOOR) return remove_object(obj, map);</span>
+<span class="cstat-no" title="statement not covered" >    if (obj.where === OBJ_CONTAINED &amp;&amp; obj.ocontainer?.cobj) {</span>
 <span class="cstat-no" title="statement not covered" >        let prev = null;</span>
 <span class="cstat-no" title="statement not covered" >        for (let cur = obj.ocontainer.cobj; cur; cur = cur.nobj) {</span>
 <span class="cstat-no" title="statement not covered" >            if (cur === obj) {</span>
@@ -6651,13 +6633,13 @@ export <span class="fstat-no" title="function not covered" >function obj_extract
 <span class="cstat-no" title="statement not covered" >                else obj.ocontainer.cobj = cur.nobj;</span>
 <span class="cstat-no" title="statement not covered" >                obj.nobj = null;</span>
 <span class="cstat-no" title="statement not covered" >                obj.ocontainer = null;</span>
-<span class="cstat-no" title="statement not covered" >                obj.where = 'OBJ_FREE';</span>
+<span class="cstat-no" title="statement not covered" >                obj.where = OBJ_FREE;</span>
 <span class="cstat-no" title="statement not covered" >                return true;</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >            prev = cur;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    obj.where = 'OBJ_FREE';</span>
+<span class="cstat-no" title="statement not covered" >    obj.where = OBJ_FREE;</span>
 <span class="cstat-no" title="statement not covered" >    return true;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -6671,7 +6653,7 @@ export <span class="fstat-no" title="function not covered" >function replace_obj
 <span class="cstat-no" title="statement not covered" >    newobj.ox = oldobj.ox;</span>
 <span class="cstat-no" title="statement not covered" >    newobj.oy = oldobj.oy;</span>
 <span class="cstat-no" title="statement not covered" >    newobj.where = oldobj.where;</span>
-<span class="cstat-no" title="statement not covered" >    oldobj.where = 'OBJ_FREE';</span>
+<span class="cstat-no" title="statement not covered" >    oldobj.where = OBJ_FREE;</span>
 <span class="cstat-no" title="statement not covered" >    return true;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -6895,7 +6877,7 @@ export <span class="fstat-no" title="function not covered" >function costly_alte
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

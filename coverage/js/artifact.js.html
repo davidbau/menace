@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">22.33% </span>
+                <span class="strong">22.71% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>380/1701</span>
+                <span class='fraction'>387/1704</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">2.24% </span>
+                <span class="strong">2.35% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/89</span>
+                <span class='fraction'>2/85</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">22.33% </span>
+                <span class="strong">22.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>380/1701</span>
+                <span class='fraction'>387/1704</span>
             </div>
         
             
@@ -1764,7 +1764,11 @@
 <a name='L1699'></a><a href='#L1699'>1699</a>
 <a name='L1700'></a><a href='#L1700'>1700</a>
 <a name='L1701'></a><a href='#L1701'>1701</a>
-<a name='L1702'></a><a href='#L1702'>1702</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1702'></a><a href='#L1702'>1702</a>
+<a name='L1703'></a><a href='#L1703'>1703</a>
+<a name='L1704'></a><a href='#L1704'>1704</a>
+<a name='L1705'></a><a href='#L1705'>1705</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2944,10 +2948,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -3487,8 +3493,8 @@ import {
 import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
-import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
+import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
@@ -3497,6 +3503,7 @@ import { seffect_taming, recharge, charge_ok } from './read.js';
 import { dountrap } from './trap.js';
 import { use_crystal_ball } from './detect.js';
 import { obfree } from './shk.js';
+import { has_head, noncorporeal, amorphous, nonliving, resists_drli } from './mondata.js';
 &nbsp;
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -3742,7 +3749,7 @@ export <span class="fstat-no" title="function not covered" >function defends(adt
 // Autotranslated from artifact.c:686
 export <span class="fstat-no" title="function not covered" >function defends_when_carried(adtyp, otmp) {</span>
 <span class="cstat-no" title="statement not covered" >  let weap;</span>
-<span class="cstat-no" title="statement not covered" >  if ((weap = get_artifact(otmp)) !== artilist[ART_NONARTIFACT]) return  (weap.cary.adtyptyp === adtyp);</span>
+<span class="cstat-no" title="statement not covered" >  if ((weap = get_artifact(otmp)) !== artilist[ART_NONARTIFACT]) return  (weap.cary.adtyp === adtyp);</span>
 <span class="cstat-no" title="statement not covered" >  return false;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -3762,7 +3769,7 @@ export <span class="fstat-no" title="function not covered" >function arti_immune
 <span class="cstat-no" title="statement not covered" >  const weap = get_artifact(obj);</span>
 <span class="cstat-no" title="statement not covered" >  if (weap === artilist[ART_NONARTIFACT]) return false;</span>
 <span class="cstat-no" title="statement not covered" >  if (dtyp === AD_PHYS) return false;</span>
-<span class="cstat-no" title="statement not covered" >  return weap.attk.adtyp === dtyp || weap.defn.adtyptyp === dtyp || weap.cary.adtyptyp === dtyp;</span>
+<span class="cstat-no" title="statement not covered" >  return weap.attk.adtyp === dtyp || weap.defn.adtyp === dtyp || weap.cary.adtyp === dtyp;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // cf. artifact.c:2299 — artifact_has_invprop(otmp, inv_prop)
@@ -3848,18 +3855,18 @@ export <span class="fstat-no" title="function not covered" >function spec_applie
 <span class="cstat-no" title="statement not covered" >    // Check element resistances</span>
 <span class="cstat-no" title="statement not covered" >    switch (weap.attk.adtyp) {</span>
 <span class="cstat-no" title="statement not covered" >      case AD_FIRE:</span>
-<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; 0x01) ? 1 : 0; // MR_FIRE</span>
+<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; MR_FIRE) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >      case AD_COLD:</span>
-<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; 0x02) ? 1 : 0; // MR_COLD</span>
+<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; MR_COLD) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >      case AD_ELEC:</span>
-<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; 0x10) ? 1 : 0; // MR_ELEC</span>
+<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; MR_ELEC) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >      case AD_MAGM:</span>
 <span class="cstat-no" title="statement not covered" >      case AD_STUN:</span>
 <span class="cstat-no" title="statement not covered" >        return (rn2(100) &gt;= (ptr.mr || 0)) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >      case AD_DRST:</span>
-<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; 0x20) ? 1 : 0; // MR_POISON</span>
+<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; MR_POISON) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >      case AD_DRLI:</span>
-<span class="cstat-no" title="statement not covered" >        return !(mon.mintrinsics &amp; 0x40) ? 1 : 0; // MR_DRLI</span>
+<span class="cstat-no" title="statement not covered" >        return !resists_drli(mon) ? 1 : 0;</span>
 <span class="cstat-no" title="statement not covered" >      default:</span>
 <span class="cstat-no" title="statement not covered" >        return 0;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -4211,7 +4218,7 @@ export <span class="fstat-no" title="function not covered" >async function set_a
 <span class="cstat-no" title="statement not covered" >  for (const [bit, prop] of spfxMap) {</span>
 <span class="cstat-no" title="statement not covered" >    if (!(spfx &amp; bit)) continue;</span>
 <span class="cstat-no" title="statement not covered" >    // SPFX_REFLECT from artifact only applies when wielded</span>
-<span class="cstat-no" title="statement not covered" >    if (bit === SPFX_REFLECT &amp;&amp; !(wp_mask &amp; 0x00000100 /* W_WEP */)) continue;</span>
+<span class="cstat-no" title="statement not covered" >    if (bit === SPFX_REFLECT &amp;&amp; !(wp_mask &amp; W_WEP)) continue;</span>
 <span class="cstat-no" title="statement not covered" >    const p = ensureProp(prop);</span>
 <span class="cstat-no" title="statement not covered" >    if (p) {</span>
 <span class="cstat-no" title="statement not covered" >      if (on) p.extrinsic |= wp_mask;</span>
@@ -4253,7 +4260,7 @@ export <span class="fstat-no" title="function not covered" >async function set_a
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >  // Sunsword blindness resistance when wielded</span>
-<span class="cstat-no" title="statement not covered" >  if (wp_mask === 0x00000100 /* W_WEP */ &amp;&amp; is_art(otmp, ART_SUNSWORD)) {</span>
+<span class="cstat-no" title="statement not covered" >  if (wp_mask === W_WEP &amp;&amp; is_art(otmp, ART_SUNSWORD)) {</span>
 <span class="cstat-no" title="statement not covered" >    // BLINDED property doesn't map directly; skip for now</span>
 <span class="cstat-no" title="statement not covered" >    // In C this sets EBlnd_resist</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -4645,10 +4652,12 @@ export <span class="fstat-no" title="function not covered" >async function artif
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // Simple helpers for mondata checks used above, avoiding circular imports
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function has_head_simple(ptr) { return !(ptr.mflags1 &amp; 0x00000020); /* M1_NOHEAD */ }</span></span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function noncorporeal_simple(ptr) { return ptr.mlet === 'W' || ptr.mlet === ' '; /* S_GHOST */ }</span></span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function amorphous_simple(ptr) { return !!(ptr.mflags1 &amp; 0x00000004); /* M1_AMORPHOUS */ }</span></span>
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function nonliving_simple(ptr) { return !!(ptr.mflags1 &amp; 0x00004000); /* M1_NONLIVING - approximation */ }</span></span>
+// These previously used _simple inline approximations with wrong flag values.
+// Now using proper functions from mondata.js.
+const has_head_simple = has_head;
+const noncorporeal_simple = noncorporeal;
+const amorphous_simple = amorphous;
+const nonliving_simple = nonliving;
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function playerEnergy(player) {</span></span>
 <span class="cstat-no" title="statement not covered" >  if (!player) return 0;</span>
@@ -5173,7 +5182,7 @@ export <span class="fstat-no" title="function not covered" >function dispose_of_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">29.41% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>726/2468</span>
+                <span class='fraction'>725/2465</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">29.41% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>726/2468</span>
+                <span class='fraction'>725/2465</span>
             </div>
         
             
@@ -2528,10 +2528,7 @@
 <a name='L2463'></a><a href='#L2463'>2463</a>
 <a name='L2464'></a><a href='#L2464'>2464</a>
 <a name='L2465'></a><a href='#L2465'>2465</a>
-<a name='L2466'></a><a href='#L2466'>2466</a>
-<a name='L2467'></a><a href='#L2467'>2467</a>
-<a name='L2468'></a><a href='#L2468'>2468</a>
-<a name='L2469'></a><a href='#L2469'>2469</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2466'></a><a href='#L2466'>2466</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4406,7 +4403,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4680,7 +4676,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4769,7 +4764,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -5020,7 +5014,7 @@ import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './
 import { mons, PM_HOUSECAT, PM_ICE_TROLL } from './monsters.js';
 import { is_rider, touch_petrifies, nohands, nolimbs,
          poly_when_stoned } from './mondata.js';
-import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo } from './const.js';
+import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo, STONE_RES } from './const.js';
 import { rn2, rnd, d } from './rng.js';
 import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';
@@ -5036,17 +5030,17 @@ import { touch_artifact } from './artifact.js';
 import { makemon, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
-import { ARTICLE_THE, SUPPRESS_SADDLE } from './const.js';
+import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES, CHOOSE_ALL } from './const.js';
 import { revive as revive_corpse } from './zap.js';
 import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu } from './windows.js';
-import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE } from './const.js';
+import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE,
+         LOST_THROWN, LOST_DROPPED, LOST_EXPLODING } from './const.js';
 import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2 } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
-import { nhimport } from './origin_awaits.js';
-import { obfree, costly_spot } from './shk.js';
+import { obfree, costly_spot, dopay } from './shk.js';
 &nbsp;
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -5145,7 +5139,7 @@ export <span class="fstat-no" title="function not covered" >function u_safe_from
 <span class="cstat-no" title="statement not covered" >  if (((tests &amp; st_gloves) &amp;&amp; player?.gloves)</span>
 <span class="cstat-no" title="statement not covered" >      || ((tests &amp; st_corpse) &amp;&amp; obj.otyp !== CORPSE)</span>
 <span class="cstat-no" title="statement not covered" >      || ((tests &amp; st_petrifies) &amp;&amp; !touch_petrifies(mons[obj.corpsenm]))</span>
-<span class="cstat-no" title="statement not covered" >      || ((tests &amp; st_resists) &amp;&amp; player?.Stone_resistance)) return true;</span>
+<span class="cstat-no" title="statement not covered" >      || ((tests &amp; st_resists) &amp;&amp; player?.hasProp?.(STONE_RES))) return true;</span>
 <span class="cstat-no" title="statement not covered" >  return false;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -5331,11 +5325,11 @@ export <span class="fstat-no" title="function not covered" >function find_justpi
 <span class="cstat-no" title="statement not covered" >    // (costly_spot not yet ported, skip this check)</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // pickup_thrown/pickup_stolen/nopick_dropped</span>
-<span class="cstat-no" title="statement not covered" >    if (otmp.how_lost === 'LOST_THROWN')</span>
+<span class="cstat-no" title="statement not covered" >    if (otmp.how_lost === LOST_THROWN)</span>
 <span class="cstat-no" title="statement not covered" >        return true;</span>
-<span class="cstat-no" title="statement not covered" >    if (otmp.how_lost === 'LOST_DROPPED')</span>
+<span class="cstat-no" title="statement not covered" >    if (otmp.how_lost === LOST_DROPPED)</span>
 <span class="cstat-no" title="statement not covered" >        return false;</span>
-<span class="cstat-no" title="statement not covered" >    if (otmp.how_lost === 'LOST_EXPLODING')</span>
+<span class="cstat-no" title="statement not covered" >    if (otmp.how_lost === LOST_EXPLODING)</span>
 <span class="cstat-no" title="statement not covered" >        return false;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // check for pickup_types</span>
@@ -5888,7 +5882,7 @@ export <span class="fstat-no" title="function not covered" >async function obser
 <span class="cstat-no" title="statement not covered" >    if (makecat) livecat = makemon( mons[PM_HOUSECAT], box.ox, box.oy, NO_MINVENT | MM_ADJACENTOK | MM_NOMSG);</span>
 <span class="cstat-no" title="statement not covered" >    if (livecat) {</span>
 <span class="cstat-no" title="statement not covered" >      livecat.mpeaceful = 1;</span>
-<span class="cstat-no" title="statement not covered" >      set_malign(livecat);</span>
+<span class="cstat-no" title="statement not covered" >      set_malign(livecat, game?.player);</span>
 <span class="cstat-no" title="statement not covered" >      if (givemsg) {</span>
 <span class="cstat-no" title="statement not covered" >        if (!canspotmon(livecat)) await You("think %s brushed your %s.", "something", body_part(FOOT));</span>
 <span class="cstat-no" title="statement not covered" >        else {</span>
@@ -6870,7 +6864,6 @@ async function handleLoot(game) {
 &nbsp;
 // C ref: shk.c dopay()
 async function handlePay(player, map, display, game = null) {
-    const { dopay } = await nhimport('./shk.js');
     const state = game <span class="branch-0 cbranch-no" title="branch not covered" >|| { player, map, display };</span>
     const result = await dopay(state);
     return { moved: false, tookTime: !!result };
@@ -7122,7 +7115,6 @@ async function handleTogglePickup(game) {
 <span class="cstat-no" title="statement not covered" >        const tryUntrap = autounlock_has_action(flags, 'untrap', AUTOUNLOCK_UNTRAP);</span>
 <span class="cstat-no" title="statement not covered" >        if (tryApplyKey || tryUntrap) {</span>
 <span class="cstat-no" title="statement not covered" >            player.dz = 0;</span>
-<span class="cstat-no" title="statement not covered" >            const { autokey, pick_lock } = await nhimport('./lock.js');</span>
 <span class="cstat-no" title="statement not covered" >            const unlocktool = tryApplyKey ? autokey(player, true) : null;</span>
 <span class="cstat-no" title="statement not covered" >            if (unlocktool || tryUntrap) {</span>
 <span class="cstat-no" title="statement not covered" >                const ox = cobj.ox || player.x;</span>
@@ -7241,7 +7233,7 @@ async function handleTogglePickup(game) {
 <span class="cstat-no" title="statement not covered" >    if (!olist) return { count: 0, pick_list: [] };</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    const FOLLOW = (obj, flags) =&gt; ((flags &amp; 1) ? obj.nexthere : obj.nobj);</span>
-<span class="cstat-no" title="statement not covered" >    const do_worn = !!(qflags &amp; 0x0020); // WORN_TYPES</span>
+<span class="cstat-no" title="statement not covered" >    const do_worn = !!(qflags &amp; WORN_TYPES);</span>
 <span class="cstat-no" title="statement not covered" >    const ofilter = do_worn ? is_worn : null;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // count categories</span>
@@ -7272,7 +7264,6 @@ async function handleTogglePickup(game) {
 <span class="cstat-no" title="statement not covered" >    const win = create_nhwindow(NHW_MENU);</span>
 <span class="cstat-no" title="statement not covered" >    start_menu(win, MENU_BEHAVE_STANDARD);</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const CHOOSE_ALL = 0x0100;</span>
 <span class="cstat-no" title="statement not covered" >    const ALL_TYPES_SELECTED = -2;</span>
 <span class="cstat-no" title="statement not covered" >    const show_a = ccount &gt; 1;</span>
 <span class="cstat-no" title="statement not covered" >    let invlet = 'a'.charCodeAt(0);</span>
@@ -7474,7 +7465,7 @@ export { handlePickup, handleLoot, handlePay, handleTogglePickup, fatal_corpse_m
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

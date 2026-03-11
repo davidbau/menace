@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.34% </span>
+                <span class="strong">50.48% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>723/1436</span>
+                <span class='fraction'>723/1432</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.26% </span>
+                <span class="strong">43.16% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>81/183</span>
+                <span class='fraction'>79/183</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.34% </span>
+                <span class="strong">50.48% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>723/1436</span>
+                <span class='fraction'>723/1432</span>
             </div>
         
             
@@ -1495,11 +1495,10 @@
 <a name='L1430'></a><a href='#L1430'>1430</a>
 <a name='L1431'></a><a href='#L1431'>1431</a>
 <a name='L1432'></a><a href='#L1432'>1432</a>
-<a name='L1433'></a><a href='#L1433'>1433</a>
-<a name='L1434'></a><a href='#L1434'>1434</a>
-<a name='L1435'></a><a href='#L1435'>1435</a>
-<a name='L1436'></a><a href='#L1436'>1436</a>
-<a name='L1437'></a><a href='#L1437'>1437</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1433'></a><a href='#L1433'>1433</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2096,9 +2095,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -2108,7 +2105,6 @@
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -2255,7 +2251,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -2562,7 +2557,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2773,7 +2767,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2884,7 +2877,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -2961,12 +2953,15 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          OBJ_BURIED, OBJ_MINVENT, OBJ_MIGRATING } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
-import { mons } from './monsters.js';
+import { mons, M1_NOLIMBS } from './monsters.js';
 import { POT_OIL, TALLOW_CANDLE, WAX_CANDLE, CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { big_to_little } from './mondata.js';
 import { enexto } from './teleport.js';
 import { new_light_source, del_light_source, candle_light_range } from './light.js';
-import { nhimport } from './origin_awaits.js';
+import { revive_mon, zombify_mon, heal_legs } from './do.js';
+import { rot_corpse } from './dig.js';
+import { makemon } from './makemon.js';
+import { update_inventory } from './invent.js';
 &nbsp;
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
 &nbsp;
@@ -3530,19 +3525,16 @@ export async function nh_timeout(context = {}) {
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function revive_mon_timer(body) {</span></span>
 <span class="cstat-no" title="statement not covered" >    if (!body) return;</span>
-<span class="cstat-no" title="statement not covered" >    const { revive_mon } = await nhimport('./do.js');</span>
 <span class="cstat-no" title="statement not covered" >    await revive_mon(body, _timeoutContext.player, _timeoutContext.map);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 async function zombify_mon_timer(body) {
     if (!body) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
-    const { zombify_mon } = await nhimport('./do.js');
     await zombify_mon(body, _timeoutContext.player, _timeoutContext.map);
 }
 &nbsp;
 async function rot_corpse_timer(body) {
     if (!body) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
-    const { rot_corpse } = await nhimport('./dig.js');
     rot_corpse(body, _getCurrentTurn(), _timeoutContext.map, _timeoutContext.player);
 }
 &nbsp;
@@ -3695,7 +3687,6 @@ async function _fireExpiryEffect(player, prop, context = {}) {
     case WOUNDED_LEGS:
     {
         // C ref: timeout.c case WOUNDED_LEGS — heal_legs(0); stop_occupation();
-        const { heal_legs } = await nhimport('./do.js');
         await heal_legs(0, player);
         const game = context.game <span class="branch-0 cbranch-no" title="branch not covered" >|| _gstate;</span>
         if (game &amp;&amp; typeof game.stop_occupation === 'function') {
@@ -3801,8 +3792,8 @@ export async function hatch_egg(egg) {
 <span class="cstat-no" title="statement not covered" >            canHatch = true;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
-    case 'OBJ_FLOOR':
-    case 'floor':
+<span class="branch-0 cbranch-no" title="branch not covered" >    case 'OBJ_FLOOR':</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >    case 'floor':</span>
     case 1:
         if (Number.isInteger(egg.ox) &amp;&amp; Number.isInteger(egg.oy)) {
             x = egg.ox;
@@ -3831,7 +3822,7 @@ export async function hatch_egg(egg) {
     const mnum = big_to_little(Number.isInteger(egg.corpsenm) ? egg.corpsenm <span class="branch-0 cbranch-no" title="branch not covered" >: -1)</span>;
     const mdat = Number.isInteger(mnum) &amp;&amp; mnum &gt;= 0 ? mons[mnum] <span class="branch-0 cbranch-no" title="branch not covered" >: null;</span>
     if (map &amp;&amp; mdat) {
-        const { makemon } = await nhimport('./makemon.js');
+        // makemon imported statically from makemon.js
         const depth = Number(player?.dungeonLevel <span class="branch-0 cbranch-no" title="branch not covered" >|| 1)</span>;
         let hatched = 0;
         for (let i = 0; i &lt; hatchcount; i++) {
@@ -3986,7 +3977,6 @@ export <span class="fstat-no" title="function not covered" >async function stone
 <span class="cstat-no" title="statement not covered" >    if (i &gt; 0 &amp;&amp; i &lt;= stoned_texts.length) {</span>
 <span class="cstat-no" title="statement not covered" >        let msg = stoned_texts[stoned_texts.length - i];</span>
 <span class="cstat-no" title="statement not covered" >        // C: nolimbs(ptr) — M1_NOLIMBS flag; use "extremities" instead of "limbs"</span>
-<span class="cstat-no" title="statement not covered" >        const M1_NOLIMBS = 0x00040000;</span>
 <span class="cstat-no" title="statement not covered" >        if (p.data &amp;&amp; (p.data.mflags1 &amp; M1_NOLIMBS) &amp;&amp; msg.includes('limbs'))</span>
 <span class="cstat-no" title="statement not covered" >            msg = msg.replace('limbs', 'extremities');</span>
 <span class="cstat-no" title="statement not covered" >        await pline(msg);</span>
@@ -4185,7 +4175,6 @@ export <span class="fstat-no" title="function not covered" >async function slime
 <span class="cstat-no" title="statement not covered" >    if ((t % 2) !== 0 &amp;&amp; i &gt;= 0 &amp;&amp; i &lt; slime_texts.length) {</span>
 <span class="cstat-no" title="statement not covered" >        let msg = slime_texts[slime_texts.length - i - 1];</span>
 <span class="cstat-no" title="statement not covered" >        // C: nolimbs(ptr) — M1_NOLIMBS flag</span>
-<span class="cstat-no" title="statement not covered" >        const M1_NOLIMBS = 0x00040000;</span>
 <span class="cstat-no" title="statement not covered" >        if (p.data &amp;&amp; (p.data.mflags1 &amp; M1_NOLIMBS) &amp;&amp; msg.includes('limbs'))</span>
 <span class="cstat-no" title="statement not covered" >            msg = msg.replace('limbs', 'extremities');</span>
 <span class="cstat-no" title="statement not covered" >        if (msg.includes('%s')) {</span>
@@ -4322,7 +4311,6 @@ export <span class="fstat-no" title="function not covered" >function relinkTimer
 export <span class="fstat-no" title="function not covered" >async function learn_egg_type(mnum, game) {</span>
 <span class="cstat-no" title="statement not covered" >  mnum = little_to_big(mnum);</span>
 <span class="cstat-no" title="statement not covered" >  game.mvitals[mnum].mvflags |= MV_KNOWS_EGG;</span>
-<span class="cstat-no" title="statement not covered" >  const { update_inventory } = await nhimport('./invent.js');</span>
 <span class="cstat-no" title="statement not covered" >  update_inventory();</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -4378,7 +4366,7 @@ export <span class="fstat-no" title="function not covered" >function timer_is_lo
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

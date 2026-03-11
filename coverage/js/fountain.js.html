@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.22% </span>
+                <span class="strong">11.27% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>96/855</span>
+                <span class='fraction'>97/860</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.22% </span>
+                <span class="strong">11.27% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>96/855</span>
+                <span class='fraction'>97/860</span>
             </div>
         
             
@@ -918,7 +918,12 @@
 <a name='L853'></a><a href='#L853'>853</a>
 <a name='L854'></a><a href='#L854'>854</a>
 <a name='L855'></a><a href='#L855'>855</a>
-<a name='L856'></a><a href='#L856'>856</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L856'></a><a href='#L856'>856</a>
+<a name='L857'></a><a href='#L857'>857</a>
+<a name='L858'></a><a href='#L858'>858</a>
+<a name='L859'></a><a href='#L859'>859</a>
+<a name='L860'></a><a href='#L860'>860</a>
+<a name='L861'></a><a href='#L861'>861</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -965,6 +970,7 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1080,11 +1086,15 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1780,7 +1790,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS, LONG_SWORD, BOULDER,
          DILITHIUM_CRYSTAL, LUCKSTONE,
          POT_POLYMORPH, POT_OIL, POT_ACID, POT_LEVITATION,
          POT_OBJECT_DETECTION, POT_GAIN_LEVEL, POT_GAIN_ENERGY,
-         POT_MONSTER_DETECTION, POT_FRUIT_JUICE, POT_WATER } from './objects.js';
+         POT_MONSTER_DETECTION, POT_FRUIT_JUICE, POT_WATER, GOLD_PIECE } from './objects.js';
 import { pline, You, Your, You_feel, You_hear, You_see, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
@@ -1794,9 +1804,10 @@ import { newsym, mark_vision_dirty } from './display.js';
 import { cansee, couldsee, do_clear_area } from './vision.js';
 import { distmin } from './hacklib.js';
 import { losehp } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
-import { water_damage, water_damage_chain } from './trap.js';
-import { ER_NOTHING, ER_DESTROYED, ER_GREASED } from './const.js';
+import { water_damage_chain, water_damage, delfloortrap } from './trap.js';
+import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';
 import { hliquid, hcolor, a_monnam, Amonnam, rndmonnam } from './do_name.js';
@@ -1925,15 +1936,22 @@ export <span class="fstat-no" title="function not covered" >async function dowat
 &nbsp;
 // cf. fountain.c:120 -- dogushforth(drinking): fountain gushes
 // Autotranslated from fountain.c:119
-export <span class="fstat-no" title="function not covered" >async function dogushforth(drinking, player) {</span>
-<span class="cstat-no" title="statement not covered" >  let madepool = 0;</span>
-<span class="cstat-no" title="statement not covered" >  await do_clear_area(player.x, player.y, 7, gush, madepool);</span>
-<span class="cstat-no" title="statement not covered" >  if (!madepool) {</span>
-<span class="cstat-no" title="statement not covered" >    if (drinking) await Your("thirst is quenched.");</span>
-<span class="cstat-no" title="statement not covered" >    else {</span>
-<span class="cstat-no" title="statement not covered" >      await pline("Water sprays all over you.");</span>
+export <span class="fstat-no" title="function not covered" >async function dogushforth(drinking, player, map, display, fov) {</span>
+<span class="cstat-no" title="statement not covered" >    // C passes &amp;madepool; we mirror with a mutable counter object.</span>
+<span class="cstat-no" title="statement not covered" >    const madepool = { count: 0 };</span>
+<span class="cstat-no" title="statement not covered" >    await do_clear_area(</span>
+<span class="cstat-no" title="statement not covered" >        fov, map, player.x, player.y, 7,</span>
+<span class="cstat-no" title="statement not covered" >        async (x, y, poolcnt) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            await gush(x, y, poolcnt, player, map, display, fov);</span>
+<span class="cstat-no" title="statement not covered" >        },</span>
+<span class="cstat-no" title="statement not covered" >        madepool</span>
+<span class="cstat-no" title="statement not covered" >    );</span>
+<span class="cstat-no" title="statement not covered" >    if (!madepool.count) {</span>
+<span class="cstat-no" title="statement not covered" >        if (drinking) await Your("thirst is quenched.");</span>
+<span class="cstat-no" title="statement not covered" >        else {</span>
+<span class="cstat-no" title="statement not covered" >            await pline("Water sprays all over you.");</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // cf. fountain.c:134 [static] -- gush(x, y, poolcnt): place pool at location
@@ -1945,9 +1963,9 @@ export <span class="fstat-no" title="function not covered" >async function dogus
 <span class="cstat-no" title="statement not covered" >        || nexttodoor(x, y, map))</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    // Check for traps -- delfloortrap not fully ported</span>
+<span class="cstat-no" title="statement not covered" >    // C: if trap is present and cannot be deleted as a floor trap, skip cell.</span>
 <span class="cstat-no" title="statement not covered" >    const trap = map.trapAt ? map.trapAt(x, y) : null;</span>
-<span class="cstat-no" title="statement not covered" >    if (trap) return; // simplified: skip if trap present</span>
+<span class="cstat-no" title="statement not covered" >    if (trap &amp;&amp; !(await delfloortrap(trap, player, map))) return;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (!(poolcnt.count++))</span>
 <span class="cstat-no" title="statement not covered" >        await pline("Water gushes forth from the overflowing fountain!");</span>
@@ -1957,13 +1975,10 @@ export <span class="fstat-no" title="function not covered" >async function dogus
 <span class="cstat-no" title="statement not covered" >    loc.typ = POOL;</span>
 <span class="cstat-no" title="statement not covered" >    loc.flags = 0;</span>
 <span class="cstat-no" title="statement not covered" >    del_engr_at(map, x, y);</span>
-<span class="cstat-no" title="statement not covered" >    // water_damage_chain for floor objects</span>
+<span class="cstat-no" title="statement not covered" >    // C: water_damage_chain(svl.level.objects[x][y], TRUE)</span>
+<span class="cstat-no" title="statement not covered" >    // 'TRUE' here means "here list", not force=true for water_damage.</span>
 <span class="cstat-no" title="statement not covered" >    const objs = map.objectsAt ? map.objectsAt(x, y) : [];</span>
-<span class="cstat-no" title="statement not covered" >    if (objs) {</span>
-<span class="cstat-no" title="statement not covered" >        for (const obj of objs) {</span>
-<span class="cstat-no" title="statement not covered" >            water_damage(obj, null, true);</span>
-<span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    water_damage_chain(objs, true);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    const mtmp = map.monsterAt ? map.monsterAt(x, y) : null;</span>
 <span class="cstat-no" title="statement not covered" >    if (mtmp)</span>
@@ -2105,7 +2120,7 @@ export <span class="fstat-no" title="function not covered" >async function drink
 <span class="cstat-no" title="statement not covered" >            await pline_The("water is contaminated!");</span>
 <span class="cstat-no" title="statement not covered" >            if (player.poison_resistance) {</span>
 <span class="cstat-no" title="statement not covered" >                await pline("Perhaps it is runoff from the nearby %s farm.", "slime mold");</span>
-<span class="cstat-no" title="statement not covered" >                await losehp(rnd(4), "unrefrigerated sip of juice", 0, player, display);</span>
+<span class="cstat-no" title="statement not covered" >                await losehp(rnd(4), "unrefrigerated sip of juice", 0, player, display, _gstate);</span>
 <span class="cstat-no" title="statement not covered" >                break;</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >            await poison_strdmg(player, rn1(4, 3), rnd(10), "contaminated water", 0);</span>
@@ -2144,7 +2159,7 @@ export <span class="fstat-no" title="function not covered" >async function drink
 <span class="cstat-no" title="statement not covered" >                await pline("But it disappears.");</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >            // HSee_invisible |= FROMOUTSIDE</span>
-<span class="cstat-no" title="statement not covered" >            player.see_invisible_intrinsic = true;</span>
+<span class="cstat-no" title="statement not covered" >            player.ensureUProp(SEE_INVIS).intrinsic |= FROMOUTSIDE;</span>
 <span class="cstat-no" title="statement not covered" >            newsym(player.x, player.y);</span>
 <span class="cstat-no" title="statement not covered" >            mark_vision_dirty();</span>
 <span class="cstat-no" title="statement not covered" >            await exercise(player, A_WIS, true);</span>
@@ -2333,7 +2348,7 @@ export <span class="fstat-no" title="function not covered" >async function dipfo
 <span class="cstat-no" title="statement not covered" >        const maxdepth = map.maxDepth || 30;</span>
 <span class="cstat-no" title="statement not covered" >        const goldamt = rnd((maxdepth - depth + 1) * 2) + 5;</span>
 <span class="cstat-no" title="statement not covered" >        // Place gold on map</span>
-<span class="cstat-no" title="statement not covered" >        const gold = mksobj(484 /* GOLD_PIECE */, false, false);</span>
+<span class="cstat-no" title="statement not covered" >        const gold = mksobj(GOLD_PIECE, false, false);</span>
 <span class="cstat-no" title="statement not covered" >        if (gold &amp;&amp; map.addObject) {</span>
 <span class="cstat-no" title="statement not covered" >            gold.quan = goldamt;</span>
 <span class="cstat-no" title="statement not covered" >            gold.ox = player.x;</span>
@@ -2409,7 +2424,7 @@ export <span class="fstat-no" title="function not covered" >async function drink
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    case 2:</span>
 <span class="cstat-no" title="statement not covered" >        await You("take a sip of scalding hot %s.", hliquid("water"));</span>
-<span class="cstat-no" title="statement not covered" >        if (player.fire_resistance) {</span>
+<span class="cstat-no" title="statement not covered" >        if (player.hasProp(FIRE_RES)) {</span>
 <span class="cstat-no" title="statement not covered" >            await pline("It seems quite tasty.");</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
 <span class="cstat-no" title="statement not covered" >            // losehp(rnd(6), "sipping boiling water", KILLED_BY)</span>
@@ -2635,7 +2650,7 @@ export <span class="fstat-no" title="function not covered" >async function sink_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

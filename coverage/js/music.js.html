@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.41% </span>
+                <span class="strong">18.6% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>156/847</span>
+                <span class='fraction'>157/844</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.41% </span>
+                <span class="strong">18.6% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>156/847</span>
+                <span class='fraction'>157/844</span>
             </div>
         
             
@@ -907,10 +907,7 @@
 <a name='L842'></a><a href='#L842'>842</a>
 <a name='L843'></a><a href='#L843'>843</a>
 <a name='L844'></a><a href='#L844'>844</a>
-<a name='L845'></a><a href='#L845'>845</a>
-<a name='L846'></a><a href='#L846'>846</a>
-<a name='L847'></a><a href='#L847'>847</a>
-<a name='L848'></a><a href='#L848'>848</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L845'></a><a href='#L845'>845</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -986,10 +983,7 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1794,7 +1788,8 @@ import { newsym } from './display.js';
 import { dist2, highc, mungspaces, plur, ROLL_FROM } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';
-import { losehp, in_rooms, u_at } from './hack.js';
+import { losehp, in_rooms, u_at, Maybe_Half_Phys } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { maketrap, In_sokoban, In_V_tower } from './dungeon.js';
 import { set_levltyp } from './mkmaze.js';
 import { fillholetyp, liquid_flow } from './dig.js';
@@ -1832,11 +1827,7 @@ import { getlin, ynFunction } from './input.js';
 // M_AP_TYPE imported from mondata.js; M_AP_NOTHING, M_AP_MONSTER from const.js
 &nbsp;
 &nbsp;
-// C: Maybe_Half_Phys — if player has half physical damage, halve it
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function Maybe_Half_Phys(n, player) {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (player &amp;&amp; player.halfPhysDamage) return Math.max(1, Math.floor(n / 2));</span>
-<span class="cstat-no" title="statement not covered" >    return n;</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+// Maybe_Half_Phys imported from hack.js
 &nbsp;
 &nbsp;
 // Autotranslated from music.c:44 — awaken_scare(mtmp, scary)
@@ -2067,7 +2058,7 @@ export <span class="fstat-no" title="function not covered" >function charm_monst
 <span class="cstat-no" title="statement not covered" >            player.utrap = rn1(6, 2);</span>
 <span class="cstat-no" title="statement not covered" >            player.utraptype = TT_PIT;</span>
 <span class="cstat-no" title="statement not covered" >            await losehp(Maybe_Half_Phys(rnd(6), player),</span>
-<span class="cstat-no" title="statement not covered" >                   'fell into a chasm', NO_KILLER_PREFIX, player, null, null);</span>
+<span class="cstat-no" title="statement not covered" >                   'fell into a chasm', NO_KILLER_PREFIX, player, _gstate?.display, _gstate);</span>
 <span class="cstat-no" title="statement not covered" >            selftouch('Falling, you', player);</span>
 <span class="cstat-no" title="statement not covered" >        } else if (player.utrap &amp;&amp; player.utraptype === TT_PIT) {</span>
 <span class="cstat-no" title="statement not covered" >            const keepfooting =</span>
@@ -2079,7 +2070,7 @@ export <span class="fstat-no" title="function not covered" >function charm_monst
 <span class="cstat-no" title="statement not covered" >            player.utrap = rn1(6, 2);</span>
 <span class="cstat-no" title="statement not covered" >            player.utraptype = TT_PIT;</span>
 <span class="cstat-no" title="statement not covered" >            await losehp(Maybe_Half_Phys(rnd(keepfooting ? 2 : 4), player),</span>
-<span class="cstat-no" title="statement not covered" >                   'hurt in a chasm', NO_KILLER_PREFIX, player, null, null);</span>
+<span class="cstat-no" title="statement not covered" >                   'hurt in a chasm', NO_KILLER_PREFIX, player, _gstate?.display, _gstate);</span>
 <span class="cstat-no" title="statement not covered" >            if (keepfooting)</span>
 <span class="cstat-no" title="statement not covered" >                await exercise(player, A_DEX, true);</span>
 <span class="cstat-no" title="statement not covered" >            else {</span>
@@ -2611,7 +2602,7 @@ export <span class="fstat-no" title="function not covered" >function obj_to_inst
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

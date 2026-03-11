@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.39% </span>
+                <span class="strong">23.4% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>405/1731</span>
+                <span class='fraction'>407/1739</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.39% </span>
+                <span class="strong">23.4% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>405/1731</span>
+                <span class='fraction'>407/1739</span>
             </div>
         
             
@@ -1794,7 +1794,16 @@
 <a name='L1729'></a><a href='#L1729'>1729</a>
 <a name='L1730'></a><a href='#L1730'>1730</a>
 <a name='L1731'></a><a href='#L1731'>1731</a>
-<a name='L1732'></a><a href='#L1732'>1732</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1732'></a><a href='#L1732'>1732</a>
+<a name='L1733'></a><a href='#L1733'>1733</a>
+<a name='L1734'></a><a href='#L1734'>1734</a>
+<a name='L1735'></a><a href='#L1735'>1735</a>
+<a name='L1736'></a><a href='#L1736'>1736</a>
+<a name='L1737'></a><a href='#L1737'>1737</a>
+<a name='L1738'></a><a href='#L1738'>1738</a>
+<a name='L1739'></a><a href='#L1739'>1739</a>
+<a name='L1740'></a><a href='#L1740'>1740</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2587,6 +2596,13 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -3570,7 +3586,8 @@ import { pline, You, Your, You_feel, pline_The, You_hear } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_CHANGE, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_CHANGE, DISP_END, CONFUSION, STUNNED } from './const.js';
+import { incr_itimeout, make_confused, make_stunned } from './potion.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 &nbsp;
 // ── Constants ──
@@ -4165,7 +4182,7 @@ export <span class="fstat-no" title="function not covered" >async function curse
 <span class="cstat-no" title="statement not covered" >        await pline_The("book was coated with contact poison!");</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    case 6:</span>
-<span class="cstat-no" title="statement not covered" >        if (player.magicResistance) {</span>
+<span class="cstat-no" title="statement not covered" >        if (player.antimagic) {</span>
 <span class="cstat-no" title="statement not covered" >            await pline_The("book radiates explosive energy, but you are unharmed!");</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
 <span class="cstat-no" title="statement not covered" >            await pline("As you read the book, it radiates explosive energy in your face!");</span>
@@ -4317,7 +4334,8 @@ export <span class="fstat-no" title="function not covered" >async function rejec
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // C ref: spell.c spell_backfire() — forgotten spell backfire effects
-export <span class="fstat-no" title="function not covered" >function spell_backfire(player, spellIdx) {</span>
+// C pattern: make_confused(itimeout_incr(HConfusion, duration), TRUE)
+export <span class="fstat-no" title="function not covered" >async function spell_backfire(player, spellIdx) {</span>
 <span class="cstat-no" title="statement not covered" >    const lev = spellev(player, spellIdx);</span>
 <span class="cstat-no" title="statement not covered" >    const duration = (lev + 1) * 3; // 6..24</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -4325,21 +4343,27 @@ export <span class="fstat-no" title="function not covered" >function spell_backf
 <span class="cstat-no" title="statement not covered" >    switch (rn2(10)) {</span>
 <span class="cstat-no" title="statement not covered" >    case 0: case 1: case 2: case 3:</span>
 <span class="cstat-no" title="statement not covered" >        // 40% — all confusion</span>
-<span class="cstat-no" title="statement not covered" >        if (player.addConfusion) player.addConfusion(duration);</span>
+<span class="cstat-no" title="statement not covered" >        incr_itimeout(player, CONFUSION, duration);</span>
+<span class="cstat-no" title="statement not covered" >        await make_confused(player, player.getPropTimeout(CONFUSION), true);</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    case 4: case 5: case 6:</span>
 <span class="cstat-no" title="statement not covered" >        // 30% — 2/3 confusion + 1/3 stun</span>
-<span class="cstat-no" title="statement not covered" >        if (player.addConfusion) player.addConfusion(Math.floor(2 * duration / 3));</span>
-<span class="cstat-no" title="statement not covered" >        if (player.addStun) player.addStun(Math.floor(duration / 3));</span>
+<span class="cstat-no" title="statement not covered" >        incr_itimeout(player, CONFUSION, Math.floor(2 * duration / 3));</span>
+<span class="cstat-no" title="statement not covered" >        await make_confused(player, player.getPropTimeout(CONFUSION), true);</span>
+<span class="cstat-no" title="statement not covered" >        incr_itimeout(player, STUNNED, Math.floor(duration / 3));</span>
+<span class="cstat-no" title="statement not covered" >        await make_stunned(player, player.getPropTimeout(STUNNED), true);</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    case 7: case 8:</span>
 <span class="cstat-no" title="statement not covered" >        // 20% — 2/3 stun + 1/3 confusion</span>
-<span class="cstat-no" title="statement not covered" >        if (player.addStun) player.addStun(Math.floor(2 * duration / 3));</span>
-<span class="cstat-no" title="statement not covered" >        if (player.addConfusion) player.addConfusion(Math.floor(duration / 3));</span>
+<span class="cstat-no" title="statement not covered" >        incr_itimeout(player, STUNNED, Math.floor(2 * duration / 3));</span>
+<span class="cstat-no" title="statement not covered" >        await make_stunned(player, player.getPropTimeout(STUNNED), true);</span>
+<span class="cstat-no" title="statement not covered" >        incr_itimeout(player, CONFUSION, Math.floor(duration / 3));</span>
+<span class="cstat-no" title="statement not covered" >        await make_confused(player, player.getPropTimeout(CONFUSION), true);</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    case 9:</span>
 <span class="cstat-no" title="statement not covered" >        // 10% — all stun</span>
-<span class="cstat-no" title="statement not covered" >        if (player.addStun) player.addStun(duration);</span>
+<span class="cstat-no" title="statement not covered" >        incr_itimeout(player, STUNNED, duration);</span>
+<span class="cstat-no" title="statement not covered" >        await make_stunned(player, player.getPropTimeout(STUNNED), true);</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -4349,7 +4373,7 @@ export <span class="fstat-no" title="function not covered" >async function cast_
 <span class="cstat-no" title="statement not covered" >    let l = player.ulevel || 1;</span>
 <span class="cstat-no" title="statement not covered" >    let loglev = 0;</span>
 <span class="cstat-no" title="statement not covered" >    const uspellprot = player.uspellprot || 0;</span>
-<span class="cstat-no" title="statement not covered" >    const uac = player.uac || 10;</span>
+<span class="cstat-no" title="statement not covered" >    const uac = player.ac ?? 10;</span>
 <span class="cstat-no" title="statement not covered" >    let natac = uac + uspellprot;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // loglev = log2(u.ulevel) + 1</span>
@@ -4625,7 +4649,7 @@ export <span class="fstat-no" title="function not covered" >async function spell
 <span class="cstat-no" title="statement not covered" >    if (sp.sp_know &lt;= 0) {</span>
 <span class="cstat-no" title="statement not covered" >        await Your("knowledge of this spell is twisted.");</span>
 <span class="cstat-no" title="statement not covered" >        await pline("It invokes nightmarish images in your mind...");</span>
-<span class="cstat-no" title="statement not covered" >        spell_backfire(player, idx);</span>
+<span class="cstat-no" title="statement not covered" >        await spell_backfire(player, idx);</span>
 <span class="cstat-no" title="statement not covered" >        const drain = rnd(energy);</span>
 <span class="cstat-no" title="statement not covered" >        if (player.power !== undefined) {</span>
 <span class="cstat-no" title="statement not covered" >            player.power = Math.max(0, (player.power || 0) - drain);</span>
@@ -5132,7 +5156,7 @@ export <span class="fstat-no" title="function not covered" >async function spell
 <span class="cstat-no" title="statement not covered" >  if (spellknow(spell) &lt;= 0) {</span>
 <span class="cstat-no" title="statement not covered" >    await Your("knowledge of this spell is twisted.");</span>
 <span class="cstat-no" title="statement not covered" >    await pline("It invokes nightmarish images in your mind...");</span>
-<span class="cstat-no" title="statement not covered" >    spell_backfire(spell);</span>
+<span class="cstat-no" title="statement not covered" >    await spell_backfire(player, spell);</span>
 <span class="cstat-no" title="statement not covered" >    player.uen -= rnd( energy);</span>
 <span class="cstat-no" title="statement not covered" >    if (player.uen &lt; 0) player.uen = 0;</span>
 <span class="cstat-no" title="statement not covered" >    game.disp.botl = true;</span>
@@ -5186,14 +5210,14 @@ export <span class="fstat-no" title="function not covered" >async function spell
 <span class="cstat-no" title="statement not covered" >                          hungr = 0;</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >        case 16:</span>
-<span class="cstat-no" title="statement not covered" >          hungr /= 4;</span>
+<span class="cstat-no" title="statement not covered" >          hungr = Math.floor(hungr / 4);</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >        case 15:</span>
-<span class="cstat-no" title="statement not covered" >          hungr /= 2;</span>
+<span class="cstat-no" title="statement not covered" >          hungr = Math.floor(hungr / 2);</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >      if (hungr &gt; player.uhunger - 3) hungr = player.uhunger - 3;</span>
-<span class="cstat-no" title="statement not covered" >      await morehungry(hungr);</span>
+<span class="cstat-no" title="statement not covered" >      await morehungry(player, hungr);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  chance = percent_success(spell);</span>
@@ -5263,7 +5287,7 @@ export <span class="fstat-no" title="function not covered" >async function spell
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

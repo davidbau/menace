@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">26.22% </span>
+                <span class="strong">26.29% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>898/3424</span>
+                <span class='fraction'>899/3419</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">26.22% </span>
+                <span class="strong">26.29% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>898/3424</span>
+                <span class='fraction'>899/3419</span>
             </div>
         
             
@@ -3482,12 +3482,8 @@
 <a name='L3417'></a><a href='#L3417'>3417</a>
 <a name='L3418'></a><a href='#L3418'>3418</a>
 <a name='L3419'></a><a href='#L3419'>3419</a>
-<a name='L3420'></a><a href='#L3420'>3420</a>
-<a name='L3421'></a><a href='#L3421'>3421</a>
-<a name='L3422'></a><a href='#L3422'>3422</a>
-<a name='L3423'></a><a href='#L3423'>3423</a>
-<a name='L3424'></a><a href='#L3424'>3424</a>
-<a name='L3425'></a><a href='#L3425'>3425</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L3420'></a><a href='#L3420'>3420</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -5366,12 +5362,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -6918,6 +6908,7 @@
 &nbsp;
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
          ESHK } from './const.js';
 // C: #define NOTANGRY(mon) ((mon)-&gt;mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function ANGRY(mon) { return !mon.mpeaceful; }</span></span>
@@ -7255,9 +7246,9 @@ export <span class="fstat-no" title="function not covered" >function oid_price_a
 <span class="cstat-no" title="statement not covered" >    tmp *= multiplier;</span>
 <span class="cstat-no" title="statement not covered" >    if (divisor &gt; 1) {</span>
 <span class="cstat-no" title="statement not covered" >        tmp *= 10;</span>
-<span class="cstat-no" title="statement not covered" >        tmp = Math.floor(tmp / divisor);</span>
+<span class="cstat-no" title="statement not covered" >        tmp = Math.trunc(tmp / divisor);</span>
 <span class="cstat-no" title="statement not covered" >        tmp += 5;</span>
-<span class="cstat-no" title="statement not covered" >        tmp = Math.floor(tmp / 10);</span>
+<span class="cstat-no" title="statement not covered" >        tmp = Math.trunc(tmp / 10);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (tmp &lt;= 0) tmp = 1;</span>
@@ -7348,9 +7339,9 @@ export <span class="fstat-no" title="function not covered" >function set_cost(ob
 <span class="cstat-no" title="statement not covered" >    tmp *= multiplier;</span>
 <span class="cstat-no" title="statement not covered" >    if (divisor &gt; 1) {</span>
 <span class="cstat-no" title="statement not covered" >      tmp *= 10;</span>
-<span class="cstat-no" title="statement not covered" >      tmp /= divisor;</span>
+<span class="cstat-no" title="statement not covered" >      tmp = Math.trunc(tmp / divisor);</span>
 <span class="cstat-no" title="statement not covered" >      tmp += 5;</span>
-<span class="cstat-no" title="statement not covered" >      tmp /= 10;</span>
+<span class="cstat-no" title="statement not covered" >      tmp = Math.trunc(tmp / 10);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    if (tmp &lt; 1) tmp = 1;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -8223,7 +8214,7 @@ export <span class="fstat-no" title="function not covered" >function check_unpai
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (!muteshk(shkp)) {</span>
-<span class="cstat-no" title="statement not covered" >        verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);</span>
+<span class="cstat-no" title="statement not covered" >        void verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    shkp.debit = (shkp.debit || 0) + tmp;</span>
@@ -8720,14 +8711,8 @@ export async function dopay(game) {
 <span class="cstat-no" title="statement not covered" >    const bill = Array.isArray(eshkp.bill) ? eshkp.bill : [];</span>
 <span class="cstat-no" title="statement not covered" >    const ebillct = Number(eshkp.billct || bill.length);</span>
 <span class="cstat-no" title="statement not covered" >    const player = _gstate?.player || null;</span>
-<span class="cstat-no" title="statement not covered" >    const isOnBill = (obj) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        const where = String(obj?.where ?? '').toUpperCase();</span>
-<span class="cstat-no" title="statement not covered" >        return where === 'OBJ_ONBILL' || Number(obj?.where) === OBJ_ONBILL;</span>
-<span class="cstat-no" title="statement not covered" >    };</span>
-<span class="cstat-no" title="statement not covered" >    const isContained = (obj) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        const where = String(obj?.where ?? '').toUpperCase();</span>
-<span class="cstat-no" title="statement not covered" >        return where === 'OBJ_CONTAINED' || Number(obj?.where) === OBJ_CONTAINED;</span>
-<span class="cstat-no" title="statement not covered" >    };</span>
+<span class="cstat-no" title="statement not covered" >    const isOnBill = (obj) =&gt; obj?.where === OBJ_ONBILL;</span>
+<span class="cstat-no" title="statement not covered" >    const isContained = (obj) =&gt; obj?.where === OBJ_CONTAINED;</span>
 <span class="cstat-no" title="statement not covered" >    const ibill = [];</span>
 <span class="cstat-no" title="statement not covered" >    for (let i = 0; i &lt; ebillct; i++) {</span>
 <span class="cstat-no" title="statement not covered" >        const bp = bill[i];</span>
@@ -8883,7 +8868,7 @@ export async function dopay(game) {
 <span class="cstat-no" title="statement not covered" >        const otmp = bp_to_obj(bp);</span>
 <span class="cstat-no" title="statement not covered" >        if (!bp || !otmp) continue;</span>
 <span class="cstat-no" title="statement not covered" >        const owhere = String(otmp.where ?? '').toUpperCase();</span>
-<span class="cstat-no" title="statement not covered" >        const isContained = (owhere === 'OBJ_CONTAINED' || Number(otmp.where) === OBJ_CONTAINED);</span>
+<span class="cstat-no" title="statement not covered" >        const isContained = (owhere === OBJ_CONTAINED);</span>
 <span class="cstat-no" title="statement not covered" >        if (!isContained &amp;&amp; !Has_contents(otmp)) continue;</span>
 <span class="cstat-no" title="statement not covered" >        let top = otmp;</span>
 <span class="cstat-no" title="statement not covered" >        while (top?.where === OBJ_CONTAINED &amp;&amp; top.ocontainer) top = top.ocontainer;</span>
@@ -9236,7 +9221,7 @@ export <span class="fstat-no" title="function not covered" >async function block
 <span class="cstat-no" title="statement not covered" >    const x = Number(obj.ox);</span>
 <span class="cstat-no" title="statement not covered" >    const y = Number(obj.oy);</span>
 <span class="cstat-no" title="statement not covered" >    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;</span>
-<span class="cstat-no" title="statement not covered" >    const isFloor = (obj.where === 'floor' || obj.where === 3 || obj.where === 'OBJ_FLOOR');</span>
+<span class="cstat-no" title="statement not covered" >    const isFloor = (obj.where === OBJ_FLOOR);</span>
 <span class="cstat-no" title="statement not covered" >    if (!(obj.unpaid || (isFloor &amp;&amp; !obj.no_charge &amp;&amp; costly_spot(x, y, map)))) return null;</span>
 <span class="cstat-no" title="statement not covered" >    const shkp = shop_keeper(map, inside_shop(x, y, map));</span>
 <span class="cstat-no" title="statement not covered" >    return shkp ? sSuffix(shkname(shkp)) : 'the';</span>
@@ -9246,7 +9231,7 @@ export <span class="fstat-no" title="function not covered" >async function block
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function mon_owns(obj) {</span></span>
 <span class="cstat-no" title="statement not covered" >    if (!obj) return null;</span>
 <span class="cstat-no" title="statement not covered" >    const where = obj.where;</span>
-<span class="cstat-no" title="statement not covered" >    const minvent = (where === 'minvent' || where === 4 || where === 'OBJ_MINVENT');</span>
+<span class="cstat-no" title="statement not covered" >    const minvent = (where === OBJ_MINVENT);</span>
 <span class="cstat-no" title="statement not covered" >    if (!minvent || !obj.ocarry) return null;</span>
 <span class="cstat-no" title="statement not covered" >    return sSuffix(y_monnam(obj.ocarry));</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -9262,7 +9247,7 @@ export <span class="fstat-no" title="function not covered" >function shk_your(ob
 <span class="cstat-no" title="statement not covered" >    if (!obj) return 'your ';</span>
 <span class="cstat-no" title="statement not covered" >    const own = shk_owns(obj, map) || mon_owns(obj);</span>
 <span class="cstat-no" title="statement not covered" >    if (own) return `${own} `;</span>
-<span class="cstat-no" title="statement not covered" >    const inInvent = (obj.where === 'invent' || obj.where === 1 || obj.where === 'OBJ_INVENT');</span>
+<span class="cstat-no" title="statement not covered" >    const inInvent = (obj.where === OBJ_INVENT);</span>
 <span class="cstat-no" title="statement not covered" >    return inInvent || obj.carried ? 'your ' : 'the ';</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
@@ -9773,7 +9758,7 @@ export <span class="fstat-no" title="function not covered" >async function speci
 <span class="cstat-no" title="statement not covered" >          await verbalize("I won't stock that. Take it out of here!");</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        else {</span>
-<span class="cstat-no" title="statement not covered" >          await pline("%s shakes %s %s in refusal.", Shknam(shkp), noit_mhis(shkp), mbodypart(shkp, HEAD));</span>
+<span class="cstat-no" title="statement not covered" >          await pline("%s shakes %s %s in refusal.", Shknam(shkp), mhis(shkp), mbodypart(shkp, HEAD));</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -10152,7 +10137,7 @@ export <span class="fstat-no" title="function not covered" >function getprice(ob
 <span class="cstat-no" title="statement not covered" >  if (obj.oartifact) {</span>
 <span class="cstat-no" title="statement not covered" >    tmp = arti_cost(obj);</span>
 <span class="cstat-no" title="statement not covered" >    if (shk_buying) {</span>
-<span class="cstat-no" title="statement not covered" >      tmp /= 4;</span>
+<span class="cstat-no" title="statement not covered" >      tmp = Math.floor(tmp / 4);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  switch (obj.oclass) {</span>
@@ -10177,7 +10162,7 @@ export <span class="fstat-no" title="function not covered" >function getprice(ob
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >    case TOOL_CLASS:</span>
 <span class="cstat-no" title="statement not covered" >      if (Is_candle(obj) &amp;&amp; obj.age &lt; 20 *  objectData[obj.otyp].oc_cost) {</span>
-<span class="cstat-no" title="statement not covered" >        tmp /= 2;</span>
+<span class="cstat-no" title="statement not covered" >        tmp = Math.floor(tmp / 2);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -10342,7 +10327,7 @@ export <span class="fstat-no" title="function not covered" >async function use_u
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

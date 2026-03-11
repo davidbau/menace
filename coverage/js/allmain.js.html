@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.91% </span>
+                <span class="strong">68.94% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1587/2303</span>
+                <span class='fraction'>1587/2302</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">68.91% </span>
+                <span class="strong">68.94% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1587/2303</span>
+                <span class='fraction'>1587/2302</span>
             </div>
         
             
@@ -2365,8 +2365,7 @@
 <a name='L2300'></a><a href='#L2300'>2300</a>
 <a name='L2301'></a><a href='#L2301'>2301</a>
 <a name='L2302'></a><a href='#L2302'>2302</a>
-<a name='L2303'></a><a href='#L2303'>2303</a>
-<a name='L2304'></a><a href='#L2304'>2304</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2303'></a><a href='#L2303'>2303</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3704,26 +3703,26 @@
 <span class="cline-any cline-yes">34x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">39302x</span>
-<span class="cline-any cline-yes">39302x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">39278x</span>
+<span class="cline-any cline-yes">39278x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
-<span class="cline-any cline-yes">54456x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
+<span class="cline-any cline-yes">54432x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">34x</span>
@@ -4548,7 +4547,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">7296x</span>
 <span class="cline-any cline-yes">7296x</span>
 <span class="cline-any cline-yes">7296x</span>
@@ -4711,7 +4709,7 @@ import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -6844,7 +6842,6 @@ export class NetHackGame {
     async _gameLoopStep() {
         // Travel continuation
         if (this.travelPath <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; this.travelStep &lt; this.travelPath.length)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >            const { dotravel_target } = await nhimport('./hack.js');</span>
 <span class="cstat-no" title="statement not covered" >            const result = await dotravel_target(this);</span>
 <span class="cstat-no" title="statement not covered" >            if (result.tookTime) {</span>
 <span class="cstat-no" title="statement not covered" >                await moveloop_core(this);</span>
@@ -6979,7 +6976,7 @@ export <span class="fstat-no" title="function not covered" >function timet_to_se
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

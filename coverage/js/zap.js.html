@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.86% </span>
+                <span class="strong">20.92% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>568/2722</span>
+                <span class='fraction'>569/2719</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">2.77% </span>
+                <span class="strong">2.8% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/108</span>
+                <span class='fraction'>3/107</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.86% </span>
+                <span class="strong">20.92% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>568/2722</span>
+                <span class='fraction'>569/2719</span>
             </div>
         
             
@@ -2782,10 +2782,7 @@
 <a name='L2717'></a><a href='#L2717'>2717</a>
 <a name='L2718'></a><a href='#L2718'>2718</a>
 <a name='L2719'></a><a href='#L2719'>2719</a>
-<a name='L2720'></a><a href='#L2720'>2720</a>
-<a name='L2721'></a><a href='#L2721'>2721</a>
-<a name='L2722'></a><a href='#L2722'>2722</a>
-<a name='L2723'></a><a href='#L2723'>2723</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2720'></a><a href='#L2720'>2720</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -5067,10 +5064,7 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -5517,7 +5511,7 @@ import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
-    TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE,
+    TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE, is_magical_trap,
     MM_NOWAIT, MM_NOMSG, MM_NOCOUNTBIRTH, MM_MALE, MM_FEMALE,
     W_ARMOR, W_ACCESSORY, W_WEP, W_ARMC, W_ARM, W_ARMU, W_ARMH, W_ARMG,
     W_ARMF, W_ARMS, W_AMUL, W_TOOL, W_RING, W_RINGL, W_RINGR,
@@ -5612,7 +5606,7 @@ import {
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
-import { HOLE, TRAPDOOR } from './const.js';
+import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
 import { discoverObject } from './o_init.js';
@@ -6223,7 +6217,7 @@ export async function revive(obj, by_hero, map, player = null) {
 &nbsp;
   // C ref: zap.c:948-950 — container checks
   // If in a bag of holding, rn2(40) chance to fail
-  if (obj.where === 'contained' <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; obj.ocontainer)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+  if (obj.where === OBJ_CONTAINED <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; obj.ocontainer)</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    const container = obj.ocontainer;</span>
 <span class="cstat-no" title="statement not covered" >    if (container.olocked) return null;</span>
 <span class="cstat-no" title="statement not covered" >    if (container.otyp === BAG_OF_HOLDING &amp;&amp; rn2(40)) return null;</span>
@@ -6741,7 +6735,7 @@ export <span class="fstat-no" title="function not covered" >async function zapno
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >      // Check for player hit</span>
 <span class="cstat-no" title="statement not covered" >      if (player &amp;&amp; sx === player.x &amp;&amp; sy === player.y &amp;&amp; range &gt;= 0) {</span>
-<span class="cstat-no" title="statement not covered" >        if (zap_hit(player.uac || 10, 0)) {</span>
+<span class="cstat-no" title="statement not covered" >        if (zap_hit(player.ac ?? 10, 0)) {</span>
 <span class="cstat-no" title="statement not covered" >          range -= 2;</span>
 <span class="cstat-no" title="statement not covered" >          // C ref: zap.c:4920 — zhitu / zap_over_floor player damage</span>
 <span class="cstat-no" title="statement not covered" >          const damgtype = zaptype(type) % 10;</span>
@@ -6961,7 +6955,7 @@ export <span class="fstat-no" title="function not covered" >function obj_shudder
 <span class="cstat-no" title="statement not covered" >    zap_odds = 8;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  if (obj.quan &gt; 4) {</span>
-<span class="cstat-no" title="statement not covered" >    zap_odds /= 2;</span>
+<span class="cstat-no" title="statement not covered" >    zap_odds = Math.floor(zap_odds / 2);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  return !rn2(zap_odds);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -7550,7 +7544,7 @@ export <span class="fstat-no" title="function not covered" >async function zapyo
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  case WAN_FIRE: {</span>
 <span class="cstat-no" title="statement not covered" >    const orig_dmg = d(12, 6);</span>
-<span class="cstat-no" title="statement not covered" >    if (player.fire_resistance) {</span>
+<span class="cstat-no" title="statement not covered" >    if (player.hasProp(FIRE_RES)) {</span>
 <span class="cstat-no" title="statement not covered" >      await pline('You feel rather warm.');</span>
 <span class="cstat-no" title="statement not covered" >    } else {</span>
 <span class="cstat-no" title="statement not covered" >      await pline("You've set yourself afire!");</span>
@@ -7702,7 +7696,7 @@ export <span class="fstat-no" title="function not covered" >function get_mon_loc
 export <span class="fstat-no" title="function not covered" >function get_container_location(container, out = null, container_nesting = null) {</span>
 <span class="cstat-no" title="statement not covered" >  let obj = container;</span>
 <span class="cstat-no" title="statement not covered" >  let nest = 0;</span>
-<span class="cstat-no" title="statement not covered" >  while (obj &amp;&amp; String(obj.where || '').toUpperCase() === 'OBJ_CONTAINED') {</span>
+<span class="cstat-no" title="statement not covered" >  while (obj &amp;&amp; obj.where === OBJ_CONTAINED) {</span>
 <span class="cstat-no" title="statement not covered" >    nest++;</span>
 <span class="cstat-no" title="statement not covered" >    obj = obj.ocontainer || null;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -7789,10 +7783,7 @@ export <span class="fstat-no" title="function not covered" >function item_what(_
 &nbsp;
 // Is_box imported from objnam.js
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function is_magical_trap(ttyp) {</span></span>
-<span class="cstat-no" title="statement not covered" >  return ttyp === MAGIC_TRAP || ttyp === ANTI_MAGIC || ttyp === POLY_TRAP</span>
-<span class="cstat-no" title="statement not covered" >    || ttyp === TELEP_TRAP || ttyp === LEVEL_TELEP;</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+// is_magical_trap imported from const.js
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function undestroyable_trap(ttyp) {</span></span>
 <span class="cstat-no" title="statement not covered" >  return ttyp === MAGIC_PORTAL || ttyp === VIBRATING_SQUARE;</span>
@@ -7849,7 +7840,7 @@ export <span class="fstat-no" title="function not covered" >function item_what(_
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function iterate_pile(objhdr) {</span></span>
 <span class="cstat-no" title="statement not covered" >  if (!objhdr) return [];</span>
 <span class="cstat-no" title="statement not covered" >  if (Array.isArray(objhdr)) return [...objhdr];</span>
-<span class="cstat-no" title="statement not covered" >  if (objhdr.nexthere || objhdr.where === 'OBJ_FLOOR' || objhdr.where === 'floor') {</span>
+<span class="cstat-no" title="statement not covered" >  if (objhdr.nexthere || objhdr.where === OBJ_FLOOR) {</span>
 <span class="cstat-no" title="statement not covered" >    const out = [];</span>
 <span class="cstat-no" title="statement not covered" >    let cur = objhdr;</span>
 <span class="cstat-no" title="statement not covered" >    while (cur) {</span>
@@ -8096,7 +8087,7 @@ export <span class="fstat-no" title="function not covered" >function zombie_can_
 <span class="cstat-no" title="statement not covered" >  return typ === 1 || typ === 2 || typ === 12;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 export <span class="fstat-no" title="function not covered" >function spell_hit_bonus(skill, player) {</span>
-<span class="cstat-no" title="statement not covered" >  const dex = (player?.attributes?.[A_DEX] || 10);</span>
+<span class="cstat-no" title="statement not covered" >  const dex = acurr(player, A_DEX);</span>
 <span class="cstat-no" title="statement not covered" >  const prof = Number(player?.spellSkill?.[skill] ?? 1); // 0..3 =&gt; unskilled..expert</span>
 <span class="cstat-no" title="statement not covered" >  let hit_bon = 0;</span>
 <span class="cstat-no" title="statement not covered" >  if (prof &lt;= 0) hit_bon = -4;</span>
@@ -8111,7 +8102,7 @@ export <span class="fstat-no" title="function not covered" >function spell_hit_b
 <span class="cstat-no" title="statement not covered" >}</span>
 export <span class="fstat-no" title="function not covered" >function spell_damage_bonus(dmg, player) {</span>
 <span class="cstat-no" title="statement not covered" >  let out = Number(dmg || 0);</span>
-<span class="cstat-no" title="statement not covered" >  const intell = (player?.attributes?.[A_INT] || 10);</span>
+<span class="cstat-no" title="statement not covered" >  const intell = acurr(player, A_INT);</span>
 <span class="cstat-no" title="statement not covered" >  const level = player?.ulevel ?? player?.level ?? 1;</span>
 <span class="cstat-no" title="statement not covered" >  if (intell &lt;= 9) {</span>
 <span class="cstat-no" title="statement not covered" >    if (out &gt; 1) out = (out &lt;= 3) ? 1 : out - 3;</span>
@@ -8236,7 +8227,7 @@ export <span class="fstat-no" title="function not covered" >function destroyable
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.66% </span>
+                <span class="strong">23.51% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>495/2092</span>
+                <span class='fraction'>491/2088</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">48.64% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>21/42</span>
+                <span class='fraction'>18/37</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">10.86% </span>
+                <span class="strong">8.88% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/46</span>
+                <span class='fraction'>4/45</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.66% </span>
+                <span class="strong">23.51% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>495/2092</span>
+                <span class='fraction'>491/2088</span>
             </div>
         
             
@@ -2151,11 +2151,7 @@
 <a name='L2086'></a><a href='#L2086'>2086</a>
 <a name='L2087'></a><a href='#L2087'>2087</a>
 <a name='L2088'></a><a href='#L2088'>2088</a>
-<a name='L2089'></a><a href='#L2089'>2089</a>
-<a name='L2090'></a><a href='#L2090'>2090</a>
-<a name='L2091'></a><a href='#L2091'>2091</a>
-<a name='L2092'></a><a href='#L2092'>2092</a>
-<a name='L2093'></a><a href='#L2093'>2093</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2089'></a><a href='#L2089'>2089</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2253,12 +2249,8 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">90x</span>
-<span class="cline-any cline-yes">90x</span>
-<span class="cline-any cline-yes">90x</span>
-<span class="cline-any cline-yes">90x</span>
-<span class="cline-any cline-yes">90x</span>
-<span class="cline-any cline-yes">90x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -3076,6 +3068,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3604,7 +3597,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -4292,13 +4284,14 @@ import {
     DIGCHECK_FAIL_OBJ_POOL_OR_TRAP,
     DIR_ERR, N_DIRS, DIR_180, xdir, ydir,
 } from './const.js';
-import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE } from './const.js';
+import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY_AN,
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
 import { cansee } from './vision.js';
 import { mb_trapped, closed_door } from './monmove.js';
-import { canseemon, is_whirly, digests, unique_corpstat } from './mondata.js';
+import { canseemon, is_whirly, digests, unique_corpstat, is_flyer, is_floater } from './mondata.js';
 import { mksobj } from './mkobj.js';
 import { placeFloorObject, sobj_at } from './invent.js';
 import { makemon, mkclass } from './makemon.js';
@@ -4323,14 +4316,15 @@ import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
-import { in_rooms } from './hack.js';
+import { in_rooms, may_dig, losehp, Maybe_Half_Phys } from './hack.js';
 import { cvt_sdoor_to_door } from './detect.js';
 import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
 import { You_hear } from './pline.js';
 import { abon } from './weapon.js';
 import { acurr } from './attrib.js';
-import { A_STR, A_DEX } from './const.js';
+import { A_STR, A_DEX, AM_SANCTUM, MM_NOMSG } from './const.js';
+import { bimanual } from './pray.js';
 &nbsp;
 // ============================================================================
 // Constants (cf. dig.c:19-27)
@@ -4343,14 +4337,8 @@ import { A_STR, A_DEX } from './const.js';
 &nbsp;
 &nbsp;
 &nbsp;
-// C ref: may_dig(x, y) — is digging allowed at this location?
-export function may_dig(x, y, map) {
-    const loc = map.at(x, y);
-    if (!loc) <span class="branch-0 cbranch-no" title="branch not covered" >return false;</span>
-    const wallInfo = Number(loc.wall_info ?? loc.flags <span class="branch-0 cbranch-no" title="branch not covered" >?? 0)</span>;
-    return !((IS_STWALL(loc.typ) || IS_TREE(loc.typ))
-             &amp;&amp; (wallInfo &amp; W_NONDIGGABLE));
-}
+// C ref: may_dig(x, y) — canonical in hack.js (from hack.c); re-exported for dig consumers
+export { may_dig };
 &nbsp;
 // C ref: *in_rooms(x, y, SHOPBASE) — is (x,y) inside a shop?
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function in_rooms_shopbase(x, y, map) {</span></span>
@@ -4821,7 +4809,7 @@ export <span class="fstat-no" title="function not covered" >function dig_up_grav
 <span class="cstat-no" title="statement not covered" >        {</span>
 <span class="cstat-no" title="statement not covered" >            const zmndx = mkclass(S_ZOMBIE, 0);</span>
 <span class="cstat-no" title="statement not covered" >            if (zmndx &gt;= 0) {</span>
-<span class="cstat-no" title="statement not covered" >                makemon(zmndx, dig_x, dig_y, 0x04 /* MM_NOMSG */, undefined, map);</span>
+<span class="cstat-no" title="statement not covered" >                makemon(zmndx, dig_x, dig_y, MM_NOMSG, undefined, map);</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
@@ -4831,7 +4819,7 @@ export <span class="fstat-no" title="function not covered" >function dig_up_grav
 <span class="cstat-no" title="statement not covered" >        {</span>
 <span class="cstat-no" title="statement not covered" >            const mmndx = mkclass(S_MUMMY, 0);</span>
 <span class="cstat-no" title="statement not covered" >            if (mmndx &gt;= 0) {</span>
-<span class="cstat-no" title="statement not covered" >                makemon(mmndx, dig_x, dig_y, 0x04 /* MM_NOMSG */, undefined, map);</span>
+<span class="cstat-no" title="statement not covered" >                makemon(mmndx, dig_x, dig_y, MM_NOMSG, undefined, map);</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
@@ -4990,8 +4978,9 @@ export <span class="fstat-no" title="function not covered" >async function zap_d
 <span class="cstat-no" title="statement not covered" >                }</span>
 <span class="cstat-no" title="statement not covered" >                _gstate?.display?.putstr_message?.('You loosen a rock from the ceiling.');</span>
 <span class="cstat-no" title="statement not covered" >                _gstate?.display?.putstr_message?.('It falls on your head!');</span>
-<span class="cstat-no" title="statement not covered" >                const helmet = u.helmet || u.uarmh || null;</span>
-<span class="cstat-no" title="statement not covered" >                rnd(hard_helmet(helmet) ? 2 : 6);</span>
+<span class="cstat-no" title="statement not covered" >                const helmet = u.helmet || null;</span>
+<span class="cstat-no" title="statement not covered" >                await losehp(Maybe_Half_Phys(rnd(hard_helmet(helmet) ? 2 : 6), u),</span>
+<span class="cstat-no" title="statement not covered" >                    "falling rock", KILLED_BY_AN, u, _gstate?.display, _gstate);</span>
 <span class="cstat-no" title="statement not covered" >                mksobj_at(map, ROCK, u.x, u.y, false, false);</span>
 <span class="cstat-no" title="statement not covered" >                newsym(u.x, u.y);</span>
 <span class="cstat-no" title="statement not covered" >            } else {</span>
@@ -5606,7 +5595,7 @@ export <span class="fstat-no" title="function not covered" >async function dig(m
 <span class="cstat-no" title="statement not covered" >        // Earth level: rn2(3), rn2(2) for earth elemental</span>
 <span class="cstat-no" title="statement not covered" >        if (map.flags &amp;&amp; map.flags.is_earthlevel &amp;&amp; !rn2(3)) {</span>
 <span class="cstat-no" title="statement not covered" >            const mndx = rn2(2) ? PM_EARTH_ELEMENTAL : PM_XORN;</span>
-<span class="cstat-no" title="statement not covered" >            makemon(mndx, dpx, dpy, 0x04 /* MM_NOMSG */, undefined, map);</span>
+<span class="cstat-no" title="statement not covered" >            makemon(mndx, dpx, dpy, MM_NOMSG, undefined, map);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >        if (IS_DOOR(lev.typ) &amp;&amp; (lev.flags &amp; D_TRAPPED)) {</span>
@@ -5717,8 +5706,7 @@ export <span class="fstat-no" title="function not covered" >function dig_check(m
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (IS_ALTAR(loc.typ)</span>
 <span class="cstat-no" title="statement not covered" >        &amp;&amp; (madeby !== BY_OBJECT</span>
-<span class="cstat-no" title="statement not covered" >            || (loc.altarmask !== undefined &amp;&amp; (loc.altarmask &amp; 0x04) !== 0))) {</span>
-<span class="cstat-no" title="statement not covered" >        // AM_SANCTUM = 0x04</span>
+<span class="cstat-no" title="statement not covered" >            || (loc.altarmask !== undefined &amp;&amp; (loc.altarmask &amp; AM_SANCTUM) !== 0))) {</span>
 <span class="cstat-no" title="statement not covered" >        return DIGCHECK_FAIL_ALTAR;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -6005,8 +5993,8 @@ export function rot_corpse(arg, timeout, map, player) {
     if (!arg) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
     const obj = arg.a_obj || arg;
     let x = 0, y = 0;
-    const on_floor = (obj.where === 'OBJ_FLOOR' <span class="branch-0 cbranch-no" title="branch not covered" >|| (!obj.where &amp;&amp; !obj.buried &amp;&amp; obj.ox !== undefined))</span>;
-    const in_invent = (obj.where === 'OBJ_INVENT');
+    const on_floor = (obj.where === OBJ_FLOOR <span class="branch-0 cbranch-no" title="branch not covered" >|| (!obj.where &amp;&amp; !obj.buried &amp;&amp; obj.ox !== undefined))</span>;
+    const in_invent = (obj.where === OBJ_INVENT);
 &nbsp;
     if (on_floor) {
         x = obj.ox;
@@ -6017,12 +6005,12 @@ export function rot_corpse(arg, timeout, map, player) {
 <span class="cstat-no" title="statement not covered" >        if (obj.owornmask) {</span>
 <span class="cstat-no" title="statement not covered" >            obj.owornmask = 0;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >    } else if (obj.where === 'OBJ_MINVENT') {</span>
+<span class="cstat-no" title="statement not covered" >    } else if (obj.where === OBJ_MINVENT) {</span>
 <span class="cstat-no" title="statement not covered" >        // In monster inventory</span>
 <span class="cstat-no" title="statement not covered" >        if (obj.owornmask &amp;&amp; obj.ocarry) {</span>
 <span class="cstat-no" title="statement not covered" >            obj.owornmask = 0;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >    } else if (obj.where === 'OBJ_MIGRATING') {</span>
+<span class="cstat-no" title="statement not covered" >    } else if (obj.where === OBJ_MIGRATING) {</span>
 <span class="cstat-no" title="statement not covered" >        obj.owornmask = 0;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 &nbsp;
@@ -6043,7 +6031,7 @@ export <span class="fstat-no" title="function not covered" >function bury_monst(
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    if (canseemon(mtmp, player)) {</span>
 <span class="cstat-no" title="statement not covered" >        // C: is_flyer/is_floater check — flying monsters aren't swallowed</span>
-<span class="cstat-no" title="statement not covered" >        if (mtmp.mflags &amp;&amp; (mtmp.mflags.flyer || mtmp.mflags.floater)) {</span>
+<span class="cstat-no" title="statement not covered" >        if (is_flyer(mtmp.data || mtmp.type) || is_floater(mtmp.data || mtmp.type)) {</span>
 <span class="cstat-no" title="statement not covered" >            // "The ground opens up, but &lt;monster&gt; is not swallowed!"</span>
 <span class="cstat-no" title="statement not covered" >            return;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
@@ -6346,7 +6334,7 @@ export <span class="fstat-no" title="function not covered" >async function wiz_d
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

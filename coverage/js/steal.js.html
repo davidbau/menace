@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">48.6% </span>
+                <span class="strong">50.46% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>262/539</span>
+                <span class='fraction'>272/539</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40.29% </span>
+                <span class="strong">42.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>27/67</span>
+                <span class='fraction'>32/75</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">45% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>9/20</span>
+                <span class='fraction'>10/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">48.6% </span>
+                <span class="strong">50.46% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>262/539</span>
+                <span class='fraction'>272/539</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -673,20 +673,20 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">114x</span>
+<span class="cline-any cline-yes">114x</span>
+<span class="cline-any cline-yes">114x</span>
+<span class="cline-any cline-yes">114x</span>
+<span class="cline-any cline-yes">129x</span>
+<span class="cline-any cline-yes">129x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">114x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">114x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1211,21 +1211,21 @@ export <span class="fstat-no" title="function not covered" >function somegold(lm
 // Find first gold object in an inventory array. Returns the object or null.
 // (Differs from makemon.js findgold which returns boolean.)
 // Autotranslated from steal.c:44
-export <span class="fstat-no" title="function not covered" >function findgold(argchain) {</span>
-<span class="cstat-no" title="statement not covered" >  if (!argchain) return null;</span>
-<span class="cstat-no" title="statement not covered" >  // JS runtime inventories are array-based; C used linked lists.</span>
-<span class="cstat-no" title="statement not covered" >  if (Array.isArray(argchain)) {</span>
-<span class="cstat-no" title="statement not covered" >    for (const obj of argchain) {</span>
-<span class="cstat-no" title="statement not covered" >      if (obj?.otyp === GOLD_PIECE) return obj;</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    return null;</span>
-<span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >  let chain = argchain;</span>
-<span class="cstat-no" title="statement not covered" >  while (chain &amp;&amp; chain.otyp !== GOLD_PIECE) {</span>
+export function findgold(argchain) {
+  if (!argchain) <span class="branch-0 cbranch-no" title="branch not covered" >return null;</span>
+  // JS runtime inventories are array-based; C used linked lists.
+  if (Array.isArray(argchain)) {
+    for (const obj of argchain) {
+      if (obj?.otyp === GOLD_PIECE) return obj;
+    }
+    return null;
+  }
+<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >  let chain = argchain;</span></span>
+  while (chain &amp;&amp; chain.otyp !== GOLD_PIECE) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    chain = chain.nobj;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  return chain;</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+}
 &nbsp;
 // ============================================================================
 // stealgold — cf. steal.c:58
@@ -1464,7 +1464,7 @@ export async function steal(mon, player, display, map = null) {
 &nbsp;
     // Add to monster inventory (C uses mpickobj and emits pickup event logs).
     if (map) {
-        mpickobj(mon, otmp, map);
+        mpickobj(mon, otmp);
     }<span class="branch-0 cbranch-no" title="branch not covered" > else {</span>
 <span class="cstat-no" title="statement not covered" >        if (!Array.isArray(mon.minvent)) mon.minvent = [];</span>
 <span class="cstat-no" title="statement not covered" >        mon.minvent.push(otmp);</span>
@@ -1687,7 +1687,7 @@ export function mdrop_obj(mon, obj, map) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

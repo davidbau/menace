@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.35% </span>
+                <span class="strong">70.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>719/1022</span>
+                <span class='fraction'>716/1018</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.48% </span>
+                <span class="strong">50.33% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>155/307</span>
+                <span class='fraction'>152/302</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">38.63% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>18/45</span>
+                <span class='fraction'>17/44</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.35% </span>
+                <span class="strong">70.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>719/1022</span>
+                <span class='fraction'>716/1018</span>
             </div>
         
             
@@ -1081,11 +1081,8 @@
 <a name='L1016'></a><a href='#L1016'>1016</a>
 <a name='L1017'></a><a href='#L1017'>1017</a>
 <a name='L1018'></a><a href='#L1018'>1018</a>
-<a name='L1019'></a><a href='#L1019'>1019</a>
-<a name='L1020'></a><a href='#L1020'>1020</a>
-<a name='L1021'></a><a href='#L1021'>1021</a>
-<a name='L1022'></a><a href='#L1022'>1022</a>
-<a name='L1023'></a><a href='#L1023'>1023</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1019'></a><a href='#L1019'>1019</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1442,12 +1439,7 @@
 <span class="cline-any cline-yes">21874x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2133,6 +2125,7 @@ import { rnd, d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
          thick_skinned, strongmonst, is_giant, resists_ston, likes_gems,
          is_animal, is_mindless, touch_petrifies, attacktype, x_monnam,
+         throws_rocks,
        } from './mondata.js';
 import { MZ_LARGE, S_EEL, S_SNAKE, S_XORN, S_DRAGON, S_JABBERWOCK,
          S_NAGA, S_WORM_TAIL, S_KOP, S_GIANT,
@@ -2463,13 +2456,8 @@ export function oselect(mtmp, type) {
     return null;
 }
 &nbsp;
-// m_carrying: find object of given type in monster inventory
-function m_carrying(mtmp, type) {
-    for (const otmp of (mtmp.minvent <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
-        if (otmp.otyp === type) return otmp;
-    }
-<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >    return null;</span></span>
-}
+// m_carrying: canonical export in mthrowu.js (C's mthrowu.c)
+import { m_carrying } from './mthrowu.js';
 export { m_carrying };
 &nbsp;
 // ============================================================================
@@ -2521,7 +2509,7 @@ export function select_rwep(mtmp) {
 <span class="branch-0 cbranch-no" title="branch not covered" >        return { weapon: otmp, propellor: null };</span>
 &nbsp;
     // Giants prefer boulders
-    if (((mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type)</span>?.mflags2 <span class="branch-0 cbranch-no" title="branch not covered" >|| 0)</span> &amp; 0x00002000 /* M2_ROCKTHROW */ <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp;</span>
+    if (throws_rocks(mtmp.data <span class="branch-0 cbranch-no" title="branch not covered" >|| mtmp.type <span class="branch-0 cbranch-no" title="branch not covered" ></span>|| {})</span> <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp;</span>
         (otmp = oselect(mtmp, BOULDER)) != null)
 <span class="branch-0 cbranch-no" title="branch not covered" >        return { weapon: otmp, propellor: null };</span>
 &nbsp;
@@ -3136,7 +3124,7 @@ export <span class="fstat-no" title="function not covered" >function uwep_skill_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

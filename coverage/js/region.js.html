@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.18% </span>
+                <span class="strong">44.41% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>403/912</span>
+                <span class='fraction'>402/905</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">34.09% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>15/45</span>
+                <span class='fraction'>15/44</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.18% </span>
+                <span class="strong">44.41% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>403/912</span>
+                <span class='fraction'>402/905</span>
             </div>
         
             
@@ -968,14 +968,8 @@
 <a name='L903'></a><a href='#L903'>903</a>
 <a name='L904'></a><a href='#L904'>904</a>
 <a name='L905'></a><a href='#L905'>905</a>
-<a name='L906'></a><a href='#L906'>906</a>
-<a name='L907'></a><a href='#L907'>907</a>
-<a name='L908'></a><a href='#L908'>908</a>
-<a name='L909'></a><a href='#L909'>909</a>
-<a name='L910'></a><a href='#L910'>910</a>
-<a name='L911'></a><a href='#L911'>911</a>
-<a name='L912'></a><a href='#L912'>912</a>
-<a name='L913'></a><a href='#L913'>913</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L906'></a><a href='#L906'>906</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1710,14 +1704,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1913,7 +1899,7 @@
 &nbsp;
 import { rn1, rn2, rnd, d } from './rng.js';
 import { pline, You, You_feel, pline_The, You_see } from './pline.js';
-import { isok, ACCESSIBLE, COLNO, ROWNO, M_POISONGAS_OK } from './const.js';
+import { isok, ACCESSIBLE, COLNO, ROWNO, M_POISONGAS_OK, POISON_RES } from './const.js';
 import { newsym } from './display.js';
 import { cansee, block_point, unblock_point, mark_vision_dirty } from './vision.js';
 import { nonliving, haseyes, is_silent, resists_poison, canseemon } from './mondata.js';
@@ -1926,8 +1912,9 @@ import { is_pool, is_lava } from './dbridge.js';
 import { safe_teleds } from './teleport.js';
 import { losehp } from './hack.js';
 import { dist2 } from './hacklib.js';
+import { valid_cloud_pos } from './read.js';
 import { S_poisoncloud, S_cloud } from './symbols.js';
-import { AD_DRST } from './monsters.js';
+import { AD_DRST, M1_BREATHLESS } from './monsters.js';
 import { PM_FOG_CLOUD } from './monsters.js';
 import { PM_LONG_WORM } from './monsters.js';
 import { EYE, LUNG } from './const.js';
@@ -2538,7 +2525,7 @@ export <span class="fstat-no" title="function not covered" >async function insid
 <span class="cstat-no" title="statement not covered" >            // make_blinded(1, false) — simplified</span>
 <span class="cstat-no" title="statement not covered" >            player.blindedTimeout = Math.max(player.blindedTimeout || 0, 1);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
-<span class="cstat-no" title="statement not covered" >        if (!player.poisonResistance) {</span>
+<span class="cstat-no" title="statement not covered" >        if (!player.hasProp(POISON_RES)) {</span>
 <span class="cstat-no" title="statement not covered" >            await pline("%s is burning your %s!", "Something",</span>
 <span class="cstat-no" title="statement not covered" >                  makeplural(body_part(LUNG, player)));</span>
 <span class="cstat-no" title="statement not covered" >            await You("cough and spit blood!");</span>
@@ -2621,15 +2608,7 @@ async function make_gas_cloud(cloud, damage, inside_cloud, map, player, game) {
 <span class="cstat-no" title="statement not covered" >    }</span>
 }
 &nbsp;
-// ========================================================================
-// cf. region.c:1068 (read.c) — valid_cloud_pos(x, y): can gas cloud exist here?
-// ========================================================================
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function valid_cloud_pos(x, y, map) {</span></span>
-<span class="cstat-no" title="statement not covered" >    if (!isok(x, y)) return false;</span>
-<span class="cstat-no" title="statement not covered" >    const loc = map.at(x, y);</span>
-<span class="cstat-no" title="statement not covered" >    if (!loc) return false;</span>
-<span class="cstat-no" title="statement not covered" >    return ACCESSIBLE(loc.typ) || is_pool(x, y, map) || is_lava(x, y, map);</span>
-<span class="cstat-no" title="statement not covered" >}</span>
+// valid_cloud_pos imported from read.js
 &nbsp;
 // ========================================================================
 // cf. region.c:1213 — create_gas_cloud(x, y, cloudsize, damage): BFS gas cloud
@@ -2735,9 +2714,9 @@ export <span class="fstat-no" title="function not covered" >function region_dang
 <span class="cstat-no" title="statement not covered" >        const f_indx = regions[i].inside_f;</span>
 <span class="cstat-no" title="statement not covered" >        if (f_indx === INSIDE_GAS_CLOUD) {</span>
 <span class="cstat-no" title="statement not covered" >            const mdat = player.type || {};</span>
-<span class="cstat-no" title="statement not covered" >            if (nonliving(mdat) || (mdat.mflags1 &amp;&amp; (mdat.mflags1 &amp; 0x00000020))) // M1_BREATHLESS</span>
+<span class="cstat-no" title="statement not covered" >            if (nonliving(mdat) || (mdat.mflags1 &amp;&amp; (mdat.mflags1 &amp; M1_BREATHLESS)))</span>
 <span class="cstat-no" title="statement not covered" >                continue;</span>
-<span class="cstat-no" title="statement not covered" >            if (player.poisonResistance) continue;</span>
+<span class="cstat-no" title="statement not covered" >            if (player.hasProp(POISON_RES)) continue;</span>
 <span class="cstat-no" title="statement not covered" >            ++n;</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -2806,7 +2785,7 @@ export <span class="fstat-no" title="function not covered" >function free_region
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

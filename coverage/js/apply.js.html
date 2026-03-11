@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">38.31% </span>
+                <span class="strong">38.44% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>497/1297</span>
+                <span class='fraction'>499/1298</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.25% </span>
+                <span class="strong">11.39% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>9/80</span>
+                <span class='fraction'>9/79</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">38.31% </span>
+                <span class="strong">38.44% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>497/1297</span>
+                <span class='fraction'>499/1298</span>
             </div>
         
             
@@ -1360,7 +1360,8 @@
 <a name='L1295'></a><a href='#L1295'>1295</a>
 <a name='L1296'></a><a href='#L1296'>1296</a>
 <a name='L1297'></a><a href='#L1297'>1297</a>
-<a name='L1298'></a><a href='#L1298'>1298</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L1298'></a><a href='#L1298'>1298</a>
+<a name='L1299'></a><a href='#L1299'>1299</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -1479,7 +1480,8 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -2728,7 +2730,7 @@ import { gulp_blnd_check } from './mhitu.js';
 import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
-         SICK, BLINDED, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
+         SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT, HAND, FACE } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
@@ -2750,12 +2752,13 @@ import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
 import { maketrap } from './dungeon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
-import { DISP_BEAM, DISP_END, IS_FURNITURE } from './const.js';
+import { DISP_BEAM, DISP_END, IS_FURNITURE, nothing_happens } from './const.js';
 import { break_wand } from './zap.js';
 import { body_part } from './polyself.js';
 import { freehand } from './engrave.js';
 import { Blindf_off } from './do_wear.js';
 import { dropx } from './do.js';
+import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
 import { is_wet_towel, gloves_simple_name, makeplural } from './objnam.js';
@@ -2776,7 +2779,7 @@ const DIRECTION_KEYS = {
     'y': [-1, -1], 'u': [1, -1], 'b': [-1, 1], 'n': [1, 1],
 };
 &nbsp;
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function _nothing_happens() { return "Nothing happens."; }</span></span>
+// nothing_happens imported from const.js
 &nbsp;
 &nbsp;
 &nbsp;
@@ -2796,13 +2799,13 @@ const DIRECTION_KEYS = {
 // cf. apply.c:61 -- STUB: depends on bhit, flash_hits_mon
 export <span class="fstat-no" title="function not covered" >async function do_blinding_ray(_obj, player = null, map = null) {</span>
 <span class="cstat-no" title="statement not covered" >    if (!player || !map) {</span>
-<span class="cstat-no" title="statement not covered" >        await pline(_nothing_happens());</span>
+<span class="cstat-no" title="statement not covered" >        await pline(nothing_happens);</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    const dx = Number.isInteger(player.dx) ? player.dx : 0;</span>
 <span class="cstat-no" title="statement not covered" >    const dy = Number.isInteger(player.dy) ? player.dy : 0;</span>
 <span class="cstat-no" title="statement not covered" >    if (!dx &amp;&amp; !dy) {</span>
-<span class="cstat-no" title="statement not covered" >        await pline(_nothing_happens());</span>
+<span class="cstat-no" title="statement not covered" >        await pline(nothing_happens);</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    tmp_at(DISP_BEAM, { ch: '*', color: 14 });</span>
@@ -2825,7 +2828,7 @@ export <span class="fstat-no" title="function not covered" >async function do_bl
 &nbsp;
 // cf. apply.c:79 -- STUB: depends on getdir, bhit, zapyourself
 export <span class="fstat-no" title="function not covered" >async function use_camera(obj) {</span>
-<span class="cstat-no" title="statement not covered" >    if (obj.spe &lt;= 0) { await pline(_nothing_happens()); return; }</span>
+<span class="cstat-no" title="statement not covered" >    if (obj.spe &lt;= 0) { await pline(nothing_happens); return; }</span>
 <span class="cstat-no" title="statement not covered" >    obj.spe--;</span>
 <span class="cstat-no" title="statement not covered" >    await pline("You take a picture.");</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -2840,7 +2843,7 @@ export <span class="fstat-no" title="function not covered" >async function use_t
 <span class="cstat-no" title="statement not covered" >    let old;</span>
 <span class="cstat-no" title="statement not covered" >    switch (rn2(3)) {</span>
 <span class="cstat-no" title="statement not covered" >      case 2:</span>
-<span class="cstat-no" title="statement not covered" >        old = (Glib &amp; TIMEOUT);</span>
+<span class="cstat-no" title="statement not covered" >        old = ((player.getPropTimeout(GLIB) || 0) &amp; TIMEOUT);</span>
 <span class="cstat-no" title="statement not covered" >      make_glib(player, old + rn1(10, 3));</span>
 <span class="cstat-no" title="statement not covered" >      await Your("%s %s!", makeplural(body_part(HAND)), (old ? "are filthier than ever" : "get slimy"));</span>
 <span class="cstat-no" title="statement not covered" >      if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);</span>
@@ -2850,7 +2853,7 @@ export <span class="fstat-no" title="function not covered" >async function use_t
 <span class="cstat-no" title="statement not covered" >          old = player.ucreamed;</span>
 <span class="cstat-no" title="statement not covered" >          player.ucreamed += rn1(10, 3);</span>
 <span class="cstat-no" title="statement not covered" >          await pline("Yecch! Your %s %s gunk on it!", body_part(FACE), (old ? "has more" : "now has"));</span>
-<span class="cstat-no" title="statement not covered" >          await make_blinded(BlindedTimeout +  player.ucreamed - old, true);</span>
+<span class="cstat-no" title="statement not covered" >          await make_blinded(player, (player.getPropTimeout(BLINDED) || 0) + player.ucreamed - old, true);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        else {</span>
 <span class="cstat-no" title="statement not covered" >          let what;</span>
@@ -2862,7 +2865,7 @@ export <span class="fstat-no" title="function not covered" >async function use_t
 <span class="cstat-no" title="statement not covered" >            let saved_ublindf = player.blindfold;</span>
 <span class="cstat-no" title="statement not covered" >            await You("push your %s off.", what);</span>
 <span class="cstat-no" title="statement not covered" >            await Blindf_off(player.blindfold);</span>
-<span class="cstat-no" title="statement not covered" >            await dropx(saved_ublindf);</span>
+<span class="cstat-no" title="statement not covered" >            await dropx(saved_ublindf, player, _gstate?.map);</span>
 <span class="cstat-no" title="statement not covered" >          }</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >      if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);</span>
@@ -2871,18 +2874,18 @@ export <span class="fstat-no" title="function not covered" >async function use_t
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >  if (Glib) {</span>
+<span class="cstat-no" title="statement not covered" >  if (player.getPropTimeout(GLIB)) {</span>
 <span class="cstat-no" title="statement not covered" >    make_glib(player, 0);</span>
 <span class="cstat-no" title="statement not covered" >    await You("wipe off your %s.", !player.gloves ? makeplural(body_part(HAND)) : gloves_simple_name(player.gloves));</span>
 <span class="cstat-no" title="statement not covered" >    if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);</span>
 <span class="cstat-no" title="statement not covered" >    return ECMD_TIME;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >  else if (player.ucreamed) {</span>
-<span class="cstat-no" title="statement not covered" >    incr_itimeout( HBlinded, (-1 *  player.ucreamed));</span>
+<span class="cstat-no" title="statement not covered" >    incr_itimeout(player, BLINDED, (-1 * player.ucreamed));</span>
 <span class="cstat-no" title="statement not covered" >    player.ucreamed = 0;</span>
-<span class="cstat-no" title="statement not covered" >    if (!Blinded) {</span>
+<span class="cstat-no" title="statement not covered" >    if (!player.Blind) {</span>
 <span class="cstat-no" title="statement not covered" >      await pline("You've got the glop off.");</span>
-<span class="cstat-no" title="statement not covered" >      if (!gulp_blnd_check()) { set_itimeout( HBlinded, 1); await make_blinded(0, true); }</span>
+<span class="cstat-no" title="statement not covered" >      if (!gulp_blnd_check()) { set_itimeout(player, BLINDED, 1); await make_blinded(player, 0, true); }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    else { await Your("%s feels clean now.", body_part(FACE)); }</span>
 <span class="cstat-no" title="statement not covered" >    if (is_wet_towel(obj)) dry_a_towel(obj, -1, drying_feedback);</span>
@@ -3146,7 +3149,7 @@ export async function use_lamp(obj) {
     if (obj.cursed <span class="branch-0 cbranch-no" title="branch not covered" >&amp;&amp; !rn2(2))</span> <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >        if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) &amp;&amp; !rn2(3)) {</span>
 <span class="cstat-no" title="statement not covered" >            await pline("The lamp spills and covers your fingers with oil.");</span>
-<span class="cstat-no" title="statement not covered" >            make_glib(player, (player?.glib_intrinsic || 0) + d(2, 10));</span>
+<span class="cstat-no" title="statement not covered" >            make_glib(player, (player.getPropTimeout(GLIB) || 0) + d(2, 10));</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
 <span class="cstat-no" title="statement not covered" >            await pline("%s flickers for a moment, then dies.", xname(obj));</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
@@ -3350,7 +3353,7 @@ export <span class="fstat-no" title="function not covered" >async function use_u
 <span class="cstat-no" title="statement not covered" >        if (prop &amp;&amp; (prop.intrinsic &amp; TIMEOUT)) trouble_count++;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    if (trouble_count === 0) {</span>
-<span class="cstat-no" title="statement not covered" >        await pline(_nothing_happens());</span>
+<span class="cstat-no" title="statement not covered" >        await pline(nothing_happens);</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    // C: shuffle_int_array(trouble_list, trouble_count) — Fisher-Yates shuffle</span>
@@ -3362,7 +3365,7 @@ export <span class="fstat-no" title="function not covered" >async function use_u
 <span class="cstat-no" title="statement not covered" >    // C: val_limit = rn2(d(2, blessed ? 4 : 2))</span>
 <span class="cstat-no" title="statement not covered" >    const val_limit = rn2(d(2, obj.blessed ? 4 : 2));</span>
 <span class="cstat-no" title="statement not covered" >    // Actual trouble curing is simplified — RNG consumed above is what matters</span>
-<span class="cstat-no" title="statement not covered" >    await pline(_nothing_happens());</span>
+<span class="cstat-no" title="statement not covered" >    await pline(nothing_happens);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // cf. apply.c:2394 -- STUB: fig_transform timer callback
@@ -3559,7 +3562,7 @@ export <span class="fstat-no" title="function not covered" >function display_gra
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // cf. apply.c:3725 -- STUB: use_grapple
-<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function use_grapple() { await pline(_nothing_happens()); }</span></span>
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function use_grapple() { await pline(nothing_happens); }</span></span>
 &nbsp;
 // cf. apply.c:3872 -- STUB: discard_broken_wand
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function discard_broken_wand() {}</span></span>
@@ -3961,7 +3964,7 @@ export <span class="fstat-no" title="function not covered" >function apply_ok(ob
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.89% </span>
+                <span class="strong">24.1% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>513/2147</span>
+                <span class='fraction'>517/2145</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.89% </span>
+                <span class="strong">24.1% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>513/2147</span>
+                <span class='fraction'>517/2145</span>
             </div>
         
             
@@ -2208,9 +2208,11 @@
 <a name='L2143'></a><a href='#L2143'>2143</a>
 <a name='L2144'></a><a href='#L2144'>2144</a>
 <a name='L2145'></a><a href='#L2145'>2145</a>
-<a name='L2146'></a><a href='#L2146'>2146</a>
-<a name='L2147'></a><a href='#L2147'>2147</a>
-<a name='L2148'></a><a href='#L2148'>2148</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2146'></a><a href='#L2146'>2146</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -3807,6 +3809,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4063,9 +4066,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -4152,16 +4152,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -4381,8 +4377,8 @@ import {
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN } from './const.js';
-import { doname, bcsign, blessorcurse, uncurse, mksobj, weight, place_object } from './mkobj.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES } from './const.js';
+import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
@@ -4406,14 +4402,14 @@ import { gold_detect, food_detect, trap_detect, do_mapping, cvt_sdoor_to_door } 
 import { explode } from './explode.js';
 import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
-import { DISP_BEAM, DISP_END } from './const.js';
+import { DISP_BEAM, DISP_END, thats_enough_tries } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
-import { pline, impossible, You, You_hear } from './pline.js';
+import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon } from './display.js';
 import { S_goodpos } from './symbols.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup } from './invent.js';
-import { nhimport } from './origin_awaits.js';
+// nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
 import { kill_genocided_monsters, wake_nearto, wakeup, setmangry } from './mon.js';
@@ -4423,6 +4419,10 @@ import { obfree } from './shk.js';
 import { which_armor } from './worn.js';
 import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
 import { closed_door } from './monmove.js';
+import { is_pool, is_lava } from './dbridge.js';
+import { game as _gstate } from './gstate.js';
+import { create_gas_cloud } from './region.js';
+import { placebc } from './ball.js';
 &nbsp;
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 const MAX_SPELL_STUDY = 3; // cf. spell.h MAX_SPELL_STUDY
@@ -5690,7 +5690,7 @@ export <span class="fstat-no" title="function not covered" >async function seffe
 <span class="cstat-no" title="statement not covered" >    const map = game?.map;</span>
 <span class="cstat-no" title="statement not covered" >    const cc = { x: player.x, y: player.y };</span>
 <span class="cstat-no" title="statement not covered" >    const underwater = !!(player?.Underwater || player?.underwater || player?.uinwater);</span>
-<span class="cstat-no" title="statement not covered" >    const fireRes = !!(player?.Fire_resistance || player?.fireResistance);</span>
+<span class="cstat-no" title="statement not covered" >    const fireRes = !!player?.hasProp?.(FIRE_RES);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    // Use up scroll first</span>
 <span class="cstat-no" title="statement not covered" >    useup_scroll(sobj, player);</span>
@@ -5951,8 +5951,9 @@ export <span class="fstat-no" title="function not covered" >async function forge
 &nbsp;
 // Autotranslated from read.c:1067
 export <span class="fstat-no" title="function not covered" >function valid_cloud_pos(x, y, map) {</span>
-<span class="cstat-no" title="statement not covered" >  if (!isok(x,y)) return false;</span>
-<span class="cstat-no" title="statement not covered" >  return ACCESSIBLE(map.locations[x][y].typ) || is_pool(x, y) || is_lava(x, y);</span>
+<span class="cstat-no" title="statement not covered" >  const m = map || _gstate?.lev || _gstate?.map;</span>
+<span class="cstat-no" title="statement not covered" >  if (!isok(x,y) || !m?.locations?.[x]?.[y]) return false;</span>
+<span class="cstat-no" title="statement not covered" >  return ACCESSIBLE(m.locations[x][y].typ) || is_pool(x, y, m) || is_lava(x, y, m);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // Autotranslated from read.c:2287
@@ -6260,11 +6261,8 @@ export <span class="fstat-no" title="function not covered" >async function do_st
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    const { create_gas_cloud } = await nhimport('./region.js');</span>
-<span class="cstat-no" title="statement not covered" >    if (create_gas_cloud) {</span>
-<span class="cstat-no" title="statement not covered" >        await create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj),</span>
-<span class="cstat-no" title="statement not covered" >            map, player, game);</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    await create_gas_cloud(cc.x, cc.y, 15 + 10 * bcsign(sobj), 8 + 4 * bcsign(sobj),</span>
+<span class="cstat-no" title="statement not covered" >        map, player, game);</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;
 // ---------------------------------------------------------------------------
@@ -6278,11 +6276,10 @@ export <span class="fstat-no" title="function not covered" >async function drop_
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const { mksobj, weight: objWeight, place_object, stackobj } = await nhimport('./mkobj.js');</span>
 <span class="cstat-no" title="statement not covered" >    const otmp2 = mksobj(confused ? ROCK : BOULDER, false, false);</span>
 <span class="cstat-no" title="statement not covered" >    if (!otmp2) return;</span>
 <span class="cstat-no" title="statement not covered" >    otmp2.quan = confused ? rn1(5, 2) : 1;</span>
-<span class="cstat-no" title="statement not covered" >    otmp2.owt = objWeight(otmp2);</span>
+<span class="cstat-no" title="statement not covered" >    otmp2.owt = weight(otmp2);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    let dmg = 0;</span>
 <span class="cstat-no" title="statement not covered" >    if (!amorphous(player.data) &amp;&amp; !player.Passes_walls</span>
@@ -6323,7 +6320,6 @@ export <span class="fstat-no" title="function not covered" >async function punis
 <span class="cstat-no" title="statement not covered" >        return;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >    if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {</span>
-<span class="cstat-no" title="statement not covered" >        const { mkobj, place_object } = await nhimport('./mkobj.js');</span>
 <span class="cstat-no" title="statement not covered" >        if (!reuse_ball) {</span>
 <span class="cstat-no" title="statement not covered" >            await pline("A ball and chain appears, then falls away.");</span>
 <span class="cstat-no" title="statement not covered" >            const looseBall = mkobj(BALL_CLASS, true, false);</span>
@@ -6342,7 +6338,6 @@ export <span class="fstat-no" title="function not covered" >async function punis
 <span class="cstat-no" title="statement not covered" >    if (!reuse_ball) {</span>
 <span class="cstat-no" title="statement not covered" >        await pline("You are being punished!");</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >    const { mkobj } = await nhimport('./mkobj.js');</span>
 <span class="cstat-no" title="statement not covered" >    const chainObj = mkobj(CHAIN_CLASS, true, false);</span>
 <span class="cstat-no" title="statement not covered" >    const ballObj = reuse_ball || mkobj(BALL_CLASS, true, false);</span>
 <span class="cstat-no" title="statement not covered" >    if (chainObj) chainObj.owornmask = (chainObj.owornmask || 0) | W_CHAIN;</span>
@@ -6354,7 +6349,6 @@ export <span class="fstat-no" title="function not covered" >async function punis
 <span class="cstat-no" title="statement not covered" >    player.Punished = true;</span>
 <span class="cstat-no" title="statement not covered" >    player.punished = true;</span>
 <span class="cstat-no" title="statement not covered" >    if (!player.uswallow &amp;&amp; map) {</span>
-<span class="cstat-no" title="statement not covered" >        const { placebc } = await nhimport('./ball.js');</span>
 <span class="cstat-no" title="statement not covered" >        await placebc(player, map);</span>
 <span class="cstat-no" title="statement not covered" >        newsym(player.x, player.y);</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -6511,7 +6505,7 @@ export <span class="fstat-no" title="function not covered" >async function wand_
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">34.82% </span>
+                <span class="strong">34.9% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>843/2421</span>
+                <span class='fraction'>845/2421</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">52.27% </span>
+                <span class="strong">52.42% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>161/308</span>
+                <span class='fraction'>162/309</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">34.82% </span>
+                <span class="strong">34.9% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>843/2421</span>
+                <span class='fraction'>845/2421</span>
             </div>
         
             
@@ -2569,6 +2569,7 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-yes">12x</span>
@@ -3922,6 +3923,7 @@
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -4562,13 +4564,12 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -4904,7 +4905,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// mhitu.js -- Monster-vs-hero combat
 // cf. mhitu.c — monster attacks hero (mattacku, hitmu, missmu, etc.)
 // Hero-vs-monster combat has moved to uhitm.js.
@@ -4935,7 +4935,7 @@ import {
     AD_ENCH, AD_DISE, AD_HALU, AD_CURS, AD_WERE, AD_HEAL, AD_LEGS,
     AD_DGST, AD_SAMU, AD_DETH, AD_PEST, AD_FAMN, AD_DRDX, AD_DRCO,
     AD_MAGM, AD_DISN,
-    mons,
+    mons, G_EXTINCT,
 } from './monsters.js';
 import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS } from './objects.js';
 import { xname } from './mkobj.js';
@@ -4977,12 +4977,13 @@ import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
-import { nomul } from './hack.js';
+import { nomul, losehp } from './hack.js';
 import { body_part, polymon, rehumanize } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
 import { night } from './calendar.js';
 import { attrcurse } from './sit.js';
 import { pline, pline_mon, verbalize } from './pline.js';
+import { game as activeGame } from './gstate.js';
 &nbsp;
 const PIERCE = 1;
 &nbsp;
@@ -6340,7 +6341,8 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // Apply damage
         // ================================================================
         if (mhm.damage &gt; 0) {
-            const died = player.takeDamage(mhm.damage, x_monnam(monster));
+            await losehp(mhm.damage, x_monnam(monster), KILLED_BY_AN, player, display, game);
+            const died = (player.uhp || 0) &lt;= 0;
 &nbsp;
             if (died) {
                 player.deathCause = `killed by a ${x_monnam(monster)}`;
@@ -6669,7 +6671,7 @@ export <span class="fstat-no" title="function not covered" >async function gulpm
 <span class="cstat-no" title="statement not covered" >            tim_tmp = Math.floor(tim_tmp / (mtmp.m_lev || 1));</span>
 <span class="cstat-no" title="statement not covered" >            tim_tmp += 3;</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
-<span class="cstat-no" title="statement not covered" >            tim_tmp = rnd(Math.floor((mtmp.m_lev || 1) + 10 / 2));</span>
+<span class="cstat-no" title="statement not covered" >            tim_tmp = Math.trunc(rnd((mtmp.m_lev || 1) + 10) / 2);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        player.uswldtim = (tim_tmp &lt; 2) ? 2 : tim_tmp;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -6900,10 +6902,8 @@ export <span class="fstat-no" title="function not covered" >async function gazem
 <span class="cstat-no" title="statement not covered" >                await display.putstr_message('You turn to stone...');</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >            // Petrification death</span>
-<span class="cstat-no" title="statement not covered" >            if (player.takeDamage) {</span>
-<span class="cstat-no" title="statement not covered" >                player.deathCause = `turned to stone by a ${x_monnam(mtmp)}`;</span>
-<span class="cstat-no" title="statement not covered" >                player.takeDamage(player.uhp || 999, x_monnam(mtmp));</span>
-<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >            player.deathCause = `turned to stone by a ${x_monnam(mtmp)}`;</span>
+<span class="cstat-no" title="statement not covered" >            await losehp(player.uhp || 999, x_monnam(mtmp), KILLED_BY_AN, player, display, game);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
@@ -6992,14 +6992,15 @@ export <span class="fstat-no" title="function not covered" >async function gazem
 export <span class="fstat-no" title="function not covered" >async function mdamageu(mtmp, n, player, display, game = null) {</span>
 <span class="cstat-no" title="statement not covered" >    if (!player) return;</span>
 <span class="cstat-no" title="statement not covered" >    if (n &lt; 0) n = 0;</span>
+<span class="cstat-no" title="statement not covered" >    const gameCtx = game || activeGame || null;</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    if (n &gt; 0 &amp;&amp; player.takeDamage) {</span>
-<span class="cstat-no" title="statement not covered" >        const died = player.takeDamage(n, x_monnam(mtmp));</span>
-<span class="cstat-no" title="statement not covered" >        if (died) {</span>
+<span class="cstat-no" title="statement not covered" >    if (n &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >        await losehp(n, x_monnam(mtmp), KILLED_BY_AN, player, display, gameCtx);</span>
+<span class="cstat-no" title="statement not covered" >        if ((player.uhp || 0) &lt;= 0) {</span>
 <span class="cstat-no" title="statement not covered" >            player.deathCause = `killed by a ${x_monnam(mtmp)}`;</span>
-<span class="cstat-no" title="statement not covered" >            if (game) {</span>
-<span class="cstat-no" title="statement not covered" >                game.playerDied = true;</span>
-<span class="cstat-no" title="statement not covered" >                await done_in_by(mtmp, 0, game);</span>
+<span class="cstat-no" title="statement not covered" >            if (gameCtx) {</span>
+<span class="cstat-no" title="statement not covered" >                gameCtx.playerDied = true;</span>
+<span class="cstat-no" title="statement not covered" >                await done_in_by(mtmp, 0, gameCtx);</span>
 <span class="cstat-no" title="statement not covered" >            } else if (display) {</span>
 <span class="cstat-no" title="statement not covered" >                await display.putstr_message('You die...');</span>
 <span class="cstat-no" title="statement not covered" >            }</span>
@@ -7299,7 +7300,6 @@ export <span class="fstat-no" title="function not covered" >function mon_avoidin
 &nbsp;
 // cf. mhitu.c:2606 cloneu() — clone the hero as a tame monster
 export <span class="fstat-no" title="function not covered" >function cloneu(player, game, map) {</span>
-<span class="cstat-no" title="statement not covered" >    const G_EXTINCT = 0x02;</span>
 <span class="cstat-no" title="statement not covered" >    const youmonst_data = player.data || player.monst;</span>
 <span class="cstat-no" title="statement not covered" >    if (!youmonst_data) return null;</span>
 <span class="cstat-no" title="statement not covered" >    const mndx = monsndx(youmonst_data);</span>
@@ -7333,7 +7333,7 @@ export <span class="fstat-no" title="function not covered" >function cloneu(play
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>

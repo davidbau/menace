@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.62% </span>
+                <span class="strong">31.54% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>820/2593</span>
+                <span class='fraction'>817/2590</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.62% </span>
+                <span class="strong">31.54% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>820/2593</span>
+                <span class='fraction'>817/2590</span>
             </div>
         
             
@@ -2653,10 +2653,8 @@
 <a name='L2588'></a><a href='#L2588'>2588</a>
 <a name='L2589'></a><a href='#L2589'>2589</a>
 <a name='L2590'></a><a href='#L2590'>2590</a>
-<a name='L2591'></a><a href='#L2591'>2591</a>
-<a name='L2592'></a><a href='#L2592'>2592</a>
-<a name='L2593'></a><a href='#L2593'>2593</a>
-<a name='L2594'></a><a href='#L2594'>2594</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<a name='L2591'></a><a href='#L2591'>2591</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">35x</span>
+<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
@@ -4416,10 +4414,6 @@
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
-<span class="cline-any cline-yes">35x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -5302,7 +5296,7 @@ import {
 import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing } from './invent.js';
 import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
-import { newsym } from './display.js';
+import { newsym, see_monsters, set_mimic_blocking } from './display.js';
 import { retouch_object } from './artifact.js';
 import { rn2, rnd } from './rng.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
@@ -5319,7 +5313,8 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA,
          TIMEOUT, TT_BEARTRAP, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
          W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
          W_AMUL, W_WEP, W_SWAPWEP, W_QUIVER, W_RINGL, W_RINGR, W_TOOL,
-         W_RING, W_ACCESSORY, W_ARMOR } from './const.js';
+         W_RING, W_ACCESSORY, W_ARMOR,
+         GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS } from './const.js';
 import { set_itimeout, incr_itimeout, toggle_blindness } from './potion.js';
 import { float_down } from './trap.js';
 import { nomul, unmul } from './hack.js';
@@ -7008,10 +7003,6 @@ export <span class="fstat-no" title="function not covered" >async function destr
 &nbsp;
 // cf. do_wear.c equip_ok() — general equipment validation callback
 // Returns a classification code for getobj-style filtering.
-const GETOBJ_EXCLUDE = 0;
-const GETOBJ_EXCLUDE_INACCESS = 1;
-const GETOBJ_DOWNPLAY = 2;
-const GETOBJ_SUGGEST = 3;
 &nbsp;
 <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >async function equip_ok(player, obj, removing, accessory) {</span></span>
 <span class="cstat-no" title="statement not covered" >    if (!obj) return GETOBJ_EXCLUDE;</span>
@@ -7754,15 +7745,15 @@ export <span class="fstat-no" title="function not covered" >async function Ring_
 <span class="cstat-no" title="statement not covered" >                                    case MEAT_RING:</span>
 <span class="cstat-no" title="statement not covered" >                                      break;</span>
 <span class="cstat-no" title="statement not covered" >    case RIN_STEALTH:</span>
-<span class="cstat-no" title="statement not covered" >      toggle_stealth(obj, (EStealth &amp; ~mask), false);</span>
+<span class="cstat-no" title="statement not covered" >      toggle_stealth(player, false);</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >    case RIN_WARNING:</span>
-<span class="cstat-no" title="statement not covered" >      see_monsters();</span>
+<span class="cstat-no" title="statement not covered" >      see_monsters(game?.map);</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >    case RIN_SEE_INVISIBLE:</span>
 <span class="cstat-no" title="statement not covered" >      // C: if (!See_invisible) { set_mimic_blocking(); see_monsters(); }</span>
-<span class="cstat-no" title="statement not covered" >      // Intrinsic property tracking not fully wired; conservative no-op</span>
-<span class="cstat-no" title="statement not covered" >      set_mimic_blocking(); see_monsters(game?.map);</span>
+<span class="cstat-no" title="statement not covered" >      set_mimic_blocking(game?.map);</span>
+<span class="cstat-no" title="statement not covered" >      see_monsters(game?.map);</span>
 <span class="cstat-no" title="statement not covered" >      mark_vision_dirty();</span>
 <span class="cstat-no" title="statement not covered" >    break;</span>
 <span class="cstat-no" title="statement not covered" >    case RIN_INVISIBILITY:</span>
@@ -7849,7 +7840,7 @@ export <span class="fstat-no" title="function not covered" >async function alrea
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-11T03:01:01.101Z
+                at 2026-03-11T08:34:19.018Z
             </div>
         <script src="../prettify.js"></script>
         <script>
