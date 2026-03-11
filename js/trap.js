@@ -16,6 +16,7 @@ import {
     KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX,
     Trap_Effect_Finished, Trap_Caught_Mon, Trap_Killed_Mon, Trap_Moved_Mon,
     LEFT_SIDE, RIGHT_SIDE,
+    BOLT_LIM,
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
 import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
@@ -100,8 +101,6 @@ function trapnote(trap) {
     const tn = tnnames[trap.tnote] || 'C note';
     return an(tn);  // "an F note", "a C note", etc.
 }
-
-const BOLT_LIM = 8;
 
 // Trap result constants
 

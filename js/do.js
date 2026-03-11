@@ -39,7 +39,8 @@ import { an, makeplural } from './objnam.js';
 import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING, LEFT_SIDE, RIGHT_SIDE, BOTH_SIDES } from './const.js';
-import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM } from './const.js';
+import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM,
+         FOUNTAIN, THRONE, SINK, GRAVE, ALTAR } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
 import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
@@ -435,7 +436,7 @@ export async function polymorph_sink(player, map) {
 
     const sinklooted = loc.looted ? 1 : 0;
     loc.flags = 0;
-    const FOUNTAIN = 28, THRONE = 29, SINK = 30, GRAVE = 31, ALTAR = 32;
+    // FOUNTAIN, THRONE, SINK, GRAVE, ALTAR imported from const.js
     switch (rn2(4)) {
     default:
     case 0:
@@ -471,7 +472,7 @@ export async function polymorph_sink(player, map) {
 // to a random location. Returns true if sink teleported.
 function teleport_sink(player, map) {
     let trycnt = 0;
-    const SINK = 30;
+    // SINK imported from const.js
     do {
         const cx = 1 + rnd((COLNO - 1) - 2);  // 2..COLNO-2
         const cy = 1 + rn2(ROWNO - 2);         // 1..ROWNO-2

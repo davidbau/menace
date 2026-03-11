@@ -44,7 +44,8 @@ import {
     DIR_ERR, N_DIRS, DIR_180, xdir, ydir,
 } from './const.js';
 import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY_AN,
-         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING } from './const.js';
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING,
+         MAGIC_PORTAL, VIBRATING_SQUARE } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
 import { newsym } from './display.js';
@@ -1487,8 +1488,7 @@ export function dig_check(madeby, x, y, map, player) {
     // undestroyable trap check
     if (ttmp && ttmp.ttyp !== undefined) {
         // C: undestroyable_trap — magic portal, vibrating square
-        const MAGIC_PORTAL = 17; // C trap type enum
-        const VIBRATING_SQUARE = 23;
+        // MAGIC_PORTAL, VIBRATING_SQUARE imported from const.js
         if (ttmp.ttyp === MAGIC_PORTAL || ttmp.ttyp === VIBRATING_SQUARE) {
             return DIGCHECK_FAIL_UNDESTROYABLETRAP;
         }

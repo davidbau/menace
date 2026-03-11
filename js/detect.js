@@ -2,7 +2,7 @@ import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          D_CLOSED, D_LOCKED, D_TRAPPED, D_NODOOR, D_BROKEN, D_ISOPEN,
          IS_DOOR, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
          BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP,
-         BOLT_LIM } from './const.js';
+         BOLT_LIM, FOOT, TOE, NOSE, WM_MASK } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { Is_rogue_level } from './dungeon.js';
 import { hidden_gold } from './vault.js';
@@ -42,10 +42,7 @@ import { sobj_at } from './invent.js';
 // Constants
 // ========================================================================
 const ALL_CLASSES = MAXOCLASSES + 1;
-const FOOT = 12;
-const TOE = 18;
-const NOSE = 19;
-const WM_MASK = 0x07;
+// FOOT, TOE, NOSE, WM_MASK imported from const.js
 const OTRAP_NONE = 0;
 const OTRAP_HERE = 1;
 const OTRAP_THERE = 2;

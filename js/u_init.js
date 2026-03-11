@@ -93,7 +93,8 @@ import { roles, races } from './player.js';
 import { discoverObject } from './o_init.js';
 import { mons } from './monsters.js';
 import { makedog, mon_arrive } from './dog.js';
-import { MON_ARRIVE_WITH_YOU } from './const.js';
+import { MON_ARRIVE_WITH_YOU,
+         P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW } from './const.js';
 import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU,
     W_WEP, W_SWAPWEP, W_QUIVER,
@@ -1047,18 +1048,14 @@ function applyStartupDiscoveries(player) {
 
 // C ref: u_init.c knows_class()/knows_object() role pre-knowledge.
 // Mirrors C role-specific startup recognition of object classes/types.
-const WEAPON_SKILL_DAGGER = 1;
-const WEAPON_SKILL_POLEARM = 16;
-const WEAPON_SKILL_SPEAR = 17;
-const WEAPON_SKILL_BOW = 20;
-const WEAPON_SKILL_CROSSBOW = 22;
+// P_DAGGER, P_POLEARMS, P_SPEAR, P_BOW, P_CROSSBOW imported from const.js
 
 function isLauncherSkill(skill) {
-    return skill >= WEAPON_SKILL_BOW && skill <= WEAPON_SKILL_CROSSBOW;
+    return skill >= P_BOW && skill <= P_CROSSBOW;
 }
 
 function isAmmoSkill(skill) {
-    return skill <= -WEAPON_SKILL_BOW && skill >= -WEAPON_SKILL_CROSSBOW;
+    return skill <= -P_BOW && skill >= -P_CROSSBOW;
 }
 
 function discoverClassByRule(oclass, shouldKnow) {
@@ -1075,16 +1072,16 @@ function discoverWeaponClassForRole(roleMnum) {
     discoverClassByRule(WEAPON_CLASS, (od) => {
         const skill = Number(od.oc_subtyp || 0);
         if (roleMnum !== PM_KNIGHT && roleMnum !== PM_SAMURAI
-            && skill === WEAPON_SKILL_POLEARM) {
+            && skill === P_POLEARMS) {
             return false; // C: knows_class(WEAPON_CLASS) excludes polearms
         }
         if (roleMnum === PM_RANGER) {
             return isLauncherSkill(skill)
                 || isAmmoSkill(skill)
-                || skill === WEAPON_SKILL_SPEAR;
+                || skill === P_SPEAR;
         }
         if (roleMnum === PM_ROGUE) {
-            return skill === WEAPON_SKILL_DAGGER;
+            return skill === P_DAGGER;
         }
         return true;
     });
