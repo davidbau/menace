@@ -8393,3 +8393,15 @@ Validation:
 - `node --test test/unit/potion_scroll_accuracy.test.js test/unit/codematch_timeout_surface.test.js test/unit/command_eat_occupation_timing.test.js test/unit/command_eat_invalid_choice.test.js`
 - `scripts/run-and-report.sh --pending --failures` -> `3/3` passing
 - `scripts/run-and-report.sh --failures` -> gameplay `107/107` passing
+
+## 2026-03-11: Spellbook-known false negative from `num_spells` signature drift
+
+- Fixed a live spell menu/count bug in `js/spell.js`:
+  - `num_spells()` was calling `spellid(i)` without a player argument.
+  - In JS, spell state is per-player (`player.spells`), so this always behaved like "no known spells" at runtime callsites that correctly passed `player`.
+- Updated `num_spells` to take `player` and call `spellid(player, i)` C-faithfully for JS storage semantics.
+- Practical symptom before fix: `docast/getspell` could report "You don't know any spells right now." despite startup spellbooks.
+
+Validation:
+- `scripts/run-and-report.sh --failures` -> gameplay `110/110` passing
+- `scripts/run-and-report.sh --pending --failures` -> still `0/3` (same pending frontier; no regression)

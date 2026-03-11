@@ -486,15 +486,15 @@ export function spell_skilltype(booktype) {
 }
 
 // C ref: spell.c num_spells() — count known spells
-// Autotranslated from spell.c:2416
-export function num_spells() {
-  let i;
-  for (i = 0; i < MAXSPELL; i++) {
-    if (spellid(i) === NO_SPELL) {
-      break;
+// JS uses per-player spell storage, so accept `player`.
+export function num_spells(player) {
+    let i;
+    for (i = 0; i < MAXSPELL; i++) {
+        if (spellid(player, i) === NO_SPELL) {
+            break;
+        }
     }
-  }
-  return i;
+    return i;
 }
 
 // C ref: spell.c spell_idx() — find index of spell by otyp, or UNKNOWN_SPELL
