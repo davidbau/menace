@@ -76,6 +76,7 @@ import { is_wet_towel } from './objnam.js';
 import { night } from './calendar.js';
 import { attrcurse } from './sit.js';
 import { pline, pline_mon, verbalize } from './pline.js';
+import { game as activeGame } from './gstate.js';
 
 const PIERCE = 1;
 
@@ -2084,14 +2085,15 @@ export async function gazemu(mtmp, mattk, player, map, display) {
 export async function mdamageu(mtmp, n, player, display, game = null) {
     if (!player) return;
     if (n < 0) n = 0;
+    const gameCtx = game || activeGame || null;
 
     if (n > 0) {
-        await losehp(n, x_monnam(mtmp), KILLED_BY_AN, player, display, game);
+        await losehp(n, x_monnam(mtmp), KILLED_BY_AN, player, display, gameCtx);
         if ((player.uhp || 0) <= 0) {
             player.deathCause = `killed by a ${x_monnam(mtmp)}`;
-            if (game) {
-                game.playerDied = true;
-                await done_in_by(mtmp, 0, game);
+            if (gameCtx) {
+                gameCtx.playerDied = true;
+                await done_in_by(mtmp, 0, gameCtx);
             } else if (display) {
                 await display.putstr_message('You die...');
             }

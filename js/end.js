@@ -439,7 +439,7 @@ export async function done(how, game) {
             },
         };
     };
-    if (!survive && game.wizard && how <= GENOCIDED) {
+    if (!survive && (game.wizard || game.discover) && how <= GENOCIDED) {
         await installWizardDiePrompt();
         return;
     }

@@ -3456,9 +3456,8 @@ export async function losehp(n, knam, k_format, player, display, game) {
         if (hadLegacyHpMax) player.hpmax = nextHp;
     }
     if (player.uhp < 1) {
-        if (display) await display.putstr_message('You die...');
-        // done(DIED) would be called in full implementation
-        // For now, set hp to 0
+        // C ref: hack.c losehp() does not emit "You die..." directly.
+        // Death messaging/finalization is handled by higher-level done_* paths.
         player.uhp = 0;
         if (hadLegacyHp) player.hp = 0;
         if (game) {
