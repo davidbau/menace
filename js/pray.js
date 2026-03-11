@@ -52,6 +52,7 @@ import { makeplural, is_weptool,
 import { CORPSE, STATUE, AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR,
          POT_WATER, POTION_CLASS, LOADSTONE, LEVITATION_BOOTS, FUMBLE_BOOTS,
          GAUNTLETS_OF_FUMBLING, HELM_OF_OPPOSITE_ALIGNMENT,
+         CLOAK_OF_MAGIC_RESISTANCE,
          AMULET_OF_STRANGULATION, AMULET_OF_UNCHANGING, RIN_LEVITATION, RIN_SUSTAIN_ABILITY, TOOL_CLASS,
          SADDLE, LONG_SWORD, RUNESWORD, MAGIC_MARKER,
          WEAPON_CLASS, SPBOOK_CLASS, STRANGE_OBJECT, BOULDER,
@@ -484,7 +485,10 @@ function Disint_resistance(player) {
 }
 
 function Antimagic(player) {
-    return player.hasProp(ANTIMAGIC);
+    return !!(player?.hasProp?.(ANTIMAGIC)
+        || player?.antimagic
+        || player?.Antimagic
+        || (Number.isInteger(player?.cloak?.otyp) && player.cloak.otyp === CLOAK_OF_MAGIC_RESISTANCE));
 }
 
 // Helper: Deaf check
@@ -1572,8 +1576,8 @@ export async function godvoice(g_align, words, player) {
 
 // cf. pray.c:1429 -- gods_angry(g_align): print angry god message
 // Autotranslated from pray.c:1428
-export async function gods_angry(g_align) {
-  await godvoice(g_align, "Thou hast angered me.");
+export async function gods_angry(g_align, player) {
+  await godvoice(g_align, "Thou hast angered me.", player);
 }
 
 // ================================================================
@@ -2189,6 +2193,19 @@ export function pray_revive(player, map) {
 // ================================================================
 export async function dopray(player, map) {
     let ok = false;
+    const paranoidPrayEnabled = (_gstate?.flags?.paranoid_pray !== undefined)
+        ? !!_gstate.flags.paranoid_pray
+        : true;
+
+    // C ref: pray.c dopray() paranoid prayer confirmation runs before
+    // can_pray()/conduct changes.
+    if (paranoidPrayEnabled) {
+        const ans = await ynFunction('Are you sure you want to pray?', 'yn', 'n'.charCodeAt(0), _gstate?.display);
+        if (ans !== 'y'.charCodeAt(0)) {
+            return 0;
+        }
+    }
+
     // Conduct tracking
     if (!player.uconduct) player.uconduct = {};
     if (!player.uconduct.gnostic) player.uconduct.gnostic = 0;

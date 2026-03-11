@@ -98,6 +98,10 @@ export class Player {
             configurable: true,
         });
         this.moreluck = 0;
+        // C ref: u_init.c u_init_misc() — no prayers just yet.
+        this.ublesscnt = 300;
+        // C ref: u_init.c u_init_misc() — gods not angry.
+        this.ugangr = 0;
 
         // Intrinsic properties (C ref: you.h u.uprops[])
         // Sparse object: only populated properties have entries.

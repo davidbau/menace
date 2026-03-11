@@ -631,6 +631,11 @@ export async function getlin(prompt, display) {
 export async function ynFunction(query, choices, def, display) {
     const runtimeDisplay = getRuntimeDisplay();
     const disp = display || runtimeDisplay;
+    // C-faithful boundary: don't overwrite/append over a pending --More--;
+    // first consume it so this prompt starts on a fresh topline.
+    if (disp?.messageNeedsMore) {
+        await more(disp, { forceVisual: true });
+    }
     let prompt = query;
     if (choices) {
         prompt += ` [${choices}]`;

@@ -9,10 +9,11 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FIRE_RES, COLD_RES, POISON_RES, SHOCK_RES, ACID_RES,
          SEE_INVIS, INVIS, TELEPORT, TELEPAT,
          FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER, CONFUSION,
+         ANTIMAGIC, HALF_SPDAM,
          isok, W_SADDLE,
          TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
          PIT, SPIKED_PIT } from './const.js';
-import { COIN_CLASS, SADDLE } from './objects.js';
+import { COIN_CLASS, SADDLE, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
@@ -518,9 +519,15 @@ export async function rndcurse(player, map, display) {
         nobj++;
     }
 
-    // RNG parity: divisor is ((!!Antimagic) + (!!Half_spell_damage) + 1)
-    const divisor = (player.antimagic ? 1 : 0)
-                  + (player.half_spell_damage ? 1 : 0) + 1;
+    // RNG parity: divisor is ((!!Antimagic) + (!!Half_spell_damage) + 1).
+    const cloakGivesAntimagic = Number.isInteger(player?.cloak?.otyp)
+        && player.cloak.otyp === CLOAK_OF_MAGIC_RESISTANCE;
+    const hasAntimagic = ((typeof player?.hasProp === 'function') && !!player.hasProp(ANTIMAGIC))
+        || !!(player?.antimagic || player?.Antimagic)
+        || cloakGivesAntimagic;
+    const hasHalfSpell = ((typeof player?.hasProp === 'function') && !!player.hasProp(HALF_SPDAM))
+        || !!(player?.halfSpellDamage || player?.Half_spell_damage);
+    const divisor = (hasAntimagic ? 1 : 0) + (hasHalfSpell ? 1 : 0) + 1;
     let cnt = rnd(Math.floor(6 / divisor) || 1);
 
     if (nobj) {

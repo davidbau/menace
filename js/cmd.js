@@ -973,7 +973,7 @@ function displayCompletedExtcmd(typed, game) {
     if (lowered === 'e') return 'enhance';
     // C shows literal one-letter progress for some extcmds while typing.
     // Keep these literal so typed echo matches C.
-    if (lowered === 'd' || lowered === 's' || lowered === 'c' || lowered === 'ch') return raw;
+    if (lowered === 'd' || lowered === 's' || lowered === 'c' || lowered === 'ch' || lowered === 'p') return raw;
     const cmds = knownExtendedCommands(game);
     const exact = cmds.find((c) => c === lowered);
     if (exact) return raw;
