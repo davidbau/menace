@@ -1209,14 +1209,15 @@ export function useupall(obj, player) {
 
 // C ref: invent.c useup() — consume one item from a stack
 // Autotranslated from invent.c:1320
-export function useup(obj) {
+export function useup(obj, player) {
+  if (!player) player = _gstate?.player;
   if (obj.quan > 1) {
     obj.in_use = false;
     obj.quan--;
     obj.owt = weight(obj);
-    update_inventory();
+    update_inventory(player);
   }
-  else { useupall(obj); }
+  else { useupall(obj, player); }
 }
 
 // C ref: invent.c consume_obj_charge() — consume a charge from a wand/tool

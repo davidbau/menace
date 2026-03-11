@@ -3,7 +3,7 @@
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { nhgetch, ynFunction } from './input.js';
-import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useupall } from './invent.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
          POT_SLEEPING, POT_SICKNESS, POT_HALLUCINATION,
@@ -556,13 +556,13 @@ async function handleQuaff(player, map, display) {
             // C parity: inventory-selected items are description-known by the
             // time they are acted on (otmp->dknown guards makeknown/trycall).
             item.dknown = true;
-            player.removeFromInventory(item);
             replacePromptMessage();
             item.in_use = true;
             gp.potion_nothing = 0;
             gp.potion_unkn = 0;
             const retval = await peffects(player, item, display, map);
             if (retval >= 0) {
+                item.in_use = false;
                 return { moved: false, tookTime: !!retval };
             }
             // retval === -1: normal path
@@ -579,6 +579,10 @@ async function handleQuaff(player, map, display) {
                     trycall(item);
                 }
             }
+            // C ref: dodrink() calls useup() after peffects to consume one
+            // from a stack (quan > 1 decrements, quan == 1 removes entirely).
+            useup(item, player);
+            item.in_use = false;
             return { moved: false, tookTime: true };
         }
 
