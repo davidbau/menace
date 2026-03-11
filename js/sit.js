@@ -273,7 +273,7 @@ async function throne_sit_effect(player, map, display) {
             break;
         case 10:
             // magic mapping or see_invis
-            if ((player.luck || 0) < 0 || player.see_invisible_intrinsic) {
+            if ((player.luck || 0) < 0 || player.hasProp(SEE_INVIS)) {
                 if (map.flags && map.flags.nommap) {
                     await pline("A terrible drone fills your head!");
                     // RNG parity: rnd(30) for confusion
@@ -291,7 +291,7 @@ async function throne_sit_effect(player, map, display) {
                     await Your("eyes tingle...");
                 }
                 // HSee_invisible |= FROMOUTSIDE
-                player.see_invisible_intrinsic = true;
+                player.ensureUProp(SEE_INVIS).intrinsic |= FROMOUTSIDE;
                 mark_vision_dirty();
             }
             break;

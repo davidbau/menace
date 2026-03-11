@@ -22,7 +22,7 @@ import { losehp } from './hack.js';
 import { game as _gstate } from './gstate.js';
 import { sobj_at, useup } from './invent.js';
 import { water_damage, water_damage_chain } from './trap.js';
-import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES } from './const.js';
+import { ER_NOTHING, ER_DESTROYED, ER_GREASED, FIRE_RES, SEE_INVIS, FROMOUTSIDE } from './const.js';
 import { del_engr_at } from './engrave.js';
 import { minliquid } from './mon.js';
 import { hliquid, hcolor, a_monnam, Amonnam, rndmonnam } from './do_name.js';
@@ -370,7 +370,7 @@ export async function drinkfountain(player, map, display, fov) {
                 await pline("But it disappears.");
             }
             // HSee_invisible |= FROMOUTSIDE
-            player.see_invisible_intrinsic = true;
+            player.ensureUProp(SEE_INVIS).intrinsic |= FROMOUTSIDE;
             newsym(player.x, player.y);
             mark_vision_dirty();
             await exercise(player, A_WIS, true);
