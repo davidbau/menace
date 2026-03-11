@@ -4156,7 +4156,7 @@ Remaining parity gaps are mostly behavioral depth:
 | 1669 | `seffect_genocide` | read.js:993 | Approximate (routes to `do_class_genocide`/`do_genocide`; prompt UX simplified) |
 | 1982 | `seffect_gold_detection` | read.js:884 | Implemented (routes to `gold_detect`) |
 | 2002 | `seffect_identify` | read.js:326 | Implemented (faithful RNG: rn2(5) blessed check + cval; identify_pack inline) |
-| 1688 | `seffect_light` | read.js:425 | Partial (confused: faithful rn1(2,3)+makemon lights; non-confused: no litroom yet) |
+| 1688 | `seffect_light` | read.js:425 | Implemented (non-confused now routes through `litroom` + `lightdamage`; confused path keeps faithful rn1(2,3)+makemon lights) |
 | 2049 | `seffect_magic_mapping` | read.js:909 | Approximate (messages match; no do_mapping() level reveal yet) |
 | 2104 | `seffect_mail` | read.js:seffect_mail | Implemented |
 | 1923 | `seffect_punishment` | read.js:1063 | Partial (confused/blessed "guilty" faithful; no punish() ball-and-chain yet) |

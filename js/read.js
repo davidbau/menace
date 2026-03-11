@@ -35,7 +35,7 @@ import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMA
          PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
          PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER,
          G_GENO, G_NOCORPSE } from './monsters.js';
-import { resist } from './zap.js';
+import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
 import { hcolor, Monnam, mon_nam } from './do_name.js';
@@ -663,14 +663,11 @@ export async function seffect_light(sobj, player, display, game) {
     const map = game?.map;
 
     if (!confused) {
-        // cf. litroom(!scursed, sobj) — light or darken current room
+        // cf. litroom(!scursed, sobj)
         litroom(player, map, !scursed);
-        if (!player.blind) {
-            if (!scursed) {
-                await display.putstr_message('A lit field surrounds you!');
-            } else {
-                await display.putstr_message('Darkness surrounds you.');
-            }
+        // cf. if (!scursed) lightdamage(sobj, TRUE, 5)
+        if (!scursed) {
+            await lightdamage(sobj, player, 5, true);
         }
         return true;
     }

@@ -7377,3 +7377,22 @@ hard-won wisdom:
   - `node --test test/unit/codematch_batch_sweep.test.js` (17/17)
   - `npm run -s test:unit` (2754/2754)
   - `npm run -s test:session -- --max-failures=5` (151/151)
+
+## 2026-03-10: read.seffect_light non-confused path aligned to C litroom/lightdamage
+
+- Problem:
+  - `seffect_light` non-confused branch used bespoke JS-only message handling
+    and omitted the C-side `lightdamage(...)` effect when appropriate.
+- Change:
+  - `js/read.js`:
+    - imports `lightdamage` from `zap.js`.
+    - non-confused branch now performs C-shaped flow:
+      - `litroom(player, map, !scursed)`;
+      - if not cursed, `await lightdamage(sobj, player, 5, true)`.
+    - removed custom non-confused message branch in favor of shared engine flow.
+  - `docs/CODEMATCH.md`:
+    - marks `seffect_light` as implemented.
+- Validation:
+  - `node --test test/unit/codematch_batch_sweep.test.js` (17/17)
+  - `npm run -s test:unit` (2754/2754)
+  - `npm run -s test:session -- --max-failures=5` (151/151)
