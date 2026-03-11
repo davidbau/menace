@@ -1321,22 +1321,22 @@ export async function thitmonst(mon, obj, player, map, game) {
         if (tmp >= dieroll) {
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
-            await exercise(player, 3, true);
+            await exercise(player, A_DEX, true);
             if (should_mulch_missile(obj, false, player.luck || 0)) return 1;
         } else {
             await tmiss(obj, mon, true, player, map);
         }
     } else if (otyp === HEAVY_IRON_BALL) {
-        await exercise(player, 0, true);
+        await exercise(player, A_STR, true);
         if (tmp >= dieroll) {
-            await exercise(player, 3, true);
+            await exercise(player, A_DEX, true);
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
         } else { await tmiss(obj, mon, true, player, map); }
     } else if (otyp === BOULDER) {
-        await exercise(player, 0, true);
+        await exercise(player, A_STR, true);
         if (tmp >= dieroll) {
-            await exercise(player, 3, true);
+            await exercise(player, A_DEX, true);
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
         } else { await tmiss(obj, mon, true, player, map); }

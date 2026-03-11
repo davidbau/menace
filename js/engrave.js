@@ -29,7 +29,7 @@ import {
 } from './const.js';
 import { is_lava, is_pool, is_pool_or_lava } from './dbridge.js';
 import { surface } from './dungeon.js';
-import { IS_GRAVE, IS_AIR } from './const.js';
+import { IS_GRAVE, IS_AIR, A_WIS } from './const.js';
 import { newsym } from './display.js';
 import { goodpos } from './teleport.js';
 import { makemon } from './makemon.js';
@@ -788,7 +788,7 @@ export async function disturb_grave(map, x, y, player, depth) {
         }
         // C: exercise(A_WIS, FALSE)
         if (player) {
-            await exercise(player, 2, false); // A_WIS = 2
+            await exercise(player, A_WIS, false);
         }
     }
 }
