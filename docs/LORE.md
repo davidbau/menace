@@ -8451,3 +8451,23 @@ Validation:
   - now passes full gameplay channels (`rng/events/screens/colors` all matched)
 - `scripts/run-and-report.sh --pending --failures` -> now `1/2` passing (`t05` fixed, `t08_s700` still open)
 - `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing
+
+## 2026-03-11: C-faithful pick-axe apply boundary (unwielded case)
+
+- Fixed a key C flow gap in `js/apply.js` for `use_pick_axe` parity:
+  - C behavior: when applying an unwielded pick-axe/mattock, hero first wields it,
+    that turn consumes time, then a `--More--`/next-key boundary happens before the
+    direction prompt for digging.
+  - JS previously continued to direction handling in the same command boundary, which
+    shifted turn work and caused pending session `t08_s700_w_apply_gp` divergence.
+- New JS behavior:
+  - unwielded pick-axe apply now takes a timed turn immediately after wield;
+  - installs a two-phase pending prompt so next key dismisses the wield boundary,
+    then direction input is handled on following key(s), matching C step distribution;
+  - mirror direction-cancel path no longer emits a spurious `Never mind.` topline.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t08_s700_w_apply_gp.session.json`
+  - now passes gameplay channels (`rng/events/screens/colors/mapdump` fully matched)
+- `scripts/run-and-report.sh --pending --failures` -> gameplay `2/2` passing
+- `scripts/run-and-report.sh --failures` -> gameplay `111/111` passing

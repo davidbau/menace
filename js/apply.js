@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { more, nhgetch, ynFunction, cmdq_add_key } from './input.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import { doname, xname } from './mkobj.js';
 import { make_glib, make_blinded, incr_itimeout, set_itimeout } from './potion.js';
 import { gulp_blnd_check } from './mhitu.js';
@@ -70,8 +70,7 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
-         TIMEOUT, HAND, FACE,
-         CQ_CANNED } from './const.js';
+         TIMEOUT, HAND, FACE } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -1076,7 +1075,7 @@ export async function handleApply(player, map, display, game) {
             const loc = map.at(nx, ny);
             if (!loc || !IS_DOOR(loc.typ)) {
                 await display.putstr_message('You see no door there.');
-                return { moved: false, tookTime: true };
+                return { moved: false, tookTime: true, terminalScreenOwned: true };
             }
             if (loc.flags === D_NODOOR) {
                 await display.putstr_message('This doorway has no door.');
@@ -1124,21 +1123,80 @@ export async function handleApply(player, map, display, game) {
             return { moved: false, tookTime: true };
         }
 
-        // C ref: dig.c use_pick_axe() — auto-wield pick-axe/mattock before use
+        // C ref: dig.c use_pick_axe() — when not wielded, wield first and
+        // consume time; the dig direction is handled on the next key.
         if (selected.otyp === PICK_AXE || selected.otyp === DWARVISH_MATTOCK) {
-            const alreadyWielded = (player.weapon === selected);
-            if (!await wield_tool(player, display, selected, "dig")) {
-                return { moved: false, tookTime: false };
-            }
-            if (!alreadyWielded && selected?.invlet) {
-                // C ref: dig.c use_pick_axe(): wielding consumes this turn and
-                // queues a canned doapply + invlet for next turn.
-                if (display && typeof display.renderMoreMarker === 'function') {
+            const alreadyWielded = !!(player?.weapon && selected === player.weapon);
+            if (!alreadyWielded) {
+                if (!await wield_tool(player, display, selected, "dig")) {
+                    return { moved: false, tookTime: false };
+                }
+
+                // C uses a --More-- boundary here before prompting direction.
+                // Emulate this with a two-phase pending prompt:
+                //   key 1: dismiss wield message, then show dig prompt
+                //   key 2+: handle dig direction/cancel.
+                let promptArmed = false;
+                const dirPrompt = 'In what direction do you want to dig? [njb>] ';
+                const promptHandler = {
+                    source: 'apply_pickaxe_wield',
+                    onKey: async (ch, g) => {
+                        replacePromptMessage();
+                        if (!promptArmed) {
+                            if (typeof g?.display?.clearRow === 'function') g.display.clearRow(0);
+                            await g.display.putstr_message(dirPrompt);
+                            promptArmed = true;
+                            g.pendingPrompt = promptHandler;
+                            return { handled: true, tookTime: false, moved: false, prompt: true };
+                        }
+
+                        if (ch === 27 || ch === 32 || ch === 10 || ch === 13) {
+                            replacePromptMessage();
+                            await display.putstr_message('Never mind.');
+                            g.pendingPrompt = null;
+                            return { handled: true, tookTime: false, moved: false, prompt: true };
+                        }
+
+                        const dch = String.fromCharCode(ch);
+                        if (dch === '<') {
+                            await You_cant('reach the ceiling.');
+                            g.pendingPrompt = null;
+                            return { handled: true, tookTime: true, moved: false, prompt: true };
+                        }
+                        if (dch === '>') {
+                            g.pendingPrompt = null;
+                            return { handled: true, tookTime: true, moved: false, prompt: true };
+                        }
+                        const dir = DIRECTION_KEYS[dch] || null;
+                        if (dir) {
+                            g.pendingPrompt = null;
+                            return { handled: true, tookTime: true, moved: false, prompt: true };
+                        }
+
+                        replacePromptMessage();
+                        if (game?.flags?.cmdassist !== false) {
+                            await show_invalid_direction_cmdassist_help(display);
+                            await display.putstr_message(dirPrompt);
+                            promptArmed = true;
+                            g.pendingPrompt = promptHandler;
+                            return { handled: true, tookTime: false, moved: false, prompt: true };
+                        }
+                        if (!player?.wizard) {
+                            await display.putstr_message('What a strange direction!  Never mind.');
+                        }
+                        g.pendingPrompt = null;
+                        return { handled: true, tookTime: false, moved: false, prompt: true };
+                    },
+                };
+                if (typeof display?.renderMoreMarker === 'function') {
+                    display.messageNeedsMore = true;
                     display.renderMoreMarker();
                 }
-                cmdq_add_key(CQ_CANNED, 'a'.charCodeAt(0));
-                cmdq_add_key(CQ_CANNED, selected.invlet.charCodeAt(0));
-                return { moved: false, tookTime: true };
+                game.pendingPrompt = promptHandler;
+                return { moved: false, tookTime: true, terminalScreenOwned: true };
+            }
+            if (!await wield_tool(player, display, selected, "dig")) {
+                return { moved: false, tookTime: false };
             }
         }
 
@@ -1158,6 +1216,9 @@ export async function handleApply(player, map, display, game) {
                 dirChRaw = dirCh;
                 if (dirCh === 27 || dirCh === 32 || dirCh === 10 || dirCh === 13) {
                     replacePromptMessage();
+                    if (selected.otyp !== MIRROR) {
+                        await display.putstr_message('Never mind.');
+                    }
                     return { moved: false, tookTime: false };
                 }
                 const dch = String.fromCharCode(dirCh);
