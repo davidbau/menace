@@ -6,6 +6,7 @@ import {
     mons, NUMMONS,
     M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M2_DOMESTIC,
     M2_HUMAN, M2_ELF, M2_DWARF, M2_GNOME, M2_ORC,
+    M3_WANTSARTI,
     S_BLOB, S_JELLY, S_FUNGUS, S_VORTEX, S_LIGHT, S_ELEMENTAL,
     S_GOLEM, S_GHOST, S_YETI, S_KOBOLD, S_ORC, S_OGRE,
     PM_MEDUSA,
@@ -971,7 +972,6 @@ export async function tamedog(mtmp, obj, givemsg, player, game, map) {
     // Untameable monsters
     if (mtmp.iswiz) return false;
     if (mtmp.data === mons[PM_MEDUSA]) return false;
-    const M3_WANTSARTI = 0x0400;
     if ((mtmp.data?.mflags3 || 0) & M3_WANTSARTI) return false;
 
     // Pacify message
