@@ -752,7 +752,7 @@ export async function ghod_hitsu(priest, map, player) {
     }
 
     // bolt of lightning cast by unspecified monster
-    await buzz(BZ_M_SPELL_ELEC, 6, x, y, sgn(tbx), sgn(tby), map, player);
+    await buzz(BZ_M_SPELL_ELEC, 6, x, y, sgn(tbx), sgn(tby));
     await exercise(player, A_WIS, false);
 }
 

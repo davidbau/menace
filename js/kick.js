@@ -5,7 +5,7 @@ import { IS_DOOR, D_LOCKED, D_CLOSED, D_ISOPEN, D_BROKEN, D_NODOOR,
          IRONBARS, TREE, THRONE, ALTAR, FOUNTAIN, GRAVE, SINK,
          IS_STWALL, STAIRS, LADDER, LA_DOWN,
          A_STR, A_DEX, A_CON, SHOPBASE, ROOMOFFSET,
-         RIGHT_SIDE } from './const.js';
+         RIGHT_SIDE, BOTH_SIDES } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { Luck, acurr } from './attrib.js';
@@ -39,7 +39,7 @@ export async function handleKick(player, map, display, game) {
     // C ref: dokick.c:1279 — check wounded legs BEFORE asking direction
     const hasWoundedLegs = !!player?.woundedLegs
         || !!(player?.hWoundedLegs > 0)
-        || !!((Number(player?.eWoundedLegs || 0) & 0x60000) !== 0);
+        || !!((Number(player?.eWoundedLegs || 0) & BOTH_SIDES) !== 0);
     if (hasWoundedLegs) {
         await legs_in_no_shape("kicking", false, player);
         // C ref: dokick.c:1314 — display_nhwindow(WIN_MESSAGE, TRUE)

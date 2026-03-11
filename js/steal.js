@@ -321,7 +321,7 @@ export async function steal(mon, player, display, map = null) {
 
     // Add to monster inventory (C uses mpickobj and emits pickup event logs).
     if (map) {
-        mpickobj(mon, otmp, map);
+        mpickobj(mon, otmp);
     } else {
         if (!Array.isArray(mon.minvent)) mon.minvent = [];
         mon.minvent.push(otmp);
