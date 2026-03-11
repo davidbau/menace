@@ -987,15 +987,17 @@ if (allIdx >= 0 && allIdx + 1 < args.length) {
   }
 }
 
-// Always run direct coverage tests
-await testDeath();
-await testDeathArrow();
-await testWinner();
-await testSaveLoad();
-await testStrFunctions();
-await testIsMagic();
-await testSpecialAttacks();
-await testFightMisc();
-await testMimicTypes();
-await testWakeMonsterPaths();
-await testOptionsScreen();
+// Always run direct coverage tests (skip with --sessions-only)
+if (!args.includes('--sessions-only')) {
+  await testDeath();
+  await testDeathArrow();
+  await testWinner();
+  await testSaveLoad();
+  await testStrFunctions();
+  await testIsMagic();
+  await testSpecialAttacks();
+  await testFightMisc();
+  await testMimicTypes();
+  await testWakeMonsterPaths();
+  await testOptionsScreen();
+}

@@ -14,15 +14,13 @@ export class Input {
     let ch = null;
     if (e.key.length === 1) {
       ch = e.key;
-      // ctrl+direction letter → uppercase run command (standard 1982 Hack behavior)
-      if (e.ctrlKey && 'hjklyubn'.includes(ch)) ch = ch.toUpperCase();
     } else {
-      // Arrow keys → vi keys; ctrl+arrow → run (uppercase)
+      // Arrow keys → vi keys
       switch (e.key) {
-        case 'ArrowLeft':  ch = e.ctrlKey ? 'H' : 'h'; break;
-        case 'ArrowRight': ch = e.ctrlKey ? 'L' : 'l'; break;
-        case 'ArrowUp':    ch = e.ctrlKey ? 'K' : 'k'; break;
-        case 'ArrowDown':  ch = e.ctrlKey ? 'J' : 'j'; break;
+        case 'ArrowLeft':  ch = 'h'; break;
+        case 'ArrowRight': ch = 'l'; break;
+        case 'ArrowUp':    ch = 'k'; break;
+        case 'ArrowDown':  ch = 'j'; break;
         case 'Escape':     ch = '\x1b'; break;
         case 'Enter':      ch = '\r'; break;
         case 'Backspace':  ch = '\b'; break;
@@ -31,8 +29,8 @@ export class Input {
     }
     if (ch === null) return;
 
-    // Prevent browser default for game keys (including ctrl+direction)
-    if ('hjklyubnHJKLYUBN'.includes(ch) || e.key.startsWith('Arrow')) {
+    // Prevent browser default for game keys
+    if ('hjklyubn'.includes(ch) || e.key.startsWith('Arrow')) {
       e.preventDefault();
     }
 

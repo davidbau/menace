@@ -118,4 +118,6 @@ console.log(`Session replay: ${passed}/${total} sessions ran`);
 
 // ===== Part 2: Run direct unit tests =====
 // (Import and re-run the direct test module)
-await import('./coverage_direct.mjs');
+if (!process.argv.includes('--sessions-only')) {
+  await import('./coverage_direct.mjs');
+}
