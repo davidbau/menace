@@ -108,6 +108,45 @@ function emitLine(i, line) {
   console.log(`${String(i).padStart(6, ' ')}  ${line}`);
 }
 
+function rawCheckpointPhase(line) {
+  const m = String(line || '').match(/^\^ckpt\[phase=([^ \]]+)/);
+  return m ? m[1] : null;
+}
+
+function findRawCheckpointIndex(rawArr, phaseName, startAt = 0) {
+  for (let i = Math.max(0, startAt); i < rawArr.length; i++) {
+    const phase = rawCheckpointPhase(rawArr[i]);
+    if (phase === phaseName) return i;
+  }
+  return -1;
+}
+
+function summarizePhaseWindow(rawArr, label, startPhase, endPhase) {
+  const start = findRawCheckpointIndex(rawArr, startPhase);
+  if (start < 0) {
+    console.log(`\n${label}: missing start checkpoint ${startPhase}`);
+    return;
+  }
+  const end = findRawCheckpointIndex(rawArr, endPhase, start + 1);
+  if (end < 0) {
+    console.log(`\n${label}: missing end checkpoint ${endPhase}`);
+    return;
+  }
+  const matches = [];
+  for (let i = start + 1; i < end; i++) {
+    const line = String(rawArr[i] || '');
+    if (line.includes('@ place_lregion') || line.includes('@ placeRegion')) {
+      matches.push({ i, line });
+    }
+  }
+  console.log(`\n${label}: ${startPhase} -> ${endPhase}`);
+  console.log(`  raw window: [${start}, ${end}]`);
+  console.log(`  place_lregion/placeRegion calls: ${matches.length}`);
+  for (const m of matches) {
+    emitLine(m.i, m.line);
+  }
+}
+
 const interestingRaw = /(\^ckpt\[|@(.*place_lregion|.*placeRegion|.*finalize_level|.*fixupSpecialLevel|.*flip_level_rnd|.*mineralize))/;
 
 function printStream(name, arr, rawArr, rawIndexMap, idx, window, showAll) {
@@ -165,3 +204,28 @@ if (firstDiv) {
 if (Number.isInteger(focusStep)) console.log(`Focus step: ${focusStep}`);
 printStream('JS', jsNorm, jsRaw, jsRawIndexMap, focusIndex, args.window, args.all);
 printStream('C', cNorm, cRaw, cRawIndexMap, focusIndex, args.window, args.all);
+
+summarizePhaseWindow(
+  jsRaw,
+  'JS phase summary (special pass)',
+  'after_wallification_special',
+  'after_levregions_fixup'
+);
+summarizePhaseWindow(
+  cRaw,
+  'C phase summary (special pass)',
+  'after_wallification_special',
+  'after_levregions_fixup'
+);
+summarizePhaseWindow(
+  jsRaw,
+  'JS phase summary (second pass)',
+  'after_wallification',
+  'after_levregions_fixup'
+);
+summarizePhaseWindow(
+  cRaw,
+  'C phase summary (second pass)',
+  'after_wallification',
+  'after_levregions_fixup'
+);
