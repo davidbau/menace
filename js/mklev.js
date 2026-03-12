@@ -891,7 +891,10 @@ export function free_luathemes() {
 
 // C ref: mklev.c place_branch()
 export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
-    if (!placementHint || placementHint === 'none') return false;
+    if (!map) return false;
+    // C ref: mklev.c place_branch() always resolves coordinates when x==0
+    // (via find_branch_room) even when no stairs/portal will be placed
+    // (BR_NO_END*). Preserve that RNG/position side effect.
     if (!x) {
         const found = find_branch_room(map).pos;
         if (!found) return false;
@@ -900,6 +903,8 @@ export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
     } else {
         pos_to_room(map, x, y);
     }
+
+    if (!placementHint || placementHint === 'none') return false;
 
     if (placementHint === 'portal') {
         maketrap(map, x, y, MAGIC_PORTAL);
