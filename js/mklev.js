@@ -856,7 +856,21 @@ export function level_finalize_topology(map, depth) {
     // Medusa) that need topologize() to assign roomno to their wall/edge cells.
     // Removing the guard is safe because pure maze levels have map.nroom=0, so the
     // loop body never executes for them.
-    for (let i = 0; i < map.nroom; i++) topologize(map, map.rooms[i]);
+    for (let i = 0; i < map.nroom; i++) {
+        const rm = map.rooms[i];
+        // C ref: build_room() topologizes parent rooms before marking them irregular.
+        // In JS, parents are marked irregular when subrooms are added via lspo_room(),
+        // and _needsRetopologize=true is set to defer the topologize call.
+        // Temporarily clear irregular so topologize runs and sets edge roomno correctly.
+        if (rm._needsRetopologize && rm.irregular) {
+            rm.irregular = false;
+            topologize(map, rm);
+            rm.irregular = true;
+            delete rm._needsRetopologize;
+        } else {
+            topologize(map, rm);
+        }
+    }
     set_wall_state(map);
     for (let i = 0; i < map.rooms.length; i++) {
         map.rooms[i].orig_rtype = map.rooms[i].rtype;
