@@ -4,7 +4,7 @@
 CC = gcc
 
 # Base flags for all compilation
-CFLAGS = -g -O0 -DSMALL -DVTONL -DHARNESS -DSEED_CONTROL \
+CFLAGS = -g -O0 -DVTONL -DHARNESS -DSEED_CONTROL \
          -Wno-implicit-function-declaration \
          -Wno-implicit-int \
          -Wno-return-type \

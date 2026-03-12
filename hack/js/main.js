@@ -1,7 +1,7 @@
 // C ref: hack.main.c — game loop, initialization, shufl, losestr, glo
 import { HP, STR, DHS, GOLD, AC, HPM, ULV, UEX } from './const.js';
 import { rn1, rn2, rnd, d, seedRng, logEvent } from './rng.js';
-import { game } from './gstate.js';
+import { game, GameOver } from './gstate.js';
 import { makeObj } from './game.js';
 import { pline, bot, nscr, cls, panic, losehp, pru } from './pri.js';
 import { setsee, unsee, seeoff, domove, movecm, tele, parse, nomul, doname } from './hack.js';
@@ -94,9 +94,8 @@ export async function done(reason) {
   throw new GameOver(reason);
 }
 
-export class GameOver extends Error {
-  constructor(reason) { super('Game over: ' + reason); this.reason = reason; }
-}
+// GameOver is defined in gstate.js to avoid circular imports; re-export for callers.
+export { GameOver };
 
 // C ref: dodown() — descend stairs
 export async function dodown() {

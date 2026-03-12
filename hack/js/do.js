@@ -7,7 +7,7 @@ import { pline, atl, newsym, nscr, bot, cls, curs, on, pru, losehp, prl, at } fr
 import { movecm, domove, parse, tele, nomul, doname, setsee, seeoff, amon, attmon, prinv } from './hack.js';
 import { movemon, makemon, rloc, mnexto, g_at_mon, g_at_obj, g_at_gen, delmon, killed,
          newcham, steal } from './mon.js';
-import { ringoff, hit, miss, bhit, buzz, dosearch, dosave, dorecover, zhit } from './do1.js';
+import { ringoff, hit, miss, bhit, buzz, dosearch, dosave, dorecover, zhit, findit } from './do1.js';
 import { dodown, doup, done, done1, losestr, ndaminc } from './main.js';
 import { mon, pottyp, scrtyp, wantyp, ringtyp, foodnam, wepnam, armnam,
          NOTHIN, CURSED, EMPTY, DONTH, WEARI, MORE, RUST } from './data.js';
@@ -684,7 +684,7 @@ export async function rhack(cmd) {
         otmp.spe--;
         switch (otmp.otyp) {
           case 0: litroom(); break;
-          case 1: await pline('What a strange wand!'); break;  // SMALL mode
+          case 1: if (!await findit()) return;  break;
           case 2: makemon(null); if (game.fmon) mnexto(game.fmon); break;
         }
         return;

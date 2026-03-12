@@ -68,7 +68,8 @@ static inline int harness_kill(int p, int s) { (void)p; (void)s; return 0; }
 
 /* fork/wait: call mklev inline instead of spawning a subprocess */
 #define fork()   harness_do_fork()
-#define wait(s)  (*(s) = 0, 0)
+static inline int harness_wait(void *s) { if (s) *(int*)s = 0; return 0; }
+#define wait(s)  harness_wait(s)
 
 /* execl: should never be reached (fork() handles mklev inline) */
 #define execl(...)   harness_exit(1)
@@ -103,9 +104,6 @@ static inline int harness_kill(int p, int s) { (void)p; (void)s; return 0; }
 static inline char *harness_getlogin(void) { return "hplayer"; }
 #define getlogin harness_getlogin
 #define alarm(n)  ((void)0)
-
-/* Options */
-#define set1(s) ((void)0)
 
 /* Harness aliases */
 #define cbin()   ((void)0)

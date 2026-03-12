@@ -7,6 +7,7 @@ import { pline, atl, newsym, on, docrt } from './pri.js';
 import { g_at_gen, g_at_mon, killed, delmon, makemon, mnexto } from './mon.js';
 import { savelev, getlev } from './lev.js';
 import { makeObj } from './game.js';
+import { GameOver } from './gstate.js';
 
 const fl = [
   'magic missile',
@@ -272,51 +273,39 @@ function findInventIdx(arr, ref) {
   return -1;
 }
 
-// C ref: dosave() — save game to localStorage
+// C ref: dosave() — save game
+// C: immediately saves to disk and calls exit(1); no confirmation prompt.
+// JS: saves to localStorage then throws GameOver (matches C's exit behavior).
 export async function dosave() {
-  await pline('Really save? [yn] (n)');
-  const ch = await game.input.getKey();
-  if (ch !== 'y' && ch !== 'Y') {
-    game.flags.move = false;
-    return;
-  }
+  // Save current level into savedLevels before serializing
+  savelev();
 
-  try {
-    // Save current level into savedLevels before serializing
-    savelev();
-
-    const inventArr = inventToArray(game.invent);
-    const state = {
-      version: 2,
-      dlevel: game.dlevel,
-      moves: game.moves,
-      multi: game.multi,
-      rngSeed: game.rngSeed,
-      initialSeed: game.initialSeed,
-      u: Object.assign({}, game.u, { ustuck: null }),  // strip monster pointer
-      flags: Object.assign({}, game.flags),
-      savedLevels: game.savedLevels,
-      invent: serializeInvent(game.invent),
-      uwep_idx:   findInventIdx(inventArr, game.uwep),
-      uarm_idx:   findInventIdx(inventArr, game.uarm),
-      uleft_idx:  findInventIdx(inventArr, game.uleft),
-      uright_idx: findInventIdx(inventArr, game.uright),
-      xupstair: game.xupstair, yupstair: game.yupstair,
-      xdnstair: game.xdnstair, ydnstair: game.ydnstair,
-      buf: game.buf, killer: game.killer,
-      wannam:   game.wannam,  potcol:   game.potcol,
-      rinnam:   game.rinnam,  scrnam:   game.scrnam,
-      potcall:  game.potcall, scrcall:  game.scrcall,
-      wandcall: game.wandcall, ringcall: game.ringcall,
-    };
-    localStorage.setItem('hack_save', JSON.stringify(state));
-    await pline('Game saved. Be seeing you...');
-    // In browser, user can refresh to continue; stop the loop
-    game.flags.move = false;
-    game.multi = 0;
-  } catch (e) {
-    await pline('Save failed: %s', e.message);
-  }
+  const inventArr = inventToArray(game.invent);
+  const state = {
+    version: 2,
+    dlevel: game.dlevel,
+    moves: game.moves,
+    multi: game.multi,
+    rngSeed: game.rngSeed,
+    initialSeed: game.initialSeed,
+    u: Object.assign({}, game.u, { ustuck: null }),
+    flags: Object.assign({}, game.flags),
+    savedLevels: game.savedLevels,
+    invent: serializeInvent(game.invent),
+    uwep_idx:   findInventIdx(inventArr, game.uwep),
+    uarm_idx:   findInventIdx(inventArr, game.uarm),
+    uleft_idx:  findInventIdx(inventArr, game.uleft),
+    uright_idx: findInventIdx(inventArr, game.uright),
+    xupstair: game.xupstair, yupstair: game.yupstair,
+    xdnstair: game.xdnstair, ydnstair: game.ydnstair,
+    buf: game.buf, killer: game.killer,
+    wannam:   game.wannam,  potcol:   game.potcol,
+    rinnam:   game.rinnam,  scrnam:   game.scrnam,
+    potcall:  game.potcall, scrcall:  game.scrcall,
+    wandcall: game.wandcall, ringcall: game.ringcall,
+  };
+  try { localStorage.setItem('hack_save', JSON.stringify(state)); } catch (e) { /* ignore in Node/harness */ }
+  throw new GameOver('saved');
 }
 
 // C ref: dorecover(fp) — restore from save
