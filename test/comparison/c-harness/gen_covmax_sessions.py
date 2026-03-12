@@ -173,12 +173,91 @@ def build_covmax2_moves() -> str:
     return moves
 
 
+def build_covmax3_moves() -> str:
+    moves = ""
+
+    # Setup: bias toward diverse interaction systems without over-indexing on
+    # repeated read-scroll chains (which are already exercised by covmax2).
+    for item in [
+        "pick-axe",
+        "wand of digging",
+        "wand of opening",
+        "wand of locking",
+        "wand of striking",
+        "wand of magic missile",
+        "stethoscope",
+        "skeleton key",
+        "lock pick",
+        "tin opener",
+        "oil lamp",
+        "blindfold",
+        "food ration",
+        "apple",
+        "potion of levitation",
+        "potion of healing",
+        "scroll of teleportation",
+        "scroll of remove curse",
+    ]:
+        moves += wish(item)
+
+    for mon in [
+        "jackal",
+        "kobold",
+        "goblin",
+        "newt",
+        "grid bug",
+        "floating eye",
+        "acid blob",
+        "lichen",
+    ]:
+        moves += genesis(mon)
+
+    # Route pattern for repeated exploration loops.
+    loop = "lljjhhkk" + "s" + "." + "," + "d"
+
+    # Early depth cycle: levelport + mixed actions.
+    for depth in [2, 4, 6]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(3):
+            moves += loop + (SP * 2)
+            moves += "f" + "j" + (SP * 2)      # fight south
+            moves += "t" + "j" + (SP * 2)      # throw south
+            moves += "o" + "l" + (SP * 2)      # open
+            moves += "c" + "l" + (SP * 2)      # close
+
+    # Tool/wand churn with directional prompts and confirmation handling.
+    for _ in range(4):
+        moves += "a" + "m" + (SP * 2)          # apply tool (lockpick/key guess)
+        moves += "a" + "n" + (SP * 2)          # apply alternate tool slot
+        moves += "z" + "h" + "j" + (SP * 2)    # zap + dir
+        moves += "z" + "i" + "l" + (SP * 2)    # zap + dir
+        moves += "q" + "p" + (SP * 2)          # quaff
+        moves += "q" + "q" + (SP * 2)          # quaff
+        moves += loop + (SP * 2)
+
+    # Longer explore/combat tail to drive movement+AI+object interactions.
+    for _ in range(8):
+        moves += "lljjhhkk" + "s" * 2 + "." + "," + "d" + (SP * 2)
+        moves += "f" + "j" + (SP * 2)
+        moves += "F" + "J" + (SP * 2)          # force fight variant
+        moves += "T" + "r" + (SP * 2)          # takeoff (likely invalid too)
+        moves += "W" + "r" + (SP * 2)          # wear (likely invalid too)
+
+    # End with prayer/sit to touch role/religion/throne-style branches.
+    moves += "#pray" + ENTER + (SP * 2)
+    moves += "#sit" + ENTER + (SP * 2)
+
+    return moves
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate one long coverage-max pending session.")
     parser.add_argument("--seed", type=int, default=741, help="Deterministic seed")
     parser.add_argument(
         "--scenario",
-        choices=["covmax1", "covmax2"],
+        choices=["covmax1", "covmax2", "covmax3"],
         default="covmax1",
         help="Coverage scenario recipe",
     )
@@ -191,7 +270,12 @@ def main():
         SESSIONS_DIR,
         f"t11_s{args.seed:03d}_w_{args.scenario}_gp.session.json",
     )
-    moves = build_covmax1_moves() if args.scenario == "covmax1" else build_covmax2_moves()
+    if args.scenario == "covmax1":
+        moves = build_covmax1_moves()
+    elif args.scenario == "covmax2":
+        moves = build_covmax2_moves()
+    else:
+        moves = build_covmax3_moves()
     print(f"Seed: {args.seed}")
     print(f"Output: {outpath}")
     print(f"Move keycount: {len(moves)}")
