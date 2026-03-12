@@ -8526,3 +8526,23 @@ Validation:
 - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/theme06_seed632_wiz_zap-rays_gameplay.session.json` -> PASS (`rng=2889/2889`, `events=232/232`, `screens=193/193`, `colors=4632/4632`, `mapdump=1/1`).
 - Regression checks:
   - `node test/comparison/session_test_runner.js --sessions=seed033_manual_direct.session.json,seed322_barbarian_wizard_gameplay.session.json,seed324_healer_wizard_gameplay.session.json,seed325_knight_wizard_gameplay.session.json` -> all PASS.
+
+## 2026-03-12: Theme01 sit-session coverage gains come from stable local scenarios
+
+- Added C-recorded coverage session `t01_s651_w_sit2_gp` focused on `#sit`
+  branches that are deterministic on level 1:
+  - sit on floor,
+  - sit while levitating (wished levitation boots),
+  - sit on dropped object.
+- Initial variant that walked around level 1 caused large parity drift from
+  incidental map interactions (teleport trap branch) and was discarded.
+- Practical rule for coverage sessions in low-level command files (like
+  `sit.js`): keep scenario local and branch-targeted; avoid exploratory
+  movement that introduces unrelated stochastic world events.
+
+Validation:
+- `t01_s651_w_sit2_gp` passes full gameplay parity channels including mapdump.
+- Full gameplay suite remains green after promotion (`153/153`).
+- Session-parity coverage improved:
+  - overall: `53.34/59.35/34.88` -> `53.39/59.47/34.92` (lines/branches/functions),
+  - `sit.js`: `26.14/16.98/28.57` -> `31.69/27.41/42.85`.
