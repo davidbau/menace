@@ -11,7 +11,7 @@ import { COLNO, ROWNO, STONE, CORR, SDOOR, SCORR, STAIRS, FOUNTAIN, SINK, THRONE
          D_ISOPEN, D_NODOOR, D_BROKEN, ACCESSIBLE, IS_OBSTRUCTED, IS_WALL, ICE,
          IS_STWALL, IS_ROCK, IS_ROOM, IS_FURNITURE, IS_POOL, IS_LAVA, IS_WATERWALL,
          WATER, LAVAWALL, AIR, MOAT, DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
-         isok, A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
+         isok, A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA, DIED,
          RACE_ELF,
          TELEPORT, SEE_INVIS, POISON_RES, COLD_RES, SHOCK_RES, FIRE_RES,
          SLEEP_RES, DISINT_RES, TELEPORT_CONTROL, STEALTH, FAST, INVIS, INTRINSIC,
@@ -57,7 +57,7 @@ import { Invocation_lev, find_level, deltrap } from './dungeon.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait } from './animation.js';
 import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
-import { pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
+import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
@@ -3418,6 +3418,16 @@ export function saving_grace(dmg, player, game) {
     const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
     // Only protects from monster attacks
     const monMoving = !!(game?.context?.mon_moving || game?.mon_moving);
+    runTrace(
+        `step=${replayStepLabel(game?.map || game?.lev)} saving_grace`,
+        `dmg=${dmg}`,
+        `hp=${heroHp}`,
+        `hpmax=${heroHpMax}`,
+        `mon_moving=${monMoving ? 1 : 0}`,
+        `used=${game?.saving_grace_turn ? 1 : 0}`,
+        `usaving=${player?.usaving_grace ? 1 : 0}`,
+        `hp_start=${Number.isFinite(game?.uhp_at_start_of_monster_turn) ? game.uhp_at_start_of_monster_turn : 'na'}`
+    );
     if (!monMoving) return dmg;
     if (dmg < heroHp || heroHp <= 0) return dmg;
     // Already used?
@@ -3455,6 +3465,11 @@ export function Maybe_Half_Phys(n, player) {
 
 // C ref: hack.c losehp() — hero loses hit points
 export async function losehp(n, knam, k_format, player, display, game) {
+    const traceLosehp = envFlag('WEBHACK_LOSEHP_TRACE');
+    const hpBefore = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+    if (traceLosehp) {
+        pushRngLogEntry(`^losehp_in[n=${n | 0} hp=${hpBefore | 0} knam=${String(knam || '')} kf=${k_format | 0}]`);
+    }
     end_running(true, game);
 
     if (player.upolyd) {
@@ -3483,16 +3498,27 @@ export async function losehp(n, knam, k_format, player, display, game) {
         if (hadLegacyHpMax) player.hpmax = nextHp;
     }
     if (player.uhp < 1) {
-        // C ref: hack.c losehp() does not emit "You die..." directly.
-        // Death messaging/finalization is handled by higher-level done_* paths.
+        // C ref: hack.c losehp() emits urgent_pline("You die...") then done(DIED).
         player.uhp = 0;
         if (hadLegacyHp) player.hp = 0;
         if (game) {
             game.killer = { format: k_format, name: knam || '' };
             game.playerDied = true;
         }
+        if (traceLosehp) {
+            pushRngLogEntry(`^losehp_dead[hp=${(player.uhp || 0) | 0} knam=${String(knam || '')}]`);
+        }
+        await urgent_pline('You die...');
+        if (game) {
+            const { done } = await import('./end.js');
+            await done(DIED, game);
+        }
     } else if (n > 0 && player.uhp * 10 < player.uhpmax) {
         await maybe_wail(player, game, display);
+    }
+    if (traceLosehp) {
+        const hpAfter = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+        pushRngLogEntry(`^losehp_out[hp=${hpAfter | 0}]`);
     }
 }
 

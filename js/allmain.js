@@ -75,6 +75,7 @@ import { invault } from './vault.js';
 import { amulet } from './wizard.js';
 import { dosounds } from './sounds.js';
 import { find_ac } from './do_wear.js';
+import { run_regions } from './region.js';
 
 const QUEST_PORTAL_INFO_BY_ROLE = {
     Arc: { leader: 'Lord Carnarvon', homebase: 'the College of Archeology' },
@@ -170,6 +171,12 @@ async function com_pager_quest_common(msgid, player) {
 // Autotranslated from allmain.c:169
 export async function moveloop_core(game, opts = {}) {
     const player = (game.u || game.player);
+    const setMonsterPhase = (isMonsterPhase) => {
+        const v = !!isMonsterPhase;
+        game.mon_moving = v;
+        if (game?.context) game.context.mon_moving = v;
+        if (game?.svc?.context) game.svc.context.mon_moving = v;
+    };
     // C ref: at top of each moveloop iteration, vision_recalc(0) if vision_full_recalc set.
     // This catches topology changes from the player's action (door opens, dig, teleport, etc.)
     // so that monsters run with up-to-date FOV.
@@ -186,24 +193,34 @@ export async function moveloop_core(game, opts = {}) {
     do {
         let monscanmove = false;
         if (!opts.skipMonsterMove) {
-            do {
-                monscanmove = await movemon((game.lev || game.map), player, game.display, game.fov, game);
-                // C ref: savelife() stops further movement progression for the
-                // current command cycle after life-saving.
-                if (game?._stopMoveloopAfterLifesave) {
-                    forceStopMoveLoop = true;
-                    monscanmove = false;
-                    game._stopMoveloopAfterLifesave = false;
-                    break;
-                }
-                if (game?.playerDied) {
-                    forceStopMoveLoop = true;
-                    monscanmove = false;
-                    break;
-                }
-                if (player.umovement >= NORMAL_SPEED)
-                    break; /* it's now your turn */
-            } while (monscanmove);
+            // C ref: allmain.c:303-310 — mark monster phase and snapshot HP
+            // at start of monster turn for saving_grace.
+            setMonsterPhase(true);
+            const startHp = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
+            game.uhp_at_start_of_monster_turn = startHp;
+            player._uhp_at_start = startHp;
+            try {
+                do {
+                    monscanmove = await movemon((game.lev || game.map), player, game.display, game.fov, game);
+                    // C ref: savelife() stops further movement progression for the
+                    // current command cycle after life-saving.
+                    if (game?._stopMoveloopAfterLifesave) {
+                        forceStopMoveLoop = true;
+                        monscanmove = false;
+                        game._stopMoveloopAfterLifesave = false;
+                        break;
+                    }
+                    if (game?.playerDied) {
+                        forceStopMoveLoop = true;
+                        monscanmove = false;
+                        break;
+                    }
+                    if (player.umovement >= NORMAL_SPEED)
+                        break; /* it's now your turn */
+                } while (monscanmove);
+            } finally {
+                setMonsterPhase(false);
+            }
         }
         // C ref: mon.c movemon() does deferred_goto() on u.utotype.
         // JS keeps it here until mon.c-level transition plumbing is fully ported.
@@ -346,6 +363,14 @@ export async function moveloop_turnend(game) {
         display: game.display,
         game,
     });
+    // C ref: allmain.c:273-274 — run_regions() runs immediately after nh_timeout().
+    await run_regions((game.lev || game.map), (game.u || game.player), game);
+    // C ref: lethal side effects during nh_timeout()/run_regions() route
+    // through done(); once death is pending/final, do not continue turn-end
+    // RNG work in this cycle.
+    if (game?.playerDied || game?.gameOver) {
+        return;
+    }
 
     // C ref: allmain.c:273-274 — ublesscnt countdown (prayer cooldown)
     {

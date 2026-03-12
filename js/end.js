@@ -21,7 +21,7 @@
 //   renderTombstone → display.js:1135 (PARTIAL — tombstone rendering)
 //   renderTopTen → display.js:1186 (PARTIAL — high score display)
 
-import { A_CON, isok, DIED, CHOKING, POISONING, STARVING, DROWNING, BURNING, DISSOLVED, CRUSHING, STONING, TURNED_SLIME, GENOCIDED, PANICKED, TRICKED, QUIT, ESCAPED, ASCENDED, KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX, NON_PM, OBJ_FREE, OBJ_FLOOR } from './const.js';
+import { A_CON, isok, DIED, CHOKING, POISONING, STARVING, DROWNING, BURNING, DISSOLVED, CRUSHING, STONING, TURNED_SLIME, GENOCIDED, PANICKED, TRICKED, QUIT, ESCAPED, ASCENDED, KILLED_BY_AN, KILLED_BY, NO_KILLER_PREFIX, NON_PM, OBJ_FREE, OBJ_FLOOR, W_AMUL } from './const.js';
 import { pline, You, Your, You_feel, pline_The, impossible } from './pline.js';
 import { mons, G_UNIQ, PM_GHOST, PM_HIGH_CLERIC, PM_WRAITH, PM_VAMPIRE, PM_GHOUL, S_WRAITH, S_MUMMY, S_VAMPIRE, M2_PNAME, PM_TOURIST, PM_HUMAN, PM_GREEN_SLIME, PM_HOUSECAT } from './monsters.js';
 import { x_monnam, hasGivenName, is_vampshifter } from './mondata.js';
@@ -348,6 +348,13 @@ function savelife(how, game) {
     player.ugrave_arise = -1; // NON_PM
 }
 
+function clearPromptTopline(display) {
+    if (!display) return;
+    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+}
+
 // ============================================================================
 // done — main game-end handler
 // cf. end.c:1022
@@ -358,6 +365,9 @@ function savelife(how, game) {
 export async function done(how, game) {
     const player = (game.u || game.player);
     let survive = false;
+    const wornAmulet = player?.amulet
+        || player?.inventory?.find((obj) => ((obj?.owornmask || 0) & W_AMUL) !== 0)
+        || null;
 
     if (how === TRICKED) {
         if (killer.name) {
@@ -386,7 +396,7 @@ export async function done(how, game) {
 
     // Life-saving amulet check
     // C: Lifesaved = wearing AMULET_OF_LIFE_SAVING
-    if (player.amulet && player.amulet.otyp === AMULET_OF_LIFE_SAVING
+    if (wornAmulet && wornAmulet.otyp === AMULET_OF_LIFE_SAVING
         && how <= GENOCIDED) {
         await pline("But wait...");
         await Your("medallion %s!", "begins to glow");
@@ -394,7 +404,7 @@ export async function done(how, game) {
         await You_feel("much better!");
         await pline_The("medallion crumbles to dust!");
         // Remove the amulet (C: useup(uamul))
-        const amuIdx = player.inventory.indexOf(player.amulet);
+        const amuIdx = player.inventory.indexOf(wornAmulet);
         if (amuIdx >= 0) player.inventory.splice(amuIdx, 1);
         player.amulet = null;
 
@@ -416,21 +426,32 @@ export async function done(how, game) {
         // C ref: done() uses yn_function("Die?", "yn", 'n') inline.
         // Keep this blocking so post-savelife flow continues in the same
         // command cycle once a valid response is entered.
-        const ch = await ynFunction('Die?', 'yn', 'n'.charCodeAt(0), game.display);
+        const ch = await ynFunction(
+            'Die?',
+            'yn',
+            'n'.charCodeAt(0),
+            game.display
+        );
         if (ch === 'y'.charCodeAt(0) || ch === 'Y'.charCodeAt(0)) {
             await really_done(how, game);
             return;
         }
+        await pline("OK, so you don't %s.", (how === CHOKING) ? 'choke' : 'die');
         savelife(how, game);
         if (Object.hasOwn(game, 'playerDied')) {
             game.playerDied = false;
         }
+        clearPromptTopline(game.display);
         killer.name = '';
         killer.format = KILLED_BY_AN;
         return;
     }
 
     if (survive) {
+        if (Object.hasOwn(game, 'playerDied')) {
+            game.playerDied = false;
+        }
+        clearPromptTopline(game.display);
         killer.name = '';
         killer.format = KILLED_BY_AN;
         return;

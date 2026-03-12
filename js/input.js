@@ -21,6 +21,13 @@ function ynTrace(...args) {
     console.log('[YN_TRACE]', ...args);
 }
 
+function allowDirectReplayNhgetch() {
+    // Guardrail: direct replay-key drains bypass runtime boundary ownership
+    // and can consume multiple future keys inside one prompt/read loop.
+    // Keep disabled by default; replay_core should feed keys via runtime queue.
+    return envFlag('WEBHACK_DIRECT_REPLAY_NHGETCH');
+}
+
 /**
  * Display contract used by input helpers.
  * @typedef {Object} InputDisplay
@@ -506,7 +513,7 @@ export async function nhgetch(opts = {}) {
             return queuedKey;
         }
 
-        if (isReplayMode()) {
+        if (isReplayMode() && allowDirectReplayNhgetch()) {
             const key = getNextReplayKey();
             if (key !== null) {
                 ynTrace('raw=replay', key, String.fromCharCode(key));
@@ -543,7 +550,7 @@ export async function nhgetch(opts = {}) {
     // queued canned commands to execute next.
     if (commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display)) {
         const readBoundaryKey = async () => {
-            if (isReplayMode()) {
+            if (isReplayMode() && allowDirectReplayNhgetch()) {
                 const key = getNextReplayKey();
                 if (key !== null) {
                     ynTrace('raw=replay(boundary)', key, String.fromCharCode(key));
@@ -688,12 +695,13 @@ export async function getlin(prompt, display) {
 
 // Yes/no/quit prompt (async)
 // C ref: winprocs.h win_yn_function
-export async function ynFunction(query, choices, def, display) {
+export async function ynFunction(query, choices, def, display, options = {}) {
     const runtimeDisplay = getRuntimeDisplay();
     const disp = display || runtimeDisplay;
+    const consumePendingMore = options?.consumePendingMore !== false;
     // C-faithful boundary: don't overwrite/append over a pending --More--;
     // first consume it so this prompt starts on a fresh topline.
-    if (disp?.messageNeedsMore) {
+    if (consumePendingMore && disp?.messageNeedsMore) {
         await more(disp, { forceVisual: true });
     }
     let prompt = query;
@@ -705,7 +713,27 @@ export async function ynFunction(query, choices, def, display) {
     }
     prompt += ' ';
 
-    if (disp) await disp.putstr_message(prompt);
+    if (disp) {
+        if (typeof disp.clearRow === 'function') {
+            disp.clearRow(0);
+            if (Object.hasOwn(disp, '_topMessageRow1') && disp._topMessageRow1 !== undefined) {
+                disp.clearRow(1);
+                disp._topMessageRow1 = undefined;
+            }
+        }
+        if (Object.hasOwn(disp, 'messageNeedsMore')) disp.messageNeedsMore = false;
+        if (Object.hasOwn(disp, 'moreMarkerActive')) disp.moreMarkerActive = false;
+        if (Object.hasOwn(disp, 'topMessage')) disp.topMessage = null;
+        if (typeof disp.putstr === 'function') {
+            await disp.putstr(0, 0, prompt, CLR_GRAY);
+            const cols = Number.isInteger(disp.cols) ? disp.cols : 80;
+            if (typeof disp.setCursor === 'function') {
+                disp.setCursor(Math.min(prompt.length, cols - 1), 0);
+            }
+        } else {
+            await disp.putstr_message(prompt);
+        }
+    }
     ynTrace('prompt', prompt.trimEnd(), `choices=${choices || ''}`, `def=${def || 0}`);
 
     // C ref: tty_yn_function() lowercases responses unless choices contain

@@ -223,16 +223,20 @@ export function rndexp(player, gaining) {
 
 // Autotranslated from exper.c:84
 export function experience(mtmp, nk) {
-  let ptr = mtmp.data, i, tmp, tmp2;
+  const mndx = Number.isInteger(mtmp?.mndx) ? mtmp.mndx : -1;
+  let ptr = mtmp?.data || mtmp?.type || (mndx >= 0 ? mons[mndx] : null) || {};
+  let i, tmp, tmp2;
+  const mattk = Array.isArray(ptr.mattk) ? ptr.mattk : [];
   tmp = 1 + mtmp.m_lev * mtmp.m_lev;
   if ((i = find_mac(mtmp)) < 3) {
     tmp += (7 - i) * ((i < 0) ? 2 : 1);
   }
-  if (ptr.mmove > NORMAL_SPEED) {
-    tmp += (ptr.mmove > (3 * NORMAL_SPEED / 2)) ? 5 : 3;
+  if ((ptr.mmove || 0) > NORMAL_SPEED) {
+    tmp += ((ptr.mmove || 0) > (3 * NORMAL_SPEED / 2)) ? 5 : 3;
   }
   for (i = 0; i < NATTK; i++) {
-    tmp2 = ptr.mattk[i].aatyp;
+    const atk = mattk[i] || {};
+    tmp2 = atk.aatyp || 0;
     if (tmp2 > AT_BUTT) {
       if (tmp2 === AT_WEAP) {
         tmp += 5;
@@ -246,7 +250,8 @@ export function experience(mtmp, nk) {
     }
   }
   for (i = 0; i < NATTK; i++) {
-    tmp2 = ptr.mattk[i].adtyp;
+    const atk = mattk[i] || {};
+    tmp2 = atk.adtyp || 0;
     if (tmp2 > AD_PHYS && tmp2 < AD_BLND) {
       tmp += 2 * mtmp.m_lev;
     }
@@ -256,7 +261,7 @@ export function experience(mtmp, nk) {
     else if (tmp2 !== AD_PHYS) {
       tmp += mtmp.m_lev;
     }
-    if (Math.trunc(ptr.mattk[i].damd * ptr.mattk[i].damn) > 23) {
+    if (Math.trunc((atk.damd || 0) * (atk.damn || 0)) > 23) {
       tmp += mtmp.m_lev;
     }
     // C: Amphibious is a player property; use false as conservative fallback
@@ -285,16 +290,21 @@ export function experience(mtmp, nk) {
 
 // Autotranslated from exper.c:168
 export function more_experienced(exper, rexp, game, player) {
+  const g = game || {};
+  if (!g.flags) g.flags = {};
+  if (!g.disp) g.disp = {};
   let oldexp = player.uexp, oldrexp = player.urexp, newexp = oldexp + exper, rexpincr = 4 * exper + rexp, newrexp = oldrexp + rexpincr;
   if (newexp < 0 && exper > 0) newexp = Number.MAX_SAFE_INTEGER;
   if (newrexp < 0 && rexpincr > 0) newrexp = Number.MAX_SAFE_INTEGER;
   if (newexp !== oldexp) {
     player.uexp = newexp;
-    if (game.flags.showexp) game.disp.botl = true;
-    if (!game.disp.botl && exp_percent_changing()) game.disp.botl = true;
+    if (g.flags.showexp) g.disp.botl = true;
+    if (!g.disp.botl && typeof exp_percent_changing === 'function' && exp_percent_changing()) {
+      g.disp.botl = true;
+    }
   }
   if (newrexp !== oldrexp) { player.urexp = newrexp; }
-  if (player.urexp >= (Role_if(player, PM_WIZARD) ? 1000 : 2000)) game.flags.beginner = false;
+  if (player.urexp >= (Role_if(player, PM_WIZARD) ? 1000 : 2000)) g.flags.beginner = false;
 }
 
 // C helper: new level on sufficient XP (formerly in combat.js shim).

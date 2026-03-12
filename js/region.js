@@ -348,8 +348,15 @@ export async function run_regions(map, player, game) {
 
         // Check if player is inside region
         const f_indx = regions[i].inside_f;
-        if (f_indx !== NO_CALLBACK && hero_inside(regions[i]))
+        if (f_indx !== NO_CALLBACK && hero_inside(regions[i])) {
+            traceGasCloud(
+                `hero_inside idx=${i} f=${f_indx} ttl=${regions[i].ttl} `
+                + `hero=(${player?.x ?? '?'},${player?.y ?? '?'}) `
+                + `box=[${regions[i].bounding_box?.lx ?? '?'}..${regions[i].bounding_box?.hx ?? '?'}]x`
+                + `[${regions[i].bounding_box?.ly ?? '?'}..${regions[i].bounding_box?.hy ?? '?'}]`
+            );
             await dispatch_callback(f_indx, regions[i], null, map, player, game);
+        }
 
         // Check if any monster is inside region
         if (f_indx !== NO_CALLBACK) {
@@ -663,6 +670,11 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
 
     if (!mtmp) {
         // Hero
+        traceGasCloud(
+            `inside hero ttl=${reg?.ttl ?? '?'} dam=${dam | 0} `
+            + `hero=(${player?.x ?? '?'},${player?.y ?? '?'}) poisonRes=${player?.hasProp?.(POISON_RES) ? 1 : 0} `
+            + `halfPhys=${player?.halfPhysDamage ? 1 : 0} halfGas=${player?.halfGasDamage ? 1 : 0}`
+        );
         if (m_poisongas_ok(player) === M_POISONGAS_OK)
             return false;
         if (!player.blind) {
@@ -680,7 +692,9 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
             if (player.halfPhysDamage) dmg = Math.floor((dmg + 1) / 2);
             // Half_gas_damage (worn towel)
             if (player.halfGasDamage) dmg = Math.floor((dmg + 1) / 2);
-            if (game) await losehp(dmg, "gas cloud", 0, player, game.display, game);
+            if (game) {
+                await losehp(dmg, "gas cloud", 0, player, game.display, game);
+            }
             return false;
         } else {
             await You("cough!");
@@ -798,11 +812,20 @@ export async function create_gas_cloud(x, y, cloudsize, damage, map, player, gam
         for (let i = 0; i < 4; ++i) {
             const dx = dirs[i].x, dy = dirs[i].y;
             let isunpicked = true;
-
-            if (valid_cloud_pos(xx + dx, yy + dy, map)) {
+            const nx = xx + dx;
+            const ny = yy + dy;
+            const isValid = valid_cloud_pos(nx, ny, map);
+            if (gasCloudTraceEnabled() && curridx === 0) {
+                const loc = map?.at ? map.at(nx, ny) : null;
+                traceGasCloud(
+                    `adj step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'} `
+                    + `center=${xx},${yy} n=${nx},${ny} valid=${isValid ? 1 : 0} typ=${loc?.typ ?? -1} flags=${loc?.flags ?? -1}`
+                );
+            }
+            if (isValid) {
                 nvalid++;
                 for (let j = 0; j < newidx; ++j) {
-                    if (xcoords[j] === xx + dx && ycoords[j] === yy + dy) {
+                    if (xcoords[j] === nx && ycoords[j] === ny) {
                         isunpicked = false;
                         break;
                     }
@@ -811,8 +834,8 @@ export async function create_gas_cloud(x, y, cloudsize, damage, map, player, gam
                     continue;
 
                 if (isunpicked) {
-                    xcoords[newidx] = xx + dx;
-                    ycoords[newidx] = yy + dy;
+                    xcoords[newidx] = nx;
+                    ycoords[newidx] = ny;
                     newidx++;
                 }
             }
