@@ -1366,8 +1366,14 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         const playerAc = Number.isInteger(player.ac)
             ? player.ac
             : (Number.isInteger(player.effectiveAC) ? player.effectiveAC : 10);
-        const acValue = (playerAc >= 0) ? playerAc : -rnd(-playerAc);
-        const toHit = acValue + 10 + monster.mlevel;
+        // C ref: mhitu.c tmp = AC_VALUE(u.uac) + 10 + mtmp->m_lev; then modifiers.
+        let toHit = ((playerAc >= 0) ? playerAc : -rnd(-playerAc)) + 10 + Number(monster.mlevel || 0);
+        if (Number(game?.multi || 0) < 0) toHit += 4;
+        const mdatToHit = monster.data || monster.type || {};
+        const heroInvis = !!(player?.Invis || player?.invisible);
+        if ((heroInvis && !perceives(mdatToHit)) || !monster.mcansee) toHit -= 2;
+        if (monster.mtrapped) toHit -= 2;
+        if (toHit <= 0) toHit = 1;
 
         if (attack.aatyp === AT_WEAP && monster.weapon) {
             await maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg);
@@ -1380,7 +1386,6 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         }
 
         const dieRoll = rnd(20 + i);
-
         if (toHit <= dieRoll) {
             // Miss — cf. mhitu.c:86-98 missmu()
             clear_hitmsg_state();
@@ -1388,13 +1393,11 @@ export async function mattacku(monster, player, display, game = null, opts = {})
                 const just = (toHit === dieRoll) ? 'just ' : '';
                 await display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
             }
-            // C ref: missmu() ends with stop_occupation() (mhitu.c:99),
-            // which also clears multi/running via nomul(0).
-            if (game && game.occupation) {
+            // C ref: missmu() ends with unconditional stop_occupation().
+            if (game) {
                 if (typeof game.stopOccupation === 'function') await game.stopOccupation();
                 else game.occupation = null;
             }
-            nomul(0, game);
             sum[i] = M_ATTK_MISS;
             continue;
         }
@@ -1474,16 +1477,11 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             }
         }
 
-        // cf. mhitu.c hitmu() end — stop_occupation() (mhitu.c:1260)
-        // C's stop_occupation clears occupation AND calls nomul(0) which
-        // calls end_running(TRUE), stopping running/travel.
-        if (game && game.occupation) {
+        // C ref: hitmu() ends with unconditional stop_occupation().
+        if (game) {
             if (typeof game.stopOccupation === 'function') await game.stopOccupation();
-            else {
-                game.occupation = null;
-            }
+            else game.occupation = null;
         }
-        nomul(0, game);
         // C ref: hitmu() returns M_ATTK_HIT for successful contact even when
         // post-effect damage is 0 (for example, rust/corrode touch attacks).
         sum[i] = mhm.hitflags || M_ATTK_HIT;
