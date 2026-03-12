@@ -861,7 +861,8 @@ async function promptDropTypeClass(display, player) {
         const sym = CLASS_SYMBOLS?.[obj?.oclass];
         if (typeof sym === 'string' && sym.length > 0) classSet.add(sym);
     }
-    const order = [')', '[', '%', '(', '=', '"', '!', '?', '+', '/', '$', '*'];
+    // C ref: options.c def_inv_order — COIN,AMULET,WEAPON,ARMOR,FOOD,SCROLL,SPBOOK,POTION,RING,WAND,TOOL,GEM
+    const order = ['$', '"', ')', '[', '%', '?', '+', '!', '=', '/', '(', '*'];
     const typeEntries = [];
     for (const sym of order) {
         if (!classSet.has(sym)) continue;

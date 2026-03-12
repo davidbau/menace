@@ -15,6 +15,9 @@ import { more, nhgetch, ynFunction } from './input.js';
 import { CLR_WHITE, CLR_GREEN, CLR_CYAN, glyph_at } from './display.js';
 import { pline } from './pline.js';
 import { an } from './objnam.js';
+import { describeGroundObjectForPlayer } from './shk.js';
+import { COIN_CLASS } from './objects.js';
+import { observeObject } from './o_init.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
        } from './windows.js';
 import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED, gs } from './const.js';
@@ -298,9 +301,21 @@ function build_dolook_message(ctx) {
     const loc = map.at ? map.at(player.x, player.y) : null;
     const objs = map.objectsAt ? map.objectsAt(player.x, player.y) : [];
     const terrain = terrain_here_description(loc, { map, player });
-    const objText = (objs.length > 0)
-        ? `Things that are here: ${objs.map(o => look_object_name(o)).join(', ')}`
-        : '';
+    let objText = '';
+    if (objs.length === 1) {
+        const seen = objs[0];
+        if (seen.oclass === COIN_CLASS) {
+            const count = seen.quan || 1;
+            objText = count === 1
+                ? 'You see here a gold piece.'
+                : `You see here ${count} gold pieces.`;
+        } else {
+            observeObject(seen);
+            objText = `You see here ${describeGroundObjectForPlayer(seen, player, map)}.`;
+        }
+    } else if (objs.length > 1) {
+        objText = `Things that are here: ${objs.map(o => look_object_name(o)).join(', ')}`;
+    }
 
     if (terrain && objText) return `${terrain} ${objText}`.trim();
     if (terrain) return terrain;

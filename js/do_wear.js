@@ -1024,7 +1024,7 @@ async function canwearobj(player, obj, display, silent = false) {
     const cantWear = !!mdat && cantweararm(mdat);
     const wearingThisArmor = !!(obj.owornmask & W_ARMOR);
     const weapon = player?.weapon || null;
-    const bimanualWep = !!(weapon && objectData[weapon.otyp]?.bimanual);
+    const bimanualWep = !!(weapon && objectData[weapon.otyp]?.oc_bimanual);
     const weldedWep = !!(weapon && weapon.cursed);
     const isFlimsy = (o) => Number(objectData[o?.otyp]?.oc_material || 0) <= LEATHER;
 
@@ -1268,8 +1268,10 @@ export function find_ac(player) {
     uac -= arm_bonus(player.shield);  // player.shield
     uac -= arm_bonus(player.gloves);  // player.gloves
     uac -= arm_bonus(player.shirt);   // player.shirt
-    if (player.leftRing)  uac -= Number(player.leftRing.spe  || 0);
-    if (player.rightRing) uac -= Number(player.rightRing.spe || 0);
+    if (player.leftRing && player.leftRing.otyp === RIN_PROTECTION)
+        uac -= Number(player.leftRing.spe  || 0);
+    if (player.rightRing && player.rightRing.otyp === RIN_PROTECTION)
+        uac -= Number(player.rightRing.spe || 0);
     player.ac = uac;
 }
 
@@ -1989,7 +1991,7 @@ async function putOnSelectedItem(player, display, game, item) {
             const dominantRight = player.rightHanded !== false;
             const weapon = player.weapon;
             const weldedWeapon = !!(weapon.cursed && (weapon.owornmask & W_WEP));
-            const bimanualWeapon = !!objectData[weapon.otyp]?.bimanual;
+            const bimanualWeapon = !!objectData[weapon.otyp]?.oc_bimanual;
             const putsOnDominantHand = (dominantRight && (ringMask & W_RINGR)) || (!dominantRight && (ringMask & W_RINGL));
             if (weldedWeapon && (bimanualWeapon || putsOnDominantHand)) {
                 const learned = !weapon.bknown;

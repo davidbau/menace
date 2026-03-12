@@ -45,6 +45,7 @@ import { add_skills_to_menu, skill_advance, skill_practice_value } from './weapo
 import { handleSet } from './options.js';
 import { dosit } from './sit.js';
 import { doride } from './steed.js';
+import { doattributes } from './insight.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
@@ -515,6 +516,13 @@ export async function rhack(ch, game) {
     // Previous messages (Ctrl+P)
     if (ch === 16) {
         return await handlePrevMessages(display);
+    }
+
+    // Attributes / Enlightenment (Ctrl+X)
+    // C ref: cmd.c doattributes()
+    if (ch === 24) {
+        await doattributes(game);
+        return { moved: false, tookTime: false };
     }
 
     // View map overlays (DEL / Backspace on some tty keymaps)

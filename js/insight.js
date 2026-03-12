@@ -876,12 +876,12 @@ export async function attributes_enlightenment(mode, final, game) {
 
 // cf. insight.c:2014 — doattributes(game): ^X attribute display command
 // Autotranslated from insight.c:2013
-export function doattributes() {
+export async function doattributes(game) {
   let mode = BASICENLIGHTENMENT;
-  if (wizard || discover) {
+  if (game?.wizard || game?.discover) {
     mode |= MAGICENLIGHTENMENT;
   }
-  enlightenment(mode, ENL_GAMEINPROGRESS);
+  await enlightenment(mode, ENL_GAMEINPROGRESS, game);
   return ECMD_OK;
 }
 
@@ -897,7 +897,7 @@ export async function enlightenment(mode, final, game) {
 
     const pname = (player.name || 'Hero');
     const roleName = player.roleName || player.role || 'Adventurer';
-    enlght_out(`${pname} the ${roleName}'s attributes:`);
+    enlght_out(` ${pname} the ${roleName}'s attributes:`);
 
     // Background and characteristics; ^X or end-of-game disclosure
     if (mode & BASICENLIGHTENMENT) {
