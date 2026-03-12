@@ -36,7 +36,8 @@ import { find_mac } from './worn.js';
 import { pline, getGameLog } from './pline.js';
 import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
-import { makeplural } from './objnam.js';
+import { makeplural, an } from './objnam.js';
+import { rank_of } from './botl.js';
 import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
@@ -352,7 +353,7 @@ export function enlght_out(buf) {
 
 // cf. insight.c:126 [static] — enlght_line(start, middle, end, ps): build enl line
 export function enlght_line(start, middle, end, ps) {
-    let buf = ` ${start}${middle}${end}${ps}.`;
+    let buf = `  ${start}${middle}${end}${ps}.`;
     // Apply contractions (cf. C's contra[] array)
     const contractions = [
         [' are not ', " aren't "],
@@ -561,17 +562,16 @@ function background_enlightenment(mode, final, game) {
     enlght_out('');
     enlght_out(' Background:');
 
-    // Report role and level
+    // Report role and level — cf. insight.c:487
     const roleName = player.roleName || player.role || 'Adventurer';
     const raceName = player.raceName || player.race || 'human';
     const level = player.ulevel || 1;
-    const rankTitle = player.rankTitle || roleName;
+    const female = game.flags?.female || false;
+    const rankTitle = rank_of(level, player.roleMnum, female);
+    const genderStr = female ? 'female' : 'male';
 
-    if (rankTitle.toLowerCase() !== roleName.toLowerCase()) {
-        you_are(final, `${rankTitle}, a level ${level} ${raceName} ${roleName}`, '');
-    } else {
-        you_are(final, `${rankTitle}, level ${level} ${raceName}`, '');
-    }
+    // C format: "an Evoker, a level 1 male human Wizard"
+    you_are(final, `${an(rankTitle)}, a level ${level} ${genderStr} ${raceName} ${roleName}`, '');
 
     // Alignment
     const alignType = player.alignment != null ? player.alignment : A_NEUTRAL;
