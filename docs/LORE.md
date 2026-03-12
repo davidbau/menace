@@ -8757,3 +8757,22 @@ Validation:
 - Outcome:
   - pending minefill first RNG divergence moved later: `2309 -> 4830`.
   - canonical failures suite remained green: `258/258`.
+
+### wizload branch topology correction and branch placement guardrails
+
+- Pending wizload minefill replay (`t04_s705_w_minefill_gp`) showed missing
+  branch stair rendering plus late `place_lregion` drift.
+- C-faithful fixes landed in core gameplay code:
+  - `js/dungeon.js`: corrected Elemental Planes branch type in topology build
+    to match C `correct_branch_type(TBR_NO_DOWN, up=true) => BR_NO_END2`
+    (was incorrectly `BR_NO_END1`).
+  - `js/mklev.js`: aligned `place_branch()` with C `made_branch` semantics:
+    once a branch is placed, subsequent calls no-op; BR_NO_END* still marks
+    branch as made even when no stair is created.
+  - `js/wizcmds.js`: `wizloaddes` finalize context now prefers live map
+    generation coords (`map._genDnum/_genDlevel`) before player fallbacks.
+- Validation:
+  - canonical gameplay parity remained green:
+    `scripts/run-and-report.sh --failures` -> `260/260`.
+  - pending minefill improved to full screen parity (`5/5`) while remaining
+    gap is now concentrated to RNG/event stream (`5341/5345` RNG).

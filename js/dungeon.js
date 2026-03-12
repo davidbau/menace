@@ -4115,10 +4115,11 @@ function buildBranchTopology(dungeonLayouts, parentRolls) {
             type: BR_NO_END1, end1_up: false
         },
         // child dnum 7: Elemental Planes, parent DoD base1, no_down, direction up
+        // C ref: correct_branch_type(TBR_NO_DOWN, up=true) => BR_NO_END2.
         {
             childDnum: ELEMENTAL_PLANES, childEntry: 1, parentDnum: DUNGEONS_OF_DOOM,
             selector: { kind: 'fixed', base: 1, count: 1 },
-            type: BR_NO_END1, end1_up: true
+            type: BR_NO_END2, end1_up: true
         },
         // child dnum 6: Vlad's Tower, parent Gehennom base9 range5, direction up
         {

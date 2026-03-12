@@ -892,6 +892,8 @@ export function free_luathemes() {
 // C ref: mklev.c place_branch()
 export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
     if (!map) return false;
+    // C ref: mklev.c place_branch() no-ops when branch already placed.
+    if (map?._madeBranch) return true;
     // C ref: mklev.c place_branch() always resolves coordinates when x==0
     // (via find_branch_room) even when no stairs/portal will be placed
     // (BR_NO_END*). Preserve that RNG/position side effect.
@@ -904,17 +906,17 @@ export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
         pos_to_room(map, x, y);
     }
 
-    if (!placementHint || placementHint === 'none') return false;
-
     if (placementHint === 'portal') {
         maketrap(map, x, y, MAGIC_PORTAL);
     } else if (placementHint === 'stair-up') {
         mkstairs(map, x, y, true, true);
     } else if (placementHint === 'stair-down') {
         mkstairs(map, x, y, false, true);
-    } else {
+    } else if (placementHint !== 'none') {
         return false;
     }
+    // C sets made_branch even when no stair is placed (BR_NO_END* path).
+    map._madeBranch = true;
     return true;
 }
 
