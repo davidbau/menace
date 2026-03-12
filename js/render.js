@@ -24,6 +24,8 @@ import {
 } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { strongmonst } from './mondata.js';
+import { acurr } from './attrib.js';
+import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA } from './const.js';
 
 // Re-export shared render constants from const.js for existing imports.
 export {
@@ -423,11 +425,11 @@ export function formatStatusLine1(player, rankOfFn) {
         : (player._screenStrength || player.strDisplay);
     const parts = [];
     parts.push(`St:${strDisplay}`);
-    parts.push(`Dx:${player.attributes[3]}`);
-    parts.push(`Co:${player.attributes[4]}`);
-    parts.push(`In:${player.attributes[1]}`);
-    parts.push(`Wi:${player.attributes[2]}`);
-    parts.push(`Ch:${player.attributes[5]}`);
+    parts.push(`Dx:${acurr(player, A_DEX)}`);
+    parts.push(`Co:${acurr(player, A_CON)}`);
+    parts.push(`In:${acurr(player, A_INT)}`);
+    parts.push(`Wi:${acurr(player, A_WIS)}`);
+    parts.push(`Ch:${acurr(player, A_CHA)}`);
     const alignStr = player.alignment < 0 ? 'Chaotic'
         : player.alignment > 0 ? 'Lawful' : 'Neutral';
     parts.push(alignStr);
