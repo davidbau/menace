@@ -15,6 +15,7 @@ import process from 'node:process';
 
 const ROOT = process.cwd();
 const SESSIONS_DIR = join(ROOT, 'test', 'comparison', 'sessions');
+const SESSIONS_PREFIX = 'test/comparison/sessions/';
 
 function walk(dir) {
     const out = [];
@@ -40,9 +41,11 @@ function stepCount(file) {
 const files = walk(SESSIONS_DIR);
 const rows = files.map((f) => {
     const rel = relative(ROOT, f);
-    const parts = rel.split('/');
-    // test/comparison/sessions/<bucket>/...
-    const bucket = parts.length >= 5 ? parts[4] : '(root)';
+    const withinSessions = rel.startsWith(SESSIONS_PREFIX)
+        ? rel.slice(SESSIONS_PREFIX.length)
+        : rel;
+    const firstSlash = withinSessions.indexOf('/');
+    const bucket = firstSlash === -1 ? '(root)' : withinSessions.slice(0, firstSlash);
     return { file: rel, bucket, steps: stepCount(f) };
 });
 

@@ -59,6 +59,12 @@ And use the current parity suite report for up-to-date pass/fail counts:
 scripts/run-and-report.sh --failures
 ```
 
+Session inventory and runtime-cost snapshot (count + step volume):
+
+```bash
+npm run -s session:stats
+```
+
 ## The Coverage Pipeline (Mandatory Workflow)
 
 Every agent working on this project must follow this pipeline. It connects
