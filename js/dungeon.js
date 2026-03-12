@@ -2855,10 +2855,11 @@ export function mktrap_victim(map, trap, depth) {
     const x = trap.tx, y = trap.ty;
 
     // Helper: place object on map at trap position
+    // C ref: place_object(otmp, x, y) — no stackobj in level gen context
     function placeObj(obj) {
         obj.ox = x;
         obj.oy = y;
-        placeFloorObject(map, obj);
+        place_object(obj, x, y, map);
     }
 
     // Trap-specific item
@@ -3723,23 +3724,25 @@ function mkgold(map, amount, x, y) {
 // set_malign imported from makemon.js
 
 // C ref: mkobj.c mksobj_at() — make specific object at location.
+// C's mksobj_at calls place_object only (no stackobj) — level gen does not merge stacks.
 function mksobj_at(map, otyp, x, y, init, artif) {
     const otmp = mksobj(otyp, init, artif);
     if (otmp) {
         otmp.ox = x;
         otmp.oy = y;
-        placeFloorObject(map, otmp);
+        place_object(otmp, x, y, map);
     }
     return otmp;
 }
 
 // C ref: mkobj.c mkobj_at() — make random class object at location.
+// C's mkobj_at calls place_object only (no stackobj) — level gen does not merge stacks.
 function mkobj_at(map, oclass, x, y, artif) {
     const otmp = mkobj(oclass, artif);
     if (otmp) {
         otmp.ox = x;
         otmp.oy = y;
-        placeFloorObject(map, otmp);
+        place_object(otmp, x, y, map);
     }
     return otmp;
 }

@@ -973,7 +973,13 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // Since nix==omx at that point, no movement occurs — return MMOVE_MOVED.
     if (edogRaw) {
         const invResult = await dog_invent(mon, edog, udist, map, turnCount, display, player, fov);
-        if (invResult === 1) return 1; // ate — C: goto newdogpos, no movement
+        if (invResult === 1) {
+            // C ref: dog_invent returns 1 (ate) → C does goto newdogpos.
+            // At newdogpos, nix=omx, niy=omy, chi=-1, cnt=0, appr=0, do_eat=false
+            // (mfndpos was not called; goto jumps past it). C still emits dog_move_choice.
+            pushRngLogEntry(`^dog_move_choice[${mon.mndx}@${omx},${omy} pick=${omx},${omy} chi=-1 do_eat=0 cnt=0 appr=0]`);
+            return 1; // ate — C: goto newdogpos, no movement
+        }
         if (invResult === 2) return 0; // died
     }
 
