@@ -19,10 +19,14 @@ minimum session count and runtime.
 
 Every agent's work must connect to this pipeline:
 1. Identify low-coverage code using `npm run coverage:session-parity:report`.
-2. Create targeted C-recorded sessions that exercise uncovered branches.
-3. Fix JS parity divergences until new sessions pass.
-4. Promote passing sessions and verify coverage gain.
-5. Never regress existing parity — fix code, don't mask sessions.
+2. Create one high-yield C-recorded session at a time, iterating for maximum
+   coverage-per-turn (see `docs/COVERAGE.md`).
+3. When that session reaches diminishing returns (typically around 800 steps),
+   place it in `test/comparison/sessions/pending/`.
+4. Repeat with a new high-yield session concept.
+5. In parallel, fix JS parity divergences on pending sessions, promote passing
+   sessions, and verify coverage gain.
+6. Never regress existing parity — fix code, don't mask sessions.
 
 Read `docs/COVERAGE.md` for the full mandatory workflow, commands, and
 session lifecycle rules. **Code fixes without corresponding coverage
@@ -139,6 +143,11 @@ When running rebuilds/regenerations that can take several minutes:
 12. Session filename length policy: for new/renamed session files, keep
    `<filename>.session.json` at 40 characters or fewer (to keep tooling output
    and CLI workflows readable). Use compact intent tokens instead of long prose.
+13. Session-generation strategy (required while under coverage target):
+   - optimize a single session for coverage-per-turn before starting another,
+   - extend and diversify that session until coverage gain per added turn is low
+     (soft cap around 800 steps),
+   - then park it in `pending` and start a new coverage idea.
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.

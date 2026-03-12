@@ -65,6 +65,24 @@ Every agent working on this project must follow this pipeline. It connects
 code inspection, bug fixing, session creation, and coverage measurement into
 a single continuous loop.
 
+### Session-First Strategy (Current Execution Policy)
+
+While coverage is below target, session generation should follow this pattern:
+
+1. Build **one** high-yield session idea at a time.
+2. Expand/refine that same session to maximize **coverage-per-turn**:
+   - add varied interactions and branch-triggering actions,
+   - remove dead turns and redundant loops,
+   - prefer broad callchain exercise over narrow single-branch traces.
+3. Continue until diminishing returns, with a soft cap of about **800 steps**.
+4. Put the session in `test/comparison/sessions/pending/`.
+5. Start a new session idea and repeat.
+
+Important:
+- The metric is still coverage percentage, not number of sessions.
+- Pending sessions are expected to fail initially; they are inputs to parity-fix work.
+- A separate parity-fix stream should continuously convert pending sessions to green and promote them.
+
 ### Step 1: Identify untested code
 
 Run coverage reports to find low-coverage files and uncovered branches.
@@ -84,6 +102,12 @@ Record deterministic C sessions that exercise the untested scenarios. Place
 them in `test/comparison/sessions/pending/`. Sessions should be **targeted** —
 designed to hit specific branches, commands, or effects in the low-coverage
 files identified in Step 1.
+
+Generation guidance for Step 2:
+- Work one session at a time and optimize it for coverage-per-turn.
+- Keep iterating and extending until additional turns add little new coverage
+  (typical stopping point: around 800 steps).
+- Then move to a new session concept rather than over-extending low-yield tails.
 
 ```bash
 # Record a C session (see test/comparison/c-harness/ for tooling)
@@ -170,12 +194,15 @@ Authoritative discipline:
 ## Session Lifecycle (Required)
 
 Session development pipeline:
-1. Record new deterministic C session into `test/comparison/sessions/pending/`.
-2. Run pending session directly and fix JS parity until it passes.
-3. Move passing session to the correct themed folder under
+1. Record/iterate one deterministic C session for high coverage-per-turn.
+2. When the session reaches diminishing returns (soft cap around 800 steps),
+   place it into `test/comparison/sessions/pending/`.
+3. Start the next high-yield session concept; keep generation moving.
+4. Run pending sessions directly and fix JS parity until each passes.
+5. Move passing session to the correct themed folder under
    `test/comparison/sessions/coverage/<theme>/`.
-4. Once moved, it is part of the default parity suite and must stay green.
-5. Refresh coverage snapshot/diff to verify the intended gain.
+6. Once moved, it is part of the default parity suite and must stay green.
+7. Refresh coverage snapshot/diff to verify the intended gain.
 
 Promotion rule:
 - Any `pending` session that is parity-green should be moved into
