@@ -255,15 +255,8 @@ export async function moveloop_core(game, opts = {}) {
 // game must provide: player, map, display, fov, multi, turnCount, seerTurn,
 //                    flags, travelPath, runMode
 export async function moveloop_turnend(game) {
-    // Keep makemon/rndmonst difficulty tied to live hero state (u.ulevel, pos).
-    // C ref: allmain.c:239 — settrack() called after movemon, before moves++
-    settrack((game.u || game.player));
-    game.turnCount++;
-    (game.u || game.player).turns = game.turnCount;
-    game._currentTurn = game.turnCount + 1;
-    // C ref: allmain.c sets gh.hero_seq = svm.moves << 3 when moves advances;
-    // track the low 3-bit action count separately for mapdump anchor parity.
-    game.heroSeqN = 0;
+    const player = (game.u || game.player);
+    const nextTurnCount = game.turnCount + 1;
     // C ref: allmain.c -- random spawn happens before svm.moves++.
     // During this turn-end frame, mkobj-side erosion checks should
     // still observe the pre-increment move count.
@@ -301,7 +294,7 @@ export async function moveloop_turnend(game) {
     // C ref: mon.c m_calcdistress() — HP regen + mspec_used decrement, once per game turn.
     for (const mon of (game.lev || game.map).monsters) {
         if (mon.dead) continue;
-        mon_regen(mon, false, game.turnCount);
+        mon_regen(mon, false, nextTurnCount);
     }
 
     // C ref: mon.c m_calcdistress() shapechange + lycanthropy pass.
@@ -325,7 +318,6 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c:235-242 — occasional random monster spawn.
     // Rate depends on demigod state and depth relative to stronghold.
     // Spawn happens after movement allocation, so a new monster loses first turn.
-    const player = (game.u || game.player);
     const playerDepth = Number(player?.dungeonLevel || 0);
     const spawnRate = player?.uevent?.udemigod ? 25
         : (playerDepth > 27 ? 50 : 70);
@@ -334,7 +326,17 @@ export async function moveloop_turnend(game) {
     }
 
     // C ref: allmain.c:238 u_calc_moveamt(wtcap)
-    u_calc_moveamt((game.u || game.player));
+    u_calc_moveamt(player);
+
+    // C ref: allmain.c:239 + 348-365 — settrack() then moves++ bookkeeping.
+    settrack(player);
+    game.turnCount = nextTurnCount;
+    player.turns = game.turnCount;
+    game._currentTurn = game.turnCount + 1;
+    // C ref: allmain.c sets gh.hero_seq = svm.moves << 3 when moves advances;
+    // track the low 3-bit action count separately for mapdump anchor parity.
+    game.heroSeqN = 0;
+    game.moves = game.turnCount;
 
     // C ref: allmain.c once-per-turn block runs nh_timeout() after
     // mcalcdistress/mcalcmove and random spawn setup.
@@ -359,10 +361,10 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:297-301 — overexert_hp when encumbered and moving
     {
-        const p = (game.u || game.player);
+        const p = player;
         const wtcap = near_capacity(p);
         if (wtcap > MOD_ENCUMBER && p.umoved) {
-            const moves = game.turnCount + 1;
+            const moves = game.turnCount;
             if (!(wtcap < EXT_ENCUMBER ? moves % 30 : moves % 10)) {
                 await overexert_hp(game);
             }

@@ -9020,3 +9020,25 @@ Validation:
   - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t04_s706_w_minetn1_gp.session.json`
     now passes fully (`rng/events/screens/colors/cursor` all matched).
   - `seed42_gameplay` remains fully passing after the fix.
+
+### moveloop turn-end bookkeeping: align settrack/moves boundary to C order
+
+- In `js/allmain.js` (`moveloop_turnend`), JS had drifted from C ordering by
+  incrementing `turnCount` and calling `settrack()` at function entry.
+- C `allmain.c` order is:
+  1. `mcalcdistress` / `mcalcmove` / spawn,
+  2. `u_calc_moveamt`,
+  3. `settrack`,
+  4. `moves++` bookkeeping.
+- Fix:
+  - Compute `nextTurnCount` early but defer assignment until after
+    `u_calc_moveamt` + `settrack`.
+  - Keep pre-increment `game.moves` during spawn/object side-effects.
+  - Apply `turnCount/turns/_currentTurn/heroSeqN/moves` update at the C-faithful
+    boundary.
+  - Use the updated `game.turnCount` for overexertion modulo checks.
+- Validation:
+  - `seed42_gameplay` still full pass.
+  - `seed100_multidigit_gameplay` still full pass.
+  - Pending `t11_s748_w_covmax3_gp` remains unchanged (this was a structural
+    correctness fix, not the root cause of that session's divergence).
