@@ -276,6 +276,24 @@ function shortNote(result, cache) {
     if (fds.screen) {
         return `screen row ${fds.screen.row ?? '?'}, ${screenCharDiff(fds.screen.js, fds.screen.session)}`;
     }
+    if (fds.color) {
+        const row = fds.color.row ?? '?';
+        const col = fds.color.col ?? '?';
+        return `color row ${row} col ${col}`;
+    }
+    if (fds.cursor) {
+        return `cursor step ${fds.cursor.step ?? '?'}`;
+    }
+    if (fds.mapdump) {
+        const cp = fds.mapdump.checkpointId || '?';
+        const sec = fds.mapdump.section || '?';
+        const x = fds.mapdump.x ?? '?';
+        const y = fds.mapdump.y ?? '?';
+        return `mapdump ${cp} ${sec}[${x},${y}]`;
+    }
+    if (result?.firstDivergence?.channel) {
+        return `${result.firstDivergence.channel} divergence`;
+    }
     return 'unknown divergence';
 }
 
@@ -315,6 +333,27 @@ function fullDiagnose(result, cache) {
     if (fds.screen) {
         const diff = screenCharDiff(fds.screen.js, fds.screen.session);
         return `Screen diverges at step ${fds.screen.step ?? '?'}, row ${fds.screen.row ?? '?'}: ${diff}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    }
+    if (fds.color) {
+        const row = fds.color.row ?? '?';
+        const col = fds.color.col ?? '?';
+        return `Color diverges at step ${fds.color.step ?? '?'}, row ${row}, col ${col}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    }
+    if (fds.cursor) {
+        const exp = JSON.stringify(fds.cursor.expected ?? '?');
+        const act = JSON.stringify(fds.cursor.actual ?? '?');
+        return `Cursor diverges at step ${fds.cursor.step ?? '?'}: JS=${act}, C=${exp}. (Run scripts/gen-pes-diagnoses.mjs to generate AI analysis.)`;
+    }
+    if (fds.mapdump) {
+        const fd = fds.mapdump;
+        const cp = fd.checkpointId || '?';
+        const sec = fd.section || '?';
+        const x = fd.x ?? '?';
+        const y = fd.y ?? '?';
+        return `Mapdump diverges at checkpoint ${cp} (${sec}[${x},${y}]): JS=${JSON.stringify(fd.js ?? '?')}, C=${JSON.stringify(fd.session ?? '?')}.`;
+    }
+    if (result?.firstDivergence?.channel) {
+        return `Divergence recorded on channel '${result.firstDivergence.channel}', but detailed payload was not available in firstDivergences.`;
     }
     return 'No divergence data recorded.';
 }
