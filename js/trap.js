@@ -17,6 +17,7 @@ import {
     Trap_Effect_Finished, Trap_Caught_Mon, Trap_Killed_Mon, Trap_Moved_Mon,
     LEFT_SIDE, RIGHT_SIDE,
     BOLT_LIM,
+    HEAD, ARM,
 } from './const.js';
 import { SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS } from './objects.js';
 import { rn2, rnd, rnl, d, c_d, rn1, rn2_on_display_rng } from './rng.js';
@@ -68,6 +69,7 @@ import { dist2 } from './hacklib.js';
 import { losehp, u_at, Maybe_Half_Phys } from './hack.js';
 import { an, xname, the, Tobjnam, Has_contents } from './objnam.js';
 import { float_vs_flight } from './polyself.js';
+import { mbodypart } from './polyself.js';
 import { LEVITATION, FLYING, TIMEOUT, HALLUC, STUNNED, WT_ELF, FIRE_RES, HALLUC_RES, FUMBLING,
     VIS_EFFECTS, MAY_DESTROY, MAY_HIT, MAY_FRACTURE } from './const.js';
 import { scatter } from './explode.js';
@@ -83,6 +85,7 @@ import { rndcolor } from './do_name.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { roles } from './role.js';
 import { rank_of } from './botl.js';
+import { bimanual } from './pray.js';
 
 // C ref: trap.c static string arrays
 const a_your = ['a', 'your'];
@@ -490,10 +493,10 @@ async function trapeffect_slp_gas_trap_mon(mon, trap, player, fov) {
     return Trap_Effect_Finished;
 }
 
-function trapeffect_rust_trap_mon(mon, trap, map, player) {
+async function trapeffect_rust_trap_mon(mon, trap, map, player, fov) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
-    const in_sight = canseemon(mon, player) || (mon === player?.usteed);
+    const in_sight = canseemon(mon, player, fov) || (mon === player?.usteed);
 
     if (in_sight)
         seetrap(trap);
@@ -501,20 +504,35 @@ function trapeffect_rust_trap_mon(mon, trap, map, player) {
     const bodypart = rn2(5);
     switch (bodypart) {
     case 0: {
+        if (in_sight) {
+            await pline_mon(mon, '%s %s on the %s!',
+                A_gush_of_water_hits, mon_nam(mon), mbodypart(mon, HEAD));
+        }
         const target = which_armor(mon, W_ARMH);
         water_damage(target, null, true);
         break;
     }
     case 1: {
+        if (in_sight) {
+            await pline_mon(mon, '%s %s\'s left %s!',
+                A_gush_of_water_hits, mon_nam(mon), mbodypart(mon, ARM));
+        }
         const target = which_armor(mon, W_ARMS);
         if (water_damage(target, null, true) !== ER_NOTHING)
             break;
-        // fall through to glove check
+        const wep = mon.weapon;
+        if (wep && bimanual(wep)) {
+            water_damage(wep, null, true);
+        }
         const gloves = which_armor(mon, W_ARMG);
         water_damage(gloves, null, true);
         break;
     }
     case 2: {
+        if (in_sight) {
+            await pline_mon(mon, '%s %s\'s right %s!',
+                A_gush_of_water_hits, mon_nam(mon), mbodypart(mon, ARM));
+        }
         // right arm — weapon then gloves
         const wep = mon.weapon;
         water_damage(wep, null, true);
@@ -523,6 +541,9 @@ function trapeffect_rust_trap_mon(mon, trap, map, player) {
         break;
     }
     default: {
+        if (in_sight) {
+            await pline('%s %s!', A_gush_of_water_hits, mon_nam(mon));
+        }
         // body — cloak or armor or shirt
         let target = which_armor(mon, W_ARMC);
         if (target) {
@@ -979,7 +1000,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case SLP_GAS_TRAP:
         return await trapeffect_slp_gas_trap_mon(mon, trap, player, fov);
     case RUST_TRAP:
-        return trapeffect_rust_trap_mon(mon, trap, map, player);
+        return await trapeffect_rust_trap_mon(mon, trap, map, player, fov);
     case FIRE_TRAP:
         return trapeffect_fire_trap_mon(mon, trap, map, player);
     case PIT:

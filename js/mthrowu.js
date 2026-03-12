@@ -69,6 +69,7 @@ import { flooreffects } from './do.js';
 import { stairway_at } from './stairs.js';
 import { t_at } from './trap.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
+import { obj_resists } from './objdata.js';
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',
@@ -410,7 +411,13 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
     } else {
         broken = !!(ohit && should_mulch_missile(obj, true));
     }
-    if (broken) return true;
+    if (broken) {
+        // C ref: mthrowu.c drop_throw() -> delobj(obj). In C, invent.c
+        // delobj_core() always evaluates obj_resists(obj, 0, 0), which can
+        // consume rn2(100) for non-protected objects.
+        obj_resists(obj, 0, 0);
+        return true;
+    }
     if (!isok(x, y)) return true;
     const spot = map.at(x, y);
     if (!spot || !ACCESSIBLE(spot.typ)) return true;

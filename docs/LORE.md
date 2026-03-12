@@ -8505,3 +8505,24 @@ Validation:
   - `theme06_seed621_wiz_quaff-status_gameplay` mapdump fixed (`1/1`).
   - `theme06_seed623_wiz_quaff-misc_gameplay` mapdump fixed (`1/1`).
   - All three promoted from `sessions/pending/` into `sessions/coverage/spells-reads-zaps/`.
+
+## 2026-03-12: Theme06 seed632 parity fix (mthrowu broken-drop RNG + rust-trap mon messaging)
+
+- Fixed pending session `theme06_seed632_wiz_zap-rays_gameplay` to full parity.
+- Root cause 1 (RNG/event at step 124):
+  - In C, `mthrowu.c:drop_throw()` broken-missile path calls `delobj(obj)`.
+  - `invent.c:delobj_core()` always evaluates `obj_resists(obj, 0, 0)`, which can consume `rn2(100)`.
+  - JS broken-drop path returned early without consuming that RNG in this lifecycle.
+  - Fix: in `js/mthrowu.js` broken branch, consume `obj_resists(obj, 0, 0)` before return.
+- Root cause 2 (screen-only mismatch at step 185):
+  - `trapeffect_rust_trap_mon` message sequencing/content was not fully C-faithful for in-sight monster trap messaging and bimanual-left-arm handling.
+  - Fixes in `js/trap.js`:
+    - make `trapeffect_rust_trap_mon` async and await message emission,
+    - pass `fov` into `canseemon(...)` for correct in-sight gating,
+    - align per-bodypart messages and water-damage ordering with C behavior,
+    - include bimanual-weapon check for left-arm case before gloves fallback.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/theme06_seed632_wiz_zap-rays_gameplay.session.json` -> PASS (`rng=2889/2889`, `events=232/232`, `screens=193/193`, `colors=4632/4632`, `mapdump=1/1`).
+- Regression checks:
+  - `node test/comparison/session_test_runner.js --sessions=seed033_manual_direct.session.json,seed322_barbarian_wizard_gameplay.session.json,seed324_healer_wizard_gameplay.session.json,seed325_knight_wizard_gameplay.session.json` -> all PASS.
