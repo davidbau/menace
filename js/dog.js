@@ -311,6 +311,12 @@ export function makedog(map, player, depth) {
     pet.edog.mhpmax_penalty = 0;
     pet.edog.killed_by_u = false;
 
+    // C ref: dog.c initedog() — u.uconduct.pets++
+    if (player) {
+        if (!player.uconduct) player.uconduct = {};
+        player.uconduct.pets = (player.uconduct.pets || 0) + 1;
+    }
+
     return pet;
 }
 
@@ -900,7 +906,12 @@ export function initedog(mtmp, everything, player, game) {
     if ((edogp.hungrytime || 0) < minhungry) {
         edogp.hungrytime = minhungry;
     }
-    // C: u.uconduct.pets++ — conduct tracking not ported
+    // C: u.uconduct.pets++ — track pet taming for conduct display
+    const p = player || game?.player || game?.u;
+    if (p) {
+        if (!p.uconduct) p.uconduct = {};
+        p.uconduct.pets = (p.uconduct.pets || 0) + 1;
+    }
 }
 
 // cf. dog.c:764 keep_mon_accessible() — should monster stay on migrating list?

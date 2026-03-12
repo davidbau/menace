@@ -345,6 +345,15 @@ export async function moveloop_turnend(game) {
         game,
     });
 
+    // C ref: allmain.c:273-274 — ublesscnt countdown (prayer cooldown)
+    {
+        const p = (game.u || game.player);
+        if (p.ublesscnt) p.ublesscnt--;
+    }
+
+    // C ref: allmain.c:276 — saving_grace_turn reset
+    game.saving_grace_turn = false;
+
     // C ref: allmain.c:295-301 — regen_hp(mvl_wtcap)
     await regen_hp(game);
 

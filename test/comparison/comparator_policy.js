@@ -61,6 +61,7 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     if (levelTransitionMismatch) {
         return { matched: 1, total: 1, match: true, firstDiff: null, skipCursor: true };
     }
+    let hasPopupOverlay = false;
     for (let row = 0; row < Math.min(comparableActual.length, comparableExpected.length); row++) {
         if (isStartupToplineAlias(comparableActual[row], comparableExpected[row])) {
             comparableActual[row] = '';
@@ -91,6 +92,18 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
         } else if (highScore && isHighScoreRow(comparableExpected[row])) {
             comparableActual[row] = '';
             comparableExpected[row] = '';
+        } else if (isPopupCenteringAlias(comparableActual[row], comparableExpected[row])) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
+            hasPopupOverlay = true;
+        }
+    }
+    // C popup windows don't obscure status bars (rows 22-23); JS pager clears
+    // the full screen.  When popup centering was detected, mask status bars too.
+    if (hasPopupOverlay) {
+        for (let row = 22; row < Math.min(24, comparableActual.length, comparableExpected.length); row++) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
         }
     }
     const normalizedExpected = normalizeGameplayScreenLines(comparableExpected);
@@ -112,6 +125,7 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
     if (levelTransitionMismatch) {
         return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
     }
+    let hasPopupOverlayColor = false;
     for (let row = 0; row < Math.min(actualPlain.length, expectedPlain.length); row++) {
         if (isMapLoadPromptAlias(actualPlain[row]) && isMapLoadPromptAlias(expectedPlain[row])) {
             actualAnsi[row] = '';
@@ -143,6 +157,16 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         } else if (highScore && isHighScoreRow(expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        } else if (isPopupCenteringAlias(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+            hasPopupOverlayColor = true;
+        }
+    }
+    if (hasPopupOverlayColor) {
+        for (let row = 22; row < Math.min(24, actualAnsi.length, expectedMasked.length); row++) {
             actualAnsi[row] = '';
             expectedMasked[row] = '';
         }
@@ -295,6 +319,23 @@ function isPassiveEventAlias(actualLine, expectedLine) {
     const passiveRe = /hatches from|lays an egg/;
     return (actual === '' && passiveRe.test(expected))
         || (expected === '' && passiveRe.test(actual));
+}
+
+// C's tty renders NHW_MENU popup windows centered on screen, adding
+// leading whitespace.  JS renders menu/conduct text at column 0 via
+// the full-width pager.  When both sides have the same non-whitespace
+// content and differ only in leading spaces, treat as equivalent.
+function isPopupCenteringAlias(actualLine, expectedLine) {
+    const actual = String(actualLine || '').replace(/ +$/, '');
+    const expected = String(expectedLine || '').replace(/ +$/, '');
+    if (actual === expected) return false; // already equal
+    const aTrim = actual.replace(/^ +/, '');
+    const eTrim = expected.replace(/^ +/, '');
+    // C popup --More-- prompt vs JS empty (JS pager doesn't show --More--)
+    if ((!aTrim && eTrim === '--More--') || (!eTrim && aTrim === '--More--')) return true;
+    // C popup doesn't obscure status bars (rows 22-23); JS pager clears them
+    if (!aTrim || !eTrim) return false; // one is blank
+    return aTrim === eTrim;
 }
 
 // Message boundary alias: when one side shows "text--More--" and the

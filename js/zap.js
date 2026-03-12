@@ -1565,6 +1565,13 @@ export async function makewish(wishText, player, display) {
     const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null);
     if (player) {
         player.ublesscnt = (player.ublesscnt || 0) + rn1(100, 50);
+        // C ref: zap.c:6264 — KMH conduct tracking
+        if (!player.uconduct) player.uconduct = {};
+        player.uconduct.wishes = (player.uconduct.wishes || 0) + 1;
+        // C ref: readobjnam() tracks wisharti for artifact wishes
+        if (otmp && otmp.oartifact) {
+            player.uconduct.wisharti = (player.uconduct.wisharti || 0) + 1;
+        }
     }
     return got || otmp;
 }
