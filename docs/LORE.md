@@ -8545,4 +8545,26 @@ Validation:
 - Full gameplay suite remains green after promotion (`153/153`).
 - Session-parity coverage improved:
   - overall: `53.34/59.35/34.88` -> `53.39/59.47/34.92` (lines/branches/functions),
-  - `sit.js`: `26.14/16.98/28.57` -> `31.69/27.41/42.85`.
+- `sit.js`: `26.14/16.98/28.57` -> `31.69/27.41/42.85`.
+
+## 2026-03-12: spell coverage via confusion-cast micro-session
+
+- Added a short C-recorded spell session `t05_s693_w_castc_gp`:
+  - wish `potion of confusion`,
+  - quaff it,
+  - cast known spell (`Z a j`) twice while confused.
+- This targets `spell.js` cast failure/aim pathways with minimal unrelated world
+  simulation.
+
+Practical lesson:
+- A longer variant with idle/wait tail introduced unrelated pet pickup topline
+  drift (`black gem` vs `gem`) despite full RNG/event parity.
+- For coverage sessions, stop as soon as target branch evidence is captured;
+  avoid extra turns that only add stochastic cosmetic messages.
+
+Validation:
+- Session passes full gameplay parity channels (including mapdump).
+- Full gameplay suite remains green.
+- Coverage improved after promotion:
+  - overall: `53.39/59.47/34.92` -> `53.44/59.52/35.01`,
+  - `spell.js`: `48.97/36.43/32.83` -> `49.24/38.88/32.83`.
