@@ -214,7 +214,6 @@ export async function wizTeleport(game) {
 import { rn2 } from './rng.js';
 import {
     finalize_level,
-    lspo_fixup_special_level,
     resetLevelState,
     withFinalizeContext,
     withSpecialLevelDepth
@@ -329,7 +328,6 @@ export async function handleWizLoadDes(game) {
         return await withFinalizeContext(
             finalizeCtx,
             async () => {
-                await lspo_fixup_special_level();
                 return await finalize_level();
             }
         );

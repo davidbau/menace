@@ -1,6 +1,6 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
-import { selection, resetLevelState, getLevelState } from '../../js/sp_lev.js';
+import { selection, resetLevelState, getLevelState, selection_floodfill, set_selection_floodfillchk } from '../../js/sp_lev.js';
 import { ROOM, CORR, HWALL, VWALL, DOOR, STONE, COLNO, ROWNO } from '../../js/const.js';
 import { GameMap } from '../../js/game.js';
 import { initRng } from '../../js/rng.js';
@@ -183,6 +183,45 @@ describe('Selection API', () => {
 
             assert.ok(filled.coords);
             assert.equal(filled.coords.length, 9); // 3x3 = 9 cells
+        });
+
+        it('selection.floodfill default should match starting tile type only', () => {
+            resetLevelState();
+            getLevelState().map = new GameMap();
+
+            // Top row ROOM, bottom row CORR, both contiguous.
+            for (let x = 20; x <= 22; x++) {
+                getLevelState().map.locations[x][10].typ = ROOM;
+                getLevelState().map.locations[x][11].typ = CORR;
+            }
+
+            const filled = selection.floodfill(21, 10);
+            assert.equal(filled.coords.length, 3);
+            const has = (x, y) => filled.coords.some(c => c.x === x && c.y === y);
+            assert.ok(has(20, 10) && has(21, 10) && has(22, 10));
+            assert.ok(!has(21, 11));
+        });
+
+        it('selection_floodfill should evaluate predicate at each visited coordinate', () => {
+            resetLevelState();
+            getLevelState().map = new GameMap();
+
+            // Build a 5-cell horizontal corridor of ROOM tiles.
+            for (let x = 10; x <= 14; x++) {
+                getLevelState().map.locations[x][10].typ = ROOM;
+            }
+
+            // C selvar behavior: floodfill check gets current cell coordinates.
+            // Keep only cells x <= 11 from seed (10,10): expected exactly 2 cells.
+            set_selection_floodfillchk((cx, cy, loc) => cy === 10 && cx <= 11 && loc.typ === ROOM);
+            const out = selection_floodfill(selection.new(), 10, 10);
+            set_selection_floodfillchk(null);
+
+            assert.equal(out.coords.length, 2);
+            const has = (x, y) => out.coords.some(c => c.x === x && c.y === y);
+            assert.ok(has(10, 10));
+            assert.ok(has(11, 10));
+            assert.ok(!has(12, 10));
         });
     });
 

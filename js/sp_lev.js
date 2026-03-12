@@ -8152,9 +8152,22 @@ export const selection = {
             return selection.new();
         }
 
+        const start = selection._toAbsoluteCoord(x, y);
+        if (!(start.x >= 0 && start.x < COLNO && start.y >= 0 && start.y < ROWNO)) {
+            return selection.new();
+        }
+
+        // C ref: nhlsel.c l_selection_flood() sets floodfill checker to
+        // floodfillchk_match_under(levl[start].typ) when no custom checker
+        // is supplied.
+        const startTyp = levelState.map.locations?.[start.x]?.[start.y]?.typ;
+        const activeMatch = (typeof matchFn === 'function')
+            ? matchFn
+            : (_loc, cx, cy) => levelState.map.locations?.[cx]?.[cy]?.typ === startTyp;
+
         const coords = [];
         const visited = new Set();
-        const queue = [{ x, y }];
+        const queue = [{ x: start.x, y: start.y }];
 
         while (queue.length > 0) {
             const pos = queue.shift();
@@ -8166,7 +8179,7 @@ export const selection = {
             visited.add(key);
 
             const loc = levelState.map.locations[pos.x][pos.y];
-            if (!matchFn || matchFn(loc)) {
+            if (activeMatch(loc, pos.x, pos.y)) {
                 coords.push({ x: pos.x, y: pos.y });
 
                 // Add 4-connected neighbors
@@ -8368,10 +8381,12 @@ export function selection_do_grow(sel, n = 1) { return selection.grow(sel, n); }
 export function set_selection_floodfillchk(fn) { _selectionFloodfillChk = fn; }
 // C ref: selvar.c:395
 export function selection_floodfill(sel, x, y, _allowdiag = false) {
+    const start = selection._toAbsoluteCoord(x, y);
+    const startTyp = levelState.map?.locations?.[start.x]?.[start.y]?.typ;
     const match = _selectionFloodfillChk
         ? (loc, cx, cy) => !!_selectionFloodfillChk(cx, cy, loc)
-        : (() => true);
-    const out = selection.floodfill(x, y, (loc) => match(loc, x, y));
+        : (_loc, cx, cy) => levelState.map?.locations?.[cx]?.[cy]?.typ === startTyp;
+    const out = selection.floodfill(x, y, (loc, cx, cy) => match(loc, cx, cy));
     const target = sel || selection.new();
     selection_clear(target);
     for (const c of out?.coords || [])

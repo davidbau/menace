@@ -8843,3 +8843,29 @@ Validation:
     divergence (no command-routing or montype fatal).
   - canonical parity gate remains green:
     `scripts/run-and-report.sh --failures` => `265/265`.
+
+### selection.floodfill C-faithfulness: start-tile matching and per-cell predicate coords
+
+- Pending wizload parity (`t04_s706_w_minetn1_gp`) exposed a behavior bug in
+  selection floodfill semantics.
+- C reference (`nhlsel.c` + `selvar.c`) behavior:
+  - default floodfill is constrained to tiles matching the starting tile type,
+  - floodfill predicate checks are evaluated with current visited coordinates
+    (not the original start coordinate).
+- JS fixes in `js/sp_lev.js`:
+  - `selection.floodfill(x, y)` now resolves map-relative coords via
+    `_toAbsoluteCoord`, validates bounds, and defaults to matching start tile
+    `typ` when no checker is provided.
+  - `selection_floodfill()` now forwards current `(cx, cy)` into
+    `_selectionFloodfillChk`, and mirrors C default matching behavior.
+- Regression guard tests added in `test/unit/selection.test.js`:
+  - default floodfill only captures connected tiles with the start tile type,
+  - `selection_floodfill` custom checker is called with per-visited-cell
+    coordinates.
+- Validation:
+  - `node --test test/unit/selection.test.js test/unit/wizloaddes_prompt.test.js`
+    passes.
+  - `scripts/run-and-report.sh --failures` remains fully green (`265/265`).
+  - pending `t04_s706_w_minetn1_gp` improved substantially in RNG/screen/color,
+    with remaining drift now concentrated to late wizload finalize ordering and
+    checkpoint event parity.
