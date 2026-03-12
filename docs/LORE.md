@@ -9082,3 +9082,22 @@ Validation:
   - `seed42_gameplay` and `seed100_multidigit_gameplay` remain full PASS.
   - pending `t11_s748_w_covmax3_gp` first divergence remains unchanged, so this
     is a structural C-faithful correction, not yet the root-cause fix for that session.
+
+### monmove async correctness: await Vrock gas cloud side-effect in `monflee`
+
+- C behavior (`monmove.c:521-524`) creates a Vrock gas cloud immediately when
+  fleeing starts.
+- JS had an async ordering hazard in `monflee`:
+  - `create_gas_cloud(...)` was called without `await`, letting cloud side-effects
+    run out-of-order relative to the current monster turn.
+- Fix:
+  - `js/monmove.js`: `await create_gas_cloud(mon.mx, mon.my, 5, 8, map, player)`
+    in the Vrock flee branch.
+- Why this matters:
+  - keeps monster-turn side effects on the correct command boundary and avoids
+    delayed cloud effects drifting into later steps.
+- Validation:
+  - `seed42_gameplay` PASS
+  - `seed100_multidigit_gameplay` PASS
+  - `t11_s742_w_covmax1_gp` still diverges at step 342; this fix is a
+    correctness hardening, not the full root-cause resolution for that session.

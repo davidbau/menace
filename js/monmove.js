@@ -257,7 +257,7 @@ export async function monflee(mon, fleetime, first, fleemsg, player, display, fo
         // C ref: monmove.c:521-524 — Vrock gas cloud on flee
         if (mon.mndx === PM_VROCK && !mon.mspec_used) {
             mon.mspec_used = 75 + rn2(25);
-            create_gas_cloud(mon.mx, mon.my, 5, 8);
+            await create_gas_cloud(mon.mx, mon.my, 5, 8, map, player);
         }
 
         mon.mflee = true;
