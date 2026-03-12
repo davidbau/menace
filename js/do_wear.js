@@ -48,7 +48,7 @@ import {
     setworn,
     setnotworn,
 } from './worn.js';
-import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing, compactInvletPromptChars } from './invent.js';
+import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing, compactInvletPromptChars, prinv } from './invent.js';
 import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
 import { newsym, see_monsters, set_mimic_blocking } from './display.js';
@@ -2043,7 +2043,7 @@ async function putOnSelectedItem(player, display, game, item) {
     }
 
     find_ac(player);
-    await display.putstr_message(`You are now wearing ${doname(item, player)}.`);
+    await prinv(null, item, 0, player);
     return { moved: false, tookTime: true };
 }
 

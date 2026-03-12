@@ -1489,6 +1489,12 @@ export function doname(obj, player) {
             || player.shirt === obj
         ) {
             result += ' (being worn)';
+        } else if (player.leftRing === obj) {
+            result += ' (on left hand)';
+        } else if (player.rightRing === obj) {
+            result += ' (on right hand)';
+        } else if (player.amulet === obj) {
+            result += ' (being worn)';
         }
     }
 
