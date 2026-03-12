@@ -8,12 +8,12 @@ import {
     CONFUSION, STUNNED, BLINDED, HALLUC, TIMEOUT,
     FIRE_RES, COLD_RES, SHOCK_RES, SLEEP_RES, POISON_RES, DRAIN_RES,
     ACID_RES, FREE_ACTION, FAST, SICK_RES, STONE_RES, REFLECTING, ANTIMAGIC,
-    MALE, FEMALE, DISPLACED,
+    MALE, FEMALE, DISPLACED, INVIS,
     LEFT_SIDE, RIGHT_SIDE,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     NATTK, XKILL_NOMSG,
     ERODE_RUST, ERODE_CORRODE, ERODE_ROT, EF_GREASE, EF_VERBOSE, ER_NOTHING, ER_DAMAGED, ER_DESTROYED,
-    SLIMED, KILLED_BY_AN, NEW_MOON,
+    SLIMED, KILLED_BY_AN, NEW_MOON, HALF_PHDAM,
 } from './const.js';
 import {
     G_UNIQ, M2_NEUTER, M2_MALE, M2_FEMALE, M2_PNAME,
@@ -44,9 +44,9 @@ import {
 import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
 import { mattackm } from './mhitm.js';
 import {
-    weaponEnchantment, weaponDamageSides,
     mhitm_mgc_atk_negated, do_stone_u,
 } from './uhitm.js';
+import { dmgval, hitval as weaponHitval } from './weapon.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { touch_of_death } from './mcastu.js';
@@ -78,12 +78,29 @@ import { night } from './calendar.js';
 import { attrcurse } from './sit.js';
 import { pline, pline_mon, verbalize } from './pline.js';
 import { game as activeGame } from './gstate.js';
+import { envFlag, getEnv, writeStderr } from './runtime_env.js';
 
 // PIERCE imported from objects.js
 
 let _hitmsg_mid = 0;
 let _hitmsg_prev_idx = -1;
 let _hitmsg_prev_aatyp = AT_NONE;
+
+function shouldMhituTrace(game) {
+    if (!envFlag('WEBHACK_MHITU_TRACE')) return false;
+    const raw = getEnv('WEBHACK_MHITU_TRACE_STEP', '');
+    if (!raw) return true;
+    const want = Number.parseInt(raw, 10);
+    if (!Number.isInteger(want) || want <= 0) return true;
+    const step = (Number.isInteger(game?.map?._replayStepIndex) ? game.map._replayStepIndex : -1) + 1;
+    return step === want;
+}
+
+function mhituTrace(game, msg) {
+    if (!shouldMhituTrace(game)) return;
+    const step = (Number.isInteger(game?.map?._replayStepIndex) ? game.map._replayStepIndex : -1) + 1;
+    writeStderr(`[MHITU step=${step}] ${msg}\n`);
+}
 
 function clear_hitmsg_state() {
     _hitmsg_mid = 0;
@@ -315,20 +332,27 @@ async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
     } else {
         // Hand-to-hand / weapon attack
         if (attack.aatyp === AT_WEAP && monster.weapon) {
-            // Weapon damage: dmgval equivalent
-            const wsdam = weaponDamageSides(monster.weapon, null);
-            if (wsdam > 0) mhm.damage += rnd(wsdam);
-            // Gauntlets of power: rn1(4,3) — skip, monsters rarely have them
+            // C ref: uhitm.c:4039 — AT_WEAP adds deterministic dmgval()
+            // against the defender (plus separate artifact logic).
+            const wepDmg = dmgval(monster.weapon, player);
+            mhm.damage += wepDmg;
+            // Gauntlets of power branch not yet ported.
             if (mhm.damage <= 0) mhm.damage = 1;
             await hitmsg(monster, attack, display, suppressHitMsg);
             mhm.hitflags |= M_ATTK_HIT;
-            // Weapon enchantment
-            mhm.damage += weaponEnchantment(monster.weapon);
             // cf. mhitu.c — artifact damage bonus
+            let artBonus = 0;
             if (monster.weapon.oartifact) {
-                const [bonus] = spec_dbon(monster.weapon, player, mhm.damage);
-                mhm.damage += bonus;
+                const [bonus = 0] = spec_dbon(monster.weapon, player, mhm.damage);
+                artBonus = bonus;
+                mhm.damage += artBonus;
             }
+            mhituTrace(
+                ctx?.game || null,
+                `ad_phys_weap mon=${monster?.m_id ?? 0} otyp=${monster?.weapon?.otyp ?? -1} `
+                + `base_after_d=${mhm.damage - wepDmg - artBonus} dmgval=${wepDmg} `
+                + `art=${artBonus} final=${mhm.damage}`
+            );
             // Weapon poison: C checks dieroll <= 5 for poisoned weapons
             // TODO: implement weapon poison path
         } else if (attack.aatyp !== AT_TUCH || mhm.damage !== 0
@@ -1361,31 +1385,44 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // ================================================================
         // To-hit calculation (mattacku path)
         // ================================================================
-        // cf. mhitu.c:707-708 — tmp = AC_VALUE(u.uac) + 10 + mtmp->m_lev
+        // cf. mhitu.c:707-716 — tmp = AC_VALUE(u.uac) + 10 + mtmp->m_lev,
+        // then apply state modifiers and clamp to at least 1.
         // cf. AC_VALUE(ac) macro: ac >= 0 ? ac : -rnd(-ac)
         const playerAc = Number.isInteger(player.ac)
             ? player.ac
             : (Number.isInteger(player.effectiveAC) ? player.effectiveAC : 10);
-        // C ref: mhitu.c tmp = AC_VALUE(u.uac) + 10 + mtmp->m_lev; then modifiers.
-        let toHit = ((playerAc >= 0) ? playerAc : -rnd(-playerAc)) + 10 + Number(monster.mlevel || 0);
-        if (Number(game?.multi || 0) < 0) toHit += 4;
-        const mdatToHit = monster.data || monster.type || {};
-        const heroInvis = !!(player?.Invis || player?.invisible);
-        if ((heroInvis && !perceives(mdatToHit)) || !monster.mcansee) toHit -= 2;
-        if (monster.mtrapped) toHit -= 2;
+        const acValue = (playerAc >= 0) ? playerAc : -rnd(-playerAc);
+        const mdat = monster.data || monster.type || {};
+        const heroInvis = !!(player?.Invis || player?.invis || playerHasProp(player, INVIS));
+        const monCanSee = (monster?.mcansee !== 0 && monster?.mcansee !== false);
+        let toHit = acValue + 10 + (monster.mlevel || 0);
+        if ((game?.multi || 0) < 0) toHit += 4;
+        if ((heroInvis && !perceives(mdat)) || !monCanSee) toHit -= 2;
+        if (monster?.mtrapped) toHit -= 2;
         if (toHit <= 0) toHit = 1;
 
-        if (attack.aatyp === AT_WEAP && monster.weapon) {
-            await maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg);
-        }
         if (!foundyou) {
             clear_hitmsg_state();
             await wildmiss(monster, attack, player, display);
             skipnonmagc = true;
             continue;
         }
+        if (attack.aatyp === AT_WEAP && monster.weapon) {
+            // C ref: mhitu.c:905-907 — add temporary hitval bonus for this strike.
+            toHit += weaponHitval(monster.weapon, player);
+            await maybeMonsterWeaponSwingMessage(monster, player, display, suppressHitMsg);
+        }
 
         const dieRoll = rnd(20 + i);
+        mhituTrace(
+            game,
+            `tohit mon=${monster?.m_id ?? 0} mndx=${monster?.mndx ?? -1} i=${i} `
+            + `aatyp=${attack?.aatyp ?? -1} adtyp=${attack?.adtyp ?? -1} `
+            + `toHit=${toHit} die=${dieRoll} ac=${playerAc} acv=${acValue} `
+            + `mlev=${monster?.mlevel ?? 0} multi=${game?.multi ?? 0} `
+            + `heroInvis=${heroInvis ? 1 : 0} perceives=${perceives(mdat) ? 1 : 0} `
+            + `mcansee=${monCanSee ? 1 : 0} mtrapped=${monster?.mtrapped ? 1 : 0}`
+        );
         if (toHit <= dieRoll) {
             // Miss — cf. mhitu.c:86-98 missmu()
             clear_hitmsg_state();
@@ -1408,7 +1445,6 @@ export async function mattacku(monster, player, display, game = null, opts = {})
 
         // C ref: mhitu.c hitmu() — if a hides-under/eel monster was
         // undetected when it hits the hero, reveal it.
-        const mdat = monster.data || monster.type || {};
         if (monster.mundetected && (hides_under(mdat) || mdat.mlet === S_EEL)) {
             monster.mundetected = false;
             if (Number.isInteger(monster.mx) && Number.isInteger(monster.my)) {
@@ -1462,8 +1498,28 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // Apply damage
         // ================================================================
         if (mhm.damage > 0) {
+            // C ref: mhitu.c:1212 — Half_physical_damage halves hitmu damage.
+            const hasHalfPhysical = !!(playerHasProp(player, HALF_PHDAM)
+                || player?.halfPhysDamage
+                || player?.Half_physical_damage);
+            if (hasHalfPhysical) {
+                mhm.damage = Math.floor((mhm.damage + 1) / 2);
+            }
+            const hpBefore = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
+            mhituTrace(
+                game,
+                `pre_losehp mon=${monster?.m_id ?? 0} mndx=${monster?.mndx ?? -1} `
+                + `aatyp=${attack?.aatyp ?? -1} adtyp=${attack?.adtyp ?? -1} `
+                + `dmg=${mhm.damage} hp_before=${hpBefore} `
+                + `halfphys=${hasHalfPhysical ? 1 : 0} ac=${playerAc}`
+            );
             await losehp(mhm.damage, x_monnam(monster), KILLED_BY_AN, player, display, game);
             const died = (player.uhp || 0) <= 0;
+            const hpAfter = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
+            mhituTrace(
+                game,
+                `post_losehp mon=${monster?.m_id ?? 0} hp_after=${hpAfter} died=${died ? 1 : 0}`
+            );
 
             if (died) {
                 player.deathCause = `killed by a ${x_monnam(monster)}`;

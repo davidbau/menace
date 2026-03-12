@@ -566,9 +566,13 @@ export async function nhgetch(opts = {}) {
             recordKey(ch);
             return ch;
         };
-        await waitForMoreDismissKey(readBoundaryKey);
-        display.messageNeedsMore = false;
-        display.moreMarkerActive = false;
+        // Use the canonical --More-- path so acknowledgement advances
+        // topline/message state exactly once per boundary key.
+        await more(display, {
+            forceVisual: false,
+            clearAfter: true,
+            readKey: readBoundaryKey,
+        });
         return 0;
     }
 
