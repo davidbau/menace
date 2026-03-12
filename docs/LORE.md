@@ -8776,3 +8776,23 @@ Validation:
     `scripts/run-and-report.sh --failures` -> `260/260`.
   - pending minefill improved to full screen parity (`5/5`) while remaining
     gap is now concentrated to RNG/event stream (`5341/5345` RNG).
+
+### wizloaddes level-name resolution: accept registered special levels beyond `otherSpecialLevels`
+
+- Coverage preflight for Theme 04 captured a valid C wizload session:
+  `test/comparison/sessions/pending/t04_s706_w_minetn1_gp.session.json`
+  (`#wizloaddes minetn-1`).
+- JS was rejecting the command early with:
+  `Cannot find level: minetn-1`.
+- Root cause:
+  `handleWizLoadDes()` only consulted `otherSpecialLevels`, which excludes many
+  canonical special-level names available through the main special-level
+  registry.
+- Fix:
+  `handleWizLoadDes()` now normalizes input (`.lua` suffix accepted) and falls
+  back to `findSpecialLevelByName()` + `getSpecialLevel()` lookup when
+  `otherSpecialLevels` has no direct hit.
+- Result:
+  - valid C names like `minetn-1` no longer fail at command routing,
+  - parity now proceeds into real generation/finalize drift for this session,
+    which is the correct next debugging target.

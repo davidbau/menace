@@ -53,3 +53,11 @@ Pending sessions (not yet parity-green):
   - remaining drift is in special-level finalize ordering:
     `place_lregion(mkmaze.c)` trial RNG appears in C before JS
     `finalize_level()` mineralize RNG.
+2. `test/comparison/sessions/pending/t04_s706_w_minetn1_gp.session.json`
+- C-harness wizload preflight for Mine Town variant generation coverage.
+- JS previously rejected this valid C level name (`Cannot find level: minetn-1`).
+  `wizloaddes` name resolution now accepts `.lua` suffixes and special-level
+  registry names (including `minetn-*`), so parity can proceed to real
+  gameplay/finalize drift instead of early command rejection.
+- Current first divergence is deeper in special-level generation/finalize
+  ordering (issue #352/#353 family), not command routing.

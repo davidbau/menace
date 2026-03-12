@@ -214,7 +214,7 @@ export async function wizTeleport(game) {
 import { rn2 } from './rng.js';
 import { resetLevelState, withFinalizeContext, withSpecialLevelDepth } from './sp_lev.js';
 import { isBranchLevel } from './dungeon.js';
-import { otherSpecialLevels } from './special_levels.js';
+import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel } from './special_levels.js';
 import { getlin } from './input.js';
 import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, NON_PM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
@@ -269,7 +269,19 @@ export async function handleWizLoadDes(game) {
         return { moved: false, tookTime: false };
     }
     const levelName = input.trim();
-    const generator = otherSpecialLevels[levelName];
+    const normalizedLevelName = levelName.toLowerCase().endsWith('.lua')
+        ? levelName.slice(0, -4).toLowerCase()
+        : levelName.toLowerCase();
+    let generator = otherSpecialLevels[normalizedLevelName];
+    if (!generator) {
+        const where = findSpecialLevelByName(normalizedLevelName);
+        if (where) {
+            const special = getSpecialLevel(where.dnum, where.dlevel);
+            if (typeof special?.generator === 'function') {
+                generator = special.generator;
+            }
+        }
+    }
     if (!generator) {
         await display.putstr_message(`Cannot find level: ${levelName}`);
         return { moved: false, tookTime: false };
@@ -295,7 +307,7 @@ export async function handleWizLoadDes(game) {
         await withFinalizeContext({
             dnum,
             dlevel,
-            specialName: levelName,
+            specialName: normalizedLevelName,
             isBranchLevel: isBranchLevel(dnum, dlevel),
         }, async () => await generator())
     );
