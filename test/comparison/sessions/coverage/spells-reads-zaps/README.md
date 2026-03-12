@@ -30,13 +30,14 @@ Accepted sessions:
 15. `t05_s708_w_spsortf_gp.session.json` (`++f` sort by skill group, low level first)
 16. `t05_s709_w_spsortg_gp.session.json` (`++g` sort by skill group, high level first)
 17. `t05_s712_v_nospell_gp.session.json` (`+` with no known spells)
-18. `t06_s620_w_qheal_gp.session.json`
-19. `t06_s621_w_qstat_gp.session.json`
-20. `t06_s622_w_qabil_gp.session.json`
-21. `t06_s623_w_qmisc_gp.session.json`
-22. `t06_s624_w_qstat2_gp.session.json`
-23. `t06_s625_w_qener_gp.session.json`
-24. `t06_s631_w_zutil_gp.session.json`
+18. `t05_s713_w_spsortB_gp.session.json` (`++B` uppercase key ignored in sort submenu)
+19. `t06_s620_w_qheal_gp.session.json`
+20. `t06_s621_w_qstat_gp.session.json`
+21. `t06_s622_w_qabil_gp.session.json`
+22. `t06_s623_w_qmisc_gp.session.json`
+23. `t06_s624_w_qstat2_gp.session.json`
+24. `t06_s625_w_qener_gp.session.json`
+25. `t06_s631_w_zutil_gp.session.json`
 
 Coverage impact (2026-03-12 refresh):
 1. Overall parity coverage: lines `53.20% -> 53.28%` (`+0.08`), functions `34.72% -> 34.81%` (`+0.09`).

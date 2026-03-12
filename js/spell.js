@@ -490,7 +490,7 @@ export async function handleKnownSpells(player, display) {
         while (true) {
             const ch = await nhgetch();
             if (ch === 27 || ch === 32 || ch === 10 || ch === 13) return false;
-            const key = String.fromCharCode(ch).toLowerCase();
+            const key = String.fromCharCode(ch);
             const picked = sortChoices.find((choice) => choice.key === key);
             if (picked) {
                 if (picked.mode === SORTRETAINORDER) {
