@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-12T03:17:28.928Z",
-  "commit": "fce248fceae190cedae83e2d20cfe495cf2983cd",
+  "generatedAt": "2026-03-12T03:30:39.908Z",
+  "commit": "9f3aa71893773e19d32bed535deebf55e7cd0057",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/mazes/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 53.48,
-    "branchesPct": 59.52,
-    "functionsPct": 35.07
+    "linesPct": 53.51,
+    "branchesPct": 59.53,
+    "functionsPct": 35.17
   },
   "filteredCount": 108,
   "lowestCovered": [

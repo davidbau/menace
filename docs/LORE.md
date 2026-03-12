@@ -8569,13 +8569,15 @@ Validation:
   - overall: `53.39/59.47/34.92` -> `53.44/59.52/35.01`,
   - `spell.js`: `48.97/36.43/32.83` -> `49.24/38.88/32.83`.
 
-## 2026-03-12: Theme04 dig bundle extension (`t04_s701_w_digext1_gp`)
+## 2026-03-12: Theme04 dig bundle extension (`t04_s701_w_digext2_gp`)
 
-- Added C-recorded gameplay session `t04_s701_w_digext1_gp` in
+- Added C-recorded gameplay session `t04_s701_w_digext2_gp` in
   `coverage/maze-mines-digging/`.
+- Replaced with stronger superset fixture `t04_s701_w_digext2_gp` to keep suite
+  runtime flat while adding directional branch coverage.
 - Method: start from a known parity-green dig trace (`t04_s701_w_digedges_gp`)
-  and extend incrementally with extra wand-of-digging directions (`j`, `k`),
-  validating parity after each extension.
+  and extend incrementally with extra wand-of-digging directions (`j`, `k`,
+  `y`, `u`, `b`, `n`), validating parity after each extension.
 
 Why this approach:
 - Directly authoring a larger raw key stream hit prompt-boundary drift
@@ -8585,7 +8587,8 @@ Why this approach:
 
 Validation:
 - Session passes full gameplay parity channels (RNG/events/screens/colors/mapdump).
-- Full gameplay suite remains green with promoted session: `195/195` passing.
+- Full gameplay suite remains green with promoted replacement session:
+  `202/202` passing.
 - Coverage refresh snapshot now reports:
-  - overall `53.48/59.52/35.07` (lines/branches/functions),
-  - notable targeted-file movement includes `trap.js` line coverage increase.
+  - overall `53.51/59.53/35.17` (lines/branches/functions),
+  - no tracked-file regressions.
