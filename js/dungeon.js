@@ -771,7 +771,7 @@ export function Is_botlevel(dnum, dlevel) {
 }
 // Autotranslated from dungeon.c:1849
 export function In_mines(lev) {
-  return (lev.dnum === mines_dnum);
+  return (lev.dnum === GNOMISH_MINES);
 }
 // Autotranslated from dungeon.c:1842
 export function In_quest(lev) {
@@ -782,7 +782,7 @@ export function In_hell(lev) {
 }
 // Autotranslated from dungeon.c:1900
 export function In_V_tower(lev) {
-  return (lev.dnum === tower_dnum);
+  return (lev.dnum === VLADS_TOWER);
 }
 export function In_W_tower(lev) {
     return In_hell(lev) || In_V_tower(lev);
@@ -1021,7 +1021,7 @@ export function br_string(type) {
 
 // Autotranslated from dungeon.c:3379
 export function br_string2(br, player) {
-  let closed_portal = (br.end2.dnum === quest_dnum && player.uevent.qexpelled);
+  let closed_portal = (br.end2.dnum === QUEST && player.uevent.qexpelled);
   switch (br.type) {
     case BR_PORTAL:
       return closed_portal ? "Sealed portal" : "Portal";

@@ -584,12 +584,96 @@ def build_covmax7_moves() -> str:
     return moves
 
 
+def build_covmax8_moves() -> str:
+    moves = ""
+
+    # Coverage-heavy but lower-volatility setup: avoid explicit monster creation.
+    for item in [
+        "wand of digging",
+        "wand of fire",
+        "wand of cold",
+        "wand of striking",
+        "wand of opening",
+        "wand of locking",
+        "wand of polymorph",
+        "wand of teleportation",
+        "scroll of identify",
+        "scroll of teleportation",
+        "scroll of remove curse",
+        "scroll of enchant armor",
+        "scroll of enchant weapon",
+        "potion of healing",
+        "potion of levitation",
+        "potion of confusion",
+        "pick-axe",
+        "stethoscope",
+        "lock pick",
+        "skeleton key",
+        "oil lamp",
+        "blindfold",
+        "food ration",
+        "apple",
+        "tin opener",
+    ]:
+        moves += wish(item)
+
+    moves += CTRL_F + SP
+    moves += CTRL_I + SP
+
+    # Inventory/equipment command families.
+    for _ in range(8):
+        moves += "i" + (SP * 2)             # inventory
+        moves += ")" + (SP * 2)             # weapons list
+        moves += "[" + (SP * 2)             # armor list
+        moves += "?" + (SP * 2)             # help list
+        moves += "w" + "o" + (SP * 2)       # wield
+        moves += "W" + "p" + (SP * 2)       # wear
+        moves += "P" + "q" + (SP * 2)       # put on
+        moves += "T" + "p" + (SP * 2)       # take off
+        moves += "R" + (SP * 2)             # remove ring/accessory
+        moves += "," + (SP * 2)             # pick up
+        moves += "d" + "r" + (SP * 2)       # drop
+
+    # Read/quaff/zap/apply/throw/cast coverage.
+    for _ in range(10):
+        moves += "r" + "m" + (SP * 2)
+        moves += "r" + "n" + (SP * 2)
+        moves += "q" + "k" + (SP * 2)
+        moves += "q" + "l" + (SP * 2)
+        moves += "a" + "s" + (SP * 2)
+        moves += "a" + "t" + (SP * 2)
+        moves += "z" + "e" + "j" + (SP * 2)
+        moves += "z" + "f" + "l" + (SP * 2)
+        moves += "z" + "g" + "h" + (SP * 2)
+        moves += "t" + "u" + "j" + (SP * 2)
+        moves += "Z" + "a" + (SP * 2)
+
+    # Environment interactions and map traversal.
+    for depth in [2, 4, 6, 8, 10]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(3):
+            moves += "o" + "l" + (SP * 2)
+            moves += "c" + "l" + (SP * 2)
+            moves += "s" * 2 + "." + "," + (SP * 2)
+            moves += "lljjhhkk" + (SP * 2)
+            moves += "a" + "s" + (SP * 2)
+            moves += "z" + "e" + "j" + (SP * 2)
+            moves += "t" + "u" + "j" + (SP * 2)
+
+    # End-state commands.
+    moves += "#pray" + ENTER + (SP * 2)
+    moves += "#sit" + ENTER + (SP * 2)
+    return moves
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate one long coverage-max pending session.")
     parser.add_argument("--seed", type=int, default=741, help="Deterministic seed")
     parser.add_argument(
         "--scenario",
-        choices=["covmax1", "covmax2", "covmax3", "covmax4", "covmax5", "covmax6", "covmax7"],
+        choices=["covmax1", "covmax2", "covmax3", "covmax4", "covmax5", "covmax6", "covmax7", "covmax8"],
         default="covmax1",
         help="Coverage scenario recipe",
     )
@@ -614,8 +698,10 @@ def main():
         moves = build_covmax5_moves()
     elif args.scenario == "covmax6":
         moves = build_covmax6_moves()
-    else:
+    elif args.scenario == "covmax7":
         moves = build_covmax7_moves()
+    else:
+        moves = build_covmax8_moves()
     print(f"Seed: {args.seed}")
     print(f"Output: {outpath}")
     print(f"Move keycount: {len(moves)}")
