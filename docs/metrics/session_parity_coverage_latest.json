@@ -1,8 +1,8 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-12T03:30:39.908Z",
-  "commit": "9f3aa71893773e19d32bed535deebf55e7cd0057",
-  "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/mazes/coverage/coverage-summary.json",
+  "generatedAt": "2026-03-12T05:49:32.462Z",
+  "commit": "1cae661da86616d7a618a20a7e1cd57583643df4",
+  "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
     "minLines": 200,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 53.51,
-    "branchesPct": 59.53,
-    "functionsPct": 35.17
+    "linesPct": 53.83,
+    "branchesPct": 59.3,
+    "functionsPct": 35.53
   },
   "filteredCount": 108,
   "lowestCovered": [
@@ -93,25 +93,6 @@
       }
     },
     {
-      "relPath": "js/steed.js",
-      "baseName": "steed.js",
-      "lines": {
-        "total": 480,
-        "covered": 69,
-        "pct": 14.37
-      },
-      "branches": {
-        "total": 1,
-        "covered": 1,
-        "pct": 100
-      },
-      "functions": {
-        "total": 15,
-        "covered": 0,
-        "pct": 0
-      }
-    },
-    {
       "relPath": "js/music.js",
       "baseName": "music.js",
       "lines": {
@@ -150,25 +131,6 @@
       }
     },
     {
-      "relPath": "js/artifact.js",
-      "baseName": "artifact.js",
-      "lines": {
-        "total": 1704,
-        "covered": 398,
-        "pct": 23.35
-      },
-      "branches": {
-        "total": 14,
-        "covered": 6,
-        "pct": 42.85
-      },
-      "functions": {
-        "total": 85,
-        "covered": 3,
-        "pct": 3.52
-      }
-    },
-    {
       "relPath": "js/read.js",
       "baseName": "read.js",
       "lines": {
@@ -177,9 +139,9 @@
         "pct": 24.1
       },
       "branches": {
-        "total": 37,
-        "covered": 29,
-        "pct": 78.37
+        "total": 40,
+        "covered": 32,
+        "pct": 80
       },
       "functions": {
         "total": 70,
@@ -204,6 +166,25 @@
         "total": 9,
         "covered": 0,
         "pct": 0
+      }
+    },
+    {
+      "relPath": "js/artifact.js",
+      "baseName": "artifact.js",
+      "lines": {
+        "total": 1704,
+        "covered": 417,
+        "pct": 24.47
+      },
+      "branches": {
+        "total": 26,
+        "covered": 8,
+        "pct": 30.76
+      },
+      "functions": {
+        "total": 85,
+        "covered": 5,
+        "pct": 5.88
       }
     },
     {
@@ -305,14 +286,14 @@
       "relPath": "js/zap.js",
       "baseName": "zap.js",
       "lines": {
-        "total": 2754,
-        "covered": 795,
-        "pct": 28.86
+        "total": 2782,
+        "covered": 816,
+        "pct": 29.33
       },
       "branches": {
-        "total": 145,
-        "covered": 57,
-        "pct": 39.31
+        "total": 156,
+        "covered": 66,
+        "pct": 42.3
       },
       "functions": {
         "total": 108,
@@ -473,55 +454,36 @@
       }
     },
     {
-      "relPath": "js/do_wear.js",
-      "baseName": "do_wear.js",
-      "lines": {
-        "total": 2615,
-        "covered": 862,
-        "pct": 32.96
-      },
-      "branches": {
-        "total": 285,
-        "covered": 172,
-        "pct": 60.35
-      },
-      "functions": {
-        "total": 105,
-        "covered": 26,
-        "pct": 24.76
-      }
-    },
-    {
       "relPath": "js/muse.js",
       "baseName": "muse.js",
       "lines": {
         "total": 2495,
-        "covered": 825,
-        "pct": 33.06
+        "covered": 836,
+        "pct": 33.5
       },
       "branches": {
-        "total": 384,
-        "covered": 141,
-        "pct": 36.71
+        "total": 397,
+        "covered": 143,
+        "pct": 36.02
       },
       "functions": {
         "total": 70,
-        "covered": 8,
-        "pct": 11.42
+        "covered": 9,
+        "pct": 12.85
       }
     },
     {
       "relPath": "js/display.js",
       "baseName": "display.js",
       "lines": {
-        "total": 2551,
-        "covered": 878,
-        "pct": 34.41
+        "total": 2554,
+        "covered": 880,
+        "pct": 34.45
       },
       "branches": {
-        "total": 256,
-        "covered": 163,
-        "pct": 63.67
+        "total": 260,
+        "covered": 168,
+        "pct": 64.61
       },
       "functions": {
         "total": 114,
@@ -533,14 +495,14 @@
       "relPath": "js/mhitu.js",
       "baseName": "mhitu.js",
       "lines": {
-        "total": 2421,
-        "covered": 852,
-        "pct": 35.19
+        "total": 2446,
+        "covered": 860,
+        "pct": 35.15
       },
       "branches": {
-        "total": 310,
-        "covered": 164,
-        "pct": 52.9
+        "total": 317,
+        "covered": 166,
+        "pct": 52.36
       },
       "functions": {
         "total": 86,
@@ -603,6 +565,25 @@
         "total": 56,
         "covered": 13,
         "pct": 23.21
+      }
+    },
+    {
+      "relPath": "js/do_wear.js",
+      "baseName": "do_wear.js",
+      "lines": {
+        "total": 2627,
+        "covered": 1035,
+        "pct": 39.39
+      },
+      "branches": {
+        "total": 396,
+        "covered": 212,
+        "pct": 53.53
+      },
+      "functions": {
+        "total": 105,
+        "covered": 31,
+        "pct": 29.52
       }
     },
     {
@@ -682,25 +663,6 @@
       }
     },
     {
-      "relPath": "js/potion.js",
-      "baseName": "potion.js",
-      "lines": {
-        "total": 2148,
-        "covered": 894,
-        "pct": 41.62
-      },
-      "branches": {
-        "total": 250,
-        "covered": 109,
-        "pct": 43.6
-      },
-      "functions": {
-        "total": 79,
-        "covered": 36,
-        "pct": 45.56
-      }
-    },
-    {
       "relPath": "js/dog.js",
       "baseName": "dog.js",
       "lines": {
@@ -728,14 +690,33 @@
         "pct": 42.69
       },
       "branches": {
-        "total": 269,
-        "covered": 127,
-        "pct": 47.21
+        "total": 270,
+        "covered": 129,
+        "pct": 47.77
       },
       "functions": {
         "total": 62,
         "covered": 23,
         "pct": 37.09
+      }
+    },
+    {
+      "relPath": "js/potion.js",
+      "baseName": "potion.js",
+      "lines": {
+        "total": 2148,
+        "covered": 920,
+        "pct": 42.83
+      },
+      "branches": {
+        "total": 264,
+        "covered": 120,
+        "pct": 45.45
+      },
+      "functions": {
+        "total": 79,
+        "covered": 38,
+        "pct": 48.1
       }
     },
     {
@@ -747,9 +728,9 @@
         "pct": 43.39
       },
       "branches": {
-        "total": 351,
-        "covered": 219,
-        "pct": 62.39
+        "total": 355,
+        "covered": 223,
+        "pct": 62.81
       },
       "functions": {
         "total": 148,
@@ -785,9 +766,9 @@
         "pct": 44.78
       },
       "branches": {
-        "total": 100,
-        "covered": 60,
-        "pct": 60
+        "total": 101,
+        "covered": 61,
+        "pct": 60.39
       },
       "functions": {
         "total": 61,
@@ -937,9 +918,9 @@
         "pct": 46.81
       },
       "branches": {
-        "total": 184,
-        "covered": 128,
-        "pct": 69.56
+        "total": 187,
+        "covered": 131,
+        "pct": 70.05
       },
       "functions": {
         "total": 81,
@@ -964,6 +945,25 @@
         "total": 120,
         "covered": 19,
         "pct": 15.83
+      }
+    },
+    {
+      "relPath": "js/mon.js",
+      "baseName": "mon.js",
+      "lines": {
+        "total": 2943,
+        "covered": 1435,
+        "pct": 48.75
+      },
+      "branches": {
+        "total": 620,
+        "covered": 378,
+        "pct": 60.96
+      },
+      "functions": {
+        "total": 136,
+        "covered": 39,
+        "pct": 28.67
       }
     }
   ]

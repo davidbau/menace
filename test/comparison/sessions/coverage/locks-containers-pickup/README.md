@@ -21,6 +21,7 @@ Accepted sessions:
 7. `t02_s714_w_cardbox_gp.session.json` (`credit card` container lock/unlock path)
 8. `t02_s993_w_cardcombo_gp.session.json` (high-density `credit card` combo: door open/close + door lock-attempt + chest unlock + chest relock-attempt)
 9. `t02_s993_w_carddoorlock_gp.session.json` (`credit card` door lock-attempt path)
+10. `t02_s993_w_skelkey_gp.session.json` (`skeleton key` door lock/unlock path)
 
 Coverage impact (2026-03-11 refreshes):
 1. First addition: `js/lock.js` line coverage `23.58% -> 38.43%` (`+14.85`).
@@ -29,6 +30,7 @@ Coverage impact (2026-03-11 refreshes):
 4. Fourth addition (`#force` repeat on broken lock): `js/lock.js` line coverage `47.43% -> 48.15%` (`+0.72`).
 5. Fifth addition (`#force` blade path): `js/lock.js` line coverage `48.15% -> 48.96%` (`+0.81`).
 6. Overall parity coverage after five additions: lines `53.20%`, branches `59.57%`, functions `34.72%`.
+7. Sixth addition (`skeleton key` door lock/unlock path): `js/lock.js` lines `49.23% -> 59.92%` (`+10.69`), branches `43.37% -> 44.44%` (`+1.07`), functions `62.96% -> 74.07%` (`+11.11`).
 
 Issue links:
 - Theme tracker: https://github.com/davidbau/menace/issues/338
