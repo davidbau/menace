@@ -549,7 +549,14 @@ export async function pick_lock(game, pick, rx, ry, container) {
             }
 
             if (!autounlock) {
-                const qbuf = `There is ${doname(otmp)} here; ${verb} ${it ? 'it' : 'its lock'}?`;
+                let itemName = doname(otmp);
+                // C object naming includes container lock-state adjectives in
+                // this prompt (for example, "an unlocked chest").
+                if (it && !otmp.olocked && Is_box(otmp) && !otmp.obroken && otmp.lknown
+                    && !/\bunlocked\b/i.test(itemName)) {
+                    itemName = itemName.replace(/^(an?|the)\s+/i, 'an unlocked ');
+                }
+                const qbuf = `There is ${itemName} here; ${verb} ${it ? 'it' : 'its lock'}?`;
                 otmp.lknown = true;
                 const ansCode = await ynFunction(qbuf, 'ynq', 'q'.charCodeAt(0), display);
                 const ansChar = String.fromCharCode(ansCode);
