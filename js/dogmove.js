@@ -937,7 +937,7 @@ export async function pet_ranged_attk(mon, map, player, display, fov = null, gam
 export async function dog_move(mon, map, player, display, fov, after = false, game = null) {
     const omx = mon.mx, omy = mon.my;
     // C ref: hack.h #define distu(xx,yy) dist2(xx,yy,u.ux,u.uy)
-    const udist = dist2(omx, omy, player.x, player.y);
+    let udist = dist2(omx, omy, player.x, player.y);
     const edogRaw = mon.edog || null;
     const edog = edogRaw || { apport: 0, hungrytime: 1000, whistletime: 0, ogoal: { x: 0, y: 0 } };
     if (edog && !edog.ogoal) edog.ogoal = { x: 0, y: 0 };
@@ -958,8 +958,15 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     if (edogRaw && await dog_hunger(mon, edogRaw, turnCount, map, display, player, fov))
         return 2; // MMOVE_DIED — starved
 
-    // C ref: dogmove.c:1010-1015 — steed check (Conflict dismount)
-    // TODO: not yet implemented (no riding in JS)
+    // C ref: dogmove.c:1010-1018 — steed/overlap handling.
+    if (mon === player?.usteed) {
+        // Conflict dismount path remains handled elsewhere; preserve core
+        // dog_move invariant that ridden steed uses udist=1.
+        udist = 1;
+    } else if (!udist) {
+        // C returns MMOVE_NOTHING when a non-steed pet overlaps hero.
+        return 0;
+    }
 
     // C ref: dogmove.c:1024-1030 — dog_invent before dog_goal
     // When dog_invent returns 1 (ate), C does goto newdogpos.

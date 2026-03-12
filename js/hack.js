@@ -500,6 +500,10 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     mon.my = oldPlayerY;
     player.x = nx;
     player.y = ny;
+    if (player.usteed) {
+        player.usteed.mx = player.x;
+        player.usteed.my = player.y;
+    }
     player.moved = true;
     game.lastMoveDir = dir;
     player.displacedPetThisTurn = true;
@@ -992,6 +996,10 @@ export async function domove_core(dir, player, map, display, game) {
         // Normal move: update player position and FOV.
         player.x = nx;
         player.y = ny;
+        if (player.usteed) {
+            player.usteed.mx = player.x;
+            player.usteed.my = player.y;
+        }
         player.moved = true;
         ctx.move = 1;
         game.lastMoveDir = moveDir;

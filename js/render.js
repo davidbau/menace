@@ -478,6 +478,7 @@ export function formatStatusLine2(player) {
     }
     if (player.Levitation) parts.push('Lev');
     if (player.flying) parts.push('Fly');
+    if (player.usteed) parts.push('Ride');
     if (player.blind) parts.push('Blind');
     if (player.confused) parts.push('Conf');
     if (player.stunned) parts.push('Stun');

@@ -8624,3 +8624,24 @@ Validation:
 - Effect on the same steed micro-session:
   - first divergence moved later again (step 8 -> step 9), confirming better
     alignment of mounted turn processing.
+
+## 2026-03-12: Steed movement/newsym dogmove alignment follow-up
+
+- Continued #351 triage on `/tmp/t03_s725_w_ride1_gp.session.json` and landed
+  three C-faithful corrections:
+  - `newsym()` now avoids drawing hero `@` on the mounted square (`u.usteed`);
+    the steed glyph path renders instead.
+  - `domove()` now synchronizes `u.usteed.mx/my` whenever hero position updates,
+    including pet-swap movement path.
+  - `dog_move()` now matches C steed/overlap handling at entry:
+    - force `udist=1` for `mtmp == u.usteed`,
+    - early-return `MMOVE_NOTHING` for non-steed `udist==0`.
+- Added missing status condition text:
+  - `formatStatusLine2()` now appends `Ride` when mounted (matching C botl).
+
+Outcome:
+- Canonical gameplay parity suite remains fully green after these changes:
+  `203/203` passing (`scripts/run-and-report.sh --failures`).
+- In the steed micro-session, first mismatch moved from mount-position/glyph
+  drift to deeper dogmove branch-ordering (`dog_goal*` vs C `distfleeck` path),
+  giving a tighter next target for #351.

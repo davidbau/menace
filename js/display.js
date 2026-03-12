@@ -2235,8 +2235,8 @@ export function newsym(x, y, ctxOrMap = null) {
     const visEngr = map.engravingAt(x, y);
     if (visEngr) visEngr.erevealed = true;
 
-    // Player glyph
-    if (player && x === player.x && y === player.y) {
+    // Player glyph (when mounted, C shows the steed glyph on hero square).
+    if (player && x === player.x && y === player.y && !player.usteed) {
         const heroGlyph = playerMapGlyph(player);
         display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
         return;
