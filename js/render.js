@@ -474,10 +474,11 @@ export function formatStatusLine2(player) {
         const idx = Math.max(0, Math.min(encNames.length - 1, (player.encumbrance || 1) - 1));
         parts.push(encNames[idx]);
     }
+    if (player.Levitation) parts.push('Lev');
+    if (player.flying) parts.push('Fly');
     if (player.blind) parts.push('Blind');
     if (player.confused) parts.push('Conf');
     if (player.stunned) parts.push('Stun');
     if (player.hallucinating) parts.push('Hallu');
-    if (upolyd && player.flying) parts.push('Fly');
     return parts.join(' ');
 }
