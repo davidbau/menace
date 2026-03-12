@@ -1015,21 +1015,24 @@ export async function dosearch0(player, map, display, game = null) {
 
             if (loc.typ === SDOOR) {
                 if (rnl(7) === 0) {
-                    loc.typ = DOOR;
-                    loc.flags = D_CLOSED;
+                    cvt_sdoor_to_door(loc);
+                    recalc_block_point(nx, ny);
                     await exercise(player, A_WIS, true);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }
+                    feel_newsym(nx, ny);
                     await display.putstr_message('You find a hidden door.');
                 }
             } else if (loc.typ === SCORR) {
                 if (rnl(7) === 0) {
                     loc.typ = CORR;
+                    unblock_point(nx, ny);
                     await exercise(player, A_WIS, true);
                     if (game && Number.isInteger(game.multi) && game.multi > 0) {
                         game.multi = 0;
                     }
+                    feel_newsym(nx, ny);
                     await display.putstr_message('You find a hidden passage.');
                 }
             } else {
