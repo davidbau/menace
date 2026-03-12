@@ -2000,6 +2000,16 @@ export function gender(mtmp) {
   return mtmp.female;
 }
 
+// C ref: mondata.c locomotion()/stagger() motion verb tables.
+// Keep these local fallbacks explicit so locomotion helpers never throw.
+const levitate = ['float', 'Float', 'wobble', 'Wobble'];
+const flys = ['fly', 'Fly', 'flutter', 'Flutter'];
+const flyl = ['fly', 'Fly', 'stagger', 'Stagger'];
+const slither = ['slither', 'Slither', 'falter', 'Falter'];
+const ooze = ['ooze', 'Ooze', 'tremble', 'Tremble'];
+const immobile = ['wiggle', 'Wiggle', 'pulsate', 'Pulsate'];
+const crawl = ['crawl', 'Crawl', 'falter', 'Falter'];
+
 // Autotranslated from mondata.c:1379
 export function locomotion(ptr, def) {
   let locoindx = ( def !== highc( def)) ? 0 : 1;

@@ -9042,3 +9042,20 @@ Validation:
   - `seed100_multidigit_gameplay` still full pass.
   - Pending `t11_s748_w_covmax3_gp` remains unchanged (this was a structural
     correctness fix, not the root cause of that session's divergence).
+
+### mondata locomotion table hardening: avoid latent runtime crash
+
+- While probing pending-session divergence paths, JS hit a runtime exception:
+  `ReferenceError: slither is not defined` in `mondata.locomotion()`.
+- Root cause:
+  - movement-verb tables used by `locomotion()`/`stagger()` referenced
+    `slither` (and peer tables) without file-local definitions.
+- Fix:
+  - added explicit local fallback motion-verb tables
+    (`levitate`, `flys`, `flyl`, `slither`, `ooze`, `immobile`, `crawl`)
+    in `js/mondata.js`.
+- Validation:
+  - `seed42_gameplay`: PASS
+  - `seed100_multidigit_gameplay`: PASS
+  - pending `t11_s748_w_covmax3_gp` returns to prior divergence baseline
+    (no new crash introduced by this fix).
