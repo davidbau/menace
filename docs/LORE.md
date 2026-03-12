@@ -8951,5 +8951,23 @@ Validation:
 - Validation snapshot:
   - `t04_s706_w_minetn1_gp` first RNG divergence moved later to index `5699`
     (`getArrivalPosition` vs `mineralize`).
-  - `seed42_gameplay` remains fully passing.
-  - `seed033_manual_direct` unchanged (no regression from this slice).
+- `seed42_gameplay` remains fully passing.
+- `seed033_manual_direct` unchanged (no regression from this slice).
+
+### getpos travel cursor duplicate-describe caused seed033 drift (fixed 2026-03-12)
+
+- Symptom:
+  - `seed033_manual_direct` diverged at travel targeting around step `460` with
+    duplicated toplines (`"floor of a room  floor of a room"`), then
+    unexpected `--More--` prompts and downstream RNG/event drift.
+- Root cause:
+  - In `js/getpos.js`, cursor movement emitted a description immediately, but
+    the next loop iteration also ran `auto_describe()` before the next key
+    because `msgGiven` was not set. This double-posted travel descriptions.
+- Fix:
+  - After movement-time `display.putstr_message(message)`, set
+    `msgGiven = true` so `auto_describe()` is skipped until after the next key,
+    matching C getpos message cadence.
+- Validation:
+  - `seed033_manual_direct` now fully matches RNG/events/screens/colors.
+  - Full gameplay report is green: `271/271` passing.

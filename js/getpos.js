@@ -805,6 +805,10 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                         // replacements on the message row.
                         if (runtimeCtx.travelMode) replaceToplineMessage();
                         await display.putstr_message(message);
+                        // Suppress immediate duplicate auto_describe() on the
+                        // next loop iteration; C sets msg_given around cursor
+                        // feedback and only re-describes after the next key.
+                        msgGiven = true;
                     }
                     cursorState = putCursor(display, cx, cy);
                 }
