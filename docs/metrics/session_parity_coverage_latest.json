@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-12T02:11:26.888Z",
-  "commit": "8b17dcf22789c6ddf79b8b50521657b12c2d8404",
+  "generatedAt": "2026-03-12T03:17:28.928Z",
+  "commit": "fce248fceae190cedae83e2d20cfe495cf2983cd",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/mazes/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 53.37,
-    "branchesPct": 59.46,
-    "functionsPct": 34.89
+    "linesPct": 53.48,
+    "branchesPct": 59.52,
+    "functionsPct": 35.07
   },
   "filteredCount": 108,
   "lowestCovered": [
@@ -359,25 +359,6 @@
       }
     },
     {
-      "relPath": "js/trap.js",
-      "baseName": "trap.js",
-      "lines": {
-        "total": 3187,
-        "covered": 982,
-        "pct": 30.81
-      },
-      "branches": {
-        "total": 287,
-        "covered": 152,
-        "pct": 52.96
-      },
-      "functions": {
-        "total": 142,
-        "covered": 30,
-        "pct": 21.12
-      }
-    },
-    {
       "relPath": "js/dbridge.js",
       "baseName": "dbridge.js",
       "lines": {
@@ -413,6 +394,25 @@
         "total": 34,
         "covered": 0,
         "pct": 0
+      }
+    },
+    {
+      "relPath": "js/trap.js",
+      "baseName": "trap.js",
+      "lines": {
+        "total": 3187,
+        "covered": 1008,
+        "pct": 31.62
+      },
+      "branches": {
+        "total": 297,
+        "covered": 155,
+        "pct": 52.18
+      },
+      "functions": {
+        "total": 142,
+        "covered": 31,
+        "pct": 21.83
       }
     },
     {
@@ -481,9 +481,9 @@
         "pct": 32.96
       },
       "branches": {
-        "total": 282,
-        "covered": 169,
-        "pct": 59.92
+        "total": 285,
+        "covered": 172,
+        "pct": 60.35
       },
       "functions": {
         "total": 105,
@@ -546,25 +546,6 @@
         "total": 86,
         "covered": 26,
         "pct": 30.23
-      }
-    },
-    {
-      "relPath": "js/potion.js",
-      "baseName": "potion.js",
-      "lines": {
-        "total": 2148,
-        "covered": 796,
-        "pct": 37.05
-      },
-      "branches": {
-        "total": 215,
-        "covered": 101,
-        "pct": 46.97
-      },
-      "functions": {
-        "total": 79,
-        "covered": 31,
-        "pct": 39.24
       }
     },
     {
@@ -652,9 +633,9 @@
         "pct": 40.61
       },
       "branches": {
-        "total": 66,
-        "covered": 25,
-        "pct": 37.87
+        "total": 67,
+        "covered": 26,
+        "pct": 38.8
       },
       "functions": {
         "total": 30,
@@ -701,6 +682,25 @@
       }
     },
     {
+      "relPath": "js/potion.js",
+      "baseName": "potion.js",
+      "lines": {
+        "total": 2148,
+        "covered": 894,
+        "pct": 41.62
+      },
+      "branches": {
+        "total": 250,
+        "covered": 109,
+        "pct": 43.6
+      },
+      "functions": {
+        "total": 79,
+        "covered": 36,
+        "pct": 45.56
+      }
+    },
+    {
       "relPath": "js/dog.js",
       "baseName": "dog.js",
       "lines": {
@@ -739,25 +739,6 @@
       }
     },
     {
-      "relPath": "js/attrib.js",
-      "baseName": "attrib.js",
-      "lines": {
-        "total": 1188,
-        "covered": 514,
-        "pct": 43.26
-      },
-      "branches": {
-        "total": 85,
-        "covered": 51,
-        "pct": 60
-      },
-      "functions": {
-        "total": 61,
-        "covered": 20,
-        "pct": 32.78
-      }
-    },
-    {
       "relPath": "js/invent.js",
       "baseName": "invent.js",
       "lines": {
@@ -766,9 +747,9 @@
         "pct": 43.39
       },
       "branches": {
-        "total": 345,
-        "covered": 212,
-        "pct": 61.44
+        "total": 351,
+        "covered": 219,
+        "pct": 62.39
       },
       "functions": {
         "total": 148,
@@ -793,6 +774,25 @@
         "total": 44,
         "covered": 16,
         "pct": 36.36
+      }
+    },
+    {
+      "relPath": "js/attrib.js",
+      "baseName": "attrib.js",
+      "lines": {
+        "total": 1188,
+        "covered": 532,
+        "pct": 44.78
+      },
+      "branches": {
+        "total": 100,
+        "covered": 60,
+        "pct": 60
+      },
+      "functions": {
+        "total": 61,
+        "covered": 22,
+        "pct": 36.06
       }
     },
     {
@@ -895,13 +895,13 @@
       "baseName": "polyself.js",
       "lines": {
         "total": 2156,
-        "covered": 997,
-        "pct": 46.24
+        "covered": 998,
+        "pct": 46.28
       },
       "branches": {
-        "total": 223,
-        "covered": 26,
-        "pct": 11.65
+        "total": 228,
+        "covered": 33,
+        "pct": 14.47
       },
       "functions": {
         "total": 37,
@@ -937,9 +937,9 @@
         "pct": 46.81
       },
       "branches": {
-        "total": 180,
-        "covered": 122,
-        "pct": 67.77
+        "total": 184,
+        "covered": 128,
+        "pct": 69.56
       },
       "functions": {
         "total": 81,
