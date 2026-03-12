@@ -24,7 +24,7 @@ import { pline, Norep } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
 import { M2_WERE, PM_WIZARD } from './monsters.js';
 import { were_change } from './were.js';
-import { allocateMonsterMovement } from './mon.js';
+import { allocateMonsterMovement, mcalcmove } from './mon.js';
 import { rn2, rnd, rn1, initRng, getRngState, setRngState, getRngCallCount, setRngCallCount,
          enableRngLog, getRngLog as readRngLog, pushRngLogEntry } from './rng.js';
 import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
@@ -495,24 +495,29 @@ export async function stop_occupation(game) {
 }
 
 // C ref: allmain.c:116 [static] — u_calc_moveamt(wtcap): hero movement amount.
-// JS approximation: no steed movement penalty.
 function u_calc_moveamt(player) {
-    // C ref: allmain.c u_calc_moveamt() uses gy.youmonst.data->mmove
-    // (current form movement), not a cached hero speed field.
-    const formSpeed = Number(player?.type?.mmove);
-    let moveamt = Number.isFinite(formSpeed) ? formSpeed : (player.speed || NORMAL_SPEED);
-    if (player.veryFast) {
-        if (hasEnv('WEBHACK_RUN_DEBUG')
-            && getEnv('WEBHACK_RUN_DEBUG') !== '0') {
-            const e = player.uprops[28];
-            const rngIdx = readRngLog().length;
-            writeStderr(`DBG u_calc_moveamt veryFast turns=${player.turns} rngIdx=${rngIdx} intr=${e?.intrinsic} extr=${e?.extrinsic}\n`);
+    let moveamt;
+    // C ref: allmain.c:121-124 — while riding and having moved, use steed speed.
+    if (player?.usteed && player?.umoved) {
+        moveamt = mcalcmove(player.usteed, true);
+    } else {
+        // C ref: allmain.c u_calc_moveamt() uses gy.youmonst.data->mmove
+        // (current form movement), not a cached hero speed field.
+        const formSpeed = Number(player?.type?.mmove);
+        moveamt = Number.isFinite(formSpeed) ? formSpeed : (player.speed || NORMAL_SPEED);
+        if (player.veryFast) {
+            if (hasEnv('WEBHACK_RUN_DEBUG')
+                && getEnv('WEBHACK_RUN_DEBUG') !== '0') {
+                const e = player.uprops[28];
+                const rngIdx = readRngLog().length;
+                writeStderr(`DBG u_calc_moveamt veryFast turns=${player.turns} rngIdx=${rngIdx} intr=${e?.intrinsic} extr=${e?.extrinsic}\n`);
+            }
         }
-    }
-    if (player.veryFast) {
-        if (rn2(3) !== 0) moveamt += NORMAL_SPEED;
-    } else if (player.fast) {
-        if (rn2(3) === 0) moveamt += NORMAL_SPEED;
+        if (player.veryFast) {
+            if (rn2(3) !== 0) moveamt += NORMAL_SPEED;
+        } else if (player.fast) {
+            if (rn2(3) === 0) moveamt += NORMAL_SPEED;
+        }
     }
     // C ref: allmain.c:138-156 — encumbrance penalty reduces movement amount
     const wtcap = near_capacity(player);

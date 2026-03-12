@@ -8663,3 +8663,23 @@ Validation:
   - Screen match `12/21` -> `18/21`
   - Event match `49/207` -> `73/142`
 - Remaining gap narrowed to later mounted-position sequencing in step 10.
+
+### Follow-up: mounted hero movement budget must use steed `mcalcmove`
+
+- C `allmain.c:u_calc_moveamt()` uses:
+  - `mcalcmove(u.usteed, TRUE)` when `u.usteed && u.umoved`,
+  - otherwise hero-form speed + Fast/Very_fast adjustments.
+- JS previously always used hero-form speed path and never set `u.umoved` on
+  normal movement, so mounted turns missed steed-speed RNG draws.
+- Landed fixes:
+  - `domove()`/pet-swap movement now set `player.umoved = true` on successful
+    movement.
+  - `u_calc_moveamt()` now follows C mounted branch and calls `mcalcmove` on
+    the steed when mounted+umoved.
+
+Validation:
+- Canonical parity suite remains fully green: `206/206`.
+- Steed micro-session advanced again:
+  - RNG `2700/2815` -> `2713/2787`
+  - Events `73/142` -> `74/118`
+  - First divergence moved later to mounted combat sequencing during `l` step.
