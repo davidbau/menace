@@ -559,7 +559,7 @@ function background_enlightenment(mode, final, game) {
     const player = (game.u || game.player);
 
     enlght_out('');
-    enlght_out('Background:');
+    enlght_out(' Background:');
 
     // Report role and level
     const roleName = player.roleName || player.role || 'Adventurer';
@@ -613,7 +613,7 @@ function basics_enlightenment(mode, final, game) {
     const player = (game.u || game.player);
 
     enlght_out('');
-    enlght_out('Basics:');
+    enlght_out(' Basics:');
 
     // Hit points
     let hp = player.uhp || 0;
@@ -665,7 +665,7 @@ function basics_enlightenment(mode, final, game) {
 // cf. insight.c:804 [static] — characteristics_enlightenment(mode, final, game)
 export function characteristics_enlightenment(mode, final, game) {
     enlght_out('');
-    enlght_out(`${!final ? '' : 'Final '}Characteristics:`);
+    enlght_out(` ${!final ? '' : 'Final '}Characteristics:`);
 
     one_characteristic(mode, final, A_STR, game);
     one_characteristic(mode, final, A_DEX, game);
@@ -721,7 +721,7 @@ function status_enlightenment(mode, final, game) {
     const map = (game.lev || game.map);
 
     enlght_out('');
-    enlght_out(final ? 'Final Status:' : 'Status:');
+    enlght_out(final ? ' Final Status:' : ' Status:');
 
     // Polymorph
     if (player.upolyd || player.polymorphed) {
@@ -911,7 +911,7 @@ export async function enlightenment(mode, final, game) {
 
     // Miscellaneous section
     enlght_out('');
-    enlght_out('Miscellaneous:');
+    enlght_out(' Miscellaneous:');
 
     if ((mode & BASICENLIGHTENMENT) !== 0 && (game.wizard || game.discover || final)) {
         if (game.wizard || game.discover) {

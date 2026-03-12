@@ -476,7 +476,7 @@ export async function rhack(ch, game) {
     // Cast spell (Z)
     // C ref: spell.c docast()
     if (c === 'Z') {
-        return await docast(player, display, map);
+        return await docast(player, display, map, game);
     }
 
     // Version (v)

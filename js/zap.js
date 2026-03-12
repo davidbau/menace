@@ -5,7 +5,8 @@
 
 import { rn2, rnd, d, rn1, rnz } from './rng.js';
 import {
-    isok, ACCESSIBLE, IS_WALL, IS_DOOR, COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
+    isok, ACCESSIBLE, IS_WALL, IS_DOOR, SDOOR, D_CLOSED, D_LOCKED,
+    COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     STONE, ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
     TELEP_TRAP, LEVEL_TELEP, MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, MAGIC_PORTAL, VIBRATING_SQUARE, is_magical_trap,
@@ -111,7 +112,7 @@ import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './e
 import { random_engraving_rng, deltrap } from './dungeon.js';
 import { discoverObject } from './o_init.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
-import { boxlock } from './lock.js';
+import { boxlock, doorlock } from './lock.js';
 import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
 import { newsym, vision_recalc } from './display.js';
 import {
@@ -1129,7 +1130,7 @@ export async function zapnodir(obj, player, map, display, game) {
   if (known) discoverObject(obj.otyp, true, true);
 }
 
-async function bhit_zapped_wand(obj, player, map) {
+async function bhit_zapped_wand(obj, player, map, game = null) {
   if (!obj || !player || !map) return null;
   const ddx = player.dx || 0;
   const ddy = player.dy || 0;
@@ -1173,7 +1174,26 @@ async function bhit_zapped_wand(obj, player, map) {
         range--;
       }
 
-      if (IS_WALL(loc.typ) || (IS_DOOR(loc.typ) && loc.flags)) {
+      // C ref: zap.c:4044-4063 — door interaction for zapped wands/spells
+      if ((IS_DOOR(loc.typ) || loc.typ === SDOOR) && game) {
+        switch (obj.otyp) {
+        case WAN_OPENING:
+        case WAN_LOCKING:
+        case WAN_STRIKING:
+        case SPE_KNOCK:
+        case SPE_WIZARD_LOCK:
+        case SPE_FORCE_BOLT:
+          if (await doorlock(game, obj, x, y)) {
+            if (cansee(x, y))
+              discoverObject(obj.otyp, true, true);
+          }
+          break;
+        }
+      }
+
+      // C ref: zap.c:4064 — beam stops at walls or closed/locked doors
+      // (broken doors don't stop the beam — C uses closed_door() which checks D_LOCKED|D_CLOSED)
+      if (IS_WALL(loc.typ) || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)))) {
         x -= ddx;
         y -= ddy;
         break;
@@ -1360,7 +1380,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
     } else if (player && player.dz) {
       if (await zap_updown(obj, player, map)) disclose = true;
     } else {
-      await bhit_zapped_wand(obj, player, map);
+      await bhit_zapped_wand(obj, player, map, game);
     }
     await zapwrapup(obj, disclose, player, display);
   } else if (dir_type === 1) {

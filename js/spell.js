@@ -1061,7 +1061,7 @@ export function check_unpaid(obj) {
 }
 
 // cf. spell.c docast() — main #cast command
-export async function docast(player, display, map) {
+export async function docast(player, display, map, game = null) {
     if (!player) return { moved: false, tookTime: false };
     const nspells = num_spells(player);
     if (nspells === 0) {
@@ -1082,7 +1082,7 @@ export async function docast(player, display, map) {
 
     // Cast the spell
     const otyp = spellid(player, result);
-    const castResult = await spelleffects(otyp, false, player, map, display);
+    const castResult = await spelleffects(otyp, false, player, map, display, game);
     return { moved: false, tookTime: castResult > 0 };
 }
 
@@ -1176,7 +1176,7 @@ export async function getspell(prompt, player, display, map = null) {
 // In C, this dispatches all spell effects. In the JS port, many spell effects
 // are handled through weffects/seffects/peffects. This provides the common
 // checks and energy accounting, then delegates to the effect handler.
-export async function spelleffects(spell_otyp, atme, player, map, display) {
+export async function spelleffects(spell_otyp, atme, player, map, display, game = null) {
     if (!player || !player.spells) return 0;
 
     // Find spell index
@@ -1318,7 +1318,7 @@ export async function spelleffects(spell_otyp, atme, player, map, display) {
                 }
             }
         }
-        await weffects(pseudo, player, map, display);
+        await weffects(pseudo, player, map, display, game);
         break;
     }
 
