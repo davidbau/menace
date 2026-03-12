@@ -252,12 +252,259 @@ def build_covmax3_moves() -> str:
     return moves
 
 
+def build_covmax4_moves() -> str:
+    moves = ""
+
+    # Front-load broad interaction inventory; keep names short for key efficiency.
+    for item in [
+        "wand of fire",
+        "wand of cold",
+        "wand of lightning",
+        "wand of sleep",
+        "wand of striking",
+        "wand of digging",
+        "wand of opening",
+        "wand of locking",
+        "scroll of create monster",
+        "scroll of taming",
+        "potion of confusion",
+        "potion of monster detection",
+        "tinning kit",
+        "stethoscope",
+        "lock pick",
+        "skeleton key",
+        "apple",
+        "newt egg",
+        "lizard egg",
+        "kobold egg",
+    ]:
+        moves += wish(item)
+
+    # Create a dense local zoo for ranged/action churn.
+    for mon in [
+        "newt",
+        "jackal",
+        "kobold",
+        "goblin",
+        "grid bug",
+        "acid blob",
+        "floating eye",
+        "lichen",
+    ]:
+        moves += genesis(mon)
+
+    moves += CTRL_F + SP
+    moves += CTRL_I + SP
+
+    # Main churn loop: cast/zap/throw/apply/read/quaff with movement + door ops.
+    for _ in range(8):
+        for letter in "efghij":
+            moves += "z" + letter + "j" + (SP * 2)  # zap south
+        for letter in "klm":
+            moves += "t" + letter + "j" + (SP * 2)  # throw eggs/items south
+        for letter in "nop":
+            moves += "a" + letter + (SP * 2)        # apply tool
+        for letter in "qr":
+            moves += "r" + letter + (SP * 2)        # read
+        for letter in "st":
+            moves += "q" + letter + (SP * 2)        # quaff
+
+        # Door/terrain + local combat.
+        moves += "o" + "l" + (SP * 2)
+        moves += "c" + "l" + (SP * 2)
+        moves += "f" + "j" + (SP * 2)
+        moves += "F" + "J" + (SP * 2)
+        moves += "lljjhhkk" + "s" + "." + "," + "d" + (SP * 2)
+
+    # Depth hops to pick up map/level special cases while reusing same command mix.
+    for depth in [3, 7, 10]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(3):
+            moves += "z" + "e" + "j" + (SP * 2)
+            moves += "t" + "k" + "j" + (SP * 2)
+            moves += "a" + "n" + (SP * 2)
+            moves += "f" + "j" + (SP * 2)
+            moves += "lljjhhkk" + "s" + "." + "," + "d" + (SP * 2)
+
+    moves += "#pray" + ENTER + (SP * 2)
+    moves += "#sit" + ENTER + (SP * 2)
+    return moves
+
+
+def build_covmax5_moves() -> str:
+    moves = ""
+
+    # Parity-safer wish strings: avoid fragile named-egg/object parse paths.
+    for item in [
+        "wand of digging",
+        "wand of fire",
+        "wand of cold",
+        "wand of striking",
+        "wand of sleep",
+        "wand of opening",
+        "wand of locking",
+        "wand of teleportation",
+        "scroll of create monster",
+        "scroll of taming",
+        "scroll of teleportation",
+        "scroll of identify",
+        "potion of healing",
+        "potion of confusion",
+        "potion of levitation",
+        "stethoscope",
+        "pick-axe",
+        "lock pick",
+        "skeleton key",
+        "oil lamp",
+        "blindfold",
+        "food ration",
+    ]:
+        moves += wish(item)
+
+    # Controlled local zoo; simple monster names keep parser deterministic.
+    for mon in [
+        "jackal",
+        "kobold",
+        "goblin",
+        "newt",
+        "grid bug",
+        "floating eye",
+        "acid blob",
+        "lichen",
+    ]:
+        moves += genesis(mon)
+
+    # Reveal map/IDs for richer command context.
+    moves += CTRL_F + SP
+    moves += CTRL_I + SP
+
+    # Coverage churn loop: combat, doors, tools, wand zap directions, throw,
+    # read/quaff paths, then compact movement to trigger AI/FOV/state updates.
+    for _ in range(10):
+        moves += "o" + "l" + (SP * 2)
+        moves += "c" + "l" + (SP * 2)
+        moves += "f" + "j" + (SP * 2)
+        moves += "F" + "J" + (SP * 2)
+        for letter in "efghi":
+            moves += "z" + letter + "j" + (SP * 2)
+        for letter in "jkl":
+            moves += "t" + letter + "j" + (SP * 2)
+        for letter in "mn":
+            moves += "a" + letter + (SP * 2)
+        for letter in "op":
+            moves += "r" + letter + (SP * 2)
+        for letter in "qr":
+            moves += "q" + letter + (SP * 2)
+        moves += "lljjhhkk" + "s" + "." + "," + "d" + (SP * 2)
+
+    # Depth hops to touch more map generation/topology branches.
+    for depth in [3, 6, 9]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(2):
+            moves += "lljjhhkk" + "s" * 2 + "." + "," + "d" + (SP * 2)
+            moves += "z" + "e" + "j" + (SP * 2)
+            moves += "a" + "m" + (SP * 2)
+            moves += "f" + "j" + (SP * 2)
+
+    moves += "#pray" + ENTER + (SP * 2)
+    moves += "#sit" + ENTER + (SP * 2)
+    return moves
+
+
+def build_covmax6_moves() -> str:
+    moves = ""
+
+    # Keep early phase monster-light to postpone AI/RNG drift while still
+    # exercising broad command families.
+    for item in [
+        "wand of digging",
+        "wand of fire",
+        "wand of cold",
+        "wand of striking",
+        "wand of opening",
+        "wand of locking",
+        "wand of teleportation",
+        "scroll of identify",
+        "scroll of teleportation",
+        "scroll of remove curse",
+        "scroll of enchant armor",
+        "potion of healing",
+        "potion of levitation",
+        "stethoscope",
+        "pick-axe",
+        "lock pick",
+        "skeleton key",
+        "oil lamp",
+        "blindfold",
+        "food ration",
+    ]:
+        moves += wish(item)
+
+    moves += CTRL_F + SP
+    moves += CTRL_I + SP
+
+    # Phase A: mostly environment/tool/item interactions.
+    for _ in range(12):
+        moves += "o" + "l" + (SP * 2)
+        moves += "c" + "l" + (SP * 2)
+        moves += "a" + "m" + (SP * 2)
+        moves += "a" + "n" + (SP * 2)
+        moves += "r" + "o" + (SP * 2)
+        moves += "r" + "p" + (SP * 2)
+        moves += "q" + "q" + (SP * 2)
+        moves += "q" + "r" + (SP * 2)
+        moves += "z" + "e" + "j" + (SP * 2)
+        moves += "z" + "f" + "j" + (SP * 2)
+        moves += "z" + "g" + "j" + (SP * 2)
+        moves += "t" + "j" + "j" + (SP * 2)
+        moves += "lljjhhkk" + "s" + "." + "," + "d" + (SP * 2)
+
+    # Touch additional topology cases.
+    for depth in [2, 4, 6, 9]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(2):
+            moves += "lljjhhkk" + "s" * 2 + "." + "," + "d" + (SP * 2)
+            moves += "a" + "m" + (SP * 2)
+            moves += "z" + "e" + "j" + (SP * 2)
+
+    # Phase B: introduce monsters later for combat/AI/throw-zap interactions.
+    for mon in [
+        "jackal",
+        "kobold",
+        "goblin",
+        "newt",
+        "grid bug",
+        "floating eye",
+        "acid blob",
+        "lichen",
+    ]:
+        moves += genesis(mon)
+
+    for _ in range(8):
+        moves += "f" + "j" + (SP * 2)
+        moves += "F" + "J" + (SP * 2)
+        moves += "z" + "h" + "j" + (SP * 2)
+        moves += "z" + "i" + "j" + (SP * 2)
+        moves += "t" + "k" + "j" + (SP * 2)
+        moves += "lljjhhkk" + "." + "s" + (SP * 2)
+
+    moves += "#pray" + ENTER + (SP * 2)
+    moves += "#sit" + ENTER + (SP * 2)
+    return moves
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate one long coverage-max pending session.")
     parser.add_argument("--seed", type=int, default=741, help="Deterministic seed")
     parser.add_argument(
         "--scenario",
-        choices=["covmax1", "covmax2", "covmax3"],
+        choices=["covmax1", "covmax2", "covmax3", "covmax4", "covmax5", "covmax6"],
         default="covmax1",
         help="Coverage scenario recipe",
     )
@@ -274,8 +521,14 @@ def main():
         moves = build_covmax1_moves()
     elif args.scenario == "covmax2":
         moves = build_covmax2_moves()
-    else:
+    elif args.scenario == "covmax3":
         moves = build_covmax3_moves()
+    elif args.scenario == "covmax4":
+        moves = build_covmax4_moves()
+    elif args.scenario == "covmax5":
+        moves = build_covmax5_moves()
+    else:
+        moves = build_covmax6_moves()
     print(f"Seed: {args.seed}")
     print(f"Output: {outpath}")
     print(f"Move keycount: {len(moves)}")
