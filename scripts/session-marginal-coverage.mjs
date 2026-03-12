@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 
 function usage() {
   console.log('Usage: node scripts/session-marginal-coverage.mjs --sessions=<a,b,c>');
@@ -58,27 +59,44 @@ function main() {
     usage();
     process.exit(1);
   }
-  const baseline = runCoverage(sessions);
-  const rows = [];
-  for (const session of sessions) {
-    const subset = sessions.filter((s) => s !== session);
-    const minus = runCoverage(subset);
-    rows.push({
-      session,
-      lines: baseline.linesCovered - minus.linesCovered,
-      branches: baseline.branchesCovered - minus.branchesCovered,
-      functions: baseline.functionsCovered - minus.functionsCovered,
-    });
-  }
-  rows.sort((a, b) => (b.lines + b.branches + b.functions) - (a.lines + a.branches + a.functions));
+  const coverageDir = resolve('coverage');
+  const backupRoot = mkdtempSync(`${tmpdir()}/session-marginal-`);
+  const backupCoverageDir = resolve(backupRoot, 'coverage');
+  const hadCoverage = existsSync(coverageDir);
 
-  console.log(`Baseline (${sessions.length} sessions): lines=${baseline.linesCovered}/${baseline.linesTotal} (${baseline.linesPct}%), branches=${baseline.branchesCovered}/${baseline.branchesTotal} (${baseline.branchesPct}%), functions=${baseline.functionsCovered}/${baseline.functionsTotal} (${baseline.functionsPct}%)`);
-  console.log('');
-  console.log('Marginal contribution by session (drop-one):');
-  for (const row of rows) {
-    console.log(
-      `${basename(row.session)}\tlines=${formatDelta(row.lines)}\tbranches=${formatDelta(row.branches)}\tfunctions=${formatDelta(row.functions)}`,
-    );
+  if (hadCoverage) {
+    cpSync(coverageDir, backupCoverageDir, { recursive: true });
+  }
+
+  try {
+    const baseline = runCoverage(sessions);
+    const rows = [];
+    for (const session of sessions) {
+      const subset = sessions.filter((s) => s !== session);
+      const minus = runCoverage(subset);
+      rows.push({
+        session,
+        lines: baseline.linesCovered - minus.linesCovered,
+        branches: baseline.branchesCovered - minus.branchesCovered,
+        functions: baseline.functionsCovered - minus.functionsCovered,
+      });
+    }
+    rows.sort((a, b) => (b.lines + b.branches + b.functions) - (a.lines + a.branches + a.functions));
+
+    console.log(`Baseline (${sessions.length} sessions): lines=${baseline.linesCovered}/${baseline.linesTotal} (${baseline.linesPct}%), branches=${baseline.branchesCovered}/${baseline.branchesTotal} (${baseline.branchesPct}%), functions=${baseline.functionsCovered}/${baseline.functionsTotal} (${baseline.functionsPct}%)`);
+    console.log('');
+    console.log('Marginal contribution by session (drop-one):');
+    for (const row of rows) {
+      console.log(
+        `${basename(row.session)}\tlines=${formatDelta(row.lines)}\tbranches=${formatDelta(row.branches)}\tfunctions=${formatDelta(row.functions)}`,
+      );
+    }
+  } finally {
+    rmSync(coverageDir, { recursive: true, force: true });
+    if (hadCoverage && existsSync(backupCoverageDir)) {
+      cpSync(backupCoverageDir, coverageDir, { recursive: true });
+    }
+    rmSync(backupRoot, { recursive: true, force: true });
   }
 }
 

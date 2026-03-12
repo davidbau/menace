@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-12T20:39:11.540Z",
-  "commit": "38edbc0a7c903231b97cdeda7f4ee13c8a03dedd",
+  "generatedAt": "2026-03-12T21:06:51.212Z",
+  "commit": "c5f5d745e159228dc1458db8c21680026b191b1a",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -11,7 +11,7 @@
   },
   "overall": {
     "linesPct": 55.04,
-    "branchesPct": 59.39,
+    "branchesPct": 59.38,
     "functionsPct": 37.14
   },
   "filteredCount": 108,
@@ -576,9 +576,9 @@
         "pct": 40.97
       },
       "branches": {
-        "total": 307,
-        "covered": 136,
-        "pct": 44.29
+        "total": 306,
+        "covered": 135,
+        "pct": 44.11
       },
       "functions": {
         "total": 98,
