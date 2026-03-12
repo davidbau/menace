@@ -406,16 +406,20 @@ Rules:
 - avoid blending many unrelated themes into one long session unless necessary
 - **prefer a few high-yield sessions per theme over many low-signal sessions** —
   the goal is maximum coverage with minimum runtime
+- remove redundant alias sessions when a canonical equivalent exists (same seed
+  and key stream); keep one canonical file path
+- keep a small set of oldest tiny smoke sessions unconsolidated for fast sanity
+  checks and historical continuity
 
 Recommended naming:
 - `themeNN_seedXXX_<role>_<intent>.session.json`
 - example: `theme04_seed512_valkyrie_digging-branch-transition.session.json`
-- keep session filename length `<= 40` characters (including `.session.json`);
+- keep session filename length `<= 56` characters (including `.session.json`);
   prefer compact IDs if needed (for example `t04_s512_v_dig1_gp.session.json`)
 - root index for theme coordination:
   - `test/comparison/sessions/coverage/README.md`
 - filename limit (new/renamed sessions): keep full filename
-  (`<name>.session.json`) <= 40 chars; use abbreviated intent tags
+  (`<name>.session.json`) <= 56 chars; use abbreviated intent tags
   (example: `t04_s512_valk_dig-branch.session.json`).
 
 ## Coverage Campaign Plan (Theme-Driven)
@@ -450,7 +454,7 @@ Rules for this challenge:
 - Mix interactions intentionally (inventory, combat, map transitions, commands,
   environmental interactions) instead of long single-purpose loops.
 - Keep deterministic controls fixed (seed/datetime/options).
-- Keep filenames short and policy-compliant (`<= 40` chars including
+- Keep filenames short and policy-compliant (`<= 56` chars including
   `.session.json`).
 - Validate parity after capture and then fix/promote through the normal pending
   workflow.

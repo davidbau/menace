@@ -141,7 +141,7 @@ When running rebuilds/regenerations that can take several minutes:
     - recording/promoting new targeted coverage sessions.
 11. Track progress by **coverage percentage delta**, not session count.
 12. Session filename length policy: for new/renamed session files, keep
-   `<filename>.session.json` at 40 characters or fewer (to keep tooling output
+   `<filename>.session.json` at 56 characters or fewer (to keep tooling output
    and CLI workflows readable). Use compact intent tokens instead of long prose.
 13. Active capture tactic: follow the `Coverage-Per-Turn Agent Challenge` in
    `docs/COVERAGE.md`:

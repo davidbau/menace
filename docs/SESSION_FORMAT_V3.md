@@ -29,9 +29,10 @@ Naming convention: `seed<N>_<description>.session.json`
 
 Filename length guideline (process rule):
 - For new or renamed session files, keep the full filename
-  (`<name>.session.json`) at **40 characters or fewer**.
+  (`<name>.session.json`) at **56 characters or fewer**.
 - Prefer compact intent tokens over long prose in `<description>`.
 - Legacy longer names may exist; do not introduce new long names.
+- Keep a small set of oldest tiny sessions unconsolidated as smoke tests.
 
 Examples:
 - `seed42_gameplay.session.json`
