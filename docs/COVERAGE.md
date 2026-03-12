@@ -410,6 +410,8 @@ Rules:
   and key stream); keep one canonical file path
 - keep a small set of oldest tiny smoke sessions unconsolidated for fast sanity
   checks and historical continuity
+- run `npm run session:redundancy` before session commits to prevent accidental
+  duplicate growth (exact duplicates or non-allowlisted key-stream duplicates)
 
 Recommended naming:
 - `themeNN_seedXXX_<role>_<intent>.session.json`
