@@ -1578,7 +1578,24 @@ function spellLevelForEntry(entry) {
 }
 
 function spellSkillForEntry(entry) {
-    return spell_skilltype(entry?.otyp);
+    if (!entry) return 0;
+    const od = objectData[entry.otyp] || {};
+    const ocSubtyp = Number(od.oc_subtyp);
+    if (Number.isInteger(ocSubtyp) && ocSubtyp > 0) return ocSubtyp;
+    const ocSkill = Number(od.oc_skill);
+    if (Number.isInteger(ocSkill) && ocSkill > 0) return ocSkill;
+    // Fallback for incomplete object rows: preserve C spell-school ordering.
+    const category = spell_skilltype(entry.otyp);
+    switch (category) {
+    case SPELL_CATEGORY_ATTACK: return 28;
+    case SPELL_CATEGORY_HEALING: return 29;
+    case SPELL_CATEGORY_DIVINATION: return 30;
+    case SPELL_CATEGORY_ENCHANTMENT: return 31;
+    case SPELL_CATEGORY_CLERICAL: return 32;
+    case SPELL_CATEGORY_ESCAPE: return 33;
+    case SPELL_CATEGORY_MATTER: return 34;
+    default: return 0;
+    }
 }
 
 function spellNameForEntry(entry) {
@@ -1604,14 +1621,14 @@ export function spell_cmp(lhs, rhs, sortMode = SORTBY_ALPHA) {
         if (levl1 !== levl2) return levl2 - levl1;
         break;
     case SORTBY_SKL_AL:
-        if (skil1 !== skil2) return skil1 < skil2 ? -1 : 1;
+        if (skil1 !== skil2) return skil1 - skil2;
         break;
     case SORTBY_SKL_LO:
-        if (skil1 !== skil2) return skil1 < skil2 ? -1 : 1;
+        if (skil1 !== skil2) return skil1 - skil2;
         if (levl1 !== levl2) return levl1 - levl2;
         break;
     case SORTBY_SKL_HI:
-        if (skil1 !== skil2) return skil1 < skil2 ? -1 : 1;
+        if (skil1 !== skil2) return skil1 - skil2;
         if (levl1 !== levl2) return levl2 - levl1;
         break;
     case SORTBY_ALPHA:
