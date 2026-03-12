@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Generate high-yield long-form coverage sessions (pending).
+
+Strategy:
+- one session per run
+- target ~800 steps
+- mix commands/interactions to maximize coverage-per-turn
+"""
+
+import os
+import argparse
+import importlib.util
+
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "..", ".."))
+SESSIONS_DIR = os.path.join(PROJECT_ROOT, "test", "comparison", "sessions", "pending")
+
+_spec = importlib.util.spec_from_file_location(
+    "run_session", os.path.join(SCRIPT_DIR, "run_session.py"))
+_rs = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_rs)
+
+
+CHARACTER_WIZ = {
+    "name": "Wizard",
+    "role": "Wizard",
+    "race": "human",
+    "gender": "male",
+    "align": "neutral",
+}
+
+CTRL_G = "\x07"  # #wizgenesis
+CTRL_W = "\x17"  # #wizwish
+CTRL_F = "\x06"  # #wizmap
+CTRL_I = "\x09"  # #wizidentify
+CTRL_V = "\x16"  # #wizlevelport
+ENTER = "\n"
+SP = " "
+
+
+def wish(item: str) -> str:
+    return CTRL_W + item + ENTER + SP
+
+
+def genesis(monster: str) -> str:
+    return CTRL_G + monster + ENTER + SP
+
+
+def levelport(depth: int) -> str:
+    return CTRL_V + str(depth) + ENTER + (SP * 2)
+
+
+def build_covmax_moves() -> str:
+    moves = ""
+
+    # Initial diagnostics and setup.
+    moves += CTRL_F + SP
+    moves += CTRL_I + SP
+
+    # Broad inventory/tool coverage (short names to keep keycount efficient).
+    for item in [
+        "wand of fire",
+        "wand of cold",
+        "wand of digging",
+        "potion of healing",
+        "potion of confusion",
+        "scroll of identify",
+        "scroll of teleportation",
+        "pick-axe",
+        "stethoscope",
+        "oil lamp",
+    ]:
+        moves += wish(item)
+
+    # Spawn combat targets and pets/hostiles.
+    for mon in ["orc", "kobold", "newt", "jackal", "lichen"]:
+        moves += genesis(mon)
+
+    # Exercise item flows (letters are intentionally broad; invalid selections
+    # still drive parser/menu branches and prompt paths).
+    for letter in "efghij":
+        moves += "q" + letter + (SP * 2)        # quaff
+    for letter in "klmn":
+        moves += "r" + letter + (SP * 2)        # read
+    for letter in "efg":
+        moves += "z" + letter + "j" + (SP * 2)  # zap south
+    for letter in "op":
+        moves += "w" + letter + (SP * 2)        # wield
+    for letter in "qr":
+        moves += "W" + letter + (SP * 2)        # wear
+    for letter in "qr":
+        moves += "T" + letter + (SP * 2)        # takeoff
+    for letter in "st":
+        moves += "a" + letter + (SP * 2)        # apply
+
+    # Structured dungeon traversal to hit map/combat/AI/trap/door paths.
+    route = "lllljjjjhhhhkkkk" + "lljjhhkk" + "s" * 4 + "." * 2 + "," + "d"
+    for depth in [2, 6, 10]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(3):
+            moves += route + (SP * 2)
+        moves += "#pray" + ENTER + (SP * 2)
+        moves += "#sit" + ENTER + (SP * 2)
+
+    # End with sustained local exploration/combat churn.
+    for _ in range(8):
+        moves += "lljjhhkk" + "f" + "j" + "." + "s" + (SP * 2)
+
+    return moves
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate one long coverage-max pending session.")
+    parser.add_argument("--seed", type=int, default=741, help="Deterministic seed")
+    args = parser.parse_args()
+
+    os.environ.setdefault("NETHACK_FIXED_DATETIME", "20000110090000")
+    os.makedirs(SESSIONS_DIR, exist_ok=True)
+
+    outpath = os.path.join(SESSIONS_DIR, f"t11_s{args.seed:03d}_w_covmax1_gp.session.json")
+    moves = build_covmax_moves()
+    print(f"Seed: {args.seed}")
+    print(f"Output: {outpath}")
+    print(f"Move keycount: {len(moves)}")
+
+    _rs.run_session(
+        args.seed,
+        outpath,
+        moves,
+        raw_moves=True,
+        wizard_mode=True,
+        character=CHARACTER_WIZ,
+        record_more_spaces=False,
+    )
+
+
+if __name__ == "__main__":
+    main()

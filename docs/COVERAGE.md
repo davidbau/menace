@@ -431,6 +431,28 @@ Execution cadence (required while under 90% coverage):
 - Run coverage metrics after every merged batch — track the percentage, not the
   session count.
 
+## Coverage-Per-Turn Agent Challenge
+
+To maximize progress speed, each agent should run this loop continuously:
+
+1. Build **one** high-yield deterministic C session designed to cover as many
+   currently uncovered branches as possible.
+2. Iterate the same session (extend and diversify it) until:
+   - it reaches roughly **800 steps**, and
+   - there are no obvious additional high-yield actions left to add.
+3. Save it to `test/comparison/sessions/pending/` (do not auto-promote).
+4. Start a new session concept (new seed + different coverage ideas) and repeat.
+
+Rules for this challenge:
+- Optimize for **coverage gained per turn**, not raw turn count.
+- Mix interactions intentionally (inventory, combat, map transitions, commands,
+  environmental interactions) instead of long single-purpose loops.
+- Keep deterministic controls fixed (seed/datetime/options).
+- Keep filenames short and policy-compliant (`<= 40` chars including
+  `.session.json`).
+- Validate parity after capture and then fix/promote through the normal pending
+  workflow.
+
 ## Issue-Driven Labor Split
 
 Use GitHub issues as the work partitioning mechanism for the coverage campaign.

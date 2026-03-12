@@ -143,11 +143,12 @@ When running rebuilds/regenerations that can take several minutes:
 12. Session filename length policy: for new/renamed session files, keep
    `<filename>.session.json` at 40 characters or fewer (to keep tooling output
    and CLI workflows readable). Use compact intent tokens instead of long prose.
-13. Session-generation strategy (required while under coverage target):
-   - optimize a single session for coverage-per-turn before starting another,
-   - extend and diversify that session until coverage gain per added turn is low
-     (soft cap around 800 steps),
-   - then park it in `pending` and start a new coverage idea.
+13. Active capture tactic: follow the `Coverage-Per-Turn Agent Challenge` in
+   `docs/COVERAGE.md`:
+   - build one high-yield session at a time,
+   - iterate it toward ~800 steps while maximizing coverage-per-turn,
+   - place it in `sessions/pending`,
+   - then start a fresh concept/session and repeat.
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.
