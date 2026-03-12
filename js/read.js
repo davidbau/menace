@@ -53,7 +53,7 @@ import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon } from './display.js';
 import { S_goodpos } from './symbols.js';
-import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup } from './invent.js';
+import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup, compactInvletPromptChars } from './invent.js';
 // nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
@@ -309,7 +309,7 @@ export function assign_candy_wrapper(obj) {
 async function handleRead(player, display, game) {
     const readableClasses = new Set([SCROLL_CLASS, SPBOOK_CLASS]);
     const readable = (player.inventory || []).filter((o) => o && readableClasses.has(o.oclass));
-    const letters = readable.map((o) => o.invlet).join('');
+    const letters = compactInvletPromptChars(readable.map((o) => o.invlet).join(''));
     const prompt = letters
         ? `What do you want to read? [${letters} or ?*] `
         : 'What do you want to read? [*] ';

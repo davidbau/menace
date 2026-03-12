@@ -48,7 +48,7 @@ import {
     setworn,
     setnotworn,
 } from './worn.js';
-import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing } from './invent.js';
+import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing, compactInvletPromptChars } from './invent.js';
 import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
 import { newsym, see_monsters, set_mimic_blocking } from './display.js';
@@ -2206,7 +2206,7 @@ async function handleWear(player, display, game = null) {
         return { moved: false, tookTime: false };
     }
 
-    const wearChoices = suggested.map((a) => a.invlet).join('');
+    const wearChoices = compactInvletPromptChars(suggested.map((a) => a.invlet).join(''));
     const wearPrompt = wearChoices.length > 0
         ? `What do you want to wear? [${wearChoices} or ?*] `
         : 'What do you want to wear? [*] ';
@@ -2290,7 +2290,7 @@ async function handlePutOn(player, display, game = null) {
 
     // C getobj parity: 'P' suggests accessories and downplays armor.
     const suggested = putOnCandidates.filter((o) => o.oclass !== ARMOR_CLASS);
-    const putOnChoices = suggested.map((r) => r.invlet).join('');
+    const putOnChoices = compactInvletPromptChars(suggested.map((r) => r.invlet).join(''));
     const putOnPrompt = putOnChoices.length > 0
         ? `What do you want to put on? [${putOnChoices} or ?*] `
         : 'What do you want to put on? [*] ';
@@ -2366,7 +2366,7 @@ async function handleTakeOff(player, display, game = null) {
     if (armorCount === 1 && lastArmor) {
         item = lastArmor;
     } else {
-        const takeOffChoices = wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join('');
+        const takeOffChoices = compactInvletPromptChars(wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join(''));
         const takeOffPrompt = takeOffChoices.length > 1
             ? `What do you want to take off? [${takeOffChoices} or ?*] `
             : 'What do you want to take off? [*] ';
@@ -2430,7 +2430,7 @@ async function handleRemove(player, display, game = null) {
     if (accessoryCount === 1 && lastAccessory) {
         item = lastAccessory;
     } else {
-        const removeChoices = wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join('');
+        const removeChoices = compactInvletPromptChars(wornAll.filter((a) => suggested.has(a)).map((a) => a.invlet).join(''));
         const removePrompt = removeChoices.length > 1
             ? `What do you want to remove? [${removeChoices} or ?*] `
             : 'What do you want to remove? [*] ';

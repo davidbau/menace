@@ -93,6 +93,11 @@ WEAPON_SKILLS = {
     'P_BOW': 20, 'P_SLING': 21, 'P_CROSSBOW': 22,
     'P_DART': 23, 'P_SHURIKEN': 24, 'P_BOOMERANG': 25,
     'P_WHIP': 26, 'P_UNICORN_HORN': 27,
+    # Spell skills (used by SPELL macro for oc_subtyp)
+    'P_ATTACK_SPELL': 28, 'P_HEALING_SPELL': 29,
+    'P_DIVINATION_SPELL': 30, 'P_ENCHANTMENT_SPELL': 31,
+    'P_CLERIC_SPELL': 32, 'P_ESCAPE_SPELL': 33,
+    'P_MATTER_SPELL': 34,
 }
 
 # ── Direction/attack types ───────────────────────────────────────────

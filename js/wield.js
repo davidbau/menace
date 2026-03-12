@@ -10,7 +10,7 @@ import { rn2, rnd } from './rng.js';
 import { W_WEP, W_ARMOR, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
-import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
+import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, compactInvletPromptChars } from './invent.js';
 import { addinv_nomerge } from './invent.js';
 import { acurr } from './attrib.js';
 import { ammo_and_launcher } from './dothrow.js';
@@ -459,7 +459,7 @@ async function handleWield(player, display) {
     };
 
     // C ref: wield.c getobj() prompt format for wield command.
-    const letters = inventory.filter(suggestWield).map((item) => item.invlet).join('');
+    const letters = compactInvletPromptChars(inventory.filter(suggestWield).map((item) => item.invlet).join(''));
     const wieldPrompt = letters.length > 0
         ? `What do you want to wield? [- ${letters} or ?*] `
         : 'What do you want to wield? [- or ?*] ';
@@ -637,7 +637,7 @@ async function handleQuiver(player, display) {
         return verdict === 1 || verdict === 2;
     });
 
-    const letters = quiverEligible.map((item) => item.invlet).join('');
+    const letters = compactInvletPromptChars(quiverEligible.map((item) => item.invlet).join(''));
     const prompt = letters.length > 0
         ? `What do you want to ready? [- ${letters} or ?*] `
         : 'What do you want to ready? [- or ?*] ';

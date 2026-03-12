@@ -7158,7 +7158,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 3, oc_subtyp: 0,
+        oc_dir: 3, oc_subtyp: 34,
     },
     { // [365] SPE_MAGIC_MISSILE
         oc_name: "magic missile",
@@ -7176,7 +7176,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 3, oc_subtyp: 0,
+        oc_dir: 3, oc_subtyp: 28,
     },
     { // [366] SPE_FIREBALL
         oc_name: "fireball",
@@ -7194,7 +7194,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 3, oc_subtyp: 0,
+        oc_dir: 3, oc_subtyp: 28,
     },
     { // [367] SPE_CONE_OF_COLD
         oc_name: "cone of cold",
@@ -7212,7 +7212,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 3, oc_subtyp: 0,
+        oc_dir: 3, oc_subtyp: 28,
     },
     { // [368] SPE_SLEEP
         oc_name: "sleep",
@@ -7230,7 +7230,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 3, oc_subtyp: 0,
+        oc_dir: 3, oc_subtyp: 31,
     },
     { // [369] SPE_FINGER_OF_DEATH
         oc_name: "finger of death",
@@ -7248,7 +7248,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 3, oc_subtyp: 0,
+        oc_dir: 3, oc_subtyp: 28,
     },
     { // [370] SPE_LIGHT
         oc_name: "light",
@@ -7266,7 +7266,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [371] SPE_DETECT_MONSTERS
         oc_name: "detect monsters",
@@ -7284,7 +7284,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [372] SPE_HEALING
         oc_name: "healing",
@@ -7302,7 +7302,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 29,
     },
     { // [373] SPE_KNOCK
         oc_name: "knock",
@@ -7320,7 +7320,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 34,
     },
     { // [374] SPE_FORCE_BOLT
         oc_name: "force bolt",
@@ -7338,7 +7338,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 28,
     },
     { // [375] SPE_CONFUSE_MONSTER
         oc_name: "confuse monster",
@@ -7356,7 +7356,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 31,
     },
     { // [376] SPE_CURE_BLINDNESS
         oc_name: "cure blindness",
@@ -7374,7 +7374,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 29,
     },
     { // [377] SPE_DRAIN_LIFE
         oc_name: "drain life",
@@ -7392,7 +7392,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 28,
     },
     { // [378] SPE_SLOW_MONSTER
         oc_name: "slow monster",
@@ -7410,7 +7410,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 31,
     },
     { // [379] SPE_WIZARD_LOCK
         oc_name: "wizard lock",
@@ -7428,7 +7428,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 34,
     },
     { // [380] SPE_CREATE_MONSTER
         oc_name: "create monster",
@@ -7446,7 +7446,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 32,
     },
     { // [381] SPE_DETECT_FOOD
         oc_name: "detect food",
@@ -7464,7 +7464,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [382] SPE_CAUSE_FEAR
         oc_name: "cause fear",
@@ -7482,7 +7482,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 31,
     },
     { // [383] SPE_CLAIRVOYANCE
         oc_name: "clairvoyance",
@@ -7500,7 +7500,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [384] SPE_CURE_SICKNESS
         oc_name: "cure sickness",
@@ -7518,7 +7518,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 29,
     },
     { // [385] SPE_CHARM_MONSTER
         oc_name: "charm monster",
@@ -7536,7 +7536,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 31,
     },
     { // [386] SPE_HASTE_SELF
         oc_name: "haste self",
@@ -7554,7 +7554,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 33,
     },
     { // [387] SPE_DETECT_UNSEEN
         oc_name: "detect unseen",
@@ -7572,7 +7572,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [388] SPE_LEVITATION
         oc_name: "levitation",
@@ -7590,7 +7590,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 33,
     },
     { // [389] SPE_EXTRA_HEALING
         oc_name: "extra healing",
@@ -7608,7 +7608,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 29,
     },
     { // [390] SPE_RESTORE_ABILITY
         oc_name: "restore ability",
@@ -7626,7 +7626,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 29,
     },
     { // [391] SPE_INVISIBILITY
         oc_name: "invisibility",
@@ -7644,7 +7644,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 33,
     },
     { // [392] SPE_DETECT_TREASURE
         oc_name: "detect treasure",
@@ -7662,7 +7662,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [393] SPE_REMOVE_CURSE
         oc_name: "remove curse",
@@ -7680,7 +7680,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 32,
     },
     { // [394] SPE_MAGIC_MAPPING
         oc_name: "magic mapping",
@@ -7698,7 +7698,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [395] SPE_IDENTIFY
         oc_name: "identify",
@@ -7716,7 +7716,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 30,
     },
     { // [396] SPE_TURN_UNDEAD
         oc_name: "turn undead",
@@ -7734,7 +7734,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 32,
     },
     { // [397] SPE_POLYMORPH
         oc_name: "polymorph",
@@ -7752,7 +7752,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 34,
     },
     { // [398] SPE_TELEPORT_AWAY
         oc_name: "teleport away",
@@ -7770,7 +7770,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 33,
     },
     { // [399] SPE_CREATE_FAMILIAR
         oc_name: "create familiar",
@@ -7788,7 +7788,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 32,
     },
     { // [400] SPE_CANCELLATION
         oc_name: "cancellation",
@@ -7806,7 +7806,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 34,
     },
     { // [401] SPE_PROTECTION
         oc_name: "protection",
@@ -7824,7 +7824,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 32,
     },
     { // [402] SPE_JUMPING
         oc_name: "jumping",
@@ -7842,7 +7842,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 33,
     },
     { // [403] SPE_STONE_TO_FLESH
         oc_name: "stone to flesh",
@@ -7860,7 +7860,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 2, oc_subtyp: 0,
+        oc_dir: 2, oc_subtyp: 29,
     },
     { // [404] SPE_CHAIN_LIGHTNING
         oc_name: "chain lightning",
@@ -7878,7 +7878,7 @@ export const objectData = [
         oc_material: 5,
         oc_oprop: 0,
         magic: 1,
-        oc_dir: 1, oc_subtyp: 0,
+        oc_dir: 1, oc_subtyp: 28,
     },
     { // [405] SPE_BLANK_PAPER
         oc_name: "blank paper",
