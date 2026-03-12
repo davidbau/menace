@@ -795,10 +795,22 @@ function applyRingOn(otmp) {
     case 10: game.u.ufireres = true; break;
     case 11: game.u.ucoldres = true; break;
     case 12: game.u.ucham = true; break;
+    case 13:
+      for (let tmp = otmp.spe; tmp; tmp--) {
+        if (!otmp.minus) {
+          if (game.u.ustr > 17) { game.u.ustr += 15; game.u.ustrmax += 15; }
+          else { game.u.ustr++; if (game.u.ustrmax > 17) game.u.ustrmax += 15; else game.u.ustrmax++; }
+        } else {
+          if (game.u.ustr > 18) { game.u.ustr -= 15; if (game.u.ustr < 18) game.u.ustr = 18; }
+          else { if (game.u.ustr > 4) game.u.ustr--; game.u.ustrmax--; }
+        }
+      }
+      game.flags.botl |= STR;
+      // fall through
     case 14: ndaminc(); break;
     case 15:
       if (otmp.minus) game.u.uac += otmp.spe; else game.u.uac -= otmp.spe;
-      game.flags.botl |= AC; break;
+      game.flags.botl |= STR; break; // C bug: original flags STR not AC (hack.do.c:503)
     case 16:
       game.u.uhp += otmp.minus ? -otmp.spe : otmp.spe;
       game.u.uhpmax += otmp.minus ? -otmp.spe : otmp.spe;
