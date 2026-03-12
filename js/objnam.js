@@ -2068,6 +2068,20 @@ export function readobjnam_postparse2(state) {
     let actualn = (state.actualn || '').trim();
     if (!actualn) return state;
 
+    // C ref: objnam.c:4425-4445 — first change to singular if necessary
+    // Exceptions: "tricks" (matches "bag of tricks"), "clothes" (avoid false match with "cloth")
+    if (actualn
+        && actualn.toLowerCase() !== 'tricks'
+        && actualn.toLowerCase() !== 'clothes') {
+        const sng = makesingular(actualn);
+        if (sng !== actualn) {
+            if (state.cnt === 1) state.cnt = 2;
+            actualn = sng;
+            state.actualn = actualn;
+            if (!state.dn || state.dn === state.text) state.dn = actualn;
+        }
+    }
+
     // C-like generic gem/stone class coercion for "<color> gem"/"<color> stone".
     if (actualn.endsWith(' stone')) {
         actualn = actualn.slice(0, -6).trim();
