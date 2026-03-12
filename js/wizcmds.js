@@ -215,6 +215,7 @@ import { rn2 } from './rng.js';
 import {
     finalize_level,
     finalize_special_checkpoint_stage,
+    capture_wizload_after_finalize_checkpoint,
     resetLevelState,
     withFinalizeContext,
     withSpecialLevelDepth
@@ -342,6 +343,7 @@ export async function handleWizLoadDes(game) {
         // Route through changeLevel for hero placement, pet migration, and
         // arrival collision — matching C's goto_level() flow.
         await game.changeLevel(player.dungeonLevel, 'teleport', { map: newMap });
+        capture_wizload_after_finalize_checkpoint();
     }
     return { moved: false, tookTime: false };
 }

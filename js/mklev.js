@@ -368,6 +368,8 @@ export function maybe_sdoor(depth, chance) {
 export function mkstairs(map, x, y, isUp, isBranch = false) {
     const loc = map.at(x, y);
     if (!loc) return;
+    // C ref: mkroom.c mkstairs() never places upstairs on level 1.
+    if (isUp && Number.isInteger(map?._genDlevel) && map._genDlevel <= 1) return;
 
     loc.typ = STAIRS;
     loc.stairdir = isUp ? 1 : 0;

@@ -7098,6 +7098,12 @@ export async function finalize_special_checkpoint_stage() {
     return levelState.map;
 }
 
+// Wizload parity hook: C emits the single after_finalize checkpoint after
+// hero relocation, not during deferred script finalize.
+export function capture_wizload_after_finalize_checkpoint() {
+    captureCheckpoint('after_finalize');
+}
+
 export async function load_special(name) {
     create_des_coder();
     if (typeof name !== 'string' || !name.length) return false;

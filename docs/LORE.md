@@ -8995,3 +8995,28 @@ Validation:
   - `t04_s706_w_minetn1_gp` now reaches full RNG parity (`5797/5797`), with
     remaining mismatch reduced to screen/event at step 5.
   - `seed42_gameplay` still passes fully.
+
+### Wizload minetown final parity: post-goto checkpoint timing and level-1 upstairs guard
+
+- Continuing `t04_s706_w_minetn1_gp` after RNG parity, two non-RNG mismatches remained at step 5:
+  - missing/offset `^ckpt[phase=after_finalize ...]`
+  - screen cell `'<` vs `·` on row 6.
+- Root causes were separate and both C-faithful:
+  1. Checkpoint boundary timing:
+     - In C wizload flow, the single `after_finalize` checkpoint for this path is observed
+       after hero relocation (`goto_level`/`changeLevel` boundary), not during deferred
+       script finalize with old `u.ux/u.uy`.
+     - JS fix:
+       - keep deferred-finalize suppression (`skipAfterFinalizeCheckpoint: true`)
+       - add explicit post-`changeLevel` emission via
+         `capture_wizload_after_finalize_checkpoint()`.
+  2. `mkstairs()` level-1 guard:
+     - C `mkstairs()` does not place upstairs on dungeon level 1.
+     - JS was placing an `LR_UPSTAIR` from levregion on `_genDlevel=1`, causing the
+       stray `<` glyph and screen-only mismatch.
+     - JS fix in `js/mklev.js`:
+       - `if (isUp && map._genDlevel <= 1) return;`
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t04_s706_w_minetn1_gp.session.json`
+    now passes fully (`rng/events/screens/colors/cursor` all matched).
+  - `seed42_gameplay` remains fully passing after the fix.
