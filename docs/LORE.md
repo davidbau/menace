@@ -8744,3 +8744,16 @@ Validation:
   - removed hard crash for mines-style `level_init` flows,
   - kept baseline parity stable (`scripts/run-and-report.sh --failures`:
     `216/216` passing).
+
+### wizloaddes wizard prelude alignment for pending minefill parity
+
+- In pending wizload repro
+  `test/comparison/sessions/pending/t04_s705_w_minefill_gp.session.json`,
+  first RNG divergence was early (`index 2309`) with C showing a wizard-only
+  prelude pair `rn2(100), rn2(100)` before the nhlib shuffle calls.
+- Added a narrow role-gated prelude in `handleWizLoadDes()`:
+  when `Role_if(player, PM_WIZARD)`, consume two `rn2(100)` before
+  `rn2(3), rn2(2)`.
+- Outcome:
+  - pending minefill first RNG divergence moved later: `2309 -> 4830`.
+  - canonical failures suite remained green: `258/258`.
