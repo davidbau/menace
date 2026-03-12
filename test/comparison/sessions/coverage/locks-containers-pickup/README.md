@@ -24,6 +24,7 @@ Accepted sessions:
 10. `t02_s993_w_skelkey_gp.session.json` (`skeleton key` door lock/unlock path)
 11. `t02_s993_w_lockpick_gp.session.json` (`lock pick` door lock/unlock path)
 12. `t02_s704_w_forceblunt_gp.session.json` (blunt `#force` chest-destruction path; exercises `breakchestlock(..., destroyit=true)`)
+13. `t02_s993_wiz_close_gp.session.json` (wizard close-door branch coverage: `already open` -> `closes` -> repeated `already closed`)
 
 Coverage impact (2026-03-11 refreshes):
 1. First addition: `js/lock.js` line coverage `23.58% -> 38.43%` (`+14.85`).
