@@ -567,6 +567,19 @@ span.nh-cursor {
             for (let x = 1; x < COLNO; x++) {
                 const col = x - 1;
 
+                // C ref: always render the player glyph at the hero's position,
+                // even when out of FOV (e.g. during levitation on stairs).
+                if (player && x === player.x && y === player.y && !player.usteed) {
+                    const heroGlyph = playerMapGlyph(player);
+                    this.setCell(col, row, heroGlyph.ch, heroGlyph.color);
+                    this.cellInfo[row][col] = {
+                        name: player.name || 'you',
+                        desc: 'you, the adventurer',
+                        color: heroGlyph.color,
+                    };
+                    continue;
+                }
+
                 if (!fov || !fov.canSee(x, y)) {
                     const mon = gameMap.monsterAt(x, y);
                     const monVisibleByOwnLight = !!(mon
@@ -638,18 +651,6 @@ span.nh-cursor {
                 // revealed, "even when covered by objects or a monster".
                 const visEngr = gameMap.engravingAt(x, y);
                 if (visEngr) visEngr.erevealed = true;
-
-                // Check for player at this position
-                if (player && x === player.x && y === player.y && !player.usteed) {
-                    const heroGlyph = playerMapGlyph(player);
-                    this.setCell(col, row, heroGlyph.ch, heroGlyph.color);
-                    this.cellInfo[row][col] = {
-                        name: player.name || 'you',
-                        desc: 'you, the adventurer',
-                        color: heroGlyph.color,
-                    };
-                    continue;
-                }
 
                 // Check for monsters
                 const mon = gameMap.monsterAt(x, y);
@@ -2175,6 +2176,15 @@ export function newsym(x, y, ctxOrMap = null) {
         return { ch: sym.ch, color: rememberedColor };
     };
 
+    // C ref: always render the player glyph at the hero's position,
+    // even when out of FOV (e.g. during levitation on stairs).
+    // When mounted, C shows the steed glyph on hero square instead.
+    if (player && x === player.x && y === player.y && !player.usteed) {
+        const heroGlyph = playerMapGlyph(player);
+        display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
+        return;
+    }
+
     // --- Not visible (out of FOV) ---
     if (!fov || !fov.canSee(x, y)) {
         const mon = map.monsterAt(x, y);
@@ -2234,13 +2244,6 @@ export function newsym(x, y, ctxOrMap = null) {
     rememberTerrain();
     const visEngr = map.engravingAt(x, y);
     if (visEngr) visEngr.erevealed = true;
-
-    // Player glyph (when mounted, C shows the steed glyph on hero square).
-    if (player && x === player.x && y === player.y && !player.usteed) {
-        const heroGlyph = playerMapGlyph(player);
-        display.setCell(col, row, heroGlyph.ch, heroGlyph.color);
-        return;
-    }
 
     // Monster
     const mon = map.monsterAt(x, y);
