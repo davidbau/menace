@@ -8932,3 +8932,24 @@ Validation:
     `seed42_castle` and pending `t04_s706_w_minetn1_gp` to isolate whether
     missing RNG comes from explicit levregions vs fallback branch placement.
 - Default behavior unchanged (`WEBHACK_WIZLOAD_FIXUP_TRACE` off).
+
+### Branch lregion placement is room-gated in no-room special layouts
+
+- While triaging pending `t04_s706_w_minetn1_gp`, we found a C-faithful edge:
+  `place_lregion(..., LR_BRANCH)` should only short-circuit into
+  `place_branch(...,0,0)` when rooms exist (`map.nroom > 0`).
+- In no-room layouts, falling through to whole-level bounded coordinate
+  selection avoids an early branch placement path that consumed RNG too soon.
+- JS fix in `js/mkmaze.js`:
+  - `place_lregion()` now gates the LR_BRANCH delegation on `map.nroom`.
+- Debug aid update in `js/sp_lev.js`:
+  - optional `^wizfixup[...]` tracing now includes `nroom=...` under
+    `WEBHACK_WIZLOAD_FIXUP_TRACE`.
+- Guardrail:
+  - keep `levelState.levRegions = []` in `fixupSpecialLevel()` (C-faithful).
+    Removing this clear regresses wizard/special-level parity.
+- Validation snapshot:
+  - `t04_s706_w_minetn1_gp` first RNG divergence moved later to index `5699`
+    (`getArrivalPosition` vs `mineralize`).
+  - `seed42_gameplay` remains fully passing.
+  - `seed033_manual_direct` unchanged (no regression from this slice).

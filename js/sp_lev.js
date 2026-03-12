@@ -1311,8 +1311,9 @@ async function fixupSpecialLevel() {
     }
 
     if (fixupTrace) {
+        const nroom = Number.isInteger(levelState.map?.nroom) ? levelState.map.nroom : 0;
         pushRngLogEntry(
-            `^wizfixup[name=${specialName || 'unknown'} isBranch=${ctx.isBranchLevel ? 1 : 0} regions=${initialRegionCount} placed=${placedRegionCalls} addedBranch=${addedBranch ? 1 : 0} fallback=${usedFallbackBranchPlacement ? 1 : 0} rng=${getRngCallCount() | 0}]`
+            `^wizfixup[name=${specialName || 'unknown'} isBranch=${ctx.isBranchLevel ? 1 : 0} nroom=${nroom} regions=${initialRegionCount} placed=${placedRegionCalls} addedBranch=${addedBranch ? 1 : 0} fallback=${usedFallbackBranchPlacement ? 1 : 0} rng=${getRngCallCount() | 0}]`
         );
     }
     // C ref: mkmaze.c fixup_special() frees gl.lregions and zeroes num_lregions.
