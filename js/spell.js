@@ -509,10 +509,8 @@ export async function handleKnownSpells(player, display) {
     while (true) {
         const ch = await nhgetch();
         if (ch === '+'.charCodeAt(0)) {
-            const changed = await promptSpellSort();
-            if (changed) {
-                await renderKnownSpells();
-            }
+            await promptSpellSort();
+            await renderKnownSpells();
             continue;
         }
         if (ch === 32 || ch === 27 || ch === 10 || ch === 13) break;
