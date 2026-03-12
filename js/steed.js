@@ -275,8 +275,8 @@ export async function mount_steed(mtmp, force, player, map, display) {
     // Set up steed
     player.usteed = mtmp;
 
-    // Remove steed from map monster grid (it's now "on" the hero)
-    map.removeMonster(mtmp);
+    // C keeps u.usteed in fmon; remove_monster() only clears the occupancy grid.
+    // JS has no separate occupancy grid, so keep the steed in map.monsters.
 
     // Move hero to steed's former position
     // TODO: teleds(mtmp.mx, mtmp.my, TELEDS_ALLOW_DRAG)

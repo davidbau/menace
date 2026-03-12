@@ -8613,3 +8613,14 @@ Validation:
     parity work needed), but divergence moved past command wiring into deeper ride state.
   - no regressions on canonical gameplay suite: `scripts/run-and-report.sh --failures`
     remained `202/202` passing.
+
+### Follow-up: keep `u.usteed` in monster list while mounted
+
+- Additional C-faithful correction in `mount_steed`:
+  - C clears map occupancy but keeps the steed in `fmon`.
+  - JS previously removed the steed from `map.monsters` (`map.removeMonster`), which
+    skipped steed turn processing and altered RNG/event flow.
+  - Updated JS mount flow to keep steed in `map.monsters`.
+- Effect on the same steed micro-session:
+  - first divergence moved later again (step 8 -> step 9), confirming better
+    alignment of mounted turn processing.

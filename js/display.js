@@ -640,7 +640,7 @@ span.nh-cursor {
                 if (visEngr) visEngr.erevealed = true;
 
                 // Check for player at this position
-                if (player && x === player.x && y === player.y) {
+                if (player && x === player.x && y === player.y && !player.usteed) {
                     const heroGlyph = playerMapGlyph(player);
                     this.setCell(col, row, heroGlyph.ch, heroGlyph.color);
                     this.cellInfo[row][col] = {
