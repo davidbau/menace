@@ -19,7 +19,8 @@ import { formatGoldPickupMessage, formatInventoryPickupMessage, dropx } from './
 import { mons, PM_HOUSECAT, PM_ICE_TROLL } from './monsters.js';
 import { is_rider, touch_petrifies, nohands, nolimbs,
          poly_when_stoned } from './mondata.js';
-import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo, STONE_RES } from './const.js';
+import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo, STONE_RES,
+         MENU_ITEMFLAGS_SELECTED } from './const.js';
 import { rn2, rnd, d } from './rng.js';
 import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';
@@ -1207,6 +1208,15 @@ async function handlePickup(player, map, display, game = null) {
             );
         }
         return { moved: false, tookTime: true };
+    }
+
+    // C ref: pickup.c pickup_object() calls reset_justpicked(gi.invent) for
+    // single-item pickup path (via query_objlist with AUTOSELECT_SINGLE).
+    // Clears pickup_prev so only newly picked-up items get 'P' drop category.
+    if (player.inventory) {
+        for (const inv of player.inventory) {
+            if (inv) inv.pickup_prev = 0;
+        }
     }
 
     // Pick up first non-gold item in C floor-chain order.

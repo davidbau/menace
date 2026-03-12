@@ -221,7 +221,7 @@ function buildMenuLines(w, selected = null, how = PICK_NONE) {
             const picked = !!(item.ch && selected && selected.has(item.ch));
             const marker = (how === PICK_ONE)
                 ? ((selected ? picked : preselected) ? '*' : '-')
-                : (picked ? '+' : '-');
+                : ((picked || (!selected && preselected)) ? '+' : '-');
             const sel = item.ch ? `${String.fromCharCode(item.ch)} ${marker} ` : '    ';
             lines.push(sel + item.str);
         }
@@ -322,6 +322,12 @@ export async function select_menu(win, how, opts = null) {
 
     if (how === PICK_ANY) {
         const selected = new Set();
+        // C ref: tty_select_menu — pre-selected items start toggled on
+        for (const item of w.mlist) {
+            if (item.ch && (item.itemflags & MENU_ITEMFLAGS_SELECTED)) {
+                selected.add(item.ch);
+            }
+        }
         while (true) {
             const ch = await _nhgetch();
             if (ch === 13 || ch === 10) {
@@ -340,9 +346,15 @@ export async function select_menu(win, how, opts = null) {
             } else if (ch === '-'.charCodeAt(0)) {
                 selected.clear();
             } else if (ch === ' '.charCodeAt(0)) {
-                // Toggle all
-                if (selected.size > 0) selected.clear();
-                else for (const item of w.mlist) if (item.ch) selected.add(item.ch);
+                // C ref: wintty.c — space pages forward; on last page, closes menu.
+                // Single-page menus close immediately (equivalent to cancel).
+                const result = [];
+                for (const item of w.mlist) {
+                    if (item.ch && selected.has(item.ch)) {
+                        result.push({ identifier: item.id, count: -1 });
+                    }
+                }
+                return result.length > 0 ? result : null;
             } else {
                 const item = w.mlist.find(i => i.ch === ch);
                 if (item && item.ch) {

@@ -1173,6 +1173,8 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
     addinv_core1(obj, player);
     const addResult = player.addToInventory(obj, { withMeta: true });
     const result = (addResult?.item != null) ? addResult.item : (addResult ?? obj);
+    // C ref: invent.c:1142 — addinv() sets pickup_prev for 'P' drop category
+    result.pickup_prev = 1;
     await addinv_core2(result, player);
     carry_obj_effects(result);
     // C ref: invent.c merged() — "You learn more about your items by comparing them."
@@ -1826,6 +1828,14 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
     const p = player || _gstate?.player || null;
     const d = display || _gstate?.display || null;
     if (!p || !d) return '';
+
+    // C ref: invent.c display_pickinv() calls reset_justpicked(gi.invent)
+    // to clear pickup_prev flags when inventory is displayed
+    if (p.inventory) {
+        for (const obj of p.inventory) {
+            if (obj) obj.pickup_prev = 0;
+        }
+    }
 
     const objects = display_inventory_items(lets, p);
     const lines = [];

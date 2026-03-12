@@ -916,7 +916,8 @@ async function promptDropTypeClass(display, player) {
         && Number.isInteger(display?.rows)) {
         const maxRow = Math.min(menuLastRow, display.rows - 1);
         for (let r = 4; r <= maxRow; r++) {
-            for (let c = promptCol; c < display.cols; c++) {
+            // C ref: wintty.c menu rendering clears 1 column before content
+            for (let c = promptCol - 1; c < display.cols; c++) {
                 display.setCell(c, r, ' ', 7, 0);
             }
         }
