@@ -1892,7 +1892,9 @@ export function mimic_light_blocking(mtmp) {
 
 // Autotranslated from display.c:1536
 export function set_mimic_blocking() {
-  iter_mons(mimic_light_blocking);
+  const map = _gstate?.map;
+  const monsters = Array.isArray(map?.monsters) ? map.monsters : [];
+  for (const mon of monsters) mimic_light_blocking(mon);
 }
 
 // Autotranslated from display.c:1546

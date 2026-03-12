@@ -17,7 +17,7 @@ import {
     WAN_WISHING, WAN_CANCELLATION, WAN_DEATH, WAN_POLYMORPH,
     WAN_UNDEAD_TURNING, WAN_COLD, WAN_FIRE, WAN_LIGHTNING,
     WAN_MAGIC_MISSILE, WAN_NOTHING, NODIR,
-    OIL_LAMP, BRASS_LANTERN, MAGIC_MARKER, TINNING_KIT, EXPENSIVE_CAMERA,
+    OIL_LAMP, BRASS_LANTERN, MAGIC_LAMP, MAGIC_MARKER, TINNING_KIT, EXPENSIVE_CAMERA,
     BELL_OF_OPENING, UNICORN_HORN, BOULDER, ROCK,
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
@@ -37,7 +37,7 @@ import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMA
          G_GENO, G_NOCORPSE } from './monsters.js';
 import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
-import { Yobjnam2, Yname2, makeplural, an } from './objnam.js';
+import { Yobjnam2, Yname2, makeplural, an, is_weptool } from './objnam.js';
 import { hcolor, Monnam, mon_nam } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';

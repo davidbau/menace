@@ -41,11 +41,11 @@ import { handleSave } from './storage.js';
 import { handleForce, handleOpen, handleClose, reset_pick } from './lock.js';
 import { handlePickup, handleLoot, handlePay, handleTogglePickup } from './pickup.js';
 import { dotalk } from './sounds.js';
-import { add_skills_to_menu, skill_advance, skill_practice_value } from './weapon.js';
+import { add_skills_to_menu, skill_advance, skill_practice_value, weapon_slots_available } from './weapon.js';
 import { handleSet } from './options.js';
 import { dosit } from './sit.js';
 import { doride } from './steed.js';
-import { doattributes } from './insight.js';
+import { doattributes, doconduct } from './insight.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
@@ -949,6 +949,10 @@ async function handleExtendedCommand(game) {
         case 'again':
         case 'repeat':
             return { moved: false, tookTime: false, repeatRequest: true };
+        case 'attributes':
+            return { moved: false, tookTime: !!(await doattributes(game)) };
+        case 'conduct':
+            return { moved: false, tookTime: !!(await doconduct(game)) };
         case 'u':
         case 'untrap':
             queueRepeatExtcmd(async (g) => handleExtendedCommandUntrap(g));
@@ -962,8 +966,8 @@ async function handleExtendedCommand(game) {
 
 function knownExtendedCommands(game) {
     const cmds = [
-        'options', 'optionsfull', 'adjust', 'wipe', 'pray', 'turn', 'dip',
-        'enhance', 'chat', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
+        'options', 'optionsfull', 'adjust', 'attributes', 'wipe', 'pray', 'turn', 'dip',
+        'enhance', 'chat', 'conduct', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
         'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
     ];
     if (game?.wizard) {

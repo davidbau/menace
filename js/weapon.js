@@ -982,6 +982,11 @@ export function skill_advance(skill) {
     return true;
 }
 
+// C ref: u.weapon_slots — returns available skill slots.
+export function weapon_slots_available() {
+    return heroSkillAdvance[P_NONE] || 0;
+}
+
 // C ref: weapon.c add_skills_to_menu()/show_skills().
 export function add_skills_to_menu() {
     const rows = [];
