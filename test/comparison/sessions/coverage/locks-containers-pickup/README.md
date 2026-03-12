@@ -19,6 +19,7 @@ Accepted sessions:
 5. `t02_s704_w_force2_gp.session.json` (repeat `#force` on already-broken lock)
 6. `t02_s704_w_forceblade2_gp.session.json` (`#force` with uncursed dagger path)
 7. `t02_s714_w_cardbox_gp.session.json` (`credit card` container lock/unlock path)
+8. `t02_s993_w_carddoorlock_gp.session.json` (`credit card` door lock-attempt path)
 
 Coverage impact (2026-03-11 refreshes):
 1. First addition: `js/lock.js` line coverage `23.58% -> 38.43%` (`+14.85`).
