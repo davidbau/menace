@@ -417,45 +417,103 @@ export function ageSpells(player) {
 
 // C ref: spell.c dospellmenu() — display known spells
 export async function handleKnownSpells(player, display) {
-    const knownSpells = (player.spells || []).filter(s => s.sp_know > 0);
-    if (knownSpells.length === 0) {
+    const allKnownSpells = (player.spells || []).filter(s => s.sp_know > 0);
+    if (allKnownSpells.length === 0) {
         await display.putstr_message("You don't know any spells right now.");
         return { moved: false, tookTime: false };
     }
 
+    let sortMode = SORTBY_LETTER;
+    const sortChoices = [
+        { key: 'a', mode: SORTBY_LETTER, label: 'by casting letter' },
+        { key: 'b', mode: SORTBY_ALPHA, label: 'alphabetically' },
+        { key: 'c', mode: SORTBY_LVL_LO, label: 'by level, low to high' },
+        { key: 'd', mode: SORTBY_LVL_HI, label: 'by level, high to low' },
+        { key: 'e', mode: SORTBY_SKL_AL, label: 'by skill group, alphabetized within each group' },
+        { key: 'f', mode: SORTBY_SKL_LO, label: 'by skill group, low to high level within group' },
+        { key: 'g', mode: SORTBY_SKL_HI, label: 'by skill group, high to low level within group' },
+        { key: 'h', mode: SORTBY_CURRENT, label: 'maintain current ordering' },
+        { key: 'z', mode: SORTRETAINORDER, label: 'reassign casting letters to retain current order' },
+    ];
+
+    const clearOverlayRows = () => {
+        if (typeof display.clearRow !== 'function') return;
+        const limit = Math.min(14, Number(display.rows || 24));
+        for (let r = 0; r < limit; r++) display.clearRow(r);
+    };
+
+    const renderKnownSpells = () => {
+        clearOverlayRows();
+        const knownSpells = sortspells(player, sortMode).filter(s => s.sp_know > 0);
+        const rows = ['Currently known spells', ''];
+        const showTurns = !!player.wizard;
+        rows.push(showTurns
+            ? '    Name                 Level Category     Fail Retention  turns'
+            : '    Name                 Level Category     Fail Retention');
+
+        for (let i = 0; i < knownSpells.length && i < 52; i++) {
+            const sp = knownSpells[i];
+            const od = objectData[sp.otyp] || null;
+            const spellName = String(od?.oc_name || 'unknown spell').toLowerCase();
+            const spellLevel = Math.max(1, Number(od?.oc_oc2 || sp.sp_lev || 1));
+            const category = spellCategoryForName(spellName);
+            const skillRank = spellSkillRank(player, category);
+            const turnsLeft = Math.max(0, sp.sp_know);
+            const fail = estimateSpellFailPercent(player, spellName, spellLevel, category);
+            const retention = spellRetentionText(turnsLeft, skillRank);
+            const menuLet = i < 26 ? String.fromCharCode('a'.charCodeAt(0) + i) : String.fromCharCode('A'.charCodeAt(0) + i - 26);
+            const base = `${menuLet} - ${spellName.padEnd(20)}  ${String(spellLevel).padStart(2)}   ${category.padEnd(12)} ${String(fail).padStart(3)}% ${retention.padStart(9)}`;
+            rows.push(showTurns ? `${base}  ${String(turnsLeft).padStart(5)}` : base);
+        }
+        rows.push('+ - [sort spells]');
+        rows.push('(end)');
+
+        if (typeof display.renderOverlayMenu === 'function') {
+            display.renderOverlayMenu(rows);
+        } else {
+            display.renderChargenMenu(rows, false);
+        }
+    };
+
+    const promptSpellSort = async () => {
+        clearOverlayRows();
+        const rows = ['View known spells list sorted', ''];
+        for (const choice of sortChoices) {
+            if (choice.key === 'z') rows.push('');
+            const marker = choice.mode === sortMode ? '*' : '-';
+            rows.push(`${choice.key} ${marker} ${choice.label}`);
+        }
+        rows.push('(end)');
+        if (typeof display.renderOverlayMenu === 'function') {
+            display.renderOverlayMenu(rows);
+        } else {
+            display.renderChargenMenu(rows, false);
+        }
+        while (true) {
+            const ch = await nhgetch();
+            if (ch === 27 || ch === 32 || ch === 10 || ch === 13) return false;
+            const key = String.fromCharCode(ch).toLowerCase();
+            const picked = sortChoices.find((choice) => choice.key === key);
+            if (picked) {
+                sortMode = picked.mode;
+                return true;
+            }
+        }
+    };
+
     const win = create_nhwindow(NHW_MENU);
     try {
-    const rows = ['Currently known spells', ''];
-    const showTurns = !!player.wizard;
-    rows.push(showTurns
-        ? '    Name                 Level Category     Fail Retention  turns'
-        : '    Name                 Level Category     Fail Retention');
-
-    for (let i = 0; i < knownSpells.length && i < 52; i++) {
-        const sp = knownSpells[i];
-        const od = objectData[sp.otyp] || null;
-        const spellName = String(od?.oc_name || 'unknown spell').toLowerCase();
-        const spellLevel = Math.max(1, Number(od?.oc_oc2 || sp.sp_lev || 1));
-        const category = spellCategoryForName(spellName);
-        const skillRank = spellSkillRank(player, category);
-        const turnsLeft = Math.max(0, sp.sp_know);
-        const fail = estimateSpellFailPercent(player, spellName, spellLevel, category);
-        const retention = spellRetentionText(turnsLeft, skillRank);
-        const menuLet = i < 26 ? String.fromCharCode('a'.charCodeAt(0) + i) : String.fromCharCode('A'.charCodeAt(0) + i - 26);
-        const base = `${menuLet} - ${spellName.padEnd(20)}  ${String(spellLevel).padStart(2)}   ${category.padEnd(12)} ${String(fail).padStart(3)}% ${retention.padStart(9)}`;
-        rows.push(showTurns ? `${base}  ${String(turnsLeft).padStart(5)}` : base);
-    }
-    rows.push('+ - [sort spells]');
-    rows.push('(end)');
-
-    if (typeof display.renderOverlayMenu === 'function') {
-        display.renderOverlayMenu(rows);
-    } else {
-        display.renderChargenMenu(rows, false);
-    }
+    renderKnownSpells();
 
     while (true) {
         const ch = await nhgetch();
+        if (ch === '+'.charCodeAt(0)) {
+            const changed = await promptSpellSort();
+            if (changed) {
+                renderKnownSpells();
+            }
+            continue;
+        }
         if (ch === 32 || ch === 27 || ch === 10 || ch === 13) break;
     }
     if (typeof display.clearRow === 'function') display.clearRow(0);

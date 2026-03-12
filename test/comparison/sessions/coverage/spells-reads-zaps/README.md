@@ -1,19 +1,36 @@
 # Theme: spells-reads-zaps
 
-Status: planned
+Status: active
 
 Target codepaths:
-- TODO
+- `js/spell.js`: known-spells menu (`+`), spell-sort submenu (`+` from spell list), cast prompt branches
+- `js/read.js`: scroll/spellbook command paths used by replayed C sessions
+- `js/zap.js`: wand utility/ray paths already covered by existing theme sessions
 
 Session plan:
-1. TODO
-2. TODO
+1. Keep short deterministic wizard sessions for cast/read/zap paths.
+2. Add parity-green sessions that measurably increase `js/spell.js` coverage.
+3. Prefer sessions with unique codepath gain over redundant long runs.
+
+Accepted sessions:
+1. `t05_s692_w_cast_gp.session.json`
+2. `t05_s695_w_castb_gp.session.json`
+3. `t05_s696_w_reada_gp.session.json`
+4. `t05_s698_w_spsort_gp.session.json` (`++a` sort-menu flow from known spells)
+5. `t06_s620_w_qheal_gp.session.json`
+6. `t06_s621_w_qstat_gp.session.json`
+7. `t06_s622_w_qabil_gp.session.json`
+8. `t06_s623_w_qmisc_gp.session.json`
+9. `t06_s624_w_qstat2_gp.session.json`
+10. `t06_s625_w_qener_gp.session.json`
+11. `t06_s631_w_zutil_gp.session.json`
+
+Coverage impact (2026-03-12 refresh):
+1. Overall parity coverage: lines `53.20% -> 53.28%` (`+0.08`), functions `34.72% -> 34.81%` (`+0.09`).
+2. `js/spell.js`: lines `41.98% -> 48.84%` (`+6.86`), functions `26.15% -> 33.82%` (`+7.67`).
 
 Issue links:
-- Planning: TODO
-- Recording: TODO
-- Parity bring-up: TODO
-- Coverage verification: TODO
+- Theme tracker: https://github.com/davidbau/menace/issues/347
 
 Completion criteria:
 1. Sessions recorded and committed.

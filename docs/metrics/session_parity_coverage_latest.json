@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-11T23:48:34.140Z",
-  "commit": "b21746eaf9b0b7c8901e60d570dc4c26682dc3a3",
+  "generatedAt": "2026-03-12T00:18:07.054Z",
+  "commit": "f2c9cc6aba7f182c1357ca626e81669d9ab1ffd8",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 53.2,
-    "branchesPct": 59.57,
-    "functionsPct": 34.72
+    "linesPct": 53.28,
+    "branchesPct": 59.49,
+    "functionsPct": 34.81
   },
   "filteredCount": 108,
   "lowestCovered": [
@@ -663,25 +663,6 @@
       }
     },
     {
-      "relPath": "js/dothrow.js",
-      "baseName": "dothrow.js",
-      "lines": {
-        "total": 1527,
-        "covered": 622,
-        "pct": 40.73
-      },
-      "branches": {
-        "total": 245,
-        "covered": 118,
-        "pct": 48.16
-      },
-      "functions": {
-        "total": 62,
-        "covered": 21,
-        "pct": 33.87
-      }
-    },
-    {
       "relPath": "js/bones.js",
       "baseName": "bones.js",
       "lines": {
@@ -720,22 +701,22 @@
       }
     },
     {
-      "relPath": "js/spell.js",
-      "baseName": "spell.js",
+      "relPath": "js/dothrow.js",
+      "baseName": "dothrow.js",
       "lines": {
-        "total": 1803,
-        "covered": 757,
-        "pct": 41.98
+        "total": 1527,
+        "covered": 637,
+        "pct": 41.71
       },
       "branches": {
-        "total": 182,
-        "covered": 70,
-        "pct": 38.46
+        "total": 256,
+        "covered": 119,
+        "pct": 46.48
       },
       "functions": {
-        "total": 65,
-        "covered": 17,
-        "pct": 26.15
+        "total": 62,
+        "covered": 22,
+        "pct": 35.48
       }
     },
     {
@@ -964,6 +945,25 @@
         "total": 81,
         "covered": 14,
         "pct": 17.28
+      }
+    },
+    {
+      "relPath": "js/uhitm.js",
+      "baseName": "uhitm.js",
+      "lines": {
+        "total": 2431,
+        "covered": 1146,
+        "pct": 47.14
+      },
+      "branches": {
+        "total": 298,
+        "covered": 145,
+        "pct": 48.65
+      },
+      "functions": {
+        "total": 120,
+        "covered": 19,
+        "pct": 15.83
       }
     }
   ]
