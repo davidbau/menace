@@ -8869,3 +8869,24 @@ Validation:
   - pending `t04_s706_w_minetn1_gp` improved substantially in RNG/screen/color,
     with remaining drift now concentrated to late wizload finalize ordering and
     checkpoint event parity.
+
+### Wizload RNG phase analyzer for normalized/raw alignment triage
+
+- Added `test/comparison/analyze_wizload_phase_rng.js` to inspect a
+  session-comparison artifact at the first RNG divergence using
+  normalized index mapping back to raw streams.
+- Why this matters:
+  - first-divergence indexes are reported on normalized RNG streams,
+    while key debugging context (checkpoints/callers) is easiest to read
+    in raw streams.
+  - without index-map remapping, it is easy to diagnose the wrong window.
+- The tool now prints:
+  - artifact + first-divergence summary,
+  - checkpoint/phase-focused lines in a divergence-centered window,
+  - raw-focus windows for JS and C with `place_lregion/placeRegion`,
+    `flip_level_rnd`, `fixupSpecialLevel`, `finalize_level`, and
+    `mineralize` callers.
+- Applied to pending `t04_s706_w_minetn1_gp`, this made the core gap
+  explicit: C performs an additional post-`after_finalize_special`
+  `place_lregion` batch before mineralization, while JS transitions into
+  mineralization immediately.
