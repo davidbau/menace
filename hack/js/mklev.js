@@ -201,8 +201,8 @@ function mkobj_lev() {
       else otmp.otyp = rn2(17); // RINGNUM
       otmp.quan = 1;
       if (otmp.otyp > 12) {
-        if (!rn2(3)) { otmp.cursed = true; otmp.minus = true; otmp.spe = rnd(3); }
-        else otmp.spe = rnd(3);
+        if (!rn2(3)) { otmp.cursed = true; otmp.minus = true; }
+        otmp.spe = otmp.otyp === 16 ? rn1(3, 2) : rnd(3); // C mklev.c:322-323
       } else if (otmp.otyp === 1 || otmp.otyp === 8 || otmp.otyp === 9)
         otmp.cursed = true;
   }
