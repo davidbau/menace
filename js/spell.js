@@ -438,6 +438,7 @@ export async function handleKnownSpells(player, display) {
 
     const renderKnownSpells = async () => {
         const knownSpells = sortspells(player, sortMode).filter(s => s.sp_know > 0);
+        const castingIndexBySpell = new Map((player.spells || []).map((sp, idx) => [sp, idx]));
         const rows = ['Currently known spells', ''];
         const showTurns = !!player.wizard;
         rows.push(showTurns
@@ -454,7 +455,8 @@ export async function handleKnownSpells(player, display) {
             const turnsLeft = Math.max(0, sp.sp_know);
             const fail = estimateSpellFailPercent(player, spellName, spellLevel, category);
             const retention = spellRetentionText(turnsLeft, skillRank);
-            const menuLet = i < 26 ? String.fromCharCode('a'.charCodeAt(0) + i) : String.fromCharCode('A'.charCodeAt(0) + i - 26);
+            const castingIndex = castingIndexBySpell.get(sp);
+            const menuLet = Number.isInteger(castingIndex) ? spellet(castingIndex) : spellet(i);
             const base = `${menuLet} - ${spellName.padEnd(20)}  ${String(spellLevel).padStart(2)}   ${category.padEnd(12)} ${String(fail).padStart(3)}% ${retention.padStart(9)}`;
             rows.push(showTurns ? `${base}  ${String(turnsLeft).padStart(5)}` : base);
         }
