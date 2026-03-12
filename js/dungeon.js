@@ -417,11 +417,10 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     const multi = Number.isFinite(hero?.multi) ? Math.trunc(hero.multi) : 0;
     const utrap = Number.isFinite(hero?.utrap) ? Math.trunc(hero.utrap) : 0;
     const utraptype = Number.isFinite(hero?.utraptype) ? Math.trunc(hero.utraptype) : 0;
-    const move = Number.isFinite(hero?.move)
-        ? Math.trunc(hero.move)
-        : (Number.isFinite(_gstate?.context?.move)
-            ? Math.trunc(_gstate.context.move)
-            : (Number.isFinite(_gstate?.move) ? Math.trunc(_gstate.move) : 0));
+    // C mapdump emits svc.context.move (not a per-hero cached field).
+    const move = Number.isFinite(_gstate?.context?.move)
+        ? Math.trunc(_gstate.context.move)
+        : (Number.isFinite(_gstate?.move) ? Math.trunc(_gstate.move) : 0);
     const moves = Number.isFinite(hero?.moves)
         ? Math.trunc(hero.moves)
         : (heroUnplaced && Number.isFinite(hero?.turns)

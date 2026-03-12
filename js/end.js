@@ -348,13 +348,6 @@ function savelife(how, game) {
     player.ugrave_arise = -1; // NON_PM
 }
 
-function clearPromptTopline(display) {
-    if (!display) return;
-    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
-    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
-    if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
-}
-
 // ============================================================================
 // done — main game-end handler
 // cf. end.c:1022
@@ -441,7 +434,6 @@ export async function done(how, game) {
         if (Object.hasOwn(game, 'playerDied')) {
             game.playerDied = false;
         }
-        clearPromptTopline(game.display);
         killer.name = '';
         killer.format = KILLED_BY_AN;
         return;
@@ -451,7 +443,6 @@ export async function done(how, game) {
         if (Object.hasOwn(game, 'playerDied')) {
             game.playerDied = false;
         }
-        clearPromptTopline(game.display);
         killer.name = '';
         killer.format = KILLED_BY_AN;
         return;

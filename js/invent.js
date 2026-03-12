@@ -28,7 +28,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object } from './mkobj.js';
-import { an, Has_contents } from './objnam.js';
+import { an, Has_contents, not_fully_identified as objnam_not_fully_identified } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
@@ -1643,11 +1643,7 @@ export function set_cknown_lknown(obj) {
 
 // C ref: invent.c not_fully_identified() — check if object is not fully ID'd
 export function not_fully_identified(obj) {
-    const od = objectData[obj.otyp] || {};
-    if (!od.name_known) return true;
-    if (!obj.known || !obj.bknown || !obj.rknown) return true;
-    if ((Is_container(obj) || obj.otyp === STATUE) && !obj.cknown) return true;
-    return false;
+    return objnam_not_fully_identified(obj);
 }
 
 // C ref: invent.c fully_identify_obj() — fully identify an object
@@ -1848,11 +1844,8 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         const lines = [];
         const choices = [];
 
-        lines.push(
-            `Debug Identify${unid.length > 0
-                ? ` -- unidentified or partially identified item${unid.length === 1 ? '' : 's'}`
-                : ''}`
-        );
+        // C menu title is a fixed short header.
+        lines.push('Debug Identify');
 
         if (unid.length === 0) {
             lines.push('(all items are permanently identified already)');

@@ -9121,3 +9121,24 @@ Validation:
 - Validation:
   - `seed42_gameplay` PASS
   - `seed100_multidigit_gameplay` PASS
+
+### t11_s742 parity: preserve C message boundary ownership at survive exits; wizard trap rendering in map memory
+
+- `done()` survive paths in JS were forcibly clearing topline state (`messageNeedsMore`,
+  marker flags, cached top message). C does not do this cleanup at that point.
+- Removing that forced clear in `js/end.js` restored C-faithful message/input boundary
+  ownership and produced a large parity gain in `t11_s742_w_covmax1_gp`:
+  - RNG: `13750/13750` (full)
+  - events: `3679/3679` (full)
+- Remaining mismatch was then dominated by screen rendering, beginning at step 1 where C
+  shows `^` for a wizard-visible trap square and JS showed terrain.
+- `js/display.js` now uses a shared `trapShownOnMap()` policy in both in-FOV and
+  remembered/out-of-FOV rendering paths:
+  - show trap glyph when `trap.tseen` or wizard mode is active (`game.wizard`).
+  - update `mem_trap` consistently in those paths.
+- Impact on `t11_s742_w_covmax1_gp` screen parity:
+  - `screens 3/795 -> 241/795`
+  - first screen divergence moved from step 1 to step 3.
+- Additional cleanup:
+  - `js/dungeon.js` mapdump `U` index-9 now uses `context.move` directly (C mirror),
+    avoiding accidental use of cached per-hero move fields.

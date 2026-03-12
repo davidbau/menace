@@ -121,6 +121,13 @@ function monsterShownOnMap(mon, player, map) {
     return detectMonsters || warnOfMon || telepathySensesMonsterForMap(mon, player);
 }
 
+function trapShownOnMap(trap, player) {
+    if (!trap) return false;
+    const wizardMode = !!(player?.wizard || _gstate?.wizard);
+    // C parity: wizard mode map rendering shows trap glyphs regardless of tseen.
+    return !!(trap.tseen || wizardMode);
+}
+
 function playerMapGlyph(player) {
     const upolyd = !!((Number(player?.mtimedone) || 0) > 0);
     const mlet = Number(player?.type?.mlet);
@@ -612,6 +619,15 @@ span.nh-cursor {
                             this.cellInfo[row][col] = { name: 'remembered object', desc: '(remembered)', color: rememberedObjColor };
                             continue;
                         }
+                        const rememberedTrap = gameMap.trapAt(x, y);
+                        if (trapShownOnMap(rememberedTrap, player) && !coversObjectsAt(loc, player)) {
+                            const tg = trapGlyph(rememberedTrap.ttyp);
+                            loc.mem_trap = tg.ch;
+                            loc.mem_trap_color = tg.color;
+                            this.setCell(col, row, tg.ch, tg.color);
+                            this.cellInfo[row][col] = { name: tg.name, desc: '(remembered)', color: tg.color };
+                            continue;
+                        }
                         if (loc.mem_trap) {
                             // C ref: back_to_glyph() preserves trap's full color in memory.
                             const memTrapColor = Number.isInteger(loc.mem_trap_color)
@@ -728,7 +744,7 @@ span.nh-cursor {
 
                 // Check for traps
                 const trap = gameMap.trapAt(x, y);
-                if (trap && trap.tseen && !coversObjectsAt(loc, player)) {
+                if (trapShownOnMap(trap, player) && !coversObjectsAt(loc, player)) {
                     const tg = trapGlyph(trap.ttyp);
                     loc.mem_trap = tg.ch;
                     loc.mem_trap_color = tg.color;
@@ -1523,7 +1539,7 @@ export function unmap_object(x, y, ctxOrMap = null) {
 
   const covered = coversObjectsAt(loc, player);
   const trap = (typeof map.trapAt === 'function') ? map.trapAt(x, y) : null;
-  if (trap && trap.tseen && !covered) {
+  if (trapShownOnMap(trap, player) && !covered) {
     const tg = trapGlyph(trap.ttyp);
     loc.mem_trap = tg.ch;
     loc.mem_trap_color = tg.color;
@@ -1660,7 +1676,7 @@ export function map_location(x, y, show = 0, ctxOrMap = null) {
     return;
   }
   const trap = (typeof map.trapAt === 'function') ? map.trapAt(x, y) : null;
-  if (trap && trap.tseen && !covered) {
+  if (trapShownOnMap(trap, ctx?.player) && !covered) {
     map_trap(trap, show, ctx);
     return;
   }
@@ -2218,6 +2234,14 @@ export function newsym(x, y, ctxOrMap = null) {
             display.setCell(col, row, loc.mem_obj, rememberedObjColor);
             return;
         }
+        const hiddenTrap = map.trapAt(x, y);
+        if (trapShownOnMap(hiddenTrap, player) && !coversObjectsAt(loc, player)) {
+            const tg = trapGlyph(hiddenTrap.ttyp);
+            loc.mem_trap = tg.ch;
+            loc.mem_trap_color = tg.color;
+            display.setCell(col, row, tg.ch, tg.color);
+            return;
+        }
         if (loc.mem_trap) {
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
@@ -2306,7 +2330,7 @@ export function newsym(x, y, ctxOrMap = null) {
 
     // Traps
     const trap = map.trapAt(x, y);
-    if (trap && trap.tseen && !coversObjectsAt(loc, player)) {
+    if (trapShownOnMap(trap, player) && !coversObjectsAt(loc, player)) {
         const tg = trapGlyph(trap.ttyp);
         loc.mem_trap = tg.ch;
         loc.mem_trap_color = tg.color;
