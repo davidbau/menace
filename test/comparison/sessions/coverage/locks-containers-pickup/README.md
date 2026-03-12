@@ -23,6 +23,7 @@ Accepted sessions:
 9. `t02_s993_w_carddoorlock_gp.session.json` (`credit card` door lock-attempt path)
 10. `t02_s993_w_skelkey_gp.session.json` (`skeleton key` door lock/unlock path)
 11. `t02_s993_w_lockpick_gp.session.json` (`lock pick` door lock/unlock path)
+12. `t02_s704_w_forceblunt_gp.session.json` (blunt `#force` chest-destruction path; exercises `breakchestlock(..., destroyit=true)`)
 
 Coverage impact (2026-03-11 refreshes):
 1. First addition: `js/lock.js` line coverage `23.58% -> 38.43%` (`+14.85`).

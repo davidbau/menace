@@ -29,7 +29,7 @@ import { objectData, WEAPON_CLASS, ROCK_CLASS, POTION_CLASS,
          SPE_WIZARD_LOCK, SPE_KNOCK, SPE_FORCE_BOLT, SPE_POLYMORPH,
          PAPER, WAX, VEGGY, FLESH, GLASS, WOOD,
        } from './objects.js';
-import { doname, xname } from './mkobj.js';
+import { doname, xname, place_object } from './mkobj.js';
 import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, P_DAGGER, P_FLAIL, P_LANCE } from './const.js';
 import { handleLoot, show_invalid_direction_cmdassist_help } from './pickup.js';
 import { pline, pline_The, You, You_cant, You_hear, There,
@@ -39,7 +39,7 @@ import { obj_resists } from './objdata.js';
 import { newsym } from './display.js';
 import { block_point, unblock_point, recalc_block_point, cansee } from './vision.js';
 import { wake_nearto, wake_nearby } from './mon.js';
-import { useup, delobj, carried } from './invent.js';
+import { useup, delobj_core, carried, stackobj } from './invent.js';
 import { add_damage } from './shk.js';
 import { mon_nam, some_mon_nam } from './do_name.js';
 import { chest_trap } from './trap.js';
@@ -183,35 +183,47 @@ export async function breakchestlock(game, box, destroyit) {
         // #force has destroyed this box
         const the_name = `the ${xname(box)}`;
         await pline(`In fact, you've totally destroyed ${the_name}.`);
-        // Put the contents on ground at the hero's feet
-        const contents = Array.isArray(box.cobj) ? [...box.cobj] : [];
-        for (const otmp of contents) {
+        // Put contents on ground at hero's feet.
+        // Support both linked-list and array container payloads.
+        let popContained = null;
+        if (Array.isArray(box.cobj)) {
+            popContained = () => (box.cobj.length ? box.cobj.shift() : null);
+        } else {
+            popContained = () => {
+                const head = box.cobj || null;
+                if (!head) return null;
+                box.cobj = head.nobj || null;
+                head.nobj = null;
+                if (head.ocontainer === box) head.ocontainer = null;
+                return head;
+            };
+        }
+
+        let otmp = null;
+        while ((otmp = popContained()) != null) {
             if (!rn2(3) || otmp.oclass === POTION_CLASS) {
                 await chest_shatter_msg(otmp);
                 if (otmp.quan === 1 || otmp.quan == null) {
-                    // Remove from contents
-                    const idx = box.cobj.indexOf(otmp);
-                    if (idx >= 0) box.cobj.splice(idx, 1);
                     continue;
                 }
-                // Reduce quantity by 1
-                otmp.quan = (otmp.quan || 1) - 1;
+                // C uses useup() here after extraction; it decrements quantity
+                // and keeps the remainder object for floor placement.
+                useup(otmp, player);
             }
-            // Remove from box contents
-            if (Array.isArray(box.cobj)) {
-                const idx = box.cobj.indexOf(otmp);
-                if (idx >= 0) box.cobj.splice(idx, 1);
-            }
-            // Place object on the floor
-            if (map.placeObject) {
-                map.placeObject(otmp, player.x, player.y);
-            }
+
+            otmp.ox = player.x;
+            otmp.oy = player.y;
+            place_object(otmp, player.x, player.y, map);
+            stackobj(otmp, map);
         }
-        // Delete the box
-        if (map.removeObject) {
-            map.removeObject(box, player.x, player.y);
+
+        // C delobj_core(obj, FALSE) always evaluates obj_resists(obj, 0, 0),
+        // consuming rn2(100) for non-invocation items before extraction/free.
+        if (!obj_resists(box, 0, 0)) {
+            delobj_core(box, map, false);
+        } else {
+            box.in_use = false;
         }
-        delobj(box, map);
     }
 }
 
