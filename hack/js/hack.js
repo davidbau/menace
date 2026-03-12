@@ -271,7 +271,8 @@ export async function domove() {
             await pline('A trap door opens up under you!');
             if (u.ufloat || u.ustuck) { await pline("You don't fall in!"); break; }
             seeoff(1);
-            await dodown();
+            // C ref: do dodown(); while(!rn2(4) && xdnstair) — player can fall multiple levels
+            do { await dodown(); } while (!rn2(4) && game.xdnstair);
             do { u.ux = rnd(79); u.uy = rn2(22); }
             while (levl[u.ux][u.uy].typ < ROOM || g_at_mon(u.ux, u.uy, game.fmon));
             setsee(); await docrt_fn();
@@ -652,9 +653,10 @@ async function doup() { if (_doup_fn) return _doup_fn(); }
 async function docrt_fn() { if (_docrt_fn) return _docrt_fn(); }
 async function poisoned_fn(s) { if (_poisoned_fn) return _poisoned_fn(s); }
 
+// C ref: traps[] in hack.vars — leading space/article matches "You escape a%s." format
 function trapName(n) {
-  const t = ['bear trap','arrow trap','dart trap','trapdoor','teleport trap','pit','sleeping gas trap'];
-  return t[n] || 'trap';
+  const t = [' bear trap','n arrow trap',' dart trap',' trapdoor',' teleportation trap',' pit',' sleeping gas trap'];
+  return t[n] || 'n unknown trap';
 }
 
 export { weight, gobj };
