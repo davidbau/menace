@@ -212,7 +212,13 @@ export async function wizTeleport(game) {
 // JS equivalent: handleWizLoadDes() below — loads a JS special level generator.
 
 import { rn2 } from './rng.js';
-import { resetLevelState, withFinalizeContext, withSpecialLevelDepth } from './sp_lev.js';
+import {
+    finalize_level,
+    lspo_fixup_special_level,
+    resetLevelState,
+    withFinalizeContext,
+    withSpecialLevelDepth
+} from './sp_lev.js';
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel } from './special_levels.js';
 import { getlin } from './input.js';
@@ -303,14 +309,25 @@ export async function handleWizLoadDes(game) {
     const dlevel = Number.isInteger(game?.map?._genDlevel)
         ? game.map._genDlevel
         : (Number.isInteger(player?.uz?.dlevel) ? player.uz.dlevel : player.dungeonLevel);
-    const newMap = await withSpecialLevelDepth(dlevel, async () =>
-        await withFinalizeContext({
-            dnum,
-            dlevel,
-            specialName: normalizedLevelName,
-            isBranchLevel: isBranchLevel(dnum, dlevel),
-        }, async () => await generator())
-    );
+    const finalizeCtx = {
+        dnum,
+        dlevel,
+        specialName: normalizedLevelName,
+        isBranchLevel: isBranchLevel(dnum, dlevel),
+    };
+    const newMap = await withSpecialLevelDepth(dlevel, async () => {
+        await withFinalizeContext(
+            { ...finalizeCtx, deferFinalize: true },
+            async () => await generator()
+        );
+        return await withFinalizeContext(
+            finalizeCtx,
+            async () => {
+                await lspo_fixup_special_level();
+                return await finalize_level();
+            }
+        );
+    });
     if (newMap) {
         // Route through changeLevel for hero placement, pet migration, and
         // arrival collision — matching C's goto_level() flow.

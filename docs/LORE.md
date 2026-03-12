@@ -8796,3 +8796,22 @@ Validation:
   - valid C names like `minetn-1` no longer fail at command routing,
   - parity now proceeds into real generation/finalize drift for this session,
     which is the correct next debugging target.
+
+### wizload minefill: two-stage fixup + C-style made_branch gate
+
+- Pending session `t04_s705_w_minefill_gp` was still drifting late in
+  `fixup_special/place_lregion` during wizload.
+- C behavior detail that mattered:
+  - wizload path can hit special-level fixup twice,
+  - branch placement itself is guarded by `made_branch` (inside
+    `place_branch`), not by skipping the outer fixup pass.
+- JS fixes:
+  - added a deferred-finalize path for wizload (`deferFinalize`) so script
+    `des.finalize_level()` can be split into load-stage and explicit finalize,
+  - updated `handleWizLoadDes()` to run that two-stage flow,
+  - made `place_branch()` C-faithful with a per-map `_madeBranch` guard and
+    proper coordinate side effects when no stairs/portal are placed.
+- Result:
+  - pending minefill RNG became fully aligned (`5345/5345`),
+  - remaining mismatch on this pending session is now screen/event only,
+  - baseline failures suite stayed stable (`259/260` in `--failures` set).

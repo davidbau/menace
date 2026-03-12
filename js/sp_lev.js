@@ -326,7 +326,6 @@ export let levelState = {
     monsterInventoryStack: [], // Active des.monster inventory callback context
     // Optional context to emulate C topology/fixup behavior.
     finalizeContext: null,
-    branchPlaced: false,
     levRegions: [],
     spLevMap: null,
     spLevTouched: null,
@@ -1019,7 +1018,7 @@ export function resetLevelState() {
         containerStack: [],
         monsterInventoryStack: [],
         finalizeContext: null,
-        branchPlaced: false,
+        deferredFinalizeRequested: false,
         levRegions: [],
         spLevMap: null,
         spLevTouched: null,
@@ -1070,7 +1069,8 @@ function applyFinalizeContext(ctx = null) {
             || ctx.branchPlacement === 'stair-up'
             || ctx.branchPlacement === 'stair-down')
             ? ctx.branchPlacement
-            : undefined
+            : undefined,
+        deferFinalize: !!ctx.deferFinalize,
     };
 }
 
@@ -1128,7 +1128,7 @@ function canPlaceStair(direction) {
 }
 
 async function fixupSpecialLevel() {
-    if (!levelState.map || levelState.branchPlaced) return;
+    if (!levelState.map) return;
     // C ref: mkmaze.c fixup_special()
     // LR_* constants imported from const.js
     const ctx = levelState.finalizeContext || {};
@@ -1295,7 +1295,6 @@ async function fixupSpecialLevel() {
     }
 
     captureCheckpoint('after_levregions_fixup');
-    levelState.branchPlaced = true;
 }
 
 // C ref: mkmaze.c fixup_special() Medusa branch
@@ -6828,6 +6827,12 @@ export function remove_boundary_syms(map) {
 }
 
 export async function finalize_level() {
+    if (levelState.finalizeContext?.deferFinalize) {
+        // C parity (wiz_load_splua): allow script code to request finalize,
+        // but defer actual finalization to caller-managed second stage.
+        levelState.deferredFinalizeRequested = true;
+        return levelState.map;
+    }
     const extraPhaseTrace = (getProcessEnv('WEBHACK_EXTRA_PHASE_CHECKPOINTS') === '1');
     if (extraPhaseTrace) {
         captureCheckpoint('after_script');
@@ -7016,6 +7021,7 @@ export async function finalize_level() {
     }
 
     captureCheckpoint('after_finalize');
+    levelState.deferredFinalizeRequested = false;
     if (levelState._mklevContextEntered) {
         leaveMklevContext();
         levelState._mklevContextEntered = false;
@@ -7082,7 +7088,18 @@ export function lspo_non_passwall(L) {
 }
 export function lspo_teleport_region(...args) { return teleport_region(...args); }
 export function lspo_reset_level(...args) { return reset_level(...args); }
-export async function lspo_finalize_level(...args) { return await finalize_level(...args); }
+export async function lspo_finalize_level(...args) {
+    if (levelState.finalizeContext?.deferFinalize) {
+        // C parity (wiz_load_splua): defer script-level finalize until caller
+        // explicitly finalizes after load_special-equivalent setup completes.
+        levelState.deferredFinalizeRequested = true;
+        return levelState.map;
+    }
+    return await finalize_level(...args);
+}
+export async function lspo_fixup_special_level(...args) {
+    return await fixupSpecialLevel(...args);
+}
 export function lspo_gas_cloud(...args) { return gas_cloud(...args); }
 
 /**

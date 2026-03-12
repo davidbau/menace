@@ -906,6 +906,10 @@ export function place_branch(map, x = 0, y = 0, placementHint = 'none') {
         pos_to_room(map, x, y);
     }
 
+    if (!placementHint || placementHint === 'none') {
+        map._madeBranch = true;
+        return true;
+    }
     if (placementHint === 'portal') {
         maketrap(map, x, y, MAGIC_PORTAL);
     } else if (placementHint === 'stair-up') {
