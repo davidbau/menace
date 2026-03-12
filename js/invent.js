@@ -39,6 +39,7 @@ import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr } from './attrib.js';
 import { game as _gstate } from './gstate.js';
+import { visctrl } from './hacklib.js';
 
 
 // ============================================================
@@ -1859,7 +1860,11 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
             return '';
         }
 
-        lines.push(`_ - select ${unid.length === 1 ? 'it' : 'any or all of them'} to permanently identify`);
+        let identifyLine = `_ - select ${unid.length === 1 ? 'it' : 'any or all of them'} to permanently identify`;
+        if (unid.length > 1) {
+            identifyLine += ` (${visctrl(wizIdentifyAccel)} for all)`;
+        }
+        lines.push(identifyLine);
         choices.push('_');
         choices.push(String.fromCharCode(wizIdentifyAccel));
 
