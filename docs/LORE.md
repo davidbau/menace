@@ -8683,3 +8683,22 @@ Validation:
   - RNG `2700/2815` -> `2713/2787`
   - Events `73/142` -> `74/118`
   - First divergence moved later to mounted combat sequencing during `l` step.
+
+### Follow-up: mounted `mattacku` must include C steed-target diversion
+
+- C `mhitu.c:mattacku()` has a mounted branch before the normal attack loop:
+  adjacent monsters may consume `rn2(is_orc ? 2 : 4)` to attack `u.usteed`
+  via `mattackm`, then allow steed retaliation.
+- JS `mattacku` did not have this branch, which caused first mismatch in steed
+  micro-session at `rn2(4)` inside mounted combat.
+- Landed C-faithful JS branch:
+  - skips self-attack when `monster === player.usteed`,
+  - consumes the mounted diversion RNG gate,
+  - executes `mattackm(monster, steed)` with C-style early returns,
+  - executes retaliatory `mattackm(steed, monster)` when both remain adjacent.
+
+Validation:
+- Canonical gameplay parity suite stayed green: `208/208`.
+- Steed micro-session first mismatch moved later:
+  - from step-`l` combat RNG (`rn2(4)` in C `mattacku`)
+  - to later ride/dismount phase (`rn2(3)` in C `landing_spot`).

@@ -39,9 +39,10 @@ import {
     is_animal, digests, enfolds, is_whirly, haseyes, perceives,
     dmgtype, dmgtype_fromattack, monsndx, flaming, noncorporeal,
     get_atkdam_type, cvt_adtyp_to_mseenres, DISTANCE_ATTK_TYPE,
-    is_undead, has_head, mhis,
+    is_undead, has_head, mhis, is_orc,
 } from './mondata.js';
 import { m_seenres, find_offensive, use_offensive, m_next2u } from './muse.js';
+import { mattackm } from './mhitm.js';
 import {
     weaponEnchantment, weaponDamageSides,
     mhitm_mgc_atk_negated, do_stone_u,
@@ -1264,14 +1265,38 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     if (!monster.attacks || monster.attacks.length === 0) return;
     if (monster.passive) return; // passive monsters don't initiate attacks
 
+    const map = opts.map || null;
     const attackVars = calc_mattacku_vars(monster, player);
     let range2 = (opts.range2 !== undefined) ? !!opts.range2 : !!attackVars.range2;
     let foundyou = !!attackVars.foundyou;
     const firstfoundyou = foundyou;
     let skipnonmagc = false;
-    const map = opts.map || null;
     const sum = new Array(6).fill(M_ATTK_MISS); // C NATTK == 6
     const combatState = { skipdrin: false };
+
+    // C ref: mhitu.c:527-546 — mounted hero: attackers may target steed.
+    if (player?.usteed) {
+        if (monster === player.usteed) {
+            // Your steed won't attack you.
+            return false;
+        }
+        const mdat = monster.data || monster.type || {};
+        if (!rn2(is_orc(mdat) ? 2 : 4) && m_next2u(monster, player)) {
+            const vis = !player?.blind;
+            const mmCtx = {
+                player,
+                map,
+                turnCount: game?.moves ?? game?.turnCount ?? 0,
+            };
+            const steed = player.usteed;
+            const steedAttack = await mattackm(monster, steed, display, vis, map, mmCtx);
+            if (steedAttack & M_ATTK_AGR_DIED) return true;
+            if ((steedAttack & M_ATTK_DEF_DIED) || !player.usteed || !m_next2u(monster, player)) {
+                return false;
+            }
+            return !!((await mattackm(player.usteed, monster, display, vis, map, mmCtx)) & M_ATTK_DEF_DIED);
+        }
+    }
 
     // C ref: mhitu.c:755-761 — Unlike defensive stuff, don't let them use item _and_ attack.
     if (map && await find_offensive(monster, map, player)) {
