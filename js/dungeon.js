@@ -4487,11 +4487,16 @@ function placeLevelSim(rawLevels, numLevels, levelActive) {
 // C ref: mkmaze.c:1353-1455
 // ========================================================================
 
-export function get_level_extends(map) {
+export function get_level_extends(map, opts = null) {
     // C ref: mkmaze.c:1353-1427
     // Scan from each edge to find the first column/row with non-STONE content.
     // The is_maze_lev flag affects the boundary offset; normal levels use -2/+2.
-    const is_maze_lev = !!(map && map.flags && map.flags.is_maze_lev);
+    const mazeOverride = opts && typeof opts.isMazeLevelOverride === 'boolean'
+        ? opts.isMazeLevelOverride
+        : null;
+    const is_maze_lev = (mazeOverride !== null)
+        ? mazeOverride
+        : !!(map && map.flags && map.flags.is_maze_lev);
 
     let xmin, xmax, ymin, ymax;
     let found, nonwall;
@@ -4553,10 +4558,10 @@ export function get_level_extends(map) {
     return { xmin, xmax, ymin, ymax };
 }
 
-export function bound_digging(map) {
+export function bound_digging(map, opts = null) {
     // C ref: mkmaze.c:1439-1455
     // Mark boundary stone/wall cells as non-diggable so mineralize skips them.
-    const { xmin, xmax, ymin, ymax } = get_level_extends(map);
+    const { xmin, xmax, ymin, ymax } = get_level_extends(map, opts);
     if (envFlag('DEBUG_MINERALIZE')) {
         console.log(`bound_digging: xmin=${xmin} xmax=${xmax} ymin=${ymin} ymax=${ymax}`);
     }

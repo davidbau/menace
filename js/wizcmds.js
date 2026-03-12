@@ -317,6 +317,9 @@ export async function handleWizLoadDes(game) {
         dlevel,
         specialName: normalizedLevelName,
         isBranchLevel: isBranchLevel(dnum, dlevel),
+        // C-faithful wizload quirk: lspo_finalize_level(NULL) uses non-maze
+        // boundary offsets during topology finalize for wiz-loaded specials.
+        boundDiggingIsMazeLevel: false,
     };
     const newMap = await withSpecialLevelDepth(dlevel, async () => {
         await withFinalizeContext(

@@ -19,6 +19,7 @@ export function makeLocation() {
         typ: STONE,        // terrain type (levl_typ_types enum)
         seenv: 0,          // seen from which directions (bitmask)
         flags: 0,          // door state, altar alignment, etc.
+        wall_info: 0,      // wall mode + W_* bits (rm.h)
         lit: false,         // is this square lit?
         waslit: false,      // was this square ever lit?
         roomno: 0,         // room number (0 = not in a room)
@@ -31,6 +32,7 @@ export function makeLocation() {
         mem_obj_color: 0,  // remembered object color
         mem_invis: false,  // remembered invisible monster
         nondiggable: false, // W_NONDIGGABLE flag (set by bound_digging)
+        nonpasswall: false, // W_NONPASSWALL flag
         drawbridgemask: 0,  // drawbridge direction and terrain-under bits
     };
 }
@@ -129,6 +131,7 @@ export class GameMap {
                 loc.typ = STONE;
                 loc.seenv = 0;
                 loc.flags = 0;
+                loc.wall_info = 0;
                 loc.lit = false;
                 loc.waslit = false;
                 loc.roomno = 0;
@@ -140,6 +143,9 @@ export class GameMap {
                 loc.mem_obj = 0;
                 loc.mem_obj_color = 0;
                 loc.mem_invis = false;
+                loc.nondiggable = false;
+                loc.nonpasswall = false;
+                loc.drawbridgemask = 0;
             }
         }
         this.rooms = [];

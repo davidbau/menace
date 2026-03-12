@@ -1057,6 +1057,7 @@ export function resetLevelState() {
  * @param {"stairs"|"portal"|"none"|"stair-up"|"stair-down"} [ctx.branchPlacement]
  * @param {boolean} [ctx.skipAfterFinalizeCheckpoint]
  * @param {boolean} [ctx.skipRandomFlip]
+ * @param {boolean} [ctx.boundDiggingIsMazeLevel]
  */
 function applyFinalizeContext(ctx = null) {
     if (!ctx) {
@@ -1081,6 +1082,9 @@ function applyFinalizeContext(ctx = null) {
         deferFinalize: !!ctx.deferFinalize,
         skipAfterFinalizeCheckpoint: !!ctx.skipAfterFinalizeCheckpoint,
         skipRandomFlip: !!ctx.skipRandomFlip,
+        boundDiggingIsMazeLevel: (typeof ctx.boundDiggingIsMazeLevel === 'boolean')
+            ? ctx.boundDiggingIsMazeLevel
+            : undefined,
     };
 }
 
@@ -6986,7 +6990,12 @@ export async function finalize_level() {
     // C ref: mklev.c:1533-1539 — level_finalize_topology()
     // bound_digging marks boundary stone as non-diggable before mineralize
     if (levelState.map) {
-        bound_digging(levelState.map);
+        bound_digging(levelState.map, {
+            isMazeLevelOverride: (levelState.finalizeContext
+                && typeof levelState.finalizeContext.boundDiggingIsMazeLevel === 'boolean')
+                ? levelState.finalizeContext.boundDiggingIsMazeLevel
+                : null,
+        });
         // Get depth from level state or default to 1
         const depth = levelState.levelDepth || 1;
         // C ref: level_finalize_topology() always calls mineralize();

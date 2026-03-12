@@ -8971,3 +8971,27 @@ Validation:
 - Validation:
   - `seed033_manual_direct` now fully matches RNG/events/screens/colors.
   - Full gameplay report is green: `271/271` passing.
+
+### Wizload minetown topology parity: bound_digging maze-offset quirk
+
+- While continuing pending `t04_s706_w_minetn1_gp`, JS was short by exactly the
+  mineralize tail and diverged at first `getArrivalPosition` RNG.
+- High-signal trace (`DEBUG_MINERALIZE=1`) showed second-pass
+  `bound_digging: xmin=3` and many `W_NONDIGGABLE` skips on column `x=3`.
+- C session evidence for this fixture indicated RNG should continue through the
+  full mineralize window before arrival placement.
+- Fix:
+  - Added optional maze-state override plumbing:
+    - `get_level_extends(map, { isMazeLevelOverride })`
+    - `bound_digging(map, { isMazeLevelOverride })`
+    - `sp_lev` finalize context carries `boundDiggingIsMazeLevel`.
+  - Wizload second-stage finalize now forces `boundDiggingIsMazeLevel=false`
+    for this path.
+- Additional structural hardening:
+  - `makeLocation()` now initializes `wall_info`/`nonpasswall`.
+  - `GameMap.clear()` now resets `wall_info`, `nondiggable`,
+    `nonpasswall`, and `drawbridgemask`.
+- Validation snapshot:
+  - `t04_s706_w_minetn1_gp` now reaches full RNG parity (`5797/5797`), with
+    remaining mismatch reduced to screen/event at step 5.
+  - `seed42_gameplay` still passes fully.
