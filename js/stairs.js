@@ -19,13 +19,17 @@ function _makeStairNode(stair, upHint) {
     const sy = Number.isInteger(stair.sy) ? stair.sy : stair.y;
     if (!Number.isInteger(sx) || !Number.isInteger(sy)) return null;
     const up = (typeof stair.up === 'boolean') ? stair.up : !!upHint;
+    const dest = stair.tolev || stair.to || { dnum: 0, dlevel: 0 };
     return {
         sx,
         sy,
         up,
         isladder: !!stair.isladder,
         u_traversed: !!stair.u_traversed,
-        tolev: stair.tolev || { dnum: 0, dlevel: 0 },
+        tolev: {
+            dnum: Number.isInteger(dest.dnum) ? dest.dnum : 0,
+            dlevel: Number.isInteger(dest.dlevel) ? dest.dlevel : 0,
+        },
         next: null,
     };
 }

@@ -264,21 +264,30 @@ export function terrainSymbol(loc, gameMap = null, x = -1, y = -1, flags = {}) {
 }
 
 function isKnownBranchStairCell(loc, gameMap, x, y) {
-    // Preserve explicit cell marker when present (legacy snapshots/runtime state).
-    if (!!loc.branchStair && !!loc.branchTraversed) return true;
+    // Preserve explicit cell markers from runtime/snapshots.
+    // If traversal is unspecified, treat branchStair as known for parity
+    // with legacy fixtures that only carry branchStair.
+    if (loc.branchStair && loc.branchTraversed !== false) return true;
     if (!gameMap || !Number.isInteger(x) || !Number.isInteger(y)) return false;
 
     const currentDnum = Number.isInteger(gameMap?.uz?.dnum)
         ? gameMap.uz.dnum
-        : (Number.isInteger(gameMap?._genDnum) ? gameMap._genDnum : 0);
+        : (Number.isInteger(gameMap?._genDnum)
+            ? gameMap._genDnum
+            : (Number.isInteger(globalThis?.game?.dnum) ? globalThis.game.dnum : 0));
     const sameCell = (stair) => stair
         && ((Number.isInteger(stair.x) && stair.x === x && stair.y === y)
             || (Number.isInteger(stair.sx) && stair.sx === x && stair.sy === y));
-    const isKnownBranchStair = (stair) => stair
-        && stair.tolev
-        && Number.isInteger(stair.tolev.dnum)
-        && stair.tolev.dnum !== currentDnum
-        && !!stair.u_traversed;
+    const isKnownBranchStair = (stair) => {
+        if (!stair) return false;
+        // Runtime stair objects commonly use `to`; some parity fixtures still
+        // carry `tolev` naming. Accept both to match C known_branch_stairs().
+        const dest = stair.tolev || stair.to;
+        return !!dest
+            && Number.isInteger(dest.dnum)
+            && dest.dnum !== currentDnum
+            && !!stair.u_traversed;
+    };
 
     if (isKnownBranchStair(gameMap.upstair) && sameCell(gameMap.upstair)) return true;
     if (isKnownBranchStair(gameMap.dnstair) && sameCell(gameMap.dnstair)) return true;
