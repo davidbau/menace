@@ -499,12 +499,97 @@ def build_covmax6_moves() -> str:
     return moves
 
 
+def build_covmax7_moves() -> str:
+    moves = ""
+
+    # Broad setup, still using compact/known-safe item names.
+    for item in [
+        "wand of digging",
+        "wand of fire",
+        "wand of cold",
+        "wand of sleep",
+        "wand of striking",
+        "wand of opening",
+        "wand of locking",
+        "wand of polymorph",
+        "scroll of create monster",
+        "scroll of identify",
+        "scroll of teleportation",
+        "scroll of earth",
+        "potion of healing",
+        "potion of confusion",
+        "potion of levitation",
+        "pick-axe",
+        "stethoscope",
+        "blindfold",
+        "egg",
+        "food ration",
+    ]:
+        moves += wish(item)
+
+    moves += CTRL_F + SP
+    moves += CTRL_I + SP
+
+    # Phase A: high-coverage command families without dense monster churn.
+    for _ in range(10):
+        moves += "o" + "l" + (SP * 2)
+        moves += "c" + "l" + (SP * 2)
+        moves += "a" + "m" + (SP * 2)
+        moves += "a" + "n" + (SP * 2)
+        moves += "r" + "o" + (SP * 2)
+        moves += "r" + "p" + (SP * 2)
+        moves += "q" + "q" + (SP * 2)
+        moves += "q" + "r" + (SP * 2)
+        moves += "Z" + "a" + (SP * 2)          # cast first known spell
+        moves += "z" + "e" + "j" + (SP * 2)
+        moves += "z" + "f" + "j" + (SP * 2)
+        moves += "t" + "j" + "j" + (SP * 2)
+        moves += "lljjhhkk" + "s" + "." + "," + "d" + (SP * 2)
+
+    # Depth and mapgen coverage.
+    for depth in [2, 5, 8, 11]:
+        moves += levelport(depth)
+        moves += CTRL_F + SP
+        moves += CTRL_I + SP
+        for _ in range(2):
+            moves += "lljjhhkk" + "s" * 2 + "." + "," + "d" + (SP * 2)
+            moves += "a" + "m" + (SP * 2)
+            moves += "z" + "e" + "j" + (SP * 2)
+            moves += "Z" + "a" + (SP * 2)
+
+    # Phase B: controlled monster interactions (late to postpone AI drift).
+    for mon in [
+        "jackal",
+        "kobold",
+        "goblin",
+        "newt",
+        "grid bug",
+        "floating eye",
+        "acid blob",
+        "lichen",
+    ]:
+        moves += genesis(mon)
+
+    for _ in range(9):
+        moves += "f" + "j" + (SP * 2)
+        moves += "F" + "J" + (SP * 2)
+        moves += "z" + "g" + "j" + (SP * 2)
+        moves += "z" + "h" + "j" + (SP * 2)
+        moves += "t" + "k" + "j" + (SP * 2)    # includes egg throw paths
+        moves += "Z" + "a" + (SP * 2)
+        moves += "lljjhhkk" + "." + "s" + (SP * 2)
+
+    moves += "#pray" + ENTER + (SP * 2)
+    moves += "#sit" + ENTER + (SP * 2)
+    return moves
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate one long coverage-max pending session.")
     parser.add_argument("--seed", type=int, default=741, help="Deterministic seed")
     parser.add_argument(
         "--scenario",
-        choices=["covmax1", "covmax2", "covmax3", "covmax4", "covmax5", "covmax6"],
+        choices=["covmax1", "covmax2", "covmax3", "covmax4", "covmax5", "covmax6", "covmax7"],
         default="covmax1",
         help="Coverage scenario recipe",
     )
@@ -527,8 +612,10 @@ def main():
         moves = build_covmax4_moves()
     elif args.scenario == "covmax5":
         moves = build_covmax5_moves()
-    else:
+    elif args.scenario == "covmax6":
         moves = build_covmax6_moves()
+    else:
+        moves = build_covmax7_moves()
     print(f"Seed: {args.seed}")
     print(f"Output: {outpath}")
     print(f"Move keycount: {len(moves)}")
