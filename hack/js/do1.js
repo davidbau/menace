@@ -224,9 +224,9 @@ export async function dosearch() {
 }
 
 function traps_name(n) {
-  const t = ['bear trap', 'arrow trap', 'dart trap', 'trapdoor',
-             'teleport trap', 'pit', 'sleeping gas trap'];
-  return t[n] || 'unknown trap';
+  const t = [' bear trap', 'n arrow trap', ' dart trap', ' trapdoor',
+             ' teleportation trap', ' pit', ' sleeping gas trap'];
+  return t[n] || 'n unknown trap';
 }
 
 // ===== Inventory list helpers =====
