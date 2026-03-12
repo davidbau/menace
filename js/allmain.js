@@ -22,7 +22,7 @@ import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline, Norep } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
-import { M2_WERE, PM_WIZARD } from './monsters.js';
+import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
 import { were_change } from './were.js';
 import { allocateMonsterMovement, mcalcmove } from './mon.js';
 import { rn2, rnd, rn1, initRng, getRngState, setRngState, getRngCallCount, setRngCallCount,
@@ -1250,6 +1250,11 @@ export class NetHackGame {
         this.gd = {};
         this.gm = {};
         this.gn = {};
+        // C ref: allmain.c new_game() — svm.mvitals[i].mvflags = mons[i].geno & G_NOCORPSE
+        // (other fields: born/died start at 0 via C global zero-initialization)
+        this.mvitals = Array.from({ length: NUMMONS }, (_, i) => ({
+            born: 0, died: 0, mvflags: (mons[i]?.geno ?? 0) & G_NOCORPSE, seen_close: false,
+        }));
         this.flags = null; // set in init()
         this.levels = {};
         this.gameOver = false;
