@@ -51,7 +51,7 @@ def levelport(depth: int) -> str:
     return CTRL_V + str(depth) + ENTER + (SP * 2)
 
 
-def build_covmax_moves() -> str:
+def build_covmax1_moves() -> str:
     moves = ""
 
     # Initial diagnostics and setup.
@@ -112,16 +112,86 @@ def build_covmax_moves() -> str:
     return moves
 
 
+def build_covmax2_moves() -> str:
+    moves = ""
+
+    # No initial wiz-map identify to avoid immediate display-only drift.
+    for item in [
+        "wand of striking",
+        "wand of opening",
+        "wand of locking",
+        "wand of digging",
+        "skeleton key",
+        "lock pick",
+        "pick-axe",
+        "oilskin sack",
+        "scroll of remove curse",
+        "scroll of enchant armor",
+        "scroll of destroy armor",
+        "scroll of create monster",
+        "scroll of charging",
+        "potion of object detection",
+        "potion of monster detection",
+        "potion of blindness",
+        "potion of levitation",
+    ]:
+        moves += wish(item)
+
+    for mon in ["kobold", "orc", "jackal", "goblin", "floating eye", "acid blob"]:
+        moves += genesis(mon)
+
+    # Inventory and command-path churn before movement.
+    for letter in "efghijk":
+        moves += "r" + letter + (SP * 2)
+    for letter in "efghi":
+        moves += "z" + letter + "j" + (SP * 2)
+    for letter in "lmn":
+        moves += "a" + letter + (SP * 2)
+    for letter in "opq":
+        moves += "q" + letter + (SP * 2)
+
+    # Door/terrain interactions.
+    for _ in range(4):
+        moves += "s" * 4 + "o" + "l" + (SP * 2) + "k" + "l" + "h" + "j"
+        moves += "." + "," + "d" + (SP * 2)
+
+    # Depth hopping with mixed actions.
+    for depth in [3, 7]:
+        moves += levelport(depth)
+        for _ in range(2):
+            moves += "lllljjjjhhhhkkkk" + "s" * 2 + "." + "," + "d" + (SP * 2)
+            moves += "f" + "j" + (SP * 2) + "t" + "j" + (SP * 2)
+        moves += "#pray" + ENTER + (SP * 2)
+        moves += "#sit" + ENTER + (SP * 2)
+
+    # Digging + command variability.
+    for _ in range(8):
+        moves += "a" + "n" + (SP * 2)       # apply pick/lock tool slot guess
+        moves += "z" + "h" + "j" + (SP * 2) # zap digging/utility
+        moves += "lljjhhkk" + "s" + "." + (SP * 2)
+
+    return moves
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate one long coverage-max pending session.")
     parser.add_argument("--seed", type=int, default=741, help="Deterministic seed")
+    parser.add_argument(
+        "--scenario",
+        choices=["covmax1", "covmax2"],
+        default="covmax1",
+        help="Coverage scenario recipe",
+    )
     args = parser.parse_args()
 
     os.environ.setdefault("NETHACK_FIXED_DATETIME", "20000110090000")
     os.makedirs(SESSIONS_DIR, exist_ok=True)
 
-    outpath = os.path.join(SESSIONS_DIR, f"t11_s{args.seed:03d}_w_covmax1_gp.session.json")
-    moves = build_covmax_moves()
+    outpath = os.path.join(
+        SESSIONS_DIR,
+        f"t11_s{args.seed:03d}_w_{args.scenario}_gp.session.json",
+    )
+    moves = build_covmax1_moves() if args.scenario == "covmax1" else build_covmax2_moves()
     print(f"Seed: {args.seed}")
     print(f"Output: {outpath}")
     print(f"Move keycount: {len(moves)}")
