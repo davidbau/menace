@@ -864,6 +864,9 @@ export function newedog(mtmp) {
             hungrytime: 0,
         };
     }
+    // Alias mon.edog = mon.mextra.edog for code that reads mon.edog directly
+    // (dogmove.js, uhitm.js, mon.js, etc.)
+    mtmp.edog = mtmp.mextra.edog;
 }
 
 // cf. dog.c:45 initedog() — initialize pet edog data

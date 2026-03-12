@@ -939,7 +939,8 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // C ref: hack.h #define distu(xx,yy) dist2(xx,yy,u.ux,u.uy)
     const udist = dist2(omx, omy, player.x, player.y);
     const edogRaw = mon.edog || null;
-    const edog = edogRaw || { apport: 0, hungrytime: 1000, whistletime: 0 };
+    const edog = edogRaw || { apport: 0, hungrytime: 1000, whistletime: 0, ogoal: { x: 0, y: 0 } };
+    if (edog && !edog.ogoal) edog.ogoal = { x: 0, y: 0 };
     // C ref: dog_move uses svm.moves which is incremented at end of turn,
     // so during movemon() svm.moves = (completed turns + 1).
     // JS player.turns is incremented after movemon(), so add 1 to match C.

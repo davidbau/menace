@@ -2446,8 +2446,10 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     }
 
     // C ref: makemon.c:1396 — MM_EDOG: allocate edog structure
+    // C's newedog() calloc-zeros the struct; ogoal must be initialized
+    // for dog_move() which accesses edog.ogoal.x unconditionally.
     if (mmflags & MM_EDOG) {
-        mon.edog = {};
+        mon.edog = { ogoal: { x: 0, y: 0 } };
     }
 
     // C ref: makemon.c:2506 — mimics get appearance type from set_mimic_sym()
