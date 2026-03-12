@@ -23,6 +23,7 @@ import { skill_init_from_inventory } from './weapon.js';
 import { skill_based_spellbook_id } from './spell.js';
 import { withMakemonPlayerOverride } from './makemon.js';
 import { initLevelGeneration, mklev } from './dungeon.js';
+import { setCheckpointCaptureEnabled, clearLevelCheckpoints } from './sp_lev.js';
 import { getArrivalPosition } from './do.js';
 import { mksobj, mkobj, weight, setStartupInventoryMode, Is_container } from './mkobj.js';
 import { NUM_ATTRS,
@@ -1275,6 +1276,9 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
 // C ref: allmain.c newgame() — from init_dungeons through welcome(TRUE)
 export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     const startDlevel = opts.startDlevel ?? 1;
+    const captureSpecialLevelCheckpoints = opts.captureSpecialLevelCheckpoints === true;
+    setCheckpointCaptureEnabled(captureSpecialLevelCheckpoints);
+    if (captureSpecialLevelCheckpoints) clearLevelCheckpoints();
     initrack();
     resetPlineState();
     resetNoisesState();

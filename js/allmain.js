@@ -1691,6 +1691,7 @@ export class NetHackGame {
             startDlevel,
             startDnum: this.dnum,
             dungeonAlignOverride: this.dungeonAlignOverride,
+            captureSpecialLevelCheckpoints: urlOpts.captureSpecialLevelCheckpoints === true,
         });
         this.map = map;
         this.levels[startDlevel] = map;

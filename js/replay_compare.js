@@ -386,6 +386,13 @@ export function prepareReplayArgs(seed, session, opts = {}) {
         }
     }
 
+    const hasCheckpointEvents = (Array.isArray(session?.steps) ? session.steps : []).some((step) =>
+        Array.isArray(step?.rng) && step.rng.some((entry) => typeof entry === 'string' && entry.startsWith('^ckpt['))
+    );
+    if (hasCheckpointEvents) {
+        initOpts.captureSpecialLevelCheckpoints = true;
+    }
+
     // Flatten all gameplay step keys into a single string.
     const steps = getSessionGameplaySteps(session);
     let maxKeys = opts.maxSteps;

@@ -519,6 +519,12 @@ function captureCheckpoint(phase) {
         updest: normalizeDestRect(map.updest),
         dndest: normalizeDestRect(map.dndest)
     });
+
+    const game = _gstate;
+    const player = game?.player || null;
+    pushRngLogEntry(
+        `^ckpt[phase=${phase} rng=${getRngCallCount() | 0} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} ux=${(Number.isInteger(player?.x) ? player.x : 0) | 0} uy=${(Number.isInteger(player?.y) ? player.y : 0) | 0}]`
+    );
 }
 
 // ========================================================================
