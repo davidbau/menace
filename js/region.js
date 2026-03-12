@@ -43,6 +43,7 @@ import { AD_DRST, M1_BREATHLESS } from './monsters.js';
 import { PM_FOG_CLOUD } from './monsters.js';
 import { PM_LONG_WORM } from './monsters.js';
 import { EYE, LUNG } from './const.js';
+import { envFlag } from './runtime_env.js';
 
 const NO_CALLBACK = -1;
 
@@ -63,6 +64,25 @@ export function clear_heros_fault(r) { r.player_flags |= REG_NOT_HEROS; }
 
 // FM_FMON flag for find_mid
 const FM_FMON = 0x02;
+
+function gasCloudTraceEnabled() {
+    return envFlag('WEBHACK_GASCLOUD_TRACE');
+}
+
+function gasCloudCallerTag() {
+    const stack = new Error().stack || '';
+    const lines = stack.split('\n');
+    for (let i = 2; i < lines.length; i++) {
+        const line = String(lines[i] || '').trim();
+        if (!line.includes('/region.js')) return line.replace(/^at\s+/, '');
+    }
+    return 'unknown';
+}
+
+function traceGasCloud(msg) {
+    if (!gasCloudTraceEnabled()) return;
+    console.log(`[GASCLOUD_TRACE] ${msg}`);
+}
 
 // ========================================================================
 // Helper: get the regions array from the map, initializing if needed
@@ -741,6 +761,11 @@ async function make_gas_cloud(cloud, damage, inside_cloud, map, player, game) {
 const MAX_CLOUD_SIZE = 150;
 
 export async function create_gas_cloud(x, y, cloudsize, damage, map, player, game) {
+    traceGasCloud(
+        `enter step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'} `
+        + `xy=${x},${y} size=${cloudsize} dmg=${damage} mon_moving=${game?.mon_moving ? 1 : 0} `
+        + `in_mklev=${game?.in_mklev ? 1 : 0} caller=${gasCloudCallerTag()}`
+    );
     const xcoords = [x];
     const ycoords = [y];
     let newidx = 1;
@@ -803,8 +828,16 @@ export async function create_gas_cloud(x, y, cloudsize, damage, map, player, gam
     cloud.ttl = rn1(3, 4);
     // If cloud was constrained, give it more time
     cloud.ttl = Math.floor((cloud.ttl * cloudsize) / newidx);
+    traceGasCloud(
+        `built step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'} `
+        + `xy=${x},${y} req=${cloudsize} actual=${newidx} ttl=${cloud.ttl} dmg=${damage}`
+    );
 
     await make_gas_cloud(cloud, damage, suppress || inside_cloud, map, player, game);
+    traceGasCloud(
+        `done step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'} `
+        + `xy=${x},${y} actual=${newidx} ttl=${cloud.ttl} dmg=${damage}`
+    );
     return cloud;
 }
 

@@ -3,7 +3,7 @@
 // getpos_refresh(), getpos() lifecycle.
 
 import { MAP_ROW_START, COLNO, ROWNO, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
-    ROOM, CORR, SDOOR, IS_WALL, isok } from './const.js';
+    ROOM, CORR, SDOOR, IS_WALL, isok, MAXTCHARS } from './const.js';
 import { more, nhgetch } from './input.js';
 import { flush_screen } from './display.js';
 import {
@@ -22,6 +22,10 @@ import { game as _gstate } from './gstate.js';
 import { t_at } from './trap.js';
 import { glyph_is_cmap } from './symbols.js';
 import { glyph_to_cmap } from './glyphs.js';
+import {
+    defsyms, S_ndoor, S_engroom, S_engrcorr, S_stone, S_trwall, S_room, S_darkroom,
+    S_corr, S_litcorr, S_vodoor, S_hcdoor, S_arrow_trap,
+} from './symbols.js';
 
 const HiliteNormalMap = 0;
 const HiliteGoodposSymbol = 1;
@@ -524,6 +528,29 @@ function isUnshiftedPrintable(c, ch) {
     return isPrintable(ch) && (c < 'A' || c > 'Z');
 }
 
+function isSearchableFeatureChar(c) {
+    const isCmapWall = (i) => i >= S_stone && i <= S_trwall;
+    const isCmapRoom = (i) => i >= S_room && i <= S_darkroom;
+    const isCmapCorr = (i) => i >= S_corr && i <= S_litcorr;
+    const isCmapDoor = (i) => i >= S_vodoor && i <= S_hcdoor;
+    const isCmapTrap = (i) => i >= S_arrow_trap && i < (S_arrow_trap + MAXTCHARS);
+    const isCmapEngraving = (i) => i === S_engroom || i === S_engrcorr;
+    for (let sidx = 0; sidx < defsyms.length; sidx++) {
+        if (isCmapWall(sidx) || isCmapRoom(sidx) || isCmapCorr(sidx)
+            || isCmapDoor(sidx) || sidx === S_ndoor) {
+            continue;
+        }
+        const sym = defsyms[sidx]?.ch;
+        if (!sym) continue;
+        if (c === sym
+            || (c === '^' && isCmapTrap(sidx))
+            || (c === defsyms[S_engroom]?.ch && isCmapEngraving(sidx))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function getpos_gloc_from_filter(filter) {
     switch (filter) {
     case GLOC_MONS:
@@ -816,21 +843,23 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             }
 
             if (!isQuitChar && (isShiftedPrintable(c, ch) || isUnshiftedPrintable(c, ch))) {
-                const found = findMatchingMapChar(display, runtimeCtx.map, cx, cy, c, !isShiftedPrintable(c, ch));
-                if (found) {
-                    restoreCursor(display, cursorState);
-                    cx = found.x;
-                    cy = found.y;
-                    cursorState = putCursor(display, cx, cy);
+                if (isSearchableFeatureChar(c)) {
+                    const found = findMatchingMapChar(display, runtimeCtx.map, cx, cy, c, !isShiftedPrintable(c, ch));
+                    if (found) {
+                        restoreCursor(display, cursorState);
+                        cx = found.x;
+                        cy = found.y;
+                        cursorState = putCursor(display, cx, cy);
+                        continue;
+                    }
+                    if (typeof display?.putstr_message === 'function') {
+                        await display.putstr_message(`Can't find dungeon feature '${c}'.`);
+                        msgGiven = true; // C ref: getpos.c:1115
+                        restoreCursor(display, cursorState);
+                        cursorState = putCursor(display, cx, cy);
+                    }
                     continue;
                 }
-                if (typeof display?.putstr_message === 'function') {
-                    await display.putstr_message(`Can't find dungeon feature '${c}'.`);
-                    msgGiven = true; // C ref: getpos.c:1115
-                    restoreCursor(display, cursorState);
-                    cursorState = putCursor(display, cx, cy);
-                }
-                continue;
             }
 
             if (!force) {
