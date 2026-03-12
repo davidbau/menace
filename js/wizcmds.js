@@ -283,7 +283,7 @@ export async function handleWizLoadDes(game) {
     const dlevel = Number.isInteger(player?.uz?.dlevel)
         ? player.uz.dlevel
         : player.dungeonLevel;
-    const newMap = await withSpecialLevelDepth(player.dungeonLevel, async () =>
+    const newMap = await withSpecialLevelDepth(dlevel, async () =>
         await withFinalizeContext({
             dnum,
             dlevel,
