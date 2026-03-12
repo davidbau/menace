@@ -632,7 +632,16 @@ export async function rhack(ch, game) {
     // Wizard mode: Ctrl+I = identify all
     // C ref: cmd.c wiz_identify()
     if (ch === 9 && game.wizard) {
-        await display.putstr_message('All items in inventory identified.');
+        for (const obj of (player.inventory || [])) {
+            if (!obj) continue;
+            obj.known = true;
+            obj.dknown = true;
+            obj.bknown = true;
+        }
+        // TTY wizard identify route shows "Debug Identify" and waits for
+        // dismissal before returning to command input.
+        await display.putstr_message('                                Debug Identify');
+        await more(display, { game });
         return { moved: false, tookTime: false };
     }
 
