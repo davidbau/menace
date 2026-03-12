@@ -276,9 +276,13 @@ export async function handleWizLoadDes(game) {
     rn2(2);
     resetLevelState();
     // C ref: fixup_special() uses Is_branchlev(&u.uz) for branch placement.
-    // Must pass dnum/dlevel so isBranchLevel is computed correctly.
-    const dnum = 0; // JS currently only tracks Dungeons of Doom
-    const dlevel = player.dungeonLevel;
+    // Use current level context (u.uz equivalent) instead of hardcoded Dungeons of Doom.
+    const dnum = Number.isInteger(player?.uz?.dnum)
+        ? player.uz.dnum
+        : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : 0);
+    const dlevel = Number.isInteger(player?.uz?.dlevel)
+        ? player.uz.dlevel
+        : player.dungeonLevel;
     const newMap = await withSpecialLevelDepth(player.dungeonLevel, async () =>
         await withFinalizeContext({
             dnum,
