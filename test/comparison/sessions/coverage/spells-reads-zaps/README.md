@@ -19,13 +19,14 @@ Accepted sessions:
 4. `t05_s698_w_spsort_gp.session.json` (`++a` sort-menu flow from known spells)
 5. `t05_s699_w_spsortz_gp.session.json` (`++z` reassign-casting-letters path)
 6. `t05_s700_w_spsortesc_gp.session.json` (`++Esc` cancel sort submenu and return to known spells)
-7. `t06_s620_w_qheal_gp.session.json`
-8. `t06_s621_w_qstat_gp.session.json`
-9. `t06_s622_w_qabil_gp.session.json`
-10. `t06_s623_w_qmisc_gp.session.json`
-11. `t06_s624_w_qstat2_gp.session.json`
-12. `t06_s625_w_qener_gp.session.json`
-13. `t06_s631_w_zutil_gp.session.json`
+7. `t05_s701_w_spsortsp_gp.session.json` (`++Space` cancel sort submenu and return to known spells)
+8. `t06_s620_w_qheal_gp.session.json`
+9. `t06_s621_w_qstat_gp.session.json`
+10. `t06_s622_w_qabil_gp.session.json`
+11. `t06_s623_w_qmisc_gp.session.json`
+12. `t06_s624_w_qstat2_gp.session.json`
+13. `t06_s625_w_qener_gp.session.json`
+14. `t06_s631_w_zutil_gp.session.json`
 
 Coverage impact (2026-03-12 refresh):
 1. Overall parity coverage: lines `53.20% -> 53.28%` (`+0.08`), functions `34.72% -> 34.81%` (`+0.09`).
