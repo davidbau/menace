@@ -346,10 +346,12 @@ function buildHarnessMapdumpGrid(map, which) {
                 case 3: value = loc?.lit ? 1 : 0; break;
                 case 4: value = Number(loc?.roomno ?? 0) & 0x3f; break;
                 case 5: {
-                    const hasWallInfo = Number.isFinite(loc?.wall_info);
-                    value = hasWallInfo
-                        ? (Math.trunc(loc.wall_info) & 0x1f)
-                        : (Number(loc?.flags ?? 0) & 0x1f);
+                    // C ref: rm.h union overlays flags/wall_info/doormask/stairdir.
+                    // JS stores these in separate fields, so emit a union-style
+                    // composite to preserve C mapdump semantics.
+                    const flagsLow = Number(loc?.flags ?? 0) & 0x1f;
+                    const wallInfoLow = Number(loc?.wall_info ?? 0) & 0x1f;
+                    value = (flagsLow | wallInfoLow) & 0x1f;
                     const typ = Number(loc?.typ ?? 0);
                     // C stores altar alignment/shrine bits in the same union
                     // field (rm.wall_info alias). JS also carries altarmask.
