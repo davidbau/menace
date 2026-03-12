@@ -23,6 +23,7 @@ import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, sele
 import { NHW_MENU, NHW_TEXT, MENU_BEHAVE_STANDARD, PICK_ONE, ATR_NONE, MENU_ITEMFLAGS_SELECTED, gs } from './const.js';
 import { getpos_async } from './getpos.js';
 import { x_monnam } from './mondata.js';
+import { races, roleNameForGender } from './role.js';
 import { engr_at, can_reach_floor } from './engrave.js';
 import { trapped_chest_at, trapped_door_at } from './detect.js';
 import { objectData, STRANGE_OBJECT } from './objects.js';
@@ -141,7 +142,15 @@ export function do_screen_description(ctx, cc) {
     const y = Number(cc.y);
 
     if (player && x === player.x && y === player.y) {
-        return { found: true, firstmatch: 'you', outStr: '', text: 'you', kind: 'hero' };
+        // C ref: pager.c lookat() → self_lookat(): "{race adj} {role name} called {plname}"
+        // e.g. "human wizard called wizard"
+        // C's svp.plname is stored as-typed (typically lowercase for wizard-mode sessions).
+        // JS player.name may be capitalized from options; lowercase to match C convention.
+        const raceAdj = races[player.race]?.adj || '';
+        const roleName = roleNameForGender(player.roleIndex, !!player.female).toLowerCase();
+        const plname = (player.name || 'you').toLowerCase();
+        const selfDesc = `${raceAdj ? raceAdj + ' ' : ''}${roleName} called ${plname}`;
+        return { found: true, firstmatch: selfDesc, outStr: '', text: selfDesc, kind: 'hero' };
     }
 
     const mon = map.monsterAt ? map.monsterAt(x, y) : null;
@@ -252,7 +261,8 @@ export async function do_look(game, mode = 0, click_cc = null) {
                     display,
                     flags: { ...(flags || {}), verbose: getposVerbose },
                     goalPrompt: whatIsALocation,
-                    player
+                    player,
+                    do_screen_description,
                 });
                 if (ans < 0 || cc.x < 0 || cc.y < 0) break;
             }
@@ -736,6 +746,7 @@ export async function handleViewMapPrompt(game) {
             goalPrompt: 'anything of interest',
             player,
             forceVerbosePrompt: true,
+            do_screen_description,
         });
         gpFlags.terrainmode = 0;
         if (typeof display.renderStatus === 'function') display.renderStatus(player);

@@ -563,6 +563,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
     }
 
     let showGoalMsg = false;
+    let msgGiven = true; // C ref: getpos.c:804 msg_given = TRUE
     let tipShownThisCall = false;
     const hasVisibleMoreMarker = () => {
         if (!display || typeof display.getScreenLines !== 'function') return false;
@@ -635,6 +636,11 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 restoreCursor(display, cursorState);
                 cursorState = putCursor(display, cx, cy);
                 showGoalMsg = false;
+            } else if (!msgGiven) {
+                // C ref: getpos.c:865-866 — auto_describe when no message pending
+                await auto_describe(cx, cy, display, runtimeCtx);
+                restoreCursor(display, cursorState);
+                cursorState = putCursor(display, cx, cy);
             }
             // When getpos posts consecutive topline messages ("For instructions..."
             // then "Move cursor..."), consume any pending --More-- boundary before
@@ -648,7 +654,11 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             const ch = await nhgetch();
             const c = String.fromCharCode(ch);
 
+            // C ref: getpos.c:889-890 — reset msg_given after reading key
+            msgGiven = false;
+
             if (ch === 27) {
+                msgGiven = true; // C ref: getpos.c:894
                 if (typeof display?.clearRow === 'function') display.clearRow(0);
                 if (display) {
                     display.topMessage = null;
@@ -671,6 +681,8 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
             }
             if (c === '?') {
                 await getpos_help(force, goal || runtimeCtx.goalPrompt, display, runtimeCtx.flags);
+                msgGiven = true; // C ref: getpos.c:969
+                showGoalMsg = true; // C ref: getpos.c:954
                 continue;
             }
             if (c === '^') {
@@ -717,6 +729,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 if (typeof display?.putstr_message === 'function') {
                     await display.putstr_message(`Target filter: ${targetFilterLabel(targetFilter)}.`);
                 }
+                msgGiven = true;
                 continue;
             }
             if (c === '[' || c === ']') {
@@ -809,6 +822,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 }
                 if (typeof display?.putstr_message === 'function') {
                     await display.putstr_message(`Can't find dungeon feature '${c}'.`);
+                    msgGiven = true; // C ref: getpos.c:1115
                     restoreCursor(display, cursorState);
                     cursorState = putCursor(display, cx, cy);
                 }
@@ -819,6 +833,7 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 let hadUnknownDirection = false;
                 if (!isQuitChar && typeof display?.putstr_message === 'function') {
                     await display.putstr_message(`Unknown direction: '${visctrl(c)}' (aborted).`);
+                    msgGiven = true; // C ref: getpos.c:1131
                     hadUnknownDirection = true;
                 }
                 if (typeof display?.putstr_message === 'function') {
@@ -845,6 +860,17 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 restoreCursor(display, cursorState);
                 cursorState = putCursor(display, cx, cy);
                 continue;
+            }
+
+            // C ref: getpos.c:1119-1135 — Unknown direction message for force=TRUE.
+            // Reached for non-printable, non-quit, unrecognized keys (e.g. ^X).
+            if (typeof display?.putstr_message === 'function') {
+                await display.putstr_message(
+                    `Unknown direction: '${visctrl(c)}' (use 'h', 'j', 'k', 'l' or '.').`
+                );
+                msgGiven = true; // C ref: msg_given = TRUE before goto nxtc
+                restoreCursor(display, cursorState);
+                cursorState = putCursor(display, cx, cy);
             }
         }
     } finally {
@@ -899,13 +925,25 @@ export function coord_desc(x, y, player, cmode) {
 
 // C ref: getpos.c:639 auto_describe
 // Display description of what's at cursor location during getpos.
+// Uses ctx.do_screen_description (if provided) for full monster/object
+// descriptions matching C's auto_describe behavior, falling back to
+// cursorDesc for terrain-only descriptions.
 export async function auto_describe(cx, cy, display, ctx) {
     if (!display || typeof display.putstr_message !== 'function') return;
-    const desc = await describeCursorWithContext(display, ctx, cx, cy);
-    if (!desc) return;
+    let message;
+    if (typeof ctx?.do_screen_description === 'function') {
+        // C ref: auto_describe calls do_screen_description for full lookup
+        const desc = ctx.do_screen_description({ map: ctx.map, player: ctx.player }, { x: cx, y: cy });
+        if (!desc || !desc.found) return;
+        message = desc.firstmatch || desc.text;
+        if (!message) return;
+    } else {
+        const desc = await describeCursorWithContext(display, ctx, cx, cy);
+        if (!desc) return;
+        message = desc;
+    }
     const player = ctx?.player;
     const coordStr = player ? coord_desc(cx, cy, player, ctx?.flags?.getpos_coords) : '';
-    let message = desc;
     if (coordStr) message += ' ' + coordStr;
     if (getpos_getvalid && !getpos_getvalid(cx, cy)) {
         message += ' (invalid target)';
