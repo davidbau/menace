@@ -1143,6 +1143,8 @@ async function fixupSpecialLevel() {
     // LR_* constants imported from const.js
     const ctx = levelState.finalizeContext || {};
     const specialName = (typeof ctx.specialName === 'string') ? ctx.specialName.toLowerCase() : '';
+    const fixupTrace = envFlag('WEBHACK_WIZLOAD_FIXUP_TRACE');
+    const initialRegionCount = Array.isArray(levelState.levRegions) ? levelState.levRegions.length : 0;
 
     // C ref: mkmaze.c fixup_special():
     // Is_waterlevel/Is_airlevel forces hero_memory off and runs setup_waterlevel()
@@ -1152,6 +1154,8 @@ async function fixupSpecialLevel() {
     }
 
     let addedBranch = false;
+    let placedRegionCalls = 0;
+    let usedFallbackBranchPlacement = false;
     const resolvePortalDest = (region, ctx) => {
         if (region?.rtype !== LR_PORTAL) return null;
         const rname = (typeof region.rname === 'string') ? region.rname.trim() : '';
@@ -1173,6 +1177,7 @@ async function fixupSpecialLevel() {
     const placeRegion = (region, explicitType = region.rtype, opts = {}) => {
         const ctx = levelState.finalizeContext || {};
         const portalDest = resolvePortalDest(region, ctx);
+        placedRegionCalls++;
         place_lregion(levelState.map,
             region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
             region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
@@ -1254,6 +1259,7 @@ async function fixupSpecialLevel() {
     }
 
     if (!addedBranch && ctx.isBranchLevel) {
+        usedFallbackBranchPlacement = true;
         // C fallback: fixup_special() places branch if Is_branchlev(&u.uz) true.
         // C always calls place_branch → find_branch_room (consuming RNG for position),
         // even for BR_NO_END1 branches where no stairs are actually placed.
@@ -1304,6 +1310,11 @@ async function fixupSpecialLevel() {
         levelState.map.flags.has_town = true;
     }
 
+    if (fixupTrace) {
+        pushRngLogEntry(
+            `^wizfixup[name=${specialName || 'unknown'} isBranch=${ctx.isBranchLevel ? 1 : 0} regions=${initialRegionCount} placed=${placedRegionCalls} addedBranch=${addedBranch ? 1 : 0} fallback=${usedFallbackBranchPlacement ? 1 : 0} rng=${getRngCallCount() | 0}]`
+        );
+    }
     // C ref: mkmaze.c fixup_special() frees gl.lregions and zeroes num_lregions.
     levelState.levRegions = [];
     captureCheckpoint('after_levregions_fixup');

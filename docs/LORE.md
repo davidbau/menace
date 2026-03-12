@@ -8918,3 +8918,17 @@ Validation:
 - Validation:
   - `node test/comparison/session_test_runner.js --verbose test/comparison/maps/seed42_castle.session.json` passes with full RNG/events/screens/colors parity.
   - `npm run test:session` passes all sessions (`394/394`, gameplay `270/270`).
+
+### Wizload fixup phase instrumentation (`WEBHACK_WIZLOAD_FIXUP_TRACE`)
+
+- Added optional trace instrumentation in `fixupSpecialLevel()` to speed up
+  `#wizloaddes` phase debugging without changing default replay behavior.
+- Enable with:
+  - `WEBHACK_WIZLOAD_FIXUP_TRACE=1 node test/comparison/session_test_runner.js --verbose <session>`
+- When enabled, JS emits:
+  - `^wizfixup[name=... isBranch=... regions=... placed=... addedBranch=... fallback=... rng=...]`
+- Practical use:
+  - Compare `regions/placed/fallback` between sessions like
+    `seed42_castle` and pending `t04_s706_w_minetn1_gp` to isolate whether
+    missing RNG comes from explicit levregions vs fallback branch placement.
+- Default behavior unchanged (`WEBHACK_WIZLOAD_FIXUP_TRACE` off).
