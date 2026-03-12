@@ -951,16 +951,21 @@ export function slots_required(skill) {
     return Math.max(1, heroSkill[skill]);
 }
 
-// C ref: weapon.c could_advance().
+// C ref: weapon.c practice_needed_to_advance(level) = level * level * 20.
+function practice_needed_to_advance(level) {
+    return level * level * 20;
+}
+
+// C ref: weapon.c could_advance() — enough practice to advance?
 export function could_advance(skill) {
     if (!skillSystemActive) return false;
     if (!Number.isInteger(skill) || skill < 0 || skill >= P_NUM_SKILLS) return false;
     if (heroSkill[skill] <= P_ISRESTRICTED) return false;
     if (heroSkill[skill] >= heroMaxSkill[skill]) return false;
-    return heroSkillAdvance[skill] >= slots_required(skill);
+    return heroSkillAdvance[skill] >= practice_needed_to_advance(heroSkill[skill]);
 }
 
-// C ref: weapon.c can_advance().
+// C ref: weapon.c can_advance() — enough practice AND enough slots?
 export function can_advance(skill) {
     if (!could_advance(skill)) return false;
     const pool = heroSkillAdvance[P_NONE] || 0;

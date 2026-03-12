@@ -1154,11 +1154,17 @@ async function handlePickup(player, map, display, game = null) {
     // C-faithful command boundary: ',' on a multi-object pile enters a
     // selector flow (same command) where letter keys are not global commands.
     if (nonGoldObjs.length > 1) {
+        const inv_order = game?.flags?.inv_order || '';
         const choiceObjs = [...nonGoldObjs].sort((a, b) => {
-            // C-like pickup menu ordering: group by class, then by displayed name.
+            // C-like pickup menu ordering: group by class per inv_order, then by name.
             const ac = Number(a?.oclass || 0);
             const bc = Number(b?.oclass || 0);
-            if (ac !== bc) return ac - bc;
+            if (ac !== bc) {
+                // Sort by position in inv_order (C's def_inv_order)
+                const ai = inv_order.indexOf(String.fromCharCode(ac));
+                const bi = inv_order.indexOf(String.fromCharCode(bc));
+                return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+            }
             const an = String(doname(a) || '');
             const bn = String(doname(b) || '');
             const byName = an.localeCompare(bn);

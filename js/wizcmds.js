@@ -55,18 +55,25 @@ export async function wizMap(game) {
         await display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
-    for (let x = 0; x < COLNO; x++) {
-        for (let y = 0; y < ROWNO; y++) {
-            const loc = map.at(x, y);
-            if (loc) {
-                loc.seenv = 0xff;
-                loc.lit = true;
-            }
+    // C ref: wizcmds.c:183-191 — reveal traps and engravings
+    // notice_mon_off/on not relevant for JS
+    const save_Hconf = player.HConfusion || 0;
+    const save_Hhallu = player.HHallucination || 0;
+    player.HConfusion = 0;
+    player.HHallucination = 0;
+    // Reveal traps
+    if (map.traps) {
+        for (let t = map.traps; t; t = t.ntrap) {
+            t.tseen = 1;
         }
     }
+    // C ref: wizcmds.c:192 — do_mapping() reveals map + exercises WIS
+    await do_mapping(player, map, display);
+    player.HConfusion = save_Hconf;
+    player.HHallucination = save_Hhallu;
+    // Refresh display
     fov.compute(map, player.x, player.y);
     display.renderMap(map, player, fov);
-    await display.putstr_message('You feel knowledgeable.');
     return { moved: false, tookTime: false };
 }
 
@@ -230,6 +237,7 @@ import { glyph_to_cmap } from './glyphs.js';
 import { defsyms } from './symbols.js';
 import { name_to_mon, name_to_monclass } from './mondata.js';
 import { Role_if } from './role.js';
+import { do_mapping } from './detect.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {

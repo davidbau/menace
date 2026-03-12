@@ -195,6 +195,10 @@ export async function pluslvl(player, display, incr) {
         if (player.ulevelmax == null || player.ulevelmax < player.ulevel) {
             player.ulevelmax = player.ulevel;
         }
+        // C ref: exper.c:355 — adjabil(oldlevel, newlevel) gives new intrinsics.
+        // Lazy import to avoid circular dependency (attrib.js re-exports from exper.js).
+        const { adjabil } = await import('./attrib.js');
+        await adjabil(player, player.ulevel - 1, player.ulevel);
     }
 }
 

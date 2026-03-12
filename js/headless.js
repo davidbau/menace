@@ -817,12 +817,14 @@ export class HeadlessDisplay {
         // In C, full-screen uses offx=0 then putchar(' ') before each item.
         // In JS, use offx=1 so the clearing loop places a space at col 0
         // and putstr places text at col 1 — matching C's output.
-        const fullScreen = (offx === 10 || lines.length >= this.rows);
+        const fullScreen = (offx === 10 || lines.length >= this.rows || !!opts?.forceFullScreen);
         if (fullScreen) offx = 1;
 
         const menuRows = Math.min(lines.length, fullScreen ? this.rows : STATUS_ROW_1);
-        // C tty parity: clear only rows occupied by the menu itself.
-        for (let r = 0; r < menuRows; r++) {
+        // C tty parity: in full-screen mode, clear all rows (needed for
+        // multi-page menus where later pages have fewer lines than earlier ones).
+        const clearRows = fullScreen ? this.rows : menuRows;
+        for (let r = 0; r < clearRows; r++) {
             for (let c = Math.max(0, offx - 1); c < this.cols; c++) {
                 this.grid[r][c] = ' ';
                 this.colors[r][c] = CLR_GRAY;

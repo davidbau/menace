@@ -796,7 +796,7 @@ async function handleExtendedCommand(game) {
                     { first: P_FIRST_SPELL, last: P_LAST_SPELL, name: 'Spellcasting Skills' },
                 ];
                 const longest = rows.reduce((m, r) => Math.max(m, (r.name || '').length), 0);
-                const slots = Number.isInteger(player?.weapon_slots) ? player.weapon_slots : 4;
+                const slots = weapon_slots_available();
                 const menuLines = [` Current skills:  (${slots} slots available)`, ''];
                 for (const range of ranges) {
                     const group = rows.filter((r) => Number.isInteger(r.skill)
@@ -815,23 +815,30 @@ async function handleExtendedCommand(game) {
                 const rowsCap = Number.isInteger(display?.rows) ? display.rows : 24;
                 const contentRows = Math.max(1, rowsCap - 1);
                 const totalPages = Math.max(1, Math.ceil(menuLines.length / contentRows));
-                const firstPage = menuLines.slice(0, contentRows);
-                firstPage.push(`(1 of ${totalPages})`);
-                if (display) {
-                    if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
-                    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
-                    if (typeof display.clearRow === 'function') display.clearRow(0);
+                for (let page = 0; page < totalPages; page++) {
+                    const pageLines = menuLines.slice(page * contentRows, (page + 1) * contentRows);
+                    pageLines.push(`(${page + 1} of ${totalPages})`);
+                    if (display) {
+                        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+                        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+                        if (typeof display.clearRow === 'function') display.clearRow(0);
+                    }
+                    if (typeof display.renderOverlayMenu === 'function') {
+                        // Force full-screen for subsequent pages so leftover
+                        // content from page 1 is fully cleared.
+                        const menuOpts = page > 0 ? { forceFullScreen: true } : null;
+                        display.renderOverlayMenu(pageLines, menuOpts);
+                    }
+                    if (typeof display?.setCursor === 'function') {
+                        const cols = display.cols || 80;
+                        const row = Math.max(0, Math.min(rowsCap, pageLines.length) - 1);
+                        const marker = String(pageLines[row] || '');
+                        display.setCursor(Math.min(cols - 1, 1 + marker.length), row);
+                    }
+                    const ch = await nhgetch();
+                    // C ref: tty display — ESC or 'q' exits multi-page text windows immediately
+                    if (ch === 27 || ch === 113) break; // ESC or 'q'
                 }
-                if (typeof display.renderOverlayMenu === 'function') {
-                    display.renderOverlayMenu(firstPage);
-                }
-                if (typeof display?.setCursor === 'function') {
-                    const cols = display.cols || 80;
-                    const row = Math.max(0, Math.min(rowsCap, firstPage.length) - 1);
-                    const marker = String(firstPage[row] || '');
-                    display.setCursor(Math.min(cols - 1, 1 + marker.length), row);
-                }
-                await nhgetch();
                 const last = display?._lastMapState;
                 if (last?.gameMap && typeof display.renderMap === 'function') {
                     display.renderMap(last.gameMap, last.player, last.fov, last.flags || display.flags || {});

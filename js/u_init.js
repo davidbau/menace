@@ -20,6 +20,7 @@ import { resetPlineState } from './pline.js';
 import { resetNoisesState } from './mhitm.js';
 import { resetHungerState } from './eat.js';
 import { skill_init_from_inventory } from './weapon.js';
+import { skill_based_spellbook_id } from './spell.js';
 import { withMakemonPlayerOverride } from './makemon.js';
 import { initLevelGeneration, mklev } from './dungeon.js';
 import { getArrivalPosition } from './do.js';
@@ -1201,6 +1202,9 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     // C ref: weapon.c:1745-1784 — skill_init reads inventory to set P_BASIC
     // for weapon skills matching starting items. Must happen after all ini_inv.
     skill_init_from_inventory(player.inventory || [], player.roleMnum);
+    // C ref: spell.c skill_based_spellbook_id() — wizards passively identify
+    // low-level spellbooks based on their spell skill ranks.
+    skill_based_spellbook_id(player);
     applyRolePreknowledge(player);
     applyStartupDiscoveries(player);
     //    c+d. init_attr(75) + vary_init_attr()

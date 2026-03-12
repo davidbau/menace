@@ -748,6 +748,8 @@ const C_DEFAULTS = {
     showdamage: false, showexp: false, showscore: false, showrace: false, time: false,
 
     // Compound options
+    // C ref: options.c:136 def_inv_order — COIN,AMULET,WEAPON,ARMOR,FOOD,SCROLL,SPBOOK,POTION,RING,WAND,TOOL,GEM,ROCK,BALL,CHAIN
+    inv_order: String.fromCharCode(12, 5, 2, 3, 7, 9, 10, 8, 4, 11, 6, 13, 14, 15, 16),
     fruit: 'slime mold', pickup_types: '', menustyle: 'full',
     runmode: 'leap', pickup_burden: 'moderate', sortloot: 'loot',
     pile_limit: 5, msghistory: 20, statuslines: 2,

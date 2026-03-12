@@ -618,7 +618,7 @@ function background_enlightenment(mode, final, game) {
     // Turns — cf. insight.c:611-618
     // JS turnCount is one behind C's svm.moves (see allmain.js:235)
     const moves = (game._currentTurn ?? ((game.turnCount || 0) + 1));
-    if (moves === 1) {
+    if (moves <= 1) {
         you_have(final, 'just started your adventure', '');
     } else {
         enlght_line('You ', 'entered ', `the dungeon ${moves} turn${moves === 1 ? '' : 's'} ago`, '');
