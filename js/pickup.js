@@ -1198,6 +1198,8 @@ async function handlePickup(player, map, display, game = null) {
             observeObject(obj);
             const addResult = player.addToInventory(obj, { withMeta: true });
             map.removeObject(obj);
+            // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
+            if (addResult?.item) addResult.item.pickup_prev = 1;
             await pline(
                 "%s - %s.",
                 addResult?.item?.invlet || obj.invlet || '-',
@@ -1234,6 +1236,8 @@ async function handlePickup(player, map, display, game = null) {
 
         const addResult = player.addToInventory(pickedObj, { withMeta: true });
         const inventoryObj = addResult.item;
+        // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
+        if (inventoryObj) inventoryObj.pickup_prev = 1;
         if (pickedObj === obj) {
             map.removeObject(obj);
         }
@@ -1248,7 +1252,9 @@ async function handlePickup(player, map, display, game = null) {
                 && o.otyp === pickedObj.otyp
             );
             if (!extra) break;
-            player.addToInventory(extra, { withMeta: true });
+            const extraResult = player.addToInventory(extra, { withMeta: true });
+            // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
+            if (extraResult?.item) extraResult.item.pickup_prev = 1;
             map.removeObject(extra);
         }
         observeObject(pickedObj);

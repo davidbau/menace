@@ -329,7 +329,9 @@ export class Player {
         if (isAlphabeticInvlet && !usedLetters.has(currentInvlet)) {
             obj.invlet = currentInvlet;
             this.inventory.push(obj);
-            return obj;
+            return withMeta
+                ? { item: obj, merged: false, discoveredByCompare: false }
+                : obj;
         }
         const letterCount = INVENTORY_LETTERS.length;
         const start = Number.isInteger(this.lastInvlet)
