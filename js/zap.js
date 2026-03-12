@@ -66,6 +66,7 @@ import { next_ident, mksobj, mkobj, costly_alteration } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
+import { mon_nam } from './do_name.js';
 import { xkilled, killed,
          wakeup, healmon, mondead } from './mon.js';
 import { nhgetch } from './input.js';
@@ -898,11 +899,14 @@ export async function bhitm(mon, otmp, map, player) {
   case WAN_STRIKING:
   case SPE_FORCE_BOLT: {
     // C ref: zap.c:200 — rnd(20) < 10 + find_mac(mon)
+    const zap_type_text = otyp === WAN_STRIKING ? 'wand' : 'spell';
     const mac = find_mac ? find_mac(mon) : (mon.mac || 10);
     if (rnd(20) < 10 + mac) {
       const dmg = d(2, 12);
       resist(mon, otmp.oclass);
       mon.mhp -= dmg;
+    } else {
+      await miss(zap_type_text, mon);
     }
     break;
   }
@@ -2013,8 +2017,12 @@ export function exclam(force) {
 }
 
 // C ref: zap.c miss()/hit() message helpers.
-export async function miss(fltxt = 'beam') {
-  await pline('The %s misses.', fltxt);
+export async function miss(fltxt = 'beam', mtmp = null) {
+  if (mtmp) {
+    await pline('The %s misses %s.', fltxt, mon_nam(mtmp));
+  } else {
+    await pline('The %s misses.', fltxt);
+  }
 }
 
 export async function hit(fltxt = 'beam') {
