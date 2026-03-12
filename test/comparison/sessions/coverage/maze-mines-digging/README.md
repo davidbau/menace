@@ -47,8 +47,9 @@ Captured sessions:
 Pending sessions (not yet parity-green):
 1. `test/comparison/sessions/pending/t04_s705_w_minefill_gp.session.json`
 - C-harness wizload preflight for high-yield minefill coverage.
+- Re-recorded on 2026-03-12 with current harness; stale early prelude mismatch
+  is resolved.
 - Current blocker tracked in issue #352:
-  - wizard-role run shows early step-local prelude mismatch (`rn2(100)` pair before
-    wizload shuffle path),
-  - valkyrie preflight shows later `place_lregion` trial-count drift before
-    mineralize in `finalize_level`.
+  - remaining drift is in special-level finalize ordering:
+    `place_lregion(mkmaze.c)` trial RNG appears in C before JS
+    `finalize_level()` mineralize RNG.
