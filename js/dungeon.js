@@ -2414,7 +2414,7 @@ export function enexto(cx, cy, map) {
 
 // C ref: engrave.c rubouts[] — partial rubout substitution table
 const RUBOUTS = {
-    'A': "V", 'B': "Pb", 'C': "(", 'D': "|)", 'E': "FL",
+    'A': "^", 'B': "Pb[", 'C': "(", 'D': "|)[", 'E': "|FL[_",
     'F': "|-", 'G': "C(", 'H': "|-", 'I': "|", 'K': "|<",
     'L': "|_", 'M': "|", 'N': "|\\", 'O': "C(", 'P': "F",
     'Q': "C(", 'R': "PF", 'T': "|", 'U': "J", 'V': "/\\",
@@ -5283,12 +5283,12 @@ export async function u_on_newpos(x, y, map, player) {
 
 // Autotranslated from dungeon.c:1743
 export async function surface(x, y, map, player) {
-  let lev =  map.locations[x][y], levtyp = SURFACE_AT(x, y);
+  let lev = map?.at ? map.at(x, y) : map?.locations?.[x]?.[y], levtyp = lev?.typ;
   if (u_at(player, x, y) && player.uswallow && is_animal(player.ustuck.data)) return digests(player.ustuck.data) ? "maw" : enfolds(player.ustuck.data) ? "husk" : "nonesuch";
   else if (IS_AIR(levtyp)) return Is_waterlevel(map.uz) ? "air bubble" : (levtyp === CLOUD) ? "cloud" : "air";
-  else if (is_pool(x, y)) return (player?.underwater && !Is_waterlevel(map.uz)) ? "bottom" : hliquid("water");
-  else if (is_ice(x, y)) return "ice";
-  else if (is_lava(x, y)) return hliquid("lava");
+  else if (is_pool(x, y, map)) return (player?.underwater && !Is_waterlevel(map.uz)) ? "bottom" : hliquid("water");
+  else if (is_ice(x, y, map)) return "ice";
+  else if (is_lava(x, y, map)) return hliquid("lava");
   else if (lev.typ === DRAWBRIDGE_DOWN) return "bridge";
   else if (IS_ALTAR(levtyp)) return "altar";
   else if (IS_GRAVE(levtyp)) return "headstone";

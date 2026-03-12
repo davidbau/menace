@@ -370,7 +370,7 @@ export async function rhack(ch, game) {
     // Engrave
     // C ref: engrave.c doengrave()
     if (c === 'E') {
-        return await handleEngrave(player, display);
+        return await handleEngrave(player, display, game);
     }
 
     // Wear armor

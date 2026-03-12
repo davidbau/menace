@@ -2111,7 +2111,7 @@ function _getDisplayCtx() {
         display: _gstate.display,
         player: _gstate.player,
         fov: _gstate.fov,
-        flags: _gstate.flags,
+        flags: _gstate.display?.flags || _gstate.flags,
         map: _gstate.map,
     };
 }
@@ -2130,13 +2130,15 @@ function playerCanSeeInvisible(player) {
 
 function _resolveDisplayCtx(ctxOrMap) {
     if (ctxOrMap && typeof ctxOrMap === 'object') {
-        if (ctxOrMap.display || ctxOrMap.map || ctxOrMap.player || ctxOrMap.fov || ctxOrMap.flags) {
-            const base = _getDisplayCtx() || {};
-            return { ...base, ...ctxOrMap };
-        }
+        // Check for map objects first — they have an .at() method and may also
+        // have .flags (per-cell data), which would wrongly match the context check.
         if (typeof ctxOrMap.at === 'function') {
             const base = _getDisplayCtx() || {};
             return { ...base, map: ctxOrMap };
+        }
+        if (ctxOrMap.display || ctxOrMap.map || ctxOrMap.player || ctxOrMap.fov || ctxOrMap.flags) {
+            const base = _getDisplayCtx() || {};
+            return { ...base, ...ctxOrMap };
         }
     }
     return _getDisplayCtx();

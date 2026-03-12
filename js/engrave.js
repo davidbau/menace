@@ -19,13 +19,13 @@
 //   save/rest_engravings: persistence across level changes.
 
 import { pushRngLogEntry, rn1, rn2, rnd, withRngTag } from './rng.js';
-import { more, nhgetch } from './input.js';
+import { getlin, more, nhgetch, ynFunction } from './input.js';
 import { WAND_CLASS, WEAPON_CLASS, GEM_CLASS, RING_CLASS, TOOL_CLASS,
          TOWEL, MAGIC_MARKER } from './objects.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, You, You_cant, impossible, You_see } from './pline.js';
 import {
-    COLNO, ROWNO, ROOM, GRAVE, FOUNTAIN, ICE,
+    COLNO, ROWNO, ROOM, GRAVE, FOUNTAIN, ICE, FINGERTIP, HAND,
     ACCESSIBLE, is_hole, is_pit, isok,
 } from './const.js';
 import { is_lava, is_pool, is_pool_or_lava } from './dbridge.js';
@@ -40,6 +40,7 @@ import { attacktype, ceiling_hider, sticks } from './mondata.js';
 import { AT_HUGS, MZ_HUGE, mons, PM_GHOUL } from './monsters.js';
 import { envFlag } from './runtime_env.js';
 import { random_epitaph_text } from './rumors.js';
+import { body_part } from './polyself.js';
 
 function engrTraceEnabled() {
     return envFlag('WEBHACK_ENGR_TRACE');
@@ -119,8 +120,8 @@ export function del_engr_at(mapOrX, xOrY, yMaybe) {
 // Degrades cnt characters in engraving string via character rubout.
 // Each iteration consumes rn2(lth) + rn2(4), plus rn2(ln) if rubout match found.
 const RUBOUTS = {
-    'A': "V", 'B': "Pb", 'C': "(", 'D': "|)", 'E': "FL",
-    'F': "|-", 'G': "C", 'H': "|-", 'I': "|", 'K': "|<",
+    'A': "^", 'B': "Pb[", 'C': "(", 'D': "|)[", 'E': "|FL[_",
+    'F': "|-", 'G': "C(", 'H': "|-", 'I': "|", 'K': "|<",
     'L': "|_", 'M': "|", 'N': "|\\", 'O': "C(", 'P': "F",
     'Q': "C(", 'R': "PF", 'T': "|", 'U': "J", 'V': "/\\",
     'W': "V/\\", 'Z': "/",
@@ -575,15 +576,24 @@ function doengrave_ctx_verb(de) {
 
 // cf. engrave.c:955 — doengrave(void): #engrave command handler
 // Selects stylus, prompts for text, handles effects, starts engraving occupation.
-// PARTIAL: engrave.c:955 — doengrave() <-> handleEngrave()
-export async function handleEngrave(player, display) {
+export async function handleEngrave(player, display, game) {
+    const map = game?.map;
+    if (!map) return { moved: false, tookTime: false };
+
+    // C ref: engrave.c:963 — u_can_engrave() check
+    if (!(await u_can_engrave(player, map))) {
+        return { moved: false, tookTime: false };
+    }
+
+    const de = doengrave_ctx_init(player, map);
+
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
         display.messageNeedsMore = false;
     };
-    // C ref: doengrave() uses getobj(stylus_ok, ...) which includes
-    // weapons, wands, gems, rings, and certain tools (towel, marker).
+
+    // C ref: engrave.c:976 — getobj("write with", stylus_ok, GETOBJ_PROMPT)
     const writeLetters = compactInvletPromptChars((player.inventory || [])
         .filter((item) => item && item.invlet && stylus_ok(item))
         .map((item) => item.invlet)
@@ -592,12 +602,14 @@ export async function handleEngrave(player, display) {
         ? `What do you want to write with? [- ${writeLetters} or ?*] `
         : 'What do you want to write with? [- or ?*] ';
     await display.putstr_message(writePrompt);
+
+    let otmp = null; // null = fingers (hands_obj)
     while (true) {
         const ch = await nhgetch();
         let c = String.fromCharCode(ch);
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             replacePromptMessage();
-            await display.putstr_message('Never mind.');
+            await pline('Never mind.');
             return { moved: false, tookTime: false };
         }
         if (c === '?' || c === '*') {
@@ -610,18 +622,224 @@ export async function handleEngrave(player, display) {
             const menuSelection = await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
             if (menuSelection) {
                 c = menuSelection;
-                // Fall through to item processing below.
             } else {
                 await display.putstr_message(writePrompt);
                 continue;
             }
         }
-        if (c === '-' || (writeLetters && writeLetters.includes(c))) {
-            replacePromptMessage();
-            await display.putstr_message('Engraving is not implemented yet.');
-            return { moved: false, tookTime: false };
+        if (c === '-') {
+            otmp = null; // fingers
+            break;
+        }
+        if (writeLetters && writeLetters.includes(c)) {
+            otmp = (player.inventory || []).find((o) => o && o.invlet === c) || null;
+            break;
         }
         // Keep prompt active for unsupported letters.
+    }
+    replacePromptMessage();
+
+    // C ref: engrave.c:982-987 — determine writer name
+    let writer;
+    if (!otmp) {
+        writer = `your ${body_part(FINGERTIP, player)}`;
+    } else {
+        writer = otmp.name || 'an object';
+    }
+
+    // C ref: engrave.c:992-995 — check free hand for non-weapon stylus
+    if (otmp && !freehand(player) && otmp !== player.weapon && !otmp.owornmask) {
+        await You(`have no free ${body_part(HAND, player)} to write with!`);
+        return { moved: false, tookTime: false };
+    }
+
+    // C ref: engrave.c:1002-1006 — can't reach floor check
+    if (!can_reach_floor(player, map)) {
+        if (!otmp || otmp.oclass !== WAND_CLASS) {
+            await You_cant("reach the floor!");
+            return { moved: false, tookTime: false };
+        }
+    }
+
+    // Determine engraving type for finger/dust
+    // C ref: engrave.c:1036-1046 — type determination
+    if (!otmp) {
+        de.type = 'dust';
+    }
+    // TODO: handle other stylus types (wands, weapons, etc.)
+
+    // C ref: engrave.c:1109-1166 — handle existing engraving
+    const oep = engr_at(map, player.x, player.y);
+    if (oep) {
+        let c = 'n'.charCodeAt(0);
+        if (de.type === oep.type
+            || (de.type === 'headstone')
+            || (!player.Blind && (oep.type === 'burn' || oep.type === 'engrave'))) {
+            if (de.type === 'headstone') {
+                c = 'y'.charCodeAt(0);
+            } else {
+                c = await ynFunction(
+                    "Do you want to add to the current engraving?",
+                    "ynq", 'y'.charCodeAt(0), display
+                );
+                if (c === 'q'.charCodeAt(0)) {
+                    await pline('Never mind.');
+                    return { moved: false, tookTime: false };
+                }
+            }
+        }
+
+        if (c === 'n'.charCodeAt(0) || player.Blind) {
+            // C ref: engrave.c:1128-1146 — wipe out existing engraving
+            if (oep.type === 'dust' || oep.type === 'blood' || oep.type === 'mark') {
+                if (!player.Blind) {
+                    const was = (oep.type === 'dust')
+                        ? (de.frosted ? "written in the frost" : "written in the dust")
+                        : (oep.type === 'blood')
+                            ? "scrawled in blood"
+                            : "written";
+                    await You(`wipe out the message that was ${was} here.`);
+                    del_engr(map, player.x, player.y);
+                    de.disprefresh = true;
+                } else {
+                    de.eow = true;
+                }
+            } else if (de.type === 'dust' || de.type === 'mark' || de.type === 'blood') {
+                // C ref: engrave.c:1147-1155 — cannot wipe out hard engraving
+                let eloc2 = 'floor';
+                try { eloc2 = await surface(player.x, player.y, map, player); } catch (e) { /* fallback */ }
+                const verb = (oep.type === 'burn')
+                    ? (de.frosted ? "melted into" : "burned into")
+                    : "engraved in";
+                await You(`cannot wipe out the message that is ${verb} the ${eloc2} here.`);
+                return { moved: true, tookTime: true };
+            } else if (de.type !== oep.type || c === 'n'.charCodeAt(0)) {
+                if (!player.Blind || can_reach_floor(player, map)) {
+                    await You("will overwrite the current message.");
+                }
+                de.eow = true;
+            }
+        }
+        de.adding = (!!engr_at(map, player.x, player.y) && !de.eow);
+    }
+
+    // C ref: engrave.c:1169-1171 — determine verb/location text
+    // surface() is called first, then doengrave_ctx_verb overrides eloc for DUST/BLOOD.
+    // For dust/blood the surface() result is unused, so skip it to avoid import issues.
+    let eloc = 'floor';
+    if (de.type !== 'dust' && de.type !== 'blood') {
+        try { eloc = await surface(player.x, player.y, map, player); } catch (e) { /* fallback */ }
+    }
+    doengrave_ctx_verb_js(de, eloc);
+    // After doengrave_ctx_verb, de.eloc is set for dust/blood cases
+    const displayEloc = de.eloc || eloc;
+
+    if (!otmp) {
+        await You(`${de.everb} the ${displayEloc} with your ${body_part(FINGERTIP, player)}.`);
+    } else {
+        await You(`${de.everb} the ${displayEloc} with ${writer}.`);
+    }
+
+    // C ref: engrave.c:1186-1188 — prompt for engraving text
+    const qbuf = `What do you want to ${de.everb} the ${displayEloc} here?`;
+    const ebuf = await getlin(qbuf, display);
+
+    if (!ebuf || ebuf.includes('\x1b')) {
+        await pline('Never mind.');
+        return { moved: false, tookTime: false };
+    }
+
+    // C ref: engrave.c:1190 — mungspaces: condense consecutive spaces
+    const munged = ebuf.replace(/\t/g, ' ').replace(/ +/g, ' ').trim();
+
+    // C ref: engrave.c:1193-1196 — count non-space chars
+    let len = 0;
+    for (let i = 0; i < munged.length; i++) {
+        if (munged[i] !== ' ') len++;
+    }
+
+    if (len === 0) {
+        await pline('Never mind.');
+        return { moved: false, tookTime: false };
+    }
+
+    // C ref: engrave.c:1217-1227 — mix up engraving if surface/mind unsound
+    const chars = munged.split('');
+    for (let i = 0; i < chars.length; i++) {
+        if (chars[i] === ' ') continue;
+        if (((de.type === 'dust' || de.type === 'blood') && !rn2(25))
+            || (player.Blind && !rn2(11))
+            || (player.HConfusion && !rn2(7))
+            || (player.HStun && !rn2(4))
+            || (player.HHallucination && !rn2(2))) {
+            // C ref: engrave.c:1225 — random ASCII '!' thru '~'
+            chars[i] = String.fromCharCode(33 + rnd(94 - 2));
+        }
+    }
+    const finalText = chars.join('');
+
+    // C ref: engrave.c:1230-1234 — overwrite existing if eow
+    if (de.eow) {
+        del_engr(map, player.x, player.y);
+        de.disprefresh = true;
+    }
+
+    // C ref: engrave.c:1236-1243 — set up engraving context for occupation
+    // For short texts with fast stylus (finger/dust, rate=10), the occupation
+    // completes in one turn. We handle it inline.
+    pushRngLogEntry('>set_occupation @ set_occupation(cmd.c:454)');
+    pushRngLogEntry(`<set_occupation #${game.moves || 0}-${(game.moves || 1) - 1} @ set_occupation(cmd.c:462)`);
+
+    // C ref: engrave.c:1435-1461 (engrave occupation callback)
+    // Build final text: existing text + new text
+    let buf = '';
+    const existingEp = engr_at(map, player.x, player.y);
+    if (existingEp) {
+        buf = existingEp.text || '';
+    }
+    buf += finalText;
+
+    make_engr_at(map, player.x, player.y, buf, de.type);
+    const newEp = engr_at(map, player.x, player.y);
+    if (newEp) {
+        newEp.eread = true;
+        newEp.erevealed = true;
+    }
+
+    if (de.disprefresh) {
+        newsym(player.x, player.y);
+    }
+
+    return { moved: true, tookTime: true };
+}
+
+// cf. engrave.c:895 — doengrave_ctx_verb helper for JS
+function doengrave_ctx_verb_js(de, eloc) {
+    switch (de.type) {
+    default:
+        de.everb = de.adding ? "add to the weird writing on" : "write strangely on";
+        break;
+    case 'dust':
+        de.everb = de.adding ? "add to the writing in" : "write in";
+        de.eloc = de.frosted ? "frost" : "dust";
+        break;
+    case 'headstone':
+        de.everb = de.adding ? "add to the epitaph on" : "engrave on";
+        break;
+    case 'engrave':
+        de.everb = de.adding ? "add to the engraving in" : "engrave in";
+        break;
+    case 'burn':
+        de.everb = de.adding ? (de.frosted ? "add to the text melted into"
+                                : "add to the text burned into")
+                   : (de.frosted ? "melt into" : "burn into");
+        break;
+    case 'mark':
+        de.everb = de.adding ? "add to the graffiti on" : "scribble on";
+        break;
+    case 'blood':
+        de.everb = de.adding ? "add to the scrawl on" : "scrawl on";
+        break;
     }
 }
 

@@ -253,6 +253,21 @@ export async function replaySession(seed, opts, keys) {
             player.showTime = !!opts.displayFlags.time;
             player.showScore = !!opts.displayFlags.showscore;
         }
+        // C ref: game.init() renders with default flags; if DECgraphics changed,
+        // clear remembered terrain chars and re-render so step 0 captures correct symbols.
+        const map = game.lev || game.map;
+        if (map && opts.displayFlags.DECgraphics != null) {
+            for (let x = 1; x < 80; x++) {
+                for (let y = 0; y < 21; y++) {
+                    const loc = map.at(x, y);
+                    if (loc) delete loc.mem_terrain_ch;
+                }
+            }
+            const player = game.u || game.player;
+            if (player && typeof game.display?.renderMap === 'function') {
+                game.display.renderMap(map, player, game.fov, game.flags);
+            }
+        }
     }
 
     // steps[0]: startup frame

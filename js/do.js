@@ -868,8 +868,15 @@ async function promptDropTypeClass(display, player) {
         if (!classSet.has(sym)) continue;
         typeEntries.push(dropClassLabel(sym));
     }
+    const hasKnownBlessed = inventory.some((obj) => obj?.bknown && obj?.blessed);
+    const hasKnownCursed = inventory.some((obj) => obj?.bknown && obj?.cursed);
     const hasKnownUncursed = inventory.some((obj) => obj?.bknown && !obj?.blessed && !obj?.cursed);
-    const menuLastRow = 6 + typeEntries.length + (hasKnownUncursed ? 2 : 0);
+    const hasUnknownBUC = inventory.some((obj) => !obj?.bknown);
+    // C ref: pickup.c — 'P' category for items picked up since last inventory display
+    // (simplified: items with pickup_prev flag or recent pickup context)
+    const hasJustPickedUp = inventory.some((obj) => obj?.pickup_prev);
+    const bucCount = (hasKnownBlessed ? 1 : 0) + (hasKnownCursed ? 1 : 0) + (hasKnownUncursed ? 1 : 0) + (hasUnknownBUC ? 1 : 0) + (hasJustPickedUp ? 1 : 0);
+    const menuLastRow = 6 + typeEntries.length + (bucCount > 0 ? 1 + bucCount : 0);
     const restoreAfterPrompt = () => {
         const last = display?._lastMapState;
         if (last?.gameMap && typeof display?.renderMap === 'function') {
@@ -935,10 +942,37 @@ async function promptDropTypeClass(display, player) {
             menuLines.set(key, { row, label });
             drawMenuChoice(key, row++, label);
         }
-        if (hasKnownUncursed) {
-            row++;
-            menuLines.set('U', { row, label: 'Items known to be Uncursed' });
-            drawMenuChoice('U', row++, 'Items known to be Uncursed');
+        // C ref: pickup.c — BUC categories: B, C, U, X, P
+        if (hasKnownBlessed || hasKnownCursed || hasKnownUncursed || hasUnknownBUC || hasJustPickedUp) {
+            row++; // blank line before BUC categories
+            if (hasKnownBlessed) {
+                menuLines.set('B', { row, label: 'Items known to be Blessed' });
+                drawMenuChoice('B', row++, 'Items known to be Blessed');
+            }
+            if (hasKnownCursed) {
+                menuLines.set('C', { row, label: 'Items known to be Cursed' });
+                drawMenuChoice('C', row++, 'Items known to be Cursed');
+            }
+            if (hasKnownUncursed) {
+                menuLines.set('U', { row, label: 'Items known to be Uncursed' });
+                drawMenuChoice('U', row++, 'Items known to be Uncursed');
+            }
+            if (hasUnknownBUC) {
+                menuLines.set('X', { row, label: 'Items of unknown Bless/Curse status' });
+                drawMenuChoice('X', row++, 'Items of unknown Bless/Curse status');
+            }
+            if (hasJustPickedUp) {
+                // C ref: pickup.c:1434-1441 — single item shows doname, multiple shows generic
+                const justPickedItems = inventory.filter((obj) => obj?.pickup_prev);
+                let pLabel;
+                if (justPickedItems.length === 1) {
+                    pLabel = 'Just picked up: ' + doname(justPickedItems[0]);
+                } else {
+                    pLabel = 'Items you just picked up';
+                }
+                menuLines.set('P', { row, label: pLabel });
+                drawMenuChoice('P', row++, pLabel);
+            }
         }
         display.putstr(promptCol, row, '(end)');
         // C ref: process_text_window places cursor at end of "(end)" marker.

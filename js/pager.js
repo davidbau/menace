@@ -447,14 +447,19 @@ async function _showPagerCore(display, text, title) {
         }
 
         // Status bar — match C's "(N of M)" page indicator format
-        display.clearRow(STATUS_LINE);
+        // C places the indicator on the row right after the last content line,
+        // not always at the bottom of the terminal.
+        const linesOnPage = Math.min(lines.length - topLine, PAGE_ROWS);
+        const statusRow = Math.min(linesOnPage, STATUS_LINE);
+        display.clearRow(statusRow);
+        if (statusRow !== STATUS_LINE) display.clearRow(STATUS_LINE);
         const totalPages = Math.max(1, Math.ceil(lines.length / PAGE_ROWS));
         const currentPage = Math.floor(topLine / PAGE_ROWS) + 1;
         const status = totalPages <= 1 ? '' : ` (${currentPage} of ${totalPages})`;
         if (status) {
-            await display.putstr(0, STATUS_LINE, status.substring(0, TERMINAL_COLS), CLR_GRAY);
+            await display.putstr(0, statusRow, status.substring(0, TERMINAL_COLS), CLR_GRAY);
             // Set cursor at end of status text, matching C behavior
-            if (display.setCursor) display.setCursor(status.length, STATUS_LINE);
+            if (display.setCursor) display.setCursor(status.length, statusRow);
         }
     }
 

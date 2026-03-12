@@ -49,6 +49,18 @@ export function decodeSOSILine(line) {
         const ch = src[i];
         if (ch === '\x0e') { inDec = true; continue; }
         if (ch === '\x0f') { inDec = false; continue; }
+        // Skip ANSI escape sequences — pass them through without DEC decoding.
+        // C's tmux captures can embed ANSI color codes (e.g. \x1b[33m) inside
+        // SO/SI regions; the terminal `m` (or other letter) must not be treated
+        // as a DEC graphics character.
+        if (ch === '\x1b' && i + 1 < src.length && src[i + 1] === '[') {
+            let end = i + 2;
+            while (end < src.length && !/[A-Za-z]/.test(src[end])) end++;
+            if (end < src.length) end++; // include the terminating letter
+            result += src.substring(i, end);
+            i = end - 1; // -1 because the for loop will i++
+            continue;
+        }
         result += inDec ? decodeDecSpecialChar(ch) : ch;
     }
     return result;

@@ -1072,6 +1072,8 @@ export async function addinv(obj, player) {
     if (!obj || !player) return obj;
     addinv_core1(obj, player);
     const result = player.addToInventory(obj) || obj;
+    // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
+    result.pickup_prev = 1;
     await addinv_core2(result, player);
     carry_obj_effects(result);
     return result;
