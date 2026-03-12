@@ -418,6 +418,8 @@ Rules:
   checks and historical continuity
 - run `npm run session:redundancy` before session commits to prevent accidental
   duplicate growth (exact duplicates or non-allowlisted key-stream duplicates)
+- for consolidation decisions, measure drop-one coverage impact with:
+  `npm run session:marginal -- <sessionA> <sessionB> ...`
 
 Recommended naming:
 - `themeNN_seedXXX_<role>_<intent>.session.json`
@@ -573,6 +575,11 @@ bash scripts/run-session-parity-coverage.sh --text --all-types
 Single session:
 ```bash
 bash scripts/run-session-parity-coverage.sh --text --sessions=seed033_manual_direct.session.json
+```
+
+Measure marginal value of candidate sessions (drop-one analysis):
+```bash
+npm run session:marginal -- test/comparison/sessions/t03_s962_w_droppk3_gp.session.json test/comparison/sessions/t03_s981_w_droppk2_gp.session.json
 ```
 
 ## Runtime Efficiency (Non-Negotiable)
