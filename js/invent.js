@@ -1824,10 +1824,14 @@ function countFromInventoryResult(result) {
 
 // C ref: invent.c display_pickinv() — inventory menu helper for display/getobj.
 export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_reply, out_cnt,
-    player = null, display = null) {
+    player = null, display = null, options = null) {
     const p = player || _gstate?.player || null;
     const d = display || _gstate?.display || null;
     if (!p || !d) return '';
+    const wizIdentify = !!options?.wizardIdentify;
+    const wizIdentifyAccel = Number.isInteger(options?.wizIdentifyAccel)
+        ? (options.wizIdentifyAccel | 0)
+        : 9;
 
     // C ref: invent.c display_pickinv() calls reset_justpicked(gi.invent)
     // to clear pickup_prev flags when inventory is displayed
@@ -1835,6 +1839,52 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         for (const obj of p.inventory) {
             if (obj) obj.pickup_prev = 0;
         }
+    }
+
+    if (wizIdentify) {
+        const inv = Array.isArray(p.inventory) ? p.inventory : [];
+        const unid = inv.filter((obj) => obj && not_fully_identified(obj));
+        const lines = [];
+        const choices = [];
+
+        lines.push(
+            `Debug Identify${unid.length > 0
+                ? ` -- unidentified or partially identified item${unid.length === 1 ? '' : 's'}`
+                : ''}`
+        );
+
+        if (unid.length === 0) {
+            lines.push('(all items are permanently identified already)');
+            await renderOverlayMenuUntilDismiss(d, lines, '');
+            return '';
+        }
+
+        lines.push(`_ - select ${unid.length === 1 ? 'it' : 'any or all of them'} to permanently identify`);
+        choices.push('_');
+        choices.push(String.fromCharCode(wizIdentifyAccel));
+
+        for (const obj of unid) {
+            const invlet = String(obj.invlet || '');
+            if (!invlet) continue;
+            const line = xprname(obj, null, invlet, true, 0, 0, p);
+            lines.push(line);
+            choices.push(invlet);
+        }
+
+        const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''));
+        const selection = selectionFromInventoryResult(result);
+        if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
+            await identify_pack(0, p, false);
+            return '';
+        }
+        if (selection) {
+            const target = unid.find((obj) => String(obj?.invlet || '') === selection);
+            if (target && not_fully_identified(target)) {
+                await identify(target);
+                update_inventory(p);
+            }
+        }
+        return '';
     }
 
     const objects = display_inventory_items(lets, p);
@@ -1887,9 +1937,9 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
 }
 
 // C ref: invent.c display_inventory()
-export async function display_inventory(lets, want_reply, player = null, display = null) {
+export async function display_inventory(lets, want_reply, player = null, display = null, options = null) {
     const p = player || _gstate?.player || null;
-    return await display_pickinv(lets, null, null, false, !!want_reply, null, p, display);
+    return await display_pickinv(lets, null, null, false, !!want_reply, null, p, display, options);
 }
 
 // C ref: invent.c dispinv_with_action()

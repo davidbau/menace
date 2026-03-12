@@ -25,7 +25,7 @@ import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll, 
 import { which_armor } from './worn.js';
 import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
-import { handleInventory, currency, doorganize } from './invent.js';
+import { handleInventory, currency, doorganize, display_inventory } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { dodip } from './potion.js';
 import { handleCallObjectTypePrompt, mon_nam, x_monnam } from './do_name.js';
@@ -632,16 +632,10 @@ export async function rhack(ch, game) {
     // Wizard mode: Ctrl+I = identify all
     // C ref: cmd.c wiz_identify()
     if (ch === 9 && game.wizard) {
-        for (const obj of (player.inventory || [])) {
-            if (!obj) continue;
-            obj.known = true;
-            obj.dknown = true;
-            obj.bknown = true;
-        }
-        // TTY wizard identify route shows "Debug Identify" and waits for
-        // dismissal before returning to command input.
-        await display.putstr_message('                                Debug Identify');
-        await more(display, { game });
+        await display_inventory(null, false, player, display, {
+            wizardIdentify: true,
+            wizIdentifyAccel: ch,
+        });
         return { moved: false, tookTime: false };
     }
 

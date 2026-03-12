@@ -124,6 +124,40 @@ describe('inventory modal dismissal', () => {
         assert.ok(Array.isArray(game.display.lastOverlay));
     });
 
+    it('keeps wizard identify menu open on non-dismiss keys and closes on space', async () => {
+        const { game } = makeGame();
+        game.wizard = true;
+        game.player.inventory = [{
+            oclass: WEAPON_CLASS,
+            otyp: SCALPEL,
+            invlet: 'a',
+            quan: 1,
+            known: false,
+            dknown: false,
+            bknown: false,
+            rknown: false,
+            blessed: false,
+            cursed: false,
+            spe: 0,
+        }];
+
+        setThrowOnEmptyInput(false);
+        pushInput('o'.charCodeAt(0)); // ignored by identify menu
+
+        const pending = rhack(9, game); // Ctrl+I
+        const early = await Promise.race([
+            pending.then(() => 'resolved'),
+            new Promise((resolve) => setTimeout(() => resolve('pending'), 30)),
+        ]);
+        assert.equal(early, 'pending');
+
+        pushInput(' '.charCodeAt(0)); // explicit dismiss
+        const result = await pending;
+        assert.equal(result.tookTime, false);
+        assert.ok(Array.isArray(game.display.lastOverlay));
+        assert.ok(game.display.lastOverlay.some((line) => String(line).includes('Debug Identify')));
+    });
+
     it('paginates inventory list with space and restores prior page with b', async () => {
         const { game } = makeGame();
         addInventoryItems(game.player, 25, WEAPON_CLASS);

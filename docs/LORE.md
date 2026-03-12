@@ -9059,3 +9059,26 @@ Validation:
   - `seed100_multidigit_gameplay`: PASS
   - pending `t11_s748_w_covmax3_gp` returns to prior divergence baseline
     (no new crash introduced by this fix).
+
+### wiz_identify input ownership: route Ctrl+I through inventory menu path
+
+- C behavior (`wizcmds.c:wiz_identify`) delegates to `display_inventory(..., FALSE)`,
+  where input is owned by `display_pickinv` wizard-id flow.
+- JS previously short-circuited Ctrl+I by force-identifying items then showing a
+  single `more()` boundary. That bypassed inventory/menu ownership semantics.
+- Fix:
+  - added `wizardIdentify` mode to `display_pickinv`/`display_inventory` in
+    `js/invent.js`.
+  - wizard mode now renders a `Debug Identify` menu, waits for explicit dismiss
+    or selection, and applies identify actions through existing
+    `identify_pack()`/`identify()` code paths.
+  - `js/cmd.js` Ctrl+I now routes through `display_inventory(..., { wizardIdentify: true })`
+    instead of direct `more()` handling.
+- Added regression test:
+  - `test/unit/command_inventory_modal.test.js` now verifies wizard-identify
+    menu remains open on non-dismiss keys and closes on explicit dismiss.
+- Validation:
+  - `node --test test/unit/command_inventory_modal.test.js` PASS.
+  - `seed42_gameplay` and `seed100_multidigit_gameplay` remain full PASS.
+  - pending `t11_s748_w_covmax3_gp` first divergence remains unchanged, so this
+    is a structural C-faithful correction, not yet the root-cause fix for that session.
