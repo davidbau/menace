@@ -8645,3 +8645,21 @@ Outcome:
 - In the steed micro-session, first mismatch moved from mount-position/glyph
   drift to deeper dogmove branch-ordering (`dog_goal*` vs C `distfleeck` path),
   giving a tighter next target for #351.
+
+### Follow-up: ridden steed must bypass `dog_goal()`
+
+- C `dogmove.c` has an explicit early return in `dog_goal()` for
+  `mtmp == u.usteed` ("Steeds don't move on their own will.").
+- JS was still running full goal-scan logic for ridden steed, producing extra
+  `dog_goal*` events and early `rn2(100)` drift.
+- Added C-faithful early return in `dog_move()` after `dog_invent`/`whappr`
+  setup and before goal scanning.
+
+Validation:
+- Canonical gameplay suite stayed green and expanded baseline now passes:
+  `206/206`.
+- Steed micro-session improved substantially:
+  - RNG match `2688/2903` -> `2700/2815`
+  - Screen match `12/21` -> `18/21`
+  - Event match `49/207` -> `73/142`
+- Remaining gap narrowed to later mounted-position sequencing in step 10.

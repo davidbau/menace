@@ -983,6 +983,11 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // C ref: dogmove.c — whappr = (monstermoves - edog->whistletime < 5)
     const whappr = (turnCount - edog.whistletime) < 5 ? 1 : 0;
 
+    // C ref: dogmove.c dog_goal(): "Steeds don't move on their own will."
+    if (mon === player?.usteed) {
+        return 0; // MMOVE_NOTHING
+    }
+
     // dog_goal — scan nearby objects for food/items
     // C ref: dogmove.c dog_goal():500-554
     let gx = 0, gy = 0, gtyp = UNDEF;
