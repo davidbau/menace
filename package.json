@@ -14,6 +14,7 @@
     "comparison:window": "node scripts/comparison-window.mjs",
     "session:names": "node scripts/check-session-filename-length.mjs",
     "session:redundancy": "node scripts/check-session-redundancy.mjs",
+    "session:stats": "node scripts/session-suite-stats.mjs",
     "codematch:missing": "node scripts/codematch-missing-summary.mjs",
     "audit:synclock": "node scripts/synclock_audit.mjs --strict",
     "audit:browser-safety": "node scripts/audit-browser-safety.mjs",
