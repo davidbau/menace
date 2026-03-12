@@ -8592,3 +8592,24 @@ Validation:
 - Coverage refresh snapshot now reports:
   - overall `53.51/59.53/35.17` (lines/branches/functions),
   - no tracked-file regressions.
+
+## 2026-03-12: Steed parity blocker triage (`#ride` wiring + doride flow)
+
+- While starting Theme03 coverage, a minimal C-recorded knight session using
+  `#ride` exposed an immediate parity blocker (`/tmp/t03_s725_w_ride1_gp.session.json`).
+- Root-cause findings:
+  - `#ride` was not wired in `js/cmd.js` known extcmds/switch.
+  - `js/steed.js doride()` was still a stub (never called `getdir`/`mount_steed`).
+- Landed incremental fix:
+  - wired `ride` extcmd in `cmd.js` (dispatch + autocomplete list),
+  - implemented C-shaped `doride` flow in `steed.js`:
+    - `getdir()` directional target,
+    - wizard force prompt (`ynFunction`),
+    - calls `mount_steed(...)`,
+    - returns ECMD flags.
+  - corrected `can_ride()` default rider-form assumptions for non-polymorphed hero.
+- Outcome:
+  - targeted steed micro-session still diverges (remaining `mount_steed`/render state
+    parity work needed), but divergence moved past command wiring into deeper ride state.
+  - no regressions on canonical gameplay suite: `scripts/run-and-report.sh --failures`
+    remained `202/202` passing.

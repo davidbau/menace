@@ -6,6 +6,7 @@ import {
     isok, A_WIS, A_DEX, A_CHA, W_SADDLE, ROOM, CORR,
     DISMOUNT_BYCHOICE, DISMOUNT_THROWN, DISMOUNT_KNOCKED, DISMOUNT_FELL,
     DISMOUNT_POLY, DISMOUNT_ENGULFED, DISMOUNT_BONES, DISMOUNT_GENERIC,
+    ECMD_OK, ECMD_TIME, ECMD_CANCEL,
 } from './const.js';
 import { pline, You, Your, You_feel, You_cant, pline_The } from './pline.js';
 import { exercise } from './attrib_exercise.js';
@@ -19,6 +20,8 @@ import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE,
 import { which_armor } from './worn.js';
 import { SADDLE } from './objects.js';
 import { MAXULEV } from './const.js';
+import { ynFunction } from './input.js';
+import { getdir } from './hack.js';
 
 // Monsters that might be ridden
 const STEEDS = [S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON, S_JABBERWOCK];
@@ -45,11 +48,14 @@ export function can_saddle(mtmp) {
 
 // cf. steed.c:169 -- can_ride(mtmp): can hero ride this monster?
 export function can_ride(mtmp, player) {
-    const playerType = player.type || {};
+    const playerType = player.type || null;
+    const riderHumanoid = !playerType || is_humanoid(playerType);
+    const riderVerySmall = !!(playerType && verysmall(playerType));
+    const riderBig = !!(playerType && bigmonst(playerType));
     return !!(mtmp.mtame
-        && is_humanoid(playerType)
-        && !verysmall(playerType)
-        && !bigmonst(playerType)
+        && riderHumanoid
+        && !riderVerySmall
+        && !riderBig
         && (!player.underwater || is_swimmer(mtmp.data || mtmp.type || {})));
 }
 
@@ -126,12 +132,22 @@ export async function maybewakesteed(steed) {
 export async function doride(player, map, display) {
     if (player.usteed) {
         await dismount_steed(player, map, display, DISMOUNT_BYCHOICE);
-        return 1; // ECMD_TIME
+        return ECMD_TIME;
     }
-    // TODO: getdir() to pick adjacent monster to mount
-    // For now, simplified — look for adjacent tame saddled monster
-    await pline("You don't see anything to ride here.");
-    return 0; // ECMD_OK
+    const dir = await getdir(null, display);
+    if (!dir) return ECMD_CANCEL;
+    const tx = (player.x ?? 0) + (dir.dx || 0);
+    const ty = (player.y ?? 0) + (dir.dy || 0);
+    if (!isok(tx, ty)) return ECMD_OK;
+
+    let forcemount = false;
+    if (player.wizard) {
+        const yn = await ynFunction('Force the mount to succeed?', 'yn', 'n'.charCodeAt(0), display);
+        forcemount = String.fromCharCode(yn).toLowerCase() === 'y';
+    }
+
+    const mtmp = map?.monsterAt ? map.monsterAt(tx, ty) : null;
+    return (await mount_steed(mtmp, forcemount, player, map, display)) ? ECMD_TIME : ECMD_OK;
 }
 
 // cf. steed.c:197 -- mount_steed(mtmp, force): start riding a monster

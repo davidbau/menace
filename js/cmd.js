@@ -8,7 +8,7 @@ import { RACE_ORC, SQKY_BOARD,
          P_FIRST_H_TO_H, P_LAST_H_TO_H, P_FIRST_WEAPON, P_LAST_WEAPON,
          P_FIRST_SPELL, P_LAST_SPELL,
          xdir, ydir, N_DIRS, N_DIRS_Z, VERSION_STRING, SIZE, nul_glyphinfo,
-         isok, Never_mind } from './const.js';
+         isok, Never_mind, ECMD_TIME } from './const.js';
 import { rn2, rnl, midlog_enter, midlog_exit_int } from './rng.js';
 import { handleWizLoadDes, wizLevelChange, wizLevelPort, wizMap, wizTeleport, wizGenesis, wizWish } from './wizcmds.js';
 import { handleThrow, handleFire } from './dothrow.js';
@@ -44,6 +44,7 @@ import { dotalk } from './sounds.js';
 import { add_skills_to_menu, skill_advance, skill_practice_value } from './weapon.js';
 import { handleSet } from './options.js';
 import { dosit } from './sit.js';
+import { doride } from './steed.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
@@ -863,6 +864,9 @@ async function handleExtendedCommand(game) {
         case 'sit':
             queueRepeatExtcmd((g) => dosit(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!t })));
             return { moved: false, tookTime: !!(await dosit(player, game.map, display)) };
+        case 'ride':
+            queueRepeatExtcmd((g) => doride(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!(t & ECMD_TIME) })));
+            return { moved: false, tookTime: !!((await doride(player, game.map, display)) & ECMD_TIME) };
         case 'monster': {
             // cf. cmd.c domonability() — use polymorphed monster special ability.
             const isPolyd = !!(player.Upolyd || (player.mtimedone && player.mtimedone > 0));
@@ -952,7 +956,7 @@ function knownExtendedCommands(game) {
     const cmds = [
         'options', 'optionsfull', 'adjust', 'wipe', 'pray', 'turn', 'dip',
         'enhance', 'chat', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
-        'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
+        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
     ];
     if (game?.wizard) {
         cmds.push('levelchange', 'wish', 'map', 'teleport', 'genesis', 'wizloaddes');
