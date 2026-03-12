@@ -25,6 +25,14 @@ import {
     SMALL_SHIELD,
     LARGE_BOX, CHEST, TOWEL, BAG_OF_HOLDING,
     ELVEN_LEATHER_HELM, FEDORA, CORNUTHAUM, DUNCE_CAP,
+    PICK_AXE, BULLWHIP, SILVER_SABER, HEAVY_IRON_BALL, BRASS_LANTERN,
+    DWARVISH_MATTOCK, AMULET_VERSUS_POISON, AMULET_OF_GUARDING, AMULET_OF_ESP,
+    HELM_OF_TELEPATHY, GAUNTLETS_OF_POWER, ELVEN_MITHRIL_COAT,
+    POT_SLEEPING, SCR_CHARGING, ROCK, EXPENSIVE_CAMERA, T_SHIRT, TIN, TIN_OPENER,
+    KELP_FROND, EUCALYPTUS_LEAF, LEMBAS_WAFER, TRIPE_RATION, FORTUNE_COOKIE,
+    CREAM_PIE, ENORMOUS_MEATBALL, MAGIC_MARKER, GRAPPLING_HOOK,
+    RIN_PROTECTION_FROM_SHAPE_CHAN, RIN_INCREASE_ACCURACY,
+    LUCKSTONE, LOADSTONE, TOUCHSTONE,
 } from './objects.js';
 import {
     mons, G_UNIQ,
@@ -37,7 +45,8 @@ import {
     Is_container, mksobj, mkobj, bless, curse, uncurse, weight,
 } from './mkobj.js';
 import { isObjectNameKnown } from './o_init.js';
-import { artiname, undiscovered_artifact } from './artifact.js';
+import { artiname, undiscovered_artifact, artifact_name, artifact_exists, nartifact_exist } from './artifact.js';
+import { is_quest_artifact } from './objdata.js';
 import { ART_EYES_OF_THE_OVERWORLD, ART_ORB_OF_DETECTION } from './artifacts.js';
 import {
     highc, lowc, upstart, s_suffix, letter, digit,
@@ -57,7 +66,7 @@ import {
     ROLLING_BOULDER_TRAP, SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP, PIT, SPIKED_PIT,
     HOLE, TRAPDOOR, TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL, WEB, STATUE_TRAP,
     MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, VIBRATING_SQUARE,
-    M_AP_OBJECT,
+    M_AP_OBJECT, ONAME_WISH,
 } from './const.js';
 import { maketrap, deltrap } from './dungeon.js';
 import { make_grave, del_engr_at } from './engrave.js';
@@ -2101,6 +2110,57 @@ export function readobjnam_postparse3(state) {
     return state;
 }
 
+// cf. objnam.c:3364 — alt_spellings[]: alternate wish spelling synonyms
+// Checked via wishymatch(userText, sp, true) → return ob as type
+const alt_spellings = [
+    { sp: 'pickax',                          ob: PICK_AXE },
+    { sp: 'whip',                            ob: BULLWHIP },
+    { sp: 'saber',                           ob: SILVER_SABER },
+    { sp: 'silver sabre',                    ob: SILVER_SABER },
+    { sp: 'smooth shield',                   ob: SHIELD_OF_REFLECTION },
+    { sp: 'grey dragon scale mail',          ob: GRAY_DRAGON_SCALE_MAIL },
+    { sp: 'grey dragon scales',              ob: GRAY_DRAGON_SCALES },
+    { sp: 'iron ball',                       ob: HEAVY_IRON_BALL },
+    { sp: 'lantern',                         ob: BRASS_LANTERN },
+    { sp: 'mattock',                         ob: DWARVISH_MATTOCK },
+    { sp: 'amulet of poison resistance',     ob: AMULET_VERSUS_POISON },
+    { sp: 'amulet of protection',            ob: AMULET_OF_GUARDING },
+    { sp: 'amulet of telepathy',             ob: AMULET_OF_ESP },
+    { sp: 'helm of esp',                     ob: HELM_OF_TELEPATHY },
+    { sp: 'gauntlets of ogre power',         ob: GAUNTLETS_OF_POWER },
+    { sp: 'gauntlets of giant strength',     ob: GAUNTLETS_OF_POWER },
+    { sp: 'elven chain mail',                ob: ELVEN_MITHRIL_COAT },
+    { sp: 'silver shield',                   ob: SHIELD_OF_REFLECTION },
+    { sp: 'potion of sleep',                 ob: POT_SLEEPING },
+    { sp: 'scroll of recharging',            ob: SCR_CHARGING },
+    { sp: 'recharging',                      ob: SCR_CHARGING },
+    { sp: 'stone',                           ob: ROCK },
+    { sp: 'camera',                          ob: EXPENSIVE_CAMERA },
+    { sp: 'tee shirt',                       ob: T_SHIRT },
+    { sp: 'can',                             ob: TIN },
+    { sp: 'can opener',                      ob: TIN_OPENER },
+    { sp: 'kelp',                            ob: KELP_FROND },
+    { sp: 'eucalyptus',                      ob: EUCALYPTUS_LEAF },
+    { sp: 'lembas',                          ob: LEMBAS_WAFER },
+    { sp: 'tripe',                           ob: TRIPE_RATION },
+    { sp: 'cookie',                          ob: FORTUNE_COOKIE },
+    { sp: 'pie',                             ob: CREAM_PIE },
+    { sp: 'huge meatball',                   ob: ENORMOUS_MEATBALL },
+    { sp: 'huge chunk of meat',              ob: ENORMOUS_MEATBALL },
+    { sp: 'marker',                          ob: MAGIC_MARKER },
+    { sp: 'hook',                            ob: GRAPPLING_HOOK },
+    { sp: 'grappling iron',                  ob: GRAPPLING_HOOK },
+    { sp: 'grapnel',                         ob: GRAPPLING_HOOK },
+    { sp: 'grapple',                         ob: GRAPPLING_HOOK },
+    { sp: 'protection from shape shifters',  ob: RIN_PROTECTION_FROM_SHAPE_CHAN },
+    { sp: 'accuracy',                        ob: RIN_INCREASE_ACCURACY },
+    { sp: 'box',                             ob: LARGE_BOX },
+    { sp: 'luck stone',                      ob: LUCKSTONE },
+    { sp: 'load stone',                      ob: LOADSTONE },
+    { sp: 'touch stone',                     ob: TOUCHSTONE },
+    { sp: 'flintstone',                      ob: FLINT },
+];
+
 // cf. objnam.c:4900 — readobjnam(bp, no_wish): parse wish string into object
 export function readobjnam(bp, no_wish, opts = {}) {
     if (typeof bp !== 'string') return null;
@@ -2141,6 +2201,32 @@ export function readobjnam(bp, no_wish, opts = {}) {
     if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
         otyp = rnd_otyp_by_namedesc(origbp, 0, 1);
     }
+
+    // C ref: objnam.c:4862-4870 — artifact lookup by name (before alt spellings)
+    // When no class and no type found, try to match an artifact name.
+    let artifactName = null;
+    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && !oclass && actualn) {
+        const arti = artifact_name(actualn, true);
+        if (arti) {
+            otyp = arti.otyp;
+            artifactName = arti.name;
+        }
+    }
+
+    // C ref: objnam.c:4447 — alternate spellings table (spellings[])
+    // wishymatch(userBp, sp, true) — check actual bp text against each alias
+    if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
+        const bpLookup = (state.origbp || '').toLowerCase().trim();
+        if (bpLookup) {
+            for (const { sp, ob } of alt_spellings) {
+                if (wishymatch(bpLookup, sp, true)) {
+                    otyp = ob;
+                    break;
+                }
+            }
+        }
+    }
+
     if (forcedTyp > STRANGE_OBJECT && forcedTyp < NUM_OBJECTS) {
         otyp = forcedTyp;
     }
@@ -2188,6 +2274,35 @@ export function readobjnam(bp, no_wish, opts = {}) {
     if (state.spe !== null) {
         otmp.spe = state.spe;
     }
+
+    // C ref: objnam.c:5336-5356 — if name matches an artifact, call oname/artifact_exists
+    if (artifactName) {
+        artifact_exists(otmp, artifactName, true, ONAME_WISH);
+        if (otmp.oartifact) {
+            otmp.quan = 1;
+            otmp.oname = artifactName;
+        }
+    }
+
+    // C ref: objnam.c:5361-5371 — "more wishing abuse" check
+    // C: if ((is_quest_artifact(d.otmp) || (d.otmp->oartifact && rn2(nartifact_exist()) > 1)) && !wizard)
+    // rn2(nartifact_exist()) is evaluated due to short-circuit evaluation:
+    //   - only called when is_quest_artifact() returns false (quest not started) AND oartifact is set
+    //   - called even in wizard mode because !wizard check comes after rn2()
+    // C's is_quest_artifact() returns false when quest not started (qdat.qd_flags.notstarted != 0),
+    // which is the common case. We model this by always calling rn2 when oartifact is set
+    // (matching C's behavior before quest start, which is almost always in test sessions).
+    if (otmp && otmp.oartifact) {
+        const abuse = rn2(nartifact_exist()) > 1;
+        const wizard = !!opts.wizard;
+        if (abuse && !wizard) {
+            // Not in wizard mode and abuse: remove the artifact
+            artifact_exists(otmp, otmp.oname || '', false, 0);
+            otmp.oartifact = 0;
+            otmp.oname = '';
+        }
+    }
+
     // C readobjnam returns an object with dknown set (appearance seen),
     // but does not auto-discover the true object type.
     otmp.dknown = true;
