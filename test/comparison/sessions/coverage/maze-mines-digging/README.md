@@ -43,3 +43,12 @@ Captured sessions:
 3. `t08_s972_w_dig_gp.session.json`
 4. `t04_s701_w_digext2_gp.session.json`
 5. `t04_s703_w_wizbury_gp.session.json`
+
+Pending sessions (not yet parity-green):
+1. `test/comparison/sessions/pending/t04_s705_w_minefill_gp.session.json`
+- C-harness wizload preflight for high-yield minefill coverage.
+- Current blocker tracked in issue #352:
+  - wizard-role run shows early step-local prelude mismatch (`rn2(100)` pair before
+    wizload shuffle path),
+  - valkyrie preflight shows later `place_lregion` trial-count drift before
+    mineralize in `finalize_level`.
