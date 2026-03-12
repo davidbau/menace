@@ -585,7 +585,7 @@ export async function more(display, {
     const ctxGame = game ?? activeGame ?? null;
     const readMoreKey = (typeof readKey === 'function')
         ? readKey
-        : () => nhgetch();
+        : () => nhgetch_display_raw();
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
