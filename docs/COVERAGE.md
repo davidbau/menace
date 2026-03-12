@@ -198,7 +198,9 @@ Session development pipeline:
 2. When the session reaches diminishing returns (soft cap around 800 steps),
    place it into `test/comparison/sessions/pending/`.
 3. Start the next high-yield session concept; keep generation moving.
-4. Run pending sessions directly and fix JS parity until each passes.
+4. Run pending sessions with the full session runner first (authoritative first
+   divergence), then use step-diff tools for focused drilldown; fix JS parity
+   until each passes.
 5. Move passing session to the correct themed folder under
    `test/comparison/sessions/coverage/<theme>/`.
 6. Once moved, it is part of the default parity suite and must stay green.
@@ -518,12 +520,12 @@ PENDING="$(find test/comparison/sessions/pending -maxdepth 1 -name '*.session.js
 [ -n "$PENDING" ] && node test/comparison/session_test_runner.js --sessions="$PENDING" --parallel=1 --verbose
 ```
 
-Run one pending session:
+Run one pending session (authoritative first divergence):
 ```bash
 node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/<name>.session.json --parallel=1 --verbose
 ```
 
-First-RNG mismatch drilldown:
+Then first-RNG mismatch drilldown:
 ```bash
 node test/comparison/rng_step_diff.js test/comparison/sessions/pending/<name>.session.json --step <N> --window 8
 ```

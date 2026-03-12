@@ -149,6 +149,9 @@ When running rebuilds/regenerations that can take several minutes:
    - iterate it toward ~800 steps while maximizing coverage-per-turn,
    - place it in `sessions/pending`,
    - then start a fresh concept/session and repeat.
+14. Pending bring-up workflow: run `session_test_runner` first to get the
+   authoritative first divergence, then use `rng_step_diff`/mapdump tools only
+   for focused drilldown.
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.
