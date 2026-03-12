@@ -19,7 +19,6 @@ import {
     MKTRAP_NOFLAGS, MKTRAP_NOSPIDERONWEB, is_hole, isok,
     DOORINC, DUNGEONS_OF_DOOM, KNOX, GEHENNOM,
     SHARED,
-    Align2amask,
 } from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
 import { makeRoom } from './mkroom.js';

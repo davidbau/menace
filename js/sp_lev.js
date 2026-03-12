@@ -3205,6 +3205,12 @@ export async function build_room(opts = {}) {
             return false;
         }
 
+        // C ref: build_room calls topologize(aroom) immediately after room creation.
+        // Topologize the subroom now; the parent was topologized when it was created,
+        // but mark it for re-topologize since it will be marked irregular below.
+        topologize(levelState.map, subroom);
+        parentRoom._needsRetopologize = true;
+
         // Mark parent as irregular (C ref: lspo_room line 4079)
         parentRoom.irregular = true;
 
@@ -6959,7 +6965,18 @@ export async function finalize_level() {
         // handled by floodFillAndRegister() which already sets wall roomno during fill.
         if (levelState.map.nroom > 0) {
             for (let i = 0; i < levelState.map.nroom; i++) {
-                topologize(levelState.map, levelState.map.rooms[i]);
+                const rm = levelState.map.rooms[i];
+                // C ref: build_room calls topologize BEFORE parent is marked irregular.
+                // In JS, parents are marked irregular when subrooms are added. To match C,
+                // temporarily clear irregular for rooms that need edge roomno assignment.
+                if (rm._needsRetopologize && rm.irregular) {
+                    rm.irregular = false;
+                    topologize(levelState.map, rm);
+                    rm.irregular = true;
+                    delete rm._needsRetopologize;
+                } else {
+                    topologize(levelState.map, rm);
+                }
             }
         }
 
