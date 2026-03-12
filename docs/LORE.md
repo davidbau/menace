@@ -8702,3 +8702,26 @@ Validation:
 - Steed micro-session first mismatch moved later:
   - from step-`l` combat RNG (`rn2(4)` in C `mattacku`)
   - to later ride/dismount phase (`rn2(3)` in C `landing_spot`).
+
+### Follow-up: steed dismount `landing_spot` and unnamed-steed message parity
+
+- Next mismatch in the steed micro-session was inside C `steed.c:landing_spot()`
+  and `DISMOUNT_BYCHOICE` messaging.
+- JS `steed.js` had a simplified adjacent-tile picker (no C tie-break RNG
+  semantics) and always printed `You dismount ...`.
+- Landed C-faithful updates:
+  - `landing_spot()` now follows C direction ordering and selection flow:
+    - knocked-direction preferred ordering,
+    - pass-based filtering for by-choice/impairment,
+    - tie-break RNG `rn2(viable)` handling,
+    - optional `forceit` fallback.
+  - `dismount_steed()` now uses fallback `landing_spot(..., forceit=1)` for
+    throw/fell/poly paths like C.
+  - `DISMOUNT_BYCHOICE` now matches C unnamed-steed text branch:
+    `"You've been through the dungeon on ... with no name."`
+
+Validation:
+- Steed micro-session now passes fully for RNG/events/screen:
+  `rng=2761/2761`, `events=113/113`, `screens=21/21`.
+- Canonical gameplay parity suite remains green and expanded:
+  `210/210` passing via `scripts/run-and-report.sh --failures`.

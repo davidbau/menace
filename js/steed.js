@@ -3,25 +3,29 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import {
-    isok, A_WIS, A_DEX, A_CHA, W_SADDLE, ROOM, CORR,
+    isok, A_WIS, A_DEX, A_CHA, W_SADDLE,
     DISMOUNT_BYCHOICE, DISMOUNT_THROWN, DISMOUNT_KNOCKED, DISMOUNT_FELL,
     DISMOUNT_POLY, DISMOUNT_ENGULFED, DISMOUNT_BONES, DISMOUNT_GENERIC,
-    ECMD_OK, ECMD_TIME, ECMD_CANCEL,
+    ECMD_OK, ECMD_TIME, ECMD_CANCEL, TEST_MOVE, ACCESSIBLE, VIBRATING_SQUARE, has_mgivenname,
 } from './const.js';
 import { pline, You, Your, You_feel, You_cant, pline_The } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { Monnam, mon_nam } from './do_name.js';
+import { Monnam, mon_nam, pmname, Mgender } from './do_name.js';
 import { is_humanoid, slithy, amorphous, noncorporeal, is_whirly,
          unsolid, is_swimmer, is_floater, is_flyer,
-         grounded, bigmonst, verysmall } from './mondata.js';
+         grounded, bigmonst, verysmall, NODIAG, throws_rocks } from './mondata.js';
 import { MZ_MEDIUM, MZ_SMALL, MZ_LARGE,
          S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON,
          S_JABBERWOCK, PM_KNIGHT } from './monsters.js';
 import { which_armor } from './worn.js';
-import { SADDLE } from './objects.js';
+import { SADDLE, BOULDER } from './objects.js';
 import { MAXULEV } from './const.js';
 import { ynFunction } from './input.js';
-import { getdir } from './hack.js';
+import { getdir, test_move } from './hack.js';
+import { t_at } from './trap.js';
+import { sobj_at } from './invent.js';
+import { enexto } from './dungeon.js';
+import { an } from './objnam.js';
 
 // Monsters that might be ridden
 const STEEDS = [S_QUADRUPED, S_UNICORN, S_ANGEL, S_CENTAUR, S_DRAGON, S_JABBERWOCK];
@@ -344,30 +348,99 @@ export async function kick_steed(player, map, display) {
     player.ugallop = (player.ugallop || 0) + rn1(20, 30);
 }
 
-// cf. steed.c:459 -- landing_spot(): find dismount landing spot
-function landing_spot(player, map, reason) {
-    // Try adjacent squares for a valid landing position
+function xytod(dx, dy) {
     const dirs = [
-        [-1, 0], [0, -1], [1, 0], [0, 1],
-        [-1, -1], [1, -1], [-1, 1], [1, 1]
+        [-1, 0], [-1, -1], [0, -1], [1, -1],
+        [1, 0], [1, 1], [0, 1], [-1, 1],
     ];
+    for (let i = 0; i < dirs.length; i++) {
+        if (dirs[i][0] === dx && dirs[i][1] === dy) return i;
+    }
+    return -1;
+}
 
-    for (const [dx, dy] of dirs) {
-        const nx = player.x + dx;
-        const ny = player.y + dy;
-        if (!isok(nx, ny)) continue;
-        const loc = map.at(nx, ny);
-        if (!loc) continue;
-        // Check accessible and not occupied by monster
-        // Simplified: check that it's a walkable tile
-        const typ = loc.typ;
-        if (typ >= ROOM || typ === CORR) {
-            if (!map.monsterAt(nx, ny)) {
-                return { x: nx, y: ny };
+function dtoxy(j) {
+    const dirs = [
+        { x: -1, y: 0 }, { x: -1, y: -1 }, { x: 0, y: -1 }, { x: 1, y: -1 },
+        { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }, { x: -1, y: 1 },
+    ];
+    return dirs[j] || { x: 0, y: 0 };
+}
+
+// cf. steed.c:459 -- landing_spot(): find dismount landing spot
+async function landing_spot(player, map, reason, forceit = false, display = null, game = null) {
+    const tryDirs = [];
+    let n = 0;
+    const j = xytod(player.dx || 0, player.dy || 0);
+    let best_j = -1;
+    let clockwise_j = -1;
+    let counterclk_j = -1;
+
+    if (reason === DISMOUNT_KNOCKED && j !== -1) {
+        best_j = j;
+        const d0 = dtoxy(j);
+        tryDirs[0] = { x: d0.x, y: d0.y };
+        const i = rn2(2);
+        clockwise_j = (j + 1) % 8;
+        counterclk_j = (j + 7) % 8;
+        const dcw = dtoxy(clockwise_j);
+        const dccw = dtoxy(counterclk_j);
+        tryDirs[1 + i] = { x: dcw.x, y: dcw.y };
+        tryDirs[2 - i] = { x: dccw.x, y: dccw.y };
+        n = 3;
+    }
+
+    for (let dir = 0; dir < 8; dir++) {
+        if (dir === best_j || dir === clockwise_j || dir === counterclk_j) continue;
+        if (reason === DISMOUNT_POLY && NODIAG(player.type || {}) && (dir % 2) !== 0) continue;
+        const d = dtoxy(dir);
+        tryDirs[n++] = { x: d.x, y: d.y };
+    }
+
+    const impaird = !!(player.stunned || player.Stunned || player.confused || player.Confusion
+        || player.fumbling || player.Fumbling);
+    let passStart = 2;
+    if (reason === DISMOUNT_BYCHOICE && !impaird) passStart = 0;
+    else if ((reason === DISMOUNT_BYCHOICE && impaird) || reason === DISMOUNT_KNOCKED) passStart = 1;
+
+    let viable = 0;
+    let found = null;
+    let minDistance = -1;
+    for (let pass = passStart; pass <= 2 && !found; pass++) {
+        for (let idx = 0; idx < n; idx++) {
+            const d = tryDirs[idx];
+            if (!d) continue;
+            const x = (player.x || 0) + d.x;
+            const y = (player.y || 0) + d.y;
+            if (!isok(x, y)) continue;
+            const loc = map.at(x, y);
+            if (!loc || !ACCESSIBLE(loc.typ) || map.monsterAt(x, y)) continue;
+            const canMove = await test_move(player.x || 0, player.y || 0, d.x, d.y,
+                TEST_MOVE, player, map, display, game);
+            if (!canMove) continue;
+
+            viable++;
+            const distance = (d.x * d.x) + (d.y * d.y);
+            if (minDistance < 0
+                || ((best_j === -1) ? (distance < minDistance) : (idx < 3))
+                || (distance === minDistance && !rn2(viable))) {
+                const trap = (pass === 0) ? t_at(x, y, map) : null;
+                const knownTrap = !!(trap && trap.tseen && trap.ttyp !== VIBRATING_SQUARE);
+                const boulder = (pass <= 1) && !!(sobj_at(BOULDER, x, y, map)
+                    && !throws_rocks(player.type || {}));
+                if (!knownTrap && !boulder) {
+                    found = { x, y };
+                    minDistance = distance;
+                    if (best_j !== -1 && idx < 3) break;
+                }
             }
         }
     }
-    return null;
+
+    if (!found && forceit) {
+        found = enexto(player.x || 0, player.y || 0, map);
+    }
+    return found;
 }
 
 // cf. steed.c:576 -- dismount_steed(reason): stop riding
@@ -376,7 +449,7 @@ export async function dismount_steed(player, map, display, reason) {
     if (!mtmp) return;
 
     const repair_leg_damage = !!player.wounded_legs;
-    const have_spot = landing_spot(player, map, reason);
+    let have_spot = await landing_spot(player, map, reason, false, display);
 
     // Check the reason for dismounting
     const otmp = which_armor(mtmp, W_SADDLE);
@@ -393,6 +466,7 @@ export async function dismount_steed(player, map, display, reason) {
     case DISMOUNT_KNOCKED:
     case DISMOUNT_FELL:
         await You("fall off of %s!", mon_nam(mtmp));
+        if (!have_spot) have_spot = await landing_spot(player, map, reason, true, display);
         if (!player.levitating && !player.flying) {
             const dmg = rn1(10, 10);
             // TODO: losehp(Maybe_Half_Phys(dmg), "riding accident", KILLED_BY_AN)
@@ -401,6 +475,7 @@ export async function dismount_steed(player, map, display, reason) {
         break;
     case DISMOUNT_POLY:
         await You("can no longer ride %s.", mon_nam(mtmp));
+        if (!have_spot) have_spot = await landing_spot(player, map, reason, true, display);
         break;
     case DISMOUNT_ENGULFED:
         // caller displays message
@@ -421,7 +496,14 @@ export async function dismount_steed(player, map, display, reason) {
             await You_cant("There isn't anywhere for you to stand.");
             return;
         }
-        await You("dismount %s.", mon_nam(mtmp));
+        if (!has_mgivenname(mtmp)) {
+            await pline(`You've been through the dungeon on ${an(pmname(mtmp.data || mtmp.type || {}, Mgender(mtmp)))} with no name.`);
+            if (player.hallucinating || player.Hallucination) {
+                await pline("It felt good to get out of the rain.");
+            }
+        } else {
+            await You("dismount %s.", mon_nam(mtmp));
+        }
         break;
     }
 
