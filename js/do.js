@@ -51,7 +51,7 @@ import { cansee } from './vision.js';
 import { canseemon } from './display.js';
 import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
-import { setCurrentLevelStairs } from './stairs.js';
+import { setCurrentLevelStairs, stairway_at } from './stairs.js';
 import { float_down } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
@@ -1078,7 +1078,9 @@ export async function handleDownstairs(player, map, display, game) {
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum
         : (Number.isInteger(map?._genDnum) ? map._genDnum : 0);
+    await markCurrentStairTraversed(map, player.x, player.y);
     if (loc.branchStair) {
+        loc.branchTraversed = true;
         const branchDest = resolveBranchDestinationForStair(
             currentDnum,
             Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : 1,
@@ -1138,7 +1140,9 @@ export async function handleUpstairs(player, map, display, game) {
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum
         : (Number.isInteger(map?._genDnum) ? map._genDnum : 0);
+    await markCurrentStairTraversed(map, player.x, player.y);
     if (loc.branchStair) {
+        loc.branchTraversed = true;
         const branchDest = resolveBranchDestinationForStair(
             currentDnum,
             Number.isInteger(player?.dungeonLevel) ? player.dungeonLevel : 1,
@@ -1158,6 +1162,21 @@ export async function handleUpstairs(player, map, display, game) {
 // C ref: do.c:1298 doup() — ascend stairs.
 export async function doup(player, map, display, game) {
     return handleUpstairs(player, map, display, game);
+}
+
+async function markCurrentStairTraversed(map, x, y) {
+    const stway = await stairway_at(x, y, map);
+    if (stway) stway.u_traversed = true;
+    const stairMatches = (stair) => stair
+        && ((Number.isInteger(stair.x) && stair.x === x && stair.y === y)
+            || (Number.isInteger(stair.sx) && stair.sx === x && stair.sy === y));
+    if (stairMatches(map?.upstair)) map.upstair.u_traversed = true;
+    if (stairMatches(map?.dnstair)) map.dnstair.u_traversed = true;
+    if (Array.isArray(map?.stairs)) {
+        for (const stair of map.stairs) {
+            if (stairMatches(stair)) stair.u_traversed = true;
+        }
+    }
 }
 
 

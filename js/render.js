@@ -210,10 +210,12 @@ export function terrainSymbol(loc, gameMap = null, x = -1, y = -1, flags = {}) {
 
     // Stairs direction
     if (typ === STAIRS) {
-        const isBranchStair = !!loc.branchStair;
+        // C ref: display.c back_to_glyph() + stairs.c known_branch_stairs():
+        // branch stair glyph/color depends on stairway u_traversed state.
+        const isKnownBranchStair = isKnownBranchStairCell(loc, gameMap, x, y);
         return loc.flags === 1
-            ? { ch: '<', color: isBranchStair ? HI_GOLD : CLR_GRAY }
-            : { ch: '>', color: isBranchStair ? HI_GOLD : CLR_GRAY };
+            ? { ch: '<', color: isKnownBranchStair ? HI_GOLD : CLR_GRAY }
+            : { ch: '>', color: isKnownBranchStair ? HI_GOLD : CLR_GRAY };
     }
 
     // Ladders — C ref: dat/symbols DECgraphics S_upladder/S_dnladder
@@ -259,6 +261,33 @@ export function terrainSymbol(loc, gameMap = null, x = -1, y = -1, flags = {}) {
     }
 
     return TERRAIN_SYMBOLS[typ] || { ch: '?', color: CLR_MAGENTA };
+}
+
+function isKnownBranchStairCell(loc, gameMap, x, y) {
+    // Preserve explicit cell marker when present (legacy snapshots/runtime state).
+    if (!!loc.branchStair && !!loc.branchTraversed) return true;
+    if (!gameMap || !Number.isInteger(x) || !Number.isInteger(y)) return false;
+
+    const currentDnum = Number.isInteger(gameMap?.uz?.dnum)
+        ? gameMap.uz.dnum
+        : (Number.isInteger(gameMap?._genDnum) ? gameMap._genDnum : 0);
+    const sameCell = (stair) => stair
+        && ((Number.isInteger(stair.x) && stair.x === x && stair.y === y)
+            || (Number.isInteger(stair.sx) && stair.sx === x && stair.sy === y));
+    const isKnownBranchStair = (stair) => stair
+        && stair.tolev
+        && Number.isInteger(stair.tolev.dnum)
+        && stair.tolev.dnum !== currentDnum
+        && !!stair.u_traversed;
+
+    if (isKnownBranchStair(gameMap.upstair) && sameCell(gameMap.upstair)) return true;
+    if (isKnownBranchStair(gameMap.dnstair) && sameCell(gameMap.dnstair)) return true;
+    if (Array.isArray(gameMap.stairs)) {
+        for (const stair of gameMap.stairs) {
+            if (isKnownBranchStair(stair) && sameCell(stair)) return true;
+        }
+    }
+    return false;
 }
 
 // ============================================================================

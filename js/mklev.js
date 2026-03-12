@@ -373,6 +373,7 @@ export function mkstairs(map, x, y, isUp, isBranch = false) {
     loc.stairdir = isUp ? 1 : 0;
     loc.flags = isUp ? 1 : 0;
     loc.branchStair = !!isBranch;
+    loc.branchTraversed = false;
     if (isUp) map.upstair = { x, y };
     else map.dnstair = { x, y };
 }
