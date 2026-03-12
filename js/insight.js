@@ -38,7 +38,12 @@ import { showPager } from './pager.js';
 import { is_pool_or_lava } from './dbridge.js';
 import { makeplural, an } from './objnam.js';
 import { rank_of } from './botl.js';
-import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM } from './const.js';
+import { newuexp } from './exper.js';
+import { align_gname } from './pray.js';
+import { magic_negation } from './mondata.js';
+import { inv_weight, near_capacity } from './hack.js';
+import { weapon_type, skill_name, P_SKILL } from './weapon.js';
+import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM, UNENCUMBERED, ECMD_OK } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
 //          end_menu, select_menu, display_nhwindow,
@@ -573,32 +578,63 @@ function background_enlightenment(mode, final, game) {
     // C format: "an Evoker, a level 1 male human Wizard"
     you_are(final, `${an(rankTitle)}, a level ${level} ${genderStr} ${raceName} ${roleName}`, '');
 
-    // Alignment
+    // Alignment — cf. insight.c:506-545
+    // bypass you_are() to omit ending period; uses enlght_out directly
     const alignType = player.alignment != null ? player.alignment : A_NEUTRAL;
     const alignName = align_str(alignType);
-    const godName = player.godName || 'your deity';
-    enlght_out(` You ${!final ? 'are' : 'were'} ${alignName}, on a mission for ${godName}.`);
+    // Determine adverb for alignment status
+    let alignAdverb = '';
+    const alignCurrent = player.ualignbase_current != null ? player.ualignbase_current : alignType;
+    const alignOriginal = player.ualignbase_original != null ? player.ualignbase_original : alignType;
+    if (alignType !== alignCurrent) {
+        alignAdverb = !final ? 'currently ' : 'temporarily ';
+    } else if (alignType !== alignOriginal) {
+        alignAdverb = !final ? 'now ' : 'belatedly ';
+    } else if (!(player.uconduct?.gnostic) && (game.turnCount || game.moves || 0) > 1000) {
+        alignAdverb = 'nominally ';
+    }
+    const godName = align_gname(alignType, player) || player.godName || 'your deity';
+    enlght_out(`  You ${!final ? 'are' : 'were'} ${alignAdverb}${alignName}, on a mission for ${godName}`);
+    // Opposing gods line — cf. insight.c:533-545
+    let oppBuf = `  who ${!final ? 'is' : 'was'} opposed by`;
+    if (alignType !== A_LAWFUL)
+        oppBuf += ` ${align_gname(A_LAWFUL, player)} (${align_str(A_LAWFUL)}) and`;
+    if (alignType !== A_NEUTRAL)
+        oppBuf += ` ${align_gname(A_NEUTRAL, player)} (${align_str(A_NEUTRAL)})${alignType !== A_CHAOTIC ? ' and' : ''}`;
+    if (alignType !== A_CHAOTIC)
+        oppBuf += ` ${align_gname(A_CHAOTIC, player)} (${align_str(A_CHAOTIC)})`;
+    oppBuf += '.';
+    enlght_out(oppBuf);
 
     // Handedness
     const handed = player.rightHanded !== false ? 'right' : 'left';
     you_are(final, `${handed}-handed`, '');
 
-    // Dungeon level
+    // Dungeon level — cf. insight.c:575-608
+    const dname = game.dungeonName || 'the Dungeons of Doom';
     const dlevel = player.dungeonLevel || player.depth || 1;
-    you_are(final, `on dungeon level ${dlevel}`, '');
+    you_are(final, `in ${dname}, on level ${dlevel}`, '');
 
-    // Turns
-    const moves = game.turnCount || game.moves || player.turns || 0;
-    if (moves <= 1) {
+    // Turns — cf. insight.c:611-618
+    // JS turnCount is one behind C's svm.moves (see allmain.js:235)
+    const moves = (game._currentTurn ?? ((game.turnCount || 0) + 1));
+    if (moves === 1) {
         you_have(final, 'just started your adventure', '');
     } else {
         enlght_line('You ', 'entered ', `the dungeon ${moves} turn${moves === 1 ? '' : 's'} ago`, '');
     }
 
-    // Experience
-    if (player.exp != null || player.uexp != null) {
-        const exp = player.exp || player.uexp || 0;
-        you_have(final, `${exp} experience point${exp === 1 ? '' : 's'}`, '');
+    // Experience — cf. insight.c:664-689
+    if (!player.upolyd) {
+        const exp = player.uexp ?? player.exp ?? 0;
+        const ulvl = player.ulevel || 1;
+        let buf = `${exp} experience point${exp === 1 ? '' : 's'}`;
+        if (ulvl < 30 && (final || game.wizard)) {
+            const nxtlvl = newuexp(ulvl);
+            const delta = nxtlvl - exp;
+            buf += `, ${delta}${exp > 0 ? ' more' : ''} needed ${ulvl < 18 ? 'to attain' : 'for'} level ${ulvl + 1}`;
+        }
+        you_have(final, buf, '');
     }
 }
 
@@ -626,8 +662,8 @@ function basics_enlightenment(mode, final, game) {
         you_have(final, `${hp} out of ${hpmax} hit point${hpmax === 1 ? '' : 's'}`, '');
 
     // Energy
-    const pw = player.en || player.energy || 0;
-    const pwmax = player.enmax || player.energymax || 0;
+    const pw = player.uen ?? player.pw ?? player.en ?? player.energy ?? 0;
+    const pwmax = player.uenmax ?? player.pwmax ?? player.enmax ?? player.energymax ?? 0;
     if (pwmax === 0 || (pw === pwmax && pwmax === 2))
         you_have(final, `${!pwmax ? 'no' : 'both'} energy points (spell power)`, '');
     else if (pw === pwmax && pwmax > 2)
@@ -639,12 +675,12 @@ function basics_enlightenment(mode, final, game) {
     const ac = player.ac != null ? player.ac : 10;
     enl_msg(final, 'Your armor class ', 'is ', 'was ', String(ac), '');
 
-    // Gold
+    // Gold — cf. insight.c via enlght_out with leading space (menu padding adds 1 more)
     const gold = player.gold || player.au || 0;
     if (!gold) {
-        enlght_out(` Your wallet ${!final ? 'is' : 'was'} empty.`);
+        enlght_out(`  Your wallet ${!final ? 'is' : 'was'} empty.`);
     } else {
-        enlght_out(` Your wallet contain${!final ? 's' : 'ed'} ${gold} gold piece${gold === 1 ? '' : 's'}.`);
+        enlght_out(`  Your wallet contain${!final ? 's' : 'ed'} ${gold} gold piece${gold === 1 ? '' : 's'}.`);
     }
 
     // Autopickup
@@ -747,13 +783,13 @@ function status_enlightenment(mode, final, game) {
     // Internal troubles
     if (hasIntrinsic(player, 'Stoned')) {
         if (final)
-            enlght_out(' You turned into stone.');
+            enlght_out('  You turned into stone.');
         else
             you_are(final, 'turning to stone', '');
     }
     if (hasIntrinsic(player, 'Slimed')) {
         if (final)
-            enlght_out(' You turned into slime.');
+            enlght_out('  You turned into slime.');
         else
             you_are(final, 'turning into slime', '');
     }
@@ -794,29 +830,36 @@ function status_enlightenment(mode, final, game) {
             you_are(final, `held by ${x_monnam(player.ustuck)}`, '');
     }
 
-    // Hunger
-    const hungerState = player.hungerState || player.uhs;
-    if (hungerState != null) {
-        const hu_stat = ['', 'Hungry', 'Weak', 'Fainting', 'Fainted', 'Starved'];
-        let hstr = (hu_stat[hungerState] || '').toLowerCase();
-        if (!hstr) hstr = 'not hungry';
-        if (hstr === 'weak') hstr += ' from severe hunger';
-        else if (hstr.startsWith('faint')) hstr += ' due to starvation';
-        you_are(final, hstr, '');
+    // Hunger — cf. insight.c:1172-1187
+    // JS hunger enum: 0=Satiated, 1=NOT_HUNGRY, 2=Hungry, 3=Weak, 4=Fainting, 5=Fainted, 6=Starved
+    const hungerState = player.hungerState ?? player.uhs ?? 1;
+    const hu_stat_names = ['Satiated', '', 'Hungry', 'Weak', 'Fainting', 'Fainted', 'Starved'];
+    let hstr = (hu_stat_names[hungerState] || '').toLowerCase();
+    if (!hstr) hstr = 'not hungry';
+    if (hstr === 'weak') hstr += ' from severe hunger';
+    else if (hstr.startsWith('faint')) hstr += ' due to starvation';
+    if (game.wizard) {
+        const uhunger = player.uhunger ?? player.nutrition ?? 0;
+        hstr += ` <${uhunger}>`;
     }
+    you_are(final, hstr, '');
 
-    // Encumbrance
-    const encumbrance = player.encumbrance || 0;
-    if (encumbrance > 0) {
+    // Encumbrance — cf. insight.c:1189-1224
+    const cap = near_capacity(player);
+    if (cap > UNENCUMBERED) {
         const enc_names = ['unencumbered', 'burdened', 'stressed', 'strained', 'overtaxed', 'overloaded'];
         const enc_adj   = ['', 'slightly', 'moderately', 'very', 'extremely', 'not possible'];
-        const ename = enc_names[encumbrance] || 'encumbered';
-        const adj = enc_adj[encumbrance] || '';
-        let buf = ename;
-        if (adj) buf += `; movement ${!final ? 'is' : 'was'} ${adj} slowed`;
+        let buf = enc_names[cap] || 'encumbered';
+        if (game.wizard)
+            buf += ` <${inv_weight(player)}>`;
+        const adj = enc_adj[cap] || '';
+        buf += `; movement ${!final ? 'is' : 'was'} ${adj}${cap < 5 ? ' slowed' : ''}`;
         you_are(final, buf, '');
     } else {
-        you_are(final, 'unencumbered', '');
+        let buf = 'unencumbered';
+        if (game.wizard)
+            buf += ` <${inv_weight(player)}>`;
+        you_are(final, buf, '');
     }
 
     // Weapon insight
@@ -843,8 +886,35 @@ export function weapon_insight(final, game) {
     } else if (player.twoweap) {
         you_are(final, 'wielding two weapons at once', '');
     } else {
-        const weapName = uwep.oname || 'a weapon';
-        you_are(final, `wielding ${weapName}`, '');
+        // cf. insight.c:1265-1282 — report weapon by skill class name
+        const wtype = weapon_type(uwep);
+        let what = (wtype && wtype > 0) ? skill_name(wtype) : null;
+        if (!what) what = uwep.oname || uwep.typename || 'a weapon';
+        if (what === 'armor' || what === 'food' || what === 'venom')
+            you_are(final, `wielding some ${what}`, '');
+        else
+            you_are(final, `wielding ${(uwep.quan || 1) === 1 ? an(what) : makeplural(what)}`, '');
+    }
+
+    // Skill with current weapon — cf. insight.c:1288-1310
+    const wtype = uwep ? weapon_type(uwep) : 0;
+    if (wtype && wtype > 0) {
+        const P_UNSKILLED = 1, P_SKILLED = 3, P_ISRESTRICTED = -1;
+        const sklNames = ['none', 'unskilled', 'basic', 'skilled', 'expert', 'master', 'grand master'];
+        // Look up skill level from weapon.js module-level heroSkill array
+        const sklvl = P_SKILL(wtype);
+        const hav = (sklvl !== P_UNSKILLED && sklvl !== P_SKILLED);
+        let sklvlbuf;
+        if (sklvl === P_ISRESTRICTED)
+            sklvlbuf = 'no';
+        else
+            sklvlbuf = sklNames[sklvl] || 'unknown';
+        const sname = skill_name(wtype);
+        const buf = `${sklvlbuf} ${hav ? 'skill with' : 'in'} ${sname}`;
+        if (hav)
+            you_have(final, buf, '');
+        else
+            you_are(final, buf, '');
     }
 }
 
@@ -867,11 +937,133 @@ export function cause_known(cause, gameOrPlayer) {
     return false;
 }
 
-// cf. insight.c:1464 [static] — attributes_enlightenment()
-// Wrapper used by callers that want the canonical attributes-view pipeline.
-export async function attributes_enlightenment(mode, final, game) {
-    await enlightenment(mode, final, game);
-    return 0;
+// cf. insight.c:1464 [static] — attributes_enlightenment(mode, final, game)
+// Intrinsics, resistances, luck, prayer safety, saving-grace, etc.
+export function real_attributes_enlightenment(mode, final, game) {
+    const player = (game.u || game.player);
+
+    enlght_out('');
+    enlght_out(final ? ' Final Attributes:' : ' Attributes:');
+
+    // Piousness — cf. insight.c:1486-1490
+    const piousBuf = piousness(true, 'aligned', player);
+    if ((player.alignmentRecord || 0) >= 0)
+        you_are(final, piousBuf, '');
+    else
+        you_have(final, piousBuf, '');
+
+    // Wizard: show exact alignment value — cf. insight.c:1492-1495
+    if (game.wizard) {
+        enl_msg(final, 'Your alignment ', 'is', 'was', ` ${player.alignmentRecord || 0}`, '');
+    }
+
+    // Resistances — cf. insight.c:1498-1540
+    // Check antimagic via property system and also check worn items directly
+    // (oc_oprop values may be misaligned, so check known antimagic-granting items)
+    let _hasAntimagic = !!(player.antimagic || player.Antimagic
+        || player.uprops?.[12]?.intrinsic || player.uprops?.[12]?.extrinsic);
+    let _antimagicCause = player.antimagicCause || '';
+    if (!_hasAntimagic) {
+        // Fallback: check worn items for known antimagic-granting types
+        const CLOAK_OF_MAGIC_RESISTANCE = 148;
+        const GRAY_DRAGON_SCALE_MAIL = 101, GRAY_DRAGON_SCALES = 111;
+        const antimagicItems = { 148: 'cloak of magic resistance',
+            101: 'gray dragon scale mail', 111: 'gray dragon scales' };
+        for (const item of (player.inventory || [])) {
+            if (item && (item.owornmask || 0) && antimagicItems[item.otyp]) {
+                _hasAntimagic = true;
+                _antimagicCause = ` because of your ${antimagicItems[item.otyp]}`;
+                break;
+            }
+        }
+    }
+    if (_hasAntimagic) {
+        you_are(final, `magic-protected${_antimagicCause}`, '');
+    }
+    if (hasPlayerProp(player, 'FIRE_RES') || player.fire_resistance)
+        you_are(final, 'fire resistant', '');
+    if (hasPlayerProp(player, 'COLD_RES') || player.cold_resistance)
+        you_are(final, 'cold resistant', '');
+    if (hasPlayerProp(player, 'SLEEP_RES') || player.sleep_resistance)
+        you_are(final, 'sleep resistant', '');
+    if (hasPlayerProp(player, 'DISINT_RES') || player.disint_resistance)
+        you_are(final, 'disintegration resistant', '');
+    if (hasPlayerProp(player, 'SHOCK_RES') || player.shock_resistance)
+        you_are(final, 'shock resistant', '');
+    if (hasPlayerProp(player, 'POISON_RES') || player.poison_resistance)
+        you_are(final, 'poison resistant', '');
+
+    // Vision and senses
+    if (hasPlayerProp(player, 'SEE_INVIS') || player.see_invisible)
+        enl_msg(final, 'You ', 'see', 'saw', ' invisible', '');
+    if (hasPlayerProp(player, 'TELEPAT') || player.telepathic)
+        you_are(final, 'telepathic', '');
+
+    // Magic cancellation (warded/guarded/protected) — cf. insight.c:1777-1786
+    try {
+        const youmonst = { inventory: player.inventory, data: player.data };
+        const armpro = magic_negation(youmonst);
+        if (armpro > 0) {
+            const mc_types = ['', 'warded', 'guarded', 'protected'];
+            const idx = Math.min(armpro, mc_types.length - 1);
+            you_are(final, mc_types[idx], '');
+        }
+    } catch (e) { /* magic_negation may not work if data isn't set up */ }
+
+    // Half damage
+    if (hasPlayerProp(player, 'HALF_PHDAM') || player.half_physical_damage)
+        enlght_halfdmg(HALF_PHDAM, final);
+    if (hasPlayerProp(player, 'HALF_SPDAM') || player.half_spell_damage)
+        enlght_halfdmg(HALF_SPDAM, final);
+
+    // Movement and protection
+    if (hasPlayerProp(player, 'FAST') || player.fast || player.veryFast) {
+        you_are(final, player.veryFast ? 'very fast' : 'fast', '');
+    }
+    if (hasPlayerProp(player, 'REFLECTING') || player.reflecting)
+        you_have(final, 'reflection', '');
+    if (hasPlayerProp(player, 'FREE_ACTION') || player.free_action)
+        you_have(final, 'free action', '');
+
+    // Luck — cf. insight.c:1886-1906
+    const luckVal = (player.uluck ?? player.luck ?? 0) + (player.moreluck || 0);
+    if (luckVal) {
+        const ltmp = Math.abs(luckVal);
+        let buf = `${ltmp >= 10 ? 'extremely ' : ltmp >= 5 ? 'very ' : ''}${luckVal < 0 ? 'un' : ''}lucky`;
+        if (game.wizard)
+            buf += ` (${luckVal})`;
+        you_are(final, buf, '');
+    } else if (game.wizard) {
+        enl_msg(final, 'Your luck ', 'is', 'was', ' zero', '');
+    }
+
+    // God anger / prayer safety — cf. insight.c:1908-1932
+    const ugangr = player.ugangr || 0;
+    if (ugangr) {
+        let buf = `${ugangr > 6 ? 'extremely ' : ugangr > 3 ? 'very ' : ''}angry with you`;
+        if (game.wizard) buf += ` (${ugangr})`;
+        const gname = align_gname(player.alignment, player) || player.godName || 'your deity';
+        enl_msg(final, `${gname} `, 'is', 'was', ` ${buf}`, '');
+    } else if (!final) {
+        const ublesscnt = player.ublesscnt || 0;
+        // Simplified can_pray check: safe when ublesscnt==0 and luck>=0 and alignment>=0
+        const canPray = (ublesscnt <= 0 && luckVal >= 0 && (player.alignmentRecord || 0) >= 0);
+        let buf = `${canPray ? '' : 'not '}safely pray`;
+        if (game.wizard) buf += ` (${ublesscnt})`;
+        you_can(final, buf, '');
+    }
+
+    // Saving-grace — cf. insight.c:1954-1967
+    if (final || game.wizard || game.discover) {
+        const sg = player.usaving_grace || 0;
+        let verb;
+        if (!final) {
+            verb = sg ? 'have avoided' : 'might avoid';
+        } else {
+            verb = sg ? 'avoided' : 'could have avoided';
+        }
+        enl_msg(final, 'You ', verb, verb, ' a one-shot death via saving-grace', '');
+    }
 }
 
 // cf. insight.c:2014 — doattributes(game): ^X attribute display command
@@ -909,13 +1101,26 @@ export async function enlightenment(mode, final, game) {
     // Status — shown for both basic and magic enlightenment
     status_enlightenment(mode, final, game);
 
-    // Miscellaneous section
+    // Attributes — cf. insight.c:397-400
+    if (mode & MAGICENLIGHTENMENT) {
+        real_attributes_enlightenment(mode, final, game);
+    }
+
+    // Miscellaneous section — cf. insight.c:402-426
     enlght_out('');
     enlght_out(' Miscellaneous:');
 
     if ((mode & BASICENLIGHTENMENT) !== 0 && (game.wizard || game.discover || final)) {
         if (game.wizard || game.discover) {
             you_are(final, `running in ${game.wizard ? 'debug' : 'explore'} mode`, '');
+        }
+        // Bones levels — cf. insight.c:411-423
+        const numbones = player.uroleplay?.numbones ?? player.numbones ?? 0;
+        if (!numbones) {
+            enl_msg(final, 'You ', "haven't encountered", "didn't encounter",
+                    ' any bones levels', '');
+        } else {
+            you_have_X(final, `encountered ${numbones} bones level${numbones === 1 ? '' : 's'}`);
         }
     }
 
@@ -945,8 +1150,8 @@ export async function run_magic_enlightenment_effect(game) {
 
 // cf. insight.c:2086 — doconduct(game): #conduct command handler
 // Autotranslated from insight.c:2085
-export async function doconduct() {
-  await show_conduct(ENL_GAMEINPROGRESS);
+export async function doconduct(game) {
+  await show_conduct(ENL_GAMEINPROGRESS, game);
   return ECMD_OK;
 }
 
@@ -1050,7 +1255,7 @@ export async function show_conduct(final, game) {
     }
 
     // Sokoban rules
-    if (sokoban_in_play(game)) {
+    if (sokoban_in_play(player)) {
         let presentverb = 'have violated', pastverb = 'violated';
         let sokobuf = ' the special Sokoban rules ';
         const cheat = conduct.sokocheat || 0;
@@ -1178,6 +1383,7 @@ export function count_achievements(player) {
 // cf. insight.c:2527 — sokoban_in_play(game): check if sokoban entered
 // Autotranslated from insight.c:2526
 export function sokoban_in_play(player) {
+  if (!player?.uachieved) return false;
   let achidx;
   for (achidx = 0; player.uachieved[achidx]; ++achidx) {
     if (player.uachieved[achidx] === ACH_SOKO) return true;

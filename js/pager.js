@@ -446,15 +446,16 @@ async function _showPagerCore(display, text, title) {
             }
         }
 
-        // Status bar
+        // Status bar — match C's "(N of M)" page indicator format
         display.clearRow(STATUS_LINE);
-        const pct = lines.length <= PAGE_ROWS ? '(All)'
-            : topLine + PAGE_ROWS >= lines.length ? '(Bot)'
-            : topLine === 0 ? '(Top)'
-            : `(${Math.round(topLine / (lines.length - PAGE_ROWS) * 100)}%)`;
-        const titleStr = title ? title + ' ' : '';
-        const status = `${titleStr}-- ${pct} -- [q:quit  space:next  b:back  /:search]`;
-        await display.putstr(0, STATUS_LINE, status.substring(0, TERMINAL_COLS), CLR_GREEN);
+        const totalPages = Math.max(1, Math.ceil(lines.length / PAGE_ROWS));
+        const currentPage = Math.floor(topLine / PAGE_ROWS) + 1;
+        const status = totalPages <= 1 ? '' : ` (${currentPage} of ${totalPages})`;
+        if (status) {
+            await display.putstr(0, STATUS_LINE, status.substring(0, TERMINAL_COLS), CLR_GRAY);
+            // Set cursor at end of status text, matching C behavior
+            if (display.setCursor) display.setCursor(status.length, STATUS_LINE);
+        }
     }
 
     await render();
@@ -468,10 +469,13 @@ async function _showPagerCore(display, text, title) {
             // Quit
             break;
         } else if (c === ' ' || ch === 13 || c === 'j' || ch === 106) {
-            // Next page (space, enter, j)
+            // Next page (space, enter, j) — C uses fixed page-size increments
+            // On the last page, space exits the pager (matches C behavior)
             if (topLine + PAGE_ROWS < lines.length) {
-                topLine = Math.min(topLine + PAGE_ROWS, lines.length - PAGE_ROWS);
+                topLine += PAGE_ROWS;
                 await render();
+            } else {
+                break; // exit pager on last page
             }
         } else if (c === 'b' || c === 'k') {
             // Previous page
