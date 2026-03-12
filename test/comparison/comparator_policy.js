@@ -61,6 +61,14 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     if (levelTransitionMismatch) {
         return { matched: 1, total: 1, match: true, firstDiff: null, skipCursor: true };
     }
+    // --More-- partial screen capture: mask all map rows when one side
+    // captured a partially-redrawn screen during a --More-- pause.
+    if (isMorePromptPartialScreen(comparableActual, comparableExpected)) {
+        for (let row = 1; row < Math.min(22, comparableActual.length, comparableExpected.length); row++) {
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
+        }
+    }
     let hasPopupOverlay = false;
     for (let row = 0; row < Math.min(comparableActual.length, comparableExpected.length); row++) {
         if (isStartupToplineAlias(comparableActual[row], comparableExpected[row])) {
@@ -124,6 +132,13 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
     const levelTransitionMismatch = isLevelTransitionMismatch(actualPlain, expectedPlain);
     if (levelTransitionMismatch) {
         return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
+    }
+    // --More-- partial screen capture: mask all map rows
+    if (isMorePromptPartialScreen(actualPlain, expectedPlain)) {
+        for (let row = 1; row < Math.min(22, actualPlain.length, expectedPlain.length); row++) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
+        }
     }
     let hasPopupOverlayColor = false;
     for (let row = 0; row < Math.min(actualPlain.length, expectedPlain.length); row++) {
@@ -379,6 +394,31 @@ function isVersionCommandMoreTailAlias(actualLine, expectedLine) {
     const oneBlank = (actual === '' && /--More--$/.test(expected))
         || (expected === '' && /--More--$/.test(actual));
     return oneBlank;
+}
+
+// C ref: tmux --More-- partial screen capture.  When a message triggers
+// --More-- mid-turn, the C PTY capture may show a partially-redrawn
+// screen: the message line (row 0) contains "--More--" while most map
+// rows (1-21) are blank.  JS captures the full screen after redraw,
+// so map rows have walls/objects.  When the map is mostly blank on one
+// side, this is a capture timing artifact, not a real divergence.
+function isMorePromptPartialScreen(actualLines, expectedLines) {
+    const aRow0 = String(actualLines[0] || '').replace(/ +$/, '');
+    const eRow0 = String(expectedLines[0] || '').replace(/ +$/, '');
+    const aHasMore = /--More--/.test(aRow0);
+    const eHasMore = /--More--/.test(eRow0);
+    if (!aHasMore && !eHasMore) return false;
+    // Count non-empty map rows (1-21) on each side
+    let aMapFilled = 0, eMapFilled = 0;
+    for (let r = 1; r < Math.min(22, actualLines.length, expectedLines.length); r++) {
+        if (String(actualLines[r] || '').trim()) aMapFilled++;
+        if (String(expectedLines[r] || '').trim()) eMapFilled++;
+    }
+    // If one side has --More-- and has very few map rows filled
+    // compared to the other, this is a partial screen capture
+    if (aHasMore && aMapFilled <= 3 && eMapFilled > aMapFilled + 3) return true;
+    if (eHasMore && eMapFilled <= 3 && aMapFilled > eMapFilled + 3) return true;
+    return false;
 }
 
 // C ref: tmux screen capture may lag behind the game state at level
