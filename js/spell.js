@@ -436,14 +436,7 @@ export async function handleKnownSpells(player, display) {
         { key: 'z', mode: SORTRETAINORDER, label: 'reassign casting letters to retain current order' },
     ];
 
-    const clearOverlayRows = () => {
-        if (typeof display.clearRow !== 'function') return;
-        const limit = Math.min(14, Number(display.rows || 24));
-        for (let r = 0; r < limit; r++) display.clearRow(r);
-    };
-
-    const renderKnownSpells = () => {
-        clearOverlayRows();
+    const renderKnownSpells = async () => {
         const knownSpells = sortspells(player, sortMode).filter(s => s.sp_know > 0);
         const rows = ['Currently known spells', ''];
         const showTurns = !!player.wizard;
@@ -468,6 +461,8 @@ export async function handleKnownSpells(player, display) {
         rows.push('+ - [sort spells]');
         rows.push('(end)');
 
+        await docrt();
+        if (typeof display.clearRow === 'function') display.clearRow(0);
         if (typeof display.renderOverlayMenu === 'function') {
             display.renderOverlayMenu(rows);
         } else {
@@ -476,7 +471,6 @@ export async function handleKnownSpells(player, display) {
     };
 
     const promptSpellSort = async () => {
-        clearOverlayRows();
         const rows = ['View known spells list sorted', ''];
         for (const choice of sortChoices) {
             if (choice.key === 'z') rows.push('');
@@ -484,6 +478,8 @@ export async function handleKnownSpells(player, display) {
             rows.push(`${choice.key} ${marker} ${choice.label}`);
         }
         rows.push('(end)');
+        await docrt();
+        if (typeof display.clearRow === 'function') display.clearRow(0);
         if (typeof display.renderOverlayMenu === 'function') {
             display.renderOverlayMenu(rows);
         } else {
@@ -495,7 +491,12 @@ export async function handleKnownSpells(player, display) {
             const key = String.fromCharCode(ch).toLowerCase();
             const picked = sortChoices.find((choice) => choice.key === key);
             if (picked) {
-                sortMode = picked.mode;
+                if (picked.mode === SORTRETAINORDER) {
+                    player.spells = [...sortspells(player, sortMode)];
+                    sortMode = SORTBY_LETTER;
+                } else {
+                    sortMode = picked.mode;
+                }
                 return true;
             }
         }
@@ -503,14 +504,14 @@ export async function handleKnownSpells(player, display) {
 
     const win = create_nhwindow(NHW_MENU);
     try {
-    renderKnownSpells();
+    await renderKnownSpells();
 
     while (true) {
         const ch = await nhgetch();
         if (ch === '+'.charCodeAt(0)) {
             const changed = await promptSpellSort();
             if (changed) {
-                renderKnownSpells();
+                await renderKnownSpells();
             }
             continue;
         }
@@ -1623,12 +1624,8 @@ export function spell_cmp(lhs, rhs, sortMode = SORTBY_ALPHA) {
 // C ref: spell.c sortspells() — sort known spell list
 export function sortspells(player, sortMode = SORTBY_ALPHA) {
     if (!player?.spells || player.spells.length < 2) return player?.spells || [];
-    if (sortMode === SORTBY_CURRENT || sortMode === SORTBY_LETTER) return player.spells;
+    if (sortMode === SORTBY_CURRENT || sortMode === SORTBY_LETTER || sortMode === SORTRETAINORDER) return player.spells;
     const sorted = [...player.spells].sort((a, b) => spell_cmp(a, b, sortMode));
-    if (sortMode === SORTRETAINORDER) {
-        player.spells = sorted;
-        return player.spells;
-    }
     return sorted;
 }
 
