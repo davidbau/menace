@@ -8725,3 +8725,22 @@ Validation:
   `rng=2761/2761`, `events=113/113`, `screens=21/21`.
 - Canonical gameplay parity suite remains green and expanded:
   `210/210` passing via `scripts/run-and-report.sh --failures`.
+
+### mkmap mines-init crash fix from wizload coverage preflight
+
+- While attempting high-yield coverage sessions with C harness `--wizload`
+  (`minetn-1`, `minefill`), JS hit a runtime fatal in the mines level-init path.
+- Root cause in `js/mkmap.js`:
+  - helper signatures were mismatched with real callsites
+    (`init_map`/`get_map` declared arg order differently than used),
+  - `NO_ROOM` was used but not imported,
+  - `get_map` referenced undefined `WIDTH`/`HEIGHT`.
+- Fix:
+  - normalized helpers to match existing map-first callsites:
+    `init_map(map, bg_typ)` and `get_map(map, col, row, bg_typ)`,
+  - imported `NO_ROOM`,
+  - used `COLNO`/`ROWNO` bounds in `get_map`.
+- Result:
+  - removed hard crash for mines-style `level_init` flows,
+  - kept baseline parity stable (`scripts/run-and-report.sh --failures`:
+    `216/216` passing).

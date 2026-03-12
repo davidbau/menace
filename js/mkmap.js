@@ -6,7 +6,7 @@
 import { rn1, rn2, rnd } from './rng.js';
 import {
     COLNO, ROWNO, STONE, ROOM, TREE, CROSSWALL, HWALL, VWALL,
-    IS_OBSTRUCTED, IS_WALL,
+    IS_OBSTRUCTED, IS_WALL, NO_ROOM,
 } from './const.js';
 
 const MKMAP_HEIGHT = ROWNO - 1;
@@ -17,7 +17,7 @@ function resolveMap(firstArg) {
 }
 
 // Autotranslated from mkmap.c:23
-export function init_map(bg_typ, map) {
+export function init_map(map, bg_typ) {
   let x, y;
   for (x = 1; x < COLNO; x++) {
     for (y = 0; y < ROWNO; y++) {
@@ -42,8 +42,8 @@ export function init_fill(map, bgTyp, fgTyp) {
 }
 
 // Autotranslated from mkmap.c:54
-export function get_map(col, row, bg_typ, map) {
-  if (col <= 0 || row < 0 || col > WIDTH || row >= HEIGHT) return bg_typ;
+export function get_map(map, col, row, bg_typ) {
+  if (col <= 0 || row < 0 || col >= COLNO || row >= ROWNO) return bg_typ;
   return map.locations[col][row].typ;
 }
 
