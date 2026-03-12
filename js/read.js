@@ -478,6 +478,31 @@ async function handleRead(player, display, game) {
             if (anyItem.oclass === SCROLL_CLASS) {
                 replacePromptMessage();
                 // cf. read.c doread() — scroll reading
+                if (anyItem.otyp !== SCR_BLANK_PAPER) {
+                    const nodisappear = (
+                        anyItem.otyp === SCR_FIRE
+                        || (anyItem.otyp === SCR_REMOVE_CURSE && !!anyItem.cursed)
+                    );
+                    if (player.blind) {
+                        await display.putstr_message(
+                            nodisappear
+                                ? 'You pronounce the formula on the scroll.'
+                                : 'As you pronounce the formula on it, the scroll disappears.'
+                        );
+                    } else {
+                        await display.putstr_message(
+                            nodisappear ? 'You read the scroll.'
+                                : 'As you read the scroll, it disappears.'
+                        );
+                    }
+                    if (player.confused) {
+                        await display.putstr_message(
+                            player.hallucinated
+                                ? 'Being so trippy, you screw up...'
+                                : 'Being confused, you mispronounce the magic words...'
+                        );
+                    }
+                }
                 const consumed = await seffects(anyItem, player, display, game);
                 if (consumed) {
                     // Scroll was used up inside seffects
@@ -672,6 +697,9 @@ export async function seffect_light(sobj, player, display, game) {
     const map = game?.map;
 
     if (!confused) {
+        if (!scursed && !player.blind) {
+            await display.putstr_message('A lit field surrounds you!');
+        }
         // cf. litroom(!scursed, sobj)
         litroom(player, map, !scursed);
         // cf. if (!scursed) lightdamage(sobj, TRUE, 5)
@@ -959,16 +987,16 @@ async function seffect_enchant_armor(sobj, player, display) {
         const new_erodeproof = !scursed;
         otmp.oerodeproof = false;
         if (player.blind) {
-            await display.putstr_message(`${doname(otmp, player)} feels warm for a moment.`);
+            await display.putstr_message(`${Yobjnam2(otmp, 'feel')} warm for a moment.`);
         } else {
             await display.putstr_message(
-                `${doname(otmp, player)} is covered by a ${scursed ? 'mottled black' : 'shimmering golden'} ${scursed ? 'glow' : 'shield'}!`);
+                `${Yobjnam2(otmp, 'are')} covered by a ${scursed ? 'mottled black' : 'shimmering golden'} ${scursed ? 'glow' : 'shield'}!`);
         }
         if (new_erodeproof && (otmp.oeroded || otmp.oeroded2)) {
             otmp.oeroded = 0;
             otmp.oeroded2 = 0;
             await display.putstr_message(
-                `${doname(otmp, player)} ${player.blind ? 'feels' : 'looks'} as good as new!`);
+                `${Yobjnam2(otmp, player.blind ? 'feel' : 'look')} as good as new!`);
         }
         otmp.oerodeproof = new_erodeproof;
         return false;
@@ -1010,8 +1038,10 @@ async function seffect_enchant_armor(sobj, player, display) {
     if (scursed) s = -s;
 
     // Apply enchantment
+    const glowVerb = Yobjnam2(otmp, player.blind ? 'vibrate' : 'glow')
+        .replace(/^The /, 'Your ');
     await display.putstr_message(
-        `${doname(otmp, player)} ${s === 0 ? 'violently ' : ''}${player.blind ? 'vibrates' : 'glows'}${(!player.blind) ? (scursed ? ' black' : ' silver') : ''} for a ${(s * s > 1) ? 'while' : 'moment'}.`);
+        `${glowVerb}${(!player.blind) ? (scursed ? ' black' : ' silver') : ''} for a ${(s * s > 1) ? 'while' : 'moment'}.`);
 
     if (scursed && !otmp.cursed) {
         otmp.cursed = true;
@@ -1030,7 +1060,7 @@ async function seffect_enchant_armor(sobj, player, display) {
     if ((otmp.spe || 0) > (special_armor ? 5 : 3)
         && (special_armor || !rn2(7))) {
         await display.putstr_message(
-            `${doname(otmp, player)} suddenly vibrates ${player.blind ? 'again' : 'unexpectedly'}.`);
+            `${Yobjnam2(otmp, 'suddenly vibrate')} ${player.blind ? 'again' : 'unexpectedly'}.`);
     }
     return false;
 }
