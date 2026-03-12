@@ -21,6 +21,11 @@ Session plan:
 - extends `t04_s701` with additional wand directions (`j`, `k`, `y`, `u`,
   `b`, `n`) in one parity session to increase branch coverage without adding
   extra session-count/runtime overhead
+5. `t04_s703_w_wizbury_gp` (captured)
+- wizard debug burial command (`#wizbury`) with both branches:
+  `1 object buried.` then `No objects here or adjacent to bury.`
+- targets `dig.js` buried-object callchain (`bury_an_obj`, `bury_objs`,
+  `buried_ball`, `unearth_objs`) and command plumbing via `cmd.js`.
 
 Issue links:
 - Planning: https://github.com/davidbau/menace/issues/340
@@ -37,3 +42,4 @@ Captured sessions:
 2. `t08_s700_w_apply_gp.session.json`
 3. `t08_s972_w_dig_gp.session.json`
 4. `t04_s701_w_digext2_gp.session.json`
+5. `t04_s703_w_wizbury_gp.session.json`

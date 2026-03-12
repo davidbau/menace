@@ -45,6 +45,7 @@ import { add_skills_to_menu, skill_advance, skill_practice_value, weapon_slots_a
 import { handleSet } from './options.js';
 import { dosit } from './sit.js';
 import { doride } from './steed.js';
+import { wiz_debug_cmd_bury } from './dig.js';
 import { doattributes, doconduct } from './insight.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
@@ -917,6 +918,10 @@ async function handleExtendedCommand(game) {
         case 'wizloaddes':
             queueRepeatExtcmd((g) => handleWizLoadDes(g));
             return await handleWizLoadDes(game);
+        case 'wizbury':
+            queueRepeatExtcmd((g) => wiz_debug_cmd_bury(g.map, g.player).then(() => ({ moved: false, tookTime: false })));
+            await wiz_debug_cmd_bury(game.map, player);
+            return { moved: false, tookTime: false };
         case 'quit': {
             const ans = await ynFunction('Really quit?', 'yn', 'n'.charCodeAt(0), display);
             if (String.fromCharCode(ans) === 'y') {
@@ -971,7 +976,7 @@ function knownExtendedCommands(game) {
         'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
     ];
     if (game?.wizard) {
-        cmds.push('levelchange', 'wish', 'map', 'teleport', 'genesis', 'wizloaddes');
+        cmds.push('levelchange', 'wish', 'map', 'teleport', 'genesis', 'wizloaddes', 'wizbury');
     }
     return cmds;
 }

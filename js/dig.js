@@ -44,7 +44,7 @@ import {
     DIR_ERR, N_DIRS, DIR_180, xdir, ydir,
 } from './const.js';
 import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY_AN,
-         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING,
+         OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED,
          MAGIC_PORTAL, VIBRATING_SQUARE } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
@@ -52,7 +52,7 @@ import { newsym } from './display.js';
 import { cansee } from './vision.js';
 import { mb_trapped, closed_door } from './monmove.js';
 import { canseemon, is_whirly, digests, unique_corpstat, is_flyer, is_floater } from './mondata.js';
-import { mksobj } from './mkobj.js';
+import { mksobj, add_to_buried } from './mkobj.js';
 import { placeFloorObject, sobj_at } from './invent.js';
 import { obj_resists, is_organic } from './objdata.js';
 import { makemon, mkclass } from './makemon.js';
@@ -104,6 +104,19 @@ export { may_dig };
 // C ref: *in_rooms(x, y, SHOPBASE) — is (x,y) inside a shop?
 function in_rooms_shopbase(x, y, map) {
     return in_rooms(x, y, SHOPBASE, map).length > 0;
+}
+
+function buried_list(map) {
+    if (!map) return [];
+    if (Array.isArray(map.buried)) return map.buried;
+    if (Array.isArray(map.buriedobjlist)) return map.buriedobjlist;
+    return [];
+}
+
+function remove_from_buried_list(obj, map) {
+    const list = buried_list(map);
+    const idx = list.indexOf(obj);
+    if (idx >= 0) list.splice(idx, 1);
 }
 
 // C ref: in_town(x, y) — is (x,y) in a town?
@@ -1545,9 +1558,9 @@ export function buried_ball(cc, map, player) {
     let ball = null;
     let bdist = COLNO;
 
-    // Search through all objects for buried heavy iron balls
-    for (const otmp of (map.objects || [])) {
-        if (otmp.otyp !== HEAVY_IRON_BALL || !otmp.buried) continue;
+    // C keeps buried objects on a separate chain (level.buriedobjlist).
+    for (const otmp of buried_list(map)) {
+        if (otmp.otyp !== HEAVY_IRON_BALL) continue;
 
         // If found at exact target spot, we're done
         if (otmp.ox === cc.x && otmp.oy === cc.y) return otmp;
@@ -1576,7 +1589,7 @@ export function buried_ball_to_punishment(map, player) {
     const cc = { x: player.x, y: player.y };
     const ball = buried_ball(cc, map, player);
     if (ball) {
-        // obj_extract_self(ball) — remove from buried list
+        remove_from_buried_list(ball, map);
         ball.buried = false;
         // punish(ball) — attach as punishment ball
         // reset_utrap(FALSE) — release from buried ball trap
@@ -1596,7 +1609,7 @@ export function buried_ball_to_freedom(map, player) {
     const cc = { x: player.x, y: player.y };
     const ball = buried_ball(cc, map, player);
     if (ball) {
-        // obj_extract_self(ball) — remove from buried list
+        remove_from_buried_list(ball, map);
         ball.buried = false;
         // place_object + stackobj — place on floor
         ball.ox = cc.x;
@@ -1646,9 +1659,13 @@ export function bury_an_obj(otmp, map, player) {
         otmp.lamplit = false;
     }
 
-    // Remove from floor
-    const idx = map.objects.indexOf(otmp);
-    if (idx >= 0) map.objects.splice(idx, 1);
+    // Remove from floor chain (emits ^remove in parity logging paths).
+    if (typeof map.removeObject === 'function') {
+        map.removeObject(otmp);
+    } else {
+        const idx = map.objects.indexOf(otmp);
+        if (idx >= 0) map.objects.splice(idx, 1);
+    }
 
     // C: rocks and boulders merge into burying material (destroyed)
     const under_ice = is_ice(otmp.ox, otmp.oy, map);
@@ -1669,7 +1686,7 @@ export function bury_an_obj(otmp, map, player) {
 
     // Mark as buried
     otmp.buried = true;
-    placeFloorObject(map, otmp); // keep in map.objects but flagged as buried
+    add_to_buried(otmp, map);
     return null;
 }
 
@@ -1700,8 +1717,8 @@ export function unearth_objs(x, y, map, player) {
     const cc = { x, y };
     const bball = buried_ball(cc, map, player);
 
-    const buried = (map.objects || []).filter(o =>
-        o.ox === x && o.oy === y && o.buried
+    const buried = buried_list(map).filter(o =>
+        o.ox === x && o.oy === y
     );
 
     for (const otmp of buried) {
@@ -1711,10 +1728,12 @@ export function unearth_objs(x, y, map, player) {
             buried_ball_to_punishment(map, player);
         } else {
             // Unbury: remove buried flag and place on floor
+            remove_from_buried_list(otmp, map);
             otmp.buried = false;
+            otmp.where = OBJ_FLOOR;
+            placeFloorObject(map, otmp);
             // C: if (otmp->timed) stop_timer(ROT_ORGANIC, obj_to_any(otmp))
             // Timer cleanup would go here
-            // Already in map.objects; just unflag
         }
     }
 
@@ -1741,6 +1760,7 @@ export function rot_organic(arg, timeout, map, player) {
 
     // Remove the rotted object
     if (map) {
+        remove_from_buried_list(obj, map);
         if (typeof map.removeObject === 'function') {
             map.removeObject(obj);
         } else {
