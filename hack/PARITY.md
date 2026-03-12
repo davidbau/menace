@@ -203,11 +203,24 @@ cd hack/hack-c/patched && make clean && make
 
 ---
 
-## Session Coverage: A Critical Blind Spot
+## Session Coverage: The Only Coverage That Matters
+
+Coverage is measured **sessions-only** — only the code paths exercised by C harness replay
+sessions count. Synthetic unit tests (`coverage_direct.mjs`) are excluded from the HTML
+report (`hack/coverage/`) and do not count toward any coverage target.
+
+**Why sessions-only?**  Sessions replay ground-truth C behavior. If a session covers a
+code path, that path has been verified to match C. If a synthetic test covers a path,
+it only verifies that *some* code ran — not that it matches C. Only session coverage
+gives confidence in parity.
+
+`run-coverage.sh` passes `--sessions-only` to `coverage_all.mjs`, which skips
+`coverage_direct.mjs`. To improve coverage, add new C harness sessions; do not add
+synthetic tests.
 
 Parity sessions verify that the JS port matches C *for the paths they exercise*. They say
 nothing about paths they never take. After Phase 4, all 22 sessions at 100% parity — but
-measuring **sessions-only coverage** (without direct unit tests) reveals a structural gap:
+measuring sessions-only coverage reveals a structural gap:
 
 ```
 All files  |  62% stmts  |  65% branch  |  53% funcs
