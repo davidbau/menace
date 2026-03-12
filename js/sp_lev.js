@@ -1055,6 +1055,7 @@ export function resetLevelState() {
  * @param {number} [ctx.dlevel]
  * @param {string} [ctx.specialName]
  * @param {"stairs"|"portal"|"none"|"stair-up"|"stair-down"} [ctx.branchPlacement]
+ * @param {boolean} [ctx.skipAfterFinalizeCheckpoint]
  */
 function applyFinalizeContext(ctx = null) {
     if (!ctx) {
@@ -1077,6 +1078,7 @@ function applyFinalizeContext(ctx = null) {
             ? ctx.branchPlacement
             : undefined,
         deferFinalize: !!ctx.deferFinalize,
+        skipAfterFinalizeCheckpoint: !!ctx.skipAfterFinalizeCheckpoint,
     };
 }
 
@@ -7033,13 +7035,28 @@ export async function finalize_level() {
         premap_detect(levelState.map);
     }
 
-    captureCheckpoint('after_finalize');
+    if (!levelState.finalizeContext?.skipAfterFinalizeCheckpoint) {
+        captureCheckpoint('after_finalize');
+    }
     levelState.deferredFinalizeRequested = false;
     if (levelState._mklevContextEntered) {
         leaveMklevContext();
         levelState._mklevContextEntered = false;
     }
     // Return the generated map
+    return levelState.map;
+}
+
+// C parity helper for wiz_load_splua flow:
+// emit the load_special() checkpoint phase boundaries before the regular
+// finalize_level() pass.
+export async function finalize_special_checkpoint_stage() {
+    if (levelState.map && !levelState.flags.corrmaze) {
+        wallification(levelState.map);
+    }
+    captureCheckpoint('after_wallification_special');
+    await fixupSpecialLevel();
+    captureCheckpoint('after_finalize_special');
     return levelState.map;
 }
 

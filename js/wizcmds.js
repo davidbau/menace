@@ -211,9 +211,10 @@ export async function wizTeleport(game) {
 // cf. wizcmds.c:376 — wiz_load_splua(): load special-level Lua file
 // JS equivalent: handleWizLoadDes() below — loads a JS special level generator.
 
-import { rn2 } from './rng.js';
+import { rn2, getRngCallCount, pushRngLogEntry } from './rng.js';
 import {
     finalize_level,
+    finalize_special_checkpoint_stage,
     resetLevelState,
     withFinalizeContext,
     withSpecialLevelDepth
@@ -326,8 +327,9 @@ export async function handleWizLoadDes(game) {
             async () => await generator()
         );
         return await withFinalizeContext(
-            finalizeCtx,
+            { ...finalizeCtx, skipAfterFinalizeCheckpoint: true },
             async () => {
+                await finalize_special_checkpoint_stage();
                 return await finalize_level();
             }
         );
@@ -336,6 +338,10 @@ export async function handleWizLoadDes(game) {
         // Route through changeLevel for hero placement, pet migration, and
         // arrival collision — matching C's goto_level() flow.
         await game.changeLevel(player.dungeonLevel, 'teleport', { map: newMap });
+        const p = game?.player || {};
+        pushRngLogEntry(
+            `^ckpt[phase=after_finalize rng=${getRngCallCount() | 0} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} ux=${(Number.isInteger(p?.x) ? p.x : 0) | 0} uy=${(Number.isInteger(p?.y) ? p.y : 0) | 0}]`
+        );
     }
     return { moved: false, tookTime: false };
 }
