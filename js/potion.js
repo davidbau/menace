@@ -33,7 +33,7 @@ import { mark_vision_dirty } from './vision.js';
 import { float_up, float_down } from './trap.js';
 import { float_vs_flight, polyself } from './polyself.js';
 import { rndexp, pluslvl } from './exper.js';
-import { discoverObject, isObjectNameKnown } from './o_init.js';
+import { discoverObject, isObjectNameKnown, objdescr_is } from './o_init.js';
 import { trycall } from './do.js';
 import { heal_legs } from './do.js';
 import { monster_detect, object_detect } from './detect.js';
@@ -54,7 +54,7 @@ import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect } from './zap.js';
 import { mons } from './monsters.js';
-import { PM_HEALER } from './monsters.js';
+import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
@@ -598,6 +598,28 @@ async function handleQuaff(player, map, display) {
             item.in_use = true;
             gp.potion_nothing = 0;
             gp.potion_unkn = 0;
+            // C ref: potion.c:601-613 — milky (ghost) and smoky (djinni) checks
+            const game = gstateGame;
+            const mvitals = game?.mvitals;
+            if (objdescr_is(item, 'milky')
+                && mvitals && !(mvitals[PM_GHOST]?.mvflags & G_GONE)
+                && !rn2(13 + 2 * (mvitals[PM_GHOST]?.born || 0))) {
+                await ghost_from_bottle(player, map);
+                // useup
+                if ((item.quan || 1) > 1) { item.quan -= 1; item.in_use = false; update_inventory(player); }
+                else { player.removeFromInventory(item); }
+                replacePromptMessage();
+                return { moved: false, tookTime: true };
+            } else if (objdescr_is(item, 'smoky')
+                && mvitals && !(mvitals[PM_DJINNI]?.mvflags & G_GONE)
+                && !rn2(13 + 2 * (mvitals[PM_DJINNI]?.born || 0))) {
+                await djinni_from_bottle(player, item, map);
+                // useup
+                if ((item.quan || 1) > 1) { item.quan -= 1; item.in_use = false; update_inventory(player); }
+                else { player.removeFromInventory(item); }
+                replacePromptMessage();
+                return { moved: false, tookTime: true };
+            }
             const retval = await peffects(player, item, display, map);
             // C parity: dodrink consumes one potion after effects resolve.
             if ((item.quan || 1) > 1) {
