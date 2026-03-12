@@ -655,6 +655,32 @@ export function findSpecialLevelByName(levelName) {
     return null;
 }
 
+/**
+ * Resolve a special level by exact textual name.
+ * Returns { dnum, dlevel, name, generator } or null.
+ */
+export function resolveSpecialLevelByName(levelName) {
+    initializeSpecialLevels();
+    if (typeof levelName !== 'string' || !levelName.length) return null;
+    const target = levelName.toLowerCase();
+
+    for (const entry of specialLevels.values()) {
+        const names = Array.isArray(entry.name) ? entry.name : [entry.name];
+        const generators = Array.isArray(entry.generator) ? entry.generator : [entry.generator];
+        for (let i = 0; i < names.length; i++) {
+            const name = names[i];
+            if (typeof name === 'string' && name.toLowerCase() === target) {
+                const generator = generators[i] || generators[0];
+                if (typeof generator === 'function') {
+                    return { dnum: entry.dnum, dlevel: entry.dlevel, name, generator };
+                }
+                return null;
+            }
+        }
+    }
+    return null;
+}
+
 function normalizeProtoName(name) {
     if (typeof name !== 'string') return '';
     return name.trim().toLowerCase().replace(/\.(des|lua)$/i, '');

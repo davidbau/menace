@@ -75,7 +75,7 @@ import {
     GEM_CLASS, SPBOOK_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS, VENOM_CLASS,
     SCR_EARTH, objectData, GOLD_PIECE, STATUE, CORPSE, EGG, TIN, FIGURINE
 } from './objects.js';
-import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, MR_STONE, S_EEL, MAXMCLASSES } from './monsters.js';
+import { mons, M2_FEMALE, M2_MALE, G_NOGEN, G_IGNORE, PM_MINOTAUR, PM_ARCHEOLOGIST, PM_WIZARD, PM_CLERIC, PM_ALIGNED_CLERIC, PM_CAVE_DWELLER, MR_STONE, S_EEL, MAXMCLASSES } from './monsters.js';
 import { roles } from './role.js';
 import { poly_when_stoned } from './mondata.js';
 import { is_organic } from './objdata.js';
@@ -3749,11 +3749,18 @@ export function stair(direction, x, y) {
  */
 function monsterNameToIndex(name) {
     if (!name) return -1;
-    const lowerName = name.toLowerCase();
+    const lowerName = name.toLowerCase().trim();
 
     // Search mons array for matching name
     const index = mons.findIndex(m => m.mname && m.mname.toLowerCase() === lowerName);
-    return index >= 0 ? index : -1;
+    if (index >= 0) return index;
+
+    // C-level descriptors can use alternate per-gender/neutral pmnames
+    // that differ from mons[].mname.
+    if (lowerName === 'aligned cleric') return PM_ALIGNED_CLERIC;
+    if (lowerName === 'cavewoman') return PM_CAVE_DWELLER;
+
+    return -1;
 }
 
 function get_table_monclass(opts = {}) {

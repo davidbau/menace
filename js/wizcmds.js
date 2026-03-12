@@ -220,7 +220,7 @@ import {
     withSpecialLevelDepth
 } from './sp_lev.js';
 import { isBranchLevel } from './dungeon.js';
-import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel } from './special_levels.js';
+import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel, resolveSpecialLevelByName } from './special_levels.js';
 import { getlin } from './input.js';
 import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, NON_PM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
@@ -279,6 +279,12 @@ export async function handleWizLoadDes(game) {
         ? levelName.slice(0, -4).toLowerCase()
         : levelName.toLowerCase();
     let generator = otherSpecialLevels[normalizedLevelName];
+    if (!generator) {
+        const exact = resolveSpecialLevelByName(normalizedLevelName);
+        if (exact) {
+            generator = exact.generator;
+        }
+    }
     if (!generator) {
         const where = findSpecialLevelByName(normalizedLevelName);
         if (where) {

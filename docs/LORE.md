@@ -8815,3 +8815,31 @@ Validation:
   - pending minefill RNG became fully aligned (`5345/5345`),
   - remaining mismatch on this pending session is now screen/event only,
   - baseline failures suite stayed stable (`259/260` in `--failures` set).
+
+### wizloaddes explicit variant fidelity for `minetn-*` names
+
+- Follow-up on pending session:
+  `test/comparison/sessions/pending/t04_s706_w_minetn1_gp.session.json`.
+- After routing was fixed, JS still failed fidelity for explicit names like
+  `minetn-1` because name lookup flowed through `getSpecialLevel(dnum,dlevel)`,
+  which can return a cached random variant for shared slots (for Minetown,
+  any of `minetn-1..7` at the same `dnum/dlevel`).
+- Fix in `js/special_levels.js`:
+  - added `resolveSpecialLevelByName(levelName)` returning exact
+    `{dnum,dlevel,name,generator}` for the matched textual name.
+- Fix in `js/wizcmds.js`:
+  - `handleWizLoadDes()` now prefers exact name resolution after
+    `otherSpecialLevels` and before legacy dnum/dlevel fallback.
+- Additional fix in `js/sp_lev.js` for C-descriptor names used in special
+  levels:
+  - extended monster-name resolution to accept alternate descriptor names
+    used by level scripts where `mons[].mname` differs:
+    `aligned cleric -> PM_ALIGNED_CLERIC`, `cavewoman -> PM_CAVE_DWELLER`.
+  - this removed `Unknown montype` runtime abort when generating
+    `minetn-1` corpses.
+- Validation:
+  - unit: `test/unit/special_levels_resolution.test.js` passes.
+  - pending session now runs through generation and reaches true parity
+    divergence (no command-routing or montype fatal).
+  - canonical parity gate remains green:
+    `scripts/run-and-report.sh --failures` => `265/265`.
