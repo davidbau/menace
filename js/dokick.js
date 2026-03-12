@@ -105,7 +105,7 @@ import { rnd_class, makeplural, Is_box, Has_contents, Is_mbag } from './objnam.j
 import { hidden_gold } from './vault.js';
 import { kick_steed } from './steed.js';
 import { legs_in_no_shape } from './do.js';
-import { nhgetch } from './input.js';
+import { nhgetch, ynFunction } from './input.js';
 import { DIRECTION_KEYS, RIGHT_SIDE, Trap_Killed_Mon } from './const.js';
 import { place_monster } from './steed.js';
 import { m_in_out_region } from './region.js';
@@ -1433,7 +1433,17 @@ export async function dokick(player, map, display, game) {
     let oldglyph = -1;
     let mtmp;
     let no_kick = false;
-    const playerData = player.data || {};
+    const monDataFromIndex = Number.isInteger(player?.umonnum)
+        ? mons[player.umonnum]
+        : (Number.isInteger(player?.roleMnum) ? mons[player.roleMnum] : null);
+    const playerData = game?.youmonst?.data
+        || game?.youmonst?.type
+        || player.youmonst?.data
+        || player.youmonst?.type
+        || player.data
+        || player.type
+        || monDataFromIndex
+        || {};
 
     if (nolimbs(playerData) || slithy(playerData)) {
         await You("have no legs to kick with.");
@@ -1442,10 +1452,13 @@ export async function dokick(player, map, display, game) {
         await You("are too small to do any kicking.");
         no_kick = true;
     } else if (player.usteed) {
-        // TODO: yn_function for steed kick
-        await You("kick %s.", mon_nam(player.usteed));
-        await kick_steed(player, map, display);
-        return { moved: false, tookTime: true };
+        const ans = await ynFunction('Kick your steed?', 'yn', 'y'.charCodeAt(0), display);
+        if (ans === 'y'.charCodeAt(0)) {
+            await You("kick %s.", mon_nam(player.usteed));
+            await kick_steed(player, map, display);
+            return { moved: false, tookTime: true };
+        }
+        return { moved: false, tookTime: false };
     } else if (player.woundedLegs) {
         await legs_in_no_shape("kicking", false, player);
         no_kick = true;
