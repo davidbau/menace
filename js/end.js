@@ -37,6 +37,7 @@ import { currency } from './invent.js';
 import { d } from './rng.js';
 import { roles } from './player.js';
 import { freedynamicdata } from './save.js';
+import { ynFunction } from './input.js';
 
 // cf. end.c:47 — death descriptions (indexed by game_end_types)
 const deaths = [
@@ -411,36 +412,21 @@ export async function done(how, game) {
         }
     }
 
-    // Wizard/discover mode: offer to not die.
-    // In C this prompt appears after death messaging/--More-- sequencing.
-    const installWizardDiePrompt = async () => {
-        await pline('Die? [yn] (n)');
-        game.pendingPrompt = {
-            type: 'wizard_die_confirm',
-            onKey: async (chCode, gameCtx) => {
-                if (chCode === 121 || chCode === 89) { // y/Y
-                    gameCtx.pendingPrompt = null;
-                    await really_done(how, gameCtx);
-                    return { handled: true, moved: false, tookTime: false };
-                }
-                const isNo = (chCode === 110 || chCode === 78); // n/N
-                const isDefaultNo = (chCode === 13 || chCode === 10 || chCode === 27); // enter/esc
-                if (isNo || isDefaultNo) {
-                    gameCtx.pendingPrompt = null;
-                    savelife(how, gameCtx);
-                    if (Object.hasOwn(gameCtx, 'playerDied')) {
-                        gameCtx.playerDied = false;
-                    }
-                    killer.name = '';
-                    killer.format = KILLED_BY_AN;
-                }
-                // Ignore non-[yn<enter><esc>] keys while the prompt is active.
-                return { handled: true, moved: false, tookTime: false };
-            },
-        };
-    };
     if (!survive && (game.wizard || game.discover) && how <= GENOCIDED) {
-        await installWizardDiePrompt();
+        // C ref: done() uses yn_function("Die?", "yn", 'n') inline.
+        // Keep this blocking so post-savelife flow continues in the same
+        // command cycle once a valid response is entered.
+        const ch = await ynFunction('Die?', 'yn', 'n'.charCodeAt(0), game.display);
+        if (ch === 'y'.charCodeAt(0) || ch === 'Y'.charCodeAt(0)) {
+            await really_done(how, game);
+            return;
+        }
+        savelife(how, game);
+        if (Object.hasOwn(game, 'playerDied')) {
+            game.playerDied = false;
+        }
+        killer.name = '';
+        killer.format = KILLED_BY_AN;
         return;
     }
 
