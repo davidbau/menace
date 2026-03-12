@@ -9099,5 +9099,25 @@ Validation:
 - Validation:
   - `seed42_gameplay` PASS
   - `seed100_multidigit_gameplay` PASS
-  - `t11_s742_w_covmax1_gp` still diverges at step 342; this fix is a
+- `t11_s742_w_covmax1_gp` still diverges at step 342; this fix is a
     correctness hardening, not the full root-cause resolution for that session.
+
+### vision parity: gas-cloud LOS must consult active region records
+
+- C `linedup()` can fall back from LOS to boulder-handling when `couldsee()` is
+  blocked by gas cloud squares.
+- JS `vision.does_block()` only consulted `map.gasClouds`, but runtime poison
+  clouds from `create_gas_cloud()` live in `map.regions` (inside callback index
+  `INSIDE_GAS_CLOUD`), so LOS could be wrongly treated as clear.
+- Fix:
+  - `js/vision.js:getMapCloudVisibility()` now checks active gas-cloud regions
+    in `map.regions` by bounding box + rect membership, then falls back to
+    legacy `map.gasClouds` records.
+- Impact:
+  - pending `t11_s742_w_covmax1_gp` now takes the C-faithful `linedup`
+    boulder-roll branch at step 342 and consumes the missing `rn2(2)`.
+  - first RNG divergence moved deeper (`2926 -> 2933`), exposing a later
+    HP/state drift as the next frontier.
+- Validation:
+  - `seed42_gameplay` PASS
+  - `seed100_multidigit_gameplay` PASS

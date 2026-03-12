@@ -30,8 +30,26 @@ let varg = null;
 // MAX_RADIUS imported from const.js
 
 function getMapCloudVisibility(map, x, y) {
-    if (!map || !Array.isArray(map.gasClouds)) return false;
-    for (const cloud of map.gasClouds) {
+    if (!map) return false;
+
+    // C ref: region.c gas clouds live in active region records; in JS this is
+    // map.regions (inside_f === 0 for INSIDE_GAS_CLOUD callback).
+    const regions = Array.isArray(map.regions) ? map.regions : [];
+    for (const reg of regions) {
+        if (!reg || Number(reg.inside_f) !== 0) continue;
+        const bb = reg.bounding_box;
+        if (!bb) continue;
+        if (x < bb.lx || x > bb.hx || y < bb.ly || y > bb.hy) continue;
+        const rects = Array.isArray(reg.rects) ? reg.rects : [];
+        for (const r of rects) {
+            if (!r) continue;
+            if (x >= r.lx && x <= r.hx && y >= r.ly && y <= r.hy) return true;
+        }
+    }
+
+    // Compatibility path for legacy/special-level cloud records.
+    const clouds = Array.isArray(map.gasClouds) ? map.gasClouds : [];
+    for (const cloud of clouds) {
         if (cloud && (cloud.kind === 'selection') && Array.isArray(cloud.coords)) {
             for (const p of cloud.coords) {
                 if (p && p.x === x && p.y === y) return true;
