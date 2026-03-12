@@ -663,13 +663,6 @@ export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, 
 // C ref: mkmaze.c place_lregion()
 export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, opts = {}) {
     if (!lx) {
-        if (rtype === LR_BRANCH) {
-            // C ref: mkmaze.c place_lregion() delegates to place_branch(...,0,0)
-            // so place_branch can short-circuit immediately when made_branch
-            // is already set, without consuming extra find-room RNG.
-            place_branch(map, 0, 0, opts.branchPlacement || 'none');
-            return;
-        }
         lx = 1;
         hx = COLNO - 1;
         ly = 0;
