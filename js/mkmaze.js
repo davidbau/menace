@@ -664,22 +664,11 @@ export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, 
 export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, opts = {}) {
     if (!lx) {
         if (rtype === LR_BRANCH) {
-            if (map.nroom) {
-                const croom = generate_stairs_find_room(map);
-                if (!croom) {
-                    console.warn(`Couldn't place lregion type ${rtype}!`);
-                    return;
-                }
-
-                let pos = somexyspace(map, croom);
-                if (!pos) pos = { x: somex(croom), y: somey(croom) };
-                if (!at(map, pos.x, pos.y)) {
-                    console.warn(`Couldn't place lregion type ${rtype}!`);
-                    return;
-                }
-                place_branch(map, pos.x, pos.y, opts.branchPlacement || 'none');
-                return;
-            }
+            // C ref: mkmaze.c place_lregion() delegates to place_branch(...,0,0)
+            // so place_branch can short-circuit immediately when made_branch
+            // is already set, without consuming extra find-room RNG.
+            place_branch(map, 0, 0, opts.branchPlacement || 'none');
+            return;
         }
         lx = 1;
         hx = COLNO - 1;

@@ -211,7 +211,7 @@ export async function wizTeleport(game) {
 // cf. wizcmds.c:376 — wiz_load_splua(): load special-level Lua file
 // JS equivalent: handleWizLoadDes() below — loads a JS special level generator.
 
-import { rn2, getRngCallCount, pushRngLogEntry } from './rng.js';
+import { rn2 } from './rng.js';
 import {
     finalize_level,
     finalize_special_checkpoint_stage,
@@ -307,14 +307,11 @@ export async function handleWizLoadDes(game) {
     rn2(3);
     rn2(2);
     resetLevelState();
-    // C ref: fixup_special() uses Is_branchlev(&u.uz) for branch placement.
-    // Use current level context (u.uz equivalent) instead of hardcoded Dungeons of Doom.
-    const dnum = Number.isInteger(game?.map?._genDnum)
-        ? game.map._genDnum
-        : (Number.isInteger(player?.uz?.dnum) ? player.uz.dnum : 0);
-    const dlevel = Number.isInteger(game?.map?._genDlevel)
-        ? game.map._genDlevel
-        : (Number.isInteger(player?.uz?.dlevel) ? player.uz.dlevel : player.dungeonLevel);
+    // C ref: wiz_load_splua -> fixup_special() uses Is_branchlev(&u.uz),
+    // i.e. the hero's current level context (not the loaded special file's
+    // nominal dungeon coordinates).
+    const dnum = Number.isInteger(player?.uz?.dnum) ? player.uz.dnum : 0;
+    const dlevel = Number.isInteger(player?.uz?.dlevel) ? player.uz.dlevel : player.dungeonLevel;
     const finalizeCtx = {
         dnum,
         dlevel,
@@ -327,7 +324,11 @@ export async function handleWizLoadDes(game) {
             async () => await generator()
         );
         return await withFinalizeContext(
-            { ...finalizeCtx, skipAfterFinalizeCheckpoint: true },
+            {
+                ...finalizeCtx,
+                skipAfterFinalizeCheckpoint: true,
+                skipRandomFlip: true,
+            },
             async () => {
                 await finalize_special_checkpoint_stage();
                 return await finalize_level();
@@ -338,10 +339,6 @@ export async function handleWizLoadDes(game) {
         // Route through changeLevel for hero placement, pet migration, and
         // arrival collision — matching C's goto_level() flow.
         await game.changeLevel(player.dungeonLevel, 'teleport', { map: newMap });
-        const p = game?.player || {};
-        pushRngLogEntry(
-            `^ckpt[phase=after_finalize rng=${getRngCallCount() | 0} cc=${(game?.commandCount | 0)} moves=${(game?.moves | 0)} ux=${(Number.isInteger(p?.x) ? p.x : 0) | 0} uy=${(Number.isInteger(p?.y) ? p.y : 0) | 0}]`
-        );
     }
     return { moved: false, tookTime: false };
 }

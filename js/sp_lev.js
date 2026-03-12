@@ -1056,6 +1056,7 @@ export function resetLevelState() {
  * @param {string} [ctx.specialName]
  * @param {"stairs"|"portal"|"none"|"stair-up"|"stair-down"} [ctx.branchPlacement]
  * @param {boolean} [ctx.skipAfterFinalizeCheckpoint]
+ * @param {boolean} [ctx.skipRandomFlip]
  */
 function applyFinalizeContext(ctx = null) {
     if (!ctx) {
@@ -1079,6 +1080,7 @@ function applyFinalizeContext(ctx = null) {
             : undefined,
         deferFinalize: !!ctx.deferFinalize,
         skipAfterFinalizeCheckpoint: !!ctx.skipAfterFinalizeCheckpoint,
+        skipRandomFlip: !!ctx.skipRandomFlip,
     };
 }
 
@@ -1302,6 +1304,8 @@ async function fixupSpecialLevel() {
         levelState.map.flags.has_town = true;
     }
 
+    // C ref: mkmaze.c fixup_special() frees gl.lregions and zeroes num_lregions.
+    levelState.levRegions = [];
     captureCheckpoint('after_levregions_fixup');
 }
 
@@ -6936,8 +6940,11 @@ export async function finalize_level() {
     }
     captureCheckpoint('after_wallification');
 
-    // Apply random flipping
-    const flipped = flip_level_rnd();
+    // C ref: lspo_finalize_level(NULL) skips flip_level_rnd() on wiz-load
+    // second-stage finalize. Other finalize paths still flip normally.
+    const flipped = levelState.finalizeContext?.skipRandomFlip
+        ? 0
+        : flip_level_rnd();
 
     // C ref: flip_level() invokes fix_wall_spines() after transpose,
     // not full wallification().
@@ -6949,6 +6956,12 @@ export async function finalize_level() {
     if (levelState.map) {
         count_level_features(levelState.map);
     }
+
+    // C ref: mkmaze.c fixup_special() clears lregions after processing.
+    // Keep a local snapshot for tutorial-specific post-topology parity hooks.
+    const tutorialLevRegions = Array.isArray(levelState.levRegions)
+        ? levelState.levRegions.slice()
+        : [];
 
     // C ref: sp_lev.c fixup_special() (branch stair placement, etc.)
     if (levelState.map && levelState.coder?.solidify) {
@@ -7019,7 +7032,7 @@ export async function finalize_level() {
         // coordinate selection RNG here. Keep this scoped to tutorial maps to
         // avoid drifting broader special-level map parity.
         if (levelState.map.flags?.is_tutorial) {
-            for (const region of levelState.levRegions || []) {
+            for (const region of tutorialLevRegions) {
                 const isTeleportRegion = (region.rtype === 0 || region.rtype === 1 || region.rtype === 2);
                 if (!isTeleportRegion) continue;
                 place_lregion(levelState.map,

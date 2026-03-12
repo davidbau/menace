@@ -8890,3 +8890,31 @@ Validation:
   explicit: C performs an additional post-`after_finalize_special`
   `place_lregion` batch before mineralization, while JS transitions into
   mineralization immediately.
+
+### `place_lregion(LR_BRANCH)` must delegate to `place_branch(0,0)` for `made_branch` parity
+
+- Remaining full-suite failure (`seed42_castle`) was narrowed to wizard
+  `#wizloaddes` finalize sequencing where RNG/screens were drifting at special
+  level step 5.
+- C behavior:
+  - `wiz_load_splua()` runs `load_special()` then `lspo_finalize_level(NULL)`.
+  - branch placement is guarded by `gm.made_branch` inside `place_branch()`.
+  - when a second finalize pass hits branch placement paths, the early
+    `gm.made_branch` return prevents additional `find_branch_room` RNG.
+- JS bug:
+  - `place_lregion(... LR_BRANCH ...)` precomputed room/coords before calling
+    `place_branch()`, so it consumed RNG even when `_madeBranch` already true.
+- Fix:
+  - in `js/mkmaze.js`, `place_lregion` now delegates directly to
+    `place_branch(map, 0, 0, ...)` for `LR_BRANCH` with default area, matching
+    C ordering and guard semantics.
+  - combined with wiz-load finalize split parity (`skipRandomFlip` on the
+    second-stage finalize), this restored `seed42_castle` full parity.
+- Additional C-faithful cleanup:
+  - `fixupSpecialLevel()` now clears `levelState.levRegions` after processing
+    (matching `fixup_special()` freeing/resetting lregions in C).
+  - tutorial-only post-topology levregion replay now uses a local snapshot in
+    `finalize_level()` to preserve existing tutorial parity behavior.
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/maps/seed42_castle.session.json` passes with full RNG/events/screens/colors parity.
+  - `npm run test:session` passes all sessions (`394/394`, gameplay `270/270`).
