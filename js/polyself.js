@@ -1615,7 +1615,7 @@ export async function dobreathe(player, map, display, game) {
                 player.x, player.y, dir.dx, dir.dy, map, player);
         } else {
             // Directed breath: ubuzz subsystem
-            ubuzz(mattk.adtyp, mattk.damn || 0, player);
+            await ubuzz(mattk.adtyp, mattk.damn || 0, player, map);
         }
     }
     return 1; // ECMD_TIME

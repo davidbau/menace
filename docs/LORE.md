@@ -9394,3 +9394,28 @@ Validation:
     - `seed322_barbarian_wizard_gameplay` full parity.
     - `seed331_tourist_wizard_gameplay` full RNG/event parity (cursor-only tail
       delta unchanged).
+
+### 2026-03-13 zap boundary/wrapper parity: route directional zap through prompt boundary and await `buzz`/`ubuzz`
+
+- Symptom:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` diverged at step `379` with JS entering
+    monster turns before finishing zap beam work (`rn2(5) @ dochug` vs C
+    `rn2(20) @ zap_hit`).
+- Fixes:
+  - `js/zap.js`:
+    - directional zap now uses `game.pendingPrompt` owner semantics for
+      `"In what direction?"` so the next key is consumed by zap prompt boundary.
+    - extracted `executeZapWithDir()` to keep self-zap/weffects + dust handling in one path.
+    - `buzz()` now awaits and forwards `map/player` into `dobuzz(...)`.
+    - `ubuzz()` now async, null-safe, and forwards `map/player` into `dobuzz(...)`.
+  - `js/polyself.js`:
+    - `dobreathe()` now `await`s `ubuzz(...)` (with `map`) for directed breath attacks.
+- Validation:
+  - known-green checks stay green:
+    - `hi10_seed1090_wiz_potion-deep_gameplay` full pass.
+    - `seed322_barbarian_wizard_gameplay` full pass.
+    - `seed331_tourist_wizard_gameplay` still full RNG/event parity (existing cursor-tail delta unchanged).
+  - `hi11` improved but not yet resolved:
+    - event match improved (`89 -> 129`) and zap now executes in prompt boundary.
+    - remaining gap is C-vs-JS `dobuzz` hero-hit pause/message semantics (`zhitu`/`--More--`)
+      and bounce path ordering.
