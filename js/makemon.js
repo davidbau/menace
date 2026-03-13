@@ -378,7 +378,8 @@ function monmin_difficulty(levdif) {
 export function uncommon(mndx) {
     const ptr = mons[mndx];
     if (ptr.geno & (G_NOGEN | G_UNIQ)) return true;
-    // mvitals not tracked — skip G_GONE check
+    const mvflags = Number(_gstate?.mvitals?.[mndx]?.mvflags || 0);
+    if (mvflags & G_GONE) return true;
     // Not Inhell at standard depths → check G_HELL
     return !!(ptr.geno & G_HELL);
 }
@@ -489,7 +490,8 @@ export function rndmonnum_adj(minadj, maxadj, depth) {
 // C ref: makemon.c mk_gen_ok()
 export function mk_gen_ok(mndx, mvflagsmask, genomask) {
     const ptr = mons[mndx];
-    // mvitals not tracked yet — skip mvflagsmask check
+    const mvflags = Number(_gstate?.mvitals?.[mndx]?.mvflags || 0);
+    if (mvflags & mvflagsmask) return false;
     if (ptr.geno & genomask) return false;
     if (is_placeholder(ptr)) return false;
     return true;

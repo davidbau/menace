@@ -4821,7 +4821,8 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
         : undefined;
     const heroHasAmulet = !!opts?.heroHasAmulet;
     if (_gstate) {
-        _gstate._dungeonAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE);
+        const alignDnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
+        _gstate._dungeonAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[alignDnum] ?? A_NONE);
     }
 
     if (_gstate) _gstate._levelDepth = depth;
@@ -4867,10 +4868,11 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
             const useDlevel = Number.isInteger(specialDlevel) ? specialDlevel : dlevel;
             // C ref: align_shift() uses current special-level alignment when present.
-            // For currently used special levels, mirror dungeon.lua/splev alignment.
+            // Mirror special-level alignment for known deterministic specials.
             const specialName = typeof special.name === 'string' ? special.name : '';
             let specialAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
-            if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
+            if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
+            else if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
             else if (specialName.startsWith('tut-')) specialAlign = A_LAWFUL;
             if (_gstate) _gstate._dungeonAlign = specialAlign;
 
@@ -4903,6 +4905,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                 if (!specialMap.flags) specialMap.flags = {};
                 specialMap._heroHasAmulet = heroHasAmulet;
                 specialMap.flags.is_tutorial = (useDnum === TUTORIAL);
+                specialMap.flags.is_oracle_level = specialName.startsWith('oracle');
                 if (specialName === 'rogue') {
                     // C parity anchor: Is_rogue_level(&u.uz) checks topology's
                     // rogue level slot; mark the generated map for JS checks.

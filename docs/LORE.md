@@ -9517,3 +9517,32 @@ Validation:
     - `theme12_seed939_wiz_explore_gameplay` `87/87` screens.
   - Full failure sweep now green:
     - `./scripts/run-and-report.sh --failures` -> `192/192` gameplay passing, `0` failures.
+
+### 2026-03-13 Oracle-level `rndmonst_adj` + `dosounds` parity bring-up (`t11_s744`)
+
+- Symptom:
+  - Pending coverage session `t11_s744_w_covmax2_gp` first RNG drift at step `645`:
+    - JS `rn2(3)` in `rndmonnum_adj` vs C `rn2(8)` in `rndmonst_adj`.
+- Root cause #1 (level-alignment context):
+  - JS `align_shift()` was running with `_dungeonAlign=A_NONE` during Oracle special-level generation.
+  - In C, `align_shift()` uses special-level alignment (`Is_special(&u.uz)->flags.align`) when present.
+  - This changed `rndmonst_adj` weights and shifted the entire reservoir-sampling stream.
+- Root cause #2 (Oracle ambient-sound gate):
+  - JS `dosounds()` correctly checks `flags.is_oracle_level && !rn2(400)`, but Oracle maps were not setting `is_oracle_level`.
+  - Missing this gate skipped one `rn2(400)` and caused later turn-tail drift.
+- Fixes:
+  - `js/dungeon.js`:
+    - depth-only align fallback now uses `DUNGEONS_OF_DOOM` when `dnum` is absent.
+    - special-level alignment mapping now includes Oracle (`oracle -> A_NEUTRAL`), alongside existing `medusa` and `tut-*`.
+    - generated special maps now set `flags.is_oracle_level` for Oracle levels.
+  - `js/makemon.js`:
+    - `uncommon()` now honors `game.mvitals[mndx].mvflags & G_GONE` like C.
+    - `mk_gen_ok()` now honors `mvflagsmask` against `game.mvitals[mndx].mvflags`.
+- Validation:
+  - `t11_s744_w_covmax2_gp` improved materially:
+    - matched RNG `7565/12139 -> 9807/11227`
+    - first RNG drift moved `step 645 -> step 667`.
+  - Core parity guard sessions remain green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
