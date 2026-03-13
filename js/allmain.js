@@ -1876,6 +1876,12 @@ export class NetHackGame {
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
+        // If a pre-transition message left a pending --More-- (for example,
+        // follower "still eating/trapped"), resolve it before deferred
+        // teleport arrival feedback so key consumption stays C-aligned.
+        if (this.display?.messageNeedsMore) {
+            await more(this.display, { forceVisual: true });
+        }
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.

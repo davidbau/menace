@@ -6,7 +6,7 @@ import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
          I_SPECIAL, TIMEOUT, WOUNDED_LEGS,
-         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED } from './const.js';
+         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
 import { depth as dungeonDepth } from './dungeon.js';
@@ -42,10 +42,10 @@ import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING, LEFT_SIDE,
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM,
          FOUNTAIN, THRONE, SINK, GRAVE, ALTAR } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
-import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
+import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly, levl_follower } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          PM_GREEN_SLIME, PM_WRAITH, PM_NURSE, PM_TOURIST } from './monsters.js';
-import { zombie_form } from './mon.js';
+import { zombie_form, monnear, helpless } from './mon.js';
 import { revive } from './zap.js';
 import { cansee } from './vision.js';
 import { canseemon } from './display.js';
@@ -1589,11 +1589,34 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     const previousDepth = (game.u || game.player)?.dungeonLevel;
     const fromX = (game.u || game.player)?.x;
     const fromY = (game.u || game.player)?.y;
+    const currentMap = (game.lev || game.map);
+    if (currentMap && Number.isInteger(previousDepth) && depth !== previousDepth) {
+        // C ref: do.c keepdogs(FALSE) emits visibility-gated "still eating"
+        // or "still trapped" messages before level transition.
+        const mons = Array.isArray(currentMap.monsters) ? currentMap.monsters : [];
+        for (const mtmp of mons) {
+            if (!mtmp || mtmp.dead) continue;
+            const canFollow = ((monnear(mtmp, (game.u || game.player).x, (game.u || game.player).y)
+                && levl_follower(mtmp, (game.u || game.player)))
+                || (((game.u || game.player).uhave?.amulet) && mtmp.iswiz));
+            if (!canFollow) continue;
+            if ((helpless(mtmp) && mtmp !== (game.u || game.player).usteed)
+                || (mtmp.mstrategy & STRAT_WAITFORU)) {
+                continue;
+            }
+            if (mtmp === (game.u || game.player).usteed) continue;
+            if (!(mtmp.meating || mtmp.mtrapped)) continue;
+            if (canseemon(mtmp, (game.u || game.player), null, currentMap)) {
+                const activity = mtmp.meating ? 'eating' : 'trapped';
+                await pline(`${Monnam(mtmp)} is still ${activity}.`);
+            }
+        }
+    }
 
     // Cache current level
-    if ((game.lev || game.map)) {
-        game.levels[(game.u || game.player).dungeonLevel] = (game.lev || game.map);
-        game.levelsByBranch[levelKey(currentDnum, (game.u || game.player).dungeonLevel)] = (game.lev || game.map);
+    if (currentMap) {
+        game.levels[(game.u || game.player).dungeonLevel] = currentMap;
+        game.levelsByBranch[levelKey(currentDnum, (game.u || game.player).dungeonLevel)] = currentMap;
     }
     const previousMap = game.levels[(game.u || game.player).dungeonLevel];
     const targetDnum = Number.isInteger(opts?.targetDnum)
