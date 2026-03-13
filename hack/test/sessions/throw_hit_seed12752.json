@@ -123,9 +123,9 @@
     },
     {
       "key": " ",
-      "rng": [3228,32361,17899,"^turn[moves=2]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",14688],
+      "rng": [3228,32361,17899,14688,"^turn[moves=2]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",2822],
       "screen": [
-        "You destroy the kobold!",
+        "You have defeated the kobold!",
         "",
         "",
         "",
@@ -153,7 +153,7 @@
     },
     {
       "key": "Q",
-      "rng": ["^turn[moves=3]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",2822],
+      "rng": ["^turn[moves=3]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",18877],
       "screen": [
         "",
         "",

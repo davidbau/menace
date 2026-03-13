@@ -3,7 +3,7 @@ import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP, HPM, ULV, UEX
 import { rn1, rn2, rnd, d, logEvent } from './rng.js';
 import { game } from './gstate.js';
 import { makeMonst, makeStole, makeGen } from './game.js';
-import { mon, mregen, CRUSH, NOBLUE, RUST, NOCOLD, mlarge } from './data.js';
+import { mon, mregen, CRUSH, NOBLUE, RUST, NOCOLD, mlarge, armnam, foodnam, wepnam } from './data.js';
 import { pline, atl, newsym, nscr, bot, curs, pru, losehp } from './pri.js';
 import { mkobj } from './lev.js';
 
@@ -316,6 +316,7 @@ export async function dochug(mtmp) {
 }
 
 // C ref: mhit(name) — print hit message
+// C: sets hits = -1 at end (prevents duplicate mhit from end-of-dochug switch)
 async function mhit(name) {
   const hnu = ['twice', 'three times', 'four times', 'five times'];
   if (hits_val < 1) { await pline('bad mhit'); return; }
@@ -324,6 +325,7 @@ async function mhit(name) {
     if (game.u.ublind) await pline('It hits %s!', hnu[hits_val - 2]);
     else await k1('%s%s hits %s!', name, hnu[hits_val - 2]);
   }
+  hits_val = -1;  // C: hits = -1 (prevent duplicate mhit from end-of-dochug switch)
 }
 
 // C ref: hitu(mlev,dam,name) — monster hits player
@@ -524,11 +526,15 @@ export function newcham(mtmp, new_mdat) {
 }
 
 // C ref: killed(mtmp) — monster killed
-// Note: compiled with -DSMALL so always uses "You destroy" (no rand()%4 call)
+const kmsg = [
+  'You destroy %s%s!',
+  'You blow away %s%s!',
+  'You wale on %s%s!',
+  'You have defeated %s%s!',
+];
 export async function killed(mtmp) {
-  // C ref: #ifdef SMALL: k1("You destroy %s%s!", mtmp->data->mname)
-  // k1() uses "the " article (or "The " / "it" / "It" if blind)
-  await k1('You destroy %s%s!', mtmp.data.mname);
+  // C ref: k1(kmsg[rand()%4], mtmp->data->mname)
+  await k1(kmsg[rn2(4)], mtmp.data.mname);
 
   if (game.u.umconf) {
     await pline(NOBLUE);
@@ -628,19 +634,51 @@ export function delmon(mtmp) {
 }
 
 // C ref: steal(mon) — monster steals an item from player
+// C: for(otmp=invent,tmp=0;...tmp++) ; tmp=rn2(tmp); picks random item
+// then prints "She stole <doname(otmp)>"
 export async function steal(mtmp) {
-  let obj = game.invent;
-  if (!obj) return;
-  // Find a non-equipped item
-  let prev = null;
+  if (!game.invent) return;
+
+  // Count items in inventory
+  let count = 0;
   let cur = game.invent;
-  while (cur) {
-    if (cur !== game.uarm && cur !== game.uwep && cur !== game.uleft && cur !== game.uright) break;
-    prev = cur; cur = cur.nobj;
+  while (cur) { count++; cur = cur.nobj; }
+
+  // C: tmp = rn2(count) — pick random index
+  let idx = rn2(count);
+
+  // Extract item at index idx
+  let stolen;
+  if (idx === 0) {
+    stolen = game.invent;
+    game.invent = game.invent.nobj;
+  } else {
+    // C has a quirky off-by-one: --tmp first, then traverse while tmp>1
+    // C: tmp=rn2(tmp); if(!tmp) { first item } else { --tmp; for(...tmp>1...) ; steal next }
+    idx--;  // C does --tmp
+    cur = game.invent;
+    while (cur && idx > 1) { idx--; cur = cur.nobj; }
+    if (!cur || !cur.nobj) { await pline('Steal fails!'); return; }
+    stolen = cur.nobj;
+    cur.nobj = cur.nobj.nobj;
   }
-  if (!cur) { await pline('It fails to steal anything.'); return; }
-  if (!prev) game.invent = cur.nobj;
-  else prev.nobj = cur.nobj;
+
+  // Handle equip effects if worn/wielded
+  if (stolen === game.uarm) {
+    game.u.uac += game.uarm.otyp;
+    if (game.uarm.minus) game.u.uac -= game.uarm.spe;
+    else game.u.uac += game.uarm.spe;
+    game.uarm = null;
+    game.flags.botl |= AC;
+  } else if (stolen === game.uwep) {
+    game.uwep = null;
+  } else if (stolen === game.uleft) {
+    game.uleft = null;
+    // ringoff equivalent — simplified
+  } else if (stolen === game.uright) {
+    game.uright = null;
+  }
+
   // Put in stole list
   let stmp = game.fstole;
   while (stmp && stmp.smon !== mtmp) stmp = stmp.nstole;
@@ -648,41 +686,102 @@ export async function steal(mtmp) {
     stmp = makeStole(mtmp, null, 0);
     stmp.nstole = game.fstole; game.fstole = stmp;
   }
-  cur.nobj = stmp.sobj; stmp.sobj = cur;
-  await pline('Your %s was stolen!', itemName(cur));
+  stolen.nobj = stmp.sobj; stmp.sobj = stolen;
+
+  // C: "She stole " + doname(otmp)
+  await pline('She stole %s', doname(stolen));
 }
 
 // C ref: poisoned(str) — player poisoned
+// C: k1("%s%s was poisoned!", str) then upres check, then rnd(6) effect
+// k1 with format starting '%': pline("%s%s was poisoned!", "The ", str) → "The dart was poisoned!"
 export async function poisoned(str) {
+  // C: k1 always prints "The <str> was poisoned!" regardless of upres
+  await pline('The %s was poisoned!', str);
   if (game.u.upres) {
-    await pline('You feel no ill effects from %s.', str);
+    await pline('The poison has no affect.');
     return;
   }
-  await pline('You are poisoned by %s!', str);
-  if (rn2(2)) { _losestr && _losestr(rnd(4)); }
-  else { game.u.uhp -= rn1(10, 6); game.flags.botl |= HP; }
+  // C: switch(rnd(6)) { case 1: uhp=-1; case 2-4: losestr(rn1(3,3)); case 5-6: losehp(rn1(10,6)); }
+  switch (rnd(6)) {
+    case 1:
+      game.u.uhp = -1;
+      game.flags.botl |= HP;
+      break;
+    case 2: case 3: case 4:
+      _losestr && _losestr(rn1(3, 3));
+      break;
+    case 5: case 6:
+      game.u.uhp -= rn1(10, 6);
+      game.flags.botl |= HP;
+      break;
+  }
 }
 
 // C ref: losexp() — lose an experience level
+// C: pline("Goodbye level %d.", ulevel--); rnd(10) HP loss; recompute uexp
+// Note: callers in hack.mon.c already gate on ulevel >= 2 for wraith/vampire
 export async function losexp() {
-  if (game.u.ulevel < 2) return;
+  // C does not guard ulevel here — callers do. But guard anyway to match C behavior
+  // where callers typically check level before calling.
+  const lvl = game.u.ulevel;
+  await pline('Goodbye level %d.', lvl);
   game.u.ulevel--;
-  game.u.uhpmax -= rnd(game.u.ulevel > 9 ? game.u.ulevel - 9 : game.u.ulevel + 2);
-  if (game.u.uhp > game.u.uhpmax) game.u.uhp = game.u.uhpmax;
-  game.flags.botl |= 0x40 | 0x80 | HP | 8; // ULV|UEX|HP|HPM
-  await pline('You feel your life force ebb!');
+  const num = rnd(10);
+  game.u.uhp -= num;
+  game.u.uhpmax -= num;
+  // C: if(ulevel>1) uexp=15*pow(ulevel-1); else uexp=5
+  // pow(n) = 2^(n-1)*10 in hack context — but check actual C pow function
+  if (game.u.ulevel > 1) {
+    // C: pow(n) = 2^n (custom function in hack.c: "returns 2 to the num")
+    game.u.uexp = 15 * Math.pow(2, game.u.ulevel - 1);
+  } else {
+    game.u.uexp = 5;
+  }
+  game.flags.botl |= HP | 8 | 0x40 | 0x80; // HP|HPM|ULV|UEX
 }
 
 // Helpers
 function minusone(otmp) { otmp.spe = Math.max(0, otmp.spe - 1); }
 
-function itemName(obj) {
-  // STUB: simplified name
-  return obj.olet === ')' ? 'weapon' :
-         obj.olet === '[' ? 'armor' :
-         obj.olet === '!' ? 'potion' :
-         obj.olet === '?' ? 'scroll' :
-         obj.olet === '%' ? 'food' : 'item';
+// C ref: doname(obj, buf) — format item name for display
+// Used by steal() for "She stole <name>"
+function doname(obj) {
+  switch (obj.olet) {
+    case '"': return 'The amulet of Frobozz.';
+    case '%': {
+      const fname = foodnam[obj.otyp] || 'food';
+      return obj.quan > 1 ? `${obj.quan} ${fname}s.` : `a ${fname}.`;
+    }
+    case ')': {
+      const wname = wepnam[obj.otyp] || 'weapon';
+      if (obj.known) {
+        const sign = obj.minus ? '-' : '+';
+        return obj.quan > 1
+          ? `${obj.quan} ${sign}${obj.spe} ${wname}s.`
+          : `a ${sign}${obj.spe} ${wname}.`;
+      } else {
+        if (obj.quan > 1) return `${obj.quan} ${wname}s.`;
+        // C setan: prepend 'a' or 'an'
+        return /^[aeiou]/i.test(wname) ? `an ${wname}.` : `a ${wname}.`;
+      }
+    }
+    case '[': {
+      const aname = armnam[Math.max(0, obj.otyp - 2)] || 'leather';
+      const worn = (obj === game.uarm) ? '  (being worn)' : '';
+      if (obj.known) {
+        const sign = obj.minus ? '-' : '+';
+        return `a suit of ${sign}${obj.spe} ${aname} armor${worn}.`;
+      }
+      return `a suit of ${aname} armor${worn}.`;
+    }
+    case '!': return 'a potion.';
+    case '?': return 'a scroll.';
+    case '/': return 'a wand.';
+    case '=': return 'a ring.';
+    case '*': return 'a gem.';
+    default: return 'something.';
+  }
 }
 
 function pmon(mtmp) {

@@ -477,23 +477,14 @@ export function generatelevel(dlevel) {
 }
 
 function _generatelevel_attempt(dlevel) {
-  // C harness: mklev.c globals (levl, room[], nroom) are NOT reset between calls
-  // to mklev_main() since it runs inline. We carry over state via game.mklev_persist.
-  // On the first call (level 1), game.mklev_persist is undefined → use fresh state.
-  const persist = game.mklev_persist;
-  if (persist) {
-    // Restore carried-over C globals: levl, room[], nroom, fmon all carry over between
-    // inline calls to mklev_main() in the C harness.
-    lev_levl = persist.levl;
-    lev_room = persist.room.slice();   // copy so we can mutate
-    lev_nroom = persist.nroom;         // nroom carries over (NOT reset to 0)
-    lev_fmon = persist.fmon;           // fmon carries over (C global persists)
-  } else {
-    initLevl();
-    lev_room = [];
-    lev_nroom = 0;
-    lev_fmon = null;
-  }
+  // C ref: mklev is fork()+exec()'d in the real game, so each invocation starts with
+  // zeroed BSS: levl[][], nroom=0, fmon/fobj/fgold/ftrap=NULL.
+  // The harness patches mklev.c to reset these at the start of mklev_main().
+  // JS matches: always start fresh for each level generation.
+  initLevl();
+  lev_room = [];
+  lev_nroom = 0;
+  lev_fmon = null;
   // C ref: croom = room (reset pointer to start of array — like resetting write index to 0)
   lev_croomWriteIdx = 0;
   lev_fobj = null; lev_fgold = null; lev_ftrap = null;
@@ -637,19 +628,6 @@ function _generatelevel_attempt(dlevel) {
   }
   logEvent('mklev_corridors');
   if (game._corTrace) process.stderr.write(`corridor done: total_rng=${game.rawRngLog?game.rawRngLog.length:'?'}\n`);
-
-  // C harness: save mklev globals for reuse by the next call to mklev_main().
-  // The C harness runs mklev inline, so levl[], room[], nroom, fmon all carry over.
-  // We deep-copy levl (since lev.js will modify game.levl from this data).
-  // room[], nroom, and fmon are saved as-is (carry leftover state from this call).
-  const levlCopy = [];
-  for (let x = 0; x < 80; x++) {
-    levlCopy[x] = [];
-    for (let y = 0; y < 22; y++) {
-      levlCopy[x][y] = Object.assign({}, lev_levl[x][y]);
-    }
-  }
-  game.mklev_persist = { levl: levlCopy, room: lev_room.slice(), nroom: lev_nroom, fmon: lev_fmon };
 
   return packageLevel();
 }

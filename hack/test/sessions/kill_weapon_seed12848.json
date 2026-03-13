@@ -33,7 +33,7 @@
     },
     {
       "key": "Q",
-      "rng": [9928,18424,2580,6901,10058,22779,20601,"^turn[moves=1]","^movemon[n=3]","^dochug[mlet=H,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",26196],
+      "rng": [9928,18424,2580,6901,"^turn[moves=1]","^movemon[n=3]","^dochug[mlet=H,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",10058],
       "screen": [
         "You destroy the jackal!",
         "",
@@ -41,7 +41,7 @@
         "",
         "",
         "                               -------",
-        "                               |..)..+",
+        "                               |.....+",
         "                               |..@$.|",
         "                               +.....+",
         "                               |.....|",
@@ -71,7 +71,7 @@
         "",
         "",
         "                               -------",
-        "                               |..)..+",
+        "                               |.....+",
         "                               |..@$.|",
         "                               +.....+",
         "                               |.....|",

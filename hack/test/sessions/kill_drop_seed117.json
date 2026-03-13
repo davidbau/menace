@@ -33,7 +33,7 @@
     },
     {
       "key": "Q",
-      "rng": [26687,25269,660,6574,7184,"^turn[moves=1]","^movemon[n=2]","^dochug[mlet=H,mstat=2,cansee=0]","^dochug[mlet=G,mstat=2,cansee=0]",8211],
+      "rng": [26687,25269,660,6574,"^turn[moves=1]","^movemon[n=2]","^dochug[mlet=H,mstat=2,cansee=0]","^dochug[mlet=G,mstat=2,cansee=0]",7184],
       "screen": [
         "You destroy the jackal!",
         "",
@@ -45,7 +45,7 @@
         "",
         "",
         "                ------",
-        "                +.?..|",
+        "                +....|",
         "                |.@..|",
         "                |....|",
         "                |....+",
@@ -75,7 +75,7 @@
         "",
         "",
         "                ------",
-        "                +.?..|",
+        "                +....|",
         "                |.@..|",
         "                |....|",
         "                |....+",

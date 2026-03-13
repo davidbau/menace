@@ -373,6 +373,7 @@ async function more_fn() {
 // Scroll effects match C hack.do.c read1(), compiled with -DSMALL
 async function read1(otmp) {
   const typ = otmp.otyp;
+  await pline('As you read the scroll, it disappears.');
   switch (typ) {
     case 0: {
       // enchant armor — "Your armor glows green."
@@ -401,7 +402,7 @@ async function read1(otmp) {
     case 4: {
       // enchant weapon — weapon glows green (plus one)
       if (!game.uwep || game.uwep.olet !== ')') { await nothin(otmp); return; }
-      chwepon('green'); plusone(game.uwep); break;
+      await chwepon('green'); plusone(game.uwep); break;
     }
     case 5: {
       // create monster
@@ -410,7 +411,7 @@ async function read1(otmp) {
     case 6: {
       // curse weapon — weapon glows black (minus one)
       if (!game.uwep || game.uwep.olet !== ')') { await nothin(otmp); return; }
-      chwepon('black'); minusone(game.uwep); break;
+      await chwepon('black'); minusone(game.uwep); break;
     }
     case 7: {
       // rust armor
@@ -421,18 +422,19 @@ async function read1(otmp) {
     case 8: {
       // genocide
       await pline('Behold, a scroll of genocide!');
-      let zx, done = false;
+      let zx, done = false, genocideName = '';
       do {
         await pline('What monster (Letter)? ');
         game.flags.topl = 1;
         zx = await game.input.getKey();
         for (const tier of mon) {
           for (const mdat of tier) {
-            if (mdat && mdat.mlet === zx) { mdat.mlet = 0; done = true; break; }
+            if (mdat && mdat.mlet === zx) { genocideName = mdat.mname; mdat.mlet = 0; done = true; break; }
           }
           if (done) break;
         }
       } while (!done);
+      await pline(`Goodbye to all ${genocideName}s.`);
       // Remove existing instances
       for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) {
         if (mtmp.data.mlet === zx || mtmp.data.mlet === 0) {
@@ -444,7 +446,7 @@ async function read1(otmp) {
     }
     case 9: {
       // light room
-      litroom(); break;
+      await litroom(); break;
     }
     case 10: {
       // teleport
@@ -683,7 +685,7 @@ export async function rhack(cmd) {
       if (otmp.otyp < 3) {
         otmp.spe--;
         switch (otmp.otyp) {
-          case 0: litroom(); break;
+          case 0: await litroom(); break;
           case 1: if (!await findit()) return;  break;
           case 2: makemon(null); if (game.fmon) mnexto(game.fmon); break;
         }

@@ -44,6 +44,14 @@ char *argv[];
 	char lowy,lowx;
 	register unsigned tries =0;
 	register struct gen *gtmp;
+#ifdef HARNESS
+	/* Reset all mklev globals to match fresh-process state.
+	 * In the real game, mklev is fork()+exec()'d so it starts with zeroed BSS.
+	 * In the harness it is called inline, so we must zero these explicitly. */
+	memset(levl, 0, sizeof(levl));
+	nroom = 0;
+	fmon = 0; fobj = 0; fgold = 0; ftrap = 0;
+#endif
 #ifdef DEBUG
 	if(getenv("OUT")) {
 		tfoo=fopen("mkout","a");

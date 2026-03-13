@@ -33,9 +33,9 @@
     },
     {
       "key": "Q",
-      "rng": [26485,26565,10867,25392,"^turn[moves=1]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",1811],
+      "rng": [26485,26565,10867,25392,1811,"^turn[moves=1]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",3693],
       "screen": [
-        "You destroy the leprechaun!",
+        "You have defeated the leprechaun!",
         "",
         "",
         "",

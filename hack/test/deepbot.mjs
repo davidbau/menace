@@ -113,6 +113,39 @@ function findMonster(g, mlet) {
   return null;
 }
 
+// ===== Find nearest unvisited reachable cell (for full exploration) =====
+// Returns first-step key toward nearest unvisited passable cell, or null if all visited.
+function exploreKey(g, visited) {
+  const { ux, uy } = g.u;
+  const COLNO = 80, ROWNO = 22;
+  const queue = [{ x: ux, y: uy, firstKey: null }];
+  const seen = new Set([`${ux},${uy}`]);
+  const dirs = [
+    ['h', -1, 0], ['l', 1, 0], ['k', 0, -1], ['j', 0, 1],
+    ['y', -1, -1], ['u', 1, -1], ['b', -1, 1], ['n', 1, 1],
+  ];
+  while (queue.length) {
+    const { x, y, firstKey } = queue.shift();
+    const srcTyp = g.levl[x]?.[y]?.typ ?? 0;
+    for (const [key, dx, dy] of dirs) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || nx >= COLNO || ny < 0 || ny >= ROWNO) continue;
+      const cell = g.levl[nx]?.[ny];
+      if (!cell) continue;
+      const t = cell.typ;
+      if (t < 3) continue;
+      if (dx && dy && (t === 3 || srcTyp === 3)) continue;
+      const k = `${nx},${ny}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const fk = firstKey || key;
+      if (!visited.has(k)) return fk; // found an unvisited cell
+      queue.push({ x: nx, y: ny, firstKey: fk });
+    }
+  }
+  return null; // all reachable cells visited
+}
+
 // ===== Parse args =====
 const args = process.argv.slice(2);
 function getArg(name, def) {
@@ -140,7 +173,8 @@ let lastDepth = 1;
 let stuckCount = 0;
 let lastPos = null;
 let huntMode = false;
-let combatCount = 0;
+// Per-level visited cell sets for exploration (keyed by dlevel)
+const exploredByLevel = new Map();
 
 class BotDone extends Error {}
 
@@ -151,13 +185,10 @@ input.getKey = async function () {
   const u = g.u;
   const depth = g.dlevel;
 
-  // Reached target depth + hunted monster enough → done
-  if (depth >= targetDepth && huntMode && combatCount >= 20) throw new BotDone();
-
   let key;
 
   if (depth < targetDepth) {
-    // Navigate to down stairs
+    // Navigate straight to down stairs
     huntMode = false;
     if (depth !== lastDepth) {
       process.stderr.write(`  Descended to level ${depth}\n`);
@@ -167,36 +198,60 @@ input.getKey = async function () {
       key = '>'; // at stairs — descend
     } else {
       const k = bfsKey(g, g.xdnstair, g.ydnstair);
-      key = k || 'hjkl'[stepCount % 4]; // fallback: wander if unreachable
+      key = k || 'hjkl'[stepCount % 4];
     }
   } else {
-    // At target depth — hunt monsters
+    // At target depth — explore entire level to wake and fight all monsters
     huntMode = true;
+    if (depth !== lastDepth) {
+      process.stderr.write(`  Descended to level ${depth}\n`);
+      lastDepth = depth;
+    }
+
+    // Maintain per-level visited set
+    if (!exploredByLevel.has(depth)) exploredByLevel.set(depth, new Set());
+    const visited = exploredByLevel.get(depth);
+    visited.add(`${u.ux},${u.uy}`);
+
+    // Priority 1: hunt specific target monster if given
     if (targetMlet) {
       const mon = findMonster(g, targetMlet);
       if (mon) {
         const k = bfsKey(g, mon.mx, mon.my);
         key = k || 'hjkl'[stepCount % 4];
-        combatCount++;
       } else {
-        // Explore to find the target monster
-        key = 'hjkl'[(stepCount >> 2) % 4];
-        stuckCount++;
+        // Explore to find it
+        const k = exploreKey(g, visited);
+        if (k) {
+          key = k;
+        } else {
+          // Explored all, descend further if possible
+          if (u.ux === g.xdnstair && u.uy === g.ydnstair) key = '>';
+          else { const kd = bfsKey(g, g.xdnstair, g.ydnstair); key = kd || 'hjkl'[stepCount % 4]; }
+        }
       }
     } else {
-      // Just wander and fight
-      const k = bfsKey(g, g.xdnstair, g.ydnstair);
-      key = k || 'hjkl'[stepCount % 4];
-      combatCount++;
+      // No specific target: explore entire level, then descend
+      const k = exploreKey(g, visited);
+      if (k) {
+        key = k;
+      } else {
+        // Level fully explored — descend
+        if (u.ux === g.xdnstair && u.uy === g.ydnstair) {
+          key = '>';
+        } else {
+          const kd = bfsKey(g, g.xdnstair, g.ydnstair);
+          key = kd || 'hjkl'[stepCount % 4];
+        }
+      }
     }
   }
 
-  // Detect stuck (same position for 20 steps)
+  // Detect stuck (same position for 20 steps) → random escape
   const pos = `${u.ux},${u.uy}`;
   if (pos === lastPos) {
     stuckCount++;
     if (stuckCount > 20) {
-      // Random escape
       key = 'hjklyubn'[stepCount % 8];
       stuckCount = 0;
     }

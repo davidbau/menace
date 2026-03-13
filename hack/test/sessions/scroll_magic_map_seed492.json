@@ -153,6 +153,36 @@
     },
     {
       "key": " ",
+      "rng": [],
+      "screen": [
+        "As you read the scroll, it disappears.--More--",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                 ---+-------",
+        "                 |.........+",
+        "                 |..@..<...|",
+        "                 |.........|",
+        "                 -----------",
+        "",
+        "",
+        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
+      ]
+    },
+    {
+      "key": " ",
       "rng": ["^turn[moves=4]","^movemon[n=4]","^dochug[mlet=r,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]","^dochug[mlet=B,mstat=2,cansee=0]","^dochug[mlet=r,mstat=2,cansee=0]",5749],
       "screen": [
         "You found a map!",

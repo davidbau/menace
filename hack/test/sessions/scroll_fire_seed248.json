@@ -92,6 +92,36 @@
       ]
     },
     {
+      "key": " ",
+      "rng": [],
+      "screen": [
+        "As you read the scroll, it disappears.--More--",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "            |",
+        "            |<.",
+        "            |@.",
+        "            +.J",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "Level 1   Gold 0      Hp  12(12) Ac 6   Str 16     Exp  1/0"
+      ]
+    },
+    {
       "key": "Q",
       "rng": [16557,"^turn[moves=2]","^movemon[n=3]","^dochug[mlet=r,mstat=0,cansee=0]",19144,"^m_move_debug[mlet=r,mx=32,my=11,dx=-1,dy=0,rfree=1,cell_typ=5,gat=-,ux=14,uy=11]","^dochug[mlet=J,mstat=2,cansee=1]",31718,"^dochug[mlet=L,mstat=2,cansee=0]",10429],
       "screen": [

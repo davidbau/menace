@@ -123,7 +123,7 @@
     },
     {
       "key": " ",
-      "rng": [3228,32361,17899,14688],
+      "rng": [3228,32361,17899,14688,2822],
       "screen": [
         "The wand hits the kobold.--More--",
         "",
@@ -153,9 +153,9 @@
     },
     {
       "key": "Q",
-      "rng": [2822,"^turn[moves=2]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",18877],
+      "rng": [18877,"^turn[moves=2]","^movemon[n=2]","^dochug[mlet=L,mstat=2,cansee=0]","^dochug[mlet=J,mstat=2,cansee=0]",15605],
       "screen": [
-        "You destroy the kobold!",
+        "You wale on the kobold!",
         "",
         "",
         "",

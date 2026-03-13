@@ -31,6 +31,7 @@ import { docrt } from '../js/pri.js';
 
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
+import { mon } from '../js/data.js';
 
 // Sentinel error to terminate game after keys run out
 class SessionDone extends Error {
@@ -77,6 +78,10 @@ function wireDeps() {
 export async function runSession(seed, keys) {
   wireDeps();
 
+  // Save mon table — genocide mutates mlet in-place; restore after each session
+  // so sessions don't pollute each other when run with --all.
+  const monSave = mon.map(tier => tier.map(m => m ? { ...m } : null));
+
   const display = new MockDisplay();
   const input = new MockInput();
 
@@ -117,6 +122,13 @@ export async function runSession(seed, keys) {
       // Normal termination — return captured steps
     } else {
       throw e;
+    }
+  } finally {
+    // Restore mon table to clean state for next session
+    for (let i = 0; i < mon.length; i++) {
+      for (let j = 0; j < mon[i].length; j++) {
+        if (monSave[i][j]) Object.assign(mon[i][j], monSave[i][j]);
+      }
     }
   }
 
