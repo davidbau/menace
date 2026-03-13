@@ -10381,3 +10381,46 @@ Validation:
 
 - read.c parity: after scroll effects, JS must follow C `learnscroll()` vs `trycall()` branching; always prompting `docall()` is too aggressive and can pull later gameplay/input earlier.
 - Armor scroll effects mutate worn-armor enchantment and removal state; because JS caches `player.ac`, read-side armor mutations must call `find_ac(player)` immediately or the next status line can lag C by one prompt boundary.
+
+## 2026-03-13 22:10 - pnd_s1200 prayer/search pending-session frontier moved from step 868 to 904
+
+- Context:
+  - `pnd_s1200_w_potprayspell_gp.session.json` was the next pending coverage session after the promoted gameplay PES suite went all-green.
+  - The initial blocker was at step `868`:
+    - RNG mismatch: JS entered `dochug()` while C first did `exercise(attrib.c:506)`.
+    - Event mismatch: downstream pet `distfleeck` state drifted (`brave=1` vs `0`).
+- Root cause 1:
+  - JS `detect.js:mfind0()` suppressed blind repeated monster finds based on sticky `loc.mem_invis`.
+  - C only suppresses that path when the *live glyph* on the square is `glyph_is_invisible(levl[x][y].glyph)`.
+  - In this session, the blind hero repeatedly re-finds the adjacent kitten as it wanders away and back. JS incorrectly skipped the second find at step `868`, so it missed `exercise(A_WIS, TRUE)` and the whole monster phase shifted.
+- Fix 1:
+  - Change `mfind0()` to check `glyph_is_invisible(loc.glyph)` instead of `loc.mem_invis` before returning `-1`.
+- Result 1:
+  - `pnd_s1200_w_potprayspell_gp` moved from step `868` to step `894`.
+  - RNG improved from `2775/3125` to `3063/3125`.
+  - Events improved from `226/450` to `394/417`.
+
+- Root cause 2:
+  - The new frontier at step `894` was inside `prayer_done() -> gods_upset() -> angrygods()`.
+  - C rolled `attrcurse()` case `4`, fell through to intrinsic `SEE_INVIS`, removed it, and skipped `rndcurse()`.
+  - JS `sit.js:attrcurse()` was still checking placeholder booleans like `telepathy_intrinsic` and `see_invisible_intrinsic` rather than the real `player.uprops[prop].intrinsic & INTRINSIC` state, so it removed nothing and incorrectly called `rndcurse()`.
+- Fix 2:
+  - Rewrite `attrcurse()` to use actual `uprops` intrinsic bits with C-style fallthrough semantics.
+  - Preserve the C side effects for `TELEPAT` and `SEE_INVIS`:
+    - `see_monsters()` on lost blind telepathy
+    - `set_mimic_blocking(); see_monsters(); newsym(player.x, player.y)` when losing intrinsic see invisible and no other source remains
+- Result 2:
+  - `pnd_s1200_w_potprayspell_gp` moved again, from step `894` to step `904`.
+  - RNG improved further to `3066/3125`.
+  - The `angrygods()`/prayer branch is no longer the blocker.
+
+- Validation:
+  - `scripts/run-and-report.sh --failures` after both fixes stayed fully green:
+    - `Gameplay: 219/219 passing`
+    - PRNG `219/219`, Events `219/219`, Screen `219/219`
+  - `hi11_seed1100_wiz_zap-deep_gameplay` still passes fully.
+  - `pnd_s1200_w_potprayspell_gp` now fails later, at step `904`.
+
+- Practical lesson:
+  - `mem_invis` is remembered state, not a substitute for C's live glyph tests. Using it in parity-critical control flow can suppress legitimate repeated finds.
+  - Intrinsic-removal code must read and clear `player.uprops[prop].intrinsic` directly. Ad hoc `*_intrinsic` booleans are not trustworthy in this codebase and will silently mis-port C fallthrough logic.
