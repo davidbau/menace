@@ -1,5 +1,5 @@
 // C ref: hack.c — player movement, combat, teleport, item naming
-import { WALL, SDOOR, DOOR, CORR, ROOM, SEEN, HP, GOLD, AC, STR, RINN, WANN, POTN } from './const.js';
+import { WALL, SDOOR, DOOR, CORR, ROOM, SEEN, HP, GOLD, AC, STR, RINN, WANN, POTN, MCONF } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { pline, atl, newsym, nscr, pru, prl, prl1, nose1, nosee, on, cls, curs, losehp } from './pri.js';
@@ -326,15 +326,16 @@ function setan(str) {
 }
 
 // C ref: doname(obj,buf) — return item description string
+// C appends "  (weapon in hand)" AFTER all cases if obj==uwep
 export function doname(obj) {
   const u = game.u;
+  let s;
   switch (obj.olet) {
-    case '"': return 'The amulet of Frobozz.';
+    case '"': s = 'The amulet of Frobozz.'; break;
     case '%':
-      return obj.quan > 1 ? `${obj.quan} ${foodnam[obj.otyp]}s.` : `a ${foodnam[obj.otyp]}.`;
+      s = obj.quan > 1 ? `${obj.quan} ${foodnam[obj.otyp]}s.` : `a ${foodnam[obj.otyp]}.`; break;
     case ')': {
       const nm = wepnam[obj.otyp] || 'weapon';
-      let s;
       if (obj.known) {
         const sign = obj.minus ? '-' : '+';
         if (obj.quan > 1) s = `${obj.quan} ${sign}${obj.spe} ${nm}s`;
@@ -343,18 +344,15 @@ export function doname(obj) {
         if (obj.quan > 1) s = `${obj.quan} ${nm}s`;
         else s = setan(nm);
       }
-      s += '.';
-      if (obj === game.uwep) s += '  (weapon in hand)';
-      return s;
+      s += '.'; break;
     }
     case '[': {
       // C: "a suit of ±N X armor" if known, else "a suit of X armor"; + "(being worn)"
       const nm = armnam[obj.otyp - 2] || 'armor';
-      let s;
       if (obj.known) s = `a suit of ${obj.minus ? '-' : '+'}${obj.spe} ${nm} armor`;
       else s = `a suit of ${nm} armor`;
       if (obj === game.uarm) s += '  (being worn)';
-      return s + '.';
+      s += '.'; break;
     }
     case '!': {
       // C ref: hack.c doname() case '!'
@@ -363,27 +361,32 @@ export function doname(obj) {
       const pcall = game.potcall && game.potcall[obj.otyp];
       if ((game.oiden[obj.otyp] & POTN) || pcall) {
         const base = obj.quan > 1 ? `${obj.quan} potions` : 'a potion';
-        if (!pcall) return `${base} of ${pottyp[obj.otyp]}.`;
-        else return `${base} called ${pcall}.`;
+        if (!pcall) s = `${base} of ${pottyp[obj.otyp]}.`;
+        else s = `${base} called ${pcall}.`;
       } else {
         const col = game.potcol && game.potcol[obj.otyp];
-        if (obj.quan > 1) return `${obj.quan} ${col} potions.`;
-        return setan(col) + ' potion.';
+        if (obj.quan > 1) s = `${obj.quan} ${col} potions.`;
+        else s = setan(col) + ' potion.';
       }
+      break;
     }
     case '?': {
       // C: if(quan>1) "%d scrolls" else "a scroll"; then " of X." / " called X." / " labeled 'X'."
       const base = obj.quan > 1 ? `${obj.quan} scrolls` : 'a scroll';
-      if (obj.known) return `${base} of ${scrtyp[obj.otyp]}.`;
-      const callname = game.scrcall && game.scrcall[obj.otyp];
-      if (callname) return `${base} called ${callname}.`;
-      const label = game.scrnam && game.scrnam[obj.otyp];
-      return label ? `${base} labeled '${label}'.` : `${base}.`;
+      if (obj.known) s = `${base} of ${scrtyp[obj.otyp]}.`;
+      else {
+        const callname = game.scrcall && game.scrcall[obj.otyp];
+        if (callname) s = `${base} called ${callname}.`;
+        else {
+          const label = game.scrnam && game.scrnam[obj.otyp];
+          s = label ? `${base} labeled '${label}'.` : `${base}.`;
+        }
+      }
+      break;
     }
     case '/': {
       // C: if oiden[otyp]&WANN → "a wand of X."; elif wandcall → "a wand called X."; else setan(wannam[otyp])+" wand."
       // If obj->known: append "  (N)."
-      let s;
       if (game.oiden[obj.otyp] & WANN) {
         s = `a wand of ${wantyp[obj.otyp]}.`;
       } else if (game.wandcall && game.wandcall[obj.otyp]) {
@@ -396,11 +399,10 @@ export function doname(obj) {
         // C: while(*buf) buf++; sprintf(buf,"  (%d).",obj->spe)
         s = s.slice(0, -1) + `  (${obj.spe}).`;
       }
-      return s;
+      break;
     }
     case '=': {
       // C: if oiden[otyp]&RINN and known → "a ±N ring of X"; elif ringcall → "a ring called X"; else rinnam
-      let s;
       if (game.oiden[obj.otyp] & RINN) {
         if (obj.known) s = `a ${obj.minus ? '-' : '+'}${obj.spe} ring of ${ringtyp[obj.otyp]}`;
         else s = `a ring of ${ringtyp[obj.otyp]}`;
@@ -412,17 +414,23 @@ export function doname(obj) {
       }
       if (obj === game.uright) s += '  (on right hand)';
       if (obj === game.uleft) s += '  (on left hand)';
-      return s + '.';
+      s += '.'; break;
     }
     case '*': {
       const typname = (game.potcol && game.potcol[obj.otyp]) || 'glowing';
-      if (obj.quan > 1) return `${obj.quan} ${typname} gems.`;
-      const art = 'aeiou'.includes(typname[0].toLowerCase()) ? 'an' : 'a';
-      return `${art} ${typname} gem.`;
+      if (obj.quan > 1) s = `${obj.quan} ${typname} gems.`;
+      else {
+        const art = 'aeiou'.includes(typname[0].toLowerCase()) ? 'an' : 'a';
+        s = `${art} ${typname} gem.`;
+      }
+      break;
     }
-    case '$': return `${obj.quan} gold pieces.`;
-    default: return 'an unknown item.';
+    case '$': s = `${obj.quan} gold pieces.`; break;
+    default: s = 'an unknown item.'; break;
   }
+  // C ref: hack.c L488 — "if(obj==uwep) strcat(buf,"  (weapon in hand)");" — applies to ALL item types
+  if (obj === game.uwep) s += '  (weapon in hand)';
+  return s;
 }
 
 // C ref: parse() — read and return next command
@@ -564,7 +572,7 @@ export async function attmon(mtmp, obj, range) {
   if (game.u.umconf) {
     await pline('Your hands stop glowing blue.');
     if (game.levl[mtmp.mx][mtmp.my].cansee) await pline('The %s appears confused.', mdat.mname);
-    mtmp.mstat = 4;  // MCONF
+    mtmp.mstat = MCONF;
     game.u.umconf = 0;
   }
 

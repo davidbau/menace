@@ -224,7 +224,16 @@ int harness_getchar(void) {
 }
 
 void harness_getlin(char *buf) {
-  buf[0] = '\0';
+  /* Read characters until '\r' or '\n', matching JS getlin() behavior.
+   * This ensures that "Call it:" prompts consume the same keys as JS. */
+  int len = 0;
+  int ch;
+  while ((ch = harness_getchar()) != '\r' && ch != '\n') {
+    if (ch == '\x1b') { len = 0; break; }  /* ESC: clear input */
+    if (ch == '\b' || ch == '\x7f') { if (len > 0) len--; continue; }
+    if (len < 79) buf[len++] = (char)ch;
+  }
+  buf[len] = '\0';
 }
 
 /* ===== In-memory level file I/O ===== */
