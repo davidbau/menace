@@ -9142,3 +9142,18 @@ Validation:
 - Additional cleanup:
   - `js/dungeon.js` mapdump `U` index-9 now uses `context.move` directly (C mirror),
     avoiding accidental use of cached per-hero move fields.
+
+### t11_s742 wizard-identify parity: startup inventory `known` must mirror C init interplay
+
+- C startup behavior is split across two paths:
+  1. `mkobj.c:mksobj_init()` seeds `obj->known` based on `oc_name_known` and `oc_uses_known`.
+  2. `u_init.c:ini_inv_adjust_obj()` then forces `obj->known=1` for `oc_uses_known` objects.
+- Net effect for startup inventory: non-coin items end up `known=1`.
+- JS had only partial `known` assignment in `u_init.js`, leaving many wizard-start items
+  (rings/potions/scrolls/spellbooks) as not fully identified in `^I` debug-identify flow.
+- Fix:
+  - In startup inventory adjust path, set `obj.known = true` for non-coin objects.
+- Observed impact on `t11_s742_w_covmax1_gp`:
+  - kept RNG/events full (`13750/13750`, `3679/3679`),
+  - removed the large step-3 identify-menu body mismatch,
+  - reduced remaining mismatch to smaller screen formatting/mapdump details.

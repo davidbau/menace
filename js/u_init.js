@@ -546,7 +546,11 @@ export function ini_inv(player, table) {
             obj.quan = player.umoney0 || 0;
             obj.owt = weight(obj);
         } else {
-            if (objectData[otyp]?.uses_known) obj.known = true;
+            // C ref: u_init.c ini_inv_adjust_obj() + mkobj.c mksobj_init() interplay:
+            // startup inventory ends up with obj->known=1 for non-coin items.
+            // (mksobj_init sets known when !oc_uses_known, then ini_inv_adjust_obj
+            // forces known for oc_uses_known objects).
+            obj.known = true;
             obj.dknown = true;
             obj.bknown = true;
             obj.rknown = true;
