@@ -2344,11 +2344,11 @@ export async function doseduce(mon, player, display) {
 // --- Group 9: Assessment/avoidance (mhitu.c:2349-2424) ---
 
 // C ref: mhitu.c:2349 assess_dmg() — deduct damage from monster, kill if needed
-export function assess_dmg(mtmp, tmp, map, player) {
+export async function assess_dmg(mtmp, tmp, map, player) {
     if (!mtmp) return M_ATTK_HIT;
     mtmp.mhp = (mtmp.mhp || 0) - tmp;
     if (mtmp.mhp <= 0) {
-        xkilled(mtmp, XKILL_NOMSG, map, player);
+        await xkilled(mtmp, XKILL_NOMSG, map, player);
         if (mtmp.dead || mtmp.mhp <= 0)
             return M_ATTK_AGR_DIED;
         return M_ATTK_HIT;
@@ -2361,7 +2361,7 @@ export function assess_dmg(mtmp, tmp, map, player) {
 // C ref: mhitu.c:2425 passiveum() — hero's passive counterattack when polymorphed
 // Simplified: only handles AD_ACID (the most common case).
 // Missing: AD_STON, AD_ENCH, AD_PLYS, AD_COLD/FIRE/ELEC mold effects.
-export function passiveum(olduasmon, mtmp, mattk, map, player) {
+export async function passiveum(olduasmon, mtmp, mattk, map, player) {
     if (!olduasmon || !mtmp) return M_ATTK_HIT;
     // Find the passive attack slot (AT_NONE or AT_BOOM)
     const attacks = olduasmon.attacks || [];
@@ -2394,10 +2394,10 @@ export function passiveum(olduasmon, mtmp, mattk, map, player) {
         if (!rn2(6)) {
             // C ref: acid_damage(MON_WEP(mtmp)) — simplified
         }
-        return assess_dmg(mtmp, tmp, map, player);
+        return await assess_dmg(mtmp, tmp, map, player);
     default:
         tmp = 0;
-        return assess_dmg(mtmp, tmp, map, player);
+        return await assess_dmg(mtmp, tmp, map, player);
     }
 }
 

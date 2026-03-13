@@ -50,7 +50,7 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG, ismnum } from './mondata.js';
 import { Is_rogue_level, surface } from './dungeon.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
-import { impossible, pline_mon, pline, pline_The, livelog_printf } from './pline.js';
+import { impossible, pline_mon, pline, pline_The, livelog_printf, You_hear } from './pline.js';
 import { next_ident } from './mkobj.js';
 import { is_metallic, is_organic, obj_resists, hasPoisonTrapBit } from './objdata.js';
 import { newsym, canSpotMonsterForMap, canspotmon, sensemon } from './display.js';
@@ -984,7 +984,7 @@ export async function monkilled(mon, fltxt, how, map, player) {
 }
 
 // C ref: mon.c xkilled() — hero kills monster
-export function xkilled(mon, xkill_flags, map, player) {
+export async function xkilled(mon, xkill_flags, map, player) {
     const nomsg = !!(xkill_flags & XKILL_NOMSG);
     const nocorpse = !!(xkill_flags & XKILL_NOCORPSE);
     const x = mon.mx, y = mon.my;
@@ -1081,6 +1081,11 @@ export function xkilled(mon, xkill_flags, map, player) {
                 adjalign(player, Math.floor(14 / 4)); // ALIGNLIM/4
         } else if (mon.mtame) {
             adjalign(player, -15);
+            if (!(player?.hallucinating || player?.Hallucination)) {
+                await You_hear('the rumble of distant thunder...');
+            } else {
+                await You_hear('the studio audience applaud!');
+            }
         } else if (mon.mpeaceful) {
             // C ref: mon.c:3720 — killing a peaceful monster
             adjalign(player, -5);

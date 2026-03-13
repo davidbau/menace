@@ -396,7 +396,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
             const name = x_monnam(mon, { article: 'the', capitalize: true });
             await pline_mon(mon, `${name} dies!`);
             if (by_you)
-                xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
+                await xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
             else
                 mondead(mon, map, player);
             return;

@@ -86,7 +86,7 @@ import { nonliving, is_undead, is_demon,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
 import { placeFloorObject } from './invent.js';
 import { zap_dig as zap_dig_core } from './dig.js';
-import { pline } from './pline.js';
+import { pline, You } from './pline.js';
 import { Monnam } from './do_name.js';
 import {
   find_mac,
@@ -94,6 +94,7 @@ import {
   mon_set_minvis,
   which_armor,
 } from './worn.js';
+import { setnotworn } from './worn.js';
 import { erode_obj, erode_obj_player, t_at, ignite_items } from './trap.js';
 import { game as _gstate } from './gstate.js';
 import { stop_occupation } from './allmain.js';
@@ -106,15 +107,16 @@ import { is_metallic } from './objdata.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { is_weptool } from './objnam.js';
 import { Is_container } from './mkobj.js';
-import { useupall } from './invent.js';
+import { useup, useupall } from './invent.js';
 import { monflee } from './monmove.js';
 import { readobjnam, hands_obj } from './objnam.js';
 import {
-  xname, an, The, simpleonames,
+  xname, an, The, simpleonames, yname, Yname2, makeplural,
   suit_simple_name, cloak_simple_name, helm_simple_name,
   gloves_simple_name, boots_simple_name, shield_simple_name,
   shirt_simple_name, Is_box, vtense,
 } from './objnam.js';
+import { Ring_gone } from './do_wear.js';
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
@@ -1398,7 +1400,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
               await monkilled(mon, flash_str(fltyp), 0, map, player);
             } else {
               // C ref: mon.c xkilled() emits the hero kill message before
-              // death processing; JS xkilled() has not yet been made async.
+              // death processing; JS xkilled() now follows that async order.
               await pline(
                 `You ${nonliving(mon.data || mon.type || {}) ? 'destroy' : 'kill'} `
                 + `${!cansee(mon.mx, mon.my)
@@ -1413,7 +1415,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
                         false
                     )}!`
               );
-              xkilled(mon, 0, map, player);
+              await xkilled(mon, 0, map, player);
             }
           } else {
             if (sayhit || canseemon(mon)) {
@@ -1476,14 +1478,14 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
             // C ref: zap.c zhitu() fire path:
             // if (burnarmor(&youmonst)) { if (!rn2(3)) destroy_items; if (!rn2(3)) ignite_items; }
             if (await burnarmor_player(player, player)) {
-              if (!rn2(3)) destroy_items_rng_only(player, AD_FIRE, origDam, player);
+              if (!rn2(3)) await destroy_items_player(player, AD_FIRE, origDam, player);
               if (!rn2(3)) ignite_items(player, _gstate);
             }
           } else if (damgtype === ZT_COLD) {
-            if (!rn2(3)) destroy_items_rng_only(player, AD_COLD, origDam, player);
+            if (!rn2(3)) await destroy_items_player(player, AD_COLD, origDam, player);
           } else if (damgtype === ZT_LIGHTNING) {
             exercise(player, A_CON, false);
-            if (!rn2(3)) destroy_items_rng_only(player, AD_ELEC, origDam, player);
+            if (!rn2(3)) await destroy_items_player(player, AD_ELEC, origDam, player);
           } else if (damgtype === ZT_ACID) {
             exercise(player, A_STR, false);
           }
@@ -2559,6 +2561,135 @@ export function maybe_destroy_item(obj, dmgtyp, player, owner = null) {
     }
   }
   return cnt;
+}
+
+function destroy_item_message(obj, cnt, quan, verb) {
+  const mult = (cnt === 1)
+    ? (quan === 1 ? '' : 'One of ')
+    : (cnt < quan ? 'Some of ' : (quan === 2 ? 'Both of ' : 'All of '));
+  const itemName = (cnt === 1 && quan === 1) ? Yname2(obj) : yname(obj);
+  return `${mult}${itemName} ${verb}!`;
+}
+
+async function maybe_destroy_item_player(obj, dmgtyp, player, owner = null) {
+  if (!obj) return 0;
+  if (inventory_resistance_check(dmgtyp, player)) return 0;
+  if (!destroyable_by(obj, dmgtyp)) return 0;
+  if (obj.in_use && Number(obj.quan || 1) === 1) return 0;
+
+  let itemDamage = 0;
+  let xresist = false;
+  let skip = false;
+  let chargeit = false;
+  let destroyVerb = '';
+
+  if (dmgtyp === AD_FIRE) {
+    if (obj.oclass === POTION_CLASS) {
+      itemDamage = rnd(6);
+      destroyVerb = 'boils and explodes';
+    } else if (obj.oclass === SCROLL_CLASS) {
+      itemDamage = 1;
+      destroyVerb = 'catches fire and burns';
+    } else if (obj.oclass === SPBOOK_CLASS) {
+      itemDamage = 1;
+      destroyVerb = 'catches fire and burns';
+    } else {
+      skip = true;
+    }
+  } else if (dmgtyp === AD_COLD) {
+    itemDamage = rnd(4);
+    destroyVerb = 'freezes and shatters';
+  } else if (dmgtyp === AD_ELEC) {
+    if (obj.oclass === RING_CLASS) {
+      const ringWorn = ((obj.owornmask || 0) & W_RING) !== 0;
+      if (ringWorn && player?.gloves && !is_metallic(player.gloves)) {
+        skip = true;
+      } else if (obj.otyp === RIN_SHOCK_RESISTANCE) {
+        skip = true;
+      } else if (objects[obj.otyp]?.oc_charged && rn2(3)) {
+        chargeit = true;
+      } else {
+        destroyVerb = 'turns to dust and vanishes';
+      }
+    } else if (obj.oclass === WAND_CLASS) {
+      itemDamage = rnd(10);
+      destroyVerb = 'breaks apart and explodes';
+      xresist = !!player?.hasProp?.(SHOCK_RES);
+    } else {
+      skip = true;
+    }
+  } else {
+    skip = true;
+  }
+
+  if (chargeit || skip) return 0;
+
+  let cnt = 0;
+  const quan = Number(obj.quan || 1);
+  let rolls = quan;
+  if (obj.in_use) rolls = Math.max(0, rolls - 1);
+  for (let i = 0; i < rolls; i++) {
+    if (!rn2(3)) cnt++;
+  }
+  if (!cnt) return 0;
+
+  await pline(destroy_item_message(obj, cnt, quan, destroyVerb));
+
+  if ((obj.owornmask || 0) !== 0) {
+    if ((obj.owornmask || 0) & W_RING) {
+      await Ring_gone(obj, _gstate, player);
+    } else {
+      setnotworn(player, obj);
+    }
+  }
+
+  for (let i = 0; i < cnt; i++) {
+    useup(obj, player);
+  }
+
+  if (itemDamage > 0) {
+    if (xresist) {
+      await You("aren't hurt!");
+    } else {
+      const how = (dmgtyp === AD_ELEC && obj.oclass === WAND_CLASS)
+        ? (cnt === 1 ? 'exploding wand' : makeplural('exploding wand'))
+        : null;
+      if (how) {
+        await losehp(itemDamage, how, KILLED_BY_AN, player, _gstate?.display, _gstate);
+        exercise(player, A_STR, false);
+      }
+    }
+  }
+
+  return itemDamage;
+}
+
+async function destroy_items_player(mon, dmgtyp, dmg_in, player) {
+  if (!mon) return 0;
+  const inventory = Array.isArray(mon.inventory) ? mon.inventory : [];
+  let limit = Math.floor((dmg_in || 0) / 5);
+  if (((dmg_in || 0) % 5) > rn2(5)) {
+    limit++;
+  }
+  if (limit > 20) limit = 20;
+  if (limit < 1) return 0;
+
+  let elig_stacks = 0;
+  const picks = new Array(limit).fill(null);
+  for (const obj of inventory) {
+    if (obj?.oartifact) continue;
+    if (!obj || !destroyable_by(obj, dmgtyp)) continue;
+    const i = (elig_stacks < limit) ? elig_stacks : rn2(elig_stacks);
+    elig_stacks++;
+    if (i >= 0 && i < limit) picks[i] = obj;
+  }
+  const chosen = Math.min(elig_stacks, limit);
+  let dmg_out = 0;
+  for (let i = 0; i < chosen; i++) {
+    if (!picks[i]) continue;
+    dmg_out += await maybe_destroy_item_player(picks[i], dmgtyp, player, mon);
+  }
+  return dmg_out;
 }
 
 export function inventory_resistance_check(_osym_or_dmgtyp, maybe_dmgtyp = null, maybe_player = null) {

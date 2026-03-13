@@ -9929,3 +9929,40 @@ Validation:
   - This is no longer a gameplay sequencing issue. The next work should focus
     on display/cursor rendering around the earlier screen drift, not monster
     turn logic.
+
+## 2026-03-13: Tame-kill thunder + awaited player item destruction moved hi11 screen drift later
+
+- Context:
+  - After the lifesave/moveloop fix, `hi11_seed1100_wiz_zap-deep_gameplay`
+    still had full RNG/event parity but diverged on screens during the
+    self-zap/lifesave sequence.
+  - The earlier screen drift included missing tame-kill feedback and a JS-only
+    early jump from the lightning hit message straight to `You die...`.
+- Root cause:
+  - JS `xkilled()` was missing the C tame-pet alignment penalty message from
+    `mon.c`: `You_hear("the rumble of distant thunder...")` (or the
+    hallucination variant).
+  - JS `zap.js` only used `destroy_items_rng_only()` for player-carried
+    lightning/fire/cold destruction. That preserved RNG, but it skipped the C
+    player-visible side effects from `maybe_destroy_item()`:
+    - destruction messages
+    - unworn ring handling
+    - immediate exploding-wand `losehp()`
+- Fix:
+  - Made `xkilled()` async and updated live call sites that need the message
+    ordering (`zap.js`, `music.js`, `muse.js`, `mhitu.js` helper path).
+  - Added the missing tame-kill thunder/applause message in `js/mon.js`.
+  - Added an awaited player destruction path in `js/zap.js` which keeps the
+    same reservoir-sampling RNG structure but now also performs the C-visible
+    side effects for destroyed hero-carried items, including:
+    - `turns to dust and vanishes`
+    - `breaks apart and explodes`
+    - exploding-wand `losehp("exploding wand")`
+- Result:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` stayed green.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` remained full RNG/event parity and
+    moved the first screen divergence later:
+    - before this slice: screen `399/439`, cursor `394/399`
+    - after this slice: screen `403/439`, cursor `399/403`
+  - The remaining `hi11` failure is now a later map/cursor display drift
+    around step `401`, not the death-message/item-destruction block.
