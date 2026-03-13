@@ -10381,6 +10381,7 @@ Validation:
 
 - read.c parity: after scroll effects, JS must follow C `learnscroll()` vs `trycall()` branching; always prompting `docall()` is too aggressive and can pull later gameplay/input earlier.
 - Armor scroll effects mutate worn-armor enchantment and removal state; because JS caches `player.ac`, read-side armor mutations must call `find_ac(player)` immediately or the next status line can lag C by one prompt boundary.
+- read.c parity: `seffect_light()` must set the same effect-known flag as C (`gk.known`) when the hero visibly reads scroll of light or when `lightdamage()` reveals the effect; otherwise JS falls into a bogus post-read `trycall()`/naming prompt and drags subsequent gameplay earlier.
 
 ## 2026-03-13 22:10 - pnd_s1200 prayer/search pending-session frontier moved from step 868 to 904
 

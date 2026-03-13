@@ -722,6 +722,9 @@ export async function seffect_light(sobj, player, display, game) {
     const map = game?.map;
 
     if (!confused) {
+        if (!player.blind && _gstate) {
+            _gstate.known = true;
+        }
         if (!scursed && !player.blind) {
             await display.putstr_message('A lit field surrounds you!');
         }
@@ -730,6 +733,9 @@ export async function seffect_light(sobj, player, display, game) {
         // cf. if (!scursed) lightdamage(sobj, TRUE, 5)
         if (!scursed) {
             await lightdamage(sobj, player, 5, true);
+            if (_gstate) {
+                _gstate.known = true;
+            }
         }
         // C ref: read.c seeffects()/seffect_light():
         // light scroll isn't consumed inside seffect_light(); caller useups it.
@@ -757,6 +763,9 @@ export async function seffect_light(sobj, player, display, game) {
     }
     if (sawlights) {
         await display.putstr_message('Lights appear all around you!');
+        if (_gstate) {
+            _gstate.known = true;
+        }
     }
     return false;
 }
