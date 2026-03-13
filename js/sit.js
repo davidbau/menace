@@ -28,7 +28,7 @@ import { xname, the } from './objnam.js';
 import { spec_ability } from './artifact.js';
 import { ART_MAGICBANE, SPFX_INTEL } from './artifacts.js';
 import { make_confused, make_blinded, make_glib } from './potion.js';
-import { makemon } from './makemon.js';
+import { makemon_appear } from './makemon.js';
 import { courtmon } from './mkroom.js';
 import { level_difficulty } from './dungeon.js';
 import { unbless, curse as curseObj } from './mkobj.js';
@@ -243,7 +243,7 @@ async function throne_sit_effect(player, map, display) {
                 await verbalize("Thine audience hath been summoned, %s!",
                           player.gender === 1 ? "Dame" : "Sire");
                 for (let i = 0; i < cnt; i++) {
-                    makemon(courtmon(level_difficulty(map)), tx, ty, 0, 0, map);
+                    await makemon_appear(courtmon(level_difficulty(map)), tx, ty, 0, 0, map);
                 }
             }
             break;
