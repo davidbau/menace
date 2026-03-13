@@ -9174,3 +9174,24 @@ Validation:
 - Result:
   - `seed322_barbarian_wizard_gameplay` reached full RNG/event parity
     (`30190/30190` RNG, `21337/21337` events).
+
+### 2026-03-13 parity hardening: trap memory rendering and prompt-line lifecycle
+
+- Root cause class #1 (major): JS out-of-FOV rendering was recomputing trap glyphs from
+  live trap state (`map.trapAt`) instead of relying on remembered glyph state.
+  - C uses remembered map glyphs; trap visibility for map rendering is gated by
+    `trap->tseen`, then persisted via map glyph updates.
+  - Fixes in `js/display.js`:
+    - `trapShownOnMap()` now mirrors C gating (`trap.tseen` only; no wizard override).
+    - removed out-of-FOV live trap recomputation; unseen tiles now use `mem_trap` memory.
+- Root cause class #2: `ynFunction()` prompts were drawn with `putstr()` but not tracked
+  as top-line message state; command-boundary clearing then drifted by one step.
+  - Fixes in `js/input.js`:
+    - when drawing a `yn` prompt, set `topMessage` and record it in `messages` history.
+    - this preserves expected prompt visibility for the answering step and clears at the
+      next command boundary, matching captured C sessions.
+- Validation snapshot:
+  - `scripts/run-and-report.sh --failures` improved from `183/192` pass to `190/192` pass
+    during this slice.
+  - At that point, failures were narrowed to `seed322` and `seed331`; subsequent
+    `seed322` fog-cloud identity fix (entry above) removed the gameplay divergence.

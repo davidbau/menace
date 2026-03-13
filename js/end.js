@@ -530,7 +530,17 @@ async function really_done(how, game) {
     game.gameOver = true;
     game.gameOverReason = deaths[how] || 'died';
 
-    await maybeInstallPossessionsPrompt(how, game);
+    const installedPrompt = await maybeInstallPossessionsPrompt(how, game);
+    if (!installedPrompt && game.display) {
+        if (typeof game.display.clearRow === 'function') game.display.clearRow(0);
+        game.display.topMessage = null;
+        if (Object.hasOwn(game.display, 'messageNeedsMore')) {
+            game.display.messageNeedsMore = false;
+        }
+        if (Object.hasOwn(game.display, 'moreMarkerActive')) {
+            game.display.moreMarkerActive = false;
+        }
+    }
 }
 
 // ============================================================================

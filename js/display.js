@@ -123,9 +123,9 @@ function monsterShownOnMap(mon, player, map) {
 
 function trapShownOnMap(trap, player) {
     if (!trap) return false;
-    const wizardMode = !!(player?.wizard || _gstate?.wizard);
-    // C parity: wizard mode map rendering shows trap glyphs regardless of tseen.
-    return !!(trap.tseen || wizardMode);
+    // C ref: display.c _map_location()/unmap_object() only render traps
+    // when trap->tseen is true (with separate cover checks at callsites).
+    return !!trap.tseen;
 }
 
 function playerMapGlyph(player) {
@@ -617,15 +617,6 @@ span.nh-cursor {
                                 : CLR_BLACK;
                             this.setCell(col, row, loc.mem_obj, rememberedObjColor);
                             this.cellInfo[row][col] = { name: 'remembered object', desc: '(remembered)', color: rememberedObjColor };
-                            continue;
-                        }
-                        const rememberedTrap = gameMap.trapAt(x, y);
-                        if (trapShownOnMap(rememberedTrap, player) && !coversObjectsAt(loc, player)) {
-                            const tg = trapGlyph(rememberedTrap.ttyp);
-                            loc.mem_trap = tg.ch;
-                            loc.mem_trap_color = tg.color;
-                            this.setCell(col, row, tg.ch, tg.color);
-                            this.cellInfo[row][col] = { name: tg.name, desc: '(remembered)', color: tg.color };
                             continue;
                         }
                         if (loc.mem_trap) {
@@ -2232,14 +2223,6 @@ export function newsym(x, y, ctxOrMap = null) {
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
             display.setCell(col, row, loc.mem_obj, rememberedObjColor);
-            return;
-        }
-        const hiddenTrap = map.trapAt(x, y);
-        if (trapShownOnMap(hiddenTrap, player) && !coversObjectsAt(loc, player)) {
-            const tg = trapGlyph(hiddenTrap.ttyp);
-            loc.mem_trap = tg.ch;
-            loc.mem_trap_color = tg.color;
-            display.setCell(col, row, tg.ch, tg.color);
             return;
         }
         if (loc.mem_trap) {

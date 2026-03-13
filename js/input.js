@@ -730,6 +730,11 @@ export async function ynFunction(query, choices, def, display, options = {}) {
             if (typeof disp.setCursor === 'function') {
                 disp.setCursor(Math.min(prompt.length, cols - 1), 0);
             }
+            if (Object.hasOwn(disp, 'topMessage')) disp.topMessage = prompt.trimEnd();
+            if (Array.isArray(disp.messages)) {
+                disp.messages.push(prompt.trimEnd());
+                if (disp.messages.length > 20) disp.messages.shift();
+            }
         } else {
             await disp.putstr_message(prompt);
         }
@@ -751,9 +756,15 @@ export async function ynFunction(query, choices, def, display, options = {}) {
         }
         // ESC returns 'q' or 'n' or default
         if (ch === 27) {
-            if (choices && choices.includes('q')) return 'q'.charCodeAt(0);
-            if (choices && choices.includes('n')) return 'n'.charCodeAt(0);
-            if (def) return def;
+            if (choices && choices.includes('q')) {
+                return 'q'.charCodeAt(0);
+            }
+            if (choices && choices.includes('n')) {
+                return 'n'.charCodeAt(0);
+            }
+            if (def) {
+                return def;
+            }
             return 27;
         }
         // Check if this is a valid choice

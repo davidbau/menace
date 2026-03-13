@@ -683,6 +683,14 @@ export class HeadlessDisplay {
                     this.messageNeedsMore = false;
                     this.topMessage = null;
                     this.moreMarkerActive = false;
+                } else {
+                    // Parity fallback for harness contexts without a wired
+                    // raw key reader: do not leave a synthetic --More--
+                    // prompt lingering across frame capture.
+                    this.clearRow(0);
+                    this.messageNeedsMore = false;
+                    this.topMessage = null;
+                    this.moreMarkerActive = false;
                 }
             }
             this.setCursor(Math.min(msg.length, this.cols - 1), 0);
