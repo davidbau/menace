@@ -9966,3 +9966,53 @@ Validation:
     - after this slice: screen `403/439`, cursor `399/403`
   - The remaining `hi11` failure is now a later map/cursor display drift
     around step `401`, not the death-message/item-destruction block.
+
+## 2026-03-13 15:55 - lifesave stop flag must not abort inner mattacku loop
+
+- Context:
+  - On current `main`, pending coverage session
+    `t11_s744_w_covmax2_gp.session.json` first diverged at step `452`.
+  - C step `452` shows:
+    - `OK, so you don't die.  The jackal bites!  The orc hits!--More--`
+  - JS had already restored the hero to positive HP, but then skipped those
+    two adjacent hostile attacks and advanced to later pet/monster work.
+- Evidence:
+  - `MHITU` trace at step `452` showed:
+    - `enter mon=109 mndx=12`
+    - `break stopflag mon=109 i=0`
+    - `enter mon=107 mndx=72`
+    - `break stopflag mon=107 i=0`
+  - Attack eligibility itself was correct:
+    - adjacent monsters had `range2=false`
+    - `foundyou=true`
+    - remembered target square matched hero square
+  - So the miss was not in `distfleeck`, `set_apparxy`, or target acquisition.
+- Root cause:
+  - `js/mhitu.js` treated `game._stopMoveloopAfterLifesave` as an inner
+    `mattacku()` abort condition.
+  - That flag is appropriate for stopping the outer command cycle after the
+    current monster-processing pass, but C does not use it to abort the
+    current monster attack stream.
+  - As a result, after lifesave the current command still iterated monsters,
+    but each adjacent monster immediately broke out before its first attack.
+- Fix:
+  - In `js/mhitu.js`, remove `_stopMoveloopAfterLifesave` from the `mattacku()`
+    loop break gate.
+  - Keep only real abort conditions there:
+    - `game.playerDied`
+    - `game.gameOver`
+- Validation:
+  - `t11_s744_w_covmax2_gp.session.json` improved materially:
+    - RNG matched: `3177/11024 -> 3262/11024`
+    - events matched: `132/1941 -> 168/1782`
+    - screens matched: `532/892 -> 560/892`
+    - first RNG divergence moved: step `452 -> 480`
+  - Regression checks stayed clean:
+    - `seed031_manual_direct.session.json`: pass
+    - `seed032_manual_direct.session.json`: pass
+    - `seed033_manual_direct.session.json`: pass
+    - `scripts/run-and-report.sh --failures`: `Gameplay: 213/213 passing, 0 failing`
+- Practical lesson:
+  - Life-saving stop semantics belong at the outer moveloop/command-cycle
+    boundary, not inside `mattacku()`. Inner attack dispatch should only stop
+    on actual death/game-over, matching C's control flow.
