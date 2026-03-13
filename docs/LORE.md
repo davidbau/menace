@@ -87,21 +87,28 @@ sessions like `seed100` do not capture stale HP.
 
 But that same unconditional refresh is too early for one special case:
 headless internal `putstr_message()` waits that happen while
-`activeGame.context.mon_moving` is still true. In `hi11`, those waits belong to
-an in-progress monster-phase death sequence, and refreshing status there flips
-the display to `HP:0` one frame before C does.
+`activeGame.context.mon_moving` is still true **and** the currently visible top
+line was itself created only after an earlier page break. In `hi11`, that
+overflow-carried `"It hits!"` page should keep the older HP until the later
+wizard death prompt. In `seed331`, the fresh `"The lizard bites!"` page should
+refresh immediately to `HP:0`.
 
 Practical rule:
 1. keep the simple unconditional status refresh in generic `input.more()`,
-2. but pass `refreshStatus: !(activeGame?.context?.mon_moving)` from headless
-   internal `putstr_message()` `more()` waits,
-3. treat this as a narrow replay/display staging rule, not a reason to revive
+2. track whether the visible top line was created after a prior page break
+   (`_topMessageAfterMore`),
+3. in headless internal `putstr_message()` `more()` waits, suppress status
+   refresh only when both are true:
+   - `activeGame?.context?.mon_moving`
+   - `_topMessageAfterMore`
+4. treat this as a narrow replay/display staging rule, not a reason to revive
    broad `_botlStepIndex` gating in generic `more()`.
 
 Validated effect:
 1. `hi11_seed1100_wiz_zap-deep_gameplay` returns to full green,
-2. targeted control `seed323_caveman_wizard_gameplay` stays green,
-3. the broader screen-only frontier on current `main` remains separate work.
+2. `seed331_tourist_wizard_gameplay` returns to full screen/color green,
+3. targeted control `seed323_caveman_wizard_gameplay` stays green,
+4. full PES gameplay suite returns to `216/216` passing.
 
 Failure mode:
 1. gameplay RNG/events can remain fully green,
