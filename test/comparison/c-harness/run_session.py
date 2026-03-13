@@ -1506,14 +1506,19 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
                 continue
 
             if 'Is this ok?' in content:
+                key = selections[selection_idx].lower() if selection_idx < len(selections) else 'y'
+                if key not in ('y', 'n'):
+                    key = 'y'
                 steps.append({
-                    'key': 'y',
-                    'action': 'confirm-character',
+                    'key': key,
+                    'action': 'confirm-character' if key == 'y' else 'reject-character',
                     'rng': rng_entries,
                     'screen': screen,
                     'cursor': cursor,
                 })
-                tmux_send(session_name, 'y', 0.1)
+                tmux_send(session_name, key, 0.1)
+                if selection_idx < len(selections):
+                    selection_idx += 1
                 prev_rng_count = rng_count
                 continue
 
