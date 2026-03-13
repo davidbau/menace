@@ -10016,3 +10016,40 @@ Validation:
   - Life-saving stop semantics belong at the outer moveloop/command-cycle
     boundary, not inside `mattacku()`. Inner attack dispatch should only stop
     on actual death/game-over, matching C's control flow.
+
+## 2026-03-13: hi11 display drift moved from step 401 to step 407 via blindness + invisible-memory fixes
+
+- Context:
+  - After the earlier self-zap/lifesave fixes, `hi11_seed1100_wiz_zap-deep_gameplay`
+    still had full RNG/event parity but diverged on screens around blindness
+    and unseen-attacker map display.
+  - The first screen drift was a one-frame stale visible monster glyph after
+    `You are blinded by the flash!`, followed by a later corpse-vs-`I`
+    mismatch when an unseen attacker moved onto a corpse square.
+- Root cause:
+  - `flashburn()` in `js/zap.js` was setting `player.blind` directly instead
+    of using the existing `make_blinded()` blindness path, so the immediate
+    vision-toggle redraw did not happen.
+  - `mattacku()` in `js/mhitu.js` was not marking unseen attackers with
+    `map_invisible()` on `hitmu()`/`missmu()` entry, unlike C `mhitu.c`.
+  - `newsym()` in `js/display.js` prioritized remembered objects over
+    `mem_invis` on unseen squares, so even after `map_invisible()` the `%`
+    corpse glyph kept winning over the remembered `I`.
+- Fix:
+  - In `js/zap.js`, route lightning blindness through `make_blinded()`.
+  - In `js/mhitu.js`, call `map_invisible()` for unseen attacker squares on
+    both miss and hit entry.
+  - In `js/display.js`, make unseen-square `mem_invis` take precedence over
+    remembered object/trap glyphs in `newsym()`.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: still passes.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` improved substantially:
+    - before this slice: `screens=403/439`, `cursor=399/403`
+    - after this slice: `screens=437/439`, `cursor=429/437`
+    - first screen divergence moved to step `407`
+  - Remaining `hi11` gap after this slice:
+    - full RNG parity: `3469/3469`
+    - full event parity: `609/609`
+    - remaining screen mismatch is a late status-line timing difference during
+      the death/`--More--` sequence (`HP:0` shown one frame earlier in JS)
+    - remaining cursor mismatch still starts at step `378`

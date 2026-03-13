@@ -19,6 +19,7 @@ import {
     ANTIMAGIC,
     HALF_SPDAM,
     HALLUC,
+    BLINDED,
     SLEEP_RES,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
@@ -110,6 +111,7 @@ import { Is_container } from './mkobj.js';
 import { useup, useupall } from './invent.js';
 import { monflee } from './monmove.js';
 import { readobjnam, hands_obj } from './objnam.js';
+import { make_blinded } from './potion.js';
 import {
   xname, an, The, simpleonames, yname, Yname2, makeplural,
   suit_simple_name, cloak_simple_name, helm_simple_name,
@@ -2899,7 +2901,8 @@ export async function flashburn(duration, via_lightning = false, player = null) 
   if (!p?.blind) {
     await pline('You are blinded by the flash!');
     if (p && Number.isFinite(duration) && duration > 0) {
-      p.blind = Math.max(Number(p.blind || 0), Math.floor(duration));
+      const oldTimeout = Number(p.getPropTimeout?.(BLINDED) || 0);
+      await make_blinded(p, Math.max(oldTimeout, Math.floor(duration)), false);
     }
     return true;
   }

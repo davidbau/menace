@@ -2238,6 +2238,10 @@ export function newsym(x, y, ctxOrMap = null) {
             display.setCell(col, row, glyph.ch, glyph.color);
             return;
         }
+        if (loc.mem_invis) {
+            display.setCell(col, row, 'I', CLR_GRAY);
+            return;
+        }
         if (loc.mem_obj) {
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
@@ -2248,10 +2252,6 @@ export function newsym(x, y, ctxOrMap = null) {
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
             display.setCell(col, row, loc.mem_trap, memTrapColor);
-            return;
-        }
-        if (loc.mem_invis) {
-            display.setCell(col, row, 'I', CLR_GRAY);
             return;
         }
         if (loc.seenv) {

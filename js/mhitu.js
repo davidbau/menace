@@ -59,7 +59,7 @@ import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
 import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
-import { flush_screen, newsym } from './display.js';
+import { flush_screen, newsym, map_invisible, canSpotMonsterForMap, mon_visible } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
@@ -1454,6 +1454,9 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         if (toHit <= dieRoll) {
             // Miss — cf. mhitu.c:86-98 missmu()
             clear_hitmsg_state();
+            if (map && !canSpotMonsterForMap(monster, map, player, game?.fov || null)) {
+                map_invisible(map, monster.mx, monster.my, player);
+            }
             if (!suppressHitMsg) {
                 const verbose = !!(game?.flags?.verbose);
                 const just = (toHit === dieRoll && verbose) ? 'just ' : '';
@@ -1471,6 +1474,10 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // ================================================================
         // Hit! — hitmu() equivalent
         // ================================================================
+
+        if (map && !canSpotMonsterForMap(monster, map, player, game?.fov || null)) {
+            map_invisible(map, monster.mx, monster.my, player);
+        }
 
         // C ref: mhitu.c hitmu() — if a hides-under/eel monster was
         // undetected when it hits the hero, reveal it.
