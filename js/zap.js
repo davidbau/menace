@@ -16,6 +16,8 @@ import {
     W_ARMF, W_ARMS, W_AMUL, W_TOOL, W_RING, W_RINGL, W_RINGR,
     TT_NONE,
     MELT_ICE_AWAY,
+    ANTIMAGIC,
+    HALF_SPDAM,
     HALLUC,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
@@ -1320,8 +1322,29 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           await pline('The %s hits you!', flash_str(fltyp));
           // C ref: zap.c:4920 — zhitu / zap_over_floor player damage
           const damgtype = zaptype(type) % 10;
-          const dam = c_d(nd, 6);
-          if (player.uhp) player.uhp -= dam;
+          const hasProp = (prop) => !!(typeof player?.hasProp === 'function' && player.hasProp(prop));
+          const antimagic = hasProp(ANTIMAGIC) || !!player?.Antimagic || !!player?.antimagic;
+          let dam = 0;
+          if (damgtype === ZT_MAGIC_MISSILE) {
+            if (!antimagic) dam = c_d(nd, 6);
+          } else if (damgtype === ZT_FIRE) {
+            const orig = c_d(nd, 6);
+            if (!hasProp(FIRE_RES)) dam = orig;
+          } else if (damgtype === ZT_COLD) {
+            const orig = c_d(nd, 6);
+            if (!hasProp(COLD_RES)) dam = orig;
+          } else if (damgtype === ZT_LIGHTNING) {
+            const orig = c_d(nd, 6);
+            if (!hasProp(SHOCK_RES)) dam = orig;
+          } else if (damgtype === ZT_ACID) {
+            if (!hasProp(ACID_RES)) dam = c_d(nd, 6);
+          } else if (damgtype === ZT_POISON_GAS) {
+            if (!hasProp(POISON_RES)) dam = c_d(nd, 6);
+          } else if (damgtype === ZT_DEATH || damgtype === ZT_SLEEP) {
+            dam = 0;
+          } else {
+            dam = c_d(nd, 6);
+          }
           // C ref: exercise calls from zap_over_floor (zap.c:4395-4524)
           if (damgtype === ZT_MAGIC_MISSILE) {
             exercise(player, A_STR, false);
@@ -1335,6 +1358,10 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           } else if (damgtype === ZT_ACID) {
             exercise(player, A_STR, false);
           }
+          if (dam && hasProp(HALF_SPDAM) && zaptype(type) < 20) {
+            dam = Math.floor((dam + 1) / 2);
+          }
+          if (dam > 0) player.uhp = (player.uhp || 0) - dam;
         } else if (!player.blind) {
           await pline('The %s whizzes by you!', flash_str(fltyp));
         }

@@ -32,7 +32,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          FEMALE, MALE, TERMINAL_COLS, MAXULEV,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE,
-         TELEPORT, POLYMORPH } from './const.js';
+         TELEPORT, POLYMORPH, Upolyd } from './const.js';
 import { ageSpells } from './spell.js';
 import { wipe_engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
@@ -1065,40 +1065,45 @@ async function _drainOccupation(game, coreOpts) {
 // Implemented: regen_pw_turnend (line 1127)
 
 // cf. allmain.c:621 [static] — regen_hp(wtcap): hit point regeneration
-// Ported from C's regen_hp() (allmain.c:623-681).
-// Simplified: no polymorph HP (u.mh), no eel-out-of-water.
-// U_CAN_REGEN: Regeneration intrinsic or Sleepy+asleep.
 // Ported from C's regen_hp() (allmain.c:621-675).
-// Simplified: no polymorph HP (u.mh), no eel-out-of-water.
+// Includes Upolyd branch and C turn-modulo timing for monster-form healing.
+// Simplified: eel out-of-water degeneration is still not implemented.
 async function regen_hp(game) {
     const player = (game.u || game.player);
-    // C ref: allmain.c:625 — encumbrance_ok = (wtcap < MOD_ENCUMBER || !u.umoved)
     const wtcap = near_capacity(player);
     const encumbrance_ok = (wtcap < MOD_ENCUMBER || !player.umoved);
-    const can_regen = player.regeneration; // U_CAN_REGEN: Regeneration || (Sleepy && asleep)
-    // C ref: allmain.c:654 — non-polymorph branch, encumbrance-gated
-    if (player.uhp < player.uhpmax && (encumbrance_ok || can_regen)) {
-        // C ref: allmain.c:655 — heal = (ulevel + ACURR(A_CON)) > rn2(100)
-        let heal = ((player.ulevel || 1) + acurr(player, A_CON)) > rn2(100) ? 1 : 0;
-        // C ref: allmain.c:657 — U_CAN_REGEN bonus: +1 heal
-        if (can_regen) {
-            heal += 1;
+    // C ref: U_CAN_REGEN() macro; Sleepy/asleep refinement can be added later.
+    const can_regen = !!player.regeneration;
+    let heal = 0;
+    let reached_full = false;
+    if (Upolyd(player)) {
+        if ((player.mh || 0) < (player.mhmax || 0)) {
+            const moves = Number.isFinite(game.turnCount) ? game.turnCount : 0;
+            if (can_regen || (encumbrance_ok && !(moves % 20))) {
+                heal = 1;
+            }
         }
         if (heal) {
-            player.uhp += heal;
-            if (player.uhp > player.uhpmax)
-                player.uhp = player.uhpmax;
-            // C ref: allmain.c:670 — stop voluntary multi-turn activity if fully healed
-            if (player.uhp === player.uhpmax) {
-                // interrupt_multi("You are in full health.")
-                if (game.multi > 0
-                    && !game.travelPath?.length
-                    && !((game.svc?.context?.run || game.context?.run || 0) > 0)) {
-                    game.multi = 0;
-                    if (game.flags?.verbose !== false) {
-                        await game.display.putstr_message('You are in full health.');
-                    }
-                }
+            player.mh = (player.mh || 0) + heal;
+            if ((player.mh || 0) > (player.mhmax || 0)) player.mh = player.mhmax || 0;
+            reached_full = (player.mh || 0) === (player.mhmax || 0);
+        }
+    } else if ((player.uhp || 0) < (player.uhpmax || 0) && (encumbrance_ok || can_regen)) {
+        heal = ((player.ulevel || 1) + acurr(player, A_CON)) > rn2(100) ? 1 : 0;
+        if (can_regen) heal += 1;
+        if (heal) {
+            player.uhp = (player.uhp || 0) + heal;
+            if ((player.uhp || 0) > (player.uhpmax || 0)) player.uhp = player.uhpmax || 0;
+            reached_full = (player.uhp || 0) === (player.uhpmax || 0);
+        }
+    }
+    if (reached_full) {
+        if (game.multi > 0
+            && !game.travelPath?.length
+            && !((game.svc?.context?.run || game.context?.run || 0) > 0)) {
+            game.multi = 0;
+            if (game.flags?.verbose !== false) {
+                await game.display.putstr_message('You are in full health.');
             }
         }
     }

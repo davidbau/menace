@@ -9415,10 +9415,32 @@ Validation:
     - `hi10_seed1090_wiz_potion-deep_gameplay` full pass.
     - `seed322_barbarian_wizard_gameplay` full pass.
     - `seed331_tourist_wizard_gameplay` still full RNG/event parity (existing cursor-tail delta unchanged).
-  - `hi11` improved but not yet resolved:
-    - event match improved (`89 -> 129`) and zap now executes in prompt boundary.
-    - remaining gap is C-vs-JS `dobuzz` hero-hit pause/message semantics (`zhitu`/`--More--`)
-      and bounce path ordering.
+- `hi11` improved but not yet resolved:
+  - event match improved (`89 -> 129`) and zap now executes in prompt boundary.
+  - remaining gap is C-vs-JS `dobuzz` hero-hit pause/message semantics (`zhitu`/`--More--`)
+    and bounce path ordering.
+
+### 2026-03-13 `hi11` follow-up: `zhitu` resistance port + `regen_hp` Upolyd branch
+
+- C-faithful updates landed in core JS:
+  - `js/zap.js` `dobuzz()` player-hit path now gates beam damage by player
+    resistances (magic missile antimagic, fire/cold/lightning/acid/poison
+    resistance) and applies `Half_spell_damage` halving for wand/spell zaps.
+  - `js/allmain.js` `regen_hp()` now includes the C `Upolyd` branch (monster-form
+    healing cadence and full-health interrupt behavior), instead of only the
+    human-HP branch.
+- Important negative finding:
+  - Swapping this `dobuzz` player-hit path to `losehp(...)` caused a replay
+    boundary regression in `hi11` (first divergence moved earlier to index 2572).
+  - For now, keep direct HP decrement in this hot path until `losehp` integration
+    can be done without perturbing command/input boundary semantics.
+- Validation snapshot:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` remains at first divergence index 2603
+    (no net regression from baseline frontier).
+  - Guard sessions still pass:
+    - `hi10_seed1090_wiz_potion-deep_gameplay`
+    - `seed322_barbarian_wizard_gameplay`
+    - `seed331_tourist_wizard_gameplay` (existing cursor-tail delta unchanged)
 
 ### 2026-03-13 command-boundary `umovement` invariant: restore C input-loop precondition
 
