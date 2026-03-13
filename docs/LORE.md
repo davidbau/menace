@@ -79,20 +79,29 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-13)
 
-### `more()` status refresh must respect the displayed message context
+### Headless internal `more()` waits need narrower status refresh than command-boundary `more()`
 
-`more()` should not blindly redraw the status line just because `player._botl`
-is set. In death/lifesave sequences, JS can have a deferred status update for a
-later prompt while the currently displayed topline still belongs to an earlier
-monster-phase `You die...` boundary.
+The broad revert in `1ce3031c` was directionally right for ordinary `--More--`
+boundaries: generic `input.more()` should still refresh the status line so
+sessions like `seed100` do not capture stale HP.
+
+But that same unconditional refresh is too early for one special case:
+headless internal `putstr_message()` waits that happen while
+`activeGame.context.mon_moving` is still true. In `hi11`, those waits belong to
+an in-progress monster-phase death sequence, and refreshing status there flips
+the display to `HP:0` one frame before C does.
 
 Practical rule:
-1. keep `_botlStepIndex` on the pending status update,
-2. keep `_topMessageStepIndex` / `_topMessageStatusHp` on the visible topline,
-3. only let `more()` flush `_botl` when the pending status still belongs to the
-   currently displayed topline context,
-4. in headless replay, suppress `more()` status refresh during monster-phase
-   death staging (`context.mon_moving`).
+1. keep the simple unconditional status refresh in generic `input.more()`,
+2. but pass `refreshStatus: !(activeGame?.context?.mon_moving)` from headless
+   internal `putstr_message()` `more()` waits,
+3. treat this as a narrow replay/display staging rule, not a reason to revive
+   broad `_botlStepIndex` gating in generic `more()`.
+
+Validated effect:
+1. `hi11_seed1100_wiz_zap-deep_gameplay` returns to full green,
+2. targeted control `seed323_caveman_wizard_gameplay` stays green,
+3. the broader screen-only frontier on current `main` remains separate work.
 
 Failure mode:
 1. gameplay RNG/events can remain fully green,
