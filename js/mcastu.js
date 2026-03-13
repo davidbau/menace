@@ -18,8 +18,9 @@ import {
   MGC_WEAKEN_YOU, MGC_DESTRY_ARMR, MGC_CURSE_ITEMS, MGC_AGGRAVATION,
   MGC_SUMMON_MONS, MGC_CLONE_WIZ, MGC_DEATH_TOUCH, CLC_OPEN_WOUNDS,
   CLC_CURE_SELF, CLC_CONFUSE_YOU, CLC_PARALYZE, CLC_BLIND_YOU, CLC_INSECTS,
-  CLC_CURSE_ITEMS, CLC_LIGHTNING, CLC_FIRE_PILLAR, CLC_GEYSER,
+  CLC_CURSE_ITEMS, CLC_LIGHTNING, CLC_FIRE_PILLAR, CLC_GEYSER, MFAST,
 } from './const.js';
+import { mon_adjust_speed } from './worn.js';
 
 // cf. mcastu.c:48 — cursetxt(mtmp, vis)
 export function cursetxt(mtmp, vis) {
@@ -144,7 +145,8 @@ export function cast_wizard_spell(mtmp, dmg, spellid, player, map) {
       break;
     case MGC_HASTE_SELF:
       // Monster hastes itself
-      if (mtmp) mtmp.mspeed = 2; // fast
+      // C ref: mcastu.c:594 — mon_adjust_speed(mtmp, 1, NULL)
+      if (mtmp) mon_adjust_speed(mtmp, 1, null);
       break;
     case MGC_CURE_SELF:
       m_cure_self(mtmp, 0);
@@ -314,7 +316,8 @@ export function spell_would_be_useless(mtmp, aatyp, spellid) {
   if (aatyp === AT_MAGC) {
     switch (spellid) {
       case MGC_HASTE_SELF:
-        return mtmp.mspeed >= 2; // already fast
+        // C ref: mcastu.c:930 — checks permanent speed state.
+        return mtmp.permspeed === MFAST;
       case MGC_CURE_SELF:
         return mtmp.mhp >= mtmp.mhpmax; // already at full HP
       case MGC_DISAPPEAR:

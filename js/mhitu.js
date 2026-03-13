@@ -78,6 +78,7 @@ import { night } from './calendar.js';
 import { attrcurse } from './sit.js';
 import { pline, pline_mon, verbalize } from './pline.js';
 import { game as activeGame } from './gstate.js';
+import { fall_asleep } from './timeout.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
 
 // PIERCE imported from objects.js
@@ -521,11 +522,9 @@ async function mhitu_ad_slee(monster, attack, player, mhm, ctx) {
             // Sleep resistance — no effect
             return;
         }
-        // cf. fall_asleep(-rnd(10), TRUE)
-        if (game) {
-            game.multi = -rnd(10);
-            game.nomovemsg = 'You can move again.';
-        }
+        // C ref: uhitm.c mhitm_ad_slee() — fall_asleep(-rnd(10), TRUE)
+        // (sets multi/usleep/nomovemsg in one place).
+        fall_asleep(-rnd(10), true);
         if (!ctx.suppressHitMsg) {
             await ctx.display.putstr_message(
                 `You are put to sleep by ${x_monnam(monster)}!`
@@ -1297,6 +1296,20 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     let skipnonmagc = false;
     const sum = new Array(6).fill(M_ATTK_MISS); // C NATTK == 6
     const combatState = { skipdrin: false };
+    const postAttackTail = (attackResult) => {
+        // C ref: mhitu.c:936-942 — successful attack can wake sleeping hero.
+        if (attackResult === M_ATTK_HIT
+            && Number(player?.usleep || 0) > 0
+            && Number.isFinite(game?.moves)
+            && Number(player.usleep) < Number(game.moves)
+            && !rn2(10)) {
+            if (game) {
+                game.multi = -1;
+                game.nomovemsg = 'The combat suddenly awakens you.';
+            }
+        }
+        return !!(attackResult & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE));
+    };
 
     // C ref: mhitu.c:527-546 — mounted hero: attackers may target steed.
     if (player?.usteed) {
@@ -1359,20 +1372,28 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         if (range2) {
             if (attack.aatyp === AT_WEAP) {
                 // cf. mhitu.c:882-885 — AT_WEAP at range calls thrwmu
-                if (map) await thrwmu(monster, map, player, display, game);
+                sum[i] = map ? (await thrwmu(monster, map, player, display, game)) : M_ATTK_MISS;
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
                 continue;
             }
             if (attack.aatyp === AT_SPIT) {
-                if (map) await spitmu(monster, attack, map, player, display, game);
+                sum[i] = map ? (await spitmu(monster, attack, map, player, display, game)) : M_ATTK_MISS;
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
                 continue;
             }
             if (attack.aatyp === AT_BREA) {
-                if (map) await breamu(monster, attack, map, player, display, game);
+                sum[i] = map ? (await breamu(monster, attack, map, player, display, game)) : M_ATTK_MISS;
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
                 continue;
             }
             if (attack.aatyp === AT_MAGC) {
                 if (map) {
-                    await buzzmu(monster, attack, player, map);
+                    sum[i] = await buzzmu(monster, attack, player, map);
+                    if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                    if (postAttackTail(sum[i])) break;
                 }
                 continue;
             }
@@ -1382,7 +1403,9 @@ export async function mattacku(monster, player, display, game = null, opts = {})
 
         if (attack.aatyp === AT_MAGC) {
             const vis = !player?.blind && !(monster.minvis && !player?.seeInvisible);
-            await castmu(monster, attack, vis, foundyou, player, map);
+            sum[i] = await castmu(monster, attack, vis, foundyou, player, map);
+            if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+            if (postAttackTail(sum[i])) break;
             continue;
         }
 
@@ -1487,7 +1510,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // cf. mhitu.c:1192 — check if handler consumed the attack
         if (mhm.done) {
             sum[i] = mhm.hitflags || M_ATTK_HIT;
-            if (sum[i] & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE)) break;
+            if (postAttackTail(sum[i])) break;
             continue;
         }
 
@@ -1543,7 +1566,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // C ref: hitmu() returns M_ATTK_HIT for successful contact even when
         // post-effect damage is 0 (for example, rust/corrode touch attacks).
         sum[i] = mhm.hitflags || M_ATTK_HIT;
-        if (sum[i] & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE)) break;
+        if (postAttackTail(sum[i])) break;
     }
 }
 
