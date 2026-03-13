@@ -48,7 +48,10 @@ fi
 rm -rf coverage
 mkdir -p coverage
 
+runner_status=0
+
 if [[ ${#TYPE_ARGS[@]} -eq 0 ]]; then
+  set +e
   npx c8 \
     ${REPORTERS} \
     --report-dir=coverage \
@@ -56,11 +59,14 @@ if [[ ${#TYPE_ARGS[@]} -eq 0 ]]; then
     node test/comparison/session_test_runner.js \
       --no-parallel \
       "${RUNNER_ARGS[@]}"
+  runner_status=$?
+  set -e
 else
   # Collect coverage across selected types, then emit reports once.
   first=1
   for type_arg in "${TYPE_ARGS[@]}"; do
     if [[ $first -eq 1 ]]; then
+      set +e
       npx c8 \
         --clean \
         --reporter=none \
@@ -69,8 +75,11 @@ else
           --no-parallel \
           "${type_arg}" \
           "${RUNNER_ARGS[@]}"
+      run_status=$?
+      set -e
       first=0
     else
+      set +e
       npx c8 \
         --clean=false \
         --reporter=none \
@@ -79,6 +88,12 @@ else
           --no-parallel \
           "${type_arg}" \
           "${RUNNER_ARGS[@]}"
+      run_status=$?
+      set -e
+    fi
+
+    if [[ ${run_status:-0} -ne 0 ]]; then
+      runner_status=$run_status
     fi
   done
 
@@ -95,3 +110,10 @@ node scripts/annotate-session-parity-coverage.mjs coverage
 
 echo ""
 echo "Coverage report written to: coverage/index.html"
+
+if [[ $runner_status -ne 0 ]]; then
+  echo ""
+  echo "Session replay coverage run had failing sessions (exit ${runner_status}), but coverage artifacts were still generated." >&2
+fi
+
+exit $runner_status
