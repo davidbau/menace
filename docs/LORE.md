@@ -10053,3 +10053,54 @@ Validation:
     - remaining screen mismatch is a late status-line timing difference during
       the death/`--More--` sequence (`HP:0` shown one frame earlier in JS)
     - remaining cursor mismatch still starts at step `378`
+
+## 2026-03-13 16:15 - lifesave stop must not cut off later movemon passes in the same monster phase
+
+- Context:
+  - After fixing the inner `mattacku()` abort, `t11_s744_w_covmax2_gp` moved
+    to a new frontier at step `480`.
+  - C was still processing the kitten's second movement slice in the same
+    monster phase:
+    - `^movemon_turn[32@7,4 mv=12->0]`
+    - `distfleeck`
+    - `dog_invent_decision`
+    - `dog_goal_*`
+  - JS instead jumped straight into turn-end movement allocation:
+    - `rn2(12)=... @ allocateMonsterMovement(mon.js:145)`
+    - `^mcalcmove[...]`
+- Evidence:
+  - After the first kitten/newt exchange, JS runtime state still had:
+    - kitten `movement=12`
+    - `multi=-1`
+    - `nomovemsg="You survived that attempt on your life."`
+  - So the remaining kitten turn was genuinely pending, not missing from state.
+  - The early jump came from `moveloop_core()`, not `dog_move()`:
+    - JS honored `_stopMoveloopAfterLifesave` immediately after one `movemon()`
+      pass, even when `movemon()` returned `monscanmove=true`.
+- Root cause:
+  - The lifesave stop flag was still being applied too early between `movemon()`
+    passes inside the same "hero can't move this turn" monster loop.
+  - C `savelife()` sets `context.move=0`, but the current monster loop still
+    drains already-allocated monster movement before turn-end.
+- Fix:
+  - In `js/allmain.js`, only honor `_stopMoveloopAfterLifesave` after
+    `movemon()` when `monscanmove` is false.
+  - If monsters still have movement left, keep draining the current monster
+    phase first; stop only before the next command cycle.
+- Validation:
+  - `t11_s744_w_covmax2_gp.session.json` improved again:
+    - RNG matched: `3262/11024 -> 9807/11227`
+    - events matched: `168/1782 -> 949/1761`
+    - screens matched: `560/892 -> 691/892`
+    - first RNG divergence moved: step `480 -> 667`
+  - Guardrail sessions stayed green:
+    - `seed031_manual_direct`: pass
+    - `seed032_manual_direct`: pass
+    - `seed033_manual_direct`: pass
+    - `scripts/run-and-report.sh --failures`: `Gameplay: 213/213 passing, 0 failing`
+- Practical lesson:
+  - There are two distinct lifesave stop hazards:
+    1. aborting the current monster's inner `mattacku()` loop,
+    2. aborting later `movemon()` passes in the same monster phase.
+  - C does neither. Life-saving only suppresses the next command-cycle start
+    after the current monster phase and turn-end work have drained.
