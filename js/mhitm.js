@@ -25,12 +25,12 @@ import { cansee } from './vision.js';
 import {
     x_monnam,
     touch_petrifies, unsolid, resists_fire, resists_cold,
-    resists_elec, resists_acid, resists_sleep, resists_ston,
+    resists_elec, resists_acid, resists_sleep, resists_ston, defended,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
     DEADMONSTER,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
-import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX } from './monsters.js';
+import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
@@ -43,6 +43,7 @@ import { mhurtle, will_hurtle } from './dothrow.js';
 import { find_mac } from './worn.js';
 import { mon_wield_item, possibly_unwield, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
+import { resist } from './zap.js';
 
 // NATTK, STRAT_WAITFORU imported from const.js
 let farNoise = false;
@@ -205,8 +206,11 @@ export function paralyze_monst(mon, amt) {
 
 // cf. mhitm.c:1222 — sleep_monst(mon, amt, how)
 export function sleep_monst(mon, amt, how) {
-    if (resists_sleep(mon)) return 0;
-    if (mon.mcanmove !== false) {
+    if (resists_sleep(mon) || defended(mon, AD_SLEE)
+        || (how >= 0 && resist(mon, how))) {
+        return 0;
+    }
+    if (mon.mcanmove) {
         amt += (mon.mfrozen || 0);
         if (amt > 0) {
             mon.mcanmove = false;

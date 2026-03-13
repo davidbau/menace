@@ -2446,6 +2446,7 @@ export function seeWithInfraredForMap(mon, map, player) {
 // C ref: display.h _canseemon(mon)
 export function canSeeMonsterForMap(mon, map, player, fov) {
     if (!mon || !map || !player) return false;
+    if (playerBlind(player)) return false;
     const locSeen = mon.wormno
         ? worm_known(mon, map, player, fov)
         : (cansee(map, player, fov, mon.mx, mon.my)

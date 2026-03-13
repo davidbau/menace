@@ -9623,3 +9623,38 @@ Validation:
   - Around steps 396–401 in `hi11`, command/prompt boundary work distribution is shifted across `--More--` + `Die? [yn]`.
   - Observed pattern: JS consumes monster-turn RNG two keys earlier than C in that region.
   - Likely hotspot: blocking prompt paths (`done()` -> `ynFunction`) interacting with replay key delivery cadence.
+
+## 2026-03-13: blind monster visibility and debug mapdump pet state
+
+- Context:
+  - Pending coverage session `pnd_s1200_w_potprayspell_gp` improved after
+    auditing explicit-search behavior while blind and hallucinating.
+  - JS debug mapdumps were also misreporting pet tameness, which made state
+    comparisons around pet AI look worse than the actual gameplay state.
+- Fixes:
+  - `js/display.js`
+    - `canSeeMonsterForMap()` now returns `false` when the hero is blind.
+    - This matches C `_canseemon(mon)` behavior and prevents blind search from
+      incorrectly treating adjacent monsters as already visible.
+  - `js/dungeon.js`
+    - JS compact mapdumps now export monster tameness from `mon.mtame`, not the
+      legacy boolean-ish `mon.tame`.
+    - This is observability-only, but it matters: pet-state diffs in section
+      `N` now reflect the runtime `mtame` value instead of a misleading `0`.
+- Validation:
+  - `pnd_s1200_w_potprayspell_gp` improved earlier in the search tranche:
+    - RNG matched `2770 -> 2775`
+    - events matched `195 -> 226`
+    - first divergence moved `866 -> 868`
+  - Tooling-only `mtame` fix does not change parity metrics for the pending
+    session; it only makes debug mapdump comparisons trustworthy.
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains pass.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` remains at the same late frontier.
+- Important debugging lesson:
+  - For this pending session, the remaining apparent `dosearch0()` mismatch was
+    not caused by JS skipping the blind-search monster path. Temporary tracing
+    showed JS does call `mfind0()` and correctly suppresses repeated discovery
+    on remembered invisible squares.
+  - The comparison artifact’s later drift points deeper into turn-distribution
+    / pet-movement ordering, so do not keep pushing on `dosearch0()` without
+    fresher evidence.

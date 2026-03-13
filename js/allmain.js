@@ -2290,6 +2290,13 @@ export class NetHackGame {
         }
 
         const firstCh = await nhgetch({ commandBoundary: true });
+        // Command-boundary --More-- dismissal is not a gameplay command.
+        // nhgetch() has already advanced the topline state, so avoid a full
+        // docrt() pass which can re-randomize hallucination glyphs on
+        // prompt-only frames.
+        if (firstCh === 0) {
+            return;
+        }
         const commandResult = await this.runOneCommandCycle(firstCh);
         if (!commandResult) return;
         this.renderAndAutosave({ commandResult, autosave: true });
