@@ -48,6 +48,7 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          PLATINUM, MITHRIL, GLASS, GEMSTONE, MINERAL,
          STRANGE_OBJECT, BOULDER, STATUE, FIGURINE, EGG,
          SCR_FIRE, BAG_OF_HOLDING,
+         POT_OIL, SPE_FIREBALL, RIN_SHOCK_RESISTANCE,
          SCR_MAGIC_MAPPING,
          ROCK, DWARVISH_CLOAK, CHEST, LARGE_BOX, TIN,
          SPE_DIG,
@@ -90,7 +91,7 @@ import {
   mon_set_minvis,
   which_armor,
 } from './worn.js';
-import { erode_obj, t_at } from './trap.js';
+import { erode_obj, t_at, ignite_items } from './trap.js';
 import { game as _gstate } from './gstate.js';
 import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
@@ -352,10 +353,10 @@ function zhitm(mon, type, nd, map) {
         }
         tmp = c_d(nd, 6);
         if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
-        // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) { destroy_items } }
+        // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) destroy_items(mtmp, AD_FIRE, tmp); }
         if (burnarmor(mon)) {
             if (!rn2(3)) {
-                // destroy_items — stub: item destruction not ported
+                destroy_items_rng_only(mon, AD_FIRE, tmp, null);
             }
         }
         break;
@@ -366,7 +367,7 @@ function zhitm(mon, type, nd, map) {
         tmp = c_d(nd, 6);
         if (mdat.mresists & MR_FIRE) tmp += c_d(nd, 3); // fire-resistant takes extra cold
         if (!rn2(3)) {
-            // destroy_items
+            destroy_items_rng_only(mon, AD_COLD, tmp, null);
         }
         break;
     case ZT_SLEEP:
@@ -732,17 +733,55 @@ export function destroy_mitem(mon, osym, dmgtyp) {
   return cnt;
 }
 
+// C ref: zap.c destroy_items() — RNG-faithful subset used by zap damage paths.
+// This preserves the key RNG structure (limit roll + reservoir sampling +
+// per-stack maybe_destroy_item) without full inventory mutation semantics.
+export function destroy_items_rng_only(mon, dmgtyp, dmg_in, player = null) {
+  if (!mon) return 0;
+  const inventory = Array.isArray(mon.minvent)
+    ? mon.minvent
+    : (Array.isArray(mon.inventory) ? mon.inventory : []);
+  let limit = Math.floor((dmg_in || 0) / 5);
+  if (((dmg_in || 0) % 5) > rn2(5)) {
+    limit++;
+  }
+  if (limit > 20) limit = 20;
+  if (limit < 1) return 0;
+
+  let elig_stacks = 0;
+  const picks = new Array(limit).fill(null);
+  for (const obj of inventory) {
+    if (obj?.oartifact) continue;
+    if (!obj || !destroyable_by(obj, dmgtyp)) continue;
+    const i = (elig_stacks < limit) ? elig_stacks : rn2(elig_stacks);
+    elig_stacks++;
+    if (i >= 0 && i < limit) picks[i] = obj;
+  }
+  const chosen = Math.min(elig_stacks, limit);
+  let dmg_out = 0;
+  for (let i = 0; i < chosen; i++) {
+    if (!picks[i]) continue;
+    dmg_out += maybe_destroy_item(picks[i], dmgtyp, player);
+  }
+  return dmg_out;
+}
+
 // Check if object is destroyable by damage type
 function destroyable_by(obj, dmgtyp) {
+  if (!obj) return false;
+  if (obj.oartifact) return false;
+  if (obj.in_use && Number(obj.quan || 1) === 1) return false;
   if (dmgtyp === AD_FIRE) {
-    return obj.oclass === POTION_CLASS || obj.oclass === SCROLL_CLASS ||
-           obj.oclass === SPBOOK_CLASS;
+    if (obj.otyp === SCR_FIRE || obj.otyp === SPE_FIREBALL) return false;
+    return obj.oclass === POTION_CLASS || obj.oclass === SCROLL_CLASS
+      || obj.oclass === SPBOOK_CLASS;
   }
   if (dmgtyp === AD_COLD) {
-    return obj.oclass === POTION_CLASS;
+    return obj.oclass === POTION_CLASS && obj.otyp !== POT_OIL;
   }
   if (dmgtyp === AD_ELEC) {
-    return obj.oclass === RING_CLASS || obj.oclass === WAND_CLASS;
+    if (obj.oclass !== RING_CLASS && obj.oclass !== WAND_CLASS) return false;
+    return obj.otyp !== RIN_SHOCK_RESISTANCE && obj.otyp !== WAN_LIGHTNING;
   }
   return false;
 }
@@ -1329,16 +1368,20 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
             && player.cloak.otyp === CLOAK_OF_MAGIC_RESISTANCE;
           const antimagic = hasProp(ANTIMAGIC) || !!player?.Antimagic || !!player?.antimagic || antimagicFromCloak;
           let dam = 0;
+          let origDam = 0;
           if (damgtype === ZT_MAGIC_MISSILE) {
             if (!antimagic) dam = c_d(nd, 6);
           } else if (damgtype === ZT_FIRE) {
             const orig = c_d(nd, 6);
+            origDam = orig;
             if (!hasProp(FIRE_RES)) dam = orig;
           } else if (damgtype === ZT_COLD) {
             const orig = c_d(nd, 6);
+            origDam = orig;
             if (!hasProp(COLD_RES)) dam = orig;
           } else if (damgtype === ZT_LIGHTNING) {
             const orig = c_d(nd, 6);
+            origDam = orig;
             if (!hasProp(SHOCK_RES)) dam = orig;
           } else if (damgtype === ZT_ACID) {
             if (!hasProp(ACID_RES)) dam = c_d(nd, 6);
@@ -1353,12 +1396,17 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           if (damgtype === ZT_MAGIC_MISSILE) {
             exercise(player, A_STR, false);
           } else if (damgtype === ZT_FIRE) {
-            if (burnarmor(player, player) || rn2(3)) { /* destroy_items stub */ }
+            // C ref: zap.c zhitu() fire path:
+            // if (burnarmor(&youmonst)) { if (!rn2(3)) destroy_items; if (!rn2(3)) ignite_items; }
+            if (burnarmor(player, player)) {
+              if (!rn2(3)) destroy_items_rng_only(player, AD_FIRE, origDam, player);
+              if (!rn2(3)) ignite_items(player, _gstate);
+            }
           } else if (damgtype === ZT_COLD) {
-            if (!rn2(3)) { /* destroy_items stub */ }
+            if (!rn2(3)) destroy_items_rng_only(player, AD_COLD, origDam, player);
           } else if (damgtype === ZT_LIGHTNING) {
             exercise(player, A_CON, false);
-            if (!rn2(3)) { /* destroy_items stub */ }
+            if (!rn2(3)) destroy_items_rng_only(player, AD_ELEC, origDam, player);
           } else if (damgtype === ZT_ACID) {
             exercise(player, A_STR, false);
           }
@@ -2362,9 +2410,27 @@ export function maybe_destroy_item(obj, dmgtyp, player) {
   if (player && inventory_resistance_check(dmgtyp, player)) return 0;
   if (!destroyable_by(obj, dmgtyp)) return 0;
   if (obj.in_use && Number(obj.quan || 1) === 1) return 0;
+  let itemDamage = 0;
+  if (dmgtyp === AD_FIRE) {
+    if (obj.oclass === POTION_CLASS) {
+      itemDamage = rnd(6); // C ref: maybe_destroy_item() fire potion damage roll
+    }
+  } else if (dmgtyp === AD_ELEC) {
+    if (obj.oclass === RING_CLASS) {
+      // C ref: charged rings may recharge instead of destruction.
+      if (objects[obj.otyp]?.oc_charged && rn2(3)) return 0;
+    } else if (obj.oclass === WAND_CLASS) {
+      itemDamage = rnd(10); // C ref: maybe_destroy_item() electric wand damage roll
+    }
+  }
   let cnt = 0;
   const quan = Number(obj.quan || 1);
   for (let i = 0; i < quan; i++) if (!rn2(3)) cnt++;
+  // C maybe_destroy_item() applies damage side effects for player-carried
+  // exploding items; keep the attribute exercise RNG path aligned.
+  if (player && cnt > 0 && itemDamage > 0) {
+    exercise(player, A_STR, false);
+  }
   return cnt;
 }
 

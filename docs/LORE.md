@@ -9572,3 +9572,36 @@ Validation:
 - Remaining gap:
   - Post-lifesave work distribution still drifts in `hi11` around step `388`
     (`zhitu`-tail timing/order versus next zap cycle).
+
+### 2026-03-13 `hi11` zap tranche: destroy-items RNG flow port (zhitu paths)
+
+- Scope:
+  - Continued issue `#361` on `hi11_seed1100_wiz_zap-deep_gameplay`.
+  - Ported additional `zap.c` `zhitu` item-destruction RNG/dataflow.
+- C-faithful updates in `js/zap.js`:
+  - Added `destroy_items_rng_only(...)` with C-style limit/reservoir RNG shape:
+    - `limit` from `dmg/5` + `rn2(5)` threshold,
+    - `rn2(elig_stacks)` sampling for eligible stacks,
+    - `maybe_destroy_item(...)` per selected stack.
+  - Wired `destroy_items_rng_only(...)` into:
+    - player `ZT_FIRE`, `ZT_COLD`, `ZT_LIGHTNING` hit paths,
+    - monster `ZT_FIRE`, `ZT_COLD` hit paths.
+  - Tightened `destroyable_by()` to C eligibility:
+    - excludes artifacts and single-quantity in-use objects,
+    - fire immunity: `SCR_FIRE`, `SPE_FIREBALL`,
+    - cold excludes `POT_OIL`,
+    - electric excludes `RIN_SHOCK_RESISTANCE`, `WAN_LIGHTNING`.
+  - Added `maybe_destroy_item(...)` pre-rolls aligned to C:
+    - `AD_FIRE` potion `rnd(6)`,
+    - `AD_ELEC` wand `rnd(10)`,
+    - charged ring `rn2(3)` recharge gate.
+  - Added player-side attribute-exercise RNG side effect for damaging item
+    destruction to keep order near C `maybe_destroy_item` closer.
+- Validation:
+  - `hi11`: first RNG divergence advanced `2613 -> 2667`;
+    matched RNG improved to `2670/3469`; matched events improved to `161/609`.
+  - `hi10`: remains full pass.
+- Remaining gap:
+  - first mismatch now appears later at step `401`
+    (`discoverObject(...)` ahead of C monster-turn `exercise(...)` tail), so
+    remaining work is primarily post-zap turn-distribution ordering.
