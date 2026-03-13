@@ -696,7 +696,7 @@ export async function handleZap(player, map, display, game) {
         if (display && dirPrompt) {
             await display.putstr_message(dirPrompt);
             if (typeof display.setCursor === 'function') {
-                display.setCursor(Math.min(dirPrompt.length, (display.cols || 80) - 1), 0);
+                display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
             }
         }
         if (game) {

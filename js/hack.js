@@ -3803,7 +3803,7 @@ export async function getdir(prompt, display) {
     if (display && dirPrompt) {
         await display.putstr_message(dirPrompt);
         if (typeof display.setCursor === 'function') {
-            display.setCursor(Math.min(dirPrompt.length, (display.cols || 80) - 1), 0);
+            display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
         }
     }
     const ch = await nhgetch();

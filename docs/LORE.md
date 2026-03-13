@@ -10172,6 +10172,29 @@ Validation:
   - `hi10_seed1090_wiz_potion-deep_gameplay` stayed fully green.
   - `t11_s744_w_covmax2_gp` was unchanged versus clean `5382cfce` baseline.
 
+## 2026-03-13 - `getdir()` prompt cursor sits one column past the visible prompt text
+
+- Context:
+  - After restoring `hi11` gameplay parity, the remaining mismatch on that seed
+    was cursor-only at step `378`:
+    - C cursor `[19,0,1]`
+    - JS cursor `[18,0,1]`
+    - topline text in both cases: `In what direction?`
+- C behavior:
+  - `getdir()` delegates to `yn_function(...)`.
+  - TTY prompt handling leaves the cursor one column past the visible prompt,
+    even when the saved topline text does not include a trailing space.
+- JS bug:
+  - the direct `getdir()` prompt owners in `js/hack.js` and `js/zap.js` were
+    setting the cursor at `dirPrompt.length`, one column too early.
+- Fix:
+  - set the direction-prompt cursor at `dirPrompt.length + 1` in those two
+    explicit prompt-owner paths.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` improved cursor parity from `431/439`
+    to `435/439`; first cursor divergence moved from step `378` to step `412`.
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remained fully green.
+
 ## 2026-03-13 - `wizard.c:cuss()` uses `com_pager("demon_cuss")`, not a fixed fallback line
 
 - Session: `t11_s744_w_covmax2_gp`
