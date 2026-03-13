@@ -10143,3 +10143,34 @@ Validation:
     - `seed031_manual_direct`
     - `seed032_manual_direct`
     - `seed033_manual_direct`
+## 2026-03-13 - `wizard.c:cuss()` uses `com_pager("demon_cuss")`, not a fixed fallback line
+
+- Session: `t11_s744_w_covmax2_gp`
+- Symptom: after fixing the earlier `MMOVE_MOVED` fallthrough, the new first RNG
+  divergence at step 722 looked like missing quest-style pager RNG:
+  `rn2(3), rn2(2), rn2(27)`.
+- Root cause: this was not quest-portal logic. The session screen at the next
+  step showed a quoted taunt:
+  `"Thou hadst best fight better than thou canst dress!"`
+  That comes from `wizard.c:cuss()` -> `com_pager("demon_cuss")`.
+- C behavior:
+  - non-wizard demons/minions sometimes call `com_pager("demon_cuss")`
+  - `com_pager_core()` loads `quest.lua` through the Lua pager path
+  - that path pays the usual `nhlib.lua` startup RNG toll `rn2(3), rn2(2)`
+    before selecting an entry from the `demon_cuss` array with `rn2(27)`
+- JS bug:
+  - `js/wizard.js` still collapsed both `angel_cuss` and `demon_cuss` into the
+    placeholder line `casts aspersions on your ancestry.`
+  - so JS consumed the branch-gating RNG but skipped the real common-pager RNG
+    and text selection
+- Fix:
+  - wire `wizard.cuss()` to `questpgr.com_pager(...)`
+  - give `js/questpgr.js` a real common-section pager path for
+    `angel_cuss`/`demon_cuss`
+  - preserve the C pager RNG shape by consuming `rn2(3), rn2(2)` before the
+    array-selection `rn2(n)`
+- Result:
+  - `t11_s744_w_covmax2_gp` improved from RNG `9969/11024` to `9978/11024`
+  - screen parity improved from `693/892` to `711/892`
+  - cursor parity improved from `682/692` to `698/710`
+  - the first RNG divergence moved later, from step `722` to step `734`

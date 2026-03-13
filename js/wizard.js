@@ -54,6 +54,7 @@ import { builds_up, In_endgame, In_W_tower, In_hell, Is_astralevel, Is_rogue_lev
 import { inhistemple } from './priest.js';
 import { inhishop } from './shk.js';
 import { game as _gstate } from './gstate.js';
+import { com_pager } from './questpgr.js';
 
 // Strategy constants imported from const.js (monst.h)
 
@@ -907,14 +908,12 @@ export async function cuss(mtmp, map, player) {
         }
     } else if (is_lminion(mtmp)
                && !(mtmp.isminion && mtmp.emin && mtmp.emin.renegade)) {
-        // C: com_pager("angel_cuss") — quest text system not ported
-        await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+        await com_pager("angel_cuss");
     } else {
         if (!rn2(is_minion(mptr(mtmp)) ? 100 : 5))
             await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
         else {
-            // C: com_pager("demon_cuss") — quest text system not ported
-            await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+            await com_pager("demon_cuss");
         }
     }
 
