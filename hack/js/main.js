@@ -280,7 +280,9 @@ export async function gameLoop(seed, skipInit = false) {
     }
 
     game.flags.move = true;
-    game.flags.mdone = false;
+    // C: flags.mdone is NOT reset here — only parse() resets it (after reading next key).
+    // This means mdone persists across run-mode iterations, matching C behavior:
+    // the last run step (hitting a wall) sees mdone=true from the previous step → pru() draws '@'.
 
     if (!game.multi) {
       if (game.flags.dscr) nscr();
