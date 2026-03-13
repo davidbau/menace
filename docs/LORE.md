@@ -41,6 +41,25 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-10)
 
+## Recent Findings (2026-03-13)
+
+### Off-FOV map rendering must not synthesize trap glyphs from live trap state
+
+A wizard-session screen drift (`seed326`, first at step 1) was caused by the
+off-FOV renderer drawing `^` directly from `trap.tseen` in hidden cells.
+That is too eager: for unseen cells, display should rely on remembered glyphs
+already mapped into location memory (`loc.mem_trap`), not query live trap
+structures each frame.
+
+Fix:
+1. Remove off-FOV trap synthesis paths that converted `trap.tseen` into
+   immediate `loc.mem_trap` display glyphs.
+2. Keep visible-cell trap rendering unchanged (`trap.tseen` still controls
+   whether a visible trap draws).
+
+Result: seed326 screen parity improved substantially (from 240/507 to 432/507)
+without RNG/event regressions.
+
 ### `v` command output should be real project version text, not captured literals
 
 We had a hardcoded C-capture artifact in `cmd.js` for `v` (version):

@@ -1756,6 +1756,8 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
         await withFinalizeContext({
             dnum: where.dnum,
             dlevel: where.dlevel,
+            dunlev: Number.isInteger(depth) ? depth : where.dlevel,
+            dunlevs: dunlevs_in_dungeon(where.dnum),
             specialName,
             isBranchLevel: isBranchLevel(where.dnum, where.dlevel),
         }, async () => {
@@ -2785,7 +2787,20 @@ export function mktrap(map, num, mktrapflags, croom, tm, depth) {
         if (!loc || IS_POOL(loc.typ) || IS_LAVA(loc.typ)) return;
     }
 
-    const lvl = depth;
+    // C ref: mklev.c mktrap() uses level_difficulty(), not raw map depth.
+    // During level generation, prefer generation coordinates when available.
+    const genDnum = Number.isInteger(map?._genDnum) ? map._genDnum : null;
+    const genDlevel = Number.isInteger(map?._genDlevel) ? map._genDlevel : null;
+    const explicitDepth = Number.isInteger(depth) && depth > 0 ? depth : null;
+    const levForDifficulty = (genDnum !== null && genDlevel !== null)
+        ? { dnum: genDnum, dlevel: genDlevel }
+        : (map?.uz || _gstate?.uz || {
+            dnum: DUNGEONS_OF_DOOM,
+            dlevel: (explicitDepth ?? 1)
+        });
+    const lvl = (explicitDepth !== null)
+        ? explicitDepth
+        : level_difficulty(levForDifficulty);
     let kind = mktrap_pick_kind(map, num, depth, mktrapflags);
 
     // C ref: mklev.c mktrap() — holes/trapdoors become ROCKTRAP when
@@ -4871,6 +4886,8 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                 await withFinalizeContext({
                     dnum: useDnum,
                     dlevel: useDlevel,
+                    dunlev: depth,
+                    dunlevs: dunlevs_in_dungeon(useDnum),
                     specialName,
                     isBranchLevel: isBranchLevel(useDnum, useDlevel),
                 }, async () => {
