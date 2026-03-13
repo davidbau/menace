@@ -1278,7 +1278,7 @@ export function cost_per_charge(shkp, otmp, altusage, map) {
 }
 
 // C ref: shk.c:5623 check_unpaid_usage()
-export function check_unpaid_usage(otmp, altusage, map) {
+export async function check_unpaid_usage(otmp, altusage, map) {
     if (!otmp.unpaid) return;
 
     const rooms = in_rooms(map, otmp.ox || 0, otmp.oy || 0, SHOPBASE);
@@ -1310,15 +1310,15 @@ export function check_unpaid_usage(otmp, altusage, map) {
     }
 
     if (!muteshk(shkp)) {
-        void verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);
+        await verbalize(`${arg1}${arg2}Usage fee, ${tmp} zorkmid${tmp !== 1 ? 's' : ''}.`);
     }
 
     shkp.debit = (shkp.debit || 0) + tmp;
 }
 
 // C ref: shk.c check_unpaid()
-export function check_unpaid(otmp, map) {
-    check_unpaid_usage(otmp, false, map);
+export async function check_unpaid(otmp, map) {
+    await check_unpaid_usage(otmp, false, map);
 }
 
 // ============================================================
@@ -1887,10 +1887,10 @@ function menu_pick_pay_items(_ibillct, ibill) {
 }
 
 // C ref: shk.c reject_purchase()
-function reject_purchase(shkp, obj, quantity) {
+async function reject_purchase(shkp, obj, quantity) {
     const name = doname(obj, _gstate?.player || null);
     const qty = Number(quantity || obj?.quan || 1);
-    void pline("%s declines to sell %ld %s.", Shknam(shkp), qty, name);
+    await pline("%s declines to sell %ld %s.", Shknam(shkp), qty, name);
 }
 
 // C ref: shk.c insufficient_funds()
@@ -1929,7 +1929,7 @@ async function dopayobj(shkp, bp, obj, which, itemize, _sightunseen) {
 
     let buy = PAY_BUY;
     if (quan < Number(bp.bquan || 0) && !consumed) {
-        reject_purchase(shkp, obj, Number(bp.bquan || 0));
+        await reject_purchase(shkp, obj, Number(bp.bquan || 0));
         buy = PAY_SKIP;
     }
     if (buy === PAY_BUY && insufficient_funds(shkp, obj, ltmp)) {
@@ -1970,7 +1970,7 @@ async function buy_container(shkp, indx, ibillct, ibill) {
         while (top?.where === OBJ_CONTAINED && top.ocontainer) top = top.ocontainer;
         if (top !== container) continue;
         if (Number(otmp.quan || 0) < Number(bp.bquan || 0)) {
-            reject_purchase(shkp, otmp, Number(bp.bquan || 0));
+            await reject_purchase(shkp, otmp, Number(bp.bquan || 0));
             return 1;
         }
         if (bp.bo_id !== container.o_id) boids.push(bp.bo_id);
@@ -2185,7 +2185,7 @@ export function add_damage(x, y, cost, map, moves) {
 }
 
 // C ref: shk.c pay_for_damage()
-export function pay_for_damage(dmgstr, cant_mollify, map, player, moves) {
+export async function pay_for_damage(dmgstr, cant_mollify, map, player, moves) {
     if (!map || !player) return;
     const damagelist = map._damagelist || [];
 
@@ -2213,15 +2213,15 @@ export function pay_for_damage(dmgstr, cant_mollify, map, player, moves) {
     }
 
     shkp.customer = player.name || '';
-    getcad(shkp, dmgstr, player.x, player.y, true, false, true);
+    await getcad(shkp, dmgstr, player.x, player.y, true, false, true);
     hot_pursuit(shkp);
 }
 
 // C ref: shk.c getcad() -- verbal rebuke helper
-function getcad(shkp, dmgstr, _x, _y, _uinshop, _animal, _pursue) {
+async function getcad(shkp, dmgstr, _x, _y, _uinshop, _animal, _pursue) {
     if (!shkp || muteshk(shkp)) return;
     const offense = dmgstr || 'that';
-    void verbalize("Cad!  You did %s!", offense);
+    await verbalize("Cad!  You did %s!", offense);
 }
 
 // C ref: shk.c shopdig()
@@ -2541,13 +2541,13 @@ export function finish_paybill() {
 // ============================================================
 
 // C ref: shk.c credit_report()
-export function credit_report(shkp, idx, silent) {
+export async function credit_report(shkp, idx, silent) {
     void idx;
     if (!shkp) return;
     if (!silent) {
         const credit = Number(shkp.credit || 0);
         const debt = Number(shop_debt(shkp) || 0);
-        void pline("%s has credit=%ld debt=%ld.", Shknam(shkp), credit, debt);
+        await pline("%s has credit=%ld debt=%ld.", Shknam(shkp), credit, debt);
     }
 }
 
@@ -2605,7 +2605,7 @@ export async function u_left_shop(leaveroom, newlev, map, player) {
 // ============================================================
 
 // C ref: shk.c pick_pick() -- called when removing pick from container
-export function pick_pick(obj, map) {
+export async function pick_pick(obj, map) {
     if (!obj || obj.unpaid || !is_pick(obj)) return;
     const player = _gstate?.player || null;
     if (!player || !map) return;
@@ -2613,7 +2613,7 @@ export function pick_pick(obj, map) {
     if (!rooms.length) return;
     const shkp = shop_keeper(map, rooms[0]);
     if (!shkp || muteshk(shkp)) return;
-    void verbalize("Careful with that pick-axe!");
+    await verbalize("Careful with that pick-axe!");
 }
 
 function is_pick(obj) {

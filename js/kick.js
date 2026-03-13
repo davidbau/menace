@@ -122,7 +122,7 @@ export async function handleKick(player, map, display, game) {
             if (shopdoor) {
                 // C ref: dokick.c:953-956
                 add_damage(nx, ny, 400, map, game?.moves ?? 0);
-                pay_for_damage('break', false, map, player, game?.moves ?? 0);
+                await pay_for_damage('break', false, map, player, game?.moves ?? 0);
             }
             // C ref: dokick.c:957-958 — in_town() then get_iter_mons(watchman_thief_arrest)
             if (in_town(nx, ny, map)) {

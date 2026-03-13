@@ -931,7 +931,7 @@ export async function zap_dig(map, player) {
     }
 
     if (shopdoor || shopwall) {
-        pay_for_damage(shopdoor ? 'destroy' : 'dig into', false, map, player, _gstate?.moves || 0);
+        await pay_for_damage(shopdoor ? 'destroy' : 'dig into', false, map, player, _gstate?.moves || 0);
     }
 }
 
@@ -1366,7 +1366,7 @@ export async function dig(map, player) {
             _gstate?.display?.putstr_message?.(digtxt);
         }
         if (dmgtxt) {
-            pay_for_damage(dmgtxt, false, map, player, _gstate?.moves || 0);
+            await pay_for_damage(dmgtxt, false, map, player, _gstate?.moves || 0);
         }
 
         // Earth level: rn2(3), rn2(2) for earth elemental

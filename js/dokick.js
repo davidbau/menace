@@ -1218,7 +1218,7 @@ async function kick_door(x, y, avrg_attrib, maploc, player, map, game) {
         recalc_block_point(x, y);
         if (shopdoor) {
             add_damage(x, y, SHOP_DOOR_COST, map, game.moves);
-            pay_for_damage("break", false, map, player, game.moves);
+            await pay_for_damage("break", false, map, player, game.moves);
         }
         if (in_town(x, y, map))
             await get_iter_mons(async (m) => await watchman_thief_arrest(m), map);
