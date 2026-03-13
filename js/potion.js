@@ -15,7 +15,10 @@ import { POTION_CLASS, POT_WATER,
          POT_ENLIGHTENMENT, POT_FRUIT_JUICE,
          POT_MONSTER_DETECTION, POT_OBJECT_DETECTION,
          STRANGE_OBJECT, UNICORN_HORN, AMETHYST,
-         COIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS } from './objects.js';
+         COIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS,
+         SPE_HASTE_SELF, SPE_DETECT_TREASURE, SPE_DETECT_MONSTERS,
+         SPE_LEVITATION, SPE_RESTORE_ABILITY, SPE_INVISIBILITY,
+         } from './objects.js';
 import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          TIMEOUT, CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES,
          SICK, SICK_RES, DEAF,
@@ -1211,6 +1214,7 @@ export async function peffect_oil(player, otmp, display) {
 async function peffects(player, otmp, display, map) {
     switch (otmp.otyp) {
     case POT_RESTORE_ABILITY:
+    case SPE_RESTORE_ABILITY:
         await peffect_restore_ability(player, otmp, display); break;
     case POT_HALLUCINATION:
         await peffect_hallucination(player, otmp, display); break;
@@ -1221,6 +1225,7 @@ async function peffects(player, otmp, display, map) {
     case POT_ENLIGHTENMENT:
         await peffect_enlightenment(player, otmp, display); break;
     case POT_INVISIBILITY:
+    case SPE_INVISIBILITY:
         await peffect_invisibility(player, otmp, display); break;
     case POT_SEE_INVISIBLE:
     case POT_FRUIT_JUICE:
@@ -1230,9 +1235,11 @@ async function peffects(player, otmp, display, map) {
     case POT_SLEEPING:
         await peffect_sleeping(player, otmp, display); break;
     case POT_MONSTER_DETECTION:
+    case SPE_DETECT_MONSTERS:
         if (await peffect_monster_detection(otmp, map, player)) return 1;
         break;
     case POT_OBJECT_DETECTION:
+    case SPE_DETECT_TREASURE:
         if (await peffect_object_detection(otmp, player)) return 1;
         break;
     case POT_SICKNESS:
@@ -1242,6 +1249,7 @@ async function peffects(player, otmp, display, map) {
     case POT_GAIN_ABILITY:
         await peffect_gain_ability(player, otmp, display); break;
     case POT_SPEED:
+    case SPE_HASTE_SELF:
         await peffect_speed(player, otmp, display); break;
     case POT_BLINDNESS:
         await peffect_blindness(player, otmp, display); break;
@@ -1254,6 +1262,7 @@ async function peffects(player, otmp, display, map) {
     case POT_FULL_HEALING:
         await peffect_full_healing(player, otmp, display); break;
     case POT_LEVITATION:
+    case SPE_LEVITATION:
         await peffect_levitation(otmp, map, player); break;
     case POT_GAIN_ENERGY:
         await peffect_gain_energy(player, otmp, display); break;

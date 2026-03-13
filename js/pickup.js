@@ -841,7 +841,7 @@ async function out_container(obj, player, map) {
         removed_from_icebox(obj, player);
 
     // cf. C pickup.c:2735 — artifact touch check
-    if (obj.oartifact && !touch_artifact(obj, player)) return 0;
+    if (obj.oartifact && !await touch_artifact(obj, player, player)) return 0;
 
     // Add to inventory via addinv (handles merge, invlet assignment, etc.)
     const result = await addinv(obj, player);

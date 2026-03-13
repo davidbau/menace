@@ -1855,7 +1855,7 @@ export async function makewish(wishText, player, display) {
         if (display) await display.putstr_message('Nothing fitting that description exists.');
         return null;
     }
-    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null);
+    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null, display);
     if (player) {
         player.ublesscnt = (player.ublesscnt || 0) + rn1(100, 50);
         // C ref: zap.c:6264 — KMH conduct tracking

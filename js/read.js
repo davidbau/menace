@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES, W_ARMH } from './const.js';
+import { A_STR, A_INT, A_WIS, A_DEX, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES, W_ARMH } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -38,7 +38,7 @@ import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMA
 import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an, is_weptool, xname } from './objnam.js';
-import { hcolor, Monnam, mon_nam } from './do_name.js';
+import { hcolor, Monnam, mon_nam, docall } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
 import { sokoban_guilt } from './trap.js';
@@ -441,7 +441,7 @@ async function handleRead(player, display, game) {
                             return true; // still studying
                         }
                         // cf. spell.c learn() — study complete
-                        // exercise(A_WIS, TRUE) — no RNG
+                        await exercise(g.player, A_WIS, true);
                         const spellsArr = g.player.spells || (g.player.spells = []);
                         const ent = spellsArr.find(s => s.otyp === bookRef.otyp);
                         const spellName = String(bookOd.name || 'unknown spell').toLowerCase();
@@ -510,7 +510,16 @@ async function handleRead(player, display, game) {
                         );
                     }
                 }
+                // C ref: read.c seffects() — track whether type was known before reading
+                const od = objectData[anyItem.otyp] || {};
+                const alreadyKnown = !!od.oc_name_known;
                 const consumed = await seffects(anyItem, player, display, game);
+                // C ref: read.c:2147 — if scroll type wasn't identified by the
+                // effect, prompt the player to name/call the scroll type.
+                if (!alreadyKnown && !(objectData[anyItem.otyp] || {}).oc_name_known) {
+                    anyItem.dknown = true;
+                    await docall(anyItem);
+                }
                 if (consumed) {
                     // Scroll was used up inside seffects
                 } else {
@@ -966,6 +975,8 @@ export async function seffect_enchant_weapon(sobj, player, display) {
     if (uwep.spe > 5 && !uwep.oartifact) {
         rn2(7); // vibration check — is_elven_weapon not implemented, safe approximation
     }
+    // C ref: chwepon() — exercise dexterity after weapon enchantment
+    await exercise(player, A_DEX, amount >= 0);
     return false;
 }
 

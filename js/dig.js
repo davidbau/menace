@@ -84,7 +84,8 @@ import { hard_helmet } from './do_wear.js';
 import { You_hear } from './pline.js';
 import { abon } from './weapon.js';
 import { acurr } from './attrib.js';
-import { A_STR, A_DEX, AM_SANCTUM, MM_NOMSG } from './const.js';
+import { A_STR, A_DEX, A_WIS, AM_SANCTUM, MM_NOMSG } from './const.js';
+import { exercise } from './attrib_exercise.js';
 import { bimanual } from './pray.js';
 
 // ============================================================================
@@ -562,9 +563,10 @@ export function dig_up_grave(cc, map, player) {
     const lev = map.at(dig_x, dig_y);
     if (!lev) return;
 
-    // C: exercise(A_WIS, FALSE) — wisdom exercise
+    // C ref: dig.c — wisdom exercise for grave-digging
+    exercise(player, A_WIS, false);
     // C: alignment adjustments for Archeologist, Samurai, Lawful
-    // These are player-state effects, stubbed for now
+    // TODO: adjalign calls for role-specific alignment penalties
 
     // C: what_happens = levl[dig_x][dig_y].emptygrave ? -1 : rn2(5)
     // JS: we don't track emptygrave flag yet, so always rn2(5)

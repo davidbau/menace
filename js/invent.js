@@ -38,7 +38,7 @@ import { newsym } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
-import { confers_luck } from './artifact.js';
+import { confers_luck, touch_artifact } from './artifact.js';
 import { game as _gstate } from './gstate.js';
 import { visctrl } from './hacklib.js';
 
@@ -1174,7 +1174,16 @@ async function encumber_msg_transition(prevCap, newCap) {
 }
 
 // C ref: invent.c hold_another_object() — add object or drop if can't hold
-export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_msg) {
+export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_msg, display, game) {
+    // C ref: invent.c:1218 — artifact touch check before adding to inventory
+    if (obj.oartifact) {
+        const canTouch = await touch_artifact(obj, player, player, display, game);
+        if (!canTouch) {
+            // Artifact evades hero's grasp — drop it
+            place_object(obj, player.x, player.y, game?.map);
+            return obj;
+        }
+    }
     const prevCap = near_capacity_for_inventory(player);
     const oquan = obj?.quan || 0;
     // Inline addinv with withMeta to detect compare-discovery (C ref: invent.c merged())
@@ -1763,9 +1772,11 @@ export function fully_identify_obj(otmp) {
 
 // C ref: invent.c identify() — identify object and give feedback
 // Autotranslated from invent.c:2650
-export async function identify(otmp) {
+export async function identify(otmp, player) {
   fully_identify_obj(otmp);
   await prinv( 0, otmp, 0);
+  // C ref: invent.c:2650 — exercise wisdom for successful identification
+  if (player) await exercise(player, A_WIS, true);
   return 1;
 }
 

@@ -17,11 +17,11 @@ import {
   BANISH, FLING_POISON, FIRESTORM, SNOWSTORM, BLINDING_RAY,
 } from './artifacts.js';
 
-import { rn2, rnd, d, rnz } from './rng.js';
+import { rn2, rnd, d, c_d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, A_WIS, KILLED_BY, ANTIMAGIC, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
@@ -31,6 +31,11 @@ import { dountrap } from './trap.js';
 import { use_crystal_ball } from './detect.js';
 import { obfree } from './shk.js';
 import { has_head, noncorporeal, amorphous, nonliving, resists_drli } from './mondata.js';
+import { losehp } from './hack.js';
+import { exercise } from './attrib_exercise.js';
+import { s_suffix } from './hacklib.js';
+import { the, xname } from './objnam.js';
+import { Role_if } from './role.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -567,20 +572,70 @@ export async function Sting_effects(orc_count, player) {
 // ── Touch and equipment ──
 
 // cf. artifact.c:908 — touch_artifact(obj, mon)
-export function touch_artifact(obj, mon) {
+// For hero (yours=true), this is async because it may call losehp/exercise.
+// For monsters, it returns synchronously.
+export async function touch_artifact(obj, mon, player, display, game) {
   const oart = get_artifact(obj);
   if (oart === artilist[ART_NONARTIFACT]) return 1;
 
+  const yours = !!player && (mon === player || mon == null);
   const self_willed = !!(oart.spfx & SPFX_INTEL);
-  // For monsters, check alignment and role restrictions
-  if (mon && mon.data) {
-    const badalign = !!(oart.spfx & SPFX_RESTR) && oart.alignment !== A_NONE
-                     && oart.alignment !== (mon.maligntyp || 0);
-    const badclass = self_willed && oart.role !== NON_PM;
-    const bane = bane_applies(oart, mon);
-    if ((badclass || badalign || bane) && self_willed) return 0;
-    if (badalign && !rn2(4)) return 0;
+  let badclass, badalign;
+
+  if (yours) {
+    badclass = self_willed
+      && ((oart.role !== NON_PM && !Role_if(player, oart.role))
+          || (oart.race !== NON_PM && player.raceMnum !== oart.race));
+    badalign = !!(oart.spfx & SPFX_RESTR)
+      && oart.alignment !== A_NONE
+      && (oart.alignment !== player.alignment
+          || (player.alignmentRecord || 0) < 0);
+  } else if (mon && mon.data) {
+    badclass = self_willed && oart.role !== NON_PM
+      && oart !== artilist[ART_EXCALIBUR];
+    badalign = !!(oart.spfx & SPFX_RESTR) && oart.alignment !== A_NONE
+      && oart.alignment !== (mon.maligntyp || 0);
+  } else {
+    badclass = false;
+    badalign = false;
   }
+
+  if (!badalign)
+    badalign = bane_applies(oart, mon || player);
+
+  if (((badclass || badalign) && self_willed)
+      || (badalign && (!yours || !rn2(4)))) {
+    if (!yours) return 0;
+    // Hero is blasted by artifact power
+    await You("are blasted by %s power!", s_suffix(the(xname(obj))));
+    const hasAntimagic = !!(player?.hasProp?.(ANTIMAGIC)
+      || player?.antimagic);
+    let dmg = c_d(hasAntimagic ? 2 : 4, self_willed ? 10 : 4);
+    // Silver damage bonus (half of usual)
+    if (objectData[obj.otyp] && objectData[obj.otyp].oc_material === SILVER) {
+      const tmp = rnd(10);
+      dmg += Math.floor(tmp / 2); // Maybe_Half_Phys approximation
+    }
+    const buf = `touching ${oart.name}`;
+    if (player && display && game) {
+      await losehp(dmg, buf, KILLED_BY, player, display, game);
+    }
+    if (player) await exercise(player, A_WIS, false);
+  }
+
+  // Can't pick it up if totally non-synch'd
+  if (badclass && badalign && self_willed) {
+    if (yours) {
+      // "evades your grasp" / "is beyond your control"
+      if (!carried(obj)) {
+        await pline(`${xname(obj)} evades your grasp!`);
+      } else {
+        await pline(`${xname(obj)} is beyond your control!`);
+      }
+    }
+    return 0;
+  }
+
   return 1;
 }
 
@@ -592,7 +647,7 @@ export async function retouch_object(obj, loseit, player) {
   // Allow hero to use the Bell of Opening at the invocation spot
   // (full check omitted; simplified)
 
-  if (touch_artifact(obj, player || { data: null })) {
+  if (await touch_artifact(obj, player || { data: null }, player)) {
     // Check silver bane
     const oart = get_artifact(obj);
     const bane = (oart !== artilist[ART_NONARTIFACT]) && bane_applies(oart, player || { data: null });
@@ -637,7 +692,7 @@ export async function untouchable(obj, drop_untouchable, player) {
 }
 
 // cf. artifact.c:2640 — retouch_equipment(dropflag, player)
-export function retouch_equipment(dropflag, player) {
+export async function retouch_equipment(dropflag, player) {
   if (!player) return;
   // Re-check all equipped items for touchability.
   // In the full C implementation this iterates over inventory with
@@ -647,7 +702,7 @@ export function retouch_equipment(dropflag, player) {
   for (const slot of slots) {
     const obj = player[slot];
     if (obj && obj.oartifact) {
-      if (!touch_artifact(obj, player)) {
+      if (!await touch_artifact(obj, player, player)) {
         // Remove the item
         player[slot] = null;
         if (obj.owornmask) obj.owornmask = 0;
