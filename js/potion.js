@@ -634,7 +634,7 @@ async function handleQuaff(player, map, display) {
                 if (!potionUnknown) {
                     discoverObject(item.otyp, true, true);
                 } else {
-                    trycall(item);
+                    await trycall(item);
                 }
             }
             item.in_use = false;
@@ -1727,6 +1727,12 @@ function getobjChoicesForPrompt(player, obj_ok) {
     return choices;
 }
 
+function buildGetobjPrompt(word, compactLetters) {
+    const prompt = `What do you want to ${word}? [${compactLetters} or ?*] `;
+    const limit = Math.max(1, COLNO - 1);
+    return (prompt.length <= limit) ? prompt : prompt.slice(0, limit);
+}
+
 async function getobj_prompt_local(word, obj_ok, display, player) {
     const choices = getobjChoicesForPrompt(player, obj_ok);
     if (!choices.length) return null;
@@ -1744,14 +1750,16 @@ async function getobj_prompt_local(word, obj_ok, display, player) {
         letters.push(invlet);
     }
     const menuLetters = letters.join('');
-    await display.putstr_message(`What do you want to ${word}? [${menuLetters} or ?*] `);
+    const compactLetters = compactInvletPromptChars(menuLetters);
+    const prompt = buildGetobjPrompt(word, compactLetters);
+    await display.putstr_message(prompt);
 
     while (true) {
         const ch = await nhgetch();
         if (ch === 27) return null; // ESC
         const c = String.fromCharCode(ch);
         if (c === '?' || c === '*') {
-            await display.putstr_message(`What do you want to ${word}? [${menuLetters} or ?*] `);
+            await display.putstr_message(prompt);
             continue;
         }
         const chosen = choices.find((obj) => obj.invlet === c);
@@ -1801,7 +1809,7 @@ async function dodip(player, map, display) {
     }
 
     const potion = await getobj_prompt_local(
-        `dip ${obj.invlet ? 'it' : ''} into`.trim(),
+        `dip ${doname(obj, player)} into`,
         (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
         display,
         player

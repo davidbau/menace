@@ -1036,39 +1036,41 @@ export function call_ok(obj) {
 
 // Autotranslated from do_name.c:604
 export function docall_xname(obj) {
-  let otemp;
-  otemp = obj;
-  otemp.oextra =  0;
+  const otemp = { ...obj };
+  otemp.oextra = 0;
   otemp.quan = 1;
-  otemp.blessed = otemp.cursed = 0;
-  if (otemp.oclass === WEAPON_CLASS) otemp.opoisoned = 0;
-  else if (otemp.oclass === POTION_CLASS) otemp.odiluted = 0;
-  else if (otemp.otyp === TOWEL || otemp.otyp === STATUE) otemp.spe = 0;
-  else if (otemp.otyp === TIN) otemp.known = 0;
-  else if (otemp.otyp === FIGURINE) otemp.corpsenm = NON_PM;
-  else if (otemp.otyp === HEAVY_IRON_BALL) otemp.owt = objectData[HEAVY_IRON_BALL].oc_wt;
-  else if (otemp.oclass === FOOD_CLASS && otemp.globby) otemp.owt = 120;
+  otemp.blessed = 0;
+  otemp.cursed = 0;
   return an(xname( otemp));
 }
 
 // Autotranslated from do_name.c:635
 export async function docall(obj) {
-  let buf, qbuf, uname_p, had_name = false;
-  if (!obj.dknown) return;
+  if (!obj?.dknown) return;
+  const od = objectData[obj.otyp];
+  if (!od) return;
   flush_screen(1);
-  if (obj.oclass === POTION_CLASS && obj.fromsink) {
-    qbuf = `Call a stream of ${objectData[obj.otyp].oc_descr} fluid:`;
+  const thing = (obj.oclass === POTION_CLASS && obj.fromsink)
+    ? `a stream of ${od.oc_descr} fluid`
+    : docall_xname(obj);
+  const fallback = simpleonames(obj);
+  const qbuf = safe_qbuf('Call ', ':', thing, fallback);
+  const hadName = !!od.uname;
+  const rawBuf = await name_from_player(qbuf, od.uname || null);
+  if (rawBuf === null) return;
+  const buf = mungspaces(rawBuf);
+  if (!buf) {
+    if (hadName) {
+      od.uname = null;
+      undiscoverObject(obj.otyp);
+    }
+  } else {
+    od.uname = buf;
+    discoverObject(obj.otyp, false, true);
   }
-  else {
-    safe_qbuf(qbuf, "Call ", ":", obj, docall_xname, simpleonames, "thing");
+  if (obj.where === OBJ_INVENT) {
+    update_inventory();
   }
-  uname_p = (objectData[obj.otyp].oc_uname);
-  if (!name_from_player(buf, qbuf, uname_p)) return;
-  if ( uname_p) { had_name = true; (uname_p, 0), uname_p = null; }
-  mungspaces(buf);
-  if (!buf) { if (had_name) undiscoverObject(obj.otyp); }
-  else { uname_p = buf; discoverObject(obj.otyp, false, true); }
-  if (obj.where === OBJ_INVENT || carrying(obj.otyp)) update_inventory();
 }
 
 // Autotranslated from do_name.c:1320

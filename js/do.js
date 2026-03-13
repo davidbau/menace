@@ -34,7 +34,7 @@ import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
-import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam } from './do_name.js';
+import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam, docall } from './do_name.js';
 import { an, makeplural } from './objnam.js';
 import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
@@ -420,10 +420,16 @@ export async function doaltarobj(obj, player, map) {
 
 // cf. do.c trycall() — prompt to name object class after identification.
 // If obj is neither formally identified nor informally named, prompt to call it.
-export function trycall(obj) {
-    // In C this calls docall() to let player name the object type.
-    // Simplified: just mark as observed for discovery tracking.
-    if (obj && typeof observeObject === 'function') {
+export async function trycall(obj) {
+    // C ref: do.c trycall() — prompt only when object type isn't formally
+    // identified and hasn't already been user-called.
+    if (!obj) return;
+    const od = objectData[obj.otyp];
+    if (!od) return;
+    if (od.oc_name_known || od.uname) return;
+    await docall(obj);
+    // Keep discovery bookkeeping in sync with legacy observe path.
+    if (typeof observeObject === 'function') {
         observeObject(obj);
     }
 }
@@ -514,7 +520,7 @@ export async function dosinkring(obj, player, map) {
         obj.ox = player.x;
         obj.oy = player.y;
         placeFloorObject(map, obj);
-        trycall(obj);
+        await trycall(obj);
         return;
     case RIN_SLOW_DIGESTION:
         await pline_The("ring is regurgitated!");
@@ -522,7 +528,7 @@ export async function dosinkring(obj, player, map) {
         obj.ox = player.x;
         obj.oy = player.y;
         placeFloorObject(map, obj);
-        trycall(obj);
+        await trycall(obj);
         return;
     case RIN_LEVITATION:
         await pline_The("sink quivers upward for a moment.");
@@ -634,7 +640,7 @@ export async function dosinkring(obj, player, map) {
         }
     }
     if (ideed) {
-        trycall(obj);
+        await trycall(obj);
     } else if (!nosink) {
         await You_hear("the ring bouncing down the drainpipe.");
     }
