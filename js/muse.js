@@ -68,7 +68,7 @@ import { mon_has_amulet, mon_has_special } from './wizard.js';
 import { onscary, healmon, mongone, monkilled, xkilled,
          wakeup, seemimic } from './mon.js';
 import { monflee } from './monmove.js';
-import { makemon, grow_up, rndmonst } from './makemon.js';
+import { makemon, makemon_appear, grow_up, rndmonst } from './makemon.js';
 import { inhishop } from './shk.js';
 import { placeFloorObject } from './invent.js';
 import { linedUpToPlayer, m_throw_timed } from './mthrowu.js';
@@ -485,9 +485,9 @@ async function precheck(mon, obj, map, player) {
         // is available on the object.
         const desc = String(obj.desc || obj.dname || objectData[obj.otyp]?.oc_descr || '').toLowerCase();
         if (desc.includes('milky') && !rn2(POTION_OCCUPANT_CHANCE(4))) {
-            makemon(mons[PM_GHOST], mon.mx, mon.my, 0, 0, map);
+            await makemon_appear(mons[PM_GHOST], mon.mx, mon.my, 0, 0, map);
         } else if (desc.includes('smoky') && !rn2(POTION_OCCUPANT_CHANCE(4))) {
-            const mtmp = makemon(mons[PM_DJINNI], mon.mx, mon.my, 0, 0, map);
+            const mtmp = await makemon_appear(mons[PM_DJINNI], mon.mx, mon.my, 0, 0, map);
             if (mtmp) {
                 // C: rn2(2) decides peaceful ("You freed me!") vs vanish
                 if (rn2(2)) {
@@ -1093,7 +1093,7 @@ export async function use_defensive(mon, map, player) {
         const cc = {};
         if (!enexto(cc, mon.mx, mon.my, null, map, player)) return 0;
         await mzapwand(mon, otmp, false, map, player);
-        const newmon = makemon(null, cc.x, cc.y, 0, 0, map);
+        const newmon = await makemon_appear(null, cc.x, cc.y, 0, 0, map);
         if (newmon && canspotmon(newmon, player, null, map) && oseen)
             makeknown(WAN_CREATE_MONSTER);
         return 2;
@@ -1111,7 +1111,7 @@ export async function use_defensive(mon, map, player) {
         while (cnt-- > 0) {
             const cc = {};
             if (!enexto(cc, mon.mx, mon.my, pm, map, player)) break;
-            const newmon = makemon(pm, cc.x, cc.y, 0, 0, map);
+            const newmon = await makemon_appear(pm, cc.x, cc.y, 0, 0, map);
             if (newmon && canspotmon(newmon, player, null, map)) known = true;
         }
         if (known) makeknown(SCR_CREATE_MONSTER);

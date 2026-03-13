@@ -33,7 +33,7 @@ import { currency, compactInvletPromptChars, freeinv, addinv,
          inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
-import { makemon, set_malign } from './makemon.js';
+import { makemon, makemon_appear, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
 import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES, CHOOSE_ALL } from './const.js';
@@ -893,7 +893,7 @@ export async function observe_quantum_cat(box, makecat, givemsg, game) {
   { const loc = get_obj_location(box, 0); if (loc.found) { box.ox = loc.x; box.oy = loc.y; } }
   deadcat = box.cobj;
   if (itsalive) {
-    if (makecat) livecat = makemon( mons[PM_HOUSECAT], box.ox, box.oy, NO_MINVENT | MM_ADJACENTOK | MM_NOMSG);
+    if (makecat) livecat = await makemon_appear( mons[PM_HOUSECAT], box.ox, box.oy, NO_MINVENT | MM_ADJACENTOK | MM_NOMSG);
     if (livecat) {
       livecat.mpeaceful = 1;
       set_malign(livecat, game?.player);
@@ -2112,7 +2112,7 @@ async function reverse_loot(player, map, game) {
             coffers.owt = weight(coffers);
             coffers.cknown = 0;
         } else if (!(loc.looted) /* T_LOOTED */) {
-            const mon = await makemon(courtmon, x, y, NO_MM_FLAGS, map, game);
+            const mon = await makemon_appear(courtmon, x, y, NO_MM_FLAGS, map, game);
             if (mon) {
                 freeinv(goldob, player);
                 add_to_minv(mon, goldob);

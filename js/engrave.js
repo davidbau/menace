@@ -33,7 +33,7 @@ import { surface } from './dungeon.js';
 import { IS_GRAVE, IS_AIR, A_WIS } from './const.js';
 import { newsym } from './display.js';
 import { goodpos } from './teleport.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import { t_at } from './trap.js';
 import { attacktype, ceiling_hider, sticks } from './mondata.js';
@@ -1004,8 +1004,8 @@ export async function disturb_grave(map, x, y, player, depth) {
         await You("disturb the undead!");
         loc.disturbed = true;
         // C: makemon(&mons[PM_GHOUL], x, y, NO_MM_FLAGS)
-        if (typeof makemon === 'function') {
-            makemon(mons[PM_GHOUL], x, y, 0, depth, map);
+        if (typeof makemon_appear === 'function') {
+            await makemon_appear(mons[PM_GHOUL], x, y, 0, depth, map);
         }
         // C: exercise(A_WIS, FALSE)
         if (player) {

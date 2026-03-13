@@ -115,7 +115,7 @@ import { finish_meating } from './dogmove.js';
 import { abuse_dog } from './dog.js';
 import { is_watch, bigmonst, verysmall, mhis } from './mondata.js';
 import { water_damage, mintrap_postmove, instapetrify, t_at, b_trapped, chest_trap } from './trap.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { breakchestlock } from './lock.js';
 import { remove_worn_item } from './steal.js';
 
@@ -1364,7 +1364,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     else if (!(game.maploc.looted & TREE_SWARM)) {
       let cnt = rnl(4) + 2, made = 0, mm = {x, y};
       while (cnt--) {
-        if (enexto( mm, mm.x, mm.y, mons[PM_KILLER_BEE]) && makemon( mons[PM_KILLER_BEE], mm.x, mm.y, MM_ANGRY|MM_NOMSG)) made++;
+        if (enexto( mm, mm.x, mm.y, mons[PM_KILLER_BEE]) && await makemon_appear( mons[PM_KILLER_BEE], mm.x, mm.y, MM_ANGRY|MM_NOMSG)) made++;
       }
       if (made) await pline("You've attracted the tree's former occupants!");
       else {
@@ -1392,7 +1392,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
       else {
         await pline("A %s ooze gushes up from the drain!", hcolor(NH_BLACK));
       }
-      makemon( mons[PM_BLACK_PUDDING], x, y, MM_NOMSG);
+      await makemon_appear( mons[PM_BLACK_PUDDING], x, y, MM_NOMSG);
       await exercise(player, A_DEX, true);
       newsym(x, y);
       game.maploc.looted |= S_LPUDDING;
@@ -1400,7 +1400,7 @@ export async function kick_nondoor(x, y, avrg_attrib, game, map, player) {
     }
     else if (!(game.maploc.looted & S_LDWASHER) && !rn2(3) && !(game.mvitals[PM_AMOROUS_DEMON].mvflags & G_GONE)) {
       await pline("%s returns!", (player.Blind ? Something : "The dish washer"));
-      if (makemon( mons[PM_AMOROUS_DEMON], x, y, MM_NOMSG | ((gend === 1 || (gend === 2 && rn2(2))) ? MM_MALE : MM_FEMALE))) newsym(x, y);
+      if (await makemon_appear( mons[PM_AMOROUS_DEMON], x, y, MM_NOMSG | ((gend === 1 || (gend === 2 && rn2(2))) ? MM_MALE : MM_FEMALE))) newsym(x, y);
       game.maploc.looted |= S_LDWASHER;
       await exercise(player, A_DEX, true);
       return ECMD_TIME;

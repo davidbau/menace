@@ -18,7 +18,7 @@ import {
     ALL_TRAPS, HOLE, TRAPDOOR, NO_MM_FLAGS, NO_MINVENT, MAXMONNO, MM_NOWAIT,
     MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
     MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
-    MM_IGNORELAVA,
+    MM_IGNORELAVA, MM_ASYNC,
     BOLT_LIM, LS_MONSTER,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, SIZE, ALIGNWEIGHT } from './const.js';
@@ -2548,17 +2548,38 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 else if (dist2(x, y, ux, uy) <= (BOLT_LIM * BOLT_LIM)) suffix = ' close by';
             }
             set_msg_xy(mon.mx, mon.my);
-            void Norep('%s%s %s%s%s',
+            const _appearPromise = Norep('%s%s %s%s%s',
                 what,
                 exclaim ? ' suddenly' : '',
                 vtense(what, 'appear'),
                 suffix,
                 exclaim ? '!' : '.');
+            if (mmflags & MM_ASYNC) {
+                // Caller will await via makemon_appear(); store promise on monster.
+                mon._appearPromise = _appearPromise;
+            } else {
+                // Sync caller — appear message will be lost (fire-and-forget).
+                // This is a known limitation; callers that need the message
+                // should use makemon_appear() instead.
+                impossible('makemon: appear message in sync context; use makemon_appear()');
+            }
         }
     }
 
     // C ref: event_log("makemon[%d@%d,%d]", mndx, mtmp->mx, mtmp->my)
     pushRngLogEntry(`^makemon[${mndx}@${mon?.mx ?? 0},${mon?.my ?? 0}]`);
+    return mon;
+}
+
+// Async wrapper for makemon — use when the appear message might fire
+// (i.e., outside mklev, monster visible to player, MM_NOMSG not set).
+// Callers in async functions should use this instead of raw makemon().
+export async function makemon_appear(ptr_or_null, x, y, mmflags, depth, map) {
+    const mon = makemon(ptr_or_null, x, y, mmflags | MM_ASYNC, depth, map);
+    if (mon?._appearPromise) {
+        await mon._appearPromise;
+        delete mon._appearPromise;
+    }
     return mon;
 }
 

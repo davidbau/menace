@@ -61,7 +61,7 @@ import { water_damage_chain, fire_damage_chain } from './trap.js';
 import { rloc, tele_restrict, enexto } from './teleport.js';
 import { in_your_sanctuary, inhistemple, p_coaligned } from './priest.js';
 import { create_gas_cloud } from './region.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 
 import { rn2, rnd, rnl, d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
@@ -2404,7 +2404,7 @@ export async function maybe_mnexto(mtmp, player) {
 // Autotranslated from mon.c:4087
 export async function m_respond_shrieker(mtmp, player) {
   if (!(player?.Deaf || player?.deaf || false)) { await pline("%s shrieks.", Monnam(mtmp)); await stop_occupation(); }
-  if (!rn2(10)) { makemon(rn2(13) ? 0 : mons[PM_PURPLE_WORM], 0, 0, NO_MM_FLAGS); }
+  if (!rn2(10)) { await makemon_appear(rn2(13) ? 0 : mons[PM_PURPLE_WORM], 0, 0, NO_MM_FLAGS); }
   aggravate();
 }
 

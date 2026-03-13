@@ -31,7 +31,7 @@ import { enexto } from './teleport.js';
 import { new_light_source, del_light_source, candle_light_range } from './light.js';
 import { revive_mon, zombify_mon, heal_legs } from './do.js';
 import { rot_corpse } from './dig.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { update_inventory } from './invent.js';
 
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
@@ -906,7 +906,7 @@ export async function hatch_egg(egg) {
         for (let i = 0; i < hatchcount; i++) {
             const cc = { x, y };
             if (!enexto(cc, x, y, mdat, map, player)) break;
-            if (!makemon(mnum, cc.x, cc.y, NO_MINVENT | MM_NOMSG, depth, map)) break;
+            if (!await makemon_appear(mnum, cc.x, cc.y, NO_MINVENT | MM_NOMSG, depth, map)) break;
             hatched++;
         }
         if (hatched > 0 && Number.isInteger(egg.quan)) {

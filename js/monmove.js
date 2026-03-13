@@ -32,7 +32,7 @@ import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './co
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, mdamageu, ranged_attk_available } from './mhitu.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
          AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_CLASS, RING_CLASS, SPBOOK_CLASS,
@@ -772,7 +772,7 @@ async function m_respond_shrieker(mon, map, player, display = null, game = null)
         // C ref: 1/13 chance to attempt a purple worm, random monster otherwise.
         // Keep the RNG path faithful even though difficulty gating is simplified.
         const purpleWorm = !rn2(13);
-        makemon(purpleWorm ? PM_PURPLE_WORM : null, 0, 0, 0, player?.dungeonLevel, map);
+        await makemon_appear(purpleWorm ? PM_PURPLE_WORM : null, 0, 0, 0, player?.dungeonLevel, map);
     }
     aggravate(map);
 }

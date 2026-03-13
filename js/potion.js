@@ -1789,7 +1789,10 @@ async function getobj_prompt_local(word, obj_ok, display, player) {
 
     while (true) {
         const ch = await nhgetch();
-        if (ch === 27) return null; // ESC
+        if (ch === 27 || ch === 32) { // ESC or space = cancel (C treats both as cancel)
+            await pline('Never mind.');
+            return null;
+        }
         const c = String.fromCharCode(ch);
         if (c === '?' || c === '*') {
             await renderGetobjPromptTopline(display, prompt);
@@ -1797,6 +1800,9 @@ async function getobj_prompt_local(word, obj_ok, display, player) {
         }
         const chosen = choices.find((obj) => obj.invlet === c);
         if (chosen) return chosen;
+        // Invalid inventory letter — cancel like C's getobj does
+        await pline('Never mind.');
+        return null;
     }
 }
 

@@ -21,7 +21,7 @@ import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from '
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline, Norep } from './pline.js';
-import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
+import { runtimeDecideToShapeshift, makemon, makemon_appear, withMakemonPlayerOverrideAsync } from './makemon.js';
 import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
 import { were_change } from './were.js';
 import { allocateMonsterMovement, mcalcmove } from './mon.js';
@@ -353,7 +353,7 @@ export async function moveloop_turnend(game) {
     const spawnRate = player?.uevent?.udemigod ? 25
         : (playerDepth > 27 ? 50 : 70);
     if (!rn2(spawnRate)) {
-        makemon(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
+        await makemon_appear(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
     }
 
     // C ref: allmain.c:238 u_calc_moveamt(wtcap)

@@ -67,7 +67,7 @@ import { mons, M1_NOEYES,
          PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC,
          AD_DRLI, AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM } from './monsters.js';
 import {
-  rndmonnum, makemon,
+  rndmonnum, makemon, makemon_appear,
 } from './makemon.js';
 import { NO_MINVENT } from './const.js';
 import { next_ident, mksobj, mkobj, costly_alteration } from './mkobj.js';
@@ -845,7 +845,7 @@ export async function revive(obj, by_hero, map, player = null) {
   const reviveDepth = Number.isInteger(player?.dungeonLevel)
     ? player.dungeonLevel
     : (Number.isInteger(map?.uz?.dlevel) ? map.uz.dlevel : 1);
-  const mtmp = makemon(mptr, x, y, mmflags, reviveDepth, map);
+  const mtmp = await makemon_appear(mptr, x, y, mmflags, reviveDepth, map);
   if (!mtmp) return null;
 
   // C ref: zap.c:1012-1017 — unhide revived monster
@@ -1182,7 +1182,7 @@ export async function zapnodir(obj, player, map, display, game) {
     const count = rn2(23) ? 1 : rn1(7, 2);
     let created = 0;
     for (let i = 0; i < count; i++) {
-      const mon = makemon(null, player?.x || 0, player?.y || 0, 0, player?.dungeonLevel || 1, map);
+      const mon = await makemon_appear(null, player?.x || 0, player?.y || 0, 0, player?.dungeonLevel || 1, map);
       if (mon) created++;
     }
     if (created > 0) known = !!obj.dknown;
@@ -2678,7 +2678,7 @@ export async function create_polymon(obj, mndx, map, player) {
   const x = Number(obj.ox ?? player?.x ?? 0);
   const y = Number(obj.oy ?? player?.y ?? 0);
   const pm_index = Number.isInteger(mndx) ? mndx : material_to_golem(mndx);
-  const mon = makemon(mons[pm_index] || null, x, y, 0, player?.dungeonLevel || 1, map);
+  const mon = await makemon_appear(mons[pm_index] || null, x, y, 0, player?.dungeonLevel || 1, map);
   const minwt = Number(mons[pm_index]?.cwt || 1);
   polyuse_internal(obj, mndx, minwt, map);
   if (mon) {

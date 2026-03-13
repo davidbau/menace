@@ -44,7 +44,7 @@ import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          MON_ARRIVE_WITH_YOU } from './const.js';
 import { SADDLE } from './objects.js';
 import { roles } from './player.js';
-import { makemon, mbirth_limit, set_malign } from './makemon.js';
+import { makemon, makemon_appear, mbirth_limit, set_malign } from './makemon.js';
 import { NO_MINVENT, MAXMONNO } from './const.js';
 import { mksobj, xname } from './mkobj.js';
 import { mpickobj } from './steal.js';
@@ -580,7 +580,7 @@ export async function make_familiar(otmp, x, y, quietly) {
     mmflags = MM_EDOG | MM_IGNOREWATER | NO_MINVENT | MM_NOMSG;
     cgend = otmp ? (otmp.spe & CORPSTAT_GENDER) : 0;
     mmflags |= ((cgend === CORPSTAT_FEMALE) ? MM_FEMALE : (cgend === CORPSTAT_MALE) ? MM_MALE : 0);
-    mtmp = makemon(pm, x, y, mmflags);
+    mtmp = await makemon_appear(pm, x, y, mmflags);
     if (otmp) {
       if (!mtmp) {
         if (!quietly) await pline_The( "figurine writhes and then shatters into pieces!");

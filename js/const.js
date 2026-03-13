@@ -3268,6 +3268,7 @@ export const MM_FEMALE = 0x00010000;
 export const MM_NOMSG = 0x00020000;
 export const MM_NOEXCLAM = 0x00040000;
 export const MM_IGNORELAVA = 0x00080000;
+export const MM_ASYNC = 0x00100000;      // caller will await; store appear-message promise on monster
 
 // Teleport target search flags (include/hack.h; src/teleport.c goodpos/enexto)
 // Runtime fields: teleport goodpos/enexto entflags/gpflags args

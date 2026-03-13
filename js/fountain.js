@@ -10,7 +10,7 @@ import { pline, You, Your, You_feel, You_hear, You_see, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { adjattrib, poison_strdmg, acurr } from './attrib.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { mons, PM_WATER_MOCCASIN, PM_WATER_DEMON, PM_WATER_NYMPH,
          PM_WATER_ELEMENTAL, PM_SEWER_RAT, PM_KNIGHT } from './monsters.js';
 import { mksobj, mkobj, bless, curse, uncurse, xname } from './mkobj.js';
@@ -73,7 +73,7 @@ async function dowatersnakes(player, map, display) {
         await You_hear("%s hissing!", "something");
     }
     while (num-- > 0) {
-        const mtmp = makemon(PM_WATER_MOCCASIN, player.x, player.y,
+        const mtmp = await makemon_appear(PM_WATER_MOCCASIN, player.x, player.y,
                              MM_NOMSG, map.depth || 1, map);
         if (mtmp) {
             const trap = map.trapAt ? map.trapAt(mtmp.mx, mtmp.my) : null;
@@ -87,7 +87,7 @@ async function dowatersnakes(player, map, display) {
 // cf. fountain.c:64 [static] -- dowaterdemon(): fountain spawns demon or wish
 export async function dowaterdemon(player, map, display) {
     // mvitals not tracked in JS -- always allow spawning
-    const mtmp = makemon(PM_WATER_DEMON, player.x, player.y,
+    const mtmp = await makemon_appear(PM_WATER_DEMON, player.x, player.y,
                          MM_NOMSG, map.depth || 1, map);
     if (mtmp) {
         if (!player.blind)
@@ -115,7 +115,7 @@ export async function dowaterdemon(player, map, display) {
 
 // cf. fountain.c:94 [static] -- dowaternymph(): fountain spawns nymph
 export async function dowaternymph(player, map, display) {
-    const mtmp = makemon(PM_WATER_NYMPH, player.x, player.y,
+    const mtmp = await makemon_appear(PM_WATER_NYMPH, player.x, player.y,
                          MM_NOMSG, map.depth || 1, map);
     if (mtmp) {
         if (!player.blind)
@@ -653,7 +653,7 @@ export async function drinksink(player, map, display, fov) {
         break;
     case 3: {
         // Sewer rat
-        const mtmp = makemon(PM_SEWER_RAT, player.x, player.y,
+        const mtmp = await makemon_appear(PM_SEWER_RAT, player.x, player.y,
                              MM_NOMSG, map.depth || 1, map);
         if (mtmp) {
             await pline("Eek!  There's %s in the sink!",
@@ -704,7 +704,7 @@ export async function drinksink(player, map, display, fov) {
     case 7:
         await pline_The("%s moves as though of its own will!", hliquid("water"));
         {
-            const mtmp = makemon(PM_WATER_ELEMENTAL, player.x, player.y,
+            const mtmp = await makemon_appear(PM_WATER_ELEMENTAL, player.x, player.y,
                                  MM_NOMSG, map.depth || 1, map);
             if (!mtmp)
                 await pline("But it quiets down.");

@@ -78,7 +78,7 @@ import { losexp } from './exper.js';
 import { rndcurse, attrcurse } from './sit.js';
 import { safe_teleds } from './teleport.js';
 import { summon_minion, dlord } from './minion.js';
-import { makemon, set_malign } from './makemon.js';
+import { makemon, makemon_appear, set_malign } from './makemon.js';
 import { weapon_type, unrestrict_weapon_skill, add_weapon_skill } from './weapon.js';
 import { monflee } from './monmove.js';
 import { newsym, shieldeff } from './display.js';
@@ -1826,7 +1826,7 @@ async function sacrifice_your_race(otmp, highaltar, altaralign, player, map) {
         }
         const pm = dlord(altaralign);
         if (pm >= 0) {
-            const dmon = makemon(mons[pm], player.x, player.y, 0, player.dungeonLevel, map);
+            const dmon = await makemon_appear(mons[pm], player.x, player.y, 0, player.dungeonLevel, map);
             if (dmon) {
                 await You("have summoned %s!", mon_nam(dmon));
                 if (sgn(player.alignment) === sgn(dmon.data ? dmon.data.maligntyp || 0 : 0))

@@ -43,7 +43,7 @@ import {
     likes_fire,
 } from './mondata.js';
 import {
-    makemon, mkclass, def_char_to_monclass,
+    makemon, makemon_appear, mkclass, def_char_to_monclass,
     rndmonnum, getMakemonRoleIndex
 } from './makemon.js';
 import {

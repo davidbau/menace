@@ -29,7 +29,7 @@ import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { s_suffix, distu } from './hacklib.js';
 import { make_confused, make_stunned } from './potion.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { NO_MINVENT, HEAD, STOMACH } from './const.js';
 import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN,
          PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
@@ -726,7 +726,7 @@ export async function seffect_light(sobj, player, display, game) {
 
     for (let i = 0; i < numlights; i++) {
         if (map) {
-            const mon = makemon(mons[pm], player.x, player.y,
+            const mon = await makemon_appear(mons[pm], player.x, player.y,
                                 MM_EDOG | NO_MINVENT, depth, map);
             if (mon) {
                 mon.msleeping = 0;
@@ -1141,7 +1141,7 @@ export async function seffect_create_monster(sobj, player, display, game) {
     let created = 0;
     if (map) {
         for (let i = 0; i < count; i++) {
-            const mon = makemon(monType, player.x, player.y,
+            const mon = await makemon_appear(monType, player.x, player.y,
                                 MM_ADJACENTOK, depth, map);
             if (mon) created++;
         }
@@ -1869,7 +1869,7 @@ export async function do_genocide(bang, player, game) {
         const count = rn1(3, 4);
         let made = 0;
         for (let i = 0; i < count; i++) {
-            if (makemon(mons[mndx], player.x, player.y, MM_ADJACENTOK, player.dungeonLevel || 1, map))
+            if (await makemon_appear(mons[mndx], player.x, player.y, MM_ADJACENTOK, player.dungeonLevel || 1, map))
                 made++;
         }
         if (made) await pline("Sent in %s.", made > 1 ? "some monsters" : an(mons[mndx].pmnames?.[0] || "monster"));
