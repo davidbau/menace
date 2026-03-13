@@ -138,7 +138,7 @@ export async function domove() {
     return;
   }
   if (u.ustuck && (nx !== u.ustuck.mx || ny !== u.ustuck.my)) {
-    await pline('You cannot escape from %s!', u.ustuck.data.mname);
+    await k1('You cannot escape from %s%s!', u.ustuck.data.mname);
     if (game.multi) game.multi = 0;
     return;
   }
