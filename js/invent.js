@@ -37,7 +37,8 @@ import { mons, PM_ARCHEOLOGIST } from './monsters.js';
 import { newsym } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr, acurrstr } from './attrib.js';
+import { acurr, acurrstr, set_moreluck } from './attrib.js';
+import { confers_luck } from './artifact.js';
 import { game as _gstate } from './gstate.js';
 import { visctrl } from './hacklib.js';
 
@@ -1046,7 +1047,10 @@ export function addinv_core1(obj, player) {
 
 // C ref: invent.c addinv_core2() — side effects after adding to inventory
 export async function addinv_core2(obj, player) {
-    // confers_luck check would go here
+    // C ref: invent.c:1028-1031 — luckstone in inventory sets moreluck
+    if (confers_luck(obj)) {
+        set_moreluck(player);
+    }
     // C ref: invent.c addinv_core2() — archeologists can decipher scroll labels.
     if (player
         && player.roleMnum === PM_ARCHEOLOGIST
@@ -1259,6 +1263,9 @@ export function freeinv_core(obj, player) {
     if (obj.otyp === LOADSTONE) {
         obj.cursed = true;
         obj.blessed = false;
+    } else if (confers_luck(obj)) {
+        // C ref: invent.c:1388-1390 — recalculate moreluck when dropping luckstone
+        set_moreluck(player);
     }
 }
 

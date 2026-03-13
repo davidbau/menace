@@ -105,6 +105,7 @@ import {
 export { mon_arrive } from './dog.js';
 export { MON_ARRIVE_WITH_YOU } from './const.js';
 import { bimanual } from './pray.js';
+import { set_moreluck } from './attrib.js';
 
 // ========================================================================
 // Inventory Creation
@@ -1215,6 +1216,9 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     initAttributes(player);
     //    e. u_init_carry_attr_boost() — no RNG
     u_init_carry_attr_boost(player);
+    // C ref: attrib.c set_moreluck() — called via addinv_core2 during ini_inv;
+    // since JS ini_inv uses player.addToInventory directly, we call it once here.
+    set_moreluck(player);
 
     // C ref: attrib.c role ability tables — level 1 intrinsics.
     // Monks and samurai gain intrinsic Speed (Fast) at level 1.

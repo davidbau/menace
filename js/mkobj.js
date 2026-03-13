@@ -49,7 +49,8 @@ import { impossible, pline, Your, You_see, You_hear } from './pline.js';
 import { newsym } from './display.js';
 import { MON_WEP } from './muse.js';
 import { cansee } from './vision.js';
-import { artifact_exists } from './artifact.js';
+import { artifact_exists, confers_luck } from './artifact.js';
+import { set_moreluck } from './attrib.js';
 import { safe_oname, pmname, Mgender } from './do_name.js';
 
 // Named object indices we need (exported from objects.js)
@@ -397,6 +398,8 @@ export function bless(obj) {
     if (obj.oclass === COIN_CLASS) return;
     obj.cursed = false;
     obj.blessed = true;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -404,6 +407,8 @@ export function bless(obj) {
 // C ref: mkobj.c unbless()
 export function unbless(obj) {
     obj.blessed = false;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -413,6 +418,8 @@ export function curse(obj) {
     if (obj.oclass === COIN_CLASS) return;
     obj.blessed = false;
     obj.cursed = true;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -420,6 +427,8 @@ export function curse(obj) {
 // C ref: mkobj.c uncurse()
 export function uncurse(obj) {
     obj.cursed = false;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }

@@ -1081,7 +1081,13 @@ export function xkilled(mon, xkill_flags, map, player) {
                 adjalign(player, Math.floor(14 / 4)); // ALIGNLIM/4
         } else if (mon.mtame) {
             adjalign(player, -15);
+        } else if (mon.mpeaceful) {
+            // C ref: mon.c:3720 — killing a peaceful monster
+            adjalign(player, -5);
         }
+
+        // C ref: mon.c:3724 — malign was already adjusted for alignment and randomization
+        adjalign(player, mon.malign || 0);
     }
 }
 
