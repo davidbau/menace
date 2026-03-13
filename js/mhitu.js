@@ -1522,13 +1522,6 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             );
 
             if (died) {
-                player.deathCause = `killed by a ${x_monnam(monster)}`;
-                if (game) {
-                    game.playerDied = true;
-                    await done_in_by(monster, 0, game);
-                } else if (display) {
-                    await display.putstr_message('You die...');
-                }
                 break;
             }
         }

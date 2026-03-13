@@ -9214,3 +9214,29 @@ Validation:
     during this slice.
   - At that point, failures were narrowed to `seed322` and `seed331`; subsequent
     `seed322` fog-cloud identity fix (entry above) removed the gameplay divergence.
+
+### 2026-03-13 seed331 death-boundary fix: remove duplicate monster-death finalization and defer savebones while end prompts are active
+
+- Symptom:
+  - `seed331_tourist_wizard_gameplay` had full RNG/events parity but failed at final
+    screen boundary (`You die...--More--` lingering on row 0 instead of disclosure/blank).
+- Root cause #1:
+  - In `js/mhitu.js` (`mattacku` hit path), JS called `losehp(...)` and then, on
+    detected death, called `done_in_by(...)` again.
+  - `losehp` already triggers `done(DIED)` when HP drops below 1, so the second call
+    re-entered death flow and left stale topline state.
+  - C mirror: `hitmu()` uses `mdamageu()`, where death finalization occurs once.
+- Root cause #2:
+  - After removing the duplicate death call, JS exposed an extra `savebones()` RNG/event
+    draw during end-of-game prompt ownership (inside `moveloop_core`).
+  - C disclosure flow should not advance additional world/bones logic while end prompts
+    are still owning input.
+- Fixes:
+  - `js/mhitu.js`: remove duplicate death finalization block after `losehp(...)` in
+    `mattacku` (`break` on death, no second `done_in_by`).
+  - `js/allmain.js`: gate `savebones(game)` in `moveloop_core` so it does not run while
+    an active `pendingPrompt` is owning end-of-game input.
+- Validation:
+  - `seed331_tourist_wizard_gameplay` now has full parity:
+    RNG `18493/18493`, events `3708/3708`, screens/colors `389/389`.
+  - Full gameplay suite: `192/192` passing (`scripts/run-and-report.sh`).

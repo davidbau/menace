@@ -256,7 +256,8 @@ export async function moveloop_core(game, opts = {}) {
     }
 
     // C ref: allmain.c end of moveloop_core — check for player death
-    if ((player.isDead || player.uhp <= 0) && game.gameOver) {
+    const awaitingEndPrompt = !!(game?.pendingPrompt && typeof game.pendingPrompt.onKey === 'function');
+    if ((player.isDead || player.uhp <= 0) && game.gameOver && !awaitingEndPrompt) {
         if (!player.deathCause) {
             player.deathCause = 'died';
         }
