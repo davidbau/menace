@@ -727,8 +727,8 @@ export async function rhack(ch, game) {
         return { moved: false, tookTime: false };
     }
 
-    // Unknown command
-    await display.putstr_message(`Unknown command '${ch < 32 ? '^' + String.fromCharCode(ch + 64) : c}'.`);
+    // Unknown command — use pline() so _lastMessage is updated for Norep tracking
+    await pline(`Unknown command '${ch < 32 ? '^' + String.fromCharCode(ch + 64) : c}'.`);
     return { moved: false, tookTime: false };
 }
 
