@@ -247,6 +247,27 @@ function trimMiddleWords(s, max = 96) {
     return `${src.slice(0, left)}...${src.slice(src.length - right)}`;
 }
 
+function mismatchedChannels(result) {
+    const out = [];
+    const m = result?.metrics || {};
+    const pushIfMismatch = (name, metric) => {
+        if (!metric) return;
+        const matched = Number(metric.matched ?? 0);
+        const total = Number(metric.total ?? 0);
+        if (total > 0 && matched < total) out.push(name);
+    };
+    pushIfMismatch('rng', m.rngCalls);
+    pushIfMismatch('event', m.events);
+    pushIfMismatch('screen', m.screens);
+    pushIfMismatch('color', m.colors);
+    pushIfMismatch('screenWindow', m.screenWindow);
+    pushIfMismatch('colorWindow', m.colorWindow);
+    pushIfMismatch('cursor', m.cursor);
+    pushIfMismatch('mapdump', m.mapdump);
+    pushIfMismatch('anim', m.animationBoundaries);
+    return out;
+}
+
 // Short inline note: cached cat, or per-channel fallback
 function shortNote(result, cache) {
     const screenEarlyOnly = result?.metrics?.screenWindow?.earlyOnlyCount || 0;
@@ -294,7 +315,9 @@ function shortNote(result, cache) {
     if (result?.firstDivergence?.channel) {
         return `${result.firstDivergence.channel} divergence`;
     }
-    return 'unknown divergence';
+    const channels = mismatchedChannels(result);
+    if (channels.length) return `unknown divergence (${channels.join(',')})`;
+    return 'unknown divergence (no channel hint)';
 }
 
 // Full paragraph: cached tldr, or per-channel fallback
@@ -354,6 +377,10 @@ function fullDiagnose(result, cache) {
     }
     if (result?.firstDivergence?.channel) {
         return `Divergence recorded on channel '${result.firstDivergence.channel}', but detailed payload was not available in firstDivergences.`;
+    }
+    const channels = mismatchedChannels(result);
+    if (channels.length) {
+        return `Divergence detected but no detailed firstDivergences payload was captured; mismatched channels: ${channels.join(', ')}.`;
     }
     return 'No divergence data recorded.';
 }
