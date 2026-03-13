@@ -10425,3 +10425,46 @@ Validation:
 - Practical lesson:
   - `mem_invis` is remembered state, not a substitute for C's live glyph tests. Using it in parity-critical control flow can suppress legitimate repeated finds.
   - Intrinsic-removal code must read and clear `player.uprops[prop].intrinsic` directly. Ad hoc `*_intrinsic` booleans are not trustworthy in this codebase and will silently mis-port C fallthrough logic.
+
+2026-03-13: blind `:` look_here path consumes time and pages before object text
+
+- Context:
+  - After the `mfind0()` and `attrcurse()` fixes, `pnd_s1200_w_potprayspell_gp.session.json` reached a later gameplay frontier at step `904`.
+  - The session sequence around steps `903-904` is blind `:` on a doorway:
+    - step `903`: `You try to feel what is lying here on the doorway.--More--`
+    - step `904`: dismiss `--More--`, then the monster turn runs, then `You feel no objects here.`
+  - JS `pager.js:dolook()` was still a simplified one-message helper that always returned `{ tookTime: false }`.
+
+- Root cause:
+  - C `invent.c:dolook()` delegates to `look_here()`, and in the blind path `look_here()`:
+    - emits a first "try to feel ..." page,
+    - waits at `--More--`,
+    - then emits the actual terrain/object result text,
+    - and returns `ECMD_TIME` unless the hero cannot reach the floor.
+  - JS skipped that blind control flow entirely, so `:` did not consume time and the whole post-command monster tail at step `904` was missing.
+
+- Fix:
+  - Port the blind `:` control flow in [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js):
+    - add a blind surface-name helper for doorway/ice/etc.,
+    - emit the blind intro page and wait with explicit `more(...)`,
+    - return `tookTime: true` for the blind path,
+    - use blind wording in the follow-up object text (`You feel ...`, `You feel no objects here.`),
+    - suppress duplicate terrain text when the blind intro already identified the doorway/ice.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` reached full gameplay parity:
+    - RNG `3125/3125`
+    - events `417/417`
+  - Remaining gaps are now display-only:
+    - first screen/color divergence at step `756`
+    - first cursor divergence at step `827`
+
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json`
+    - RNG full
+    - events full
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` still passes fully.
+
+- Practical lesson:
+  - Blind look-here is not a cosmetic one-liner. In C it is a paged, time-consuming command with its own message boundary.
+  - When a pending session shows a whole post-command monster tail missing after a non-movement command, first check whether the command should have returned `ECMD_TIME` in C.
