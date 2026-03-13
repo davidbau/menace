@@ -88,7 +88,7 @@ export function getlev(data) {
         // C: uses raw data pointer from saved struct (valid in same process)
         // JS: m.data is the permonst object reference (preserved in savedLevels)
         const mdat = m.data;
-        if (mdat && mdat.mlet) {
+        if (mdat && mdat.mlet && !game.genocidedLetters.has(mdat.mlet)) {
           if (mregen.includes(mdat.mlet)) m.mhp = Math.min(m.mhp + tmoves, m.orig_hp);
           else m.mhp = Math.min(m.mhp + Math.floor(tmoves / 20), m.orig_hp);
           if (m.mhp < 1) m.mhp = m.orig_hp;
@@ -100,7 +100,7 @@ export function getlev(data) {
         // First time: m.mhp = tier index, m.orig_hp = monster index (from makemon_lev)
         const tier = m.mhp; const idx = m.orig_hp;
         const mdat = (tier < 8 && idx < 7) ? mon[tier][idx] : null;
-        if (mdat && mdat.mlet) {
+        if (mdat && mdat.mlet && !game.genocidedLetters.has(mdat.mlet)) {
           const mtmp = makeMonst(mdat);
           mtmp.mx = m.mx; mtmp.my = m.my; mtmp.mstat = m.mstat;
           mtmp.sinv = false; mtmp.mspeed = 0; mtmp.cham = false;

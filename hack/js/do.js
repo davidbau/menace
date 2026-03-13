@@ -141,6 +141,8 @@ function dodr1(obj) {
 }
 
 // C ref: loseone(obj,dx,dy) — fire/throw one item (separate from stack)
+// C loseone() places obj at (x,y) in fobj list but does NOT call atl() to draw it.
+// The caller (case 't') calls newsym(dx,dy) only when the monster dies.
 function loseone(obj, tdx, tdy) {
   // Place obj at final position (game.dx/dy was set by bhit)
   if (obj.quan > 1) {
@@ -153,7 +155,7 @@ function loseone(obj, tdx, tdy) {
     obj.ox = game.dx; obj.oy = game.dy;
     obj.nobj = game.fobj; game.fobj = obj;
   }
-  if (game.levl[game.dx][game.dy].typ >= 3) atl(game.dx, game.dy, game.fobj.olet);
+  // C does NOT draw the dropped item here; display updates happen via newsym() elsewhere
 }
 
 // C ref: docall(obj) — name/call an item
@@ -429,7 +431,7 @@ async function read1(otmp) {
         zx = await game.input.getKey();
         for (const tier of mon) {
           for (const mdat of tier) {
-            if (mdat && mdat.mlet === zx) { genocideName = mdat.mname; mdat.mlet = 0; done = true; break; }
+            if (mdat && mdat.mlet === zx) { genocideName = mdat.mname; game.genocidedLetters.add(zx); done = true; break; }
           }
           if (done) break;
         }
@@ -437,7 +439,7 @@ async function read1(otmp) {
       await pline(`Goodbye to all ${genocideName}s.`);
       // Remove existing instances
       for (let mtmp = game.fmon; mtmp; mtmp = mtmp.nmon) {
-        if (mtmp.data.mlet === zx || mtmp.data.mlet === 0) {
+        if (mtmp.data.mlet === zx || game.genocidedLetters.has(mtmp.data.mlet)) {
           delmon(mtmp);
           if (game.levl[mtmp.mx][mtmp.my].scrsym === zx) newsym(mtmp.mx, mtmp.my);
         }

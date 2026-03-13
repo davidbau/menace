@@ -446,7 +446,7 @@ export function makemon(pmonst) {
       let tmp = rn2(foo);
       if (tmp > 7) tmp = rn2(8);
       mdat = mon[tmp][rn2(7)];
-    } while (!mdat.mlet);
+    } while (!mdat.mlet || game.genocidedLetters.has(mdat.mlet));
   }
   mtmp.data = mdat;
   if (!mdat.mlet) { game.fmon = mtmp.nmon; return null; }

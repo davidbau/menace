@@ -199,6 +199,9 @@ export class GameState {
     // Indexed by otyp; bits: POTN=1, SCRN=2, WANN=4, RINN=8
     this.oiden = new Array(20).fill(0);
 
+    // Per-game genocide state (C modifies mons[] globally but JS shares module state)
+    this.genocidedLetters = new Set();
+
     // Display interface (set by browser_main.js)
     this.display = null;
 
