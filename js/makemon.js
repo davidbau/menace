@@ -2465,6 +2465,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
         map.addMonster(mon);
     }
 
+    // C ref: makemon.c:1425 — compute malign after peaceful/renegade setup.
+    set_malign(mon);
+
     // C ref: makemon.c shapechanger path (pm_to_cham/newcham).
     const allowMinvent = allow_minvent && !maybe_apply_newcham(mon, mndx, depth || 1, map || null);
 
@@ -2738,7 +2741,8 @@ export async function grow_up(mtmp, victim, game) {
 }
 
 // Autotranslated from makemon.c:2315
-export function set_malign(mtmp, player) {
+export function set_malign(mtmp, player = null) {
+  const playerCtx = player || _gstate?.player || _getMakemonPlayerCtx();
   let mal = mtmp.data.maligntyp, coaligned;
   if (mtmp.ispriest || mtmp.isminion) {
     if (mtmp.ispriest && EPRI(mtmp)) mal = EPRI(mtmp).shralign;
@@ -2747,7 +2751,7 @@ export function set_malign(mtmp, player) {
       mal *= 5;
     }
   }
-  coaligned = player ? (sgn(mal) === sgn(player.alignment)) : false;
+  coaligned = !!playerCtx && (sgn(mal) === sgn(playerCtx.alignment));
   if (mtmp.data.msound === MS_LEADER) { mtmp.malign = -20; }
   else if (mal === A_NONE) {
     if (mtmp.mpeaceful) mtmp.malign = 0;

@@ -10283,7 +10283,6 @@ Validation:
     boundary, so the discriminator has to come from real runtime context
     (`context.mon_moving` here), not broad `playerDied` guards.
 
-<<<<<<< HEAD
 ## 2026-03-13 17:36 - hi11 zap invalid-inventory boundary fixed by prompt-owned visual --More--
 
 - Context:
