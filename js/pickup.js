@@ -47,6 +47,7 @@ import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
 import { obfree, costly_spot, dopay } from './shk.js';
+import { getEnv, writeStderr } from './runtime_env.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
 // Ported from NetHack pickup.c
@@ -63,6 +64,10 @@ let picked_filter = false;         // gp.picked_filter
 let val_for_n_or_more = 0;         // gv.val_for_n_or_more
 let pickup_encumbrance = 0;        // gp.pickup_encumbrance
 let oldcap = 0;                    // go.oldcap
+const diagEncumber = (() => {
+    const v = getEnv('WEBHACK_DIAG_ENCUMBER');
+    return v === '1' || v === 'true';
+})();
 
 // ---------------------------------------------------------------------------
 // Helper predicates (not exported from other modules)
@@ -569,6 +574,9 @@ async function encumber_msg(player) {
     const newcap = near_capacity(player);
     // C ref: static int oldcap = 0; — per-session initial encumbrance baseline
     const oldcap_val = Number.isInteger(player?._oldcap) ? player._oldcap : 0;
+    if (diagEncumber) {
+        writeStderr(`[ENCUMBER] old=${oldcap_val} new=${newcap} turns=${Number(player?.turns || 0)}\n`);
+    }
     const encMsg = get_encumber_msg_for_change(oldcap_val, newcap);
 
     if (encMsg) {

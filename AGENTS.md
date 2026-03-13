@@ -28,6 +28,16 @@ Every agent's work must connect to this pipeline:
    sessions, and verify coverage gain.
 6. Never regress existing parity — fix code, don't mask sessions.
 
+Required routine (normalize this behavior):
+1. Record aggressive, high-variance sessions designed to expose parity bugs,
+   not just to add one narrow branch.
+2. Use mixed interactions in one trace when possible (for example potion
+   effects + status interactions + prayer/luck + spell reads + inventory/use
+   side effects) to maximize bug discovery per turn.
+3. Treat every newly exposed divergence as a core gameplay blocker to fix.
+4. Stay on that session until parity bugs are resolved (or clearly blocked and
+   tracked), then repeat with a new aggressive session concept.
+
 Read `docs/COVERAGE.md` for the full mandatory workflow, commands, and
 session lifecycle rules. **Code fixes without corresponding coverage
 evidence don't count.**

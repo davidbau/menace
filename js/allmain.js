@@ -68,6 +68,7 @@ import { handleReset as _handleReset, restoreFromSave as _restoreFromSave,
          enterTutorial as _enterTutorial, showGameOver as _showGameOver } from './chargen.js';
 import { movebubbles, fumaroles } from './mkmaze.js';
 import { initAnimation, configureAnimation, setAnimationMode } from './animation.js';
+import { encumber_msg } from './pickup.js';
 import { nhimport, nhload, display_sync } from './origin_awaits.js';
 import { phase_of_the_moon, friday_13th, night } from './calendar.js';
 import { change_luck, acurr } from './attrib.js';
@@ -192,6 +193,10 @@ export async function moveloop_core(game, opts = {}) {
     let forceStopMoveLoop = false;
     do {
         let monscanmove = false;
+        // C ref: allmain.c moveloop_core() calls encumber_msg() at start of the
+        // "hero can't move this turn" loop so load transitions are surfaced
+        // before monster actions.
+        await encumber_msg(player);
         if (!opts.skipMonsterMove) {
             // C ref: allmain.c:303-310 — mark monster phase and snapshot HP
             // at start of monster turn for saving_grace.

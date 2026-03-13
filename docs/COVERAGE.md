@@ -88,6 +88,13 @@ Important:
 - The metric is still coverage percentage, not number of sessions.
 - Pending sessions are expected to fail initially; they are inputs to parity-fix work.
 - A separate parity-fix stream should continuously convert pending sessions to green and promote them.
+- Session design should be intentionally aggressive: combine varied gameplay
+  effects in one trace (status potions, prayer/luck states, spellbooks,
+  equipment interactions, movement/combat side effects) to expose hidden parity
+  bugs that narrow traces miss.
+- After recording an aggressive session, stay on parity bugfixing for that
+  session until the exposed blockers are resolved (or explicitly tracked as
+  blocked), then start the next aggressive concept.
 
 ### Step 1: Identify untested code
 
@@ -140,6 +147,15 @@ node test/comparison/session_test_runner.js \
 node test/comparison/rng_step_diff.js \
   test/comparison/sessions/pending/<name>.session.json --step <N> --window 8
 ```
+
+Blocker handling policy (required):
+- Do not trim, weaken, or sidestep a session scenario just to avoid a failing
+  branch or prompt mismatch.
+- Treat first divergences exposed by pending sessions as parity blockers to
+  fix in core JS gameplay code.
+- Only trim/refactor a pending session for hygiene (length/noise) after the
+  blocker is fixed, or while keeping the blocker explicitly tracked in an open
+  issue with reproduction steps.
 
 ### Step 4: Promote passing sessions
 
