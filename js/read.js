@@ -22,7 +22,7 @@ import {
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES } from './const.js';
+import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES, W_ARMH } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -37,7 +37,7 @@ import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMA
          G_GENO, G_NOCORPSE } from './monsters.js';
 import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
-import { Yobjnam2, Yname2, makeplural, an, is_weptool } from './objnam.js';
+import { Yobjnam2, Yname2, makeplural, an, is_weptool, xname } from './objnam.js';
 import { hcolor, Monnam, mon_nam } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
@@ -51,17 +51,21 @@ import { DISP_BEAM, DISP_END, thats_enough_tries, MAX_SPELL_STUDY } from './cons
 import { getpos_sethilite, getpos_async } from './getpos.js';
 import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
-import { newsym, cmap_to_glyph, canspotmon } from './display.js';
+import { newsym, cmap_to_glyph, canspotmon, map_invisible } from './display.js';
 import { S_goodpos } from './symbols.js';
 import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup, compactInvletPromptChars } from './invent.js';
 // nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
-import { kill_genocided_monsters, wake_nearto, wakeup, setmangry } from './mon.js';
+import { kill_genocided_monsters, wake_nearto, wakeup, setmangry, killed, mondied } from './mon.js';
 import { tamedog } from './dog.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 import { which_armor } from './worn.js';
+import { dmgval } from './weapon.js';
+import { hard_helmet } from './do_wear.js';
+import { flooreffects } from './do.js';
+import { snuff_light_source } from './light.js';
 import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
 import { closed_door } from './monmove.js';
 import { is_pool, is_lava } from './dbridge.js';
@@ -1962,8 +1966,8 @@ export async function drop_boulder_on_player(confused, helmet_protects, byu, ski
     otmp2.owt = weight(otmp2);
 
     let dmg = 0;
-    if (!amorphous(player.data) && !player.Passes_walls
-        && !noncorporeal(player.data) && !unsolid(player.data)) {
+    if (!(player.data && amorphous(player.data)) && !player.Passes_walls
+        && !(player.data && noncorporeal(player.data)) && !(player.data && unsolid(player.data))) {
         await pline("You are hit by %s!", doname(otmp2));
         dmg = otmp2.quan; // simplified dmgval
         if (player.helmet && helmet_protects) {
@@ -1999,7 +2003,7 @@ export async function punish(sobj, player, map = null) {
         player.uball.owt = (player.uball.owt || 0) + 160 * (1 + cursed_levy);
         return;
     }
-    if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {
+    if ((player.data && amorphous(player.data)) || (player.data && is_whirly(player.data)) || (player.data && unsolid(player.data))) {
         if (!reuse_ball) {
             await pline("A ball and chain appears, then falls away.");
             const looseBall = mkobj(BALL_CLASS, true, false);
