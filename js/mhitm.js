@@ -19,6 +19,8 @@
 import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin } from './hacklib.js';
 import { monnear, mondead, helpless, unstuck } from './mon.js';
+import { grow_up } from './makemon.js';
+import { game as _gstate } from './gstate.js';
 import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
 import { monAttackName, rndmonnam } from './do_name.js';
 import { cansee } from './vision.js';
@@ -606,31 +608,10 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
             return (M_ATTK_DEF_DIED | M_ATTK_AGR_DIED);
         }
 
-        // cf. mhitm.c:1115 — grow_up(magr, mdef)
-        const victimLevel = mdef.m_lev ?? (pd.mlevel || 0);
-        const agrLevel = magr.m_lev ?? ((magr.data || magr.type || {}).mlevel || 0);
-        const hp_threshold = agrLevel > 0 ? agrLevel * 8 : 4;
-        let max_increase = rnd(Math.max(1, victimLevel + 1));
-        if ((magr.mhpmax || 0) + max_increase > hp_threshold + 1) {
-            max_increase = Math.max(0, (hp_threshold + 1) - (magr.mhpmax || 0));
-        }
-        const cur_increase = (max_increase > 1) ? rn2(max_increase) : 0;
-        magr.mhpmax = (magr.mhpmax || 0) + max_increase;
-        magr.mhp = (magr.mhp || 0) + cur_increase;
-        // C ref: makemon.c grow_up() — if hpmax crosses threshold, gain one level.
-        if ((magr.mhpmax || 0) > hp_threshold) {
-            const baseSpeciesLevel = ((magr.data || magr.type || {}).mlevel || 0);
-            let lev_limit = Math.floor((3 * baseSpeciesLevel) / 2);
-            if (lev_limit < 5) lev_limit = 5;
-            else if (lev_limit > 49) lev_limit = (baseSpeciesLevel > 49 ? 50 : 49);
-            const curLevel = magr.m_lev ?? baseSpeciesLevel;
-            if (curLevel < lev_limit) {
-                const nextLevel = curLevel + 1;
-                magr.m_lev = nextLevel;
-            }
-        }
+        // C ref: mhitm.c:1115 — grow_up(magr, mdef)
+        const grewUp = await grow_up(magr, mdef, _gstate);
 
-        return (M_ATTK_DEF_DIED | (DEADMONSTER(magr) ? M_ATTK_AGR_DIED : 0));
+        return (M_ATTK_DEF_DIED | (grewUp ? 0 : M_ATTK_AGR_DIED));
     }
     return (mhm.hitflags === M_ATTK_AGR_DIED) ? M_ATTK_AGR_DIED : M_ATTK_HIT;
 }
