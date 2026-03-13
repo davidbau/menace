@@ -1475,7 +1475,6 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
 export async function weffects(obj, player, map, display = null, game = null) {
   if (!obj) return;
   const otyp = obj.otyp;
-  const wasUnknown = !objectData[otyp]?.known;
   let disclose = false;
 
   // C ref: zap.c:3424 — exercise wisdom
@@ -1515,7 +1514,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
       }
     }
   }
-  if (disclose || wasUnknown) {
+  if (disclose) {
     learnwand(obj, player);
   }
 }

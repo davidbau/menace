@@ -9605,3 +9605,21 @@ Validation:
   - first mismatch now appears later at step `401`
     (`discoverObject(...)` ahead of C monster-turn `exercise(...)` tail), so
     remaining work is primarily post-zap turn-distribution ordering.
+## 2026-03-13: `weffects()` learnwand gate must be `disclose`-only (no `wasUnknown` shortcut)
+
+- Context: `hi11_seed1100_wiz_zap-deep_gameplay` still diverged in a zap/lifesave region.
+- Finding:
+  - JS `weffects()` had drifted to:
+    - `if (disclose || wasUnknown) learnwand(obj, player);`
+  - C `zap.c weffects()` calls `learnwand(obj)` only when `disclose` is true.
+  - This is a behavior bug independent of whether it immediately improves first-RNG divergence.
+- Fix:
+  - Removed the `wasUnknown` bypass path so JS now mirrors C:
+    - `if (disclose) learnwand(obj, player);`
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains pass.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` still fails at the same first divergence index, but the `weffects` gate is now structurally faithful.
+- Follow-up diagnosis (not yet fixed in this slice):
+  - Around steps 396–401 in `hi11`, command/prompt boundary work distribution is shifted across `--More--` + `Die? [yn]`.
+  - Observed pattern: JS consumes monster-turn RNG two keys earlier than C in that region.
+  - Likely hotspot: blocking prompt paths (`done()` -> `ynFunction`) interacting with replay key delivery cadence.
