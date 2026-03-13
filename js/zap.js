@@ -70,7 +70,7 @@ import { corpse_chance } from './mon.js';
 import { mon_nam } from './do_name.js';
 import { xkilled, killed,
          wakeup, healmon, mondead } from './mon.js';
-import { nhgetch } from './input.js';
+import { more, nhgetch } from './input.js';
 import { getdir, registerBurnarmor } from './hack.js';
 import { nonliving, is_undead, is_demon,
          x_monnam, resists_fire, resists_cold, resists_elec,
@@ -587,7 +587,9 @@ export async function handleZap(player, map, display, game) {
         if (!wand) {
             replacePromptMessage();
             await pline("You don't have that object.");
-            return { moved: false, tookTime: false };
+            await more(display, { game, site: 'zap.invalid-invlet.morePrompt' });
+            await showZapPrompt();
+            continue;
         }
         replacePromptMessage();
         break;

@@ -201,6 +201,14 @@ export async function moveloop_core(game, opts = {}) {
             player._uhp_at_start = startHp;
             try {
                 do {
+                    // C-faithful lifesave stop: once savelife() has requested
+                    // a command-cycle stop, don't enter another movemon pass.
+                    if (game?._stopMoveloopAfterLifesave) {
+                        forceStopMoveLoop = true;
+                        monscanmove = false;
+                        game._stopMoveloopAfterLifesave = false;
+                        break;
+                    }
                     monscanmove = await movemon((game.lev || game.map), player, game.display, game.fov, game);
                     // C ref: savelife() stops further movement progression for the
                     // current command cycle after life-saving.

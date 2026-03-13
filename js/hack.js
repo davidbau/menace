@@ -2872,6 +2872,12 @@ export async function unmul(msg_override, player, display, game) {
     if (msg && display) {
         await display.putstr_message(msg);
     }
+    // C-faithful moveloop stop: savelife() requests ending movement
+    // progression for this command cycle. If recovery messaging is deferred
+    // until unmul(), assert the same stop signal here.
+    if (msg === 'You survived that attempt on your life.') {
+        game._stopMoveloopAfterLifesave = true;
+    }
     game.nomovemsg = null;
     if (player) player.usleep = 0;
     game.multi_reason = null;

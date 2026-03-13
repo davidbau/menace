@@ -1330,6 +1330,12 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     }
 
     for (let i = 0; i < 6; i++) {
+        // C ref: done(DIED) unwinds immediately. In JS, life-saving sets a
+        // stop flag; honor it here so one monster can't continue extra attacks
+        // in the same mattacku() pass after the hero is restored.
+        if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
+            break;
+        }
         if (opts.range2 === undefined && i > 0) {
             const vars = calc_mattacku_vars(monster, player);
             range2 = !!vars.range2;
@@ -1522,6 +1528,9 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             );
 
             if (died) {
+                break;
+            }
+            if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
                 break;
             }
         }

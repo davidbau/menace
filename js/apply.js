@@ -102,7 +102,7 @@ import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
-import { is_wet_towel, gloves_simple_name, makeplural } from './objnam.js';
+import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname } from './objnam.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
 import { cmap_to_glyph } from './display.js';
@@ -1214,13 +1214,7 @@ export async function handleApply(player, map, display, game) {
         }
 
         if (selected.oclass === SPBOOK_CLASS) {
-            const fades = ['fresh', 'slightly faded', 'very faded',
-                           'extremely faded', 'barely visible'];
-            const studied = Math.max(0, Math.min(4,
-                Number(selected.spestudied || 0)));
-            const magical = !!objectData[selected.otyp]?.magic;
-            await display.putstr_message(
-                `The${magical ? ' magical' : ''} ink in this spellbook is ${fades[studied]}.`);
+            await flip_through_book(selected);
             return { moved: false, tookTime: true };
         }
 
@@ -1314,7 +1308,7 @@ export function unfixable_trouble_count(/* is_horn, player */) {
 
 // cf. apply.c:4468 -- flip_through_book
 export async function flip_through_book(obj) {
-    await You("flip through the pages of %s.", xname(obj));
+    await You("flip through the pages of %s.", thesimpleoname(obj));
     if (obj.otyp === SPE_BOOK_OF_THE_DEAD) {
         await You_hear("the pages make an unpleasant rustling sound.");
     } else if (obj.otyp === SPE_BLANK_PAPER) {
