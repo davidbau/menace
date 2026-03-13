@@ -256,6 +256,7 @@ function isMenuDismissKey(ch) {
 
 export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '', options = null) {
     const allowCountPrefix = !!(options && options.allowCountPrefix);
+    const dismissOnUnrecognized = !!(options && options.dismissOnUnrecognized);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     let menuOffx = null;
     if (typeof display.renderOverlayMenu === 'function') {
@@ -289,6 +290,8 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
             selection = c;
             break;
         }
+        // C tty parity: PICK_ONE menus dismiss on any unrecognized key.
+        if (dismissOnUnrecognized) break;
     }
 
     const last = display?._lastMapState;

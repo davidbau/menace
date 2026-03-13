@@ -2723,6 +2723,8 @@ export function mondead(mon, map, player) {
         }
         mon.minvent = [];
         mon.weapon = null;
+        // C ref: relobj() calls newsym() for each dropped item; refresh once after all drops
+        newsym(mon.mx, mon.my);
     }
 }
 
