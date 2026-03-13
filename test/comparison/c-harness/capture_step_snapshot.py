@@ -320,7 +320,11 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         expected_auto_step = baseline_auto_step + replayed_steps
         expected_auto_inp = baseline_auto_inp + replayed_chars
         target_auto_inp_by_step = int(step_index)
-        tag = phase_tag or f"auto_inp_{target_auto_inp_by_step}"
+        # Prefer the absolute auto_inp index derived from replayed key chars.
+        # Using session step index directly can select stale checkpoints when
+        # input and gameplay-step numbering diverge.
+        target_auto_inp = int(expected_auto_inp)
+        tag = phase_tag or f"auto_inp_{target_auto_inp}"
 
         matched_checkpoint, checkpoint_count = wait_for_checkpoint_phase_prefix(
             checkpoint_file, tag, baseline_count, timeout_s=6.0
@@ -376,6 +380,7 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             "baselineCheckpointCount": baseline_count,
             "expectedAutoStep": expected_auto_step,
             "expectedAutoInp": expected_auto_inp,
+            "targetAutoInp": target_auto_inp,
             "targetAutoInpByStep": target_auto_inp_by_step,
             "replayedChars": replayed_chars,
             "matchedPhaseFromStream": matched_phase_from_stream,
