@@ -396,8 +396,8 @@ export function doname(obj) {
         s = setan(wn ? wn : 'wand') + (wn ? ' wand.' : '.');
       }
       if (obj.known) {
-        // C: while(*buf) buf++; sprintf(buf,"  (%d).",obj->spe)
-        s = s.slice(0, -1) + `  (${obj.spe}).`;
+        // C: while(*buf) buf++; sprintf(buf,"  (%d).",obj->spe) — appends without removing trailing '.'
+        s += `  (${obj.spe}).`;
       }
       break;
     }
