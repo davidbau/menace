@@ -2154,7 +2154,7 @@ export async function performWaitSearch(cmd, game, map, player, fov, display) {
     }
     resetSafetyWarningCounter(cmd, game);
     if (cmd === 's') {
-        await dosearch0(player, map, display, game);
+        await dosearch0(player, map, display, game, 0);
     }
     return { moved: false, tookTime: true };
 }

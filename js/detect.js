@@ -19,7 +19,8 @@ import {
     cls,
     newsym, flush_screen,
     canSpotMonsterForMap, senseMonsterForMap,
-    warning_of, feel_newsym, docrt, under_water, under_ground,
+    warning_of, feel_newsym, feel_location, docrt, under_water, under_ground,
+    unmap_invisible,
 } from './display.js';
 import { helpless as monHelpless } from './mon.js';
 import { findgold } from './steal.js';
@@ -35,6 +36,7 @@ import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
 import { sobj_at } from './invent.js';
 import { getpos_async } from './getpos.js';
+import { visible_region_at } from './region.js';
 
 // detect.js -- Detection spells, scrolls, and searching
 // cf. detect.c -- Full port of all detection routines.
@@ -1002,14 +1004,20 @@ export async function mfind0(mtmp, via_warning, player, map, display) {
 // ========================================================================
 // cf. detect.c:2016 -- dosearch0
 // ========================================================================
-export async function dosearch0(player, map, display, game = null) {
-    if (player.uswallow) return 1;
+export async function dosearch0(player, map, display, game = null, aflag = 0) {
+    if (player.uswallow) {
+        if (!aflag) await Norep('What are you looking for?  The exit?');
+        return 1;
+    }
     for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
             if (dx === 0 && dy === 0) continue;
             const nx = player.x + dx;
             const ny = player.y + dy;
             if (!isok(nx, ny)) continue;
+            if (!aflag && (player.blind || visible_region_at(nx, ny, map))) {
+                feel_location(nx, ny, map);
+            }
             const loc = map.at(nx, ny);
             if (!loc) continue;
 
@@ -1036,6 +1044,17 @@ export async function dosearch0(player, map, display, game = null) {
                     await display.putstr_message('You find a hidden passage.');
                 }
             } else {
+                // C ref: detect.c dosearch0() explicit-search monster reveal path.
+                if (!aflag) {
+                    const mtmp = map.monsterAt?.(nx, ny) || null;
+                    if (mtmp) {
+                        const mfres = await mfind0(mtmp, false, player, map, display);
+                        if (mfres === -1) continue;
+                        if (mfres > 0) return mfres;
+                    } else if (!player.blind) {
+                        unmap_invisible(nx, ny, map);
+                    }
+                }
                 // C ref: detect.c:2080 -- trap detection with rnl(8)
                 const trap = map.trapAt?.(nx, ny);
                 if (trap && !trap.tseen && !rnl(8)) {
@@ -1047,13 +1066,14 @@ export async function dosearch0(player, map, display, game = null) {
             }
         }
     }
+    return 1;
 }
 
 // ========================================================================
 // cf. detect.c:2097 -- dosearch
 // ========================================================================
 export async function dosearch(player, map, display, game) {
-    return await dosearch0(player, map, display, game);
+    return await dosearch0(player, map, display, game, 0);
 }
 
 // ========================================================================

@@ -9285,3 +9285,26 @@ Validation:
     `835/905` to `837/905` and first screen divergence moved from step `676` to `756`,
     while preserving the same first RNG divergence point (`step 866`), confirming
     this removed an earlier independent mismatch without masking later drift.
+
+### 2026-03-13 search parity hardening: explicit `doserach0(aflag=0)` now includes C monster-reveal path
+
+- C gap closed:
+  - `detect.c dosearch0()` has a distinct explicit-search branch (`aflag == 0`)
+    that checks adjacent monsters via `mfind0()` before trap checks, can early-return,
+    and clears stale invisible markers via `unmap_invisible()`.
+  - JS `doserach0` was missing this branch and treated explicit search/autosearch
+    identically.
+- Fix:
+  - `js/detect.js`:
+    - added `aflag` parameter and C swallowed-message behavior.
+    - wired explicit-search-only `mfind0` and `unmap_invisible` logic.
+    - added C-style return semantics (`return 1` default; early return on `mfind0`).
+  - call-site split:
+    - explicit `s` command uses `doserach0(..., aflag=0)`.
+    - intrinsic autosearch in `moveloop_turnend` uses `doserach0(..., aflag=1)`.
+- Validation:
+  - no regressions on known-green gameplay parity seeds:
+    - `seed322_barbarian_wizard_gameplay` full RNG/event parity.
+    - `seed331_tourist_wizard_gameplay` full RNG/event parity.
+  - target pending session (`pnd_s1200_w_potprayspell_gp`) still diverges at step 866,
+    indicating this slice removes a concrete C gap but the remaining drift is elsewhere.

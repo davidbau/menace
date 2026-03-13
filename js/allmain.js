@@ -447,7 +447,7 @@ export async function moveloop_turnend(game) {
     // C ref: allmain.c:341-343 — autosearch for players with Searching
     // intrinsic (Archeologists/Rangers at level 1, Rogues at 10, etc.)
     if ((game.u || game.player).searching && game.multi >= 0) {
-        await dosearch0((game.u || game.player), (game.lev || game.map), game.display, game);
+        await dosearch0((game.u || game.player), (game.lev || game.map), game.display, game, 1);
     }
 
     // C ref: allmain.c:351 dosounds() — ambient sounds
