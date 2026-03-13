@@ -620,11 +620,15 @@ export class HeadlessDisplay {
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await more(this, {
-                    site: 'headless.more.dismiss',
-                    clearAfter: false,
-                    readKey: this._nhgetch,
-                });
+                try {
+                    await more(this, {
+                        site: 'headless.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                    });
+                } catch (e) {
+                    if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                }
             }
             this.clearRow(0);
             this.messageNeedsMore = false;
@@ -653,11 +657,18 @@ export class HeadlessDisplay {
             // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await more(this, {
-                    site: 'headless.more.dismiss',
-                    clearAfter: false,
-                    readKey: this._nhgetch,
-                });
+                try {
+                    await more(this, {
+                        site: 'headless.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                    });
+                } catch (e) {
+                    // If another nhgetch is already pending (e.g., makemon
+                    // appear message during a command cycle), skip the
+                    // --More-- and fall through to replace the message.
+                    if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                }
             }
             // Fall through to display the new message fresh.
             this.clearRow(0);
@@ -674,11 +685,15 @@ export class HeadlessDisplay {
             if (isDeathMessage) {
                 this.renderMoreMarker();
                 if (this._nhgetch) {
-                    await more(this, {
-                        site: 'headless.more.dismiss',
-                        clearAfter: false,
-                        readKey: this._nhgetch,
-                    });
+                    try {
+                        await more(this, {
+                            site: 'headless.more.dismiss',
+                            clearAfter: false,
+                            readKey: this._nhgetch,
+                        });
+                    } catch (e) {
+                        if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                    }
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
@@ -727,11 +742,15 @@ export class HeadlessDisplay {
         // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
         this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
         if (this._nhgetch) {
-            await more(this, {
-                site: 'headless.more.dismiss',
-                clearAfter: false,
-                readKey: this._nhgetch,
-            });
+            try {
+                await more(this, {
+                    site: 'headless.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
+            } catch (e) {
+                if (!e.message?.includes('Concurrent nhgetch')) throw e;
+            }
         }
         this.clearRow(0);
         this.clearRow(1);
