@@ -10104,3 +10104,42 @@ Validation:
     2. aborting later `movemon()` passes in the same monster phase.
   - C does neither. Life-saving only suppresses the next command-cycle start
     after the current monster phase and turn-end work have drained.
+
+## 2026-03-13 - `dochug()` `MMOVE_MOVED` must not fall through to generic Phase 4
+
+- Context:
+  - Pending coverage session `t11_s744_w_covmax2_gp` still had first RNG drift
+    at step `667` after the lifesave fixes.
+  - Raw comparison showed two JS-only `rn2(5)` rolls after the imp finished
+    moving and before the next monster turn banner.
+- C behavior:
+  - In `monmove.c dochug()`, the `switch (status)` handles `MMOVE_MOVED`
+    specially.
+  - A moved monster normally returns immediately.
+  - It only falls through to Phase 4 if:
+    - it is not nearby, and
+    - it still has a ranged/offensive follow-up.
+  - Nearby moved monsters therefore do not continue into the generic Phase 4
+    melee/cuss tail.
+- JS bug:
+  - JS was setting `phase4Allowed = moveStatus !== MMOVE_DONE`, which let
+    `MMOVE_MOVED` monsters keep flowing into the shared Phase 4 logic and the
+    later vile-monster `!rn2(5)` cuss gate.
+  - For the imp at step `667`, this produced stray post-move RNG and shifted
+    the next iguana's track-roll sequence.
+- Fix:
+  - Port the C `switch (status)` structure more faithfully in `js/monmove.js`.
+  - For `MMOVE_MOVED`:
+    - return immediately for ordinary moved monsters,
+    - only allow Phase 4 when the C ranged/offensive follow-up condition holds,
+    - keep the engulfing special case inline with the C branch.
+- Validation:
+  - `t11_s744_w_covmax2_gp.session.json` improved:
+    - first RNG divergence moved `667 -> 722`
+    - matched RNG `9807/11227 -> 9969/11024`
+    - matched events `949/1761 -> 1044/1715`
+    - matched screens `691/892 -> 693/892`
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`

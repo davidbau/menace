@@ -1562,17 +1562,40 @@ async function dochug(mon, map, player, display, fov, game = null) {
             panicattk = true;
         }
 
-        // C ref: monmove.c:917-933 — for no-move statuses, hallucination still
-        // refreshes monster appearance even when it doesn't move.
-        if ((moveStatus === MMOVE_NOMOVES
+        // C ref: monmove.c:934-975 — dochug() switch on move status.
+        if (moveStatus === MMOVE_NOMOVES
             || moveStatus === MMOVE_NOTHING
-            || moveStatus === MMOVE_DONE)
-            && player?.hallucinating) {
-            newsym(mon.mx, mon.my);
+            || moveStatus === MMOVE_DONE) {
+            // C ref: monmove.c:945-949 — for no-move statuses, hallucination
+            // still refreshes monster appearance even when it doesn't move.
+            if (player?.hallucinating) {
+                newsym(mon.mx, mon.my);
+            }
+            phase4Allowed = !mon.dead;
+        } else if (moveStatus === MMOVE_MOVED) {
+            // C ref: monmove.c:951-972 — moved monsters normally stop here.
+            // Only non-nearby monsters with ranged/offensive follow-up fall
+            // through to Phase 4; nearby moved monsters do not melee or cuss.
+            phase4Allowed = false;
+            if (!helpless(mon)) {
+                const mdat = mon.data || mon.type || {};
+                if (!nearby
+                    && (ranged_attk_available(mon)
+                        || attacktype(mdat, AT_WEAP)
+                        || await find_offensive(mon, map, player))) {
+                    phase4Allowed = !mon.dead;
+                } else if (player?.uswallow && player?.ustuck === mon) {
+                    await mattacku(mon, player, display, game, { map });
+                    return;
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+        } else {
+            phase4Allowed = false;
         }
-
-        // C ref: monmove.c:970 — status != MMOVE_DONE allows attack after movement.
-        phase4Allowed = moveStatus !== MMOVE_DONE && !mon.dead;
     }
 
     // Phase 4: Standard Attacks
