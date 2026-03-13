@@ -104,7 +104,7 @@ import {
   gloves_simple_name, boots_simple_name, shield_simple_name,
   shirt_simple_name, Is_box,
 } from './objnam.js';
-import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
+import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
 import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES, SHOCK_RES, COLD_RES } from './const.js';
@@ -124,27 +124,6 @@ import { attach_egg_hatch_timeout } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';
-
-// C ref: invent.c compactify() — compress inventory letter list for prompts
-// Inlined here to avoid circular import issues with invent.js
-function compactifyLetters(chars) {
-    if (!chars) return '';
-    const sorted = [...new Set(chars.split(''))].sort();
-    if (sorted.length <= 5) return sorted.join('');
-    const out = [];
-    let i = 0;
-    while (i < sorted.length) {
-        let j = i;
-        while (j + 1 < sorted.length && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
-        if (j - i >= 2) {
-            out.push(sorted[i], '-', sorted[j]);
-        } else {
-            for (let k = i; k <= j; k++) out.push(sorted[k]);
-        }
-        i = j + 1;
-    }
-    return out.join('');
-}
 
 // Direction vectors matching cmd.js DIRECTION_KEYS
 const DIRECTION_KEYS = {
@@ -536,7 +515,7 @@ export async function handleZap(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    const zapPrompt = `What do you want to zap? [${compactifyLetters(wands.map(w => w.invlet).join(''))} or ?*] `;
+    const zapPrompt = `What do you want to zap? [${compactInvletPromptChars(wands.map(w => w.invlet).join(''))} or ?*] `;
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
