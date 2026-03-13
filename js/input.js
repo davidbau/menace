@@ -605,38 +605,12 @@ export async function more(display, {
         ? readKey
         : () => nhgetch_display_raw();
 
-    // C ref: pline.c flush_screen() updates status before message output,
-    // and tty/topl.c more() itself does not force a bot() refresh.
-    // Mirror the JS deferred-status contract from display.flush_screen():
-    // only redraw the status line here when a botl update is actually pending.
+    // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
+    // Keep status line current at every explicit --More-- boundary.
     const statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
-    const currentStatusHp = Number.isFinite(statusPlayer?.uhp)
-        ? statusPlayer.uhp
-        : (Number.isFinite(statusPlayer?.hp) ? statusPlayer.hp : null);
-    const topMessageStatusHp = Number.isFinite(display?._topMessageStatusHp)
-        ? display._topMessageStatusHp
-        : null;
-    const botlStepIndex = Number.isInteger(statusPlayer?._botlStepIndex)
-        ? statusPlayer._botlStepIndex
-        : null;
-    const topMessageStepIndex = Number.isInteger(display?._topMessageStepIndex)
-        ? display._topMessageStepIndex
-        : null;
-    const haveStepParitySignal = (botlStepIndex != null && topMessageStepIndex != null);
-    const topMessageMatchesBotlStep = !haveStepParitySignal
-        || botlStepIndex === topMessageStepIndex;
-    const topMessageMatchesCurrentHp = (topMessageStatusHp == null
-        || currentStatusHp == null
-        || topMessageStatusHp === currentStatusHp);
-    const shouldRefreshForCurrentTopline = haveStepParitySignal
-        ? topMessageMatchesBotlStep
-        : topMessageMatchesCurrentHp;
-    if (refreshStatus
-        && shouldRefreshForCurrentTopline
-        && statusPlayer?._botl
-        && typeof display.renderStatus === 'function') {
+    if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
         display.renderStatus(statusPlayer);
-        statusPlayer._botl = false;
+        if (statusPlayer._botl) statusPlayer._botl = false;
     }
 
     if (forceVisual && typeof display.renderMoreMarker === 'function') {
