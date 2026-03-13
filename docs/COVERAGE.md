@@ -194,12 +194,13 @@ verify coverage gain. This is the steady-state workflow for all agents.
 
 Coverage input:
 - `test/comparison/session_test_runner.js` session replay suite
-- default filter: `--type=gameplay`
-- default gameplay suite set includes:
+- default filters: `--type=gameplay --type=chargen`
+- default parity suite set includes:
   - baseline roots: `test/comparison/sessions/*.session.json`
   - accepted coverage sessions: `test/comparison/sessions/coverage/**/*.session.json`
 - map sessions in `test/comparison/maps/*.session.json` are loaded by the
-  runner but filtered out by default gameplay mode (`--type=gameplay`)
+  runner but filtered out by default mode (unless `--all-types` or explicit
+  type override is used)
 - proposed sessions in `test/comparison/sessions/pending/*.session.json` are
   intentionally excluded from the default suite until they are parity-green
 - optional: all session types (`--all-types`) or explicit `--type=...`
@@ -258,7 +259,7 @@ NPM command:
 Behavior:
 1. Runs `c8` against `node test/comparison/session_test_runner.js`.
 2. Forces `--no-parallel` so coverage is collected in a single process path.
-3. Applies `--type=gameplay` by default (unless overridden).
+3. Applies `--type=gameplay --type=chargen` by default (unless overridden).
 4. Clears `/coverage/` first to avoid stale artifacts from prior runs.
 5. Writes HTML/text coverage report to `/coverage/`.
 6. Applies the NetHack HTML theme used by existing hack/rogue coverage reports.
@@ -578,7 +579,7 @@ Planned tooling direction:
 
 ## Command Examples
 
-Default gameplay-only parity coverage:
+Default parity coverage (`gameplay` + `chargen`):
 ```bash
 npm run coverage:session-parity
 ```

@@ -1,0 +1,20 @@
+Coverage diff
+  base: /tmp/tmp.Mfw8e2nyoc
+  head: docs/metrics/session_parity_coverage_latest.json
+  overall lines: 55.16% -> 55.60% (+0.44%)
+  overall branches: 59.29% -> 59.44% (+0.15%)
+  overall functions: 37.39% -> 37.93% (+0.54%)
+  tracked file set: +1 / -1
+
+No regressed tracked files.
+
+Most improved tracked files (top 20)
+File                                   Base     Head    Delta
+-------------------------------------  -------  ------- -------
+js/role.js                              46.22%   49.24%  +3.02%
+
+Newly tracked files in head (top 20)
+  + js/temp_glyph.js (51.53%)
+
+Removed tracked files from base (top 20)
+  - js/chargen.js (8.19%)
