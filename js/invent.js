@@ -1658,8 +1658,10 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         const c = String.fromCharCode(ch);
 
         // ESC / Enter / Space = cancel
+        // C ref: invent.c:2367-2370 — pline1("Never mind.") on ESC
         if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
             clearPrompt();
+            await display.putstr_message('Never mind.');
             return null;
         }
 
