@@ -1369,7 +1369,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     const { x: targetX, y: targetY } = monApparentTarget(mon);
-    const isWanderer = !!((mon.data || mon.type) && (mon.data || mon.type).mflags2 & M2_WANDER);
+    const isWanderer = !!(mdat.mflags2 & M2_WANDER);
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
 
     let scaredNow = !!scared;
@@ -1571,14 +1571,15 @@ async function dochug(mon, map, player, display, fov, game = null) {
             if (player?.hallucinating) {
                 newsym(mon.mx, mon.my);
             }
-            phase4Allowed = !mon.dead;
+            // C ref: monmove.c:984 — MMOVE_DONE reaches the switch but is
+            // still excluded from the later generic attack block.
+            phase4Allowed = moveStatus !== MMOVE_DONE && !mon.dead;
         } else if (moveStatus === MMOVE_MOVED) {
             // C ref: monmove.c:951-972 — moved monsters normally stop here.
             // Only non-nearby monsters with ranged/offensive follow-up fall
             // through to Phase 4; nearby moved monsters do not melee or cuss.
             phase4Allowed = false;
             if (!helpless(mon)) {
-                const mdat = mon.data || mon.type || {};
                 if (!nearby
                     && (ranged_attk_available(mon)
                         || attacktype(mdat, AT_WEAP)
@@ -1621,7 +1622,6 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 // C ref: monmove.c:945-949 — MMOVE_MOVED + !nearby: only proceed
                 // to Phase 4 if monster has ranged attacks or offensive items.
                 // find_offensive may consume RNG (obj_resists checks).
-                const mdat = mon.data || mon.type || {};
                 if (!mmoved
                     || ranged_attk_available(mon)
                     || attacktype(mdat, AT_WEAP)

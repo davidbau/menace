@@ -10143,6 +10143,35 @@ Validation:
     - `seed031_manual_direct`
     - `seed032_manual_direct`
     - `seed033_manual_direct`
+
+## 2026-03-13 - `dochug()` still blocks `MMOVE_DONE` from the generic attack block
+
+- Context:
+  - After the `MMOVE_MOVED` switch cleanup, `hi11_seed1100_wiz_zap-deep_gameplay`
+    reopened at step `405` with JS throwing immediately after goblin pickup while
+    C advanced to the next monster turn first.
+- C behavior:
+  - `monmove.c` lets `MMOVE_DONE` pass through the switch for redraw/side-effect
+    handling, but the later attack block is gated by `if (status != MMOVE_DONE && ...)`.
+  - A monster that moved and then converted its turn to `MMOVE_DONE` in `postmov()`
+    (for example after `mpickstuff()`) does not get the generic `mattacku()` pass.
+- JS bug:
+  - The earlier `MMOVE_MOVED` rewrite treated `MMOVE_DONE` like the other
+    non-move statuses and left `phase4Allowed = true`.
+  - That let a goblin attack immediately after `^pickup[...]`, consuming the
+    dart-throw RNG that C does not spend until later.
+- Fix:
+  - Keep the stricter `MMOVE_MOVED` handling, but restore the separate C gate:
+    `MMOVE_DONE` suppresses the later generic attack block.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` returned to full gameplay parity:
+    - RNG `3469/3469`
+    - events `609/609`
+    - screens/colors `439/439`, `10536/10536`
+    - remaining gap is cursor-only at step `378`
+  - `hi10_seed1090_wiz_potion-deep_gameplay` stayed fully green.
+  - `t11_s744_w_covmax2_gp` was unchanged versus clean `5382cfce` baseline.
+
 ## 2026-03-13 - `wizard.c:cuss()` uses `com_pager("demon_cuss")`, not a fixed fallback line
 
 - Session: `t11_s744_w_covmax2_gp`
