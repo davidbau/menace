@@ -9546,3 +9546,29 @@ Validation:
     - `seed031_manual_direct`
     - `seed032_manual_direct`
     - `seed033_manual_direct`
+
+### 2026-03-13 `hi11` zap-death boundary follow-up: route beam self-hit death through `losehp()` and narrow lifesave stop scope
+
+- Scope:
+  - Continued issue `#361` (`hi11_seed1100_wiz_zap-deep_gameplay`) around
+    rebound-zap death/lifesave sequencing.
+- C-faithful fixes:
+  - `js/zap.js`:
+    - player beam-hit damage in `dobuzz` now calls `losehp(...)` (with
+      `KILLED_BY_AN`) instead of direct `player.uhp -= dam`.
+  - `js/hack.js`:
+    - `losehp()` now sets authoritative `end.js` killer state
+      (`setKillerFormat`, `setKillerName`) before `done(DIED)`.
+  - `js/end.js`:
+    - `savelife()` only sets `_stopMoveloopAfterLifesave` during monster phase
+      (`context.mon_moving`), avoiding over-broad turn truncation after
+      command-phase lifesave.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: PASS (no regression).
+  - `hi11_seed1100_wiz_zap-deep_gameplay`:
+    - first RNG divergence improved `2603 -> 2613`
+    - matched RNG improved `2619 -> 2625`
+    - matched events improved `135 -> 136`.
+- Remaining gap:
+  - Post-lifesave work distribution still drifts in `hi11` around step `388`
+    (`zhitu`-tail timing/order versus next zap cycle).

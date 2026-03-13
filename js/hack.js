@@ -2872,12 +2872,6 @@ export async function unmul(msg_override, player, display, game) {
     if (msg && display) {
         await display.putstr_message(msg);
     }
-    // C-faithful moveloop stop: savelife() requests ending movement
-    // progression for this command cycle. If recovery messaging is deferred
-    // until unmul(), assert the same stop signal here.
-    if (msg === 'You survived that attempt on your life.') {
-        game._stopMoveloopAfterLifesave = true;
-    }
     game.nomovemsg = null;
     if (player) player.usleep = 0;
     game.multi_reason = null;
@@ -3516,7 +3510,9 @@ export async function losehp(n, knam, k_format, player, display, game) {
         }
         await urgent_pline('You die...');
         if (game) {
-            const { done } = await import('./end.js');
+            const { done, setKillerName, setKillerFormat } = await import('./end.js');
+            setKillerFormat(k_format);
+            setKillerName(knam || '');
             await done(DIED, game);
         }
     } else if (n > 0 && player.uhp * 10 < player.uhpmax) {

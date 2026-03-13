@@ -22,6 +22,7 @@ import {
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
     CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
+    KILLED_BY_AN,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -50,6 +51,7 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          SCR_MAGIC_MAPPING,
          ROCK, DWARVISH_CLOAK, CHEST, LARGE_BOX, TIN,
          SPE_DIG,
+         CLOAK_OF_MAGIC_RESISTANCE,
          RIN_GAIN_STRENGTH, RIN_GAIN_CONSTITUTION, RIN_ADORNMENT,
          RIN_INCREASE_ACCURACY, RIN_INCREASE_DAMAGE, RIN_PROTECTION,
          HELM_OF_BRILLIANCE, GAUNTLETS_OF_DEXTERITY } from './objects.js';
@@ -74,7 +76,7 @@ import { mon_nam } from './do_name.js';
 import { xkilled, killed,
          monkilled, wakeup, healmon, mondead } from './mon.js';
 import { more, nhgetch } from './input.js';
-import { getdir, registerBurnarmor } from './hack.js';
+import { getdir, registerBurnarmor, losehp } from './hack.js';
 import { nonliving, is_undead, is_demon,
          x_monnam, resists_fire, resists_cold, resists_elec,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
@@ -1323,7 +1325,9 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           // C ref: zap.c:4920 — zhitu / zap_over_floor player damage
           const damgtype = zaptype(type) % 10;
           const hasProp = (prop) => !!(typeof player?.hasProp === 'function' && player.hasProp(prop));
-          const antimagic = hasProp(ANTIMAGIC) || !!player?.Antimagic || !!player?.antimagic;
+          const antimagicFromCloak = Number.isInteger(player?.cloak?.otyp)
+            && player.cloak.otyp === CLOAK_OF_MAGIC_RESISTANCE;
+          const antimagic = hasProp(ANTIMAGIC) || !!player?.Antimagic || !!player?.antimagic || antimagicFromCloak;
           let dam = 0;
           if (damgtype === ZT_MAGIC_MISSILE) {
             if (!antimagic) dam = c_d(nd, 6);
@@ -1361,7 +1365,9 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           if (dam && hasProp(HALF_SPDAM) && zaptype(type) < 20) {
             dam = Math.floor((dam + 1) / 2);
           }
-          if (dam > 0) player.uhp = (player.uhp || 0) - dam;
+          if (dam > 0) {
+            await losehp(dam, flash_str(fltyp), KILLED_BY_AN, player, _gstate?.display, _gstate);
+          }
         } else if (!player.blind) {
           await pline('The %s whizzes by you!', flash_str(fltyp));
         }

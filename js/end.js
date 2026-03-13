@@ -345,7 +345,11 @@ function savelife(how, game) {
     game.multi_reason = (player.roleIndex === roles.findIndex(r => r?.name === 'Tourist'))
         ? "being toyed with by Fate"
         : "attempting to cheat Death";
-    game._stopMoveloopAfterLifesave = true;
+    // C-faithful scope: only request an immediate moveloop stop when the
+    // lifesave occurs during monster-phase processing.
+    if (game?.context?.mon_moving) {
+        game._stopMoveloopAfterLifesave = true;
+    }
 
     player.ugrave_arise = -1; // NON_PM
 }
