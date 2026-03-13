@@ -9419,3 +9419,29 @@ Validation:
     - event match improved (`89 -> 129`) and zap now executes in prompt boundary.
     - remaining gap is C-vs-JS `dobuzz` hero-hit pause/message semantics (`zhitu`/`--More--`)
       and bounce path ordering.
+
+### 2026-03-13 command-boundary `umovement` invariant: restore C input-loop precondition
+
+- Symptom:
+  - pending session `t11_s744_w_covmax2_gp` showed an early turn-order skew
+    near step `569` (`^distfleeck near` mismatch) with JS running monster turns
+    one key earlier than C in the teleport-followup window.
+- Root cause:
+  - JS command boundaries could start with `player.umovement < NORMAL_SPEED`
+    in some async prompt/getlin transitions.
+  - In C, `moveloop()` only returns to input when hero can act (equivalent to
+    `u.umovement >= NORMAL_SPEED`), so command parsing should not begin from a
+    short-movement state.
+- Fix:
+  - `js/allmain.js` (`run_command`): enforce the command-boundary invariant by
+    clamping finite short `umovement` to `NORMAL_SPEED` before processing a new
+    command key.
+  - Keep this in shared `run_command` (not only browser loop) so replay/headless
+    command entrypoints get the same C-style precondition.
+- Validation:
+  - `t11_s744_w_covmax2_gp` improved materially:
+    - RNG matched `6594/11786 -> 7565/12139`
+    - first RNG/event frontier moved `step 569 -> step 645`.
+  - broad parity status stayed strong via `./scripts/run-and-report.sh --failures`:
+    - `189/192` gameplay sessions passing
+    - PRNG/events `192/192` full, remaining failures are screen-only.

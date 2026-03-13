@@ -613,6 +613,13 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
+    // C invariant: moveloop() only returns to command input when the hero can
+    // act again (u.umovement >= NORMAL_SPEED). Keep command boundaries aligned
+    // across entrypoints even if a prior async path left umovement short.
+    const cmdPlayer = game?.u || game?.player || null;
+    if (cmdPlayer && Number.isFinite(cmdPlayer.umovement) && cmdPlayer.umovement < NORMAL_SPEED) {
+        cmdPlayer.umovement = NORMAL_SPEED;
+    }
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: inputSnap(game),
