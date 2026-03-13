@@ -1578,6 +1578,11 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             const sawPet = fov?.canSee ? fov.canSee(omx, omy) : couldsee(map, player, omx, omy);
             const seeObj = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
             if (display && (sawPet || seeObj)) {
+                // Keep pre-message map state aligned with C around --More-- boundaries:
+                // when pet movement + eat message shares a turn, refresh old/new pet
+                // squares before the message can block.
+                newsym(omx, omy);
+                newsym(mon.mx, mon.my);
                 await display.putstr_message(`${YMonnam(mon)} eats ${doname(eatObj, null)}.`);
             }
             await dog_eat(mon, eatObj, map, turnCount);

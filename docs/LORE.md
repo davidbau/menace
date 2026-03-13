@@ -9472,3 +9472,26 @@ Validation:
   - `hi10_seed1090_wiz_potion-deep_gameplay` still full pass.
   - `seed322_barbarian_wizard_gameplay` still full pass.
   - `seed331_tourist_wizard_gameplay` still full RNG/event parity (cursor-tail delta unchanged).
+
+### 2026-03-13 pet eat/message boundary stale-cell fix: refresh pet squares before blocking `--More--`
+
+- Symptom:
+  - Three remaining screen-only failures had full RNG/event/mapdump parity but a single stale pet glyph frame:
+    - `seed301_archeologist_selfplay200_gameplay` step `19`
+    - `seed033_manual_direct` step `99`
+    - `theme12_seed939_wiz_explore_gameplay` step `18`
+  - In all three, the failing step included `^dog_move_exit(... do_eat=1)` and a top-line message that could block at `--More--`.
+- Root cause:
+  - In JS `dog_move()`, when `do_eat` path emits `"X eats Y"` message, pet old/new squares were only refreshed later by postmove flow.
+  - During the message boundary frame, display could show one stale-cell placement even though gameplay/event order already matched C.
+- Fix:
+  - `js/dogmove.js` (`dog_move`, `do_eat` message branch):
+    - call `newsym(omx, omy)` and `newsym(mon.mx, mon.my)` immediately before `putstr_message(...)`.
+  - This is a display-order fix only; no RNG/event changes.
+- Validation:
+  - Targeted sessions now pass fully:
+    - `seed301_archeologist_selfplay200_gameplay` `221/221` screens.
+    - `seed033_manual_direct` `1417/1417` screens.
+    - `theme12_seed939_wiz_explore_gameplay` `87/87` screens.
+  - Full failure sweep now green:
+    - `./scripts/run-and-report.sh --failures` -> `192/192` gameplay passing, `0` failures.
