@@ -648,6 +648,18 @@ function getContextEntries(replay, rawStep, span = 8) {
     return out;
 }
 
+function parsePhaseKeyCode(phase) {
+    if (typeof phase !== 'string') return null;
+    const m = phase.match(/_key_(-?\d+)(?:_|$)/);
+    return m ? Number(m[1]) : null;
+}
+
+function sessionStepKeyCode(sessionStepObj) {
+    const key = sessionStepObj?.key;
+    if (typeof key !== 'string' || key.length === 0) return null;
+    return key.charCodeAt(0);
+}
+
 function stepSignalCounts(stepLike) {
     const rng = Array.isArray(stepLike?.rng) ? stepLike.rng : [];
     let events = 0;
@@ -936,6 +948,11 @@ async function main() {
             c.cRequestedStep = cRequestedStep;
             c.cCheckpointMatchedPhase = capture?.checkpointMatchedPhase === true;
             c.cCheckpointPhase = capture?.checkpoint?.phase || null;
+            c.cPhaseKeyCode = parsePhaseKeyCode(c.cCheckpointPhase);
+            c.cExpectedKeyCode = sessionStepKeyCode(session.steps[c.sessionStep - 1]);
+            c.cPhaseKeyMismatch = Number.isInteger(c.cPhaseKeyCode)
+                && Number.isInteger(c.cExpectedKeyCode)
+                && c.cPhaseKeyCode !== c.cExpectedKeyCode;
             if (!c.cCheckpointMatchedPhase) {
                 // Avoid comparing stale checkpoints (typically startup after_map)
                 // when #dumpsnap failed to run at the requested replay phase.
@@ -1044,6 +1061,14 @@ async function main() {
         for (const c of captures) {
             if (c.cCaptureError) {
                 console.log(`  step ${c.sessionStep}: C capture unavailable (${c.cCaptureError})`);
+                continue;
+            }
+            if (c.cPhaseKeyMismatch) {
+                console.log(
+                    `  step ${c.sessionStep}: C phase-key mismatch `
+                    + `(phase key=${c.cPhaseKeyCode} vs session key=${c.cExpectedKeyCode}) `
+                    + `phase=${c.cCheckpointPhase || 'n/a'}`
+                );
             }
         }
     }
