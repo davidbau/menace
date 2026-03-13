@@ -15,7 +15,7 @@
 
 import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN, D_TRAPPED,
          SDOOR, DOOR, A_STR, A_DEX, A_CON, A_WIS,
-         SHOPBASE, FINGER } from './const.js';
+         SHOPBASE, FINGER, OBJ_FLOOR } from './const.js';
 import { PM_ROGUE, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { rn2, rnl } from './rng.js';
@@ -313,7 +313,7 @@ async function makePicklockOccupation(game) {
     return async function picklock_fn() {
         if (xlock.box) {
             // Check if box is still on floor at player position
-            if (xlock.box.where !== 'OBJ_FLOOR'
+            if (xlock.box.where !== OBJ_FLOOR
                 || xlock.box.ox !== player.x || xlock.box.oy !== player.y) {
                 // Also check via objectsAt
                 const objs = map.objectsAt(player.x, player.y) || [];

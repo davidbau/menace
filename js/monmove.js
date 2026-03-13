@@ -26,7 +26,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
          IRONBARS, STAIRS, LADDER, W_NONDIGGABLE,
          INVIS, DISPLACED,
-         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
+         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR } from './const.js';
 import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
@@ -2554,7 +2554,7 @@ export async function maybe_spin_web(mtmp, map) {
 export function can_hide_under_obj(obj, map) {
   let t;
   map = map || _gstate?.lev;
-  if (!obj || obj.where !== 'OBJ_FLOOR') return false;
+  if (!obj || obj.where !== OBJ_FLOOR) return false;
   if ((t = t_at(obj.ox, obj.oy, map)) != null && !is_pit(t.ttyp)) return false;
   if (obj.oclass === COIN_CLASS) {
     let coinquan = 0;

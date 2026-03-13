@@ -21,7 +21,7 @@ import { IS_OBSTRUCTED, IS_DOOR, D_CLOSED, D_LOCKED, POOL,
          W_BALL, W_CHAIN, W_WEAPONS,
          NO_KILLER_PREFIX, KILLED_BY_AN, KILLED_BY,
          TT_NONE, TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, TT_INFLOOR, TT_BURIEDBALL,
-         BC_BALL, BC_CHAIN, OBJ_FREE, LEFT_SIDE, RIGHT_SIDE } from './const.js';
+         BC_BALL, BC_CHAIN, OBJ_FREE, OBJ_FLOOR, LEFT_SIDE, RIGHT_SIDE } from './const.js';
 import { xname } from './objnam.js';
 import { HEAVY_IRON_BALL, IRON_CHAIN } from './objects.js';
 import { exercise } from './attrib_exercise.js';
@@ -205,7 +205,7 @@ export async function placebc(player, map) {
     if (!check_restriction(0)) {
         return;
     }
-    if (player.uchain && player.uchain.where !== 'OBJ_FREE') {
+    if (player.uchain && player.uchain.where !== OBJ_FREE) {
         impossible("bc already placed?");
         return;
     }
@@ -253,7 +253,7 @@ export async function lift_covet_and_placebc(pin, player, map) {
     if (!check_restriction(pin)) {
         return;
     }
-    if (player.uchain && player.uchain.where !== 'OBJ_FREE') {
+    if (player.uchain && player.uchain.where !== OBJ_FREE) {
         impossible("bc already placed?");
         return;
     }
@@ -917,9 +917,9 @@ export function bc_sanity_check(player, map) {
                     || (freechain && carried(uball)));
 
     if (uball && (uball.otyp !== HEAVY_IRON_BALL
-                  || (uball.where !== 'OBJ_FLOOR'
+                  || (uball.where !== OBJ_FLOOR
                       && !carried(uball)
-                      && uball.where !== 'OBJ_FREE')
+                      && uball.where !== OBJ_FREE)
                   || (freeball !== freechain) // XOR mismatch
                   || !(uball.owornmask & W_BALL)
                   || (uball.owornmask & ~(W_BALL | W_WEAPONS)) !== 0)) {
@@ -929,8 +929,8 @@ export function bc_sanity_check(player, map) {
     }
 
     if (uchain && (uchain.otyp !== IRON_CHAIN
-                   || (uchain.where !== 'OBJ_FLOOR'
-                       && uchain.where !== 'OBJ_FREE')
+                   || (uchain.where !== OBJ_FLOOR
+                       && uchain.where !== OBJ_FREE)
                    || (freechain !== freeball)
                    || !(uchain.owornmask & W_CHAIN)
                    || (uchain.owornmask & ~W_CHAIN) !== 0)) {

@@ -38,7 +38,7 @@ import {
     PM_SAMURAI
 } from './monsters.js';
 import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE,
-         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED } from './const.js';
+         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED, OBJ_DELETED } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { level_difficulty } from './dungeon.js';
@@ -488,7 +488,7 @@ function newobj(otyp) {
         displayChar: CLASS_SYMBOLS[objectData[otyp].oc_class] || '?',
         displayColor: objectData[otyp].oc_color,
         ox: 0, oy: 0,
-        where: 'free',
+        where: OBJ_FREE,
         lamplit: false,
         age: 1,
         tknown: false,
@@ -1806,7 +1806,7 @@ export function add_to_minv(mon, obj) {
 export function add_to_container(container, obj) {
   let otmp;
   if (obj.where !== OBJ_FREE) console.error("add_to_container: obj where=%d, not free", obj.where);
-  if (container.where !== 'OBJ_INVENT' && container.where !== 'OBJ_MINVENT') obj_no_longer_held(obj);
+  if (container.where !== OBJ_INVENT && container.where !== OBJ_MINVENT) obj_no_longer_held(obj);
   for (otmp = container.cobj; otmp; otmp = otmp.nobj) {
     if (merged( otmp, obj)) return otmp;
   }
@@ -1855,7 +1855,7 @@ export function mon_obj_sanity(monlist, mesg) {
       if (mwep.ocarry !== mon) insane_object(mwep, mfmt2, mesg, mon);
     }
     for (obj = mon.minvent; obj; obj = obj.nobj) {
-      if (obj.where !== 'OBJ_MINVENT') insane_object(obj, mfmt1, mesg, mon);
+      if (obj.where !== OBJ_MINVENT) insane_object(obj, mfmt1, mesg, mon);
       if (obj.ocarry !== mon) insane_object(obj, mfmt2, mesg, mon);
       if (obj.globby) check_glob(obj, mesg);
       check_contained(obj, mesg);
@@ -2181,14 +2181,14 @@ export function shop_obj_sanity(_obj, _mesg = '') {
 export function where_name(obj) {
     const where = obj?.where;
     switch (where) {
-    case 'OBJ_FREE': return 'free';
-    case 'OBJ_FLOOR': return 'floor';
-    case 'OBJ_CONTAINED': return 'contained';
-    case 'OBJ_INVENT': return 'invent';
-    case 'OBJ_MINVENT': return 'minvent';
-    case 'OBJ_MIGRATING': return 'migrating';
-    case 'OBJ_BURIED': return 'buried';
-    default: return String(where || 'unknown');
+    case OBJ_FREE: return 'free';
+    case OBJ_FLOOR: return 'floor';
+    case OBJ_CONTAINED: return 'contained';
+    case OBJ_INVENT: return 'invent';
+    case OBJ_MINVENT: return 'minvent';
+    case OBJ_MIGRATING: return 'migrating';
+    case OBJ_BURIED: return 'buried';
+    default: return String(where ?? 'unknown');
     }
 }
 

@@ -61,7 +61,7 @@ import { kill_genocided_monsters, wake_nearto, wakeup, setmangry, killed, mondie
 import { tamedog } from './dog.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
-import { which_armor } from './worn.js';
+import { which_armor, setworn } from './worn.js';
 import { dmgval } from './weapon.js';
 import { hard_helmet } from './do_wear.js';
 import { flooreffects } from './do.js';
@@ -2019,17 +2019,15 @@ export async function punish(sobj, player, map = null) {
         }
         return;
     }
-    if (!reuse_ball) {
-        await pline("You are being punished!");
-    }
-    const chainObj = mkobj(CHAIN_CLASS, true, false);
-    const ballObj = reuse_ball || mkobj(BALL_CLASS, true, false);
-    if (chainObj) chainObj.owornmask = (chainObj.owornmask || 0) | W_CHAIN;
-    if (ballObj) ballObj.owornmask = (ballObj.owornmask || 0) | W_BALL;
-    player.uchain = chainObj || {};
-    player.chain = player.uchain;
-    player.uball = ballObj || { owornmask: W_BALL };
-    player.ball = player.uball;
+    // C ref: read.c:2993 — setworn(mkobj(CHAIN_CLASS, TRUE), W_CHAIN)
+    setworn(player, mkobj(CHAIN_CLASS, true, false), W_CHAIN);
+    if (!reuse_ball)
+        setworn(player, mkobj(BALL_CLASS, true, false), W_BALL);
+    else
+        setworn(player, reuse_ball, W_BALL);
+    // setworn sets player.chain and player.ball via WORN_TABLE
+    player.uchain = player.chain;
+    player.uball = player.ball;
     player.Punished = true;
     player.punished = true;
     if (!player.uswallow && map) {
