@@ -9261,3 +9261,27 @@ Validation:
   - pending session alignment advanced materially (`screens 721 -> 735`,
     `rng 2563 -> 2565` matched prefix) with no regression in the main suite
     (`scripts/run-and-report.sh --failures`: `191/192` passing, unchanged).
+
+### 2026-03-13 startup spellbook-ID overreach: skip `P_NONE` books in wizard passive ID
+
+- Symptom in `pnd_s1200_w_potprayspell_gp`:
+  - early screen divergence at step `676` (`plain spellbook` in C vs
+    `spellbook of blank paper` in JS), before first RNG divergence.
+- Root cause:
+  - `js/spell.js` `skill_based_spellbook_id()` was using category-name fallback
+    logic that treated unknown spellbooks as `"matter"`.
+  - That incorrectly included `SPE_BLANK_PAPER` (which is `P_NONE` in C) in
+    wizard passive startup identification, setting global name-known too early.
+  - C ref: `spell.c skill_based_spellbook_id()` explicitly skips `skill == P_NONE`.
+- Fix:
+  - use numeric spell school from object row (`oc_subtyp`/`oc_skill`),
+    skip `<= 0` (`P_NONE`) books, and mirror C rank ladder:
+    `P_BASIC -> 3`, `P_SKILLED -> 5`, `P_EXPERT+ -> 7`, else `1` (or `0` pauper).
+  - harden `discoverObject()` for unit/no-game contexts via `_gstate?.u || _gstate?.player`.
+  - tighten startup discovery helper to match `u_init.c` by requiring `obj.known`
+    (not merely `obj.dknown`) before `discoverObject(..., markAsKnown=true)`.
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` screen parity improved from
+    `835/905` to `837/905` and first screen divergence moved from step `676` to `756`,
+    while preserving the same first RNG divergence point (`step 866`), confirming
+    this removed an earlier independent mismatch without masking later drift.

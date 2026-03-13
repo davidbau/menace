@@ -10,7 +10,7 @@
 //   getspell(): prompt user to select a spell.
 //   dospellmenu(): display spell menu UI.
 
-import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE, nul_glyphinfo, P_CLERIC_SPELL, P_UNSKILLED } from './const.js';
+import { A_INT, A_WIS, A_STR, IS_STWALL, IS_OBSTRUCTED, SIZE, nul_glyphinfo, P_CLERIC_SPELL, P_UNSKILLED, P_BASIC, P_SKILLED, P_EXPERT, P_MASTER, P_GRAND_MASTER } from './const.js';
 import { PM_KNIGHT, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
 import { mark_vision_dirty, cansee } from './vision.js';
@@ -1668,10 +1668,27 @@ export function skill_based_spellbook_id(player) {
     for (let otyp = 0; otyp < objectData.length; otyp++) {
         const od = objectData[otyp];
         if (!od || od.oc_class !== SPBOOK_CLASS) continue;
-        const category = spell_skilltype(otyp);
-        const rank = spellSkillRank(player, category);
+        // C ref: spell.c skill_based_spellbook_id() uses spell_skilltype()
+        // numeric school and skips P_NONE books (blank paper, Book of the Dead).
+        const skill = Number(od.oc_subtyp || od.oc_skill || 0);
+        if (!Number.isInteger(skill) || skill <= 0) continue;
+        const rank = P_SKILL(skill);
         let knownUpToLevel = player.uroleplay?.pauper ? 0 : 1;
-        if (rank >= SPELL_SKILL_BASIC) knownUpToLevel = 3;
+        switch (rank) {
+        case P_BASIC:
+            knownUpToLevel = 3;
+            break;
+        case P_SKILLED:
+            knownUpToLevel = 5;
+            break;
+        case P_EXPERT:
+        case P_MASTER:
+        case P_GRAND_MASTER:
+            knownUpToLevel = 7;
+            break;
+        default:
+            break;
+        }
         const level = Number(od.oc_oc2 || od.oc_level || 0);
         if (level <= knownUpToLevel) {
             discover_object(otyp, true, false, false);

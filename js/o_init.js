@@ -475,7 +475,7 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
         // C ref: o_init.c:474-477 — when a name transitions unknown->known,
         // exercise wisdom iff credit_hero (creditClue in JS) is true.
         if (creditClue && markAsKnown) {
-            const player = _gstate.u || _gstate.player;
+            const player = _gstate?.u || _gstate?.player || null;
             if (player) exercise(player, A_WIS, true);
         }
     }

@@ -1040,9 +1040,8 @@ function equipInitialGear(player) {
 function applyStartupDiscoveries(player) {
     for (const obj of player.inventory) {
         if (!obj) continue;
-        // Startup inventory is effectively identified in our baseline traces.
-        // Mark descriptor-bearing types as known+encountered.
-        if (objectData[obj.otyp]?.oc_descr && obj.dknown) {
+        // C ref: u_init.c ini_inv_use_obj() — discover only when obj->known.
+        if (objectData[obj.otyp]?.oc_descr && obj.known) {
             discoverObject(obj.otyp, true, true, false);
         }
         if (obj.otyp === OIL_LAMP) {
