@@ -330,6 +330,8 @@ def run_from_keylog(
 
     fixed_datetime = datetime_hint or _session.harness_fixed_datetime()
     datetime_env = f'NETHACK_FIXED_DATETIME={fixed_datetime} ' if fixed_datetime else ''
+    rnglog_disp = os.environ.get('NETHACK_RNGLOG_DISP', '')
+    rnglog_disp_env = f'NETHACK_RNGLOG_DISP={rnglog_disp} ' if rnglog_disp else ''
 
     name_flag = "-u '' " if interactive else f'-u {character["name"]} '
     wiz_flag = '-D' if wizard_enabled else ''
@@ -337,6 +339,7 @@ def run_from_keylog(
         cmd = (
             f'NETHACKDIR={INSTALL_DIR} '
             f'{datetime_env}'
+            f'{rnglog_disp_env}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '

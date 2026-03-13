@@ -59,6 +59,24 @@ Practical use: when a hallucination/name/glyph mismatch appears early but core
 RNG still matches, capture a tagged `~drn2(...)` trace first to identify the
 render path that consumed display RNG out of phase.
 
+### `bogusmon` selection is byte-offset based, not uniform-by-name
+
+`rndmonnam()` in C does **not** pick hallucinatory names uniformly from a list.
+When it falls into the bogus-name path, it calls `get_rnd_text(BOGUSMONFILE, ...)`,
+which chooses by random byte offset in the padded encrypted text stream and then
+uses the *next* line (`get_rnd_line` semantics, with retry rules for long lines).
+
+Parity impact:
+1. C consumes display RNG with large ranges (for this file, `~drn2(7320)`),
+   not `~drn2(357)`.
+2. A JS port that samples `bogusmons.length` directly will drift display RNG
+   and hallucination names/screens even when gameplay RNG stays aligned.
+
+Fix pattern:
+1. parse compiled encrypted `bogusmon` data using `parseEncryptedDataFile()`;
+2. apply C `get_rnd_line`-style offset selection with display RNG;
+3. preserve code-prefix handling (`-`, `_`, `+`, `|`, `=`) after line selection.
+
 ### Off-FOV map rendering must not synthesize trap glyphs from live trap state
 
 A wizard-session screen drift (`seed326`, first at step 1) was caused by the

@@ -53,6 +53,11 @@ Use this for session parity failures where gameplay diverges between C and JS:
      - `RNG_LOG_DISP=1 RNG_LOG_DISP_CALLERS=1 RNG_LOG_TAGS=1 node test/comparison/session_test_runner.js --sessions=<session-path> --verbose`
      - Keep this diagnostic off by default; C sessions usually do not include
        display-stream RNG entries.
+   - To capture C display-stream entries for apples-to-apples analysis, rerecord
+     with:
+     - `NETHACK_RNGLOG_DISP=1 python3 test/comparison/c-harness/rerecord.py <session.json>`
+     - Use this only for diagnostic sessions (often in `/tmp`) unless you intend
+       to update fixtures.
 5. Capture rich state snapshots around divergence with debug mapdump:
    - `node test/comparison/dbgmapdump.js <session-path> --steps <N> --window 1`
    - Inspect with:

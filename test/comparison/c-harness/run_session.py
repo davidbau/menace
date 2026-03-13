@@ -202,6 +202,11 @@ def runstep_event_env():
     v = os.environ.get('NETHACK_EVENT_RUNSTEP', '')
     return f'NETHACK_EVENT_RUNSTEP={v} ' if v else ''
 
+def rnglog_disp_env():
+    """Pass NETHACK_RNGLOG_DISP through to the C binary if set."""
+    v = os.environ.get('NETHACK_RNGLOG_DISP', '')
+    return f'NETHACK_RNGLOG_DISP={v} ' if v else ''
+
 
 def collect_mapdump_checkpoints(mapdump_dir, all_rng_entries):
     """Scan RNG entries for ^mapdump[id] markers and read corresponding dump files.
@@ -1112,6 +1117,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_DUMPMAP={dumpmap_file} '
@@ -1368,6 +1374,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -1655,6 +1662,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'HOME={RESULTS_DIR} '
@@ -2019,6 +2027,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{no_delay_env()}'
             f'{test_move_event_env()}'
             f'{runstep_event_env()}'
+            f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '

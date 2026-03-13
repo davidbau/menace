@@ -1,0 +1,50 @@
+diff --git a/src/rnd.c b/src/rnd.c
+index 71d4a978..3b0745b1 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -35,6 +35,7 @@ static FILE *rng_logfile = NULL;
+ static int rng_call_count = 0;
+ static const char *rng_caller_file = NULL;
+ static int rng_caller_line = 0;
+ static const char *rng_caller_func = NULL;
++static boolean rng_log_disp = FALSE;
+ 
+ void
+ rng_log_init(void)
+@@ -42,11 +43,13 @@ rng_log_init(void)
+ {
+     const char *logpath = getenv("NETHACK_RNGLOG");
++    const char *disp = getenv("NETHACK_RNGLOG_DISP");
+     if (logpath && *logpath) {
+         rng_logfile = fopen(logpath, "w");
+         if (rng_logfile)
+             setvbuf(rng_logfile, NULL, _IOLBF, 0); /* line-buffered */
+     }
++    rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
+ }
+ 
+ boolean
+@@ -241,7 +244,26 @@ rn2_on_display_rng(int x)
+ {
+-    return (isaac64_next_uint64(&rnglist[DISP].rng_state) % x);
++    int result = (isaac64_next_uint64(&rnglist[DISP].rng_state) % x);
++    if (rng_logfile && rng_log_disp) {
++        char buf[32];
++        snprintf(buf, sizeof buf, "%d", x);
++        rng_call_count++;
++        fprintf(rng_logfile, "%d ~drn2(%s) = %d", rng_call_count, buf, result);
++        if (rng_caller_file) {
++            if (rng_caller_func) {
++                fprintf(rng_logfile, " @ %s(%s:%d)",
++                        rng_caller_func, rng_caller_file, rng_caller_line);
++            } else {
++                fprintf(rng_logfile, " @ %s:%d",
++                        rng_caller_file, rng_caller_line);
++            }
++        }
++        fputc('\n', rng_logfile);
++    }
++    return result;
+ }
+ 
+ #else   /* USE_ISAAC64 */

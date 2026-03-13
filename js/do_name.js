@@ -14,7 +14,7 @@ import { m_at } from './trap.js';
 import { rn2, rn1, rn2_on_display_rng } from './rng.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, update_inventory, carried, carrying } from './invent.js';
 import { mons, SPECIAL_PM, G_NOGEN, G_UNIQ, PM_GHOST, PM_WIZARD_OF_YENDOR, PM_SHOPKEEPER } from './monsters.js';
-import { highc, upstart, s_suffix, mungspaces } from './hacklib.js';
+import { highc, upstart, s_suffix, mungspaces, parseEncryptedDataFile } from './hacklib.js';
 import { CLR_MAX, NO_COLOR, ARTICLE_NONE, ARTICLE_THE, ARTICLE_A, ARTICLE_YOUR, SUPPRESS_IT, SUPPRESS_INVISIBLE, SUPPRESS_HALLUCINATION, SUPPRESS_SADDLE, SUPPRESS_MAPPEARANCE, SUPPRESS_NAME, AUGMENT_IT, EXACT_NAME, LOW_PM, SIZE,
     has_oname, ONAME, has_ebones, M_AP_FURNITURE, M_AP_OBJECT, W_SADDLE, OBJ_INVENT,
     MALE, FEMALE } from './const.js';
@@ -35,6 +35,7 @@ import { objectData,
          AMULET_CLASS, SCROLL_CLASS, POTION_CLASS, WAND_CLASS, RING_CLASS,
          GEM_CLASS, SPBOOK_CLASS, ARMOR_CLASS, TOOL_CLASS, VENOM_CLASS,
        } from './objects.js';
+import { BOGUSMON_FILE_TEXT } from './bogusmon_data.js';
 
 // Re-export helper needed by x_monnam naming logic.
 export { hasGivenName } from './mondata.js';
@@ -519,14 +520,43 @@ const BOGON_CODES = '-_+|=';
 // Uses rn2_on_display_rng to match C's RNG consumption.
 // ========================================================================
 export function bogusmon() {
-    const idx = rn2_on_display_rng(bogusmons.length);
-    let entry = bogusmons[idx];
+    // C-faithful get_rnd_text(BOGUSMONFILE, rn2_on_display_rng, MD_PAD_BOGONS):
+    // pick by byte offset over padded encrypted data, then take next line.
+    const idx = get_rnd_line_index_display(bogonLineBytes, bogonChunksize, 20);
+    let entry = bogonTexts[idx] || bogusmons[idx % bogusmons.length];
     let code = '';
     if (entry.length > 0 && BOGON_CODES.includes(entry[0])) {
         code = entry[0];
         entry = entry.slice(1);
     }
     return { name: entry, code };
+}
+
+const { texts: bogonTexts, lineBytes: bogonLineBytes, chunksize: bogonChunksizeRaw } =
+    parseEncryptedDataFile(BOGUSMON_FILE_TEXT);
+// C reads byte chunks directly from file; include trailing newline byte
+// that parseEncryptedDataFile() drops when splitting text lines.
+const bogonChunksize = bogonChunksizeRaw + 1;
+
+function get_rnd_line_index_display(lineBytes, chunksize, padlength) {
+    for (let trylimit = 10; trylimit > 0; trylimit--) {
+        const chunkoffset = rn2_on_display_rng(chunksize);
+        let pos = 0;
+        let lineIdx = 0;
+        while (lineIdx < lineBytes.length && pos + lineBytes[lineIdx] <= chunkoffset) {
+            pos += lineBytes[lineIdx];
+            lineIdx++;
+        }
+        if (lineIdx < lineBytes.length) {
+            const remaining = lineBytes[lineIdx] - (chunkoffset - pos);
+            if (padlength === 0 || remaining <= padlength + 1) {
+                return (lineIdx + 1) % lineBytes.length;
+            }
+        } else {
+            return 0;
+        }
+    }
+    return 0;
 }
 
 // ========================================================================
