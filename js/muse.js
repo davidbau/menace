@@ -513,7 +513,7 @@ async function precheck(mon, obj, map, player) {
         m_useup(mon, obj);
         mon.mhp -= dam;
         if (DEADMONSTER(mon)) {
-            monkilled(mon, '', 0, map, player);
+            await monkilled(mon, '', 0, map, player);
             return 1;
         }
         m.has_defense = m.has_offense = m.has_misc = 0;

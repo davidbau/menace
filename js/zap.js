@@ -1395,7 +1395,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           } else if (mon.mhp <= 0) {
             // C ref: zap.c — hero kills use xkilled(), monster kills use monkilled()
             if (type < 0) {
-              monkilled(mon, flash_str(fltyp), 0, map, player);
+              await monkilled(mon, flash_str(fltyp), 0, map, player);
             } else {
               // C ref: mon.c xkilled() emits the hero kill message before
               // death processing; JS xkilled() has not yet been made async.

@@ -67,7 +67,7 @@ import { rn2, rnd, rnl, d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
          AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
          ROCK_CLASS, RANDOM_CLASS, FOOD_CLASS, ARMOR_CLASS } from './objects.js';
-import { couldsee, m_cansee } from './vision.js';
+import { couldsee, m_cansee, cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
          mon_knows_traps, passes_bars, nohands, is_clinger,
@@ -968,7 +968,16 @@ export function mongone(mon, map, player) {
 }
 
 // C ref: mon.c monkilled() — killed by non-hero
-export function monkilled(mon, fltxt, how, map, player) {
+export async function monkilled(mon, fltxt, how, map, player) {
+    const mptr = mons[mon.mndx] || {};
+
+    // C ref: mon.c:3379-3386 — print kill message if visible
+    if (fltxt != null && cansee(mon.mx, mon.my)) {
+        const verb = nonliving(mptr) ? "destroyed" : "killed";
+        const bythe = fltxt ? " by the " : "";
+        await pline_mon(mon, "%s is %s%s%s!", Monnam(mon), verb, bythe, fltxt);
+    }
+
     // C ref: disintegested for AD_DGST/AD_RBRE/AD_FIRE+completelyburns
     // Simplified: always go through mondied path
     mondied(mon, map, player);

@@ -1135,11 +1135,11 @@ export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
 // --- Remaining AD_* handlers: simplified stubs for rare/complex effects ---
 
 // cf. uhitm.c:2259 — rust handler (m-vs-m)
-export function mhitm_ad_rust(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_rust(magr, mattk, mdef, mhm) {
     const pd = mdef?.data || mdef?.type || {};
     if (magr?.mcan) return;
     if (completelyrusts(pd)) {
-        monkilled(mdef, null, AD_RUST);
+        await monkilled(mdef, null, AD_RUST);
         if (!DEADMONSTER(mdef)) {
             mhm.hitflags = M_ATTK_MISS;
             mhm.done = true;
@@ -1163,11 +1163,11 @@ export function mhitm_ad_corr(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:2341 — decay handler (m-vs-m)
-export function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
     const pd = mdef?.data || mdef?.type || {};
     if (magr?.mcan) return;
     if (completelyrots(pd)) {
-        monkilled(mdef, null, AD_DCAY);
+        await monkilled(mdef, null, AD_DCAY);
         if (!DEADMONSTER(mdef)) {
             mhm.hitflags = M_ATTK_MISS;
             mhm.done = true;
@@ -1310,7 +1310,7 @@ export function mhitm_ad_poly(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:4181 — stoning
-export function mhitm_ad_ston(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_ston(magr, mattk, mdef, mhm) {
     if (magr?.mcan) return;
     const pd = mdef?.data || mdef?.type || {};
 
@@ -1325,7 +1325,7 @@ export function mhitm_ad_ston(magr, mattk, mdef, mhm) {
     }
 
     if (!resists_ston(mdef)) {
-        monkilled(mdef, null, AD_STON);
+        await monkilled(mdef, null, AD_STON);
         if (!DEADMONSTER(mdef)) {
             mhm.hitflags = M_ATTK_MISS;
             mhm.done = true;
@@ -1517,7 +1517,7 @@ export async function do_stone_mon(magr, mattk, mdef, mhm, game) {
 // cf. uhitm.c:4760 — mhitm_adtyping(magr, mattk, mdef, mhm):
 //   Dispatch to specific mhitm_ad_* handler based on attack damage type.
 //   mattk.adtyp is the JS equivalent of mattk->adtyp.
-export function mhitm_adtyping(magr, mattk, mdef, mhm) {
+export async function mhitm_adtyping(magr, mattk, mdef, mhm) {
     switch (mattk.adtyp) {
     case AD_PHYS: mhitm_ad_phys(magr, mattk, mdef, mhm); break;
     case AD_FIRE: mhitm_ad_fire(magr, mattk, mdef, mhm); break;
@@ -1533,9 +1533,9 @@ export function mhitm_adtyping(magr, mattk, mdef, mhm) {
     case AD_BLND: mhitm_ad_blnd(magr, mattk, mdef, mhm); break;
     case AD_CURS: mhitm_ad_curs(magr, mattk, mdef, mhm); break;
     case AD_DRLI: mhitm_ad_drli(magr, mattk, mdef, mhm); break;
-    case AD_RUST: mhitm_ad_rust(magr, mattk, mdef, mhm); break;
+    case AD_RUST: await mhitm_ad_rust(magr, mattk, mdef, mhm); break;
     case AD_CORR: mhitm_ad_corr(magr, mattk, mdef, mhm); break;
-    case AD_DCAY: mhitm_ad_dcay(magr, mattk, mdef, mhm); break;
+    case AD_DCAY: await mhitm_ad_dcay(magr, mattk, mdef, mhm); break;
     case AD_DREN: mhitm_ad_dren(magr, mattk, mdef, mhm); break;
     case AD_DRST:
     case AD_DRDX:
@@ -1576,7 +1576,7 @@ export async function mhitm_adtyping_async(magr, mattk, mdef, mhm, ctx = {}) {
         await mhitm_ad_slim_async(magr, mattk, mdef, mhm, ctx);
         return;
     default:
-        mhitm_adtyping(magr, mattk, mdef, mhm);
+        await mhitm_adtyping(magr, mattk, mdef, mhm);
         return;
     }
 }
@@ -1590,7 +1590,7 @@ export async function mhitm_adtyping_async(magr, mattk, mdef, mhm, ctx = {}) {
 //   Apply hero's attack damage to monster (used by polymorphed hero attacks).
 //   Rolls d(mattk.damn, mattk.damd), dispatches through mhitm_adtyping.
 //   Returns M_ATTK_DEF_DIED if monster dies, M_ATTK_HIT otherwise.
-export function damageum(mdef, mattk, specialdmg) {
+export async function damageum(mdef, mattk, specialdmg) {
     const mhm = {
         damage: c_d(mattk.damn || 0, mattk.damd || 0),
         hitflags: M_ATTK_MISS,
@@ -1602,7 +1602,7 @@ export function damageum(mdef, mattk, specialdmg) {
     // C: demon summoning check (1/13 chance, unarmed, demon form)
     // Not applicable in JS (hero polymorph not tracked)
 
-    mhitm_adtyping({ type: {}, mcan: false }, mattk, mdef, mhm);
+    await mhitm_adtyping({ type: {}, mcan: false }, mattk, mdef, mhm);
 
     if (mhm.done) return mhm.hitflags;
 
