@@ -1868,7 +1868,7 @@ async function dodip(player, map, display) {
 export async function dip_into(player, map, display, target = null) {
     // C ref: potion.c:2364-2391
     // Select potion first and then apply dip to provided/selected target object.
-    const obj = target || getobj(
+    const obj = target || await getobj(
         'dip',
         (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
         0,
@@ -1878,7 +1878,7 @@ export async function dip_into(player, map, display, target = null) {
         await You("don't have anything to dip.");
         return false;
     }
-    const potion = getobj(
+    const potion = await getobj(
         'dip into',
         (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
         0,

@@ -2291,7 +2291,7 @@ export async function use_tin_opener(obj) {
     if (!await wield_tool(obj, "use")) return ECMD_OK;
     res = ECMD_TIME;
   }
-  otmp = getobj("open", tinopen_ok, GETOBJ_NOFLAGS);
+  otmp = await getobj("open", tinopen_ok, GETOBJ_NOFLAGS);
   if (!otmp) return (res|ECMD_CANCEL);
   await start_tin(otmp);
   return ECMD_TIME;

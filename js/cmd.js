@@ -27,6 +27,7 @@ import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
 import { handleInventory, currency, doorganize, display_inventory } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
+import { doinvoke } from './artifact.js';
 import { dodip } from './potion.js';
 import { handleCallObjectTypePrompt, mon_nam, x_monnam } from './do_name.js';
 import { upstart } from './hacklib.js';
@@ -968,6 +969,8 @@ async function handleExtendedCommand(game) {
             return { moved: false, tookTime: !!(await doattributes(game)) };
         case 'conduct':
             return { moved: false, tookTime: !!(await doconduct(game)) };
+        case 'invoke':
+            return await doinvoke(player, game);
         case 'u':
         case 'untrap':
             queueRepeatExtcmd(async (g) => handleExtendedCommandUntrap(g));
@@ -983,7 +986,7 @@ function knownExtendedCommands(game) {
     const cmds = [
         'options', 'optionsfull', 'adjust', 'attributes', 'wipe', 'pray', 'turn', 'dip',
         'enhance', 'chat', 'conduct', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
-        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
+        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap', 'invoke',
     ];
     if (game?.wizard) {
         cmds.push('levelchange', 'wish', 'map', 'teleport', 'genesis', 'wizloaddes', 'wizbury');

@@ -674,7 +674,7 @@ export async function seffect_charging(sobj, player, display, game) {
     useup_scroll(sobj, player);
 
     // cf. getobj("charge", charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT)
-    const otmp = getobj('charge', charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT, player);
+    const otmp = await getobj('charge', charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT, player);
     if (otmp) {
         await recharge(otmp, charge_bless, player, game);
     }

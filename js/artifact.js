@@ -1233,7 +1233,7 @@ export function invoke_ok(obj) {
 
 // cf. artifact.c:1749 — doinvoke()
 export async function doinvoke(player, game = null) {
-  const obj = getobj('invoke', invoke_ok, 0, player);
+  const obj = await getobj('invoke', invoke_ok, 0, player);
   if (!obj) return ECMD_CANCEL;
   if (!await retouch_object(obj, false, player)) return ECMD_TIME;
   return await arti_invoke(obj, player, game);
@@ -1326,7 +1326,7 @@ export async function invoke_charge_obj(obj, game = null, player = null) {
     obj.age = 0;
     return ECMD_CANCEL;
   }
-  const target = getobj(
+  const target = await getobj(
     'charge',
     charge_ok,
     0,

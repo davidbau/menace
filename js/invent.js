@@ -1582,9 +1582,9 @@ export async function doorganize(game) {
 }
 
 // C ref: invent.c getobj() — prompt player to select an inventory object
-// Simplified JS version that works with the existing input system
+// Simplified JS version: returns first suggested item without prompting.
+// Used only as internal fallback; normal callers should use getobj() below.
 export function getobj_simple(word, obj_ok, player) {
-    // Returns the first suggested object, or null
     for (const obj of (player.inventory || [])) {
         const result = obj_ok(obj);
         if (result === GETOBJ_SUGGEST) return obj;
@@ -1592,11 +1592,103 @@ export function getobj_simple(word, obj_ok, player) {
     return null;
 }
 
-// C ref: invent.c getobj() — C-name wrapper over simplified selector
-export function getobj(word, obj_ok, _flags = 0, player = null) {
+// C ref: invent.c getobj() — interactive inventory item selection.
+// Matches C behavior: auto-selects if exactly one GETOBJ_SUGGEST item and
+// GETOBJ_PROMPT flag is not set; otherwise prompts via nhgetch().
+export async function getobj(word, obj_ok, flags = 0, player = null) {
     const p = player || _gstate?.player || null;
+    const display = _gstate?.display || null;
     if (!p || typeof obj_ok !== 'function') return null;
-    return getobj_simple(word, obj_ok, p);
+
+    const inv = p.inventory || [];
+
+    // Categorize items using the obj_ok callback (C ref: invent.c:2098-2158)
+    const suggested = [];
+    const downplay = [];
+    const allValid = []; // items the player CAN select (suggested + downplay + exclude_selectable)
+    for (const obj of inv) {
+        const result = obj_ok(obj);
+        if (result === GETOBJ_SUGGEST) {
+            suggested.push(obj);
+            allValid.push(obj);
+        } else if (result === GETOBJ_DOWNPLAY) {
+            downplay.push(obj);
+            allValid.push(obj);
+        } else if (result === GETOBJ_EXCLUDE_SELECTABLE) {
+            allValid.push(obj);
+        }
+    }
+
+    // No selectable items at all
+    if (allValid.length === 0 && suggested.length === 0) return null;
+
+    // C ref: auto-select if exactly one GETOBJ_SUGGEST item, no downplay items,
+    // and GETOBJ_PROMPT flag is not set (invent.c:2215-2230)
+    if (suggested.length === 1 && downplay.length === 0 && !(flags & GETOBJ_PROMPT)) {
+        return suggested[0];
+    }
+
+    // No display available — fall back to simple selection
+    if (!display) return getobj_simple(word, obj_ok, p);
+
+    // Interactive prompt via nhgetch (C ref: invent.c:2232-2370)
+    const validLetters = allValid.map(o => o.invlet).join('');
+    const choices = compactInvletPromptChars(validLetters);
+    const prompt = choices
+        ? `What do you want to ${word}? [${choices} or ?*] `
+        : `What do you want to ${word}? [*] `;
+    const allInvLetters = inv.filter(o => o?.invlet).map(o => o.invlet).join('');
+    const clearPrompt = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+
+    await display.putstr_message(prompt);
+
+    while (true) {
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        // ESC / Enter / Space = cancel
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            clearPrompt();
+            return null;
+        }
+
+        // '?' or '*' = show inventory overlay
+        if (c === '?' || c === '*') {
+            clearPrompt();
+            const lines = buildInventoryOverlayLines(p);
+            const menuSelection = await renderOverlayMenuUntilDismiss(
+                display, lines, allInvLetters
+            );
+            if (menuSelection) {
+                const item = inv.find(o => o.invlet === menuSelection);
+                if (item) {
+                    clearPrompt();
+                    return item;
+                }
+            }
+            // Re-show prompt after overlay dismissal
+            await display.putstr_message(prompt);
+            continue;
+        }
+
+        // Try to find inventory item by letter
+        const item = inv.find(o => o.invlet === c);
+        if (!item) {
+            // C ref: invent.c:2304 — invalid invlet error, then re-prompt
+            clearPrompt();
+            await display.putstr_message("You don't have that object.");
+            await display.putstr_message(prompt);
+            continue;
+        }
+
+        // Found a valid inventory item — clear prompt and return
+        clearPrompt();
+        return item;
+    }
 }
 
 // C ref: invent.c ggetobj() — get object with class filter

@@ -1961,7 +1961,7 @@ export async function heal_legs(how, player) {
 export async function dodrop(player) {
   let result;
   if ( player.ushops) sellobj_state(SELL_DELIBERATE);
-  result = await drop(getobj("drop", any_obj_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
+  result = await drop(await getobj("drop", any_obj_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
   if ( player.ushops) sellobj_state(SELL_NORMAL);
   if (result) reset_occupations();
   return result;

@@ -1663,7 +1663,7 @@ function unsqueak_ok(obj) {
 // Autotranslated from trap.c:5537
 export async function disarm_squeaky_board(ttmp, player) {
   let obj, bad_tool, fails;
-  obj = getobj("untrap with", unsqueak_ok, GETOBJ_PROMPT);
+  obj = await getobj("untrap with", unsqueak_ok, GETOBJ_PROMPT);
   if (!obj) return 0;
   bad_tool = (obj.cursed || ((obj.otyp !== POT_OIL || obj.lamplit) && (obj.otyp !== CAN_OF_GREASE || !obj.spe)));
   fails = try_disarm(ttmp, bad_tool);
