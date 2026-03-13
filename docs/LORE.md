@@ -9714,3 +9714,38 @@ Validation:
 - Remaining `hi11` gap after this fix:
   - the next mismatch is later and map-state related (`%` stale-cell vs wall),
     so the fire-hit / death-message ordering bug appears resolved.
+## 2026-03-13: chargen first-menu navigation must support real alternate prompt order
+
+- Context:
+  - New coverage session `t12_s764_chargen_orderloop2` was designed to drive
+    chargen through race-first (`/`), gender-first (`"`), and alignment-first
+    (`[`) menu order, with multiple reject/restart loops.
+  - C replay was fine, but JS initially failed with `Input queue empty` while
+    still inside `showRaceMenu()`.
+- Root cause:
+  - `manualSelection()` in `js/chargen.js` only truly implemented role-first
+    flow.
+  - Pressing `/`, `"`, or `[` from the initial role menu just cleared some local
+    state and looped back through role-first assumptions instead of entering the
+    corresponding alternate prompt order that C uses.
+- Fix:
+  - Reworked chargen menu progression around generic candidate-combination
+    checks:
+    - `validRoleCandidates()`
+    - `validRaceCandidates()`
+    - `validGenderCandidates()`
+    - `validAlignCandidates()`
+    - `isCombinationPossible()`
+  - `manualSelection()` now tracks the current menu explicitly and can move
+    through role/race/gender/alignment in the order chosen by the user, while
+    still honoring filter constraints and rigid role/race/gender restrictions.
+- Validation:
+  - Existing promoted chargen sessions remained green.
+  - Full chargen parity slice: `41/41` passed.
+  - New session `t12_s764_chargen_orderloop2.session.json` is parity-green and
+    materially non-redundant versus the existing chargen coverage sessions.
+- Important lesson:
+  - Chargen coverage should intentionally test menu-order navigation, not just
+    role-first happy paths. Those alternate-order menus are real gameplay logic,
+    not UI sugar.
+
