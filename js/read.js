@@ -2,7 +2,7 @@
 // cf. read.c — doread, seffects, scroll effects, genocide, punishment, recharging
 
 import { rn2, rn1, rnd, d } from './rng.js';
-import { more, nhgetch } from './input.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
     SPE_BLANK_PAPER, SPE_NOVEL, SPE_BOOK_OF_THE_DEAD,
@@ -393,14 +393,17 @@ async function handleRead(player, display, game) {
                 const spells = player.spells || (player.spells = []);
                 const knownEntry = spells.find(s => s.otyp === anyItem.otyp);
                 if (knownEntry && knownEntry.sp_know > SPELL_KEEN / 10) {
-                    const spellName = String(od.oc_name || 'this spell').toLowerCase();
-                    // cf. spell.c study_book() — show both messages on one line to match
-                    // C TTY behavior where pline() + yn() appear together.
-                    await display.putstr_message(`You know "${spellName}" quite well already.  Refresh your memory anyway? [yn] (n)`);
-                    const ans = await nhgetch();
-                    if (String.fromCharCode(ans) !== 'y') {
-                        return { moved: false, tookTime: false };
-                    }
+                    // C ref: spell.c study_book():
+                    //   You("know ... quite well already.");
+                    //   if (y_n("Refresh your memory anyway?") == 'n') return 0;
+                    await You('know "%s" quite well already.', od.oc_name || 'this spell');
+                    const ans = await ynFunction(
+                        'Refresh your memory anyway?',
+                        'yn',
+                        'n'.charCodeAt(0),
+                        display
+                    );
+                    if (String.fromCharCode(ans) !== 'y') return { moved: false, tookTime: false };
                     replacePromptMessage();
                 }
 
@@ -706,7 +709,9 @@ export async function seffect_light(sobj, player, display, game) {
         if (!scursed) {
             await lightdamage(sobj, player, 5, true);
         }
-        return true;
+        // C ref: read.c seeffects()/seffect_light():
+        // light scroll isn't consumed inside seffect_light(); caller useups it.
+        return false;
     }
 
     // Confused: create tame lights around player

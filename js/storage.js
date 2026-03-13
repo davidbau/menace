@@ -986,6 +986,9 @@ export function loadFlags(apiOverrides = null) {
 
     // Merge: defaults < localStorage < NETHACKOPTIONS < explicit URL < API overrides
     const flags = { ...defaults, ...saved, ...urlFlags, ...overrideFlags };
+    // C ref: flags.invlet_constant backs "fixinv"; keep both names aligned so
+    // gameplay/state code and checkpoint output can use C-native field naming.
+    flags.invlet_constant = !!(flags.fixinv ?? flags.invlet_constant);
 
     // Persist URL flag overrides to localStorage
     const persistable = {};
