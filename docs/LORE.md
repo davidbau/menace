@@ -10378,3 +10378,6 @@ Validation:
   priest bonuses restored parity. A fresh rerecord of `seed323` with the
   current harness also removed a stale stair-boundary cursor artifact from the
   old fixture.
+
+- read.c parity: after scroll effects, JS must follow C `learnscroll()` vs `trycall()` branching; always prompting `docall()` is too aggressive and can pull later gameplay/input earlier.
+- Armor scroll effects mutate worn-armor enchantment and removal state; because JS caches `player.ac`, read-side armor mutations must call `find_ac(player)` immediately or the next status line can lag C by one prompt boundary.

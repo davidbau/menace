@@ -38,7 +38,7 @@ import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMA
 import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an, is_weptool, xname } from './objnam.js';
-import { hcolor, Monnam, mon_nam, docall } from './do_name.js';
+import { hcolor, Monnam, mon_nam } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
 import { sokoban_guilt } from './trap.js';
@@ -63,7 +63,7 @@ import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 import { which_armor, setworn } from './worn.js';
 import { dmgval } from './weapon.js';
-import { hard_helmet } from './do_wear.js';
+import { hard_helmet, find_ac } from './do_wear.js';
 import { flooreffects } from './do.js';
 import { snuff_light_source } from './light.js';
 import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
@@ -72,6 +72,7 @@ import { is_pool, is_lava } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
 import { create_gas_cloud } from './region.js';
 import { placebc } from './ball.js';
+import { trycall } from './do.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 // MAX_SPELL_STUDY imported from const.js
@@ -513,12 +514,20 @@ async function handleRead(player, display, game) {
                 // C ref: read.c seffects() — track whether type was known before reading
                 const od = objectData[anyItem.otyp] || {};
                 const alreadyKnown = !!od.oc_name_known;
+                const prevKnownFlag = !!_gstate?.known;
+                if (_gstate) _gstate.known = false;
                 const consumed = await seffects(anyItem, player, display, game);
+                const effectKnown = !!_gstate?.known;
+                if (_gstate) _gstate.known = prevKnownFlag;
                 // C ref: read.c:2147 — if scroll type wasn't identified by the
                 // effect, prompt the player to name/call the scroll type.
                 if (!alreadyKnown && !(objectData[anyItem.otyp] || {}).oc_name_known) {
-                    anyItem.dknown = true;
-                    await docall(anyItem);
+                    if (effectKnown) {
+                        learnscroll(anyItem);
+                    } else {
+                        anyItem.dknown = true;
+                        await trycall(anyItem);
+                    }
                 }
                 if (consumed) {
                     // Scroll was used up inside seffects
@@ -1019,6 +1028,7 @@ async function seffect_enchant_armor(sobj, player, display) {
                 `${Yobjnam2(otmp, player.blind ? 'feel' : 'look')} as good as new!`);
         }
         otmp.oerodeproof = new_erodeproof;
+        find_ac(player);
         return false;
     }
 
@@ -1037,6 +1047,7 @@ async function seffect_enchant_armor(sobj, player, display) {
             if (player[slot] === otmp) player[slot] = null;
         }
         player.removeFromInventory(otmp);
+        find_ac(player);
         return false;
     }
     if (s < -100) s = -100;
@@ -1074,7 +1085,9 @@ async function seffect_enchant_armor(sobj, player, display) {
     if (s) {
         otmp.spe = (otmp.spe || 0) + s;
         cap_spe(otmp);
+        if (_gstate) _gstate.known = !!otmp.known;
     }
+    find_ac(player);
 
     // Vibration warning
     if ((otmp.spe || 0) > (special_armor ? 5 : 3)
@@ -1103,6 +1116,7 @@ async function seffect_destroy_armor(sobj, player, display) {
         const new_erodeproof = !!scursed;
         await display.putstr_message(`${doname(otmp, player)} glows purple for a moment.`);
         otmp.oerodeproof = new_erodeproof;
+        find_ac(player);
         return false;
     }
 
@@ -1122,12 +1136,14 @@ async function seffect_destroy_armor(sobj, player, display) {
             if (player[slot] === otmp) player[slot] = null;
         }
         player.removeFromInventory(otmp);
+        find_ac(player);
     } else {
         // Both armor and scroll cursed: degrade
         await display.putstr_message(`${doname(otmp, player)} vibrates.`);
         if ((otmp.spe || 0) >= -6) {
             otmp.spe = (otmp.spe || 0) - 1;
         }
+        find_ac(player);
         await make_stunned(player,
             (player.getPropTimeout ? (player.getPropTimeout(STUNNED) || 0) : 0)
             + rn1(10, 10), true);
