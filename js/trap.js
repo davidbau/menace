@@ -38,7 +38,7 @@ import { find_mac, which_armor } from './worn.js';
 import { mtele_trap, mlevel_tele_trap,
          tele_trap, level_tele_trap, domagicportal } from './teleport.js';
 import { rloco } from './teleport.js';
-import { resist, burnarmor } from './zap.js';
+import { resist, burnarmor, burnarmor_player } from './zap.js';
 import { dmgval } from './weapon.js';
 import { del_engr_at } from './engrave.js';
 import { makeknown } from './do_wear.js';
@@ -1190,7 +1190,7 @@ export function erode_obj(otmp, ostr, type, ef_flags) {
 
 function erosion_action(type) {
     switch (type) {
-    case ERODE_BURN: return 'burns';
+    case ERODE_BURN: return 'smoulders';
     case ERODE_RUST: return 'rusts';
     case ERODE_ROT: return 'rots';
     case ERODE_CORRODE: return 'corrodes';
@@ -1216,7 +1216,7 @@ export async function erode_obj_player(otmp, ostr, type, ef_flags) {
     const result = erode_obj(otmp, ostr, type, ef_flags);
     if (!otmp) return result;
 
-    const name = ostr || 'item';
+    const name = ostr || xname(otmp);
     if (result === ER_DAMAGED) {
         const isPrimary = (type !== ERODE_ROT && type !== ERODE_CORRODE);
         const level = isPrimary ? (otmp.oeroded || 0) : (otmp.oeroded2 || 0);
@@ -2104,7 +2104,7 @@ async function dofiretrap(box, player, game, map) {
     else
         await losehp(num, tower_of_flame, KILLED_BY_AN, player, game?.display, game);
     // C ref: if (burnarmor(&youmonst) || rn2(3)) { destroy_items; ignite_items }
-    if (burnarmor(player, player) || rn2(3)) {
+    if ((await burnarmor_player(player, player)) || rn2(3)) {
         // destroy_items/ignite_items — not ported (cosmetic)
     }
 }

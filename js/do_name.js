@@ -152,9 +152,9 @@ export function x_monnam(mtmp, article = ARTICLE_NONE, adjective = null,
 
     const do_hallu = false; // Hallucination not yet tracked
     const do_invis = !!(mtmp.minvis) && !(suppress & SUPPRESS_INVISIBLE);
-    // Visibility: for now, assume monster is always visible in naming context
-    // (canspotmon check would go here)
-    const do_it = false; // !(suppress & SUPPRESS_IT) - simplified
+    const do_it = !canspotmon(mtmp)
+        && article !== ARTICLE_YOUR
+        && !(suppress & SUPPRESS_IT);
     const do_saddle = !(suppress & SUPPRESS_SADDLE);
     const do_name = !(suppress & SUPPRESS_NAME) || type_is_pname(mdat);
     const augment_it = !!(suppress & AUGMENT_IT);

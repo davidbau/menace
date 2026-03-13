@@ -9658,3 +9658,38 @@ Validation:
   - The comparison artifact’s later drift points deeper into turn-distribution
     / pet-movement ordering, so do not keep pushing on `dosearch0()` without
     fresher evidence.
+
+## 2026-03-13: hero fire-hit parity depends on async armor-erosion messaging
+
+- Context: `hi11_seed1100_wiz_zap-deep_gameplay` was diverging at the fire-hit
+  / death boundary: JS showed `HP:0(12)` too early and already had `You die...`
+  in message history while the top line still showed `The bolt of fire hits
+  you!--More--`.
+- C finding:
+  - `zap.c zhitu()` does fire-hit work in this order:
+    1. hit message,
+    2. `burnarmor(&youmonst)`,
+    3. possible item destruction / ignition,
+    4. `losehp(...)`.
+  - `burnarmor()` itself is synchronous in C because `trap.c erode_obj()`
+    immediately emits the player-facing erosion message, such as
+    `Your cloak smoulders!`, and that message can create its own `--More--`
+    boundary before death processing continues.
+- JS bug:
+  - JS split erosion into silent `erode_obj()` plus async `erode_obj_player()`,
+    but hero fire paths were still calling sync `burnarmor(...)`, so the
+    boundary-producing armor message never happened before `losehp()`.
+- Fix:
+  - Added async `burnarmor_player()` in `js/zap.js` and used it for hero fire
+    paths (beam hit, fire trap, zap-self fire).
+  - Added `registerBurnarmorPlayer()` in `js/hack.js` for the fire-trap path.
+  - Tightened `erode_obj_player()` wording to match C burn erosion
+    (`smoulders` rather than `burns`) and to use the real object name when no
+    explicit descriptor is supplied.
+- Validation:
+  - `hi11` first screen divergence advanced from step `387` to `391`.
+  - `seed031_manual_direct.session.json` remained green.
+  - `seed032_manual_direct.session.json` remained green.
+- Remaining `hi11` gap after this fix:
+  - the next mismatch is later and map-state related (`%` stale-cell vs wall),
+    so the fire-hit / death-message ordering bug appears resolved.

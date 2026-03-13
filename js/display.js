@@ -792,7 +792,7 @@ span.nh-cursor {
     }
 
     _tempGlyphToCell(glyph) {
-        return tempGlyphToCell(glyph);
+        return tempGlyphToCell(glyph, { useDECgraphics: !!this.flags?.DECgraphics });
     }
 
     _overlayKey(col, row) {
@@ -1688,7 +1688,7 @@ export function show_glyph(x, y, glyph, ctxOrMap = null) {
   const loc = gameMap.at(x, y);
   let cell = glyph;
   if (typeof glyph === 'number') {
-    cell = tempGlyphToCell(glyph);
+    cell = tempGlyphToCell(glyph, { useDECgraphics: !!ctx?.flags?.DECgraphics });
     if (loc) loc.glyph = glyph;
   }
   if (!cell || typeof cell.ch !== 'string' || cell.ch.length === 0) return;
@@ -1781,6 +1781,25 @@ export function feel_location(x, y, ctxOrMap = null) {
   if (!isok(x, y)) return;
   const ctx = _resolveDisplayCtx(ctxOrMap);
   map_location(x, y, 1, ctx);
+
+  const player = ctx?.player;
+  const gameMap = ctx?.map;
+  if (!player || !gameMap) return;
+  if (player.x === x && player.y === y) return;
+
+  const mon = gameMap.monsterAt?.(x, y) || null;
+  if (mon && senseMonsterForMap(mon, gameMap, player)) {
+    const detectedByTelepathy = telepathySensesMonsterForMap(mon, player);
+    const warnOfMon = hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon');
+    display_monster(
+      x,
+      y,
+      mon,
+      (detectedByTelepathy || warnOfMon) ? PHYSICALLY_SEEN : DETECTED,
+      false,
+      ctx
+    );
+  }
 }
 
 // Autotranslated from display.c:1100

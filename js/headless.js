@@ -1239,7 +1239,7 @@ export class HeadlessDisplay {
     }
 
     _tempGlyphToCell(glyph) {
-        return tempGlyphToCell(glyph);
+        return tempGlyphToCell(glyph, { useDECgraphics: !!this.flags?.DECgraphics });
     }
 
     _overlayKey(col, row) {

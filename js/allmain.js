@@ -40,7 +40,7 @@ import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
-import { FOV, get_vision_full_recalc } from './vision.js';
+import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
 import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
@@ -1547,8 +1547,7 @@ export class NetHackGame {
             // C harness parity: tmp_at_start/step/end are canonical events.
             trace: true,
             canSee: (x, y) => {
-                if (!this.fov || typeof this.fov.canSee !== 'function') return true;
-                return !!this.fov.canSee(x, y);
+                return !!cansee_core(this.map || this.lev || null, this.player || this.u || null, this.fov || null, x, y);
             },
             onDelayBoundary: (payload) => {
                 // Keep replay boundary semantics aligned with existing session logs.

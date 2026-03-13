@@ -4,7 +4,9 @@
 
 // Lazy-registered function to avoid circular import (zap.js imports from hack.js)
 var _burnarmor = () => false;
+var _burnarmor_player = async () => false;
 export function registerBurnarmor(fn) { _burnarmor = fn; }
+export function registerBurnarmorPlayer(fn) { _burnarmor_player = fn; }
 
 import { COLNO, ROWNO, STONE, CORR, SDOOR, SCORR, STAIRS, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -1141,7 +1143,7 @@ export async function domove_core(dir, player, map, display, game) {
             await display.putstr_message('A tower of flame erupts from the floor!');
             await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player, display, game);
             // C ref: burnarmor(&youmonst) || rn2(3)
-            if (!_burnarmor(player, player)) rn2(3);
+            if (!(await _burnarmor_player(player, player))) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
         }
         // C ref: trap.c trapeffect_pit() — set trap timeout and apply damage.

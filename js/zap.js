@@ -24,6 +24,8 @@ import {
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
     CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
     KILLED_BY_AN,
+    ARTICLE_NONE, ARTICLE_THE, SUPPRESS_SADDLE,
+    has_mgivenname,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -74,13 +76,13 @@ import { next_ident, mksobj, mkobj, costly_alteration } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
-import { mon_nam } from './do_name.js';
+import { mon_nam, x_monnam } from './do_name.js';
 import { xkilled, killed,
          monkilled, wakeup, healmon, mondead } from './mon.js';
 import { more, nhgetch } from './input.js';
-import { getdir, registerBurnarmor, losehp } from './hack.js';
+import { getdir, registerBurnarmor, registerBurnarmorPlayer, losehp } from './hack.js';
 import { nonliving, is_undead, is_demon,
-         x_monnam, resists_fire, resists_cold, resists_elec,
+         resists_fire, resists_cold, resists_elec,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
 import { placeFloorObject } from './invent.js';
 import { zap_dig as zap_dig_core } from './dig.js';
@@ -92,7 +94,7 @@ import {
   mon_set_minvis,
   which_armor,
 } from './worn.js';
-import { erode_obj, t_at, ignite_items } from './trap.js';
+import { erode_obj, erode_obj_player, t_at, ignite_items } from './trap.js';
 import { game as _gstate } from './gstate.js';
 import { stop_occupation } from './allmain.js';
 import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
@@ -116,6 +118,7 @@ import {
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
+import { In_mines } from './dungeon.js';
 import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES, SHOCK_RES, COLD_RES } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
@@ -124,7 +127,7 @@ import { more_experienced } from './exper.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock, doorlock } from './lock.js';
 import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
-import { newsym, vision_recalc } from './display.js';
+import { newsym, vision_recalc, zapdir_to_glyph } from './display.js';
 import {
     tmp_at, nh_delay_output,
 } from './animation.js';
@@ -324,6 +327,62 @@ export function burnarmor(victim, player) {
     return false;
 }
 registerBurnarmor(burnarmor);
+
+// C-faithful player-facing burnarmor path for async message boundaries.
+// This mirrors burnarmor() but routes hero erosion through erode_obj_player()
+// so "Your cloak smoulders!" can suspend before subsequent damage/death lines.
+export async function burnarmor_player(victim, player) {
+    if (!victim) return false;
+    const hitting_u = (victim === player);
+    if (!hitting_u) return burnarmor(victim, player);
+
+    while (true) {
+        switch (rn2(5)) {
+        case 0: {
+            const item = player.helmet;
+            if (!await erode_obj_player(item, item ? helm_simple_name(item) : 'helmet', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 1: {
+            let item = player.cloak;
+            if (item) {
+                await erode_obj_player(item, cloak_simple_name(item), ERODE_BURN, EF_GREASE);
+                return true;
+            }
+            item = player.armor;
+            if (item) {
+                await erode_obj_player(item, xname(item), ERODE_BURN, EF_GREASE);
+                return true;
+            }
+            item = player.shirt;
+            if (item) await erode_obj_player(item, shirt_simple_name(item), ERODE_BURN, EF_GREASE);
+            return true;
+        }
+        case 2: {
+            const item = player.shield;
+            if (!await erode_obj_player(item, 'wooden shield', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 3: {
+            const item = player.gloves;
+            if (!await erode_obj_player(item, gloves_simple_name(item), ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 4: {
+            const item = player.boots;
+            if (!await erode_obj_player(item, boots_simple_name(item), ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        }
+        break;
+    }
+    return false;
+}
+registerBurnarmorPlayer(burnarmor_player);
 
 // C ref: zap.c:4646 zap_hit() — determine if beam hits a monster
 function zap_hit(ac, type) {
@@ -1285,19 +1344,6 @@ async function bhit_zapped_wand(obj, player, map, game = null) {
   return result;
 }
 
-function beamTempGlyph(type, dx, dy) {
-  const fltyp = zaptype(type);
-  const damgtype = fltyp % 10;
-  const ch = (dx !== 0 && dy !== 0) ? '/' : (dx !== 0 ? '-' : '|');
-  let color = 12;
-  if (damgtype === ZT_FIRE) color = 1;
-  else if (damgtype === ZT_COLD) color = 6;
-  else if (damgtype === ZT_LIGHTNING) color = 11;
-  else if (damgtype === ZT_POISON_GAS) color = 2;
-  else if (damgtype === ZT_ACID) color = 10;
-  return { ch, color };
-}
-
 // cf. zap.c:4720 dobuzz() — full beam propagation with bounce logic
 async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
   const fltyp = zaptype(type);
@@ -1305,16 +1351,16 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
   // C: int hdmgtype = Hallucination ? rn2(6) : damgtype;
   // rn2(6) consumed when hallucinating (display only, but RNG matters)
   const halluc = player?.uprops?.[HALLUC];
-  if (halluc && (halluc.intrinsic || halluc.extrinsic)) {
-    rn2(6); // hallucination beam color randomization
-  }
+  const hdmgtype = (halluc && (halluc.intrinsic || halluc.extrinsic))
+    ? rn2(6)
+    : damgtype;
   let range = rn1(7, 7); // C ref: zap.c:4763
   if (dx === 0 && dy === 0) range = 1;
 
   let lsx, lsy;
   let shopdamage = false;
 
-  tmp_at(DISP_BEAM, beamTempGlyph(type, dx, dy));
+  tmp_at(DISP_BEAM, zapdir_to_glyph(dx, dy, hdmgtype));
   try {
     while (range-- > 0) {
       lsx = sx;
@@ -1350,6 +1396,22 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
             if (type < 0) {
               monkilled(mon, flash_str(fltyp), 0, map, player);
             } else {
+              // C ref: mon.c xkilled() emits the hero kill message before
+              // death processing; JS xkilled() has not yet been made async.
+              await pline(
+                `You ${nonliving(mon.data || mon.type || {}) ? 'destroy' : 'kill'} `
+                + `${!cansee(mon.mx, mon.my)
+                  ? 'it'
+                  : !mon.mtame
+                    ? mon_nam(mon)
+                    : x_monnam(
+                        mon,
+                        has_mgivenname(mon) ? ARTICLE_NONE : ARTICLE_THE,
+                        'poor',
+                        has_mgivenname(mon) ? SUPPRESS_SADDLE : 0,
+                        false
+                    )}!`
+              );
               xkilled(mon, 0, map, player);
             }
           } else {
@@ -1412,7 +1474,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           } else if (damgtype === ZT_FIRE) {
             // C ref: zap.c zhitu() fire path:
             // if (burnarmor(&youmonst)) { if (!rn2(3)) destroy_items; if (!rn2(3)) ignite_items; }
-            if (burnarmor(player, player)) {
+            if (await burnarmor_player(player, player)) {
               if (!rn2(3)) destroy_items_rng_only(player, AD_FIRE, origDam, player);
               if (!rn2(3)) ignite_items(player, _gstate);
             }
@@ -1446,9 +1508,14 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)) && range >= 0))) {
         // Bounce logic
         // C ref: STONE→10, mine walls→20, else→75
-        const bchance = (loc.typ === STONE) ? 10 : IS_WALL(loc.typ) ? 75 : 75;
+        const currentLevel = player?.uz || _gstate?.u?.uz || _gstate?.player?.uz || null;
+        const bchance = (loc.typ === STONE)
+          ? 10
+          : (currentLevel && In_mines(currentLevel) && IS_WALL(loc.typ))
+            ? 20
+            : 75;
         const canSeeLast = isok(lsx, lsy) ? cansee(lsx, lsy) : false;
-        if (range > 0 && canSeeLast) {
+        if (--range > 0 && canSeeLast) {
           await pline('The %s bounces!', flash_str(fltyp));
         }
         if (!dx || !dy || !rn2(bchance)) {
@@ -1469,6 +1536,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           case 1: dy = -dy; break;
           case 2: dx = -dx; break;
           }
+          tmp_at(DISP_CHANGE, zapdir_to_glyph(dx, dy, hdmgtype));
         }
         // C ref: zap.c make_bounce path does not rewind sx/sy for regular
         // wall/door bounces; the next loop iteration advances from this cell.
@@ -2143,7 +2211,7 @@ function learnwand(obj, player = null) {
       observeObject(obj);
     }
     if (obj.dknown) {
-      discoverObject(obj.otyp, true, true, true);
+      discoverObject(obj.otyp, true, true);
     }
   }
   update_inventory();
@@ -2271,7 +2339,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       damage = orig_dmg;
     }
     // C ref: zap.c:2755-2757 — unconditional burnarmor + destroy_items
-    burnarmor(player, player);
+    await burnarmor_player(player, player);
     // destroy_items(&youmonst, AD_FIRE, orig_dmg) — stub
     break;
   }
