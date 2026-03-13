@@ -10283,6 +10283,7 @@ Validation:
     boundary, so the discriminator has to come from real runtime context
     (`context.mon_moving` here), not broad `playerDied` guards.
 
+<<<<<<< HEAD
 ## 2026-03-13 17:36 - hi11 zap invalid-inventory boundary fixed by prompt-owned visual --More--
 
 - Context:
@@ -10331,3 +10332,14 @@ Validation:
     next key, rendering the marker must stay visual-only; otherwise
     `nhgetch(commandBoundary)` will steal the key and create blank or delayed
     prompt frames.
+- 2026-03-13: `seed323_caveman_wizard_gameplay` was blocked by a single late
+  `peace_minded()` RNG mismatch after a stair transition, but the true root
+  cause was not stairs. JS still treated `ALIGNLIM` as a fixed `14`, while C
+  defines it dynamically as `10 + floor(svm.moves / 200)`. During the run,
+  hero-killing a `manes` incorrectly raised `alignmentRecord` from `10 -> 14`
+  in JS; in C the live cap was still `10`, so the same kill stayed clamped and
+  later `peace_minded()` rolled `rn2(26)` rather than `rn2(30)`. Fixing JS to
+  use a live alignment cap in `adjalign()` and the `ALIGNLIM`-derived quest/
+  priest bonuses restored parity. A fresh rerecord of `seed323` with the
+  current harness also removed a stale stair-boundary cursor artifact from the
+  old fixture.

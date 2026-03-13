@@ -58,7 +58,13 @@ const FROM_EXP = 4;  // from experience for some level > 1
 const FROM_FORM_REASON = 5;
 const FROM_LYCN = 6;
 
-const ALIGNLIM = 14;
+export function currentAlignLim(player = null) {
+    const moves = Math.max(
+        0,
+        Number(player?.turns ?? _gstate?.moves ?? _gstate?.turnCount ?? 0) || 0
+    );
+    return 10 + Math.floor(moves / 200);
+}
 
 // part of the output on gain or loss of attribute
 const plusattr = ["strong", "smart", "wise", "agile", "tough", "charismatic"];
@@ -1137,8 +1143,8 @@ export function adjalign(player, n) {
         }
     } else if (newalign > (player.alignmentRecord || 0)) {
         player.alignmentRecord = newalign;
-        if (player.alignmentRecord > ALIGNLIM)
-            player.alignmentRecord = ALIGNLIM;
+        if (player.alignmentRecord > currentAlignLim(player))
+            player.alignmentRecord = currentAlignLim(player);
     }
 }
 

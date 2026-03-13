@@ -89,7 +89,7 @@ import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
 import { unpunish, punish } from './read.js';
 import { you_unwere } from './were.js';
-import { Luck, change_luck, adjalign, adjattrib } from './attrib.js';
+import { Luck, change_luck, adjalign, adjattrib, currentAlignLim } from './attrib.js';
 import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
 import { set_itimeout, make_sick, make_stunned, make_confused,
@@ -168,7 +168,6 @@ const DEVOUT = 14;
 const FERVENT = 9;
 const STRIDENT = 4;
 
-const ALIGNLIM = 14;
 const MAXVALUE = 24;
 const LUCKMAX = 10;
 // NATTK, A_MAX imported from const.js
@@ -1773,7 +1772,7 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
                 await pline_The("altar glows %s.", hcolor(color));
             }
             if (rnl(player.ulevel || 1, Luck(player)) > 6 && (player.alignmentRecord || 0) > 0
-                && rnd(player.alignmentRecord) > Math.floor(3 * ALIGNLIM / 4))
+                && rnd(player.alignmentRecord) > Math.floor(3 * currentAlignLim(player) / 4))
                 await summon_minion(altaralign, true, map, player);
             angry_priest(map, player);
         } else {
@@ -1781,7 +1780,7 @@ export async function offer_different_alignment_altar(otmp, altaralign, player, 
             change_luck(-1, player);
             await exercise(player, A_WIS, false);
             if (rnl(player.ulevel || 1, Luck(player)) > 6 && (player.alignmentRecord || 0) > 0
-                && rnd(player.alignmentRecord) > Math.floor(7 * ALIGNLIM / 8))
+                && rnd(player.alignmentRecord) > Math.floor(7 * currentAlignLim(player) / 8))
                 await summon_minion(altaralign, true, map, player);
         }
     }
@@ -1982,7 +1981,7 @@ export async function eval_offering(otmp, altaralign, player) {
       return -1;
     }
     else if (player.alignment === altaralign) {
-      if (player.alignmentRecord < ALIGNLIM) await You_feel("appropriately %s.", align_str(player.alignment));
+      if (player.alignmentRecord < currentAlignLim(player)) await You_feel("appropriately %s.", align_str(player.alignment));
       else {
         await You_feel("you are thoroughly on the right path.");
       }

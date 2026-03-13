@@ -90,7 +90,7 @@ import { ansimpleoname, Has_contents, vtense, makeplural } from './objnam.js';
 import { corpse_intrinsic } from './eat.js';
 import { game as _gstate } from './gstate.js';
 import { sengr_at, del_engr_at } from './engrave.js';
-import { adjalign, change_luck } from './attrib.js';
+import { adjalign, change_luck, currentAlignLim } from './attrib.js';
 import { envFlag, writeStderr } from './runtime_env.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
@@ -1062,15 +1062,15 @@ export async function xkilled(mon, xkill_flags, map, player) {
         const msound = mdat.msound ?? 0;
         if (game?.quest_status?.leader_m_id && mon.m_id === game.quest_status.leader_m_id) {
             // REAL BAD! Killed quest leader
-            adjalign(player, -((player.alignmentRecord || 0) + Math.floor(14 / 2)));
+            adjalign(player, -((player.alignmentRecord || 0) + Math.floor(currentAlignLim(player) / 2)));
             // u.ugangr += 7; // TODO: god anger
             change_luck(-20, player);
         } else if (msound === MS_NEMESIS) {
             // Real good! (only if leader not killed)
             if (!game?.quest_status?.killed_leader)
-                adjalign(player, Math.floor(14 / 4)); // ALIGNLIM/4
+                adjalign(player, Math.floor(currentAlignLim(player) / 4)); // ALIGNLIM/4
         } else if (msound === MS_GUARDIAN) {
-            adjalign(player, -Math.floor(14 / 8)); // -ALIGNLIM/8
+            adjalign(player, -Math.floor(currentAlignLim(player) / 8)); // -ALIGNLIM/8
             // u.ugangr++; // TODO: god anger
             change_luck(-4, player);
         } else if (mon.ispriest) {
@@ -1078,7 +1078,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
             if (p_coaligned(mon, player))
                 player.ublessed = 0;
             if ((mdat.maligntyp || 0) === A_NONE)
-                adjalign(player, Math.floor(14 / 4)); // ALIGNLIM/4
+                adjalign(player, Math.floor(currentAlignLim(player) / 4)); // ALIGNLIM/4
         } else if (mon.mtame) {
             adjalign(player, -15);
             if (!(player?.hallucinating || player?.Hallucination)) {
