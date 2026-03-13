@@ -93,6 +93,7 @@ import {
 } from './worn.js';
 import { erode_obj, t_at, ignite_items } from './trap.js';
 import { game as _gstate } from './gstate.js';
+import { stop_occupation } from './allmain.js';
 import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
@@ -1421,6 +1422,11 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
         } else if (!player.blind) {
           await pline('The %s whizzes by you!', flash_str(fltyp));
         }
+        // C ref: zap.c:4928-4931 — lightning side-effect flash + stop occupation.
+        if (damgtype === ZT_LIGHTNING) {
+          await flashburn(c_d(nd, 50), true, player);
+        }
+        await stop_occupation(_gstate);
       }
 
       // C ref: zap.c:4938-4993 — beam bounce off non-zap-passable terrain,
