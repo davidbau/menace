@@ -10,7 +10,7 @@ import { munstone, munslime } from './muse.js';
 import { grow_up, runtimeApplyNewchamDirect } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
-    A_STR, A_DEX,
+    A_STR, A_DEX, A_WIS,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
@@ -2204,11 +2204,18 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
     switch (adtyp) {
     case AD_PLYS:
         if ((mon.mndx ?? -1) === PM_FLOATING_EYE) {
+            // C ref: uhitm.c:6000-6025 (floating eye passive gaze)
             if (tmp > 127) tmp = 127;
-            if (!rn2(4)) tmp = 127;
             if (!playerHasProp(player, FREE_ACTION) && tmp > 0) {
-                if (game) game.multi = Math.max(game.multi || 0, tmp);
                 if (display) await display.putstr_message(`You are frozen by ${y_monnam(mon)}!`);
+                // C: nomul((ACURR(A_WIS) > 12 || rn2(4)) ? -tmp : -127);
+                // and gn.nomovemsg = 0 (do not preserve prior message text).
+                const duration = (acurr(player, A_WIS) > 12 || rn2(4)) ? tmp : 127;
+                if (game) {
+                    game.multi = -duration;
+                    game.nomovemsg = null;
+                    game.multi_reason = dynamic_multi_reason(mon, 'frozen', true);
+                }
             }
         } else if (playerHasProp(player, FREE_ACTION)) {
             // C ref: uhitm.c:6032-6033 — Free_action prevents paralysis
