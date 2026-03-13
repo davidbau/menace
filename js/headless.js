@@ -21,6 +21,7 @@ import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
 import { newsym } from './display.js';
+import { game as activeGame } from './gstate.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
@@ -528,6 +529,8 @@ export class HeadlessDisplay {
             }
         }
         this.topMessage = null; // Track current message for concatenation
+        this._topMessageStatusHp = null;
+        this._topMessageStepIndex = null;
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
@@ -625,6 +628,7 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
+                        refreshStatus: !(activeGame?.context?.mon_moving),
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -633,6 +637,8 @@ export class HeadlessDisplay {
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageStepIndex = null;
             this.moreMarkerActive = false;
         }
 
@@ -647,6 +653,14 @@ export class HeadlessDisplay {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
+                this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
+                    ? this._lastMapState.player.uhp
+                    : (Number.isFinite(this._lastMapState?.player?.hp)
+                        ? this._lastMapState.player.hp
+                        : null);
+                this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                    ? this._lastMapState.gameMap._replayStepIndex
+                    : null;
                 this.messageNeedsMore = true;
                 this.setCursor(Math.min(combined.length, this.cols - 1), 0);
                 return;
@@ -662,6 +676,7 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
+                        refreshStatus: !(activeGame?.context?.mon_moving),
                     });
                 } catch (e) {
                     // If another nhgetch is already pending (e.g., makemon
@@ -674,6 +689,8 @@ export class HeadlessDisplay {
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageStepIndex = null;
             this.moreMarkerActive = false;
         }
 
@@ -681,6 +698,14 @@ export class HeadlessDisplay {
         if (msg.length <= this.cols) {
             this.putstr(0, 0, msg.substring(0, this.cols));
             this.topMessage = msg;
+            this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
+                ? this._lastMapState.player.uhp
+                : (Number.isFinite(this._lastMapState?.player?.hp)
+                    ? this._lastMapState.player.hp
+                    : null);
+            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                ? this._lastMapState.gameMap._replayStepIndex
+                : null;
             this.messageNeedsMore = true;
             if (isDeathMessage) {
                 this.renderMoreMarker();
@@ -690,6 +715,7 @@ export class HeadlessDisplay {
                             site: 'headless.more.dismiss',
                             clearAfter: false,
                             readKey: this._nhgetch,
+                            refreshStatus: !(activeGame?.context?.mon_moving),
                         });
                     } catch (e) {
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -697,6 +723,8 @@ export class HeadlessDisplay {
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
+                    this._topMessageStatusHp = null;
+                    this._topMessageStepIndex = null;
                     this.moreMarkerActive = false;
                 } else {
                     // Parity fallback for harness contexts without a wired
@@ -705,6 +733,8 @@ export class HeadlessDisplay {
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
+                    this._topMessageStatusHp = null;
+                    this._topMessageStepIndex = null;
                     this.moreMarkerActive = false;
                 }
             }
@@ -725,6 +755,14 @@ export class HeadlessDisplay {
 
         this.putstr(0, 0, firstLine);
         this.topMessage = firstLine;
+        this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
+            ? this._lastMapState.player.uhp
+            : (Number.isFinite(this._lastMapState?.player?.hp)
+                ? this._lastMapState.player.hp
+                : null);
+        this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+            ? this._lastMapState.gameMap._replayStepIndex
+            : null;
         this.messageNeedsMore = true;
 
         if (wrapped.length === 0) {
@@ -756,6 +794,8 @@ export class HeadlessDisplay {
         this.clearRow(1);
         this.messageNeedsMore = false;
         this.topMessage = null;
+        this._topMessageStatusHp = null;
+        this._topMessageStepIndex = null;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
             await this.putstr_message(remainder);

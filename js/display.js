@@ -227,6 +227,8 @@ export class Display {
         // Message history
         this.messages = [];
         this.topMessage = null;
+        this._topMessageStatusHp = null;
+        this._topMessageStepIndex = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
@@ -400,6 +402,8 @@ span.nh-cursor {
             }
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageStepIndex = null;
         }
 
         // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit.
@@ -411,6 +415,14 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
                 this.topMessage = combined;
+                this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
+                    ? this._lastMapState.player.uhp
+                    : (Number.isFinite(this._lastMapState?.player?.hp)
+                        ? this._lastMapState.player.hp
+                        : null);
+                this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                    ? this._lastMapState.gameMap._replayStepIndex
+                    : null;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
                 this.setCursor(this.messageCursorCol, 0);
                 return;
@@ -435,6 +447,8 @@ span.nh-cursor {
             }
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageStepIndex = null;
         }
 
         // Display message, wrapping to row 1 if needed.
@@ -445,6 +459,14 @@ span.nh-cursor {
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
             this.topMessage = msg;
+            this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
+                ? this._lastMapState.player.uhp
+                : (Number.isFinite(this._lastMapState?.player?.hp)
+                    ? this._lastMapState.player.hp
+                    : null);
+            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                ? this._lastMapState.gameMap._replayStepIndex
+                : null;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
         } else {
             // Break at word boundary near cols (C uses CO-1 as scan start).
@@ -458,6 +480,14 @@ span.nh-cursor {
 
             this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
             this.topMessage = row0;
+            this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
+                ? this._lastMapState.player.uhp
+                : (Number.isFinite(this._lastMapState?.player?.hp)
+                    ? this._lastMapState.player.hp
+                    : null);
+            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                ? this._lastMapState.gameMap._replayStepIndex
+                : null;
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
 
             if (row1rest.length > 0) {
@@ -480,6 +510,8 @@ span.nh-cursor {
                 this._topMessageRow1 = undefined;
                 this.messageNeedsMore = false;
                 this.topMessage = null;
+                this._topMessageStatusHp = null;
+                this._topMessageStepIndex = null;
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
                     await this.putstr_message(row1overflow);
@@ -502,6 +534,8 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.messageNeedsMore = false;
                 this.topMessage = null;
+                this._topMessageStatusHp = null;
+                this._topMessageStepIndex = null;
             }
         }
         this.setCursor(this.messageCursorCol, 0);

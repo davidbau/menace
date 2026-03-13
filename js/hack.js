@@ -3473,6 +3473,15 @@ export async function losehp(n, knam, k_format, player, display, game) {
         pushRngLogEntry(`^losehp_in[n=${n | 0} hp=${hpBefore | 0} knam=${String(knam || '')} kf=${k_format | 0}]`);
     }
     end_running(true, game);
+    // C ref: hack.c losehp() sets disp.botl before mutating HP.
+    // JS status updates are deferred via player._botl and flushed at the
+    // next message/display boundary.
+    if (player) {
+        player._botl = true;
+        player._botlStepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
+            ? (game.lev || game.map)._replayStepIndex
+            : null;
+    }
 
     if (player.upolyd) {
         player.mh = (player.mh || 0) - n;

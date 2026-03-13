@@ -10174,3 +10174,59 @@ Validation:
   - screen parity improved from `693/892` to `711/892`
   - cursor parity improved from `682/692` to `698/710`
   - the first RNG divergence moved later, from step `722` to step `734`
+
+## 2026-03-13 16:51 - hi11 death-status boundary fixed by restoring deferred botl semantics
+
+- Context:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` already had full RNG/event parity,
+    but the remaining screen drift was in late death/lifesave frames.
+  - The concrete failures split into two opposite cases:
+    - self-zap death staging wanted `HP:0` on the pending hit-message frame,
+    - monster-phase death staging wanted to keep the old `HP:3` through the
+      stale `It hits!--More--` / `You die...--More--` frames, then switch to
+      `HP:0` at the `Die? [yn]` prompt.
+- Root cause:
+  - JS `losehp()` and `savelife()` were not marking the status line dirty the
+    way C `disp.botl = TRUE` does.
+  - `more()` was compensating by redrawing status unconditionally, which hid
+    the missing dirty-bit propagation but produced the wrong timing at tricky
+    death boundaries.
+  - The late monster-phase death case is special because `You die...` arrives
+    while `context.mon_moving` is still true and the pending topline belongs
+    to an earlier monster hit, so the forced death-staging `more()` must not
+    consume the pending HP update yet.
+  - `ynFunction()` also lacked any status flush before drawing `Die? [yn]`,
+    so once the monster-phase suppression was added there was nowhere that the
+    deferred `HP:0` update would be consumed.
+- Fix:
+  - In `js/hack.js`, make `losehp()` mark deferred status updates via
+    `player._botl = true` and record the replay step index for diagnostics.
+  - In `js/end.js`, make `savelife()` do the same when it restores HP.
+  - In `js/headless.js` and `js/display.js`, tag each topline with the HP and
+    replay-step snapshot under which it was rendered.
+  - In `js/input.js` `more()`, stop doing unconditional status redraws; only
+    consume a pending status update when the current topline still belongs to
+    the same replay-step update context.
+  - In `js/headless.js`, for the three death-staging `more()` calls used while
+    printing `You die...`, suppress status refresh only when
+    `activeGame.context.mon_moving` is true. That keeps self-zap/player-command
+    deaths on the normal path while preserving the C monster-phase staging.
+  - In `js/input.js` `ynFunction()`, flush any pending status update before
+    drawing the prompt line, so `Die? [yn]` consumes the deferred `HP:0`.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` now has full gameplay parity:
+    - RNG: `3469/3469`
+    - events: `609/609`
+    - screens/colors/mapdump: full match
+    - remaining non-green channel is cursor only (`431/439`)
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: still passes.
+  - `scripts/run-and-report.sh --failures` after the slice:
+    - `Gameplay: 202/213 passing, 11 failing`
+    - no PRNG/event regressions introduced; failures remain screen-only.
+- Practical lesson:
+  - If `more()` seems to need unconditional status redraws, that is usually a
+    sign that the real `disp.botl`/deferred-status source is missing.
+  - Death staging is not one generic case: player-command deaths and
+    monster-phase deaths can require opposite behavior at the same `You die...`
+    boundary, so the discriminator has to come from real runtime context
+    (`context.mon_moving` here), not broad `playerDied` guards.

@@ -330,6 +330,10 @@ function savelife(how, game) {
     // C: uhpmin = minuhpmax(10) — ensure hpmax >= 10
     if (player.uhpmax < 10) player.uhpmax = 10;
     player.uhp = Math.min(player.uhpmax, givehp);
+    player._botl = true;
+    player._botlStepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
+        ? (game.lev || game.map)._replayStepIndex
+        : null;
 
     if (player.hunger < 500 || how === CHOKING) {
         player.hunger = 900;
