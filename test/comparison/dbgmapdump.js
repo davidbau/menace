@@ -927,9 +927,13 @@ async function main() {
         writeFileSync(keysJsonPath, `${JSON.stringify(replayArgs.keys)}\n`, 'utf8');
         for (const c of captures) {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
-            runCStepCapture(sessionPath, c.rawStep, outJson, fixedDatetime, keysJsonPath);
+            // capture_step_snapshot.py expects a 1-based gameplay step count:
+            // "replay N keys, then capture boundary". rawStep is 0-based.
+            const cRequestedStep = c.rawStep + 1;
+            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime, keysJsonPath);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
             c.cSnapshotPath = outJson;
+            c.cRequestedStep = cRequestedStep;
             c.cCheckpointMatchedPhase = capture?.checkpointMatchedPhase === true;
             c.cCheckpointPhase = capture?.checkpoint?.phase || null;
             if (!c.cCheckpointMatchedPhase) {
