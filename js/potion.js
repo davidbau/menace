@@ -25,7 +25,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { adjattrib, poisontell } from './attrib.js';
-import { drinkfountain, dipfountain, dipsink } from './fountain.js';
+import { drinkfountain, drinksink, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
@@ -505,12 +505,19 @@ export function drink_ok(obj) {
 // Implemented: fountain check, inventory selection, healing effects.
 // TODO: unkn/otmp bookkeeping, BUC message path, potion identification, peffects dispatch
 async function handleQuaff(player, map, display) {
-    // cf. potion.c dodrink():540-550 — check for fountain first
+    // cf. potion.c dodrink():540-560 — check local fountain/sink first
     const loc = map.at(player.x, player.y);
-    if (loc && loc.typ === FOUNTAIN) {
+    if (loc && loc.typ === FOUNTAIN && can_reach_floor(player, map, false)) {
         const ans = await ynFunction('Drink from the fountain?', 'yn', 'n'.charCodeAt(0), display);
         if (ans === 'y'.charCodeAt(0)) {
             await drinkfountain(player, map, display);
+            return { moved: false, tookTime: true };
+        }
+    }
+    if (loc && IS_SINK(loc.typ) && can_reach_floor(player, map, false)) {
+        const ans = await ynFunction('Drink from the sink?', 'yn', 'n'.charCodeAt(0), display);
+        if (ans === 'y'.charCodeAt(0)) {
+            await drinksink(player, map, display);
             return { moved: false, tookTime: true };
         }
     }

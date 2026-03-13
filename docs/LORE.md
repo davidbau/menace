@@ -9764,3 +9764,38 @@ Validation:
     role-first happy paths. Those alternate-order menus are real gameplay logic,
     not UI sugar.
 
+## 2026-03-13: sink gameplay parity requires C-local quaff branch + `place_object()` ordering
+
+- Context:
+  - New Theme 01 sink coverage session `t01_s940_v_sinkmix2_gp` extended a
+    known-green seed940 exploration route to a reachable sink on `Dlvl:1`.
+  - The session exercises sink terrain look text, sink `#sit`, `drinksink`,
+    and `dipsink`.
+- Findings:
+  - `js/potion.js::handleQuaff()` had the fountain prompt branch from C
+    `dodrink()`, but it was missing the immediately-following sink branch.
+  - Result: on a sink square, JS incorrectly fell through to inventory
+    selection and emitted `You don't have anything to drink.` instead of
+    prompting `Drink from the sink? [yn] (n)`.
+  - `js/fountain.js::drinksink()` and `sink_backs_up()` were creating sink-ring
+    floor objects via `map.addObject(...)` instead of `place_object(...)`.
+  - Result: JS missed the C `^place[...]` event and shifted RNG/event ordering
+    relative to the following `exercise(A_WIS)` call.
+- Fix:
+  - Added the C sink branch to `handleQuaff()`:
+    - gated by `IS_SINK(loc.typ)` and `can_reach_floor(player, map, false)`,
+    - prompt text `Drink from the sink?`,
+    - dispatch to `drinksink(...)`.
+  - Switched sink ring placement to `place_object(...)` so the `^place[...]`
+    event is emitted at the C ordering point.
+  - Tightened `dipsink()` non-potion carried-item messaging to match C-visible
+    output:
+    - `You hold the spear under the tap.`
+    - when erosion happens, also surface `Your spear rusts!`
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json --parallel=1 --verbose`
+    - full parity green (`rng/events/screens/colors/cursor/mapdump` matched)
+  - Theme-01 marginal contribution:
+    - `+791` lines
+    - `+265` branches
+    - `+36` functions

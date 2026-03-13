@@ -35,6 +35,8 @@ import { artiname, exist_artifact, discover_artifact } from './artifact.js';
 import { somegold } from './steal.js';
 import { IS_FOUNTAIN, MM_NOMSG, A_MAX, DOOR, F_LOOTED, F_WARNED, S_LPUDDING, S_LDWASHER, S_LRING } from './const.js';
 import { morehungry } from './eat.js';
+import { the } from './objnam.js';
+import { place_object } from './mkobj.js';
 
 // fountain.js -- Fountain and sink effects: quaff, dip, wash
 // cf. fountain.c -- floating_above, dowatersnakes, dowaterdemon, dowaternymph,
@@ -686,10 +688,8 @@ export async function drinksink(player, map, display, fov) {
         if (loc && !((loc.looted || 0) & S_LRING)) {
             await You("find a ring in the sink!");
             const ring = mkobj(RING_CLASS, true);
-            if (ring && map.addObject) {
-                ring.ox = player.x;
-                ring.oy = player.y;
-                map.addObject(ring);
+            if (ring) {
+                place_object(ring, player.x, player.y, map);
             }
             loc.looted = (loc.looted || 0) | S_LRING;
             await exercise(player, A_WIS, true);
@@ -771,9 +771,13 @@ export async function dipsink(obj, player, map, display, fov) {
         await wash_hands(player, map, display);
         return;
     } else if (obj && obj.oclass !== POTION_CLASS) {
-        await You("hold %s under the tap.", xname(obj));
-        if (water_damage(obj, null, true) === ER_NOTHING)
+        await You("hold %s under the tap.", the(xname(obj)));
+        const er = water_damage(obj, null, true);
+        if (er === ER_DAMAGED) {
+            await Your("%s rusts!", xname(obj));
+        } else if (er === ER_NOTHING) {
             await pline("Nothing seems to happen.");
+        }
         return;
     }
 
@@ -852,10 +856,8 @@ export async function sink_backs_up(x, y, player, map, display) {
         if (!player.blind)
             await You_see("a ring shining in its midst.");
         const ring = mkobj(RING_CLASS, true);
-        if (ring && map.addObject) {
-            ring.ox = x;
-            ring.oy = y;
-            map.addObject(ring);
+        if (ring) {
+            place_object(ring, x, y, map);
         }
         newsym(x, y);
         await exercise(player, A_DEX, true);
