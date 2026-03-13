@@ -43,6 +43,22 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-13)
 
+### Display RNG divergence needs caller-tagged diagnostics
+
+Hallucination-related screen drift can be driven by display-stream RNG
+consumption (`rn2_on_display_rng`) rather than gameplay RNG (`rn2`), and this
+is invisible if logs only show values without callsites.
+
+Tooling update:
+1. Added optional display RNG caller tagging in JS via
+   `RNG_LOG_DISP_CALLERS=1` (used with `RNG_LOG_DISP=1` and `RNG_LOG_TAGS=1`).
+2. Logged entries remain unchanged by default to avoid overhead and preserve
+   normal parity runs.
+
+Practical use: when a hallucination/name/glyph mismatch appears early but core
+RNG still matches, capture a tagged `~drn2(...)` trace first to identify the
+render path that consumed display RNG out of phase.
+
 ### Off-FOV map rendering must not synthesize trap glyphs from live trap state
 
 A wizard-session screen drift (`seed326`, first at step 1) was caused by the

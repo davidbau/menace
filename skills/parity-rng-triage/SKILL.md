@@ -48,6 +48,11 @@ Use this for session parity failures where gameplay diverges between C and JS:
    - Note: `rng_step_diff.js` replays one step in isolation; use it as a
      microscope only. Treat `session_test_runner.js --verbose` as authoritative
      for true first divergence.
+   - For render-side RNG visibility (hallucination glyph/name drift), enable
+     display-stream logs with caller tags:
+     - `RNG_LOG_DISP=1 RNG_LOG_DISP_CALLERS=1 RNG_LOG_TAGS=1 node test/comparison/session_test_runner.js --sessions=<session-path> --verbose`
+     - Keep this diagnostic off by default; C sessions usually do not include
+       display-stream RNG entries.
 5. Capture rich state snapshots around divergence with debug mapdump:
    - `node test/comparison/dbgmapdump.js <session-path> --steps <N> --window 1`
    - Inspect with:
@@ -97,6 +102,8 @@ Use this for session parity failures where gameplay diverges between C and JS:
 - For lower-overhead RNG logs during triage:
   - `RNG_LOG_PARENT=0` shortens caller tags.
   - `RNG_LOG_TAGS=0` disables caller tags entirely.
+  - `RNG_LOG_DISP=1` logs JS display RNG calls as `~drn2(...)`.
+  - `RNG_LOG_DISP_CALLERS=1` appends caller tags to `~drn2(...)` entries.
 
 ## Unit Tests
 Run after any core JS change and after every `git pull`:

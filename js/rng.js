@@ -31,6 +31,7 @@ let rngDepth = 0;            // nesting depth for context propagation
 let rngTagOverride = null;   // explicit caller tag override for hotspot paths
 const rngTagCache = new Map();
 const rngEventTagCache = new Map();
+const rngDispTagCache = new Map();
 
 export function enableRngLog(withTags = true) {
     const tagsPref = getEnv('RNG_LOG_TAGS');
@@ -50,6 +51,7 @@ export function enableRngLog(withTags = true) {
     rngDepth = 0;
     rngTagCache.clear();
     rngEventTagCache.clear();
+    rngDispTagCache.clear();
 }
 
 export function getRngLog() {
@@ -97,6 +99,7 @@ export function disableRngLog() {
     rngTagOverride = null;
     rngTagCache.clear();
     rngEventTagCache.clear();
+    rngDispTagCache.clear();
 }
 
 // C ref: rnd.c:37 rng_log_init()
@@ -384,7 +387,42 @@ export function rn2_on_display_rng(x) {
     const processEnv = getEnvObject();
     const dispLogEnabled = processEnv?.RNG_LOG_DISP === '1';
     if (rngLog && dispLogEnabled) {
-        const tag = rngCallerTag ? ` @ ${rngCallerTag}` : '';
+        let tag = rngCallerTag ? ` @ ${rngCallerTag}` : '';
+        if (!tag && rngLogWithTags && processEnv?.RNG_LOG_DISP_CALLERS === '1') {
+            const holder = {};
+            const prevLimit = Error.stackTraceLimit;
+            Error.stackTraceLimit = rngLogWithParent ? 6 : 4;
+            Error.captureStackTrace(holder, rn2_on_display_rng);
+            const stack = holder.stack || '';
+            Error.stackTraceLimit = prevLimit;
+            const lines = stack.split('\n');
+            const callerLine = lines[1] || '';
+            const parentLine = lines[2] || '';
+            const grandLine = lines[3] || '';
+            const cacheKey = rngLogWithParent
+                ? `${callerLine}\n${parentLine}\n${grandLine}`
+                : callerLine;
+            let callerTag = rngDispTagCache.get(cacheKey);
+            if (callerTag === undefined) {
+                const baseTag = parseStackFrameTag(callerLine);
+                if (baseTag && rngLogWithParent) {
+                    const parentTag = parseStackFrameTag(parentLine);
+                    if (parentTag) {
+                        callerTag = `${baseTag} <= ${parentTag}`;
+                        const grandTag = parseStackFrameTag(grandLine);
+                        if (grandTag) callerTag = `${callerTag} <= ${grandTag}`;
+                    } else {
+                        callerTag = baseTag;
+                    }
+                } else {
+                    callerTag = baseTag || null;
+                }
+                rngDispTagCache.set(cacheKey, callerTag);
+            }
+            if (callerTag) {
+                tag = ` @ ${callerTag}`;
+            }
+        }
         rngLog.push(`~drn2(${x})=${result}${tag}`);
     }
     return result;
