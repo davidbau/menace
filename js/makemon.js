@@ -2548,21 +2548,19 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 else if (dist2(x, y, ux, uy) <= (BOLT_LIM * BOLT_LIM)) suffix = ' close by';
             }
             set_msg_xy(mon.mx, mon.my);
-            const _appearPromise = Norep('%s%s %s%s%s',
-                what,
-                exclaim ? ' suddenly' : '',
-                vtense(what, 'appear'),
-                suffix,
-                exclaim ? '!' : '.');
             if (mmflags & MM_ASYNC) {
-                // Caller will await via makemon_appear(); store promise on monster.
-                mon._appearPromise = _appearPromise;
-            } else {
-                // Sync caller — appear message will be lost (fire-and-forget).
-                // This is a known limitation; callers that need the message
-                // should use makemon_appear() instead.
-                impossible('makemon: appear message in sync context; use makemon_appear()');
+                // Caller will await via makemon_appear(); Norep starts executing
+                // synchronously (putstr_message updates display immediately) and
+                // the promise is stored for the caller to await.
+                mon._appearPromise = Norep('%s%s %s%s%s',
+                    what,
+                    exclaim ? ' suddenly' : '',
+                    vtense(what, 'appear'),
+                    suffix,
+                    exclaim ? '!' : '.');
             }
+            // Sync callers skip the message — use makemon_appear() for visible
+            // monsters so the Norep promise can be properly awaited.
         }
     }
 
