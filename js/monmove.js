@@ -1691,8 +1691,11 @@ async function maybeMonsterPickStuff(mon, map, player, display, fov) {
     if (mon.isshk && monsterInShop(mon, map)) return false;
     if (!mon_is_tame(mon) && monsterInShop(mon, map) && rn2(25)) return false;
 
+    // C ref: mpickstuff iterates level.objects chain (newest-first).
+    // JS array has newest last, so reverse to match C iteration order.
     const pile = (map.objectsAt?.(mon.mx, mon.my) || [])
-        .filter((obj) => obj && !obj.buried);
+        .filter((obj) => obj && !obj.buried)
+        .reverse();
     for (const obj of pile) {
         if (obj.otyp === ROCK) continue;
         if (!mon_would_take_item_search(mon, obj, map)) continue;
