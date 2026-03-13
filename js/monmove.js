@@ -1285,6 +1285,11 @@ async function dochug(mon, map, player, display, fov, game = null) {
             `reason=sleep`,
             `msleeping=${mon.msleeping ? 1 : 0}`);
         if (!disturb(mon)) {
+            // C ref: monmove.c:728-730 — sleeping monsters that stay asleep still
+            // refresh hallucinated appearance each turn.
+            if (player?.hallucinating) {
+                newsym(mon.mx, mon.my);
+            }
             return;
         }
         mon.msleeping = 0;
@@ -1555,6 +1560,15 @@ async function dochug(mon, map, player, display, fov, game = null) {
 
         if (moveStatus === MMOVE_NOMOVES && scared) {
             panicattk = true;
+        }
+
+        // C ref: monmove.c:917-933 — for no-move statuses, hallucination still
+        // refreshes monster appearance even when it doesn't move.
+        if ((moveStatus === MMOVE_NOMOVES
+            || moveStatus === MMOVE_NOTHING
+            || moveStatus === MMOVE_DONE)
+            && player?.hallucinating) {
+            newsym(mon.mx, mon.my);
         }
 
         // C ref: monmove.c:970 — status != MMOVE_DONE allows attack after movement.

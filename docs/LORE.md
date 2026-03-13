@@ -9342,3 +9342,30 @@ Validation:
     - `seed331_tourist_wizard_gameplay` full RNG/event parity.
   - target pending session (`pnd_s1200_w_potprayspell_gp`) still diverges at step 866,
     indicating this slice removes a concrete C gap but the remaining drift is elsewhere.
+
+### 2026-03-13 hallucination redraw + pet display ownership: move redraws to C-faithful `dochug/postmov` boundaries
+
+- Symptom in display-RNG instrumented pending session (`/tmp/pnd_s1200_disp.session.json`):
+  - mismatch around step `756` where C consumed hallucination redraw RNG (`~drn2(383)`)
+    in `dochug` status handling before subsequent pet movement turns.
+- C-faithful fixes:
+  - `js/monmove.js`
+    - add missing hallucination refresh for sleeping monsters that stay asleep
+      (`dochug` sleep early-return path).
+    - add missing hallucination refresh after movement status resolution for
+      `MMOVE_NOMOVES/MMOVE_NOTHING/MMOVE_DONE` (C `dochug` switch behavior).
+  - `js/dogmove.js`
+    - remove direct `newsym(old/new)` redraws from the normal pet movement path.
+    - keep movement state updates in `dog_move`; rely on `postmov`/`dochug`
+      redraw ordering to match C.
+    - retain leashed-reposition destination refresh.
+- Why this matters:
+  - C pet movement display updates are owned by `postmov`; direct redraws inside
+    `dog_move` can double-consume hallucination display RNG and obscure true order.
+- Validation:
+  - display-RNG pending run advanced first RNG divergence from index `2503` to `2523`
+    (step `761`) in `RNG_LOG_DISP=1` mode.
+  - no regression on known-green gameplay parity seeds:
+    - `seed322_barbarian_wizard_gameplay` full RNG/event parity.
+    - `seed331_tourist_wizard_gameplay` still full RNG/event parity (cursor-only
+      terminal-position tail delta unchanged from baseline behavior).

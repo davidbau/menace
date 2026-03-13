@@ -1568,11 +1568,10 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         // Update track history (shift old positions, add current)
         // C ref: dogmove.c:1319 — mon_track_add(mtmp, omx, omy)
         mon_track_add(mon, omx, omy);
-        // C ref: remove_monster/place_monster → newsym at old+new positions
+        // C ref: dogmove.c:1289-1290 — remove_monster/place_monster only mutates
+        // monster placement; display refresh is handled by monmove.c postmov().
         mon.mx = nix;
         mon.my = niy;
-        newsym(omx, omy);
-        newsym(nix, niy);
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {
@@ -1596,11 +1595,11 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         if (isok(ccx, ccy) && !map.monsterAt(ccx, ccy)) {
             const loc = map.at(ccx, ccy);
             if (loc && loc.typ >= POOL) {
-                // C ref: remove_monster/place_monster → newsym at old+new positions
+                // C ref: dogmove.c:1344-1347 — leashed reposition refreshes only
+                // destination square; old square is refreshed by later movement/display flow.
                 const _omx = mon.mx, _omy = mon.my;
                 mon.mx = ccx;
                 mon.my = ccy;
-                newsym(_omx, _omy);
                 newsym(ccx, ccy);
             }
         }
