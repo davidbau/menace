@@ -118,6 +118,7 @@ import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES, SHOCK_RES, COLD_RES
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
 import { discoverObject, observeObject, isObjectNameKnown } from './o_init.js';
+import { more_experienced } from './exper.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock, doorlock } from './lock.js';
 import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
@@ -1475,6 +1476,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
 export async function weffects(obj, player, map, display = null, game = null) {
   if (!obj) return;
   const otyp = obj.otyp;
+  const wasUnknown = !isObjectNameKnown(otyp);
   let disclose = false;
 
   // C ref: zap.c:3424 — exercise wisdom
@@ -1504,6 +1506,10 @@ export async function weffects(obj, player, map, display = null, game = null) {
     // RAY wand or spell
     if (otyp === WAN_DIGGING || otyp === SPE_DIG) {
       await zap_dig_core(map, player);
+      disclose = true;
+    } else if (otyp >= SPE_MAGIC_MISSILE && otyp <= SPE_FINGER_OF_DEATH) {
+      if (player) await ubuzz(ZT_SPELL(otyp - SPE_MAGIC_MISSILE), Math.floor((player.ulevel || 1) / 2) + 1, player, map);
+      disclose = true;
     } else if (otyp >= WAN_MAGIC_MISSILE && otyp <= WAN_LIGHTNING) {
       const beamType = wandToBeamType(otyp);
       if (beamType >= 0 && player) {
@@ -1512,10 +1518,13 @@ export async function weffects(obj, player, map, display = null, game = null) {
             player.dx || 0, player.dy || 0, map, player);
         disclose = true;
       }
+    } else {
+      impossible('weffects: unexpected spell or wand');
     }
   }
   if (disclose) {
     learnwand(obj, player);
+    if (wasUnknown) more_experienced(0, 10, game, player);
   }
 }
 
