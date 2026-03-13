@@ -4,10 +4,10 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr } from './attrib.js';
+import { acurr, adjalign } from './attrib.js';
 import { corpse_chance, mon_to_stone } from './mon.js';
 import { munstone, munslime } from './muse.js';
-import { grow_up, runtimeApplyNewchamDirect } from './makemon.js';
+import { grow_up, runtimeApplyNewchamDirect, set_malign } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
     A_STR, A_DEX, A_WIS,
@@ -2094,6 +2094,13 @@ async function handleMonsterKilled(player, monster, display, map) {
             if (map) newsym(monster.mx, monster.my);
         }
     }
+
+    // C ref: mon.c:3724 — malign was already adjusted for alignment and randomization
+    // set_malign is normally called in C makemon; compute lazily if not yet set
+    if (monster.malign === undefined && mdat) {
+        set_malign(monster, player);
+    }
+    adjalign(player, monster.malign || 0);
 
     // C ref: mon.c cleanup section — award XP after xkilled drop/corpse logic.
     // Keep legacy player.exp mirrored so status/insight views stay consistent.
