@@ -913,10 +913,20 @@ async function promptStep(game, chCode, {
     if (promptTookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
         const coreOpts = {};
         if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-        await moveloop_core(game, coreOpts);
-        find_ac(game.u || game.player);
-        see_monsters(game.map);
-        await display_sync();
+        const advanceTimedTurn = async () => {
+            await moveloop_core(game, coreOpts);
+            find_ac(game.u || game.player);
+            see_monsters(game.map);
+            await display_sync();
+        };
+        await advanceTimedTurn();
+        // C ref: allmain.c moveloop() keeps advancing timed turns without
+        // fresh input while multi < 0 (sleep/paralysis/etc).
+        let safety = 0;
+        while (game.multi < 0 && !(game?.playerDied)) {
+            await advanceTimedTurn();
+            if (++safety > 5000) break;
+        }
         await _drainOccupation(game, coreOpts);
     }
     if (!game.pendingPrompt && game._pendingTutorialStrip

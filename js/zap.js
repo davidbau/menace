@@ -19,6 +19,7 @@ import {
     ANTIMAGIC,
     HALF_SPDAM,
     HALLUC,
+    SLEEP_RES,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
     CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
@@ -110,7 +111,7 @@ import {
   xname, an, The, simpleonames,
   suit_simple_name, cloak_simple_name, helm_simple_name,
   gloves_simple_name, boots_simple_name, shield_simple_name,
-  shirt_simple_name, Is_box,
+  shirt_simple_name, Is_box, vtense,
 } from './objnam.js';
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
@@ -130,6 +131,7 @@ import {
 import { DISP_BEAM, DISP_END } from './const.js';
 import { getWinMessage, display_nhwindow } from './windows.js';
 import { attach_egg_hatch_timeout } from './timeout.js';
+import { fall_asleep } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';
@@ -1351,11 +1353,16 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
               xkilled(mon, 0, map, player);
             }
           } else {
+            if (sayhit || canseemon(mon)) {
+              await hit(flash_str(fltyp), mon, exclam(tmp));
+            }
             if (damgtype === ZT_SLEEP && mon.msleeping) {
               slept_monst(mon);
             }
           }
           range -= 2;
+        } else if (saymiss || canseemon(mon)) {
+          await miss(flash_str(fltyp), mon);
         }
       }
 
@@ -1390,7 +1397,11 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
             if (!hasProp(ACID_RES)) dam = c_d(nd, 6);
           } else if (damgtype === ZT_POISON_GAS) {
             if (!hasProp(POISON_RES)) dam = c_d(nd, 6);
-          } else if (damgtype === ZT_DEATH || damgtype === ZT_SLEEP) {
+          } else if (damgtype === ZT_SLEEP) {
+            if (!hasProp(SLEEP_RES)) {
+              fall_asleep(-c_d(nd, 25), true);
+            }
+          } else if (damgtype === ZT_DEATH) {
             dam = 0;
           } else {
             dam = c_d(nd, 6);
@@ -2185,15 +2196,17 @@ export function exclam(force) {
 
 // C ref: zap.c miss()/hit() message helpers.
 export async function miss(fltxt = 'beam', mtmp = null) {
-  if (mtmp) {
-    await pline('The %s misses %s.', fltxt, mon_nam(mtmp));
-  } else {
-    await pline('The %s misses.', fltxt);
-  }
+  const verbose = !!(_gstate?.flags?.verbose);
+  const showMon = !!mtmp && verbose && (cansee(mtmp.mx, mtmp.my) || canseemon(mtmp));
+  const target = showMon ? mon_nam(mtmp) : 'it';
+  await pline('%s %s %s.', The(fltxt), vtense(fltxt, 'miss'), target);
 }
 
-export async function hit(fltxt = 'beam') {
-  await pline('The %s hits!', fltxt);
+export async function hit(fltxt = 'beam', mtmp = null, force = '!') {
+  const verbose = !!(_gstate?.flags?.verbose);
+  const showMon = !!mtmp && verbose && (cansee(mtmp.mx, mtmp.my) || canseemon(mtmp));
+  const target = showMon ? mon_nam(mtmp) : 'it';
+  await pline('%s %s %s%s', The(fltxt), vtense(fltxt, 'hit'), target, force);
 }
 
 // C ref: zap.c do_enlightenment_effect()
