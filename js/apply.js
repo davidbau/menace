@@ -70,7 +70,7 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
-         TIMEOUT, HAND, FACE, CQ_CANNED } from './const.js';
+         TIMEOUT, HAND, FACE, HEAD, CQ_CANNED } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -81,7 +81,7 @@ import { nolimbs, has_head, unsolid, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
          poly_when_stoned, throws_rocks, passes_walls,
-         bigmonst, verysmall } from './mondata.js';
+         bigmonst, verysmall, nohands } from './mondata.js';
 import { mons, PM_LONG_WORM, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, distu, s_suffix } from './hacklib.js';
@@ -102,7 +102,7 @@ import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
-import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname } from './objnam.js';
+import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname, yname } from './objnam.js';
 import { shk_your } from './shk.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
@@ -113,6 +113,7 @@ import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
 import { dig_typ } from './dig.js';
 import { pick_lock } from './lock.js';
+import { objdescr_is } from './o_init.js';
 
 // -- Inline helpers --
 
@@ -919,12 +920,38 @@ export function broken_wand_explode() {}
 // cf. apply.c:3893 -- STUB: maybe_dunk_boulders
 export function maybe_dunk_boulders() {}
 
-// cf. apply.c:3905 -- STUB: do_break_wand
-async function do_break_wand(obj, player, map) {
-    await pline("Raising %s high above your head, you break it in two!", xname(obj));
+// cf. apply.c:3905 -- do_break_wand
+async function do_break_wand(obj, player, map, display) {
+    const pdata = player?.data || player?.polyData || {};
+    const isFragile = objdescr_is(obj, 'balsa') || objdescr_is(obj, 'glass');
+
+    if (nohands(pdata)) {
+        await You_cant("break %s without hands!", yname(obj));
+        return false;
+    } else if (!freehand(player)) {
+        await Your("%s are occupied!", makeplural(body_part(HAND, player)));
+        return false;
+    } else if (acurr(player, A_STR) < (isFragile ? 5 : 10)) {
+        await You("don't have the strength to break %s!", yname(obj));
+        return false;
+    }
+
+    const confirm = `Are you really sure you want to break ${yname(obj)}?`;
+    const ans = await ynFunction(confirm, 'yn', 'n'.charCodeAt(0), display);
+    if (ans !== 'y'.charCodeAt(0)) {
+        return false;
+    }
+
+    await pline(
+        "Raising %s high above your %s, you %s it in two!",
+        yname(obj),
+        body_part(HEAD, player),
+        isFragile ? 'snap' : 'break'
+    );
     if (!obj.spe) obj.spe = rnd(3);
     await break_wand(obj, player, map);
     useupall(obj, player);
+    return true;
 }
 
 // ====================================================================
@@ -1169,8 +1196,8 @@ export async function handleApply(player, map, display, game) {
         }
 
         if (selected.oclass === WAND_CLASS) {
-            await do_break_wand(selected, player, map);
-            return { moved: false, tookTime: true };
+            const tookTime = await do_break_wand(selected, player, map, display);
+            return { moved: false, tookTime };
         }
 
         await display.putstr_message("Sorry, I don't know how to use that.");

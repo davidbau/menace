@@ -10468,3 +10468,60 @@ Validation:
 - Practical lesson:
   - Blind look-here is not a cosmetic one-liner. In C it is a paged, time-consuming command with its own message boundary.
   - When a pending session shows a whole post-command monster tail missing after a non-movement command, first check whether the command should have returned `ECMD_TIME` in C.
+
+2026-03-13: `do_break_wand()` must confirm before consuming time or RNG
+
+- Context:
+  - `t11_s744_w_covmax2_gp.session.json` was still failing late with:
+    - first screen divergence at step `516`
+    - first event divergence at step `723`
+    - first RNG divergence at step `734`
+  - The step window around the RNG break was:
+    - `719..723`: `#sit<enter>` with two `--More--` dismissals
+    - `726..729`: `a n <space> <space>`
+  - The C session screens show that `a n` is a canceled break-wand prompt:
+    - step `726`: `What do you want to use or apply? [ck-uE or ?*]`
+    - step `727`: `Are you really sure you want to break your tin wand? [yn] (n)`
+    - step `728`: space accepts default `n`
+    - step `729`: `Unknown command ' '.`
+
+- Root cause:
+  - [`js/apply.js`](/share/u/davidbau/git/mazesofmenace/game/js/apply.js) still had a stubbed `do_break_wand()` which:
+    - skipped the C `paranoid_query(...)` confirmation,
+    - immediately emitted the break message,
+    - immediately called `break_wand(...)`,
+    - always consumed time.
+  - That meant JS started wand-break RNG as soon as the wand invlet was selected, while C was still sitting at the `yn` prompt and then canceling on the default `n`.
+
+- Fix:
+  - Port the C-shaped `do_break_wand()` gate:
+    - reject if the hero has no hands,
+    - reject if the hero has no free hand,
+    - reject if strength is below the `glass/balsa` or normal threshold,
+    - ask `Are you really sure you want to break ${yname(obj)}? [yn] (n)`,
+    - return `false` / no time on non-`y`,
+    - only emit the break message and call `break_wand(...)` on `y`.
+  - Thread the returned `tookTime` flag back through `handleApply()` instead of always forcing `tookTime: true`.
+
+- Result:
+  - `t11_s744_w_covmax2_gp` became fully green on gameplay parity:
+    - RNG `11024/11024`
+    - events `1715/1715`
+  - Remaining mismatches are display-only:
+    - first screen/color divergence at step `516`
+    - first mapdump divergence at `d0l3_002`
+    - first cursor divergence at step `589`
+
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json`
+    - RNG full
+    - events full
+  - Guardrails:
+    - `seed031_manual_direct.session.json`: pass
+    - `seed032_manual_direct.session.json`: pass
+    - `seed033_manual_direct.session.json`: pass
+    - `t08_s700_w_apply_gp.session.json`: pass
+
+- Practical lesson:
+  - When a late RNG fork appears to start in an action helper, inspect the session key window first. Here the keys showed a `yn` default-cancel flow, which made the missing confirmation gate obvious.
+  - `#apply` helpers must return a real `tookTime` result. For confirmation-gated actions, assuming unconditional time consumption will shift later monster-turn work even if the visible prompts appear to line up.
