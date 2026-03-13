@@ -27,6 +27,7 @@ import {
     KILLED_BY_AN,
     ARTICLE_NONE, ARTICLE_THE, SUPPRESS_SADDLE,
     has_mgivenname,
+    CLR_GRAY,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
