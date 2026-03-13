@@ -9369,3 +9369,28 @@ Validation:
     - `seed322_barbarian_wizard_gameplay` full RNG/event parity.
     - `seed331_tourist_wizard_gameplay` still full RNG/event parity (cursor-only
       terminal-position tail delta unchanged from baseline behavior).
+
+### 2026-03-13 getobj prompt wrapping parity: remove hard truncation, render two-line prompt at `COLNO-1`
+
+- Symptom:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` had full RNG/event parity but one
+    persistent screen mismatch at step `505`: C showed wrapped getobj prompt
+    continuation (`"z or ?*]"`) on row 1 while JS dropped it.
+- Root cause:
+  - `js/potion.js` `buildGetobjPrompt()` truncated prompts to `COLNO-1`,
+    discarding continuation text for long prompts like
+    `"What do you want to dip <object> into? [...]"`.
+- Fix:
+  - keep full getobj prompt text (no truncation).
+  - add explicit getobj prompt renderer for topline in `potion.js` that:
+    - clears rows 0/1,
+    - hard-wraps at `COLNO-1` (C-like prompt flow),
+    - writes row 0 and row 1 directly (without `--More--`),
+    - updates `topMessage/_topMessageRow1` cursor state.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` now fully passes:
+    RNG `2409/2409`, events `98/98`, screens `511/511`.
+  - no regressions on known-green seeds in local check:
+    - `seed322_barbarian_wizard_gameplay` full parity.
+    - `seed331_tourist_wizard_gameplay` full RNG/event parity (cursor-only tail
+      delta unchanged).

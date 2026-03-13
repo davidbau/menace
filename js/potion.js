@@ -1728,9 +1728,42 @@ function getobjChoicesForPrompt(player, obj_ok) {
 }
 
 function buildGetobjPrompt(word, compactLetters) {
-    const prompt = `What do you want to ${word}? [${compactLetters} or ?*] `;
-    const limit = Math.max(1, COLNO - 1);
-    return (prompt.length <= limit) ? prompt : prompt.slice(0, limit);
+    return `What do you want to ${word}? [${compactLetters} or ?*] `;
+}
+
+function splitPromptForTopline(prompt, cols) {
+    const limit = Math.max(1, cols - 1);
+    if (prompt.length <= limit) return [prompt, ''];
+    // C getobj prompt display wraps at terminal width without word-boundary
+    // reflow; preserve exact character flow into row 1.
+    const breakPoint = limit;
+    const row0 = prompt.slice(0, breakPoint);
+    const row1 = prompt.slice(breakPoint);
+    return [row0, row1];
+}
+
+async function renderGetobjPromptTopline(display, prompt) {
+    if (!display || typeof display.putstr_message !== 'function') return;
+    if (typeof display.putstr !== 'function' || typeof display.clearRow !== 'function') {
+        await display.putstr_message(prompt);
+        return;
+    }
+    const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
+    const [row0, row1] = splitPromptForTopline(prompt, cols);
+    display.clearRow(0);
+    display.clearRow(1);
+    display.putstr(0, 0, row0);
+    if (row1) display.putstr(0, 1, row1);
+    if (Object.hasOwn(display, 'topMessage')) display.topMessage = row0;
+    if (Object.hasOwn(display, '_topMessageRow1')) {
+        display._topMessageRow1 = row1 || undefined;
+    }
+    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    if (typeof display.setCursor === 'function') {
+        if (row1) display.setCursor(Math.min(row1.length, cols - 1), 1);
+        else display.setCursor(Math.min(row0.length, cols - 1), 0);
+    }
 }
 
 async function getobj_prompt_local(word, obj_ok, display, player) {
@@ -1752,14 +1785,14 @@ async function getobj_prompt_local(word, obj_ok, display, player) {
     const menuLetters = letters.join('');
     const compactLetters = compactInvletPromptChars(menuLetters);
     const prompt = buildGetobjPrompt(word, compactLetters);
-    await display.putstr_message(prompt);
+    await renderGetobjPromptTopline(display, prompt);
 
     while (true) {
         const ch = await nhgetch();
         if (ch === 27) return null; // ESC
         const c = String.fromCharCode(ch);
         if (c === '?' || c === '*') {
-            await display.putstr_message(prompt);
+            await renderGetobjPromptTopline(display, prompt);
             continue;
         }
         const chosen = choices.find((obj) => obj.invlet === c);
