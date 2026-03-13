@@ -9846,3 +9846,43 @@ Validation:
   - The next mismatch is later in step `410` and appears to be a narrower
     turn-tail / post-turn sequencing issue rather than another message-boundary
     problem.
+
+## 2026-03-13: queued canned commands need an explicit command-boundary `more()` when a topline message is live
+
+- Context:
+  - Theme 04 dig/apply sessions `t04_s701_w_digedges_gp` and
+    `t08_s700_w_apply_gp` were failing immediately after `#apply` on a
+    pick-axe that was not already wielded.
+  - C path: `apply.c`/`dig.c` does `wield_tool(obj, "swing")`, then queues
+    `doapply` plus the tool invlet on `CQ_CANNED`, and the dismiss key for the
+    wield message is not a gameplay command.
+- Findings:
+  - JS had accumulated a bespoke `pendingPrompt` state machine in
+    `handleApply()` to emulate this boundary.
+  - The faithful fix was not another prompt owner. The real issue was that the
+    JS command loop did not treat `topMessage + queued CQ_CANNED` as a command
+    boundary requiring `more()`.
+  - Result: the space used to acknowledge `You now wield a pick-axe.` was read
+    as a fresh top-level command, the queued `doapply` stayed stranded, and the
+    following `<` fell through into `handleUpstairs()` (`Escape the dungeon?`)
+    instead of staying inside pick-axe direction handling.
+- Fix:
+  - Removed the bespoke pick-axe `pendingPrompt` owner from `js/apply.js`.
+  - Made `handleApply()` match C by queueing:
+    - `cmdq_add_ec(CQ_CANNED, doapply-wrapper)`
+    - `cmdq_add_key(CQ_CANNED, selected.invlet)`
+  - In `js/input.js`, `nhgetch({ commandBoundary: true })` now treats
+    `display.topMessage && cmdq_peek(CQ_CANNED)` as an explicit command-boundary
+    `more()` case, forcing the visible `--More--` and consuming only the
+    dismiss key before returning `0`.
+  - In `js/allmain.js`, when command-boundary `nhgetch()` returns `0`, the loop
+    now immediately drains queued canned commands via `runOneCommandCycle(0)`
+    instead of waiting for another real gameplay key first.
+- Validation:
+  - `t04_s701_w_digedges_gp.session.json`: full parity green
+  - `t08_s700_w_apply_gp.session.json`: full parity green
+  - `scripts/run-and-report.sh --failures`: `Gameplay: 213/213 passing, 0 failing`
+- Important lesson:
+  - For C-style canned follow-up commands, the boundary belongs in the shared
+    command loop and `more()` handling, not in per-command synthetic prompt
+    owners.

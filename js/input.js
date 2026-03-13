@@ -544,11 +544,17 @@ export async function nhgetch(opts = {}) {
     };
 
     const display = getRuntimeDisplay();
+    const hasQueuedCannedBoundary = !!(
+        commandBoundary
+        && cmdq_peek(CQ_CANNED)
+        && display?.topMessage
+    );
 
     // C-faithful command boundary: when a topline --More-- is pending,
     // consume only a dismiss key and return "no command" (0), allowing
     // queued canned commands to execute next.
-    if (commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display)) {
+    if ((commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display))
+        || hasQueuedCannedBoundary) {
         const readBoundaryKey = async () => {
             if (isReplayMode() && allowDirectReplayNhgetch()) {
                 const key = getNextReplayKey();
@@ -576,7 +582,7 @@ export async function nhgetch(opts = {}) {
         // Use the canonical --More-- path so acknowledgement advances
         // topline/message state exactly once per boundary key.
         await more(display, {
-            forceVisual: false,
+            forceVisual: hasQueuedCannedBoundary,
             clearAfter: true,
             readKey: readBoundaryKey,
         });
