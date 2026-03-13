@@ -101,7 +101,7 @@ const TERRAIN_SYMBOLS_DEC = {
     [FOUNTAIN]:       { ch: '{',       color: CLR_BRIGHT_BLUE },
     [THRONE]:         { ch: '\\',      color: HI_GOLD },
     [SINK]:           { ch: '{',       color: CLR_WHITE },
-    [GRAVE]:          { ch: '\u2020',  color: CLR_WHITE },  // DAGGER
+    [GRAVE]:          { ch: '|',        color: CLR_WHITE },  // DECgraphics has no S_grave override → default '|'
     [ALTAR]:          { ch: '\u03c0',  color: CLR_GRAY },   // PI (DEC meta-{)
     // C ref: dat/symbols DECgraphics
     // S_pool/S_water/S_lava/S_lavawall use meta-\ (DEC diamond).

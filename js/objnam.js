@@ -27,8 +27,11 @@ import {
     ELVEN_LEATHER_HELM, FEDORA, CORNUTHAUM, DUNCE_CAP,
     PICK_AXE, BULLWHIP, SILVER_SABER, HEAVY_IRON_BALL, BRASS_LANTERN,
     DWARVISH_MATTOCK, AMULET_VERSUS_POISON, AMULET_OF_GUARDING, AMULET_OF_ESP,
-    HELM_OF_TELEPATHY, GAUNTLETS_OF_POWER, ELVEN_MITHRIL_COAT,
+    HELM_OF_TELEPATHY, GAUNTLETS_OF_POWER, GAUNTLETS_OF_DEXTERITY, ELVEN_MITHRIL_COAT,
     POT_SLEEPING, SCR_CHARGING, ROCK, EXPENSIVE_CAMERA, T_SHIRT, TIN, TIN_OPENER,
+    SACK, BAG_OF_TRICKS, OIL_LAMP, MAGIC_LAMP, TALLOW_CANDLE, WAX_CANDLE,
+    TOOLED_HORN, HORN_OF_PLENTY, KATANA, LOW_BOOTS, LEVITATION_BOOTS, IRON_SHOES,
+    HAWAIIAN_SHIRT, CLOAK_OF_DISPLACEMENT, BLINDING_VENOM, ACID_VENOM,
     KELP_FROND, EUCALYPTUS_LEAF, LEMBAS_WAFER, TRIPE_RATION, FORTUNE_COOKIE,
     CREAM_PIE, ENORMOUS_MEATBALL, MAGIC_MARKER, GRAPPLING_HOOK,
     RIN_PROTECTION_FROM_SHAPE_CHAN, RIN_INCREASE_ACCURACY,
@@ -2072,10 +2075,49 @@ export function readobjnam_postparse1(state) {
     return state;
 }
 
+// cf. objnam.c:3336 — o_ranges[]: generic category names → rnd_class range for wishing
+// When player wishes for a generic category name (e.g. "gloves", "boots", "sword"),
+// C calls rnd_class(first, last) to pick a random type from the range.
+// Note: makesingular() preserves "gloves","boots","gauntlets","shoes","lenses","scales"
+// so these entries match the wish text as-is after singularization.
+const o_ranges_table = [
+    { name: 'bag',              first: SACK,                   last: BAG_OF_TRICKS },
+    { name: 'lamp',             first: OIL_LAMP,               last: MAGIC_LAMP },
+    { name: 'candle',           first: TALLOW_CANDLE,          last: WAX_CANDLE },
+    { name: 'horn',             first: TOOLED_HORN,            last: HORN_OF_PLENTY },
+    { name: 'shield',           first: SMALL_SHIELD,           last: SHIELD_OF_REFLECTION },
+    { name: 'hat',              first: FEDORA,                 last: DUNCE_CAP },
+    { name: 'helm',             first: ELVEN_LEATHER_HELM,     last: HELM_OF_TELEPATHY },
+    { name: 'gloves',           first: LEATHER_GLOVES,         last: GAUNTLETS_OF_DEXTERITY },
+    { name: 'gauntlets',        first: LEATHER_GLOVES,         last: GAUNTLETS_OF_DEXTERITY },
+    { name: 'boots',            first: LOW_BOOTS,              last: LEVITATION_BOOTS },
+    { name: 'shoes',            first: LOW_BOOTS,              last: IRON_SHOES },
+    { name: 'cloak',            first: MUMMY_WRAPPING,         last: CLOAK_OF_DISPLACEMENT },
+    { name: 'shirt',            first: HAWAIIAN_SHIRT,         last: T_SHIRT },
+    { name: 'dragon scales',    first: GRAY_DRAGON_SCALES,     last: YELLOW_DRAGON_SCALES },
+    { name: 'dragon scale mail', first: GRAY_DRAGON_SCALE_MAIL, last: YELLOW_DRAGON_SCALE_MAIL },
+    { name: 'sword',            first: SHORT_SWORD,            last: KATANA },
+    { name: 'venom',            first: BLINDING_VENOM,         last: ACID_VENOM },
+    { name: 'gray stone',       first: LUCKSTONE,              last: FLINT },
+    { name: 'grey stone',       first: LUCKSTONE,              last: FLINT },
+];
+
 export function readobjnam_postparse2(state) {
     if (!state) return state;
     let actualn = (state.actualn || '').trim();
     if (!actualn) return state;
+
+    // C ref: objnam.c:4661-4665 — o_ranges check: generic category → rnd_class type
+    // Must happen before singularization (C checks d->bp at top of postparse2).
+    // JS makesingular() preserves "gloves","boots","gauntlets" etc. so actualn
+    // still matches the table entries at this point.
+    const actualn_lc = actualn.toLowerCase();
+    for (const { name, first, last } of o_ranges_table) {
+        if (actualn_lc === name) {
+            state.forcedTyp = rnd_class(first, last);
+            return state;
+        }
+    }
 
     // C ref: objnam.c:4425-4445 — first change to singular if necessary
     // Exceptions: "tricks" (matches "bag of tricks"), "clothes" (avoid false match with "cloth")
