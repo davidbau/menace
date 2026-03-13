@@ -79,6 +79,26 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-13)
 
+### `more()` status refresh must respect the displayed message context
+
+`more()` should not blindly redraw the status line just because `player._botl`
+is set. In death/lifesave sequences, JS can have a deferred status update for a
+later prompt while the currently displayed topline still belongs to an earlier
+monster-phase `You die...` boundary.
+
+Practical rule:
+1. keep `_botlStepIndex` on the pending status update,
+2. keep `_topMessageStepIndex` / `_topMessageStatusHp` on the visible topline,
+3. only let `more()` flush `_botl` when the pending status still belongs to the
+   currently displayed topline context,
+4. in headless replay, suppress `more()` status refresh during monster-phase
+   death staging (`context.mon_moving`).
+
+Failure mode:
+1. gameplay RNG/events can remain fully green,
+2. but the status line flips to `HP:0` one `--More--` too early,
+3. creating a pure screen-only divergence like `hi11` step 407.
+
 ### Display RNG divergence needs caller-tagged diagnostics
 
 Hallucination-related screen drift can be driven by display-stream RNG

@@ -21,6 +21,7 @@ import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
 import { newsym } from './display.js';
+import { game as activeGame } from './gstate.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
@@ -627,7 +628,7 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
-
+                        refreshStatus: !(activeGame?.context?.mon_moving),
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -675,7 +676,7 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
-
+                        refreshStatus: !(activeGame?.context?.mon_moving),
                     });
                 } catch (e) {
                     // If another nhgetch is already pending (e.g., makemon
@@ -714,7 +715,7 @@ export class HeadlessDisplay {
                             site: 'headless.more.dismiss',
                             clearAfter: false,
                             readKey: this._nhgetch,
-    
+                            refreshStatus: !(activeGame?.context?.mon_moving),
                         });
                     } catch (e) {
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
