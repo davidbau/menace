@@ -117,7 +117,7 @@ import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy
 import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES, SHOCK_RES, COLD_RES } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
-import { discoverObject } from './o_init.js';
+import { discoverObject, observeObject, isObjectNameKnown } from './o_init.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock, doorlock } from './lock.js';
 import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
@@ -1516,7 +1516,7 @@ export async function weffects(obj, player, map, display = null, game = null) {
     }
   }
   if (disclose || wasUnknown) {
-    learnwand(obj);
+    learnwand(obj, player);
   }
 }
 
@@ -2109,9 +2109,19 @@ function adtyp_to_prop(adtyp) {
 }
 
 // C ref: zap.c learnwand()
-function learnwand(obj) {
-  if (!obj) return;
-  discoverObject(obj.otyp, true, true);
+function learnwand(obj, player = null) {
+  if (!obj || obj.oclass === SPBOOK_CLASS) return;
+  if (isObjectNameKnown(obj.otyp)) {
+    observeObject(obj);
+  } else {
+    if (!(player?.blind || player?.Blind)) {
+      observeObject(obj);
+    }
+    if (obj.dknown) {
+      discoverObject(obj.otyp, true, true, true);
+    }
+  }
+  update_inventory();
 }
 
 // C ref: zap.c zappable()
