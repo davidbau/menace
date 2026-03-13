@@ -9240,3 +9240,24 @@ Validation:
   - `seed331_tourist_wizard_gameplay` now has full parity:
     RNG `18493/18493`, events `3708/3708`, screens/colors `389/389`.
   - Full gameplay suite: `192/192` passing (`scripts/run-and-report.sh`).
+
+### 2026-03-13 quaff stack-weight drift: use `useup()` (not raw `quan--`) after potion effects
+
+- Symptom in aggressive pending session (`pnd_s1200_w_potionmix2_gp`):
+  - C showed `Your movements are only slowed slightly by your load.--More--`
+    after a quaff boundary; JS skipped this and continued into pet combat text.
+  - First divergence moved from step `722` screen + step `733` RNG when traced.
+- Root cause:
+  - `js/potion.js` consumed quaffed items with direct `item.quan -= 1` paths.
+  - That bypassed canonical `useup()` stack handling, leaving stale `owt` on
+    reduced stacks (e.g., `q1:w40` instead of `q1:w20`), so `near_capacity()`
+    lagged C and encumbrance transitions fired late.
+- Fix:
+  - Route all post-quaff consumption paths through `useup(item, player)`:
+    - normal post-`peffects`,
+    - milky bottle ghost path,
+    - smoky bottle djinni path.
+- Result:
+  - pending session alignment advanced materially (`screens 721 -> 735`,
+    `rng 2563 -> 2565` matched prefix) with no regression in the main suite
+    (`scripts/run-and-report.sh --failures`: `191/192` passing, unchanged).

@@ -20,10 +20,11 @@ import { rn2, rnd, d, c_d } from './rng.js';
 import { distmin } from './hacklib.js';
 import { monnear, mondead, helpless, unstuck } from './mon.js';
 import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
-import { monAttackName } from './do_name.js';
+import { monAttackName, rndmonnam } from './do_name.js';
 import { cansee } from './vision.js';
 import {
-    x_monnam, touch_petrifies, unsolid, resists_fire, resists_cold,
+    x_monnam,
+    touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
     DEADMONSTER,
@@ -123,8 +124,19 @@ function pre_mm_attack(magr, mdef, vis, map, ctx) {
 
 // cf. do_name.c:863 x_monnam() — returns "it" when player can't spot the monster.
 // In C, canspotmon() is checked per-monster even within visible combat messages.
-function monCombatName(mon, visible, { capitalize = false, article = 'the' } = {}) {
+function monCombatName(mon, visible, { capitalize = false, article = 'the', player = null } = {}) {
     if (visible === false) return capitalize ? 'It' : 'it';
+    if (player?.hallucinating || player?.Hallucination) {
+        const rnd = rndmonnam();
+        let base = String(rnd?.name || '');
+        if (!base) base = 'creature';
+        if (article === 'the') base = `the ${base}`;
+        else if (article === 'a') base = `a ${base}`;
+        if (capitalize && base.length > 0) {
+            base = base.charAt(0).toUpperCase() + base.slice(1);
+        }
+        return base;
+    }
     return x_monnam(mon, article, null, 0, capitalize);
 }
 
@@ -133,7 +145,7 @@ async function missmm(magr, mdef, mattk, display, vis, map, ctx) {
     pre_mm_attack(magr, mdef, vis, map, ctx);
     if (vis && display) {
         await display.putstr_message(
-            `${monCombatName(magr, ctx?.agrVisible, { capitalize: true })} misses ${monCombatName(mdef, ctx?.defVisible)}.`
+            `${monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null })} misses ${monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null })}.`
         );
     } else {
         await noises(magr, mattk, display, ctx);
@@ -393,7 +405,7 @@ async function hitmm(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx) {
         default: verb = 'hits'; break;
         }
         await display.putstr_message(
-            `${monCombatName(magr, ctx?.agrVisible, { capitalize: true })} ${verb} ${monCombatName(mdef, ctx?.defVisible)}.`
+            `${monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null })} ${verb} ${monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null })}.`
         );
     } else {
         await noises(magr, mattk, display, ctx);
@@ -480,8 +492,8 @@ async function mhitm_knockback_mm(magr, mdef, mattk, mwep, vis, display, map, ct
     if (display && ctx?.defVisible) {
         const adj = rn2(2) ? 'forceful' : 'powerful';
         const noun = rn2(2) ? 'blow' : 'strike';
-        const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true });
-        const defName = monCombatName(mdef, ctx?.defVisible);
+        const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+        const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
         await display.putstr_message(
             `${agrName} knocks ${defName} ${knockedhow} with a ${adj} ${noun}!`
         );
@@ -566,7 +578,7 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
         if (cansee(map, ctx?.player, ctx?.fov, mdef.mx, mdef.my) && display) {
             const killVerb = nonliving(pd) ? 'destroyed' : 'killed';
             await display.putstr_message(
-                `${monCombatName(mdef, ctx?.defVisible, { article: 'the', capitalize: true })} is ${killVerb}!`
+                `${monCombatName(mdef, ctx?.defVisible, { article: 'the', capitalize: true, player: ctx?.player || null })} is ${killVerb}!`
             );
         }
         mondead(mdef, map, ctx?.player);
@@ -914,8 +926,8 @@ export async function mswingsm(magr, mdef, otemp, display, vis, ctx) {
     const bash = false; // is_pole check omitted; adjacent polearm bash not yet needed
     const verb = monsterWeaponSwingVerb(otemp, bash);
     const oneOf = ((otemp.quan || 1) > 1) ? 'one of ' : '';
-    const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true });
-    const defName = monCombatName(mdef, ctx?.defVisible);
+    const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+    const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
     await display.putstr_message(
         `${agrName} ${verb} ${oneOf}${monsterPossessive(magr)} ${xname(otemp)} at ${defName}.`
     );

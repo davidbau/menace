@@ -3,7 +3,7 @@
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { more, nhgetch, ynFunction } from './input.js';
-import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall } from './invent.js';
+import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall, compactInvletPromptChars } from './invent.js';
 import { POTION_CLASS, POT_WATER,
          POT_CONFUSION, POT_BLINDNESS, POT_PARALYSIS, POT_SPEED,
          POT_SLEEPING, POT_SICKNESS, POT_HALLUCINATION,
@@ -66,31 +66,14 @@ import { glyph_is_invisible } from './symbols.js';
 import { delayed_killer, find_delayed_killer, dealloc_killer } from './end.js';
 import { aggravate } from './wizard.js';
 import { Role_if } from './role.js';
-
-// C ref: invent.c compactify() — compress inventory letter list for prompts
-// Inlined here to avoid circular import issues with invent.js
-function compactifyLetters(chars) {
-    if (!chars) return '';
-    const sorted = [...new Set(chars.split(''))].sort();
-    if (sorted.length <= 5) return sorted.join('');
-    const out = [];
-    let i = 0;
-    while (i < sorted.length) {
-        let j = i;
-        while (j + 1 < sorted.length && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
-        if (j - i >= 2) {
-            out.push(sorted[i], '-', sorted[j]);
-        } else {
-            for (let k = i; k <= j; k++) out.push(sorted[k]);
-        }
-        i = j + 1;
-    }
-    return out.join('');
-}
-
+import { getEnv, writeStderr } from './runtime_env.js';
 
 // Module-level state for potion-quaffing flow (C globals: potion_nothing, potion_unkn)
 const gp = { potion_nothing: 0, potion_unkn: 0 };
+const diagQuaff = (() => {
+    const v = getEnv('WEBHACK_DIAG_QUAFF');
+    return v === '1' || v === 'true';
+})();
 
 function activeMap(mapArg = null) {
     if (mapArg) return mapArg;
@@ -540,7 +523,13 @@ async function handleQuaff(player, map, display) {
     }
 
     const rawLetters = potions.map(p => p.invlet).join('');
-    const drinkPrompt = `What do you want to drink? [${compactifyLetters(rawLetters)} or ?*] `;
+    if (diagQuaff) {
+        const potionSummary = potions
+            .map((p) => `${String(p?.invlet || '?')}:${Number(p?.otyp || -1)}:q${Number(p?.quan || 0)}:w${Number(p?.owt || 0)}`)
+            .join('|');
+        writeStderr(`[QUAFF_MENU] letters=${rawLetters} cap=${Number(player?.encumbrance || 0)} pots=${potionSummary}\n`);
+    }
+    const drinkPrompt = `What do you want to drink? [${compactInvletPromptChars(rawLetters)} or ?*] `;
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -592,6 +581,13 @@ async function handleQuaff(player, map, display) {
 
         const item = potions.find(p => p.invlet === c);
         if (item) {
+            if (diagQuaff) {
+                const isMilky = objdescr_is(item, 'milky');
+                const isSmoky = objdescr_is(item, 'smoky');
+                writeStderr(
+                    `[QUAFF] invlet=${String(c)} otyp=${Number(item?.otyp)} milky=${isMilky ? 1 : 0} smoky=${isSmoky ? 1 : 0} gBorn=${Number(gstateGame?.mvitals?.[PM_GHOST]?.born || 0)} dBorn=${Number(gstateGame?.mvitals?.[PM_DJINNI]?.born || 0)}\n`
+                );
+            }
             // C parity: inventory-selected items are description-known by the
             // time they are acted on (otmp->dknown guards makeknown/trycall).
             item.dknown = true;
@@ -605,30 +601,24 @@ async function handleQuaff(player, map, display) {
                 && mvitals && !(mvitals[PM_GHOST]?.mvflags & G_GONE)
                 && !rn2(13 + 2 * (mvitals[PM_GHOST]?.born || 0))) {
                 await ghost_from_bottle(player, map);
-                // useup
-                if ((item.quan || 1) > 1) { item.quan -= 1; item.in_use = false; update_inventory(player); }
-                else { player.removeFromInventory(item); }
+                // C ref: useup(item) — decrements stack quantity and recomputes
+                // object weight before inventory update.
+                useup(item, player);
                 replacePromptMessage();
                 return { moved: false, tookTime: true };
             } else if (objdescr_is(item, 'smoky')
                 && mvitals && !(mvitals[PM_DJINNI]?.mvflags & G_GONE)
                 && !rn2(13 + 2 * (mvitals[PM_DJINNI]?.born || 0))) {
                 await djinni_from_bottle(player, item, map);
-                // useup
-                if ((item.quan || 1) > 1) { item.quan -= 1; item.in_use = false; update_inventory(player); }
-                else { player.removeFromInventory(item); }
+                // C ref: useup(item) — decrements stack quantity and recomputes
+                // object weight before inventory update.
+                useup(item, player);
                 replacePromptMessage();
                 return { moved: false, tookTime: true };
             }
             const retval = await peffects(player, item, display, map);
             // C parity: dodrink consumes one potion after effects resolve.
-            if ((item.quan || 1) > 1) {
-                item.quan -= 1;
-                item.in_use = false;
-                update_inventory(player);
-            } else {
-                player.removeFromInventory(item);
-            }
+            useup(item, player);
             if (retval >= 0) {
                 item.in_use = false;
                 return { moved: false, tookTime: !!retval };
