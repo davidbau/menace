@@ -678,15 +678,29 @@ export async function getlin(prompt, display) {
         if (disp) {
             const promptPrefix = prompt.endsWith(' ') ? prompt : `${prompt} `;
             const promptLine = `${promptPrefix}${line}`;
+            const cols = disp.cols || 80;
             // Clear the message row and display prompt + current input.
             // Don't use putstr_message as it concatenates short messages.
             disp.clearRow(0);
-            await disp.putstr(0, 0, promptLine, CLR_GRAY);
-            // C ref: tty_getlin() places cursor at end of typed text.
-            // Set cursor to end of prompt + current input.
-            const cols = disp.cols || 80;
-            const cursorCol = Math.min(promptLine.length, cols - 1);
-            if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 0);
+            const row0Text = promptLine.slice(0, cols);
+            await disp.putstr(0, 0, row0Text, CLR_GRAY);
+            // C ref: tty terminal auto-wraps text past column 80 to row 1.
+            if (promptLine.length > cols) {
+                const overflow = promptLine.slice(cols);
+                disp.clearRow(1);
+                await disp.putstr(0, 1, overflow, CLR_GRAY);
+                disp._topMessageRow1 = overflow;
+                const cursorCol = overflow.length;
+                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 1);
+            } else {
+                // Clear row 1 if we previously overflowed but backspaced back
+                if (disp._topMessageRow1 !== undefined) {
+                    disp.clearRow(1);
+                    disp._topMessageRow1 = undefined;
+                }
+                const cursorCol = Math.min(promptLine.length, cols - 1);
+                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 0);
+            }
         }
     };
 
@@ -704,6 +718,10 @@ export async function getlin(prompt, display) {
                 disp.messageNeedsMore = false;
                 if (typeof disp.clearRow === 'function') {
                     disp.clearRow(0);
+                    if (disp._topMessageRow1 !== undefined) {
+                        disp.clearRow(1);
+                        disp._topMessageRow1 = undefined;
+                    }
                 }
             }
             return line;
@@ -713,6 +731,10 @@ export async function getlin(prompt, display) {
                 disp.messageNeedsMore = false;
                 if (typeof disp.clearRow === 'function') {
                     disp.clearRow(0);
+                    if (disp._topMessageRow1 !== undefined) {
+                        disp.clearRow(1);
+                        disp._topMessageRow1 = undefined;
+                    }
                 }
             }
             return null; // cancelled
