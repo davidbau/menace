@@ -50,6 +50,7 @@ import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_d
 import { near_capacity, overexertion } from './hack.js';
 import { will_hurtle } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
+import { s_suffix } from './hacklib.js';
 import {
     nonliving, x_monnam, y_monnam, is_undead, is_demon,
     magic_negation, attacktype,
@@ -2190,7 +2191,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
         await passive_obj(mon, weapon, passiveAttk);
     }
 
-    if (tmp > 0 && player) {
+    if (tmp > 0 && player && adtyp !== AD_PLYS) {
         player.uhp = Math.max(0, (player.uhp || 0) - tmp);
     }
 
@@ -2207,7 +2208,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
             // C ref: uhitm.c:6000-6025 (floating eye passive gaze)
             if (tmp > 127) tmp = 127;
             if (!playerHasProp(player, FREE_ACTION) && tmp > 0) {
-                if (display) await display.putstr_message(`You are frozen by ${y_monnam(mon)}!`);
+                if (display) await display.putstr_message(`You are frozen by ${s_suffix(y_monnam(mon))} gaze!`);
                 // C: nomul((ACURR(A_WIS) > 12 || rn2(4)) ? -tmp : -127);
                 // and gn.nomovemsg = 0 (do not preserve prior message text).
                 const duration = (acurr(player, A_WIS) > 12 || rn2(4)) ? tmp : 127;
@@ -2247,7 +2248,7 @@ async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destr
         break;
     }
 
-    if (tmp > 0 && player) {
+    if (tmp > 0 && player && adtyp !== AD_PLYS) {
         player.uhp = Math.max(0, (player.uhp || 0) - tmp);
     }
 }

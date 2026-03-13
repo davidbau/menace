@@ -29,7 +29,7 @@ import { objectData, WEAPON_CLASS, ROCK_CLASS, POTION_CLASS,
          SPE_WIZARD_LOCK, SPE_KNOCK, SPE_FORCE_BOLT, SPE_POLYMORPH,
          PAPER, WAX, VEGGY, FLESH, GLASS, WOOD,
        } from './objects.js';
-import { doname, xname, place_object } from './mkobj.js';
+import { doname, xname, place_object, Is_container } from './mkobj.js';
 import { DIRECTION_KEYS, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, P_DAGGER, P_FLAIL, P_LANCE } from './const.js';
 import { handleLoot, show_invalid_direction_cmdassist_help } from './pickup.js';
 import { pline, pline_The, You, You_cant, You_hear, There,
@@ -970,7 +970,14 @@ export async function doopen_indir(player, map, display, game, dx, dy) {
     const loc = map.at(nx, ny);
 
     if (!loc || !IS_DOOR(loc.typ)) {
-        await display.putstr_message('You see no door there.');
+        const hasLootableContainer = (map.objectsAt(nx, ny) || [])
+            .some((obj) => !!obj && Is_container(obj));
+        if (hasLootableContainer) {
+            await pline("%s like something lootable over there.",
+                player?.blind ? "Feels" : "Seems");
+        } else {
+            await You("%s no door there.", player?.blind ? "feel" : "see");
+        }
         return { moved: false, tookTime: false };
     }
 
