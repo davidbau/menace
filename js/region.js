@@ -663,7 +663,16 @@ export async function inside_gas_cloud(reg, mtmp, map, player, game) {
     const dam = reg.arg;
 
     // Fog clouds maintain gas clouds
-    if (reg.ttl < 20 && umon && umon.type && umon.type.id === PM_FOG_CLOUD)
+    // C ref: region.c checks umon->data == &mons[PM_FOG_CLOUD].
+    // Prefer canonical monster indices first (mndx/umonnum), then legacy id.
+    const umonNum = Number.isInteger(umon?.mndx)
+        ? umon.mndx
+        : (Number.isInteger(umon?.umonnum)
+            ? umon.umonnum
+            : (Number.isInteger(umon?.data?.id)
+                ? umon.data.id
+                : (Number.isInteger(umon?.type?.id) ? umon.type.id : -1)));
+    if (reg.ttl < 20 && umonNum === PM_FOG_CLOUD)
         reg.ttl += 5;
 
     if (dam < 1) return false;

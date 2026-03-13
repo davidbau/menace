@@ -9157,3 +9157,20 @@ Validation:
   - kept RNG/events full (`13750/13750`, `3679/3679`),
   - removed the large step-3 identify-menu body mismatch,
   - reduced remaining mismatch to smaller screen formatting/mapdump details.
+
+### seed322 drift: fog-cloud gas TTL must key off canonical monster identity
+
+- First shared RNG/event drift in `seed322_barbarian_wizard_gameplay` occurred in the
+  late `movemon` window around step 510, where JS consumed an extra fog-cloud cloud-build
+  roll before `distfleeck`.
+- Root cause: `inside_gas_cloud()` in `js/region.js` still used legacy identity check
+  `umon.type.id === PM_FOG_CLOUD`. In current state model, canonical monster identity is
+  `mndx` (or `umonnum` for hero polyform), so fog-cloud occupants were often not recognized.
+- Consequence: gas cloud TTL was not extended like C (`region.c`: `umon->data == &mons[PM_FOG_CLOUD]`),
+  letting clouds expire early and causing extra `create_gas_cloud()` RNG draws later.
+- Fix:
+  - switch the fog-cloud check to canonical index-first identity (`mndx` / `umonnum`),
+    with legacy `id` as fallback.
+- Result:
+  - `seed322_barbarian_wizard_gameplay` reached full RNG/event parity
+    (`30190/30190` RNG, `21337/21337` events).
