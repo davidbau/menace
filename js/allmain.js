@@ -41,7 +41,7 @@ import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target } from './hack.js';
+import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -508,6 +508,7 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:385-393 — immobile turn countdown and unmul().
     if (game.multi < 0) {
+        await runmode_delay_output(game, game.display);
         if (++game.multi === 0) {
             await unmul(null, (game.u || game.player), game.display, game);
             if ((game.u || game.player)?.utotype) {

@@ -9799,3 +9799,50 @@ Validation:
     - `+791` lines
     - `+265` branches
     - `+36` functions
+
+## 2026-03-13: hi11 death-boundary drift was partly a combat-message fidelity bug, then a lifesave attack-tail bug
+
+- Context:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` had a long-standing late divergence
+    around the sleep-ray / death / lifesave boundary.
+  - The old frontier showed large step-distribution drift across steps
+    `405..408`, with JS still paging through goblin-hit messages after C had
+    already reached `You die...` and the `Die? [yn]` prompt.
+- First root cause:
+  - `js/mhitu.js` was using the lightweight `mondata.x_monnam()` helper in
+    combat hit/miss text. That helper is not visibility-aware, so JS emitted
+    lines like `The goblin hits!` when C correctly used `It hits!`.
+  - JS also emitted `just misses!` whenever `toHit === dieRoll`, but C only
+    says `just misses!` when `flags.verbose` is enabled.
+  - Those longer JS messages created extra `--More--` pages and shifted the
+    whole monster-phase boundary.
+- Fixes:
+  - Changed combat hit/miss/wildmiss messaging in `js/mhitu.js` to use
+    visibility-aware `Monnam()` naming.
+  - Gated `just misses!` on `game.flags.verbose`, matching C `missmu()`.
+- Result:
+  - The large `405..408` drift disappeared. JS and C now match exactly through
+    the death-message pages:
+    - step `408`: `You die...--More--`
+    - step `409`: `Die? [yn] (n)`
+    - step `410`: `OK, so you don't die.  You survived that attempt on your life.`
+- Second root cause exposed after the message fix:
+  - After wizard lifesaving, JS `mattacku()` was breaking on
+    `_stopMoveloopAfterLifesave` before running the successful-attack tail
+    wakecheck (`!rn2(10)`), while C performs that wakecheck before deciding
+    whether to stop further attacks.
+- Fix:
+  - In `js/mhitu.js`, run `postAttackTail(sum[i])` before honoring the
+    lifesave/game-over break.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains green.
+  - `hi11` improved materially:
+    - old first RNG divergence: index `3434`, step `410`
+    - new first RNG divergence: index `3448`, step `410`
+    - old step summary around `405..410`: large cross-step drift
+    - new step summary around `405..409`: exact match
+- Current remaining gap:
+  - `hi11` now matches through the death/lifesave boundary and first wakecheck.
+  - The next mismatch is later in step `410` and appears to be a narrower
+    turn-tail / post-turn sequencing issue rather than another message-boundary
+    problem.

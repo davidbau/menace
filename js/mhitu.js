@@ -135,7 +135,7 @@ export async function hitmsg(monster, attack, display, suppressHitMsg) {
     case AT_TENT: verb = 'tentacles suck your brain'; break;
     default: verb = 'hits'; break;
     }
-    await display.putstr_message(`The ${x_monnam(monster)} ${verb}${again ? ' again' : ''}!`);
+    await display.putstr_message(`${Monnam(monster)} ${verb}${again ? ' again' : ''}!`);
     _hitmsg_mid = monster?.m_id || 0;
     _hitmsg_prev_idx = attackIdx;
     _hitmsg_prev_aatyp = attack?.aatyp ?? AT_NONE;
@@ -1456,8 +1456,9 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             // Miss — cf. mhitu.c:86-98 missmu()
             clear_hitmsg_state();
             if (!suppressHitMsg) {
-                const just = (toHit === dieRoll) ? 'just ' : '';
-                await display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
+                const verbose = !!(game?.flags?.verbose);
+                const just = (toHit === dieRoll && verbose) ? 'just ' : '';
+                await display.putstr_message(`${Monnam(monster)} ${just}misses!`);
             }
             // C ref: missmu() ends with unconditional stop_occupation().
             if (game) {
@@ -1563,10 +1564,11 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // C ref: hitmu() returns M_ATTK_HIT for successful contact even when
         // post-effect damage is 0 (for example, rust/corrode touch attacks).
         sum[i] = mhm.hitflags || M_ATTK_HIT;
+        const stopAfterTail = postAttackTail(sum[i]);
         if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
             break;
         }
-        if (postAttackTail(sum[i])) break;
+        if (stopAfterTail) break;
     }
 }
 
@@ -1605,24 +1607,24 @@ export async function u_slow_down(player, display) {
 // C ref: mhitu.c:175 wildmiss() — displaced/invisible miss message
 async function wildmiss(monster, attack, player, display) {
     if (!display) return;
-    const name = x_monnam(monster);
+    const name = Monnam(monster);
     const displaced = !!(player?.Displaced
         || player?.displaced
         || playerHasProp(player, DISPLACED)
         || (player?.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT));
     if (displaced) {
-        await display.putstr_message(`The ${name} strikes at your displaced image and misses you!`);
+        await display.putstr_message(`${name} strikes at your displaced image and misses you!`);
         return;
     }
     switch (rn2(3)) {
     case 0:
-        await display.putstr_message(`The ${name} swings wildly and misses!`);
+        await display.putstr_message(`${name} swings wildly and misses!`);
         break;
     case 1:
-        await display.putstr_message(`The ${name} attacks a spot beside you.`);
+        await display.putstr_message(`${name} attacks a spot beside you.`);
         break;
     case 2:
-        await display.putstr_message(`The ${name} strikes at thin air!`);
+        await display.putstr_message(`${name} strikes at thin air!`);
         break;
     }
 }
