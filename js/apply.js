@@ -103,6 +103,7 @@ import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
 import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname } from './objnam.js';
+import { shk_your } from './shk.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
 import { cansee } from './vision.js';
 import { cmap_to_glyph } from './display.js';
@@ -509,7 +510,8 @@ export async function use_lamp(obj) {
 // cf. apply.c:1699 -- STUB: light_cocktail
 export async function light_cocktail(obj) {
     if (obj.lamplit) { await You("snuff the lit potion."); end_burn(obj, true); return; }
-    await You("light a potion. It gives off a dim light.");
+    const player = _gstate?.player;
+    await You("light %spotion.%s", shk_your(obj), player?.Blind ? "" : "  It gives off a dim light.");
     begin_burn(obj, false);
 }
 

@@ -2344,7 +2344,10 @@ export function shk_your(obj, map) {
     const own = shk_owns(obj, map) || mon_owns(obj);
     if (own) return `${own} `;
     const inInvent = (obj.where === OBJ_INVENT);
-    return inInvent || obj.carried ? 'your ' : 'the ';
+    // JS objects may not have .where set; check player inventory as fallback
+    const player = _gstate?.player;
+    const inPlayerInv = player?.inventory?.includes(obj);
+    return inInvent || obj.carried || inPlayerInv ? 'your ' : 'the ';
 }
 
 // C ref: shk.c Shk_Your()
