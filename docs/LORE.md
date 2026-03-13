@@ -10282,3 +10282,52 @@ Validation:
     monster-phase deaths can require opposite behavior at the same `You die...`
     boundary, so the discriminator has to come from real runtime context
     (`context.mon_moving` here), not broad `playerDied` guards.
+
+## 2026-03-13 17:36 - hi11 zap invalid-inventory boundary fixed by prompt-owned visual --More--
+
+- Context:
+  - After the earlier `getdir()` cursor fix, `hi11_seed1100_wiz_zap-deep_gameplay`
+    was down to one cursor-only/display-only gap around the invalid wand-letter
+    path inside `dozap()`.
+  - C sequence there is:
+    - `z` shows `What do you want to zap?...`
+    - invalid inventory letter shows `You don't have that object.--More--`
+    - one key dismisses that boundary while leaving the frame visible
+    - the following key re-shows the zap prompt
+- Root cause:
+  - JS still handled wand selection inside a private `while (await nhgetch())`
+    loop in `js/zap.js`, while `getdir()` had already been moved onto the
+    shared `pendingPrompt` owner contract.
+  - An initial refactor moved zap inventory selection onto `pendingPrompt`, but
+    it incorrectly set `display.messageNeedsMore = true` for the invalid-letter
+    error frame.
+  - That let `nhgetch({ commandBoundary: true })` steal the dismiss key through
+    the generic boundary path before `zap.select` saw it, producing blank
+    frames and a late re-prompt.
+- Fix:
+  - Move zap inventory selection itself onto a `pendingPrompt` owner
+    (`source: 'zap.select'`) so wand choice, invalid-letter handling, and
+    re-prompting stay in the normal command/prompt boundary machinery instead
+    of a hidden nested input loop.
+  - Keep the invalid-letter boundary fully owned by `zap.select`:
+    render a visible `--More--` marker and cursor position directly on the
+    topline, but do not set `messageNeedsMore` or `moreMarkerActive`.
+  - Reuse the same prompt-owner handoff into `zap.getdir`, so both stages of
+    `dozap()` now follow one explicit owner model.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: fully green
+    - RNG `3469/3469`
+    - events `609/609`
+    - screens/colors/cursor `439/439`
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: still fully green
+  - `scripts/run-and-report.sh --failures` on the slice:
+    - `Gameplay: 202/214 passing, 12 failing`
+    - PRNG `213/214`, events `214/214`, screen `203/214`
+  - `hi11_seed1100_wiz_zap-deep_gameplay` was promoted from `sessions/pending`
+    to `sessions/coverage/spells-reads-zaps/`
+- Practical lesson:
+  - A prompt-owned `--More--` frame is not the same thing as a global topline
+    `messageNeedsMore` boundary. If the prompt owner is supposed to consume the
+    next key, rendering the marker must stay visual-only; otherwise
+    `nhgetch(commandBoundary)` will steal the key and create blank or delayed
+    prompt frames.

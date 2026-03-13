@@ -608,6 +608,190 @@ export async function handleZap(player, map, display, game) {
     const showZapPrompt = async () => {
         await display.putstr_message(zapPrompt);
     };
+    const clearDirPrompt = () => {
+        if (!display) return;
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+        if (Object.hasOwn(display, '_topMessageRow1')) display._topMessageRow1 = undefined;
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    };
+    const renderBoundaryMorePrompt = async (msg) => {
+        replacePromptMessage();
+        const text = String(msg || '');
+        await display.putstr_message(text);
+        const moreStr = '--More--';
+        const msgLen = text.length;
+        const col = Math.min(msgLen, Math.max(0, (display.cols || 80) - moreStr.length));
+        if (typeof display.putstr === 'function') {
+            await display.putstr(col, 0, moreStr, CLR_GRAY);
+        }
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.min(col + moreStr.length, (display.cols || 80) - 1), 0);
+        }
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+        if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    };
+    const executeZapWithDir = async (wand, need_dir) => {
+        // C ref: zap.c:2645-2652 — zapping yourself (direction = self)
+        if (need_dir && !player.dx && !player.dy && !player.dz) {
+            await zapyourself(wand, player, true, map);
+        } else {
+            // C ref: zap.c:2660-2663 — weffects for directed/non-directed wands
+            await weffects(wand, player, map, display, game);
+        }
+        // C ref: zap.c:2665-2669 — post-zap: wand turns to dust if spe < 0
+        if (wand && wand.spe < 0) {
+            await pline(`${The(xname(wand))} turns to dust.`);
+            useupall(wand, player);
+        }
+    };
+    const resolveSelectedWand = async (wand, promptGame = null, priorOwner = null) => {
+        replacePromptMessage();
+
+        // C ref: zap.c:2632 — need_dir check BEFORE direction prompt
+        const need_dir = (objectData[wand.otyp]?.oc_dir || 0) !== 1; // NODIR = 1
+
+        // C ref: zap.c:2633-2634 — zappable check (before direction prompt)
+        if (!zappable(wand)) {
+            if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
+            await pline('Nothing happens.');
+            return { handled: true, moved: false, tookTime: true };
+        }
+
+        // C ref: zap.c:2635-2640 — cursed wand backfire (before direction prompt)
+        // WAND_BACKFIRE_CHANCE = 100 in C (hack.h:1415)
+        if (wand.cursed && !rn2(100)) {
+            if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
+            await backfire(wand, player);
+            await exercise(player, A_STR, false);
+            useupall(wand, player);
+            return { handled: true, moved: false, tookTime: true };
+        }
+
+        // C ref: zap.c:2641 — getdir for directional wands.
+        // Replay/session parity: treat this as an explicit command boundary so the
+        // next key is consumed by the direction prompt owner.
+        if (need_dir) {
+            const dirPrompt = 'In what direction?';
+            if (display && dirPrompt) {
+                await display.putstr_message(dirPrompt);
+                if (typeof display.setCursor === 'function') {
+                    display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
+                }
+            }
+            if (promptGame) {
+                promptGame.pendingPrompt = {
+                    source: 'zap.getdir',
+                    onKey: async (ch, g) => {
+                        const owner = g.pendingPrompt;
+                        const c = String.fromCharCode(ch);
+                        clearDirPrompt();
+                        const dir = DIRECTION_KEYS[c.toLowerCase()];
+                        if (dir) {
+                            player.dx = dir[0];
+                            player.dy = dir[1];
+                            player.dz = 0;
+                        } else if (c === '>' || c === '<') {
+                            player.dx = 0;
+                            player.dy = 0;
+                            player.dz = (c === '>') ? 1 : -1;
+                        } else if (c === '.') {
+                            player.dx = 0;
+                            player.dy = 0;
+                            player.dz = 0;
+                        } else {
+                            // C ref: zap.c:2642-2643 — "glows and fades" when getdir fails.
+                            if (!player.blind) {
+                                await pline(`${The(xname(wand))} glows and fades.`);
+                            }
+                            if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                            return { handled: true, tookTime: true, moved: false, prompt: true };
+                        }
+                        await executeZapWithDir(wand, need_dir);
+                        if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                        return { handled: true, tookTime: true, moved: false, prompt: true };
+                    },
+                };
+                return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+            }
+
+            const dirResult = await getdir(null, display);
+            if (!dirResult) {
+                if (!player.blind) {
+                    await pline(`${The(xname(wand))} glows and fades.`);
+                }
+                return { handled: true, moved: false, tookTime: true };
+            }
+            player.dx = dirResult.dx;
+            player.dy = dirResult.dy;
+            player.dz = dirResult.dz;
+            await executeZapWithDir(wand, need_dir);
+            return { handled: true, moved: false, tookTime: true };
+        }
+
+        player.dx = 0;
+        player.dy = 0;
+        player.dz = 0;
+        if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
+        await executeZapWithDir(wand, need_dir);
+        return { handled: true, moved: false, tookTime: true };
+    };
+
+    if (game) {
+        await showZapPrompt();
+        const state = { mode: 'select' };
+        game.pendingPrompt = {
+            source: 'zap.select',
+            onKey: async (itemCh, g) => {
+                const owner = g.pendingPrompt;
+                if (state.mode === 'await-invalid-dismiss') {
+                    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+                    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+                    state.mode = 'reprompt';
+                    return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                }
+                if (state.mode === 'reprompt') {
+                    replacePromptMessage();
+                    await showZapPrompt();
+                    state.mode = 'select';
+                    return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                }
+
+                let itemChar = String.fromCharCode(itemCh);
+                if (isDismissKey(itemCh)) {
+                    if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                    replacePromptMessage();
+                    await pline('Never mind.');
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                if (itemChar === '?' || itemChar === '*') {
+                    const menuSelection = await showZapHelpList();
+                    if (menuSelection) {
+                        itemChar = menuSelection;
+                    } else {
+                        await showZapPrompt();
+                        return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                    }
+                }
+
+                const selected = player.inventory.find(o => o.invlet === itemChar);
+                if (selected && selected.oclass !== WAND_CLASS) {
+                    if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                    replacePromptMessage();
+                    await pline("That is a silly thing to zap.");
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                const wand = wands.find(w => w.invlet === itemChar);
+                if (!wand) {
+                    await renderBoundaryMorePrompt("You don't have that object.");
+                    state.mode = 'await-invalid-dismiss';
+                    return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                }
+                return await resolveSelectedWand(wand, g, owner);
+            },
+        };
+        return { moved: false, tookTime: false, terminalScreenOwned: true };
+    }
 
     let wand;
     await showZapPrompt();
@@ -644,117 +828,11 @@ export async function handleZap(player, map, display, game) {
             await showZapPrompt();
             continue;
         }
-        replacePromptMessage();
         break;
     }
 
-    // C ref: zap.c:2632 — need_dir check BEFORE direction prompt
-    const need_dir = (objectData[wand.otyp]?.oc_dir || 0) !== 1; // NODIR = 1
-
-    // C ref: zap.c:2633-2634 — zappable check (before direction prompt)
-    if (!zappable(wand)) {
-        await pline('Nothing happens.');
-        return { moved: false, tookTime: true };
-    }
-
-    // C ref: zap.c:2635-2640 — cursed wand backfire (before direction prompt)
-    // WAND_BACKFIRE_CHANCE = 100 in C (hack.h:1415)
-    if (wand.cursed && !rn2(100)) {
-        await backfire(wand, player);
-        await exercise(player, A_STR, false);
-        useupall(wand, player);
-        return { moved: false, tookTime: true };
-    }
-
-    const clearDirPrompt = () => {
-        if (!display) return;
-        if (typeof display.clearRow === 'function') display.clearRow(0);
-        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
-        if (Object.hasOwn(display, '_topMessageRow1')) display._topMessageRow1 = undefined;
-        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
-    };
-    const executeZapWithDir = async () => {
-        // C ref: zap.c:2645-2652 — zapping yourself (direction = self)
-        if (need_dir && !player.dx && !player.dy && !player.dz) {
-            await zapyourself(wand, player, true, map);
-        } else {
-            // C ref: zap.c:2660-2663 — weffects for directed/non-directed wands
-            await weffects(wand, player, map, display, game);
-        }
-        // C ref: zap.c:2665-2669 — post-zap: wand turns to dust if spe < 0
-        if (wand && wand.spe < 0) {
-            await pline(`${The(xname(wand))} turns to dust.`);
-            useupall(wand, player);
-        }
-    };
-
-    // C ref: zap.c:2641 — getdir for directional wands.
-    // Replay/session parity: treat this as an explicit command boundary so the
-    // next key is consumed by the direction prompt owner.
-    if (need_dir) {
-        const dirPrompt = 'In what direction?';
-        if (display && dirPrompt) {
-            await display.putstr_message(dirPrompt);
-            if (typeof display.setCursor === 'function') {
-                display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
-            }
-        }
-        if (game) {
-            game.pendingPrompt = {
-                source: 'zap.getdir',
-                onKey: async (ch, g) => {
-                    const owner = g.pendingPrompt;
-                    const c = String.fromCharCode(ch);
-                    clearDirPrompt();
-                    const dir = DIRECTION_KEYS[c.toLowerCase()];
-                    if (dir) {
-                        player.dx = dir[0];
-                        player.dy = dir[1];
-                        player.dz = 0;
-                    } else if (c === '>' || c === '<') {
-                        player.dx = 0;
-                        player.dy = 0;
-                        player.dz = (c === '>') ? 1 : -1;
-                    } else if (c === '.') {
-                        player.dx = 0;
-                        player.dy = 0;
-                        player.dz = 0;
-                    } else {
-                        // C ref: zap.c:2642-2643 — "glows and fades" when getdir fails.
-                        if (!player.blind) {
-                            await pline(`${The(xname(wand))} glows and fades.`);
-                        }
-                        if (g.pendingPrompt === owner) g.pendingPrompt = null;
-                        return { handled: true, tookTime: true, moved: false, prompt: true };
-                    }
-                    await executeZapWithDir();
-                    if (g.pendingPrompt === owner) g.pendingPrompt = null;
-                    return { handled: true, tookTime: true, moved: false, prompt: true };
-                },
-            };
-            return { moved: false, tookTime: false, terminalScreenOwned: true };
-        }
-
-        const dirResult = await getdir(null, display);
-        if (!dirResult) {
-            if (!player.blind) {
-                await pline(`${The(xname(wand))} glows and fades.`);
-            }
-            return { moved: false, tookTime: true };
-        }
-        player.dx = dirResult.dx;
-        player.dy = dirResult.dy;
-        player.dz = dirResult.dz;
-        await executeZapWithDir();
-        return { moved: false, tookTime: true };
-    }
-
-    // NODIR wands: no direction needed.
-    player.dx = 0;
-    player.dy = 0;
-    player.dz = 0;
-    await executeZapWithDir();
-    return { moved: false, tookTime: true };
+    const result = await resolveSelectedWand(wand, null, null);
+    return { moved: !!result.moved, tookTime: !!result.tookTime };
 }
 
 // C ref: zap.c dozap() name-parity surface.
