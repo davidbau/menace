@@ -21,7 +21,7 @@ import { rn2, rnd, d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
@@ -1233,7 +1233,7 @@ export function invoke_ok(obj) {
 
 // cf. artifact.c:1749 — doinvoke()
 export async function doinvoke(player, game = null) {
-  const obj = await getobj('invoke', invoke_ok, 0, player);
+  const obj = await getobj('invoke', invoke_ok, GETOBJ_PROMPT, player);
   if (!obj) return ECMD_CANCEL;
   if (!await retouch_object(obj, false, player)) return ECMD_TIME;
   return await arti_invoke(obj, player, game);
@@ -1329,7 +1329,7 @@ export async function invoke_charge_obj(obj, game = null, player = null) {
   const target = await getobj(
     'charge',
     charge_ok,
-    0,
+    GETOBJ_PROMPT | GETOBJ_ALLOWCNT,
     player
   );
   if (!target) {

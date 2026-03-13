@@ -22,7 +22,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          VOMITING, GLIB, FAST, STONED, SLIMED,
          FREE_ACTION, ACID_RES, SLEEP_RES, POISON_RES,
          SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL, COLNO, ROWNO,
-         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
+         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { adjattrib, poisontell } from './attrib.js';
 import { drinkfountain, dipfountain, dipsink } from './fountain.js';
@@ -1871,7 +1871,7 @@ export async function dip_into(player, map, display, target = null) {
     const obj = target || await getobj(
         'dip',
         (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
+        GETOBJ_PROMPT,
         player
     );
     if (!obj) {
@@ -1881,7 +1881,7 @@ export async function dip_into(player, map, display, target = null) {
     const potion = await getobj(
         'dip into',
         (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
+        GETOBJ_PROMPT,
         player
     );
     if (!potion) {
