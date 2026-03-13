@@ -9886,3 +9886,46 @@ Validation:
   - For C-style canned follow-up commands, the boundary belongs in the shared
     command loop and `more()` handling, not in per-command synthetic prompt
     owners.
+
+## 2026-03-13 15:08 - hi11 lifesave stop should finish current movemon pass, then stop before next cycle
+
+- Context:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` still had a monster-phase boundary
+    failure after the lifesave prompt work was aligned.
+  - Temporary seer-turn and `movemon()` traces showed JS reached
+    `moveloop_core()` step `410` with `turnCount=42`, `movesForSeer=43`,
+    `seerTurn=44`, while C reached the seer-turn RNG at the same step.
+  - The first attempted fix made JS run `moveloop_turnend()` before stopping,
+    but that exposed a new earlier mismatch: JS jumped straight into
+    `mcalcmove()` and skipped C's final `^movemon_turn[116@31,8]` plus
+    `distfleeck()/m_move()` work.
+- Root cause:
+  - JS was using `_stopMoveloopAfterLifesave` in two places that together were
+    too aggressive:
+    1. `moveloop_core()` treated lifesave like a hard abort and skipped
+       `moveloop_turnend()`.
+    2. `movemon()` itself aborted the rest of the current monster scan as soon
+       as the lifesave flag was seen.
+  - C `savelife()` sets `multi=-1` and `context.move=0`, but it does not abort
+    the current `movemon()` scan. C still finishes the current monster pass,
+    then runs turn-end, then stops before another movement cycle.
+- Fix:
+  - In `js/allmain.js`, split the old `forceStopMoveLoop` behavior into:
+    - `abortMoveLoop`: only for real death / hard abort
+    - `stopAfterTurnend`: lifesave-specific, allowing the current
+      `moveloop_turnend()` to run before stopping the outer loop
+  - In `js/mon.js`, removed the `_stopMoveloopAfterLifesave` checks that were
+    aborting the current `movemon()` scan before later monsters in the same
+    pass could act.
+- Result:
+  - `hi11` now has full RNG parity and full event parity:
+    - `rng=3469/3469`
+    - `events=609/609`
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains fully green.
+- Remaining gap:
+  - `hi11` is now screen/cursor-only:
+    - first screen divergence: step `391`
+    - first cursor divergence: step `378`
+  - This is no longer a gameplay sequencing issue. The next work should focus
+    on display/cursor rendering around the earlier screen drift, not monster
+    turn logic.

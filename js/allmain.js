@@ -190,7 +190,8 @@ export async function moveloop_core(game, opts = {}) {
     // C ref: allmain.c:197 — actual time passed.
     player.umovement -= NORMAL_SPEED;
 
-    let forceStopMoveLoop = false;
+    let abortMoveLoop = false;
+    let stopAfterTurnend = false;
     do {
         let monscanmove = false;
         // C ref: allmain.c moveloop_core() calls encumber_msg() at start of the
@@ -209,22 +210,23 @@ export async function moveloop_core(game, opts = {}) {
                     // C-faithful lifesave stop: once savelife() has requested
                     // a command-cycle stop, don't enter another movemon pass.
                     if (game?._stopMoveloopAfterLifesave) {
-                        forceStopMoveLoop = true;
+                        stopAfterTurnend = true;
                         monscanmove = false;
                         game._stopMoveloopAfterLifesave = false;
                         break;
                     }
                     monscanmove = await movemon((game.lev || game.map), player, game.display, game.fov, game);
                     // C ref: savelife() stops further movement progression for the
-                    // current command cycle after life-saving.
+                    // current command cycle after life-saving, but the current
+                    // turn still completes through moveloop_turnend().
                     if (game?._stopMoveloopAfterLifesave) {
-                        forceStopMoveLoop = true;
+                        stopAfterTurnend = true;
                         monscanmove = false;
                         game._stopMoveloopAfterLifesave = false;
                         break;
                     }
                     if (game?.playerDied) {
-                        forceStopMoveLoop = true;
+                        abortMoveLoop = true;
                         monscanmove = false;
                         break;
                     }
@@ -243,11 +245,14 @@ export async function moveloop_core(game, opts = {}) {
         }
         if (!monscanmove
             && player.umovement < NORMAL_SPEED
-            && !forceStopMoveLoop
+            && !abortMoveLoop
             && !(game?.playerDied)) {
             await moveloop_turnend(game);
         }
-    } while (player.umovement < NORMAL_SPEED && !forceStopMoveLoop && !(game?.playerDied));
+    } while (player.umovement < NORMAL_SPEED
+        && !abortMoveLoop
+        && !stopAfterTurnend
+        && !(game?.playerDied));
 
     // C ref: In C, vision_recalc(0) fires at the top of the NEXT moveloop iteration,
     // BEFORE nhgetch blocks — so the screen capture always has fresh FOV.

@@ -2064,13 +2064,6 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
     // so list mutations (death/migration) do not skip subsequent turns.
     // Iterate a snapshot for equivalent stability under JS array mutation.
     for (const mon of [...map.monsters]) {
-        // C ref: lifesaving done() path effectively aborts further monster
-        // processing for this command cycle; honor the same stop signal
-        // immediately instead of waiting for movemon() to return.
-        if (game && game._stopMoveloopAfterLifesave) {
-            somebodyCanMove = false;
-            break;
-        }
         // C ref: mon.c movemon_singlemon():1197-1206 — abort all monster
         // processing when the hero is flagged to leave the level.
         if (player.utotype) {
@@ -2155,10 +2148,6 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
             // TODO: fightm() — Conflict not implemented
             const rd = await withRngTag('dochug(monmove.js:847)', () =>
                 dochug(mon, map, player, display, fov, game));
-            if (game && game._stopMoveloopAfterLifesave) {
-                somebodyCanMove = false;
-                break;
-            }
             if (game && game.occupation && !mon.dead && !rd) {
                 const attacks = (mon.data || mon.type)?.mattk || [];
                 const noAttacks = !attacks.some((a) => a && a.aatyp !== AT_NONE);
