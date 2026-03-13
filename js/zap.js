@@ -98,6 +98,7 @@ import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
 import { display_minventory, update_inventory } from './invent.js';
 import { obj_resists } from './objdata.js';
+import { is_metallic } from './objdata.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { is_weptool } from './objnam.js';
 import { Is_container } from './mkobj.js';
@@ -761,7 +762,7 @@ export function destroy_items_rng_only(mon, dmgtyp, dmg_in, player = null) {
   let dmg_out = 0;
   for (let i = 0; i < chosen; i++) {
     if (!picks[i]) continue;
-    dmg_out += maybe_destroy_item(picks[i], dmgtyp, player);
+    dmg_out += maybe_destroy_item(picks[i], dmgtyp, player, mon);
   }
   return dmg_out;
 }
@@ -2405,7 +2406,7 @@ export function release_hold(mon, player) {
 }
 
 // C ref: zap.c object-destruction utility names.
-export function maybe_destroy_item(obj, dmgtyp, player) {
+export function maybe_destroy_item(obj, dmgtyp, player, owner = null) {
   if (!obj) return 0;
   if (player && inventory_resistance_check(dmgtyp, player)) return 0;
   if (!destroyable_by(obj, dmgtyp)) return 0;
@@ -2417,6 +2418,8 @@ export function maybe_destroy_item(obj, dmgtyp, player) {
     }
   } else if (dmgtyp === AD_ELEC) {
     if (obj.oclass === RING_CLASS) {
+      const ringWorn = ((obj.owornmask || 0) & W_RING) !== 0;
+      if (ringWorn && player?.gloves && !is_metallic(player.gloves)) return 0;
       // C ref: charged rings may recharge instead of destruction.
       if (objects[obj.otyp]?.oc_charged && rn2(3)) return 0;
     } else if (obj.oclass === WAND_CLASS) {
@@ -2430,6 +2433,24 @@ export function maybe_destroy_item(obj, dmgtyp, player) {
   // exploding items; keep the attribute exercise RNG path aligned.
   if (player && cnt > 0 && itemDamage > 0) {
     exercise(player, A_STR, false);
+  }
+  // Apply minimal quantity mutation to keep later command/item selection
+  // behavior aligned with C destroy_items() side effects.
+  if (cnt > 0) {
+    const quan = Number(obj.quan || 1);
+    const newQuan = Math.max(0, quan - cnt);
+    if (newQuan > 0) {
+      obj.quan = newQuan;
+    } else {
+      obj.quan = 0;
+      const inv = Array.isArray(owner?.inventory)
+        ? owner.inventory
+        : (Array.isArray(owner?.minvent) ? owner.minvent : null);
+      if (inv) {
+        const idx = inv.indexOf(obj);
+        if (idx >= 0) inv.splice(idx, 1);
+      }
+    }
   }
   return cnt;
 }
