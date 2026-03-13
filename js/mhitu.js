@@ -1298,11 +1298,11 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     const combatState = { skipdrin: false };
     const postAttackTail = (attackResult) => {
         // C ref: mhitu.c:936-942 — successful attack can wake sleeping hero.
-        if (attackResult === M_ATTK_HIT
+        const wakeEligible = attackResult === M_ATTK_HIT
             && Number(player?.usleep || 0) > 0
             && Number.isFinite(game?.moves)
-            && Number(player.usleep) < Number(game.moves)
-            && !rn2(10)) {
+            && Number(player.usleep) < Number(game.moves);
+        if (wakeEligible && !rn2(10)) {
             if (game) {
                 game.multi = -1;
                 game.nomovemsg = 'The combat suddenly awakens you.';

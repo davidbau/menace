@@ -35,6 +35,21 @@ For the full narratives of how these lessons were discovered, see the
     warns and falls back to normalized-only event output instead of presenting
     misleading pseudo-raw context.
 
+## Prompt-owned commands should share command finalization
+
+- `promptStep()` should not run its own private timed-turn loop.
+- A prompt-owned key may decide the command result, but timed-turn advancement,
+  immobile draining, and occupation draining should go through the same
+  `run_command()` finalization path used by ordinary commands.
+- This cleanup reduced boundary skew in `hi11`:
+  - `hi10` stayed green,
+  - `hi11` first screen divergence moved later from step `379` to step `391`,
+  - the hard RNG frontier did not move, so the deeper blocker remains in the
+    monster attack / movement sequence, not in the prompt-finalization split.
+- Practical rule:
+  - keep prompt ownership for input consumption,
+  - keep post-command world advancement centralized.
+
 ## The Cardinal Rules
 
 ### 1. The RNG is the source of truth

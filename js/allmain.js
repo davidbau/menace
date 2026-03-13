@@ -625,13 +625,28 @@ export async function run_command(game, ch, opts = {}) {
         boundary: inputSnap(game),
     });
     const execToken = beginCommandExec(game, { site: 'run_command', key: chCode });
+    const coreOpts = {};
+    if (skipMonsterMove) coreOpts.skipMonsterMove = true;
+    const bumpHeroSeqN = () => {
+        const prior = Number.isFinite(game?.heroSeqN) ? (game.heroSeqN | 0) : 0;
+        game.heroSeqN = Math.min(7, prior + 1);
+    };
 
     try {
     const promptFinalized = await promptStep(game, chCode, {
         skipTurnEnd,
         skipMonsterMove,
     });
-    if (promptFinalized) return promptFinalized;
+    if (promptFinalized) {
+        if (promptFinalized.tookTime) {
+            bumpHeroSeqN();
+            if (!skipTurnEnd) {
+                await finalizeTimedCommand(game, promptFinalized, coreOpts);
+            }
+        }
+        postRender(game, promptFinalized);
+        return promptFinalized;
+    }
 
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
     // each command cycle, C clears the previous turn's topline message.
@@ -687,13 +702,6 @@ export async function run_command(game, ch, opts = {}) {
     }
     game.cmdKey = chCode;
 
-    const coreOpts = {};
-    if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-    const bumpHeroSeqN = () => {
-        const prior = Number.isFinite(game?.heroSeqN) ? (game.heroSeqN | 0) : 0;
-        game.heroSeqN = Math.min(7, prior + 1);
-    };
-
     // Process one timed turn of world updates after a command consumed time.
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
@@ -702,19 +710,6 @@ export async function run_command(game, ch, opts = {}) {
         // After monsters move, update display at every monster position.
         see_monsters(game.map);
         await display_sync();
-    };
-
-    // C ref: allmain.c moveloop() is a perpetual loop; when multi < 0
-    // (sleep/paralysis/etc), it keeps advancing timed turns without reading
-    // fresh command input until recovery.
-    const drainImmobileTurns = async () => {
-        let safety = 0;
-        while (game.multi < 0 && !(game?.playerDied)) {
-            await advanceTimedTurn();
-            if (++safety > 5000) {
-                break;
-            }
-        }
     };
 
     // Set advanceRunTurn for running mode (G/g commands process monster
@@ -748,16 +743,7 @@ export async function run_command(game, ch, opts = {}) {
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
-        await advanceTimedTurn();
-        if (typeof result.onAfterTurn === 'function') {
-            await result.onAfterTurn(game);
-        }
-
-        await drainImmobileTurns();
-
-        // Drain any occupation created by the command
-        await _drainOccupation(game, coreOpts);
-
+        await finalizeTimedCommand(game, result, coreOpts);
         await repeatLoop(game, {
             coreOpts,
             advanceTimedTurn,
@@ -910,25 +896,6 @@ async function promptStep(game, chCode, {
 
     const promptTookTime = !!promptResult.tookTime;
     const promptMoved = !!promptResult.moved;
-    if (promptTookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
-        const coreOpts = {};
-        if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-        const advanceTimedTurn = async () => {
-            await moveloop_core(game, coreOpts);
-            find_ac(game.u || game.player);
-            see_monsters(game.map);
-            await display_sync();
-        };
-        await advanceTimedTurn();
-        // C ref: allmain.c moveloop() keeps advancing timed turns without
-        // fresh input while multi < 0 (sleep/paralysis/etc).
-        let safety = 0;
-        while (game.multi < 0 && !(game?.playerDied)) {
-            await advanceTimedTurn();
-            if (++safety > 5000) break;
-        }
-        await _drainOccupation(game, coreOpts);
-    }
     if (!game.pendingPrompt && game._pendingTutorialStrip
         && typeof game._applyTutorialStrip === 'function') {
         game._applyTutorialStrip();
@@ -953,6 +920,28 @@ async function promptStep(game, chCode, {
         prompt: true,
         terminalScreenOwned: !!promptResult.terminalScreenOwned,
     };
+}
+
+async function finalizeTimedCommand(game, result, coreOpts) {
+    if (!(result && result.tookTime) || game._pendingDeferredTurnAfterMore) {
+        return;
+    }
+    const advanceTimedTurn = async () => {
+        await moveloop_core(game, coreOpts);
+        find_ac(game.u || game.player);
+        see_monsters(game.map);
+        await display_sync();
+    };
+    await advanceTimedTurn();
+    if (typeof result.onAfterTurn === 'function') {
+        await result.onAfterTurn(game);
+    }
+    let safety = 0;
+    while (game.multi < 0 && !(game?.playerDied)) {
+        await advanceTimedTurn();
+        if (++safety > 5000) break;
+    }
+    await _drainOccupation(game, coreOpts);
 }
 
 function postRender(game, result) {
