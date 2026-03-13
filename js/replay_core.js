@@ -127,11 +127,20 @@ function replayPendingTrace(...args) {
 function replayBoundaryState(game, inputRuntime) {
     const boundary = game ? inputSnap(game) : null;
     if (boundary) {
+        const promptType = String(game?.pendingPrompt?.type || 'none');
+        const topMessage = String(game?.display?.topMessage || '');
+        const topPreview = topMessage.length > 24
+            ? `${topMessage.slice(0, 24)}...`
+            : topMessage;
+        const moreFlag = game?.display?.messageNeedsMore ? 1 : 0;
         return [
             `owner=${String(boundary.owner || 'none')}`,
             `waiting=${boundary.waitingForInput ? 1 : 0}`,
             `ack=${boundary.ackRequired ? 1 : 0}`,
             `pending=${Number(boundary.pendingCount || 0)}`,
+            `promptType=${promptType}`,
+            `msgMore=${moreFlag}`,
+            `top=${JSON.stringify(topPreview)}`,
         ].join(' ');
     }
     const waiting = !!(typeof inputRuntime?.isWaitingInput === 'function' && inputRuntime.isWaitingInput());
