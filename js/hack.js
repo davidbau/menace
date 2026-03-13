@@ -3716,6 +3716,8 @@ export async function dosinkfall(player, map, display) {
     const con = acurr(player, A_CON);
     const dmg = rn1(8, 25 - con); // C: rn1(8, 25-ACURR(A_CON))
     await losehp(dmg, "fell onto a sink", KILLED_BY, player, display, _gstate);
+    // C ref: hack.c:853 — exercise CON after falling on weapon in sink
+    await exercise(player, A_CON, false);
     await exercise(player, A_DEX, false);
 }
 

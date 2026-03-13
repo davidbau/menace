@@ -10,14 +10,14 @@
 // - No buzzmu (spell ray) implementation
 
 import { ACCESSIBLE, IS_OBSTRUCTED, IS_DOOR,
-         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR, BOLT_LIM,
+         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR, A_CON, BOLT_LIM,
          MIGR_NOWHERE, MIGR_RANDOM, MIGR_STAIRS_UP, MIGR_LADDER_UP, MIGR_SSTAIRS,
          is_hole, M_AP_NOTHING, M_AP_MONSTER } from './const.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { newexplevel } from './exper.js';
 import {
-    BOULDER, WEAPON_CLASS, CORPSE, objectData, POTION_CLASS, VENOM_CLASS,
+    BOULDER, WEAPON_CLASS, CORPSE, objectData, POTION_CLASS, VENOM_CLASS, SILVER,
     BLINDING_VENOM, ACID_VENOM, ELVEN_ARROW, ELVEN_BOW, ORCISH_ARROW, ORCISH_BOW,
     CROSSBOW_BOLT, CROSSBOW, CREAM_PIE, EGG, WAN_STRIKING,
     AKLYS,
@@ -33,7 +33,7 @@ import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mk
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
-    throws_rocks, is_unicorn,
+    throws_rocks, is_unicorn, hates_silver,
 } from './mondata.js';
 import {
     mons, AT_WEAP, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
@@ -398,6 +398,12 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
     }
     await losehp(dam, name || "thrown object", KILLED_BY_AN, player, display, game);
     await exercise(player, A_STR, false);
+    // C ref: mthrowu.c thitu() — silver searing when thrown silver hits hero
+    if (obj && objectData[obj.otyp]?.oc_material === SILVER
+        && hates_silver(player.data)) {
+        if (display) await display.putstr_message("The silver sears your flesh!");
+        await exercise(player, A_CON, false);
+    }
     return 1;
 }
 

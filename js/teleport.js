@@ -7,7 +7,7 @@
 // position validation (goodpos), and hero teleport helpers.
 
 import {
-    COLNO, ROWNO, isok, ACCESSIBLE,
+    COLNO, ROWNO, isok, ACCESSIBLE, A_WIS,
     POOL, MOAT, WATER, LAVAPOOL, ICE,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, DBWALL, DOOR,
     IS_POOL, IS_LAVA, IS_DRAWBRIDGE,
@@ -35,6 +35,7 @@ import { newsym, mark_vision_dirty } from './display.js';
 import { mondead, onscary } from './mon.js';
 import { set_apparxy, mon_track_clear } from './monmove.js';
 import { pline } from './pline.js';
+import { exercise } from './attrib_exercise.js';
 import { Monnam, Amonnam, mon_nam } from './do_name.js';
 import { deltrap } from './dungeon.js';
 import { couldsee } from './vision.js';
@@ -854,6 +855,10 @@ export async function dotele(break_the_rules, game) {
 
     // cf. teleport.c:1140-1157 — perform the teleport
     tele(game);
+    // cf. teleport.c:1128 — exercise WIS after spell-based teleport (not trap)
+    if (!trap) {
+        exercise(player, A_WIS, true);
+    }
     return 1;
 }
 

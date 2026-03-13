@@ -1044,6 +1044,8 @@ async function cpostfx(player, pm, display) {
         if (!rn2(2)) {
             await pline('Yum!  That was real brain food!');
             // Would adjattrib(A_INT, 1)
+            // C ref: eat.c cpostfx() — exercise WIS after mind flayer brain food
+            await exercise(player, A_WIS, true);
             break; // don't give telepathy too
         } else {
             await pline('For some reason, that tasted bland.');
