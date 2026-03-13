@@ -1553,9 +1553,6 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             if (died) {
                 break;
             }
-            if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
-                break;
-            }
         }
 
         // C ref: hitmu() ends with unconditional stop_occupation().
@@ -1566,6 +1563,9 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // C ref: hitmu() returns M_ATTK_HIT for successful contact even when
         // post-effect damage is 0 (for example, rust/corrode touch attacks).
         sum[i] = mhm.hitflags || M_ATTK_HIT;
+        if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
+            break;
+        }
         if (postAttackTail(sum[i])) break;
     }
 }

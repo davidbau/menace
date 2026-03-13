@@ -340,6 +340,10 @@ function savelife(how, game) {
     // TODO: when Sick property is fully ported
 
     game.multi = -1;
+    if (game) {
+        const ctx = game.context || (game.context = {});
+        ctx.move = 0;
+    }
     // C ref: end.c savelife() sets gn.nomovemsg so unmul() emits this exact line.
     game.nomovemsg = "You survived that attempt on your life.";
     game.multi_reason = (player.roleIndex === roles.findIndex(r => r?.name === 'Tourist'))

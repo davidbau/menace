@@ -14,6 +14,27 @@ For the full narratives of how these lessons were discovered, see the
 
 ---
 
+## Comparison-window triage stack
+
+- `scripts/comparison-window.mjs` now supports:
+  - `--view normalized|filtered-raw|raw|all`
+  - `--raw-filter none|gameplay`
+  - `--raw-step`
+- Best practice:
+  - start with normalized first-divergence localization,
+  - then inspect `--channel rng --view filtered-raw --raw-step` for the same
+    step when prompt/input boundaries or monster-turn work distribution look
+    suspicious,
+  - escalate to full raw only after filtered raw.
+- This exposes bugs that normalized output can hide, especially intra-step
+  ordering drift around `--More--`, `yn`, direction prompts, travel, and
+  timed-turn distribution.
+- Current limitation:
+  - raw step drilldown is trustworthy for RNG artifacts,
+  - event artifacts still lack normalized-to-raw step mapping, so the tool now
+    warns and falls back to normalized-only event output instead of presenting
+    misleading pseudo-raw context.
+
 ## The Cardinal Rules
 
 ### 1. The RNG is the source of truth

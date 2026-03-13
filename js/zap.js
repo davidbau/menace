@@ -699,6 +699,7 @@ export async function handleZap(player, map, display, game) {
             game.pendingPrompt = {
                 source: 'zap.getdir',
                 onKey: async (ch, g) => {
+                    const owner = g.pendingPrompt;
                     const c = String.fromCharCode(ch);
                     clearDirPrompt();
                     const dir = DIRECTION_KEYS[c.toLowerCase()];
@@ -719,11 +720,11 @@ export async function handleZap(player, map, display, game) {
                         if (!player.blind) {
                             await pline(`${The(xname(wand))} glows and fades.`);
                         }
-                        g.pendingPrompt = null;
+                        if (g.pendingPrompt === owner) g.pendingPrompt = null;
                         return { handled: true, tookTime: true, moved: false, prompt: true };
                     }
                     await executeZapWithDir();
-                    g.pendingPrompt = null;
+                    if (g.pendingPrompt === owner) g.pendingPrompt = null;
                     return { handled: true, tookTime: true, moved: false, prompt: true };
                 },
             };

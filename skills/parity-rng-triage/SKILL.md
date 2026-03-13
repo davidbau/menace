@@ -45,6 +45,19 @@ Use this for session parity failures where gameplay diverges between C and JS:
      failure details for a specific seed across all test categories.
 4. If RNG diverges, localize first mismatch window:
    - `node test/comparison/rng_step_diff.js <session-path> --step <N> --window 8`
+   - `node scripts/comparison-window.mjs <session-path> --channel rng --view all --raw-step`
+     gives the practical three-layer view:
+     1. normalized first-divergence window,
+     2. gameplay-filtered raw for the same step,
+     3. full raw for the same step.
+   - Useful variants:
+     - `--view normalized` for the concise headline
+     - `--view filtered-raw --raw-step` for boundary/ordering bugs
+     - `--view raw --raw-step` when you suspect the filter is hiding signal
+     - `--channel event --view normalized` for event-first localization
+   - Current limitation: raw step drilldown is implemented for RNG artifacts.
+     Event artifacts still need normalized-to-raw step mapping before raw event
+     views are trustworthy.
    - Note: `rng_step_diff.js` replays one step in isolation; use it as a
      microscope only. Treat `session_test_runner.js --verbose` as authoritative
      for true first divergence.
@@ -95,6 +108,10 @@ Use this for session parity failures where gameplay diverges between C and JS:
 - If one step is short and the next step has a matching surplus in the same
   event families, treat it as **cross-step boundary drift** first:
   - Compare per-step counts with `node scripts/comparison-window.mjs <session> --step-summary --step-from <N> --step-to <M>`.
+  - Then inspect the first bad step with
+    `node scripts/comparison-window.mjs <session> --view filtered-raw --raw-step`.
+    This is the default drilldown because normalized views can hide intra-step
+    ordering bugs while full raw is often too noisy.
   - Confirm conservation by event family (for example, `test_move`, `movemon_turn`,
     `dog_*`, `runstep`) across adjacent steps.
   - If conserved, avoid changing gameplay logic first; adjust capture timing and
@@ -120,6 +137,20 @@ Run after any core JS change and after every `git pull`:
 ## Debug Mapdump Notes
 - `dbgmapdump` captures replay-time compact mapdumps without mutating fixtures.
 - For syntax and interpretation details, see `docs/DBGMAPDUMP_TOOL.md`.
+
+## Comparison Window Best Practices
+- Start with normalized output to find the first actionable divergence index.
+- Immediately switch to gameplay-filtered raw for the same step when:
+  - the normalized mismatch is inside prompt/input completion,
+  - totals are conserved across adjacent steps,
+  - you suspect nested `--More--`, `yn`, direction, travel, or occupation boundaries,
+  - monster-turn work appears redistributed within one command.
+- Escalate to full raw only after filtered raw, and only for the same step or a
+  very small step range. Full raw is for confirming a suspected missing/extra
+  low-level entry, not for first localization.
+- Do not treat normalized parity as proof of correctness at tricky boundaries.
+  A session can have normalized agreement while still hiding step-local work
+  redistribution bugs that later become RNG or screen drift.
 
 ## Rerecord Timing Advisory
 - When capture timing needs to wait for C to finish a complex key (for example
