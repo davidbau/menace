@@ -3,9 +3,10 @@
 // C ref: trap.c — burnarmor()
 // C ref: mon.c — xkilled(), corpse_chance()
 
-import { rn2, rnd, d, rn1, rnz } from './rng.js';
+import { rn2, rnd, d, c_d, rn1, rnz } from './rng.js';
 import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, SDOOR, D_CLOSED, D_LOCKED,
+    ZAP_POS,
     COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     STONE, ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
@@ -69,7 +70,7 @@ import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
 import { mon_nam } from './do_name.js';
 import { xkilled, killed,
-         wakeup, healmon, mondead } from './mon.js';
+         monkilled, wakeup, healmon, mondead } from './mon.js';
 import { more, nhgetch } from './input.js';
 import { getdir, registerBurnarmor } from './hack.js';
 import { nonliving, is_undead, is_demon,
@@ -339,13 +340,13 @@ function zhitm(mon, type, nd, map) {
         if ((mdat.mr || 0) > 50) {
             break;
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         break;
     case ZT_FIRE:
         if (mdat.mresists & MR_FIRE) {
             break; // resistant — no damage
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
         // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) { destroy_items } }
         if (burnarmor(mon)) {
@@ -358,15 +359,15 @@ function zhitm(mon, type, nd, map) {
         if (mdat.mresists & MR_COLD) {
             break; // resistant
         }
-        tmp = d(nd, 6);
-        if (mdat.mresists & MR_FIRE) tmp += d(nd, 3); // fire-resistant takes extra cold
+        tmp = c_d(nd, 6);
+        if (mdat.mresists & MR_FIRE) tmp += c_d(nd, 3); // fire-resistant takes extra cold
         if (!rn2(3)) {
             // destroy_items
         }
         break;
     case ZT_SLEEP:
         tmp = 0;
-        sleep_monst(mon, d(nd, 25), type === ZT_WAND(ZT_SLEEP) ? WAND_CLASS : 0);
+        sleep_monst(mon, c_d(nd, 25), type === ZT_WAND(ZT_SLEEP) ? WAND_CLASS : 0);
         break;
     case ZT_DEATH:
         if (Math.abs(type) !== ZT_BREATH(ZT_DEATH)) {
@@ -396,7 +397,7 @@ function zhitm(mon, type, nd, map) {
         tmp = mon.mhp + 1;
         break;
     case ZT_LIGHTNING:
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         if (mdat.mresists & MR_ELEC) {
             tmp = 0; // resistant, but still rolls damage for RNG
         }
@@ -417,13 +418,13 @@ function zhitm(mon, type, nd, map) {
         if (mdat.mresists & MR_POISON) {
             break;
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         break;
     case ZT_ACID:
         if (mdat.mresists & MR_ACID) {
             break;
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         if (!rn2(6)) { /* acid_damage(MON_WEP) */ }
         if (!rn2(6)) { /* erode_armor */ }
         break;
@@ -1294,19 +1295,14 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           const tmp = zhitm(mon, type, nd, map);
 
           if (tmp === MAGIC_COOKIE) {
-            // disintegration
-            mon.mhp = 0;
-          }
-          if (mon.mhp <= 0) {
-            // monster killed
-            if (type >= 0) {
-              // killed by hero
-              if (map.removeMonster) map.removeMonster(mon);
-              mondead(mon, map, player);
+            // C ref: zap.c — disintegration path
+            disintegrate_mon(mon, map, player);
+          } else if (mon.mhp <= 0) {
+            // C ref: zap.c — hero kills use xkilled(), monster kills use monkilled()
+            if (type < 0) {
+              monkilled(mon, flash_str(fltyp), 0, map, player);
             } else {
-              // killed by other monster
-              if (map.removeMonster) map.removeMonster(mon);
-              mondead(mon, map, player);
+              xkilled(mon, 0, map, player);
             }
           } else {
             if (damgtype === ZT_SLEEP && mon.msleeping) {
@@ -1321,9 +1317,10 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
       if (player && sx === player.x && sy === player.y && range >= 0) {
         if (zap_hit(player.ac ?? 10, 0)) {
           range -= 2;
+          await pline('The %s hits you!', flash_str(fltyp));
           // C ref: zap.c:4920 — zhitu / zap_over_floor player damage
           const damgtype = zaptype(type) % 10;
-          const dam = d(nd, 6);
+          const dam = c_d(nd, 6);
           if (player.uhp) player.uhp -= dam;
           // C ref: exercise calls from zap_over_floor (zap.c:4395-4524)
           if (damgtype === ZT_MAGIC_MISSILE) {
@@ -1338,14 +1335,22 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           } else if (damgtype === ZT_ACID) {
             exercise(player, A_STR, false);
           }
+        } else if (!player.blind) {
+          await pline('The %s whizzes by you!', flash_str(fltyp));
         }
       }
 
-      // C ref: zap.c:4938-4993 — beam bounce off walls
-      if (loc && (IS_WALL(loc.typ) || IS_DOOR(loc.typ))) {
+      // C ref: zap.c:4938-4993 — beam bounce off non-zap-passable terrain,
+      // and closed/locked doors.
+      if (loc && (!ZAP_POS(loc.typ)
+          || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)) && range >= 0))) {
         // Bounce logic
         // C ref: STONE→10, mine walls→20, else→75
         const bchance = (loc.typ === STONE) ? 10 : IS_WALL(loc.typ) ? 75 : 75;
+        const canSeeLast = isok(lsx, lsy) ? cansee(lsx, lsy) : false;
+        if (range > 0 && canSeeLast) {
+          await pline('The %s bounces!', flash_str(fltyp));
+        }
         if (!dx || !dy || !rn2(bchance)) {
           dx = -dx;
           dy = -dy;
@@ -1365,9 +1370,8 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           case 2: dx = -dx; break;
           }
         }
-        // Back up to before wall
-        sx = lsx;
-        sy = lsy;
+        // C ref: zap.c make_bounce path does not rewind sx/sy for regular
+        // wall/door bounces; the next loop iteration advances from this cell.
       }
     }
   } finally {

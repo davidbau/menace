@@ -9445,3 +9445,30 @@ Validation:
   - broad parity status stayed strong via `./scripts/run-and-report.sh --failures`:
     - `189/192` gameplay sessions passing
     - PRNG/events `192/192` full, remaining failures are screen-only.
+
+### 2026-03-13 `dobuzz` parity tranche for `hi11`: wall-bounce position update + C dice semantics + kill-path handlers
+
+- Scope:
+  - Continued `hi11_seed1100_wiz_zap-deep_gameplay` audit around `zap.c:dobuzz`.
+- C-faithful fixes in `js/zap.js`:
+  - `dobuzz` wall/door bounce now keeps `sx/sy` on the obstacle cell (matching C
+    `make_bounce` flow for this branch) instead of rewinding to `lsx/lsy`.
+  - Added explicit player-beam message emission in the `u_at(sx,sy)` branch:
+    `The <beam> hits you!` / `whizzes by you`, and bounce message emission.
+  - Switched C zap damage dice paths from Lua-style `d()` to C-style `c_d()`
+    in:
+    - `zhitm` damage/sleep rolls,
+    - `dobuzz` hero-hit damage roll.
+  - Aligned kill dispatch in `dobuzz`:
+    - disintegration uses `disintegrate_mon(...)`,
+    - hero kill uses `xkilled(...)`,
+    - monster kill uses `monkilled(...)`.
+- Measured effect on target session:
+  - `hi11` first RNG divergence moved later from index `2534` to `2603`.
+  - Matched RNG calls improved `2537 -> 2619`.
+  - Matched events improved `129 -> 135`.
+  - Remaining mismatch is now later in post-kill turn-tail ordering.
+- Regression checks:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` still full pass.
+  - `seed322_barbarian_wizard_gameplay` still full pass.
+  - `seed331_tourist_wizard_gameplay` still full RNG/event parity (cursor-tail delta unchanged).
