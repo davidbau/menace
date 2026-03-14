@@ -31,10 +31,16 @@ export function repaintToplineState(display) {
 }
 
 export function repaintCursorRow(display) {
+    if (display?.messageNeedsMore && Number.isInteger(display?.messageCursorRow)) {
+        return display.messageCursorRow;
+    }
     return Number.isInteger(display?.cursorRow) ? display.cursorRow : -1;
 }
 
 export function repaintCursorCol(display) {
+    if (display?.messageNeedsMore && Number.isInteger(display?.messageCursorCol)) {
+        return display.messageCursorCol;
+    }
     return Number.isInteger(display?.cursorCol) ? display.cursorCol : -1;
 }
 

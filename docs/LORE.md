@@ -11604,3 +11604,43 @@ Validation:
 - Practical lesson:
   - explicit `more()` boundaries in core command code need explicit visible-marker ownership.
   - if a command path calls `more()` directly rather than going through a message-overflow path, it must still model C tty visibility by requesting the marker before waiting.
+
+## 2026-03-14: repaint parity needs message-window cursor ownership, pre-more flushes, and visible-status consumption
+
+- Context:
+  - In repaint-parity session
+    [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json),
+    the next repaint frontier after the invalid-read fix was the scroll-read window around steps `429..433`.
+  - C expected:
+    - step `429`: `flush(botl=1) -> bot -> flush(botl=0) -> more(row=0,col=38)`
+    - step `430`: `bot(botl=1) -> flush(botl=0) -> flush(botl=0)`
+  - JS initially differed in three ways:
+    - `more()` logged the terminal cursor after `--More--` instead of the message-window cursor before `--More--`
+    - concat overflow missed the extra visible pre-`more()` flush
+    - AC recomputation from `find_ac()` dirtied status too late and left `_botl` set after `display_sync()`
+
+- Root cause:
+  - Repaint ownership in this window spans both message staging and core status state:
+    - `vpline()`-style pending-topline preflushes must be visible before concat-overflow `more()`
+    - repaint cursor logging must use the message-window cursor while a topline page is pending
+    - `find_ac()` changes visible AC, so it must dirty `_botl`
+    - once `display_sync()` has rendered a dirty status line, `_botl` must be cleared so the following `flush_screen()` does not emit a duplicate `bot`
+
+- Fix:
+  - Track `messageCursorRow/messageCursorCol` and use them for `^repaint[more ...]` while `messageNeedsMore` is active.
+  - In `putstr_message()`, preflush pending toplines before both death-staging and concat-overflow boundaries, and add the extra pre-`more()` flush on concat overflow.
+  - In `find_ac()`, set `player._botl = true`.
+  - In `display_sync()`, clear `player._botl` after `renderStatus(player)` consumes the visible bot update.
+  - Keep the command-tail ownership change from the step-`417` fix: pending toplines always use `flush_screen(1)` in `postRender()` / `renderAndAutosave()`.
+
+- Validation:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+    - step `429` now matches exactly
+    - step `430` now matches exactly
+    - first repaint divergence moved to step `433`
+    - gameplay parity stayed fully green
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - still fully green
+
+- Practical lesson:
+  - Repaint parity is not only about where `flush_screen()` happens; it also depends on which cursor is “owned” by the pending message window, which gameplay functions dirty visible status, and exactly when a direct status render consumes that dirty bit.

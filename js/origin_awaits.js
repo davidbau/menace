@@ -43,6 +43,7 @@ export async function display_sync() {
         }
         if (typeof game.display.renderStatus === 'function') {
             game.display.renderStatus(player);
+            if (player._botl) player._botl = false;
         }
         if (typeof game.display.cursorOnPlayer === 'function') {
             game.display.cursorOnPlayer(player);

@@ -627,7 +627,7 @@ export async function more(display, {
         statusPlayer = Object.create(statusPlayer);
         statusPlayer.encumbrance = display._topMessageEncumbrance;
     }
-    if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
+    if (statusPlayer) {
         debugRepaint('more', site || 'input.more', {
             hp: repaintHp(statusPlayer),
             topl: repaintToplineState(display),
@@ -644,6 +644,8 @@ export async function more(display, {
             row: repaintCursorRow(display),
             col: repaintCursorCol(display),
         });
+    }
+    if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
         display.renderStatus(statusPlayer);
         if (statusPlayer._botl) statusPlayer._botl = false;
     }

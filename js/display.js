@@ -264,6 +264,7 @@ export class Display {
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
 
         // Game flags (updated by game, used for display options)
         this.flags = {};
@@ -427,6 +428,9 @@ span.nh-cursor {
         }
 
         const isDeathMessage = msg.startsWith('You die...');
+        if (this.topMessage && this.messageNeedsMore) {
+            flush_screen(1);
+        }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
@@ -436,6 +440,10 @@ span.nh-cursor {
                     site: 'display.more.dismiss',
                     clearAfter: false,
                     readKey: this._nhgetch,
+                    // C vpline() already forced flush_screen(1) for the
+                    // pending message before update_topl() reaches this
+                    // concat-overflow more() boundary.
+                    refreshStatus: false,
                 });
             }
             this.clearRow(MESSAGE_ROW);
@@ -473,6 +481,7 @@ span.nh-cursor {
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
+                this.messageCursorRow = 0;
                 this.setCursor(this.messageCursorCol, 0);
                 return;
             }
@@ -523,8 +532,13 @@ span.nh-cursor {
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
-            if (freshAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
-                this.renderStatus(_gstate?.player || this._lastMapState?.player || null);
+            this.messageCursorRow = 0;
+            if (freshAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                    this.renderStatus(refreshPlayer);
+                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                }
             }
         } else {
             // Break at word boundary near cols (C uses CO-1 as scan start).
@@ -551,8 +565,13 @@ span.nh-cursor {
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
-            if (freshAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
-                this.renderStatus(_gstate?.player || this._lastMapState?.player || null);
+            this.messageCursorRow = 0;
+            if (freshAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                    this.renderStatus(refreshPlayer);
+                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                }
             }
 
             if (row1rest.length > 0) {
@@ -561,7 +580,10 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW + 1);
                 this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
                 this._topMessageRow1 = row1;
+                this.messageCursorCol = Math.min(row1.length, this.cols - 1);
+                this.messageCursorRow = MESSAGE_ROW + 1;
                 this.messageNeedsMore = true;
+                flush_screen(1);
                 this.renderMoreMarker();
                 if (this._nhgetch) {
                     await more(this, {

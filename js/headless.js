@@ -20,7 +20,7 @@ import { initrack } from './monmove.js';
 import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
-import { newsym, getCachedMapCell } from './display.js';
+import { newsym, getCachedMapCell, flush_screen } from './display.js';
 import { game as activeGame } from './gstate.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
@@ -558,6 +558,8 @@ export class HeadlessDisplay {
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
         this.moreMarkerActive = false;
+        this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
         // C ref: pline.c:274 — every pline() call does flush_screen(1) before
         // displaying, which shows --More-- on any pending message and clears it.
         // The selfplay harness auto-dismisses these, so each message replaces
@@ -605,6 +607,8 @@ export class HeadlessDisplay {
         this._topMessageEncumbrance = null;
         this.messageNeedsMore = false;
         this.moreMarkerActive = false;
+        this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
         this._topMessageAfterMore = false;
         this._nextTopMessageAfterMore = false;
     }
@@ -665,6 +669,9 @@ export class HeadlessDisplay {
         const suppressDeathStagingStatus = !!(activeGame?.context?.mon_moving
             && Number(activeGame?.multi || 0) < 0
             && (!this._topMessageAfterMore || sleepWakeBoundary));
+        if (this.topMessage && this.messageNeedsMore) {
+            flush_screen(1);
+        }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
@@ -727,13 +734,17 @@ export class HeadlessDisplay {
                     : null;
                 this._topMessageAfterMore = false;
                 this.messageNeedsMore = true;
-                this.setCursor(Math.min(combined.length, this.cols - 1), 0);
+                this.messageCursorCol = Math.min(combined.length, this.cols - 1);
+                this.messageCursorRow = 0;
+                this.setCursor(this.messageCursorCol, 0);
                 return;
             }
             // C ref: win/tty/topl.c update_topl():
             // - concat overflow triggers more()
             // - "You die..." also forces more() before the new message
-            // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
+            // C ref: update_topl()/more() leaves one more visible flush
+            // boundary before the explicit --More-- dismissal.
+            flush_screen(1);
             this.renderMoreMarker();
             if (this._nhgetch) {
                 // Temporarily restore the encumbrance that was current when
@@ -750,7 +761,10 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
-                        refreshStatus: !(activeGame?.context?.mon_moving && this._topMessageAfterMore),
+                        // C vpline() already forced flush_screen(1) for the
+                        // pending message before update_topl() reaches this
+                        // concat-overflow more() boundary.
+                        refreshStatus: false,
                     });
                 } catch (e) {
                     // If another nhgetch is already pending (e.g., makemon
@@ -760,13 +774,6 @@ export class HeadlessDisplay {
                 } finally {
                     if (_morePlayer && this._topMessageEncumbrance != null) {
                         _morePlayer.encumbrance = _savedEnc;
-                        // C ref: the new message (that caused overflow) calls
-                        // pline→flush_screen→bot() which recomputes status.
-                        // Re-render here to match — using the restored
-                        // (current) encumbrance, not the snapshot.
-                        if (typeof this.renderStatus === 'function') {
-                            this.renderStatus(_morePlayer);
-                        }
                     }
                 }
             }
@@ -809,8 +816,14 @@ export class HeadlessDisplay {
             }
             this._topMessageAfterMore = topMessageAfterMore;
             this.messageNeedsMore = true;
-            if (topMessageAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
-                this.renderStatus(activeGame?.player || this._lastMapState?.player || null);
+            this.messageCursorCol = Math.min(msg.length, this.cols - 1);
+            this.messageCursorRow = 0;
+            if (topMessageAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
+                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                    this.renderStatus(refreshPlayer);
+                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                }
             }
             if (isDeathMessage) {
                 this.renderMoreMarker();
@@ -849,7 +862,7 @@ export class HeadlessDisplay {
                     this.moreMarkerActive = false;
                 }
             }
-            this.setCursor(Math.min(msg.length, this.cols - 1), 0);
+            this.setCursor(this.messageCursorCol, this.messageCursorRow);
             return;
         }
 
@@ -880,8 +893,14 @@ export class HeadlessDisplay {
             : null;
         this._topMessageAfterMore = false;
         this.messageNeedsMore = true;
-        if (topMessageAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
-            this.renderStatus(activeGame?.player || this._lastMapState?.player || null);
+        this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
+        this.messageCursorRow = 0;
+        if (topMessageAfterMore && typeof this.renderStatus === 'function') {
+            const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
+            if (encumberRefreshMsg || refreshPlayer?._botl) {
+                this.renderStatus(refreshPlayer);
+                if (refreshPlayer?._botl) refreshPlayer._botl = false;
+            }
         }
 
         if (wrapped.length === 0) {
@@ -895,6 +914,8 @@ export class HeadlessDisplay {
         const moreCol = Math.min(secondLine.length, this.cols - moreStr.length);
         this.clearRow(1);
         this.putstr(0, 1, secondLine);
+        this.messageCursorCol = moreCol;
+        this.messageCursorRow = 1;
         this.putstr(moreCol, 1, moreStr);
         // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
         this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);

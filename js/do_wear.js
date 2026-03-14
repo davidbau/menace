@@ -1273,6 +1273,7 @@ export function find_ac(player) {
     if (player.rightRing && player.rightRing.otyp === RIN_PROTECTION)
         uac -= Number(player.rightRing.spe || 0);
     player.ac = uac;
+    player._botl = true;
 }
 
 // cf. do_wear.c glibr() — slippery fingers: drop weapon/rings

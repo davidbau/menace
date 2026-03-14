@@ -957,7 +957,7 @@ function postRender(game, result) {
     // curs_on_u() runs before waiting for the next key.
     const player = game.u || game.player;
     if (!game.display || !player || result?.terminalScreenOwned || game?._terminalScreenOwnedByInput) return;
-    if (!result?.tookTime && game.display.messageNeedsMore && !player._botl) {
+    if (game.display.messageNeedsMore) {
         flush_screen(1);
         return;
     }
@@ -2361,7 +2361,7 @@ export class NetHackGame {
             }
             return;
         }
-        if (!forceRender && !terminalScreenOwned && !commandResult?.tookTime && this.display?.messageNeedsMore && !this.player?._botl) {
+        if (!forceRender && !terminalScreenOwned && this.display?.messageNeedsMore) {
             flush_screen(1);
             return;
         }
