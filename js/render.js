@@ -26,6 +26,7 @@ import { defsyms, trap_to_defsym } from './symbols.js';
 import { strongmonst } from './mondata.js';
 import { acurr } from './attrib.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA } from './const.js';
+import { near_capacity } from './hack.js';
 
 // Re-export shared render constants from const.js for existing imports.
 export {
@@ -101,7 +102,7 @@ const TERRAIN_SYMBOLS_DEC = {
     [FOUNTAIN]:       { ch: '{',       color: CLR_BRIGHT_BLUE },
     [THRONE]:         { ch: '\\',      color: HI_GOLD },
     [SINK]:           { ch: '{',       color: CLR_WHITE },
-    [GRAVE]:          { ch: '\u2020',  color: CLR_WHITE },  // DAGGER
+    [GRAVE]:          { ch: '|',        color: CLR_WHITE },  // DECgraphics has no S_grave override → default '|'
     [ALTAR]:          { ch: '\u03c0',  color: CLR_GRAY },   // PI (DEC meta-{)
     // C ref: dat/symbols DECgraphics
     // S_pool/S_water/S_lava/S_lavawall use meta-\ (DEC diamond).
@@ -509,9 +510,15 @@ export function formatStatusLine2(player) {
     else if (player.hunger <= 50) parts.push('Fainting');
     else if (player.hunger <= 150) parts.push('Weak');
     else if (player.hunger <= 300) parts.push('Hungry');
-    if ((player.encumbrance || 0) > 0) {
+    // C ref: botl.c bot() computes near_capacity() live every status redraw.
+    // Use cached player.encumbrance when available (set by encumber_msg at
+    // turn boundaries and by --More-- snapshot restore) so the status line
+    // matches C's timing — C's bot() fires mid-command while JS renders
+    // after command completion when inventory weight may already have changed.
+    const enc = Number.isFinite(player.encumbrance) ? player.encumbrance : near_capacity(player);
+    if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
-        const idx = Math.max(0, Math.min(encNames.length - 1, (player.encumbrance || 1) - 1));
+        const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));
         parts.push(encNames[idx]);
     }
     if (player.Levitation) parts.push('Lev');

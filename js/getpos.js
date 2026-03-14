@@ -3,7 +3,8 @@
 // getpos_refresh(), getpos() lifecycle.
 
 import { MAP_ROW_START, COLNO, ROWNO, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
-    ROOM, CORR, SDOOR, IS_WALL, isok, MAXTCHARS } from './const.js';
+    ROOM, CORR, SDOOR, STONE, IS_WALL, isok, MAXTCHARS } from './const.js';
+import { wallIsVisible } from './render.js';
 import { more, nhgetch } from './input.js';
 import { flush_screen } from './display.js';
 import {
@@ -172,7 +173,12 @@ function cursorDesc(display, map, x, y) {
         const loc = map.at(x, y);
         if (loc) {
             if (!loc.seenv) return 'unexplored area';
-            if (IS_WALL(loc.typ) || loc.typ === SDOOR) return 'wall';
+            // C ref: auto_describe uses the displayed glyph, not raw terrain.
+            // Wall tiles that don't face a visited room render as stone (blank).
+            if (loc.typ === STONE) return 'stone';
+            if (IS_WALL(loc.typ) || loc.typ === SDOOR) {
+                return wallIsVisible(loc.typ, loc.seenv, loc.flags || 0) ? 'wall' : 'stone';
+            }
             if (loc.typ === DOOR) {
                 if (loc.flags & D_ISOPEN) return 'open door';
                 if (loc.flags & (D_CLOSED | D_LOCKED)) return 'closed door';
@@ -189,6 +195,16 @@ function cursorDesc(display, map, x, y) {
 }
 
 async function describeCursorWithContext(display, runtimeCtx, x, y) {
+    // C ref: auto_describe → do_screen_description → lookat → self_lookat
+    // When the cursor is on the hero, describe the hero like C does:
+    // "{race adj} {role name} called {plname}"
+    const player = runtimeCtx?.player;
+    if (player && x === player.x && y === player.y) {
+        // Lazy import to avoid circular dependency (pager.js imports getpos.js)
+        const { do_screen_description } = await import('./pager.js');
+        const desc = do_screen_description({ map: runtimeCtx.map, player }, { x, y });
+        if (desc?.found && desc.firstmatch) return desc.firstmatch;
+    }
     const base = cursorDesc(display, runtimeCtx?.map, x, y);
     if (!base) return '';
     const parts = [base];
@@ -357,15 +373,25 @@ function collectTargetsForGloc(map, gloc, ctx) {
     if (gloc === GLOC_VALID) {
         return getpos_getvalids_selection((x, y) => mapxy_valid(x, y) && gloc_filter_allows(map, x, y, ctx));
     }
+    const player = ctx?.player || null;
     const targets = [];
     if (!map) return targets;
-    for (let y = 0; y < ROWNO; y++) {
-        for (let x = 1; x < COLNO; x++) {
-            if (!gloc_filter_allows(map, x, y, ctx)) continue;
-            if (gather_locs_interesting(map, x, y, gloc)) targets.push({ x, y });
+    // C ref: gather_locs includes hero position and sorts by distance from player.
+    for (let x = 1; x < COLNO; x++) {
+        for (let y = 0; y < ROWNO; y++) {
+            if ((player && x === player.x && y === player.y)
+                || gather_locs_interesting(map, x, y, gloc)) {
+                if (gloc_filter_allows(map, x, y, ctx)) {
+                    targets.push({ x, y });
+                }
+            }
         }
     }
-    targets.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    if (player) {
+        targets.sort((a, b) => cmp_coord_distu(a, b, player));
+    } else {
+        targets.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    }
     return targets;
 }
 
@@ -418,8 +444,8 @@ async function getpos_help(force, goal, display, flags = null) {
     await getpos_help_keyxhelp(display, 'o', 'O', GLOC_OBJS, 'move the cursor to ', flags);
     await getpos_help_keyxhelp(display, 'd', 'D', GLOC_DOOR, 'move the cursor to ', flags);
     await getpos_help_keyxhelp(display, 'x', 'X', GLOC_EXPLORE, 'move the cursor next to ', flags);
-    await getpos_help_keyxhelp(display, 'i', 'I', GLOC_INTERESTING, 'move the cursor to ', flags);
-    await getpos_help_keyxhelp(display, 'v', 'V', GLOC_VALID, 'move the cursor to ', flags);
+    await getpos_help_keyxhelp(display, 'a', 'A', GLOC_INTERESTING, 'move the cursor to ', flags);
+    await getpos_help_keyxhelp(display, 'z', 'Z', GLOC_VALID, 'move the cursor to ', flags);
     await display.putstr_message("Use '^' to toggle marking of valid locations.");
     await display.putstr_message("Use '=' for a menu listing of possible targets.");
     if (!force) {
@@ -725,6 +751,8 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 cursorState = putCursor(display, cx, cy);
                 continue;
             }
+            // C ref: cmd.c spkeys[] default bindings for getpos cycling.
+            // 'z'/'Z' = GLOC_VALID, 'a'/'A' = GLOC_INTERESTING.
             const glocKeys = {
                 m: [GLOC_MONS, 1],
                 M: [GLOC_MONS, -1],
@@ -734,10 +762,10 @@ export async function getpos_async(ccp, force = true, goal = '', ctx = null) {
                 D: [GLOC_DOOR, -1],
                 x: [GLOC_EXPLORE, 1],
                 X: [GLOC_EXPLORE, -1],
-                i: [GLOC_INTERESTING, 1],
-                I: [GLOC_INTERESTING, -1],
-                v: [GLOC_VALID, 1],
-                V: [GLOC_VALID, -1],
+                a: [GLOC_INTERESTING, 1],
+                A: [GLOC_INTERESTING, -1],
+                z: [GLOC_VALID, 1],
+                Z: [GLOC_VALID, -1],
             };
             if (glocKeys[c]) {
                 const [gloc, dir] = glocKeys[c];

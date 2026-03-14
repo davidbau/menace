@@ -31,14 +31,14 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER, is_metallivore } from './mondata.js';
 import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
-import { newsym } from './display.js';
+import { newsym, map_trap } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { find_mac, which_armor } from './worn.js';
 import { mtele_trap, mlevel_tele_trap,
          tele_trap, level_tele_trap, domagicportal } from './teleport.js';
 import { rloco } from './teleport.js';
-import { resist, burnarmor } from './zap.js';
+import { resist, burnarmor, burnarmor_player } from './zap.js';
 import { dmgval } from './weapon.js';
 import { del_engr_at } from './engrave.js';
 import { makeknown } from './do_wear.js';
@@ -54,7 +54,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
 import { game as _gstate } from './gstate.js';
-import { makemon, set_malign } from './makemon.js';
+import { makemon, runtimeApplyNewchamRandom, set_malign } from './makemon.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
          is_crackable, erosion_matters, mksobj, weight, place_object, obj_extract_self } from './mkobj.js';
 import { CORPSE,
@@ -180,7 +180,7 @@ export function t_missile(otyp, trap) {
 // ========================================================================
 // thitm — C ref: trap.c thitm() — Monster is hit by trap
 // ========================================================================
-function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
+async function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
     let strike;
     let trapkilled = false;
 
@@ -203,7 +203,7 @@ function thitm(tlev, mon, obj, d_override, nocorpse, map, player) {
         }
         mon.mhp -= dam;
         if (mon.mhp <= 0) {
-            monkilled(mon, "", nocorpse ? -AD_RBRE : AD_PHYS, map, player);
+            await monkilled(mon, "", nocorpse ? -AD_RBRE : AD_PHYS, map, player);
             if (DEADMONSTER(mon)) {
                 trapkilled = true;
             }
@@ -367,7 +367,7 @@ async function trapeffect_arrow_trap_mon(mon, trap, map, player, fov) {
     trap.once = 1;
     const otmp = t_missile(ARROW, trap);
     if (in_sight) seetrap(trap);  // C ref: trap.c:1231 — only if visible
-    if (thitm(8, mon, otmp, 0, false, map, player))
+    if (await thitm(8, mon, otmp, 0, false, map, player))
         trapkilled = true;
 
     return trapkilled ? Trap_Killed_Mon
@@ -392,7 +392,7 @@ async function trapeffect_dart_trap_mon(mon, trap, map, player, fov) {
     if (!rn2(6))
         otmp.opoisoned = 1;
     if (in_sight) seetrap(trap);  // C ref: trap.c:1305 — only if visible
-    if (thitm(7, mon, otmp, 0, false, map, player))
+    if (await thitm(7, mon, otmp, 0, false, map, player))
         trapkilled = true;
 
     return trapkilled ? Trap_Killed_Mon
@@ -416,7 +416,7 @@ async function trapeffect_rocktrap_mon(mon, trap, map, player, fov) {
     trap.once = 1;
     const otmp = t_missile(ROCK, trap);
     if (in_sight) seetrap(trap);  // C ref: trap.c:1377 — only if visible
-    if (thitm(0, mon, otmp, d(2, 6), false, map, player))
+    if (await thitm(0, mon, otmp, d(2, 6), false, map, player))
         trapkilled = true;
 
     return trapkilled ? Trap_Killed_Mon
@@ -474,7 +474,7 @@ async function trapeffect_bear_trap_mon(mon, trap, trflags, map, player) {
         seetrap(trap);
     }
     if (mon.mtrapped)
-        trapkilled = thitm(0, mon, null, c_d(2, 4), false, map, player);
+        trapkilled = await thitm(0, mon, null, c_d(2, 4), false, map, player);
 
     return trapkilled ? Trap_Killed_Mon
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
@@ -558,7 +558,7 @@ async function trapeffect_rust_trap_mon(mon, trap, map, player, fov) {
     }
 
     if (completelyrusts(mptr)) {
-        monkilled(mon, null, AD_RUST, map, player);
+        await monkilled(mon, null, AD_RUST, map, player);
         if (DEADMONSTER(mon))
             trapkilled = true;
     } else if (mon.mndx === PM_GREMLIN && rn2(3)) {
@@ -569,7 +569,7 @@ async function trapeffect_rust_trap_mon(mon, trap, map, player, fov) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_fire_trap_mon(mon, trap, map, player) {
+async function trapeffect_fire_trap_mon(mon, trap, map, player) {
     let trapkilled = false;
     const mptr = mons[mon.mndx] || {};
     const orig_dmg = d(2, 4);
@@ -602,7 +602,7 @@ function trapeffect_fire_trap_mon(mon, trap, map, player) {
         }
         if (alt > num) num = alt;
 
-        if (thitm(0, mon, null, num, immolate, map, player)) {
+        if (await thitm(0, mon, null, num, immolate, map, player)) {
             trapkilled = true;
         } else {
             // C ref: reduce mhpmax
@@ -626,10 +626,12 @@ function trapeffect_fire_trap_mon(mon, trap, map, player) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_pit_mon(mon, trap, trflags, map, player) {
+async function trapeffect_pit_mon(mon, trap, trflags, map, player, fov) {
     const ttype = trap.ttyp;
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
+    const in_sight = !!(canseemon(mon, player, fov) || mon === player?.usteed);
+    let fallverb = "falls";
 
     if (!grounded(mptr)) {
         return Trap_Effect_Finished; // avoids trap
@@ -637,12 +639,21 @@ function trapeffect_pit_mon(mon, trap, trflags, map, player) {
     if (!passes_walls(mptr))
         mon.mtrapped = 1;
 
-    seetrap(trap);
+    // C ref: trap.c:1970-1978
+    if (in_sight) {
+        await pline_mon(mon,
+            "%s %s into %s pit!", Monnam(mon), fallverb,
+            a_your[trap.madeby_u ? 1 : 0]);
+        if (mptr === mons[PM_PIT_VIPER]
+            || mptr === mons[PM_PIT_FIEND])
+            await pline("How pitiful.  Isn't that the pits?");
+        seetrap(trap);
+    }
 
     // C ref: mselftouch(mtmp, "Falling, ", FALSE)
     mselftouch(mon, "Falling, ", false);
     if (DEADMONSTER(mon)
-        || thitm(0, mon, null, rnd(ttype === PIT ? 6 : 10), false, map, player))
+        || await thitm(0, mon, null, rnd(ttype === PIT ? 6 : 10), false, map, player))
         trapkilled = true;
 
     return trapkilled ? Trap_Killed_Mon
@@ -731,14 +742,14 @@ function trapeffect_statue_trap_mon(/* mon, trap */) {
     return Trap_Effect_Finished;
 }
 
-function trapeffect_magic_trap_mon(mon, trap, map, player) {
+async function trapeffect_magic_trap_mon(mon, trap, map, player) {
     // C ref: if (!rn2(21)) fire_trap effect, otherwise nothing
     if (!rn2(21))
-        return trapeffect_fire_trap_mon(mon, trap, map, player);
+        return await trapeffect_fire_trap_mon(mon, trap, map, player);
     return Trap_Effect_Finished;
 }
 
-function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
+async function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
     const in_sight = !!(canseemon(mon, player, fov) || mon === player?.usteed);
@@ -764,7 +775,7 @@ function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
         if (in_sight) seetrap(trap);
         mon.mhp -= dmgval2;
         if (DEADMONSTER(mon)) {
-            monkilled(mon, in_sight ? "compression from an anti-magic field" : null, -AD_MAGM, map, player);
+            await monkilled(mon, in_sight ? "compression from an anti-magic field" : null, -AD_MAGM, map, player);
             if (DEADMONSTER(mon))
                 trapkilled = true;
         }
@@ -774,19 +785,26 @@ function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
         : mon.mtrapped ? Trap_Caught_Mon : Trap_Effect_Finished;
 }
 
-function trapeffect_poly_trap_mon(mon, trap, player, fov) {
+function trapeffect_poly_trap_mon(mon, trap, player, fov, map, display) {
     const in_sight = !!(canseemon(mon, player, fov) || mon === player?.usteed);
     if (resists_magm(mon)) {
         // C ref: shieldeff_mon(mtmp) — visual-only immunity feedback.
     } else if (!resist(mon, WAND_CLASS)) {
-        // C ref: newcham(mtmp, NULL, NC_SHOW_MSG) — not ported
-        // Just consume the resist() RNG and skip polymorph
+        runtimeApplyNewchamRandom(
+            mon,
+            player?.dungeonLevel || player?.depth || 1,
+            map,
+            player,
+            fov,
+            display,
+            true
+        );
         if (in_sight) seetrap(trap);
     }
     return Trap_Effect_Finished;
 }
 
-function trapeffect_landmine_mon(mon, trap, trflags, map, player) {
+async function trapeffect_landmine_mon(mon, trap, trflags, map, player) {
     const mptr = mons[mon.mndx] || {};
     let trapkilled = false;
 
@@ -808,7 +826,7 @@ function trapeffect_landmine_mon(mon, trap, trflags, map, player) {
     seetrap(trap);
 
     if (DEADMONSTER(mon)
-        || thitm(0, mon, null, rnd(16), false, map, player)) {
+        || await thitm(0, mon, null, rnd(16), false, map, player)) {
         trapkilled = true;
     } else {
         // C ref: monster recursively falls into pit
@@ -818,7 +836,7 @@ function trapeffect_landmine_mon(mon, trap, trflags, map, player) {
         const pitdmg = rnd(6);
         mon.mhp -= pitdmg;
         if (DEADMONSTER(mon)) {
-            monkilled(mon, "", AD_PHYS, map, player);
+            await monkilled(mon, "", AD_PHYS, map, player);
             if (DEADMONSTER(mon))
                 trapkilled = true;
         }
@@ -904,7 +922,7 @@ async function trapeffect_rolling_boulder_trap_mon(mon, trap, map, player) {
             if (x === mon.mx && y === mon.my) {
                 // C ref: launch_obj() ultimately resolves impact via ohitmon/thitm paths.
                 // Keep existing trap.js damage pipeline for monster-side trap effects.
-                const killed = thitm(0, mon, null, rnd(20), false, map, player);
+                const killed = await thitm(0, mon, null, rnd(20), false, map, player);
                 return killed ? Trap_Killed_Mon : Trap_Effect_Finished;
             }
             const hitTrap = map.trapAt ? map.trapAt(x, y) : null;
@@ -1002,10 +1020,10 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case RUST_TRAP:
         return await trapeffect_rust_trap_mon(mon, trap, map, player, fov);
     case FIRE_TRAP:
-        return trapeffect_fire_trap_mon(mon, trap, map, player);
+        return await trapeffect_fire_trap_mon(mon, trap, map, player);
     case PIT:
     case SPIKED_PIT:
-        return trapeffect_pit_mon(mon, trap, trflags, map, player);
+        return await trapeffect_pit_mon(mon, trap, trflags, map, player, fov);
     case HOLE:
     case TRAPDOOR:
         return await trapeffect_hole_mon(mon, trap, trflags, map, player, fov);
@@ -1020,13 +1038,13 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case STATUE_TRAP:
         return trapeffect_statue_trap_mon();
     case MAGIC_TRAP:
-        return trapeffect_magic_trap_mon(mon, trap, map, player);
+        return await trapeffect_magic_trap_mon(mon, trap, map, player);
     case ANTI_MAGIC:
-        return trapeffect_anti_magic_mon(mon, trap, map, player, fov);
+        return await trapeffect_anti_magic_mon(mon, trap, map, player, fov);
     case POLY_TRAP:
-        return trapeffect_poly_trap_mon(mon, trap, player, fov);
+        return trapeffect_poly_trap_mon(mon, trap, player, fov, map, display);
     case LANDMINE:
-        return trapeffect_landmine_mon(mon, trap, trflags, map, player);
+        return await trapeffect_landmine_mon(mon, trap, trflags, map, player);
     case ROLLING_BOULDER_TRAP:
         return await trapeffect_rolling_boulder_trap_mon(mon, trap, map, player);
     case VIBRATING_SQUARE:
@@ -1190,7 +1208,7 @@ export function erode_obj(otmp, ostr, type, ef_flags) {
 
 function erosion_action(type) {
     switch (type) {
-    case ERODE_BURN: return 'burns';
+    case ERODE_BURN: return 'smoulders';
     case ERODE_RUST: return 'rusts';
     case ERODE_ROT: return 'rots';
     case ERODE_CORRODE: return 'corrodes';
@@ -1216,7 +1234,7 @@ export async function erode_obj_player(otmp, ostr, type, ef_flags) {
     const result = erode_obj(otmp, ostr, type, ef_flags);
     if (!otmp) return result;
 
-    const name = ostr || 'item';
+    const name = ostr || xname(otmp);
     if (result === ER_DAMAGED) {
         const isPrimary = (type !== ERODE_ROT && type !== ERODE_CORRODE);
         const level = isPrimary ? (otmp.oeroded || 0) : (otmp.oeroded2 || 0);
@@ -1500,7 +1518,10 @@ export async function float_down(hmask, emask, player, game) {
 
 // Autotranslated from trap.c:1030
 export function set_utrap(tim, typ, game, player) {
-  if (!player.utrap ^ !tim) game.disp.botl = true;
+  if (!player.utrap ^ !tim) {
+    if (game?.disp) game.disp.botl = true;
+    player._botl = true;
+  }
   player.utrap = tim;
   player.utraptype = tim ? typ : TT_NONE;
   // C: float_vs_flight() adjusts BFlying/BLevitation block state
@@ -1663,7 +1684,7 @@ function unsqueak_ok(obj) {
 // Autotranslated from trap.c:5537
 export async function disarm_squeaky_board(ttmp, player) {
   let obj, bad_tool, fails;
-  obj = getobj("untrap with", unsqueak_ok, GETOBJ_PROMPT);
+  obj = await getobj("untrap with", unsqueak_ok, GETOBJ_PROMPT);
   if (!obj) return 0;
   bad_tool = (obj.cursed || ((obj.otyp !== POT_OIL || obj.lamplit) && (obj.otyp !== CAN_OF_GREASE || !obj.spe)));
   fails = try_disarm(ttmp, bad_tool);
@@ -2010,12 +2031,12 @@ async function steedintrap(trap, otmp, player, game, map) {
     switch (tt) {
     case ARROW_TRAP:
         if (!otmp) return Trap_Effect_Finished; // impossible
-        trapkilled = thitm(8, steed, otmp, 0, false, map, player);
+        trapkilled = await thitm(8, steed, otmp, 0, false, map, player);
         steedhit = true;
         break;
     case DART_TRAP:
         if (!otmp) return Trap_Effect_Finished; // impossible
-        trapkilled = thitm(7, steed, otmp, 0, false, map, player);
+        trapkilled = await thitm(7, steed, otmp, 0, false, map, player);
         steedhit = true;
         break;
     case SLP_GAS_TRAP:
@@ -2027,13 +2048,13 @@ async function steedintrap(trap, otmp, player, game, map) {
         steedhit = true;
         break;
     case LANDMINE:
-        trapkilled = thitm(0, steed, null, rnd(16), false, map, player);
+        trapkilled = await thitm(0, steed, null, rnd(16), false, map, player);
         steedhit = true;
         break;
     case PIT:
     case SPIKED_PIT:
         trapkilled = (DEADMONSTER(steed)
-            || thitm(0, steed, null, rnd(tt === PIT ? 6 : 10), false, map, player));
+            || await thitm(0, steed, null, rnd(tt === PIT ? 6 : 10), false, map, player));
         steedhit = true;
         break;
     case POLY_TRAP:
@@ -2104,7 +2125,7 @@ async function dofiretrap(box, player, game, map) {
     else
         await losehp(num, tower_of_flame, KILLED_BY_AN, player, game?.display, game);
     // C ref: if (burnarmor(&youmonst) || rn2(3)) { destroy_items; ignite_items }
-    if (burnarmor(player, player) || rn2(3)) {
+    if ((await burnarmor_player(player, player)) || rn2(3)) {
         // destroy_items/ignite_items — not ported (cosmetic)
     }
 }
@@ -2312,13 +2333,14 @@ async function trapeffect_sqky_board_you(trap, trflags, player, game) {
 }
 
 // C ref: trap.c:1468 trapeffect_bear_trap — player branch
-async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
+export async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
     const forcetrap = ((trflags & FORCETRAP) !== 0
         || (trflags & FAILEDUNTRAP) !== 0
         || (trflags & VIASITTING) !== 0);
     const lev = !!(player?.Levitation || player?.levitating);
     const fly = !!(player?.Flying || player?.flying);
-    const dmg = d(2, 4);
+    // C ref: d(2,4) in trap.c — use c_d to match C's composite RNG logging
+    const dmg = c_d(2, 4);
 
     if ((lev || fly) && !forcetrap) return Trap_Effect_Finished;
     feeltrap(trap);
@@ -2337,7 +2359,7 @@ async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
     if (player.usteed) {
         await pline('%s bear trap closes on %s foot!',
                     A_Your[trap.madeby_u ? 1 : 0], Monnam(player.usteed) + "'s");
-        if (thitm(0, player.usteed, null, dmg, false, map, player))
+        if (await thitm(0, player.usteed, null, dmg, false, map, player))
             await reset_utrap(true, player, game);  // steed died
     } else {
         await pline('%s bear trap closes on your foot!',
@@ -2935,9 +2957,13 @@ export async function drain_en(n, max_already_drained) {
         } else if (player.pw > (player.pwmax || 0)) {
             player.pw = player.pwmax || 0;
         }
+        // C ref: trap.c drain_en() sets context.botl = 1
+        player._botl = true;
         await You_feel("%s%s", mesg, actualPunct);
         return;
     }
+    // C ref: trap.c drain_en() sets context.botl = 1
+    player._botl = true;
     await You_feel("%s%s", mesg, punct);
 }
 
@@ -2979,7 +3005,9 @@ export function trapname(ttyp, override) {
         }
         if (nameidx !== 0) ttyp = nameidx;
     }
-    return defsyms[trap_to_defsym(ttyp)]?.explanation || "trap";
+    return defsyms[trap_to_defsym(ttyp)]?.desc
+        || defsyms[trap_to_defsym(ttyp)]?.explanation
+        || "trap";
 }
 
 // cf. trap.c:3170 — force_launch_placement(): place boulder at launch origin if launch aborted

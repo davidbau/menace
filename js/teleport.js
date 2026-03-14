@@ -7,7 +7,7 @@
 // position validation (goodpos), and hero teleport helpers.
 
 import {
-    COLNO, ROWNO, isok, ACCESSIBLE,
+    COLNO, ROWNO, isok, ACCESSIBLE, A_WIS,
     POOL, MOAT, WATER, LAVAPOOL, ICE,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN, DBWALL, DOOR,
     IS_POOL, IS_LAVA, IS_DRAWBRIDGE,
@@ -32,9 +32,11 @@ import { passes_walls, is_swimmer, is_flyer, is_floater,
          is_rider, is_dlord, is_dprince, control_teleport,
          } from './mondata.js';
 import { newsym, mark_vision_dirty } from './display.js';
+import { getpos_async } from './getpos.js';
 import { mondead, onscary } from './mon.js';
 import { set_apparxy, mon_track_clear } from './monmove.js';
 import { pline } from './pline.js';
+import { exercise } from './attrib_exercise.js';
 import { Monnam, Amonnam, mon_nam } from './do_name.js';
 import { deltrap } from './dungeon.js';
 import { couldsee } from './vision.js';
@@ -350,7 +352,13 @@ async function rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov) {
             // vanish message and won't see an immediate post-teleport arrival.
             appearmsg = false;
         }
-        // Remove from old position (update grid)
+        // C removes the monster from its old square before redrawing it.
+        // newsym() reads live map state, so clear mx/my first to avoid
+        // repainting a stale monster glyph at the old location.
+        if (!mtmp.wormno) {
+            mtmp.mx = 0;
+            mtmp.my = 0;
+        }
         newsym(oldx, oldy);
     }
 
@@ -810,8 +818,30 @@ export async function scrolltele(scroll, game) {
     }
 
     // cf. teleport.c:867 — controlled teleport (player chooses destination)
-    // In JS automated play, we can't prompt; fall through to random
-    // TODO: implement controlled teleport with UI
+    const controlled = player.teleport_control
+                    || (scroll && scroll.blessed)
+                    || game.wizard;
+    if (controlled) {
+        await pline("Where do you want to be teleported?");
+        const cc = { x: player.x, y: player.y };
+        const display = game.display;
+        const rc = await getpos_async(cc, true, "the desired position", {
+            map, display, flags: game.flags, player
+        });
+        if (rc < 0) return; // cancelled
+
+        // cf. teleport.c:893 — same spot: do nothing
+        if (cc.x === player.x && cc.y === player.y) return;
+
+        // cf. teleport.c:899 — check if destination is valid
+        if (teleok(cc.x, cc.y, false, game)) {
+            await teleds(cc.x, cc.y, TELEDS_TELEPORT, game);
+        } else {
+            await pline("Sorry...");
+            await safe_teleds(TELEDS_TELEPORT, game);
+        }
+        return;
+    }
 
     // cf. teleport.c:909 — random teleport
     await safe_teleds(TELEDS_TELEPORT, game);
@@ -853,7 +883,11 @@ export async function dotele(break_the_rules, game) {
     }
 
     // cf. teleport.c:1140-1157 — perform the teleport
-    tele(game);
+    await tele(game);
+    // cf. teleport.c:1128 — exercise WIS after spell-based teleport (not trap)
+    if (!trap) {
+        exercise(player, A_WIS, true);
+    }
     return 1;
 }
 

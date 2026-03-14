@@ -216,12 +216,25 @@ export async function maybeDoTutorial(game) {
     start_menu(win, MENU_BEHAVE_STANDARD);
     add_menu(win, null, { ival: 'y' }, 'y'.charCodeAt(0), 0, ATR_NONE, 0, 'Yes, do a tutorial', 0);
     add_menu(win, null, { ival: 'n' }, 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'No, just start play', 0);
-    add_menu(win, null, null, 0, 0, ATR_NONE, 0, '', 0);  // C ref: options.c add_menu_str(win, "")
-    add_menu(win, null, null, 0, 0, ATR_NONE, 0, 'Put "OPTIONS=!tutorial" in .nethackrc to skip this query.', 0);
+    // Browser-only: offer a "don't ask again" option that persists !tutorial.
+    // Omitted in headless replay to keep C-parity for session tests.
+    const inBrowser = typeof window !== 'undefined';
+    if (inBrowser) {
+        add_menu(win, null, { ival: 'N' }, 'N'.charCodeAt(0), 0, ATR_NONE, 0, "No, and don't ask again", 0);
+    } else {
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, '', 0);
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, 'Put "OPTIONS=!tutorial" in .nethackrc to skip this query.', 0);
+    }
     end_menu(win, 'Do you want a tutorial?');  // C ref: options.c — no leading space
     const sel = await select_menu(win, PICK_ONE);
     destroy_nhwindow(win);
-    if (sel && sel[0].identifier.ival === 'y') {
+    const choice = sel?.[0]?.identifier?.ival;
+    if (choice === 'N') {
+        // Persist !tutorial so the prompt never appears again
+        game.flags.tutorial = false;
+        saveFlags(game.flags);
+    }
+    if (choice === 'y') {
         await enterTutorial(game);
     } else {
         // Clear the chargen menu from screen then re-render the map that was
@@ -439,15 +452,8 @@ export async function showRoleMenu(game, raceIdx, gender, align, isFirstMenu) {
 
     // Role items
     const roleLetters = {};
-    for (let i = 0; i < roles.length; i++) {
+    for (const i of validRoleCandidates(game, raceIdx, gender, align)) {
         const role = roles[i];
-        // Filter by ~ filtering
-        if (!okRole(game, i)) continue;
-        // Filter by race constraint if race is already picked
-        if (raceIdx >= 0 && !role.validRaces.includes(raceIdx)) continue;
-        // Filter by alignment constraint if alignment is already picked
-        if (align !== -128 && !role.validAligns.includes(align)) continue;
-
         const ch = role.menuChar;
         const article = role.menuArticle || 'a';
         const nameDisplay = role.namef
@@ -459,9 +465,17 @@ export async function showRoleMenu(game, raceIdx, gender, align, isFirstMenu) {
 
     // Extra items
     lines.push(' * * Random');
-    lines.push(' / - Pick race first');
-    lines.push(' " - Pick gender first');
-    lines.push(' [ - Pick alignment first');
+    lines.push('');
+    lines.push(raceIdx >= 0 ? ' / - Pick another race first' : ' / - Pick race first');
+    if (gender < 0 && validGenderCandidates(game, -1, raceIdx, align).length > 1) {
+        lines.push(' " - Pick gender first');
+    }
+    const alignChoices = validAlignCandidates(game, -1, raceIdx, gender);
+    if (raceIdx >= 0 && align === A_NONE && alignChoices.length === 1) {
+        lines.push(`    race forces ${alignName(alignChoices[0])}`);
+    } else if (align === A_NONE && alignChoices.length > 1) {
+        lines.push(' [ - Pick alignment first');
+    }
     lines.push(` ~ - ${filterLabel(game)}`);
     lines.push(' q - Quit');
     lines.push(' (end)');
@@ -490,14 +504,14 @@ export async function showRoleMenu(game, raceIdx, gender, align, isFirstMenu) {
 
 // Show race menu and wait for selection
 export async function showRaceMenu(game, roleIdx, gender, align, isFirstMenu) {
-    const role = roles[roleIdx];
-    const validRaces = validRacesForRole(roleIdx);
+    const role = roleIdx >= 0 ? roles[roleIdx] : null;
+    const validRaces = validRaceCandidates(game, roleIdx, gender, align);
 
     // Check if alignment is forced across all valid races for this role
     // If so, show the forced alignment in the header
     const allAligns = new Set();
     for (const ri of validRaces) {
-        for (const a of validAlignsForRoleRace(roleIdx, ri)) {
+        for (const a of validAlignCandidates(game, roleIdx, ri, gender)) {
             allAligns.add(a);
         }
     }
@@ -512,13 +526,6 @@ export async function showRaceMenu(game, roleIdx, gender, align, isFirstMenu) {
     const raceLetters = {};
     for (const ri of validRaces) {
         const race = races[ri];
-        // Filter by ~ filtering
-        if (!okRace(game, ri)) continue;
-        // Filter by alignment constraint if already set
-        if (align !== -128) {
-            const vAligns = validAlignsForRoleRace(roleIdx, ri);
-            if (!vAligns.includes(align)) continue;
-        }
         lines.push(`${race.menuChar} - ${race.name}`);
         raceLetters[race.menuChar] = ri;
     }
@@ -527,23 +534,24 @@ export async function showRaceMenu(game, roleIdx, gender, align, isFirstMenu) {
     // Navigation — C ref: wintty.c menu navigation items
     // Order: ?, ", constraint notes, [, ~, q, (end)
     lines.push('');
-    lines.push('? - Pick another role first');
+    lines.push(roleIdx >= 0 ? '? - Pick another role first' : '? - Pick role first');
 
     // Only show gender nav if gender not forced
-    if (gender < 0 && needsGenderMenu(roleIdx)) {
+    if (gender < 0 && validGenderCandidates(game, roleIdx, -1, align).length > 1) {
         lines.push('" - Pick gender first');
     }
 
     // Constraint notes
-    if (role.forceGender === 'female') {
+    if (role?.forceGender === 'female') {
         lines.push('    role forces female');
     }
     if (allAligns.size === 1) {
-        lines.push('    role forces ' + alignName([...allAligns][0]));
+        const forcedBy = roleIdx >= 0 ? 'role' : 'race';
+        lines.push(`    ${forcedBy} forces ${alignName([...allAligns][0])}`);
     }
 
     // Alignment navigation if not forced
-    if (align === -128 && allAligns.size > 1) {
+    if (align === A_NONE && allAligns.size > 1) {
         lines.push('[ - Pick alignment first');
     }
 
@@ -574,8 +582,8 @@ export async function showRaceMenu(game, roleIdx, gender, align, isFirstMenu) {
 
 // Show gender menu
 export async function showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu) {
-    const role = roles[roleIdx];
-    const validAligns = validAlignsForRoleRace(roleIdx, raceIdx);
+    const role = roleIdx >= 0 ? roles[roleIdx] : null;
+    const validAligns = validAlignCandidates(game, roleIdx, raceIdx, -1);
     const lines = [];
     lines.push('Pick a gender or sex');
     lines.push('');
@@ -586,33 +594,31 @@ export async function showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu)
     lines.push('');
 
     const genderOptions = [];
-    if (okGend(game, MALE)) { lines.push('m - male'); genderOptions.push(MALE); }
-    if (okGend(game, FEMALE)) { lines.push('f - female'); genderOptions.push(FEMALE); }
+    if (isCombinationPossible(game, roleIdx, raceIdx, MALE, align)) { lines.push('m - male'); genderOptions.push(MALE); }
+    if (isCombinationPossible(game, roleIdx, raceIdx, FEMALE, align)) { lines.push('f - female'); genderOptions.push(FEMALE); }
     lines.push('* * Random');
 
     // Navigation — C ref: wintty.c menu navigation items
     // Order: ?, /, constraint notes, [, ~, q, (end)
     lines.push('');
-    lines.push('? - Pick another role first');
+    lines.push(roleIdx >= 0 ? '? - Pick another role first' : '? - Pick role first');
 
-    // Only show "/" if there are multiple valid races for this role
-    const validRaces = validRacesForRole(roleIdx);
-    if (validRaces.length > 1) {
-        lines.push('/ - Pick another race first');
+    const validRaces = validRaceCandidates(game, roleIdx, -1, align);
+    if (validRaces.length > 1 || raceIdx < 0) {
+        lines.push(raceIdx >= 0 ? '/ - Pick another race first' : '/ - Pick race first');
     }
 
     // Constraint notes (after ? and / nav items)
-    if (validRaces.length === 1) {
+    if (roleIdx >= 0 && validRaces.length === 1) {
         lines.push('    role forces ' + races[validRaces[0]].name);
     }
     if (validAligns.length === 1) {
-        // C ref: "role forces" if role has only one alignment, "race forces" if race restricts it
-        const forcer = role.validAligns.length === 1 ? 'role' : 'race';
+        const forcer = roleIdx >= 0 && role.validAligns.length === 1 ? 'role' : 'race';
         lines.push(`    ${forcer} forces ` + alignName(validAligns[0]));
     }
 
     // Alignment nav if multiple options
-    if (align === -128 && validAligns.length > 1) {
+    if (align === A_NONE && validAligns.length > 1) {
         lines.push('[ - Pick alignment first');
     }
 
@@ -630,8 +636,8 @@ export async function showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu)
     if (c === '"') return { action: 'pick-gender' };
     if (c === '[') return { action: 'pick-align' };
     if (c === '~') return { action: 'filter' };
-    if (c === 'm' && okGend(game, MALE)) return { action: 'selected', value: MALE };
-    if (c === 'f' && okGend(game, FEMALE)) return { action: 'selected', value: FEMALE };
+    if (c === 'm' && isCombinationPossible(game, roleIdx, raceIdx, MALE, align)) return { action: 'selected', value: MALE };
+    if (c === 'f' && isCombinationPossible(game, roleIdx, raceIdx, FEMALE, align)) return { action: 'selected', value: FEMALE };
     if (c === '*') {
         if (genderOptions.length > 0) return { action: 'selected', value: genderOptions[rn2(genderOptions.length)] };
         return { action: 'selected', value: rn2(2) };
@@ -641,7 +647,7 @@ export async function showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu)
 
 // Show alignment menu
 export async function showAlignMenu(game, roleIdx, raceIdx, gender, isFirstMenu) {
-    const validAligns = validAlignsForRoleRace(roleIdx, raceIdx);
+    const validAligns = validAlignCandidates(game, roleIdx, raceIdx, gender);
     const lines = [];
     lines.push('Pick an alignment or creed');
     lines.push('');
@@ -662,26 +668,25 @@ export async function showAlignMenu(game, roleIdx, raceIdx, gender, isFirstMenu)
     // Navigation — C ref: wintty.c menu navigation items
     // Order: ?, /, constraint notes, ", ~, q, (end)
     lines.push('');
-    lines.push('? - Pick another role first');
+    lines.push(roleIdx >= 0 ? '? - Pick another role first' : '? - Pick role first');
 
-    // Only show "/" if there are multiple valid races for this role
-    const role = roles[roleIdx];
-    const validRacesForAlign = validRacesForRole(roleIdx);
-    if (validRacesForAlign.length > 1) {
-        lines.push('/ - Pick another race first');
+    const role = roleIdx >= 0 ? roles[roleIdx] : null;
+    const validRacesForAlign = validRaceCandidates(game, roleIdx, gender, A_NONE);
+    if (validRacesForAlign.length > 1 || raceIdx < 0) {
+        lines.push(raceIdx >= 0 ? '/ - Pick another race first' : '/ - Pick race first');
     }
 
     // Constraint notes (after ? and / nav items)
-    if (validRacesForAlign.length === 1) {
+    if (roleIdx >= 0 && validRacesForAlign.length === 1) {
         lines.push('    role forces ' + races[validRacesForAlign[0]].name);
     }
-    if (role.forceGender === 'female') {
+    if (role?.forceGender === 'female') {
         lines.push('    role forces female');
     }
 
     // Gender nav if gender is not forced
-    if (needsGenderMenu(roleIdx)) {
-        lines.push('" - Pick another gender first');
+    if (validGenderCandidates(game, roleIdx, raceIdx, A_NONE).length > 1 || gender < 0) {
+        lines.push(gender >= 0 ? '" - Pick another gender first' : '" - Pick gender first');
     }
 
     lines.push(`~ - ${filterLabel(game)}`);
@@ -1040,146 +1045,174 @@ async function manualSelection(game) {
     let roleIdx = -1;
     let raceIdx = -1;
     let gender = -1;
-    let align = -128; // A_NONE
+    let align = A_NONE;
     let isFirstMenu = true;
+    let currentMenu = 'role';
 
     // Selection loop
     selectionLoop:
     while (true) {
-        // Determine what we still need to pick
-        // C order: role → race → gender → alignment
-        // But navigation keys can jump to any step
-
-        // --- ROLE ---
-        if (roleIdx < 0) {
+        if (currentMenu === 'role') {
             const result = await showRoleMenu(game, raceIdx, gender, align, isFirstMenu);
             isFirstMenu = false;
             if (result.action === 'quit') { await game._runLifecycle('promo'); return; }
-            if (result.action === 'pick-race') { raceIdx = -1; roleIdx = -1; continue; }
-            if (result.action === 'pick-gender') { gender = -1; roleIdx = -1; continue; }
-            if (result.action === 'pick-align') { align = -128; roleIdx = -1; continue; }
-            if (result.action === 'filter') { await showFilterMenu(game); isFirstMenu = true; continue; }
+            if (result.action === 'pick-race') { currentMenu = 'race'; continue; }
+            if (result.action === 'pick-gender') { currentMenu = 'gender'; continue; }
+            if (result.action === 'pick-align') { currentMenu = 'align'; continue; }
+            if (result.action === 'filter') {
+                await showFilterMenu(game);
+                roleIdx = -1;
+                raceIdx = -1;
+                gender = -1;
+                align = A_NONE;
+                currentMenu = 'role';
+                isFirstMenu = true;
+                continue;
+            }
             if (result.action === 'invalid') { continue; }
             if (result.action === 'selected') {
                 roleIdx = result.value;
-                // Validate role index
                 if (roleIdx < 0 || roleIdx >= roles.length) {
                     roleIdx = -1;
                     continue;
                 }
-                // Force gender if needed
+                const previousGender = gender;
                 if (roles[roleIdx].forceGender === 'female') {
                     gender = FEMALE;
-                    rn2(1); // C consumes rn2(1) for forced gender
+                    if (previousGender < 0) {
+                        rn2(1);
+                    }
                 }
+                currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
             }
         }
 
-        // --- RACE ---
-        if (roleIdx >= 0 && raceIdx < 0) {
-            const validRaces = validRacesForRole(roleIdx).filter(ri => okRace(game, ri));
-            // Filter down to valid races given current constraints
+        if (currentMenu === 'race') {
+            const validRaces = validRaceCandidates(game, roleIdx, gender, align);
             if (validRaces.length === 1) {
                 raceIdx = validRaces[0];
-                // Will show as forced in next menu
+                currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
             } else {
                 const result = await showRaceMenu(game, roleIdx, gender, align, isFirstMenu);
                 isFirstMenu = false;
                 if (result.action === 'quit') { await game._runLifecycle('promo'); return; }
-                if (result.action === 'pick-role') { roleIdx = -1; raceIdx = -1; gender = -1; align = -128; continue; }
-                if (result.action === 'pick-gender') { gender = -1; continue; }
-                if (result.action === 'pick-align') { align = -128; continue; }
-                if (result.action === 'filter') { await showFilterMenu(game); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                if (result.action === 'pick-role') { currentMenu = 'role'; continue; }
+                if (result.action === 'pick-gender') { currentMenu = 'gender'; continue; }
+                if (result.action === 'pick-align') { currentMenu = 'align'; continue; }
+                if (result.action === 'filter') {
+                    await showFilterMenu(game);
+                    roleIdx = -1;
+                    raceIdx = -1;
+                    gender = -1;
+                    align = A_NONE;
+                    currentMenu = 'role';
+                    isFirstMenu = true;
+                    continue;
+                }
                 if (result.action === 'invalid') { continue; }
                 if (result.action === 'selected') {
                     raceIdx = result.value;
-                    // Validate race index
                     if (raceIdx < 0 || raceIdx >= races.length) {
                         raceIdx = -1;
                         continue;
                     }
+                    currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
                 }
             }
         }
 
-        // --- GENDER ---
-        if (roleIdx >= 0 && raceIdx >= 0 && gender < 0) {
-            if (!needsGenderMenu(roleIdx)) {
-                gender = roles[roleIdx].forceGender === 'female' ? FEMALE : MALE;
+        if (currentMenu === 'gender') {
+            const validGenders = validGenderCandidates(game, roleIdx, raceIdx, align);
+            if (validGenders.length === 1) {
+                gender = validGenders[0];
+                currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
             } else {
-                // C ref: plsel_startmenu(RS_GENDER) → rigid_role_checks() → pick_align(PICK_RIGID)
-                // When alignment is forced to a single choice, rn2(n) is consumed even before the menu.
-                if (align === -128) {
-                    const validAligns = validAlignsForRoleRace(roleIdx, raceIdx).filter(a => okAlign(game, a));
+                if (align === A_NONE && roleIdx >= 0 && raceIdx >= 0) {
+                    const validAligns = validAlignCandidates(game, roleIdx, raceIdx, -1);
                     if (validAligns.length === 1) {
-                        rn2(1); // C ref: role.c:1222 pick_align via rigid_role_checks(PICK_RIGID)
+                        rn2(1);
                     }
                 }
                 const result = await showGenderMenu(game, roleIdx, raceIdx, align, isFirstMenu);
                 isFirstMenu = false;
                 if (result.action === 'quit') { await game._runLifecycle('promo'); return; }
-                if (result.action === 'pick-role') { roleIdx = -1; raceIdx = -1; gender = -1; align = -128; continue; }
-                if (result.action === 'pick-race') { raceIdx = -1; gender = -1; continue; }
-                if (result.action === 'pick-align') { align = -128; continue; }
-                if (result.action === 'filter') { await showFilterMenu(game); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                if (result.action === 'pick-role') { currentMenu = 'role'; continue; }
+                if (result.action === 'pick-race') { currentMenu = 'race'; continue; }
+                if (result.action === 'pick-align') { currentMenu = 'align'; continue; }
+                if (result.action === 'filter') {
+                    await showFilterMenu(game);
+                    roleIdx = -1;
+                    raceIdx = -1;
+                    gender = -1;
+                    align = A_NONE;
+                    currentMenu = 'role';
+                    isFirstMenu = true;
+                    continue;
+                }
                 if (result.action === 'invalid') { continue; }
                 if (result.action === 'selected') {
                     gender = result.value;
-                    // Validate gender (0=MALE, 1=FEMALE)
                     if (gender < 0 || gender > 1) {
                         gender = -1;
                         continue;
                     }
+                    currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
                 }
             }
         }
 
-        // --- ALIGNMENT ---
-        if (roleIdx >= 0 && raceIdx >= 0 && gender >= 0 && align === -128) {
-            const validAligns = validAlignsForRoleRace(roleIdx, raceIdx).filter(a => okAlign(game, a));
+        if (currentMenu === 'align') {
+            const validAligns = validAlignCandidates(game, roleIdx, raceIdx, gender);
             if (validAligns.length === 1) {
                 align = validAligns[0];
+                currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
             } else {
                 const result = await showAlignMenu(game, roleIdx, raceIdx, gender, isFirstMenu);
                 isFirstMenu = false;
                 if (result.action === 'quit') { await game._runLifecycle('promo'); return; }
-                if (result.action === 'pick-role') { roleIdx = -1; raceIdx = -1; gender = -1; align = -128; continue; }
-                if (result.action === 'pick-race') { raceIdx = -1; align = -128; continue; }
-                if (result.action === 'pick-gender') { gender = -1; align = -128; continue; }
-                if (result.action === 'filter') { await showFilterMenu(game); roleIdx = -1; raceIdx = -1; gender = -1; align = -128; isFirstMenu = true; continue; }
+                if (result.action === 'pick-role') { currentMenu = 'role'; continue; }
+                if (result.action === 'pick-race') { currentMenu = 'race'; continue; }
+                if (result.action === 'pick-gender') { currentMenu = 'gender'; continue; }
+                if (result.action === 'filter') {
+                    await showFilterMenu(game);
+                    roleIdx = -1;
+                    raceIdx = -1;
+                    gender = -1;
+                    align = A_NONE;
+                    currentMenu = 'role';
+                    isFirstMenu = true;
+                    continue;
+                }
                 if (result.action === 'invalid') { continue; }
                 if (result.action === 'selected') {
                     align = result.value;
-                    // Validate alignment (A_CHAOTIC=-1, A_NEUTRAL=0, A_LAWFUL=1)
                     if (align < -1 || align > 1) {
-                        align = -128;
+                        align = A_NONE;
                         continue;
                     }
+                    currentMenu = nextChargenMenu(game, roleIdx, raceIdx, gender, align);
                 }
             }
         }
 
-        // --- CONFIRMATION ---
-        if (roleIdx >= 0 && raceIdx >= 0 && gender >= 0 && align !== -128) {
+        if (currentMenu === 'confirm') {
             const confirmed = await showConfirmation(game, roleIdx, raceIdx, gender, align);
             if (confirmed) {
-                // Apply selection
                 (game.u || game.player).roleIndex = roleIdx;
                 (game.u || game.player).race = raceIdx;
                 (game.u || game.player).gender = gender;
                 (game.u || game.player).alignment = align;
                 (game.u || game.player).initRole(roleIdx);
                 (game.u || game.player).alignment = align;
-                // Show lore and welcome
                 await showLoreAndWelcome(game, roleIdx, raceIdx, gender, align);
                 return;
             } else {
-                // Start over
                 roleIdx = -1;
                 raceIdx = -1;
                 gender = -1;
-                align = -128;
+                align = A_NONE;
                 isFirstMenu = true;
+                currentMenu = 'role';
                 continue;
             }
         }
@@ -1188,6 +1221,70 @@ async function manualSelection(game) {
 
 // Build the header line showing current selections
 // C ref: role.c plnamesiz — "<role> <race> <gender> <alignment>"
+function nextChargenMenu(game, roleIdx, raceIdx, gender, align) {
+    if (roleIdx < 0) return 'role';
+    if (raceIdx < 0) return 'race';
+    if (gender < 0) return 'gender';
+    if (align === A_NONE) return 'align';
+    return 'confirm';
+}
+
+function validRoleCandidates(game, raceIdx, gender, align) {
+    const result = [];
+    for (let i = 0; i < roles.length; i++) {
+        if (isCombinationPossible(game, i, raceIdx, gender, align)) {
+            result.push(i);
+        }
+    }
+    return result;
+}
+
+function validRaceCandidates(game, roleIdx, gender, align) {
+    const result = [];
+    for (let i = 0; i < races.length; i++) {
+        if (isCombinationPossible(game, roleIdx, i, gender, align)) {
+            result.push(i);
+        }
+    }
+    return result;
+}
+
+function validGenderCandidates(game, roleIdx, raceIdx, align) {
+    return [MALE, FEMALE].filter(g => isCombinationPossible(game, roleIdx, raceIdx, g, align));
+}
+
+function validAlignCandidates(game, roleIdx, raceIdx, gender) {
+    return [A_LAWFUL, A_NEUTRAL, A_CHAOTIC]
+        .filter(a => isCombinationPossible(game, roleIdx, raceIdx, gender, a));
+}
+
+function isCombinationPossible(game, roleIdx, raceIdx, gender, align) {
+    const roleCandidates = roleIdx >= 0 ? [roleIdx] : roles.map((_, i) => i);
+    const raceCandidates = raceIdx >= 0 ? [raceIdx] : races.map((_, i) => i);
+    const genderCandidates = gender >= 0 ? [gender] : [MALE, FEMALE];
+    const alignCandidates = align !== A_NONE ? [align] : [A_LAWFUL, A_NEUTRAL, A_CHAOTIC];
+
+    for (const ri of roleCandidates) {
+        if (!okRole(game, ri)) continue;
+        const role = roles[ri];
+        for (const race of raceCandidates) {
+            if (!okRace(game, race)) continue;
+            if (!validRacesForRole(ri).includes(race)) continue;
+            const validAligns = validAlignsForRoleRace(ri, race);
+            for (const g of genderCandidates) {
+                if (!okGend(game, g)) continue;
+                if (role.forceGender === 'female' && g !== FEMALE) continue;
+                for (const a of alignCandidates) {
+                    if (!okAlign(game, a)) continue;
+                    if (!validAligns.includes(a)) continue;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 function buildHeaderLine(game, roleIdx, raceIdx, gender, align) {
     const parts = [];
     // Role

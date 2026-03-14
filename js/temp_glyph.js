@@ -12,10 +12,12 @@ import {
     CLR_CYAN,
     CLR_GREEN,
     CLR_GRAY,
+    CLR_YELLOW,
     CLR_MAGENTA,
     CLR_ORANGE,
     CLR_RED,
     CLR_WHITE,
+    HI_ZAP,
     def_warnsyms,
     MAXTCHARS,
     WARNCOUNT,
@@ -47,6 +49,7 @@ const CMAP_A_COUNT = (S_brdnladder - S_ndoor) + 1;
 const CMAP_B_COUNT = S_arrow_trap + MAXTCHARS - S_grave;
 const CMAP_C_COUNT = (S_goodpos - S_digbeam) + 1;
 const SWALLOW_COUNT = 8;
+const DEC_ZAP_CHARS = ['│', '─', '\\', '/'];
 
 function glyphLayout() {
     const NUMMONS = Array.isArray(mons) ? mons.length : 0;
@@ -140,12 +143,16 @@ function glyphLayout() {
     };
 }
 
-function fromDefsym(idx) {
+function fromDefsym(idx, options = {}) {
     if (!Number.isInteger(idx) || idx < 0 || idx >= defsyms.length) return null;
     const sym = defsyms[idx];
     if (!sym || typeof sym.ch !== 'string' || sym.ch.length === 0) return null;
+    let ch = sym.ch[0];
+    if (options.useDECgraphics && idx >= S_vbeam && idx < S_vbeam + DEC_ZAP_CHARS.length) {
+        ch = DEC_ZAP_CHARS[idx - S_vbeam];
+    }
     return {
-        ch: sym.ch[0],
+        ch,
         color: Number.isInteger(sym.color) ? sym.color : CLR_GRAY,
         attr: 0,
     };
@@ -179,49 +186,49 @@ function inRange(v, start, len) {
     return v >= start && v < (start + len);
 }
 
-function decodeCMapGlyph(glyph, G) {
+function decodeCMapGlyph(glyph, G, options = {}) {
     if (glyph === G.GLYPH_CMAP_STONE_OFF) {
-        return fromDefsym(S_stone);
+        return fromDefsym(S_stone, options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_MAIN_OFF, WALL_VARIANT_COUNT)) {
-        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_MAIN_OFF));
+        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_MAIN_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_MINES_OFF, WALL_VARIANT_COUNT)) {
-        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_MINES_OFF));
+        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_MINES_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_GEH_OFF, WALL_VARIANT_COUNT)) {
-        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_GEH_OFF));
+        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_GEH_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_KNOX_OFF, WALL_VARIANT_COUNT)) {
-        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_KNOX_OFF));
+        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_KNOX_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_SOKO_OFF, WALL_VARIANT_COUNT)) {
-        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_SOKO_OFF));
+        return fromDefsym(S_vwall + (glyph - G.GLYPH_CMAP_SOKO_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_A_OFF, CMAP_A_COUNT)) {
-        return fromDefsym(S_ndoor + (glyph - G.GLYPH_CMAP_A_OFF));
+        return fromDefsym(S_ndoor + (glyph - G.GLYPH_CMAP_A_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_ALTAR_OFF, 5)) {
-        return fromDefsym(S_altar);
+        return fromDefsym(S_altar, options);
     }
     if (inRange(glyph, G.GLYPH_CMAP_B_OFF, CMAP_B_COUNT)) {
-        return fromDefsym(S_grave + (glyph - G.GLYPH_CMAP_B_OFF));
+        return fromDefsym(S_grave + (glyph - G.GLYPH_CMAP_B_OFF), options);
     }
     if (inRange(glyph, G.GLYPH_ZAP_OFF, NUM_ZAP << 2)) {
         const orient = (glyph - G.GLYPH_ZAP_OFF) % 4;
         const ztype = Math.floor((glyph - G.GLYPH_ZAP_OFF) / 4);
-        const cell = fromDefsym(S_vbeam + orient);
+        const cell = fromDefsym(S_vbeam + orient, options);
         if (!cell) return null;
         // C ref: GLYPH_ZAP encodes zap type in groups of 4 directional glyphs.
         const zcolor = [
-            CLR_MAGENTA, // magic missile
-            CLR_RED,     // fire
-            CLR_CYAN,    // cold
-            CLR_GREEN,   // sleep
+            HI_ZAP,      // magic missile
+            CLR_ORANGE,  // fire
+            CLR_WHITE,   // cold
+            HI_ZAP,      // sleep
             CLR_BLACK,   // death
             CLR_WHITE,   // lightning
             CLR_GREEN,   // poison gas
-            CLR_BRIGHT_GREEN, // acid
+            CLR_YELLOW,  // acid
         ][ztype];
         return {
             ...cell,
@@ -229,12 +236,12 @@ function decodeCMapGlyph(glyph, G) {
         };
     }
     if (inRange(glyph, G.GLYPH_CMAP_C_OFF, CMAP_C_COUNT)) {
-        return fromDefsym(S_digbeam + (glyph - G.GLYPH_CMAP_C_OFF));
+        return fromDefsym(S_digbeam + (glyph - G.GLYPH_CMAP_C_OFF), options);
     }
     return null;
 }
 
-function decodeCGlyph(glyph) {
+function decodeCGlyph(glyph, options = {}) {
     if (!Number.isInteger(glyph) || glyph < 0) return null;
     const G = glyphLayout();
 
@@ -305,11 +312,11 @@ function decodeCGlyph(glyph) {
         }
     }
 
-    const cmap = decodeCMapGlyph(glyph, G);
+    const cmap = decodeCMapGlyph(glyph, G, options);
     if (cmap) return cmap;
 
     if (inRange(glyph, G.GLYPH_SWALLOW_OFF, G.NUMMONS * SWALLOW_COUNT)) {
-        return fromDefsym(S_sw_tl + ((glyph - G.GLYPH_SWALLOW_OFF) % SWALLOW_COUNT));
+        return fromDefsym(S_sw_tl + ((glyph - G.GLYPH_SWALLOW_OFF) % SWALLOW_COUNT), options);
     }
     if (inRange(glyph, G.GLYPH_EXPLODE_OFF, MAXEXPCHARS * 7)) {
         const phase = Math.floor((glyph - G.GLYPH_EXPLODE_OFF) / MAXEXPCHARS);
@@ -338,7 +345,7 @@ function decodeCGlyph(glyph) {
     return null;
 }
 
-export function tempGlyphToCell(glyph) {
+export function tempGlyphToCell(glyph, options = {}) {
     if (glyph && typeof glyph === 'object') {
         const ch = typeof glyph.ch === 'string' && glyph.ch.length > 0 ? glyph.ch[0] : '*';
         const color = Number.isInteger(glyph.color) ? glyph.color : CLR_WHITE;
@@ -351,7 +358,7 @@ export function tempGlyphToCell(glyph) {
     }
 
     if (Number.isInteger(glyph)) {
-        const decoded = decodeCGlyph(glyph);
+        const decoded = decodeCGlyph(glyph, options);
         if (decoded) return decoded;
     }
 

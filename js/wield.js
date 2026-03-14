@@ -7,6 +7,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
          TIN_OPENER, WORM_TOOTH, CRYSKNIFE, LOADSTONE } from './objects.js';
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
+import { exercise } from './attrib_exercise.js';
 import { W_WEP, W_ARMOR, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
@@ -262,6 +263,8 @@ export async function chwepon(player, display, otmp, amount) {
                 await display.putstr_message(msg);
             }
         }
+        // C ref: wield.c:935 — exercise dexterity after enchant weapon on no weapon
+        exercise(player, A_DEX, amount >= 0);
         return 0;
     }
 

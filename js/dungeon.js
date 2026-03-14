@@ -535,7 +535,7 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const mndx = Number.isFinite(mon?.mndx) ? Math.trunc(mon.mndx) : 0;
         const mhp = Number.isFinite(mon?.mhp) ? Math.trunc(mon.mhp) : 0;
         const mhpmax = Number.isFinite(mon?.mhpmax) ? Math.trunc(mon.mhpmax) : 0;
-        const mtame = Number.isFinite(mon?.tame) ? Math.trunc(mon.tame) : 0;
+        const mtame = Number.isFinite(mon?.mtame) ? Math.trunc(mon.mtame) : 0;
         const peaceful = mon?.peaceful ? 1 : 0;
         const sleeping = mon?.sleeping ? 1 : 0;
         const frozen = Number.isFinite(mon?.mfrozen) ? Math.trunc(mon.mfrozen) : 0;
@@ -2640,29 +2640,42 @@ function mk_trap_statue(map, x, y, depth = 1) {
 export function maketrap(map, x, y, typ, depth = 1) {
     if (typ === TRAPPED_DOOR || typ === TRAPPED_CHEST) return null;
 
-    // Check if trap already exists at this position
-    const existing = map.trapAt(x, y);
-    if (existing) return null; // simplified: don't overwrite
-
+    let trap = map.trapAt(x, y);
+    const oldplace = !!trap;
+    if (trap) {
+        if (trap.ttyp === MAGIC_PORTAL || trap.ttyp === VIBRATING_SQUARE) return null;
+    }
     const loc = map.at(x, y);
     if (!loc) return null;
-    // CAN_OVERWRITE_TERRAIN: reject stairs/ladders
-    if (loc.typ === STAIRS || loc.typ === LADDER) return null;
-    if (IS_POOL(loc.typ) || IS_LAVA(loc.typ)) return null;
-    if (IS_FURNITURE(loc.typ) && typ !== PIT && typ !== HOLE) return null;
-
-    const trap = {
-        ttyp: typ,
-        tx: x, ty: y,
-        tseen: (typ === HOLE), // unhideable_trap
-        launch: { x: -1, y: -1 },
-        launch2: { x: -1, y: -1 },
-        dst: { dnum: -1, dlevel: -1 },
-        tnote: 0,
-        once: 0,
-        madeby_u: 0,
-        conjoined: 0,
-    };
+    if (!oldplace) {
+        // CAN_OVERWRITE_TERRAIN: reject stairs/ladders
+        if (loc.typ === STAIRS || loc.typ === LADDER) return null;
+        if (IS_POOL(loc.typ) || IS_LAVA(loc.typ)) return null;
+        if (IS_FURNITURE(loc.typ) && typ !== PIT && typ !== HOLE) return null;
+        trap = {
+            ttyp: typ,
+            tx: x, ty: y,
+            tseen: (typ === HOLE), // unhideable_trap
+            launch: { x: -1, y: -1 },
+            launch2: { x: -1, y: -1 },
+            dst: { dnum: -1, dlevel: -1 },
+            tnote: 0,
+            once: 0,
+            madeby_u: 0,
+            conjoined: 0,
+        };
+    }
+    trap.tx = x;
+    trap.ty = y;
+    trap.launch = { x: -1, y: -1 };
+    trap.launch2 = { x: -1, y: -1 };
+    trap.dst = { dnum: -1, dlevel: -1 };
+    trap.tnote = 0;
+    trap.once = 0;
+    trap.madeby_u = 0;
+    trap.conjoined = 0;
+    trap.tseen = (typ === HOLE);
+    trap.ttyp = typ;
 
     switch (typ) {
     case SQKY_BOARD:
@@ -2717,7 +2730,7 @@ export function maketrap(map, x, y, typ, depth = 1) {
         break;
     }
 
-    map.traps.push(trap);
+    if (!oldplace) map.traps.push(trap);
     pushRngLogEntry(`^trap[${trap.ttyp},${x},${y}]`);
     return trap;
 }
@@ -4821,7 +4834,8 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
         : undefined;
     const heroHasAmulet = !!opts?.heroHasAmulet;
     if (_gstate) {
-        _gstate._dungeonAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE);
+        const alignDnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
+        _gstate._dungeonAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[alignDnum] ?? A_NONE);
     }
 
     if (_gstate) _gstate._levelDepth = depth;
@@ -4867,10 +4881,11 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
             const useDlevel = Number.isInteger(specialDlevel) ? specialDlevel : dlevel;
             // C ref: align_shift() uses current special-level alignment when present.
-            // For currently used special levels, mirror dungeon.lua/splev alignment.
+            // Mirror special-level alignment for known deterministic specials.
             const specialName = typeof special.name === 'string' ? special.name : '';
             let specialAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
-            if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
+            if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
+            else if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
             else if (specialName.startsWith('tut-')) specialAlign = A_LAWFUL;
             if (_gstate) _gstate._dungeonAlign = specialAlign;
 
@@ -4903,6 +4918,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
                 if (!specialMap.flags) specialMap.flags = {};
                 specialMap._heroHasAmulet = heroHasAmulet;
                 specialMap.flags.is_tutorial = (useDnum === TUTORIAL);
+                specialMap.flags.is_oracle_level = specialName.startsWith('oracle');
                 if (specialName === 'rogue') {
                     // C parity anchor: Is_rogue_level(&u.uz) checks topology's
                     // rogue level slot; mark the generated map for JS checks.

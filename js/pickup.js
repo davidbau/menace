@@ -28,12 +28,12 @@ import { body_part } from './polyself.js';
 import { HAND, FOOT } from './const.js';
 import { instapetrify, m_at } from './trap.js';
 import { exercise } from './attrib_exercise.js';
-import { newsym, canspotmon } from './display.js';
+import { newsym, canspotmon, docrt } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
          inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
 import { touch_artifact } from './artifact.js';
-import { makemon, set_malign } from './makemon.js';
+import { makemon, makemon_appear, set_malign } from './makemon.js';
 import { NO_MM_FLAGS, NO_MINVENT } from './const.js';
 import { christen_monst, Monnam, mon_nam, x_monnam } from './do_name.js';
 import { ARTICLE_THE, SUPPRESS_SADDLE, WORN_TYPES, CHOOSE_ALL } from './const.js';
@@ -126,6 +126,12 @@ export async function show_invalid_direction_cmdassist_help(display) {
         const moreRow = rows > 0 ? rows - 1 : 0;
         display.putstr(0, moreRow, '--More--');
         if (display.setCursor) display.setCursor(8, moreRow);
+        // C ref: cmdassist blocks on display_nhwindow(WIN_MESSAGE, TRUE)
+        // until the user presses a key to dismiss the help screen.
+        // After dismiss, C's pline("Never mind.") path triggers flush_screen
+        // → docrt which clears the help text. Redraw here to match.
+        await nhgetch();
+        await docrt();
         return;
     }
     await display?.putstr_message?.('cmdassist: Invalid direction key!');
@@ -575,16 +581,23 @@ async function encumber_msg(player) {
     // C ref: static int oldcap = 0; — per-session initial encumbrance baseline
     const oldcap_val = Number.isInteger(player?._oldcap) ? player._oldcap : 0;
     if (diagEncumber) {
-        writeStderr(`[ENCUMBER] old=${oldcap_val} new=${newcap} turns=${Number(player?.turns || 0)}\n`);
+        const inv = player?.inventory || [];
+        let totalOwt = 0;
+        for (const obj of inv) { if (obj) totalOwt += obj.owt || 0; }
+        writeStderr(`[ENCUMBER] old=${oldcap_val} new=${newcap} t=${player?.turns} owt=${totalOwt} cnt=${inv.length}\n`);
     }
     const encMsg = get_encumber_msg_for_change(oldcap_val, newcap);
 
-    if (encMsg) {
-        await pline(encMsg);
-    }
+    // C parity: update cached encumbrance BEFORE pline so that the
+    // status line rendered at any --More-- prompt during this pline
+    // reflects the new encumbrance level. In C, pline→flush_screen→bot()
+    // recomputes near_capacity() live; JS uses the cached value instead.
     if (player) {
         player._oldcap = newcap;
         player.encumbrance = newcap;
+    }
+    if (encMsg) {
+        await pline(encMsg);
     }
     oldcap = newcap;
 }
@@ -841,7 +854,7 @@ async function out_container(obj, player, map) {
         removed_from_icebox(obj, player);
 
     // cf. C pickup.c:2735 — artifact touch check
-    if (obj.oartifact && !touch_artifact(obj, player)) return 0;
+    if (obj.oartifact && !await touch_artifact(obj, player, player)) return 0;
 
     // Add to inventory via addinv (handles merge, invlet assignment, etc.)
     const result = await addinv(obj, player);
@@ -893,7 +906,7 @@ export async function observe_quantum_cat(box, makecat, givemsg, game) {
   { const loc = get_obj_location(box, 0); if (loc.found) { box.ox = loc.x; box.oy = loc.y; } }
   deadcat = box.cobj;
   if (itsalive) {
-    if (makecat) livecat = makemon( mons[PM_HOUSECAT], box.ox, box.oy, NO_MINVENT | MM_ADJACENTOK | MM_NOMSG);
+    if (makecat) livecat = await makemon_appear( mons[PM_HOUSECAT], box.ox, box.oy, NO_MINVENT | MM_ADJACENTOK | MM_NOMSG);
     if (livecat) {
       livecat.mpeaceful = 1;
       set_malign(livecat, game?.player);
@@ -1625,7 +1638,7 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
-            clearMenuOptionRows(38);
+            clearMenuOptionRows();  // full clear — previous class menu may extend left of menuPad
             await putMenuPrompt('Take out what?', menuPad);
             if (typeof display?.putstr === 'function') display.putstr(menuPad, 2, 'Comestibles', 7, 1);
             else drawMenuOptionLine(menuPad, 2, 'Comestibles');
@@ -1669,7 +1682,7 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(menuPad, 3 + tidx, `${available[tidx]} ${indicator} ${doname(visible[tidx], player)}`);
         }
         if (typeof display?.clearRow === 'function') display.clearRow(0);
-        clearMenuOptionRows(38);
+        clearMenuOptionRows();  // full clear — class menu remnants may extend left
         return didTake;
     };
 
@@ -1873,9 +1886,9 @@ async function handleLoot(game) {
                 }
                 const delta = lootDirectionDelta(dirCh);
                 if (!delta) {
+                    // C ref: getdir() returns 0 after help_dir; caller prints "Never mind."
                     if (game.flags?.cmdassist !== false) {
                         await show_invalid_direction_cmdassist_help(display);
-                        continue;
                     }
                     await display.putstr_message('Never mind.');
                     return { moved: false, tookTime: false };
@@ -2112,7 +2125,7 @@ async function reverse_loot(player, map, game) {
             coffers.owt = weight(coffers);
             coffers.cknown = 0;
         } else if (!(loc.looted) /* T_LOOTED */) {
-            const mon = await makemon(courtmon, x, y, NO_MM_FLAGS, map, game);
+            const mon = await makemon_appear(courtmon, x, y, NO_MM_FLAGS, map, game);
             if (mon) {
                 freeinv(goldob, player);
                 add_to_minv(mon, goldob);

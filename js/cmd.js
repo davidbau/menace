@@ -25,10 +25,11 @@ import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll, 
 import { which_armor } from './worn.js';
 import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
-import { handleInventory, currency, doorganize, display_inventory } from './invent.js';
+import { handleInventory, currency, doorganize, display_inventory, renderOverlayMenuUntilDismiss, getobj } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
+import { doinvoke } from './artifact.js';
 import { dodip } from './potion.js';
-import { handleCallObjectTypePrompt, mon_nam, x_monnam } from './do_name.js';
+import { handleCallObjectTypePrompt, mon_nam, x_monnam, do_mgivenname, do_oname, namefloorobj } from './do_name.js';
 import { upstart } from './hacklib.js';
 import { handleDiscoveries } from './o_init.js';
 import {
@@ -46,6 +47,7 @@ import { handleSet } from './options.js';
 import { dosit } from './sit.js';
 import { doride } from './steed.js';
 import { wiz_debug_cmd_bury } from './dig.js';
+import { runShell } from '../shell/shell.js';
 import { doattributes, doconduct } from './insight.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
@@ -340,7 +342,7 @@ export async function rhack(ch, game) {
     // Throw item
     // C ref: dothrow()
     if (c === 't') {
-        return await handleThrow(player, map, display);
+        return await handleThrow(player, map, display, game);
     }
 
     // Fire from quiver/launcher
@@ -727,8 +729,8 @@ export async function rhack(ch, game) {
         return { moved: false, tookTime: false };
     }
 
-    // Unknown command
-    await display.putstr_message(`Unknown command '${ch < 32 ? '^' + String.fromCharCode(ch + 64) : c}'.`);
+    // Unknown command — use pline() so _lastMessage is updated for Norep tracking
+    await pline(`Unknown command '${ch < 32 ? '^' + String.fromCharCode(ch + 64) : c}'.`);
     return { moved: false, tookTime: false };
 }
 
@@ -968,10 +970,17 @@ async function handleExtendedCommand(game) {
             return { moved: false, tookTime: !!(await doattributes(game)) };
         case 'conduct':
             return { moved: false, tookTime: !!(await doconduct(game)) };
+        case 'invoke':
+            return await doinvoke(player, game);
         case 'u':
         case 'untrap':
             queueRepeatExtcmd(async (g) => handleExtendedCommandUntrap(g));
             return await handleExtendedCommandUntrap(game);
+        case 'shell':
+            await runShell(display, nhgetch, game.lifecycle);
+            // Restore display after shell returns
+            display.clearScreen();
+            return { moved: false, tookTime: false };
         default:
             // C-style unknown extended command feedback
             await display.putstr_message(`#${rawCmd}: unknown extended command.`);
@@ -983,7 +992,7 @@ function knownExtendedCommands(game) {
     const cmds = [
         'options', 'optionsfull', 'adjust', 'attributes', 'wipe', 'pray', 'turn', 'dip',
         'enhance', 'chat', 'conduct', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
-        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap',
+        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap', 'invoke',
     ];
     if (game?.wizard) {
         cmds.push('levelchange', 'wish', 'map', 'teleport', 'genesis', 'wizloaddes', 'wizbury');
@@ -1120,24 +1129,83 @@ async function handleExtendedCommandUntrap(game) {
     return { moved: false, tookTime: false };
 }
 
+// C ref: cmd.c do_naming() — #name command menu
+// C shows a PICK_ONE menu first; if dismissed, falls through to a ynFunction prompt.
 async function handleExtendedCommandName(game) {
-    const { player, display } = game;
-    while (true) {
-        await display.putstr_message('                                What do you want to name?');
-        const sel = await nhgetch();
-        const c = String.fromCharCode(sel).toLowerCase();
-        if (sel === 27 || c === ' ') {
+    const { player, display, map } = game;
+
+    // C ref: cmd.c do_naming() — build PICK_ONE menu matching C's tty output
+    const menuLines = [
+        'What do you want to name?',
+        '',
+        'm - a monster',
+        'i - a particular object in inventory',
+        'o - the type of an object in inventory',
+        'f - the type of an object upon the floor',
+        'd - the type of an object on discoveries list',
+        'a - record an annotation for the current level',
+        '(end)',
+    ];
+    let sel = await renderOverlayMenuUntilDismiss(display, menuLines, 'miofda', { dismissOnUnrecognized: true });
+
+    // C ref: if menu is dismissed without selection, re-prompt as a single-line yn prompt.
+    // C's tty_yn_function formats letter choices as [min-max or ?*], not [adefimo].
+    // For choices 'adefimo', min='a', max='o' → "[a-o or ?*]"
+    if (!sel) {
+        const prompt = 'What do you want to name? [a-o or ?*] ';
+        if (typeof display.clearRow === 'function') {
+            display.clearRow(0);
+            if (Object.hasOwn(display, '_topMessageRow1') && display._topMessageRow1 !== undefined) {
+                display.clearRow(1);
+                display._topMessageRow1 = undefined;
+            }
+        }
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+        if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+        await display.putstr(0, 0, prompt, 7); // CLR_GRAY=7
+        if (Object.hasOwn(display, 'topMessage')) display.topMessage = prompt.trimEnd();
+        const cols = Number.isInteger(display.cols) ? display.cols : 80;
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.min(prompt.length, cols - 1), 0);
+        }
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch).toLowerCase();
+        if (c === '\x1b' || c === ' ' || c === '\0' || c === '\n' || c === '\r'
+            || !'adefimo'.includes(c)) {
+            // C ref: do_naming() returns 0 → "Never mind." from getobj paths
             await display.putstr_message('Never mind.');
             return { moved: false, tookTime: false };
         }
-        if (c === 'a') {
-            await getlin('What do you want to call this dungeon level?', display);
-            return { moved: false, tookTime: false };
-        }
-        if (c === 'o' || c === 'n') {
-            return await handleCallObjectTypePrompt(player, display);
-        }
-        // Keep waiting for a supported selection.
+        sel = c;
+    }
+    return await executeNamingChoice(sel, player, display, map);
+}
+
+async function executeNamingChoice(sel, player, display, map) {
+    switch (sel) {
+    case 'm':
+        await do_mgivenname(player);
+        return { moved: false, tookTime: false };
+    case 'i': {
+        const name_ok = (obj) => obj ? 1 : 0; // GETOBJ_SUGGEST for any item
+        const obj = await getobj('name', name_ok, 0, player);
+        if (obj) await do_oname(obj, player);
+        return { moved: false, tookTime: false };
+    }
+    case 'o':
+        return await handleCallObjectTypePrompt(player, display);
+    case 'f':
+        await namefloorobj(player, map, display);
+        return { moved: false, tookTime: false };
+    case 'd':
+        // C ref: docallcmd_by_class() — name type by discovery list
+        return { moved: false, tookTime: false };
+    case 'a':
+        await getlin('What do you want to call this dungeon level?', display);
+        return { moved: false, tookTime: false };
+    default:
+        return { moved: false, tookTime: false };
     }
 }
 

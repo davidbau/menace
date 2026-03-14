@@ -61,10 +61,17 @@ export async function wizMap(game) {
     const save_Hhallu = player.HHallucination || 0;
     player.HConfusion = 0;
     player.HHallucination = 0;
-    // Reveal traps
-    if (map.traps) {
-        for (let t = map.traps; t; t = t.ntrap) {
+    // Reveal traps — C ref: wizcmds.c:185-188
+    if (Array.isArray(map.traps)) {
+        for (const t of map.traps) {
             t.tseen = 1;
+            map_trap(t, 1);
+        }
+    }
+    // Reveal engravings — C ref: wizcmds.c:189-191
+    if (Array.isArray(map.engravings)) {
+        for (const ep of map.engravings) {
+            map_engraving(ep, 1);
         }
     }
     // C ref: wizcmds.c:192 — do_mapping() reveals map + exercises WIS
@@ -122,7 +129,10 @@ export async function wizGenesis(game) {
     }
 
     // C-ref faithful shape: create_particular_creation() uses MM_NOEXCLAM.
-    const mon = makemon(whichpm, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
+    // C only passes MM_EDOG and calls tamedog()/initedog() when d->maketame
+    // is set (user typed "tame" prefix). Default wizard genesis creates a
+    // non-tame, non-peaceful monster — do NOT call initedog here.
+    const mon = await makemon_appear(whichpm, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
     if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
     } else {
@@ -131,63 +141,14 @@ export async function wizGenesis(game) {
     return { moved: false, tookTime: false };
 }
 
-// cf. wizcmds.c — wiz_teleport (via teleport.c tele())
+// cf. cmd.c wiz_teleport — calls tele() directly (not dotele)
 export async function wizTeleport(game) {
-    const { player, map, display, fov } = game;
     if (!game.wizard) {
-        await display.putstr_message('Unavailable command.');
+        await game.display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
-    const input = await getlin('Teleport to (x,y): ', display);
-    let nx, ny;
-    if (input === null) {
-        return { moved: false, tookTime: false };
-    }
-    const trimmed = input.trim();
-    if (trimmed === '') {
-        let found = false;
-        for (let attempts = 0; attempts < 500; attempts++) {
-            const rx = 1 + rn2(COLNO - 2);
-            const ry = rn2(ROWNO);
-            const loc = map.at(rx, ry);
-            if (loc && ACCESSIBLE(loc.typ) && !map.monsterAt(rx, ry)) {
-                nx = rx;
-                ny = ry;
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            await display.putstr_message('Failed to find a valid teleport destination.');
-            return { moved: false, tookTime: false };
-        }
-    } else {
-        const parts = trimmed.split(',');
-        if (parts.length !== 2) {
-            await display.putstr_message('Bad format. Use: x,y');
-            return { moved: false, tookTime: false };
-        }
-        nx = parseInt(parts[0].trim(), 10);
-        ny = parseInt(parts[1].trim(), 10);
-        if (isNaN(nx) || isNaN(ny)) {
-            await display.putstr_message('Bad coordinates.');
-            return { moved: false, tookTime: false };
-        }
-        if (!isok(nx, ny)) {
-            await display.putstr_message('Out of bounds.');
-            return { moved: false, tookTime: false };
-        }
-        const loc = map.at(nx, ny);
-        if (!loc || !ACCESSIBLE(loc.typ)) {
-            await display.putstr_message('That location is not accessible.');
-            return { moved: false, tookTime: false };
-        }
-    }
-    player.x = nx;
-    player.y = ny;
-    fov.compute(map, player.x, player.y);
-    display.renderMap(map, player, fov);
-    await display.putstr_message(`You teleport to (${nx},${ny}).`);
+    // C ref: cmd.c wiz_teleport() calls tele() directly
+    await tele(game);
     return { moved: true, tookTime: true };
 }
 
@@ -223,10 +184,11 @@ import {
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel, resolveSpecialLevelByName } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, NON_PM,
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, MM_EDOG, NON_PM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
     Never_mind, ECMD_OK } from './const.js';
-import { makemon, mkclass } from './makemon.js';
+import { makemon, makemon_appear, mkclass } from './makemon.js';
+// initedog import removed: wizGenesis no longer tames by default
 import { mons, PM_LONG_WORM, PM_STALKER, PM_WIZARD, MAXMCLASSES, S_invisible, S_WORM_TAIL } from './monsters.js';
 import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
@@ -245,6 +207,8 @@ import { defsyms } from './symbols.js';
 import { name_to_mon, name_to_monclass } from './mondata.js';
 import { Role_if } from './role.js';
 import { do_mapping } from './detect.js';
+import { map_trap, map_engraving } from './display.js';
+import { tele } from './teleport.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {
@@ -261,7 +225,7 @@ export async function wizWish(game) {
     // then encumber_msg().
     const saveVerbose = game.flags?.verbose;
     if (game.flags) game.flags.verbose = false;
-    await makewish(wishText, player, display);
+    await makewish(wishText, player, display, game);
     if (game.flags) game.flags.verbose = saveVerbose;
     await encumber_msg(player);
     return { moved: false, tookTime: false };

@@ -22,7 +22,7 @@ import {
 } from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
 import { makeRoom } from './mkroom.js';
-import { mksobj, mkobj, mkcorpstat } from './mkobj.js';
+import { mksobj, mkobj, mkcorpstat, curse, add_to_buried, weight } from './mkobj.js';
 import { placeFloorObject } from './invent.js';
 import { GOLD_PIECE, BELL, CORPSE, SCR_TELEPORTATION } from './objects.js';
 import { S_HUMAN, S_MIMIC } from './monsters.js';
@@ -36,6 +36,7 @@ import {
     set_wall_state,
     wallify_region,
     Is_waterlevel,
+    level_difficulty,
 } from './dungeon.js';
 import { mazexy } from './mkmaze.js';
 import { somex, somey, somexy, somexyspace, inside_room } from './mkroom.js';
@@ -368,8 +369,9 @@ export function maybe_sdoor(depth, chance) {
 export function mkstairs(map, x, y, isUp, isBranch = false) {
     const loc = map.at(x, y);
     if (!loc) return;
-    // C ref: mkroom.c mkstairs() never places upstairs on level 1.
-    if (isUp && Number.isInteger(map?._genDlevel) && map._genDlevel <= 1) return;
+    // C ref: mkroom.c mkstairs() never places upstairs on level 1 (unless branch stair).
+    // C: if (up) { if (u.uz.dlevel == 1 && !isbranchlev) return; }
+    if (isUp && !isBranch && Number.isInteger(map?._genDlevel) && map._genDlevel <= 1) return;
 
     loc.typ = STAIRS;
     loc.stairdir = isUp ? 1 : 0;
@@ -619,12 +621,24 @@ export function mkgrave(map, croom, depth) {
     // and make_grave() chooses a random epitaph.
     make_grave(map, pos.x, pos.y, dobell ? 'Saved by the bell!' : null);
     if (!rn2(3)) {
-        mksobj(GOLD_PIECE, true, false);
-        rnd(20);
-        rnd(5);
+        const gold = mksobj(GOLD_PIECE, true, false);
+        if (gold) {
+            gold.quan = rnd(20) + level_difficulty(map?.uz) * rnd(5);
+            gold.owt = weight(gold);
+            gold.ox = pos.x;
+            gold.oy = pos.y;
+            add_to_buried(gold, map);
+        }
     }
     let tryct = rn2(5);
-    while (tryct--) mkobj(0, true);
+    while (tryct--) {
+        const otmp = mkobj(0, true);
+        if (!otmp) return;
+        curse(otmp);
+        otmp.ox = pos.x;
+        otmp.oy = pos.y;
+        add_to_buried(otmp, map);
+    }
     if (dobell) mksobj_at(map, BELL, pos.x, pos.y, true, false);
 }
 

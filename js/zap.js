@@ -3,9 +3,10 @@
 // C ref: trap.c — burnarmor()
 // C ref: mon.c — xkilled(), corpse_chance()
 
-import { rn2, rnd, d, rn1, rnz } from './rng.js';
+import { rn2, rnd, d, c_d, rn1, rnz } from './rng.js';
 import {
     isok, ACCESSIBLE, IS_WALL, IS_DOOR, SDOOR, D_CLOSED, D_LOCKED,
+    ZAP_POS,
     COLNO, ROWNO, A_STR, A_WIS, A_CON, A_INT, A_DEX, A_CHA,
     STONE, ICE, POOL,
     DRAWBRIDGE_UP, DRAWBRIDGE_DOWN,
@@ -15,10 +16,18 @@ import {
     W_ARMF, W_ARMS, W_AMUL, W_TOOL, W_RING, W_RINGL, W_RINGR,
     TT_NONE,
     MELT_ICE_AWAY,
+    ANTIMAGIC,
+    HALF_SPDAM,
     HALLUC,
+    BLINDED,
+    SLEEP_RES, DISINT_RES,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
     CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
+    KILLED_BY_AN,
+    ARTICLE_NONE, ARTICLE_THE, SUPPRESS_SADDLE,
+    has_mgivenname,
+    CLR_GRAY,
 } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
@@ -44,9 +53,11 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          PLATINUM, MITHRIL, GLASS, GEMSTONE, MINERAL,
          STRANGE_OBJECT, BOULDER, STATUE, FIGURINE, EGG,
          SCR_FIRE, BAG_OF_HOLDING,
+         POT_OIL, SPE_FIREBALL, RIN_SHOCK_RESISTANCE,
          SCR_MAGIC_MAPPING,
          ROCK, DWARVISH_CLOAK, CHEST, LARGE_BOX, TIN,
          SPE_DIG,
+         CLOAK_OF_MAGIC_RESISTANCE,
          RIN_GAIN_STRENGTH, RIN_GAIN_CONSTITUTION, RIN_ADORNMENT,
          RIN_INCREASE_ACCURACY, RIN_INCREASE_DAMAGE, RIN_PROTECTION,
          HELM_OF_BRILLIANCE, GAUNTLETS_OF_DEXTERITY } from './objects.js';
@@ -60,24 +71,24 @@ import { mons, M1_NOEYES,
          PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC,
          AD_DRLI, AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM } from './monsters.js';
 import {
-  rndmonnum, makemon,
+  rndmonnum, makemon, makemon_appear,
 } from './makemon.js';
 import { NO_MINVENT } from './const.js';
 import { next_ident, mksobj, mkobj, costly_alteration } from './mkobj.js';
 import { newexplevel } from './exper.js';
 import { explode } from './explode.js';
 import { corpse_chance } from './mon.js';
-import { mon_nam } from './do_name.js';
+import { mon_nam, x_monnam } from './do_name.js';
 import { xkilled, killed,
-         wakeup, healmon, mondead } from './mon.js';
+         monkilled, wakeup, healmon, mondead } from './mon.js';
 import { more, nhgetch } from './input.js';
-import { getdir, registerBurnarmor } from './hack.js';
+import { getdir, losehp } from './hack.js';
 import { nonliving, is_undead, is_demon,
-         x_monnam, resists_fire, resists_cold, resists_elec,
+         resists_fire, resists_cold, resists_elec,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
 import { placeFloorObject } from './invent.js';
 import { zap_dig as zap_dig_core } from './dig.js';
-import { pline } from './pline.js';
+import { pline, You } from './pline.js';
 import { Monnam } from './do_name.js';
 import {
   find_mac,
@@ -85,42 +96,50 @@ import {
   mon_set_minvis,
   which_armor,
 } from './worn.js';
-import { erode_obj, t_at } from './trap.js';
+import { setnotworn } from './worn.js';
+import { erode_obj, erode_obj_player, t_at, ignite_items } from './trap.js';
 import { game as _gstate } from './gstate.js';
+import { stop_occupation } from './allmain.js';
 import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
 import { display_minventory, update_inventory } from './invent.js';
-import { obj_resists } from './objdata.js';
+import { obj_resists, is_quest_artifact } from './objdata.js';
+import { is_metallic } from './objdata.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { is_weptool } from './objnam.js';
 import { Is_container } from './mkobj.js';
-import { useupall } from './invent.js';
+import { useup, useupall } from './invent.js';
 import { monflee } from './monmove.js';
-import { readobjnam, hands_obj } from './objnam.js';
+import { readobjnam, hands_obj, aobjnam } from './objnam.js';
+import { make_blinded } from './potion.js';
 import {
-  xname, an, The, simpleonames,
+  xname, an, The, simpleonames, yname, Yname2, makeplural,
   suit_simple_name, cloak_simple_name, helm_simple_name,
   gloves_simple_name, boots_simple_name, shield_simple_name,
-  shirt_simple_name, Is_box,
+  shirt_simple_name, Is_box, vtense,
 } from './objnam.js';
+import { Ring_gone } from './do_wear.js';
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
+import { In_mines } from './dungeon.js';
 import { HOLE, TRAPDOOR, OBJ_CONTAINED, OBJ_FLOOR, FIRE_RES, SHOCK_RES, COLD_RES } from './const.js';
 import { engr_at, del_engr_at, wipe_engr_at, rloc_engr, make_engr_at } from './engrave.js';
 import { random_engraving_rng, deltrap } from './dungeon.js';
-import { discoverObject } from './o_init.js';
+import { discoverObject, observeObject, isObjectNameKnown } from './o_init.js';
+import { more_experienced } from './exper.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock, doorlock } from './lock.js';
 import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
-import { newsym, vision_recalc } from './display.js';
+import { newsym, vision_recalc, zapdir_to_glyph, canseemon } from './display.js';
 import {
     tmp_at, nh_delay_output,
 } from './animation.js';
 import { DISP_BEAM, DISP_END } from './const.js';
 import { getWinMessage, display_nhwindow } from './windows.js';
 import { attach_egg_hatch_timeout } from './timeout.js';
+import { fall_asleep } from './timeout.js';
 import { impossible, You_feel } from './pline.js';
 import { acurr } from './attrib.js';
 import { noit_Monnam } from './do_name.js';
@@ -312,7 +331,61 @@ export function burnarmor(victim, player) {
     }
     return false;
 }
-registerBurnarmor(burnarmor);
+
+// C-faithful player-facing burnarmor path for async message boundaries.
+// This mirrors burnarmor() but routes hero erosion through erode_obj_player()
+// so "Your cloak smoulders!" can suspend before subsequent damage/death lines.
+export async function burnarmor_player(victim, player) {
+    if (!victim) return false;
+    const hitting_u = (victim === player);
+    if (!hitting_u) return burnarmor(victim, player);
+
+    while (true) {
+        switch (rn2(5)) {
+        case 0: {
+            const item = player.helmet;
+            if (!await erode_obj_player(item, item ? helm_simple_name(item) : 'helmet', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 1: {
+            let item = player.cloak;
+            if (item) {
+                await erode_obj_player(item, cloak_simple_name(item), ERODE_BURN, EF_GREASE);
+                return true;
+            }
+            item = player.armor;
+            if (item) {
+                await erode_obj_player(item, xname(item), ERODE_BURN, EF_GREASE);
+                return true;
+            }
+            item = player.shirt;
+            if (item) await erode_obj_player(item, shirt_simple_name(item), ERODE_BURN, EF_GREASE);
+            return true;
+        }
+        case 2: {
+            const item = player.shield;
+            if (!await erode_obj_player(item, 'wooden shield', ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 3: {
+            const item = player.gloves;
+            if (!await erode_obj_player(item, gloves_simple_name(item), ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        case 4: {
+            const item = player.boots;
+            if (!await erode_obj_player(item, boots_simple_name(item), ERODE_BURN, EF_GREASE))
+                continue;
+            break;
+        }
+        }
+        break;
+    }
+    return false;
+}
 
 // C ref: zap.c:4646 zap_hit() — determine if beam hits a monster
 function zap_hit(ac, type) {
@@ -339,18 +412,18 @@ function zhitm(mon, type, nd, map) {
         if ((mdat.mr || 0) > 50) {
             break;
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         break;
     case ZT_FIRE:
         if (mdat.mresists & MR_FIRE) {
             break; // resistant — no damage
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
-        // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) { destroy_items } }
+        // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) destroy_items(mtmp, AD_FIRE, tmp); }
         if (burnarmor(mon)) {
             if (!rn2(3)) {
-                // destroy_items — stub: item destruction not ported
+                destroy_items_rng_only(mon, AD_FIRE, tmp, null);
             }
         }
         break;
@@ -358,15 +431,15 @@ function zhitm(mon, type, nd, map) {
         if (mdat.mresists & MR_COLD) {
             break; // resistant
         }
-        tmp = d(nd, 6);
-        if (mdat.mresists & MR_FIRE) tmp += d(nd, 3); // fire-resistant takes extra cold
+        tmp = c_d(nd, 6);
+        if (mdat.mresists & MR_FIRE) tmp += c_d(nd, 3); // fire-resistant takes extra cold
         if (!rn2(3)) {
-            // destroy_items
+            destroy_items_rng_only(mon, AD_COLD, tmp, null);
         }
         break;
     case ZT_SLEEP:
         tmp = 0;
-        sleep_monst(mon, d(nd, 25), type === ZT_WAND(ZT_SLEEP) ? WAND_CLASS : 0);
+        sleep_monst(mon, c_d(nd, 25), type === ZT_WAND(ZT_SLEEP) ? WAND_CLASS : 0);
         break;
     case ZT_DEATH:
         if (Math.abs(type) !== ZT_BREATH(ZT_DEATH)) {
@@ -396,7 +469,7 @@ function zhitm(mon, type, nd, map) {
         tmp = mon.mhp + 1;
         break;
     case ZT_LIGHTNING:
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         if (mdat.mresists & MR_ELEC) {
             tmp = 0; // resistant, but still rolls damage for RNG
         }
@@ -410,20 +483,20 @@ function zhitm(mon, type, nd, map) {
                 mon.mblinded = (mon.mblinded || 0) + rnd_tmp;
         }
         if (!rn2(3)) {
-            // destroy_items
+            destroy_items_rng_only(mon, AD_ELEC, tmp, null);
         }
         break;
     case ZT_POISON_GAS:
         if (mdat.mresists & MR_POISON) {
             break;
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         break;
     case ZT_ACID:
         if (mdat.mresists & MR_ACID) {
             break;
         }
-        tmp = d(nd, 6);
+        tmp = c_d(nd, 6);
         if (!rn2(6)) { /* acid_damage(MON_WEP) */ }
         if (!rn2(6)) { /* erode_armor */ }
         break;
@@ -534,6 +607,190 @@ export async function handleZap(player, map, display, game) {
     const showZapPrompt = async () => {
         await display.putstr_message(zapPrompt);
     };
+    const clearDirPrompt = () => {
+        if (!display) return;
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+        if (Object.hasOwn(display, '_topMessageRow1')) display._topMessageRow1 = undefined;
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    };
+    const renderBoundaryMorePrompt = async (msg) => {
+        replacePromptMessage();
+        const text = String(msg || '');
+        await display.putstr_message(text);
+        const moreStr = '--More--';
+        const msgLen = text.length;
+        const col = Math.min(msgLen, Math.max(0, (display.cols || 80) - moreStr.length));
+        if (typeof display.putstr === 'function') {
+            await display.putstr(col, 0, moreStr, CLR_GRAY);
+        }
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.min(col + moreStr.length, (display.cols || 80) - 1), 0);
+        }
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+        if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    };
+    const executeZapWithDir = async (wand, need_dir) => {
+        // C ref: zap.c:2645-2652 — zapping yourself (direction = self)
+        if (need_dir && !player.dx && !player.dy && !player.dz) {
+            await zapyourself(wand, player, true, map);
+        } else {
+            // C ref: zap.c:2660-2663 — weffects for directed/non-directed wands
+            await weffects(wand, player, map, display, game);
+        }
+        // C ref: zap.c:2665-2669 — post-zap: wand turns to dust if spe < 0
+        if (wand && wand.spe < 0) {
+            await pline(`${The(xname(wand))} turns to dust.`);
+            useupall(wand, player);
+        }
+    };
+    const resolveSelectedWand = async (wand, promptGame = null, priorOwner = null) => {
+        replacePromptMessage();
+
+        // C ref: zap.c:2632 — need_dir check BEFORE direction prompt
+        const need_dir = (objectData[wand.otyp]?.oc_dir || 0) !== 1; // NODIR = 1
+
+        // C ref: zap.c:2633-2634 — zappable check (before direction prompt)
+        if (!zappable(wand)) {
+            if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
+            await pline('Nothing happens.');
+            return { handled: true, moved: false, tookTime: true };
+        }
+
+        // C ref: zap.c:2635-2640 — cursed wand backfire (before direction prompt)
+        // WAND_BACKFIRE_CHANCE = 100 in C (hack.h:1415)
+        if (wand.cursed && !rn2(100)) {
+            if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
+            await backfire(wand, player);
+            await exercise(player, A_STR, false);
+            useupall(wand, player);
+            return { handled: true, moved: false, tookTime: true };
+        }
+
+        // C ref: zap.c:2641 — getdir for directional wands.
+        // Replay/session parity: treat this as an explicit command boundary so the
+        // next key is consumed by the direction prompt owner.
+        if (need_dir) {
+            const dirPrompt = 'In what direction?';
+            if (display && dirPrompt) {
+                await display.putstr_message(dirPrompt);
+                if (typeof display.setCursor === 'function') {
+                    display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
+                }
+            }
+            if (promptGame) {
+                promptGame.pendingPrompt = {
+                    source: 'zap.getdir',
+                    onKey: async (ch, g) => {
+                        const owner = g.pendingPrompt;
+                        const c = String.fromCharCode(ch);
+                        clearDirPrompt();
+                        const dir = DIRECTION_KEYS[c.toLowerCase()];
+                        if (dir) {
+                            player.dx = dir[0];
+                            player.dy = dir[1];
+                            player.dz = 0;
+                        } else if (c === '>' || c === '<') {
+                            player.dx = 0;
+                            player.dy = 0;
+                            player.dz = (c === '>') ? 1 : -1;
+                        } else if (c === '.') {
+                            player.dx = 0;
+                            player.dy = 0;
+                            player.dz = 0;
+                        } else {
+                            // C ref: zap.c:2642-2643 — "glows and fades" when getdir fails.
+                            if (!player.blind) {
+                                await pline(`${The(xname(wand))} glows and fades.`);
+                            }
+                            if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                            return { handled: true, tookTime: true, moved: false, prompt: true };
+                        }
+                        await executeZapWithDir(wand, need_dir);
+                        if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                        return { handled: true, tookTime: true, moved: false, prompt: true };
+                    },
+                };
+                return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+            }
+
+            const dirResult = await getdir(null, display);
+            if (!dirResult) {
+                if (!player.blind) {
+                    await pline(`${The(xname(wand))} glows and fades.`);
+                }
+                return { handled: true, moved: false, tookTime: true };
+            }
+            player.dx = dirResult.dx;
+            player.dy = dirResult.dy;
+            player.dz = dirResult.dz;
+            await executeZapWithDir(wand, need_dir);
+            return { handled: true, moved: false, tookTime: true };
+        }
+
+        player.dx = 0;
+        player.dy = 0;
+        player.dz = 0;
+        if (promptGame?.pendingPrompt === priorOwner) promptGame.pendingPrompt = null;
+        await executeZapWithDir(wand, need_dir);
+        return { handled: true, moved: false, tookTime: true };
+    };
+
+    if (game) {
+        await showZapPrompt();
+        const state = { mode: 'select' };
+        game.pendingPrompt = {
+            source: 'zap.select',
+            onKey: async (itemCh, g) => {
+                const owner = g.pendingPrompt;
+                if (state.mode === 'await-invalid-dismiss') {
+                    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+                    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+                    state.mode = 'reprompt';
+                    return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                }
+                if (state.mode === 'reprompt') {
+                    replacePromptMessage();
+                    await showZapPrompt();
+                    state.mode = 'select';
+                    return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                }
+
+                let itemChar = String.fromCharCode(itemCh);
+                if (isDismissKey(itemCh)) {
+                    if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                    replacePromptMessage();
+                    await pline('Never mind.');
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                if (itemChar === '?' || itemChar === '*') {
+                    const menuSelection = await showZapHelpList();
+                    if (menuSelection) {
+                        itemChar = menuSelection;
+                    } else {
+                        await showZapPrompt();
+                        return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                    }
+                }
+
+                const selected = player.inventory.find(o => o.invlet === itemChar);
+                if (selected && selected.oclass !== WAND_CLASS) {
+                    if (g.pendingPrompt === owner) g.pendingPrompt = null;
+                    replacePromptMessage();
+                    await pline("That is a silly thing to zap.");
+                    return { handled: true, moved: false, tookTime: false };
+                }
+                const wand = wands.find(w => w.invlet === itemChar);
+                if (!wand) {
+                    await renderBoundaryMorePrompt("You don't have that object.");
+                    state.mode = 'await-invalid-dismiss';
+                    return { handled: true, moved: false, tookTime: false, terminalScreenOwned: true };
+                }
+                return await resolveSelectedWand(wand, g, owner);
+            },
+        };
+        return { moved: false, tookTime: false, terminalScreenOwned: true };
+    }
 
     let wand;
     await showZapPrompt();
@@ -570,67 +827,11 @@ export async function handleZap(player, map, display, game) {
             await showZapPrompt();
             continue;
         }
-        replacePromptMessage();
         break;
     }
 
-    // C ref: zap.c:2632 — need_dir check BEFORE direction prompt
-    const need_dir = (objectData[wand.otyp]?.oc_dir || 0) !== 1; // NODIR = 1
-
-    // C ref: zap.c:2633-2634 — zappable check (before direction prompt)
-    if (!zappable(wand)) {
-        await pline('Nothing happens.');
-        return { moved: false, tookTime: true };
-    }
-
-    // C ref: zap.c:2635-2640 — cursed wand backfire (before direction prompt)
-    // WAND_BACKFIRE_CHANCE = 100 in C (hack.h:1415)
-    if (wand.cursed && !rn2(100)) {
-        await backfire(wand, player);
-        await exercise(player, A_STR, false);
-        useupall(wand, player);
-        return { moved: false, tookTime: true };
-    }
-
-    // C ref: zap.c:2641 — getdir for directional wands
-    if (need_dir) {
-        const dirResult = await getdir(null, display);
-        if (!dirResult) {
-            // C ref: zap.c:2642-2643 — "glows and fades" when direction cancelled
-            if (!player.blind) {
-                await pline(`${The(xname(wand))} glows and fades.`);
-            }
-            // C: "make him pay for knowing !NODIR" — still takes time
-            return { moved: false, tookTime: true };
-        }
-        player.dx = dirResult.dx;
-        player.dy = dirResult.dy;
-        player.dz = dirResult.dz;
-    } else {
-        // NODIR wands: no direction needed
-        player.dx = 0;
-        player.dy = 0;
-        player.dz = 0;
-    }
-
-    // C ref: zap.c:2645-2652 — zapping yourself (direction = self)
-    if (need_dir && !player.dx && !player.dy && !player.dz) {
-        const damage = await zapyourself(wand, player, true, map);
-        if (damage > 0) {
-            // hp loss is already applied in zapyourself()
-        }
-    } else {
-        // C ref: zap.c:2660-2663 — weffects for directed/non-directed wands
-        await weffects(wand, player, map, display, game);
-    }
-
-    // C ref: zap.c:2665-2669 — post-zap: wand turns to dust if spe < 0
-    if (wand && wand.spe < 0) {
-        await pline(`${The(xname(wand))} turns to dust.`);
-        useupall(wand, player);
-    }
-
-    return { moved: false, tookTime: true };
+    const result = await resolveSelectedWand(wand, null, null);
+    return { moved: !!result.moved, tookTime: !!result.tookTime };
 }
 
 // C ref: zap.c dozap() name-parity surface.
@@ -678,17 +879,55 @@ export function destroy_mitem(mon, osym, dmgtyp) {
   return cnt;
 }
 
+// C ref: zap.c destroy_items() — RNG-faithful subset used by zap damage paths.
+// This preserves the key RNG structure (limit roll + reservoir sampling +
+// per-stack maybe_destroy_item) without full inventory mutation semantics.
+export function destroy_items_rng_only(mon, dmgtyp, dmg_in, player = null) {
+  if (!mon) return 0;
+  const inventory = Array.isArray(mon.minvent)
+    ? mon.minvent
+    : (Array.isArray(mon.inventory) ? mon.inventory : []);
+  let limit = Math.floor((dmg_in || 0) / 5);
+  if (((dmg_in || 0) % 5) > rn2(5)) {
+    limit++;
+  }
+  if (limit > 20) limit = 20;
+  if (limit < 1) return 0;
+
+  let elig_stacks = 0;
+  const picks = new Array(limit).fill(null);
+  for (const obj of inventory) {
+    if (obj?.oartifact) continue;
+    if (!obj || !destroyable_by(obj, dmgtyp)) continue;
+    const i = (elig_stacks < limit) ? elig_stacks : rn2(elig_stacks);
+    elig_stacks++;
+    if (i >= 0 && i < limit) picks[i] = obj;
+  }
+  const chosen = Math.min(elig_stacks, limit);
+  let dmg_out = 0;
+  for (let i = 0; i < chosen; i++) {
+    if (!picks[i]) continue;
+    dmg_out += maybe_destroy_item(picks[i], dmgtyp, player, mon);
+  }
+  return dmg_out;
+}
+
 // Check if object is destroyable by damage type
 function destroyable_by(obj, dmgtyp) {
+  if (!obj) return false;
+  if (obj.oartifact) return false;
+  if (obj.in_use && Number(obj.quan || 1) === 1) return false;
   if (dmgtyp === AD_FIRE) {
-    return obj.oclass === POTION_CLASS || obj.oclass === SCROLL_CLASS ||
-           obj.oclass === SPBOOK_CLASS;
+    if (obj.otyp === SCR_FIRE || obj.otyp === SPE_FIREBALL) return false;
+    return obj.oclass === POTION_CLASS || obj.oclass === SCROLL_CLASS
+      || obj.oclass === SPBOOK_CLASS;
   }
   if (dmgtyp === AD_COLD) {
-    return obj.oclass === POTION_CLASS;
+    return obj.oclass === POTION_CLASS && obj.otyp !== POT_OIL;
   }
   if (dmgtyp === AD_ELEC) {
-    return obj.oclass === RING_CLASS || obj.oclass === WAND_CLASS;
+    if (obj.oclass !== RING_CLASS && obj.oclass !== WAND_CLASS) return false;
+    return obj.otyp !== RIN_SHOCK_RESISTANCE && obj.otyp !== WAN_LIGHTNING;
   }
   return false;
 }
@@ -747,7 +986,7 @@ export async function revive(obj, by_hero, map, player = null) {
   const reviveDepth = Number.isInteger(player?.dungeonLevel)
     ? player.dungeonLevel
     : (Number.isInteger(map?.uz?.dlevel) ? map.uz.dlevel : 1);
-  const mtmp = makemon(mptr, x, y, mmflags, reviveDepth, map);
+  const mtmp = await makemon_appear(mptr, x, y, mmflags, reviveDepth, map);
   if (!mtmp) return null;
 
   // C ref: zap.c:1012-1017 — unhide revived monster
@@ -1044,8 +1283,8 @@ export async function burn_floor_objects(x, y, give_feedback, u_caused, map) {
 // cf. zap.c buzz() — main beam propagation (C-style interface)
 // ============================================================
 // Autotranslated from zap.c:4705
-export function buzz(type, nd, sx, sy, dx, dy) {
-  dobuzz(type, nd, sx, sy, dx, dy, true, false);
+export async function buzz(type, nd, sx, sy, dx, dy, map = null, player = null) {
+  await dobuzz(type, nd, sx, sy, dx, dy, true, false, map, player);
 }
 
 export async function zapnodir(obj, player, map, display, game) {
@@ -1084,7 +1323,7 @@ export async function zapnodir(obj, player, map, display, game) {
     const count = rn2(23) ? 1 : rn1(7, 2);
     let created = 0;
     for (let i = 0; i < count; i++) {
-      const mon = makemon(null, player?.x || 0, player?.y || 0, 0, player?.dungeonLevel || 1, map);
+      const mon = await makemon_appear(null, player?.x || 0, player?.y || 0, 0, player?.dungeonLevel || 1, map);
       if (mon) created++;
     }
     if (created > 0) known = !!obj.dknown;
@@ -1187,19 +1426,6 @@ async function bhit_zapped_wand(obj, player, map, game = null) {
   return result;
 }
 
-function beamTempGlyph(type, dx, dy) {
-  const fltyp = zaptype(type);
-  const damgtype = fltyp % 10;
-  const ch = (dx !== 0 && dy !== 0) ? '/' : (dx !== 0 ? '-' : '|');
-  let color = 12;
-  if (damgtype === ZT_FIRE) color = 1;
-  else if (damgtype === ZT_COLD) color = 6;
-  else if (damgtype === ZT_LIGHTNING) color = 11;
-  else if (damgtype === ZT_POISON_GAS) color = 2;
-  else if (damgtype === ZT_ACID) color = 10;
-  return { ch, color };
-}
-
 // cf. zap.c:4720 dobuzz() — full beam propagation with bounce logic
 async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
   const fltyp = zaptype(type);
@@ -1207,16 +1433,16 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
   // C: int hdmgtype = Hallucination ? rn2(6) : damgtype;
   // rn2(6) consumed when hallucinating (display only, but RNG matters)
   const halluc = player?.uprops?.[HALLUC];
-  if (halluc && (halluc.intrinsic || halluc.extrinsic)) {
-    rn2(6); // hallucination beam color randomization
-  }
+  const hdmgtype = (halluc && (halluc.intrinsic || halluc.extrinsic))
+    ? rn2(6)
+    : damgtype;
   let range = rn1(7, 7); // C ref: zap.c:4763
   if (dx === 0 && dy === 0) range = 1;
 
   let lsx, lsy;
   let shopdamage = false;
 
-  tmp_at(DISP_BEAM, beamTempGlyph(type, dx, dy));
+  tmp_at(DISP_BEAM, zapdir_to_glyph(dx, dy, hdmgtype));
   try {
     while (range-- > 0) {
       lsx = sx;
@@ -1245,26 +1471,42 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           const tmp = zhitm(mon, type, nd, map);
 
           if (tmp === MAGIC_COOKIE) {
-            // disintegration
-            mon.mhp = 0;
-          }
-          if (mon.mhp <= 0) {
-            // monster killed
-            if (type >= 0) {
-              // killed by hero
-              if (map.removeMonster) map.removeMonster(mon);
-              mondead(mon, map, player);
+            // C ref: zap.c — disintegration path
+            disintegrate_mon(mon, map, player);
+          } else if (mon.mhp <= 0) {
+            // C ref: zap.c — hero kills use xkilled(), monster kills use monkilled()
+            if (type < 0) {
+              await monkilled(mon, flash_str(fltyp), 0, map, player);
             } else {
-              // killed by other monster
-              if (map.removeMonster) map.removeMonster(mon);
-              mondead(mon, map, player);
+              // C ref: mon.c xkilled() emits the hero kill message before
+              // death processing; JS xkilled() now follows that async order.
+              await pline(
+                `You ${nonliving(mon.data || mon.type || {}) ? 'destroy' : 'kill'} `
+                + `${!cansee(mon.mx, mon.my)
+                  ? 'it'
+                  : !mon.mtame
+                    ? mon_nam(mon)
+                    : x_monnam(
+                        mon,
+                        has_mgivenname(mon) ? ARTICLE_NONE : ARTICLE_THE,
+                        'poor',
+                        has_mgivenname(mon) ? SUPPRESS_SADDLE : 0,
+                        false
+                    )}!`
+              );
+              await xkilled(mon, 0, map, player);
             }
           } else {
+            if (sayhit || canseemon(mon)) {
+              await hit(flash_str(fltyp), mon, exclam(tmp));
+            }
             if (damgtype === ZT_SLEEP && mon.msleeping) {
               slept_monst(mon);
             }
           }
           range -= 2;
+        } else if (saymiss || canseemon(mon)) {
+          await miss(flash_str(fltyp), mon);
         }
       }
 
@@ -1272,31 +1514,92 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
       if (player && sx === player.x && sy === player.y && range >= 0) {
         if (zap_hit(player.ac ?? 10, 0)) {
           range -= 2;
+          await pline('The %s hits you!', flash_str(fltyp));
           // C ref: zap.c:4920 — zhitu / zap_over_floor player damage
           const damgtype = zaptype(type) % 10;
-          const dam = d(nd, 6);
-          if (player.uhp) player.uhp -= dam;
+          const hasProp = (prop) => !!(typeof player?.hasProp === 'function' && player.hasProp(prop));
+          const antimagicFromCloak = Number.isInteger(player?.cloak?.otyp)
+            && player.cloak.otyp === CLOAK_OF_MAGIC_RESISTANCE;
+          const antimagic = hasProp(ANTIMAGIC) || !!player?.Antimagic || !!player?.antimagic || antimagicFromCloak;
+          let dam = 0;
+          let origDam = 0;
+          if (damgtype === ZT_MAGIC_MISSILE) {
+            if (!antimagic) dam = c_d(nd, 6);
+          } else if (damgtype === ZT_FIRE) {
+            const orig = c_d(nd, 6);
+            origDam = orig;
+            if (!hasProp(FIRE_RES)) dam = orig;
+          } else if (damgtype === ZT_COLD) {
+            const orig = c_d(nd, 6);
+            origDam = orig;
+            if (!hasProp(COLD_RES)) dam = orig;
+          } else if (damgtype === ZT_LIGHTNING) {
+            const orig = c_d(nd, 6);
+            origDam = orig;
+            if (!hasProp(SHOCK_RES)) dam = orig;
+          } else if (damgtype === ZT_ACID) {
+            if (!hasProp(ACID_RES)) dam = c_d(nd, 6);
+          } else if (damgtype === ZT_POISON_GAS) {
+            if (!hasProp(POISON_RES)) dam = c_d(nd, 6);
+          } else if (damgtype === ZT_SLEEP) {
+            if (!hasProp(SLEEP_RES)) {
+              fall_asleep(-c_d(nd, 25), true);
+            }
+          } else if (damgtype === ZT_DEATH) {
+            dam = 0;
+          } else {
+            dam = c_d(nd, 6);
+          }
           // C ref: exercise calls from zap_over_floor (zap.c:4395-4524)
           if (damgtype === ZT_MAGIC_MISSILE) {
             exercise(player, A_STR, false);
           } else if (damgtype === ZT_FIRE) {
-            if (burnarmor(player, player) || rn2(3)) { /* destroy_items stub */ }
+            // C ref: zap.c zhitu() fire path:
+            // if (burnarmor(&youmonst)) { if (!rn2(3)) destroy_items; if (!rn2(3)) ignite_items; }
+            if (await burnarmor_player(player, player)) {
+              if (!rn2(3)) await destroy_items_player(player, AD_FIRE, origDam, player);
+              if (!rn2(3)) ignite_items(player, _gstate);
+            }
           } else if (damgtype === ZT_COLD) {
-            if (!rn2(3)) { /* destroy_items stub */ }
+            if (!rn2(3)) await destroy_items_player(player, AD_COLD, origDam, player);
           } else if (damgtype === ZT_LIGHTNING) {
             exercise(player, A_CON, false);
-            if (!rn2(3)) { /* destroy_items stub */ }
+            if (!rn2(3)) await destroy_items_player(player, AD_ELEC, origDam, player);
           } else if (damgtype === ZT_ACID) {
             exercise(player, A_STR, false);
           }
+          if (dam && hasProp(HALF_SPDAM) && zaptype(type) < 20) {
+            dam = Math.floor((dam + 1) / 2);
+          }
+          if (dam > 0) {
+            await losehp(dam, flash_str(fltyp), KILLED_BY_AN, player, _gstate?.display, _gstate);
+          }
+        } else if (!player.blind) {
+          await pline('The %s whizzes by you!', flash_str(fltyp));
         }
+        // C ref: zap.c:4928-4931 — lightning side-effect flash + stop occupation.
+        if (damgtype === ZT_LIGHTNING) {
+          await flashburn(c_d(nd, 50), true, player);
+        }
+        await stop_occupation(_gstate);
       }
 
-      // C ref: zap.c:4938-4993 — beam bounce off walls
-      if (loc && (IS_WALL(loc.typ) || IS_DOOR(loc.typ))) {
+      // C ref: zap.c:4938-4993 — beam bounce off non-zap-passable terrain,
+      // and closed/locked doors.
+      if (loc && (!ZAP_POS(loc.typ)
+          || (IS_DOOR(loc.typ) && (loc.flags & (D_CLOSED | D_LOCKED)) && range >= 0))) {
         // Bounce logic
         // C ref: STONE→10, mine walls→20, else→75
-        const bchance = (loc.typ === STONE) ? 10 : IS_WALL(loc.typ) ? 75 : 75;
+        const currentLevel = player?.uz || _gstate?.u?.uz || _gstate?.player?.uz || null;
+        const bchance = (loc.typ === STONE)
+          ? 10
+          : (currentLevel && In_mines(currentLevel) && IS_WALL(loc.typ))
+            ? 20
+            : 75;
+        const canSeeLast = isok(lsx, lsy) ? cansee(lsx, lsy) : false;
+        if (--range > 0 && canSeeLast) {
+          await pline('The %s bounces!', flash_str(fltyp));
+        }
         if (!dx || !dy || !rn2(bchance)) {
           dx = -dx;
           dy = -dy;
@@ -1315,10 +1618,10 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
           case 1: dy = -dy; break;
           case 2: dx = -dx; break;
           }
+          tmp_at(DISP_CHANGE, zapdir_to_glyph(dx, dy, hdmgtype));
         }
-        // Back up to before wall
-        sx = lsx;
-        sy = lsy;
+        // C ref: zap.c make_bounce path does not rewind sx/sy for regular
+        // wall/door bounces; the next loop iteration advances from this cell.
       }
     }
   } finally {
@@ -1340,7 +1643,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
 export async function weffects(obj, player, map, display = null, game = null) {
   if (!obj) return;
   const otyp = obj.otyp;
-  const wasUnknown = !objectData[otyp]?.known;
+  const wasUnknown = !isObjectNameKnown(otyp);
   let disclose = false;
 
   // C ref: zap.c:3424 — exercise wisdom
@@ -1370,6 +1673,10 @@ export async function weffects(obj, player, map, display = null, game = null) {
     // RAY wand or spell
     if (otyp === WAN_DIGGING || otyp === SPE_DIG) {
       await zap_dig_core(map, player);
+      disclose = true;
+    } else if (otyp >= SPE_MAGIC_MISSILE && otyp <= SPE_FINGER_OF_DEATH) {
+      if (player) await ubuzz(ZT_SPELL(otyp - SPE_MAGIC_MISSILE), Math.floor((player.ulevel || 1) / 2) + 1, player, map);
+      disclose = true;
     } else if (otyp >= WAN_MAGIC_MISSILE && otyp <= WAN_LIGHTNING) {
       const beamType = wandToBeamType(otyp);
       if (beamType >= 0 && player) {
@@ -1378,10 +1685,13 @@ export async function weffects(obj, player, map, display = null, game = null) {
             player.dx || 0, player.dy || 0, map, player);
         disclose = true;
       }
+    } else {
+      impossible('weffects: unexpected spell or wand');
     }
   }
-  if (disclose || wasUnknown) {
-    learnwand(obj);
+  if (disclose) {
+    learnwand(obj, player);
+    if (wasUnknown) more_experienced(0, 10, game, player);
   }
 }
 
@@ -1529,13 +1839,19 @@ export function do_osshock(obj, map, player) {
 }
 
 // C ref: zap.c makewish() — grant an object wish and hand it to hero.
-export async function makewish(wishText, player, display) {
+export async function makewish(wishText, player, display, game) {
     let otmp = readobjnam(wishText, false, {
         wizard: !!player?.wizard,
         wizkit_wishing: !!player?.program_state?.wizkit_wishing,
         player,
-        map: player?.map || null,
+        map: player?.map || game?.map || null,
     });
+    if (otmp && (otmp.kind === 'terrainwish' || otmp.kind === 'trapwish')) {
+        if (otmp.message) {
+            await pline(otmp.message);
+        }
+        return hands_obj;
+    }
     if (otmp === hands_obj) {
         return otmp;
     }
@@ -1543,7 +1859,15 @@ export async function makewish(wishText, player, display) {
         if (display) await display.putstr_message('Nothing fitting that description exists.');
         return null;
     }
-    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null);
+    const got = await hold_another_object(
+        otmp,
+        player,
+        'Oops!  %s to the floor!',
+        The(aobjnam(otmp, 'drop')),
+        null,
+        display,
+        game,
+    );
     if (player) {
         player.ublesscnt = (player.ublesscnt || 0) + rn1(100, 50);
         // C ref: zap.c:6264 — KMH conduct tracking
@@ -1942,7 +2266,9 @@ export async function bhito(obj, otmp, map) {
     break;
 
   case SPE_STONE_TO_FLESH:
-    // stone_to_flesh_obj — simplified
+    // C ref: zap.c stone_to_flesh_obj() — obj_resists(obj, 2, 98) gate
+    if (obj_resists(obj, 2, 98)) { res = 0; break; }
+    // stone_to_flesh_obj — simplified (actual conversion not implemented)
     res = 0;
     break;
 
@@ -1974,9 +2300,19 @@ function adtyp_to_prop(adtyp) {
 }
 
 // C ref: zap.c learnwand()
-function learnwand(obj) {
-  if (!obj) return;
-  discoverObject(obj.otyp, true, true);
+function learnwand(obj, player = null) {
+  if (!obj || obj.oclass === SPBOOK_CLASS) return;
+  if (isObjectNameKnown(obj.otyp)) {
+    observeObject(obj);
+  } else {
+    if (!(player?.blind || player?.Blind)) {
+      observeObject(obj);
+    }
+    if (obj.dknown) {
+      discoverObject(obj.otyp, true, true);
+    }
+  }
+  update_inventory();
 }
 
 // C ref: zap.c zappable()
@@ -2026,15 +2362,17 @@ export function exclam(force) {
 
 // C ref: zap.c miss()/hit() message helpers.
 export async function miss(fltxt = 'beam', mtmp = null) {
-  if (mtmp) {
-    await pline('The %s misses %s.', fltxt, mon_nam(mtmp));
-  } else {
-    await pline('The %s misses.', fltxt);
-  }
+  const verbose = !!(_gstate?.flags?.verbose);
+  const showMon = !!mtmp && verbose && (cansee(mtmp.mx, mtmp.my) || canseemon(mtmp));
+  const target = showMon ? mon_nam(mtmp) : 'it';
+  await pline('%s %s %s.', The(fltxt), vtense(fltxt, 'miss'), target);
 }
 
-export async function hit(fltxt = 'beam') {
-  await pline('The %s hits!', fltxt);
+export async function hit(fltxt = 'beam', mtmp = null, force = '!') {
+  const verbose = !!(_gstate?.flags?.verbose);
+  const showMon = !!mtmp && verbose && (cansee(mtmp.mx, mtmp.my) || canseemon(mtmp));
+  const target = showMon ? mon_nam(mtmp) : 'it';
+  await pline('%s %s %s%s', The(fltxt), vtense(fltxt, 'hit'), target, force);
 }
 
 // C ref: zap.c do_enlightenment_effect()
@@ -2085,7 +2423,9 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       damage = orig_dmg;
       await exercise(player, A_CON, false);
     }
-    // C: destroy_items(&youmonst, AD_ELEC, orig_dmg) — stub
+    // C ref: zap.c:2738-2739 — unconditional destroy_item for self-zap
+    destroy_item(WAND_CLASS, AD_ELEC, player);
+    destroy_item(RING_CLASS, AD_ELEC, player);
     // C: flashburn(rnd(100), TRUE)
     rnd(100); // flashburn duration — RNG consumed unconditionally
     break;
@@ -2099,8 +2439,11 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       damage = orig_dmg;
     }
     // C ref: zap.c:2755-2757 — unconditional burnarmor + destroy_items
-    burnarmor(player, player);
-    // destroy_items(&youmonst, AD_FIRE, orig_dmg) — stub
+    await burnarmor_player(player, player);
+    // C ref: zap.c:2756-2757 — unconditional destroy_item for self-zap fire
+    destroy_item(SCROLL_CLASS, AD_FIRE, player);
+    destroy_item(SPBOOK_CLASS, AD_FIRE, player);
+    destroy_item(POTION_CLASS, AD_FIRE, player);
     break;
   }
   case WAN_COLD: {
@@ -2111,8 +2454,8 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       await pline('You imitate a popsicle!');
       damage = orig_dmg;
     }
-    // C ref: zap.c:2775 — unconditional destroy_items
-    // destroy_items(&youmonst, AD_COLD, orig_dmg) — stub
+    // C ref: zap.c:2775 — unconditional destroy_item for self-zap cold
+    destroy_item(POTION_CLASS, AD_COLD, player);
     break;
   }
   case WAN_MAGIC_MISSILE:
@@ -2271,15 +2614,182 @@ export function release_hold(mon, player) {
 }
 
 // C ref: zap.c object-destruction utility names.
-export function maybe_destroy_item(obj, dmgtyp, player) {
+export function maybe_destroy_item(obj, dmgtyp, player, owner = null) {
   if (!obj) return 0;
   if (player && inventory_resistance_check(dmgtyp, player)) return 0;
   if (!destroyable_by(obj, dmgtyp)) return 0;
   if (obj.in_use && Number(obj.quan || 1) === 1) return 0;
+  let itemDamage = 0;
+  if (dmgtyp === AD_FIRE) {
+    if (obj.oclass === POTION_CLASS) {
+      itemDamage = rnd(6); // C ref: maybe_destroy_item() fire potion damage roll
+    }
+  } else if (dmgtyp === AD_ELEC) {
+    if (obj.oclass === RING_CLASS) {
+      const ringWorn = ((obj.owornmask || 0) & W_RING) !== 0;
+      if (ringWorn && player?.gloves && !is_metallic(player.gloves)) return 0;
+      // C ref: charged rings may recharge instead of destruction.
+      if (objects[obj.otyp]?.oc_charged && rn2(3)) return 0;
+    } else if (obj.oclass === WAND_CLASS) {
+      itemDamage = rnd(10); // C ref: maybe_destroy_item() electric wand damage roll
+    }
+  }
   let cnt = 0;
   const quan = Number(obj.quan || 1);
   for (let i = 0; i < quan; i++) if (!rn2(3)) cnt++;
+  // C maybe_destroy_item() applies damage side effects for player-carried
+  // exploding items; keep the attribute exercise RNG path aligned.
+  if (player && cnt > 0 && itemDamage > 0) {
+    exercise(player, A_STR, false);
+  }
+  // Apply minimal quantity mutation to keep later command/item selection
+  // behavior aligned with C destroy_items() side effects.
+  if (cnt > 0) {
+    const quan = Number(obj.quan || 1);
+    const newQuan = Math.max(0, quan - cnt);
+    if (newQuan > 0) {
+      obj.quan = newQuan;
+    } else {
+      obj.quan = 0;
+      const inv = Array.isArray(owner?.inventory)
+        ? owner.inventory
+        : (Array.isArray(owner?.minvent) ? owner.minvent : null);
+      if (inv) {
+        const idx = inv.indexOf(obj);
+        if (idx >= 0) inv.splice(idx, 1);
+      }
+    }
+  }
   return cnt;
+}
+
+function destroy_item_message(obj, cnt, quan, verb) {
+  const mult = (cnt === 1)
+    ? (quan === 1 ? '' : 'One of ')
+    : (cnt < quan ? 'Some of ' : (quan === 2 ? 'Both of ' : 'All of '));
+  const itemName = (cnt === 1 && quan === 1) ? Yname2(obj) : yname(obj);
+  return `${mult}${itemName} ${verb}!`;
+}
+
+async function maybe_destroy_item_player(obj, dmgtyp, player, owner = null) {
+  if (!obj) return 0;
+  if (inventory_resistance_check(dmgtyp, player)) return 0;
+  if (!destroyable_by(obj, dmgtyp)) return 0;
+  if (obj.in_use && Number(obj.quan || 1) === 1) return 0;
+
+  let itemDamage = 0;
+  let xresist = false;
+  let skip = false;
+  let chargeit = false;
+  let destroyVerb = '';
+
+  if (dmgtyp === AD_FIRE) {
+    if (obj.oclass === POTION_CLASS) {
+      itemDamage = rnd(6);
+      destroyVerb = 'boils and explodes';
+    } else if (obj.oclass === SCROLL_CLASS) {
+      itemDamage = 1;
+      destroyVerb = 'catches fire and burns';
+    } else if (obj.oclass === SPBOOK_CLASS) {
+      itemDamage = 1;
+      destroyVerb = 'catches fire and burns';
+    } else {
+      skip = true;
+    }
+  } else if (dmgtyp === AD_COLD) {
+    itemDamage = rnd(4);
+    destroyVerb = 'freezes and shatters';
+  } else if (dmgtyp === AD_ELEC) {
+    if (obj.oclass === RING_CLASS) {
+      const ringWorn = ((obj.owornmask || 0) & W_RING) !== 0;
+      if (ringWorn && player?.gloves && !is_metallic(player.gloves)) {
+        skip = true;
+      } else if (obj.otyp === RIN_SHOCK_RESISTANCE) {
+        skip = true;
+      } else if (objects[obj.otyp]?.oc_charged && rn2(3)) {
+        chargeit = true;
+      } else {
+        destroyVerb = 'turns to dust and vanishes';
+      }
+    } else if (obj.oclass === WAND_CLASS) {
+      itemDamage = rnd(10);
+      destroyVerb = 'breaks apart and explodes';
+      xresist = !!player?.hasProp?.(SHOCK_RES);
+    } else {
+      skip = true;
+    }
+  } else {
+    skip = true;
+  }
+
+  if (chargeit || skip) return 0;
+
+  let cnt = 0;
+  const quan = Number(obj.quan || 1);
+  let rolls = quan;
+  if (obj.in_use) rolls = Math.max(0, rolls - 1);
+  for (let i = 0; i < rolls; i++) {
+    if (!rn2(3)) cnt++;
+  }
+  if (!cnt) return 0;
+
+  await pline(destroy_item_message(obj, cnt, quan, destroyVerb));
+
+  if ((obj.owornmask || 0) !== 0) {
+    if ((obj.owornmask || 0) & W_RING) {
+      await Ring_gone(obj, _gstate, player);
+    } else {
+      setnotworn(player, obj);
+    }
+  }
+
+  for (let i = 0; i < cnt; i++) {
+    useup(obj, player);
+  }
+
+  if (itemDamage > 0) {
+    if (xresist) {
+      await You("aren't hurt!");
+    } else {
+      const how = (dmgtyp === AD_ELEC && obj.oclass === WAND_CLASS)
+        ? (cnt === 1 ? 'exploding wand' : makeplural('exploding wand'))
+        : null;
+      if (how) {
+        await losehp(itemDamage, how, KILLED_BY_AN, player, _gstate?.display, _gstate);
+        exercise(player, A_STR, false);
+      }
+    }
+  }
+
+  return itemDamage;
+}
+
+async function destroy_items_player(mon, dmgtyp, dmg_in, player) {
+  if (!mon) return 0;
+  const inventory = Array.isArray(mon.inventory) ? mon.inventory : [];
+  let limit = Math.floor((dmg_in || 0) / 5);
+  if (((dmg_in || 0) % 5) > rn2(5)) {
+    limit++;
+  }
+  if (limit > 20) limit = 20;
+  if (limit < 1) return 0;
+
+  let elig_stacks = 0;
+  const picks = new Array(limit).fill(null);
+  for (const obj of inventory) {
+    if (obj?.oartifact) continue;
+    if (!obj || !destroyable_by(obj, dmgtyp)) continue;
+    const i = (elig_stacks < limit) ? elig_stacks : rn2(elig_stacks);
+    elig_stacks++;
+    if (i >= 0 && i < limit) picks[i] = obj;
+  }
+  const chosen = Math.min(elig_stacks, limit);
+  let dmg_out = 0;
+  for (let i = 0; i < chosen; i++) {
+    if (!picks[i]) continue;
+    dmg_out += await maybe_destroy_item_player(picks[i], dmgtyp, player, mon);
+  }
+  return dmg_out;
 }
 
 export function inventory_resistance_check(_osym_or_dmgtyp, maybe_dmgtyp = null, maybe_player = null) {
@@ -2468,7 +2978,7 @@ export async function create_polymon(obj, mndx, map, player) {
   const x = Number(obj.ox ?? player?.x ?? 0);
   const y = Number(obj.oy ?? player?.y ?? 0);
   const pm_index = Number.isInteger(mndx) ? mndx : material_to_golem(mndx);
-  const mon = makemon(mons[pm_index] || null, x, y, 0, player?.dungeonLevel || 1, map);
+  const mon = await makemon_appear(mons[pm_index] || null, x, y, 0, player?.dungeonLevel || 1, map);
   const minwt = Number(mons[pm_index]?.cwt || 1);
   polyuse_internal(obj, mndx, minwt, map);
   if (mon) {
@@ -2479,6 +2989,22 @@ export async function create_polymon(obj, mndx, map, player) {
 }
 export function disintegrate_mon(mon, map, player) {
   if (!mon) return false;
+  // C ref: zap.c disintegrate_mon() — iterate monster inventory,
+  // destroy items that don't resist disintegration.
+  // oresist_disintegration: oc_oprop == DISINT_RES || obj_resists(obj,5,50)
+  //                         || is_quest_artifact(obj)
+  const inv = mon.minvent || mon.inventory || [];
+  for (let i = inv.length - 1; i >= 0; i--) {
+    const otmp = inv[i];
+    if (!otmp) continue;
+    const od = objectData[otmp.otyp];
+    const oprop_resists = od && od.oc_oprop === DISINT_RES;
+    if (!oprop_resists && !is_quest_artifact(otmp) && !obj_resists(otmp, 5, 50)) {
+      // Item destroyed — remove from inventory
+      inv.splice(i, 1);
+    }
+    // Surviving items stay in inventory and get dropped by mondead
+  }
   mon.mhp = 0;
   if (map?.removeMonster) map.removeMonster(mon);
   mondead(mon, map, player);
@@ -2489,7 +3015,8 @@ export async function flashburn(duration, via_lightning = false, player = null) 
   if (!p?.blind) {
     await pline('You are blinded by the flash!');
     if (p && Number.isFinite(duration) && duration > 0) {
-      p.blind = Math.max(Number(p.blind || 0), Math.floor(duration));
+      const oldTimeout = Number(p.getPropTimeout?.(BLINDED) || 0);
+      await make_blinded(p, Math.max(oldTimeout, Math.floor(duration)), false);
     }
     return true;
   }
@@ -2600,8 +3127,9 @@ export function u_adtyp_resistance_obj(player, adtyp) {
   return 0;
 }
 // Autotranslated from zap.c:4699
-export function ubuzz(type, nd, player) {
-  dobuzz(type, nd, player.x, player.y, player.dx, player.dy, true, false);
+export async function ubuzz(type, nd, player, map = null) {
+  if (!player) return;
+  await dobuzz(type, nd, player.x, player.y, player.dx, player.dy, true, false, map, player);
 }
 export async function ubreatheu(type, nd, sx, sy, dx, dy, map, player) {
   await buzz(ZT_BREATH(type), nd, sx, sy, dx, dy, map, player);

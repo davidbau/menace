@@ -62,7 +62,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_STRIKING, WAN_CANCELLATION, WAN_POLYMORPH, WAN_TELEPORTATION,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
-import { more, nhgetch, ynFunction } from './input.js';
+import { more, nhgetch, ynFunction, cmdq_add_ec, cmdq_add_key } from './input.js';
 import { doname, xname } from './mkobj.js';
 import { make_glib, make_blinded, incr_itimeout, set_itimeout } from './potion.js';
 import { gulp_blnd_check } from './mhitu.js';
@@ -70,7 +70,7 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          A_STR, A_DEX, A_CON, A_CHA,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
-         TIMEOUT, HAND, FACE } from './const.js';
+         TIMEOUT, HAND, FACE, HEAD, CQ_CANNED } from './const.js';
 import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
@@ -81,7 +81,7 @@ import { nolimbs, has_head, unsolid, breathless,
          is_vampire, is_unicorn, is_humanoid, is_demon, perceives,
          slithy, strongmonst, can_blow, is_rider, touch_petrifies,
          poly_when_stoned, throws_rocks, passes_walls,
-         bigmonst, verysmall } from './mondata.js';
+         bigmonst, verysmall, nohands } from './mondata.js';
 import { mons, PM_LONG_WORM, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, distu, s_suffix } from './hacklib.js';
@@ -102,8 +102,10 @@ import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
-import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname } from './objnam.js';
-import { useupall, update_inventory, sobj_at } from './invent.js';
+import { dowrite } from './write.js';
+import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname, yname } from './objnam.js';
+import { shk_your } from './shk.js';
+import { useupall, update_inventory, sobj_at, compactInvletPromptChars } from './invent.js';
 import { cansee } from './vision.js';
 import { cmap_to_glyph } from './display.js';
 import { S_goodpos } from './symbols.js';
@@ -112,6 +114,7 @@ import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
 import { dig_typ } from './dig.js';
 import { pick_lock } from './lock.js';
+import { objdescr_is } from './o_init.js';
 
 // -- Inline helpers --
 
@@ -509,7 +512,8 @@ export async function use_lamp(obj) {
 // cf. apply.c:1699 -- STUB: light_cocktail
 export async function light_cocktail(obj) {
     if (obj.lamplit) { await You("snuff the lit potion."); end_burn(obj, true); return; }
-    await You("light a potion. It gives off a dim light.");
+    const player = _gstate?.player;
+    await You("light %spotion.%s", shk_your(obj), player?.Blind ? "" : "  It gives off a dim light.");
     begin_burn(obj, false);
 }
 
@@ -917,12 +921,38 @@ export function broken_wand_explode() {}
 // cf. apply.c:3893 -- STUB: maybe_dunk_boulders
 export function maybe_dunk_boulders() {}
 
-// cf. apply.c:3905 -- STUB: do_break_wand
-async function do_break_wand(obj, player, map) {
-    await pline("Raising %s high above your head, you break it in two!", xname(obj));
+// cf. apply.c:3905 -- do_break_wand
+async function do_break_wand(obj, player, map, display) {
+    const pdata = player?.data || player?.polyData || {};
+    const isFragile = objdescr_is(obj, 'balsa') || objdescr_is(obj, 'glass');
+
+    if (nohands(pdata)) {
+        await You_cant("break %s without hands!", yname(obj));
+        return false;
+    } else if (!freehand(player)) {
+        await Your("%s are occupied!", makeplural(body_part(HAND, player)));
+        return false;
+    } else if (acurr(player, A_STR) < (isFragile ? 5 : 10)) {
+        await You("don't have the strength to break %s!", yname(obj));
+        return false;
+    }
+
+    const confirm = `Are you really sure you want to break ${yname(obj)}?`;
+    const ans = await ynFunction(confirm, 'yn', 'n'.charCodeAt(0), display);
+    if (ans !== 'y'.charCodeAt(0)) {
+        return false;
+    }
+
+    await pline(
+        "Raising %s high above your %s, you %s it in two!",
+        yname(obj),
+        body_part(HEAD, player),
+        isFragile ? 'snap' : 'break'
+    );
     if (!obj.spe) obj.spe = rnd(3);
     await break_wand(obj, player, map);
     useupall(obj, player);
+    return true;
 }
 
 // ====================================================================
@@ -970,22 +1000,6 @@ export function isApplyDownplay(obj) {
     return false;
 }
 
-function compactInvlets(letters) {
-    const sorted = [...new Set(String(letters || '').split(''))].sort();
-    if (sorted.length <= 5) return sorted.join('');
-    const out = [];
-    let i = 0;
-    while (i < sorted.length) {
-        let j = i;
-        while (j + 1 < sorted.length
-               && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
-        if (j - i >= 2) out.push(sorted[i], '-', sorted[j]);
-        else for (let k = i; k <= j; k++) out.push(sorted[k]);
-        i = j + 1;
-    }
-    return out.join('');
-}
-
 // ====================================================================
 // cf. apply.c:4209 -- doapply / handleApply
 // ====================================================================
@@ -1004,7 +1018,7 @@ export async function handleApply(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    const letters = compactInvlets(candidates.map((item) => item.invlet).join(''));
+    const letters = compactInvletPromptChars(candidates.map((item) => item.invlet).join(''));
     const candidateByInvlet = new Map(
         candidates
             .filter((item) => item?.invlet)
@@ -1084,70 +1098,9 @@ export async function handleApply(player, map, display, game) {
                 if (!await wield_tool(player, display, selected, "dig")) {
                     return { moved: false, tookTime: false };
                 }
-
-                // C uses a --More-- boundary here before prompting direction.
-                // Emulate this with a two-phase pending prompt:
-                //   key 1: dismiss wield message, then show dig prompt
-                //   key 2+: handle dig direction/cancel.
-                let promptArmed = false;
-                const dirPrompt = buildPickaxeDirPrompt(selected);
-                const promptHandler = {
-                    source: 'apply_pickaxe_wield',
-                    onKey: async (ch, g) => {
-                        replacePromptMessage();
-                        if (!promptArmed) {
-                            if (typeof g?.display?.clearRow === 'function') g.display.clearRow(0);
-                            await g.display.putstr_message(dirPrompt);
-                            promptArmed = true;
-                            g.pendingPrompt = promptHandler;
-                            return { handled: true, tookTime: false, moved: false, prompt: true };
-                        }
-
-                        if (ch === 27 || ch === 32 || ch === 10 || ch === 13) {
-                            replacePromptMessage();
-                            // C ref: dig.c use_pick_axe() — getdir() cancel
-                            // returns 0 silently; no "Never mind." message.
-                            g.pendingPrompt = null;
-                            return { handled: true, tookTime: false, moved: false, prompt: true };
-                        }
-
-                        const dch = String.fromCharCode(ch);
-                        if (dch === '<') {
-                            await You_cant('reach the ceiling.');
-                            g.pendingPrompt = null;
-                            return { handled: true, tookTime: true, moved: false, prompt: true };
-                        }
-                        if (dch === '>') {
-                            g.pendingPrompt = null;
-                            return { handled: true, tookTime: true, moved: false, prompt: true };
-                        }
-                        const dir = DIRECTION_KEYS[dch] || null;
-                        if (dir) {
-                            g.pendingPrompt = null;
-                            return { handled: true, tookTime: true, moved: false, prompt: true };
-                        }
-
-                        replacePromptMessage();
-                        if (game?.flags?.cmdassist !== false) {
-                            await show_invalid_direction_cmdassist_help(display);
-                            await display.putstr_message(dirPrompt);
-                            promptArmed = true;
-                            g.pendingPrompt = promptHandler;
-                            return { handled: true, tookTime: false, moved: false, prompt: true };
-                        }
-                        if (!player?.wizard) {
-                            await display.putstr_message('What a strange direction!  Never mind.');
-                        }
-                        g.pendingPrompt = null;
-                        return { handled: true, tookTime: false, moved: false, prompt: true };
-                    },
-                };
-                if (typeof display?.renderMoreMarker === 'function') {
-                    display.messageNeedsMore = true;
-                    display.renderMoreMarker();
-                }
-                game.pendingPrompt = promptHandler;
-                return { moved: false, tookTime: true, terminalScreenOwned: true };
+                cmdq_add_ec(CQ_CANNED, (g) => handleApply(g.player, g.map, g.display, g));
+                cmdq_add_key(CQ_CANNED, selected.invlet.charCodeAt(0));
+                return { moved: false, tookTime: true };
             }
             if (!await wield_tool(player, display, selected, "dig")) {
                 return { moved: false, tookTime: false };
@@ -1188,13 +1141,12 @@ export async function handleApply(player, map, display, game) {
                 dir = DIRECTION_KEYS[dch] || null;
                 if (dir) break;
                 replacePromptMessage();
+                // C ref: getdir() returns 0 after help_dir; no retry
                 if (game?.flags?.cmdassist !== false) {
                     await show_invalid_direction_cmdassist_help(display);
-                    await display.putstr_message(dirPrompt);
-                    continue;
-                }
-                if (!player?.wizard)
+                } else if (!player?.wizard) {
                     await display.putstr_message('What a strange direction!  Never mind.');
+                }
                 return { moved: false, tookTime: false };
             }
             replacePromptMessage();
@@ -1222,14 +1174,20 @@ export async function handleApply(player, map, display, game) {
             return await use_trap(selected, player, map, display, game);
         }
 
+        if (selected.otyp === MAGIC_MARKER) {
+            // C ref: apply.c — case MAGIC_MARKER: res = dowrite(obj);
+            const res = await dowrite(selected, player);
+            return { moved: false, tookTime: res !== 0 };
+        }
+
         if (selected.otyp === TINNING_KIT) {
             await display.putstr_message("You don't have anything to tin.");
             return { moved: false, tookTime: true };
         }
 
         if (selected.oclass === WAND_CLASS) {
-            await do_break_wand(selected, player, map);
-            return { moved: false, tookTime: true };
+            const tookTime = await do_break_wand(selected, player, map, display);
+            return { moved: false, tookTime };
         }
 
         await display.putstr_message("Sorry, I don't know how to use that.");

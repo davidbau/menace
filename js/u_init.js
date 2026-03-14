@@ -19,6 +19,7 @@ import { initrack } from './monmove.js';
 import { resetPlineState } from './pline.js';
 import { resetNoisesState } from './mhitm.js';
 import { resetHungerState } from './eat.js';
+import { hack_artifacts } from './artifact.js';
 import { skill_init_from_inventory } from './weapon.js';
 import { skill_based_spellbook_id } from './spell.js';
 import { withMakemonPlayerOverride } from './makemon.js';
@@ -105,6 +106,7 @@ import {
 export { mon_arrive } from './dog.js';
 export { MON_ARRIVE_WITH_YOU } from './const.js';
 import { bimanual } from './pray.js';
+import { set_moreluck } from './attrib.js';
 
 // ========================================================================
 // Inventory Creation
@@ -876,6 +878,7 @@ function initAttributes(player) {
 
     // C ref: attrib.c vary_init_attr()
     varyInitAttr(player.attributes, attrmin, attrmax);
+
 }
 
 // C ref: hack.c weight_cap()/inv_weight() + u_init.c u_init_carry_attr_boost()
@@ -1215,6 +1218,11 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     initAttributes(player);
     //    e. u_init_carry_attr_boost() — no RNG
     u_init_carry_attr_boost(player);
+    // C ref: attrib.c init_attr sets AMAX(i) = ABASE(i) after all boosts applied
+    player.attrMax = [...player.attributes];
+    // C ref: attrib.c set_moreluck() — called via addinv_core2 during ini_inv;
+    // since JS ini_inv uses player.addToInventory directly, we call it once here.
+    set_moreluck(player);
 
     // C ref: attrib.c role ability tables — level 1 intrinsics.
     // Monks and samurai gain intrinsic Speed (Fast) at level 1.
@@ -1286,6 +1294,8 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     resetPlineState();
     resetNoisesState();
     resetHungerState();
+    // C ref: allmain.c:787 — init_artifacts() before u_init(), includes hack_artifacts()
+    hack_artifacts(player);
     const { enadv_roll, rightHanded } = initLevelGeneration(roleIndex, wizard, {
         alignment: player.alignment,
         race: player.race,

@@ -25,7 +25,11 @@ if [[ -f "${LATEST}" ]]; then
 fi
 
 echo "=== Step 1: parity-session coverage run ==="
+coverage_status=0
+set +e
 bash scripts/run-session-parity-coverage.sh "$@"
+coverage_status=$?
+set -e
 
 echo ""
 echo "=== Step 2: update latest snapshot ==="
@@ -45,3 +49,9 @@ fi
 
 echo ""
 echo "Parity-session coverage refresh complete."
+
+if [[ $coverage_status -ne 0 ]]; then
+  echo "Parity-session coverage refresh completed with failing sessions (exit ${coverage_status}); artifacts and snapshots were still updated." >&2
+fi
+
+exit $coverage_status

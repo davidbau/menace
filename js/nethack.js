@@ -10,6 +10,7 @@ import { VERSION_STRING } from './const.js';
 import { nhgetch } from './input.js';
 import { Promo } from './promo.js';
 import { nhfetch } from './origin_awaits.js';
+import { runShell } from '../shell/shell.js';
 window.MENACE_VERSION = VERSION_STRING;
 
 function createBrowserLifecycle(display, promo, restart) {
@@ -68,6 +69,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     const restart = () => window.location.reload();
     const promo = new Promo();
     registerMenuApis(display, promo, restart);
+
+    // If arriving from hack/rogue quit with ?shell=1, enter shell directly
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('shell') === '1') {
+        // Clear the ?shell=1 from URL to hide the secret
+        window.history.replaceState({}, '', window.location.pathname);
+        await runShell(display, nhgetch, { restart });
+        // After shell exits, go to promo
+        await promo.run(display, nhgetch, restart);
+        return;
+    }
 
     const game = new NetHackGame({
         display,

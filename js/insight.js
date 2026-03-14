@@ -43,7 +43,8 @@ import { align_gname } from './pray.js';
 import { magic_negation } from './mondata.js';
 import { inv_weight, near_capacity } from './hack.js';
 import { weapon_type, skill_name, P_SKILL } from './weapon.js';
-import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM, UNENCUMBERED, ECMD_OK } from './const.js';
+import { TT_NONE, TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL, SICK, LOW_PM, STRAT_WAITMASK, SICK_VOMITABLE, SICK_NONVOMITABLE, MFAST, MSLOW, HALF_PHDAM, HALF_SPDAM, UNENCUMBERED, ECMD_OK,
+         CONFUSION, BLINDED, STUNNED, FAST, INVIS, ANTIMAGIC } from './const.js';
 // Window system imports available for future use (e.g., menu-based display)
 // import { create_nhwindow, destroy_nhwindow, putstr, start_menu, add_menu,
 //          end_menu, select_menu, display_nhwindow,
@@ -309,14 +310,13 @@ export async function ustatusline(game) {
 // Helper: check if player has a property set (by index or name)
 function hasPlayerProp(player, propName) {
     if (!player.uprops) return false;
-    // Try numeric property indices from const.js
-    // CONFUSION=18, BLINDED=21, STUNNED=22, FAST=12, INVIS=6
+    // Use property index constants from const.js
     const propMap = {
-        'CONFUSION': 18,
-        'BLINDED': 21,
-        'STUNNED': 22,
-        'FAST': 12,
-        'INVIS': 6,
+        'CONFUSION': CONFUSION,
+        'BLINDED': BLINDED,
+        'STUNNED': STUNNED,
+        'FAST': FAST,
+        'INVIS': INVIS,
     };
     const idx = propMap[propName];
     if (idx == null) return false;
@@ -961,10 +961,10 @@ export function real_attributes_enlightenment(mode, final, game) {
     // Check antimagic via property system and also check worn items directly
     // (oc_oprop values may be misaligned, so check known antimagic-granting items)
     let _hasAntimagic = !!(player.antimagic || player.Antimagic
-        || player.uprops?.[12]?.intrinsic || player.uprops?.[12]?.extrinsic);
+        || player.uprops?.[ANTIMAGIC]?.intrinsic || player.uprops?.[ANTIMAGIC]?.extrinsic);
     let _antimagicCause = player.antimagicCause || '';
-    if (!_hasAntimagic) {
-        // Fallback: check worn items for known antimagic-granting types
+    // Always check worn items for antimagic cause string (even if already detected)
+    {
         const CLOAK_OF_MAGIC_RESISTANCE = 148;
         const GRAY_DRAGON_SCALE_MAIL = 101, GRAY_DRAGON_SCALES = 111;
         const antimagicItems = { 148: 'cloak of magic resistance',
@@ -972,7 +972,9 @@ export function real_attributes_enlightenment(mode, final, game) {
         for (const item of (player.inventory || [])) {
             if (item && (item.owornmask || 0) && antimagicItems[item.otyp]) {
                 _hasAntimagic = true;
-                _antimagicCause = ` because of your ${antimagicItems[item.otyp]}`;
+                if (!_antimagicCause) {
+                    _antimagicCause = ` because of your ${antimagicItems[item.otyp]}`;
+                }
                 break;
             }
         }

@@ -9,6 +9,8 @@ the current checkpoint; active execution on `main` is C-parity-session coverage
 expansion while preserving full-green parity on baseline sessions.
 Active cleanup campaign: `docs/ASYNC_CLEANUP.md` (currently Phase 3e,
 removing legacy `_pendingMore`/queued-`--More--` fallback paths).
+Active diagnostic campaign: `docs/REPAINT_PARITY.md` (screen refresh/topline
+ownership parity via midlevel repaint traces).
 
 **Context:** [README.md](README.md) explains what Royal Jelly is, why NetHack
 matters, and the intersection of the 3.7.0 release moment with AI-assisted

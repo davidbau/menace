@@ -87,7 +87,7 @@ import {
     poly_when_stoned, name_to_mon,
     attacktype_fordmg,
 } from './mondata.js';
-import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
+import { pline, You, Your, You_cant, You_feel, pline_The, impossible } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix, mungspaces } from './hacklib.js';
 import { dist2 } from './hacklib.js';
@@ -875,6 +875,10 @@ export async function newman(player) {
         player.slimed = 10;
     }
 
+    // C ref: polyself.c newman() sets context.botl = 1 — refresh status line
+    if (_gstate?.disp) _gstate.disp.botl = true;
+    player._botl = true;
+
     // encumber_msg, retouch_equipment, selftouch
     await encumber_msg(player);
     retouch_equipment(2, player);
@@ -1125,6 +1129,9 @@ export async function polymon(player, mntmp, map) {
     player.mtimedone = rn1(500, 500);
     player.umonnum = mntmp;
     set_uasmon(player);
+    // C ref: polyself.c polymon() sets context.botl after updating monster form,
+    // so the next pline() → flush_screen() → bot() picks up the new title/stats.
+    player._botl = true;
 
     // New stats — currently only strength gets changed
     const newMaxStr = uasmon_maxStr(player);
@@ -1615,7 +1622,7 @@ export async function dobreathe(player, map, display, game) {
                 player.x, player.y, dir.dx, dir.dy, map, player);
         } else {
             // Directed breath: ubuzz subsystem
-            ubuzz(mattk.adtyp, mattk.damn || 0, player);
+            await ubuzz(mattk.adtyp, mattk.damn || 0, player, map);
         }
     }
     return 1; // ECMD_TIME

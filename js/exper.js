@@ -148,6 +148,8 @@ export async function losexp(player, display, drainer) {
 
     player.ulevel--;
     player.exp = newuexp(player.ulevel);
+    // C ref: exper.c losexp() sets context.botl = 1
+    player._botl = true;
     if (display) {
         await display.putstr_message(`You feel your life force draining away.`);
     }
@@ -176,6 +178,12 @@ export async function pluslvl(player, display, incr) {
     const pwGain = newpw(player);
     player.pwmax += pwGain;
     player.pw += pwGain;
+
+    // C ref: pline() → vpline() → flush_screen(1) → bot() refreshes the
+    // status line before every message.  JS flush_screen only refreshes when
+    // _botl is set, so flag it now so the status shows updated HP/Pw/Xp at
+    // the --More-- boundary produced by the upcoming level-up message.
+    player._botl = true;
 
     if (player.ulevel < MAXULEV) {
         if (incr) {

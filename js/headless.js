@@ -20,7 +20,8 @@ import { initrack } from './monmove.js';
 import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
-import { newsym } from './display.js';
+import { newsym, getCachedMapCell, flush_screen } from './display.js';
+import { game as activeGame } from './gstate.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
@@ -28,6 +29,15 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
+import {
+    debugRepaint,
+    logRepaint,
+    repaintHp,
+    repaintBotl,
+    repaintBotlx,
+    repaintTimeBotl,
+    repaintToplineState,
+} from './repaint_trace.js';
 import { NetHackGame } from './allmain.js';
 import {
     wallIsVisible,
@@ -383,6 +393,15 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
 
     const withTags = (typeof options.rngWithTags === 'boolean') ? options.rngWithTags : undefined;
     enableRngLog(withTags);
+    // Use an auto-responding input so --More-- prompts during
+    // teleportToLevel don't hang waiting for keypress.
+    const autoInput = createHeadlessInput();
+    // Poll for pending input waits and auto-feed space keys.
+    // setTimeout(fn, 0) can't fire during deeply nested async chains,
+    // so we use setInterval to reliably break through.
+    const autoFeeder = setInterval(() => {
+        if (autoInput.isWaitingInput()) autoInput.pushKey(32);
+    }, 10);
     const game = await headlessStart(seed, {
         wizard: true,
         roleIndex: Number.isInteger(options.roleIndex) ? options.roleIndex : 11,
@@ -390,6 +409,7 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
         startDlevel: 1,
         startDungeonAlign: options.startDungeonAlign,
         flags: options.flags,
+        input: autoInput,
     });
 
     for (let depth = 1; depth <= targetDepth; depth++) {
@@ -409,6 +429,7 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
         };
         game.clearRngLog();
     }
+    clearInterval(autoFeeder);
     return { grids, maps, rngLogs };
 }
 
@@ -528,10 +549,17 @@ export class HeadlessDisplay {
             }
         }
         this.topMessage = null; // Track current message for concatenation
+        this._topMessageStatusHp = null;
+        this._topMessageEncumbrance = null;
+        this._topMessageStepIndex = null;
+        this._topMessageAfterMore = false;
+        this._nextTopMessageAfterMore = false;
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
         this.moreMarkerActive = false;
+        this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
         // C ref: pline.c:274 — every pline() call does flush_screen(1) before
         // displaying, which shows --More-- on any pending message and clears it.
         // The selfplay harness auto-dismisses these, so each message replaces
@@ -576,8 +604,13 @@ export class HeadlessDisplay {
         // Reset message state so stale topMessage doesn't trigger a spurious
         // --More-- on the next putstr_message call (mirrors Display.clearScreen).
         this.topMessage = null;
+        this._topMessageEncumbrance = null;
         this.messageNeedsMore = false;
         this.moreMarkerActive = false;
+        this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
+        this._topMessageAfterMore = false;
+        this._nextTopMessageAfterMore = false;
     }
 
     // No-op for headless mode; the browser display refreshes the DOM here.
@@ -606,6 +639,19 @@ export class HeadlessDisplay {
     }
 
     async putstr_message(msg) {
+        let topMessageAfterMore = !!this._nextTopMessageAfterMore;
+        const encumberRefreshMsg =
+            msg === 'Your movements are slowed slightly because of your load.'
+            || msg === 'You rebalance your load.  Movement is difficult.'
+            || msg === 'You stagger under your heavy load.  Movement is very hard.'
+            || msg === 'You can barely move a handspan with this load!'
+            || msg === "You can't even move a handspan with this load!"
+            || msg === 'Your movements are now unencumbered.'
+            || msg === 'Your movements are only slowed slightly by your load.'
+            || msg === 'You rebalance your load.  Movement is still difficult.'
+            || msg === 'You stagger under your load.  Movement is still very hard.';
+        this._nextTopMessageAfterMore = false;
+
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
@@ -615,21 +661,58 @@ export class HeadlessDisplay {
         }
 
         const isDeathMessage = msg.startsWith('You die...');
+        const sleepWakeBoundary = !!(
+            Number(activeGame?.player?.usleep || 0) > 0
+            || activeGame?.multi_reason === 'sleeping'
+            || activeGame?.nomovemsg === 'You wake up.'
+        );
+        const suppressDeathStagingStatus = !!(activeGame?.context?.mon_moving
+            && Number(activeGame?.multi || 0) < 0
+            && (!this._topMessageAfterMore || sleepWakeBoundary));
+        if (this.topMessage && this.messageNeedsMore) {
+            flush_screen(1);
+        }
+        if (this._deferredBotlAfterPendingFlush && activeGame?.player) {
+            activeGame.player._botl = true;
+            activeGame.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+            this._deferredBotlAfterPendingFlush = false;
+            this._deferredBotlStepIndex = null;
+        }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await more(this, {
-                    site: 'headless.more.dismiss',
-                    clearAfter: false,
-                    readKey: this._nhgetch,
-                });
+                const _morePlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _savedEnc = _morePlayer?.encumbrance;
+                if (_morePlayer && this._topMessageEncumbrance != null) {
+                    _morePlayer.encumbrance = this._topMessageEncumbrance;
+                }
+                try {
+                    await more(this, {
+                        site: 'headless.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                        refreshStatus: !suppressDeathStagingStatus,
+                    });
+                } catch (e) {
+                    if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                } finally {
+                    if (_morePlayer && this._topMessageEncumbrance != null) {
+                        _morePlayer.encumbrance = _savedEnc;
+                    }
+                }
             }
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
+            this._topMessageStepIndex = null;
+            this._topMessageEncumbrance = null;
+            this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
+            topMessageAfterMore = true;
         }
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
@@ -643,45 +726,132 @@ export class HeadlessDisplay {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
+                const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+                this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                    ? statusPlayer.uhp
+                    : (Number.isFinite(statusPlayer?.hp)
+                        ? statusPlayer.hp
+                        : null);
+                this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                    ? statusPlayer.encumbrance
+                    : null;
+                this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                    ? this._lastMapState.gameMap._replayStepIndex
+                    : null;
+                this._topMessageAfterMore = false;
                 this.messageNeedsMore = true;
-                this.setCursor(Math.min(combined.length, this.cols - 1), 0);
+                this.messageCursorCol = Math.min(combined.length, this.cols - 1);
+                this.messageCursorRow = 0;
+                this.setCursor(this.messageCursorCol, 0);
                 return;
             }
             // C ref: win/tty/topl.c update_topl():
             // - concat overflow triggers more()
             // - "You die..." also forces more() before the new message
-            // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
+            // C ref: update_topl()/more() leaves one more visible flush
+            // boundary before the explicit --More-- dismissal.
+            flush_screen(1);
             this.renderMoreMarker();
             if (this._nhgetch) {
-                await more(this, {
-                    site: 'headless.more.dismiss',
-                    clearAfter: false,
-                    readKey: this._nhgetch,
-                });
+                // Temporarily restore the encumbrance that was current when
+                // the pending topMessage was stored, so renderStatus inside
+                // more() shows the value from that point (matching C's
+                // flush_screen→bot() which ran BEFORE the message text).
+                const _morePlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _savedEnc = _morePlayer?.encumbrance;
+                if (_morePlayer && this._topMessageEncumbrance != null) {
+                    _morePlayer.encumbrance = this._topMessageEncumbrance;
+                }
+                try {
+                    await more(this, {
+                        site: 'headless.more.dismiss',
+                        clearAfter: false,
+                        readKey: this._nhgetch,
+                        // C vpline() already forced flush_screen(1) for the
+                        // pending message before update_topl() reaches this
+                        // concat-overflow more() boundary.
+                        refreshStatus: false,
+                    });
+                } catch (e) {
+                    // If another nhgetch is already pending (e.g., makemon
+                    // appear message during a command cycle), skip the
+                    // --More-- and fall through to replace the message.
+                    if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                } finally {
+                    if (_morePlayer && this._topMessageEncumbrance != null) {
+                        _morePlayer.encumbrance = _savedEnc;
+                    }
+                }
             }
             // Fall through to display the new message fresh.
             this.clearRow(0);
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
+            this._topMessageStepIndex = null;
+            this._topMessageEncumbrance = null;
+            this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
+            topMessageAfterMore = true;
         }
 
         this.clearRow(0);
         if (msg.length <= this.cols) {
             this.putstr(0, 0, msg.substring(0, this.cols));
             this.topMessage = msg;
+            const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                ? statusPlayer.uhp
+                : (Number.isFinite(statusPlayer?.hp)
+                    ? statusPlayer.hp
+                    : null);
+            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                ? statusPlayer.encumbrance
+                : null;
+            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                ? this._lastMapState.gameMap._replayStepIndex
+                : null;
+            // C ref: snapshot encumbrance when this message becomes the
+            // pending topMessage.  If a deferred more() fires later (when
+            // the NEXT message overflows), renderStatus should show the
+            // encumbrance that was current when THIS message was stored.
+            {
+                const _msgPlayer = this._lastMapState?.player || activeGame?.player || null;
+                this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
+            }
+            this._topMessageAfterMore = topMessageAfterMore;
             this.messageNeedsMore = true;
+            this.messageCursorCol = Math.min(msg.length, this.cols - 1);
+            this.messageCursorRow = 0;
+            if (topMessageAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
+                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                    this.renderStatus(refreshPlayer);
+                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                }
+            }
             if (isDeathMessage) {
                 this.renderMoreMarker();
                 if (this._nhgetch) {
-                    await more(this, {
-                        site: 'headless.more.dismiss',
-                        clearAfter: false,
-                        readKey: this._nhgetch,
-                    });
+                    try {
+                        await more(this, {
+                            site: 'headless.more.dismiss',
+                            clearAfter: false,
+                            readKey: this._nhgetch,
+                            refreshStatus: !(activeGame?.context?.mon_moving && this._topMessageAfterMore),
+                        });
+                    } catch (e) {
+                        if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                    }
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
+                    this._topMessageStatusHp = null;
+                    this._topMessageEncumbrance = null;
+                    this._topMessageStepIndex = null;
+                    this._topMessageEncumbrance = null;
+                    this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
                 } else {
                     // Parity fallback for harness contexts without a wired
@@ -690,10 +860,15 @@ export class HeadlessDisplay {
                     this.clearRow(0);
                     this.messageNeedsMore = false;
                     this.topMessage = null;
+                    this._topMessageStatusHp = null;
+                    this._topMessageEncumbrance = null;
+                    this._topMessageStepIndex = null;
+                    this._topMessageEncumbrance = null;
+                    this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
                 }
             }
-            this.setCursor(Math.min(msg.length, this.cols - 1), 0);
+            this.setCursor(this.messageCursorCol, this.messageCursorRow);
             return;
         }
 
@@ -710,7 +885,29 @@ export class HeadlessDisplay {
 
         this.putstr(0, 0, firstLine);
         this.topMessage = firstLine;
+        const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+        this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+            ? statusPlayer.uhp
+            : (Number.isFinite(statusPlayer?.hp)
+                ? statusPlayer.hp
+                : null);
+        this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+            ? statusPlayer.encumbrance
+            : null;
+        this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+            ? this._lastMapState.gameMap._replayStepIndex
+            : null;
+        this._topMessageAfterMore = false;
         this.messageNeedsMore = true;
+        this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
+        this.messageCursorRow = 0;
+        if (topMessageAfterMore && typeof this.renderStatus === 'function') {
+            const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
+            if (encumberRefreshMsg || refreshPlayer?._botl) {
+                this.renderStatus(refreshPlayer);
+                if (refreshPlayer?._botl) refreshPlayer._botl = false;
+            }
+        }
 
         if (wrapped.length === 0) {
             return;
@@ -723,22 +920,34 @@ export class HeadlessDisplay {
         const moreCol = Math.min(secondLine.length, this.cols - moreStr.length);
         this.clearRow(1);
         this.putstr(0, 1, secondLine);
+        this.messageCursorCol = moreCol;
+        this.messageCursorRow = 1;
         this.putstr(moreCol, 1, moreStr);
         // C ref: win/tty/topl.c more() — cursor lands after --More-- on row 1.
         this.setCursor(Math.min(moreCol + moreStr.length, this.cols - 1), 1);
         if (this._nhgetch) {
-            await more(this, {
-                site: 'headless.more.dismiss',
-                clearAfter: false,
-                readKey: this._nhgetch,
-            });
+            try {
+                await more(this, {
+                    site: 'headless.more.dismiss',
+                    clearAfter: false,
+                    readKey: this._nhgetch,
+                });
+            } catch (e) {
+                if (!e.message?.includes('Concurrent nhgetch')) throw e;
+            }
         }
         this.clearRow(0);
         this.clearRow(1);
         this.messageNeedsMore = false;
         this.topMessage = null;
+        this._topMessageStatusHp = null;
+        this._topMessageEncumbrance = null;
+        this._topMessageStepIndex = null;
+        this._topMessageEncumbrance = null;
+        this._topMessageAfterMore = false;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
+            this._nextTopMessageAfterMore = true;
             await this.putstr_message(remainder);
         }
         return;
@@ -752,9 +961,15 @@ export class HeadlessDisplay {
         const moreStr = '--More--';
         this.moreMarkerActive = true;
         const msgLen = (this.topMessage || '').length;
-        const col = Math.min(msgLen, this.cols - moreStr.length);
-        this.putstr(col, 0, moreStr, CLR_GRAY);
-        this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
+        if (msgLen >= this.cols - moreStr.length) {
+            this.clearRow(1);
+            this.putstr(0, 1, moreStr, CLR_GRAY);
+            this.setCursor(Math.min(moreStr.length, this.cols - 1), 1);
+        } else {
+            const col = Math.min(msgLen, this.cols - moreStr.length);
+            this.putstr(col, 0, moreStr, CLR_GRAY);
+            this.setCursor(Math.min(col + moreStr.length, this.cols - 1), 0);
+        }
     }
 
     // Matches Display.renderChargenMenu() — always clears screen, applies offset
@@ -842,8 +1057,10 @@ export class HeadlessDisplay {
 
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
-            // C ref: wintty.c — menu prompt (line 0) and category headers use inverse video.
-            const isHeader = (i === 0 && line.trim().length > 0) || isCategoryHeader(line);
+            // C ref: wintty.c — end_menu(prompt) title (line 0) and category headers
+            // use inverse video.  add_menu_str() content lines at line 0 do NOT.
+            // Callers pass opts.noTitleInverse when line 0 is add_menu_str content.
+            const isHeader = (i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line);
             if (isHeader) {
                 // C ref: wintty.c — category headers have a single leading
                 // space that is part of the pre-cleared region, not inverse video.
@@ -1223,7 +1440,13 @@ export class HeadlessDisplay {
             // Keep the last terminal column blank for map rows.
             this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
             for (let x = 1; x < COLNO; x++) {
-                newsym(x, y, renderCtx);
+                const loc = gameMap.at?.(x, y);
+                const cached = getCachedMapCell(loc, gameMap);
+                if (cached && !(player && x === player.x && y === player.y && !player.usteed)) {
+                    this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
+                } else {
+                    newsym(x, y, renderCtx);
+                }
             }
         }
         this._captureMapBase();
@@ -1239,7 +1462,7 @@ export class HeadlessDisplay {
     }
 
     _tempGlyphToCell(glyph) {
-        return tempGlyphToCell(glyph);
+        return tempGlyphToCell(glyph, { useDECgraphics: !!this.flags?.DECgraphics });
     }
 
     _overlayKey(col, row) {
@@ -1315,11 +1538,48 @@ export class HeadlessDisplay {
     }
 
     flush() {
+        const player = this._lastMapState?.player || activeGame?.player || null;
+        if (player) {
+            debugRepaint('mark', 'headless.flush', {
+                hp: repaintHp(player),
+                topl: repaintToplineState(this),
+                inread: 0,
+                inmore: 0,
+            }, {
+                step: this._lastMapState?.gameMap?._replayStepIndex,
+                top: this.topMessage || null,
+                messageNeedsMore: this.messageNeedsMore,
+            });
+            logRepaint('mark', {
+                hp: repaintHp(player),
+                topl: repaintToplineState(this),
+                inread: 0,
+                inmore: 0,
+            });
+        }
         // Headless display writes are immediate.
     }
 
     renderStatus(player) {
         if (!player) return;
+        if (!this._suppressReplayCaptureRepaint) {
+            debugRepaint('bot', 'headless.renderStatus', {
+                hp: repaintHp(player),
+                botl: repaintBotl(player),
+                botlx: repaintBotlx(player),
+                time: repaintTimeBotl(player),
+            }, {
+                step: this._lastMapState?.gameMap?._replayStepIndex,
+                top: this.topMessage || null,
+                messageNeedsMore: this.messageNeedsMore,
+            });
+            logRepaint('bot', {
+                hp: repaintHp(player),
+                botl: repaintBotl(player),
+                botlx: repaintBotlx(player),
+                time: repaintTimeBotl(player),
+            });
+        }
 
         this.clearRow(STATUS_ROW_1);
         const line1 = formatStatusLine1(player, rankOf);

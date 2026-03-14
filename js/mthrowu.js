@@ -10,14 +10,14 @@
 // - No buzzmu (spell ray) implementation
 
 import { ACCESSIBLE, IS_OBSTRUCTED, IS_DOOR,
-         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR, BOLT_LIM,
+         D_CLOSED, D_LOCKED, IRONBARS, SINK, isok, A_STR, A_CON, BOLT_LIM,
          MIGR_NOWHERE, MIGR_RANDOM, MIGR_STAIRS_UP, MIGR_LADDER_UP, MIGR_SSTAIRS,
          is_hole, M_AP_NOTHING, M_AP_MONSTER } from './const.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { newexplevel } from './exper.js';
 import {
-    BOULDER, WEAPON_CLASS, CORPSE, objectData, POTION_CLASS, VENOM_CLASS,
+    BOULDER, WEAPON_CLASS, CORPSE, objectData, POTION_CLASS, VENOM_CLASS, SILVER,
     BLINDING_VENOM, ACID_VENOM, ELVEN_ARROW, ELVEN_BOW, ORCISH_ARROW, ORCISH_BOW,
     CROSSBOW_BOLT, CROSSBOW, CREAM_PIE, EGG, WAN_STRIKING,
     AKLYS,
@@ -33,7 +33,7 @@ import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mk
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
-    throws_rocks, is_unicorn,
+    throws_rocks, is_unicorn, hates_silver,
 } from './mondata.js';
 import {
     mons, AT_WEAP, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
@@ -42,7 +42,7 @@ import {
 import { distmin, dist2 } from './hacklib.js';
 import { mondead, corpse_chance } from './mon.js';
 import { flush_screen, canSeeMonsterForMap } from './display.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, delobj_core } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
 import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON,
@@ -398,6 +398,12 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
     }
     await losehp(dam, name || "thrown object", KILLED_BY_AN, player, display, game);
     await exercise(player, A_STR, false);
+    // C ref: mthrowu.c thitu() — silver searing when thrown silver hits hero
+    if (obj && objectData[obj.otyp]?.oc_material === SILVER
+        && hates_silver(player.data)) {
+        if (display) await display.putstr_message("The silver sears your flesh!");
+        await exercise(player, A_CON, false);
+    }
     return 1;
 }
 
@@ -412,10 +418,9 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
         broken = !!(ohit && should_mulch_missile(obj, true));
     }
     if (broken) {
-        // C ref: mthrowu.c drop_throw() -> delobj(obj). In C, invent.c
-        // delobj_core() always evaluates obj_resists(obj, 0, 0), which can
-        // consume rn2(100) for non-protected objects.
-        obj_resists(obj, 0, 0);
+        // C ref: mthrowu.c drop_throw() -> delobj(obj) -> delobj_core(obj, FALSE).
+        // delobj_core always evaluates obj_resists(obj, 0, 0), consuming rn2(100).
+        delobj_core(obj, map, false);
         return true;
     }
     if (!isok(x, y)) return true;
@@ -1054,10 +1059,9 @@ export function hasWeaponAttack(mon) {
 // proper weapon AI (select_hwep priority list) instead of first-item scan.
 export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true) {
     if (!hasWeaponAttack(mon)) return false;
-    // Keep legacy behavior for monsters that start unarmed in JS fixtures.
-    // C equivalent checks weapon_check state; JS tests also rely on
-    // !MON_WEP-style entry here.
-    if (mon.weapon_check !== NEED_WEAPON && mon.weapon) return false;
+    // C ref: monmove.c wield gate — only monsters explicitly marked
+    // NEED_WEAPON spend a turn switching to melee.
+    if (mon.weapon_check !== NEED_WEAPON) return false;
     // C ref: monmove.c wield gate — trapped monsters with a ranged option
     // should keep that option rather than spend a turn switching to HTH.
     if (mon.mtrapped && !nearby && select_rwep(mon)) return false;

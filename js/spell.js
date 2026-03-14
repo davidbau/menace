@@ -50,7 +50,7 @@ import { acurr } from './attrib.js';
 import { P_SKILL } from './weapon.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_BEAM, DISP_CHANGE, DISP_END, CONFUSION, STUNNED } from './const.js';
-import { incr_itimeout, make_confused, make_stunned } from './potion.js';
+import { incr_itimeout, make_confused, make_stunned, peffects } from './potion.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
 
 // ── Constants ──
@@ -1309,9 +1309,9 @@ export async function spelleffects(spell_otyp, atme, player, map, display, game 
                     player.dy = dir.dy;
                     player.dz = dir.dz;
                 } else {
-                    // C fallback: cancelled getdir still releases magical energy.
+                    // C ref: spell.c spelleffects() — cancelled getdir emits the
+                    // message, then continues using the previous direction.
                     await pline_The('magical energy is released!');
-                    return 1;
                 }
                 if (display && typeof display.clearRow === 'function') {
                     display.clearRow(0);
@@ -1334,15 +1334,23 @@ export async function spelleffects(spell_otyp, atme, player, map, display, game 
         // These are dispatched through seffects in the game engine
         break;
 
-    // Potion-like spells
+    // Potion-like spells — C ref: spell.c:1534-1545
     case SPE_HASTE_SELF:
     case SPE_DETECT_TREASURE:
     case SPE_DETECT_MONSTERS:
     case SPE_LEVITATION:
     case SPE_RESTORE_ABILITY:
-    case SPE_INVISIBILITY:
-        // These are dispatched through peffects in the game engine
+    case SPE_INVISIBILITY: {
+        // C ref: spell.c:1536-1543 — create pseudo potion, set blessed if skilled+
+        const pseudo = { otyp: otyp, blessed: false, cursed: false, quan: 1 };
+        const skilltype = spell_skilltype(otyp);
+        const role_skill = P_SKILL(skilltype);
+        if (role_skill >= P_SKILLED && otyp !== SPE_INVISIBILITY) {
+            pseudo.blessed = true;
+        }
+        await peffects(player, pseudo, display, map);
         break;
+    }
 
     // Special spells with unique effects
     case SPE_CURE_BLINDNESS:
@@ -1407,6 +1415,13 @@ export async function throwspell(player, map, display = null, flags = null) {
 
     if (player.underwater) {
         await pline("You're joking!  In this weather?");
+        return 0;
+    }
+
+    // C ref: spell.c throwspell() — swallowed check
+    if (player.uswallow) {
+        await pline("Your spell is ineffective.");
+        await exercise(player, A_WIS, false);
         return 0;
     }
 

@@ -57,6 +57,7 @@ export function createSessionResult(session) {
             mapdump: { matched: 0, total: 0 },
             animationBoundaries: { matched: 0, total: 0 },
             cursor: { matched: 0, total: 0 },
+            repaint: { matched: 0, total: 0 },
         },
     };
 
@@ -205,6 +206,14 @@ export function recordAnimationBoundaries(result, matched, total) {
 export function recordCursor(result, matched, total) {
     result.metrics.cursor.matched += matched;
     result.metrics.cursor.total += total;
+}
+
+/**
+ * Record repaint trace comparison (non-gating).
+ */
+export function recordRepaint(result, matched, total) {
+    result.metrics.repaint.matched += matched;
+    result.metrics.repaint.total += total;
 }
 
 /**

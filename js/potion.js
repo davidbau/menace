@@ -2,6 +2,7 @@
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
+import { obj_resists } from './objdata.js';
 import { more, nhgetch, ynFunction } from './input.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall, compactInvletPromptChars } from './invent.js';
 import { POTION_CLASS, POT_WATER,
@@ -15,17 +16,20 @@ import { POTION_CLASS, POT_WATER,
          POT_ENLIGHTENMENT, POT_FRUIT_JUICE,
          POT_MONSTER_DETECTION, POT_OBJECT_DETECTION,
          STRANGE_OBJECT, UNICORN_HORN, AMETHYST,
-         COIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS } from './objects.js';
+         COIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS,
+         SPE_HASTE_SELF, SPE_DETECT_TREASURE, SPE_DETECT_MONSTERS,
+         SPE_LEVITATION, SPE_RESTORE_ABILITY, SPE_INVISIBILITY,
+         } from './objects.js';
 import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          TIMEOUT, CONFUSION, STUNNED, BLINDED, HALLUC, HALLUC_RES,
          SICK, SICK_RES, DEAF,
          VOMITING, GLIB, FAST, STONED, SLIMED,
          FREE_ACTION, ACID_RES, SLEEP_RES, POISON_RES,
          SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL, COLNO, ROWNO,
-         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, A_MAX } from './const.js';
+         FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib, poisontell } from './attrib.js';
-import { drinkfountain, dipfountain, dipsink } from './fountain.js';
+import { adjattrib, poisontell, ensureAttrArrays } from './attrib.js';
+import { drinkfountain, drinksink, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
 import { DISP_ALWAYS, DISP_END } from './const.js';
@@ -50,9 +54,10 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
 import { makeplural, doname, fruitname } from './objnam.js';
-import { mon_hates_blessings, likes_fire } from './mondata.js';
+import { mon_hates_blessings, likes_fire, breathless, haseyes } from './mondata.js';
+import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
-import { do_enlightenment_effect } from './zap.js';
+import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
 import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
@@ -380,13 +385,16 @@ async function make_hallucinated(player, xtime, talk, mask) {
             see_traps();
         }
         update_inventory(player);
+        // C ref: potion.c:433 — disp.botl = TRUE is set BEFORE pline().
+        // This ensures flush_screen→bot() updates the status line with
+        // the pre-useup game state before the message is displayed.
+        player._botl = true;
         if (talk) {
             if (!xtime)
                 await pline("Everything %s SO boring now.", verb);
             else
                 await pline("Oh wow!  Everything %s so cosmic!", verb);
         }
-        player._botl = true;
     }
 }
 
@@ -505,12 +513,19 @@ export function drink_ok(obj) {
 // Implemented: fountain check, inventory selection, healing effects.
 // TODO: unkn/otmp bookkeeping, BUC message path, potion identification, peffects dispatch
 async function handleQuaff(player, map, display) {
-    // cf. potion.c dodrink():540-550 — check for fountain first
+    // cf. potion.c dodrink():540-560 — check local fountain/sink first
     const loc = map.at(player.x, player.y);
-    if (loc && loc.typ === FOUNTAIN) {
+    if (loc && loc.typ === FOUNTAIN && can_reach_floor(player, map, false)) {
         const ans = await ynFunction('Drink from the fountain?', 'yn', 'n'.charCodeAt(0), display);
         if (ans === 'y'.charCodeAt(0)) {
             await drinkfountain(player, map, display);
+            return { moved: false, tookTime: true };
+        }
+    }
+    if (loc && IS_SINK(loc.typ) && can_reach_floor(player, map, false)) {
+        const ans = await ynFunction('Drink from the sink?', 'yn', 'n'.charCodeAt(0), display);
+        if (ans === 'y'.charCodeAt(0)) {
+            await drinksink(player, map, display);
             return { moved: false, tookTime: true };
         }
     }
@@ -617,13 +632,15 @@ async function handleQuaff(player, map, display) {
                 return { moved: false, tookTime: true };
             }
             const retval = await peffects(player, item, display, map);
-            // C parity: dodrink consumes one potion after effects resolve.
-            useup(item, player);
+            // C parity: dopotion() returns early when peffects >= 0
+            // WITHOUT calling useup; the peffect handler already dealt
+            // with the potion (or it was a no-op).
             if (retval >= 0) {
                 item.in_use = false;
                 return { moved: false, tookTime: !!retval };
             }
-            // retval === -1: normal path
+            // retval === -1: normal path — consume one potion.
+            useup(item, player);
             if (gp.potion_nothing) {
                 gp.potion_unkn++;
                 await You("have a %s feeling for a moment, then it passes.",
@@ -833,6 +850,8 @@ export async function peffect_healing(player, otmp, display) {
     await You_feel("better.");
     const heal = 8 + c_d(4 + (2 * bcsign), 4);
     await healup(player, heal, !otmp.cursed ? 1 : 0, !!otmp.blessed, !otmp.cursed);
+    // C ref: potion.c peffect_healing() sets context.botl = 1
+    player._botl = true;
     await exercise(player, A_CON, true);
     return false;
 }
@@ -843,6 +862,8 @@ export async function peffect_extra_healing(player, otmp, display) {
     const heal = 16 + c_d(4 + (2 * bcsign), 8);
     const nxtra = otmp.blessed ? 5 : (!otmp.cursed ? 2 : 0);
     await healup(player, heal, nxtra, !otmp.cursed, true);
+    // C ref: potion.c peffect_extra_healing() sets context.botl = 1
+    player._botl = true;
     await make_hallucinated(player, 0, true);
     await exercise(player, A_CON, true);
     await exercise(player, A_STR, true);
@@ -855,6 +876,8 @@ export async function peffect_full_healing(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     await You_feel("completely healed.");
     await healup(player, 400, 4 + 4 * bcsign, !otmp.cursed, true);
+    // C ref: potion.c peffect_full_healing() sets context.botl = 1
+    player._botl = true;
     // C: blessed restores one lost level via pluslvl(FALSE)
     if (otmp.blessed && player.ulevel < (player.ulevelmax || player.ulevel)) {
         player.ulevelmax = (player.ulevelmax || player.ulevel) - 1;
@@ -896,6 +919,8 @@ export async function peffect_gain_energy(player, otmp, display) {
     // C: u.uenmax += num, u.uen += 3*num (with clamping)
     player.pwmax = Math.max(0, (player.pwmax || 0) + num);
     player.pw = Math.max(0, Math.min((player.pw || 0) + 3 * num, player.pwmax));
+    // C ref: potion.c peffect_gain_energy() sets context.botl = 1
+    player._botl = true;
     await exercise(player, A_WIS, true);
     return false;
 }
@@ -1204,6 +1229,7 @@ export async function peffect_oil(player, otmp, display) {
 async function peffects(player, otmp, display, map) {
     switch (otmp.otyp) {
     case POT_RESTORE_ABILITY:
+    case SPE_RESTORE_ABILITY:
         await peffect_restore_ability(player, otmp, display); break;
     case POT_HALLUCINATION:
         await peffect_hallucination(player, otmp, display); break;
@@ -1214,6 +1240,7 @@ async function peffects(player, otmp, display, map) {
     case POT_ENLIGHTENMENT:
         await peffect_enlightenment(player, otmp, display); break;
     case POT_INVISIBILITY:
+    case SPE_INVISIBILITY:
         await peffect_invisibility(player, otmp, display); break;
     case POT_SEE_INVISIBLE:
     case POT_FRUIT_JUICE:
@@ -1223,9 +1250,11 @@ async function peffects(player, otmp, display, map) {
     case POT_SLEEPING:
         await peffect_sleeping(player, otmp, display); break;
     case POT_MONSTER_DETECTION:
+    case SPE_DETECT_MONSTERS:
         if (await peffect_monster_detection(otmp, map, player)) return 1;
         break;
     case POT_OBJECT_DETECTION:
+    case SPE_DETECT_TREASURE:
         if (await peffect_object_detection(otmp, player)) return 1;
         break;
     case POT_SICKNESS:
@@ -1235,6 +1264,7 @@ async function peffects(player, otmp, display, map) {
     case POT_GAIN_ABILITY:
         await peffect_gain_ability(player, otmp, display); break;
     case POT_SPEED:
+    case SPE_HASTE_SELF:
         await peffect_speed(player, otmp, display); break;
     case POT_BLINDNESS:
         await peffect_blindness(player, otmp, display); break;
@@ -1247,6 +1277,7 @@ async function peffects(player, otmp, display, map) {
     case POT_FULL_HEALING:
         await peffect_full_healing(player, otmp, display); break;
     case POT_LEVITATION:
+    case SPE_LEVITATION:
         await peffect_levitation(otmp, map, player); break;
     case POT_GAIN_ENERGY:
         await peffect_gain_energy(player, otmp, display); break;
@@ -1370,7 +1401,8 @@ export function impact_arti_light(obj, worsen, seeit) {
     // Simplified: artifact light interaction requires mksobj infrastructure
     // not yet available. Stub for now.
     if ((worsen ? obj.cursed : obj.blessed)) return;
-    // obj_resists check omitted — would need full artifact system
+    // C ref: potion.c:1600 — obj_resists(obj, 25, 75)
+    if (obj_resists(obj, 25, 75)) return;
 }
 
 // cf. potion.c potionhit() — potion hits a monster or hero
@@ -1447,9 +1479,16 @@ async function potionhit(mon, obj, how, player, map) {
             angermon = false;
             // mon_set_minvis not called here to avoid import complexity
             break;
-        case POT_SLEEPING:
-            // sleep_monst(mon, rnd(12), POTION_CLASS)
+        case POT_SLEEPING: {
+            // C ref: potion.c potionhit() calls sleep_monst(mon, rnd(12), POTION_CLASS)
+            // sleep_monst calls resist(mon, POTION_CLASS) first
+            const sleepamt = rnd(12);
+            if (!resist(mon, POTION_CLASS)) {
+                mon.msleeping = true;
+                mon.mfrozen = (mon.mfrozen || 0) + sleepamt;
+            }
             break;
+        }
         case POT_PARALYSIS:
             if (mon.mcanmove !== false) {
                 mon.mcanmove = false;
@@ -1488,8 +1527,26 @@ async function potionhit(mon, obj, how, player, map) {
         }
     }
 
-    // potionbreathe for nearby hero
-    // C ref: distance check omitted for simplicity
+    // C ref: potion.c potionhit() end — potionbreathe gate
+    // potionbreathe() does its own docall()
+    // distance == 0 when hero is the target; distu(tx,ty) otherwise
+    // Gate: (distance == 0 || (distance < 3 && !rn2((1+ACURR(A_DEX))/2)))
+    //       && (!breathless(youmonst.data) || haseyes(youmonst.data))
+    let distance;
+    if (isyou) {
+        distance = 0;
+    } else {
+        const mx = mon.mx ?? mon.x ?? 0;
+        const my = mon.my ?? mon.y ?? 0;
+        distance = (player.x - mx) * (player.x - mx) + (player.y - my) * (player.y - my);
+    }
+    const playerData = player.youmonst?.data || player.data || {};
+    if ((distance === 0 || (distance < 3 && !rn2(Math.floor((1 + acurr(player, A_DEX)) / 2))))
+        && (!breathless(playerData) || haseyes(playerData))) {
+        await potionbreathe(player, obj);
+    } else if (obj.dknown) {
+        await trycall(obj);
+    }
 }
 
 // ============================================================
@@ -1508,10 +1565,11 @@ async function potionbreathe(player, obj) {
             await pline("Ulch!  That potion smells terrible!");
         } else {
             // restore one random attribute toward max
+            // C ref: peffects POT_RESTORE_ABILITY — restores ABASE toward AMAX
             let i = rn2(A_MAX);
+            ensureAttrArrays(player);
             for (let ii = 0; ii < A_MAX; ii++) {
-                if (player.attributes && player.attrmax &&
-                    player.attributes[i] < player.attrmax[i]) {
+                if (player.attributes[i] < player.attrMax[i]) {
                     player.attributes[i]++;
                     player._botl = true;
                     if (!obj.blessed) break;
@@ -1728,9 +1786,42 @@ function getobjChoicesForPrompt(player, obj_ok) {
 }
 
 function buildGetobjPrompt(word, compactLetters) {
-    const prompt = `What do you want to ${word}? [${compactLetters} or ?*] `;
-    const limit = Math.max(1, COLNO - 1);
-    return (prompt.length <= limit) ? prompt : prompt.slice(0, limit);
+    return `What do you want to ${word}? [${compactLetters} or ?*] `;
+}
+
+function splitPromptForTopline(prompt, cols) {
+    const limit = Math.max(1, cols - 1);
+    if (prompt.length <= limit) return [prompt, ''];
+    // C getobj prompt display wraps at terminal width without word-boundary
+    // reflow; preserve exact character flow into row 1.
+    const breakPoint = limit;
+    const row0 = prompt.slice(0, breakPoint);
+    const row1 = prompt.slice(breakPoint);
+    return [row0, row1];
+}
+
+async function renderGetobjPromptTopline(display, prompt) {
+    if (!display || typeof display.putstr_message !== 'function') return;
+    if (typeof display.putstr !== 'function' || typeof display.clearRow !== 'function') {
+        await display.putstr_message(prompt);
+        return;
+    }
+    const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
+    const [row0, row1] = splitPromptForTopline(prompt, cols);
+    display.clearRow(0);
+    display.clearRow(1);
+    display.putstr(0, 0, row0);
+    if (row1) display.putstr(0, 1, row1);
+    if (Object.hasOwn(display, 'topMessage')) display.topMessage = row0;
+    if (Object.hasOwn(display, '_topMessageRow1')) {
+        display._topMessageRow1 = row1 || undefined;
+    }
+    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    if (typeof display.setCursor === 'function') {
+        if (row1) display.setCursor(Math.min(row1.length, cols - 1), 1);
+        else display.setCursor(Math.min(row0.length, cols - 1), 0);
+    }
 }
 
 async function getobj_prompt_local(word, obj_ok, display, player) {
@@ -1752,18 +1843,24 @@ async function getobj_prompt_local(word, obj_ok, display, player) {
     const menuLetters = letters.join('');
     const compactLetters = compactInvletPromptChars(menuLetters);
     const prompt = buildGetobjPrompt(word, compactLetters);
-    await display.putstr_message(prompt);
+    await renderGetobjPromptTopline(display, prompt);
 
     while (true) {
         const ch = await nhgetch();
-        if (ch === 27) return null; // ESC
+        if (ch === 27 || ch === 32) { // ESC or space = cancel (C treats both as cancel)
+            await pline('Never mind.');
+            return null;
+        }
         const c = String.fromCharCode(ch);
         if (c === '?' || c === '*') {
-            await display.putstr_message(prompt);
+            await renderGetobjPromptTopline(display, prompt);
             continue;
         }
         const chosen = choices.find((obj) => obj.invlet === c);
         if (chosen) return chosen;
+        // Invalid inventory letter — cancel like C's getobj does
+        await pline('Never mind.');
+        return null;
     }
 }
 
@@ -1829,20 +1926,20 @@ async function dodip(player, map, display) {
 export async function dip_into(player, map, display, target = null) {
     // C ref: potion.c:2364-2391
     // Select potion first and then apply dip to provided/selected target object.
-    const obj = target || getobj(
+    const obj = target || await getobj(
         'dip',
         (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
+        GETOBJ_PROMPT,
         player
     );
     if (!obj) {
         await You("don't have anything to dip.");
         return false;
     }
-    const potion = getobj(
+    const potion = await getobj(
         'dip into',
         (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        0,
+        GETOBJ_PROMPT,
         player
     );
     if (!potion) {
@@ -1858,7 +1955,7 @@ export function poof(player, potion) {
     // C ref: potion.c:2393-2399
     // trycall(potion) — ID attempt; useup(potion) — consume it
     if (player && player.removeFromInventory) {
-        player.removeFromInventory(potion);
+        useup(potion, player);
     }
 }
 

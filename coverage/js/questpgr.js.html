@@ -1,0 +1,829 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for js/questpgr.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">js</a> questpgr.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">81.85% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>203/248</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/5</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">81.85% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>203/248</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-yes">257x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// questpgr.js -- Quest text pager: Lua-based quest dialog and text formatting
+// cf. questpgr.c — quest_info, ldrname, is_quest_artifact, find_quest_artifact,
+//                  stinky_nemesis, com_pager, qt_pager, qt_montype,
+//                  deliver_splev_message, and static helpers
+//
+// Three subsystems:
+// 1. Quest artifact lookup: is_quest_artifact(), find_quest_artifact(),
+//    find_qarti() [static]
+// 2. Quest text delivery: com_pager_core() [static Lua-based], com_pager(),
+//    qt_pager(), convert_arg() [static], convert_line() [static],
+//    qtext_pronoun() [static], deliver_by_pline() [static],
+//    deliver_by_window() [static], skip_pager() [static]
+// 3. Quest role info: quest_info(), ldrname(), neminame() [static],
+//    guardname() [static], homebase() [static], intermed() [static],
+//    stinky_nemesis(), qt_montype()
+// Plus: deliver_splev_message() for special-level arrival text
+//
+// com_pager_core() opens "quest.lua" in a temporary Lua sandbox; looks up
+//   questtext[section][msgid]; expands %-escapes (convert_line/convert_arg);
+//   delivers via pline or NHW_TEXT/NHW_MENU window.
+// %-escape codes: %p=player, %c=class, %r=rank, %l=leader, %n=nemesis,
+//   %g=guard, %o=artifact, %d=deity, %a=alignment, %Z=dungeon name, etc.
+//   Modifiers: %xa/%xA=an prefix, %xC=capitalize, %xp/%xP=pluralize,
+//   %xs/%xS=possessive, %xt=strip "the", %xh/%xi/%xj=pronoun.
+//
+// JS implementations:
+//   is_quest_artifact() → objdata.js:54 (PARTIAL — stub returning false; TODO)
+//   All other functions → not implemented in JS.
+//
+// Note: com_pager_core() uses a Lua interpreter (nhl_init) that is N/A
+//   for the browser port. Quest text would need a different delivery mechanism.
+&nbsp;
+import { Has_contents } from './objnam.js';
+import { pline } from './pline.js';
+import { is_quest_artifact } from './objdata.js';
+import { rn2 } from './rng.js';
+import { align_gname } from './pray.js';
+import { game as _gstate } from './gstate.js';
+&nbsp;
+// Minimal common-section pager data needed for faithful runtime message
+// selection in currently exercised gameplay paths. Source: dat/quest.lua.
+const COMMON_QUEST_TEXT = Object.freeze({
+  angel_cuss: Object.freeze([
+    "\"Repent, and thou shalt be saved!\"",
+    "\"Thou shalt pay for thine insolence!\"",
+    "\"Very soon, my child, thou shalt meet thy maker.\"",
+    "\"The great %D has sent me to make you pay for your sins!\"",
+    "\"The wrath of %D is now upon you!\"",
+    "\"Thy life belongs to %D now!\"",
+    "\"Dost thou wish to receive thy final blessing?\"",
+    "\"Thou art but a godless void.\"",
+    "\"Thou art not worthy to seek the Amulet.\"",
+    "\"No one expects the Spanish Inquisition!\"",
+    "\"Judgment hath been passed upon thee, %p.\"",
+    "\"Thy reckoning is at hand, %p.\"",
+    "\"Thou shalt be brought before %D for thy crimes!\"",
+    "\"With %D as my witness, I shall strike thee down.\"",
+  ]),
+  demon_cuss: Object.freeze([
+    "\"I first mistook thee for a statue, when I regarded thy head of stone.\"",
+    "\"Come here often?\"",
+    "\"Doth pain excite thee?  Wouldst thou prefer the whip?\"",
+    "\"Thinkest thou it shall tickle as I rip out thy lungs?\"",
+    "\"Eat slime and die!\"",
+    "\"Go ahead, fetch thy mama!  I shall wait.\"",
+    "\"Go play leapfrog with a herd of unicorns!\"",
+    "\"Hast thou been drinking, or art thou always so clumsy?\"",
+    "\"This time I shall let thee off with a spanking, but let it not happen again.\"",
+    "\"I've met smarter (and prettier) acid blobs.\"",
+    "\"Look!  Thy bootlace is undone!\"",
+    "\"Mercy!  Dost thou wish me to die of laughter?\"",
+    "\"Run away!  Live to flee another day!\"",
+    "\"Thou hadst best fight better than thou canst dress!\"",
+    "\"Twixt thy cousin and thee, Medusa is the prettier.\"",
+    "\"Methinks thou wert unnaturally stirred by yon corpse back there, eh, varlet?\"",
+    "\"Up thy nose with a rubber hose!\"",
+    "\"Verily, thy corpse could not smell worse!\"",
+    "\"Wait!  I shall polymorph into a grid bug to give thee a fighting chance!\"",
+    "\"Why search for the Amulet?  Thou wouldst but lose it, cretin.\"",
+    "\"Thou ought to be a comedian, thy skills are so laughable!\"",
+    "\"Thy gaze is so vacant, I thought thee a floating eye!\"",
+    "\"Thy head is unfit for a mind flayer to munch upon!\"",
+    "\"Only thy reflection could love thee!\"",
+    "\"Hast thou considered masking thine odour?\"",
+    "\"Hold! Thy face is a most exquisite torture!\"",
+    "\"I should fart in thy direction, but it might improve thy smell!\"",
+  ]),
+});
+&nbsp;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function get_common_pager_message(msgid) {</span></span>
+<span class="cstat-no" title="statement not covered" >  const entry = COMMON_QUEST_TEXT[msgid];</span>
+<span class="cstat-no" title="statement not covered" >  if (!entry) return null;</span>
+<span class="cstat-no" title="statement not covered" >  // C ref: questpgr.c com_pager_core() -&gt; nhl_init() loads nhlib.lua,</span>
+<span class="cstat-no" title="statement not covered" >  // whose top-level shuffle(align) consumes rn2(3), rn2(2) per call.</span>
+<span class="cstat-no" title="statement not covered" >  rn2(3);</span>
+<span class="cstat-no" title="statement not covered" >  rn2(2);</span>
+<span class="cstat-no" title="statement not covered" >  if (Array.isArray(entry)) {</span>
+<span class="cstat-no" title="statement not covered" >    if (entry.length === 0) return null;</span>
+<span class="cstat-no" title="statement not covered" >    return convert_common_pager_line(entry[rn2(entry.length)]);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  return typeof entry === 'string' ? convert_common_pager_line(entry) : null;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >function convert_common_pager_line(line) {</span></span>
+<span class="cstat-no" title="statement not covered" >  if (typeof line !== 'string' || line.length === 0) return line;</span>
+<span class="cstat-no" title="statement not covered" >  const player = _gstate?.player || _gstate?.u || null;</span>
+<span class="cstat-no" title="statement not covered" >  const playerName = String(player?.name || 'player');</span>
+<span class="cstat-no" title="statement not covered" >  const originalAlign = player?.originalAlignment ?? player?.alignment ?? 0;</span>
+<span class="cstat-no" title="statement not covered" >  const lawfulDeity = align_gname(1, player) || 'Marduk';</span>
+<span class="cstat-no" title="statement not covered" >  const ownDeity = align_gname(originalAlign, player) || lawfulDeity;</span>
+<span class="cstat-no" title="statement not covered" >  return line</span>
+<span class="cstat-no" title="statement not covered" >    .replace(/%p/g, playerName)</span>
+<span class="cstat-no" title="statement not covered" >    .replace(/%D/g, lawfulDeity)</span>
+<span class="cstat-no" title="statement not covered" >    .replace(/%d/g, ownDeity);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// cf. questpgr.c:31 — quest_info(typ): return quest role monster/artifact num
+// typ=0 → questarti; MS_LEADER → ldrnum; MS_NEMESIS → neminum; MS_GUARDIAN → guardnum.
+// TODO: questpgr.c:31 — quest_info(): quest role monster/artifact index lookup
+&nbsp;
+// cf. questpgr.c:49 — ldrname(): formatted quest leader name
+// Returns "the &lt;name&gt;" or just "&lt;name&gt;" depending on type_is_pname().
+// TODO: questpgr.c:49 — ldrname(): quest leader name string
+&nbsp;
+// cf. questpgr.c:60 [static] — intermed(): role's intermediate target string
+// Returns gu.urole.intermed (e.g., "the Mines' End" for Dwarf quest).
+// TODO: questpgr.c:60 — intermed(): quest intermediate target description
+&nbsp;
+// cf. questpgr.c:66 — is_quest_artifact(otmp): is object the role's quest artifact?
+// Returns otmp-&gt;oartifact == gu.urole.questarti.
+// JS equiv: objdata.js:54 — stub returning false; TODO when artifacts implemented.
+// PARTIAL: questpgr.c:66 — is_quest_artifact() ↔ is_quest_artifact() (objdata.js:54)
+&nbsp;
+// cf. questpgr.c:72 [static] — find_qarti(ochain): find quest artifact in chain
+// Recursively searches object chain including containers.
+// TODO: questpgr.c:72 — find_qarti(): quest artifact search in object chain
+&nbsp;
+// cf. questpgr.c:88 — find_quest_artifact(whichchains): find artifact across chains
+// Bitmask selects which chains to search: OBJ_INVENT, OBJ_FLOOR, OBJ_MINVENT,
+//   OBJ_MIGRATING, OBJ_BURIED.
+// TODO: questpgr.c:88 — find_quest_artifact(): multi-chain quest artifact search
+&nbsp;
+// cf. questpgr.c:122 [static] — neminame(): formatted nemesis name
+// Returns "the &lt;neminum name&gt;" or just the name if type_is_pname().
+// TODO: questpgr.c:122 — neminame(): quest nemesis name string
+&nbsp;
+// cf. questpgr.c:133 [static] — guardname(): guardian monster name
+// Returns mons[guardnum].pmnames[NEUTRAL].
+// TODO: questpgr.c:133 — guardname(): quest guardian name string
+&nbsp;
+// cf. questpgr.c:141 [static] — homebase(): quest leader's home location
+// Returns gu.urole.homebase (e.g., "Camelot Castle").
+// TODO: questpgr.c:141 — homebase(): quest leader home location string
+&nbsp;
+// cf. questpgr.c:149 — stinky_nemesis(mon): does nemesis death message mention gas?
+// Calls com_pager_core() with rawtext=TRUE to get "killed_nemesis" text;
+//   returns 1 if text contains (noxious|poisonous|toxic) followed by (gas|fumes).
+// Used by m_detach() to decide whether to call nemesis_stinks().
+// TODO: questpgr.c:149 — stinky_nemesis(): gas-cloud death text check
+&nbsp;
+// cf. questpgr.c:198 [static] — qtext_pronoun(who, which): name → pronoun
+// Converts entity ('d'=deity, 'l'=leader, 'n'=nemesis, 'o'=artifact) to
+//   pronoun (h=he/she, i=him/her, j=his/her); uppercase for H/I/J.
+// Handles plural artifacts (Eyes of...) as "they/them/their".
+// TODO: questpgr.c:198 — qtext_pronoun(): quest text gender pronoun
+&nbsp;
+// cf. questpgr.c:235 [static] — convert_arg(c): expand single %-escape to string
+// Maps single char code to string in gc.cvt_buf:
+//   p=player name, c=class name, r=rank, l=leader, n=nemesis, o=artifact,
+//   g=guard, G=align title, H=homebase, d=deity, D=lawful deity, C/N/L=alignment,
+//   a=align str, A=current align, Z=dungeon name, x=see/sense (blind?), %=%.
+// TODO: questpgr.c:235 — convert_arg(): quest text %-code expansion
+&nbsp;
+// cf. questpgr.c:327 [static] — convert_line(in_line, out_line): expand all %-escapes
+// Scans line character by character; expands %X sequences using convert_arg()
+//   and qtext_pronoun(); applies modifiers (a/A=an, C=capitalize, p/P=plural,
+//   s/S=possessive, t=strip-the, h/H/i/I/j/J=pronoun).
+// TODO: questpgr.c:327 — convert_line(): full quest text line formatting
+&nbsp;
+// cf. questpgr.c:422 [static] — deliver_by_pline(str): output quest text via pline
+// Splits str at newlines; calls convert_line() on each; outputs via pline().
+// TODO: questpgr.c:422 — deliver_by_pline(): quest text pline delivery
+&nbsp;
+// cf. questpgr.c:438 [static] — deliver_by_window(msg, how): output in text window
+// Creates NHW_TEXT or NHW_MENU window; delivers converted lines via putstr();
+//   displays and destroys window.
+// TODO: questpgr.c:438 — deliver_by_window(): quest text window delivery
+&nbsp;
+// cf. questpgr.c:458 [static] — skip_pager(common): suppress quest messages?
+// Returns TRUE if program_state.wizkit_wishing (skip plot feedback).
+// TODO: questpgr.c:458 — skip_pager(): quest message suppression check
+&nbsp;
+// cf. questpgr.c:467 [static] — com_pager_core(section, msgid, showerror, rawtext)
+// Opens quest.lua in Lua sandbox; looks up questtext[section][msgid];
+//   picks random entry if array; converts and delivers via pline or window.
+// rawtext!=NULL: stores raw text string instead of delivering.
+// Fallback: checks questtext[msg_fallbacks][msgid] for alternate key.
+// N/A: browser port has no Lua interpreter (nhl_init). Quest text needs alternative.
+// N/A: questpgr.c:467 — com_pager_core() (Lua interpreter not available)
+&nbsp;
+// cf. questpgr.c:623 — com_pager(msgid): deliver "common" section quest message
+// Calls com_pager_core("common", msgid, TRUE, NULL).
+// TODO: questpgr.c:623 — com_pager(): common quest message delivery
+&nbsp;
+// cf. questpgr.c:629 — qt_pager(msgid): deliver role-specific quest message
+// Tries com_pager_core(urole.filecode, msgid, FALSE) first;
+//   falls back to com_pager(msgid) on failure.
+// TODO: questpgr.c:629 — qt_pager(): role-specific quest message delivery
+&nbsp;
+// cf. questpgr.c:636 — qt_montype(): return random enemy monster for quest level
+// 4/5 chance: picks enemy1num or mkclass(enemy1sym);
+// 1/5 chance: picks enemy2num or mkclass(enemy2sym).
+// Used by mklev to place appropriate enemies on quest levels.
+// TODO: questpgr.c:636 — qt_montype(): random quest level enemy type
+&nbsp;
+// cf. questpgr.c:654 — deliver_splev_message(): display special-level arrival text
+// Delivers lev_message via deliver_by_pline(); frees lev_message.
+// Called on first arrival at a special level that has a custom message.
+// TODO: questpgr.c:654 — deliver_splev_message(): special level custom message
+&nbsp;
+// Autotranslated from questpgr.c:72
+export <span class="fstat-no" title="function not covered" >function find_qarti(ochain) {</span>
+<span class="cstat-no" title="statement not covered" >  let otmp, qarti;</span>
+<span class="cstat-no" title="statement not covered" >  for (otmp = ochain; otmp; otmp = otmp.nobj) {</span>
+<span class="cstat-no" title="statement not covered" >    if (is_quest_artifact(otmp)) return otmp;</span>
+<span class="cstat-no" title="statement not covered" >    if (Has_contents(otmp) &amp;&amp; (qarti = find_qarti(otmp.cobj)) != null) return qarti;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  return  0;</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from questpgr.c:422
+export <span class="fstat-no" title="function not covered" >async function deliver_by_pline(str) {</span>
+<span class="cstat-no" title="statement not covered" >  // TODO: convert_line() %-escape expansion not yet implemented</span>
+<span class="cstat-no" title="statement not covered" >  const lines = str.split('\n');</span>
+<span class="cstat-no" title="statement not covered" >  for (const line of lines) {</span>
+<span class="cstat-no" title="statement not covered" >    if (line) await pline("%s", line);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+// Autotranslated from questpgr.c:623
+export <span class="fstat-no" title="function not covered" >async function com_pager(msgid) {</span>
+<span class="cstat-no" title="statement not covered" >  const message = get_common_pager_message(msgid);</span>
+<span class="cstat-no" title="statement not covered" >  if (typeof message === 'string' &amp;&amp; message.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >    await deliver_by_pline(message);</span>
+<span class="cstat-no" title="statement not covered" >    return;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  await com_pager_core("common", msgid, true,  0);</span>
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-03-13T17:16:11.276Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    

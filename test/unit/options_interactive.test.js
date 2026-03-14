@@ -300,7 +300,7 @@ test('options menu: persistence works across multiple save/reload cycles', () =>
 
 test('options menu: help mode uses multiple pages', () => {
     assert.strictEqual(getTotalPages(false), 2, 'compact options should have 2 pages');
-    assert.strictEqual(getTotalPages(true), 5, 'help options should have 5 pages');
+    assert.strictEqual(getTotalPages(true), 7, 'help options should have 7 pages');
 });
 
 test('options menu: can resolve and set visible option values', () => {
@@ -310,9 +310,9 @@ test('options menu: can resolve and set visible option values', () => {
     assert.ok(compactOpt, 'compact page key should resolve');
     assert.strictEqual(compactOpt.name, 'fruit', 'compact page 1 a should be fruit');
 
-    const helpOpt = getOptionByKey(5, true, 'p');
+    const helpOpt = getOptionByKey(7, true, 'p');
     assert.ok(helpOpt, 'help page key should resolve');
-    assert.strictEqual(helpOpt.name, 'time', 'help page 5 should include time option');
+    assert.strictEqual(helpOpt.name, 'time', 'help page 7 should include time option');
 
     const beforeFruit = flags.fruit;
     const beforeStatusLines = flags.statuslines;

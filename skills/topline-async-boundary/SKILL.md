@@ -25,6 +25,14 @@ the async propagation.
 1. Reproduce one failing session:
    - `node test/comparison/session_test_runner.js --verbose <session>`
 2. Localize first screen divergence step and nearby logic.
+   - If the boundary is prompt-heavy or the same command appears to do the
+     right total work in the wrong order, inspect:
+     - `node scripts/comparison-window.mjs <session> --channel event --view normalized`
+     - `node scripts/comparison-window.mjs <session> --channel rng --view filtered-raw --raw-step`
+   - Use event normalized output for first localization, then RNG
+     gameplay-filtered raw for same-step ownership/order diagnosis. Do not rely
+     on normalized output alone when debugging `--More--`, `yn`, direction
+     prompts, or stacked input boundaries.
 3. Inspect C order at the matching function and keep that order in JS.
 4. Find message call(s) in JS at that boundary.
 5. Convert boundary function to `async` and add `await` to message call(s).

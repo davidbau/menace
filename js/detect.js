@@ -31,7 +31,7 @@ import { distu } from './hacklib.js';
 import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END, TER_FULL, TER_DETECT, TER_OBJ, TER_MON } from './const.js';
-import { defsyms, trap_to_defsym } from './symbols.js';
+import { defsyms, trap_to_defsym, glyph_is_invisible } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
 import { sobj_at } from './invent.js';
@@ -987,7 +987,7 @@ export async function mfind0(mtmp, via_warning, player, map, display) {
     if (found_something) {
         if (!canSpotMonsterForMap(mtmp, map, player)) {
             const loc = map.at(x, y);
-            if (loc && loc.mem_invis) return -1;
+            if (loc && glyph_is_invisible(loc.glyph)) return -1;
         }
         await exercise(player, A_WIS, true);
         if (!canSpotMonsterForMap(mtmp, map, player)) {

@@ -28,7 +28,7 @@ import { xname, the } from './objnam.js';
 import { spec_ability } from './artifact.js';
 import { ART_MAGICBANE, SPFX_INTEL } from './artifacts.js';
 import { make_confused, make_blinded, make_glib } from './potion.js';
-import { makemon } from './makemon.js';
+import { makemon_appear } from './makemon.js';
 import { courtmon } from './mkroom.js';
 import { level_difficulty } from './dungeon.js';
 import { unbless, curse as curseObj } from './mkobj.js';
@@ -37,6 +37,8 @@ import { do_mapping } from './detect.js';
 import { aggravate } from './wizard.js';
 import { update_inventory } from './invent.js';
 import { burn_away_slime } from './timeout.js';
+import { game as _gstate } from './gstate.js';
+import { newsym, see_monsters, set_mimic_blocking } from './display.js';
 
 // cf. sit.c:14 -- take_gold(): remove all gold coins from hero inventory
 export async function take_gold(player, display) {
@@ -243,7 +245,7 @@ async function throne_sit_effect(player, map, display) {
                 await verbalize("Thine audience hath been summoned, %s!",
                           player.gender === 1 ? "Dame" : "Sire");
                 for (let i = 0; i < cnt; i++) {
-                    makemon(courtmon(level_difficulty(map)), tx, ty, 0, 0, map);
+                    await makemon_appear(courtmon(level_difficulty(map)), tx, ty, 0, 0, map);
                 }
             }
             break;
@@ -582,49 +584,95 @@ export async function rndcurse(player, map, display) {
 // Returns the intrinsic property which was removed, or 0 if nothing removed.
 export async function attrcurse(player, display) {
     let ret = 0;
-
-    // C uses a fall-through switch on rnd(11)
-    // We replicate the cascade: if the rolled case's intrinsic is not present,
-    // fall through to the next case.
     const roll = rnd(11);
+    const map = _gstate?.map || null;
+    const clearIntrinsic = (prop) => {
+        const entry = player?.uprops?.[prop];
+        if (!entry || !(entry.intrinsic & INTRINSIC)) return false;
+        entry.intrinsic &= ~INTRINSIC;
+        return true;
+    };
 
-    // Build cascade array: [case_num, property_key, message, ret_value]
-    const cascade = [
-        [1,  'fire_resistance_intrinsic',   "warmer.",              FIRE_RES],
-        [2,  'teleportation_intrinsic',     "less jumpy.",          TELEPORT],
-        [3,  'poison_resistance_intrinsic', "a little sick!",       POISON_RES],
-        [4,  'telepathy_intrinsic',         null,                   TELEPAT],
-        [5,  'cold_resistance_intrinsic',   "cooler.",              COLD_RES],
-        [6,  'invisibility_intrinsic',      "paranoid.",            INVIS],
-        [7,  'see_invisible_intrinsic',     null,                   SEE_INVIS],
-        [8,  'fast_intrinsic',              "slower.",              FAST],
-        [9,  'stealth_intrinsic',           "clumsy.",              STEALTH],
-        [10, 'protection_intrinsic',        "vulnerable.",          PROTECTION],
-        [11, 'aggravate_intrinsic',         "less attractive.",     AGGRAVATE_MONSTER],
-    ];
-
-    // Find start index based on roll
-    let startIdx = cascade.findIndex(c => c[0] === roll);
-    if (startIdx < 0) startIdx = cascade.length; // default: no match
-
-    for (let i = startIdx; i < cascade.length; i++) {
-        const [, prop, msg, propId] = cascade[i];
-        if (player[prop]) {
-            player[prop] = false;
-            if (propId === TELEPAT) {
-                // Special message for telepathy
-                await Your("senses fail!");
-            } else if (propId === SEE_INVIS) {
-                // Special message for see invisible
-                await You(player.Hallucination
-                    ? "tawt you taw a puttie tat"
-                    : "thought you saw something");
-            } else if (msg) {
-                await You_feel(msg);
+    for (let i = roll; i <= 11; i++) {
+        switch (i) {
+        case 1:
+            if (clearIntrinsic(FIRE_RES)) {
+                await You_feel('warmer.');
+                ret = FIRE_RES;
             }
-            ret = propId;
+            break;
+        case 2:
+            if (clearIntrinsic(TELEPORT)) {
+                await You_feel('less jumpy.');
+                ret = TELEPORT;
+            }
+            break;
+        case 3:
+            if (clearIntrinsic(POISON_RES)) {
+                await You_feel('a little sick!');
+                ret = POISON_RES;
+            }
+            break;
+        case 4:
+            if (clearIntrinsic(TELEPAT)) {
+                if (player.Blind && !player.Blind_telepat) see_monsters(map);
+                await Your('senses fail!');
+                ret = TELEPAT;
+            }
+            break;
+        case 5:
+            if (clearIntrinsic(COLD_RES)) {
+                await You_feel('cooler.');
+                ret = COLD_RES;
+            }
+            break;
+        case 6:
+            if (clearIntrinsic(INVIS)) {
+                await You_feel('paranoid.');
+                ret = INVIS;
+            }
+            break;
+        case 7:
+            if (clearIntrinsic(SEE_INVIS)) {
+                if (!player.See_invisible) {
+                    set_mimic_blocking();
+                    see_monsters(map);
+                    newsym(player.x, player.y);
+                }
+                await You(player.Hallucination
+                    ? 'tawt you taw a puttie tat'
+                    : 'thought you saw something');
+                ret = SEE_INVIS;
+            }
+            break;
+        case 8:
+            if (clearIntrinsic(FAST)) {
+                await You_feel('slower.');
+                ret = FAST;
+            }
+            break;
+        case 9:
+            if (clearIntrinsic(STEALTH)) {
+                await You_feel('clumsy.');
+                ret = STEALTH;
+            }
+            break;
+        case 10:
+            if (clearIntrinsic(PROTECTION)) {
+                await You_feel('vulnerable.');
+                ret = PROTECTION;
+            }
+            break;
+        case 11:
+            if (clearIntrinsic(AGGRAVATE_MONSTER)) {
+                await You_feel('less attractive.');
+                ret = AGGRAVATE_MONSTER;
+            }
+            break;
+        default:
             break;
         }
+        if (ret) break;
     }
 
     return ret;

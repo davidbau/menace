@@ -33,6 +33,86 @@
 import { Has_contents } from './objnam.js';
 import { pline } from './pline.js';
 import { is_quest_artifact } from './objdata.js';
+import { rn2 } from './rng.js';
+import { align_gname } from './pray.js';
+import { game as _gstate } from './gstate.js';
+
+// Minimal common-section pager data needed for faithful runtime message
+// selection in currently exercised gameplay paths. Source: dat/quest.lua.
+const COMMON_QUEST_TEXT = Object.freeze({
+  angel_cuss: Object.freeze([
+    "\"Repent, and thou shalt be saved!\"",
+    "\"Thou shalt pay for thine insolence!\"",
+    "\"Very soon, my child, thou shalt meet thy maker.\"",
+    "\"The great %D has sent me to make you pay for your sins!\"",
+    "\"The wrath of %D is now upon you!\"",
+    "\"Thy life belongs to %D now!\"",
+    "\"Dost thou wish to receive thy final blessing?\"",
+    "\"Thou art but a godless void.\"",
+    "\"Thou art not worthy to seek the Amulet.\"",
+    "\"No one expects the Spanish Inquisition!\"",
+    "\"Judgment hath been passed upon thee, %p.\"",
+    "\"Thy reckoning is at hand, %p.\"",
+    "\"Thou shalt be brought before %D for thy crimes!\"",
+    "\"With %D as my witness, I shall strike thee down.\"",
+  ]),
+  demon_cuss: Object.freeze([
+    "\"I first mistook thee for a statue, when I regarded thy head of stone.\"",
+    "\"Come here often?\"",
+    "\"Doth pain excite thee?  Wouldst thou prefer the whip?\"",
+    "\"Thinkest thou it shall tickle as I rip out thy lungs?\"",
+    "\"Eat slime and die!\"",
+    "\"Go ahead, fetch thy mama!  I shall wait.\"",
+    "\"Go play leapfrog with a herd of unicorns!\"",
+    "\"Hast thou been drinking, or art thou always so clumsy?\"",
+    "\"This time I shall let thee off with a spanking, but let it not happen again.\"",
+    "\"I've met smarter (and prettier) acid blobs.\"",
+    "\"Look!  Thy bootlace is undone!\"",
+    "\"Mercy!  Dost thou wish me to die of laughter?\"",
+    "\"Run away!  Live to flee another day!\"",
+    "\"Thou hadst best fight better than thou canst dress!\"",
+    "\"Twixt thy cousin and thee, Medusa is the prettier.\"",
+    "\"Methinks thou wert unnaturally stirred by yon corpse back there, eh, varlet?\"",
+    "\"Up thy nose with a rubber hose!\"",
+    "\"Verily, thy corpse could not smell worse!\"",
+    "\"Wait!  I shall polymorph into a grid bug to give thee a fighting chance!\"",
+    "\"Why search for the Amulet?  Thou wouldst but lose it, cretin.\"",
+    "\"Thou ought to be a comedian, thy skills are so laughable!\"",
+    "\"Thy gaze is so vacant, I thought thee a floating eye!\"",
+    "\"Thy head is unfit for a mind flayer to munch upon!\"",
+    "\"Only thy reflection could love thee!\"",
+    "\"Hast thou considered masking thine odour?\"",
+    "\"Hold! Thy face is a most exquisite torture!\"",
+    "\"I should fart in thy direction, but it might improve thy smell!\"",
+  ]),
+});
+
+function get_common_pager_message(msgid) {
+  const entry = COMMON_QUEST_TEXT[msgid];
+  if (!entry) return null;
+  // C ref: questpgr.c com_pager_core() -> nhl_init() loads nhlib.lua,
+  // whose top-level shuffle(align) consumes rn2(3), rn2(2) per call.
+  rn2(3);
+  rn2(2);
+  if (Array.isArray(entry)) {
+    if (entry.length === 0) return null;
+    return convert_common_pager_line(entry[rn2(entry.length)]);
+  }
+  return typeof entry === 'string' ? convert_common_pager_line(entry) : null;
+}
+
+function convert_common_pager_line(line) {
+  if (typeof line !== 'string' || line.length === 0) return line;
+  const player = _gstate?.player || _gstate?.u || null;
+  const playerName = String(player?.name || 'player');
+  const originalAlign = player?.originalAlignment ?? player?.alignment ?? 0;
+  const lawfulDeity = align_gname(1, player) || 'Marduk';
+  const ownDeity = align_gname(originalAlign, player) || lawfulDeity;
+  return line
+    .replace(/%p/g, playerName)
+    .replace(/%D/g, lawfulDeity)
+    .replace(/%d/g, ownDeity);
+}
 
 // cf. questpgr.c:31 — quest_info(typ): return quest role monster/artifact num
 // typ=0 → questarti; MS_LEADER → ldrnum; MS_NEMESIS → neminum; MS_GUARDIAN → guardnum.
@@ -159,5 +239,10 @@ export async function deliver_by_pline(str) {
 
 // Autotranslated from questpgr.c:623
 export async function com_pager(msgid) {
+  const message = get_common_pager_message(msgid);
+  if (typeof message === 'string' && message.length > 0) {
+    await deliver_by_pline(message);
+    return;
+  }
   await com_pager_core("common", msgid, true,  0);
 }

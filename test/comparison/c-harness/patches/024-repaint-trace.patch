@@ -1,0 +1,471 @@
+diff --git a/include/extern.h b/include/extern.h
+index 84cf41c52..c7f92ffe9 100644
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2747,6 +2747,8 @@ extern void midlog_exit_ptr(const char *, const void *, const char *, int, const
+ 
+ /* Event logging (012-event-logging patch) */
+ extern void event_log(const char *, ...) PRINTF_F(1, 2);
++extern void repaint_log(const char *, ...) PRINTF_F(1, 2);
++extern void repaint_debug_log(const char *, ...) PRINTF_F(1, 2);
++extern void repaint_debug_set_scope(const char *);
++extern void repaint_debug_clear_scope(void);
++extern const char *repaint_debug_get_scope(void);
+ 
+ /* ### role.c ### */
+ 
+diff --git a/src/rnd.c b/src/rnd.c
+index 3ec7de362..23943ca3f 100644
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -32,18 +32,31 @@ static int rng_call_count = 0;
+ static const char *rng_caller_file = NULL;
+ static int rng_caller_line = 0;
+ static const char *rng_caller_func = NULL;
++static boolean repaint_trace_enabled = FALSE;
++static boolean repaint_debug_enabled = FALSE;
++static FILE *repaint_debug_file = (FILE *) 0;
++static const char *repaint_debug_scope = (const char *) 0;
+ static boolean rng_log_disp = FALSE;
+ 
+ void
+ rng_log_init(void)
+ {
+     const char *logpath = getenv("NETHACK_RNGLOG");
++    const char *repaint = getenv("NETHACK_REPAINT_TRACE");
++    const char *repaint_debug = getenv("NETHACK_REPAINT_DEBUG");
++    const char *repaint_debug_path = getenv("NETHACK_REPAINT_DEBUG_LOG");
+     const char *disp = getenv("NETHACK_RNGLOG_DISP");
+     if (logpath && *logpath) {
+         rng_logfile = fopen(logpath, "w");
+         if (rng_logfile)
+             setvbuf(rng_logfile, NULL, _IOLBF, 0); /* line-buffered */
+     }
++    repaint_trace_enabled = (repaint && *repaint && *repaint != '0') ? TRUE : FALSE;
++    repaint_debug_enabled = (repaint_debug && *repaint_debug && *repaint_debug != '0') ? TRUE : FALSE;
++    if (repaint_debug_path && *repaint_debug_path) {
++        repaint_debug_file = fopen(repaint_debug_path, "a");
++        if (repaint_debug_file)
++            setvbuf(repaint_debug_file, NULL, _IOLBF, 0);
++    }
+     rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
+ }
+ 
+@@ -179,6 +192,34 @@ event_log(const char *fmt, ...)
+     fputc('\n', rng_logfile);
+ }
+ 
++void
++repaint_log(const char *fmt, ...)
++{
++    va_list ap;
++    if (!rng_logfile || !repaint_trace_enabled)
++        return;
++    fputs("^repaint[", rng_logfile);
++    va_start(ap, fmt);
++    vfprintf(rng_logfile, fmt, ap);
++    va_end(ap);
++    fputs("]\n", rng_logfile);
++}
++
++void
++repaint_debug_log(const char *fmt, ...)
++{
++    va_list ap;
++    FILE *out;
++    if (!repaint_debug_enabled)
++        return;
++    out = repaint_debug_file ? repaint_debug_file : stderr;
++    fputs("^repaintdbg[", out);
++    va_start(ap, fmt);
++    vfprintf(out, fmt, ap);
++    va_end(ap);
++    fputs("]\n", out);
++}
++
++void
++repaint_debug_set_scope(const char *scope)
++{
++    repaint_debug_scope = scope;
++}
++
++void
++repaint_debug_clear_scope(void)
++{
++    repaint_debug_scope = (const char *) 0;
++}
++
++const char *
++repaint_debug_get_scope(void)
++{
++    return repaint_debug_scope;
++}
++
+ #ifdef USE_ISAAC64
+ #include "isaac64.h"
+ 
+diff --git a/src/botl.c b/src/botl.c
+index eddfcccf5..1fca7d11b 100644
+--- a/src/botl.c
++++ b/src/botl.c
+@@ -255,6 +255,12 @@ do_statusline2(void)
+ void
+ bot(void)
+ {
++    repaint_log("bot hp=%d botl=%d botlx=%d time=%d",
++                (int) u.uhp, (int) disp.botl, (int) disp.botlx,
++                (int) disp.time_botl);
++    repaint_debug_log("owner=botl.bot hp=%d botl=%d botlx=%d time=%d",
++                      (int) u.uhp, (int) disp.botl, (int) disp.botlx,
++                      (int) disp.time_botl);
+     if (gb.bot_disabled)
+         return;
+     /* dosave() flags completion by setting u.uhp to -1; suppress_map_output()
+diff --git a/src/display.c b/src/display.c
+index ccd03b428..83b13a081 100644
+--- a/src/display.c
++++ b/src/display.c
+@@ -2212,6 +2212,13 @@ flush_screen(int cursor_on_u)
+     if (_suppress_map_output())
+         return;
+ 
++    repaint_log("flush hp=%d cursor=%d botl=%d botlx=%d time=%d",
++                (int) u.uhp, cursor_on_u, (int) disp.botl,
++                (int) disp.botlx, (int) disp.time_botl);
++    repaint_debug_log("owner=display.flush_screen scope=%s hp=%d cursor=%d botl=%d botlx=%d time=%d",
++                      repaint_debug_get_scope() ? repaint_debug_get_scope() : "-",
++                      (int) u.uhp, cursor_on_u, (int) disp.botl,
++                      (int) disp.botlx, (int) disp.time_botl);
++
+     if (cursor_on_u == -1)
+         delay_flushing = !delay_flushing;
+     if (delay_flushing)
+diff --git a/win/tty/topl.c b/win/tty/topl.c
+index c20dfa288..2dbc788ef 100644
+--- a/win/tty/topl.c
++++ b/win/tty/topl.c
+@@ -214,6 +214,12 @@ more(void)
+         return;
+ 
+     ttyDisplay->inmore++;
++    repaint_log("more hp=%d topl=%d row=%d col=%d",
++                (int) u.uhp, (int) ttyDisplay->toplin,
++                cw ? cw->cury : -1, cw ? cw->curx : -1);
++    repaint_debug_log("owner=tty.topl.more hp=%d topl=%d row=%d col=%d",
++                      (int) u.uhp, (int) ttyDisplay->toplin,
++                      cw ? cw->cury : -1, cw ? cw->curx : -1);
+ 
+     if (ttyDisplay->toplin) {
+         tty_curs(BASE_WINDOW, cw->curx + 1, cw->cury);
+@@ -263,6 +269,9 @@ update_topl(const char *bp)
+         && cw->cury == 0
+         && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
+         && (notdied = strncmp(bp, "You die", 7)) != 0) {
++        repaint_debug_log("owner=tty.topl.update_topl.concat_fit topl=%d cury=%d len=%d existing=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          n0, (int) strlen(gt.toplines), bp ? bp : "");
+         Strcat(gt.toplines, "  ");
+         Strcat(gt.toplines, bp);
+         cw->curx += 2;
+@@ -271,6 +280,9 @@ update_topl(const char *bp)
+         return;
+     } else if (!skip) {
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
++            repaint_debug_log("owner=tty.topl.update_topl.pre_more topl=%d cury=%d len=%d existing=%d msg=%s",
++                              (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                              n0, (int) strlen(gt.toplines), bp ? bp : "");
+             more();
+         } else if (cw->cury) { /* for toplin==TOPLINE_NON_EMPTY && cury > 1 */
+             docorner(1, cw->cury + 1, 0); /* reset cury = 0 if redraw screen */
+@@ -297,8 +309,12 @@ update_topl(const char *bp)
+     }
+     if (!notdied) /* double negative => "You die"; avoid suppressing mesg */
+         cw->flags &= ~WIN_STOP, skip = FALSE;
+-    if (!skip)
++    if (!skip) {
++        repaint_debug_log("owner=tty.topl.update_topl.redotoplin topl=%d cury=%d len=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          (int) strlen(gt.toplines), gt.toplines);
+         redotoplin(gt.toplines);
++    }
+ }
+ 
+ static void
+@@ -387,6 +403,12 @@ tty_yn_function(
+     char prompt[BUFSZ];
+ 
+     yn_number = 0L;
++    repaint_log("yn hp=%d topl=%d def=%d query=%s",
++                (int) u.uhp, (int) ttyDisplay->toplin, (int) def,
++                query ? query : "");
++    repaint_debug_log("owner=tty.topl.yn_function hp=%d topl=%d def=%d query=%s",
++                      (int) u.uhp, (int) ttyDisplay->toplin, (int) def,
++                      query ? query : "");
+     if (ttyDisplay->toplin == TOPLINE_NEED_MORE
+         && (cw->flags & (WIN_STOP | WIN_NOSTOP)) != WIN_STOP)
+         more();
+diff --git a/win/tty/wintty.c b/win/tty/wintty.c
+index 4c5f633f6..710ed7237 100644
+--- a/win/tty/wintty.c
++++ b/win/tty/wintty.c
+@@ -3716,6 +3716,14 @@ void
+ tty_mark_synch(void)
+ {
+     HUPSKIP();
++    repaint_log("mark hp=%d topl=%d inread=%d inmore=%d",
++                (int) u.uhp, ttyDisplay ? (int) ttyDisplay->toplin : -1,
++                ttyDisplay ? ttyDisplay->inread : -1,
++                ttyDisplay ? ttyDisplay->inmore : -1);
++    repaint_debug_log("owner=tty.wintty.mark_synch hp=%d topl=%d inread=%d inmore=%d",
++                      (int) u.uhp, ttyDisplay ? (int) ttyDisplay->toplin : -1,
++                      ttyDisplay ? ttyDisplay->inread : -1,
++                      ttyDisplay ? ttyDisplay->inmore : -1);
+     (void) fflush(stdout);
+ }
+ 
+diff --git a/src/pline.c b/src/pline.c
+index 18ce50331..dc398e9bc 100644
+--- a/src/pline.c
++++ b/src/pline.c
+@@ -271,8 +271,12 @@ vpline(const char *line, va_list the_args)
+         vision_recalc(0);
+         in_pline = tmp_in_pline;
+     }
+-    if (u.ux)
+-        flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
++    if (u.ux) {
++        repaint_debug_set_scope("pline.vpline");
++        flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
++        repaint_debug_clear_scope();
++    }
+ 
+     putmesg(line);
+ 
+diff --git a/src/allmain.c b/src/allmain.c
+index 54a694a9e..28336d972 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -719,6 +719,8 @@ regen_pw(int wtcap)
+         u.uen += rn1(upper, 1);
+         if (u.uen > u.uenmax)
+             u.uen = u.uenmax;
++        repaint_debug_log("owner=allmain.regen_pw.set_botl hp=%d pw=%d/%d",
++                          (int) u.uhp, (int) u.uen, (int) u.uenmax);
+         disp.botl = TRUE;
+         if (u.uen == u.uenmax)
+             interrupt_multi("You feel full of energy.");
+@@ -751,6 +753,8 @@ regen_hp(int wtcap)
+                 heal = 1;
+         }
+         if (heal) {
++            repaint_debug_log("owner=allmain.regen_hp.poly.set_botl mh=%d/%d heal=%d",
++                              (int) u.mh, (int) u.mhmax, heal);
+             disp.botl = TRUE;
+             u.mh += heal;
+             reached_full = (u.mh == u.mhmax);
+@@ -771,6 +775,8 @@ regen_hp(int wtcap)
+                 heal++;
+ 
+             if (heal) {
++                repaint_debug_log("owner=allmain.regen_hp.hero.set_botl hp=%d/%d heal=%d",
++                                  (int) u.uhp, (int) u.uhpmax, heal);
+                 disp.botl = TRUE;
+                 u.uhp += heal;
+                 if (u.uhp > u.uhpmax)
+diff --git a/src/timeout.c b/src/timeout.c
+index a8e5606b4..36d3635c6 100644
+--- a/src/timeout.c
++++ b/src/timeout.c
+@@ -752,6 +752,8 @@ nh_timeout(void)
+             case DEAF:
+                 set_itimeout(&HDeaf, 1L);
+                 make_deaf(0L, TRUE);
++                repaint_debug_log("owner=timeout.deaf.set_botl hp=%d deaf=%ld",
++                                  (int) u.uhp, (long) HDeaf);
+                 disp.botl = TRUE;
+                 if (!Deaf)
+                     stop_occupation();
+@@ -805,6 +807,8 @@ nh_timeout(void)
+             case FLYING:
+                 /* timed Flying is via #wizintrinsic only */
+                 if (was_flying && !Flying) {
++                    repaint_debug_log("owner=timeout.flying.set_botl hp=%d flying=%ld",
++                                      (int) u.uhp, (long) HFlying);
+                     disp.botl = TRUE;
+                     You("land.");
+                     spoteffects(TRUE);
+diff --git a/src/eat.c b/src/eat.c
+index 5060b7b36..d4bf1e277 100644
+--- a/src/eat.c
++++ b/src/eat.c
+@@ -3494,6 +3494,8 @@ newuhs(boolean incr)
+             end_running(TRUE);
+             break;
+         }
++        repaint_debug_log("owner=eat.newuhs.set_botl hp=%d hunger=%d uhs=%d->%d",
++                          (int) u.uhp, (int) u.uhunger, (int) u.uhs, (int) newhs);
+         u.uhs = newhs;
+         disp.botl = TRUE;
+         bot();
+diff --git a/src/attrib.c b/src/attrib.c
+index ee099df0f..1c5d80750 100644
+--- a/src/attrib.c
++++ b/src/attrib.c
+@@ -187,6 +187,9 @@ adjattrib(int ndx, int incr, int msgflg)
+         return FALSE;
+     }
+ 
++    repaint_debug_log("owner=attrib.adjattrib.set_botl hp=%d ndx=%d incr=%d old=%d new=%d",
++                      (int) u.uhp, ndx, incr, old_acurr, ACURR(ndx));
+     disp.botl = TRUE;
+     if (msgflg <= 0)
+         You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
+@@ -470,6 +473,8 @@ restore_attrib(void)
+             if (!(--(ATIME(i)))) { /* countdown for change */
+                 ATEMP(i) += (ATEMP(i) > 0) ? -1 : 1;
++                repaint_debug_log("owner=attrib.restore_attrib.set_botl hp=%d ndx=%d atemp=%d atime=%d",
++                                  (int) u.uhp, i, ATEMP(i), ATIME(i));
+                 disp.botl = TRUE;
+                 if (ATEMP(i)) /* reset timer */
+                     ATIME(i) = 100 / ACURR(A_CON);
+diff --git a/src/pickup.c b/src/pickup.c
+index 4c782794d..f09a17bfe 100644
+--- a/src/pickup.c
++++ b/src/pickup.c
+@@ -1992,6 +1992,8 @@ encumber_msg(void)
+             You("%s move a handspan with this load!",
+                 newcap == 4 ? "can barely" : "can't even");
+             break;
+         }
++        repaint_debug_log("owner=pickup.encumber_msg.set_botl hp=%d oldcap=%d newcap=%d",
++                          (int) u.uhp, go.oldcap, newcap);
+         disp.botl = TRUE;
+     } else if (go.oldcap > newcap) {
+         switch (newcap) {
+@@ -2007,6 +2009,8 @@ encumber_msg(void)
+             You("%s under your load.  Movement is still very hard.",
+                 stagger(gy.youmonst.data, "stagger"));
+             break;
+         }
++        repaint_debug_log("owner=pickup.encumber_msg.set_botl hp=%d oldcap=%d newcap=%d",
++                          (int) u.uhp, go.oldcap, newcap);
+         disp.botl = TRUE;
+     }
+diff --git a/src/botl.c b/src/botl.c
+index 2f9715f20..0407e14de 100644
+--- a/src/botl.c
++++ b/src/botl.c
+@@ -2043,6 +2043,8 @@ update_hilites(void)
+             prev->time = curr->time;
+ 
+             curr->chg = prev->chg = FALSE;
++            repaint_debug_log("owner=botl.update_hilites.set_botl hp=%d rule=%s reason=chg",
++                              (int) u.uhp, curr->hilite_rule ? curr->hilite_rule : "-");
+             disp.botl = TRUE;
+         }
+         if (disp.botl)
+@@ -2054,6 +2056,8 @@ update_hilites(void)
+             && hilite_reset_needed(curr, this_unhilite + 1L)) {
+             next_unhilite = this_unhilite;
+             if (next_unhilite < gb.bl_hilite_moves)
++                repaint_debug_log("owner=botl.update_hilites.set_botl hp=%d rule=%s reason=timer",
++                                  (int) u.uhp, curr->hilite_rule ? curr->hilite_rule : "-"),
+                 disp.botl = TRUE;
+         }
+     }
+diff --git a/src/do_wear.c b/src/do_wear.c
+index 0e50727d5..095ebccf1 100644
+--- a/src/do_wear.c
++++ b/src/do_wear.c
+@@ -2501,6 +2501,8 @@ find_ac(void)
+ 
+     if (uac != u.uac) {
+         u.uac = uac;
++        repaint_debug_log("owner=do_wear.find_ac.set_botl hp=%d ac=%d",
++                          (int) u.uhp, u.uac);
+         disp.botl = TRUE;
+ #if 0
+         /* these could conceivably be achieved out of order (by being near
+diff --git a/src/allmain.c b/src/allmain.c
+index 54a694a9e..fe0785dbf 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -549,6 +549,8 @@ moveloop_core(void)
+         && (gm.multi && (!svc.context.travel ? !(gm.multi % 7)
+                         : !(svm.moves % 7L)))) {
+         if (flags.time && svc.context.run)
++            repaint_debug_log("owner=allmain.moveloop_core.run_time.set_botl hp=%d time=%ld",
++                              (int) u.uhp, (long) svm.moves),
+             disp.botl = TRUE;
+         /* [should this be flush_screen() instead?] */
+         display_nhwindow(WIN_MAP, FALSE);
+@@ -683,6 +685,8 @@ stop_occupation(void)
+         if (!maybe_finished_meal(TRUE))
+             You("stop %s.", go.occtxt);
+         go.occupation = (int (*)(void)) 0;
++        repaint_debug_log("owner=allmain.stop_occupation.set_botl hp=%d hunger=%d",
++                          (int) u.uhp, (int) u.uhunger);
+         disp.botl = TRUE; /* in case u.uhs changed */
+         nomul(0);
+     } else if (gm.multi >= 0) {
+diff --git a/src/hack.c b/src/hack.c
+index b1bc3848b..3df3be4d8 100644
+--- a/src/hack.c
++++ b/src/hack.c
+@@ -4049,6 +4049,8 @@ void
+ unmul(const char *msg_override)
+ {
++    repaint_debug_log("owner=hack.unmul.set_botl hp=%d multi=%d",
++                      (int) u.uhp, gm.multi);
+     disp.botl = TRUE;
+     gm.multi = 0; /* caller will usually have done this already */
+     if (msg_override)
+diff --git a/src/timeout.c b/src/timeout.c
+index a8e5606b4..85dcb829a 100644
+--- a/src/timeout.c
++++ b/src/timeout.c
+@@ -581,6 +581,8 @@ done_timeout(int how, int which)
+ 
+     /* life-saved */
+     *intrinsic_p &= ~I_SPECIAL;
++    repaint_debug_log("owner=timeout.done_timeout.set_botl hp=%d which=%d",
++                      (int) u.uhp, which);
+     disp.botl = TRUE;
+ }
+@@ -963,6 +965,8 @@ incr_deafness(long how_long, boolean wakeup_msg)
+         /* 3.7: how_long is negative so wasn't actually incrementing the
+            deafness timeout when it used to be passed as-is */
+         incr_itimeout(&HDeaf, abs(how_long));
++        repaint_debug_log("owner=timeout.incr_deafness.set_botl hp=%d deaf=%ld",
++                          (int) u.uhp, (long) HDeaf);
+         disp.botl = TRUE;
+         ga.afternmv = Hear_again; /* this won't give any messages */
+     }
+diff --git a/src/invent.c b/src/invent.c
+index 4c782794d..fded64af4 100644
+--- a/src/invent.c
++++ b/src/invent.c
+@@ -2046,6 +2046,8 @@ getobj(const char *word, getobj_callback_t fn, int mx)
+                     You("%s.", only_one);
+                 continue;
+             }
++        repaint_debug_log("owner=invent.getobj.set_botl hp=%d word=%s ilet=%c",
++                          (int) u.uhp, word ? word : "-", (char) ilet);
+         }
+         disp.botl = TRUE; /* May have changed the amount of money */
+         if (otmp && !gi.in_doagain) {
+diff --git a/src/hack.c b/src/hack.c
+index b1bc3848b..f5cc5e755 100644
+--- a/src/hack.c
++++ b/src/hack.c
+@@ -4034,8 +4034,11 @@ void
+ nomul(int nval)
+ {
+     if (gm.multi < nval)
+         return;              /* This is a bug fix by ab@unido */
++    if (gm.multi >= 0)
++        repaint_debug_log("owner=hack.nomul.set_botl hp=%d multi=%d nval=%d",
++                          (int) u.uhp, gm.multi, nval);
+     disp.botl |= (gm.multi >= 0);
+     u.uinvulnerable = FALSE; /* Kludge to avoid ctrl-C bug -dlc */
+     u.usleep = 0;

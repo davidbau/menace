@@ -330,6 +330,10 @@ function savelife(how, game) {
     // C: uhpmin = minuhpmax(10) — ensure hpmax >= 10
     if (player.uhpmax < 10) player.uhpmax = 10;
     player.uhp = Math.min(player.uhpmax, givehp);
+    player._botl = true;
+    player._botlStepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
+        ? (game.lev || game.map)._replayStepIndex
+        : null;
 
     if (player.hunger < 500 || how === CHOKING) {
         player.hunger = 900;
@@ -340,12 +344,20 @@ function savelife(how, game) {
     // TODO: when Sick property is fully ported
 
     game.multi = -1;
+    if (game) {
+        const ctx = game.context || (game.context = {});
+        ctx.move = 0;
+    }
     // C ref: end.c savelife() sets gn.nomovemsg so unmul() emits this exact line.
     game.nomovemsg = "You survived that attempt on your life.";
     game.multi_reason = (player.roleIndex === roles.findIndex(r => r?.name === 'Tourist'))
         ? "being toyed with by Fate"
         : "attempting to cheat Death";
-    game._stopMoveloopAfterLifesave = true;
+    // C-faithful scope: only request an immediate moveloop stop when the
+    // lifesave occurs during monster-phase processing.
+    if (game?.context?.mon_moving) {
+        game._stopMoveloopAfterLifesave = true;
+    }
 
     player.ugrave_arise = -1; // NON_PM
 }

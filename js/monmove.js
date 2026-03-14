@@ -26,13 +26,13 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
          IRONBARS, STAIRS, LADDER, W_NONDIGGABLE,
          INVIS, DISPLACED,
-         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM } from './const.js';
+         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR } from './const.js';
 import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, mdamageu, ranged_attk_available } from './mhitu.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
          AMULET_CLASS, POTION_CLASS, SCROLL_CLASS, WAND_CLASS, RING_CLASS, SPBOOK_CLASS,
@@ -42,10 +42,11 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an, vtense, makeplural } from './objnam.js';
-import { delobj, g_at, sobj_at } from './invent.js';
+import { delobj, g_at, sobj_at, carrying } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
 import { can_carry, cursed_object_at } from './dogmove.js';
+import { holetime } from './dig.js';
 import { cansee, couldsee, m_cansee } from './vision.js';
 import { pline, pline_mon, pline_The, You_hear, set_msg_xy, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
@@ -71,7 +72,7 @@ import { artifact_light } from './artifact.js';
 import { has_magic_key } from './artifact.js';
 import { envFlag } from './runtime_env.js';
 import { cuss } from './wizard.js';
-import { add_damage, after_shk_move, shk_move } from './shk.js';
+import { add_damage, after_shk_move, inhishop, shk_fixes_damage } from './shk.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
@@ -772,7 +773,7 @@ async function m_respond_shrieker(mon, map, player, display = null, game = null)
         // C ref: 1/13 chance to attempt a purple worm, random monster otherwise.
         // Keep the RNG path faithful even though difficulty gating is simplified.
         const purpleWorm = !rn2(13);
-        makemon(purpleWorm ? PM_PURPLE_WORM : null, 0, 0, 0, player?.dungeonLevel, map);
+        await makemon_appear(purpleWorm ? PM_PURPLE_WORM : null, 0, 0, 0, player?.dungeonLevel, map);
     }
     aggravate(map);
 }
@@ -1285,6 +1286,11 @@ async function dochug(mon, map, player, display, fov, game = null) {
             `reason=sleep`,
             `msleeping=${mon.msleeping ? 1 : 0}`);
         if (!disturb(mon)) {
+            // C ref: monmove.c:728-730 — sleeping monsters that stay asleep still
+            // refresh hallucinated appearance each turn.
+            if (player?.hallucinating) {
+                newsym(mon.mx, mon.my);
+            }
             return;
         }
         mon.msleeping = 0;
@@ -1364,7 +1370,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
     }
 
     const { x: targetX, y: targetY } = monApparentTarget(mon);
-    const isWanderer = !!((mon.data || mon.type) && (mon.data || mon.type).mflags2 & M2_WANDER);
+    const isWanderer = !!(mdat.mflags2 & M2_WANDER);
     const monCanSee = (mon.mcansee !== 0 && mon.mcansee !== false);
 
     let scaredNow = !!scared;
@@ -1557,8 +1563,41 @@ async function dochug(mon, map, player, display, fov, game = null) {
             panicattk = true;
         }
 
-        // C ref: monmove.c:970 — status != MMOVE_DONE allows attack after movement.
-        phase4Allowed = moveStatus !== MMOVE_DONE && !mon.dead;
+        // C ref: monmove.c:934-975 — dochug() switch on move status.
+        if (moveStatus === MMOVE_NOMOVES
+            || moveStatus === MMOVE_NOTHING
+            || moveStatus === MMOVE_DONE) {
+            // C ref: monmove.c:945-949 — for no-move statuses, hallucination
+            // still refreshes monster appearance even when it doesn't move.
+            if (player?.hallucinating) {
+                newsym(mon.mx, mon.my);
+            }
+            // C ref: monmove.c:984 — MMOVE_DONE reaches the switch but is
+            // still excluded from the later generic attack block.
+            phase4Allowed = moveStatus !== MMOVE_DONE && !mon.dead;
+        } else if (moveStatus === MMOVE_MOVED) {
+            // C ref: monmove.c:951-972 — moved monsters normally stop here.
+            // Only non-nearby monsters with ranged/offensive follow-up fall
+            // through to Phase 4; nearby moved monsters do not melee or cuss.
+            phase4Allowed = false;
+            if (!helpless(mon)) {
+                if (!nearby
+                    && (ranged_attk_available(mon)
+                        || attacktype(mdat, AT_WEAP)
+                        || await find_offensive(mon, map, player))) {
+                    phase4Allowed = !mon.dead;
+                } else if (player?.uswallow && player?.ustuck === mon) {
+                    await mattacku(mon, player, display, game, { map });
+                    return;
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+        } else {
+            phase4Allowed = false;
+        }
     }
 
     // Phase 4: Standard Attacks
@@ -1584,7 +1623,6 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 // C ref: monmove.c:945-949 — MMOVE_MOVED + !nearby: only proceed
                 // to Phase 4 if monster has ranged attacks or offensive items.
                 // find_offensive may consume RNG (obj_resists checks).
-                const mdat = mon.data || mon.type || {};
                 if (!mmoved
                     || ranged_attk_available(mon)
                     || attacktype(mdat, AT_WEAP)
@@ -1677,8 +1715,11 @@ async function maybeMonsterPickStuff(mon, map, player, display, fov) {
     if (mon.isshk && monsterInShop(mon, map)) return false;
     if (!mon_is_tame(mon) && monsterInShop(mon, map) && rn2(25)) return false;
 
+    // C ref: mpickstuff iterates level.objects chain (newest-first).
+    // JS array has newest last, so reverse to match C iteration order.
     const pile = (map.objectsAt?.(mon.mx, mon.my) || [])
-        .filter((obj) => obj && !obj.buried);
+        .filter((obj) => obj && !obj.buried)
+        .reverse();
     for (const obj of pile) {
         if (obj.otyp === ROCK) continue;
         if (!mon_would_take_item_search(mon, obj, map)) continue;
@@ -1768,9 +1809,90 @@ export async function m_move(mon, map, player, display = null, fov = null) {
     }
 
     if (mon.isshk) {
+        // C ref: shk.c shk_move() — shopkeepers choose movement via move_special(),
+        // not a single-step chase. Keeping this logic here avoids a module cycle
+        // with monmove.js's canonical move_special().
         const omx = mon.mx, omy = mon.my;
-        shk_move(mon, map, player);
-        return (mon.mx !== omx || mon.my !== omy) ? MMOVE_MOVED : MMOVE_NOTHING;
+        if (inhishop(mon, map)) {
+            await shk_fixes_damage(mon, map, _gstate);
+        }
+
+        let udist = distu(player, omx, omy);
+        let appr = 1;
+        const home = mon.shk || { x: omx, y: omy };
+        let gtx = home.x;
+        let gty = home.y;
+        const satdoor = (gtx === omx && gty === omy);
+        let uondoor = false;
+        let avoid = false;
+        let badinv = false;
+
+        if (udist < 3 && (mon.mndx !== PM_GRID_BUG || omx === player.x || omy === player.y)) {
+            if (!mon_is_peaceful(mon)) {
+                return MMOVE_NOTHING;
+            }
+            if (mon.following) {
+                if (udist < 2) {
+                    return MMOVE_NOTHING;
+                }
+            }
+        }
+
+        const z = holetime(player);
+        if (mon.following || (z >= 0 && z * z <= udist)) {
+            if (udist > 4 && mon.following && !Number(mon.billct || 0)) {
+                // C: return -1 and let generic m_move handle it.
+            } else {
+                gtx = player.x;
+                gty = player.y;
+            }
+        } else if (!mon_is_peaceful(mon)) {
+            if (mon.mcansee && m_canseeu(mon)) {
+                gtx = player.x;
+                gty = player.y;
+            }
+            avoid = false;
+        } else {
+            if (player.invisible || player.Invis || player.usteed) {
+                avoid = false;
+            } else {
+                const door = mon.shd || { x: home.x, y: home.y };
+                uondoor = (player.x === door.x && player.y === door.y);
+                if (uondoor) {
+                    badinv = !!carrying(PICK_AXE, player)
+                        || !!carrying(DWARVISH_MATTOCK, player)
+                        || (((player.Fast || player.fast) ? 1 : 0)
+                            && (!!sobj_at(PICK_AXE, player.x, player.y, map)
+                                || !!sobj_at(DWARVISH_MATTOCK, player.x, player.y, map)));
+                    if (satdoor && badinv) {
+                        return MMOVE_NOTHING;
+                    }
+                    avoid = !badinv;
+                } else {
+                    avoid = !!(player.ushops && distu(player, gtx, gty) > 8);
+                    badinv = false;
+                }
+
+                if (((!Number(mon.robbed || 0) && !Number(mon.billct || 0) && !Number(mon.debit || 0)) || avoid)
+                    && dist2(omx, omy, gtx, gty) < 3) {
+                    if (!badinv && !onlineu(mon, player)) {
+                        return MMOVE_NOTHING;
+                    }
+                    if (satdoor) {
+                        appr = 0;
+                        gtx = 0;
+                        gty = 0;
+                    }
+                }
+            }
+        }
+
+        const moved = move_special(mon, map, player, inhishop(mon, map), appr, uondoor, avoid, gtx, gty);
+        if (moved > 0) {
+            after_shk_move(mon, map);
+            return MMOVE_MOVED;
+        }
+        return MMOVE_NOTHING;
     }
     if (mon.ispriest) {
         if (mon.epri && mon.epri.shrpos) {
@@ -2514,7 +2636,7 @@ export async function maybe_spin_web(mtmp, map) {
 export function can_hide_under_obj(obj, map) {
   let t;
   map = map || _gstate?.lev;
-  if (!obj || obj.where !== 'OBJ_FLOOR') return false;
+  if (!obj || obj.where !== OBJ_FLOOR) return false;
   if ((t = t_at(obj.ox, obj.oy, map)) != null && !is_pit(t.ttyp)) return false;
   if (obj.oclass === COIN_CLASS) {
     let coinquan = 0;

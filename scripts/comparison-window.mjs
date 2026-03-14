@@ -16,6 +16,9 @@ function usage() {
     console.log('  --channel <name>    rng|event (default: rng)');
     console.log('  --index <n>         Explicit normalized index (default: first divergence)');
     console.log('  --window <n>        Context on each side (default: 8)');
+    console.log('  --view <name>       normalized|filtered-raw|raw|all (default: all)');
+    console.log('  --raw-filter <name> none|gameplay (default: gameplay)');
+    console.log('  --raw-step          Show raw slices for the normalized divergence step');
     console.log('  --step-summary      Show per-step RNG/event count deltas');
     console.log('  --step-from <n>     First step for --step-summary (default: 1)');
     console.log('  --step-to <n>       Last step for --step-summary (default: session step count)');
@@ -31,6 +34,9 @@ function parseArgs(argv) {
         channel: 'rng',
         index: null,
         window: 8,
+        view: 'all',
+        rawFilter: 'gameplay',
+        rawStep: false,
         stepSummary: false,
         stepFrom: null,
         stepTo: null,
@@ -44,6 +50,9 @@ function parseArgs(argv) {
         if (a === '--channel') { out.channel = args[++i] || 'rng'; continue; }
         if (a === '--index') { out.index = Number.parseInt(args[++i], 10); continue; }
         if (a === '--window') { out.window = Number.parseInt(args[++i], 10) || 8; continue; }
+        if (a === '--view') { out.view = args[++i] || 'all'; continue; }
+        if (a === '--raw-filter') { out.rawFilter = args[++i] || 'gameplay'; continue; }
+        if (a === '--raw-step') { out.rawStep = true; continue; }
         if (a === '--step-summary') { out.stepSummary = true; continue; }
         if (a === '--step-from') { out.stepFrom = Number.parseInt(args[++i], 10); continue; }
         if (a === '--step-to') { out.stepTo = Number.parseInt(args[++i], 10); continue; }
@@ -115,6 +124,80 @@ function stepForIndex(stepEnds, index) {
     return 'n/a';
 }
 
+function stepRange(stepEnds, step) {
+    const ends = Array.isArray(stepEnds) ? stepEnds : [];
+    const n = Number(step);
+    if (!Number.isInteger(n) || n < 0 || n >= ends.length) return null;
+    const start = n === 0 ? 0 : (ends[n - 1] || 0);
+    const end = (ends[n] || 0) - 1;
+    return { start, end };
+}
+
+function rawStepRange(side, step) {
+    const normalizedRange = stepRange(side?.stepEnds, step);
+    if (!normalizedRange) return null;
+    const map = Array.isArray(side?.rawIndexMap) ? side.rawIndexMap : [];
+    if (normalizedRange.end < normalizedRange.start || map.length === 0) return null;
+    const rawStart = map[normalizedRange.start];
+    const rawEnd = map[normalizedRange.end];
+    if (!Number.isInteger(rawStart) || !Number.isInteger(rawEnd)) return null;
+    return { start: rawStart, end: rawEnd };
+}
+
+function clampRawRangeToWindow(rawRange, rawWindow) {
+    if (!rawRange || !rawWindow) return { range: rawRange, partial: false };
+    const windowStart = rawWindow.start;
+    const windowEnd = (rawWindow.end || (rawWindow.start + rawWindow.entries.length)) - 1;
+    const start = Math.max(rawRange.start, windowStart);
+    const end = Math.min(rawRange.end, windowEnd);
+    return {
+        range: start <= end ? { start, end } : null,
+        partial: start !== rawRange.start || end !== rawRange.end,
+        requested: rawRange,
+        available: { start: windowStart, end: windowEnd },
+    };
+}
+
+function isGameplayRawEntry(entry, channel) {
+    if (typeof entry !== 'string' || entry.length === 0) return false;
+    if (channel === 'event') return true;
+    const line = entry.replace(/^\d+\s+/, '');
+    if (!line) return false;
+    if (line.startsWith('^tmp_at_step')) return false;
+    if (line.startsWith('^runmode_delay_output')) return false;
+    if (line.startsWith('^render')) return false;
+    if (line.startsWith('^docrt')) return false;
+    if (line.startsWith('^vision_recalc')) return false;
+    if (line.startsWith('~drn2(')) return false;
+    return true;
+}
+
+function filterRawEntries(entries, channel, rawFilter) {
+    const list = Array.isArray(entries) ? entries : [];
+    if (rawFilter !== 'gameplay') return list;
+    return list.filter((entry) => isGameplayRawEntry(entry?.entry, channel));
+}
+
+function formatRawRows(entries, { center }) {
+    const rows = [];
+    for (const item of entries) {
+        const rawIndex = item?.rawIndex;
+        const marker = rawIndex === center ? '>>' : '  ';
+        rows.push(`${marker}[${rawIndex}] ${item?.entry ?? '(missing)'}`);
+    }
+    return rows;
+}
+
+function printRows(title, rows) {
+    console.log('');
+    console.log(title);
+    if (!rows.length) {
+        console.log('(empty)');
+        return;
+    }
+    for (const row of rows) console.log(row);
+}
+
 function hasLegacyArrays(side) {
     return side && Array.isArray(side.normalized) && Array.isArray(side.raw);
 }
@@ -175,11 +258,37 @@ function getWindowSlice(side, center, windowSize) {
     return null;
 }
 
-function renderWindow(artifact, channel, center, windowSize) {
+function getRawContainer(side) {
+    if (hasLegacyArrays(side)) {
+        return {
+            start: 0,
+            end: side.raw.length - 1,
+            entries: side.raw,
+        };
+    }
+    if (side?.rawWindow && Array.isArray(side.rawWindow.entries)) {
+        return {
+            start: side.rawWindow.start,
+            end: (side.rawWindow.end || (side.rawWindow.start + side.rawWindow.entries.length)) - 1,
+            entries: side.rawWindow.entries,
+        };
+    }
+    return null;
+}
+
+function renderWindow(artifact, channel, center, windowSize, { view = 'all', rawFilter = 'gameplay', rawStep = false } = {}) {
     const cmp = artifact?.comparison?.[channel];
     if (!cmp) throw new Error(`Channel not found: ${channel}`);
     const js = cmp.js;
     const c = cmp.session;
+    if (channel !== 'rng' && (view === 'all' || view === 'filtered-raw' || view === 'raw')) {
+        console.log('note: raw event views are not yet supported; event artifacts do not retain normalized-to-raw step mapping.');
+        view = 'normalized';
+        rawStep = false;
+    } else if (rawStep && channel !== 'rng') {
+        console.log('note: --raw-step is currently only supported for rng artifacts; event artifacts do not yet carry per-step raw index maps.');
+        rawStep = false;
+    }
     const jsWin = getWindowSlice(js, center, windowSize);
     const cWin = getWindowSlice(c, center, windowSize);
     if (!jsWin || !cWin) throw new Error(`Unsupported comparison shape for channel: ${channel}`);
@@ -193,54 +302,102 @@ function renderWindow(artifact, channel, center, windowSize) {
         const cRange = Number.isInteger(cWin.windowStart) ? `${cWin.windowStart}..${cWin.windowEnd - 1}` : 'full';
         console.log(`available normalized windows: js=${jsRange} c=${cRange}`);
     }
-    const jsByIndex = new Map((jsWin.rows || []).map((r) => [r.globalIndex, r]));
-    const cByIndex = new Map((cWin.rows || []).map((r) => [r.globalIndex, r]));
-    for (let i = start; i <= end; i++) {
-        const marker = i === center ? '>>' : '  ';
-        const jRow = jsByIndex.get(i);
-        const cRow = cByIndex.get(i);
-        const jVal = jRow?.normalized ?? '(missing)';
-        const cVal = cRow?.normalized ?? '(missing)';
-        const jRawIdx = jRow?.rawIndex;
-        const cRawIdx = cRow?.rawIndex;
-        const jRaw = jRow?.raw ?? '(missing)';
-        const cRaw = cRow?.raw ?? '(missing)';
-        const jStep = jRow?.step ?? stepForIndex(js.stepEnds, i);
-        const cStep = cRow?.step ?? stepForIndex(c.stepEnds, i);
-        console.log(`${marker}[${i}] JS(step=${jStep}) ${jVal}`);
-        console.log(`${marker}      raw#${jRawIdx ?? '-'} ${jRaw}`);
-        console.log(`${marker}   C(step=${cStep}) ${cVal}`);
-        console.log(`${marker}      raw#${cRawIdx ?? '-'} ${cRaw}`);
-    }
-
-    const jsRawWin = js?.rawWindow;
-    const cRawWin = c?.rawWindow;
-    if (jsRawWin && Array.isArray(jsRawWin.entries)) {
+    if (view === 'all' || view === 'normalized') {
+        const jsByIndex = new Map((jsWin.rows || []).map((r) => [r.globalIndex, r]));
+        const cByIndex = new Map((cWin.rows || []).map((r) => [r.globalIndex, r]));
         console.log('');
-        console.log(`raw-window JS: [${jsRawWin.start}..${(jsRawWin.end || jsRawWin.start + jsRawWin.entries.length) - 1}]`);
-        const rawCenter = Number.isInteger(js?.firstDivergence?.rawIndex)
-            ? js.firstDivergence.rawIndex
-            : jsRawWin.start;
-        const rawStart = Math.max(jsRawWin.start, rawCenter - windowSize);
-        const rawEnd = Math.min((jsRawWin.end || (jsRawWin.start + jsRawWin.entries.length)) - 1, rawCenter + windowSize);
-        for (let r = rawStart; r <= rawEnd; r++) {
-            const rel = r - jsRawWin.start;
-            const marker = r === rawCenter ? '>>' : '  ';
-            console.log(`${marker}[${r}] ${jsRawWin.entries[rel] ?? '(missing)'}`);
+        console.log('normalized');
+        for (let i = start; i <= end; i++) {
+            const marker = i === center ? '>>' : '  ';
+            const jRow = jsByIndex.get(i);
+            const cRow = cByIndex.get(i);
+            const jVal = jRow?.normalized ?? '(missing)';
+            const cVal = cRow?.normalized ?? '(missing)';
+            const jRawIdx = jRow?.rawIndex;
+            const cRawIdx = cRow?.rawIndex;
+            const jRaw = jRow?.raw ?? '(missing)';
+            const cRaw = cRow?.raw ?? '(missing)';
+            const jStep = jRow?.step ?? stepForIndex(js.stepEnds, i);
+            const cStep = cRow?.step ?? stepForIndex(c.stepEnds, i);
+            console.log(`${marker}[${i}] JS(step=${jStep}) ${jVal}`);
+            console.log(`${marker}      raw#${jRawIdx ?? '-'} ${jRaw}`);
+            console.log(`${marker}   C(step=${cStep}) ${cVal}`);
+            console.log(`${marker}      raw#${cRawIdx ?? '-'} ${cRaw}`);
         }
     }
-    if (cRawWin && Array.isArray(cRawWin.entries)) {
-        console.log('');
-        console.log(`raw-window C : [${cRawWin.start}..${(cRawWin.end || cRawWin.start + cRawWin.entries.length) - 1}]`);
-        const rawCenter = Number.isInteger(c?.firstDivergence?.rawIndex)
-            ? c.firstDivergence.rawIndex
-            : cRawWin.start;
-        const rawStart = Math.max(cRawWin.start, rawCenter - windowSize);
-        const rawEnd = Math.min((cRawWin.end || (cRawWin.start + cRawWin.entries.length)) - 1, rawCenter + windowSize);
-        for (let r = rawStart; r <= rawEnd; r++) {
-            const rel = r - cRawWin.start;
-            const marker = r === rawCenter ? '>>' : '  ';
-            console.log(`${marker}[${r}] ${cRawWin.entries[rel] ?? '(missing)'}`);
+
+    if (view === 'all' || view === 'filtered-raw' || view === 'raw') {
+        const showFiltered = view === 'all' || view === 'filtered-raw';
+        const showRaw = view === 'all' || view === 'raw';
+        const jsStep = stepForIndex(js.stepEnds, center);
+        const cStep = stepForIndex(c.stepEnds, center);
+        const jsRawRange = rawStep ? rawStepRange(js, jsStep) : null;
+        const cRawRange = rawStep ? rawStepRange(c, cStep) : null;
+        const jsRawWin = getRawContainer(js);
+        const cRawWin = getRawContainer(c);
+        if (jsRawWin && Array.isArray(jsRawWin.entries)) {
+            const rawCenter = Number.isInteger(js?.firstDivergence?.rawIndex)
+                ? js.firstDivergence.rawIndex
+                : jsRawWin.start;
+            const requestedRange = rawStep && jsRawRange
+                ? clampRawRangeToWindow(jsRawRange, jsRawWin)
+                : null;
+            const rawStart = requestedRange?.range
+                ? requestedRange.range.start
+                : Math.max(jsRawWin.start, rawCenter - windowSize);
+            const rawEnd = requestedRange?.range
+                ? requestedRange.range.end
+                : Math.min(jsRawWin.end, rawCenter + windowSize);
+            const entries = [];
+            for (let r = rawStart; r <= rawEnd; r++) {
+                const rel = r - jsRawWin.start;
+                entries.push({ rawIndex: r, entry: jsRawWin.entries[rel] ?? '(missing)' });
+            }
+            if (rawStep && requestedRange?.partial) {
+                console.log('');
+                console.log(`note: JS raw-step view is partial; requested [${requestedRange.requested.start}..${requestedRange.requested.end}] but artifact only has [${requestedRange.available.start}..${requestedRange.available.end}]`);
+            }
+            if (showFiltered) {
+                printRows(
+                    `raw-window JS gameplay-filtered: [${rawStart}..${rawEnd}]`,
+                    formatRawRows(filterRawEntries(entries, channel, rawFilter), { center: rawCenter })
+                );
+            }
+            if (showRaw) {
+                printRows(`raw-window JS: [${rawStart}..${rawEnd}]`, formatRawRows(entries, { center: rawCenter }));
+            }
+        }
+        if (cRawWin && Array.isArray(cRawWin.entries)) {
+            const rawCenter = Number.isInteger(c?.firstDivergence?.rawIndex)
+                ? c.firstDivergence.rawIndex
+                : cRawWin.start;
+            const requestedRange = rawStep && cRawRange
+                ? clampRawRangeToWindow(cRawRange, cRawWin)
+                : null;
+            const rawStart = requestedRange?.range
+                ? requestedRange.range.start
+                : Math.max(cRawWin.start, rawCenter - windowSize);
+            const rawEnd = requestedRange?.range
+                ? requestedRange.range.end
+                : Math.min(cRawWin.end, rawCenter + windowSize);
+            const entries = [];
+            for (let r = rawStart; r <= rawEnd; r++) {
+                const rel = r - cRawWin.start;
+                entries.push({ rawIndex: r, entry: cRawWin.entries[rel] ?? '(missing)' });
+            }
+            if (rawStep && requestedRange?.partial) {
+                console.log('');
+                console.log(`note: C raw-step view is partial; requested [${requestedRange.requested.start}..${requestedRange.requested.end}] but artifact only has [${requestedRange.available.start}..${requestedRange.available.end}]`);
+            }
+            if (showFiltered) {
+                printRows(
+                    `raw-window C gameplay-filtered: [${rawStart}..${rawEnd}]`,
+                    formatRawRows(filterRawEntries(entries, channel, rawFilter), { center: rawCenter })
+                );
+            }
+            if (showRaw) {
+                printRows(`raw-window C : [${rawStart}..${rawEnd}]`, formatRawRows(entries, { center: rawCenter }));
+            }
         }
     }
 }
@@ -336,7 +493,11 @@ function main() {
     const channel = args.channel === 'event' ? 'event' : 'rng';
     const first = artifact?.comparison?.[channel]?.firstDivergence?.index;
     const center = Number.isInteger(args.index) ? args.index : (Number.isInteger(first) ? first : 0);
-    renderWindow(artifact, channel, center, args.window);
+    renderWindow(artifact, channel, center, args.window, {
+        view: args.view,
+        rawFilter: args.rawFilter,
+        rawStep: args.rawStep,
+    });
 }
 
 main();

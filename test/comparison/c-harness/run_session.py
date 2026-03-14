@@ -202,10 +202,34 @@ def runstep_event_env():
     v = os.environ.get('NETHACK_EVENT_RUNSTEP', '')
     return f'NETHACK_EVENT_RUNSTEP={v} ' if v else ''
 
+def repaint_trace_env():
+    """Pass NETHACK_REPAINT_TRACE through to the C binary if set."""
+    v = os.environ.get('NETHACK_REPAINT_TRACE', '')
+    return f'NETHACK_REPAINT_TRACE={v} ' if v else ''
+
+def repaint_debug_env(log_path=None):
+    """Pass repaint debug settings through to the C binary if enabled."""
+    v = os.environ.get('NETHACK_REPAINT_DEBUG', '')
+    if not v:
+        return ''
+    out = f'NETHACK_REPAINT_DEBUG={v} '
+    if log_path:
+        out += f'NETHACK_REPAINT_DEBUG_LOG={log_path} '
+    return out
+
 def rnglog_disp_env():
     """Pass NETHACK_RNGLOG_DISP through to the C binary if set."""
     v = os.environ.get('NETHACK_RNGLOG_DISP', '')
     return f'NETHACK_RNGLOG_DISP={v} ' if v else ''
+
+
+def report_repaint_debug_log(log_path, output_json):
+    if not os.environ.get('NETHACK_REPAINT_DEBUG'):
+        return
+    if os.path.isfile(log_path):
+        dest = f'{output_json}.repaintdbg.log'
+        shutil.copyfile(log_path, dest)
+        print(f'Repaint debug log: {dest}')
 
 
 def collect_mapdump_checkpoints(mapdump_dir, all_rng_entries):
@@ -1107,6 +1131,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
     dumpmap_file = os.path.join(tmpdir, 'dumpmap.txt')
     checkpoint_file = os.path.join(tmpdir, 'checkpoints.jsonl')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
     os.makedirs(mapdump_dir, exist_ok=True)
 
     session_name = f'webhack-wizload-{seed}-{os.getpid()}'
@@ -1117,6 +1142,8 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{repaint_trace_env()}'
+            f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1317,6 +1344,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
         print(f'\n=== DONE ===')
         print(f'Session: {output_json}')
         print(f'Steps: {len(steps)}, Level RNG calls: {len(rng_entries)}')
+        report_repaint_debug_log(repaint_debug_file, output_json)
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)
@@ -1366,6 +1394,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
 
     tmpdir = tempfile.mkdtemp(prefix='webhack-chargen-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
+    repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
     session_name = f'webhack-chargen-{seed}-{os.getpid()}'
 
     try:
@@ -1374,6 +1403,8 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{repaint_trace_env()}'
+            f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1629,6 +1660,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
         print(f'\n=== DONE ===')
         print(f'Session: {output_json}')
         print(f'Steps: {len(steps)}')
+        report_repaint_debug_log(repaint_debug_file, output_json)
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)
@@ -1654,6 +1686,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
 
     tmpdir = tempfile.mkdtemp(prefix='webhack-interface-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
+    repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
     session_name = f'webhack-interface-{seed}-{os.getpid()}'
 
     try:
@@ -1662,6 +1695,8 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{repaint_trace_env()}'
+            f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1785,6 +1820,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
         print(f'\n=== DONE ===')
         print(f'Session: {output_json}')
         print(f'Steps: {len(session_data["steps"])}')
+        report_repaint_debug_log(repaint_debug_file, output_json)
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)
@@ -2014,6 +2050,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
+    repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
     os.makedirs(mapdump_dir, exist_ok=True)
 
     session_name = f'webhack-session-{seed}-{os.getpid()}'
@@ -2027,6 +2064,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{no_delay_env()}'
             f'{test_move_event_env()}'
             f'{runstep_event_env()}'
+            f'{repaint_trace_env()}'
+            f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2114,12 +2153,15 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
         test_move_ev = os.environ.get('NETHACK_EVENT_TEST_MOVE')
         runstep_ev = os.environ.get('NETHACK_EVENT_RUNSTEP')
-        if test_move_ev or runstep_ev:
+        repaint_ev = os.environ.get('NETHACK_REPAINT_TRACE')
+        if test_move_ev or runstep_ev or repaint_ev:
             session_env = {}
             if test_move_ev:
                 session_env['NETHACK_EVENT_TEST_MOVE'] = test_move_ev
             if runstep_ev:
                 session_env['NETHACK_EVENT_RUNSTEP'] = runstep_ev
+            if repaint_ev:
+                session_env['NETHACK_REPAINT_TRACE'] = repaint_ev
             session_data['regen']['env'] = session_env
         if record_more_spaces:
             session_data['regen']['record_more_spaces'] = True
@@ -2245,6 +2287,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         print(f'\n=== DONE ===')
         print(f'Session: {output_json}')
         print(f'Steps: {total_steps}, Total RNG calls: {total_rng}')
+        report_repaint_debug_log(repaint_debug_file, output_json)
 
     finally:
         subprocess.run(['tmux', 'kill-session', '-t', session_name], capture_output=True)

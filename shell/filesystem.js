@@ -162,7 +162,7 @@ export class VirtualFS {
         return this._lookup(this.resolve(path));
     }
 
-    // Check if a node's backing data actually exists (for lsKey/vfsPath nodes)
+    // Check if a node's backing data actually exists (for lsKey nodes)
     _nodeExists(node) {
         if (!node) return false;
         if (node.lsKey !== undefined) return lsRead(node.lsKey) !== null;

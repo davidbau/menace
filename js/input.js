@@ -10,6 +10,17 @@ import {
 import { envFlag } from './runtime_env.js';
 import { waitForMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
+import {
+    debugRepaint,
+    logRepaint,
+    repaintHp,
+    repaintBotl,
+    repaintBotlx,
+    repaintTimeBotl,
+    repaintToplineState,
+    repaintCursorRow,
+    repaintCursorCol,
+} from './repaint_trace.js';
 
 function ynTraceEnabled() {
     return envFlag('WEBHACK_YN_TRACE');
@@ -544,11 +555,17 @@ export async function nhgetch(opts = {}) {
     };
 
     const display = getRuntimeDisplay();
+    const hasQueuedCannedBoundary = !!(
+        commandBoundary
+        && cmdq_peek(CQ_CANNED)
+        && display?.topMessage
+    );
 
     // C-faithful command boundary: when a topline --More-- is pending,
     // consume only a dismiss key and return "no command" (0), allowing
     // queued canned commands to execute next.
-    if (commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display)) {
+    if ((commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display))
+        || hasQueuedCannedBoundary) {
         const readBoundaryKey = async () => {
             if (isReplayMode() && allowDirectReplayNhgetch()) {
                 const key = getNextReplayKey();
@@ -576,7 +593,7 @@ export async function nhgetch(opts = {}) {
         // Use the canonical --More-- path so acknowledgement advances
         // topline/message state exactly once per boundary key.
         await more(display, {
-            forceVisual: false,
+            forceVisual: hasQueuedCannedBoundary,
             clearAfter: true,
             readKey: readBoundaryKey,
         });
@@ -588,9 +605,11 @@ export async function nhgetch(opts = {}) {
 
 export async function more(display, {
     game = null,
+    site = null,
     forceVisual = false,
     clearAfter = true,
     readKey = null,
+    refreshStatus = true,
 } = {}) {
     if (!display) return;
     const ctxGame = game ?? activeGame ?? null;
@@ -600,9 +619,35 @@ export async function more(display, {
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
-    const statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
-    if (statusPlayer && typeof display.renderStatus === 'function') {
+    // Use encumbrance snapshot from when the topMessage was stored,
+    // matching C's flush_screen→bot() which ran before the message text.
+    let statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
+    const hasSnapshotEnc = Number.isFinite(display?._topMessageEncumbrance);
+    if (statusPlayer && hasSnapshotEnc) {
+        statusPlayer = Object.create(statusPlayer);
+        statusPlayer.encumbrance = display._topMessageEncumbrance;
+    }
+    if (statusPlayer) {
+        debugRepaint('more', site || 'input.more', {
+            hp: repaintHp(statusPlayer),
+            topl: repaintToplineState(display),
+            row: repaintCursorRow(display),
+            col: repaintCursorCol(display),
+        }, {
+            step: display?._lastMapState?.gameMap?._replayStepIndex,
+            top: display?.topMessage || null,
+            messageNeedsMore: display?.messageNeedsMore,
+        });
+        logRepaint('more', {
+            hp: repaintHp(statusPlayer),
+            topl: repaintToplineState(display),
+            row: repaintCursorRow(display),
+            col: repaintCursorCol(display),
+        });
+    }
+    if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
         display.renderStatus(statusPlayer);
+        if (statusPlayer._botl) statusPlayer._botl = false;
     }
 
     if (forceVisual && typeof display.renderMoreMarker === 'function') {
@@ -631,6 +676,8 @@ export async function getlin(prompt, display) {
     const runtimeDisplay = getRuntimeDisplay();
     const disp = display || runtimeDisplay;
     let line = '';
+    let overflowCursor = 0;
+    const maxLineLength = Math.max(0, (Number.isInteger(disp?.cols) ? disp.cols : 80) - 1);
 
     // C-faithful boundary: if a message is pending acknowledgement, consume
     // that --More-- before replacing the topline with a getlin prompt.
@@ -638,20 +685,67 @@ export async function getlin(prompt, display) {
         await more(disp, { forceVisual: true });
     }
 
+    const promptStatusPlayer = disp?._lastMapState?.player || activeGame?.player || null;
+    if (promptStatusPlayer) {
+        // C ref: tty_getlin() -> custompline() -> vpline() -> flush_screen() -> bot().
+        // This prompt boundary is repaint-relevant even when the prompt itself
+        // owns the message line and the visible map/status do not otherwise change.
+        debugRepaint('flush', 'input.getlin.preprompt', {
+            hp: repaintHp(promptStatusPlayer),
+            cursor: 1,
+            botl: repaintBotl(promptStatusPlayer),
+            botlx: repaintBotlx(promptStatusPlayer),
+            time: repaintTimeBotl(promptStatusPlayer),
+        }, {
+            step: disp?._lastMapState?.gameMap?._replayStepIndex,
+            top: disp?.topMessage || null,
+            messageNeedsMore: disp?.messageNeedsMore,
+        });
+        logRepaint('flush', {
+            hp: repaintHp(promptStatusPlayer),
+            cursor: 1,
+            botl: repaintBotl(promptStatusPlayer),
+            botlx: repaintBotlx(promptStatusPlayer),
+            time: repaintTimeBotl(promptStatusPlayer),
+        });
+    }
+
     // Helper to update display
     const updateDisplay = async () => {
         if (disp) {
             const promptPrefix = prompt.endsWith(' ') ? prompt : `${prompt} `;
             const promptLine = `${promptPrefix}${line}`;
+            const cols = disp.cols || 80;
+            const wrapWidth = Math.max(1, cols - 1);
             // Clear the message row and display prompt + current input.
             // Don't use putstr_message as it concatenates short messages.
             disp.clearRow(0);
-            await disp.putstr(0, 0, promptLine, CLR_GRAY);
-            // C ref: tty_getlin() places cursor at end of typed text.
-            // Set cursor to end of prompt + current input.
-            const cols = disp.cols || 80;
-            const cursorCol = Math.min(promptLine.length, cols - 1);
-            if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 0);
+            const row0Text = promptLine.slice(0, wrapWidth);
+            await disp.putstr(0, 0, row0Text, CLR_GRAY);
+            // C ref: tty terminal auto-wraps text past column 80 to row 1.
+            if (promptLine.length > wrapWidth || overflowCursor > 0) {
+                const overflow = promptLine.length > wrapWidth
+                    ? promptLine.slice(wrapWidth)
+                    : '';
+                disp.clearRow(1);
+                if (overflow.length > 0) {
+                    await disp.putstr(0, 1, overflow, CLR_GRAY);
+                }
+                disp._topMessageRow1 = overflow;
+                const baseOverflowCol = Math.min(overflow.length, wrapWidth);
+                const cursorCol = (overflowCursor > 0)
+                    ? Math.min(baseOverflowCol + overflowCursor, wrapWidth)
+                    : baseOverflowCol;
+                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 1);
+            } else {
+                // Clear row 1 if we previously overflowed but backspaced back
+                if (disp._topMessageRow1 !== undefined) {
+                    disp.clearRow(1);
+                    disp._topMessageRow1 = undefined;
+                }
+                const cursorCol = Math.min(promptLine.length, cols - 1);
+                if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 0);
+            }
         }
     };
 
@@ -669,6 +763,10 @@ export async function getlin(prompt, display) {
                 disp.messageNeedsMore = false;
                 if (typeof disp.clearRow === 'function') {
                     disp.clearRow(0);
+                    if (disp._topMessageRow1 !== undefined) {
+                        disp.clearRow(1);
+                        disp._topMessageRow1 = undefined;
+                    }
                 }
             }
             return line;
@@ -678,15 +776,34 @@ export async function getlin(prompt, display) {
                 disp.messageNeedsMore = false;
                 if (typeof disp.clearRow === 'function') {
                     disp.clearRow(0);
+                    if (disp._topMessageRow1 !== undefined) {
+                        disp.clearRow(1);
+                        disp._topMessageRow1 = undefined;
+                    }
                 }
             }
             return null; // cancelled
         } else if (ch === 8 || ch === 127) { // Backspace
+            if (overflowCursor > 0) {
+                overflowCursor--;
+                await updateDisplay();
+            } else
             if (line.length > 0) {
                 line = line.slice(0, -1);
                 await updateDisplay();
             }
         } else if (ch >= 32 && ch < 127) {
+            if (line.length >= maxLineLength) {
+                const promptPrefix = prompt.endsWith(' ') ? prompt : `${prompt} `;
+                const promptLineLength = promptPrefix.length + line.length;
+                const wrapWidth = Math.max(1, (disp?.cols || 80) - 1);
+                overflowCursor = (promptLineLength > wrapWidth)
+                    ? 1
+                    : (overflowCursor + 1);
+                await updateDisplay();
+                continue;
+            }
+            overflowCursor = 0;
             line += String.fromCharCode(ch);
             await updateDisplay();
         }
@@ -703,6 +820,11 @@ export async function ynFunction(query, choices, def, display, options = {}) {
     // first consume it so this prompt starts on a fresh topline.
     if (consumePendingMore && disp?.messageNeedsMore) {
         await more(disp, { forceVisual: true });
+    }
+    const statusPlayer = disp?._lastMapState?.player || activeGame?.player || null;
+    if (statusPlayer?._botl && typeof disp?.renderStatus === 'function') {
+        disp.renderStatus(statusPlayer);
+        statusPlayer._botl = false;
     }
     let prompt = query;
     if (choices) {
@@ -740,6 +862,22 @@ export async function ynFunction(query, choices, def, display, options = {}) {
         }
     }
     ynTrace('prompt', prompt.trimEnd(), `choices=${choices || ''}`, `def=${def || 0}`);
+    debugRepaint('yn', 'input.ynFunction.prompt', {
+        hp: repaintHp(activeGame?.player),
+        topl: repaintToplineState(disp),
+        def: def || 0,
+        query: query || '',
+    }, {
+        step: disp?._lastMapState?.gameMap?._replayStepIndex,
+        top: disp?.topMessage || null,
+        messageNeedsMore: disp?.messageNeedsMore,
+    });
+    logRepaint('yn', {
+        hp: repaintHp(activeGame?.player),
+        topl: repaintToplineState(disp),
+        def: def || 0,
+        query: query || '',
+    });
 
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.

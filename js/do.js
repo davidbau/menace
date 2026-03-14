@@ -5,8 +5,8 @@ import { more, nhgetch, ynFunction, getlin } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
-         I_SPECIAL, TIMEOUT, WOUNDED_LEGS,
-         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED } from './const.js';
+         I_SPECIAL, TIMEOUT, WOUNDED_LEGS, is_pit, is_hole,
+         W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
 import { depth as dungeonDepth } from './dungeon.js';
@@ -28,8 +28,8 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          RIN_INVISIBILITY, RIN_SEE_INVISIBLE,
          RIN_PROTECTION_FROM_SHAPE_CHAN,
          objectData, CLASS_SYMBOLS } from './objects.js';
-import { doname, xname, splitobj, set_bknown, set_corpsenm } from './mkobj.js';
-import { placeFloorObject } from './invent.js';
+import { doname, xname, splitobj, set_bknown, set_corpsenm, add_to_buried } from './mkobj.js';
+import { placeFloorObject, look_here, dfeature_at } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
@@ -42,23 +42,26 @@ import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING, LEFT_SIDE,
 import { IS_SINK, IS_ALTAR, AM_NONE, Align2amask, NON_PM,
          FOUNTAIN, THRONE, SINK, GRAVE, ALTAR } from './const.js';
 import { newsym, mark_vision_dirty, vision_recalc } from './display.js';
-import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly } from './mondata.js';
+import { digests, touch_petrifies, is_rider, is_reviver, throws_rocks, passes_walls, is_whirly, levl_follower } from './mondata.js';
 import { mons, S_ZOMBIE, PM_DEATH, PM_PESTILENCE, PM_FAMINE,
          PM_GREEN_SLIME, PM_WRAITH, PM_NURSE, PM_TOURIST } from './monsters.js';
-import { zombie_form } from './mon.js';
+import { zombie_form, monnear, helpless } from './mon.js';
 import { revive } from './zap.js';
 import { cansee } from './vision.js';
 import { canseemon } from './display.js';
 import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
-import { float_down } from './trap.js';
+import { float_down, t_at } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
+import { describeGroundObjectForPlayer } from './shk.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
 import { finesse_ahriman } from './artifact.js';
 import { freeinv } from './invent.js';
+import { ship_object } from './dokick.js';
+import { game as _gstate } from './gstate.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
@@ -200,6 +203,7 @@ export async function menudrop_split(otmp, cnt, player, map) {
 // cf. do.c drop() — drop a single object from inventory.
 // Returns true if time was consumed.
 async function drop_single(obj, player, map) {
+    const game = _gstate || null;
     if (!obj) return false;
     if (!await canletgo(obj, "drop", player)) return false;
     if (obj.otyp === CORPSE && better_not_try_to_drop_that(obj, player))
@@ -224,6 +228,18 @@ async function drop_single(obj, player, map) {
             await dosinkring(obj, player, map);
             return true;
         }
+        if (!can_reach_floor(player, map, true)) {
+            const levhack = finesse_ahriman(obj, player);
+            if (game?.flags?.verbose) {
+                await You("drop %s.", doname(obj, null));
+            }
+            player.removeFromInventory(obj);
+            await hitfloor(obj, true, player, map);
+            if (levhack) {
+                await float_down(I_SPECIAL | TIMEOUT, W_ARTI | W_ART, player, game);
+            }
+            return true;
+        }
         if (loc && IS_ALTAR(loc.typ)) {
             // Altar drop: don't print "You drop" — altar message instead
         } else {
@@ -233,29 +249,29 @@ async function drop_single(obj, player, map) {
     // Remove from inventory and place
     player.removeFromInventory(obj);
     obj.how_lost = LOST_DROPPED;
-    await dropx(obj, player, map);
+    await dropx(obj, player, map, game);
     return true;
 }
 
 // cf. do.c dropx() — take dropped item out of inventory;
 // may produce output (eg altar identification).
-export async function dropx(obj, player, map) {
+export async function dropx(obj, player, map, game = null) {
     if (!player.uswallow) {
         const loc = map.at(player.x, player.y);
         if (loc && IS_ALTAR(loc.typ))
             await doaltarobj(obj, player, map); // set bknown
     }
-    await dropy(obj, player, map);
+    await dropy(obj, player, map, game);
 }
 
 // cf. do.c dropy() — put dropped object at destination
 // Autotranslated from do.c:800
-export async function dropy(obj, player, map) {
-    await dropz(obj, false, player, map);
+export async function dropy(obj, player, map, game = null) {
+    await dropz(obj, false, player, map, game);
 }
 
 // cf. do.c dropz() — really put dropped object at its destination
-export async function dropz(obj, with_impact, player, map) {
+export async function dropz(obj, with_impact, player, map, game = null) {
     if (obj === player.weapon) uwepgone(player);
     if (obj === player.quiver) uqwepgone(player);
     if (obj === player.swapWeapon) uswapwepgone(player);
@@ -270,7 +286,7 @@ export async function dropz(obj, with_impact, player, map) {
             }
         }
     } else {
-        if (await flooreffects(obj, player.x, player.y, "drop", player, map))
+        if (await flooreffects(obj, player.x, player.y, "drop", player, map, game))
             return;
         // Place on floor
         obj.ox = player.x;
@@ -358,14 +374,17 @@ export async function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
 
 // cf. do.c flooreffects() — effects of object landing on floor.
 // Returns true if the object goes away.
-export async function flooreffects(obj, x, y, verb, player, map) {
+export async function flooreffects(obj, x, y, verb, player, map, game = null) {
     if (!obj) return false;
 
     if (obj.otyp === BOULDER && await boulder_hits_pool(obj, x, y, false, player, map)) {
         return true;
     }
-    // Boulder into pit/hole — simplified: skip trap interactions for now
-    // as trap system is not fully wired
+    const trap = t_at(x, y, map);
+    if (obj.otyp === BOULDER && trap && (is_pit(trap.ttyp) || is_hole(trap.ttyp))) {
+        // Existing boulder/trap handling remains intentionally separate from the
+        // general object shipping path below.
+    }
 
     if (IS_LAVA(map?.at?.(x, y)?.typ)) {
         // lava_damage would destroy most objects
@@ -376,6 +395,15 @@ export async function flooreffects(obj, x, y, verb, player, map) {
         // water_damage
         // Simplified: some objects may be destroyed
         return false;
+    }
+    if (player && player.x === x && player.y === y && trap && trap.tseen) {
+        if (is_pit(trap.ttyp)) {
+            // Pit tumble messaging is still unported; leave behavior unchanged.
+        } else if (is_hole(trap.ttyp)) {
+            if (await ship_object(obj, x, y, false, player, map, game || _gstate || null)) {
+                return true;
+            }
+        }
     }
     // Altar interaction when monster drops object
     const loc = map?.at?.(x, y);
@@ -652,11 +680,12 @@ export async function dosinkring(obj, player, map) {
         placeFloorObject(map, obj);
     } else if (!rn2(5)) {
         // Bury the ring
+        freeinv(obj, player);
         obj.in_use = false;
         obj.ox = player.x;
         obj.oy = player.y;
         obj.buried = true;
-        // In C this calls add_to_buried(); simplified — just mark as buried
+        add_to_buried(obj, map);
     } else {
         // Ring is consumed (useup)
         // Object is gone
@@ -758,7 +787,6 @@ export async function handleDrop(player, map, display) {
 }
 
 async function dropSelectedItem(item, player, map, display) {
-    const prevCap = near_capacity(player);
     const isWornArmor =
         player.armor === item
         || player.shield === item
@@ -779,48 +807,8 @@ async function dropSelectedItem(item, player, map, display) {
     if (player.weapon === item) uwepgone(player);
     if (player.swapWeapon === item) uswapwepgone(player);
     if (player.quiver === item) uqwepgone(player);
-
-    player.removeFromInventory(item);
-    item.how_lost = LOST_DROPPED;
-    item.ox = player.x;
-    item.oy = player.y;
-    placeFloorObject(map, item);
-    const newCap = near_capacity(player);
-    const encMsg = dropEncumberMsgForChange(prevCap, newCap);
-    if (player) {
-        player.encumbrance = newCap;
-        player._oldcap = newCap;
-    }
-    if (typeof display.clearRow === 'function') display.clearRow(0);
-    display.topMessage = null;
-    display.messageNeedsMore = false;
-    const dropMsg = `You drop ${doname(item, null)}.`;
-    await display.putstr_message(encMsg ? `${dropMsg}  ${encMsg}` : dropMsg);
-    return { moved: false, tookTime: true };
-}
-
-function dropEncumberMsgForChange(oldcap, newcap) {
-    if (oldcap < newcap) {
-        switch (newcap) {
-        case 1: return 'Your movements are slowed slightly because of your load.';
-        case 2: return 'You rebalance your load.  Movement is difficult.';
-        case 3: return 'You stagger under your heavy load.  Movement is very hard.';
-        default:
-            return (newcap === 4)
-                ? 'You can barely move a handspan with this load!'
-                : "You can't even move a handspan with this load!";
-        }
-    }
-    if (oldcap > newcap) {
-        switch (newcap) {
-        case 0: return 'Your movements are now unencumbered.';
-        case 1: return 'Your movements are only slowed slightly by your load.';
-        case 2: return 'You rebalance your load.  Movement is still difficult.';
-        case 3: return 'You stagger under your load.  Movement is still very hard.';
-        default: return null;
-        }
-    }
-    return null;
+    const tookTime = await drop_single(item, player, map);
+    return { moved: false, tookTime };
 }
 
 async function showDropCandidates(candidates, display) {
@@ -1246,6 +1234,7 @@ export async function deferred_goto(player, game) {
     const fromDnum = Number.isInteger(game?.dnum)
         ? game.dnum
         : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : 0);
+    let arrivalMsg = null;
     if (dest !== player.dungeonLevel) {
         if (player.dfr_pre_msg)
             await pline(player.dfr_pre_msg);
@@ -1259,7 +1248,7 @@ export async function deferred_goto(player, game) {
             : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : fromDnum);
         const levelChanged = (Number(player.dungeonLevel) !== fromDepth) || (toDnum !== fromDnum);
         if (player.dfr_post_msg && levelChanged) {
-            await pline(player.dfr_post_msg);
+            arrivalMsg = player.dfr_post_msg;
         }
         // C ref: do.c goto_level(falling) damage uses d(max(dist,1),6) from
         // rnd.c (composite d() log entry).
@@ -1276,6 +1265,32 @@ export async function deferred_goto(player, game) {
         const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
         await check_special_room(false, player, newMap, game?.display, game?.fov || null);
+        const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
+        if (arrivalMsg && objs.length === 1) {
+            observeObject(objs[0]);
+            await pline(`${arrivalMsg}  You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
+        } else {
+            if (arrivalMsg) {
+                await pline(arrivalMsg);
+            }
+        }
+        if (!arrivalMsg && objs.length > 0) {
+            if (objs.length === 1) {
+                const dfeature = dfeature_at(player.x, player.y, newMap, {
+                    depth: player.dungeonLevel || (newMap.uz ? newMap.uz.dlevel : undefined),
+                    dnum: (player.uz ? player.uz.dnum : undefined)
+                        ?? (newMap.uz ? newMap.uz.dnum : undefined)
+                        ?? newMap._genDnum
+                });
+                if (dfeature) {
+                    await pline(`There is ${an(dfeature)} here.`);
+                }
+                observeObject(objs[0]);
+                await pline(`You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
+            } else {
+                await look_here(player, newMap, objs.length);
+            }
+        }
     }
     player.utotype = 0;
     player.dfr_pre_msg = null;
@@ -1589,11 +1604,34 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     const previousDepth = (game.u || game.player)?.dungeonLevel;
     const fromX = (game.u || game.player)?.x;
     const fromY = (game.u || game.player)?.y;
+    const currentMap = (game.lev || game.map);
+    if (currentMap && Number.isInteger(previousDepth) && depth !== previousDepth) {
+        // C ref: do.c keepdogs(FALSE) emits visibility-gated "still eating"
+        // or "still trapped" messages before level transition.
+        const mons = Array.isArray(currentMap.monsters) ? currentMap.monsters : [];
+        for (const mtmp of mons) {
+            if (!mtmp || mtmp.dead) continue;
+            const canFollow = ((monnear(mtmp, (game.u || game.player).x, (game.u || game.player).y)
+                && levl_follower(mtmp, (game.u || game.player)))
+                || (((game.u || game.player).uhave?.amulet) && mtmp.iswiz));
+            if (!canFollow) continue;
+            if ((helpless(mtmp) && mtmp !== (game.u || game.player).usteed)
+                || (mtmp.mstrategy & STRAT_WAITFORU)) {
+                continue;
+            }
+            if (mtmp === (game.u || game.player).usteed) continue;
+            if (!(mtmp.meating || mtmp.mtrapped)) continue;
+            if (canseemon(mtmp, (game.u || game.player), null, currentMap)) {
+                const activity = mtmp.meating ? 'eating' : 'trapped';
+                await pline(`${Monnam(mtmp)} is still ${activity}.`);
+            }
+        }
+    }
 
     // Cache current level
-    if ((game.lev || game.map)) {
-        game.levels[(game.u || game.player).dungeonLevel] = (game.lev || game.map);
-        game.levelsByBranch[levelKey(currentDnum, (game.u || game.player).dungeonLevel)] = (game.lev || game.map);
+    if (currentMap) {
+        game.levels[(game.u || game.player).dungeonLevel] = currentMap;
+        game.levelsByBranch[levelKey(currentDnum, (game.u || game.player).dungeonLevel)] = currentMap;
     }
     const previousMap = game.levels[(game.u || game.player).dungeonLevel];
     const targetDnum = Number.isInteger(opts?.targetDnum)
@@ -1938,7 +1976,7 @@ export async function heal_legs(how, player) {
 export async function dodrop(player) {
   let result;
   if ( player.ushops) sellobj_state(SELL_DELIBERATE);
-  result = await drop(getobj("drop", any_obj_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
+  result = await drop(await getobj("drop", any_obj_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT));
   if ( player.ushops) sellobj_state(SELL_NORMAL);
   if (result) reset_occupations();
   return result;
@@ -1967,7 +2005,7 @@ export async function drop(obj, game, map, player) {
     }
   }
   else {
-    if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj); return ECMD_TIME; }
+    if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj, player, map); return ECMD_TIME; }
     if (!can_reach_floor(player, map, true)) {
       let levhack = finesse_ahriman(obj, player);
       // TODO: if (levhack) E(Levitation) = W_ART — autotranslation stub

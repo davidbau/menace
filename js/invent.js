@@ -1,9 +1,9 @@
 // invent.js -- Inventory management
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
-import { nhgetch, getlin } from './input.js';
-import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
-import { NHW_MENU, OBJ_INVENT } from './const.js';
+import { nhgetch, getlin, more } from './input.js';
+import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
@@ -27,19 +27,22 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          GLASS, GEMSTONE, MINERAL,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          CLASS_SYMBOLS } from './objects.js';
-import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object } from './mkobj.js';
-import { an, Has_contents, not_fully_identified as objnam_not_fully_identified } from './objnam.js';
+import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
+import { obj_resists } from './objdata.js';
+import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
-import { pline, You, Your } from './pline.js';
+import { pline, You, Your, There } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { mons, PM_ARCHEOLOGIST } from './monsters.js';
-import { newsym } from './display.js';
+import { newsym, flush_screen } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr, acurrstr } from './attrib.js';
+import { acurr, acurrstr, set_moreluck } from './attrib.js';
+import { confers_luck, touch_artifact } from './artifact.js';
 import { game as _gstate } from './gstate.js';
 import { visctrl } from './hacklib.js';
+import { can_reach_floor } from './engrave.js';
 
 
 // ============================================================
@@ -143,9 +146,9 @@ function buildInventoryPages(lines, rows = STATUS_ROW_1) {
     const pages = [];
     for (let i = 0, page = 1; i < content.length; i += contentRows, page++) {
         const chunk = content.slice(i, i + contentRows);
-        pages.push([...chunk, ` (${page} of ${totalPages})`]);
+        pages.push([...chunk, `(${page} of ${totalPages})`]);
     }
-    return pages.length > 0 ? pages : [[' (1 of 1)']];
+    return pages.length > 0 ? pages : [['(1 of 1)']];
 }
 
 function clearInventoryOverlayArea(display, lines = []) {
@@ -187,15 +190,16 @@ async function drawInventoryPage(display, lines, opts = {}) {
         // "(end)" / "(x of y)" prompt is displayed on the next row.
         const promptRow = STATUS_ROW_1;
         const prompt = lines.length > STATUS_ROW_1 ? String(lines[STATUS_ROW_1] || '') : '';
+        const promptCol = Math.max(0, offx);
         if (prompt && typeof display.setCell === 'function' && Number.isInteger(display.cols)) {
-            for (let col = Math.max(0, offx - 1); col < display.cols; col++) {
+            for (let col = promptCol; col < display.cols; col++) {
                 display.setCell(col, promptRow, ' ', 7, 0);
             }
         } else if (prompt && typeof display.clearRow === 'function') {
             display.clearRow(promptRow);
         }
         if (prompt) {
-            await display.putstr(offx, promptRow, prompt, undefined, 0);
+            await display.putstr(promptCol, promptRow, prompt, undefined, 0);
         }
         // C ref: wintty.c line 2831 — morestr is "(end) " (with trailing space).
         // Cursor sits after the last rendered line. renderOverlayMenu goes
@@ -211,7 +215,7 @@ async function drawInventoryPage(display, lines, opts = {}) {
                 const lastLine = String(lines[lastRow] || '');
                 display.setCursor(Math.min(1 + lastLine.length + 1, cols - 1), lastRow);
             } else if (prompt) {
-                display.setCursor(Math.min(offx + prompt.length + 1, cols - 1), promptRow);
+                display.setCursor(Math.min(promptCol + prompt.length, cols - 1), promptRow);
             } else {
                 const menuRows = Math.min(lines.length, STATUS_ROW_1);
                 const lastRow = menuRows - 1;
@@ -245,7 +249,8 @@ async function drawInventoryPage(display, lines, opts = {}) {
         const cols = display.cols || 80;
         const lastRow = rows - 1;
         const lastLine = String(lines[lastRow] || '');
-        display.setCursor(Math.min(1 + lastLine.length + 1, cols - 1), lastRow);
+        const rendered = lastLine.startsWith(' ') ? lastLine.slice(1) : lastLine;
+        display.setCursor(Math.min(1 + rendered.length, cols - 1), lastRow);
     }
 }
 
@@ -255,10 +260,13 @@ function isMenuDismissKey(ch) {
 
 export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '', options = null) {
     const allowCountPrefix = !!(options && options.allowCountPrefix);
+    const dismissOnUnrecognized = !!(options && options.dismissOnUnrecognized);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     let menuOffx = null;
+    // Forward display-relevant options (e.g. noTitleInverse) to renderOverlayMenu.
+    const menuOpts = options?.noTitleInverse ? { noTitleInverse: true } : null;
     if (typeof display.renderOverlayMenu === 'function') {
-        menuOffx = display.renderOverlayMenu(lines);
+        menuOffx = display.renderOverlayMenu(lines, menuOpts);
     } else {
         menuOffx = display.renderChargenMenu(lines, false);
     }
@@ -288,6 +296,8 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
             selection = c;
             break;
         }
+        // C tty parity: PICK_ONE menus dismiss on any unrecognized key.
+        if (dismissOnUnrecognized) break;
     }
 
     const last = display?._lastMapState;
@@ -637,7 +647,7 @@ export async function handleInventory(player, display, game) {
                         (game.lev || game.map),
                         display,
                         selected,
-                        { fromFire: stackCanShoot }
+                        { fromFire: stackCanShoot, game }
                     );
                 }
                 if (actionKey === 'i') {
@@ -1046,7 +1056,10 @@ export function addinv_core1(obj, player) {
 
 // C ref: invent.c addinv_core2() — side effects after adding to inventory
 export async function addinv_core2(obj, player) {
-    // confers_luck check would go here
+    // C ref: invent.c:1028-1031 — luckstone in inventory sets moreluck
+    if (confers_luck(obj)) {
+        set_moreluck(player);
+    }
     // C ref: invent.c addinv_core2() — archeologists can decipher scroll labels.
     if (player
         && player.roleMnum === PM_ARCHEOLOGIST
@@ -1130,6 +1143,27 @@ function near_capacity_for_inventory(player) {
     return Math.min(cap, OVERLOADED);
 }
 
+function parsePickupBurdenLevel(flags) {
+    const raw = flags?.pickup_burden;
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        return Math.max(0, Math.min(5, raw));
+    }
+    if (typeof raw === 'string') {
+        const map = {
+            unencumbered: 0,
+            burdened: 1,
+            stressed: 2,
+            strained: 3,
+            overtaxed: 4,
+            overloaded: 5,
+            moderate: 2,
+        };
+        const norm = raw.trim().toLowerCase();
+        if (norm in map) return map[norm];
+    }
+    return 1;
+}
+
 async function encumber_msg_transition(prevCap, newCap) {
     if (prevCap < newCap) {
         switch (newCap) {
@@ -1167,8 +1201,30 @@ async function encumber_msg_transition(prevCap, newCap) {
 }
 
 // C ref: invent.c hold_another_object() — add object or drop if can't hold
-export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_msg) {
+export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_msg, display, game) {
+    // C ref: invent.c:1218-1244 — artifact touch check before adding to inventory.
+    // C places the object on the floor first (in case touching is fatal), then
+    // calls touch_artifact, then extracts it from the floor.
+    if (obj.oartifact) {
+        // C ref: invent.c:1225 — place_object(obj, u.ux, u.uy)
+        const map = game?.map;
+        place_object(obj, player.x, player.y, map);
+        const canTouch = await touch_artifact(obj, player, player, display, game);
+        if (!canTouch) {
+            // C ref: invent.c:1228-1230 — obj_extract_self(obj); dropy(obj);
+            // Object stays on the floor at hero's position.
+            // obj_extract_self removes it from map.objects, then we re-place it
+            // to match C's dropy() semantics (which does place_object internally).
+            // Net effect: object remains on floor. Just leave it placed.
+            return obj;
+        }
+        // C ref: invent.c:1239 — obj_extract_self(obj) after successful touch
+        obj_extract_self(obj, map);
+    }
     const prevCap = near_capacity_for_inventory(player);
+    let prevCapLimit = prevCap;
+    const pickupBurden = parsePickupBurdenLevel(game?.flags || player?.flags || {});
+    if (prevCapLimit < pickupBurden) prevCapLimit = pickupBurden;
     const oquan = obj?.quan || 0;
     // Inline addinv with withMeta to detect compare-discovery (C ref: invent.c merged())
     addinv_core1(obj, player);
@@ -1182,17 +1238,44 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
     if (addResult?.discoveredByCompare) {
         await pline('You learn more about your items by comparing them.');
     }
+    const newCap = near_capacity_for_inventory(player);
+    const tooManyInvlets = inv_cnt(false, player) > invlet_basic;
+    const tooEncumbered = ((result?.otyp !== LOADSTONE || !result?.cursed) && newCap > prevCapLimit);
+    if (tooManyInvlets || tooEncumbered) {
+        let dropped = result;
+        if ((dropped?.quan || 0) > oquan) {
+            dropped = splitobj(dropped, oquan);
+        }
+        if (drop_fmt) {
+            await pline(drop_fmt, drop_arg);
+        }
+        dropped.nomerge = 0;
+        const map = game?.map || player?.map || null;
+        const { dropx } = await import('./do.js');
+        const { hitfloor } = await import('./dothrow.js');
+        if (can_reach_floor(player, map, true) || player.uswallow) {
+            freeinv(dropped, player);
+            await dropx(dropped, player, map);
+        } else {
+            freeinv(dropped, player);
+            await hitfloor(dropped, false, player, map);
+        }
+        return null;
+    }
     if (result && (hold_msg || drop_fmt)) {
         await prinv(hold_msg || null, result, oquan, player);
     }
-    const newCap = near_capacity_for_inventory(player);
+    if (player) {
+        // The retained-item page still shows the pre-pickup burden, but the
+        // following encumbrance-transition page redraws status from live carry
+        // state. Switch encumbrance just before encumber_msg_transition().
+        player.encumbrance = newCap;
+    }
     // C ref: pickup.c encumber_msg() sets go.oldcap = newcap AFTER printing the
-    // transition message (not before). Move player.encumbrance update to after the
-    // message so that renderStatus at the --More-- overflow still reads the OLD
-    // encumbrance, matching C's disp.botl/bot() deferred update pattern.
+    // transition message (not before). Keep _oldcap deferred so the transition
+    // messaging still observes the pre-pickup state.
     await encumber_msg_transition(prevCap, newCap);
     if (player) {
-        player.encumbrance = newCap;
         // Keep pickup.c-style oldcap tracking in sync so a subsequent
         // encumber_msg() in the same command (e.g., wiz_wish()) does not
         // duplicate the same transition message.
@@ -1259,6 +1342,9 @@ export function freeinv_core(obj, player) {
     if (obj.otyp === LOADSTONE) {
         obj.cursed = true;
         obj.blessed = false;
+    } else if (confers_luck(obj)) {
+        // C ref: invent.c:1388-1390 — recalculate moreluck when dropping luckstone
+        set_moreluck(player);
     }
 }
 
@@ -1286,7 +1372,8 @@ export function delobj(obj) {
 
 // C ref: invent.c delobj_core() — core object deletion
 export function delobj_core(obj, map, force) {
-    if (!force && obj_resists(obj)) {
+    // C ref: invent.c:1429 — obj_resists(obj, 0, 0) always consumes rn2(100)
+    if (!force && obj_resists(obj, 0, 0)) {
         obj.in_use = false;
         return;
     }
@@ -1306,14 +1393,8 @@ export function delobj_core(obj, map, force) {
     }
 }
 
-// Helper: obj_resists — simplified check for indestructible objects
-function obj_resists(obj) {
-    if (obj.otyp === AMULET_OF_YENDOR) return true;
-    if (obj.otyp === CANDELABRUM_OF_INVOCATION) return true;
-    if (obj.otyp === BELL_OF_OPENING) return true;
-    if (obj.otyp === SPE_BOOK_OF_THE_DEAD) return true;
-    return false;
-}
+// Local obj_resists stub removed — use objdata.obj_resists(obj, 0, 0)
+// which correctly consumes rn2(100) matching C's RNG stream.
 
 
 // ============================================================
@@ -1582,9 +1663,9 @@ export async function doorganize(game) {
 }
 
 // C ref: invent.c getobj() — prompt player to select an inventory object
-// Simplified JS version that works with the existing input system
+// Simplified JS version: returns first suggested item without prompting.
+// Used only as internal fallback; normal callers should use getobj() below.
 export function getobj_simple(word, obj_ok, player) {
-    // Returns the first suggested object, or null
     for (const obj of (player.inventory || [])) {
         const result = obj_ok(obj);
         if (result === GETOBJ_SUGGEST) return obj;
@@ -1592,11 +1673,147 @@ export function getobj_simple(word, obj_ok, player) {
     return null;
 }
 
-// C ref: invent.c getobj() — C-name wrapper over simplified selector
-export function getobj(word, obj_ok, _flags = 0, player = null) {
+// C ref: invent.c:getobj() sets disp.botl = TRUE before validating the
+// chosen inventory letter, so rejection feedback can still force a bot()
+// boundary.  Custom prompt loops which emulate getobj() should use this.
+export function markGetobjSelectionBoundary(player) {
+    if (player) player._botl = true;
+}
+
+// C ref: getobj() feedback often reaches pline()/flush_screen() after the
+// selection boundary has dirtied status. Custom getobj-like loops can use
+// this helper to mirror the message-side repaint ownership.
+export function flushGetobjFeedbackBoundary() {
+    flush_screen(1);
+}
+
+// Custom getobj()-like loops can use this when they've already established
+// the visible feedback boundary and only need command-tail bookkeeping.
+export function handledGetobjFeedbackResult(overrides = {}) {
+    return {
+        moved: false,
+        tookTime: false,
+        suppressUntimedTailRender: true,
+        ...overrides,
+    };
+}
+
+// C ref: invent.c getobj() — interactive inventory item selection.
+// Matches C behavior: auto-selects if exactly one GETOBJ_SUGGEST item and
+// GETOBJ_PROMPT flag is not set; otherwise prompts via nhgetch().
+export async function getobj(word, obj_ok, flags = 0, player = null) {
     const p = player || _gstate?.player || null;
+    const display = _gstate?.display || null;
     if (!p || typeof obj_ok !== 'function') return null;
-    return getobj_simple(word, obj_ok, p);
+
+    const inv = p.inventory || [];
+
+    // Categorize items using the obj_ok callback (C ref: invent.c:2098-2158)
+    const suggested = [];
+    const downplay = [];
+    const allValid = []; // items the player CAN select (suggested + downplay + exclude_selectable)
+    for (const obj of inv) {
+        const result = obj_ok(obj);
+        if (result === GETOBJ_SUGGEST) {
+            suggested.push(obj);
+            allValid.push(obj);
+        } else if (result === GETOBJ_DOWNPLAY) {
+            downplay.push(obj);
+            allValid.push(obj);
+        } else if (result === GETOBJ_EXCLUDE_SELECTABLE) {
+            allValid.push(obj);
+        }
+    }
+
+    // No selectable items at all
+    if (allValid.length === 0 && suggested.length === 0) return null;
+
+    // C ref: auto-select if exactly one GETOBJ_SUGGEST item, no downplay items,
+    // and GETOBJ_PROMPT flag is not set (invent.c:2215-2230)
+    if (suggested.length === 1 && downplay.length === 0 && !(flags & GETOBJ_PROMPT)) {
+        return suggested[0];
+    }
+
+    // No display available — fall back to simple selection
+    if (!display) return getobj_simple(word, obj_ok, p);
+
+    // Interactive prompt via nhgetch (C ref: invent.c:2232-2370)
+    // C only shows SUGGEST items in the prompt bracket; DOWNPLAY items are
+    // accepted but hidden from the choice string (invent.c:2233-2240).
+    const suggestedLetters = suggested.map(o => o.invlet).join('');
+    const choices = compactInvletPromptChars(suggestedLetters);
+    const prompt = choices
+        ? `What do you want to ${word}? [${choices} or ?*] `
+        : `What do you want to ${word}? [*] `;
+    const allInvLetters = inv.filter(o => o?.invlet).map(o => o.invlet).join('');
+    const clearPrompt = () => {
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
+    };
+
+    await display.putstr_message(prompt);
+
+    while (true) {
+        const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+
+        // ESC / Enter / Space = cancel
+        // C ref: invent.c:2367-2370 — pline1("Never mind.") on ESC
+        if (ch === 27 || ch === 10 || ch === 13 || c === ' ') {
+            clearPrompt();
+            await display.putstr_message('Never mind.');
+            return null;
+        }
+
+        // '?' or '*' = show inventory overlay
+        if (c === '?' || c === '*') {
+            clearPrompt();
+            const lines = buildInventoryOverlayLines(p);
+            const menuSelection = await renderOverlayMenuUntilDismiss(
+                display, lines, allInvLetters
+            );
+            if (menuSelection) {
+                const item = inv.find(o => o.invlet === menuSelection);
+                if (item) {
+                    clearPrompt();
+                    return item;
+                }
+            }
+            // Re-show prompt after overlay dismissal
+            await display.putstr_message(prompt);
+            continue;
+        }
+
+        // Try to find inventory item by letter
+        const item = inv.find(o => o.invlet === c);
+        if (!item) {
+            // C ref: invent.c:2304 — invalid invlet error with --More-- block.
+            // In C, pline("You don't have that object.") shows the error on the
+            // topline with --More--, blocking until the player presses a key.
+            // After dismiss, the prompt is re-shown.
+            clearPrompt();
+            await display.putstr_message("You don't have that object.--More--");
+            await more(display, { clearAfter: true, forceVisual: false });
+            await display.putstr_message(prompt);
+            continue;
+        }
+
+        // C ref: invent.c:getobj() sets disp.botl = TRUE before validating the
+        // chosen inventory letter, so rejection feedback can still force a
+        // message-side flush.
+        markGetobjSelectionBoundary(p);
+        const okResult = obj_ok(item);
+        if (okResult === GETOBJ_EXCLUDE) {
+            clearPrompt();
+            await silly_thing(word, item);
+            return null;
+        }
+
+        // Found a valid inventory item — clear prompt and return
+        clearPrompt();
+        return item;
+    }
 }
 
 // C ref: invent.c ggetobj() — get object with class filter
@@ -1648,8 +1865,7 @@ export function not_fully_identified(obj) {
 
 // C ref: invent.c fully_identify_obj() — fully identify an object
 export function fully_identify_obj(otmp) {
-    const od = objectData[otmp.otyp];
-    if (od) od.name_known = true; // makeknown
+    discoverObject(otmp.otyp, true, true);  // C ref: makeknown → discover_object → exercise(A_WIS)
     otmp.known = true;
     otmp.bknown = true;
     otmp.rknown = true;
@@ -1659,9 +1875,11 @@ export function fully_identify_obj(otmp) {
 
 // C ref: invent.c identify() — identify object and give feedback
 // Autotranslated from invent.c:2650
-export async function identify(otmp) {
+export async function identify(otmp, player) {
   fully_identify_obj(otmp);
   await prinv( 0, otmp, 0);
+  // C ref: invent.c:2650 — C's identify() does NOT call exercise().
+  // The exercise(A_WIS) call belongs in seffects() after identification completes.
   return 1;
 }
 
@@ -1694,13 +1912,44 @@ export async function identify_pack(id_limit, player, learning_id) {
             }
         }
     } else {
-        // identify up to id_limit items — simplified: identify first N
-        let remaining = id_limit;
-        for (const obj of inv) {
-            if (remaining <= 0) break;
-            if (not_fully_identified(obj)) {
-                await identify(obj, player);
-                remaining--;
+        // C ref: invent.c:2658-2695 — menu_identify(id_limit)
+        // Show a PICK_ANY menu of unidentified items, identify selections.
+        let first = 1, tryct = 5;
+        while (id_limit > 0) {
+            const prompt = `What would you like to identify ${first ? 'first' : 'next'}?`;
+            const win = create_nhwindow(NHW_MENU);
+            start_menu(win, MENU_BEHAVE_STANDARD);
+            for (const obj of inv) {
+                if (not_fully_identified(obj)) {
+                    const ch = typeof obj.invlet === 'string' ? obj.invlet.charCodeAt(0) : (obj.invlet || 0);
+                    add_menu(win, null, { a_obj: obj }, ch, 0,
+                        ATR_NONE, 0, doname(obj, player), 0);
+                }
+            }
+            end_menu(win, prompt);
+            const result = await select_menu(win, PICK_ANY);
+            destroy_nhwindow(win);
+
+            if (result === null) {
+                // C ref: n == -2 — ESC pressed
+                break;
+            } else if (result.length > 0) {
+                let n = Math.min(result.length, id_limit);
+                for (let i = 0; i < n; i++) {
+                    const obj = result[i].identifier?.a_obj || result[i].item?.a_obj || result[i].a_obj;
+                    if (obj) {
+                        await identify(obj, player);
+                        id_limit--;
+                    }
+                }
+                first = 0;
+            } else if (!--tryct) {
+                // C ref: invent.c:2688 — stop re-prompting after 5 tries
+                await pline("That's enough tries.");
+                break;
+            } else {
+                // C ref: invent.c:2692 — empty selection, retry
+                await pline("Choose an item; use ESC to decline.");
             }
         }
     }
@@ -1844,12 +2093,15 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         const lines = [];
         const choices = [];
 
-        // C menu title is a fixed short header.
-        lines.push('Debug Identify');
+        // C ref: invent.c:3227-3231 — title includes suffix for unid items
+        const hasUnid = unid.length > 0;
+        lines.push(hasUnid
+            ? `Debug Identify -- unidentified or partially identified item${unid.length !== 1 ? 's' : ''}`
+            : 'Debug Identify');
 
         if (unid.length === 0) {
             lines.push('(all items are permanently identified already)');
-            await renderOverlayMenuUntilDismiss(d, lines, '');
+            await renderOverlayMenuUntilDismiss(d, lines, '', { noTitleInverse: true });
             return '';
         }
 
@@ -1869,7 +2121,9 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
             choices.push(invlet);
         }
 
-        const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''));
+        // C ref: wiz_identify uses add_menu_str for the title, not end_menu(prompt),
+        // so line 0 should NOT have inverse video.
+        const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''), { noTitleInverse: true });
         const selection = selectionFromInventoryResult(result);
         if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
             await identify_pack(0, p, false);
@@ -2105,6 +2359,8 @@ export function dfeature_at(x, y, map, opts = {}) {
 // C ref: invent.c look_here() — look at objects at hero location
 // For 2+ objects, C creates a NHW_MENU window and uses putstr to display
 // "Things that are here:" as a right-side popup, then blocks for keypress.
+// If pile_limit is set and obj_cnt >= pile_limit, C skips the menu and
+// prints a summary message instead (invent.c:4252-4264).
 export async function look_here(player, map, obj_cnt) {
     const x = player.x, y = player.y;
     // C iterates level.objects[x][y] via nexthere — a LIFO linked list where
@@ -2116,7 +2372,17 @@ export async function look_here(player, map, obj_cnt) {
         dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
     });
 
-    if (objects.length >= 2 || dfeature) {
+    // C ref: invent.c:4252-4264 — skip_objects when pile_limit is set
+    const pile_limit = _gstate?.flags?.pile_limit ?? 0;
+    const skip_objects = (pile_limit > 0 && objects.length >= pile_limit);
+
+    if (skip_objects) {
+        // C: "There are <numeral> objects here." (or " more objects" if picked_some)
+        const numeral = (objects.length < 5) ? "a few"
+                      : (objects.length < 10) ? "several"
+                      : "many";
+        await There("are %s objects here.", numeral);
+    } else if (objects.length >= 2 || dfeature) {
         const tmpwin = create_nhwindow(NHW_MENU);
         if (dfeature) {
             await win_putstr(tmpwin, 0, `There is ${an(dfeature)} here.`);

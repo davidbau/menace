@@ -56,6 +56,7 @@ Read these first for active work:
 3. `docs/CODEMATCH.md`
 4. `docs/PARITY_TEST_MATRIX.md`
 5. `docs/ASYNC_CLEANUP.md`
+6. `docs/REPAINT_PARITY.md`
 
 Historical/reference docs:
 1. `docs/IRON_PARITY_PLAN.md` (campaign history and architecture lessons)
@@ -76,8 +77,34 @@ Historical/reference docs:
 ## Regression/Progress Standard (Current Phase)
 1. A change is a **regression** if it moves first divergence earlier on any parity channel (`PRNG`, `events`, or `screen`) for a session that was previously better.
 2. A change is **progress** if it moves first divergence later (or fully green) on one or more parity channels without causing larger regressions elsewhere.
-3. Treat boundary-only capture artifacts as neutral unless they clearly shift true gameplay parity.
+3. Treat boundary-only capture artifacts as neutral only when repaint-parity evidence shows the mismatch is ownership/capture timing rather than gameplay-visible behavior.
 4. Use per-session first-divergence step movement as the decision signal for go/no-go commits.
+
+## Repaint Parity Discipline
+1. For `screen` or `cursor` mismatches, do not rely on vague "boundary artifact" explanations.
+2. Use `docs/REPAINT_PARITY.md` and repaint diagnostics to identify the concrete owner of the visible change:
+   - `flush_screen(...)`
+   - `bot()` / `renderStatus(...)`
+   - `more()`
+   - prompt owners such as `yn_function()` / `ynFunction()` and `getlin()`
+3. Frame the question precisely: "when did C make this state visible, and which repaint owner did it?"
+4. Prefer explicit repaint/cursor ownership evidence (`^repaint[...]`, step-local repaint diffs, prompt-owner traces) over informal reasoning about async boundaries.
+5. Do not patch screen/cursor behavior speculatively. If the first divergence is visible output only, localize it with repaint traces before changing core JS.
+6. Repaint work is still core parity work: fix JS display/runtime ownership, not the comparator, replay harness, or session artifacts.
+
+## Circular Import Policy
+Circular function imports between gameplay files are fine — ESM resolves
+function bindings lazily at call time. See `docs/MODULES.md` for the design.
+
+**Do NOT use registration patterns** (`registerFoo(fn)` + module-level `var`)
+to avoid circular imports. This adds unnecessary complexity and is fragile:
+`var x = null` initializers can reset values set during circular module
+evaluation, causing hard-to-debug bugs. Instead, just import the function
+directly — circular function imports work correctly by design.
+
+If you encounter an existing registration pattern, replace it with a direct
+import. Read `docs/MODULES.md` before concluding that a circular import
+needs special handling.
 
 ## Non-Negotiable Engineering Rules
 1. Fix behavior in core JS game code, not by patching comparator/harness logic.
@@ -97,6 +124,10 @@ Historical/reference docs:
    - no broad refactors unrelated to the active divergence
    - no compatibility shims unless required for immediate correctness
    - remove temporary debug scaffolding before commit unless explicitly retained for observability
+8. Treat generated version files as expected collateral, not unexpected changes:
+   - `_data/version.yml` and `js/version.js` may update during hooks or normal commit flow
+   - keep the newest generated values
+   - include them with the active commit when they change; do not stop work just because these two files updated
 
 ## No-Fake-Implementation Rule (Strict)
 1. Do not present scaffolds, placeholders, or heuristics as completed parity or translation work.

@@ -7,7 +7,7 @@
 //                newhp, minuhpmax, setuhpmax, adjuhploss, acurr, acurrstr,
 //                extremeattr, adjalign, uchangealign
 
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FAST, STEALTH, SEARCHING, SEE_INVIS, WARNING, JUMPING,
@@ -58,7 +58,13 @@ const FROM_EXP = 4;  // from experience for some level > 1
 const FROM_FORM_REASON = 5;
 const FROM_LYCN = 6;
 
-const ALIGNLIM = 14;
+export function currentAlignLim(player = null) {
+    const moves = Math.max(
+        0,
+        Number(player?.turns ?? _gstate?.moves ?? _gstate?.turnCount ?? 0) || 0
+    );
+    return 10 + Math.floor(moves / 200);
+}
 
 // part of the output on gain or loss of attribute
 const plusattr = ["strong", "smart", "wise", "agile", "tough", "charismatic"];
@@ -444,6 +450,8 @@ export async function adjattrib(player, ndx, incr, msgflg) {
         return false;
     }
 
+    // C ref: attrib.c adjattrib() sets context.botl = 1 when acurr changes
+    player._botl = true;
     if (msgflg <= 0)
         await You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
     if (ndx === A_STR || ndx === A_CON)
@@ -550,7 +558,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
     const i = !fatal ? 1 : rn2(fatal + (thrown_weapon ? 20 : 0));
     if (i === 0 && typ !== A_CHA) {
         // sometimes survivable instant kill
-        const loss0 = 6 + d(4, 6); // 10..34
+        const loss0 = 6 + c_d(4, 6); // 10..34
         if (player.uhp <= loss0) {
             player.uhp = -1;
             await pline_The("poison was deadly...");
@@ -573,7 +581,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
             loss = Math.floor((loss + 1) / 2);
         await losehp(loss, pkiller, kprefix, player, _gstate?.display, _gstate);
     } else {
-        const loss = (thrown_weapon || !fatal) ? 1 : d(2, 2);
+        const loss = (thrown_weapon || !fatal) ? 1 : c_d(2, 2);
         if (await adjattrib(player, typ, -loss, 1))
             await poisontell(player, typ, true);
     }
@@ -648,8 +656,11 @@ export async function restore_attrib(player) {
             }
         }
     }
-    if (botl)
+    if (botl) {
+        // C ref: attrib.c restore_attrib() sets context.botl = 1
+        player._botl = true;
         await encumber_msg(player);
+    }
 }
 
 // cf. attrib.c:486 — exercise(i, inc_or_dec)
@@ -1137,8 +1148,8 @@ export function adjalign(player, n) {
         }
     } else if (newalign > (player.alignmentRecord || 0)) {
         player.alignmentRecord = newalign;
-        if (player.alignmentRecord > ALIGNLIM)
-            player.alignmentRecord = ALIGNLIM;
+        if (player.alignmentRecord > currentAlignLim(player))
+            player.alignmentRecord = currentAlignLim(player);
     }
 }
 

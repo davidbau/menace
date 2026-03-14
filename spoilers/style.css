@@ -3,39 +3,10 @@
    Stylesheet for screen (responsive) and print (5″ handbook)
    ============================================================ */
 
-/* --- Font faces (local files for PDF generation) ------------ */
-
-@font-face {
-  font-family: 'EB Garamond';
-  src: url('fonts/EBGaramond.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'EB Garamond';
-  src: url('fonts/EBGaramond.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'EB Garamond';
-  src: url('fonts/EBGaramond-Italic.ttf') format('truetype');
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'EB Garamond';
-  src: url('fonts/EBGaramond-Italic.ttf') format('truetype');
-  font-weight: bold;
-  font-style: italic;
-  font-display: swap;
-}
+/* --- Font faces -------------------------------------------- */
+/* EB Garamond is loaded from Google Fonts via <link> in the HTML.
+   The LaTeX/PDF build uses fontspec with local .ttf files directly,
+   so no @font-face declarations are needed here. */
 
 /* --- Fonts & Variables -------------------------------------- */
 

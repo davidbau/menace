@@ -18,8 +18,8 @@ import {
     ALL_TRAPS, HOLE, TRAPDOOR, NO_MM_FLAGS, NO_MINVENT, MAXMONNO, MM_NOWAIT,
     MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
     MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
-    MM_IGNORELAVA,
-    BOLT_LIM, LS_MONSTER,
+    MM_IGNORELAVA, MM_ASYNC,
+    BOLT_LIM, LS_MONSTER, NON_PM,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, SIZE, ALIGNWEIGHT } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
@@ -378,7 +378,8 @@ function monmin_difficulty(levdif) {
 export function uncommon(mndx) {
     const ptr = mons[mndx];
     if (ptr.geno & (G_NOGEN | G_UNIQ)) return true;
-    // mvitals not tracked — skip G_GONE check
+    const mvflags = Number(_gstate?.mvitals?.[mndx]?.mvflags || 0);
+    if (mvflags & G_GONE) return true;
     // Not Inhell at standard depths → check G_HELL
     return !!(ptr.geno & G_HELL);
 }
@@ -489,7 +490,8 @@ export function rndmonnum_adj(minadj, maxadj, depth) {
 // C ref: makemon.c mk_gen_ok()
 export function mk_gen_ok(mndx, mvflagsmask, genomask) {
     const ptr = mons[mndx];
-    // mvitals not tracked yet — skip mvflagsmask check
+    const mvflags = Number(_gstate?.mvitals?.[mndx]?.mvflags || 0);
+    if (mvflags & mvflagsmask) return false;
     if (ptr.geno & genomask) return false;
     if (is_placeholder(ptr)) return false;
     return true;
@@ -1762,6 +1764,11 @@ export function runtimeApplyNewchamDirect(mon, targetMndx, depth = 1, map = null
     return apply_newcham_direct(mon, targetMndx, depth, map, player, fov, display, showMsg);
 }
 
+export function runtimeApplyNewchamRandom(mon, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
+    const baseMndx = Number.isInteger(mon?.cham) ? mon.cham : NON_PM;
+    return apply_newcham_from_base(mon, baseMndx, depth, map, player, fov, display, showMsg);
+}
+
 function maybe_apply_newcham(mon, baseMndx, depth, map = null) {
     const basePtr = mons[baseMndx];
     if (!(basePtr.mflags2 & M2_SHAPESHIFTER)) return false;
@@ -2450,7 +2457,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     // C's newedog() calloc-zeros the struct; ogoal must be initialized
     // for dog_move() which accesses edog.ogoal.x unconditionally.
     if (mmflags & MM_EDOG) {
-        mon.edog = { ogoal: { x: 0, y: 0 } };
+        if (!mon.mextra) mon.mextra = {};
+        mon.mextra.edog = { ogoal: { x: 0, y: 0 } };
+        mon.edog = mon.mextra.edog;
     }
 
     // C ref: makemon.c:2506 — mimics get appearance type from set_mimic_sym()
@@ -2462,6 +2471,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     if (map && x !== undefined && y !== undefined) {
         map.addMonster(mon);
     }
+
+    // C ref: makemon.c:1425 — compute malign after peaceful/renegade setup.
+    set_malign(mon);
 
     // C ref: makemon.c shapechanger path (pm_to_cham/newcham).
     const allowMinvent = allow_minvent && !maybe_apply_newcham(mon, mndx, depth || 1, map || null);
@@ -2546,17 +2558,36 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
                 else if (dist2(x, y, ux, uy) <= (BOLT_LIM * BOLT_LIM)) suffix = ' close by';
             }
             set_msg_xy(mon.mx, mon.my);
-            void Norep('%s%s %s%s%s',
-                what,
-                exclaim ? ' suddenly' : '',
-                vtense(what, 'appear'),
-                suffix,
-                exclaim ? '!' : '.');
+            if (mmflags & MM_ASYNC) {
+                // Caller will await via makemon_appear(); Norep starts executing
+                // synchronously (putstr_message updates display immediately) and
+                // the promise is stored for the caller to await.
+                mon._appearPromise = Norep('%s%s %s%s%s',
+                    what,
+                    exclaim ? ' suddenly' : '',
+                    vtense(what, 'appear'),
+                    suffix,
+                    exclaim ? '!' : '.');
+            }
+            // Sync callers skip the message — use makemon_appear() for visible
+            // monsters so the Norep promise can be properly awaited.
         }
     }
 
     // C ref: event_log("makemon[%d@%d,%d]", mndx, mtmp->mx, mtmp->my)
     pushRngLogEntry(`^makemon[${mndx}@${mon?.mx ?? 0},${mon?.my ?? 0}]`);
+    return mon;
+}
+
+// Async wrapper for makemon — use when the appear message might fire
+// (i.e., outside mklev, monster visible to player, MM_NOMSG not set).
+// Callers in async functions should use this instead of raw makemon().
+export async function makemon_appear(ptr_or_null, x, y, mmflags, depth, map) {
+    const mon = makemon(ptr_or_null, x, y, mmflags | MM_ASYNC, depth, map);
+    if (mon?._appearPromise) {
+        await mon._appearPromise;
+        delete mon._appearPromise;
+    }
     return mon;
 }
 
@@ -2717,7 +2748,8 @@ export async function grow_up(mtmp, victim, game) {
 }
 
 // Autotranslated from makemon.c:2315
-export function set_malign(mtmp, player) {
+export function set_malign(mtmp, player = null) {
+  const playerCtx = player || _gstate?.player || _getMakemonPlayerCtx();
   let mal = mtmp.data.maligntyp, coaligned;
   if (mtmp.ispriest || mtmp.isminion) {
     if (mtmp.ispriest && EPRI(mtmp)) mal = EPRI(mtmp).shralign;
@@ -2726,7 +2758,7 @@ export function set_malign(mtmp, player) {
       mal *= 5;
     }
   }
-  coaligned = player ? (sgn(mal) === sgn(player.alignment)) : false;
+  coaligned = !!playerCtx && (sgn(mal) === sgn(playerCtx.alignment));
   if (mtmp.data.msound === MS_LEADER) { mtmp.malign = -20; }
   else if (mal === A_NONE) {
     if (mtmp.mpeaceful) mtmp.malign = 0;

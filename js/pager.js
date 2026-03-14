@@ -193,6 +193,25 @@ export function do_screen_description(ctx, cc) {
         return { found: true, firstmatch: terrain, outStr: '', text: terrain, kind: 'terrain' };
     }
 
+    // C ref: pager.c do_screen_description — basic terrain types use
+    // defsyms[glyph].explanation. Wall tiles that don't face a visited
+    // room render as stone (blank) on screen, so describe them as "stone".
+    if (loc && loc.seenv) {
+        let basicDesc = '';
+        if (loc.typ === STONE) {
+            basicDesc = 'stone';
+        } else if (IS_WALL(loc.typ)) {
+            basicDesc = wallIsVisible(loc.typ, loc.seenv, loc.flags || 0) ? 'wall' : 'stone';
+        } else if (loc.typ === CORR || loc.typ === SCORR) {
+            basicDesc = 'corridor';
+        } else if (loc.typ === ROOM) {
+            basicDesc = 'floor of a room';
+        }
+        if (basicDesc) {
+            return { found: true, firstmatch: basicDesc, outStr: '', text: basicDesc, kind: 'terrain' };
+        }
+    }
+
     return { found: false, firstmatch: '', outStr: '', text: '', kind: 'none' };
 }
 
@@ -302,35 +321,51 @@ export function is_corridor_like(loc) {
     return !!loc && (loc.typ === CORR || loc.typ === SCORR);
 }
 
+function look_surface_name(loc) {
+    if (!loc) return 'floor';
+    if (loc.typ === DOOR) return 'doorway';
+    if (loc.typ === ICE) return 'ice';
+    if (loc.typ === POOL) return 'pool of water';
+    if (loc.typ === LAVAPOOL) return 'molten lava';
+    if (loc.typ === IRONBARS) return 'iron bars';
+    if (loc.typ === TREE) return 'tree';
+    return 'floor';
+}
+
 // C ref: invent.c look_here() style message used for ':' command.
 function build_dolook_message(ctx) {
     const map = ctx?.map;
     const player = ctx?.player;
+    const blind = !!player?.blind;
+    const skipTerrainDescription = !!ctx?.skipTerrainDescription;
     if (!map || !player) return 'You see no objects here.';
 
     const loc = map.at ? map.at(player.x, player.y) : null;
     const objs = map.objectsAt ? map.objectsAt(player.x, player.y) : [];
-    const terrain = terrain_here_description(loc, { map, player });
+    const terrain = skipTerrainDescription ? '' : terrain_here_description(loc, { map, player });
+    const verb = blind ? 'feel' : 'see';
     let objText = '';
     if (objs.length === 1) {
         const seen = objs[0];
         if (seen.oclass === COIN_CLASS) {
             const count = seen.quan || 1;
             objText = count === 1
-                ? 'You see here a gold piece.'
-                : `You see here ${count} gold pieces.`;
+                ? `You ${verb} here a gold piece.`
+                : `You ${verb} here ${count} gold pieces.`;
         } else {
             observeObject(seen);
-            objText = `You see here ${describeGroundObjectForPlayer(seen, player, map)}.`;
+            objText = `You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`;
         }
     } else if (objs.length > 1) {
-        objText = `Things that are here: ${objs.map(o => look_object_name(o)).join(', ')}`;
+        objText = blind
+            ? `Things that you feel here: ${objs.map(o => look_object_name(o)).join(', ')}`
+            : `Things that are here: ${objs.map(o => look_object_name(o)).join(', ')}`;
     }
 
     if (terrain && objText) return `${terrain} ${objText}`.trim();
     if (terrain) return terrain;
     if (objText) return objText;
-    return 'You see no objects here.';
+    return blind ? 'You feel no objects here.' : 'You see no objects here.';
 }
 
 // C ref: invent.c dolook() → look_here() → read_engr_at()
@@ -338,13 +373,35 @@ function build_dolook_message(ctx) {
 export async function dolook(game) {
     const { map, player, display } = game || {};
     if (!display) return { moved: false, tookTime: false };
+    const blind = !!player?.blind;
+    let tookTime = false;
+    let skipTerrainDescription = false;
 
     if (map && player) {
+        const loc = map.at ? map.at(player.x, player.y) : null;
+        if (blind) {
+            const canReach = can_reach_floor(player, map, false);
+            if (!canReach) {
+                await display.putstr_message('You try to feel what is lying beneath you.');
+                await display.putstr_message("But you can't reach it!");
+                return { moved: false, tookTime: false };
+            }
+            await display.putstr_message(
+                loc?.typ === ICE
+                    ? 'You try to feel what is on it.'
+                    : `You try to feel what is lying here on the ${look_surface_name(loc)}.`
+            );
+            tookTime = true;
+            if (loc?.typ === ICE || loc?.typ === DOOR) skipTerrainDescription = true;
+            await more(display, {
+                site: 'pager.dolook.blindLook.morePrompt',
+                forceVisual: true,
+            });
+        }
+
         const ep = engr_at(map, player.x, player.y);
         if (ep && ep.text) {
-            const loc = map.at ? map.at(player.x, player.y) : null;
             const onIce = !!(loc && loc.typ === ICE);
-            const blind = !!(player.blind);
             let sensed = false;
             let typeMsg = '';
 
@@ -400,8 +457,8 @@ export async function dolook(game) {
         }
     }
 
-    await display.putstr_message(String(build_dolook_message({ map, player }) || '').substring(0, 79));
-    return { moved: false, tookTime: false };
+    await display.putstr_message(String(build_dolook_message({ map, player, skipTerrainDescription }) || '').substring(0, 79));
+    return { moved: false, tookTime };
 }
 
 // Number of usable text rows (reserve 1 for status bar at bottom)

@@ -1,0 +1,38 @@
+Coverage diff
+  base: /tmp/tmp.IBetihWJc2
+  head: docs/metrics/session_parity_coverage_latest.json
+  overall lines: 55.60% -> 55.72% (+0.12%)
+  overall branches: 59.44% -> 59.65% (+0.21%)
+  overall functions: 37.93% -> 38.20% (+0.27%)
+  tracked file set: +1 / -1
+
+Most regressed tracked files (top 20)
+File                                   Base     Head    Delta
+-------------------------------------  -------  ------- -------
+js/zap.js                               31.21%   29.27%  -1.94%
+js/invent.js                            44.37%   43.10%  -1.27%
+js/apply.js                             47.01%   46.69%  -0.32%
+js/end.js                               44.72%   44.41%  -0.31%
+js/role.js                              49.24%   49.06%  -0.18%
+js/temp_glyph.js                        51.53%   51.36%  -0.17%
+js/mon.js                               49.72%   49.57%  -0.15%
+js/mcastu.js                            41.55%   41.49%  -0.06%
+js/shk.js                               26.27%   26.24%  -0.03%
+js/trap.js                              32.60%   32.58%  -0.02%
+
+Most improved tracked files (top 20)
+File                                   Base     Head    Delta
+-------------------------------------  -------  ------- -------
+js/fountain.js                          28.78%   37.37%  +8.59%
+js/potion.js                            42.38%   47.24%  +4.86%
+js/mhitu.js                             35.77%   36.12%  +0.35%
+js/sit.js                               31.69%   32.01%  +0.32%
+js/uhitm.js                             46.79%   46.94%  +0.15%
+js/read.js                              23.71%   23.85%  +0.14%
+js/wizard.js                            32.43%   32.57%  +0.14%
+
+Newly tracked files in head (top 20)
+  + js/glyphs.js (51.95%)
+
+Removed tracked files from base (top 20)
+  - js/attrib.js (50.92%)

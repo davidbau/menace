@@ -4,13 +4,13 @@
 
 import { rn2, rnd, d, c_d } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr } from './attrib.js';
+import { acurr, adjalign } from './attrib.js';
 import { corpse_chance, mon_to_stone } from './mon.js';
 import { munstone, munslime } from './muse.js';
-import { grow_up, runtimeApplyNewchamDirect } from './makemon.js';
+import { grow_up, runtimeApplyNewchamDirect, set_malign } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
-    A_STR, A_DEX, A_WIS,
+    A_STR, A_DEX, A_CON, A_WIS,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
@@ -48,7 +48,7 @@ import {
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
 import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
 import { near_capacity, overexertion } from './hack.js';
-import { will_hurtle } from './dothrow.js';
+import { will_hurtle, mhurtle } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
 import { s_suffix } from './hacklib.js';
 import {
@@ -57,7 +57,7 @@ import {
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
     defended,
-    thick_skinned, mon_hates_silver, mon_hates_light,
+    thick_skinned, mon_hates_silver, mon_hates_light, hides_under,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
     is_rider, slimeproof, completelyrusts, completelyrots,
@@ -66,13 +66,14 @@ import {
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead, mondied, monkilled } from './mon.js';
-import { newsym } from './display.js';
+import { mondead, mondied, monkilled, wakeup } from './mon.js';
+import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
 import { possibly_unwield } from './weapon.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac, extract_from_minvent } from './worn.js';
+import { destroy_items_rng_only } from './zap.js';
 import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
@@ -185,6 +186,18 @@ export async function attack_checks(mtmp, wep, opts = {}) {
     if (mtmp.msleeping) {
         mtmp.msleeping = 0;
         mtmp.sleeping = false;
+    }
+
+    // C ref: uhitm.c:229-251 — invisible monster check (before pet/peaceful)
+    const map = opts.map || null;
+    if (!canspotmon(mtmp, player, null, map) && !forcefight) {
+        const mdat = mtmp.data || mtmp.type || null;
+        if (!(!player?.Blind && mtmp.mundetected && mdat && hides_under(mdat))) {
+            await pline("Wait!  There's %s there you can't see!", "something");
+            map_invisible(map, mtmp.mx, mtmp.my, player);
+            wakeup(mtmp, true, map, player);
+            return true;
+        }
     }
 
     // C-style safety gates: don't auto-attack tame/peaceful unless forced.
@@ -902,6 +915,10 @@ export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
     if (mattk.aatyp === AT_KICK && thick_skinned(pd)) {
         mhm.damage = 0;
     }
+    // C ref: uhitm.c:4065 — exercise A_STR when being crushed (AT_HUGS)
+    if (mdef.attributes && mattk.aatyp === AT_HUGS && mhm.damage > 0) {
+        exercise(mdef, A_STR, false);
+    }
 }
 
 // cf. uhitm.c:2499 — fire damage handler
@@ -914,13 +931,9 @@ export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
     if (resists_fire(mdef)) {
         mhm.damage = 0;
     }
-    // C ref: uhitm.c:2571-2576 — destroy_item gate checks for fire
-    // C calls: if (!rn2(3)) destroy_item(mdef, CLASS, AD_FIRE) per class.
-    // destroy_item iterates mdef inventory consuming obj_resists rn2(100)
-    // per matching item. Full implementation deferred; gate RNG consumed.
-    rn2(3); // SCROLL_CLASS gate
-    rn2(3); // SPELLBOOK_CLASS gate
-    rn2(3); // POTION_CLASS gate
+    // C ref: uhitm.c:2598 — mhitm path calls destroy_items unconditionally
+    const orig_dmg = mhm.damage;
+    mhm.damage += destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
 }
 
 // cf. uhitm.c:2604 — cold damage handler
@@ -933,8 +946,9 @@ export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
     if (resists_cold(mdef)) {
         mhm.damage = 0;
     }
-    // C ref: uhitm.c:2652-2653 — destroy_item gate check for cold
-    rn2(3); // POTION_CLASS gate
+    // C ref: uhitm.c:2657 — mhitm path calls destroy_items unconditionally
+    const orig_dmg = mhm.damage;
+    mhm.damage += destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
 }
 
 // cf. uhitm.c:2662 — electric damage handler
@@ -947,9 +961,9 @@ export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
     if (resists_elec(mdef)) {
         mhm.damage = 0;
     }
-    // C ref: uhitm.c:2708-2711 — destroy_item gate checks for electric
-    rn2(3); // WAND_CLASS gate
-    rn2(3); // RING_CLASS gate
+    // C ref: uhitm.c:2715 — mhitm path calls destroy_items unconditionally
+    const orig_dmg = mhm.damage;
+    mhm.damage += destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
 }
 
 // cf. uhitm.c:2720 — acid damage handler
@@ -965,6 +979,10 @@ export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
     // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage — omitted (no armor system)
     rn2(30);
     rn2(6);
+    // C ref: uhitm.c:2757 — exercise A_STR after acid damage (mhitu path)
+    if (mdef.attributes && mhm.damage > 0) {
+        exercise(mdef, A_STR, false);
+    }
 }
 
 // cf. uhitm.c:3082 — apply actual poison effects (m-vs-m)
@@ -1048,6 +1066,10 @@ export function mhitm_ad_plys(magr, mattk, mdef, mhm) {
         const amt = rnd(10);
         mdef.mcanmove = false;
         mdef.mfrozen = Math.min(amt, 127);
+        // C ref: uhitm.c:3454 — exercise A_DEX after paralysis (mhitu path)
+        if (mdef.attributes) {
+            exercise(mdef, A_DEX, false);
+        }
     }
 }
 
@@ -1135,11 +1157,11 @@ export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
 // --- Remaining AD_* handlers: simplified stubs for rare/complex effects ---
 
 // cf. uhitm.c:2259 — rust handler (m-vs-m)
-export function mhitm_ad_rust(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_rust(magr, mattk, mdef, mhm) {
     const pd = mdef?.data || mdef?.type || {};
     if (magr?.mcan) return;
     if (completelyrusts(pd)) {
-        monkilled(mdef, null, AD_RUST);
+        await monkilled(mdef, null, AD_RUST);
         if (!DEADMONSTER(mdef)) {
             mhm.hitflags = M_ATTK_MISS;
             mhm.done = true;
@@ -1163,11 +1185,11 @@ export function mhitm_ad_corr(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:2341 — decay handler (m-vs-m)
-export function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_dcay(magr, mattk, mdef, mhm) {
     const pd = mdef?.data || mdef?.type || {};
     if (magr?.mcan) return;
     if (completelyrots(pd)) {
-        monkilled(mdef, null, AD_DCAY);
+        await monkilled(mdef, null, AD_DCAY);
         if (!DEADMONSTER(mdef)) {
             mhm.hitflags = M_ATTK_MISS;
             mhm.done = true;
@@ -1310,7 +1332,7 @@ export function mhitm_ad_poly(magr, mattk, mdef, mhm) {
 }
 
 // cf. uhitm.c:4181 — stoning
-export function mhitm_ad_ston(magr, mattk, mdef, mhm) {
+export async function mhitm_ad_ston(magr, mattk, mdef, mhm) {
     if (magr?.mcan) return;
     const pd = mdef?.data || mdef?.type || {};
 
@@ -1325,7 +1347,7 @@ export function mhitm_ad_ston(magr, mattk, mdef, mhm) {
     }
 
     if (!resists_ston(mdef)) {
-        monkilled(mdef, null, AD_STON);
+        await monkilled(mdef, null, AD_STON);
         if (!DEADMONSTER(mdef)) {
             mhm.hitflags = M_ATTK_MISS;
             mhm.done = true;
@@ -1343,6 +1365,10 @@ export function mhitm_ad_ston(magr, mattk, mdef, mhm) {
 export function mhitm_ad_were(magr, mattk, mdef, mhm) {
     // C routes m-vs-m AD_WERE through physical damage handling.
     mhitm_ad_phys(magr, mattk, mdef, mhm);
+    // C ref: uhitm.c:4270 — exercise A_CON after lycanthropy infection (mhitu path)
+    if (mdef.attributes && mhm.damage > 0) {
+        exercise(mdef, A_CON, false);
+    }
 }
 
 // cf. uhitm.c:4274 — nurse healing (m-vs-m: heals defender)
@@ -1517,7 +1543,7 @@ export async function do_stone_mon(magr, mattk, mdef, mhm, game) {
 // cf. uhitm.c:4760 — mhitm_adtyping(magr, mattk, mdef, mhm):
 //   Dispatch to specific mhitm_ad_* handler based on attack damage type.
 //   mattk.adtyp is the JS equivalent of mattk->adtyp.
-export function mhitm_adtyping(magr, mattk, mdef, mhm) {
+export async function mhitm_adtyping(magr, mattk, mdef, mhm) {
     switch (mattk.adtyp) {
     case AD_PHYS: mhitm_ad_phys(magr, mattk, mdef, mhm); break;
     case AD_FIRE: mhitm_ad_fire(magr, mattk, mdef, mhm); break;
@@ -1533,9 +1559,9 @@ export function mhitm_adtyping(magr, mattk, mdef, mhm) {
     case AD_BLND: mhitm_ad_blnd(magr, mattk, mdef, mhm); break;
     case AD_CURS: mhitm_ad_curs(magr, mattk, mdef, mhm); break;
     case AD_DRLI: mhitm_ad_drli(magr, mattk, mdef, mhm); break;
-    case AD_RUST: mhitm_ad_rust(magr, mattk, mdef, mhm); break;
+    case AD_RUST: await mhitm_ad_rust(magr, mattk, mdef, mhm); break;
     case AD_CORR: mhitm_ad_corr(magr, mattk, mdef, mhm); break;
-    case AD_DCAY: mhitm_ad_dcay(magr, mattk, mdef, mhm); break;
+    case AD_DCAY: await mhitm_ad_dcay(magr, mattk, mdef, mhm); break;
     case AD_DREN: mhitm_ad_dren(magr, mattk, mdef, mhm); break;
     case AD_DRST:
     case AD_DRDX:
@@ -1576,7 +1602,7 @@ export async function mhitm_adtyping_async(magr, mattk, mdef, mhm, ctx = {}) {
         await mhitm_ad_slim_async(magr, mattk, mdef, mhm, ctx);
         return;
     default:
-        mhitm_adtyping(magr, mattk, mdef, mhm);
+        await mhitm_adtyping(magr, mattk, mdef, mhm);
         return;
     }
 }
@@ -1590,7 +1616,7 @@ export async function mhitm_adtyping_async(magr, mattk, mdef, mhm, ctx = {}) {
 //   Apply hero's attack damage to monster (used by polymorphed hero attacks).
 //   Rolls d(mattk.damn, mattk.damd), dispatches through mhitm_adtyping.
 //   Returns M_ATTK_DEF_DIED if monster dies, M_ATTK_HIT otherwise.
-export function damageum(mdef, mattk, specialdmg) {
+export async function damageum(mdef, mattk, specialdmg) {
     const mhm = {
         damage: c_d(mattk.damn || 0, mattk.damd || 0),
         hitflags: M_ATTK_MISS,
@@ -1602,7 +1628,7 @@ export function damageum(mdef, mattk, specialdmg) {
     // C: demon summoning check (1/13 chance, unarmed, demon form)
     // Not applicable in JS (hero polymorph not tracked)
 
-    mhitm_adtyping({ type: {}, mcan: false }, mattk, mdef, mhm);
+    await mhitm_adtyping({ type: {}, mcan: false }, mattk, mdef, mhm);
 
     if (mhm.done) return mhm.hitflags;
 
@@ -2095,6 +2121,13 @@ async function handleMonsterKilled(player, monster, display, map) {
         }
     }
 
+    // C ref: mon.c:3724 — malign was already adjusted for alignment and randomization
+    // set_malign is normally called in C makemon; compute lazily if not yet set
+    if (monster.malign === undefined && mdat) {
+        set_malign(monster, player);
+    }
+    adjalign(player, monster.malign || 0);
+
     // C ref: mon.c cleanup section — award XP after xkilled drop/corpse logic.
     // Keep legacy player.exp mirrored so status/insight views stay consistent.
     const exp = ((monster.m_lev || 0) + 1) * ((monster.m_lev || 0) + 1);
@@ -2408,26 +2441,27 @@ export async function do_attack_core(player, monster, display, map, game = null)
         if (player.weapon && damage > 1 && !player.twoweap) {
             // cf. uhitm.c:5225 mhitm_knockback — hero attacks monster
             // RNG: rn2(3) always, rn2(6) always, then eligibility + rn2(2)*2 if qualifies
-            const knockdist = rn2(3); // 67% 1-step, 33% 2-step
+            const knockdistance = rn2(3) ? 1 : 2;
             if (!rn2(6)) {
                 // Passed 1/6 chance gate. Check eligibility:
                 // AD_PHYS + AT_WEAP: passes for armed hero (mattk is hero's attack)
                 // Size: hero (MZ_HUMAN) must be > mdef.msize + 1
                 const msize = (monster.data || monster.type)?.msize ?? MZ_HUMAN;
                 if (msize + 1 < MZ_HUMAN) {
-                    // cf. uhitm.c:5334-5352 — knockback message
+                    // cf. uhitm.c:5334-5352 — knockback: mhurtle then message
                     const dx = Math.sign((monster.mx || 0) - (player.x || 0));
                     const dy = Math.sign((monster.my || 0) - (player.y || 0));
                     const knockedhow = will_hurtle(monster, (monster.mx || 0) + dx, (monster.my || 0) + dy, map, player)
                         ? 'backward' : 'back';
+                    // C: mhurtle(mdef, dx, dy, knockdistance) — physically move monster
+                    await mhurtle(monster, dx, dy, knockdistance, map, player);
                     const adj = rn2(2) ? 'forceful' : 'powerful';
                     const noun = rn2(2) ? 'blow' : 'strike';
                     await display.putstr_message(
                         `You knock the ${x_monnam(monster)} ${knockedhow} with a ${adj} ${noun}!`
                     );
                     // cf. uhitm.c:5384 — stun check after knockback
-                    // C: mhurtle(mdef,...) then if (!DEADMONSTER(mdef) && !rn2(4)) mdef->mstun=1
-                    if (!rn2(4)) {
+                    if (monster.mhp > 0 && !rn2(4)) {
                         monster.mstun = 1;
                     }
                 }

@@ -328,17 +328,24 @@ export async function select_menu(win, how, opts = null) {
                 selected.add(item.ch);
             }
         }
+        // C ref: wintty.c — menus are paged. Space advances to next page.
+        // On the last page, space confirms selections (or cancels if none).
+        // C's page_lines is typically LI-4 = 20 lines per page.
+        const PAGE_LINES = 20;
+        const totalLines = buildMenuLines(w, null, how).length;
+        const totalPages = Math.max(1, Math.ceil(totalLines / PAGE_LINES));
+        let currentPage = 0;
         while (true) {
             const ch = await _nhgetch();
             if (ch === 13 || ch === 10) {
-                // Enter — confirm selection
+                // Enter — confirm selection (return [] if nothing selected)
                 const result = [];
                 for (const item of w.mlist) {
                     if (item.ch && selected.has(item.ch)) {
                         result.push({ identifier: item.id, count: -1 });
                     }
                 }
-                return result.length > 0 ? result : null;
+                return result;
             }
             if (ch === 27 || ch === 'q'.charCodeAt(0)) return null;
             if (ch === '.'.charCodeAt(0)) {
@@ -347,14 +354,19 @@ export async function select_menu(win, how, opts = null) {
                 selected.clear();
             } else if (ch === ' '.charCodeAt(0)) {
                 // C ref: wintty.c — space pages forward; on last page, closes menu.
-                // Single-page menus close immediately (equivalent to cancel).
-                const result = [];
-                for (const item of w.mlist) {
-                    if (item.ch && selected.has(item.ch)) {
-                        result.push({ identifier: item.id, count: -1 });
+                if (currentPage < totalPages - 1) {
+                    currentPage++;
+                    // Page forward — consume key without closing
+                } else {
+                    // Last page — confirm selections (return [] if nothing selected)
+                    const result = [];
+                    for (const item of w.mlist) {
+                        if (item.ch && selected.has(item.ch)) {
+                            result.push({ identifier: item.id, count: -1 });
+                        }
                     }
+                    return result;
                 }
-                return result.length > 0 ? result : null;
             } else {
                 const item = w.mlist.find(i => i.ch === ch);
                 if (item && item.ch) {

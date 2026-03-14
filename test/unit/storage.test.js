@@ -1098,11 +1098,18 @@ describe('listSavedData / clearAllData (reset feature)', () => {
         assert.deepEqual(labels, ['Bones file (depth 3)', 'Bones file (depth 7)']);
     });
 
-    it('listSavedData finds options/flags', () => {
+    it('listSavedData finds options/flags (legacy JSON)', () => {
         store.set('menace-options', '{}');
         const items = listSavedData();
         assert.equal(items.length, 1);
-        assert.equal(items[0].label, 'Options/flags');
+        assert.equal(items[0].label, 'Options/flags (legacy)');
+    });
+
+    it('listSavedData finds virtual filesystem', () => {
+        store.set('menace-fs', JSON.stringify({ '.nethackrc': 'OPTIONS=color' }));
+        const items = listSavedData();
+        assert.equal(items.length, 1);
+        assert.ok(items[0].label.startsWith('Virtual filesystem'));
     });
 
     it('listSavedData finds high scores', () => {

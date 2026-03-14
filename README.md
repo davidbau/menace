@@ -11,9 +11,9 @@ of early 2026, the DevTeam still hasn't shipped it. This port puts
 the unreleased version in your browser.
 
 The version of the game you find here is a complete reimplementation
-written entirely by AI coding agents. 195,000+ lines of JavaScript,
-143 modules mirroring the C source structure, bit-identical PRNG,
-257 golden C-comparison test sessions. One month, 3,700+ commits.
+written entirely by AI coding agents. <span data-stat="js_lines_display">197,000+</span> lines of JavaScript,
+<span data-stat="js_modules">145</span> modules mirroring the C source structure, bit-identical PRNG,
+<span data-stat="session_count">296</span> golden C-comparison test sessions. <span data-stat="commit_count">4,800+</span> commits.
 
 Open the page, pick a role, descend.
 
@@ -64,8 +64,8 @@ engineering techniques. This project is a test of that at scale.
 > *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
 > -- Terry Pratchett, quoted in the NetHack 3.6.0 release notes
 
-NetHack is a single-player dungeon exploration game, first released July 28,
-1987. Descend through procedurally generated levels, fight monsters, solve
+NetHack is a single-player dungeon exploration game, first released July 28, 1987.
+Descend through procedurally generated levels, fight monsters, solve
 puzzles, retrieve the Amulet of Yendor from the depths of Gehennom, and
 offer it to your deity to achieve ascension. The hero is an `@` sign. A
 newt is a `:`. A dragon is a `D`. The entire world is rendered in 24 lines
@@ -133,22 +133,40 @@ High scores and tombstone. ISAAC64 PRNG, bit-identical to C NetHack.
 
 ---
 
-## What's Not Yet Implemented
+## Coverage
 
 *A cloud of gas surrounds you! You have a peculiar feeling about your code.*
 
-- **Shops** -- billing and payment are substantially ported; the full shop
-  economy (paying on exit, anger mechanics, guards) is not yet wired
-- **Special level events** -- all 131 levels generate correctly as maps,
-  but their unique triggers and scripted mechanics are mostly missing
-- **Player trap effects** -- monster traps work; the player `dotrap()`
-  path is not yet implemented
-- **Some artifact invocations** -- taming, healing, and energy-boost work;
-  portal creation, demon banishment, and a few others are stubs
+NetHack 3.7 has ~420,000 lines of C across ~8,600 functions.  This port
+tracks every C function in
+**[CODEMATCH.md](docs/CODEMATCH.md)**: of 3,779 gameplay-relevant
+functions, 3,297 are implemented, 129 are partial, 16 are stubs, and
+none are missing.  The remaining 621 unported functions are all in
+system/platform files (memory allocation, file I/O, Lua bindings, etc.)
+that have no JS equivalent by design.
 
-NetHack 3.7 has ~420,000 lines of C across ~8,600 functions. This port
-covers the core engine and most major systems in 195,000+ lines of
-JavaScript. The Hive is aware of this.
+The JS codebase is smaller than the C (~197K vs ~420K lines) because
+~141K lines of headers, multi-platform windowing backends, build
+tooling, and the embedded Lua interpreter have no JS counterpart.
+The ~244K lines of gameplay C + Lua map to ~197K lines of JS (0.81×
+ratio — JS is structurally more compact).  Completing all remaining
+partial implementations would bring the total to roughly 200–205K
+lines.  See **[CODEMATCH.md](docs/CODEMATCH.md)** for the full
+function-level accounting.
+
+**Remaining depth.** The 129 partial implementations are concentrated
+in a few systems where edge-case paths are not yet fully wired:
+
+- **Traps** (26 partial) -- `dotrap()` core works; advanced effects
+  like `launch_obj`, `drown`, `climb_pit`, `lava_damage` are partial
+- **Monster-vs-hero combat** (17 partial) -- main attack pipeline works;
+  `gazemu`, `gulpmu`, `expels`, `doseduce` are partial
+- **Hero-vs-monster combat** (16 partial) -- core melee works; some
+  `mhitm_ad_*` type handlers are partial
+- **Artifact invocations** (17 partial) -- combat effects work;
+  invoke/retouch-intrinsic depth paths are partial
+- **Special level events** -- all 131 levels generate correctly as maps,
+  but their unique triggers and scripted mechanics are mostly unimplemented
 
 ---
 
@@ -238,7 +256,7 @@ compiled C output.
 
 ```
 ├── index.html              Main web entry point
-├── js/                     Game source (143 modules mirroring C structure)
+├── js/                     Game source (145 modules mirroring C structure)
 │   ├── allmain.js          Entry point, game loop (from allmain.c)
 │   ├── dungeon.js          Dungeon generation & management
 │   ├── display.js          Terminal rendering (from win/tty/)
@@ -252,8 +270,8 @@ compiled C output.
 │   ├── levels/             131 special level modules (from dat/*.lua)
 │   └── ...
 ├── test/
-│   ├── unit/               244 unit test files
-│   ├── comparison/         C-vs-JS golden session tests (257 sessions)
+│   ├── unit/               232 unit test files
+│   ├── comparison/         C-vs-JS golden session tests (296 sessions)
 │   └── e2e/                Puppeteer browser tests
 ├── hack/                   1982 Hack browser port
 ├── rogue/                  1980 Rogue browser port

@@ -68,7 +68,7 @@ import { mon_has_amulet, mon_has_special } from './wizard.js';
 import { onscary, healmon, mongone, monkilled, xkilled,
          wakeup, seemimic } from './mon.js';
 import { monflee } from './monmove.js';
-import { makemon, grow_up, rndmonst } from './makemon.js';
+import { makemon, makemon_appear, grow_up, rndmonst } from './makemon.js';
 import { inhishop } from './shk.js';
 import { placeFloorObject } from './invent.js';
 import { linedUpToPlayer, m_throw_timed } from './mthrowu.js';
@@ -396,7 +396,7 @@ export async function mon_consume_unstone(mon, obj, by_you, stoning, map, player
             const name = x_monnam(mon, { article: 'the', capitalize: true });
             await pline_mon(mon, `${name} dies!`);
             if (by_you)
-                xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
+                await xkilled(mon, XKILL_NOMSG | XKILL_NOCONDUCT, map, player);
             else
                 mondead(mon, map, player);
             return;
@@ -485,9 +485,9 @@ async function precheck(mon, obj, map, player) {
         // is available on the object.
         const desc = String(obj.desc || obj.dname || objectData[obj.otyp]?.oc_descr || '').toLowerCase();
         if (desc.includes('milky') && !rn2(POTION_OCCUPANT_CHANCE(4))) {
-            makemon(mons[PM_GHOST], mon.mx, mon.my, 0, 0, map);
+            await makemon_appear(mons[PM_GHOST], mon.mx, mon.my, 0, 0, map);
         } else if (desc.includes('smoky') && !rn2(POTION_OCCUPANT_CHANCE(4))) {
-            const mtmp = makemon(mons[PM_DJINNI], mon.mx, mon.my, 0, 0, map);
+            const mtmp = await makemon_appear(mons[PM_DJINNI], mon.mx, mon.my, 0, 0, map);
             if (mtmp) {
                 // C: rn2(2) decides peaceful ("You freed me!") vs vanish
                 if (rn2(2)) {
@@ -513,7 +513,7 @@ async function precheck(mon, obj, map, player) {
         m_useup(mon, obj);
         mon.mhp -= dam;
         if (DEADMONSTER(mon)) {
-            monkilled(mon, '', 0, map, player);
+            await monkilled(mon, '', 0, map, player);
             return 1;
         }
         m.has_defense = m.has_offense = m.has_misc = 0;
@@ -1093,7 +1093,7 @@ export async function use_defensive(mon, map, player) {
         const cc = {};
         if (!enexto(cc, mon.mx, mon.my, null, map, player)) return 0;
         await mzapwand(mon, otmp, false, map, player);
-        const newmon = makemon(null, cc.x, cc.y, 0, 0, map);
+        const newmon = await makemon_appear(null, cc.x, cc.y, 0, 0, map);
         if (newmon && canspotmon(newmon, player, null, map) && oseen)
             makeknown(WAN_CREATE_MONSTER);
         return 2;
@@ -1111,7 +1111,7 @@ export async function use_defensive(mon, map, player) {
         while (cnt-- > 0) {
             const cc = {};
             if (!enexto(cc, mon.mx, mon.my, pm, map, player)) break;
-            const newmon = makemon(pm, cc.x, cc.y, 0, 0, map);
+            const newmon = await makemon_appear(pm, cc.x, cc.y, 0, 0, map);
             if (newmon && canspotmon(newmon, player, null, map)) known = true;
         }
         if (known) makeknown(SCR_CREATE_MONSTER);
@@ -2205,7 +2205,7 @@ export function rnd_misc_item(mtmp) {
       if (mtmp.isgd) return 0;
     return rn2(6) ? POT_SPEED : WAN_SPEED_MONSTER;
     case 1:
-      if (mtmp.mpeaceful && !See_invisible) return 0;
+      if (mtmp.mpeaceful && !_gstate?.player?.See_invisible) return 0;
     return rn2(6) ? POT_INVISIBILITY : WAN_MAKE_INVISIBLE;
     case 2:
       return POT_GAIN_LEVEL;

@@ -282,7 +282,7 @@ async function do_pit(x, y, tu_pit, map, player, fov) {
                                        false)
                             : mon_nam(mtmp)}!`);
                     }
-                    xkilled(mtmp, XKILL_NOMSG, map, player);
+                    await xkilled(mtmp, XKILL_NOMSG, map, player);
                 }
             }
         }

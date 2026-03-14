@@ -17,20 +17,22 @@
 // pet combat (dogmove.js) and conflict (fightm).
 
 import { rn2, rnd, d, c_d } from './rng.js';
-import { distmin } from './hacklib.js';
+import { distmin, s_suffix } from './hacklib.js';
 import { monnear, mondead, helpless, unstuck } from './mon.js';
+import { grow_up } from './makemon.js';
+import { game as _gstate } from './gstate.js';
 import { map_invisible, newsym, canSpotMonsterForMap } from './display.js';
 import { monAttackName, rndmonnam } from './do_name.js';
 import { cansee } from './vision.js';
 import {
     x_monnam,
     touch_petrifies, unsolid, resists_fire, resists_cold,
-    resists_elec, resists_acid, resists_sleep, resists_ston,
+    resists_elec, resists_acid, resists_sleep, resists_ston, defended,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
     DEADMONSTER,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
-import { AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX } from './monsters.js';
+import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
 import { CORPSE, WEAPON_CLASS, objectData } from './objects.js';
@@ -43,6 +45,7 @@ import { mhurtle, will_hurtle } from './dothrow.js';
 import { find_mac } from './worn.js';
 import { mon_wield_item, possibly_unwield, hitval } from './weapon.js';
 import { spec_dbon } from './artifact.js';
+import { resist } from './zap.js';
 
 // NATTK, STRAT_WAITFORU imported from const.js
 let farNoise = false;
@@ -205,8 +208,11 @@ export function paralyze_monst(mon, amt) {
 
 // cf. mhitm.c:1222 — sleep_monst(mon, amt, how)
 export function sleep_monst(mon, amt, how) {
-    if (resists_sleep(mon)) return 0;
-    if (mon.mcanmove !== false) {
+    if (resists_sleep(mon) || defended(mon, AD_SLEE)
+        || (how >= 0 && resist(mon, how))) {
+        return 0;
+    }
+    if (mon.mcanmove) {
         amt += (mon.mfrozen || 0);
         if (amt > 0) {
             mon.mcanmove = false;
@@ -269,7 +275,7 @@ export function xdrainenergym(mon, vis) {
 // ============================================================================
 
 // cf. mhitm.c:1303 — passivemm(magr, mdef, mhitb, mdead, mwep)
-export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
+export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vis, ctx) {
     const mddat = mdef.data || mdef.type || {};
     const attacks = mddat.attacks || [];
     let mhit = mhitb ? M_ATTK_HIT : M_ATTK_MISS;
@@ -316,6 +322,12 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
         } else {
             tmp = 0;
         }
+        // C ref: mhitm.c passivemm AD_ACID — visibility message
+        if (vis && display && ctx?.agrVisible) {
+            const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+            const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
+            await display.putstr_message(`${agrName} is splashed by ${defName}'s acid!`);
+        }
         rn2(30); // erode_armor chance
         rn2(6);  // acid_damage chance
         // Apply acid damage and return
@@ -339,6 +351,18 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
         switch (adtyp) {
         case AD_PLYS: {
             // Floating eye / gelatinous cube
+            // C ref: mhitm.c passivemm AD_PLYS — "is frozen by" message
+            // Floating eye: "is frozen by {mon}'s gaze!", others: "is frozen by {mon}!"
+            if (vis && display && ctx?.agrVisible) {
+                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+                const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
+                const mdefData = mdef.data || mdef.type || {};
+                if (mdefData === mons[PM_FLOATING_EYE]) {
+                    await display.putstr_message(`${agrName} is frozen by ${s_suffix(defName)} gaze!`);
+                } else {
+                    await display.putstr_message(`${agrName} is frozen by ${defName}!`);
+                }
+            }
             if (tmp > 127) tmp = 127;
             if (!rn2(4)) tmp = 127;
             paralyze_monst(magr, tmp);
@@ -347,6 +371,12 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
         case AD_COLD:
             if (resists_cold(magr)) {
                 tmp = 0;
+            }
+            // C ref: mhitm.c passivemm AD_COLD — "is frozen by" message
+            if (vis && display && ctx?.agrVisible) {
+                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+                const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
+                await display.putstr_message(`${agrName} is frozen by ${defName}!`);
             }
             break;
         case AD_STUN:
@@ -359,10 +389,21 @@ export function passivemm(magr, mdef, mhitb, mdead, mwep, map) {
             if (resists_fire(magr)) {
                 tmp = 0;
             }
+            // C ref: mhitm.c passivemm AD_FIRE — "is burned by" message
+            if (vis && display && ctx?.agrVisible) {
+                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+                const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
+                await display.putstr_message(`${agrName} is burned by ${defName}!`);
+            }
             break;
         case AD_ELEC:
             if (resists_elec(magr)) {
                 tmp = 0;
+            }
+            // C ref: mhitm.c passivemm AD_ELEC — "gets zapped!" message
+            if (vis && display && ctx?.agrVisible) {
+                const agrName = monCombatName(magr, ctx?.agrVisible, { capitalize: true, player: ctx?.player || null });
+                await display.putstr_message(`${agrName} gets zapped!`);
             }
             break;
         default:
@@ -551,6 +592,28 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
         depth: ctx?.depth || 1,
     });
 
+    // C ref: mhitm.c / uhitm.c — m-vs-m elemental damage messages
+    // In C, mhitm_ad_elec/fire/cold print visibility-gated messages for the defender.
+    if (vis && display && ctx?.defVisible) {
+        switch (mattk.adtyp) {
+        case AD_ELEC:
+            await display.putstr_message(
+                `${monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null })} gets zapped!`
+            );
+            break;
+        case AD_FIRE:
+            await display.putstr_message(
+                `${monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null })} is on fire!`
+            );
+            break;
+        case AD_COLD:
+            await display.putstr_message(
+                `${monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null })} is covered in frost!`
+            );
+            break;
+        }
+    }
+
     // cf. mhitm.c — artifact damage bonus for monster-vs-monster
     if (mwep && mwep.oartifact) {
         const [bonus] = spec_dbon(mwep, mdef, mhm.damage);
@@ -596,37 +659,17 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
             const corpse = mkcorpstat(CORPSE, mdef.mndx || 0, true,
                 mdef.mx, mdef.my, map, { zombify: canZombify });
             corpse.age = ctx?.turnCount || 1;
+            if (map) newsym(mdef.mx, mdef.my);
         }
 
         if (mhm.hitflags === M_ATTK_AGR_DIED) {
             return (M_ATTK_DEF_DIED | M_ATTK_AGR_DIED);
         }
 
-        // cf. mhitm.c:1115 — grow_up(magr, mdef)
-        const victimLevel = mdef.m_lev ?? (pd.mlevel || 0);
-        const agrLevel = magr.m_lev ?? ((magr.data || magr.type || {}).mlevel || 0);
-        const hp_threshold = agrLevel > 0 ? agrLevel * 8 : 4;
-        let max_increase = rnd(Math.max(1, victimLevel + 1));
-        if ((magr.mhpmax || 0) + max_increase > hp_threshold + 1) {
-            max_increase = Math.max(0, (hp_threshold + 1) - (magr.mhpmax || 0));
-        }
-        const cur_increase = (max_increase > 1) ? rn2(max_increase) : 0;
-        magr.mhpmax = (magr.mhpmax || 0) + max_increase;
-        magr.mhp = (magr.mhp || 0) + cur_increase;
-        // C ref: makemon.c grow_up() — if hpmax crosses threshold, gain one level.
-        if ((magr.mhpmax || 0) > hp_threshold) {
-            const baseSpeciesLevel = ((magr.data || magr.type || {}).mlevel || 0);
-            let lev_limit = Math.floor((3 * baseSpeciesLevel) / 2);
-            if (lev_limit < 5) lev_limit = 5;
-            else if (lev_limit > 49) lev_limit = (baseSpeciesLevel > 49 ? 50 : 49);
-            const curLevel = magr.m_lev ?? baseSpeciesLevel;
-            if (curLevel < lev_limit) {
-                const nextLevel = curLevel + 1;
-                magr.m_lev = nextLevel;
-            }
-        }
+        // C ref: mhitm.c:1115 — grow_up(magr, mdef)
+        const grewUp = await grow_up(magr, mdef, _gstate);
 
-        return (M_ATTK_DEF_DIED | (DEADMONSTER(magr) ? M_ATTK_AGR_DIED : 0));
+        return (M_ATTK_DEF_DIED | (grewUp ? 0 : M_ATTK_AGR_DIED));
     }
     return (mhm.hitflags === M_ATTK_AGR_DIED) ? M_ATTK_AGR_DIED : M_ATTK_HIT;
 }
@@ -800,8 +843,8 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
         // Passive counterattack
         if (attk && !(res[i] & M_ATTK_AGR_DIED)
             && distmin(magr.mx, magr.my, mdef.mx, mdef.my) <= 1) {
-            res[i] = passivemm(magr, mdef, !!strike,
-                               (res[i] & M_ATTK_DEF_DIED), mwep, map);
+            res[i] = await passivemm(magr, mdef, !!strike,
+                               (res[i] & M_ATTK_DEF_DIED), mwep, map, display, vis, ctx);
         }
 
         if (res[i] & M_ATTK_DEF_DIED) return res[i];

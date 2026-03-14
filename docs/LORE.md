@@ -14,6 +14,42 @@ For the full narratives of how these lessons were discovered, see the
 
 ---
 
+## Comparison-window triage stack
+
+- `scripts/comparison-window.mjs` now supports:
+  - `--view normalized|filtered-raw|raw|all`
+  - `--raw-filter none|gameplay`
+  - `--raw-step`
+- Best practice:
+  - start with normalized first-divergence localization,
+  - then inspect `--channel rng --view filtered-raw --raw-step` for the same
+    step when prompt/input boundaries or monster-turn work distribution look
+    suspicious,
+  - escalate to full raw only after filtered raw.
+- This exposes bugs that normalized output can hide, especially intra-step
+  ordering drift around `--More--`, `yn`, direction prompts, travel, and
+  timed-turn distribution.
+- Current limitation:
+  - raw step drilldown is trustworthy for RNG artifacts,
+  - event artifacts still lack normalized-to-raw step mapping, so the tool now
+    warns and falls back to normalized-only event output instead of presenting
+    misleading pseudo-raw context.
+
+## Prompt-owned commands should share command finalization
+
+- `promptStep()` should not run its own private timed-turn loop.
+- A prompt-owned key may decide the command result, but timed-turn advancement,
+  immobile draining, and occupation draining should go through the same
+  `run_command()` finalization path used by ordinary commands.
+- This cleanup reduced boundary skew in `hi11`:
+  - `hi10` stayed green,
+  - `hi11` first screen divergence moved later from step `379` to step `391`,
+  - the hard RNG frontier did not move, so the deeper blocker remains in the
+    monster attack / movement sequence, not in the prompt-finalization split.
+- Practical rule:
+  - keep prompt ownership for input consumption,
+  - keep post-command world advancement centralized.
+
 ## The Cardinal Rules
 
 ### 1. The RNG is the source of truth
@@ -42,6 +78,56 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 ## Recent Findings (2026-03-10)
 
 ## Recent Findings (2026-03-13)
+
+- C `mhitu.c:mdamageu()` is not equivalent to `hack.c:losehp()`. In
+  particular, `mdamageu()` does not run `maybe_wail()`. For `t11_s744`, routing
+  ordinary monster melee through JS `losehp()` was the reason JS appended
+  `Wizard is about to die.` at step `681` while C did not. Switching the
+  `hitmu` damage application over to a C-shaped `mdamageu()` removed that
+  stray warning and moved the first screen divergence to the next boundary.
+- C `deferred_goto()` level-arrival messaging is sensitive to topline
+  ownership, not just content. A second follow-up `pline("You see here ...")`
+  after `"You materialize on a different level!"` can preserve RNG/event
+  parity while still shifting later screen boundaries. For the single-object
+  arrival case in `t11_s744`, the correct direction was to emit one combined
+  arrival line from `deferred_goto()` instead of creating a second message
+  boundary.
+
+### Headless internal `more()` waits need narrower status refresh than command-boundary `more()`
+
+The broad revert in `1ce3031c` was directionally right for ordinary `--More--`
+boundaries: generic `input.more()` should still refresh the status line so
+sessions like `seed100` do not capture stale HP.
+
+But that same unconditional refresh is too early for one special case:
+headless internal `putstr_message()` waits that happen while
+`activeGame.context.mon_moving` is still true **and** the currently visible top
+line was itself created only after an earlier page break. In `hi11`, that
+overflow-carried `"It hits!"` page should keep the older HP until the later
+wizard death prompt. In `seed331`, the fresh `"The lizard bites!"` page should
+refresh immediately to `HP:0`.
+
+Practical rule:
+1. keep the simple unconditional status refresh in generic `input.more()`,
+2. track whether the visible top line was created after a prior page break
+   (`_topMessageAfterMore`),
+3. in headless internal `putstr_message()` `more()` waits, suppress status
+   refresh only when both are true:
+   - `activeGame?.context?.mon_moving`
+   - `_topMessageAfterMore`
+4. treat this as a narrow replay/display staging rule, not a reason to revive
+   broad `_botlStepIndex` gating in generic `more()`.
+
+Validated effect:
+1. `hi11_seed1100_wiz_zap-deep_gameplay` returns to full green,
+2. `seed331_tourist_wizard_gameplay` returns to full screen/color green,
+3. targeted control `seed323_caveman_wizard_gameplay` stays green,
+4. full PES gameplay suite returns to `216/216` passing.
+
+Failure mode:
+1. gameplay RNG/events can remain fully green,
+2. but the status line flips to `HP:0` one `--More--` too early,
+3. creating a pure screen-only divergence like `hi11` step 407.
 
 ### Display RNG divergence needs caller-tagged diagnostics
 
@@ -9342,3 +9428,2514 @@ Validation:
     - `seed331_tourist_wizard_gameplay` full RNG/event parity.
   - target pending session (`pnd_s1200_w_potprayspell_gp`) still diverges at step 866,
     indicating this slice removes a concrete C gap but the remaining drift is elsewhere.
+
+### 2026-03-13 hallucination redraw + pet display ownership: move redraws to C-faithful `dochug/postmov` boundaries
+
+- Symptom in display-RNG instrumented pending session (`/tmp/pnd_s1200_disp.session.json`):
+  - mismatch around step `756` where C consumed hallucination redraw RNG (`~drn2(383)`)
+    in `dochug` status handling before subsequent pet movement turns.
+- C-faithful fixes:
+  - `js/monmove.js`
+    - add missing hallucination refresh for sleeping monsters that stay asleep
+      (`dochug` sleep early-return path).
+    - add missing hallucination refresh after movement status resolution for
+      `MMOVE_NOMOVES/MMOVE_NOTHING/MMOVE_DONE` (C `dochug` switch behavior).
+  - `js/dogmove.js`
+    - remove direct `newsym(old/new)` redraws from the normal pet movement path.
+    - keep movement state updates in `dog_move`; rely on `postmov`/`dochug`
+      redraw ordering to match C.
+    - retain leashed-reposition destination refresh.
+- Why this matters:
+  - C pet movement display updates are owned by `postmov`; direct redraws inside
+    `dog_move` can double-consume hallucination display RNG and obscure true order.
+- Validation:
+  - display-RNG pending run advanced first RNG divergence from index `2503` to `2523`
+    (step `761`) in `RNG_LOG_DISP=1` mode.
+  - no regression on known-green gameplay parity seeds:
+    - `seed322_barbarian_wizard_gameplay` full RNG/event parity.
+    - `seed331_tourist_wizard_gameplay` still full RNG/event parity (cursor-only
+      terminal-position tail delta unchanged from baseline behavior).
+
+### 2026-03-13 getobj prompt wrapping parity: remove hard truncation, render two-line prompt at `COLNO-1`
+
+- Symptom:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` had full RNG/event parity but one
+    persistent screen mismatch at step `505`: C showed wrapped getobj prompt
+    continuation (`"z or ?*]"`) on row 1 while JS dropped it.
+- Root cause:
+  - `js/potion.js` `buildGetobjPrompt()` truncated prompts to `COLNO-1`,
+    discarding continuation text for long prompts like
+    `"What do you want to dip <object> into? [...]"`.
+- Fix:
+  - keep full getobj prompt text (no truncation).
+  - add explicit getobj prompt renderer for topline in `potion.js` that:
+    - clears rows 0/1,
+    - hard-wraps at `COLNO-1` (C-like prompt flow),
+    - writes row 0 and row 1 directly (without `--More--`),
+    - updates `topMessage/_topMessageRow1` cursor state.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` now fully passes:
+    RNG `2409/2409`, events `98/98`, screens `511/511`.
+  - no regressions on known-green seeds in local check:
+    - `seed322_barbarian_wizard_gameplay` full parity.
+    - `seed331_tourist_wizard_gameplay` full RNG/event parity (cursor-only tail
+      delta unchanged).
+
+### 2026-03-13 zap boundary/wrapper parity: route directional zap through prompt boundary and await `buzz`/`ubuzz`
+
+- Symptom:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` diverged at step `379` with JS entering
+    monster turns before finishing zap beam work (`rn2(5) @ dochug` vs C
+    `rn2(20) @ zap_hit`).
+- Fixes:
+  - `js/zap.js`:
+    - directional zap now uses `game.pendingPrompt` owner semantics for
+      `"In what direction?"` so the next key is consumed by zap prompt boundary.
+    - extracted `executeZapWithDir()` to keep self-zap/weffects + dust handling in one path.
+    - `buzz()` now awaits and forwards `map/player` into `dobuzz(...)`.
+    - `ubuzz()` now async, null-safe, and forwards `map/player` into `dobuzz(...)`.
+  - `js/polyself.js`:
+    - `dobreathe()` now `await`s `ubuzz(...)` (with `map`) for directed breath attacks.
+- Validation:
+  - known-green checks stay green:
+    - `hi10_seed1090_wiz_potion-deep_gameplay` full pass.
+    - `seed322_barbarian_wizard_gameplay` full pass.
+    - `seed331_tourist_wizard_gameplay` still full RNG/event parity (existing cursor-tail delta unchanged).
+- `hi11` improved but not yet resolved:
+  - event match improved (`89 -> 129`) and zap now executes in prompt boundary.
+  - remaining gap is C-vs-JS `dobuzz` hero-hit pause/message semantics (`zhitu`/`--More--`)
+    and bounce path ordering.
+
+### 2026-03-13 `hi11` follow-up: `zhitu` resistance port + `regen_hp` Upolyd branch
+
+- C-faithful updates landed in core JS:
+  - `js/zap.js` `dobuzz()` player-hit path now gates beam damage by player
+    resistances (magic missile antimagic, fire/cold/lightning/acid/poison
+    resistance) and applies `Half_spell_damage` halving for wand/spell zaps.
+  - `js/allmain.js` `regen_hp()` now includes the C `Upolyd` branch (monster-form
+    healing cadence and full-health interrupt behavior), instead of only the
+    human-HP branch.
+- Important negative finding:
+  - Swapping this `dobuzz` player-hit path to `losehp(...)` caused a replay
+    boundary regression in `hi11` (first divergence moved earlier to index 2572).
+  - For now, keep direct HP decrement in this hot path until `losehp` integration
+    can be done without perturbing command/input boundary semantics.
+- Validation snapshot:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` remains at first divergence index 2603
+    (no net regression from baseline frontier).
+  - Guard sessions still pass:
+    - `hi10_seed1090_wiz_potion-deep_gameplay`
+    - `seed322_barbarian_wizard_gameplay`
+    - `seed331_tourist_wizard_gameplay` (existing cursor-tail delta unchanged)
+
+### 2026-03-13 command-boundary `umovement` invariant: restore C input-loop precondition
+
+- Symptom:
+  - pending session `t11_s744_w_covmax2_gp` showed an early turn-order skew
+    near step `569` (`^distfleeck near` mismatch) with JS running monster turns
+    one key earlier than C in the teleport-followup window.
+- Root cause:
+  - JS command boundaries could start with `player.umovement < NORMAL_SPEED`
+    in some async prompt/getlin transitions.
+  - In C, `moveloop()` only returns to input when hero can act (equivalent to
+    `u.umovement >= NORMAL_SPEED`), so command parsing should not begin from a
+    short-movement state.
+- Fix:
+  - `js/allmain.js` (`run_command`): enforce the command-boundary invariant by
+    clamping finite short `umovement` to `NORMAL_SPEED` before processing a new
+    command key.
+  - Keep this in shared `run_command` (not only browser loop) so replay/headless
+    command entrypoints get the same C-style precondition.
+- Validation:
+  - `t11_s744_w_covmax2_gp` improved materially:
+    - RNG matched `6594/11786 -> 7565/12139`
+    - first RNG/event frontier moved `step 569 -> step 645`.
+  - broad parity status stayed strong via `./scripts/run-and-report.sh --failures`:
+    - `189/192` gameplay sessions passing
+    - PRNG/events `192/192` full, remaining failures are screen-only.
+
+### 2026-03-13 `dobuzz` parity tranche for `hi11`: wall-bounce position update + C dice semantics + kill-path handlers
+
+- Scope:
+  - Continued `hi11_seed1100_wiz_zap-deep_gameplay` audit around `zap.c:dobuzz`.
+- C-faithful fixes in `js/zap.js`:
+  - `dobuzz` wall/door bounce now keeps `sx/sy` on the obstacle cell (matching C
+    `make_bounce` flow for this branch) instead of rewinding to `lsx/lsy`.
+  - Added explicit player-beam message emission in the `u_at(sx,sy)` branch:
+    `The <beam> hits you!` / `whizzes by you`, and bounce message emission.
+  - Switched C zap damage dice paths from Lua-style `d()` to C-style `c_d()`
+    in:
+    - `zhitm` damage/sleep rolls,
+    - `dobuzz` hero-hit damage roll.
+  - Aligned kill dispatch in `dobuzz`:
+    - disintegration uses `disintegrate_mon(...)`,
+    - hero kill uses `xkilled(...)`,
+    - monster kill uses `monkilled(...)`.
+- Measured effect on target session:
+  - `hi11` first RNG divergence moved later from index `2534` to `2603`.
+  - Matched RNG calls improved `2537 -> 2619`.
+  - Matched events improved `129 -> 135`.
+  - Remaining mismatch is now later in post-kill turn-tail ordering.
+- Regression checks:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` still full pass.
+  - `seed322_barbarian_wizard_gameplay` still full pass.
+  - `seed331_tourist_wizard_gameplay` still full RNG/event parity (cursor-tail delta unchanged).
+
+### 2026-03-13 pet eat/message boundary stale-cell fix: refresh pet squares before blocking `--More--`
+
+- Symptom:
+  - Three remaining screen-only failures had full RNG/event/mapdump parity but a single stale pet glyph frame:
+    - `seed301_archeologist_selfplay200_gameplay` step `19`
+    - `seed033_manual_direct` step `99`
+    - `theme12_seed939_wiz_explore_gameplay` step `18`
+  - In all three, the failing step included `^dog_move_exit(... do_eat=1)` and a top-line message that could block at `--More--`.
+- Root cause:
+  - In JS `dog_move()`, when `do_eat` path emits `"X eats Y"` message, pet old/new squares were only refreshed later by postmove flow.
+  - During the message boundary frame, display could show one stale-cell placement even though gameplay/event order already matched C.
+- Fix:
+  - `js/dogmove.js` (`dog_move`, `do_eat` message branch):
+    - call `newsym(omx, omy)` and `newsym(mon.mx, mon.my)` immediately before `putstr_message(...)`.
+  - This is a display-order fix only; no RNG/event changes.
+- Validation:
+  - Targeted sessions now pass fully:
+    - `seed301_archeologist_selfplay200_gameplay` `221/221` screens.
+    - `seed033_manual_direct` `1417/1417` screens.
+    - `theme12_seed939_wiz_explore_gameplay` `87/87` screens.
+  - Full failure sweep now green:
+    - `./scripts/run-and-report.sh --failures` -> `192/192` gameplay passing, `0` failures.
+
+### 2026-03-13 Oracle-level `rndmonst_adj` + `dosounds` parity bring-up (`t11_s744`)
+
+- Symptom:
+  - Pending coverage session `t11_s744_w_covmax2_gp` first RNG drift at step `645`:
+    - JS `rn2(3)` in `rndmonnum_adj` vs C `rn2(8)` in `rndmonst_adj`.
+- Root cause #1 (level-alignment context):
+  - JS `align_shift()` was running with `_dungeonAlign=A_NONE` during Oracle special-level generation.
+  - In C, `align_shift()` uses special-level alignment (`Is_special(&u.uz)->flags.align`) when present.
+  - This changed `rndmonst_adj` weights and shifted the entire reservoir-sampling stream.
+- Root cause #2 (Oracle ambient-sound gate):
+  - JS `dosounds()` correctly checks `flags.is_oracle_level && !rn2(400)`, but Oracle maps were not setting `is_oracle_level`.
+  - Missing this gate skipped one `rn2(400)` and caused later turn-tail drift.
+- Fixes:
+  - `js/dungeon.js`:
+    - depth-only align fallback now uses `DUNGEONS_OF_DOOM` when `dnum` is absent.
+    - special-level alignment mapping now includes Oracle (`oracle -> A_NEUTRAL`), alongside existing `medusa` and `tut-*`.
+    - generated special maps now set `flags.is_oracle_level` for Oracle levels.
+  - `js/makemon.js`:
+    - `uncommon()` now honors `game.mvitals[mndx].mvflags & G_GONE` like C.
+    - `mk_gen_ok()` now honors `mvflagsmask` against `game.mvitals[mndx].mvflags`.
+- Validation:
+  - `t11_s744_w_covmax2_gp` improved materially:
+    - matched RNG `7565/12139 -> 9807/11227`
+    - first RNG drift moved `step 645 -> step 667`.
+  - Core parity guard sessions remain green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+
+### 2026-03-13 `hi11` zap-death boundary follow-up: route beam self-hit death through `losehp()` and narrow lifesave stop scope
+
+- Scope:
+  - Continued issue `#361` (`hi11_seed1100_wiz_zap-deep_gameplay`) around
+    rebound-zap death/lifesave sequencing.
+- C-faithful fixes:
+  - `js/zap.js`:
+    - player beam-hit damage in `dobuzz` now calls `losehp(...)` (with
+      `KILLED_BY_AN`) instead of direct `player.uhp -= dam`.
+  - `js/hack.js`:
+    - `losehp()` now sets authoritative `end.js` killer state
+      (`setKillerFormat`, `setKillerName`) before `done(DIED)`.
+  - `js/end.js`:
+    - `savelife()` only sets `_stopMoveloopAfterLifesave` during monster phase
+      (`context.mon_moving`), avoiding over-broad turn truncation after
+      command-phase lifesave.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: PASS (no regression).
+  - `hi11_seed1100_wiz_zap-deep_gameplay`:
+    - first RNG divergence improved `2603 -> 2613`
+    - matched RNG improved `2619 -> 2625`
+    - matched events improved `135 -> 136`.
+- Remaining gap:
+  - Post-lifesave work distribution still drifts in `hi11` around step `388`
+    (`zhitu`-tail timing/order versus next zap cycle).
+
+### 2026-03-13 `hi11` zap tranche: destroy-items RNG flow port (zhitu paths)
+
+- Scope:
+  - Continued issue `#361` on `hi11_seed1100_wiz_zap-deep_gameplay`.
+  - Ported additional `zap.c` `zhitu` item-destruction RNG/dataflow.
+- C-faithful updates in `js/zap.js`:
+  - Added `destroy_items_rng_only(...)` with C-style limit/reservoir RNG shape:
+    - `limit` from `dmg/5` + `rn2(5)` threshold,
+    - `rn2(elig_stacks)` sampling for eligible stacks,
+    - `maybe_destroy_item(...)` per selected stack.
+  - Wired `destroy_items_rng_only(...)` into:
+    - player `ZT_FIRE`, `ZT_COLD`, `ZT_LIGHTNING` hit paths,
+    - monster `ZT_FIRE`, `ZT_COLD` hit paths.
+  - Tightened `destroyable_by()` to C eligibility:
+    - excludes artifacts and single-quantity in-use objects,
+    - fire immunity: `SCR_FIRE`, `SPE_FIREBALL`,
+    - cold excludes `POT_OIL`,
+    - electric excludes `RIN_SHOCK_RESISTANCE`, `WAN_LIGHTNING`.
+  - Added `maybe_destroy_item(...)` pre-rolls aligned to C:
+    - `AD_FIRE` potion `rnd(6)`,
+    - `AD_ELEC` wand `rnd(10)`,
+    - charged ring `rn2(3)` recharge gate.
+  - Added player-side attribute-exercise RNG side effect for damaging item
+    destruction to keep order near C `maybe_destroy_item` closer.
+- Validation:
+  - `hi11`: first RNG divergence advanced `2613 -> 2667`;
+    matched RNG improved to `2670/3469`; matched events improved to `161/609`.
+  - `hi10`: remains full pass.
+- Remaining gap:
+  - first mismatch now appears later at step `401`
+    (`discoverObject(...)` ahead of C monster-turn `exercise(...)` tail), so
+    remaining work is primarily post-zap turn-distribution ordering.
+## 2026-03-13: `weffects()` learnwand gate must be `disclose`-only (no `wasUnknown` shortcut)
+
+- Context: `hi11_seed1100_wiz_zap-deep_gameplay` still diverged in a zap/lifesave region.
+- Finding:
+  - JS `weffects()` had drifted to:
+    - `if (disclose || wasUnknown) learnwand(obj, player);`
+  - C `zap.c weffects()` calls `learnwand(obj)` only when `disclose` is true.
+  - This is a behavior bug independent of whether it immediately improves first-RNG divergence.
+- Fix:
+  - Removed the `wasUnknown` bypass path so JS now mirrors C:
+    - `if (disclose) learnwand(obj, player);`
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains pass.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` still fails at the same first divergence index, but the `weffects` gate is now structurally faithful.
+- Follow-up diagnosis (not yet fixed in this slice):
+  - Around steps 396–401 in `hi11`, command/prompt boundary work distribution is shifted across `--More--` + `Die? [yn]`.
+  - Observed pattern: JS consumes monster-turn RNG two keys earlier than C in that region.
+  - Likely hotspot: blocking prompt paths (`done()` -> `ynFunction`) interacting with replay key delivery cadence.
+
+## 2026-03-13: blind monster visibility and debug mapdump pet state
+
+- Context:
+  - Pending coverage session `pnd_s1200_w_potprayspell_gp` improved after
+    auditing explicit-search behavior while blind and hallucinating.
+  - JS debug mapdumps were also misreporting pet tameness, which made state
+    comparisons around pet AI look worse than the actual gameplay state.
+- Fixes:
+  - `js/display.js`
+    - `canSeeMonsterForMap()` now returns `false` when the hero is blind.
+    - This matches C `_canseemon(mon)` behavior and prevents blind search from
+      incorrectly treating adjacent monsters as already visible.
+  - `js/dungeon.js`
+    - JS compact mapdumps now export monster tameness from `mon.mtame`, not the
+      legacy boolean-ish `mon.tame`.
+    - This is observability-only, but it matters: pet-state diffs in section
+      `N` now reflect the runtime `mtame` value instead of a misleading `0`.
+- Validation:
+  - `pnd_s1200_w_potprayspell_gp` improved earlier in the search tranche:
+    - RNG matched `2770 -> 2775`
+    - events matched `195 -> 226`
+    - first divergence moved `866 -> 868`
+  - Tooling-only `mtame` fix does not change parity metrics for the pending
+    session; it only makes debug mapdump comparisons trustworthy.
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains pass.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` remains at the same late frontier.
+- Important debugging lesson:
+  - For this pending session, the remaining apparent `dosearch0()` mismatch was
+    not caused by JS skipping the blind-search monster path. Temporary tracing
+    showed JS does call `mfind0()` and correctly suppresses repeated discovery
+    on remembered invisible squares.
+  - The comparison artifact’s later drift points deeper into turn-distribution
+    / pet-movement ordering, so do not keep pushing on `dosearch0()` without
+    fresher evidence.
+
+## 2026-03-13: hero fire-hit parity depends on async armor-erosion messaging
+
+- Context: `hi11_seed1100_wiz_zap-deep_gameplay` was diverging at the fire-hit
+  / death boundary: JS showed `HP:0(12)` too early and already had `You die...`
+  in message history while the top line still showed `The bolt of fire hits
+  you!--More--`.
+- C finding:
+  - `zap.c zhitu()` does fire-hit work in this order:
+    1. hit message,
+    2. `burnarmor(&youmonst)`,
+    3. possible item destruction / ignition,
+    4. `losehp(...)`.
+  - `burnarmor()` itself is synchronous in C because `trap.c erode_obj()`
+    immediately emits the player-facing erosion message, such as
+    `Your cloak smoulders!`, and that message can create its own `--More--`
+    boundary before death processing continues.
+- JS bug:
+  - JS split erosion into silent `erode_obj()` plus async `erode_obj_player()`,
+    but hero fire paths were still calling sync `burnarmor(...)`, so the
+    boundary-producing armor message never happened before `losehp()`.
+- Fix:
+  - Added async `burnarmor_player()` in `js/zap.js` and used it for hero fire
+    paths (beam hit, fire trap, zap-self fire).
+  - Added `registerBurnarmorPlayer()` in `js/hack.js` for the fire-trap path.
+  - Tightened `erode_obj_player()` wording to match C burn erosion
+    (`smoulders` rather than `burns`) and to use the real object name when no
+    explicit descriptor is supplied.
+- Validation:
+  - `hi11` first screen divergence advanced from step `387` to `391`.
+  - `seed031_manual_direct.session.json` remained green.
+  - `seed032_manual_direct.session.json` remained green.
+- Remaining `hi11` gap after this fix:
+  - the next mismatch is later and map-state related (`%` stale-cell vs wall),
+    so the fire-hit / death-message ordering bug appears resolved.
+## 2026-03-13: chargen first-menu navigation must support real alternate prompt order
+
+- Context:
+  - New coverage session `t12_s764_chargen_orderloop2` was designed to drive
+    chargen through race-first (`/`), gender-first (`"`), and alignment-first
+    (`[`) menu order, with multiple reject/restart loops.
+  - C replay was fine, but JS initially failed with `Input queue empty` while
+    still inside `showRaceMenu()`.
+- Root cause:
+  - `manualSelection()` in `js/chargen.js` only truly implemented role-first
+    flow.
+  - Pressing `/`, `"`, or `[` from the initial role menu just cleared some local
+    state and looped back through role-first assumptions instead of entering the
+    corresponding alternate prompt order that C uses.
+- Fix:
+  - Reworked chargen menu progression around generic candidate-combination
+    checks:
+    - `validRoleCandidates()`
+    - `validRaceCandidates()`
+    - `validGenderCandidates()`
+    - `validAlignCandidates()`
+    - `isCombinationPossible()`
+  - `manualSelection()` now tracks the current menu explicitly and can move
+    through role/race/gender/alignment in the order chosen by the user, while
+    still honoring filter constraints and rigid role/race/gender restrictions.
+- Validation:
+  - Existing promoted chargen sessions remained green.
+  - Full chargen parity slice: `41/41` passed.
+  - New session `t12_s764_chargen_orderloop2.session.json` is parity-green and
+    materially non-redundant versus the existing chargen coverage sessions.
+- Important lesson:
+  - Chargen coverage should intentionally test menu-order navigation, not just
+    role-first happy paths. Those alternate-order menus are real gameplay logic,
+    not UI sugar.
+
+## 2026-03-13: sink gameplay parity requires C-local quaff branch + `place_object()` ordering
+
+- Context:
+  - New Theme 01 sink coverage session `t01_s940_v_sinkmix2_gp` extended a
+    known-green seed940 exploration route to a reachable sink on `Dlvl:1`.
+  - The session exercises sink terrain look text, sink `#sit`, `drinksink`,
+    and `dipsink`.
+- Findings:
+  - `js/potion.js::handleQuaff()` had the fountain prompt branch from C
+    `dodrink()`, but it was missing the immediately-following sink branch.
+  - Result: on a sink square, JS incorrectly fell through to inventory
+    selection and emitted `You don't have anything to drink.` instead of
+    prompting `Drink from the sink? [yn] (n)`.
+  - `js/fountain.js::drinksink()` and `sink_backs_up()` were creating sink-ring
+    floor objects via `map.addObject(...)` instead of `place_object(...)`.
+  - Result: JS missed the C `^place[...]` event and shifted RNG/event ordering
+    relative to the following `exercise(A_WIS)` call.
+- Fix:
+  - Added the C sink branch to `handleQuaff()`:
+    - gated by `IS_SINK(loc.typ)` and `can_reach_floor(player, map, false)`,
+    - prompt text `Drink from the sink?`,
+    - dispatch to `drinksink(...)`.
+  - Switched sink ring placement to `place_object(...)` so the `^place[...]`
+    event is emitted at the C ordering point.
+  - Tightened `dipsink()` non-potion carried-item messaging to match C-visible
+    output:
+    - `You hold the spear under the tap.`
+    - when erosion happens, also surface `Your spear rusts!`
+- Validation:
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json --parallel=1 --verbose`
+    - full parity green (`rng/events/screens/colors/cursor/mapdump` matched)
+  - Theme-01 marginal contribution:
+    - `+791` lines
+    - `+265` branches
+    - `+36` functions
+
+## 2026-03-13: hi11 death-boundary drift was partly a combat-message fidelity bug, then a lifesave attack-tail bug
+
+- Context:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` had a long-standing late divergence
+    around the sleep-ray / death / lifesave boundary.
+  - The old frontier showed large step-distribution drift across steps
+    `405..408`, with JS still paging through goblin-hit messages after C had
+    already reached `You die...` and the `Die? [yn]` prompt.
+- First root cause:
+  - `js/mhitu.js` was using the lightweight `mondata.x_monnam()` helper in
+    combat hit/miss text. That helper is not visibility-aware, so JS emitted
+    lines like `The goblin hits!` when C correctly used `It hits!`.
+  - JS also emitted `just misses!` whenever `toHit === dieRoll`, but C only
+    says `just misses!` when `flags.verbose` is enabled.
+  - Those longer JS messages created extra `--More--` pages and shifted the
+    whole monster-phase boundary.
+- Fixes:
+  - Changed combat hit/miss/wildmiss messaging in `js/mhitu.js` to use
+    visibility-aware `Monnam()` naming.
+  - Gated `just misses!` on `game.flags.verbose`, matching C `missmu()`.
+- Result:
+  - The large `405..408` drift disappeared. JS and C now match exactly through
+    the death-message pages:
+    - step `408`: `You die...--More--`
+    - step `409`: `Die? [yn] (n)`
+    - step `410`: `OK, so you don't die.  You survived that attempt on your life.`
+- Second root cause exposed after the message fix:
+  - After wizard lifesaving, JS `mattacku()` was breaking on
+    `_stopMoveloopAfterLifesave` before running the successful-attack tail
+    wakecheck (`!rn2(10)`), while C performs that wakecheck before deciding
+    whether to stop further attacks.
+- Fix:
+  - In `js/mhitu.js`, run `postAttackTail(sum[i])` before honoring the
+    lifesave/game-over break.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains green.
+  - `hi11` improved materially:
+    - old first RNG divergence: index `3434`, step `410`
+    - new first RNG divergence: index `3448`, step `410`
+    - old step summary around `405..410`: large cross-step drift
+    - new step summary around `405..409`: exact match
+- Current remaining gap:
+  - `hi11` now matches through the death/lifesave boundary and first wakecheck.
+  - The next mismatch is later in step `410` and appears to be a narrower
+    turn-tail / post-turn sequencing issue rather than another message-boundary
+    problem.
+
+## 2026-03-13: queued canned commands need an explicit command-boundary `more()` when a topline message is live
+
+- Context:
+  - Theme 04 dig/apply sessions `t04_s701_w_digedges_gp` and
+    `t08_s700_w_apply_gp` were failing immediately after `#apply` on a
+    pick-axe that was not already wielded.
+  - C path: `apply.c`/`dig.c` does `wield_tool(obj, "swing")`, then queues
+    `doapply` plus the tool invlet on `CQ_CANNED`, and the dismiss key for the
+    wield message is not a gameplay command.
+- Findings:
+  - JS had accumulated a bespoke `pendingPrompt` state machine in
+    `handleApply()` to emulate this boundary.
+  - The faithful fix was not another prompt owner. The real issue was that the
+    JS command loop did not treat `topMessage + queued CQ_CANNED` as a command
+    boundary requiring `more()`.
+  - Result: the space used to acknowledge `You now wield a pick-axe.` was read
+    as a fresh top-level command, the queued `doapply` stayed stranded, and the
+    following `<` fell through into `handleUpstairs()` (`Escape the dungeon?`)
+    instead of staying inside pick-axe direction handling.
+- Fix:
+  - Removed the bespoke pick-axe `pendingPrompt` owner from `js/apply.js`.
+  - Made `handleApply()` match C by queueing:
+    - `cmdq_add_ec(CQ_CANNED, doapply-wrapper)`
+    - `cmdq_add_key(CQ_CANNED, selected.invlet)`
+  - In `js/input.js`, `nhgetch({ commandBoundary: true })` now treats
+    `display.topMessage && cmdq_peek(CQ_CANNED)` as an explicit command-boundary
+    `more()` case, forcing the visible `--More--` and consuming only the
+    dismiss key before returning `0`.
+  - In `js/allmain.js`, when command-boundary `nhgetch()` returns `0`, the loop
+    now immediately drains queued canned commands via `runOneCommandCycle(0)`
+    instead of waiting for another real gameplay key first.
+- Validation:
+  - `t04_s701_w_digedges_gp.session.json`: full parity green
+  - `t08_s700_w_apply_gp.session.json`: full parity green
+  - `scripts/run-and-report.sh --failures`: `Gameplay: 213/213 passing, 0 failing`
+- Important lesson:
+  - For C-style canned follow-up commands, the boundary belongs in the shared
+    command loop and `more()` handling, not in per-command synthetic prompt
+    owners.
+
+## 2026-03-13 15:08 - hi11 lifesave stop should finish current movemon pass, then stop before next cycle
+
+- Context:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` still had a monster-phase boundary
+    failure after the lifesave prompt work was aligned.
+  - Temporary seer-turn and `movemon()` traces showed JS reached
+    `moveloop_core()` step `410` with `turnCount=42`, `movesForSeer=43`,
+    `seerTurn=44`, while C reached the seer-turn RNG at the same step.
+  - The first attempted fix made JS run `moveloop_turnend()` before stopping,
+    but that exposed a new earlier mismatch: JS jumped straight into
+    `mcalcmove()` and skipped C's final `^movemon_turn[116@31,8]` plus
+    `distfleeck()/m_move()` work.
+- Root cause:
+  - JS was using `_stopMoveloopAfterLifesave` in two places that together were
+    too aggressive:
+    1. `moveloop_core()` treated lifesave like a hard abort and skipped
+       `moveloop_turnend()`.
+    2. `movemon()` itself aborted the rest of the current monster scan as soon
+       as the lifesave flag was seen.
+  - C `savelife()` sets `multi=-1` and `context.move=0`, but it does not abort
+    the current `movemon()` scan. C still finishes the current monster pass,
+    then runs turn-end, then stops before another movement cycle.
+- Fix:
+  - In `js/allmain.js`, split the old `forceStopMoveLoop` behavior into:
+    - `abortMoveLoop`: only for real death / hard abort
+    - `stopAfterTurnend`: lifesave-specific, allowing the current
+      `moveloop_turnend()` to run before stopping the outer loop
+  - In `js/mon.js`, removed the `_stopMoveloopAfterLifesave` checks that were
+    aborting the current `movemon()` scan before later monsters in the same
+    pass could act.
+- Result:
+  - `hi11` now has full RNG parity and full event parity:
+    - `rng=3469/3469`
+    - `events=609/609`
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remains fully green.
+- Remaining gap:
+  - `hi11` is now screen/cursor-only:
+    - first screen divergence: step `391`
+    - first cursor divergence: step `378`
+  - This is no longer a gameplay sequencing issue. The next work should focus
+    on display/cursor rendering around the earlier screen drift, not monster
+    turn logic.
+
+## 2026-03-13: Tame-kill thunder + awaited player item destruction moved hi11 screen drift later
+
+- Context:
+  - After the lifesave/moveloop fix, `hi11_seed1100_wiz_zap-deep_gameplay`
+    still had full RNG/event parity but diverged on screens during the
+    self-zap/lifesave sequence.
+  - The earlier screen drift included missing tame-kill feedback and a JS-only
+    early jump from the lightning hit message straight to `You die...`.
+- Root cause:
+  - JS `xkilled()` was missing the C tame-pet alignment penalty message from
+    `mon.c`: `You_hear("the rumble of distant thunder...")` (or the
+    hallucination variant).
+  - JS `zap.js` only used `destroy_items_rng_only()` for player-carried
+    lightning/fire/cold destruction. That preserved RNG, but it skipped the C
+    player-visible side effects from `maybe_destroy_item()`:
+    - destruction messages
+    - unworn ring handling
+    - immediate exploding-wand `losehp()`
+- Fix:
+  - Made `xkilled()` async and updated live call sites that need the message
+    ordering (`zap.js`, `music.js`, `muse.js`, `mhitu.js` helper path).
+  - Added the missing tame-kill thunder/applause message in `js/mon.js`.
+  - Added an awaited player destruction path in `js/zap.js` which keeps the
+    same reservoir-sampling RNG structure but now also performs the C-visible
+    side effects for destroyed hero-carried items, including:
+    - `turns to dust and vanishes`
+    - `breaks apart and explodes`
+    - exploding-wand `losehp("exploding wand")`
+- Result:
+  - `hi10_seed1090_wiz_potion-deep_gameplay` stayed green.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` remained full RNG/event parity and
+    moved the first screen divergence later:
+    - before this slice: screen `399/439`, cursor `394/399`
+    - after this slice: screen `403/439`, cursor `399/403`
+  - The remaining `hi11` failure is now a later map/cursor display drift
+    around step `401`, not the death-message/item-destruction block.
+
+## 2026-03-13 15:55 - lifesave stop flag must not abort inner mattacku loop
+
+- Context:
+  - On current `main`, pending coverage session
+    `t11_s744_w_covmax2_gp.session.json` first diverged at step `452`.
+  - C step `452` shows:
+    - `OK, so you don't die.  The jackal bites!  The orc hits!--More--`
+  - JS had already restored the hero to positive HP, but then skipped those
+    two adjacent hostile attacks and advanced to later pet/monster work.
+- Evidence:
+  - `MHITU` trace at step `452` showed:
+    - `enter mon=109 mndx=12`
+    - `break stopflag mon=109 i=0`
+    - `enter mon=107 mndx=72`
+    - `break stopflag mon=107 i=0`
+  - Attack eligibility itself was correct:
+    - adjacent monsters had `range2=false`
+    - `foundyou=true`
+    - remembered target square matched hero square
+  - So the miss was not in `distfleeck`, `set_apparxy`, or target acquisition.
+- Root cause:
+  - `js/mhitu.js` treated `game._stopMoveloopAfterLifesave` as an inner
+    `mattacku()` abort condition.
+  - That flag is appropriate for stopping the outer command cycle after the
+    current monster-processing pass, but C does not use it to abort the
+    current monster attack stream.
+  - As a result, after lifesave the current command still iterated monsters,
+    but each adjacent monster immediately broke out before its first attack.
+- Fix:
+  - In `js/mhitu.js`, remove `_stopMoveloopAfterLifesave` from the `mattacku()`
+    loop break gate.
+  - Keep only real abort conditions there:
+    - `game.playerDied`
+    - `game.gameOver`
+- Validation:
+  - `t11_s744_w_covmax2_gp.session.json` improved materially:
+    - RNG matched: `3177/11024 -> 3262/11024`
+    - events matched: `132/1941 -> 168/1782`
+    - screens matched: `532/892 -> 560/892`
+    - first RNG divergence moved: step `452 -> 480`
+  - Regression checks stayed clean:
+    - `seed031_manual_direct.session.json`: pass
+    - `seed032_manual_direct.session.json`: pass
+    - `seed033_manual_direct.session.json`: pass
+    - `scripts/run-and-report.sh --failures`: `Gameplay: 213/213 passing, 0 failing`
+- Practical lesson:
+  - Life-saving stop semantics belong at the outer moveloop/command-cycle
+    boundary, not inside `mattacku()`. Inner attack dispatch should only stop
+    on actual death/game-over, matching C's control flow.
+
+## 2026-03-13: hi11 display drift moved from step 401 to step 407 via blindness + invisible-memory fixes
+
+- Context:
+  - After the earlier self-zap/lifesave fixes, `hi11_seed1100_wiz_zap-deep_gameplay`
+    still had full RNG/event parity but diverged on screens around blindness
+    and unseen-attacker map display.
+  - The first screen drift was a one-frame stale visible monster glyph after
+    `You are blinded by the flash!`, followed by a later corpse-vs-`I`
+    mismatch when an unseen attacker moved onto a corpse square.
+- Root cause:
+  - `flashburn()` in `js/zap.js` was setting `player.blind` directly instead
+    of using the existing `make_blinded()` blindness path, so the immediate
+    vision-toggle redraw did not happen.
+  - `mattacku()` in `js/mhitu.js` was not marking unseen attackers with
+    `map_invisible()` on `hitmu()`/`missmu()` entry, unlike C `mhitu.c`.
+  - `newsym()` in `js/display.js` prioritized remembered objects over
+    `mem_invis` on unseen squares, so even after `map_invisible()` the `%`
+    corpse glyph kept winning over the remembered `I`.
+- Fix:
+  - In `js/zap.js`, route lightning blindness through `make_blinded()`.
+  - In `js/mhitu.js`, call `map_invisible()` for unseen attacker squares on
+    both miss and hit entry.
+  - In `js/display.js`, make unseen-square `mem_invis` take precedence over
+    remembered object/trap glyphs in `newsym()`.
+- Validation:
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: still passes.
+  - `hi11_seed1100_wiz_zap-deep_gameplay` improved substantially:
+    - before this slice: `screens=403/439`, `cursor=399/403`
+    - after this slice: `screens=437/439`, `cursor=429/437`
+    - first screen divergence moved to step `407`
+  - Remaining `hi11` gap after this slice:
+    - full RNG parity: `3469/3469`
+    - full event parity: `609/609`
+    - remaining screen mismatch is a late status-line timing difference during
+      the death/`--More--` sequence (`HP:0` shown one frame earlier in JS)
+    - remaining cursor mismatch still starts at step `378`
+
+## 2026-03-13 16:15 - lifesave stop must not cut off later movemon passes in the same monster phase
+
+- Context:
+  - After fixing the inner `mattacku()` abort, `t11_s744_w_covmax2_gp` moved
+    to a new frontier at step `480`.
+  - C was still processing the kitten's second movement slice in the same
+    monster phase:
+    - `^movemon_turn[32@7,4 mv=12->0]`
+    - `distfleeck`
+    - `dog_invent_decision`
+    - `dog_goal_*`
+  - JS instead jumped straight into turn-end movement allocation:
+    - `rn2(12)=... @ allocateMonsterMovement(mon.js:145)`
+    - `^mcalcmove[...]`
+- Evidence:
+  - After the first kitten/newt exchange, JS runtime state still had:
+    - kitten `movement=12`
+    - `multi=-1`
+    - `nomovemsg="You survived that attempt on your life."`
+  - So the remaining kitten turn was genuinely pending, not missing from state.
+  - The early jump came from `moveloop_core()`, not `dog_move()`:
+    - JS honored `_stopMoveloopAfterLifesave` immediately after one `movemon()`
+      pass, even when `movemon()` returned `monscanmove=true`.
+- Root cause:
+  - The lifesave stop flag was still being applied too early between `movemon()`
+    passes inside the same "hero can't move this turn" monster loop.
+  - C `savelife()` sets `context.move=0`, but the current monster loop still
+    drains already-allocated monster movement before turn-end.
+- Fix:
+  - In `js/allmain.js`, only honor `_stopMoveloopAfterLifesave` after
+    `movemon()` when `monscanmove` is false.
+  - If monsters still have movement left, keep draining the current monster
+    phase first; stop only before the next command cycle.
+- Validation:
+  - `t11_s744_w_covmax2_gp.session.json` improved again:
+    - RNG matched: `3262/11024 -> 9807/11227`
+    - events matched: `168/1782 -> 949/1761`
+    - screens matched: `560/892 -> 691/892`
+    - first RNG divergence moved: step `480 -> 667`
+  - Guardrail sessions stayed green:
+    - `seed031_manual_direct`: pass
+    - `seed032_manual_direct`: pass
+    - `seed033_manual_direct`: pass
+    - `scripts/run-and-report.sh --failures`: `Gameplay: 213/213 passing, 0 failing`
+- Practical lesson:
+  - There are two distinct lifesave stop hazards:
+    1. aborting the current monster's inner `mattacku()` loop,
+    2. aborting later `movemon()` passes in the same monster phase.
+  - C does neither. Life-saving only suppresses the next command-cycle start
+    after the current monster phase and turn-end work have drained.
+
+## 2026-03-13 - `dochug()` `MMOVE_MOVED` must not fall through to generic Phase 4
+
+- Context:
+  - Pending coverage session `t11_s744_w_covmax2_gp` still had first RNG drift
+    at step `667` after the lifesave fixes.
+  - Raw comparison showed two JS-only `rn2(5)` rolls after the imp finished
+    moving and before the next monster turn banner.
+- C behavior:
+  - In `monmove.c dochug()`, the `switch (status)` handles `MMOVE_MOVED`
+    specially.
+  - A moved monster normally returns immediately.
+  - It only falls through to Phase 4 if:
+    - it is not nearby, and
+    - it still has a ranged/offensive follow-up.
+  - Nearby moved monsters therefore do not continue into the generic Phase 4
+    melee/cuss tail.
+- JS bug:
+  - JS was setting `phase4Allowed = moveStatus !== MMOVE_DONE`, which let
+    `MMOVE_MOVED` monsters keep flowing into the shared Phase 4 logic and the
+    later vile-monster `!rn2(5)` cuss gate.
+  - For the imp at step `667`, this produced stray post-move RNG and shifted
+    the next iguana's track-roll sequence.
+- Fix:
+  - Port the C `switch (status)` structure more faithfully in `js/monmove.js`.
+  - For `MMOVE_MOVED`:
+    - return immediately for ordinary moved monsters,
+    - only allow Phase 4 when the C ranged/offensive follow-up condition holds,
+    - keep the engulfing special case inline with the C branch.
+- Validation:
+  - `t11_s744_w_covmax2_gp.session.json` improved:
+    - first RNG divergence moved `667 -> 722`
+    - matched RNG `9807/11227 -> 9969/11024`
+    - matched events `949/1761 -> 1044/1715`
+    - matched screens `691/892 -> 693/892`
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+
+## 2026-03-13 - `dochug()` still blocks `MMOVE_DONE` from the generic attack block
+
+- Context:
+  - After the `MMOVE_MOVED` switch cleanup, `hi11_seed1100_wiz_zap-deep_gameplay`
+    reopened at step `405` with JS throwing immediately after goblin pickup while
+    C advanced to the next monster turn first.
+- C behavior:
+  - `monmove.c` lets `MMOVE_DONE` pass through the switch for redraw/side-effect
+    handling, but the later attack block is gated by `if (status != MMOVE_DONE && ...)`.
+  - A monster that moved and then converted its turn to `MMOVE_DONE` in `postmov()`
+    (for example after `mpickstuff()`) does not get the generic `mattacku()` pass.
+- JS bug:
+  - The earlier `MMOVE_MOVED` rewrite treated `MMOVE_DONE` like the other
+    non-move statuses and left `phase4Allowed = true`.
+  - That let a goblin attack immediately after `^pickup[...]`, consuming the
+    dart-throw RNG that C does not spend until later.
+- Fix:
+  - Keep the stricter `MMOVE_MOVED` handling, but restore the separate C gate:
+    `MMOVE_DONE` suppresses the later generic attack block.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` returned to full gameplay parity:
+    - RNG `3469/3469`
+    - events `609/609`
+    - screens/colors `439/439`, `10536/10536`
+    - remaining gap is cursor-only at step `378`
+  - `hi10_seed1090_wiz_potion-deep_gameplay` stayed fully green.
+  - `t11_s744_w_covmax2_gp` was unchanged versus clean `5382cfce` baseline.
+
+## 2026-03-13 - `getdir()` prompt cursor sits one column past the visible prompt text
+
+- Context:
+  - After restoring `hi11` gameplay parity, the remaining mismatch on that seed
+    was cursor-only at step `378`:
+    - C cursor `[19,0,1]`
+    - JS cursor `[18,0,1]`
+    - topline text in both cases: `In what direction?`
+- C behavior:
+  - `getdir()` delegates to `yn_function(...)`.
+  - TTY prompt handling leaves the cursor one column past the visible prompt,
+    even when the saved topline text does not include a trailing space.
+- JS bug:
+  - the direct `getdir()` prompt owners in `js/hack.js` and `js/zap.js` were
+    setting the cursor at `dirPrompt.length`, one column too early.
+- Fix:
+  - set the direction-prompt cursor at `dirPrompt.length + 1` in those two
+    explicit prompt-owner paths.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` improved cursor parity from `431/439`
+    to `435/439`; first cursor divergence moved from step `378` to step `412`.
+  - `hi10_seed1090_wiz_potion-deep_gameplay` remained fully green.
+
+## 2026-03-13 - `wizard.c:cuss()` uses `com_pager("demon_cuss")`, not a fixed fallback line
+
+- Session: `t11_s744_w_covmax2_gp`
+- Symptom: after fixing the earlier `MMOVE_MOVED` fallthrough, the new first RNG
+  divergence at step 722 looked like missing quest-style pager RNG:
+  `rn2(3), rn2(2), rn2(27)`.
+- Root cause: this was not quest-portal logic. The session screen at the next
+  step showed a quoted taunt:
+  `"Thou hadst best fight better than thou canst dress!"`
+  That comes from `wizard.c:cuss()` -> `com_pager("demon_cuss")`.
+- C behavior:
+  - non-wizard demons/minions sometimes call `com_pager("demon_cuss")`
+  - `com_pager_core()` loads `quest.lua` through the Lua pager path
+  - that path pays the usual `nhlib.lua` startup RNG toll `rn2(3), rn2(2)`
+    before selecting an entry from the `demon_cuss` array with `rn2(27)`
+- JS bug:
+  - `js/wizard.js` still collapsed both `angel_cuss` and `demon_cuss` into the
+    placeholder line `casts aspersions on your ancestry.`
+  - so JS consumed the branch-gating RNG but skipped the real common-pager RNG
+    and text selection
+- Fix:
+  - wire `wizard.cuss()` to `questpgr.com_pager(...)`
+  - give `js/questpgr.js` a real common-section pager path for
+    `angel_cuss`/`demon_cuss`
+  - preserve the C pager RNG shape by consuming `rn2(3), rn2(2)` before the
+    array-selection `rn2(n)`
+- Result:
+  - `t11_s744_w_covmax2_gp` improved from RNG `9969/11024` to `9978/11024`
+  - screen parity improved from `693/892` to `711/892`
+  - cursor parity improved from `682/692` to `698/710`
+  - the first RNG divergence moved later, from step `722` to step `734`
+
+## 2026-03-13 16:51 - hi11 death-status boundary fixed by restoring deferred botl semantics
+
+- Context:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` already had full RNG/event parity,
+    but the remaining screen drift was in late death/lifesave frames.
+  - The concrete failures split into two opposite cases:
+    - self-zap death staging wanted `HP:0` on the pending hit-message frame,
+    - monster-phase death staging wanted to keep the old `HP:3` through the
+      stale `It hits!--More--` / `You die...--More--` frames, then switch to
+      `HP:0` at the `Die? [yn]` prompt.
+- Root cause:
+  - JS `losehp()` and `savelife()` were not marking the status line dirty the
+    way C `disp.botl = TRUE` does.
+  - `more()` was compensating by redrawing status unconditionally, which hid
+    the missing dirty-bit propagation but produced the wrong timing at tricky
+    death boundaries.
+  - The late monster-phase death case is special because `You die...` arrives
+    while `context.mon_moving` is still true and the pending topline belongs
+    to an earlier monster hit, so the forced death-staging `more()` must not
+    consume the pending HP update yet.
+  - `ynFunction()` also lacked any status flush before drawing `Die? [yn]`,
+    so once the monster-phase suppression was added there was nowhere that the
+    deferred `HP:0` update would be consumed.
+- Fix:
+  - In `js/hack.js`, make `losehp()` mark deferred status updates via
+    `player._botl = true` and record the replay step index for diagnostics.
+  - In `js/end.js`, make `savelife()` do the same when it restores HP.
+  - In `js/headless.js` and `js/display.js`, tag each topline with the HP and
+    replay-step snapshot under which it was rendered.
+  - In `js/input.js` `more()`, stop doing unconditional status redraws; only
+    consume a pending status update when the current topline still belongs to
+    the same replay-step update context.
+  - In `js/headless.js`, for the three death-staging `more()` calls used while
+    printing `You die...`, suppress status refresh only when
+    `activeGame.context.mon_moving` is true. That keeps self-zap/player-command
+    deaths on the normal path while preserving the C monster-phase staging.
+  - In `js/input.js` `ynFunction()`, flush any pending status update before
+    drawing the prompt line, so `Die? [yn]` consumes the deferred `HP:0`.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay` now has full gameplay parity:
+    - RNG: `3469/3469`
+    - events: `609/609`
+    - screens/colors/mapdump: full match
+    - remaining non-green channel is cursor only (`431/439`)
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: still passes.
+  - `scripts/run-and-report.sh --failures` after the slice:
+    - `Gameplay: 202/213 passing, 11 failing`
+    - no PRNG/event regressions introduced; failures remain screen-only.
+- Practical lesson:
+  - If `more()` seems to need unconditional status redraws, that is usually a
+    sign that the real `disp.botl`/deferred-status source is missing.
+  - Death staging is not one generic case: player-command deaths and
+    monster-phase deaths can require opposite behavior at the same `You die...`
+    boundary, so the discriminator has to come from real runtime context
+    (`context.mon_moving` here), not broad `playerDied` guards.
+
+## 2026-03-13 17:36 - hi11 zap invalid-inventory boundary fixed by prompt-owned visual --More--
+
+- Context:
+  - After the earlier `getdir()` cursor fix, `hi11_seed1100_wiz_zap-deep_gameplay`
+    was down to one cursor-only/display-only gap around the invalid wand-letter
+    path inside `dozap()`.
+  - C sequence there is:
+    - `z` shows `What do you want to zap?...`
+    - invalid inventory letter shows `You don't have that object.--More--`
+    - one key dismisses that boundary while leaving the frame visible
+    - the following key re-shows the zap prompt
+- Root cause:
+  - JS still handled wand selection inside a private `while (await nhgetch())`
+    loop in `js/zap.js`, while `getdir()` had already been moved onto the
+    shared `pendingPrompt` owner contract.
+  - An initial refactor moved zap inventory selection onto `pendingPrompt`, but
+    it incorrectly set `display.messageNeedsMore = true` for the invalid-letter
+    error frame.
+  - That let `nhgetch({ commandBoundary: true })` steal the dismiss key through
+    the generic boundary path before `zap.select` saw it, producing blank
+    frames and a late re-prompt.
+- Fix:
+  - Move zap inventory selection itself onto a `pendingPrompt` owner
+    (`source: 'zap.select'`) so wand choice, invalid-letter handling, and
+    re-prompting stay in the normal command/prompt boundary machinery instead
+    of a hidden nested input loop.
+  - Keep the invalid-letter boundary fully owned by `zap.select`:
+    render a visible `--More--` marker and cursor position directly on the
+    topline, but do not set `messageNeedsMore` or `moreMarkerActive`.
+  - Reuse the same prompt-owner handoff into `zap.getdir`, so both stages of
+    `dozap()` now follow one explicit owner model.
+- Validation:
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: fully green
+    - RNG `3469/3469`
+    - events `609/609`
+    - screens/colors/cursor `439/439`
+  - `hi10_seed1090_wiz_potion-deep_gameplay`: still fully green
+  - `scripts/run-and-report.sh --failures` on the slice:
+    - `Gameplay: 202/214 passing, 12 failing`
+    - PRNG `213/214`, events `214/214`, screen `203/214`
+  - `hi11_seed1100_wiz_zap-deep_gameplay` was promoted from `sessions/pending`
+    to `sessions/coverage/spells-reads-zaps/`
+- Practical lesson:
+  - A prompt-owned `--More--` frame is not the same thing as a global topline
+    `messageNeedsMore` boundary. If the prompt owner is supposed to consume the
+    next key, rendering the marker must stay visual-only; otherwise
+    `nhgetch(commandBoundary)` will steal the key and create blank or delayed
+    prompt frames.
+- 2026-03-13: `seed323_caveman_wizard_gameplay` was blocked by a single late
+  `peace_minded()` RNG mismatch after a stair transition, but the true root
+  cause was not stairs. JS still treated `ALIGNLIM` as a fixed `14`, while C
+  defines it dynamically as `10 + floor(svm.moves / 200)`. During the run,
+  hero-killing a `manes` incorrectly raised `alignmentRecord` from `10 -> 14`
+  in JS; in C the live cap was still `10`, so the same kill stayed clamped and
+  later `peace_minded()` rolled `rn2(26)` rather than `rn2(30)`. Fixing JS to
+  use a live alignment cap in `adjalign()` and the `ALIGNLIM`-derived quest/
+  priest bonuses restored parity. A fresh rerecord of `seed323` with the
+  current harness also removed a stale stair-boundary cursor artifact from the
+  old fixture.
+
+- read.c parity: after scroll effects, JS must follow C `learnscroll()` vs `trycall()` branching; always prompting `docall()` is too aggressive and can pull later gameplay/input earlier.
+- Armor scroll effects mutate worn-armor enchantment and removal state; because JS caches `player.ac`, read-side armor mutations must call `find_ac(player)` immediately or the next status line can lag C by one prompt boundary.
+- read.c parity: `seffect_light()` must set the same effect-known flag as C (`gk.known`) when the hero visibly reads scroll of light or when `lightdamage()` reveals the effect; otherwise JS falls into a bogus post-read `trycall()`/naming prompt and drags subsequent gameplay earlier.
+
+## 2026-03-13 22:10 - pnd_s1200 prayer/search pending-session frontier moved from step 868 to 904
+
+- Context:
+  - `pnd_s1200_w_potprayspell_gp.session.json` was the next pending coverage session after the promoted gameplay PES suite went all-green.
+  - The initial blocker was at step `868`:
+    - RNG mismatch: JS entered `dochug()` while C first did `exercise(attrib.c:506)`.
+    - Event mismatch: downstream pet `distfleeck` state drifted (`brave=1` vs `0`).
+- Root cause 1:
+  - JS `detect.js:mfind0()` suppressed blind repeated monster finds based on sticky `loc.mem_invis`.
+  - C only suppresses that path when the *live glyph* on the square is `glyph_is_invisible(levl[x][y].glyph)`.
+  - In this session, the blind hero repeatedly re-finds the adjacent kitten as it wanders away and back. JS incorrectly skipped the second find at step `868`, so it missed `exercise(A_WIS, TRUE)` and the whole monster phase shifted.
+- Fix 1:
+  - Change `mfind0()` to check `glyph_is_invisible(loc.glyph)` instead of `loc.mem_invis` before returning `-1`.
+- Result 1:
+  - `pnd_s1200_w_potprayspell_gp` moved from step `868` to step `894`.
+  - RNG improved from `2775/3125` to `3063/3125`.
+  - Events improved from `226/450` to `394/417`.
+
+- Root cause 2:
+  - The new frontier at step `894` was inside `prayer_done() -> gods_upset() -> angrygods()`.
+  - C rolled `attrcurse()` case `4`, fell through to intrinsic `SEE_INVIS`, removed it, and skipped `rndcurse()`.
+  - JS `sit.js:attrcurse()` was still checking placeholder booleans like `telepathy_intrinsic` and `see_invisible_intrinsic` rather than the real `player.uprops[prop].intrinsic & INTRINSIC` state, so it removed nothing and incorrectly called `rndcurse()`.
+- Fix 2:
+  - Rewrite `attrcurse()` to use actual `uprops` intrinsic bits with C-style fallthrough semantics.
+  - Preserve the C side effects for `TELEPAT` and `SEE_INVIS`:
+    - `see_monsters()` on lost blind telepathy
+    - `set_mimic_blocking(); see_monsters(); newsym(player.x, player.y)` when losing intrinsic see invisible and no other source remains
+- Result 2:
+  - `pnd_s1200_w_potprayspell_gp` moved again, from step `894` to step `904`.
+  - RNG improved further to `3066/3125`.
+  - The `angrygods()`/prayer branch is no longer the blocker.
+
+- Validation:
+  - `scripts/run-and-report.sh --failures` after both fixes stayed fully green:
+    - `Gameplay: 219/219 passing`
+    - PRNG `219/219`, Events `219/219`, Screen `219/219`
+  - `hi11_seed1100_wiz_zap-deep_gameplay` still passes fully.
+  - `pnd_s1200_w_potprayspell_gp` now fails later, at step `904`.
+
+- Practical lesson:
+  - `mem_invis` is remembered state, not a substitute for C's live glyph tests. Using it in parity-critical control flow can suppress legitimate repeated finds.
+  - Intrinsic-removal code must read and clear `player.uprops[prop].intrinsic` directly. Ad hoc `*_intrinsic` booleans are not trustworthy in this codebase and will silently mis-port C fallthrough logic.
+
+2026-03-13: blind `:` look_here path consumes time and pages before object text
+
+- Context:
+  - After the `mfind0()` and `attrcurse()` fixes, `pnd_s1200_w_potprayspell_gp.session.json` reached a later gameplay frontier at step `904`.
+  - The session sequence around steps `903-904` is blind `:` on a doorway:
+    - step `903`: `You try to feel what is lying here on the doorway.--More--`
+    - step `904`: dismiss `--More--`, then the monster turn runs, then `You feel no objects here.`
+  - JS `pager.js:dolook()` was still a simplified one-message helper that always returned `{ tookTime: false }`.
+
+- Root cause:
+  - C `invent.c:dolook()` delegates to `look_here()`, and in the blind path `look_here()`:
+    - emits a first "try to feel ..." page,
+    - waits at `--More--`,
+    - then emits the actual terrain/object result text,
+    - and returns `ECMD_TIME` unless the hero cannot reach the floor.
+  - JS skipped that blind control flow entirely, so `:` did not consume time and the whole post-command monster tail at step `904` was missing.
+
+- Fix:
+  - Port the blind `:` control flow in [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js):
+    - add a blind surface-name helper for doorway/ice/etc.,
+    - emit the blind intro page and wait with explicit `more(...)`,
+    - return `tookTime: true` for the blind path,
+    - use blind wording in the follow-up object text (`You feel ...`, `You feel no objects here.`),
+    - suppress duplicate terrain text when the blind intro already identified the doorway/ice.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` reached full gameplay parity:
+    - RNG `3125/3125`
+    - events `417/417`
+  - Remaining gaps are now display-only:
+    - first screen/color divergence at step `756`
+    - first cursor divergence at step `827`
+
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json`
+    - RNG full
+    - events full
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` still passes fully.
+
+- Practical lesson:
+  - Blind look-here is not a cosmetic one-liner. In C it is a paged, time-consuming command with its own message boundary.
+  - When a pending session shows a whole post-command monster tail missing after a non-movement command, first check whether the command should have returned `ECMD_TIME` in C.
+
+2026-03-13: `do_break_wand()` must confirm before consuming time or RNG
+
+- Context:
+  - `t11_s744_w_covmax2_gp.session.json` was still failing late with:
+    - first screen divergence at step `516`
+    - first event divergence at step `723`
+    - first RNG divergence at step `734`
+  - The step window around the RNG break was:
+    - `719..723`: `#sit<enter>` with two `--More--` dismissals
+    - `726..729`: `a n <space> <space>`
+  - The C session screens show that `a n` is a canceled break-wand prompt:
+    - step `726`: `What do you want to use or apply? [ck-uE or ?*]`
+    - step `727`: `Are you really sure you want to break your tin wand? [yn] (n)`
+    - step `728`: space accepts default `n`
+    - step `729`: `Unknown command ' '.`
+
+- Root cause:
+  - [`js/apply.js`](/share/u/davidbau/git/mazesofmenace/game/js/apply.js) still had a stubbed `do_break_wand()` which:
+    - skipped the C `paranoid_query(...)` confirmation,
+    - immediately emitted the break message,
+    - immediately called `break_wand(...)`,
+    - always consumed time.
+  - That meant JS started wand-break RNG as soon as the wand invlet was selected, while C was still sitting at the `yn` prompt and then canceling on the default `n`.
+
+- Fix:
+  - Port the C-shaped `do_break_wand()` gate:
+    - reject if the hero has no hands,
+    - reject if the hero has no free hand,
+    - reject if strength is below the `glass/balsa` or normal threshold,
+    - ask `Are you really sure you want to break ${yname(obj)}? [yn] (n)`,
+    - return `false` / no time on non-`y`,
+    - only emit the break message and call `break_wand(...)` on `y`.
+  - Thread the returned `tookTime` flag back through `handleApply()` instead of always forcing `tookTime: true`.
+
+- Result:
+  - `t11_s744_w_covmax2_gp` became fully green on gameplay parity:
+    - RNG `11024/11024`
+    - events `1715/1715`
+  - Remaining mismatches are display-only:
+    - first screen/color divergence at step `516`
+    - first mapdump divergence at `d0l3_002`
+    - first cursor divergence at step `589`
+
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json`
+    - RNG full
+    - events full
+  - Guardrails:
+    - `seed031_manual_direct.session.json`: pass
+    - `seed032_manual_direct.session.json`: pass
+    - `seed033_manual_direct.session.json`: pass
+    - `t08_s700_w_apply_gp.session.json`: pass
+
+- Practical lesson:
+  - When a late RNG fork appears to start in an action helper, inspect the session key window first. Here the keys showed a `yn` default-cancel flow, which made the missing confirmation gate obvious.
+  - `#apply` helpers must return a real `tookTime` result. For confirmation-gated actions, assuming unconditional time consumption will shift later monster-turn work even if the visible prompts appear to line up.
+
+## 2026-03-14: Per-step map-cell caching removes masked hallucination repaint drift
+
+- Context:
+  - After the blind `:` fix, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) was gameplay-green but still had an earlier display-only failure:
+    - first screen divergence at step `756`
+    - first cursor divergence at step `827`
+  - The bad frame appeared during hallucination-heavy redraws, where the same square was rendered multiple times within one replay step.
+
+- Root cause:
+  - C reuses the already-chosen glyph for the current cell within a step.
+  - JS was re-running `monsterMapGlyph(mon, hallu)` on every redraw path (`newsym()`, `show_glyph()`, full-map repaint), so a hallucinating monster square could change glyph mid-step even when gameplay state had not changed.
+  - That earlier repaint instability masked a later, real wrapped-`getlin()` prompt bug in the potion naming flow.
+
+- Fix:
+  - Add per-step cached display cells on `loc` in [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - `cacheMapCell(loc, map, ch, color, attr)`
+    - `getCachedMapCell(loc, map)`
+  - Use the cached cell during full map repaints in both:
+    - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+  - Keep hero rendering uncached so the player glyph still wins at the live hero square.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` first screen divergence moved from step `756` to step `853`.
+  - RNG/events stayed exact:
+    - RNG `3125/3125`
+    - events `417/417`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` remained fully green.
+  - The promoted gameplay suite stayed stable: `scripts/run-and-report.sh --failures` still reports the same 11 known screen-only failures and no new regressions.
+
+- Practical lesson:
+  - When a display-only failure involves hallucination, check whether JS is re-sampling randomized glyph choice during repeated redraws inside the same replay step.
+  - Fixing an earlier masked repaint bug is still worth landing even if it only exposes the next prompt/display bug underneath.
+
+## 2026-03-14: `tty_getlin()` accepts at most `COLNO - 1` characters
+
+- Context:
+  - After the per-step hallucination cache fix, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) moved to a later wrapped naming prompt drift:
+    - first screen divergence at step `853`
+    - JS echoed extra spaces and `#p` on the wrapped second prompt row
+    - C kept the prompt frozen after step `849`
+  - Gameplay was already exact:
+    - RNG `3125/3125`
+    - events `400/400`
+
+- Root cause:
+  - C `win/tty/getline.c:169` only appends printable input while
+    `bufp - obufp < COLNO`.
+  - In practice tty `getlin()` accepts at most `COLNO - 1` characters of
+    typed input, independent of prompt length.
+  - JS `getlin()` had no equivalent clamp, so once the typed name reached the
+    tty limit it kept appending more spaces and later `#p`, creating a fake
+    wrapped-prompt divergence.
+
+- Fix:
+  - In [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js),
+    clamp live `getlin()` input to `(disp.cols || 80) - 1` characters before
+    appending printable keys.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` first screen divergence moved later again:
+    - from step `853`
+    - to step `867`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` remained fully green.
+  - `scripts/run-and-report.sh --failures` stayed stable on the promoted suite.
+
+- Practical lesson:
+  - For tty prompt parity, buffer limits matter as much as visible wrapping.
+  - If C stops echoing prompt input while JS keeps extending the line, check
+    the tty input acceptance rule before redesigning prompt ownership.
+
+## 2026-03-14: Blind `feel_location()` must clear stale invisible markers
+
+- Context:
+  - After the `tty_getlin()` width clamp, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) moved to a later blind display drift:
+    - first screen divergence at step `867`
+    - JS kept a remembered `I` one step longer than C on a square adjacent to the blind hero
+  - Gameplay remained exact:
+    - RNG `3125/3125`
+    - events `400/400`
+
+- Root cause:
+  - C `display.c:feel_location()` does not leave `GLYPH_INVISIBLE` in place
+    once the hero feels a changed square, unless an invisible monster is still
+    actually there.
+  - JS `feel_location()` was only a shallow wrapper around `map_location()`
+    plus sensed-monster display and never cleared `loc.mem_invis`.
+  - That left stale remembered-invisible markers behind during blind adjacent
+    updates, even after the square's contents changed.
+
+- Fix:
+  - In [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    `feel_location()` now:
+    - preserves the marker only if `loc.mem_invis` is present and an actually
+      invisible monster still occupies the square,
+    - otherwise clears `loc.mem_invis` before remapping the location.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` moved later again:
+    - first screen divergence from step `867`
+    - to step `878`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` stayed fully green.
+  - Promoted-suite failure report stayed stable.
+
+- Practical lesson:
+  - Blind map parity is not just “don’t show what the hero can’t see.”
+  - The feel/update path has its own cleanup semantics, especially for stale
+    invisible markers and nearby floor memory.
+
+## 2026-03-14 - `t11_s744`: death-staging `more()` refresh must respect frozen-turn state
+
+- Problem:
+  - `t11_s744_w_covmax2_gp` had full RNG and event parity, but the first screen mismatch was still at step `516`:
+    - JS: `HP:0(12)`
+    - session/C: `HP:1(12)`
+  - The mismatch was display-only and occurred while a pending monster-move topline was being paged.
+
+- Key evidence:
+  - Headless tracing showed the wrong repaint came from `more()` inside `HeadlessDisplay.putstr_message()` when `"You die..."` arrived while another paged message was still pending.
+  - The same broad stack also happened earlier in an acceptable case around step `445`, so the stack alone was not the differentiator.
+  - The decisive state difference was `game.multi`:
+    - earlier acceptable case: `multi = 0`
+    - bad step-515/516 case: `multi < 0` (`-125` in the trace)
+
+- Fix:
+  - In the headless death-staging `more()` path only, suppress the status refresh when:
+    - `context.mon_moving` is true, and
+    - `multi < 0`
+  - Leave ordinary `more()` refresh behavior unchanged.
+
+- Result:
+  - `t11_s744_w_covmax2_gp` first screen divergence moved from `516` to `543`.
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+
+- Practical lesson:
+  - When the same message/display stack appears in both good and bad windows, compare broader command-cycle state, not just topline flags.
+  - `multi < 0` matters for display parity: it marks a frozen/continued turn state where repainting status during a death-staging `--More--` can expose post-damage HP too early.
+
+## 2026-03-14: Blind `feel_location()` must also mark adjacent squares as seen
+
+- Context:
+  - After clearing stale invisible markers, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) still had a late blind-search screen miss:
+    - first screen divergence at step `878`
+    - C rendered `#@I` while JS rendered ` @I`
+  - The missed glyph was the left-adjacent felt corridor/floor memory, not the
+    invisible-monster marker.
+
+- Root cause:
+  - C `display.c:feel_location()` always calls `set_seenv()` before remapping a
+    blindly felt square.
+  - JS `feel_location()` never updated `loc.seenv`, so adjacent blind searches
+    could keep stale “unseen/blank” memory instead of turning into remembered
+    corridor/floor glyphs.
+
+- Fix:
+  - In [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    `feel_location()` now calls:
+    - `set_seenv(loc, player.x, player.y, x, y)`
+    before `map_location(...)`.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` reached full screen parity:
+    - screens `905/905`
+  - Remaining mismatches are now:
+    - color first divergence at step `866`
+    - cursor first divergence at step `827`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` remained fully green.
+
+- Practical lesson:
+  - Blind “feeling” is not only about choosing which glyph to show.
+  - The hero’s memory model (`seenv`) must be updated at the same time, or JS
+    will keep blank remembered cells where C has already converted them into
+    corridor/room memory.
+
+## 2026-03-14: `mhitm` corpse creation must redraw the death square immediately
+
+- Context:
+  - After the frozen-turn headless fix, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) still had:
+    - full RNG parity
+    - full event parity
+    - a first screen divergence at step `516`
+  - The visible miss was a stale map cell: C showed `%`, JS still showed floor.
+
+- Root cause:
+  - The death happened in monster-vs-monster combat, inside [`js/mhitm.js`](/share/u/davidbau/git/mazesofmenace/game/js/mhitm.js) `mdamagem(...)`.
+  - JS already created the corpse with `mkcorpstat(...)`, but that path did not redraw the square afterward.
+  - A targeted trace confirmed `newsym(7,2)` was never called on the corpse-creation step.
+  - C `mhitm.c` routes this through `monkilled(...)`, and C `make_corpse()` ends with `newsym(x, y)`.
+
+- Fix:
+  - After `mkcorpstat(CORPSE, ...)` in `mdamagem(...)`, JS now calls:
+    - `newsym(mdef.mx, mdef.my)`
+
+- Result:
+  - `t11_s744_w_covmax2_gp` moved:
+    - first screen divergence `516 -> 543`
+  - RNG stayed full:
+    - `11024/11024`
+  - Events stayed full:
+    - `1644/1644`
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+
+- Practical lesson:
+  - When parity is full on RNG/events but a monster death leaves a stale glyph, check whether the corpse/drop path redraws the square immediately.
+  - In `mhitm` specifically, hand-rolled corpse creation is risky because it bypasses the redraw behavior that C gets automatically from `make_corpse()` / `monkilled()`.
+
+## 2026-03-14: `pnd_s1200` blind prompt/display cleanup moved to final cursor-only gap
+
+- Context:
+  - After the blind `set_seenv()` fix, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) was no longer blocked on gameplay or screen shape.
+  - The remaining drift was a sequence of prompt/display mismatches:
+    - a freshly felt room square showed `CLR_GRAY` instead of remembered `NO_COLOR`
+    - `getlin()` cursor motion diverged at the `COLNO - 1` boundary and on ignored extra keystrokes
+    - paginated inventory footer cursors were too far right in the full-screen inventory path
+
+- Fixes:
+  - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    - `map_background(show=1)` now renders room memory with the same remembered color (`NO_COLOR`) that it stores in `loc.mem_terrain_color`, instead of redrawing with live terrain gray.
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js)
+    - `getlin()` now treats `COLNO - 1` as the tty wrap width for cursor behavior.
+    - Added a small `overflowCursor` model so ignored printable keys past the line limit move the wrapped cursor like tty `getlin()`:
+      - empty wrapped row case: `79,0 -> 1,1 -> 2,1 ...`
+      - visible wrapped second-line case: cursor advances one past visible overflow and then holds.
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    - inventory page counters (`" (N of M)"`) now use the C footer column/cursor rules in both overlay and full-screen inventory rendering.
+
+- Validation:
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json`
+    - RNG `3125/3125`
+    - events `400/400`
+    - screens `905/905`
+    - colors `21720/21720`
+    - remaining cursor-only mismatch moved very late to step `903`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json`
+    - still fully green
+
+- Remaining frontier:
+  - `pnd_s1200` still has one late cursor-only mismatch at step `903`:
+    - C expects cursor after the top-line `--More--`
+    - JS still reports the cursor at the end of the base message
+  - This is now a narrow topline `more()` cursor-state issue, not a gameplay/state mismatch and not a prompt-layout mismatch.
+
+- Practical lesson:
+  - Late display/cursor cleanup is easiest once gameplay parity is already exact.
+  - For tty-faithful prompt work, distinguish three separate concepts:
+    - buffer limit (`COLNO - 1`)
+    - visible wrapped text
+    - cursor movement on ignored extra keystrokes
+
+## 2026-03-14: blind `dolook()` must request a visible `--More--` marker
+
+- Context:
+  - After the prompt/input/footer cleanup, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potprayspell_gp.session.json) had only one mismatch left:
+    - step `903`
+    - cursor-only
+  - C showed:
+    - `You try to feel what is lying here on the doorway.--More--`
+    - cursor after `--More--`
+  - JS showed only the base message and left the cursor at the end of the text.
+
+- Root cause:
+  - The blind `dolook()` intro in [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js) called:
+    - `await more(display, { site: 'pager.dolook.blindLook.morePrompt' })`
+  - `more()` only renders a marker when `forceVisual: true` is requested or when the display implementation itself already emitted one.
+  - This callsite wanted an explicit visible marker for parity with C `look_here()` paging, but never asked for it.
+
+- Fix:
+  - `pager.js:dolook()` blind intro now calls:
+    - `await more(display, { site: 'pager.dolook.blindLook.morePrompt', forceVisual: true })`
+
+- Result:
+  - [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potprayspell_gp.session.json) is now fully green:
+    - RNG `3125/3125`
+    - events `400/400`
+    - screens `905/905`
+    - colors `21720/21720`
+    - cursor `905/905`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) remained fully green.
+
+- Practical lesson:
+  - An explicit `more()` boundary and a visible `--More--` marker are separate decisions in JS.
+  - Any tty-faithful gameplay page that is visibly blocked in C must request `forceVisual: true` unless the display path already rendered the marker itself.
+
+## 2026-03-14: `rloc_to_core()` must remove the monster from its old square before `newsym(oldx, oldy)`
+
+- Context:
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json) was failing only in the strict gameplay runner.
+  - Parity was otherwise full:
+    - RNG `15900/15900`
+    - events `14269/14269`
+    - mapdump `2/2`
+  - The only miss was screen/color at step `362`:
+    - JS still showed the water nymph glyph `n`
+    - C already showed the underlying corridor `#`
+
+- Root cause:
+  - The discrepancy happens on the nymph theft/teleport boundary:
+    - step `361`: both C and JS still show `n`
+    - step `362`: both say `She stole a +0 short sword.  The water nymph vanishes!`
+    - but only C clears the old square immediately
+  - In [`js/teleport.js`](/share/u/davidbau/git/mazesofmenace/game/js/teleport.js), `rloc_to_core()` called:
+    - `newsym(oldx, oldy)`
+    - before removing the monster from its old coordinates
+  - In this JS port, `newsym()` consults live map state via `map.monsterAt(x, y)`, so it repainted the monster onto its stale location.
+  - C `teleport.c:rloc_to_core()` does:
+    - `remove_monster(oldx, oldy);`
+    - `newsym(oldx, oldy);`
+    - `place_monster(mtmp, x, y);`
+    - `newsym(x, y);`
+
+- Fix:
+  - In JS `rloc_to_core()`, clear `mtmp.mx/my` before the old-square redraw, then place the monster at the destination and redraw the new square as before.
+
+- Result:
+  - `seed329_rogue_wizard_gameplay.session.json`: fully green
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) stayed at its current frontier:
+    - first screen divergence `543`
+
+- Practical lesson:
+  - Any relocation path that redraws the old square must first remove the moving monster from old map occupancy.
+  - In this codebase, `newsym()` is not a blind painter; it re-derives the glyph from current state, so stale `mx/my` values will redraw stale monsters.
+
+## 2026-03-14: replacement topline pages need an immediate status redraw for encumbrance transitions
+
+- Context:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) initially failed with:
+    - step `721`: JS showed `Burdened Hallu`, C showed `Stressed Hallu`
+  - After snapshotting encumbrance at visible `--More--` pages, the first mismatch moved to:
+    - step `722`: JS still showed `Stressed Hallu`, C showed `Burdened Hallu`
+  - RNG, events, and cursor were already exact, so the remaining bug was purely about when status row 23 was repainted across successive message pages.
+
+- Root cause:
+  - In the potion hallucination path, JS displayed:
+    - `Oh wow!  Everything looks so cosmic!`
+    - then the encumbrance transition message:
+      - `Your movements are only slowed slightly by your load.`
+  - The second message replaced an already-paged topline inside the same `putstr_message()` flow.
+  - JS refreshed status before dismissing the old page, but did not refresh status again after painting the new encumbrance-transition page.
+  - That left row 23 showing the previous encumbrance for one extra captured step.
+
+- Fix:
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js)
+    - `more()` now uses the visible topline's cached encumbrance snapshot when refreshing status for an explicit `--More--` boundary.
+  - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+    - message pages cache `_topMessageEncumbrance`
+    - when a new page replaces an acknowledged old one, JS now immediately redraws status only for the known encumbrance-transition messages
+    - this is intentionally narrow so it does not reopen unrelated death/lifesave display parity like `hi11`
+
+- Result:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) is fully green:
+    - RNG `2565/2565`
+    - events `121/121`
+    - screens `818/818`
+    - colors `19632/19632`
+    - cursor `818/818`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) stayed fully green.
+
+- Practical lesson:
+  - The status line belongs to the visible message page, not just to the latest live player state.
+  - But broad “always redraw status after page replacement” logic is too aggressive; restrict it to the concrete C-faithful cases you can prove.
+
+## 2026-03-14: death-staging status refresh differs for sleep wakeups vs other helpless states
+
+- Context:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) had full RNG and event parity, but first screen divergence at:
+    - step `543`: JS `HP:2(12)` vs C `HP:0(12)` under the same visible topline `The orc hits!--More--`
+  - A broad fix that refreshed status for all `afterMore` death-staging pages moved `t11_s744` later but reopened:
+    - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - step `407`: JS `HP:0(12)` vs C `HP:3(12)`
+
+- Root cause:
+  - Both sessions hit the same headless death-staging branch:
+    - `topMessage && messageNeedsMore && msg === "You die..."`
+  - The meaningful split was not wizard mode, prompt ownership, or generic negative `multi`.
+  - Targeted state dumps showed:
+    - `t11_s744`: `multi_reason = "frozen by floating eye's gaze"`, `usleep = 0`, `nomovemsg = null`
+    - `hi11`: `multi_reason = "sleeping"`, `usleep = 7`, `nomovemsg = "You wake up."`
+  - C preserves the pre-death status on those sleep/wakeup boundaries, but updates the visible pending page for the non-sleep helpless case.
+
+- Fix:
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+    - the death-staging `more()` status-refresh suppressor is now narrow:
+      - suppress for monster-phase negative-`multi` pages when the page was not created after an earlier `--More--`
+      - also suppress for the sleep/wakeup boundary (`usleep > 0`, `multi_reason === "sleeping"`, or `nomovemsg === "You wake up."`)
+    - other negative-`multi` helpless states, such as floating-eye paralysis, now refresh the visible pending page and match C later.
+
+- Result:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json):
+    - first screen divergence moved `543 -> 645`
+    - RNG remains `11024/11024`
+    - events remain `1644/1644`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) stayed fully green.
+
+- Practical lesson:
+  - “negative `multi` during monster phase” is too coarse for death-boundary rendering.
+  - Sleep wakeups are their own display-order case and need to stay distinct from other helpless/deferred-death paths.
+
+## 2026-03-14: avoid unconditional hallucination-name draws in m-vs-m elemental messaging
+
+- Context:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) regressed on clean `main` with gameplay still exact:
+    - RNG `2565/2565`
+    - events `121/121`
+    - first screen divergence at step `724`
+    - JS: `The green dragon bites the green slime.  The hezrou is killed!`
+    - C: `The green dragon bites the green slime.  The peddler is killed!`
+
+- Root cause:
+  - The mismatch was not a bogus-monster table problem and not a gameplay RNG problem.
+  - Targeted tracing in [`js/mhitm.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitm.js) showed two hallucinatory defender-name draws for the same dead monster during one physical attack:
+    - first draw: `peddler`
+    - second draw: `hezrou`
+  - The extra draw came from `mdamagem()` unconditionally computing:
+    - `const defName = monCombatName(mdef, ...)`
+    - before switching on `mattk.adtyp` for elemental-only defender messages.
+  - So a plain `AD_PHYS` bite incorrectly consumed one extra `rndmonnam()` call before the real kill message.
+
+- Fix:
+  - [`js/mhitm.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitm.js)
+    - moved defender-name construction inside the `AD_ELEC` / `AD_FIRE` / `AD_COLD` cases
+    - physical attacks no longer burn a hallucinatory naming draw on the side
+
+- Result:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) is green again:
+    - RNG `2565/2565`
+    - events `121/121`
+    - screens `818/818`
+    - colors `19632/19632`
+    - cursor `818/818`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) stayed fully green.
+
+- Practical lesson:
+  - When hallucination uses display RNG, even a dead local like `const defName = ...` can create a real parity regression if it is evaluated outside the exact C message branch.
+  - In combat/message code, build hallucinatory names lazily and only inside the branch that actually prints them.
+
+## 2026-03-14: repaint parity needs exact C schemas before callsite matching is meaningful
+
+- Context:
+  - The new `REPAINT_PARITY` campaign adds `^repaint[...]` diagnostics to the shared replay trace so screen-ownership bugs can be debugged in-step instead of inferred from stale screen diffs.
+  - After rebuilding the C harness and rerecording [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) with `NETHACK_REPAINT_TRACE=1`, gameplay parity was fully green but repaint parity started at `0/1412`.
+
+- Root cause:
+  - JS was already emitting some repaint diagnostics, but its tokens were not structurally comparable to the C patch:
+    - `bot` included `hpmax`, which C does not log
+    - `more` logged message text / `needsMore` instead of C's `topl,row,col`
+    - `yn` logged `choices` instead of C's `topl,def`
+    - JS omitted the C-side `botlx` and `time` fields from `flush`/`bot`
+  - That meant even correctly-placed JS repaint hooks could not compare equal against C.
+
+- Fix:
+  - [`js/repaint_trace.js`](/share/u/davidbau/git/mazesofmenace/game/js/repaint_trace.js)
+    - add shared helpers for canonical repaint fields (`hp`, `botl`, `botlx`, `time`, topline state, cursor row/col)
+  - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/game/js/display.js)
+    - make `flush_screen()` log the same `flush hp=... cursor=... botl=... botlx=... time=...` schema as C
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/game/js/headless.js)
+    - make `renderStatus()` log the same `bot hp=... botl=... botlx=... time=...` schema as C
+    - make headless `flush()` emit `mark hp=... topl=... inread=... inmore=...`
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/game/js/input.js)
+    - make `more()` log the same `more hp=... topl=... row=... col=...` schema as C
+    - make `ynFunction()` log the same `yn hp=... topl=... def=... query=...` schema as C
+
+- Result:
+  - Direct replay comparison on `t11_s744_w_covmax2_gp.session.json` moved from repaint `0/1412` to `62/1412` matched without changing gameplay parity:
+    - RNG `11024/11024`
+    - screens `892/892`
+    - events `1644/1644`
+    - mapdump `3/3`
+  - The first remaining repaint divergence is still early:
+    - expected: `^repaint[flush hp=12 cursor=1 botl=0 botlx=0 time=0]`
+    - actual: `null`
+  - That remaining gap is now about missing/attributed callsites, not incompatible token formats.
+
+- Practical lesson:
+  - For diagnostic parity channels, field vocabulary matters as much as hook placement.
+  - Before chasing repaint timing, make the JS trace lexically comparable to the C trace; otherwise every mismatch is polluted by schema noise.
+
+## 2026-03-14: `getlin()` owns an early repaint boundary before prompt text appears
+
+- Context:
+  - After the repaint-schema alignment, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) still had its first repaint divergence at step `1` with no JS entries where C already logged a prompt-boundary repaint.
+  - Step `1` in that session is the wizard wish prompt (`For what do you wish?`), not a gameplay move.
+
+- Root cause:
+  - C tty `hooked_tty_getlin()` does more than draw prompt text:
+    - if needed, it resolves pending topline ownership with `more()`
+    - then `custompline()` triggers `vpline()` which calls `flush_screen()` and `bot()`
+  - JS `getlin()` was drawing the prompt text directly, but it emitted no repaint diagnostics for that prompt-ownership boundary.
+
+- Fix:
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/game/js/input.js)
+    - before the initial `getlin()` prompt draw, emit the C-shaped repaint prelude:
+      - `flush`
+      - `bot`
+    - after drawing the prompt, call headless `flush()` so the diagnostic `mark` appears in the same boundary
+
+- Result:
+  - Direct repaint comparison on `t11_s744_w_covmax2_gp.session.json` improved again:
+    - from `62/1412`
+    - to `86/1462`
+  - Gameplay parity remained fully green:
+    - RNG `11024/11024`
+    - screens `892/892`
+    - events `1644/1644`
+
+- Practical lesson:
+  - Prompt functions like `getlin()` are repaint owners in their own right.
+  - If JS treats them as “text only”, repaint parity will miss real C boundaries even when the visible prompt text is correct.
+
+## 2026-03-14: mdamageu still needs losehp-style deferred status bookkeeping
+
+- Context:
+  - upstream commit `50919f40` switched melee hero damage in [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js) from `losehp()` to `mdamageu()`
+  - after rebasing, [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) regressed on clean `origin/main` with gameplay still exact:
+    - RNG `3469/3469`
+    - events `586/586`
+    - first screen divergence at step `409`
+    - JS: `Dlvl:1 $:0 HP:3(12) Pw:7(7) AC:10 Xp:1 Blind`
+    - C:  `Dlvl:1 $:0 HP:0(12) Pw:7(7) AC:10 Xp:1 Blind`
+
+- Root cause:
+  - C `mhitu.c:mdamageu()` explicitly does `disp.botl = TRUE` before mutating HP.
+  - JS `mdamageu()` had the HP mutation and death path, but it omitted the deferred status bookkeeping that `losehp()` already performs:
+    - `player._botl = true`
+    - `player._botlStepIndex = current replay step`
+  - Result: the `Die? [yn]` prompt could render while the bottom line still showed stale pre-hit HP, even though the message stream and game state had already advanced to the death/lifesave boundary.
+
+- Fix:
+  - [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js)
+    - restore the `disp.botl` equivalent at the top of `mdamageu()`
+    - set both `player._botl` and `_botlStepIndex` before HP mutation
+
+- Result:
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) is green again.
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) stays green.
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) moves one step later (`681 -> 682`), which is consistent with the same stale-status class of bug.
+
+- Practical lesson:
+  - Routing combat damage away from `losehp()` is fine, but the replacement path still has to carry all visible C side effects.
+  - For replay parity, `disp.botl`/`_botl` is not optional bookkeeping; it is part of the user-visible semantics of the death prompt boundary.
+
+## 2026-03-14: shopkeeper capital must enter `minvent`, not just burn RNG
+
+- Context:
+  - While triaging [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json), the earlier mapdump checkpoint `d0l3_002` diverged in section `N`.
+  - The only field mismatch was shopkeeper monster `136`'s trailing `minventCount`:
+    - JS: `3`
+    - C: `4`
+  - C snapshot data showed the missing fourth item was the shopkeeper's gold stack (`minvgold: 3550`).
+
+- Root cause:
+  - [`js/shknam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/shknam.js) had a local `mkmonmoney(amount)` helper that only called `mksobj(GOLD_PIECE, false, false)` for RNG alignment.
+  - That consumed the object-id RNG but never attached the gold object to `shk.minvent`.
+  - C `shknam.c` calls `mkmonmoney(shk, amount)`, and the real helper adds the gold stack to the monster inventory.
+
+- Fix:
+  - [`js/shknam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/shknam.js)
+    - import and use [`mkmonmoney(mon, amount)` from `js/makemon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/makemon.js)
+    - remove the local stub helper
+    - call `mkmonmoney(shk, capital)` during shopkeeper initialization
+
+- Result:
+  - `dbgmapdump ... --steps 572 --c-side --compare-sections N` now reports `Compare summary (N): 1/1 step(s) match`.
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) remains green.
+
+- Practical lesson:
+  - RNG-aligned stubs in setup code are dangerous even when they appear harmless.
+  - For monster inventory helpers, "consume the same RNG" is not enough; the object has to land in `minvent` or later state/mapdump parity will drift.
+
+## 2026-03-14: `mkgrave()` must bury created objects, not discard them after RNG
+
+- Context:
+  - After the `shknam.js` `mkmonmoney()` fix, a short audit looked for the same broader bug class: setup code that creates objects only to consume RNG, then drops the resulting state mutation.
+  - The clearest next hit was [`js/mklev.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mklev.js) `mkgrave()`.
+
+- Root cause:
+  - JS `mkgrave()` was doing:
+    - `mksobj(GOLD_PIECE, true, false); rnd(20); rnd(5);`
+    - `while (tryct--) mkobj(0, true);`
+  - So it consumed the object-creation and quantity RNG, but it discarded the gold object and every random grave object.
+  - C [`mklev.c:2357-2395`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/mklev.c:2357) instead:
+    - creates the gold object,
+    - assigns quantity with `rnd(20) + level_difficulty() * rnd(5)`,
+    - sets `ox/oy`,
+    - buries it with `add_to_buried()`,
+    - then creates random objects, curses them, positions them, and buries them too.
+
+- Fix:
+  - [`js/mklev.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mklev.js)
+    - import and use `curse`, `add_to_buried`, `weight`, and `level_difficulty`
+    - bury grave gold with real quantity/weight/coords
+    - create, curse, position, and bury random grave objects instead of discarding them
+
+- Validation:
+  - [`hi04_seed1030_wiz_fountain-altar_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/hi04_seed1030_wiz_fountain-altar_gameplay.session.json)
+    - includes `make_grave()` in startup RNG and remains gameplay-green after the fix
+  - [`t04_s703_w_wizbury_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/maze-mines-digging/t04_s703_w_wizbury_gp.session.json)
+    - remains fully green as a buried-object regression control
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - The shadow-helper bug in `shknam.js` was not unique.
+  - The wider pattern to audit is: object creation used only for RNG alignment while the created object is never attached to floor/minvent/buried state.
+
+## 2026-03-14: untimed pending-topline command tails should use `flush_screen(1)`, not `docrt()`
+
+- Context:
+  - In the repaint campaign, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) first repaint divergence had moved down to steps `18/19`:
+    - C expected two `flush` entries on each step
+    - JS was emitting three `bot` entries instead
+  - Screens, RNG, events, and mapdump were already fully green, so this was a pure repaint-owner mismatch.
+
+- Diagnosis:
+  - These steps are untimed command tails with a still-pending topline:
+    - `commandResult.tookTime === false`
+    - `display.messageNeedsMore === true`
+    - `player._botl === 0`
+  - C behavior there is not “skip redraw”.
+  - C behavior is `flush_screen(1)`:
+    - keep the pending topline
+    - move the cursor to the hero
+    - do not run `bot()` because `disp.botl` is false
+  - JS was instead falling through the generic post-command rendering path:
+    - `docrt()`
+    - `renderStatus()`
+    - `cursorOnPlayer()`
+  - That produced repaint `bot` diagnostics where C only had `flush`.
+
+- Fix:
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    - in both `postRender()` and `renderAndAutosave()`, detect the narrow case:
+      - untimed command result
+      - pending `messageNeedsMore`
+      - no pending status update (`!player._botl`)
+    - use `flush_screen(1)` instead of `docrt()`
+
+- Validation:
+  - `node test/comparison/repaint_step_diff.js test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json --steps=18,19,20`
+    - steps `18/19/20` repaint traces now match exactly
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json --parallel=1`
+    - gameplay parity remains fully green
+    - first repaint divergence moved from step `18` to step `416`
+    - repaint matched `224/1341`
+  - `WEBHACK_REPAINT_TRACE=1 node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json --parallel=1`
+    - still green
+
+- Practical lesson:
+  - Not every terminal-owned boundary should suppress rendering.
+  - Some boundaries are specifically `flush_screen(1)` boundaries: cursor refresh yes, status refresh only if `_botl` is set.
+
+## 2026-03-14: sink-ring burial must remove inventory and enter buried chain
+
+- Context:
+  - Continuing the discarded-state audit after `shknam.js` and `mkgrave()`, the next live hit was the ring-into-sink path in [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js).
+  - Existing coverage session:
+    - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+
+- Root cause:
+  - JS had two fidelity gaps in the live sink path:
+    - the caller invoked `dosinkring(obj)` without passing `player` and `map`
+    - the bury branch only did:
+      - `obj.in_use = false`
+      - `obj.ox = player.x`
+      - `obj.oy = player.y`
+      - `obj.buried = true`
+  - C [`do.c:658`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/do.c:658) instead removes the ring from inventory and adds it to the buried chain:
+    - `freeinv(obj);`
+    - `obj->in_use = FALSE;`
+    - `obj->ox = u.ux; obj->oy = u.uy;`
+    - `add_to_buried(obj);`
+
+- Fix:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js)
+    - pass `player` and `map` into `dosinkring(obj, player, map)` from the live drop path
+    - in the bury branch, call `freeinv(obj, player)` and `add_to_buried(obj, map)` instead of only marking `obj.buried = true`
+
+- Validation:
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - remains fully green after the fix
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - The next tier after “fake helper” bugs is “state-lite branch” bugs: live gameplay branches that mutate a visible flag (`obj.buried = true`) but skip the canonical list ownership update (`freeinv`, `add_to_buried`).
+
+## 2026-03-14: `hold_another_object()` must drop overflow wishes back out of inventory
+
+- Context:
+  - While starting the new digging/trap coverage session
+    [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json),
+    the first blocker was an overburdening wish:
+    - C: `Oops!  The boulder drops to the floor!`
+    - JS: kept the boulder in inventory and printed the handspan encumbrance warning.
+
+- Root cause:
+  - C [`invent.c:1208-1300`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/invent.c:1208) `hold_another_object()` only keeps the object if it survives the post-`addinv_core0()` overflow check:
+    - too many inventory letters, or
+    - encumbrance beyond `max(current_state, pickup_burden)`.
+  - JS [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js) lacked that drop-back-out branch entirely, so wished heavy objects could remain in inventory when C had already dropped them.
+  - JS [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js) `makewish()` also passed `null` for the C-style drop text argument instead of `The(aobjnam(otmp, "drop"))`.
+
+- Fix:
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    - `hold_another_object()` now mirrors the C keep/drop gate:
+      - compute a pickup-burden-adjusted limit only for the overflow decision,
+      - undo merged stacks via `splitobj(...)` when necessary,
+      - remove the object from inventory and drop/hit the floor in the failure branch,
+      - suppress `prinv()` / encumbrance-transition messaging unless the object actually stays carried.
+  - [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js)
+    - `makewish()` now passes `The(aobjnam(otmp, "drop"))` into `hold_another_object()`.
+
+- Validation:
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - remains fully green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+    - moved from an immediate boulder-overflow failure at step `77` to a much later grave/trap frontier (first RNG divergence step `211`)
+
+- Practical lesson:
+  - Another recurring parity bug class is “tentative state that must be rolled back.”
+  - If C adds something speculatively and then conditionally ejects it, keeping only the additive half in JS creates late, hard-to-explain state drift.
+
+## 2026-03-14: read prompt repaint ownership is split between prompt entry and follow-up message paths
+
+- Context:
+  - Continuing the `REPAINT_PARITY` campaign on:
+    - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+
+- Finding:
+  - The first repaint miss at step `416` was the read prompt itself:
+    - C emitted:
+      - `^repaint[yn hp=12 topl=0 def=0 query=What do you want to read? [h-lv-z or ?*]]`
+      - `^repaint[flush hp=12 cursor=1 botl=0 botlx=0 time=0]`
+    - JS emitted nothing.
+  - The prompt does not go through `getobj()` here; it is owned by the inline prompt loop in [`js/read.js`](/share/u/davidbau/git/mazesofmenace/game/js/read.js).
+
+- Fix:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/game/js/read.js)
+    - log a `yn`-class repaint entry for the read prompt owner
+    - log a prompt-local `flush` repaint entry immediately after the prompt is displayed
+  - [`js/repaint_trace.js`](/share/u/davidbau/git/mazesofmenace/game/js/repaint_trace.js)
+    - repaint string fields must be emitted unquoted to match the C trace schema
+
+- Validation:
+  - `t11_s744`
+    - gameplay parity remains fully green
+    - repaint first divergence moved:
+      - `416 -> 417`
+    - repaint matched count improved:
+      - `224/1341 -> 235/1341`
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - Repaint prompt ownership is not the same as gameplay prompt implementation.
+  - A `tty_yn_function`-style repaint token can correspond to a prompt owned by a custom command loop, so repaint parity needs owner-class matching, not literal function-name matching.
+
+## 2026-03-14: `getobj()` dirties status before validating the chosen inventory letter
+
+- Context:
+  - Continuing repaint-parity work on:
+    - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+  - After fixing the read-prompt owner, the next repaint frontier was step `417` on:
+    - `That is a silly thing to read.`
+
+- Finding:
+  - In C [`invent.c:getobj()`](/share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/src/invent.c:2024), `disp.botl = TRUE` is set before the chosen inventory letter is validated.
+  - That means an invalid target can still produce a status-owned repaint boundary before the rejection message.
+  - For this exact window, C emits:
+    - `flush(botl=1) -> bot -> flush`
+    before settling on the invalid-read message frame.
+
+- Fix:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/game/js/read.js)
+    - when the inline read selector accepts an inventory letter, mark `player._botl = true` before class validation
+    - for the invalid-read-target branch, call `flush_screen(1)` before:
+      - `That is a silly thing to read.`
+
+- Validation:
+  - `t11_s744`
+    - gameplay parity remains fully green
+    - repaint matched count improved:
+      - `235/1341 -> 244/1345`
+    - the first repaint miss remains at step `417`, but only as one extra trailing JS `flush`
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - Some repaint boundaries are inherited from generic inventory-selection semantics even when a command implements its own custom prompt loop.
+  - If the JS command bypasses `getobj()`, it may still need to reproduce `getobj()`'s display-side bookkeeping to stay repaint-faithful.
+
+## 2026-03-14: repaint debugging needs a separate owner/context channel
+
+- Context:
+  - Continuing the `REPAINT_PARITY` campaign after the first `t11_s744` repaint bring-up wins.
+  - Canonical `^repaint[...]` parity was already useful, but still too weak to explain duplicate-owner cases like:
+    - `postRender()` vs `renderAndAutosave()`
+    - `getlin()` prompt entry vs command-tail `flush_screen()`
+
+- Finding:
+  - Canonical repaint events should stay minimal and stable for rerecord/compare.
+  - But repaint debugging needs richer answers:
+    - which function/path emitted this repaint?
+    - what topline / `messageNeedsMore` state was active?
+    - was this prompt-owned, `more()`-owned, `flush_screen()`-owned, or status-owned?
+
+- Fix:
+  - Added a separate debug-only owner/context channel:
+    - JS: `WEBHACK_REPAINT_DEBUG=1`
+    - C: `NETHACK_REPAINT_DEBUG=1`
+  - This emits `^repaintdbg[...]` lines to stderr/console only.
+  - It does not alter canonical `^repaint[...]` recordings.
+
+- Validation:
+  - `node --test test/unit/comparators.test.js`
+    - still green
+  - `bash test/comparison/c-harness/setup.sh`
+    - patch applies and harness builds cleanly
+  - traced `t11_s744` replay with both debug flags enabled:
+    - gameplay parity still passes
+    - canonical repaint parity is unchanged
+    - debug output now names real owners such as:
+      - `display.flush_screen`
+      - `headless.renderStatus`
+      - `input.getlin.preprompt`
+      - `tty.topl.more`
+      - `tty.topl.yn_function`
+      - `tty.wintty.mark_synch`
+
+- Practical lesson:
+  - Repaint parity needs two channels:
+    - a stable canonical channel for comparison
+    - a richer owner/context channel for debugging
+  - Mixing those together would destabilize recordings and make rerecords noisier than necessary.
+
+## 2026-03-14: Wizard terrain/trap wishes need live map context, C-visible messages, and trap replacement
+
+- Context:
+  - Continuing the new digging/trap coverage session
+    [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json),
+    the early mismatches were all in wizard terrain/trap wishing:
+    - missing `Can't place a grave here.`
+    - missing `A pit.`
+    - generic `A trap.` instead of `A pit.`
+    - failed `hole` creation where C reused the existing pit trap
+
+- Root causes:
+  - [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js) `makewish()` passed only `player.map` into `readobjnam()`. In live play, `player.map` can be absent while `game.map` is present, so wizard terrain wishes returned an un-applied descriptor with no message.
+  - [`js/objnam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/objnam.js) terrain/trap wishes were treated as an inert `hands_obj` sentinel instead of carrying C-visible success/failure text back to `makewish()`.
+  - [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js) `trapname()` read `defsyms[].explanation`, but the symbol table entries use `desc`, collapsing trap-wish messages to generic `trap`.
+  - [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dungeon.js) `maketrap()` rejected any existing trap at the target square, while C [`trap.c:455`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/trap.c:455) reuses and reinitializes existing traps unless they are undestroyable.
+
+- Fix:
+  - [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js)
+    - pass `game.map` as fallback when `player.map` is missing
+    - emit wizard terrain/trap wish result text via `pline(...)`
+  - [`js/objnam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/objnam.js)
+    - return the full `terrainwish` / `trapwish` result object from `readobjnam()`
+    - attach C-style messages for grave success/failure and trap creation
+  - [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js)
+    - use `defsyms[].desc` in `trapname()`
+  - [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dungeon.js)
+    - reuse and reinitialize existing traps in `maketrap()` unless they are undestroyable
+
+- Validation:
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - remains fully green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+    - screens moved from `209/220` to `213/220`
+    - colors moved from `5266/5280` to `5272/5280`
+    - events moved from `593/650` to `624/652`
+    - first visible frontier moved from the early grave page to the later burden/trap-object frontier
+
+- Practical lesson:
+  - Wizard wish helpers are another place where “state-lite” ports cause real parity drift:
+    - missing live map context,
+    - missing C-visible messages,
+    - and missing replacement semantics on existing state.
+
+2026-03-14
+
+- Coverage session: [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+
+- Problem:
+  - the live `d` command was bypassing the canonical C-faithful drop path in the new digging/trap coverage session.
+  - after wishing a `hole`, JS prompt-driven dropping placed the item directly on the floor and never entered:
+    - `drop_single()`
+    - `can_reach_floor(...)->hitfloor()`
+    - `ship_object()`
+  - that caused the session to diverge before the hole-drop object migration pages and to fall into monster-turn RNG instead.
+
+- Root causes:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js) `handleDrop()` used a local `dropSelectedItem()` helper that:
+    - removed the item from inventory,
+    - placed it directly on the floor,
+    - printed a bespoke drop message,
+    - and never invoked the shared drop/floor-effects logic.
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js) `drop_single()` itself was also missing the C `!can_reach_floor(...)->hitfloor()` branch.
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js) `hitfloor()` was still simplified:
+    - always described `the floor`,
+    - and never handed off to [`ship_object()`](/share/u/davidbau/git/mazesofmenace/mazes/js/dokick.js) for hole/trapdoor migration.
+
+- Fix:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js)
+    - route `handleDrop()` item selection back through `drop_single()` instead of the local floor-placement bypass.
+    - add the C `can_reach_floor(player, map, true)` branch inside `drop_single()`, including `hitfloor()` handoff.
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js)
+    - make `hitfloor()` trap-aware for surface wording:
+      - `floor`
+      - `trap door`
+      - `edge of the hole`
+      - `edge of the pit`
+    - call `ship_object()` after the impact page and before final floor placement.
+
+- Validation:
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - RNG `3655/3655`
+    - events `650/650`
+    - screens `220/220`
+    - colors `5280/5280`
+    - cursor `220/220`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - still fully green
+
+- Practical lesson:
+  - prompt-owned command UIs must not fork their own simplified gameplay implementations.
+  - once a command has selected its object, it should rejoin the canonical core path; otherwise parity fixes land in dead code while the live command keeps diverging.
+
+2026-03-14
+
+- Coverage session: [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+
+- Problem:
+  - after the gameplay/state fixes were green, `t22` still had one cursor-only miss at step `216`:
+    - expected `[8,1,1]`
+    - actual `[79,0,1]`
+  - the visible screen already matched C, including a visible `--More--` on row `1`, so the remaining bug was repaint ownership, not gameplay.
+
+- Root cause:
+  - C `tty more()` in [`win/tty/topl.c`](/share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/win/tty/topl.c) does:
+    - if `curx >= CO - 8`, emit a newline before printing `--More--`
+  - JS [`renderMoreMarker()` in `js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js) and [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js) were still using a one-row policy for single-line toplines:
+    - append `--More--` on row `0`
+    - leave cursor ownership at the end of row `0`
+  - in `t22`, that left cursor parity wrong exactly when the visible marker belonged on row `1`.
+
+- Fix:
+  - update both JS `renderMoreMarker()` implementations to follow the C tty rule:
+    - if the current topline length is `>= cols - "--More--".length`, move the marker to the next row
+    - set the cursor after `--More--` on row `1`
+    - otherwise keep the existing same-row behavior
+
+- Validation:
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - RNG `3655/3655`
+    - events `650/650`
+    - screens `220/220`
+    - colors `5280/5280`
+    - cursor `220/220`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - still fully green
+
+- Practical lesson:
+  - repaint parity should be explained with owner semantics, not vague boundary language.
+  - when C makes `--More--` visible on a different row, JS must transfer cursor ownership to that exact visible marker.
+
+## 2026-03-14: untimed getobj feedback should suppress only the autosave-tail repaint
+
+- Context:
+  - In repaint-parity session
+    [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json),
+    step `417` was still mismatching after the read prompt gained the correct C-style `getobj()` feedback boundary.
+  - Expected repaint sequence for the invalid-read rejection was:
+    - `flush(botl=1)`
+    - `bot`
+    - `flush("That is a silly thing to read.")`
+  - JS emitted one extra trailing `flush` after that.
+
+- Root cause:
+  - The matched third repaint was the normal untimed `postRender()` flush.
+  - The extra fourth repaint came from the shared
+    [`renderAndAutosave()`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js)
+    untimed tail.
+  - Broad duplicate-tail suppression was wrong because step `18` still legitimately needs both command-tail flushes.
+
+- Fix:
+  - Added
+    [`handledGetobjFeedbackResult()`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    for custom `getobj()`-like loops that have already established the visible feedback boundary.
+  - That helper returns an untimed command result with
+    `suppressUntimedTailRender: true`.
+  - [`renderAndAutosave()`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js)
+    now honors that flag by skipping the duplicate untimed repaint while still scheduling autosave.
+
+- Validation:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
+    - step `417` now matches exactly
+    - first repaint divergence moved to step `429`
+    - gameplay parity stayed fully green
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - still fully green
+
+- Practical lesson:
+  - When a command-local prompt loop performs its own C-faithful untimed feedback flush,
+    the remaining command tail should suppress only the duplicate autosave render, not the normal `postRender()` boundary.
+
+2026-03-14
+
+- Pending session: [`t11_s754_w_covmax8_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s754_w_covmax8_gp.session.json)
+
+- Problem:
+  - the first real gameplay drift was earlier than the pet-AI symptom suggested.
+  - session step `758` is inventory letter `m` during `#read`, and the recorded C screen is `It reads:--More--`.
+  - JS treated that path as untimed/non-readable, so the kitten and nearby monster state froze while C advanced the monster turn.
+
+- Root cause:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/read.js) still treated non-scroll/non-spellbook reads as "silly" by default.
+  - C [`read.c:doread()`](/share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/src/read.c) treats several downplayed inventory items as genuinely readable and timed, including `MAGIC_MARKER`.
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/read.js) `read_ok()` also rejected those objects instead of marking them `GETOBJ_DOWNPLAY`.
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js) `getobj()` was also missing the C `GETOBJ_EXCLUDE -> silly_thing(word, otmp) -> return NULL` validation path after letter selection.
+
+- Fix:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/read.js)
+    - `read_ok()` now returns `GETOBJ_DOWNPLAY` for non-scroll/non-spellbook items, matching C.
+    - added the C-faithful `MAGIC_MARKER` timed read branch:
+      - optional `It reads:`
+      - deterministic branded marker text based on `o_id`
+      - increments literacy conduct
+      - returns `tookTime: true`
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    - `getobj()` now validates the chosen item with `obj_ok(item)` after letter selection and routes `GETOBJ_EXCLUDE` through `silly_thing(...)`, matching C `invent.c`.
+
+- Validation:
+  - [`t11_s754_w_covmax8_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s754_w_covmax8_gp.session.json)
+    - first RNG divergence moved `758 -> 802`
+    - first event divergence moved `749 -> 792`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - still green
+
+- Practical lesson:
+  - `getobj()`-driven commands often fail because the chosen item is "downplayed" rather than outright unreadable/unusable.
+  - when C models those items in the main command handler as real timed branches, JS must not collapse them into a generic "silly thing" fallback.
+
+- Coverage session: [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
+
+- Problem:
+  - after the earlier death/display fixes, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) had only one remaining mismatch:
+    - step `589`
+    - visible topline matched: `You have no ammunition readied.--More--`
+    - cursor differed:
+      - expected `[39,0,1]`
+      - actual `[31,0,1]`
+
+- Root cause:
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js) `dofire()` handled the no-quiver case as:
+    - `putstr_message("You have no ammunition readied.")`
+    - then `more(display, ...)`
+  - but that `more()` call did not request a visible marker.
+  - C tty `more()` always owns the visible `--More--` prompt before waiting, so cursor ownership belongs after the marker, not at the end of the plain message text.
+
+- Fix:
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js)
+    - pass `forceVisual: true` for the explicit `more()` boundaries in:
+      - `dothrow.no-quiver.more`
+      - `dothrow.no-autoquiver.more`
+
+- Validation:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
+    - RNG `11024/11024`
+    - events `1644/1644`
+    - screens `892/892`
+    - colors `21384/21384`
+    - cursor `891/891`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still fully green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - still fully green
+
+- Practical lesson:
+  - explicit `more()` boundaries in core command code need explicit visible-marker ownership.
+  - if a command path calls `more()` directly rather than going through a message-overflow path, it must still model C tty visibility by requesting the marker before waiting.
+
+## 2026-03-14: repaint parity needs message-window cursor ownership, pre-more flushes, and visible-status consumption
+
+- Context:
+  - In repaint-parity session
+    [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json),
+    the next repaint frontier after the invalid-read fix was the scroll-read window around steps `429..433`.
+  - C expected:
+    - step `429`: `flush(botl=1) -> bot -> flush(botl=0) -> more(row=0,col=38)`
+    - step `430`: `bot(botl=1) -> flush(botl=0) -> flush(botl=0)`
+  - JS initially differed in three ways:
+    - `more()` logged the terminal cursor after `--More--` instead of the message-window cursor before `--More--`
+    - concat overflow missed the extra visible pre-`more()` flush
+    - AC recomputation from `find_ac()` dirtied status too late and left `_botl` set after `display_sync()`
+
+- Root cause:
+  - Repaint ownership in this window spans both message staging and core status state:
+    - `vpline()`-style pending-topline preflushes must be visible before concat-overflow `more()`
+    - repaint cursor logging must use the message-window cursor while a topline page is pending
+    - `find_ac()` changes visible AC, so it must dirty `_botl`
+    - once `display_sync()` has rendered a dirty status line, `_botl` must be cleared so the following `flush_screen()` does not emit a duplicate `bot`
+
+- Fix:
+  - Track `messageCursorRow/messageCursorCol` and use them for `^repaint[more ...]` while `messageNeedsMore` is active.
+  - In `putstr_message()`, preflush pending toplines before both death-staging and concat-overflow boundaries, and add the extra pre-`more()` flush on concat overflow.
+  - In `find_ac()`, set `player._botl = true`.
+  - In `display_sync()`, clear `player._botl` after `renderStatus(player)` consumes the visible bot update.
+  - Keep the command-tail ownership change from the step-`417` fix: pending toplines always use `flush_screen(1)` in `postRender()` / `renderAndAutosave()`.
+
+- Validation:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+    - step `429` now matches exactly
+    - step `430` now matches exactly
+    - first repaint divergence moved to step `433`
+    - gameplay parity stayed fully green
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - still fully green
+
+- Practical lesson:
+  - Repaint parity is not only about where `flush_screen()` happens; it also depends on which cursor is “owned” by the pending message window, which gameplay functions dirty visible status, and exactly when a direct status render consumes that dirty bit.
+### Replay capture renderStatus must not emit canonical repaint logs
+
+- Problem: `t11_s744` repaint parity appeared to regress early at step `18`
+  with an extra JS `^repaint[bot ...]`, but owner tracing showed it came from
+  `replay_core.js` forcing `display.renderStatus()` only to capture the final
+  post-command screen.
+- Causal detail: that replay-only refresh is part of the JS recorder, not game
+  logic, so letting `HeadlessDisplay.renderStatus()` log canonical repaint
+  entries there pollutes the trace with harness-only `bot` events.
+- Fix: wrap the replay-core capture refresh in a temporary display flag and
+  have `HeadlessDisplay.renderStatus()` suppress canonical/debug repaint logging
+  while that flag is active. The visible screen capture still happens.
+- Result: restored the true first repaint divergence on `t11_s744` to step
+  `433`; gameplay parity unchanged.
+### Repaint writer tagging belongs in the C harness patch, not ad hoc source edits
+
+- Problem: the step-`433` `t11_s744` repaint miss still had an unexplained C-side
+  `botl=1` between `update_topl.concat_fit("A lit field surrounds you!")` and
+  `update_topl.pre_more("The goblin hits!")`.
+- Infrastructure fix: rebuild `024-repaint-trace.patch` from a clean post-`023`
+  source snapshot instead of hand-editing stale unified diff headers, then add
+  debug-only owner tags for plausible silent `disp.botl = TRUE` writers:
+  `allmain.regen_pw`, `allmain.regen_hp`, `timeout.deaf`, `timeout.flying`,
+  and `eat.newuhs`.
+- Result: the rebuilt patch applies cleanly again in `setup.sh`, repaint debug
+  reruns work, and the new owner tags ruled out those candidate writers for the
+  light-scroll / goblin-hit window.
+- Practical lesson: for harness observability patches, regenerate the unified
+  diff from real edited source files whenever hunk metadata gets suspect. That
+  keeps the patch future-rebuild-friendly and avoids wasting time on malformed
+  patch bookkeeping.
+### C repaint debug needs flush caller scope, not just adjacent-event inference
+
+- Problem: in the `t11_s744` step-`433` window we could see the decisive C
+  repaint sequence
+  `flush(botl=0) -> concat_fit("A lit field surrounds you!") -> flush(botl=1) -> bot -> pre_more("The goblin hits!")`,
+  but the existing debug channel only labeled both flushes as
+  `owner=display.flush_screen`.
+- Infrastructure fix: extend the debug-only repaint patch so C can tag
+  `flush_screen()` with a lightweight caller scope. The first added scope is
+  `scope=pline.vpline`, set only around `pline.c:vpline()`'s pre-message
+  `flush_screen()` call.
+- Result: a focused rerecord on a throwaway copy of `t11_s744` now shows both
+  disputed step-`433` flushes as `scope=pline.vpline`. That proves the missing
+  JS repaint is specifically a message preflush parity problem, not a `more()`
+  ownership problem.
+- Practical lesson: when repaint mismatches depend on multiple flushes in one
+  boundary window, owner tags alone are not enough. Add caller scope at the C
+  flush site so the next JS fix can target the correct semantic layer.
+
+### Cancelled `#cast` direction still reuses the previous direction
+
+- Problem: `t11_s754_w_covmax8_gp` diverged when casting `force bolt` with a
+  cancelled direction prompt. C printed `The magical energy is released!` and
+  still continued through `weffects()` using the previous direction, while JS
+  printed the message and returned early.
+- Root cause: [`js/spell.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/spell.js)
+  handled cancelled `getdir()` in `spelleffects()` as an abort for directed
+  spells, but C `spell.c` only emits the message and then falls through to the
+  normal direction-dependent spell resolution.
+- Fix: keep the message, but do not return early. Let `spelleffects()`
+  continue with the previously remembered `dx/dy/dz`, matching C.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first event divergence moved `792 -> 1224`,
+    first RNG divergence moved `802 -> 1254`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Shopkeepers must use `move_special()` path selection, not one-tile chase
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was in the same monster
+  window after the `#cast` fix. C moved monster `271` (the shopkeeper) from
+  `(75,4)` to `(76,4)` through `shk_move() -> move_special(...)`, while JS
+  left it in place and immediately re-entered the next `distfleeck()` call.
+- Root cause: [`js/shk.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/shk.js)
+  still had a simplified `shk_move()` one-step chase model, but C
+  `shk.c:shk_move()` uses richer `move_special(...)` path selection with home,
+  following, and door-avoidance logic.
+- Fix: handle the `isshk` branch in [`js/monmove.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/monmove.js)
+  with a C-shaped `shk_move()` decision path built around canonical
+  `move_special(...)`, then run `after_shk_move()` when it succeeds.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first event divergence moved `1224 -> 1228`,
+    first RNG divergence moved later within the same step (`7170 -> 7177`)
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Pre-move wielding must require exact `NEED_WEAPON`
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was still in the same
+  monster window after the shopkeeper fix. JS was letting monsters spend a turn
+  on melee wielding before movement even when `weapon_check` was not
+  `NEED_WEAPON`, which can suppress the C movement path.
+- Root cause: [`js/mthrowu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mthrowu.js)
+  had a legacy shortcut in `maybeMonsterWieldBeforeAttack()` for unarmed
+  monsters. C `monmove.c` only takes the pre-move wield path when
+  `mtmp->weapon_check == NEED_WEAPON`.
+- Fix: require exact `weapon_check === NEED_WEAPON` before spending the turn on
+  melee wielding.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1254 -> 1259`
+    (`7177 -> 7190`), matched events increased `1542 -> 1571`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### `mattacku()` needs the internal `AT_WEAP` wield branch too
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was still in monster
+  melee. C entered `mattacku()` for a goblin, then spent the attack on the
+  internal `AT_WEAP` wield path with no hit-roll RNG before returning to the
+  next monster. JS skipped straight to hit-roll RNG once it reached the melee
+  `AT_WEAP` branch.
+- Root cause: [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js)
+  was missing the C `mhitu.c` check inside `mattacku()`:
+  if `weapon_check == NEED_WEAPON` or there is no wielded weapon, set
+  `NEED_HTH_WEAPON` and allow `mon_wield_item()` to consume the attack.
+- Fix: port that internal `AT_WEAP` wield branch before any melee hit-roll RNG
+  is consumed.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1259 -> 1678`,
+    matched events increased `1571 -> 2786`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### `poisoned()` must use C-style composite dice logging
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier moved into later
+  monster-vs-hero poison handling. After `rn2(30)=0`, JS emitted four
+  primitive `rn2(6)` rolls before knockback/combat continued, while C had
+  already advanced to the next composite poison/knockback rolls.
+- Root cause: [`js/attrib.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/attrib.js)
+  still used Lua-style `d()` inside the C `attrib.c:poisoned()` path for the
+  severe-reaction `4d6` roll and the later `2d2` attribute-loss roll. For C
+  gameplay paths, these must use `c_d()` so RNG consumption and logging match
+  C `rnd.c d()`.
+- Fix: switch the `poisoned()` severe-reaction and attribute-loss dice from
+  `d(...)` to `c_d(...)`.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1678 -> 1752`,
+    matched RNG increased `17297 -> 19901`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### `mfndpos()` must gate obstructed tiles through `rockok/treeok`
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was in monster movement
+  for dwarf `44`. C hit `rn2(16)` in the `m_move()` revisit check, while JS
+  hit `rn2(32)`.
+- Diagnosis: targeted trace showed JS `mfndpos()` was admitting all eight
+  neighboring squares for that dwarf, including wall/corner tiles. C only had
+  four legal candidates there. The JS bug was treating `ALLOW_DIG` as
+  “all obstructed terrain is legal.”
+- Root cause: C `mon.c:mfndpos()` only admits obstructed terrain when either:
+  - `ALLOW_WALL && may_passwall(nx, ny)`, or
+  - `(IS_TREE ? treeok : rockok) && may_dig(nx, ny)`
+  and `rockok/treeok` depend on the monster's actual carried/wielded digging
+  tools. JS had reduced that to a broad `ALLOW_DIG` check and never modeled the
+  C `rockok/treeok` gate.
+- Fix: in [`js/mon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mon.js),
+  port the `rockok/treeok` gating logic into `mfndpos()`, including tool checks
+  across linked-list or array monster inventories, and require `may_dig()` for
+  obstructed squares.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1752 -> 1759`,
+    matched RNG increased `19901 -> 19998`, matched events increased
+    `2786 -> 2804`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Monster poly traps must call real `newcham()`
+
+- Problem: after the `mfndpos()` fix, `t11_s754_w_covmax8_gp` still diverged
+  at step `1759`. C transformed monster `44` during `m_move()` via
+  `select_newcham_form(mon.c:5214)` and then continued with the new monster
+  form. JS skipped straight into later movement RNG like `rnd(12)`.
+- Diagnosis: the C raw window showed `resist(zap.c:6111)` followed by
+  `select_newcham_form()`, `mgender_from_permonst()`, and `newmonhp()`. That
+  is the `trap.c:trapeffect_poly_trap()` monster branch. JS still had a literal
+  stub in [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js):
+  after `!resist(mon, WAND_CLASS)` it consumed the RNG but skipped polymorph.
+- Root cause: [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js)
+  never invoked the runtime `newcham()` machinery for monster poly traps, so
+  the monster stayed in its old form and all downstream movement/combat RNG
+  drifted.
+- Fix:
+  - export [`runtimeApplyNewchamRandom()`](/share/u/davidbau/git/mazesofmenace/mazes/js/makemon.js)
+    from [`js/makemon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/makemon.js)
+    to run the random-form `newcham()` path for any monster, using `mon.cham`
+    when present and `NON_PM` otherwise
+  - call that helper from the monster `POLY_TRAP` branch in
+    [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js)
+- Validation:
+  - `t11_s754_w_covmax8_gp`: RNG `20848/20848`, events `3292/3292`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### C repaint debug can identify hidden `disp.botl` writers inside a single message window
+
+- Problem: after adding `scope=pline.vpline`, the `t11_s744` step-`433` window
+  was still missing one fact: which C state transition turned `botl` from `0`
+  to `1` between
+  `concat_fit("A lit field surrounds you!")`
+  and
+  `pre_more("The goblin hits!")`.
+- Infrastructure fix: extend the debug-only C repaint patch with owner tags for
+  likely silent `disp.botl = TRUE` writers, including:
+  - `attrib.adjattrib`
+  - `attrib.restore_attrib`
+  - `pickup.encumber_msg`
+  - `botl.update_hilites`
+  - `do_wear.find_ac`
+  - `allmain.stop_occupation`
+  - `allmain.moveloop_core.run_time`
+  - `timeout.done_timeout`
+  - `timeout.incr_deafness`
+  - `invent.getobj`
+  - `hack.nomul`
+  - `hack.unmul`
+- Result: the decisive step-`433` C trace is now:
+  1. `tty.topl.update_topl.concat_fit("A lit field surrounds you!")`
+  2. `hack.nomul.set_botl hp=12 multi=0 nval=0`
+  3. `display.flush_screen scope=pline.vpline hp=12 ... botl=1`
+  4. `botl.bot hp=12 ...`
+  5. `tty.topl.update_topl.pre_more(... "The goblin hits!")`
+- Conclusion:
+  - the hidden writer is `hack.c:nomul(0)`, reached from non-ranged
+    `mhitu.c:mattacku()`
+  - the remaining JS repaint gap is therefore on the melee `hitmsg()` message
+    path, not generic `more()` ownership and not an unknown background status
+    writer.
+
+## 2026-03-14 20:06: melee `nomul(0)` dirty bit must defer across pending topline flush
+
+- Session:
+  - `test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json`
+- Problem:
+  - repaint first diverged at step `433`
+  - expected:
+    - `flush(botl=1) -> bot -> flush(botl=0) -> flush(botl=1) -> bot -> more`
+  - JS had:
+    - `flush(botl=1) -> bot -> flush(botl=0) -> more`
+- C cause:
+  - `mhitu.c:mattacku()` calls `nomul(0)` before melee hit messaging
+  - `hack.c:nomul()` sets `disp.botl |= (gm.multi >= 0)`
+  - but in this window the visible dirty repaint belongs to the *new* hitmsg
+    boundary, after the old pending topline has already been flushed
+- JS fix:
+  - restore the missing melee `nomul(0, game)` call at the start of
+    `js/mhitu.js:mattacku()` for non-ranged attacks
+  - in `js/hack.js:nomul()`, if a pending topline is active, defer the botl
+    dirty bit onto the display object instead of consuming it immediately
+  - in `js/headless.js` and `js/display.js`, consume that deferred dirty bit
+    immediately after the old pending topline flush and before concat-overflow
+    handling
+- Result:
+  - step `433` repaint parity became exact
+  - first repaint divergence moved `433 -> 434`
+  - gameplay parity stayed fully green on `t11_s744`

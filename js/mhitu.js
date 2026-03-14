@@ -14,6 +14,7 @@ import {
     NATTK, XKILL_NOMSG,
     ERODE_RUST, ERODE_CORRODE, ERODE_ROT, EF_GREASE, EF_VERBOSE, ER_NOTHING, ER_DAMAGED, ER_DESTROYED,
     SLIMED, KILLED_BY_AN, NEW_MOON, HALF_PHDAM,
+    NEED_WEAPON, NEED_HTH_WEAPON,
 } from './const.js';
 import {
     G_UNIQ, M2_NEUTER, M2_MALE, M2_FEMALE, M2_PNAME,
@@ -46,7 +47,7 @@ import { mattackm } from './mhitm.js';
 import {
     mhitm_mgc_atk_negated, do_stone_u,
 } from './uhitm.js';
-import { dmgval, hitval as weaponHitval } from './weapon.js';
+import { dmgval, hitval as weaponHitval, mon_wield_item } from './weapon.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { touch_of_death } from './mcastu.js';
@@ -59,7 +60,7 @@ import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
 import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
-import { flush_screen, newsym } from './display.js';
+import { flush_screen, newsym, map_invisible, canSpotMonsterForMap, mon_visible } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
@@ -71,13 +72,14 @@ import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
-import { nomul, losehp } from './hack.js';
+import { nomul, losehp, saving_grace, showdamage } from './hack.js';
 import { body_part, polymon, rehumanize } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
 import { night } from './calendar.js';
 import { attrcurse } from './sit.js';
 import { pline, pline_mon, verbalize } from './pline.js';
 import { game as activeGame } from './gstate.js';
+import { fall_asleep } from './timeout.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
 
 // PIERCE imported from objects.js
@@ -132,9 +134,11 @@ export async function hitmsg(monster, attack, display, suppressHitMsg) {
     case AT_BUTT: verb = 'butts'; break;
     case AT_TUCH: verb = 'touches you'; break;
     case AT_TENT: verb = 'tentacles suck your brain'; break;
+    case AT_EXPL: // fall through
+    case AT_BOOM: verb = 'explodes'; break;
     default: verb = 'hits'; break;
     }
-    await display.putstr_message(`The ${x_monnam(monster)} ${verb}${again ? ' again' : ''}!`);
+    await display.putstr_message(`${Monnam(monster)} ${verb}${again ? ' again' : ''}!`);
     _hitmsg_mid = monster?.m_id || 0;
     _hitmsg_prev_idx = attackIdx;
     _hitmsg_prev_aatyp = attack?.aatyp ?? AT_NONE;
@@ -521,11 +525,9 @@ async function mhitu_ad_slee(monster, attack, player, mhm, ctx) {
             // Sleep resistance — no effect
             return;
         }
-        // cf. fall_asleep(-rnd(10), TRUE)
-        if (game) {
-            game.multi = -rnd(10);
-            game.nomovemsg = 'You can move again.';
-        }
+        // C ref: uhitm.c mhitm_ad_slee() — fall_asleep(-rnd(10), TRUE)
+        // (sets multi/usleep/nomovemsg in one place).
+        fall_asleep(-rnd(10), true);
         if (!ctx.suppressHitMsg) {
             await ctx.display.putstr_message(
                 `You are put to sleep by ${x_monnam(monster)}!`
@@ -1297,6 +1299,26 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     let skipnonmagc = false;
     const sum = new Array(6).fill(M_ATTK_MISS); // C NATTK == 6
     const combatState = { skipdrin: false };
+    const postAttackTail = (attackResult) => {
+        // C ref: mhitu.c:936-942 — successful attack can wake sleeping hero.
+        const wakeEligible = attackResult === M_ATTK_HIT
+            && Number(player?.usleep || 0) > 0
+            && Number.isFinite(game?.moves)
+            && Number(player.usleep) < Number(game.moves);
+        if (wakeEligible && !rn2(10)) {
+            if (game) {
+                game.multi = -1;
+                game.nomovemsg = 'The combat suddenly awakens you.';
+            }
+        }
+        return !!(attackResult & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE));
+    };
+
+    // C ref: mhitu.c:mattacku() — melee-capable attackers stop hero running
+    // before any hit messaging and mark botl dirty via nomul(0).
+    if (!range2 && game) {
+        nomul(0, game);
+    }
 
     // C ref: mhitu.c:527-546 — mounted hero: attackers may target steed.
     if (player?.usteed) {
@@ -1330,10 +1352,9 @@ export async function mattacku(monster, player, display, game = null, opts = {})
     }
 
     for (let i = 0; i < 6; i++) {
-        // C ref: done(DIED) unwinds immediately. In JS, life-saving sets a
-        // stop flag; honor it here so one monster can't continue extra attacks
-        // in the same mattacku() pass after the hero is restored.
-        if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
+        // C ref: only actual death/game-over should stop mattacku mid-pass.
+        // Life-saving does not abort the current monster-attack stream.
+        if (game?.playerDied || game?.gameOver) {
             break;
         }
         if (opts.range2 === undefined && i > 0) {
@@ -1359,20 +1380,28 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         if (range2) {
             if (attack.aatyp === AT_WEAP) {
                 // cf. mhitu.c:882-885 — AT_WEAP at range calls thrwmu
-                if (map) await thrwmu(monster, map, player, display, game);
+                sum[i] = map ? (await thrwmu(monster, map, player, display, game)) : M_ATTK_MISS;
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
                 continue;
             }
             if (attack.aatyp === AT_SPIT) {
-                if (map) await spitmu(monster, attack, map, player, display, game);
+                sum[i] = map ? (await spitmu(monster, attack, map, player, display, game)) : M_ATTK_MISS;
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
                 continue;
             }
             if (attack.aatyp === AT_BREA) {
-                if (map) await breamu(monster, attack, map, player, display, game);
+                sum[i] = map ? (await breamu(monster, attack, map, player, display, game)) : M_ATTK_MISS;
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
                 continue;
             }
             if (attack.aatyp === AT_MAGC) {
                 if (map) {
-                    await buzzmu(monster, attack, player, map);
+                    sum[i] = await buzzmu(monster, attack, player, map);
+                    if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                    if (postAttackTail(sum[i])) break;
                 }
                 continue;
             }
@@ -1382,7 +1411,32 @@ export async function mattacku(monster, player, display, game = null, opts = {})
 
         if (attack.aatyp === AT_MAGC) {
             const vis = !player?.blind && !(monster.minvis && !player?.seeInvisible);
-            await castmu(monster, attack, vis, foundyou, player, map);
+            sum[i] = await castmu(monster, attack, vis, foundyou, player, map);
+            if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+            if (postAttackTail(sum[i])) break;
+            continue;
+        }
+
+        // C ref: mhitu.c:830-835 — AT_GAZE can affect you either ranged or not.
+        // Medusa gaze already operated through m_respond in dochug().
+        if (attack.aatyp === AT_GAZE) {
+            const mdat = monster.data || monster.type || {};
+            if (mdat.mndx !== PM_MEDUSA) {
+                sum[i] = await gazemu(monster, attack, player, map, display);
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
+            }
+            continue;
+        }
+
+        // C ref: mhitu.c:837-840 — AT_EXPL is automatic hit if next to.
+        // No to-hit roll needed; goes directly to explmu().
+        if (attack.aatyp === AT_EXPL) {
+            if (!range2) {
+                sum[i] = await explmu(monster, attack, foundyou, player, map, display);
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
+            }
             continue;
         }
 
@@ -1413,6 +1467,17 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             skipnonmagc = true;
             continue;
         }
+        if (attack.aatyp === AT_WEAP) {
+            // C ref: mhitu.c AT_WEAP melee branch — monsters can still spend
+            // this turn wielding before any hit-roll RNG is consumed.
+            if ((monster.weapon_check === NEED_WEAPON || !monster.weapon)) {
+                monster.weapon_check = NEED_HTH_WEAPON;
+                if (mon_wield_item(monster) !== 0) {
+                    sum[i] = M_ATTK_MISS;
+                    continue;
+                }
+            }
+        }
         if (attack.aatyp === AT_WEAP && monster.weapon) {
             // C ref: mhitu.c:905-907 — add temporary hitval bonus for this strike.
             toHit += weaponHitval(monster.weapon, player);
@@ -1432,9 +1497,13 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         if (toHit <= dieRoll) {
             // Miss — cf. mhitu.c:86-98 missmu()
             clear_hitmsg_state();
+            if (map && !canSpotMonsterForMap(monster, map, player, game?.fov || null)) {
+                map_invisible(map, monster.mx, monster.my, player);
+            }
             if (!suppressHitMsg) {
-                const just = (toHit === dieRoll) ? 'just ' : '';
-                await display.putstr_message(`The ${x_monnam(monster)} ${just}misses!`);
+                const verbose = !!(game?.flags?.verbose);
+                const just = (toHit === dieRoll && verbose) ? 'just ' : '';
+                await display.putstr_message(`${Monnam(monster)} ${just}misses!`);
             }
             // C ref: missmu() ends with unconditional stop_occupation().
             if (game) {
@@ -1448,6 +1517,10 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // ================================================================
         // Hit! — hitmu() equivalent
         // ================================================================
+
+        if (map && !canSpotMonsterForMap(monster, map, player, game?.fov || null)) {
+            map_invisible(map, monster.mx, monster.my, player);
+        }
 
         // C ref: mhitu.c hitmu() — if a hides-under/eel monster was
         // undetected when it hits the hero, reveal it.
@@ -1487,7 +1560,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // cf. mhitu.c:1192 — check if handler consumed the attack
         if (mhm.done) {
             sum[i] = mhm.hitflags || M_ATTK_HIT;
-            if (sum[i] & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE)) break;
+            if (postAttackTail(sum[i])) break;
             continue;
         }
 
@@ -1514,23 +1587,20 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             const hpBefore = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
             mhituTrace(
                 game,
-                `pre_losehp mon=${monster?.m_id ?? 0} mndx=${monster?.mndx ?? -1} `
+                `pre_mdamageu mon=${monster?.m_id ?? 0} mndx=${monster?.mndx ?? -1} `
                 + `aatyp=${attack?.aatyp ?? -1} adtyp=${attack?.adtyp ?? -1} `
                 + `dmg=${mhm.damage} hp_before=${hpBefore} `
                 + `halfphys=${hasHalfPhysical ? 1 : 0} ac=${playerAc}`
             );
-            await losehp(mhm.damage, x_monnam(monster), KILLED_BY_AN, player, display, game);
+            await mdamageu(monster, mhm.damage, player, display, game);
             const died = (player.uhp || 0) <= 0;
             const hpAfter = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
             mhituTrace(
                 game,
-                `post_losehp mon=${monster?.m_id ?? 0} hp_after=${hpAfter} died=${died ? 1 : 0}`
+                `post_mdamageu mon=${monster?.m_id ?? 0} hp_after=${hpAfter} died=${died ? 1 : 0}`
             );
 
             if (died) {
-                break;
-            }
-            if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
                 break;
             }
         }
@@ -1543,7 +1613,11 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         // C ref: hitmu() returns M_ATTK_HIT for successful contact even when
         // post-effect damage is 0 (for example, rust/corrode touch attacks).
         sum[i] = mhm.hitflags || M_ATTK_HIT;
-        if (sum[i] & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE)) break;
+        const stopAfterTail = postAttackTail(sum[i]);
+        if (game?._stopMoveloopAfterLifesave || game?.playerDied || game?.gameOver) {
+            break;
+        }
+        if (stopAfterTail) break;
     }
 }
 
@@ -1582,24 +1656,24 @@ export async function u_slow_down(player, display) {
 // C ref: mhitu.c:175 wildmiss() — displaced/invisible miss message
 async function wildmiss(monster, attack, player, display) {
     if (!display) return;
-    const name = x_monnam(monster);
+    const name = Monnam(monster);
     const displaced = !!(player?.Displaced
         || player?.displaced
         || playerHasProp(player, DISPLACED)
         || (player?.cloak && player.cloak.otyp === CLOAK_OF_DISPLACEMENT));
     if (displaced) {
-        await display.putstr_message(`The ${name} strikes at your displaced image and misses you!`);
+        await display.putstr_message(`${name} strikes at your displaced image and misses you!`);
         return;
     }
     switch (rn2(3)) {
     case 0:
-        await display.putstr_message(`The ${name} swings wildly and misses!`);
+        await display.putstr_message(`${name} swings wildly and misses!`);
         break;
     case 1:
-        await display.putstr_message(`The ${name} attacks a spot beside you.`);
+        await display.putstr_message(`${name} attacks a spot beside you.`);
         break;
     case 2:
-        await display.putstr_message(`The ${name} strikes at thin air!`);
+        await display.putstr_message(`${name} strikes at thin air!`);
         break;
     }
 }
@@ -2167,17 +2241,53 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
     if (!player) return;
     if (n < 0) n = 0;
     const gameCtx = game || activeGame || null;
+    const hadLegacyHp = Object.prototype.hasOwnProperty.call(player, 'hp');
+    const hadLegacyHpMax = Object.prototype.hasOwnProperty.call(player, 'hpmax');
 
-    if (n > 0) {
-        await losehp(n, x_monnam(mtmp), KILLED_BY_AN, player, display, gameCtx);
-        if ((player.uhp || 0) <= 0) {
-            player.deathCause = `killed by a ${x_monnam(mtmp)}`;
-            if (gameCtx) {
-                gameCtx.playerDied = true;
-                await done_in_by(mtmp, 0, gameCtx);
-            } else if (display) {
-                await display.putstr_message('You die...');
-            }
+    if (n <= 0) return;
+
+    // C ref: mhitu.c:1904 — mdamageu() sets disp.botl before mutating HP.
+    player._botl = true;
+    player._botlStepIndex = Number.isInteger((gameCtx?.lev || gameCtx?.map)?._replayStepIndex)
+        ? (gameCtx.lev || gameCtx.map)._replayStepIndex
+        : null;
+
+    if (player.upolyd) {
+        let nextMh = (player.mh || 0) - n;
+        player.mh = nextMh;
+        await showdamage(n, player, display, gameCtx);
+        if (nextMh > (player.mhmax || 0)) {
+            nextMh = player.mhmax || 0;
+            player.mh = nextMh;
+        }
+        if (nextMh < 1) {
+            player.mh = 0;
+            await rehumanize(player, display, gameCtx);
+        }
+        return;
+    }
+
+    n = saving_grace(n, player, gameCtx);
+    const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+    const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
+    let nextHp = heroHp - n;
+    player.uhp = nextHp;
+    if (hadLegacyHp) player.hp = nextHp;
+    await showdamage(n, player, display, gameCtx);
+    if (nextHp > heroHpMax) {
+        nextHp = heroHpMax;
+        player.uhp = nextHp;
+        if (hadLegacyHp) player.hp = nextHp;
+    }
+    if (nextHp < 1) {
+        player.uhp = 0;
+        if (hadLegacyHp) player.hp = 0;
+        player.deathCause = `killed by a ${x_monnam(mtmp)}`;
+        if (gameCtx) {
+            gameCtx.playerDied = true;
+            await done_in_by(mtmp, 0, gameCtx);
+        } else if (display) {
+            await display.putstr_message('You die...');
         }
     }
 }
@@ -2319,11 +2429,11 @@ export async function doseduce(mon, player, display) {
 // --- Group 9: Assessment/avoidance (mhitu.c:2349-2424) ---
 
 // C ref: mhitu.c:2349 assess_dmg() — deduct damage from monster, kill if needed
-export function assess_dmg(mtmp, tmp, map, player) {
+export async function assess_dmg(mtmp, tmp, map, player) {
     if (!mtmp) return M_ATTK_HIT;
     mtmp.mhp = (mtmp.mhp || 0) - tmp;
     if (mtmp.mhp <= 0) {
-        xkilled(mtmp, XKILL_NOMSG, map, player);
+        await xkilled(mtmp, XKILL_NOMSG, map, player);
         if (mtmp.dead || mtmp.mhp <= 0)
             return M_ATTK_AGR_DIED;
         return M_ATTK_HIT;
@@ -2336,7 +2446,7 @@ export function assess_dmg(mtmp, tmp, map, player) {
 // C ref: mhitu.c:2425 passiveum() — hero's passive counterattack when polymorphed
 // Simplified: only handles AD_ACID (the most common case).
 // Missing: AD_STON, AD_ENCH, AD_PLYS, AD_COLD/FIRE/ELEC mold effects.
-export function passiveum(olduasmon, mtmp, mattk, map, player) {
+export async function passiveum(olduasmon, mtmp, mattk, map, player) {
     if (!olduasmon || !mtmp) return M_ATTK_HIT;
     // Find the passive attack slot (AT_NONE or AT_BOOM)
     const attacks = olduasmon.attacks || [];
@@ -2369,10 +2479,10 @@ export function passiveum(olduasmon, mtmp, mattk, map, player) {
         if (!rn2(6)) {
             // C ref: acid_damage(MON_WEP(mtmp)) — simplified
         }
-        return assess_dmg(mtmp, tmp, map, player);
+        return await assess_dmg(mtmp, tmp, map, player);
     default:
         tmp = 0;
-        return assess_dmg(mtmp, tmp, map, player);
+        return await assess_dmg(mtmp, tmp, map, player);
     }
 }
 

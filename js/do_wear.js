@@ -1273,6 +1273,7 @@ export function find_ac(player) {
     if (player.rightRing && player.rightRing.otyp === RIN_PROTECTION)
         uac -= Number(player.rightRing.spe || 0);
     player.ac = uac;
+    player._botl = true;
 }
 
 // cf. do_wear.c glibr() — slippery fingers: drop weapon/rings
@@ -2596,7 +2597,7 @@ export async function doremring() {
   let otmp = null;
   count_worn_stuff( otmp, true);
   if (!Naccessories && !Narmorpieces) { await pline("Not wearing any accessories or armor."); return ECMD_OK; }
-  if (Naccessories !== 1 || ParanoidRemove || cmdq_peek(CQ_CANNED)) otmp = getobj("remove", remove_ok, GETOBJ_NOFLAGS);
+  if (Naccessories !== 1 || ParanoidRemove || cmdq_peek(CQ_CANNED)) otmp = await getobj("remove", remove_ok, GETOBJ_NOFLAGS);
   if (!otmp) return ECMD_CANCEL;
   return await armor_or_accessory_off(otmp);
 }

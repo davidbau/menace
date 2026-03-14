@@ -6,7 +6,7 @@
 
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You_feel, verbalize } from './pline.js';
-import { makemon, mkclass } from './makemon.js';
+import { makemon, makemon_appear, mkclass } from './makemon.js';
 import { NO_MM_FLAGS, MM_EMIN, MM_NOMSG } from './const.js';
 import { AMULET_OF_YENDOR } from './objects.js';
 import { mons, S_ANGEL, S_DEMON, PM_WIZARD_OF_YENDOR, PM_ANGEL, PM_ARCHON, PM_BONE_DEVIL, PM_SKELETON, PM_JUIBLEX, PM_YEENOGHU, PM_ORCUS, PM_DEMOGORGON, PM_AIR_ELEMENTAL, PM_FIRE_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_WATER_ELEMENTAL, PM_SHOPKEEPER, PM_GUARD, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, G_UNIQ } from './monsters.js';
@@ -222,7 +222,7 @@ export async function msummon(mon, map, player, display) {
     const census = monster_census(false, map, player);
 
     while (cnt > 0) {
-        const mtmp = makemon(mons[dtype], player.x, player.y, MM_EMIN | MM_NOMSG, depth, map);
+        const mtmp = await makemon_appear(mons[dtype], player.x, player.y, MM_EMIN | MM_NOMSG, depth, map);
         if (mtmp) {
             result++;
             // Angel alignment matching
@@ -281,7 +281,7 @@ export async function summon_minion(alignment, talk, map, player, display) {
     if (mnum === NON_PM) {
         mon = null;
     } else if (mnum === PM_ANGEL) {
-        mon = makemon(mons[mnum], player.x, player.y, MM_EMIN | MM_NOMSG, depth, map);
+        mon = await makemon_appear(mons[mnum], player.x, player.y, MM_EMIN | MM_NOMSG, depth, map);
         if (mon) {
             mon.isminion = true;
             newemin(mon);
@@ -290,7 +290,7 @@ export async function summon_minion(alignment, talk, map, player, display) {
         }
     } else if (mnum !== PM_SHOPKEEPER && mnum !== PM_GUARD
                && mnum !== PM_ALIGNED_CLERIC && mnum !== PM_HIGH_CLERIC) {
-        mon = makemon(mons[mnum], player.x, player.y, MM_EMIN | MM_NOMSG, depth, map);
+        mon = await makemon_appear(mons[mnum], player.x, player.y, MM_EMIN | MM_NOMSG, depth, map);
         if (mon) {
             mon.isminion = true;
             newemin(mon);
@@ -298,7 +298,7 @@ export async function summon_minion(alignment, talk, map, player, display) {
             mon.emin.renegade = false;
         }
     } else {
-        mon = makemon(mons[mnum], player.x, player.y, MM_NOMSG, depth, map);
+        mon = await makemon_appear(mons[mnum], player.x, player.y, MM_NOMSG, depth, map);
     }
 
     if (mon) {
@@ -412,7 +412,7 @@ export async function lose_guardian_angel(mon, map, player, display) {
     for (let i = rn1(3, 2); i > 0; --i) {
         const mm = { x: player.x, y: player.y };
         if (enexto(mm, mm.x, mm.y, mons[PM_ANGEL], map, player)) {
-            const angel = makemon(mons[PM_ANGEL], mm.x, mm.y, NO_MM_FLAGS, depth, map);
+            const angel = await makemon_appear(mons[PM_ANGEL], mm.x, mm.y, NO_MM_FLAGS, depth, map);
             if (angel) {
                 angel.peaceful = false;
             }

@@ -988,6 +988,8 @@ async function cpostfx(player, pm, display) {
         break;
     case PM_NURSE:
         player.uhp = player.uhpmax;
+        // C ref: eat.c cpostfx() sets context.botl = 1 for nurse corpse
+        player._botl = true;
         check_intrinsics = true;
         break;
     case PM_STALKER:
@@ -1044,6 +1046,8 @@ async function cpostfx(player, pm, display) {
         if (!rn2(2)) {
             await pline('Yum!  That was real brain food!');
             // Would adjattrib(A_INT, 1)
+            // C ref: eat.c cpostfx() — exercise WIS after mind flayer brain food
+            await exercise(player, A_WIS, true);
             break; // don't give telepathy too
         } else {
             await pline('For some reason, that tasted bland.');
@@ -1419,6 +1423,8 @@ async function fpostfx(player, otmp) {
             } else if (player.uhp <= 0) {
                 player.uhp = 1; // simplified — C version kills or rehumanizes
             }
+            // C ref: eat.c cpostfx() sets context.botl = 1 for royal jelly
+            player._botl = true;
         }
         break;
     case EGG:
@@ -1491,6 +1497,9 @@ function eataccessory(player, otmp) {
 function eatspecial(player, otmp) {
     // Stub: handles eating non-food items (coins, paper, rings, etc.)
     // In full C version: lesshungry(nmod), then type-specific effects
+    // When fully implemented, add these exercise calls:
+    // - After "chewing satisfaction" (trident): exercise(player, A_WIS, true)
+    // - After "Yabba-dabba" (flint): exercise(player, A_CON, true)
 }
 
 
@@ -2291,7 +2300,7 @@ export async function use_tin_opener(obj) {
     if (!await wield_tool(obj, "use")) return ECMD_OK;
     res = ECMD_TIME;
   }
-  otmp = getobj("open", tinopen_ok, GETOBJ_NOFLAGS);
+  otmp = await getobj("open", tinopen_ok, GETOBJ_NOFLAGS);
   if (!otmp) return (res|ECMD_CANCEL);
   await start_tin(otmp);
   return ECMD_TIME;

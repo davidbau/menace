@@ -16,6 +16,8 @@ async function startGame() {
 
   try {
     await initGame(seed, display, input);
+    // Game ended normally — return to the main shell
+    window.location.href = '/?shell=1';
   } catch (e) {
     console.error('Rogue error:', e);
   }

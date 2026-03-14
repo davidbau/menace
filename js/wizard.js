@@ -6,7 +6,7 @@
 import { m_next2u } from './muse.js';
 import { rn2, rnd, rn1 } from './rng.js';
 import { pline, You, You_feel, verbalize } from './pline.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { NO_MM_FLAGS, RLOC_MSG, BOLT_LIM, MAGIC_PORTAL, M_AP_MONSTER,
          STRAT_APPEARMSG, STRAT_WAITFORU, STRAT_CLOSE, STRAT_WAITMASK,
          STRAT_HEAL, STRAT_GROUND, STRAT_MONSTR, STRAT_PLAYER,
@@ -54,6 +54,7 @@ import { builds_up, In_endgame, In_W_tower, In_hell, Is_astralevel, Is_rogue_lev
 import { inhistemple } from './priest.js';
 import { inhishop } from './shk.js';
 import { game as _gstate } from './gstate.js';
+import { com_pager } from './questpgr.js';
 
 // Strategy constants imported from const.js (monst.h)
 
@@ -717,7 +718,7 @@ export async function nasty(summoner, map, player, display, fov) {
             }
 
             // Try to create the chosen nasty
-            let mtmp = makemon(mons[makeindex], bypos.x, bypos.y,
+            let mtmp = await makemon_appear(mons[makeindex], bypos.x, bypos.y,
                                mmflags, depth, map);
             if (mtmp) {
                 mtmp.sleeping = false;
@@ -729,7 +730,7 @@ export async function nasty(summoner, map, player, display, fov) {
                 // set_malign(mtmp) — alignment penalty not set (deferred)
             } else {
                 // random monster substitute for genocided selection
-                mtmp = makemon(null, bypos.x, bypos.y, mmflags, depth, map);
+                mtmp = await makemon_appear(null, bypos.x, bypos.y, mmflags, depth, map);
                 if (mtmp) {
                     m_cls = mptr(mtmp).mlet;
                     if ((difcap > 0 && (mptr(mtmp).difficulty || 0) >= difcap
@@ -790,7 +791,7 @@ export async function resurrect(map, player, display) {
     if (!wizCount) {
         // make a new Wizard
         verb = "kill";
-        mtmp = makemon(mons[PM_WIZARD_OF_YENDOR], player.x, player.y,
+        mtmp = await makemon_appear(mons[PM_WIZARD_OF_YENDOR], player.x, player.y,
                        MM_NOWAIT, depth, map);
         // affects experience; he's not coming back from a corpse
         // but is subject to repeated killing like a revived corpse
@@ -907,14 +908,12 @@ export async function cuss(mtmp, map, player) {
         }
     } else if (is_lminion(mtmp)
                && !(mtmp.isminion && mtmp.emin && mtmp.emin.renegade)) {
-        // C: com_pager("angel_cuss") — quest text system not ported
-        await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+        await com_pager("angel_cuss");
     } else {
         if (!rn2(is_minion(mptr(mtmp)) ? 100 : 5))
             await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
         else {
-            // C: com_pager("demon_cuss") — quest text system not ported
-            await pline("%s casts aspersions on your ancestry.", Monnam(mtmp));
+            await com_pager("demon_cuss");
         }
     }
 

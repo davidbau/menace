@@ -22,23 +22,26 @@ import {
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
 } from './objects.js';
-import { A_STR, A_INT, A_WIS, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES } from './const.js';
+import { A_STR, A_INT, A_WIS, A_DEX, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES, W_ARMH } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
-import { s_suffix, distu } from './hacklib.js';
+import { s_suffix, distu, upwords } from './hacklib.js';
 import { make_confused, make_stunned } from './potion.js';
-import { makemon } from './makemon.js';
+import { makemon, makemon_appear } from './makemon.js';
 import { NO_MINVENT, HEAD, STOMACH } from './const.js';
 import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN,
          PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
          PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER,
+         PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND, PM_IMP, PM_LARGE_MIMIC,
+         PM_LEOCROTTA, PM_SCORPION, PM_XAN, PM_GIANT_BAT, PM_WATER_MOCCASIN,
+         PM_FLESH_GOLEM, PM_BARBED_DEVIL, PM_MARILITH, PM_PIRANHA,
          G_GENO, G_NOCORPSE } from './monsters.js';
 import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
-import { Yobjnam2, Yname2, makeplural, an, is_weptool } from './objnam.js';
-import { hcolor, Monnam, mon_nam } from './do_name.js';
+import { Yobjnam2, Yname2, makeplural, an, is_weptool, xname } from './objnam.js';
+import { hcolor, Monnam, mon_nam, pmname } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
 import { sokoban_guilt } from './trap.js';
@@ -49,25 +52,50 @@ import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
 import { DISP_BEAM, DISP_END, thats_enough_tries, MAX_SPELL_STUDY } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
-import { pline, pline1, impossible, You, You_hear } from './pline.js';
+import { pline, pline1, impossible, You, You_hear, You_cant } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
-import { newsym, cmap_to_glyph, canspotmon } from './display.js';
+import { newsym, cmap_to_glyph, canspotmon, map_invisible } from './display.js';
 import { S_goodpos } from './symbols.js';
-import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup, compactInvletPromptChars } from './invent.js';
+import {
+    identify_pack,
+    buildInventoryOverlayLines,
+    renderOverlayMenuUntilDismiss,
+    getobj,
+    stackobj,
+    delobj,
+    useup,
+    compactInvletPromptChars,
+    markGetobjSelectionBoundary,
+    flushGetobjFeedbackBoundary,
+    handledGetobjFeedbackResult,
+} from './invent.js';
 // nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
-import { kill_genocided_monsters, wake_nearto, wakeup, setmangry } from './mon.js';
+import { kill_genocided_monsters, wake_nearto, wakeup, setmangry, killed, mondied } from './mon.js';
 import { tamedog } from './dog.js';
 import { u_at } from './hack.js';
 import { obfree } from './shk.js';
-import { which_armor } from './worn.js';
+import { which_armor, setworn } from './worn.js';
+import { dmgval } from './weapon.js';
+import { hard_helmet, find_ac, makeknown } from './do_wear.js';
+import { flooreffects } from './do.js';
+import { snuff_light_source } from './light.js';
 import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
 import { closed_door } from './monmove.js';
 import { is_pool, is_lava } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
+import {
+    logRepaint,
+    repaintBotl,
+    repaintBotlx,
+    repaintHp,
+    repaintTimeBotl,
+    repaintToplineState,
+} from './repaint_trace.js';
 import { create_gas_cloud } from './region.js';
 import { placebc } from './ball.js';
+import { trycall } from './do.js';
 
 const SPELL_KEEN = 20000; // cf. spell.c KEEN
 // MAX_SPELL_STUDY imported from const.js
@@ -102,8 +130,8 @@ async function stripspe(obj, player, display) {
 // cf. read.c read_ok() — validate object is readable
 export function read_ok(obj) {
     if (!obj) return false;
-    if (obj.oclass === SCROLL_CLASS || obj.oclass === SPBOOK_CLASS) return true;
-    return false;
+    if (obj.oclass === SCROLL_CLASS || obj.oclass === SPBOOK_CLASS) return GETOBJ_SUGGEST;
+    return GETOBJ_DOWNPLAY;
 }
 
 // ============================================================
@@ -307,6 +335,12 @@ export function assign_candy_wrapper(obj) {
 // Implemented: inventory selection, spellbook study (cf. spell.c study_book).
 // TODO: read_ok validation, scroll identification, seffects dispatch
 async function handleRead(player, display, game) {
+    const redMons = [
+        PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND, PM_IMP,
+        PM_LARGE_MIMIC, PM_LEOCROTTA, PM_SCORPION, PM_XAN,
+        PM_GIANT_BAT, PM_WATER_MOCCASIN, PM_FLESH_GOLEM,
+        PM_BARBED_DEVIL, PM_MARILITH, PM_PIRANHA,
+    ];
     const readableClasses = new Set([SCROLL_CLASS, SPBOOK_CLASS]);
     const readable = (player.inventory || []).filter((o) => o && readableClasses.has(o.oclass));
     const letters = compactInvletPromptChars(readable.map((o) => o.invlet).join(''));
@@ -334,7 +368,20 @@ async function handleRead(player, display, game) {
         return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
     };
     const showReadPrompt = async () => {
+        logRepaint('yn', {
+            hp: repaintHp(player),
+            topl: repaintToplineState(display),
+            def: 0,
+            query: prompt.trimEnd(),
+        });
         await display.putstr_message(prompt);
+        logRepaint('flush', {
+            hp: repaintHp(player),
+            cursor: 1,
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
+        });
     };
     await showReadPrompt();
     while (true) {
@@ -366,6 +413,10 @@ async function handleRead(player, display, game) {
         }
         const anyItem = (player.inventory || []).find((o) => o && o.invlet === c);
         if (anyItem) {
+            // C ref: invent.c:getobj() sets disp.botl = TRUE before validating
+            // the chosen inventory letter, so even invalid read targets carry
+            // a dirty-status flush into the message boundary.
+            markGetobjSelectionBoundary(player);
             if (anyItem.oclass === SPBOOK_CLASS) {
                 replacePromptMessage();
                 // cf. spell.c study_book() (partial)
@@ -437,7 +488,7 @@ async function handleRead(player, display, game) {
                             return true; // still studying
                         }
                         // cf. spell.c learn() — study complete
-                        // exercise(A_WIS, TRUE) — no RNG
+                        await exercise(g.player, A_WIS, true);
                         const spellsArr = g.player.spells || (g.player.spells = []);
                         const ent = spellsArr.find(s => s.otyp === bookRef.otyp);
                         const spellName = String(bookOd.name || 'unknown spell').toLowerCase();
@@ -506,7 +557,24 @@ async function handleRead(player, display, game) {
                         );
                     }
                 }
+                // C ref: read.c seffects() — track whether type was known before reading
+                const od = objectData[anyItem.otyp] || {};
+                const alreadyKnown = isObjectNameKnown(anyItem.otyp);
+                const prevKnownFlag = !!_gstate?.known;
+                if (_gstate) _gstate.known = false;
                 const consumed = await seffects(anyItem, player, display, game);
+                const effectKnown = !!_gstate?.known;
+                if (_gstate) _gstate.known = prevKnownFlag;
+                // C ref: read.c:2147 — if scroll type wasn't identified by the
+                // effect, prompt the player to name/call the scroll type.
+                if (!alreadyKnown && !isObjectNameKnown(anyItem.otyp)) {
+                    if (effectKnown) {
+                        learnscroll(anyItem);
+                    } else {
+                        anyItem.dknown = true;
+                        await trycall(anyItem);
+                    }
+                }
                 if (consumed) {
                     // Scroll was used up inside seffects
                 } else {
@@ -519,9 +587,31 @@ async function handleRead(player, display, game) {
                 }
                 return { moved: false, tookTime: true };
             }
+            if (anyItem.otyp === MAGIC_MARKER) {
+                replacePromptMessage();
+                if (player.blind) {
+                    await You_cant('feel any Braille writing.');
+                    return { moved: false, tookTime: false };
+                }
+                const pm = mons[redMons[anyItem.o_id % redMons.length]];
+                if (game?.flags?.verbose) {
+                    await display.putstr_message('It reads:');
+                }
+                await display.putstr_message(
+                    `"Magic Marker(TM) ${upwords(pmname(pm, 'neutral'))} Red Ink Marker Pen.  Water Soluble."`
+                );
+                if (!(player.uconduct?.literate)) {
+                    if (!player.uconduct) player.uconduct = {};
+                    player.uconduct.literate = 1;
+                } else {
+                    player.uconduct.literate++;
+                }
+                return { moved: false, tookTime: true };
+            }
             replacePromptMessage();
+            flushGetobjFeedbackBoundary();
             await display.putstr_message('That is a silly thing to read.');
-            return { moved: false, tookTime: false };
+            return handledGetobjFeedbackResult();
         }
         // C/getobj-style invalid invlet boundary:
         // show error, block at --More--, then reveal prompt again.
@@ -670,7 +760,7 @@ export async function seffect_charging(sobj, player, display, game) {
     useup_scroll(sobj, player);
 
     // cf. getobj("charge", charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT)
-    const otmp = getobj('charge', charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT, player);
+    const otmp = await getobj('charge', charge_ok, GETOBJ_PROMPT | GETOBJ_ALLOWCNT, player);
     if (otmp) {
         await recharge(otmp, charge_bless, player, game);
     }
@@ -700,6 +790,9 @@ export async function seffect_light(sobj, player, display, game) {
     const map = game?.map;
 
     if (!confused) {
+        if (!player.blind && _gstate) {
+            _gstate.known = true;
+        }
         if (!scursed && !player.blind) {
             await display.putstr_message('A lit field surrounds you!');
         }
@@ -708,6 +801,9 @@ export async function seffect_light(sobj, player, display, game) {
         // cf. if (!scursed) lightdamage(sobj, TRUE, 5)
         if (!scursed) {
             await lightdamage(sobj, player, 5, true);
+            if (_gstate) {
+                _gstate.known = true;
+            }
         }
         // C ref: read.c seeffects()/seffect_light():
         // light scroll isn't consumed inside seffect_light(); caller useups it.
@@ -722,7 +818,7 @@ export async function seffect_light(sobj, player, display, game) {
 
     for (let i = 0; i < numlights; i++) {
         if (map) {
-            const mon = makemon(mons[pm], player.x, player.y,
+            const mon = await makemon_appear(mons[pm], player.x, player.y,
                                 MM_EDOG | NO_MINVENT, depth, map);
             if (mon) {
                 mon.msleeping = 0;
@@ -735,6 +831,9 @@ export async function seffect_light(sobj, player, display, game) {
     }
     if (sawlights) {
         await display.putstr_message('Lights appear all around you!');
+        if (_gstate) {
+            _gstate.known = true;
+        }
     }
     return false;
 }
@@ -892,13 +991,13 @@ export async function seffect_enchant_weapon(sobj, player, display) {
             await display.putstr_message('Your weapon feels warm for a moment.');
         } else {
             await display.putstr_message(
-                `${doname(uwep, player)} ${scursed ? 'is' : 'is'} covered by a ${scursed ? 'mottled purple' : 'shimmering golden'} ${scursed ? 'glow' : 'shield'}!`);
+                `${Yobjnam2(uwep, 'are')} covered by a ${hcolor(scursed ? 'purple' : 'golden')} ${scursed ? 'glow' : 'shield'}!`);
         }
         if (new_erodeproof && (uwep.oeroded || uwep.oeroded2)) {
             uwep.oeroded = 0;
             uwep.oeroded2 = 0;
             await display.putstr_message(
-                `${doname(uwep, player)} ${player.blind ? 'feels' : 'looks'} as good as new!`);
+                `${Yobjnam2(uwep, player.blind ? 'feel' : 'look')} as good as new!`);
         }
         uwep.oerodeproof = new_erodeproof;
         return false;
@@ -931,7 +1030,7 @@ export async function seffect_enchant_weapon(sobj, player, display) {
     if (((uwep.spe > 5 && amount >= 0) || (uwep.spe < -5 && amount < 0))
         && rn2(3)) {
         // Evaporate — weapon too highly enchanted
-        await display.putstr_message(`${doname(uwep, player)} violently glows then evaporates!`);
+        await display.putstr_message(`${Yobjnam2(uwep, 'violently glow')} then evaporates!`);
         player.weapon = null;
         player.removeFromInventory(uwep);
         return false;
@@ -944,18 +1043,19 @@ export async function seffect_enchant_weapon(sobj, player, display) {
         if (player.blind) {
             await display.putstr_message('Your weapon feels warm for a moment.');
         } else {
-            await display.putstr_message(`${doname(uwep, player)} glows silver for a moment.`);
+            await display.putstr_message(`${Yobjnam2(uwep, 'glow')} ${hcolor('blue')} for a moment.`);
         }
     } else if (amount < 0) {
         if (player.blind) {
             await display.putstr_message('Your weapon feels cold for a moment.');
         } else {
-            await display.putstr_message(`${doname(uwep, player)} glows black for a moment.`);
+            await display.putstr_message(`${Yobjnam2(uwep, 'glow')} ${hcolor('black')} for a moment.`);
         }
         if (!uwep.cursed) {
             uwep.cursed = true;
         }
     }
+    makeknown(sobj.otyp);
     // C: elven weapons vibrate warningly when enchanted beyond a limit
     // C: (spe > 5) && (is_elven_weapon || oartifact || !rn2(7))
     // rn2(7) only consumed when not elven and not artifact (short-circuit)
@@ -1004,6 +1104,7 @@ async function seffect_enchant_armor(sobj, player, display) {
                 `${Yobjnam2(otmp, player.blind ? 'feel' : 'look')} as good as new!`);
         }
         otmp.oerodeproof = new_erodeproof;
+        find_ac(player);
         return false;
     }
 
@@ -1022,6 +1123,7 @@ async function seffect_enchant_armor(sobj, player, display) {
             if (player[slot] === otmp) player[slot] = null;
         }
         player.removeFromInventory(otmp);
+        find_ac(player);
         return false;
     }
     if (s < -100) s = -100;
@@ -1059,7 +1161,9 @@ async function seffect_enchant_armor(sobj, player, display) {
     if (s) {
         otmp.spe = (otmp.spe || 0) + s;
         cap_spe(otmp);
+        if (_gstate) _gstate.known = !!otmp.known;
     }
+    find_ac(player);
 
     // Vibration warning
     if ((otmp.spe || 0) > (special_armor ? 5 : 3)
@@ -1088,6 +1192,7 @@ async function seffect_destroy_armor(sobj, player, display) {
         const new_erodeproof = !!scursed;
         await display.putstr_message(`${doname(otmp, player)} glows purple for a moment.`);
         otmp.oerodeproof = new_erodeproof;
+        find_ac(player);
         return false;
     }
 
@@ -1107,12 +1212,14 @@ async function seffect_destroy_armor(sobj, player, display) {
             if (player[slot] === otmp) player[slot] = null;
         }
         player.removeFromInventory(otmp);
+        find_ac(player);
     } else {
         // Both armor and scroll cursed: degrade
         await display.putstr_message(`${doname(otmp, player)} vibrates.`);
         if ((otmp.spe || 0) >= -6) {
             otmp.spe = (otmp.spe || 0) - 1;
         }
+        find_ac(player);
         await make_stunned(player,
             (player.getPropTimeout ? (player.getPropTimeout(STUNNED) || 0) : 0)
             + rn1(10, 10), true);
@@ -1137,7 +1244,7 @@ export async function seffect_create_monster(sobj, player, display, game) {
     let created = 0;
     if (map) {
         for (let i = 0; i < count; i++) {
-            const mon = makemon(monType, player.x, player.y,
+            const mon = await makemon_appear(monType, player.x, player.y,
                                 MM_ADJACENTOK, depth, map);
             if (mon) created++;
         }
@@ -1865,7 +1972,7 @@ export async function do_genocide(bang, player, game) {
         const count = rn1(3, 4);
         let made = 0;
         for (let i = 0; i < count; i++) {
-            if (makemon(mons[mndx], player.x, player.y, MM_ADJACENTOK, player.dungeonLevel || 1, map))
+            if (await makemon_appear(mons[mndx], player.x, player.y, MM_ADJACENTOK, player.dungeonLevel || 1, map))
                 made++;
         }
         if (made) await pline("Sent in %s.", made > 1 ? "some monsters" : an(mons[mndx].pmnames?.[0] || "monster"));
@@ -1962,8 +2069,8 @@ export async function drop_boulder_on_player(confused, helmet_protects, byu, ski
     otmp2.owt = weight(otmp2);
 
     let dmg = 0;
-    if (!amorphous(player.data) && !player.Passes_walls
-        && !noncorporeal(player.data) && !unsolid(player.data)) {
+    if (!(player.data && amorphous(player.data)) && !player.Passes_walls
+        && !(player.data && noncorporeal(player.data)) && !(player.data && unsolid(player.data))) {
         await pline("You are hit by %s!", doname(otmp2));
         dmg = otmp2.quan; // simplified dmgval
         if (player.helmet && helmet_protects) {
@@ -1999,7 +2106,7 @@ export async function punish(sobj, player, map = null) {
         player.uball.owt = (player.uball.owt || 0) + 160 * (1 + cursed_levy);
         return;
     }
-    if (amorphous(player.data) || is_whirly(player.data) || unsolid(player.data)) {
+    if ((player.data && amorphous(player.data)) || (player.data && is_whirly(player.data)) || (player.data && unsolid(player.data))) {
         if (!reuse_ball) {
             await pline("A ball and chain appears, then falls away.");
             const looseBall = mkobj(BALL_CLASS, true, false);
@@ -2015,17 +2122,15 @@ export async function punish(sobj, player, map = null) {
         }
         return;
     }
-    if (!reuse_ball) {
-        await pline("You are being punished!");
-    }
-    const chainObj = mkobj(CHAIN_CLASS, true, false);
-    const ballObj = reuse_ball || mkobj(BALL_CLASS, true, false);
-    if (chainObj) chainObj.owornmask = (chainObj.owornmask || 0) | W_CHAIN;
-    if (ballObj) ballObj.owornmask = (ballObj.owornmask || 0) | W_BALL;
-    player.uchain = chainObj || {};
-    player.chain = player.uchain;
-    player.uball = ballObj || { owornmask: W_BALL };
-    player.ball = player.uball;
+    // C ref: read.c:2993 — setworn(mkobj(CHAIN_CLASS, TRUE), W_CHAIN)
+    setworn(player, mkobj(CHAIN_CLASS, true, false), W_CHAIN);
+    if (!reuse_ball)
+        setworn(player, mkobj(BALL_CLASS, true, false), W_BALL);
+    else
+        setworn(player, reuse_ball, W_BALL);
+    // setworn sets player.chain and player.ball via WORN_TABLE
+    player.uchain = player.chain;
+    player.uball = player.ball;
     player.Punished = true;
     player.punished = true;
     if (!player.uswallow && map) {

@@ -21,7 +21,7 @@ import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from '
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
 import { nh_timeout, do_storms } from './timeout.js';
 import { pline, Norep } from './pline.js';
-import { runtimeDecideToShapeshift, makemon, withMakemonPlayerOverrideAsync } from './makemon.js';
+import { runtimeDecideToShapeshift, makemon, makemon_appear, withMakemonPlayerOverrideAsync } from './makemon.js';
 import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
 import { were_change } from './were.js';
 import { allocateMonsterMovement, mcalcmove } from './mon.js';
@@ -32,7 +32,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          FEMALE, MALE, TERMINAL_COLS, MAXULEV,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE,
-         TELEPORT, POLYMORPH } from './const.js';
+         TELEPORT, POLYMORPH, Upolyd } from './const.js';
 import { ageSpells } from './spell.js';
 import { wipe_engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
@@ -40,8 +40,8 @@ import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
 import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
-import { FOV, get_vision_full_recalc } from './vision.js';
-import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target } from './hack.js';
+import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
+import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
 import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
@@ -75,7 +75,7 @@ import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
 import { amulet } from './wizard.js';
 import { dosounds } from './sounds.js';
-import { find_ac } from './do_wear.js';
+import { find_ac, set_wear } from './do_wear.js';
 import { run_regions } from './region.js';
 
 const QUEST_PORTAL_INFO_BY_ROLE = {
@@ -190,7 +190,8 @@ export async function moveloop_core(game, opts = {}) {
     // C ref: allmain.c:197 — actual time passed.
     player.umovement -= NORMAL_SPEED;
 
-    let forceStopMoveLoop = false;
+    let abortMoveLoop = false;
+    let stopAfterTurnend = false;
     do {
         let monscanmove = false;
         // C ref: allmain.c moveloop_core() calls encumber_msg() at start of the
@@ -206,25 +207,22 @@ export async function moveloop_core(game, opts = {}) {
             player._uhp_at_start = startHp;
             try {
                 do {
-                    // C-faithful lifesave stop: once savelife() has requested
-                    // a command-cycle stop, don't enter another movemon pass.
-                    if (game?._stopMoveloopAfterLifesave) {
-                        forceStopMoveLoop = true;
-                        monscanmove = false;
-                        game._stopMoveloopAfterLifesave = false;
-                        break;
-                    }
                     monscanmove = await movemon((game.lev || game.map), player, game.display, game.fov, game);
-                    // C ref: savelife() stops further movement progression for the
-                    // current command cycle after life-saving.
+                    // C ref: savelife() sets context.move=0 for the command
+                    // cycle but does not interrupt the current "hero can't move"
+                    // monster loop between movemon() passes. Finish draining any
+                    // already-allocated monster movement first, then stop before
+                    // starting a new command cycle.
                     if (game?._stopMoveloopAfterLifesave) {
-                        forceStopMoveLoop = true;
-                        monscanmove = false;
-                        game._stopMoveloopAfterLifesave = false;
-                        break;
+                        if (!monscanmove) {
+                            stopAfterTurnend = true;
+                            monscanmove = false;
+                            game._stopMoveloopAfterLifesave = false;
+                            break;
+                        }
                     }
                     if (game?.playerDied) {
-                        forceStopMoveLoop = true;
+                        abortMoveLoop = true;
                         monscanmove = false;
                         break;
                     }
@@ -243,11 +241,19 @@ export async function moveloop_core(game, opts = {}) {
         }
         if (!monscanmove
             && player.umovement < NORMAL_SPEED
-            && !forceStopMoveLoop
+            && !abortMoveLoop
             && !(game?.playerDied)) {
             await moveloop_turnend(game);
         }
-    } while (player.umovement < NORMAL_SPEED && !forceStopMoveLoop && !(game?.playerDied));
+    } while (player.umovement < NORMAL_SPEED
+        && !abortMoveLoop
+        && !stopAfterTurnend
+        && !(game?.playerDied));
+
+    // C ref: allmain.c:397-402 — second encumber_msg() after the hero-can't-move
+    // loop.  Inventory weight may have changed during nh_timeout() or other
+    // turn-end processing; this gives the player immediate feedback.
+    await encumber_msg(player);
 
     // C ref: In C, vision_recalc(0) fires at the top of the NEXT moveloop iteration,
     // BEFORE nhgetch blocks — so the screen capture always has fresh FOV.
@@ -353,7 +359,7 @@ export async function moveloop_turnend(game) {
     const spawnRate = player?.uevent?.udemigod ? 25
         : (playerDepth > 27 ? 50 : 70);
     if (!rn2(spawnRate)) {
-        makemon(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
+        await makemon_appear(null, 0, 0, 0, (game.u || game.player).dungeonLevel, (game.lev || game.map));
     }
 
     // C ref: allmain.c:238 u_calc_moveamt(wtcap)
@@ -508,6 +514,7 @@ export async function moveloop_turnend(game) {
 
     // C ref: allmain.c:385-393 — immobile turn countdown and unmul().
     if (game.multi < 0) {
+        await runmode_delay_output(game, game.display);
         if (++game.multi === 0) {
             await unmul(null, (game.u || game.player), game.display, game);
             if ((game.u || game.player)?.utotype) {
@@ -613,18 +620,40 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
+    // C invariant: moveloop() only returns to command input when the hero can
+    // act again (u.umovement >= NORMAL_SPEED). Keep command boundaries aligned
+    // across entrypoints even if a prior async path left umovement short.
+    const cmdPlayer = game?.u || game?.player || null;
+    if (cmdPlayer && Number.isFinite(cmdPlayer.umovement) && cmdPlayer.umovement < NORMAL_SPEED) {
+        cmdPlayer.umovement = NORMAL_SPEED;
+    }
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: inputSnap(game),
     });
     const execToken = beginCommandExec(game, { site: 'run_command', key: chCode });
+    const coreOpts = {};
+    if (skipMonsterMove) coreOpts.skipMonsterMove = true;
+    const bumpHeroSeqN = () => {
+        const prior = Number.isFinite(game?.heroSeqN) ? (game.heroSeqN | 0) : 0;
+        game.heroSeqN = Math.min(7, prior + 1);
+    };
 
     try {
     const promptFinalized = await promptStep(game, chCode, {
         skipTurnEnd,
         skipMonsterMove,
     });
-    if (promptFinalized) return promptFinalized;
+    if (promptFinalized) {
+        if (promptFinalized.tookTime) {
+            bumpHeroSeqN();
+            if (!skipTurnEnd) {
+                await finalizeTimedCommand(game, promptFinalized, coreOpts);
+            }
+        }
+        postRender(game, promptFinalized);
+        return promptFinalized;
+    }
 
     // C ref: tty_display_nhwindow(WIN_MESSAGE, FALSE) — at the start of
     // each command cycle, C clears the previous turn's topline message.
@@ -680,13 +709,6 @@ export async function run_command(game, ch, opts = {}) {
     }
     game.cmdKey = chCode;
 
-    const coreOpts = {};
-    if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-    const bumpHeroSeqN = () => {
-        const prior = Number.isFinite(game?.heroSeqN) ? (game.heroSeqN | 0) : 0;
-        game.heroSeqN = Math.min(7, prior + 1);
-    };
-
     // Process one timed turn of world updates after a command consumed time.
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
@@ -695,19 +717,6 @@ export async function run_command(game, ch, opts = {}) {
         // After monsters move, update display at every monster position.
         see_monsters(game.map);
         await display_sync();
-    };
-
-    // C ref: allmain.c moveloop() is a perpetual loop; when multi < 0
-    // (sleep/paralysis/etc), it keeps advancing timed turns without reading
-    // fresh command input until recovery.
-    const drainImmobileTurns = async () => {
-        let safety = 0;
-        while (game.multi < 0 && !(game?.playerDied)) {
-            await advanceTimedTurn();
-            if (++safety > 5000) {
-                break;
-            }
-        }
     };
 
     // Set advanceRunTurn for running mode (G/g commands process monster
@@ -741,16 +750,7 @@ export async function run_command(game, ch, opts = {}) {
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
-        await advanceTimedTurn();
-        if (typeof result.onAfterTurn === 'function') {
-            await result.onAfterTurn(game);
-        }
-
-        await drainImmobileTurns();
-
-        // Drain any occupation created by the command
-        await _drainOccupation(game, coreOpts);
-
+        await finalizeTimedCommand(game, result, coreOpts);
         await repeatLoop(game, {
             coreOpts,
             advanceTimedTurn,
@@ -903,15 +903,6 @@ async function promptStep(game, chCode, {
 
     const promptTookTime = !!promptResult.tookTime;
     const promptMoved = !!promptResult.moved;
-    if (promptTookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
-        const coreOpts = {};
-        if (skipMonsterMove) coreOpts.skipMonsterMove = true;
-        await moveloop_core(game, coreOpts);
-        find_ac(game.u || game.player);
-        see_monsters(game.map);
-        await display_sync();
-        await _drainOccupation(game, coreOpts);
-    }
     if (!game.pendingPrompt && game._pendingTutorialStrip
         && typeof game._applyTutorialStrip === 'function') {
         game._applyTutorialStrip();
@@ -938,12 +929,38 @@ async function promptStep(game, chCode, {
     };
 }
 
+async function finalizeTimedCommand(game, result, coreOpts) {
+    if (!(result && result.tookTime) || game._pendingDeferredTurnAfterMore) {
+        return;
+    }
+    const advanceTimedTurn = async () => {
+        await moveloop_core(game, coreOpts);
+        find_ac(game.u || game.player);
+        see_monsters(game.map);
+        await display_sync();
+    };
+    await advanceTimedTurn();
+    if (typeof result.onAfterTurn === 'function') {
+        await result.onAfterTurn(game);
+    }
+    let safety = 0;
+    while (game.multi < 0 && !(game?.playerDied)) {
+        await advanceTimedTurn();
+        if (++safety > 5000) break;
+    }
+    await _drainOccupation(game, coreOpts);
+}
+
 function postRender(game, result) {
     // C ref: bot() + curs_on_u() — update status line and cursor position
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
     const player = game.u || game.player;
-    if (!game.display || !player || result?.terminalScreenOwned) return;
+    if (!game.display || !player || result?.terminalScreenOwned || game?._terminalScreenOwnedByInput) return;
+    if (game.display.messageNeedsMore) {
+        flush_screen(1);
+        return;
+    }
     // C ref: parse()/get_count() count-prefix digits keep topline cursor.
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
@@ -1058,40 +1075,45 @@ async function _drainOccupation(game, coreOpts) {
 // Implemented: regen_pw_turnend (line 1127)
 
 // cf. allmain.c:621 [static] — regen_hp(wtcap): hit point regeneration
-// Ported from C's regen_hp() (allmain.c:623-681).
-// Simplified: no polymorph HP (u.mh), no eel-out-of-water.
-// U_CAN_REGEN: Regeneration intrinsic or Sleepy+asleep.
 // Ported from C's regen_hp() (allmain.c:621-675).
-// Simplified: no polymorph HP (u.mh), no eel-out-of-water.
+// Includes Upolyd branch and C turn-modulo timing for monster-form healing.
+// Simplified: eel out-of-water degeneration is still not implemented.
 async function regen_hp(game) {
     const player = (game.u || game.player);
-    // C ref: allmain.c:625 — encumbrance_ok = (wtcap < MOD_ENCUMBER || !u.umoved)
     const wtcap = near_capacity(player);
     const encumbrance_ok = (wtcap < MOD_ENCUMBER || !player.umoved);
-    const can_regen = player.regeneration; // U_CAN_REGEN: Regeneration || (Sleepy && asleep)
-    // C ref: allmain.c:654 — non-polymorph branch, encumbrance-gated
-    if (player.uhp < player.uhpmax && (encumbrance_ok || can_regen)) {
-        // C ref: allmain.c:655 — heal = (ulevel + ACURR(A_CON)) > rn2(100)
-        let heal = ((player.ulevel || 1) + acurr(player, A_CON)) > rn2(100) ? 1 : 0;
-        // C ref: allmain.c:657 — U_CAN_REGEN bonus: +1 heal
-        if (can_regen) {
-            heal += 1;
+    // C ref: U_CAN_REGEN() macro; Sleepy/asleep refinement can be added later.
+    const can_regen = !!player.regeneration;
+    let heal = 0;
+    let reached_full = false;
+    if (Upolyd(player)) {
+        if ((player.mh || 0) < (player.mhmax || 0)) {
+            const moves = Number.isFinite(game.turnCount) ? game.turnCount : 0;
+            if (can_regen || (encumbrance_ok && !(moves % 20))) {
+                heal = 1;
+            }
         }
         if (heal) {
-            player.uhp += heal;
-            if (player.uhp > player.uhpmax)
-                player.uhp = player.uhpmax;
-            // C ref: allmain.c:670 — stop voluntary multi-turn activity if fully healed
-            if (player.uhp === player.uhpmax) {
-                // interrupt_multi("You are in full health.")
-                if (game.multi > 0
-                    && !game.travelPath?.length
-                    && !((game.svc?.context?.run || game.context?.run || 0) > 0)) {
-                    game.multi = 0;
-                    if (game.flags?.verbose !== false) {
-                        await game.display.putstr_message('You are in full health.');
-                    }
-                }
+            player.mh = (player.mh || 0) + heal;
+            if ((player.mh || 0) > (player.mhmax || 0)) player.mh = player.mhmax || 0;
+            reached_full = (player.mh || 0) === (player.mhmax || 0);
+        }
+    } else if ((player.uhp || 0) < (player.uhpmax || 0) && (encumbrance_ok || can_regen)) {
+        heal = ((player.ulevel || 1) + acurr(player, A_CON)) > rn2(100) ? 1 : 0;
+        if (can_regen) heal += 1;
+        if (heal) {
+            player.uhp = (player.uhp || 0) + heal;
+            if ((player.uhp || 0) > (player.uhpmax || 0)) player.uhp = player.uhpmax || 0;
+            reached_full = (player.uhp || 0) === (player.uhpmax || 0);
+        }
+    }
+    if (reached_full) {
+        if (game.multi > 0
+            && !game.travelPath?.length
+            && !((game.svc?.context?.run || game.context?.run || 0) > 0)) {
+            game.multi = 0;
+            if (game.flags?.verbose !== false) {
+                await game.display.putstr_message('You are in full health.');
             }
         }
     }
@@ -1525,8 +1547,7 @@ export class NetHackGame {
             // C harness parity: tmp_at_start/step/end are canonical events.
             trace: true,
             canSee: (x, y) => {
-                if (!this.fov || typeof this.fov.canSee !== 'function') return true;
-                return !!this.fov.canSee(x, y);
+                return !!cansee_core(this.map || this.lev || null, this.player || this.u || null, this.fov || null, x, y);
             },
             onDelayBoundary: (payload) => {
                 // Keep replay boundary semantics aligned with existing session logs.
@@ -1743,6 +1764,7 @@ export class NetHackGame {
         this.levels[startDlevel] = map;
         this.player.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
+        await set_wear(this.player, null);
 
         // For manual-direct-live session replays, the preamble (rnd(9000)+rnd(30)) is
         // already consumed by simulatePostLevelInit above. If the player chose the tutorial,
@@ -1876,6 +1898,12 @@ export class NetHackGame {
         this.docrt();
         flush_screen(-1);   // C ref: do.c:1841 — restore flush capability after docrt()
         flush_screen(1);    // C ref: cmd.c:1310 — update status + cursor
+        // If a pre-transition message left a pending --More-- (for example,
+        // follower "still eating/trapped"), resolve it before deferred
+        // teleport arrival feedback so key consumption stays C-aligned.
+        if (this.display?.messageNeedsMore) {
+            await more(this.display, { forceVisual: true });
+        }
         // C ref: do.c goto_level() calls maybe_lvltport_feedback() after docrt
         // and before later arrival messages. This can consume dfr_post_msg
         // early so deferred_goto() won't print it again.
@@ -2262,6 +2290,21 @@ export class NetHackGame {
         }
 
         const firstCh = await nhgetch({ commandBoundary: true });
+        // Command-boundary --More-- dismissal is not a gameplay command.
+        // If a canned command is queued, execute it now before waiting for the
+        // next real gameplay key; C does this after the boundary dismiss key.
+        // Otherwise just refresh the command frame.
+        if (firstCh === 0) {
+            if (cmdq_peek(CQ_CANNED)) {
+                const commandResult = await this.runOneCommandCycle(0);
+                if (!commandResult) return;
+                this.renderAndAutosave({ commandResult, autosave: true });
+                return;
+            }
+            if (this.player?.Hallucination) return;
+            this.renderAndAutosave({ autosave: false, forceRender: true });
+            return;
+        }
         const commandResult = await this.runOneCommandCycle(firstCh);
         if (!commandResult) return;
         this.renderAndAutosave({ commandResult, autosave: true });
@@ -2307,7 +2350,21 @@ export class NetHackGame {
         autosave = false,
         forceRender = false,
     } = {}) {
-        const terminalScreenOwned = !!commandResult?.terminalScreenOwned;
+        const terminalScreenOwned = !!commandResult?.terminalScreenOwned || !!this._terminalScreenOwnedByInput;
+        const suppressUntimedTailRender = !forceRender
+            && !terminalScreenOwned
+            && !!commandResult?.suppressUntimedTailRender
+            && !commandResult?.tookTime;
+        if (suppressUntimedTailRender) {
+            if (autosave && !this.gameOver) {
+                scheduleAutosave(this); // fire-and-forget crash recovery save
+            }
+            return;
+        }
+        if (!forceRender && !terminalScreenOwned && this.display?.messageNeedsMore) {
+            flush_screen(1);
+            return;
+        }
         if (forceRender || !terminalScreenOwned) {
             this.docrt();
         }

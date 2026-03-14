@@ -37,8 +37,8 @@ import {
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
     PM_SAMURAI
 } from './monsters.js';
-import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE,
-         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED } from './const.js';
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE, MAX_OIL_IN_FLASK,
+         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED, OBJ_DELETED } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { level_difficulty } from './dungeon.js';
@@ -49,7 +49,8 @@ import { impossible, pline, Your, You_see, You_hear } from './pline.js';
 import { newsym } from './display.js';
 import { MON_WEP } from './muse.js';
 import { cansee } from './vision.js';
-import { artifact_exists } from './artifact.js';
+import { artifact_exists, confers_luck } from './artifact.js';
+import { set_moreluck } from './attrib.js';
 import { safe_oname, pmname, Mgender } from './do_name.js';
 
 // Named object indices we need (exported from objects.js)
@@ -397,6 +398,8 @@ export function bless(obj) {
     if (obj.oclass === COIN_CLASS) return;
     obj.cursed = false;
     obj.blessed = true;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -404,6 +407,8 @@ export function bless(obj) {
 // C ref: mkobj.c unbless()
 export function unbless(obj) {
     obj.blessed = false;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -413,6 +418,8 @@ export function curse(obj) {
     if (obj.oclass === COIN_CLASS) return;
     obj.blessed = false;
     obj.cursed = true;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -420,6 +427,8 @@ export function curse(obj) {
 // C ref: mkobj.c uncurse()
 export function uncurse(obj) {
     obj.cursed = false;
+    if (carried(obj) && confers_luck(obj))
+        set_moreluck(_gstate?.player);
     if (obj.otyp === BAG_OF_HOLDING)
         obj.owt = weight(obj);
 }
@@ -479,7 +488,7 @@ function newobj(otyp) {
         displayChar: CLASS_SYMBOLS[objectData[otyp].oc_class] || '?',
         displayColor: objectData[otyp].oc_color,
         ox: 0, oy: 0,
-        where: 'free',
+        where: OBJ_FREE,
         lamplit: false,
         age: 1,
         tknown: false,
@@ -703,6 +712,11 @@ function mksobj_init(obj, artif, skipErosion) {
         break;
 
     case POTION_CLASS:
+        if (obj.otyp === POT_OIL) {
+            obj.age = MAX_OIL_IN_FLASK; // C ref: mkobj.c:1232-1233
+        }
+        blessorcurse(obj, 4);
+        break;
     case SCROLL_CLASS:
         blessorcurse(obj, 4);
         break;
@@ -1308,6 +1322,10 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
     // C uses gem-name logic that yields "flint stone(s)" for FLINT.
     if (obj.otyp === FLINT) base = 'flint stone';
     if ((obj.quan || 1) !== 1) base = pluralizeName(base);
+    // C ref: objnam.c xname() — append " named <oname>" for named objects
+    if (dknown && obj.oname) {
+        base += ` named ${obj.oname}`;
+    }
     return base;
 }
 
@@ -1436,10 +1454,7 @@ export function doname(obj, player) {
     if (quan === 1 && !result.startsWith('the ')) {
         result = `${just_an(result)} ${result}`;
     }
-    const objGivenName = typeof obj.oname === 'string' ? obj.oname : '';
-    if (objGivenName.length > 0) {
-        result += ` named ${objGivenName}`;
-    }
+    // C ref: "named" suffix is now handled in xname_for_doname() — no duplication here.
 
     // C ref: objnam.c doname() appends "(lit)" for lit light sources.
     if (obj.lamplit) {
@@ -1797,7 +1812,7 @@ export function add_to_minv(mon, obj) {
 export function add_to_container(container, obj) {
   let otmp;
   if (obj.where !== OBJ_FREE) console.error("add_to_container: obj where=%d, not free", obj.where);
-  if (container.where !== 'OBJ_INVENT' && container.where !== 'OBJ_MINVENT') obj_no_longer_held(obj);
+  if (container.where !== OBJ_INVENT && container.where !== OBJ_MINVENT) obj_no_longer_held(obj);
   for (otmp = container.cobj; otmp; otmp = otmp.nobj) {
     if (merged( otmp, obj)) return otmp;
   }
@@ -1846,7 +1861,7 @@ export function mon_obj_sanity(monlist, mesg) {
       if (mwep.ocarry !== mon) insane_object(mwep, mfmt2, mesg, mon);
     }
     for (obj = mon.minvent; obj; obj = obj.nobj) {
-      if (obj.where !== 'OBJ_MINVENT') insane_object(obj, mfmt1, mesg, mon);
+      if (obj.where !== OBJ_MINVENT) insane_object(obj, mfmt1, mesg, mon);
       if (obj.ocarry !== mon) insane_object(obj, mfmt2, mesg, mon);
       if (obj.globby) check_glob(obj, mesg);
       check_contained(obj, mesg);
@@ -2172,14 +2187,14 @@ export function shop_obj_sanity(_obj, _mesg = '') {
 export function where_name(obj) {
     const where = obj?.where;
     switch (where) {
-    case 'OBJ_FREE': return 'free';
-    case 'OBJ_FLOOR': return 'floor';
-    case 'OBJ_CONTAINED': return 'contained';
-    case 'OBJ_INVENT': return 'invent';
-    case 'OBJ_MINVENT': return 'minvent';
-    case 'OBJ_MIGRATING': return 'migrating';
-    case 'OBJ_BURIED': return 'buried';
-    default: return String(where || 'unknown');
+    case OBJ_FREE: return 'free';
+    case OBJ_FLOOR: return 'floor';
+    case OBJ_CONTAINED: return 'contained';
+    case OBJ_INVENT: return 'invent';
+    case OBJ_MINVENT: return 'minvent';
+    case OBJ_MIGRATING: return 'migrating';
+    case OBJ_BURIED: return 'buried';
+    default: return String(where ?? 'unknown');
     }
 }
 

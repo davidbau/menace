@@ -49,6 +49,14 @@ import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
+import {
+    debugRepaint,
+    logRepaint,
+    repaintHp,
+    repaintBotl,
+    repaintBotlx,
+    repaintTimeBotl,
+} from './repaint_trace.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -80,6 +88,29 @@ const COLOR_CSS = [
     '#0ff',    // 14 - CLR_BRIGHT_CYAN
     '#fff',    // 15 - CLR_WHITE
 ];
+
+function replayStepIndex(map) {
+    return Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex : null;
+}
+
+export function getCachedMapCell(loc, map) {
+    if (!loc || !loc._displayCell) return null;
+    const step = replayStepIndex(map);
+    if (step === null || loc._displayCellStepIndex !== step) return null;
+    return loc._displayCell;
+}
+
+export function cacheMapCell(loc, map, ch, color, attr = 0) {
+    if (!loc) return;
+    loc._displayCell = { ch, color, attr };
+    loc._displayCellStepIndex = replayStepIndex(map);
+}
+
+function putMapCell(display, loc, map, col, row, ch, color, attr = 0) {
+    cacheMapCell(loc, map, ch, color, attr);
+    display.setCell(col, row, ch, color, attr);
+}
+
 
 // Terrain symbol tables and rendering logic live in render.js.
 
@@ -227,9 +258,13 @@ export class Display {
         // Message history
         this.messages = [];
         this.topMessage = null;
+        this._topMessageStatusHp = null;
+        this._topMessageEncumbrance = null;
+        this._topMessageStepIndex = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
+        this.messageCursorRow = 0;
 
         // Game flags (updated by game, used for display options)
         this.flags = {};
@@ -365,6 +400,17 @@ span.nh-cursor {
     // Display a message on the top line
     // C ref: winprocs.h win_putstr for NHW_MESSAGE
     async putstr_message(msg) {
+        let freshAfterMore = false;
+        const encumberRefreshMsg =
+            msg === 'Your movements are slowed slightly because of your load.'
+            || msg === 'You rebalance your load.  Movement is difficult.'
+            || msg === 'You stagger under your heavy load.  Movement is very hard.'
+            || msg === 'You can barely move a handspan with this load!'
+            || msg === "You can't even move a handspan with this load!"
+            || msg === 'Your movements are now unencumbered.'
+            || msg === 'Your movements are only slowed slightly by your load.'
+            || msg === 'You rebalance your load.  Movement is still difficult.'
+            || msg === 'You stagger under your load.  Movement is still very hard.';
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
@@ -382,6 +428,15 @@ span.nh-cursor {
         }
 
         const isDeathMessage = msg.startsWith('You die...');
+        if (this.topMessage && this.messageNeedsMore) {
+            flush_screen(1);
+        }
+        if (this._deferredBotlAfterPendingFlush && activeGame?.player) {
+            activeGame.player._botl = true;
+            activeGame.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+            this._deferredBotlAfterPendingFlush = false;
+            this._deferredBotlStepIndex = null;
+        }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
@@ -391,6 +446,10 @@ span.nh-cursor {
                     site: 'display.more.dismiss',
                     clearAfter: false,
                     readKey: this._nhgetch,
+                    // C vpline() already forced flush_screen(1) for the
+                    // pending message before update_topl() reaches this
+                    // concat-overflow more() boundary.
+                    refreshStatus: false,
                 });
             }
             this.clearRow(MESSAGE_ROW);
@@ -400,6 +459,10 @@ span.nh-cursor {
             }
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
+            this._topMessageStepIndex = null;
+            freshAfterMore = true;
         }
 
         // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit.
@@ -411,7 +474,20 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
                 this.topMessage = combined;
+                const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+                this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                    ? statusPlayer.uhp
+                    : (Number.isFinite(statusPlayer?.hp)
+                        ? statusPlayer.hp
+                        : null);
+                this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                    ? statusPlayer.encumbrance
+                    : null;
+                this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                    ? this._lastMapState.gameMap._replayStepIndex
+                    : null;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
+                this.messageCursorRow = 0;
                 this.setCursor(this.messageCursorCol, 0);
                 return;
             }
@@ -435,6 +511,10 @@ span.nh-cursor {
             }
             this.messageNeedsMore = false;
             this.topMessage = null;
+            this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
+            this._topMessageStepIndex = null;
+            freshAfterMore = true;
         }
 
         // Display message, wrapping to row 1 if needed.
@@ -445,7 +525,27 @@ span.nh-cursor {
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
             this.topMessage = msg;
+            const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                ? statusPlayer.uhp
+                : (Number.isFinite(statusPlayer?.hp)
+                    ? statusPlayer.hp
+                    : null);
+            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                ? statusPlayer.encumbrance
+                : null;
+            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                ? this._lastMapState.gameMap._replayStepIndex
+                : null;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
+            this.messageCursorRow = 0;
+            if (freshAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                    this.renderStatus(refreshPlayer);
+                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                }
+            }
         } else {
             // Break at word boundary near cols (C uses CO-1 as scan start).
             let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
@@ -458,7 +558,27 @@ span.nh-cursor {
 
             this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
             this.topMessage = row0;
+            const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                ? statusPlayer.uhp
+                : (Number.isFinite(statusPlayer?.hp)
+                    ? statusPlayer.hp
+                    : null);
+            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                ? statusPlayer.encumbrance
+                : null;
+            this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
+                ? this._lastMapState.gameMap._replayStepIndex
+                : null;
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
+            this.messageCursorRow = 0;
+            if (freshAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+                if (encumberRefreshMsg || refreshPlayer?._botl) {
+                    this.renderStatus(refreshPlayer);
+                    if (refreshPlayer?._botl) refreshPlayer._botl = false;
+                }
+            }
 
             if (row1rest.length > 0) {
                 // Page via row 1 + --More--, then continue with any remaining text recursively.
@@ -466,7 +586,10 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW + 1);
                 this.putstr(0, MESSAGE_ROW + 1, row1, CLR_GRAY);
                 this._topMessageRow1 = row1;
+                this.messageCursorCol = Math.min(row1.length, this.cols - 1);
+                this.messageCursorRow = MESSAGE_ROW + 1;
                 this.messageNeedsMore = true;
+                flush_screen(1);
                 this.renderMoreMarker();
                 if (this._nhgetch) {
                     await more(this, {
@@ -480,6 +603,9 @@ span.nh-cursor {
                 this._topMessageRow1 = undefined;
                 this.messageNeedsMore = false;
                 this.topMessage = null;
+                this._topMessageStatusHp = null;
+                this._topMessageEncumbrance = null;
+                this._topMessageStepIndex = null;
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
                     await this.putstr_message(row1overflow);
@@ -502,6 +628,9 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.messageNeedsMore = false;
                 this.topMessage = null;
+                this._topMessageStatusHp = null;
+                this._topMessageEncumbrance = null;
+                this._topMessageStepIndex = null;
             }
         }
         this.setCursor(this.messageCursorCol, 0);
@@ -548,9 +677,15 @@ span.nh-cursor {
             this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
         } else {
             const msgLen = (this.topMessage || '').length;
-            const col = Math.min(msgLen, this.cols - moreStr.length);
-            this.putstr(col, MESSAGE_ROW, moreStr, CLR_GRAY);
-            this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
+            if (msgLen >= this.cols - moreStr.length) {
+                this.clearRow(MESSAGE_ROW + 1);
+                this.putstr(0, MESSAGE_ROW + 1, moreStr, CLR_GRAY);
+                this.setCursor(Math.min(moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
+            } else {
+                const col = Math.min(msgLen, this.cols - moreStr.length);
+                this.putstr(col, MESSAGE_ROW, moreStr, CLR_GRAY);
+                this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
+            }
         }
     }
 
@@ -573,6 +708,7 @@ span.nh-cursor {
             this.cellInfo[row][COLNO - 1] = null;
             for (let x = 1; x < COLNO; x++) {
                 const col = x - 1;
+                const loc = gameMap.at?.(x, y);
 
                 // C ref: always render the player glyph at the hero's position,
                 // even when out of FOV (e.g. during levitation on stairs).
@@ -584,6 +720,12 @@ span.nh-cursor {
                         desc: 'you, the adventurer',
                         color: heroGlyph.color,
                     };
+                    continue;
+                }
+
+                const cached = getCachedMapCell(loc, gameMap);
+                if (cached) {
+                    this.setCell(col, row, cached.ch, cached.color, cached.attr || 0);
                     continue;
                 }
 
@@ -600,7 +742,6 @@ span.nh-cursor {
                         continue;
                     }
                     // Show remembered terrain or nothing
-                    const loc = gameMap.at(x, y);
                     // C ref: map_invisible() uses show_glyph() directly,
                     // so mem_invis displays even at unseen locations.
                     if (loc && loc.mem_invis) {
@@ -645,7 +786,6 @@ span.nh-cursor {
                     continue;
                 }
 
-                const loc = gameMap.at(x, y);
                 if (!loc) {
                     this.setCell(col, row, ' ', CLR_GRAY);
                     this.cellInfo[row][col] = null;
@@ -792,7 +932,7 @@ span.nh-cursor {
     }
 
     _tempGlyphToCell(glyph) {
-        return tempGlyphToCell(glyph);
+        return tempGlyphToCell(glyph, { useDECgraphics: !!this.flags?.DECgraphics });
     }
 
     _overlayKey(col, row) {
@@ -1093,8 +1233,10 @@ span.nh-cursor {
 
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
-            // C ref: wintty.c — menu prompt (line 0) and category headers use inverse video.
-            const isHeader = (i === 0 && line.trim().length > 0) || isCategoryHeader(line);
+            // C ref: wintty.c — end_menu(prompt) title (line 0) and category headers
+            // use inverse video.  add_menu_str() content lines at line 0 do NOT.
+            // Callers pass opts.noTitleInverse when line 0 is add_menu_str content.
+            const isHeader = (i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line);
             if (isHeader) {
                 // C ref: wintty.c — category headers have a single leading
                 // space that is part of the pre-cleared region, not inverse video.
@@ -1598,7 +1740,7 @@ export function map_background(xOrMap, yOrX, showOrY = 0, ctxOrShow = null) {
   const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
   loc.mem_terrain_ch = sym.ch;
   loc.mem_terrain_color = rememberedColor;
-  if (show) show_glyph(x, y, { ch: sym.ch, color: sym.color }, ctx);
+  if (show) show_glyph(x, y, { ch: sym.ch, color: rememberedColor }, ctx);
 }
 
 // Autotranslated from display.c:313
@@ -1606,11 +1748,21 @@ export function map_engraving(engr, show = 0, ctxOrMap = null) {
   if (!engr) return;
   const ctx = _resolveDisplayCtx(ctxOrMap);
   const map = ctx?.map;
-  if (!map || !isok(engr.engr_x, engr.engr_y)) return;
-  const x = engr.engr_x;
-  const y = engr.engr_y;
+  // JS engravings use {x, y} (from make_engr_at); C uses engr_x/engr_y.
+  const ex = engr.x ?? engr.engr_x;
+  const ey = engr.y ?? engr.engr_y;
+  if (!map || !isok(ex, ey)) return;
+  const x = ex;
+  const y = ey;
   const loc = map.at(x, y);
   if (!loc) return;
+  // C ref: map_engraving sets levl[x][y].glyph to engraving_to_glyph(ep).
+  // In C, this glyph gets overwritten by later map_background calls, and
+  // _map_location checks spot_shows_engravings before showing engravings.
+  // In JS, mem_obj persists independently of terrain, so we must gate on
+  // spotShowsEngravings to avoid overriding terrain (e.g. graves) where
+  // engravings are not displayed.
+  if (!spotShowsEngravings(loc)) return;
   const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
   loc.mem_obj = engrCh;
   loc.mem_obj_color = CLR_BRIGHT_BLUE;
@@ -1688,12 +1840,15 @@ export function show_glyph(x, y, glyph, ctxOrMap = null) {
   const loc = gameMap.at(x, y);
   let cell = glyph;
   if (typeof glyph === 'number') {
-    cell = tempGlyphToCell(glyph);
+    cell = tempGlyphToCell(glyph, { useDECgraphics: !!ctx?.flags?.DECgraphics });
     if (loc) loc.glyph = glyph;
   }
   if (!cell || typeof cell.ch !== 'string' || cell.ch.length === 0) return;
   const mapOffset = ctx?.flags?.msg_window ? 3 : MAP_ROW_START;
-  display.setCell(x - 1, y + mapOffset, cell.ch[0], Number.isInteger(cell.color) ? cell.color : CLR_GRAY);
+  const ch = cell.ch[0];
+  const color = Number.isInteger(cell.color) ? cell.color : CLR_GRAY;
+  cacheMapCell(loc, gameMap, ch, color, 0);
+  display.setCell(x - 1, y + mapOffset, ch, color);
 }
 
 // Autotranslated from display.c:481
@@ -1780,7 +1935,35 @@ export function feel_newsym(x, y, player) {
 export function feel_location(x, y, ctxOrMap = null) {
   if (!isok(x, y)) return;
   const ctx = _resolveDisplayCtx(ctxOrMap);
+  const player = ctx?.player;
+  const gameMap = ctx?.map;
+  if (!player || !gameMap) return;
+  if (player.x === x && player.y === y) return;
+
+  const mon = gameMap.monsterAt?.(x, y) || null;
+  const loc = gameMap.at?.(x, y) || null;
+  if (loc?.mem_invis && mon?.minvis) {
+    return;
+  }
+  if (loc?.mem_invis) {
+    loc.mem_invis = false;
+  }
+  if (loc) {
+    set_seenv(loc, player.x, player.y, x, y);
+  }
   map_location(x, y, 1, ctx);
+  if (mon && senseMonsterForMap(mon, gameMap, player)) {
+    const detectedByTelepathy = telepathySensesMonsterForMap(mon, player);
+    const warnOfMon = hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon');
+    display_monster(
+      x,
+      y,
+      mon,
+      (detectedByTelepathy || warnOfMon) ? PHYSICALLY_SEEN : DETECTED,
+      false,
+      ctx
+    );
+  }
 }
 
 // Autotranslated from display.c:1100
@@ -2166,11 +2349,10 @@ export function newsym(x, y, ctxOrMap = null) {
     const ctx = _resolveDisplayCtx(ctxOrMap);
     const map = ctx?.map;
     if (!map || !isok(x, y)) return;
-    const loc = map.at(x, y);
-    if (!loc) return;
-
     const { display, player, fov, flags } = ctx;
     if (!display || typeof display.setCell !== 'function') return;
+    const loc = map.at(x, y);
+    if (!loc) return;
     const mapOffset = flags?.msg_window ? 3 : MAP_ROW_START;
     const col = x - 1;
     const row = y + mapOffset;
@@ -2205,7 +2387,7 @@ export function newsym(x, y, ctxOrMap = null) {
             // when Detect_monsters is active; glyph is inverse-video.
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
-            display.setCell(col, row, glyph.ch, glyph.color, 1);
+            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color, 1);
             mon.meverseen = 1;
             return;
         }
@@ -2216,23 +2398,23 @@ export function newsym(x, y, ctxOrMap = null) {
         if (monVisibleByOwnLight) {
             const hallu = !!player?.hallucinating;
             const glyph = monsterMapGlyph(mon, hallu);
-            display.setCell(col, row, glyph.ch, glyph.color);
+            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
+            return;
+        }
+        if (loc.mem_invis) {
+            putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
             return;
         }
         if (loc.mem_obj) {
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
-            display.setCell(col, row, loc.mem_obj, rememberedObjColor);
+            putMapCell(display, loc, map, col, row, loc.mem_obj, rememberedObjColor);
             return;
         }
         if (loc.mem_trap) {
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
-            display.setCell(col, row, loc.mem_trap, memTrapColor);
-            return;
-        }
-        if (loc.mem_invis) {
-            display.setCell(col, row, 'I', CLR_GRAY);
+            putMapCell(display, loc, map, col, row, loc.mem_trap, memTrapColor);
             return;
         }
         if (loc.seenv) {
@@ -2240,13 +2422,13 @@ export function newsym(x, y, ctxOrMap = null) {
                 const rememberedColor = Number.isInteger(loc.mem_terrain_color)
                     ? loc.mem_terrain_color
                     : CLR_GRAY;
-                display.setCell(col, row, loc.mem_terrain_ch, rememberedColor);
+                putMapCell(display, loc, map, col, row, loc.mem_terrain_ch, rememberedColor);
             } else {
                 const remembered = rememberTerrain();
-                display.setCell(col, row, remembered.ch, remembered.color);
+                putMapCell(display, loc, map, col, row, remembered.ch, remembered.color);
             }
         } else {
-            display.setCell(col, row, ' ', CLR_GRAY);
+            putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
         }
         return;
     }
@@ -2280,7 +2462,7 @@ export function newsym(x, y, ctxOrMap = null) {
         }
         const hallu = !!player?.hallucinating;
         const glyph = monsterMapGlyph(mon, hallu);
-        display.setCell(col, row, glyph.ch, glyph.color);
+        putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         mon.meverseen = 1;
         return;
     }
@@ -2289,7 +2471,7 @@ export function newsym(x, y, ctxOrMap = null) {
         return;
     }
     if (loc.mem_invis) {
-        display.setCell(col, row, 'I', CLR_GRAY);
+        putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
         return;
     }
 
@@ -2305,7 +2487,7 @@ export function newsym(x, y, ctxOrMap = null) {
         loc.mem_obj = memGlyph.ch || 0;
         loc.mem_obj_color = Number.isInteger(memGlyph.color)
             ? memGlyph.color : CLR_GRAY;
-        display.setCell(col, row, glyph.ch, glyph.color);
+        putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         return;
     }
     loc.mem_obj = 0;
@@ -2317,7 +2499,7 @@ export function newsym(x, y, ctxOrMap = null) {
         const tg = trapGlyph(trap.ttyp);
         loc.mem_trap = tg.ch;
         loc.mem_trap_color = tg.color;
-        display.setCell(col, row, tg.ch, tg.color);
+        putMapCell(display, loc, map, col, row, tg.ch, tg.color);
         return;
     }
     loc.mem_trap = 0;
@@ -2331,17 +2513,17 @@ export function newsym(x, y, ctxOrMap = null) {
         const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
         loc.mem_obj = engrCh;
         loc.mem_obj_color = CLR_BRIGHT_BLUE;
-        display.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+        putMapCell(display, loc, map, col, row, engrCh, CLR_BRIGHT_BLUE);
         return;
     }
 
     // Terrain
     if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
-        display.setCell(col, row, ' ', CLR_GRAY);
+        putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
         return;
     }
     const sym = renderTerrainSymbol(loc, map, x, y, flags);
-    display.setCell(col, row, sym.ch, sym.color);
+    putMapCell(display, loc, map, col, row, sym.ch, sym.color);
 }
 
 // C ref: display.c:1480 see_monsters()
@@ -2396,6 +2578,25 @@ export function flush_screen(cursor_on_u) {
     const ctx = _getDisplayCtx();
     if (ctx?.display && ctx?.player) {
         const { display, player } = ctx;
+        const step = replayStepIndex(ctx?.gameMap);
+        debugRepaint('flush', 'display.flush_screen', {
+            hp: repaintHp(player),
+            cursor: cursor_on_u,
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
+        }, {
+            step,
+            top: display?.topMessage || null,
+            messageNeedsMore: display?.messageNeedsMore,
+        });
+        logRepaint('flush', {
+            hp: repaintHp(player),
+            cursor: cursor_on_u,
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
+        });
         if (player._botl) {
             if (typeof display.renderStatus === 'function')
                 display.renderStatus(player);
@@ -2446,6 +2647,7 @@ export function seeWithInfraredForMap(mon, map, player) {
 // C ref: display.h _canseemon(mon)
 export function canSeeMonsterForMap(mon, map, player, fov) {
     if (!mon || !map || !player) return false;
+    if (playerBlind(player)) return false;
     const locSeen = mon.wormno
         ? worm_known(mon, map, player, fov)
         : (cansee(map, player, fov, mon.mx, mon.my)

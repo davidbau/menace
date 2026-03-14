@@ -1,6 +1,6 @@
 # Theme: furniture-thrones-fountains
 
-Status: in_progress (sessions 6 captured and parity-green)
+Status: in_progress (sessions 9 captured and parity-green)
 
 Target codepaths:
 - `js/sit.js` (`dosit`, throne branches, seat-context branches)
@@ -33,11 +33,16 @@ Session plan:
 - Exercises C-faithful `#sit` extcmd flow on regular floor:
   - extcmd entry echo timing (`# s` → `# sit`) parity
   - `dosit()` base branch (`Having fun sitting on the floor?`)
-5. `theme01_seed542_tourist_sink-and-kick`
-- Reach/force sink cell and exercise:
-  - `drinksink` path
-  - `dipsink` path
-  - nearby kick/furniture interaction branch
+5. `t01_s940_v_sinkmix2_gp` (captured)
+- Extends a known-green seed940 exploration route to a reachable sink on Dlvl:1.
+- Exercises:
+  - sink terrain look text (`There is a sink here.`)
+  - sink `#sit` branch (`You sit on the sink.  Your rump gets wet.`)
+  - `drinksink` branch family, including:
+    - awful-tasting water with `--More--`
+    - warm water
+    - ring discovery branch
+  - `dipsink` carried-item erosion path with C-faithful `^place` event ordering
 6. `theme01_seed543_knight_throne-sit-branches`
 - Force throne context and execute `#sit` repeatedly until multiple throne
   outcomes are observed (good + bad branch families).
@@ -76,10 +81,15 @@ Captured sessions:
 4. `t01_s005_v_fdrink2r_gp.session.json`
 5. `t01_s005_v_frealdip1_gp.session.json`
 6. `t01_s005_v_sit1_gp.session.json`
+7. `t01_s650_w_sit_gp.session.json`
+8. `t01_s651_w_sit2_gp.session.json`
+9. `t01_s940_v_sinkmix2_gp.session.json`
 
 Current blockers:
 1. Dry-up/monster follow-up branch from the seed5 fountain path currently
    enters a known gameplay divergence window (`distfleeck near/brave` family)
    before the branch can be kept parity-green as a fixture.
-2. `#sit`-driven candidate captures currently hit extcmd command-echo boundary
-   mismatch (`#si` vs `#sit`) before they become reliable parity fixtures.
+2. Throne-specific `#sit` coverage is still missing; the previously attempted
+   deep-level seed543 setup immediately enters the known deep-level
+   `distfleeck near/brave` divergence window before the throne interaction can
+   be used as a green fixture.

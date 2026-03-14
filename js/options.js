@@ -1572,12 +1572,122 @@ const OPTIONS_DATA = {
     ],
 
     // Advanced options — shown only via #optionsfull (C ref: optlist.h Advanced category)
-    advanced: [
+    // Split into multiple pages to fit 24-row screen.
+    advanced1: [
         {
-            category: 'Advanced',
+            category: 'Identity',
             options: [
-                { key: 'a', name: 'tutorial', type: 'bool', flag: 'tutorial', help: 'show tutorial option at game start' },
-                { key: 'b', name: 'name', type: 'text', flag: 'name', help: 'your character name' }
+                { key: 'a', name: 'name', type: 'text', flag: 'name', help: 'your character name' },
+                { key: 'b', name: 'role', type: 'text', flag: 'role', readonly: true, help: 'your role (read-only during game)' },
+                { key: 'c', name: 'race', type: 'text', flag: 'race', readonly: true, help: 'your race (read-only during game)' },
+                { key: 'd', name: 'gender', type: 'text', flag: 'gender', readonly: true, help: 'your gender (read-only during game)' },
+                { key: 'e', name: 'alignment', type: 'text', flag: 'alignment', readonly: true, help: 'your alignment (read-only during game)' },
+            ]
+        },
+        {
+            category: 'Pets',
+            options: [
+                { key: 'f', name: 'catname', type: 'text', flag: 'catname', help: 'name for your starting cat' },
+                { key: 'g', name: 'dogname', type: 'text', flag: 'dogname', help: 'name for your starting dog' },
+                { key: 'h', name: 'horsename', type: 'text', flag: 'horsename', help: 'name for your starting horse' },
+                { key: 'i', name: 'pettype', type: 'pick', flag: 'pettype', help: 'preferred pet type',
+                  choices: [
+                      { value: '', label: '(default for role)' },
+                      { value: 'cat', label: 'cat' },
+                      { value: 'dog', label: 'dog' },
+                      { value: 'horse', label: 'horse' },
+                      { value: 'none', label: 'none' },
+                  ] },
+            ]
+        },
+        {
+            category: 'Behavior',
+            options: [
+                { key: 'j', name: 'confirm', type: 'bool', flag: 'confirm', help: 'ask confirmation before attacking peacefuls' },
+                { key: 'k', name: 'help', type: 'bool', flag: 'help', help: 'provide extra help messages' },
+                { key: 'l', name: 'lootabc', type: 'bool', flag: 'lootabc', help: 'use a/b/c for loot menu' },
+                { key: 'm', name: 'rest_on_space', type: 'bool', flag: 'rest_on_space', help: 'space bar rests' },
+                { key: 'n', name: 'safe_pet', type: 'bool', flag: 'safe_pet', help: 'prevent attacking pets' },
+                { key: 'o', name: 'safe_wait', type: 'bool', flag: 'safe_wait', help: 'confirm wait/search near hostiles' },
+                { key: 'p', name: 'verbose', type: 'bool', flag: 'verbose', help: 'verbose battle messages' },
+            ]
+        }
+    ],
+    advanced2: [
+        {
+            category: 'Interface',
+            options: [
+                { key: 'a', name: 'acoustics', type: 'bool', flag: 'acoustics', help: 'hear sounds from outside your field of view' },
+                { key: 'b', name: 'autodescribe', type: 'bool', flag: 'autodescribe', help: 'auto-describe terrain under cursor' },
+                { key: 'c', name: 'fixinv', type: 'bool', flag: 'fixinv', help: 'inventory letters stick to objects' },
+                { key: 'd', name: 'implicit_uncursed', type: 'bool', flag: 'implicit_uncursed', help: 'omit "uncursed" in object names' },
+                { key: 'e', name: 'menustyle', type: 'pick', flag: 'menustyle', help: 'interface style for object selection',
+                  choices: [
+                      { value: 'traditional', label: 'traditional' },
+                      { value: 'combination', label: 'combination' },
+                      { value: 'partial', label: 'partial' },
+                      { value: 'full', label: 'full' },
+                  ] },
+                { key: 'f', name: 'msghistory', type: 'number', flag: 'msghistory', help: 'number of top-line messages to save' },
+                { key: 'g', name: 'perm_invent', type: 'bool', flag: 'perm_invent', help: 'persistent inventory window' },
+                { key: 'h', name: 'runmode', type: 'pick', flag: 'runmode', help: 'display speed during running',
+                  choices: [
+                      { value: 'teleport', label: 'teleport (instant)' },
+                      { value: 'run', label: 'run (fast)' },
+                      { value: 'walk', label: 'walk (show each step)' },
+                      { value: 'crawl', label: 'crawl (slow each step)' },
+                  ] },
+                { key: 'i', name: 'silent', type: 'bool', flag: 'silent', help: 'suppress terminal bell' },
+                { key: 'j', name: 'tips', type: 'bool', flag: 'tips', help: 'show helpful tips' },
+            ]
+        },
+        {
+            category: 'Inventory',
+            options: [
+                { key: 'k', name: 'pickup_burden', type: 'pick', flag: 'pickup_burden', help: 'max encumbrance for autopickup',
+                  choices: [
+                      { value: 'unencumbered', label: 'unencumbered' },
+                      { value: 'burdened', label: 'burdened' },
+                      { value: 'stressed', label: 'stressed' },
+                      { value: 'strained', label: 'strained' },
+                      { value: 'overtaxed', label: 'overtaxed' },
+                      { value: 'overloaded', label: 'overloaded' },
+                  ] },
+                { key: 'l', name: 'pile_limit', type: 'number', flag: 'pile_limit', help: 'threshold to show pile summary' },
+                { key: 'm', name: 'sortloot', type: 'pick', flag: 'sortloot', help: 'sort items in loot/pickup menus',
+                  choices: [
+                      { value: 'none', label: 'none (unsorted)' },
+                      { value: 'loot', label: 'loot (by type)' },
+                      { value: 'full', label: 'full (alphabetical)' },
+                  ] },
+                { key: 'n', name: 'sortpack', type: 'bool', flag: 'sortpack', help: 'sort inventory by type' },
+            ]
+        }
+    ],
+    advanced3: [
+        {
+            category: 'Display',
+            options: [
+                { key: 'a', name: 'dark_room', type: 'bool', flag: 'dark_room', help: 'darken unlit rooms' },
+                { key: 'b', name: 'DECgraphics', type: 'bool', flag: 'DECgraphics', help: 'use box-drawing characters for walls' },
+                { key: 'c', name: 'lit_corridor', type: 'bool', flag: 'lit_corridor', help: 'show lit corridors distinctly' },
+                { key: 'd', name: 'showdamage', type: 'bool', flag: 'showdamage', help: 'show damage numbers in messages' },
+                { key: 'e', name: 'showscore', type: 'bool', flag: 'showscore', help: 'show score in status' },
+                { key: 'f', name: 'use_darkgray', type: 'bool', flag: 'use_darkgray', help: 'use dark gray instead of blue for black' },
+                { key: 'g', name: 'use_inverse', type: 'bool', flag: 'use_inverse', help: 'use inverse video for pets and piles' },
+            ]
+        },
+        {
+            category: 'System',
+            options: [
+                { key: 'h', name: 'bones', type: 'bool', flag: 'bones', help: 'allow bones files' },
+                { key: 'i', name: 'legacy', type: 'bool', flag: 'legacy', help: 'show introductory message' },
+                { key: 'j', name: 'mail', type: 'bool', flag: 'mail', help: 'enable in-game mail' },
+                { key: 'k', name: 'splash_screen', type: 'bool', flag: 'splash_screen', help: 'show splash screen at start' },
+                { key: 'l', name: 'status_updates', type: 'bool', flag: 'status_updates', help: 'allow status line updates' },
+                { key: 'm', name: 'tombstone', type: 'bool', flag: 'tombstone', help: 'show tombstone on death' },
+                { key: 'n', name: 'travel', type: 'bool', flag: 'travel', help: 'allow travel command' },
+                { key: 'o', name: 'tutorial', type: 'bool', flag: 'tutorial', help: 'show tutorial option at game start' },
             ]
         }
     ],
@@ -1614,7 +1724,7 @@ const OPTIONS_DATA = {
 };
 
 const HELP_OPTIONS_PER_PAGE = 5;
-const HELP_TOTAL_PAGES = 5;
+// HELP_TOTAL_PAGES is now computed dynamically in getTotalPages()
 
 function clampPage(page, min, max) {
     const n = Number.isFinite(page) ? Math.trunc(page) : min;
@@ -1623,12 +1733,20 @@ function clampPage(page, min, max) {
     return n;
 }
 
-function flattenOptions() {
+// All page arrays in display order.  Advanced pages are appended when showAdvanced.
+const ALL_PAGES = [
+    { number: 1, categories: OPTIONS_DATA.page1 },
+    { number: 2, categories: OPTIONS_DATA.page2 },
+];
+const ADVANCED_PAGES = [
+    { number: 3, categories: OPTIONS_DATA.advanced1 },
+    { number: 4, categories: OPTIONS_DATA.advanced2 },
+    { number: 5, categories: OPTIONS_DATA.advanced3 },
+];
+
+function flattenOptions(includeAdvanced) {
+    const pages = includeAdvanced ? [...ALL_PAGES, ...ADVANCED_PAGES] : ALL_PAGES;
     const out = [];
-    const pages = [
-        { number: 1, categories: OPTIONS_DATA.page1 },
-        { number: 2, categories: OPTIONS_DATA.page2 }
-    ];
     for (const page of pages) {
         for (const category of page.categories) {
             for (const option of category.options) {
@@ -1639,11 +1757,13 @@ function flattenOptions() {
     return out;
 }
 
-const FLAT_OPTIONS = flattenOptions();
+const FLAT_OPTIONS = flattenOptions(false);
+const FLAT_OPTIONS_ALL = flattenOptions(true);
 
 export function getTotalPages(showHelp, showAdvanced) {
-    if (showHelp) return HELP_TOTAL_PAGES;
-    return showAdvanced ? 3 : 2;
+    const flat = showAdvanced ? FLAT_OPTIONS_ALL : FLAT_OPTIONS;
+    if (showHelp) return Math.ceil(flat.length / HELP_OPTIONS_PER_PAGE);
+    return showAdvanced ? ALL_PAGES.length + ADVANCED_PAGES.length : ALL_PAGES.length;
 }
 
 export function normalizeOptionsPage(page, showHelp, showAdvanced) {
@@ -1652,25 +1772,25 @@ export function normalizeOptionsPage(page, showHelp, showAdvanced) {
 
 export function getVisibleOptions(page, showHelp, showAdvanced) {
     if (!showHelp) {
-        let categories;
-        if (page === 3 && showAdvanced) categories = OPTIONS_DATA.advanced;
-        else if (page === 2) categories = OPTIONS_DATA.page2;
-        else categories = OPTIONS_DATA.page1;
+        const allPages = showAdvanced ? [...ALL_PAGES, ...ADVANCED_PAGES] : ALL_PAGES;
+        const pageData = allPages.find(p => p.number === page) || allPages[0];
         const out = [];
-        for (const category of categories) {
+        for (const category of pageData.categories) {
             for (const option of category.options) {
-                out.push({ ...option, category: category.category, page });
+                out.push({ ...option, category: category.category, page: pageData.number });
             }
         }
         return out;
     }
 
-    const normalizedPage = normalizeOptionsPage(page, true);
+    const flat = showAdvanced ? FLAT_OPTIONS_ALL : FLAT_OPTIONS;
+    const totalPages = getTotalPages(true, showAdvanced);
+    const normalizedPage = normalizeOptionsPage(page, true, showAdvanced);
     const start = (normalizedPage - 1) * HELP_OPTIONS_PER_PAGE;
-    const end = normalizedPage === HELP_TOTAL_PAGES
-        ? FLAT_OPTIONS.length
+    const end = normalizedPage === totalPages
+        ? flat.length
         : start + HELP_OPTIONS_PER_PAGE;
-    return FLAT_OPTIONS.slice(start, end);
+    return flat.slice(start, end);
 }
 
 export function getOptionByKey(page, showHelp, key, showAdvanced) {
@@ -1685,7 +1805,7 @@ export function getOptionByKey(page, showHelp, key, showAdvanced) {
  * @param {object} flags - Current flag values from storage
  * @returns {object} - {screen: string[], attrs: string[]}
  */
-export function renderOptionsMenu(page, showHelp, flags, showAdvanced) {
+export function renderOptionsMenu(page, showHelp, flags, showAdvanced, game) {
     const normalizedPage = normalizeOptionsPage(page, showHelp, showAdvanced);
 
     // C NetHack uses variable-length lines, not fixed 80-char
@@ -1723,8 +1843,9 @@ export function renderOptionsMenu(page, showHelp, flags, showAdvanced) {
 
     let pageData;
     if (!showHelp) {
-        if (normalizedPage === 3 && showAdvanced) pageData = OPTIONS_DATA.advanced;
-        else pageData = normalizedPage === 1 ? OPTIONS_DATA.page1 : OPTIONS_DATA.page2;
+        const allPages = showAdvanced ? [...ALL_PAGES, ...ADVANCED_PAGES] : ALL_PAGES;
+        const found = allPages.find(p => p.number === normalizedPage);
+        pageData = found ? found.categories : allPages[0].categories;
     } else {
         const visibleOptions = getVisibleOptions(normalizedPage, true, showAdvanced);
         pageData = [];
@@ -1741,8 +1862,8 @@ export function renderOptionsMenu(page, showHelp, flags, showAdvanced) {
     // Render each category
     let firstCategory = true;
     for (const category of pageData) {
-        // Blank line before category (except first on page 2 compact view)
-        if (!(normalizedPage === 2 && !showHelp && firstCategory)) {
+        // Blank line before category (except first category on non-page-1 compact view)
+        if (!(normalizedPage >= 2 && !showHelp && firstCategory)) {
             screen[row] = ' '.repeat(20);
             attrs[row] = '0'.repeat(20);
             row += 1;
@@ -1768,7 +1889,7 @@ export function renderOptionsMenu(page, showHelp, flags, showAdvanced) {
             line = line.padEnd(29, ' ');
 
             // Get value
-            const value = getOptionValue(opt, flags);
+            const value = getOptionValue(opt, flags, game);
             line += '[' + value + ']';
 
             // Determine line length based on content
@@ -1832,8 +1953,18 @@ export function renderOptionsMenu(page, showHelp, flags, showAdvanced) {
 /**
  * Get display value for an option
  */
-function getOptionValue(opt, flags) {
-    const flagValue = flags[opt.flag];
+function getOptionValue(opt, flags, game) {
+    let flagValue = flags[opt.flag];
+    // Identity options: show actual player values (flags may be empty after chargen)
+    if (opt.readonly && game) {
+        const p = game.player || game.u;
+        if (p) {
+            if (opt.flag === 'role' && !flagValue) flagValue = p.role || '';
+            else if (opt.flag === 'race' && !flagValue) flagValue = p.raceName || p.race || '';
+            else if (opt.flag === 'gender' && !flagValue) flagValue = p.gender === 0 ? 'male' : p.gender === 1 ? 'female' : '';
+            else if (opt.flag === 'alignment' && !flagValue) flagValue = p.alignStr || '';
+        }
+    }
 
     switch (opt.type) {
         case 'bool':
@@ -1851,6 +1982,16 @@ function getOptionValue(opt, flags) {
                 return '1=on';
             }
             return flagValue ? 'X' : ' ';
+
+        case 'pick': {
+            // Show the label for the current choice, or the raw value
+            const current = String(flagValue || '');
+            if (opt.choices) {
+                const match = opt.choices.find(ch => ch.value === current);
+                return match ? match.label : current || '(default)';
+            }
+            return current || '(default)';
+        }
 
         case 'text':
             // [value]
@@ -1920,7 +2061,7 @@ export function setOptionValue(page, showHelp, key, rawValue, flags) {
         return true;
     }
 
-    if (opt.type === 'text') {
+    if (opt.type === 'text' || opt.type === 'pick') {
         flags[opt.flag] = String(rawValue);
         saveFlags(flags);
         return true;
@@ -1964,13 +2105,13 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
     function applyOptionSideEffects() {
         player.showExp = !!flags.showexp;
         player.showTime = !!flags.time;
-        window.gameFlags = flags;
+        if (typeof window !== 'undefined') window.gameFlags = flags;
     }
 
     async function drawOptions() {
         const normalizedPage = normalizeOptionsPage(currentPage, showHelp, showAdvanced);
         currentPage = normalizedPage;
-        const { screen, attrs } = renderOptionsMenu(normalizedPage, showHelp, flags, showAdvanced);
+        const { screen, attrs } = renderOptionsMenu(normalizedPage, showHelp, flags, showAdvanced, game);
 
         display.clearScreen();
         for (let r = 0; r < display.rows; r++) {
@@ -2024,6 +2165,28 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
             const text = lines[i].substring(0, Math.max(0, display.cols - left));
             const attr = (headerInverse && i === 0) ? 1 : 0;
             await display.putstr(left, i, text, undefined, attr);
+        }
+    }
+
+    async function editPickOption(option) {
+        const choices = option.choices || [];
+        const current = String(flags[option.flag] || '');
+        const lines = [`Set ${option.name}:`, ''];
+        for (let i = 0; i < choices.length; i++) {
+            const letter = String.fromCharCode(97 + i); // a, b, c, ...
+            const mark = choices[i].value === current ? ' *' : '';
+            lines.push(` ${letter} - ${choices[i].label}${mark}`);
+        }
+        lines.push('', '(end)');
+        await renderCenteredList(lines, 30, true);
+
+        const ch = await nhgetch();
+        if (ch === 27) return; // ESC = cancel
+        const idx = ch - 97; // 'a' = 0
+        if (idx >= 0 && idx < choices.length) {
+            flags[option.flag] = choices[idx].value;
+            saveFlags(flags);
+            applyOptionSideEffects();
         }
     }
 
@@ -2390,6 +2553,10 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
         // Check for option selection
         const selected = getOptionByKey(currentPage, showHelp, c, showAdvanced);
         if (selected) {
+            // Read-only options (identity fields during gameplay)
+            if (selected.readonly) {
+                continue;
+            }
             if (selected.flag === 'number_pad') {
                 await editNumberPadModeOption();
                 continue;
@@ -2409,6 +2576,11 @@ export async function handleSet(game, { showAdvanced = false } = {}) {
             if (selected.type === 'bool') {
                 setOptionValue(currentPage, showHelp, c, null, flags);
                 applyOptionSideEffects();
+                continue;
+            }
+
+            if (selected.type === 'pick' && selected.choices) {
+                await editPickOption(selected);
                 continue;
             }
 

@@ -359,7 +359,21 @@ export async function replaySession(seed, opts, keys) {
         // C ref: the C harness captures the tmux screen AFTER the key is
         // fully processed (including deferred_goto which runs inside
         // run_command). Screen capture here reflects the post-command state.
+        // When a command completes (!pendingCommand), C's bot() has run and the
+        // terminal reflects the updated status. Force a renderStatus refresh
+        // to match, since JS only calls renderStatus at explicit boundaries.
         await Promise.resolve();
+        if (!pendingCommand && opts.captureScreens && !game.gameOver) {
+            const player = game.u || game.player;
+            if (player && typeof display.renderStatus === 'function') {
+                display._suppressReplayCaptureRepaint = true;
+                try {
+                    display.renderStatus(player);
+                } finally {
+                    display._suppressReplayCaptureRepaint = false;
+                }
+            }
+        }
         const screenCapture = opts.captureScreens ? captureScreen(display) : '';
         const cursorCapture = captureCursor(display);
 

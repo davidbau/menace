@@ -5,7 +5,7 @@
 
 import { rn2, rnd, d } from './rng.js';
 import {
-  isok,
+  isok, A_STR,
   EXPL_DARK, EXPL_NOXIOUS, EXPL_MUDDY, EXPL_WET, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY, EXPL_MAX,
   MON_EXPLODE, BURNING_OIL, TRAP_EXPLODE,
   MAY_HITMON, MAY_HITYOU, MAY_HIT, MAY_DESTROY, MAY_FRACTURE,
@@ -14,6 +14,7 @@ import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_ACID,
          MR_FIRE, MR_COLD, MR_ELEC,
          mons } from './monsters.js';
 import { WAND_CLASS } from './objects.js';
+import { exercise } from './attrib_exercise.js';
 import { resist } from './zap.js';
 import {
   tmp_at, nh_delay_output,
@@ -126,6 +127,8 @@ export async function explode(x, y, type, dam, olet, expltype, map, player) {
               player.uhp -= damu;
               if (player.uhp < 0) player.uhp = 0;
             }
+            // C ref: explode.c:678 — exercise STR after taking explosion damage
+            exercise(player, A_STR, false);
           }
         }
       }

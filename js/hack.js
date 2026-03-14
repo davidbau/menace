@@ -2,9 +2,7 @@
 // Mirrors hack.c from the C source.
 // domove(), findtravelpath(), lookaround(), etc.
 
-// Lazy-registered function to avoid circular import (zap.js imports from hack.js)
-var _burnarmor = () => false;
-export function registerBurnarmor(fn) { _burnarmor = fn; }
+import { burnarmor, burnarmor_player } from './zap.js';
 
 import { COLNO, ROWNO, STONE, CORR, SDOOR, SCORR, STAIRS, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -30,7 +28,7 @@ import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { rn2, rnd, rn1, rnl, d, c_d, pushRngLogEntry } from './rng.js';
-import { exercise, registerNearCapacity } from './attrib_exercise.js';
+import { exercise } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
@@ -61,6 +59,7 @@ import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, set_msg_
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
+import { trapeffect_bear_trap_you } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -78,6 +77,7 @@ import { envFlag, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
 import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
+import { notake } from './mondata.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -92,6 +92,149 @@ function traceStepWindow() {
         from: Number.isInteger(from) ? from : null,
         to: Number.isInteger(to) ? to : null,
     };
+}
+
+// C ref: pickup.c autopick_testobj() / pickup() filter gate used by post-move
+// and post-level-change floor checks.
+function shouldAutopickupAtCurrentSquare(obj, pickupTypes, costly, game) {
+    const howLost = obj?.how_lost;
+    const wasThrown = howLost === LOST_THROWN;
+    const wasDropped = howLost === LOST_DROPPED;
+    const wasStolen = howLost === LOST_STOLEN;
+    const wasExploding = howLost === LOST_EXPLODING;
+    const droppedNoPick = !!(game.flags?.nopick_dropped || game.flags?.dropped_nopick);
+
+    if ((game.flags?.pickup_thrown && (wasThrown || !!obj?._thrownByPlayer))
+        || (game.flags?.pickup_stolen && wasStolen)) {
+        return true;
+    }
+    if (droppedNoPick && wasDropped) return false;
+    if (wasExploding) return false;
+
+    if (costly && !obj?.no_charge) {
+        return false;
+    }
+    if (!pickupTypes || pickupTypes === '') {
+        return true;
+    }
+
+    const classToSymbol = {
+        [WEAPON_CLASS]: ')',
+        [ARMOR_CLASS]: '[',
+        [RING_CLASS]: '=',
+        [AMULET_CLASS]: '"',
+        [TOOL_CLASS]: '(',
+        [FOOD_CLASS]: '%',
+        [POTION_CLASS]: '!',
+        [SCROLL_CLASS]: '?',
+        [SPBOOK_CLASS]: '+',
+        [WAND_CLASS]: '/',
+        [COIN_CLASS]: '$',
+        [GEM_CLASS]: '*',
+        [ROCK_CLASS]: '`',
+    };
+
+    const symbol = classToSymbol[obj.oclass];
+    return symbol && pickupTypes.includes(symbol);
+}
+
+// C ref: pickup(1) post-step/post-level-change floor handling: engravings,
+// autopickup, then look_here()/single-object message.
+export async function postMoveFloorCheck(player, map, display, game, opts = {}) {
+    const trap = opts.trap || null;
+    const nopick = !!opts.nopick;
+    const suppressAutopick = !!opts.suppressAutopick;
+    const objs = map.objectsAt(player.x, player.y);
+    let pickedUp = false;
+    const costly = costly_spot(player.x, player.y, map);
+    const mdat = player?.polyData || player?.data || null;
+    const inPool = is_pool(player.x, player.y, map) && !player.underwater;
+    const inLava = is_lava(player.x, player.y, map);
+    const canReachFloor = can_reach_floor(player, map, !!(trap && is_pit(trap.ttyp)));
+    let canAutopickThisStep = !!(game.flags?.pickup && !nopick && !suppressAutopick && objs.length > 0);
+    if (canAutopickThisStep && (inPool || inLava || !canReachFloor || (mdat && notake(mdat)))) {
+        canAutopickThisStep = false;
+    }
+
+    if (canAutopickThisStep) {
+        const gold = objs.find(o => o.oclass === COIN_CLASS);
+        if (gold && shouldAutopickupAtCurrentSquare(gold, '', costly, game)) {
+            player.addToInventory(gold);
+            map.removeObject(gold);
+            await display.putstr_message(formatGoldPickupMessage(gold, player));
+            pickedUp = true;
+        }
+    }
+
+    if (canAutopickThisStep) {
+        const pickupTypes = game.flags?.pickup_types || '';
+        const obj = objs.find(o => o.oclass !== COIN_CLASS
+            && shouldAutopickupAtCurrentSquare(o, pickupTypes, costly, game));
+        if (obj) {
+            observeObject(obj);
+            const addResult = player.addToInventory(obj, { withMeta: true });
+            const inventoryObj = addResult.item;
+            map.removeObject(obj);
+            if (addResult.discoveredByCompare) {
+                await display.putstr_message('You learn more about your items by comparing them.');
+            }
+            await display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
+            pickedUp = true;
+        }
+    }
+
+    if (!is_lava(player.x, player.y, map)
+        && !(is_pool(player.x, player.y, map) && !player.underwater)) {
+        await read_engr_at(map, player.x, player.y, player, game);
+    }
+
+    if (!pickedUp && objs.length > 0) {
+        const blind = !!player?.blind;
+        const verb = blind ? 'feel' : 'see';
+
+        // C ref: invent.c:4185-4218 — blind preamble before showing objects
+        if (blind) {
+            const loc = map.at ? map.at(player.x, player.y) : null;
+            const cantReach = !can_reach_floor(player, map, false);
+            if (cantReach) {
+                await display.putstr_message('You try to feel what is lying beneath you.');
+                await display.putstr_message("But you can't reach it!");
+                // C returns ECMD_TIME here
+            } else {
+                const surfName = (loc?.typ === ICE) ? 'ice' : 'floor';
+                const where = `lying here on the ${surfName}`;
+                await display.putstr_message(`You try to feel what is ${where}.`);
+                await more(display, {
+                    site: 'hack.postMoveFloorCheck.blindLook.morePrompt',
+                    forceVisual: true,
+                });
+            }
+        }
+
+        if (objs.length === 1) {
+            const dfeature = dfeature_at(player.x, player.y, map, {
+                depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
+                dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
+            });
+            if (dfeature) {
+                await display.putstr_message(`There is ${an(dfeature)} here.`);
+            }
+            const seen = objs[0];
+            if (seen.oclass === COIN_CLASS) {
+                const count = seen.quan || 1;
+                if (count === 1) {
+                    await display.putstr_message(`You ${verb} here a gold piece.`);
+                } else {
+                    await display.putstr_message(`You ${verb} here ${count} gold pieces.`);
+                }
+            } else {
+                observeObject(seen);
+                await display.putstr_message(`You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`);
+            }
+        } else {
+            await look_here(player, map, objs.length);
+        }
+    }
 }
 
 function parseTraceStep(args) {
@@ -919,6 +1062,7 @@ export async function domove_core(dir, player, map, display, game) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
             // C ref: doopen_indir (lock.c) — update vision and display
             recalc_block_point(nx, ny);
+            vision_recalc();
             newsym(nx, ny);
             await display.putstr_message("The door opens.");
             domoveNotime('closed-door-autoopen-opened');
@@ -928,6 +1072,16 @@ export async function domove_core(dir, player, map, display, game) {
             domoveNotime('closed-door-autoopen-resisted');
         }
         return { moved: false, tookTime: false };
+    }
+    // C ref: hack.c:2800-2823 — order is u_rooted, utrap, then test_move.
+    if (await u_rooted(player, display, game)) {
+        domoveNotime('u-rooted');
+        return { moved: false, tookTime: false };
+    }
+    if (player.utrap) {
+        const moved = await trapmove(player, nx, ny, display, map);
+        // C ref: hack.c trapmove() — failed escape attempt still uses a turn.
+        if (!moved) return { moved: false, tookTime: true };
     }
     if (!await test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
         // C ref: hack.c:2824-2829 — when test_move fails, C sets
@@ -946,15 +1100,6 @@ export async function domove_core(dir, player, map, display, game) {
         nomul(0, game);
         domoveNotime('swim-move-danger');
         return { moved: false, tookTime: false };
-    }
-    if (await u_rooted(player, display, game)) {
-        domoveNotime('u-rooted');
-        return { moved: false, tookTime: false };
-    }
-    if (player.utrap) {
-        const moved = await trapmove(player, nx, ny, display, map);
-        // C ref: hack.c trapmove() — failed escape attempt still uses a turn.
-        if (!moved) return { moved: false, tookTime: true };
     }
     loc = map.at(nx, ny);
     const steppingTrap = map.trapAt(nx, ny);
@@ -1141,8 +1286,12 @@ export async function domove_core(dir, player, map, display, game) {
             await display.putstr_message('A tower of flame erupts from the floor!');
             await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player, display, game);
             // C ref: burnarmor(&youmonst) || rn2(3)
-            if (!_burnarmor(player, player)) rn2(3);
+            if (!(await burnarmor_player(player, player))) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
+        }
+        // C ref: trap.c:1468 trapeffect_bear_trap — hero branch
+        else if (trap.ttyp === BEAR_TRAP) {
+            await trapeffect_bear_trap_you(trap, 0, player, game, map);
         }
         // C ref: trap.c trapeffect_pit() — set trap timeout and apply damage.
         else if (trap.ttyp === PIT || trap.ttyp === SPIKED_PIT) {
@@ -1250,60 +1399,7 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
-    // Helper function: Check if object class matches pickup_types string
-    // C ref: pickup.c pickup_filter() and flags.pickup_types
-    function shouldAutopickup(obj, pickupTypes, costly) {
-        const howLost = obj?.how_lost;
-        const wasThrown = howLost === LOST_THROWN;
-        const wasDropped = howLost === LOST_DROPPED;
-        const wasStolen = howLost === LOST_STOLEN;
-        const wasExploding = howLost === LOST_EXPLODING;
-        const droppedNoPick = !!(game.flags?.nopick_dropped || game.flags?.dropped_nopick);
-
-        // C ref: pickup.c autopick_testobj() loss-state overrides.
-        if ((game.flags?.pickup_thrown && (wasThrown || !!obj?._thrownByPlayer))
-            || (game.flags?.pickup_stolen && wasStolen)) {
-            return true;
-        }
-        if (droppedNoPick && wasDropped) return false;
-        if (wasExploding) return false;
-
-        // C ref: pickup.c autopick_testobj() — reject unpaid floor items in shops.
-        if (costly && !obj?.no_charge) {
-            return false;
-        }
-        // If pickup_types is empty, pick up all non-gold items (backward compat)
-        if (!pickupTypes || pickupTypes === '') {
-            return true;
-        }
-
-        // Map object class to symbol character
-        const classToSymbol = {
-            [WEAPON_CLASS]: ')',
-            [ARMOR_CLASS]: '[',
-            [RING_CLASS]: '=',
-            [AMULET_CLASS]: '"',
-            [TOOL_CLASS]: '(',
-            [FOOD_CLASS]: '%',
-            [POTION_CLASS]: '!',
-            [SCROLL_CLASS]: '?',
-            [SPBOOK_CLASS]: '+',
-            [WAND_CLASS]: '/',
-            [COIN_CLASS]: '$',
-            [GEM_CLASS]: '*',
-            [ROCK_CLASS]: '`',
-        };
-
-        const symbol = classToSymbol[obj.oclass];
-        return symbol && pickupTypes.includes(symbol);
-    }
-
-    // Autopickup — C ref: hack.c:3265 pickup(1)
-    // C ref: pickup.c pickup() checks flags.pickup && !context.nopick
     const objs = map.objectsAt(nx, ny);
-    let pickedUp = false;
-
-    const costly = costly_spot(nx, ny, map);
 
     // C ref: pickup.c pickup() — running into objects stops running before
     // autopick processing (which can suppress pickup on this step).
@@ -1312,85 +1408,11 @@ export async function domove_core(dir, player, map, display, game) {
         nomul(0, game);
         suppressAutopickThisStep = true;
     }
-
-    const mdat = player?.polyData || player?.data || null;
-    const inPool = is_pool(player.x, player.y, map) && !player.underwater;
-    const inLava = is_lava(player.x, player.y, map);
-    const canReachFloor = can_reach_floor(player, map, !!(trap && is_pit(trap.ttyp)));
-    let canAutopickThisStep = !!(game.flags?.pickup && !nopick && !suppressAutopickThisStep && objs.length > 0);
-    if (canAutopickThisStep && (inPool || inLava || !canReachFloor || (mdat && notake(mdat)))) {
-        canAutopickThisStep = false;
-    }
-
-    // Pick up gold first if autopickup is enabled
-    // C ref: pickup.c pickup() — autopickup gate applies to ALL items including gold
-    if (canAutopickThisStep) {
-        const gold = objs.find(o => o.oclass === COIN_CLASS);
-        if (gold && shouldAutopickup(gold, '', costly)) {
-            player.addToInventory(gold);
-            map.removeObject(gold);
-            await display.putstr_message(formatGoldPickupMessage(gold, player));
-            pickedUp = true;
-        }
-    }
-
-    // Then pick up other items if autopickup is enabled
-    // C ref: pickup.c pickup() filters by pickup_types
-    if (canAutopickThisStep) {
-        const pickupTypes = game.flags?.pickup_types || '';
-        const obj = objs.find(o => o.oclass !== COIN_CLASS && shouldAutopickup(o, pickupTypes, costly));
-        if (obj) {
-            observeObject(obj);
-            const addResult = player.addToInventory(obj, { withMeta: true });
-            const inventoryObj = addResult.item;
-            map.removeObject(obj);
-            if (addResult.discoveredByCompare) {
-                await display.putstr_message('You learn more about your items by comparing them.');
-            }
-            await display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
-            pickedUp = true;
-        }
-    }
-
-    // C ref: pickup.c pickup() — engravings come BEFORE items.
-
-    // C ref: read engravings on the current square when not submerged.
-    if (!is_lava(player.x, player.y, map)
-        && !(is_pool(player.x, player.y, map) && !player.underwater)) {
-        await read_engr_at(map, player.x, player.y, player, game);
-    }
-
-    // Show what's here if nothing was picked up
-    // C ref: invent.c look_here() — terrain features (stairs, fountain, doorway)
-    // are shown via dfeature_at() inside look_here(), not via flags.verbose.
-    if (!pickedUp && objs.length > 0) {
-        if (objs.length === 1) {
-            // C ref: invent.c look_here() — show dfeature BEFORE object.
-            const dfeature = dfeature_at(player.x, player.y, map, {
-                depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
-                dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
-            });
-            if (dfeature) {
-                await display.putstr_message(`There is ${an(dfeature)} here.`);
-            }
-            const seen = objs[0];
-            if (seen.oclass === COIN_CLASS) {
-                const count = seen.quan || 1;
-                if (count === 1) {
-                    await display.putstr_message('You see here a gold piece.');
-                } else {
-                    await display.putstr_message(`You see here ${count} gold pieces.`);
-                }
-            } else {
-                observeObject(seen);
-                await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
-            }
-        } else {
-            // C ref: invent.c look_here() — for 2+ objects, C uses a NHW_MENU
-            // popup window ("Things that are here:") that the player dismisses.
-            await look_here(player, map, objs.length);
-        }
-    }
+    await postMoveFloorCheck(player, map, display, game, {
+        trap,
+        nopick,
+        suppressAutopick: suppressAutopickThisStep,
+    });
 
     if (!pitTrap && trap) {
         const trapResult = await applySteppedTrap(trap);
@@ -2373,9 +2395,9 @@ export function calc_capacity(player, xtra_wt) {
 export function near_capacity() {
     const player = arguments[0];
     if (!player) return UNENCUMBERED;
-    return calc_capacity(player, 0);
+    const cap = calc_capacity(player, 0);
+    return cap;
 }
-registerNearCapacity(near_capacity);
 
 // C ref: hack.c max_capacity() — how far over max capacity
 export function max_capacity(player) {
@@ -2852,6 +2874,19 @@ export function nomul(nval, game) {
     if (!game) return;
     if (typeof game.multi !== 'number') game.multi = 0;
     if (game.multi < nval) return; // bug fix from C
+    if (game.multi >= 0 && game.player) {
+        const stepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
+            ? (game.lev || game.map)._replayStepIndex
+            : null;
+        const display = game.display || null;
+        if (display?.messageNeedsMore) {
+            display._deferredBotlAfterPendingFlush = true;
+            display._deferredBotlStepIndex = stepIndex;
+        } else {
+            game.player._botl = true;
+            game.player._botlStepIndex = stepIndex;
+        }
+    }
     game.multi = nval;
     if (nval === 0) {
         game.multi_reason = null;
@@ -2871,12 +2906,6 @@ export async function unmul(msg_override, player, display, game) {
     const msg = game.nomovemsg || '';
     if (msg && display) {
         await display.putstr_message(msg);
-    }
-    // C-faithful moveloop stop: savelife() requests ending movement
-    // progression for this command cycle. If recovery messaging is deferred
-    // until unmul(), assert the same stop signal here.
-    if (msg === 'You survived that attempt on your life.') {
-        game._stopMoveloopAfterLifesave = true;
     }
     game.nomovemsg = null;
     if (player) player.usleep = 0;
@@ -3477,6 +3506,15 @@ export async function losehp(n, knam, k_format, player, display, game) {
         pushRngLogEntry(`^losehp_in[n=${n | 0} hp=${hpBefore | 0} knam=${String(knam || '')} kf=${k_format | 0}]`);
     }
     end_running(true, game);
+    // C ref: hack.c losehp() sets disp.botl before mutating HP.
+    // JS status updates are deferred via player._botl and flushed at the
+    // next message/display boundary.
+    if (player) {
+        player._botl = true;
+        player._botlStepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
+            ? (game.lev || game.map)._replayStepIndex
+            : null;
+    }
 
     if (player.upolyd) {
         player.mh = (player.mh || 0) - n;
@@ -3516,7 +3554,9 @@ export async function losehp(n, knam, k_format, player, display, game) {
         }
         await urgent_pline('You die...');
         if (game) {
-            const { done } = await import('./end.js');
+            const { done, setKillerName, setKillerFormat } = await import('./end.js');
+            setKillerFormat(k_format);
+            setKillerName(knam || '');
             await done(DIED, game);
         }
     } else if (n > 0 && player.uhp * 10 < player.uhpmax) {
@@ -3709,6 +3749,8 @@ export async function dosinkfall(player, map, display) {
     const con = acurr(player, A_CON);
     const dmg = rn1(8, 25 - con); // C: rn1(8, 25-ACURR(A_CON))
     await losehp(dmg, "fell onto a sink", KILLED_BY, player, display, _gstate);
+    // C ref: hack.c:853 — exercise CON after falling on weapon in sink
+    await exercise(player, A_CON, false);
     await exercise(player, A_DEX, false);
 }
 
@@ -3796,7 +3838,7 @@ export async function getdir(prompt, display) {
     if (display && dirPrompt) {
         await display.putstr_message(dirPrompt);
         if (typeof display.setCursor === 'function') {
-            display.setCursor(Math.min(dirPrompt.length, (display.cols || 80) - 1), 0);
+            display.setCursor(Math.min(dirPrompt.length + 1, (display.cols || 80) - 1), 0);
         }
     }
     const ch = await nhgetch();

@@ -168,10 +168,10 @@ don't follow the same 1:1 C→JS mapping pattern.
 ### Summary
 
 - **Total C files**: 129
-- **N/A (system/platform)**: 24
-- **Game logic files**: 105
-- **Complete (`[x]`)**: 4
-- **Aligned (`[a]`)**: 98
+- **N/A (system/platform)**: 22
+- **Game logic files**: 107
+- **Complete (`[x]`)**: 5
+- **Aligned (`[a]`)**: 99
 - **Present (`[p]`)**: 0
 - **Needs alignment (`[~]`)**: 3
 - **No JS file yet (`[ ]`)**: 0
@@ -300,9 +300,52 @@ This section is generated from source symbol tables and includes function rows f
 
 ### Function-Level Metrics
 
-- **Raw rows (all files)**: `5058` total, `649` missing (**12.83% left**)
-- **Gameplay rows only**: `4393` total, `28` missing (**0.64% left**)
-- **Excluded non-gameplay rows**: `665` rows under `[N/A]` files
+- **Raw rows (all files)**: `4400` total, `621` missing (**14.1%** — all in N/A system files)
+- **Gameplay rows only**: `3779` total, `0` missing (**0.0% left**)
+  - Implemented: `3297` (87.2%)
+  - N/A (C-specific within gameplay files): `337` (8.9%)
+  - Partial: `129` (3.4%)
+  - Stub: `16` (0.4%)
+- **Excluded non-gameplay rows**: `621` rows under `[N/A]` files
+
+### Why 197K JS Lines vs 420K C Lines
+
+The JS port is substantially smaller than the C source for structural reasons
+that persist even at full coverage:
+
+1. **Headers (~50K+ lines)** — `.h` files with struct definitions, externs,
+   macros, `#ifdef` guards have no JS equivalent (ES modules handle exports)
+2. **Platform/windowing (~80K+ lines)** — C has `win/tty/`, `win/X11/`,
+   `win/Qt/`, `win/curses/`, `sys/unix/`, `sys/windows/`, etc. JS needs one
+   display backend
+3. **Build system and glue** — `Makefile.*`, `makedefs.c`, `dlb.c`, `alloc.c`
+   don't exist in JS
+4. **Lua runtime** — C embeds a full Lua interpreter; JS converts `.lua` level
+   scripts to native modules
+5. **Language verbosity** — pointer manipulation, manual memory management,
+   `struct` boilerplate, explicit `switch` dispatch collapse in JS
+
+The 621 "Missing" rows are all in N/A system files (memory allocation, file I/O,
+Lua bindings, save file structures, etc.) that have no JS equivalent by design.
+
+### C Line Breakdown
+
+| Category | Lines | Notes |
+|----------|------:|-------|
+| Gameplay `src/*.c` | 227,186 | Core game logic — ported to JS |
+| N/A system `src/*.c` | 21,633 | `alloc.c`, `files.c`, `dlb.c`, etc. — no JS equivalent |
+| Headers `include/*.h` | 30,782 | Structs, externs, macros — handled by ES module exports |
+| Windowing `win/**` | 55,573 | tty, X11, Qt, curses backends — JS needs only one |
+| System `sys/**` | 24,707 | Unix, Windows, VMS platform layers — not applicable |
+| Lua `dat/*.lua` | 17,196 | Level scripts — converted to native JS modules |
+| Utilities `util/**` | 8,685 | `makedefs`, `dgn_comp`, `lev_comp` — build tools, N/A |
+| **Total** | **385,762** | |
+
+Of these, ~141K lines (37%) have no JS equivalent by design. The remaining
+~244K lines of gameplay C + Lua correspond to the current ~197K lines of JS,
+a ratio of 0.81× — JS is structurally more compact than C for the same logic.
+Completing the 129 partial + 16 stub functions would add an estimated 3–8K
+lines, bringing the expected final size to roughly **200–205K lines**.
 
 ### Non-Gameplay Blacklist (Excluded From Gameplay %)
 
