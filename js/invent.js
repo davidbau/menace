@@ -1691,6 +1691,17 @@ export function flushGetobjFeedbackBoundary() {
     flush_screen(1);
 }
 
+// Custom getobj()-like loops can use this when they've already established
+// the visible feedback boundary and only need command-tail bookkeeping.
+export function handledGetobjFeedbackResult(overrides = {}) {
+    return {
+        moved: false,
+        tookTime: false,
+        suppressUntimedTailRender: true,
+        ...overrides,
+    };
+}
+
 // C ref: invent.c getobj() — interactive inventory item selection.
 // Matches C behavior: auto-selects if exactly one GETOBJ_SUGGEST item and
 // GETOBJ_PROMPT flag is not set; otherwise prompts via nhgetch().

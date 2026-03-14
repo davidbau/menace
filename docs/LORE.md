@@ -11523,3 +11523,43 @@ Validation:
 - Practical lesson:
   - repaint parity should be explained with owner semantics, not vague boundary language.
   - when C makes `--More--` visible on a different row, JS must transfer cursor ownership to that exact visible marker.
+
+## 2026-03-14: untimed getobj feedback should suppress only the autosave-tail repaint
+
+- Context:
+  - In repaint-parity session
+    [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json),
+    step `417` was still mismatching after the read prompt gained the correct C-style `getobj()` feedback boundary.
+  - Expected repaint sequence for the invalid-read rejection was:
+    - `flush(botl=1)`
+    - `bot`
+    - `flush("That is a silly thing to read.")`
+  - JS emitted one extra trailing `flush` after that.
+
+- Root cause:
+  - The matched third repaint was the normal untimed `postRender()` flush.
+  - The extra fourth repaint came from the shared
+    [`renderAndAutosave()`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js)
+    untimed tail.
+  - Broad duplicate-tail suppression was wrong because step `18` still legitimately needs both command-tail flushes.
+
+- Fix:
+  - Added
+    [`handledGetobjFeedbackResult()`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    for custom `getobj()`-like loops that have already established the visible feedback boundary.
+  - That helper returns an untimed command result with
+    `suppressUntimedTailRender: true`.
+  - [`renderAndAutosave()`](/share/u/davidbau/git/mazesofmenace/mazes/js/allmain.js)
+    now honors that flag by skipping the duplicate untimed repaint while still scheduling autosave.
+
+- Validation:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+    - step `417` now matches exactly
+    - first repaint divergence moved to step `429`
+    - gameplay parity stayed fully green
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - still fully green
+
+- Practical lesson:
+  - When a command-local prompt loop performs its own C-faithful untimed feedback flush,
+    the remaining command tail should suppress only the duplicate autosave render, not the normal `postRender()` boundary.

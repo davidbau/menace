@@ -2351,6 +2351,16 @@ export class NetHackGame {
         forceRender = false,
     } = {}) {
         const terminalScreenOwned = !!commandResult?.terminalScreenOwned || !!this._terminalScreenOwnedByInput;
+        const suppressUntimedTailRender = !forceRender
+            && !terminalScreenOwned
+            && !!commandResult?.suppressUntimedTailRender
+            && !commandResult?.tookTime;
+        if (suppressUntimedTailRender) {
+            if (autosave && !this.gameOver) {
+                scheduleAutosave(this); // fire-and-forget crash recovery save
+            }
+            return;
+        }
         if (!forceRender && !terminalScreenOwned && !commandResult?.tookTime && this.display?.messageNeedsMore && !this.player?._botl) {
             flush_screen(1);
             return;

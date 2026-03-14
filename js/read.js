@@ -64,6 +64,7 @@ import {
     compactInvletPromptChars,
     markGetobjSelectionBoundary,
     flushGetobjFeedbackBoundary,
+    handledGetobjFeedbackResult,
 } from './invent.js';
 // nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
@@ -580,7 +581,7 @@ async function handleRead(player, display, game) {
             replacePromptMessage();
             flushGetobjFeedbackBoundary();
             await display.putstr_message('That is a silly thing to read.');
-            return { moved: false, tookTime: false };
+            return handledGetobjFeedbackResult();
         }
         // C/getobj-style invalid invlet boundary:
         // show error, block at --More--, then reveal prompt again.
