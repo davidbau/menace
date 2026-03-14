@@ -109,8 +109,11 @@ export function movecm(cmd) {
 }
 
 // C ref: nomul(n) — set multi to n, stopping multiple moves
+// C: returns early if multi < 0 (can't interrupt sleep/paralysis)
 export function nomul(n) {
+  if (game.multi < 0) return;
   game.multi = n;
+  game.flags.mv = 0;
 }
 
 // C ref: domove() — execute one step in dx/dy direction
@@ -454,6 +457,7 @@ export async function parse() {
   // Clear message after all digit reads (matches C: home(); cl_end(); after while loop)
   if (game.flags.topl) {
     game.display.moveCursor(1, 1);
+    game.curx = 1; game.cury = 1;  // keep game cursor state in sync with display
     game.display.clearToEol();
   }
   game.flags.mdone = game.flags.topl = game.oldux = game.olduy = 0;
