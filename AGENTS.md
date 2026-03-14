@@ -37,6 +37,18 @@ Required routine (normalize this behavior):
 3. Treat every newly exposed divergence as a core gameplay blocker to fix.
 4. Stay on that session until parity bugs are resolved (or clearly blocked and
    tracked), then repeat with a new aggressive session concept.
+5. Do not let observability/debug campaigns drift without feeding the coverage
+   pipeline:
+   - if a diagnostic sub-campaign produces no pending-session promotion and no
+     new C-recorded pending session within a small batch of validated commits,
+     return to session generation or pending-session bring-up immediately
+   - diagnostics are successful only when they unblock promotion, new coverage,
+     or clearly blocked issue work with concrete evidence
+6. After any meaningful parity-fix batch, re-anchor on coverage:
+   - ask which pending session can now be promoted
+   - or which low-coverage file should get the next high-yield C-recorded
+     session
+   - do not treat local first-divergence improvement as the end goal by itself
 
 Read `docs/COVERAGE.md` for the full mandatory workflow, commands, and
 session lifecycle rules. **Code fixes without corresponding coverage
@@ -193,6 +205,11 @@ When running rebuilds/regenerations that can take several minutes:
 14. Pending bring-up workflow: run `session_test_runner` first to get the
    authoritative first divergence, then use `rng_step_diff`/mapdump tools only
    for focused drilldown.
+15. A parity-only fix stream is incomplete unless it reconnects to coverage:
+   - promote the newly green pending session in the same cycle when feasible
+   - otherwise leave an explicit next-step trail: which pending session is now
+     closer to promotion, or which new session should be recorded next because
+     of the fix
 
 ## Agent Work Rules (Selfplay)
 These rules apply to coding work focused on selfplay agent quality.
