@@ -511,7 +511,11 @@ export function formatStatusLine2(player) {
     else if (player.hunger <= 150) parts.push('Weak');
     else if (player.hunger <= 300) parts.push('Hungry');
     // C ref: botl.c bot() computes near_capacity() live every status redraw.
-    const enc = near_capacity(player);
+    // Use cached player.encumbrance when available (set by encumber_msg at
+    // turn boundaries and by --More-- snapshot restore) so the status line
+    // matches C's timing — C's bot() fires mid-command while JS renders
+    // after command completion when inventory weight may already have changed.
+    const enc = Number.isFinite(player.encumbrance) ? player.encumbrance : near_capacity(player);
     if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
         const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));
