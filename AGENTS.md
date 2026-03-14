@@ -77,8 +77,20 @@ Historical/reference docs:
 ## Regression/Progress Standard (Current Phase)
 1. A change is a **regression** if it moves first divergence earlier on any parity channel (`PRNG`, `events`, or `screen`) for a session that was previously better.
 2. A change is **progress** if it moves first divergence later (or fully green) on one or more parity channels without causing larger regressions elsewhere.
-3. Treat boundary-only capture artifacts as neutral unless they clearly shift true gameplay parity.
+3. Treat boundary-only capture artifacts as neutral only when repaint-parity evidence shows the mismatch is ownership/capture timing rather than gameplay-visible behavior.
 4. Use per-session first-divergence step movement as the decision signal for go/no-go commits.
+
+## Repaint Parity Discipline
+1. For `screen` or `cursor` mismatches, do not rely on vague "boundary artifact" explanations.
+2. Use `docs/REPAINT_PARITY.md` and repaint diagnostics to identify the concrete owner of the visible change:
+   - `flush_screen(...)`
+   - `bot()` / `renderStatus(...)`
+   - `more()`
+   - prompt owners such as `yn_function()` / `ynFunction()` and `getlin()`
+3. Frame the question precisely: "when did C make this state visible, and which repaint owner did it?"
+4. Prefer explicit repaint/cursor ownership evidence (`^repaint[...]`, step-local repaint diffs, prompt-owner traces) over informal reasoning about async boundaries.
+5. Do not patch screen/cursor behavior speculatively. If the first divergence is visible output only, localize it with repaint traces before changing core JS.
+6. Repaint work is still core parity work: fix JS display/runtime ownership, not the comparator, replay harness, or session artifacts.
 
 ## Non-Negotiable Engineering Rules
 1. Fix behavior in core JS game code, not by patching comparator/harness logic.
