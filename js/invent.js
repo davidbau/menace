@@ -1865,8 +1865,7 @@ export function not_fully_identified(obj) {
 
 // C ref: invent.c fully_identify_obj() — fully identify an object
 export function fully_identify_obj(otmp) {
-    const od = objectData[otmp.otyp];
-    if (od) od.name_known = true; // makeknown
+    discoverObject(otmp.otyp, true, true);  // C ref: makeknown → discover_object → exercise(A_WIS)
     otmp.known = true;
     otmp.bknown = true;
     otmp.rknown = true;

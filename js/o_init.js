@@ -471,10 +471,12 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
     if ((!ocNameKnown[otyp] && markAsKnown) || (!ocEncountered[otyp] && markAsEncountered)) {
         pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
-        if (!ocNameKnown[otyp] && markAsKnown) ocNameKnown[otyp] = true;
+        const newlyKnown = !ocNameKnown[otyp] && markAsKnown;
+        if (newlyKnown) ocNameKnown[otyp] = true;
         // C ref: o_init.c:474-477 — when a name transitions unknown->known,
         // exercise wisdom iff credit_hero (creditClue in JS) is true.
-        if (creditClue && markAsKnown) {
+        // Gate on newlyKnown: only fire when name was not already known.
+        if (creditClue && newlyKnown) {
             const player = _gstate?.u || _gstate?.player || null;
             if (player) exercise(player, A_WIS, true);
         }
