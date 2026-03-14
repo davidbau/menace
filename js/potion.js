@@ -849,6 +849,8 @@ export async function peffect_healing(player, otmp, display) {
     await You_feel("better.");
     const heal = 8 + c_d(4 + (2 * bcsign), 4);
     await healup(player, heal, !otmp.cursed ? 1 : 0, !!otmp.blessed, !otmp.cursed);
+    // C ref: potion.c peffect_healing() sets context.botl = 1
+    player._botl = true;
     await exercise(player, A_CON, true);
     return false;
 }
@@ -859,6 +861,8 @@ export async function peffect_extra_healing(player, otmp, display) {
     const heal = 16 + c_d(4 + (2 * bcsign), 8);
     const nxtra = otmp.blessed ? 5 : (!otmp.cursed ? 2 : 0);
     await healup(player, heal, nxtra, !otmp.cursed, true);
+    // C ref: potion.c peffect_extra_healing() sets context.botl = 1
+    player._botl = true;
     await make_hallucinated(player, 0, true);
     await exercise(player, A_CON, true);
     await exercise(player, A_STR, true);
@@ -871,6 +875,8 @@ export async function peffect_full_healing(player, otmp, display) {
     const bcsign = otmp.blessed ? 1 : (otmp.cursed ? -1 : 0);
     await You_feel("completely healed.");
     await healup(player, 400, 4 + 4 * bcsign, !otmp.cursed, true);
+    // C ref: potion.c peffect_full_healing() sets context.botl = 1
+    player._botl = true;
     // C: blessed restores one lost level via pluslvl(FALSE)
     if (otmp.blessed && player.ulevel < (player.ulevelmax || player.ulevel)) {
         player.ulevelmax = (player.ulevelmax || player.ulevel) - 1;

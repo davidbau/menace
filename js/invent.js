@@ -1883,8 +1883,8 @@ export function fully_identify_obj(otmp) {
 export async function identify(otmp, player) {
   fully_identify_obj(otmp);
   await prinv( 0, otmp, 0);
-  // C ref: invent.c:2650 — exercise wisdom for successful identification
-  if (player) await exercise(player, A_WIS, true);
+  // C ref: invent.c:2650 — C's identify() does NOT call exercise().
+  // The exercise(A_WIS) call belongs in seffects() after identification completes.
   return 1;
 }
 
