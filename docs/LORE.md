@@ -11017,3 +11017,31 @@ Validation:
 - Practical lesson:
   - Routing combat damage away from `losehp()` is fine, but the replacement path still has to carry all visible C side effects.
   - For replay parity, `disp.botl`/`_botl` is not optional bookkeeping; it is part of the user-visible semantics of the death prompt boundary.
+
+## 2026-03-14: shopkeeper capital must enter `minvent`, not just burn RNG
+
+- Context:
+  - While triaging [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json), the earlier mapdump checkpoint `d0l3_002` diverged in section `N`.
+  - The only field mismatch was shopkeeper monster `136`'s trailing `minventCount`:
+    - JS: `3`
+    - C: `4`
+  - C snapshot data showed the missing fourth item was the shopkeeper's gold stack (`minvgold: 3550`).
+
+- Root cause:
+  - [`js/shknam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/shknam.js) had a local `mkmonmoney(amount)` helper that only called `mksobj(GOLD_PIECE, false, false)` for RNG alignment.
+  - That consumed the object-id RNG but never attached the gold object to `shk.minvent`.
+  - C `shknam.c` calls `mkmonmoney(shk, amount)`, and the real helper adds the gold stack to the monster inventory.
+
+- Fix:
+  - [`js/shknam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/shknam.js)
+    - import and use [`mkmonmoney(mon, amount)` from `js/makemon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/makemon.js)
+    - remove the local stub helper
+    - call `mkmonmoney(shk, capital)` during shopkeeper initialization
+
+- Result:
+  - `dbgmapdump ... --steps 572 --c-side --compare-sections N` now reports `Compare summary (N): 1/1 step(s) match`.
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) remains green.
+
+- Practical lesson:
+  - RNG-aligned stubs in setup code are dangerous even when they appear harmless.
+  - For monster inventory helpers, "consume the same RNG" is not enough; the object has to land in `minvent` or later state/mapdump parity will drift.

@@ -21,7 +21,7 @@ import {
 } from './objects.js';
 import { ROOM, SHOPBASE, ROOMOFFSET, SDOOR, DOOR, CORR,
          D_NODOOR, D_ISOPEN, D_TRAPPED, D_LOCKED, NO_MM_FLAGS } from './const.js';
-import { makemon, mkclass, mongets } from './makemon.js';
+import { makemon, mkclass, mongets, mkmonmoney } from './makemon.js';
 import { mksobj, mkobj } from './mkobj.js';
 import { PM_SHOPKEEPER, S_MIMIC } from './monsters.js';
 import { placeFloorObject } from './invent.js';
@@ -435,17 +435,6 @@ function stock_room_goodpos(sroom, sh, sx, sy, map) {
 }
 
 // ========================================================================
-// mkmonmoney — C ref: shk.c mkmonmoney()
-// Creates gold for a monster: mksobj(GOLD_PIECE, false, false)
-// ========================================================================
-
-function mkmonmoney(amount) {
-    // C ref: mksobj(GOLD_PIECE, FALSE, FALSE) → newobj → rnd(2) for o_id
-    // Then sets quantity. We just call mksobj for RNG alignment.
-    mksobj(GOLD_PIECE, false, false);
-}
-
-// ========================================================================
 // nameshk — C ref: shknam.c:487-554
 // ========================================================================
 
@@ -536,7 +525,7 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
 
     // C ref: shknam.c:682 — mkmonmoney(shk, 1000 + 30 * rnd(100))
     const capital = 1000 + 30 * rnd(100);
-    mkmonmoney(capital);
+    mkmonmoney(shk, capital);
 
     // C ref: shknam.c:683-688 — conditional mongets
     if (shp.shknms === shkrings) {
