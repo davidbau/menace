@@ -29,7 +29,14 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
-import { logRepaint } from './repaint_trace.js';
+import {
+    logRepaint,
+    repaintHp,
+    repaintBotl,
+    repaintBotlx,
+    repaintTimeBotl,
+    repaintToplineState,
+} from './repaint_trace.js';
 import { NetHackGame } from './allmain.js';
 import {
     wallIsVisible,
@@ -1484,15 +1491,25 @@ export class HeadlessDisplay {
     }
 
     flush() {
+        const player = this._lastMapState?.player || activeGame?.player || null;
+        if (player) {
+            logRepaint('mark', {
+                hp: repaintHp(player),
+                topl: repaintToplineState(this),
+                inread: 0,
+                inmore: 0,
+            });
+        }
         // Headless display writes are immediate.
     }
 
     renderStatus(player) {
         if (!player) return;
         logRepaint('bot', {
-            hp: Number.isFinite(player?.uhp) ? player.uhp | 0 : 0,
-            hpmax: Number.isFinite(player?.uhpmax) ? player.uhpmax | 0 : 0,
-            botl: player?._botl ? 1 : 0,
+            hp: repaintHp(player),
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
         });
 
         this.clearRow(STATUS_ROW_1);

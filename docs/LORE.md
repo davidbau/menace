@@ -10986,6 +10986,47 @@ Validation:
   - When hallucination uses display RNG, even a dead local like `const defName = ...` can create a real parity regression if it is evaluated outside the exact C message branch.
   - In combat/message code, build hallucinatory names lazily and only inside the branch that actually prints them.
 
+## 2026-03-14: repaint parity needs exact C schemas before callsite matching is meaningful
+
+- Context:
+  - The new `REPAINT_PARITY` campaign adds `^repaint[...]` diagnostics to the shared replay trace so screen-ownership bugs can be debugged in-step instead of inferred from stale screen diffs.
+  - After rebuilding the C harness and rerecording [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) with `NETHACK_REPAINT_TRACE=1`, gameplay parity was fully green but repaint parity started at `0/1412`.
+
+- Root cause:
+  - JS was already emitting some repaint diagnostics, but its tokens were not structurally comparable to the C patch:
+    - `bot` included `hpmax`, which C does not log
+    - `more` logged message text / `needsMore` instead of C's `topl,row,col`
+    - `yn` logged `choices` instead of C's `topl,def`
+    - JS omitted the C-side `botlx` and `time` fields from `flush`/`bot`
+  - That meant even correctly-placed JS repaint hooks could not compare equal against C.
+
+- Fix:
+  - [`js/repaint_trace.js`](/share/u/davidbau/git/mazesofmenace/game/js/repaint_trace.js)
+    - add shared helpers for canonical repaint fields (`hp`, `botl`, `botlx`, `time`, topline state, cursor row/col)
+  - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/game/js/display.js)
+    - make `flush_screen()` log the same `flush hp=... cursor=... botl=... botlx=... time=...` schema as C
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/game/js/headless.js)
+    - make `renderStatus()` log the same `bot hp=... botl=... botlx=... time=...` schema as C
+    - make headless `flush()` emit `mark hp=... topl=... inread=... inmore=...`
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/game/js/input.js)
+    - make `more()` log the same `more hp=... topl=... row=... col=...` schema as C
+    - make `ynFunction()` log the same `yn hp=... topl=... def=... query=...` schema as C
+
+- Result:
+  - Direct replay comparison on `t11_s744_w_covmax2_gp.session.json` moved from repaint `0/1412` to `62/1412` matched without changing gameplay parity:
+    - RNG `11024/11024`
+    - screens `892/892`
+    - events `1644/1644`
+    - mapdump `3/3`
+  - The first remaining repaint divergence is still early:
+    - expected: `^repaint[flush hp=12 cursor=1 botl=0 botlx=0 time=0]`
+    - actual: `null`
+  - That remaining gap is now about missing/attributed callsites, not incompatible token formats.
+
+- Practical lesson:
+  - For diagnostic parity channels, field vocabulary matters as much as hook placement.
+  - Before chasing repaint timing, make the JS trace lexically comparable to the C trace; otherwise every mismatch is polluted by schema noise.
+
 ## 2026-03-14: mdamageu still needs losehp-style deferred status bookkeeping
 
 - Context:

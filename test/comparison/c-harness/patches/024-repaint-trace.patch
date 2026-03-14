@@ -1,7 +1,7 @@
 diff --git a/include/extern.h b/include/extern.h
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2748,6 +2748,7 @@ extern void midlog_exit_ptr(const char *, const void *, const char *, int, const
+@@ -2747,6 +2747,7 @@
  
  /* Event logging (012-event-logging patch) */
  extern void event_log(const char *, ...) PRINTF_F(1, 2);
@@ -12,7 +12,7 @@ diff --git a/include/extern.h b/include/extern.h
 diff --git a/src/rnd.c b/src/rnd.c
 --- a/src/rnd.c
 +++ b/src/rnd.c
-@@ -35,6 +35,7 @@ static int rng_call_count = 0;
+@@ -32,18 +32,21 @@
  static const char *rng_caller_file = NULL;
  static int rng_caller_line = 0;
  static const char *rng_caller_func = NULL;
@@ -20,7 +20,7 @@ diff --git a/src/rnd.c b/src/rnd.c
  static boolean rng_log_disp = FALSE;
  
  void
-@@ -42,11 +43,13 @@ rng_log_init(void)
+ rng_log_init(void)
  {
      const char *logpath = getenv("NETHACK_RNGLOG");
 +    const char *repaint = getenv("NETHACK_REPAINT_TRACE");
@@ -33,10 +33,13 @@ diff --git a/src/rnd.c b/src/rnd.c
 +    repaint_trace_enabled = (repaint && *repaint && *repaint != '0') ? TRUE : FALSE;
      rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
  }
-@@ -180,6 +183,21 @@ event_log(const char *fmt, ...)
-     fputc('\n', rng_logfile);
- }
  
+@@ -177,6 +180,19 @@
+     vfprintf(rng_logfile, fmt, ap);
+     va_end(ap);
+     fputc('\n', rng_logfile);
++}
++
 +void
 +repaint_log(const char *fmt, ...)
 +{
@@ -48,53 +51,50 @@ diff --git a/src/rnd.c b/src/rnd.c
 +    vfprintf(rng_logfile, fmt, ap);
 +    va_end(ap);
 +    fputs("]\n", rng_logfile);
-+}
-+
- #ifdef USE_ISAAC64
- #include "isaac64.h"
+ }
  
+ #ifdef USE_ISAAC64
 diff --git a/src/botl.c b/src/botl.c
 --- a/src/botl.c
 +++ b/src/botl.c
-@@ -256,6 +256,10 @@ void
+@@ -255,6 +255,9 @@
+ void
  bot(void)
  {
 +    repaint_log("bot hp=%d botl=%d botlx=%d time=%d",
 +                (int) u.uhp, (int) disp.botl, (int) disp.botlx,
 +                (int) disp.time_botl);
-+
      if (gb.bot_disabled)
          return;
      /* dosave() flags completion by setting u.uhp to -1; suppress_map_output()
 diff --git a/src/display.c b/src/display.c
 --- a/src/display.c
 +++ b/src/display.c
-@@ -2213,6 +2213,10 @@ flush_screen(int cursor_on_u)
+@@ -2211,6 +2211,10 @@
+     /* 3.7: don't update map, status, or perm_invent during save/restore */
      if (_suppress_map_output())
          return;
- 
++
 +    repaint_log("flush hp=%d cursor=%d botl=%d botlx=%d time=%d",
 +                (int) u.uhp, cursor_on_u, (int) disp.botl,
 +                (int) disp.botlx, (int) disp.time_botl);
-+
+ 
      if (cursor_on_u == -1)
          delay_flushing = !delay_flushing;
-     if (delay_flushing)
 diff --git a/win/tty/topl.c b/win/tty/topl.c
 --- a/win/tty/topl.c
 +++ b/win/tty/topl.c
-@@ -214,6 +214,10 @@ more(void)
+@@ -214,6 +214,9 @@
          return;
  
      ttyDisplay->inmore++;
 +    repaint_log("more hp=%d topl=%d row=%d col=%d",
 +                (int) u.uhp, (int) ttyDisplay->toplin,
 +                cw ? cw->cury : -1, cw ? cw->curx : -1);
-+
+ 
      if (ttyDisplay->toplin) {
          tty_curs(BASE_WINDOW, cw->curx + 1, cw->cury);
-         if (cw->curx >= CO - 8)
-@@ -389,6 +393,9 @@ tty_yn_function(
+@@ -387,6 +390,9 @@
      char prompt[BUFSZ];
  
      yn_number = 0L;
@@ -107,7 +107,7 @@ diff --git a/win/tty/topl.c b/win/tty/topl.c
 diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 --- a/win/tty/wintty.c
 +++ b/win/tty/wintty.c
-@@ -3719,6 +3719,10 @@ void
+@@ -3716,6 +3716,10 @@
  tty_mark_synch(void)
  {
      HUPSKIP();
@@ -117,3 +117,4 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
 +                ttyDisplay ? ttyDisplay->inmore : -1);
      (void) fflush(stdout);
  }
+ 

@@ -49,7 +49,13 @@ import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
-import { logRepaint } from './repaint_trace.js';
+import {
+    logRepaint,
+    repaintHp,
+    repaintBotl,
+    repaintBotlx,
+    repaintTimeBotl,
+} from './repaint_trace.js';
 export { mark_vision_dirty } from './vision.js';
 
 // Re-export color constants from the canonical source (render.js)
@@ -2536,9 +2542,11 @@ export function flush_screen(cursor_on_u) {
     if (ctx?.display && ctx?.player) {
         const { display, player } = ctx;
         logRepaint('flush', {
+            hp: repaintHp(player),
             cursor: cursor_on_u,
-            hp: Number.isFinite(player?.uhp) ? player.uhp | 0 : 0,
-            botl: player?._botl ? 1 : 0,
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
         });
         if (player._botl) {
             if (typeof display.renderStatus === 'function')
