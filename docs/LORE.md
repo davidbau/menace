@@ -11273,3 +11273,38 @@ Validation:
 - Practical lesson:
   - Another recurring parity bug class is “tentative state that must be rolled back.”
   - If C adds something speculatively and then conditionally ejects it, keeping only the additive half in JS creates late, hard-to-explain state drift.
+
+## 2026-03-14: read prompt repaint ownership is split between prompt entry and follow-up message paths
+
+- Context:
+  - Continuing the `REPAINT_PARITY` campaign on:
+    - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+
+- Finding:
+  - The first repaint miss at step `416` was the read prompt itself:
+    - C emitted:
+      - `^repaint[yn hp=12 topl=0 def=0 query=What do you want to read? [h-lv-z or ?*]]`
+      - `^repaint[flush hp=12 cursor=1 botl=0 botlx=0 time=0]`
+    - JS emitted nothing.
+  - The prompt does not go through `getobj()` here; it is owned by the inline prompt loop in [`js/read.js`](/share/u/davidbau/git/mazesofmenace/game/js/read.js).
+
+- Fix:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/game/js/read.js)
+    - log a `yn`-class repaint entry for the read prompt owner
+    - log a prompt-local `flush` repaint entry immediately after the prompt is displayed
+  - [`js/repaint_trace.js`](/share/u/davidbau/git/mazesofmenace/game/js/repaint_trace.js)
+    - repaint string fields must be emitted unquoted to match the C trace schema
+
+- Validation:
+  - `t11_s744`
+    - gameplay parity remains fully green
+    - repaint first divergence moved:
+      - `416 -> 417`
+    - repaint matched count improved:
+      - `224/1341 -> 235/1341`
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - Repaint prompt ownership is not the same as gameplay prompt implementation.
+  - A `tty_yn_function`-style repaint token can correspond to a prompt owned by a custom command loop, so repaint parity needs owner-class matching, not literal function-name matching.

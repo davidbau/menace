@@ -70,6 +70,14 @@ import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, 
 import { closed_door } from './monmove.js';
 import { is_pool, is_lava } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
+import {
+    logRepaint,
+    repaintBotl,
+    repaintBotlx,
+    repaintHp,
+    repaintTimeBotl,
+    repaintToplineState,
+} from './repaint_trace.js';
 import { create_gas_cloud } from './region.js';
 import { placebc } from './ball.js';
 import { trycall } from './do.js';
@@ -339,7 +347,20 @@ async function handleRead(player, display, game) {
         return await renderOverlayMenuUntilDismiss(display, lines, allInvLetters);
     };
     const showReadPrompt = async () => {
+        logRepaint('yn', {
+            hp: repaintHp(player),
+            topl: repaintToplineState(display),
+            def: 0,
+            query: prompt.trimEnd(),
+        });
         await display.putstr_message(prompt);
+        logRepaint('flush', {
+            hp: repaintHp(player),
+            cursor: 1,
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
+        });
     };
     await showReadPrompt();
     while (true) {

@@ -40,7 +40,7 @@ function truncateText(value, limit = 48) {
 }
 
 function encodeValue(value) {
-    if (typeof value === 'string') return JSON.stringify(truncateText(value));
+    if (typeof value === 'string') return truncateText(value);
     if (typeof value === 'boolean') return value ? '1' : '0';
     if (value == null) return 'null';
     return String(value);
