@@ -2046,7 +2046,11 @@ export function remove_object(obj, map = null) {
     const mapRef = map || _gstate?.lev || _gstate?.map;
     if (!obj || !Array.isArray(mapRef?.objects)) return false;
     const idx = mapRef.objects.indexOf(obj);
-    if (idx >= 0) mapRef.objects.splice(idx, 1);
+    if (idx >= 0) {
+        mapRef.objects.splice(idx, 1);
+        // C ref: harness logs ^remove[otyp,x,y] whenever an object is extracted from the floor
+        pushRngLogEntry(`^remove[${obj.otyp},${obj.ox},${obj.oy}]`);
+    }
     obj.where = OBJ_FREE;
     return idx >= 0;
 }

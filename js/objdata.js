@@ -52,13 +52,34 @@ export function vegetarian(obj) {
 // ========================================================================
 
 // C ref: obj.h — is_indestructible checks
+// C ref: questpgr.c:66 — is_quest_artifact(otmp): is otmp->oartifact == urole.questarti?
+// C's questarti is the artilist INDEX of the role's SPECIFIC quest artifact.
+// NOT all artifacts whose artilist[].role matches the player's role — that's too broad!
+// Magicbane (index 8, role=Wizard) is NOT the Wizard quest artifact (index 33 = Eye of Aethiopica).
+// Map from roleMnum (monsters.js PM_* value) to quest artifact artilist index.
+const _roleToQuestarti = {
+    331: 21,  // Archeologist → The Orb of Detection
+    332: 22,  // Barbarian → The Heart of Ahriman
+    333: 23,  // Caveman → The Sceptre of Might
+    334: 24,  // Healer → The Staff of Aesculapius
+    335: 25,  // Knight → The Magic Mirror of Merlin
+    336: 26,  // Monk → The Eyes of the Overworld
+    337: 27,  // Priest → The Mitre of Holiness
+    338: 28,  // Ranger → The Longbow of Diana
+    339: 29,  // Rogue → The Master Key of Thievery
+    340: 30,  // Samurai → The Tsurugi of Muramasa
+    341: 31,  // Tourist → The Platinum Yendorian Express Card
+    342: 32,  // Valkyrie → The Orb of Fate
+    343: 33,  // Wizard → The Eye of the Aethiopica
+};
+
 export function is_quest_artifact(obj) {
-    // C ref: questpgr.c:66 — checks if obj->oartifact matches role's quest artifact
+    // C ref: questpgr.c:66 — checks if obj->oartifact == urole.questarti
     if (!obj || !obj.oartifact) return false;
-    const entry = artilist[obj.oartifact];
-    if (!entry || entry.role < 0) return false;
     const player = _gstate?.player;
-    return player && entry.role === player.roleMnum;
+    if (!player) return false;
+    const questarti = _roleToQuestarti[player.roleMnum];
+    return questarti !== undefined && obj.oartifact === questarti;
 }
 
 // C ref: zap.c:1456 obj_resists() — check if object resists destruction
