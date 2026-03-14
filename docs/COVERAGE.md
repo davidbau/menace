@@ -116,6 +116,30 @@ them in `test/comparison/sessions/pending/`. Sessions should be **targeted** —
 designed to hit specific branches, commands, or effects in the low-coverage
 files identified in Step 1.
 
+Reconnaissance-first rule:
+- Before recording a branch-dense session, inspect the target C state so you
+  know what is actually present on the level: rooms, room numbers, floor
+  objects, special monsters, shopkeepers, and other branch-relevant context.
+- Use checkpoint/mapdump inspection to design the route deliberately, even when
+  the resulting path depends on information a real player would not know.
+- This is required for high-value sessions through shops, quests, special
+  levels, and other expensive branch-dense areas. Blind probing wastes turns
+  and usually misses the exact codepaths we need.
+- Existing sessions may be replayed and then extended in new directions once
+  reconnaissance identifies uncovered high-yield branches worth exercising.
+
+Useful reconnaissance tooling:
+
+```bash
+# Inspect one compact mapdump checkpoint from a C-recorded session.
+node test/comparison/shop_checkpoint_debug.js <session-or-mapdump> <checkpoint-id> --radius=12
+```
+
+That tool merges compact `O/Q` and `M/N` sections so you can see:
+- shopkeepers and other monsters with ids/coords/state,
+- floor objects with resolved names and object flags,
+- local room-number geometry around the area of interest.
+
 Generation guidance for Step 2:
 - Work one session at a time and optimize it for coverage-per-turn.
 - Keep iterating and extending until additional turns add little new coverage

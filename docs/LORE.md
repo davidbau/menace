@@ -12336,3 +12336,35 @@ Validation:
     - `cursor 103/103`
   - line coverage increased to `57.45%`
   - branch coverage is now `59.46%`, still short of the `60%` threshold
+
+## 2026-03-14 23:55: reconnaissance-first session design is the right way to reach difficult gameplay branches
+
+- Sessions/issues:
+  - `#373`
+  - reconnaissance probes around `/tmp/shopseed700l2.session.json`
+- Problem:
+  - blind session recording wastes turns and misses the branch-dense parts of
+    the game we actually need for Phase 3, especially shops, quests, special
+    levels, and unusual NPC interactions
+  - even when a promising seed/level exists, screen glyphs alone are often not
+    enough to tell which floor squares really contain merchandise, where the
+    live shopkeeper is, or which room/object context will trigger the desired
+    codepath
+- Fix/tooling:
+  - added `test/comparison/shop_checkpoint_debug.js`
+  - it loads a compact mapdump checkpoint from either a session or raw mapdump,
+    merges `O/Q` and `M/N`, and prints:
+    - shopkeepers and other monsters with ids/coords/state
+    - floor objects with resolved names and flags
+    - local room-number geometry around the area of interest
+- Result:
+  - on `seed 700 / dlvl 2`, the tool immediately proved that the target room is
+    a real armor shop with a live shopkeeper at `(8,12)` and floor merchandise
+    stacked across room `3`
+  - that turns the next coverage session from blind probing into deliberate
+    routing through unpaid merchandise, debt, payment, and shopkeeper branches
+- Rule:
+  - for hard-to-explore codepaths, inspect the C checkpoint first and design the
+    session from that knowledge
+  - this same method should be used to build long, high-yield sessions through
+    quests, special levels, shops, and other expensive branch-dense areas
