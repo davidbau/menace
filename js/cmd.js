@@ -25,7 +25,10 @@ import { handleWear, handlePutOn, handleTakeOff, handleRemove, handleRemoveAll, 
 import { which_armor } from './worn.js';
 import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './wield.js';
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
-import { handleInventory, currency, doorganize, display_inventory, renderOverlayMenuUntilDismiss, getobj } from './invent.js';
+import {
+    handleInventory, currency, doorganize, display_inventory, renderOverlayMenuUntilDismiss, getobj,
+    doprwep, doprarm, doprring, dopramulet, doprtool, doprinuse,
+} from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { doinvoke } from './artifact.js';
 import { dodip } from './potion.js';
@@ -319,6 +322,33 @@ export async function rhack(ch, game) {
     if (c === '$') {
         const amount = Number.isFinite(player.gold) ? Math.max(0, Math.floor(player.gold)) : 0;
         await display.putstr_message(`Your wallet contains ${amount} ${currency(amount)}.`);
+        return { moved: false, tookTime: false };
+    }
+
+    // Inventory inspection shortcuts
+    // C ref: invent.c doprwep/doprarm/doprring/dopramulet/doprtool/doprinuse
+    if (c === ')') {
+        await doprwep(player);
+        return { moved: false, tookTime: false };
+    }
+    if (c === '[') {
+        await doprarm(player);
+        return { moved: false, tookTime: false };
+    }
+    if (c === '=') {
+        await doprring(player);
+        return { moved: false, tookTime: false };
+    }
+    if (c === '"') {
+        await dopramulet(player);
+        return { moved: false, tookTime: false };
+    }
+    if (c === '(') {
+        await doprtool(player);
+        return { moved: false, tookTime: false };
+    }
+    if (c === '*') {
+        await doprinuse(player);
         return { moved: false, tookTime: false };
     }
 

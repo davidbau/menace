@@ -12072,3 +12072,34 @@ Validation:
     - cursor `844`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Canonical one-key inventory inspection commands must be live in `cmd.js`
+
+- Problem: after the wizard-identify paging fix, `t11_s754_w_covmax8_gp` still
+  diverged at step `455` because JS treated `)` as an unknown command while C
+  executed the canonical "see weapon" inspection command and printed
+  `a - a blessed +1 quarterstaff (weapon in hands).`
+- Diagnosis:
+  - this was a deployed-runtime command-dispatch gap, not a replay issue
+  - JS already had the underlying C-shaped helpers in
+    [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js):
+    `doprwep()`, `doprarm()`, `doprring()`, `dopramulet()`, `doprtool()`,
+    `doprinuse()`
+  - but [`js/cmd.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/cmd.js)
+    had only wired generic inventory (`i`) and gold (`$`), leaving the
+    canonical one-key inspection commands unreachable
+- Fix:
+  - bind the live command map in `js/cmd.js` for:
+    - `)` -> `doprwep()`
+    - `[` -> `doprarm()`
+    - `=` -> `doprring()`
+    - `"` -> `dopramulet()`
+    - `(` -> `doprtool()`
+    - `*` -> `doprinuse()`
+- Validation:
+  - `t11_s754_w_covmax8_gp`: gameplay remained exact
+    (`RNG 20848/20848`, `events 3292/3292`)
+  - first screen divergence moved `455 -> 461`
+  - first cursor divergence remains `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
