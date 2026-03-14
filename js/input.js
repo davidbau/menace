@@ -607,6 +607,8 @@ export async function more(display, {
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
+    // Use encumbrance snapshot from when the topMessage was stored,
+    // matching C's flush_screen→bot() which ran before the message text.
     let statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
     const hasSnapshotEnc = Number.isFinite(display?._topMessageEncumbrance);
     if (statusPlayer && hasSnapshotEnc) {

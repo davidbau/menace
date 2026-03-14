@@ -383,13 +383,16 @@ async function make_hallucinated(player, xtime, talk, mask) {
             see_traps();
         }
         update_inventory(player);
+        // C ref: potion.c:433 — disp.botl = TRUE is set BEFORE pline().
+        // This ensures flush_screen→bot() updates the status line with
+        // the pre-useup game state before the message is displayed.
+        player._botl = true;
         if (talk) {
             if (!xtime)
                 await pline("Everything %s SO boring now.", verb);
             else
                 await pline("Oh wow!  Everything %s so cosmic!", verb);
         }
-        player._botl = true;
     }
 }
 
@@ -627,13 +630,15 @@ async function handleQuaff(player, map, display) {
                 return { moved: false, tookTime: true };
             }
             const retval = await peffects(player, item, display, map);
-            // C parity: dodrink consumes one potion after effects resolve.
-            useup(item, player);
+            // C parity: dopotion() returns early when peffects >= 0
+            // WITHOUT calling useup; the peffect handler already dealt
+            // with the potion (or it was a no-op).
             if (retval >= 0) {
                 item.in_use = false;
                 return { moved: false, tookTime: !!retval };
             }
-            // retval === -1: normal path
+            // retval === -1: normal path — consume one potion.
+            useup(item, player);
             if (gp.potion_nothing) {
                 gp.potion_unkn++;
                 await You("have a %s feeling for a moment, then it passes.",

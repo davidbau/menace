@@ -30,7 +30,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object } from './mkobj.js';
 import { an, Has_contents, not_fully_identified as objnam_not_fully_identified } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
-import { pline, You, Your } from './pline.js';
+import { pline, You, Your, There } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { mons, PM_ARCHEOLOGIST } from './monsters.js';
@@ -2222,6 +2222,8 @@ export function dfeature_at(x, y, map, opts = {}) {
 // C ref: invent.c look_here() — look at objects at hero location
 // For 2+ objects, C creates a NHW_MENU window and uses putstr to display
 // "Things that are here:" as a right-side popup, then blocks for keypress.
+// If pile_limit is set and obj_cnt >= pile_limit, C skips the menu and
+// prints a summary message instead (invent.c:4252-4264).
 export async function look_here(player, map, obj_cnt) {
     const x = player.x, y = player.y;
     // C iterates level.objects[x][y] via nexthere — a LIFO linked list where
@@ -2233,7 +2235,17 @@ export async function look_here(player, map, obj_cnt) {
         dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
     });
 
-    if (objects.length >= 2 || dfeature) {
+    // C ref: invent.c:4252-4264 — skip_objects when pile_limit is set
+    const pile_limit = _gstate?.flags?.pile_limit ?? 0;
+    const skip_objects = (pile_limit > 0 && objects.length >= pile_limit);
+
+    if (skip_objects) {
+        // C: "There are <numeral> objects here." (or " more objects" if picked_some)
+        const numeral = (objects.length < 5) ? "a few"
+                      : (objects.length < 10) ? "several"
+                      : "many";
+        await There("are %s objects here.", numeral);
+    } else if (objects.length >= 2 || dfeature) {
         const tmpwin = create_nhwindow(NHW_MENU);
         if (dfeature) {
             await win_putstr(tmpwin, 0, `There is ${an(dfeature)} here.`);

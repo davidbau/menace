@@ -1418,6 +1418,13 @@ export async function throwspell(player, map, display = null, flags = null) {
         return 0;
     }
 
+    // C ref: spell.c throwspell() — swallowed check
+    if (player.uswallow) {
+        await pline("Your spell is ineffective.");
+        await exercise(player, A_WIS, false);
+        return 0;
+    }
+
     await pline("Where do you want to cast the spell?");
     const cc = { x: player.x, y: player.y };
     getpos_sethilite(

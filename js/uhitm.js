@@ -10,7 +10,7 @@ import { munstone, munslime } from './muse.js';
 import { grow_up, runtimeApplyNewchamDirect, set_malign } from './makemon.js';
 import { m_move } from './monmove.js';
 import {
-    A_STR, A_DEX, A_WIS,
+    A_STR, A_DEX, A_CON, A_WIS,
     FIRE_RES, COLD_RES, SHOCK_RES, ACID_RES, FREE_ACTION,
     M_ATTK_MISS, M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, M_ATTK_AGR_DONE,
     ERODE_BURN, ERODE_RUST, ERODE_ROT, ERODE_CORRODE, EF_GREASE, EF_VERBOSE,
@@ -57,7 +57,7 @@ import {
     resists_fire, resists_cold, resists_elec, resists_acid,
     resists_poison, resists_sleep, resists_ston, resists_drli,
     defended,
-    thick_skinned, mon_hates_silver, mon_hates_light,
+    thick_skinned, mon_hates_silver, mon_hates_light, hides_under,
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
     is_rider, slimeproof, completelyrusts, completelyrots,
@@ -66,8 +66,8 @@ import {
 import { obj_resists } from './objdata.js';
 import { newexplevel } from './exper.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead, mondied, monkilled } from './mon.js';
-import { newsym } from './display.js';
+import { mondead, mondied, monkilled, wakeup } from './mon.js';
+import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
 import { possibly_unwield } from './weapon.js';
@@ -186,6 +186,18 @@ export async function attack_checks(mtmp, wep, opts = {}) {
     if (mtmp.msleeping) {
         mtmp.msleeping = 0;
         mtmp.sleeping = false;
+    }
+
+    // C ref: uhitm.c:229-251 — invisible monster check (before pet/peaceful)
+    const map = opts.map || null;
+    if (!canspotmon(mtmp, player, null, map) && !forcefight) {
+        const mdat = mtmp.data || mtmp.type || null;
+        if (!(!player?.Blind && mtmp.mundetected && mdat && hides_under(mdat))) {
+            await pline("Wait!  There's %s there you can't see!", "something");
+            map_invisible(map, mtmp.mx, mtmp.my, player);
+            wakeup(mtmp, true, map, player);
+            return true;
+        }
     }
 
     // C-style safety gates: don't auto-attack tame/peaceful unless forced.
@@ -903,6 +915,10 @@ export function mhitm_ad_phys(magr, mattk, mdef, mhm) {
     if (mattk.aatyp === AT_KICK && thick_skinned(pd)) {
         mhm.damage = 0;
     }
+    // C ref: uhitm.c:4065 — exercise A_STR when being crushed (AT_HUGS)
+    if (mdef.attributes && mattk.aatyp === AT_HUGS && mhm.damage > 0) {
+        exercise(mdef, A_STR, false);
+    }
 }
 
 // cf. uhitm.c:2499 — fire damage handler
@@ -963,6 +979,10 @@ export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
     // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage — omitted (no armor system)
     rn2(30);
     rn2(6);
+    // C ref: uhitm.c:2757 — exercise A_STR after acid damage (mhitu path)
+    if (mdef.attributes && mhm.damage > 0) {
+        exercise(mdef, A_STR, false);
+    }
 }
 
 // cf. uhitm.c:3082 — apply actual poison effects (m-vs-m)
@@ -1046,6 +1066,10 @@ export function mhitm_ad_plys(magr, mattk, mdef, mhm) {
         const amt = rnd(10);
         mdef.mcanmove = false;
         mdef.mfrozen = Math.min(amt, 127);
+        // C ref: uhitm.c:3454 — exercise A_DEX after paralysis (mhitu path)
+        if (mdef.attributes) {
+            exercise(mdef, A_DEX, false);
+        }
     }
 }
 
@@ -1341,6 +1365,10 @@ export async function mhitm_ad_ston(magr, mattk, mdef, mhm) {
 export function mhitm_ad_were(magr, mattk, mdef, mhm) {
     // C routes m-vs-m AD_WERE through physical damage handling.
     mhitm_ad_phys(magr, mattk, mdef, mhm);
+    // C ref: uhitm.c:4270 — exercise A_CON after lycanthropy infection (mhitu path)
+    if (mdef.attributes && mhm.damage > 0) {
+        exercise(mdef, A_CON, false);
+    }
 }
 
 // cf. uhitm.c:4274 — nurse healing (m-vs-m: heals defender)

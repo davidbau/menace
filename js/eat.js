@@ -1493,6 +1493,9 @@ function eataccessory(player, otmp) {
 function eatspecial(player, otmp) {
     // Stub: handles eating non-food items (coins, paper, rings, etc.)
     // In full C version: lesshungry(nmod), then type-specific effects
+    // When fully implemented, add these exercise calls:
+    // - After "chewing satisfaction" (trident): exercise(player, A_WIS, true)
+    // - After "Yabba-dabba" (flint): exercise(player, A_CON, true)
 }
 
 

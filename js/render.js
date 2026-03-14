@@ -514,9 +514,12 @@ export function formatStatusLine2(player) {
     else if (player.hunger <= 50) parts.push('Fainting');
     else if (player.hunger <= 150) parts.push('Weak');
     else if (player.hunger <= 300) parts.push('Hungry');
-    // C ref: botl.c bot() is called by pline→flush_screen when disp.botl is set.
-    // It computes near_capacity() live. JS mirrors this by caching the encumbrance
-    // in player.encumbrance, updated by encumber_msg() before its pline.
+    // C ref: botl.c bot() computes near_capacity() live via flush_screen.
+    // JS caches encumbrance in player.encumbrance, updated by encumber_msg
+    // and the pline flush_screen equivalent.  The display-level snapshot
+    // _topMessageEncumbrance (set in putstr_message) overrides this when
+    // rendering status at a deferred --More-- boundary, matching C's
+    // behavior where bot() ran before the message text was displayed.
     const enc = player.encumbrance || 0;
     if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];

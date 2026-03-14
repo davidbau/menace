@@ -250,6 +250,11 @@ export async function moveloop_core(game, opts = {}) {
         && !stopAfterTurnend
         && !(game?.playerDied));
 
+    // C ref: allmain.c:397-402 — second encumber_msg() after the hero-can't-move
+    // loop.  Inventory weight may have changed during nh_timeout() or other
+    // turn-end processing; this gives the player immediate feedback.
+    await encumber_msg(player);
+
     // C ref: In C, vision_recalc(0) fires at the top of the NEXT moveloop iteration,
     // BEFORE nhgetch blocks — so the screen capture always has fresh FOV.
     // In JS, screen capture happens between moveloop_core calls, so we must

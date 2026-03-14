@@ -18,7 +18,8 @@ import {
     objectData,
 } from './objects.js';
 
-import { GETOBJ_EXCLUDE, GETOBJ_DOWNPLAY, GETOBJ_SUGGEST } from './const.js';
+import { GETOBJ_EXCLUDE, GETOBJ_DOWNPLAY, GETOBJ_SUGGEST, A_WIS } from './const.js';
+import { exercise } from './attrib_exercise.js';
 
 // cf. write.c:14 — returns base cost of writing a scroll or spellbook
 // Cost is the number of marker charges consumed.
@@ -77,9 +78,14 @@ export function write_ok(obj) {
 // TODO: dowrite() requires getobj, getlin, mksobj, useup, hold_another_object,
 //       known_spell, bcsign, wipeout_text, check_unpaid, exercise, livelog_printf,
 //       and the full message/conduct system — not yet implemented.
-export function dowrite(pen) {
+export async function dowrite(pen, player) {
     void pen;
     // TODO: write.c:74 — dowrite(): write on blank scroll/spellbook with magic marker
+    // When fully implemented, add these exercise calls:
+    // - On failure (trying to write on non-blank paper):
+    //     await exercise(player, A_WIS, false);
+    // - On success (writing completes):
+    //     await exercise(player, A_WIS, true);
     return 0; // ECMD_OK placeholder
 }
 

@@ -575,7 +575,10 @@ async function encumber_msg(player) {
     // C ref: static int oldcap = 0; — per-session initial encumbrance baseline
     const oldcap_val = Number.isInteger(player?._oldcap) ? player._oldcap : 0;
     if (diagEncumber) {
-        writeStderr(`[ENCUMBER] old=${oldcap_val} new=${newcap} turns=${Number(player?.turns || 0)}\n`);
+        const inv = player?.inventory || [];
+        let totalOwt = 0;
+        for (const obj of inv) { if (obj) totalOwt += obj.owt || 0; }
+        writeStderr(`[ENCUMBER] old=${oldcap_val} new=${newcap} t=${player?.turns} owt=${totalOwt} cnt=${inv.length}\n`);
     }
     const encMsg = get_encumber_msg_for_change(oldcap_val, newcap);
 

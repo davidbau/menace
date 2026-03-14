@@ -582,6 +582,7 @@ export class HeadlessDisplay {
         // Reset message state so stale topMessage doesn't trigger a spurious
         // --More-- on the next putstr_message call (mirrors Display.clearScreen).
         this.topMessage = null;
+        this._topMessageEncumbrance = null;
         this.messageNeedsMore = false;
         this.moreMarkerActive = false;
         this._topMessageAfterMore = false;
@@ -641,6 +642,11 @@ export class HeadlessDisplay {
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
+                const _morePlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _savedEnc = _morePlayer?.encumbrance;
+                if (_morePlayer && this._topMessageEncumbrance != null) {
+                    _morePlayer.encumbrance = this._topMessageEncumbrance;
+                }
                 try {
                     await more(this, {
                         site: 'headless.more.dismiss',
@@ -654,6 +660,10 @@ export class HeadlessDisplay {
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                } finally {
+                    if (_morePlayer && this._topMessageEncumbrance != null) {
+                        _morePlayer.encumbrance = _savedEnc;
+                    }
                 }
             }
             this.clearRow(0);
@@ -662,6 +672,7 @@ export class HeadlessDisplay {
             this._topMessageStatusHp = null;
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            this._topMessageEncumbrance = null;
             this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
             topMessageAfterMore = true;
@@ -701,6 +712,15 @@ export class HeadlessDisplay {
             // C ref: topl.c more() → flush_screen(1) → bot() before xwaitforspace().
             this.renderMoreMarker();
             if (this._nhgetch) {
+                // Temporarily restore the encumbrance that was current when
+                // the pending topMessage was stored, so renderStatus inside
+                // more() shows the value from that point (matching C's
+                // flush_screen→bot() which ran BEFORE the message text).
+                const _morePlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _savedEnc = _morePlayer?.encumbrance;
+                if (_morePlayer && this._topMessageEncumbrance != null) {
+                    _morePlayer.encumbrance = this._topMessageEncumbrance;
+                }
                 try {
                     await more(this, {
                         site: 'headless.more.dismiss',
@@ -713,6 +733,17 @@ export class HeadlessDisplay {
                     // appear message during a command cycle), skip the
                     // --More-- and fall through to replace the message.
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
+                } finally {
+                    if (_morePlayer && this._topMessageEncumbrance != null) {
+                        _morePlayer.encumbrance = _savedEnc;
+                        // C ref: the new message (that caused overflow) calls
+                        // pline→flush_screen→bot() which recomputes status.
+                        // Re-render here to match — using the restored
+                        // (current) encumbrance, not the snapshot.
+                        if (typeof this.renderStatus === 'function') {
+                            this.renderStatus(_morePlayer);
+                        }
+                    }
                 }
             }
             // Fall through to display the new message fresh.
@@ -722,6 +753,7 @@ export class HeadlessDisplay {
             this._topMessageStatusHp = null;
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            this._topMessageEncumbrance = null;
             this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
             topMessageAfterMore = true;
@@ -743,6 +775,14 @@ export class HeadlessDisplay {
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
+            // C ref: snapshot encumbrance when this message becomes the
+            // pending topMessage.  If a deferred more() fires later (when
+            // the NEXT message overflows), renderStatus should show the
+            // encumbrance that was current when THIS message was stored.
+            {
+                const _msgPlayer = this._lastMapState?.player || activeGame?.player || null;
+                this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
+            }
             this._topMessageAfterMore = topMessageAfterMore;
             this.messageNeedsMore = true;
             if (topMessageAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
@@ -767,6 +807,7 @@ export class HeadlessDisplay {
                     this._topMessageStatusHp = null;
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
+                    this._topMessageEncumbrance = null;
                     this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
                 } else {
@@ -779,6 +820,7 @@ export class HeadlessDisplay {
                     this._topMessageStatusHp = null;
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
+                    this._topMessageEncumbrance = null;
                     this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
                 }
@@ -850,6 +892,7 @@ export class HeadlessDisplay {
         this._topMessageStatusHp = null;
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
+        this._topMessageEncumbrance = null;
         this._topMessageAfterMore = false;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {

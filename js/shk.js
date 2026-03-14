@@ -3,13 +3,14 @@
 // Handles shop pricing, billing, entry messages, shopkeeper queries,
 // payment, selling, damage tracking, and shopkeeper movement hooks.
 
-import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, isok,
+import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
          OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
          ESHK, MAXULEV } from './const.js';
 // C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 function ANGRY(mon) { return !mon.mpeaceful; }
 import { PM_TOURIST } from './monsters.js';
+import { exercise } from './attrib_exercise.js';
 import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -1476,8 +1477,11 @@ export async function shk_chat(shkp, map) {
 
 // C ref: shk.c shk_names_obj() -- shopkeeper names/describes object after transaction
 export async function shk_names_obj(shkp, obj, fmt, amt, arg) {
-    const obj_name = doname(obj, _gstate?.player || null);
+    const player = _gstate?.player || null;
+    const obj_name = doname(obj, player);
     await You(fmt, obj_name, amt, plur(amt), arg || "");
+    // C ref: shk.c ~3366 — exercise WIS when shopkeeper identifies/names item
+    if (player) await exercise(player, A_WIS, true);
 }
 
 // ============================================================
