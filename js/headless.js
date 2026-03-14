@@ -646,8 +646,11 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
-                        refreshStatus: !(activeGame?.context?.mon_moving
-                            && Number(activeGame?.multi || 0) < 0),
+                        refreshStatus: !(
+                            activeGame?.context?.mon_moving
+                            && Number(activeGame?.multi || 0) < 0
+                            && !this._topMessageAfterMore
+                        ),
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;

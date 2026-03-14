@@ -10897,3 +10897,50 @@ Validation:
 - Practical lesson:
   - The status line belongs to the visible message page, not just to the latest live player state.
   - But broad “always redraw status after page replacement” logic is too aggressive; restrict it to the concrete C-faithful cases you can prove.
+
+## 2026-03-14: headless death-staging `more()` status refresh depends on whether the pending topline already crossed a `--More--`
+
+- Context:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) had:
+    - full RNG parity
+    - full event parity
+    - a display-only mismatch at step `543`
+  - The visible miss was:
+    - C: `The orc hits!--More--` with `HP:0(12)`
+    - JS: `The orc hits!--More--` with stale `HP:2(12)`
+
+- Root cause:
+  - This happens in [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/game/js/headless.js) when a death message arrives while another topline is already pending acknowledgement:
+    - branch: `if (this.topMessage && this.messageNeedsMore && isDeathMessage)`
+  - Two cases looked similar but are not equivalent:
+    - earlier step `516`:
+      - pending topline HP cache `1`
+      - live HP `0`
+      - `_topMessageAfterMore = false`
+      - C still wants the old `HP:1`
+    - later step `543`:
+      - pending topline HP cache `2`
+      - live HP `0`
+      - `_topMessageAfterMore = true`
+      - C wants the refreshed `HP:0`
+  - JS had been suppressing the death-staging `more()` status refresh whenever monster movement was in progress and `multi < 0`, which was too broad for the later case.
+
+- Fix:
+  - In the death-staging `more()` call, only suppress status refresh when all of these are true:
+    - monster movement is in progress
+    - `multi < 0`
+    - the pending topline was **not** itself displayed after an earlier `--More--`
+  - In code, that means the suppression now keys on `!this._topMessageAfterMore`.
+
+- Result:
+  - `t11_s744_w_covmax2_gp` moved:
+    - first screen divergence `543 -> 645`
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+    - `seed329_rogue_wizard_gameplay`
+
+- Practical lesson:
+  - For headless topline parity, “death staging while a message is pending” is not one case.
+  - Whether the pending topline already came *after* a prior `--More--` changes whether C wants the old status line preserved or the new status line flushed before the dismissal key.
