@@ -11,7 +11,7 @@ function stripRngSourceTag(entry) {
 
 function isMidlogEntry(entry) {
     return typeof entry === 'string' && entry.length > 0
-        && (entry[0] === '>' || entry[0] === '<' || entry[0] === '^');
+        && (entry[0] === '>' || entry[0] === '<' || entry[0] === '^' || entry[0] === '~');
 }
 
 function isCompositeEntry(entry) {
