@@ -10634,3 +10634,35 @@ Validation:
   - Blind map parity is not just “don’t show what the hero can’t see.”
   - The feel/update path has its own cleanup semantics, especially for stale
     invisible markers and nearby floor memory.
+
+## 2026-03-14 - `t11_s744`: death-staging `more()` refresh must respect frozen-turn state
+
+- Problem:
+  - `t11_s744_w_covmax2_gp` had full RNG and event parity, but the first screen mismatch was still at step `516`:
+    - JS: `HP:0(12)`
+    - session/C: `HP:1(12)`
+  - The mismatch was display-only and occurred while a pending monster-move topline was being paged.
+
+- Key evidence:
+  - Headless tracing showed the wrong repaint came from `more()` inside `HeadlessDisplay.putstr_message()` when `"You die..."` arrived while another paged message was still pending.
+  - The same broad stack also happened earlier in an acceptable case around step `445`, so the stack alone was not the differentiator.
+  - The decisive state difference was `game.multi`:
+    - earlier acceptable case: `multi = 0`
+    - bad step-515/516 case: `multi < 0` (`-125` in the trace)
+
+- Fix:
+  - In the headless death-staging `more()` path only, suppress the status refresh when:
+    - `context.mon_moving` is true, and
+    - `multi < 0`
+  - Leave ordinary `more()` refresh behavior unchanged.
+
+- Result:
+  - `t11_s744_w_covmax2_gp` first screen divergence moved from `516` to `543`.
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+
+- Practical lesson:
+  - When the same message/display stack appears in both good and bad windows, compare broader command-cycle state, not just topline flags.
+  - `multi < 0` matters for display parity: it marks a frozen/continued turn state where repainting status during a death-staging `--More--` can expose post-damage HP too early.
