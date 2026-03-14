@@ -1858,6 +1858,9 @@ export function feel_location(x, y, ctxOrMap = null) {
   if (loc?.mem_invis) {
     loc.mem_invis = false;
   }
+  if (loc) {
+    set_seenv(loc, player.x, player.y, x, y);
+  }
   map_location(x, y, 1, ctx);
   if (mon && senseMonsterForMap(mon, gameMap, player)) {
     const detectedByTelepathy = telepathySensesMonsterForMap(mon, player);

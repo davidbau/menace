@@ -10666,3 +10666,39 @@ Validation:
 - Practical lesson:
   - When the same message/display stack appears in both good and bad windows, compare broader command-cycle state, not just topline flags.
   - `multi < 0` matters for display parity: it marks a frozen/continued turn state where repainting status during a death-staging `--More--` can expose post-damage HP too early.
+
+## 2026-03-14: Blind `feel_location()` must also mark adjacent squares as seen
+
+- Context:
+  - After clearing stale invisible markers, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) still had a late blind-search screen miss:
+    - first screen divergence at step `878`
+    - C rendered `#@I` while JS rendered ` @I`
+  - The missed glyph was the left-adjacent felt corridor/floor memory, not the
+    invisible-monster marker.
+
+- Root cause:
+  - C `display.c:feel_location()` always calls `set_seenv()` before remapping a
+    blindly felt square.
+  - JS `feel_location()` never updated `loc.seenv`, so adjacent blind searches
+    could keep stale “unseen/blank” memory instead of turning into remembered
+    corridor/floor glyphs.
+
+- Fix:
+  - In [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    `feel_location()` now calls:
+    - `set_seenv(loc, player.x, player.y, x, y)`
+    before `map_location(...)`.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` reached full screen parity:
+    - screens `905/905`
+  - Remaining mismatches are now:
+    - color first divergence at step `866`
+    - cursor first divergence at step `827`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` remained fully green.
+
+- Practical lesson:
+  - Blind “feeling” is not only about choosing which glyph to show.
+  - The hero’s memory model (`seenv`) must be updated at the same time, or JS
+    will keep blank remembered cells where C has already converted them into
+    corridor/room memory.
