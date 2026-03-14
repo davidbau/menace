@@ -193,7 +193,7 @@ export async function gameLoop(seed, skipInit = false) {
 
     // Starting inventory: 2 food rations, short sword, leather armor
     const food = makeObj();
-    food.olet = '%'; food.otyp = 0; food.quan = 2; food.spe = food.known = 1;
+    food.olet = '%'; food.otyp = 0; food.quan = 2; food.known = 1;
     const sword = makeObj();
     sword.olet = ')'; sword.otyp = 4; sword.quan = 1; sword.spe = sword.known = 1;
     const armor = makeObj();
