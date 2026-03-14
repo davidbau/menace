@@ -36,7 +36,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
 import { more, nhgetch } from './input.js';
 import { do_attack } from './uhitm.js';
 import { formatGoldPickupMessage, formatInventoryPickupMessage, schedule_goto } from './do.js';
-import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks } from './mondata.js';
+import { x_monnam, y_monnam, YMonnam, Monnam, canseemon, passes_walls, is_longworm, mon_learns_traps, mons_see_trap, is_hider, noattacks, is_clinger, M_AP_TYPE, throws_rocks, strongmonst } from './mondata.js';
 import { engr_at, read_engr_at, maybeSmudgeEngraving, can_reach_floor } from './engrave.js';
 import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
@@ -63,8 +63,9 @@ import { trapeffect_bear_trap_you } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
-import { MZ_LARGE, PM_GRID_BUG, AT_WEAP,
+import { MZ_LARGE, MZ_HUMAN, PM_GRID_BUG, AT_WEAP,
          PM_WIZARD, PM_VALKYRIE,
+         S_NYMPH,
          M1_TUNNEL, M1_NEEDPICK, M1_WALLWALK } from './monsters.js';
 import { stackobj } from './invent.js';
 import { thitu } from './mthrowu.js';
@@ -2339,7 +2340,18 @@ export function weight_cap(player) {
     const str = acurrstr(player);
     const con = acurr(player, A_CON);
     let carrcap = WT_WEIGHTCAP_STRCON * (str + con) + WT_WEIGHTCAP_SPARE;
-    // Polymorph adjustments omitted for now
+    // C ref: hack.c:4242-4252 — polymorph carry capacity adjustments
+    const Upolyd = !!((Number(player?.mtimedone) || 0) > 0);
+    if (Upolyd && player.data) {
+        if (player.data.mlet === S_NYMPH) {
+            carrcap = MAX_CARR_CAP;
+        } else if (!player.data.cwt) {
+            carrcap = Math.floor(carrcap * (player.data.msize || MZ_HUMAN) / MZ_HUMAN);
+        } else if (!strongmonst(player.data)
+                   || (strongmonst(player.data) && player.data.cwt > WT_HUMAN)) {
+            carrcap = Math.floor(carrcap * player.data.cwt / WT_HUMAN);
+        }
+    }
     if (player.levitating || player.flying) {
         carrcap = MAX_CARR_CAP;
     } else {
