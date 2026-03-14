@@ -12,8 +12,46 @@ let filteredData = [];
 let currentView = 'categories';
 let currentRange = 'all';
 let selectedCommit = null;
+let selectedIndex = -1;  // index into filteredData for the selection bar
 let chart = null;
 let gridTooltipEl = null;
+let isDraggingBar = false;
+let isPanning = false;
+
+// ===== Selection Bar Plugin for Chart.js =====
+// (Must register before any chart is created)
+const selectionBarPlugin = {
+  id: 'selectionBar',
+  afterDraw(c) {
+    if (selectedIndex < 0 || !c.scales.x) return;
+    const meta = c.getDatasetMeta(0);
+    if (!meta || !meta.data[selectedIndex]) return;
+
+    const x = meta.data[selectedIndex].x;
+    const yTop = c.chartArea.top;
+    const yBottom = c.chartArea.bottom;
+    const ctx = c.ctx;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, yTop);
+    ctx.lineTo(x, yBottom);
+    ctx.strokeStyle = 'rgba(107, 44, 44, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw handle at top
+    ctx.beginPath();
+    ctx.arc(x, yTop, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(107, 44, 44, 0.9)';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  },
+};
+Chart.register(selectionBarPlugin);
 
 // Chart colors - parchment-friendly palette
 const COLORS = {
@@ -161,18 +199,23 @@ function applyRangeFilter() {
 // Update entire display
 function updateDisplay() {
   applyRangeFilter();
-  updateStats();
+  // Default selection to latest commit
+  if (selectedIndex < 0 || selectedIndex >= filteredData.length) {
+    selectedIndex = filteredData.length - 1;
+    selectedCommit = filteredData[selectedIndex] || null;
+  }
+  updateStats(selectedCommit);
   updateChart();
   updateTable();
-  updateCategoryBreakdown();
+  updateCategoryBreakdown(selectedCommit);
   if (currentView === 'sessions') {
     updateSessionGrid();
   }
 }
 
 // Update summary stats
-function updateStats() {
-  const latest = filteredData[filteredData.length - 1];
+function updateStats(forCommit) {
+  const latest = forCommit || filteredData[filteredData.length - 1];
   if (!latest) return;
 
   document.querySelector('#stat-commits .stat-value').textContent = filteredData.length.toLocaleString();
@@ -408,20 +451,33 @@ function updateChart() {
           enabled: false,
         },
         zoom: {
-          pan: { enabled: true, mode: 'x' },
-          zoom: {
-            wheel: { enabled: true },
-            drag: { enabled: true, backgroundColor: 'rgba(107, 136, 136, 0.2)' },
+          pan: {
+            enabled: true,
             mode: 'x',
+            // 'ctrl' also captures Cmd on macOS in chartjs-plugin-zoom
+            modifierKey: 'ctrl',
+          },
+          zoom: {
+            wheel: { enabled: false },
+            drag: {
+              enabled: true,
+              backgroundColor: 'rgba(107, 136, 136, 0.2)',
+            },
+            mode: 'x',
+            onZoomComplete: ({chart: c}) => {
+              // Enforce minimum 50-commit window
+              const xScale = c.scales.x;
+              const visibleRange = xScale.max - xScale.min;
+              if (visibleRange < 49) {
+                c.resetZoom();
+              }
+            },
           },
         },
       },
       scales,
-      onClick: (event, elements) => {
-        if (elements.length > 0) {
-          const idx = elements[0].index;
-          selectCommit(filteredData[idx]);
-        }
+      onClick: () => {
+        // Click handling done via canvas event listener for selection bar
       },
     },
   });
@@ -430,8 +486,12 @@ function updateChart() {
 // Select a commit and show details
 function selectCommit(commit) {
   selectedCommit = commit;
+  selectedIndex = filteredData.indexOf(commit);
   showDetailPanel(commit);
   highlightTableRow(commit.commit);
+  updateStats(commit);
+  updateCategoryBreakdown(commit);
+  if (chart) chart.draw();
 }
 
 // Show detail panel
@@ -606,8 +666,8 @@ function updateTable() {
 }
 
 // Update category breakdown
-function updateCategoryBreakdown() {
-  const latest = filteredData[filteredData.length - 1];
+function updateCategoryBreakdown(forCommit) {
+  const latest = forCommit || filteredData[filteredData.length - 1];
   const grid = document.getElementById('category-grid');
 
   if (!latest?.categories) {
@@ -946,6 +1006,10 @@ document.getElementById('detail-close').addEventListener('click', () => {
     tr.classList.remove('selected');
   });
   selectedCommit = null;
+  selectedIndex = -1;
+  updateStats();
+  updateCategoryBreakdown();
+  if (chart) chart.draw();
 });
 
 // Keyboard navigation
@@ -953,8 +1017,137 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     document.getElementById('detail-panel').style.display = 'none';
     if (gridTooltipEl) gridTooltipEl.style.display = 'none';
+    selectedCommit = null;
+    selectedIndex = -1;
+    updateStats();
+    updateCategoryBreakdown();
+    if (chart) chart.draw();
+  }
+  // Arrow keys move the selection bar
+  if (e.key === 'ArrowLeft' && selectedIndex > 0) {
+    e.preventDefault();
+    selectCommit(filteredData[selectedIndex - 1]);
+  }
+  if (e.key === 'ArrowRight' && selectedIndex < filteredData.length - 1) {
+    e.preventDefault();
+    selectCommit(filteredData[selectedIndex + 1]);
   }
 });
 
+// ===== Chart mouse interaction for selection bar =====
+
+function setupChartBarInteraction() {
+  const canvas = document.getElementById('timeline-chart');
+  if (!canvas) return;
+
+  function getIndexFromX(clientX) {
+    if (!chart || !chart.scales.x) return -1;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || meta.data.length === 0) return -1;
+
+    // Find closest data point
+    let closest = 0;
+    let closestDist = Infinity;
+    for (let i = 0; i < meta.data.length; i++) {
+      const dist = Math.abs(meta.data[i].x - x);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = i;
+      }
+    }
+    return closest;
+  }
+
+  function isNearBar(clientX) {
+    if (selectedIndex < 0 || !chart) return false;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const meta = chart.getDatasetMeta(0);
+    if (!meta || !meta.data[selectedIndex]) return false;
+    return Math.abs(meta.data[selectedIndex].x - x) < 10;
+  }
+
+  let mouseDownX = 0;
+
+  canvas.addEventListener('mousedown', (e) => {
+    mouseDownX = e.clientX;
+    // Cmd/Ctrl held = panning (handled by chart.js plugin)
+    if (e.metaKey || e.ctrlKey) {
+      isPanning = true;
+      canvas.style.cursor = 'grab';
+      return;
+    }
+    if (isNearBar(e.clientX)) {
+      isDraggingBar = true;
+      canvas.style.cursor = 'col-resize';
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (isPanning) {
+      canvas.style.cursor = 'grabbing';
+      return;
+    }
+    if (isDraggingBar) {
+      const idx = getIndexFromX(e.clientX);
+      if (idx >= 0 && idx < filteredData.length && idx !== selectedIndex) {
+        selectCommit(filteredData[idx]);
+      }
+      canvas.style.cursor = 'col-resize';
+      e.preventDefault();
+      return;
+    }
+    // Show col-resize cursor when near bar
+    if (isNearBar(e.clientX)) {
+      canvas.style.cursor = 'col-resize';
+    } else if (e.metaKey || e.ctrlKey) {
+      canvas.style.cursor = 'grab';
+    } else {
+      canvas.style.cursor = '';
+    }
+  });
+
+  canvas.addEventListener('mouseup', (e) => {
+    if (isDraggingBar) {
+      isDraggingBar = false;
+      canvas.style.cursor = isNearBar(e.clientX) ? 'col-resize' : '';
+      return;
+    }
+    if (isPanning) {
+      isPanning = false;
+      canvas.style.cursor = '';
+      return;
+    }
+  });
+
+  // Click on chart sets the bar position (only if not a drag-zoom)
+  canvas.addEventListener('click', (e) => {
+    if (isDraggingBar || isPanning) return;
+    // If mouse moved significantly, it was a drag-zoom, not a click
+    if (Math.abs(e.clientX - mouseDownX) > 5) return;
+    const idx = getIndexFromX(e.clientX);
+    if (idx >= 0 && idx < filteredData.length) {
+      selectCommit(filteredData[idx]);
+    }
+  });
+
+  // Cmd/Ctrl key changes cursor
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === 'Meta' || e.key === 'Control') && document.activeElement !== canvas) {
+      // Don't change cursor if not hovering chart
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDraggingBar = false;
+    isPanning = false;
+  });
+}
+
 // Initialize
 loadData();
+setupChartBarInteraction();
