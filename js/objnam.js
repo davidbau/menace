@@ -338,10 +338,11 @@ export function fruit_from_name(name, create = true) {
     return idx;
 }
 
-// cf. objnam.c:414 — fruitname(juice): stringify fruit by index
+// cf. objnam.c:414 — fruitname(juice): get current fruit name, optionally with " juice"
 export function fruitname(juice) {
-    const fromList = fruit_from_indx(juice);
-    return fromList || 'slime mold';
+    // C: uses pl_fruit, strips " of " prefix, makes singular, appends " juice" if true
+    let fruit_nam = 'slime mold'; // TODO: use configured pl_fruit option
+    return fruit_nam + (juice ? ' juice' : '');
 }
 
 // cf. objnam.c:523 — reorder_fruit(forward): sort fruit list by index
