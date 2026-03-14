@@ -11528,7 +11528,7 @@ Validation:
 
 - Context:
   - In repaint-parity session
-    [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json),
+    [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json),
     step `417` was still mismatching after the read prompt gained the correct C-style `getobj()` feedback boundary.
   - Expected repaint sequence for the invalid-read rejection was:
     - `flush(botl=1)`
@@ -11553,7 +11553,7 @@ Validation:
     now honors that flag by skipping the duplicate untimed repaint while still scheduling autosave.
 
 - Validation:
-  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
     - step `417` now matches exactly
     - first repaint divergence moved to step `429`
     - gameplay parity stayed fully green
@@ -11563,3 +11563,44 @@ Validation:
 - Practical lesson:
   - When a command-local prompt loop performs its own C-faithful untimed feedback flush,
     the remaining command tail should suppress only the duplicate autosave render, not the normal `postRender()` boundary.
+
+2026-03-14
+
+- Coverage session: [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
+
+- Problem:
+  - after the earlier death/display fixes, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) had only one remaining mismatch:
+    - step `589`
+    - visible topline matched: `You have no ammunition readied.--More--`
+    - cursor differed:
+      - expected `[39,0,1]`
+      - actual `[31,0,1]`
+
+- Root cause:
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js) `dofire()` handled the no-quiver case as:
+    - `putstr_message("You have no ammunition readied.")`
+    - then `more(display, ...)`
+  - but that `more()` call did not request a visible marker.
+  - C tty `more()` always owns the visible `--More--` prompt before waiting, so cursor ownership belongs after the marker, not at the end of the plain message text.
+
+- Fix:
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js)
+    - pass `forceVisual: true` for the explicit `more()` boundaries in:
+      - `dothrow.no-quiver.more`
+      - `dothrow.no-autoquiver.more`
+
+- Validation:
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
+    - RNG `11024/11024`
+    - events `1644/1644`
+    - screens `892/892`
+    - colors `21384/21384`
+    - cursor `891/891`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still fully green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - still fully green
+
+- Practical lesson:
+  - explicit `more()` boundaries in core command code need explicit visible-marker ownership.
+  - if a command path calls `more()` directly rather than going through a message-overflow path, it must still model C tty visibility by requesting the marker before waiting.

@@ -409,7 +409,7 @@ export async function handleFire(player, map, display, game) {
         // C ref: dothrow.c dofire(): when no quiver and autoquiver is off,
         // emit this message before prompting for what to fire.
         await display.putstr_message('You have no ammunition readied.');
-        await more(display, { game, site: 'dothrow.no-quiver.more' });
+        await more(display, { game, site: 'dothrow.no-quiver.more', forceVisual: true });
     } else {
         autoquiver(player);
         if (player.quiver && inventory.includes(player.quiver)) {
@@ -420,7 +420,7 @@ export async function handleFire(player, map, display, game) {
             return throwResult;
         }
         await display.putstr_message('You have nothing appropriate for your quiver.');
-        await more(display, { game, site: 'dothrow.no-autoquiver.more' });
+        await more(display, { game, site: 'dothrow.no-autoquiver.more', forceVisual: true });
     }
     const isLauncher = (o) => {
         if (o.oclass !== WEAPON_CLASS) return false;
