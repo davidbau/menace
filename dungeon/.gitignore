@@ -1,0 +1,5 @@
+# Build artifacts
+fortran-src/*.o
+fortran-src/dungeon
+c-src/*.o
+c-src/zork
