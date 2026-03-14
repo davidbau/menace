@@ -34,7 +34,7 @@
 import { GameState, makeObj, makeMonst, makeGen } from '../js/game.js';
 import { game, setGame } from '../js/gstate.js';
 import { _setPriDeps, newsym, nosee, pmon, losehp, bot } from '../js/pri.js';
-import { _setMonDeps, g_at, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned, steal, justswld, m_move, dochug } from '../js/mon.js';
+import { _setMonDeps, g_at, g_at_mon, g_at_gen, g_at_obj, killed, rloc, mnexto, newcham, poisoned, steal, justswld, m_move, dochug, losexp, amon as amonMon, attmon as attmonMon } from '../js/mon.js';
 import { _setHackDeps, setsee, tele, nomul, amon, attmon, unsee, seeoff, gobj, doname } from '../js/hack.js';
 import { _setDo1Deps, dosearch, buzz, findit, hit, miss, bhit, zhit } from '../js/do1.js';
 import { setRhack, gameLoop, GameOver, losestr, ndaminc, dodown, doup, alloc, getret } from '../js/main.js';
@@ -3056,27 +3056,27 @@ async function testIdentifyScroll() {
   await runWith(42, (g) => {
     prependItem(g, { olet: '=', otyp: 3, spe: 1, minus: false, quan: 1 }); // becomes item 'a' after useup
     prependItem(g, { olet: '?', otyp: 12, quan: 1 }); // item 'a' = identify scroll (consumed first)
-  }, 'ra a ');  // r=read, a=identify_scroll, ' '=--More--, a=select ring, ' '=dismiss prinv
+  }, 'ra  a ');  // r=read, a=identify_scroll, ' '=--More-- "As you read...", ' '=--More-- "identify what?", a=select ring
   // Identify a wand — covers case '/' in identify (lines 470-471)
   await runWith(42, (g) => {
     prependItem(g, { olet: '/', otyp: 2, spe: 3, known: false, quan: 1 });
     prependItem(g, { olet: '?', otyp: 12, quan: 1 });
-  }, 'ra a ');
+  }, 'ra  a ');
   // Identify a scroll — covers case '?' in identify (line 469 second branch)
   await runWith(42, (g) => {
     prependItem(g, { olet: '?', otyp: 1, quan: 1 });  // a different scroll type
     prependItem(g, { olet: '?', otyp: 12, quan: 1 });
-  }, 'ra a ');
+  }, 'ra  a ');
   // Identify armor — covers case '[' in identify (line 469 first branch)
   await runWith(42, (g) => {
     prependItem(g, { olet: '[', otyp: 3, spe: 1, minus: false, quan: 1, known: false });
     prependItem(g, { olet: '?', otyp: 12, quan: 1 });
-  }, 'ra a ');
+  }, 'ra  a ');
   // Identify a potion — covers case '!' in identify (lines 467-468)
   await runWith(42, (g) => {
     prependItem(g, { olet: '!', otyp: 3, quan: 1 });
     prependItem(g, { olet: '?', otyp: 12, quan: 1 });
-  }, 'ra a ');
+  }, 'ra  a ');
   console.log('testIdentifyScroll: PASS (do.js identify scroll covered)');
 }
 await testIdentifyScroll();
@@ -3155,11 +3155,12 @@ async function testBadTrap() {
       }
       prev = m;
     }
-    // Trap type 99 — beyond TRAPNUM (7), triggers "Bad trap" default case
-    // Do NOT set SEEN flag: the escape check is (trap.gflag & SEEN && !rn2(6));
-    // without SEEN, it goes straight to switch(ttype=99) → default → "Bad trap"
-    const trap = makeGen(nx, ny, 99);
-    // trap.gflag = 0 (no SEEN), ttype = 99 → default case guaranteed
+    // Trap type 7 — beyond TRAPNUM (0-6), triggers "Bad trap" default case.
+    // ttype = gflag & 0x1f = 7 & 31 = 7 > 6 → default case.
+    // Do NOT set SEEN bit (32): escape check is (trap.gflag & SEEN && !rn2(6));
+    // without SEEN, it goes straight to switch(ttype=7) → default → "Bad trap"
+    const trap = makeGen(nx, ny, 7);
+    // trap.gflag = 7 (no SEEN), ttype = 7 → default case guaranteed
     trap.ngen = g.ftrap; g.ftrap = trap;
   }, 'l ');
   console.log('testBadTrap: PASS (hack.js bad trap default case covered)');
@@ -3319,15 +3320,17 @@ async function testPotionDocallTyp0() {
 }
 await testPotionDocallTyp0();
 
-// do.js L346: nothin() scroll path — enchant weapon (otyp=0) when no weapon
+// do.js L346: nothin() scroll path — enchant armor (otyp=0) when no armor
 // nothin() is called, obj.olet='?', oiden[0] & SCRN is 0, no scrcall → L346 docall
 async function testNothinScrollDocall() {
   await runWith(42, (g) => {
-    g.uwep = null;  // no weapon → read1() case 0 calls nothin()
-    g.oiden[0] = 0; // scroll type 0 (enchant weapon) not identified
-    g.scrcall = {};
-    prependItem(g, { olet: '?', otyp: 0, quan: 1 }); // enchant weapon scroll
-  }, 'ra \r');  // r=read, a=select, ' '=dismiss --More-- from pline, '\r'=end docall getlin
+    g.uarm = null;  // no armor → read1() case 0 calls nothin()
+    g.oiden[0] = 0; // scroll type 0 (enchant armor) not identified
+    g.scrcall = new Array(15).fill(null);
+    prependItem(g, { olet: '?', otyp: 0, quan: 1 }); // enchant armor scroll
+  // Sequence: "As you read..." (no --More--), nothin → "A strange feeling..." (--More--),
+  // docall → "Call it:" (--More--), getlin('\r')
+  }, 'ra  \r');  // r=read, a=select, ' '=--More-- "A strange feeling...", ' '=--More-- "Call it:", '\r'=end getlin
   console.log('testNothinScrollDocall: PASS (do.js nothin scroll docall path covered)');
 }
 await testNothinScrollDocall();
@@ -3335,20 +3338,19 @@ await testNothinScrollDocall();
 // do.js L429-437: genocide scroll loop body — need a monster present
 // We read genocide scroll (otyp=8), press the monster letter, monster gets removed
 async function testGenocideScroll() {
-  let dirKey = 'l';
   await runWith(42, (g) => {
-    // Place a jackal 'j' next to player
+    // Place a jackal 'J' next to player (mon[0][3].mlet = 'J' uppercase)
     const ROOM = 5;
     const nx = g.u.ux + 1, ny = g.u.uy;
     g.levl[nx][ny].typ = ROOM;
-    const mdat = mon[0][3]; // jackal, mlet='j'
+    const mdat = mon[0][3]; // jackal, mlet='J' (uppercase)
     const mtmp = makeMonst(mdat);
     mtmp.mx = nx; mtmp.my = ny;
-    mtmp.mhp = 100; mtmp.orig_hp = 100;
+    mtmp.mhp = 4; mtmp.orig_hp = 4;
     mtmp.nmon = g.fmon; g.fmon = mtmp;
-    g.levl[nx][ny].scrsym = 'j';
+    g.levl[nx][ny].scrsym = 'J';
     prependItem(g, { olet: '?', otyp: 8, quan: 1 }); // genocide scroll
-  }, 'ra j ');  // r=read, a=select genocide scroll, ' '=--More-- dismiss, 'j'=monster letter, ' '=dismiss
+  }, 'ra  J ');  // r=read, a=select; ' '=--More-- "Behold..."; ' '=--More-- "What monster?"; 'J'=jackal letter; ' '=next
   console.log('testGenocideScroll: PASS (do.js genocide scroll loop body covered)');
 }
 await testGenocideScroll();
@@ -3411,7 +3413,7 @@ await testMinusoneSpeZero();
 async function testLitroomAtDoor() {
   await runWith(42, (g) => {
     const ux = g.u.ux, uy = g.u.uy;
-    const DOOR = 4, ROOM = 5;
+    const DOOR = 3, ROOM = 5;  // DOOR=3, CORR=4, ROOM=5 (game constants)
     // Place player in a doorway: set current cell to DOOR
     g.levl[ux][uy].typ = DOOR;
     g.levl[ux][uy].lit = false;
@@ -3425,6 +3427,38 @@ async function testLitroomAtDoor() {
   console.log('testLitroomAtDoor: PASS (do.js litroom DOOR cell path covered)');
 }
 await testLitroomAtDoor();
+
+// do.js litroom() corridor branch — covers lines 568-569
+// Player stands in a CORR cell when reading scroll of light.
+async function testLitroomCorr() {
+  await runWith(42, (g) => {
+    const ux = g.u.ux, uy = g.u.uy;
+    g.levl[ux][uy].typ = 4;  // CORR=4
+    prependItem(g, { olet: '?', otyp: 9, quan: 1 }); // light room scroll
+  // "As you read..." (no --More--), "The corridor glows briefly." (--More--)
+  }, 'ra ');
+  console.log('testLitroomCorr: PASS (do.js litroom CORR branch covered)');
+}
+await testLitroomCorr();
+
+// do.js litroom() DOOR with room south/west — covers lines 576, 578
+// Player at DOOR where room is below (uy-1) and to the left (ux-1).
+async function testLitroomAtDoorSW() {
+  await runWith(42, (g) => {
+    const ux = g.u.ux, uy = g.u.uy;
+    const DOOR = 3, ROOM = 5, CORR = 4;
+    g.levl[ux][uy].typ = DOOR;
+    g.levl[ux][uy].lit = false;
+    // No ROOM to north (uy+1) or east (ux+1), ROOM to south (uy-1) and west (ux-1)
+    g.levl[ux][uy + 1].typ = CORR;
+    g.levl[ux][uy - 1].typ = ROOM;
+    g.levl[ux + 1][uy].typ = CORR;
+    g.levl[ux - 1][uy].typ = ROOM;
+    prependItem(g, { olet: '?', otyp: 9, quan: 1 }); // light room scroll
+  }, 'ra ');
+  console.log('testLitroomAtDoorSW: PASS (do.js litroom DOOR south/west branches covered)');
+}
+await testLitroomAtDoorSW();
 
 // do1.js L57-66: ringoff() for otyp=15 (AC ring) and otyp=16 (HP ring) removal
 // Key: P=put on, a=select, 'l'=left hand (from "Right or Left?" prompt), R=remove, a=select
@@ -3476,7 +3510,7 @@ await testDosaveNo();
 // Repeat search 20 times to achieve near-certainty of covering L318-319.
 // We place ALL 8 adjacent cells as SDOOR. After enough searches, at least one converts.
 async function testDosearchSdoor() {
-  const SDOOR = 7; // from const.js
+  const SDOOR = 2; // from const.js
   await runWith(42, (g) => {
     g.u.uhp = 200; g.u.uhpmax = 200;
     // Place SDOOR in all 8 adjacent cells
@@ -3811,5 +3845,376 @@ async function testGetlevSmonKey() {
   console.log('testGetlevSmonKey: PASS (lev.js getlev stole smon_key path covered)');
 }
 await testGetlevSmonKey();
+
+// do.js ring strength minus path (lines 828-830) — wear minus strength ring (otyp=13, minus=true)
+// applyRingOn case 13: loop with minus=true → else branch (ustr<=18) → lines 828-830
+async function testRingStrengthMinus() {
+  await runWith(42, (g) => {
+    // Strength ring (otyp=13) with minus=true, spe=1: reduces strength
+    // ustr starts at 16 which is ≤18 → enters else at line 829
+    prependItem(g, { olet: '=', otyp: 13, spe: 1, minus: true, cursed: false, quan: 1 });
+  }, 'Pal');  // P=put on ring, a=select, l=left hand (no --More-- for "Right or Left?")
+  console.log('testRingStrengthMinus: PASS (do.js ring strength minus path covered)');
+}
+await testRingStrengthMinus();
+
+// do.js END block docall (line 540) — read scroll of remove curse (otyp=3, not identified, no scrcall)
+// read1() case 3 runs without early return → END block: oiden[3]=0, typ=3≤7, !scrcall[3] → docall
+async function testScrollEndBlockDocall() {
+  await runWith(42, (g) => {
+    g.oiden[3] = 0;  // remove curse not identified
+    // scrcall is initialized to null array, scrcall[3]=null → !null=true → docall is called
+    prependItem(g, { olet: '?', otyp: 3, quan: 1 }); // remove curse scroll
+  // "As you read..." (topl=1→ELSE: topl=2), "You feel like..." (topl=2→IF: --More-->sp),
+  // END block: docall → "Call it:" (topl=2→IF: --More-->sp), getlin('\r')
+  }, 'ra  \r');  // r=read, a=select; ' '=--More-- "You feel like..."; ' '=--More-- "Call it:"; '\r'=getlin
+  console.log('testScrollEndBlockDocall: PASS (do.js END block docall line 540 covered)');
+}
+await testScrollEndBlockDocall();
+
+// hack.js doname potcall path (line 368) — inventory shows "a potion called X."
+// Set potcall[otyp] then show inventory with 'i'
+async function testDonamePotcall() {
+  await runWith(42, (g) => {
+    g.potcall[3] = 'healing';  // name potion type 3
+    prependItem(g, { olet: '!', otyp: 3, quan: 1 }); // potion of type 3
+  }, 'i ');  // i=inventory (doinv shows doname), ' '=close inventory
+  console.log('testDonamePotcall: PASS (hack.js doname potcall path covered)');
+}
+await testDonamePotcall();
+
+// hack.js doname wandcall path (line 396) — inventory shows "a wand called X."
+async function testDonameWandcall() {
+  await runWith(42, (g) => {
+    g.wandcall[2] = 'lightning';  // name wand type 2
+    prependItem(g, { olet: '/', otyp: 2, spe: 3, known: false, quan: 1 }); // wand of type 2
+  }, 'i ');
+  console.log('testDonameWandcall: PASS (hack.js doname wandcall path covered)');
+}
+await testDonameWandcall();
+
+// hack.js doname ringcall path (line 413) — inventory shows "a ring called X."
+async function testDonameRingcall() {
+  await runWith(42, (g) => {
+    g.ringcall[5] = 'fire';  // name ring type 5
+    prependItem(g, { olet: '=', otyp: 5, spe: 0, minus: false, known: false, cursed: false, quan: 1 });
+  }, 'i ');
+  console.log('testDonameRingcall: PASS (hack.js doname ringcall path covered)');
+}
+await testDonameRingcall();
+
+// lev.js mkobj ring else branch (line 229)
+// _mkobj_fill for '=': if otyp > 12, either cursed path (if !rn2(3)) or else path (otmp.spe = rnd(2)).
+// Line 229 is the else: spe set without cursed=true. Need a seed where otyp>12 and rn2(3)!=0.
+async function testMkobjRingElse() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay();
+  g.input = new MockInput();
+  setGame(g);
+  let found = false;
+  for (let seed = 1; seed <= 500 && !found; seed++) {
+    seedRng(seed);
+    g.fobj = null;
+    const otmp = mkobj('=');
+    // Else branch (line 229): otyp > 12 AND not cursed (rn2(3) !== 0 took else)
+    if (otmp.otyp > 12 && !otmp.cursed && otmp.spe > 0) {
+      found = true;
+    }
+  }
+  if (!found) throw new Error('testMkobjRingElse: could not find seed to cover lev.js:229');
+  console.log('testMkobjRingElse: PASS (lev.js mkobj ring else branch covered)');
+}
+await testMkobjRingElse();
+
+// hack.js domove blind+DOOR path (line 199)
+// When game.flags.mv > 1 (repeating movement) and destination is DOOR and player is blind,
+// line 199: nomul(0) is called instead of adjusting game.multi.
+// Trigger: press 'L' (run east) with east cell = DOOR and ublind = true.
+async function testBlindDoor() {
+  await runWith(42, (g) => {
+    const DOOR = 3;
+    const nx = g.u.ux + 1, ny = g.u.uy;
+    g.levl[nx][ny].typ = DOOR;     // east cell is a door
+    g.u.ublind = 5;                // player is blind (non-zero = blind turns remaining)
+  }, 'LQ'); // L=run east (flags.mv=2, multi+=80); door → blind → nomul(0); Q=quit
+  console.log('testBlindDoor: PASS (hack.js domove blind+DOOR path line 199 covered)');
+}
+await testBlindDoor();
+
+// hack.js domove blind unseen-cell path (line 223)
+// When player is blind and moves from an unseen cell, line 223 triggers:
+//   ust.cansee = false; ust.isnew = true; on(oldux, olduy);
+// Need: ublind=true, starting cell has seen=false.
+async function testBlindUnseenCell() {
+  await runWith(42, (g) => {
+    g.u.ublind = 5;                             // player is blind
+    g.levl[g.u.ux][g.u.uy].seen = false;        // starting cell unseen
+    const ROOM = 5;
+    const nx = g.u.ux + 1, ny = g.u.uy;
+    g.levl[nx][ny].typ = ROOM;                  // east cell walkable
+  }, 'lQ'); // l=move east (blind, from unseen cell → line 223); Q=quit
+  console.log('testBlindUnseenCell: PASS (hack.js domove blind unseen-cell line 223 covered)');
+}
+await testBlindUnseenCell();
+
+// mon.js losexp() else branch (lines 739-740): uexp = 5 when ulevel <= 1
+// losexp() decrements ulevel first, so if player is at level 1, ulevel becomes 0 → else branch.
+async function testLosexpLevel1() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.ulevel = 1;
+  g.u.uhp = 50; g.u.uhpmax = 50;
+  g.u.uinvis = 0;
+  g.flags.topl = 0; g.flags.dscr = false; g.flags.botl = 0;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true };
+  await losexp(); // ulevel 1→0; ulevel>1 false → else → uexp=5
+  if (game.u.uexp !== 5) throw new Error(`Expected uexp=5, got ${game.u.uexp}`);
+  console.log('testLosexpLevel1: PASS (mon.js losexp else branch uexp=5 covered)');
+}
+await testLosexpLevel1();
+
+// mon.js doname() food case (lines 753-755): steal() → doname(food item)
+async function testStealFood() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1); // rn2(1)=0 → first item always stolen
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uinvis = 0;
+  g.flags.topl = 0; g.flags.dscr = false; g.flags.botl = 0;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true };
+  const mdat = mon[3][1]; // nymph 'N' (steals items)
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  g.fmon = mtmp;
+  g.fstole = null;
+  // Food item (% otyp=0) — triggers doname food case (lines 753-755)
+  const food = Object.assign(makeObj(), { olet: '%', otyp: 0, quan: 1 });
+  food.nobj = null; g.invent = food;
+  await steal(mtmp); // steals food → doname('%') → lines 753-755
+  if (g.invent !== null) throw new Error('Food not stolen');
+  console.log('testStealFood: PASS (mon.js doname food case covered)');
+}
+await testStealFood();
+
+// mon.js doname() armor case (lines 770-777): steal() → doname(armor item)
+async function testStealArmor() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.uinvis = 0;
+  g.flags.topl = 0; g.flags.dscr = false; g.flags.botl = 0;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true };
+  const mdat = mon[3][1]; // nymph
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  g.fmon = mtmp;
+  g.fstole = null;
+  // Armor item ([ otyp=3) — triggers doname armor case (lines 770-777)
+  const armor = Object.assign(makeObj(), { olet: '[', otyp: 3, spe: 0, minus: false, known: false, quan: 1 });
+  armor.nobj = null; g.invent = armor;
+  await steal(mtmp); // steals armor → doname('[') → lines 770-777
+  if (g.invent !== null) throw new Error('Armor not stolen');
+  console.log('testStealArmor: PASS (mon.js doname armor case covered)');
+}
+await testStealArmor();
+
+// mon.js amon() stub (lines 800-802): call mon.js amon wrapper directly
+// This covers line 801 (if (_amon) return _amon(...)) by triggering the dispatch.
+async function testMonAmonStub() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  seedRng(1);
+  g.u.ux = 10; g.u.uy = 10;
+  g.u.ulevel = 1; g.u.uac = 10; g.u.ustr = 10;
+  g.u.uinvis = 0;
+  g.flags.topl = 0; g.flags.dscr = false; g.flags.botl = 0;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: 5, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true };
+  const mdat = mon[0][0]; // bat — simple monster
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10; mtmp.mhp = 10; mtmp.orig_hp = 10; mtmp.data = mdat;
+  g.fmon = mtmp;
+  // Call mon.js amon stub — dispatches to hack.js amon via _amon
+  await amonMon(mtmp, null, 0); // covers line 801
+  console.log('testMonAmonStub: PASS (mon.js amon stub line 801 covered)');
+}
+await testMonAmonStub();
+
+// mon.js attmon() stub (lines 795-796): call empty stub to cover function entry
+async function testMonAttmonStub() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  // attmon from mon.js is an empty stub — just call it
+  await attmonMon(null, null, 0); // covers empty function body (line 794-796)
+  console.log('testMonAttmonStub: PASS (mon.js attmon empty stub covered)');
+}
+await testMonAttmonStub();
+
+// Helper for minimal game state setup (used in several tests below)
+function minimalGameState() {
+  wireDeps();
+  const g = new GameState();
+  g.display = new MockDisplay(); g.input = new MockInput(); g.rawRngLog = [];
+  setGame(g);
+  const ROOM = 5;
+  for (let x = 5; x <= 20; x++) for (let y = 5; y <= 15; y++)
+    g.levl[x][y] = { typ: ROOM, cansee: true, seen: true, isnew: false, scrsym: '.', lit: true };
+  g.flags = { botl: 0, move: true, mv: 0, mdone: false, dscr: false, topl: 0 };
+  g.moves = 1; g.multi = 0;
+  g.u = { ux: 10, uy: 10, ulevel: 5, uhp: 200, uhpmax: 200, ustr: 16, ustrmax: 16,
+          udaminc: 1, uac: 6, uswallow: false, uswldtim: 0, ustuck: null,
+          umconf: 0, uexp: 0, urexp: 0, uhunger: 900, uhs: 0,
+          ublind: 0, uinvis: 0, ufast: 0, uconfused: 0, upit: false, utel: false,
+          uregen: false, usearch: 0, ucinvis: false, ustelth: false, ufloat: false,
+          upres: false, uagmon: false, ufeed: false, ufireres: false, ucoldres: false,
+          ucham: false, utrap: 0 };
+  g.fmon = null; g.fobj = null; g.ftrap = null; g.fgold = null; g.fstole = null;
+  g.oiden = new Array(30).fill(0);
+  g.wannam = []; g.potcol = []; g.rinnam = []; g.scrnam = [];
+  g.savedLevels = {}; g.dlevel = 1; g.initialSeed = 42; g.rngSeed = 42;
+  g.lock = 'hack'; g.buf = ''; g.killer = '';
+  g.xupstair = 8; g.yupstair = 9; g.xdnstair = 15; g.ydnstair = 10;
+  g.input.getKey = async () => { throw new SessionDone(); };
+  return g;
+}
+
+// mon.js killed() umconf path (lines 540-542): player confused when killing monster
+async function testKilledUmconf() {
+  const g = minimalGameState();
+  seedRng(1);
+  g.u.umconf = 3;  // player is confused
+  const mdat = mon[0][0]; // bat
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10; mtmp.mhp = 1; mtmp.orig_hp = 5;
+  g.fmon = mtmp;
+  g.levl[11][10].cansee = true; g.levl[11][10].scrsym = 'b';
+  // killed() calls k1 (pline, topl→2), then umconf check → pline(NOBLUE, topl=2 → waits space),
+  // then umconf=0. Provide one space key, then throw SessionDone.
+  let keys = [' ']; // space for NOBLUE --More--
+  g.input.getKey = async () => {
+    if (keys.length > 0) return keys.shift();
+    throw new SessionDone();
+  };
+  try { await killed(mtmp); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  if (game.u.umconf !== 0) throw new Error('umconf not cleared after kill');
+  console.log('testKilledUmconf: PASS (mon.js killed umconf path covered)');
+}
+await testKilledUmconf();
+
+// mon.js killed() leprechaun existing gold path (line 591): kill leprechaun, gold already at pos
+async function testKilledLepExistingGold() {
+  const g = minimalGameState();
+  seedRng(1);
+  const mdat = mon[0][5]; // leprechaun 'L' (mon[0][5], NOT mon[3][0] which is giant beetle)
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10; mtmp.mhp = 1; mtmp.orig_hp = 10;
+  g.fmon = mtmp;
+  // fstole = null → foundStole=false → leprechaun gold path
+  // Add existing gold at monster's position → covers line 591 (gtmp.gflag += ...)
+  const existingGold = makeGen(11, 10, 20);
+  existingGold.ngen = g.fgold; g.fgold = existingGold;
+  try { await killed(mtmp); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testKilledLepExistingGold: PASS (mon.js killed lep existing-gold line 591 covered)');
+}
+await testKilledLepExistingGold();
+
+// mon.js steal() worn armor path (lines 668-672): steal the armor the player is wearing
+async function testStealWornArmor() {
+  const g = minimalGameState();
+  seedRng(1); // rn2(1)=0 → steals first (and only) item
+  const mdat = mon[3][1]; // nymph
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  g.fmon = mtmp; g.fstole = null;
+  const armor = Object.assign(makeObj(), { olet: '[', otyp: 3, spe: 2, minus: false, known: false, quan: 1 });
+  armor.nobj = null; g.invent = armor;
+  g.uarm = armor; g.u.uac = 6; // wearing armor → steal triggers lines 668-672
+  await steal(mtmp);
+  if (g.uarm !== null) throw new Error('uarm not cleared after steal');
+  console.log('testStealWornArmor: PASS (mon.js steal worn armor path covered)');
+}
+await testStealWornArmor();
+
+// mon.js steal() left ring path (lines 676-677): steal the ring worn on left hand
+async function testStealLeftRing() {
+  const g = minimalGameState();
+  seedRng(1);
+  const mdat = mon[3][1]; // nymph
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  g.fmon = mtmp; g.fstole = null;
+  const ring = Object.assign(makeObj(), { olet: '=', otyp: 5, spe: 0, minus: false, known: false, cursed: false, quan: 1 });
+  ring.nobj = null; g.invent = ring;
+  g.uleft = ring; // wearing ring on left hand → steal triggers lines 676-677
+  await steal(mtmp);
+  if (g.uleft !== null) throw new Error('uleft not cleared after steal');
+  console.log('testStealLeftRing: PASS (mon.js steal left ring path covered)');
+}
+await testStealLeftRing();
+
+// mon.js doname() armor known case (lines 773-775): steal a known armor item
+async function testStealArmorKnown() {
+  const g = minimalGameState();
+  seedRng(1);
+  const mdat = mon[3][1]; // nymph
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  g.fmon = mtmp; g.fstole = null;
+  // Known armor → doname hits if(obj.known) branch (lines 773-775)
+  const armor = Object.assign(makeObj(), { olet: '[', otyp: 3, spe: 2, minus: false, known: true, quan: 1 });
+  armor.nobj = null; g.invent = armor;
+  await steal(mtmp);
+  if (g.invent !== null) throw new Error('Armor not stolen');
+  console.log('testStealArmorKnown: PASS (mon.js doname armor known case covered)');
+}
+await testStealArmorKnown();
+
+// mon.js k1() blind path (lines 88-89): kill a monster while player is blind
+async function testKilledBlind() {
+  const g = minimalGameState();
+  seedRng(1);
+  g.u.ublind = 5;  // player is blind → k1() hits lines 88-89
+  const mdat = mon[0][0]; // bat
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10; mtmp.mhp = 1; mtmp.orig_hp = 5;
+  g.fmon = mtmp;
+  try { await killed(mtmp); } catch(e) { if (!(e instanceof SessionDone)) throw e; }
+  console.log('testKilledBlind: PASS (mon.js k1 blind path lines 88-89 covered)');
+}
+await testKilledBlind();
+
+// mon.js steal() right ring path (lines 679-680): steal the ring on right hand
+async function testStealRightRing() {
+  const g = minimalGameState();
+  seedRng(1); // rn2(1)=0 → steals first item
+  const mdat = mon[3][1]; // nymph
+  const mtmp = makeMonst(mdat);
+  mtmp.mx = 11; mtmp.my = 10;
+  g.fmon = mtmp; g.fstole = null;
+  const ring = Object.assign(makeObj(), { olet: '=', otyp: 7, spe: 0, minus: false, known: false, cursed: false, quan: 1 });
+  ring.nobj = null; g.invent = ring;
+  g.uright = ring; // wearing ring on right hand → steal triggers lines 679-680
+  await steal(mtmp);
+  if (g.uright !== null) throw new Error('uright not cleared after steal');
+  console.log('testStealRightRing: PASS (mon.js steal right ring path covered)');
+}
+await testStealRightRing();
 
 console.log('coverage_direct: all tests complete');

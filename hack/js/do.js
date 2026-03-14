@@ -1,6 +1,6 @@
 // C ref: hack.do.c — rhack command dispatcher, player actions
 // STUB: most commands stubbed; movement and basic commands implemented.
-import { HP, HPM, ULV, UEX, GOLD, AC, STR, SEEN, POTN, SCRN, WANN, RINN, SDOOR, CORR, WALL, DOOR } from './const.js';
+import { HP, HPM, ULV, UEX, GOLD, AC, STR, SEEN, POTN, SCRN, WANN, RINN, SDOOR, CORR, WALL, DOOR, ROOM } from './const.js';
 import { rn1, rn2, rnd, d } from './rng.js';
 import { game } from './gstate.js';
 import { pline, atl, newsym, nscr, bot, cls, curs, on, pru, losehp, prl, at } from './pri.js';
