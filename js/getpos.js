@@ -3,7 +3,8 @@
 // getpos_refresh(), getpos() lifecycle.
 
 import { MAP_ROW_START, COLNO, ROWNO, DOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN,
-    ROOM, CORR, SDOOR, IS_WALL, isok, MAXTCHARS } from './const.js';
+    ROOM, CORR, SDOOR, STONE, IS_WALL, isok, MAXTCHARS } from './const.js';
+import { wallIsVisible } from './render.js';
 import { more, nhgetch } from './input.js';
 import { flush_screen } from './display.js';
 import {
@@ -172,7 +173,12 @@ function cursorDesc(display, map, x, y) {
         const loc = map.at(x, y);
         if (loc) {
             if (!loc.seenv) return 'unexplored area';
-            if (IS_WALL(loc.typ) || loc.typ === SDOOR) return 'wall';
+            // C ref: auto_describe uses the displayed glyph, not raw terrain.
+            // Wall tiles that don't face a visited room render as stone (blank).
+            if (loc.typ === STONE) return 'stone';
+            if (IS_WALL(loc.typ) || loc.typ === SDOOR) {
+                return wallIsVisible(loc.typ, loc.seenv, loc.flags || 0) ? 'wall' : 'stone';
+            }
             if (loc.typ === DOOR) {
                 if (loc.flags & D_ISOPEN) return 'open door';
                 if (loc.flags & (D_CLOSED | D_LOCKED)) return 'closed door';
@@ -189,6 +195,16 @@ function cursorDesc(display, map, x, y) {
 }
 
 async function describeCursorWithContext(display, runtimeCtx, x, y) {
+    // C ref: auto_describe → do_screen_description → lookat → self_lookat
+    // When the cursor is on the hero, describe the hero like C does:
+    // "{race adj} {role name} called {plname}"
+    const player = runtimeCtx?.player;
+    if (player && x === player.x && y === player.y) {
+        // Lazy import to avoid circular dependency (pager.js imports getpos.js)
+        const { do_screen_description } = await import('./pager.js');
+        const desc = do_screen_description({ map: runtimeCtx.map, player }, { x, y });
+        if (desc?.found && desc.firstmatch) return desc.firstmatch;
+    }
     const base = cursorDesc(display, runtimeCtx?.map, x, y);
     if (!base) return '';
     const parts = [base];

@@ -105,7 +105,7 @@ import { dry_a_towel } from './weapon.js';
 import { dowrite } from './write.js';
 import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname, yname } from './objnam.js';
 import { shk_your } from './shk.js';
-import { useupall, update_inventory, sobj_at } from './invent.js';
+import { useupall, update_inventory, sobj_at, compactInvletPromptChars } from './invent.js';
 import { cansee } from './vision.js';
 import { cmap_to_glyph } from './display.js';
 import { S_goodpos } from './symbols.js';
@@ -1000,22 +1000,6 @@ export function isApplyDownplay(obj) {
     return false;
 }
 
-function compactInvlets(letters) {
-    const sorted = [...new Set(String(letters || '').split(''))].sort();
-    if (sorted.length <= 5) return sorted.join('');
-    const out = [];
-    let i = 0;
-    while (i < sorted.length) {
-        let j = i;
-        while (j + 1 < sorted.length
-               && sorted[j + 1].charCodeAt(0) === sorted[j].charCodeAt(0) + 1) j++;
-        if (j - i >= 2) out.push(sorted[i], '-', sorted[j]);
-        else for (let k = i; k <= j; k++) out.push(sorted[k]);
-        i = j + 1;
-    }
-    return out.join('');
-}
-
 // ====================================================================
 // cf. apply.c:4209 -- doapply / handleApply
 // ====================================================================
@@ -1034,7 +1018,7 @@ export async function handleApply(player, map, display, game) {
         return { moved: false, tookTime: false };
     }
 
-    const letters = compactInvlets(candidates.map((item) => item.invlet).join(''));
+    const letters = compactInvletPromptChars(candidates.map((item) => item.invlet).join(''));
     const candidateByInvlet = new Map(
         candidates
             .filter((item) => item?.invlet)

@@ -61,10 +61,17 @@ export async function wizMap(game) {
     const save_Hhallu = player.HHallucination || 0;
     player.HConfusion = 0;
     player.HHallucination = 0;
-    // Reveal traps
-    if (map.traps) {
-        for (let t = map.traps; t; t = t.ntrap) {
+    // Reveal traps — C ref: wizcmds.c:185-188
+    if (Array.isArray(map.traps)) {
+        for (const t of map.traps) {
             t.tseen = 1;
+            map_trap(t, 1);
+        }
+    }
+    // Reveal engravings — C ref: wizcmds.c:189-191
+    if (Array.isArray(map.engravings)) {
+        for (const ep of map.engravings) {
+            map_engraving(ep, 1);
         }
     }
     // C ref: wizcmds.c:192 — do_mapping() reveals map + exercises WIS
@@ -200,6 +207,7 @@ import { defsyms } from './symbols.js';
 import { name_to_mon, name_to_monclass } from './mondata.js';
 import { Role_if } from './role.js';
 import { do_mapping } from './detect.js';
+import { map_trap, map_engraving } from './display.js';
 import { tele } from './teleport.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()

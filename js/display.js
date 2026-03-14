@@ -1704,11 +1704,21 @@ export function map_engraving(engr, show = 0, ctxOrMap = null) {
   if (!engr) return;
   const ctx = _resolveDisplayCtx(ctxOrMap);
   const map = ctx?.map;
-  if (!map || !isok(engr.engr_x, engr.engr_y)) return;
-  const x = engr.engr_x;
-  const y = engr.engr_y;
+  // JS engravings use {x, y} (from make_engr_at); C uses engr_x/engr_y.
+  const ex = engr.x ?? engr.engr_x;
+  const ey = engr.y ?? engr.engr_y;
+  if (!map || !isok(ex, ey)) return;
+  const x = ex;
+  const y = ey;
   const loc = map.at(x, y);
   if (!loc) return;
+  // C ref: map_engraving sets levl[x][y].glyph to engraving_to_glyph(ep).
+  // In C, this glyph gets overwritten by later map_background calls, and
+  // _map_location checks spot_shows_engravings before showing engravings.
+  // In JS, mem_obj persists independently of terrain, so we must gate on
+  // spotShowsEngravings to avoid overriding terrain (e.g. graves) where
+  // engravings are not displayed.
+  if (!spotShowsEngravings(loc)) return;
   const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
   loc.mem_obj = engrCh;
   loc.mem_obj_color = CLR_BRIGHT_BLUE;

@@ -193,6 +193,25 @@ export function do_screen_description(ctx, cc) {
         return { found: true, firstmatch: terrain, outStr: '', text: terrain, kind: 'terrain' };
     }
 
+    // C ref: pager.c do_screen_description — basic terrain types use
+    // defsyms[glyph].explanation. Wall tiles that don't face a visited
+    // room render as stone (blank) on screen, so describe them as "stone".
+    if (loc && loc.seenv) {
+        let basicDesc = '';
+        if (loc.typ === STONE) {
+            basicDesc = 'stone';
+        } else if (IS_WALL(loc.typ)) {
+            basicDesc = wallIsVisible(loc.typ, loc.seenv, loc.flags || 0) ? 'wall' : 'stone';
+        } else if (loc.typ === CORR || loc.typ === SCORR) {
+            basicDesc = 'corridor';
+        } else if (loc.typ === ROOM) {
+            basicDesc = 'floor of a room';
+        }
+        if (basicDesc) {
+            return { found: true, firstmatch: basicDesc, outStr: '', text: basicDesc, kind: 'terrain' };
+        }
+    }
+
     return { found: false, firstmatch: '', outStr: '', text: '', kind: 'none' };
 }
 
