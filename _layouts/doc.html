@@ -33,6 +33,19 @@
   }
 })();
 
+// Update data-stat spans with live stats from version.yml.
+(function() {
+  var v = {{ site.data.version | jsonify }};
+  if (!v) return;
+  // Compute rounded commit count (e.g., 4869 -> "4,800+")
+  var cc = Math.floor((v.commit_number || 0) / 100) * 100;
+  v.commit_count = cc.toLocaleString() + '+';
+  document.querySelectorAll('[data-stat]').forEach(function(el) {
+    var key = el.getAttribute('data-stat');
+    if (v[key] != null) el.textContent = String(v[key]);
+  });
+})();
+
 // Link targeting for docs pages (especially when loaded inside the iframe overlay).
 // - External links: new tab (_blank)
 // - Same-site absolute links (mazesofmenace.net): parent frame (_top)

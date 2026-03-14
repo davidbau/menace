@@ -11,9 +11,9 @@ of early 2026, the DevTeam still hasn't shipped it. This port puts
 the unreleased version in your browser.
 
 The version of the game you find here is a complete reimplementation
-written entirely by AI coding agents. 195,000+ lines of JavaScript,
-143 modules mirroring the C source structure, bit-identical PRNG,
-257 golden C-comparison test sessions. One month, 3,700+ commits.
+written entirely by AI coding agents. <span data-stat="js_lines_display">197,000+</span> lines of JavaScript,
+<span data-stat="js_modules">145</span> modules mirroring the C source structure, bit-identical PRNG,
+<span data-stat="session_count">296</span> golden C-comparison test sessions. <span data-stat="commit_count">4,800+</span> commits.
 
 Open the page, pick a role, descend.
 
@@ -147,7 +147,7 @@ High scores and tombstone. ISAAC64 PRNG, bit-identical to C NetHack.
   portal creation, demon banishment, and a few others are stubs
 
 NetHack 3.7 has ~420,000 lines of C across ~8,600 functions. This port
-covers the core engine and most major systems in 195,000+ lines of
+covers the core engine and most major systems in <span data-stat="js_lines_display">197,000+</span> lines of
 JavaScript. The Hive is aware of this.
 
 ---
@@ -238,7 +238,7 @@ compiled C output.
 
 ```
 ├── index.html              Main web entry point
-├── js/                     Game source (143 modules mirroring C structure)
+├── js/                     Game source (145 modules mirroring C structure)
 │   ├── allmain.js          Entry point, game loop (from allmain.c)
 │   ├── dungeon.js          Dungeon generation & management
 │   ├── display.js          Terminal rendering (from win/tty/)
@@ -252,8 +252,8 @@ compiled C output.
 │   ├── levels/             131 special level modules (from dat/*.lua)
 │   └── ...
 ├── test/
-│   ├── unit/               244 unit test files
-│   ├── comparison/         C-vs-JS golden session tests (257 sessions)
+│   ├── unit/               232 unit test files
+│   ├── comparison/         C-vs-JS golden session tests (296 sessions)
 │   └── e2e/                Puppeteer browser tests
 ├── hack/                   1982 Hack browser port
 ├── rogue/                  1980 Rogue browser port
