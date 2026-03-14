@@ -160,6 +160,9 @@ function trapShownOnMap(trap, player) {
 }
 
 function playerMapGlyph(player) {
+    // C ref: display.h hero_glyph + mapglyph hallucination randomization
+    const hallu = !!(player?.Hallucination || player?.hallucinating);
+    if (hallu) return monsterMapGlyph(null, true);
     const upolyd = !!((Number(player?.mtimedone) || 0) > 0);
     const mlet = Number(player?.type?.mlet);
     if (upolyd && Number.isInteger(mlet) && mlet >= 0) {
