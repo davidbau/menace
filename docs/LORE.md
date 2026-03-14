@@ -12302,3 +12302,37 @@ Validation:
     - `events 2655/2655`
   - `seed032_manual_direct`, `seed033_manual_direct`, and `seed329` stayed
     fully green on gameplay parity
+
+## 2026-03-14 23:30: wizard quest-artifact pages need fullscreen `NHW_TEXT`, and tired-artifact ignores use object grammar
+
+- Sessions:
+  - `test/comparison/sessions/coverage/artifact-use/hi14_seed1003_wiz_artifact-use_gp.session.json`
+  - guardrails: `seed031_manual_direct`, `seed329_rogue_wizard_gameplay`
+- Problem:
+  - the new wizard artifact-heavy coverage probe had become gameplay-green, but
+    still failed on two presentation details:
+    - step `38`: the Wizard quest-artifact `gotit` text was rendered like a
+      short popup instead of a fullscreen `NHW_TEXT` page with the cursor on the
+      bottom `--More--` row
+    - step `93`: tired artifact invocation printed the wrong object wording,
+      using `The Eye... is ignoring you` instead of the C-style
+      `the ... named the Eye ... are ignoring you`
+- Fix:
+  - `js/windows.js`, `js/display.js`, and `js/headless.js` now support
+    window-level popup options so specific `NHW_TEXT` pages can force fullscreen
+    rendering, clear the full window area, and place the cursor on the last row
+    like tty text windows do
+  - `js/quest.js` uses that path for the Wizard `qt_pager("gotit")` artifact
+    message
+  - `js/artifact.js` now formats tired-artifact ignore messages with
+    `the(xname(obj))` plus `otense(obj, "are")`, then normalizes `named The`
+    to the C-visible `named the`
+- Result:
+  - `hi14_seed1003_wiz_artifact-use_gp` is fully green:
+    - `RNG 2811/2811`
+    - `screens 103/103`
+    - `colors 2472/2472`
+    - `events 250/250`
+    - `cursor 103/103`
+  - line coverage increased to `57.45%`
+  - branch coverage is now `59.46%`, still short of the `60%` threshold

@@ -1281,7 +1281,7 @@ span.nh-cursor {
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);
         }
-        const fullScreenText = lines.length >= this.rows - 2;
+        const fullScreenText = !!opts.forceFullScreen || lines.length >= this.rows - 2;
         let moreMarker;
         if (fullScreenText) {
             moreMarker = '--More--';
@@ -1297,9 +1297,9 @@ span.nh-cursor {
             if (line.length > maxcol) maxcol = line.length;
         }
 
-        const menuRows = Math.min(linesWithMore.length, fullScreenText ? this.rows : (this.rows - 2));
-        const renderLines = linesWithMore.length > menuRows
-            ? [...linesWithMore.slice(0, menuRows - 1), moreMarker]
+        const renderRows = Math.min(linesWithMore.length, fullScreenText ? this.rows : (this.rows - 2));
+        const renderLines = linesWithMore.length > renderRows
+            ? [...linesWithMore.slice(0, renderRows - 1), moreMarker]
             : linesWithMore;
 
         let offx;
@@ -1319,10 +1319,11 @@ span.nh-cursor {
         // incorrectly clear the left side of the map.
         offx = Math.max(0, offx);
 
-        const hasMoreLine = (renderLines[menuRows - 1] || '').endsWith('--More--');
+        const clearRows = fullScreenText ? this.rows : renderRows;
+        const hasMoreLine = (renderLines[renderRows - 1] || '').endsWith('--More--');
         const left = hasMoreLine ? Math.max(0, offx - 1) : offx;
         const savedCells = [];
-        for (let r = 0; r < menuRows; r++) {
+        for (let r = 0; r < clearRows; r++) {
             savedCells[r] = [];
             for (let c = left; c < this.cols; c++) {
                 const cell = this.grid[r][c];
@@ -1334,29 +1335,30 @@ span.nh-cursor {
             }
         }
         // Clear the popup area
-        for (let r = 0; r < menuRows; r++) {
+        for (let r = 0; r < clearRows; r++) {
             for (let c = Math.max(0, offx); c < this.cols; c++) {
                 this.setCell(c, r, ' ', CLR_GRAY);
             }
         }
         // Render each line
-        for (let i = 0; i < menuRows; i++) {
+        for (let i = 0; i < renderRows; i++) {
             const line = renderLines[i] || '';
-            const isMoreLine = (i === menuRows - 1) && line.endsWith('--More--');
+            const isMoreLine = (i === renderRows - 1) && line.endsWith('--More--');
             const col = isMoreLine ? Math.max(0, offx - 1) : offx;
             this.putstr(col, i, line, CLR_GRAY, 0);
         }
         // Position cursor at end of marker
-        const lastRow = menuRows - 1;
+        const lastRow = fullScreenText ? (this.rows - 1) : (renderRows - 1);
         const lastLine = renderLines[lastRow] || '';
-        const isMore = lastLine.endsWith('--More--');
+        const markerLine = fullScreenText ? moreMarker : lastLine;
+        const isMore = markerLine.endsWith('--More--');
         const markerCol = isMore ? Math.max(0, offx - 1) : offx;
-        const markerEnd = markerCol + lastLine.length;
+        const markerEnd = markerCol + markerLine.length;
         const cursorCol = (opts.isTextWindow && !isMore) ? markerEnd + 1 : markerEnd;
         this.setCursor(Math.min(cursorCol, this.cols - 1), lastRow);
         this._lastTextPopup = {
             offx,
-            rows: menuRows,
+            rows: clearRows,
             hasMoreLine: isMore,
             isTextWindow: !!opts.isTextWindow,
             savedCells,

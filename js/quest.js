@@ -41,7 +41,7 @@ import {
 import { MAGIC_PORTAL, STRAT_WAITMASK, UTOTYPE_PORTAL } from './const.js';
 import { A_WIS } from './const.js';
 import { the, xname } from './objnam.js';
-import { create_nhwindow, destroy_nhwindow, putstr, display_nhwindow } from './windows.js';
+import { create_nhwindow, destroy_nhwindow, putstr, display_nhwindow, set_nhwindow_popup_options } from './windows.js';
 import { NHW_TEXT, ATR_NONE } from './const.js';
 
 // C: #define MIN_QUEST_LEVEL 14
@@ -84,6 +84,7 @@ async function qt_pager(msgid, game, obj = null) {
         rn2(2);
         const qname = the(obj.oname || xname(obj));
         const win = create_nhwindow(NHW_TEXT);
+        set_nhwindow_popup_options(win, { forceFullScreen: true });
         await putstr(win, ATR_NONE, `As you touch ${qname}, its comforting power infuses you`);
         await putstr(win, ATR_NONE, "with new energy.  You feel as if you can detect others' thoughts flowing");
         await putstr(win, ATR_NONE, `through it.  Although you yearn to wear ${qname} and`);

@@ -51,6 +51,7 @@ class WinDesc {
         this.mlist     = [];   // [{glyphinfo, id, ch, gch, attr, clr, str, itemflags}]
         this.how       = PICK_NONE;
         this.prompt    = '';
+        this.popupOpts = null;
     }
 }
 
@@ -93,6 +94,13 @@ export function clear_nhwindow(win) {
     w.mlist  = [];
     w.how    = PICK_NONE;
     w.prompt = '';
+    w.popupOpts = null;
+}
+
+export function set_nhwindow_popup_options(win, popupOpts) {
+    const w = wins[win];
+    if (!w) return;
+    w.popupOpts = popupOpts ? { ...popupOpts } : null;
 }
 
 // display_nhwindow(win, blocking) — C ref: tty_display_nhwindow()
@@ -119,7 +127,7 @@ export async function display_nhwindow(win, blocking) {
             if (_display) { _display.messageNeedsMore = false; _display.topMessage = null; }
         }
         const lines = w.data.map(d => typeof d === 'string' ? d : d.str);
-        const popupOpts = { isTextWindow: w.type === NHW_TEXT };
+        const popupOpts = { isTextWindow: w.type === NHW_TEXT, ...(w.popupOpts || {}) };
         if (_display?.renderTextPopup) {
             _display.renderTextPopup(lines, popupOpts);
         }
