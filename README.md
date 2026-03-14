@@ -64,8 +64,8 @@ engineering techniques. This project is a test of that at scale.
 > *"Never build a dungeon you wouldn't be happy to spend the night in yourself."*
 > -- Terry Pratchett, quoted in the NetHack 3.6.0 release notes
 
-NetHack is a single-player dungeon exploration game, first released July 28,
-1987. Descend through procedurally generated levels, fight monsters, solve
+NetHack is a single-player dungeon exploration game, first released July 28, 1987.
+Descend through procedurally generated levels, fight monsters, solve
 puzzles, retrieve the Amulet of Yendor from the depths of Gehennom, and
 offer it to your deity to achieve ascension. The hero is an `@` sign. A
 newt is a `:`. A dragon is a `D`. The entire world is rendered in 24 lines
