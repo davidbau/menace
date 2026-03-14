@@ -917,6 +917,12 @@ export function set_mon_data(mon, ptr) {
     const old_speed = mon.data ? mon.data.mmove : 0;
     mon.data = ptr;
     mon.mnum = monsndx(ptr);
+    mon.mndx = mon.mnum;
+    // Update display fields to match new monster type
+    const symEntry = def_monsyms[ptr.mlet];
+    if (symEntry) mon.displayChar = symEntry.sym;
+    mon.displayColor = ptr.mcolor;
+    mon.attacks = ptr.attacks;
 
     if (mon.movement) {
         const new_speed = ptr.mmove;

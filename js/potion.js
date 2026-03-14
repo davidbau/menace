@@ -52,9 +52,9 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          I_SPECIAL, INTRINSIC, FIXED_ABIL,
          FIRE_RES, COLD_RES,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
-import { hliquid } from './do_name.js';
-import { makeplural, doname, fruitname } from './objnam.js';
-import { mon_hates_blessings, likes_fire, breathless, haseyes } from './mondata.js';
+import { hliquid, mon_nam, Monnam } from './do_name.js';
+import { makeplural, doname, fruitname, Tobjnam } from './objnam.js';
+import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head } from './mondata.js';
 import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect, resist } from './zap.js';
@@ -1413,15 +1413,32 @@ async function potionhit(mon, obj, how, player, map) {
     const your_fault = (how <= 1); // POTHIT_HERO_THROW = 1
 
     if (isyou) {
-        await pline("The %s crashes on your head and breaks into shards.", botlnam);
+        await pline("The %s crashes on your %s and breaks into shards.", botlnam, body_part(HEAD));
         // losehp(rnd(2)) — damage from bottle
         const bottleDmg = rnd(2);
         player.uhp -= bottleDmg;
         if (player.uhp < 1) player.uhp = 1;
     } else {
-        // hit a monster
+        // C ref: potion.c:1649-1672 — crash message + bottle damage for monster target
+        const mdat = mon.data || (mons ? mons[mon.mndx] : null) || {};
+        if (player.blind) {
+            await pline("Crash!");
+        } else {
+            let buf;
+            if (has_head(mdat)) {
+                buf = `${mon_nam(mon)}'s head`;
+            } else {
+                buf = mon_nam(mon);
+            }
+            await pline("The %s crashes on %s and breaks into shards.", botlnam, buf);
+        }
         if (rn2(5) && mon.mhp > 1)
             mon.mhp--;
+    }
+
+    // C ref: potion.c:1676-1677 — evaporate message
+    if (obj.otyp !== POT_OIL && !player.blind) {
+        await pline("%s.", Tobjnam(obj, "evaporate"));
     }
 
     if (isyou) {
