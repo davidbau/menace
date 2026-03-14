@@ -11081,3 +11081,38 @@ Validation:
 - Practical lesson:
   - The shadow-helper bug in `shknam.js` was not unique.
   - The wider pattern to audit is: object creation used only for RNG alignment while the created object is never attached to floor/minvent/buried state.
+
+## 2026-03-14: sink-ring burial must remove inventory and enter buried chain
+
+- Context:
+  - Continuing the discarded-state audit after `shknam.js` and `mkgrave()`, the next live hit was the ring-into-sink path in [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js).
+  - Existing coverage session:
+    - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+
+- Root cause:
+  - JS had two fidelity gaps in the live sink path:
+    - the caller invoked `dosinkring(obj)` without passing `player` and `map`
+    - the bury branch only did:
+      - `obj.in_use = false`
+      - `obj.ox = player.x`
+      - `obj.oy = player.y`
+      - `obj.buried = true`
+  - C [`do.c:658`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/do.c:658) instead removes the ring from inventory and adds it to the buried chain:
+    - `freeinv(obj);`
+    - `obj->in_use = FALSE;`
+    - `obj->ox = u.ux; obj->oy = u.uy;`
+    - `add_to_buried(obj);`
+
+- Fix:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js)
+    - pass `player` and `map` into `dosinkring(obj, player, map)` from the live drop path
+    - in the bury branch, call `freeinv(obj, player)` and `add_to_buried(obj, map)` instead of only marking `obj.buried = true`
+
+- Validation:
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - remains fully green after the fix
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - The next tier after “fake helper” bugs is “state-lite branch” bugs: live gameplay branches that mutate a visible flag (`obj.buried = true`) but skip the canonical list ownership update (`freeinv`, `add_to_buried`).

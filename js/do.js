@@ -28,7 +28,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          RIN_INVISIBILITY, RIN_SEE_INVISIBLE,
          RIN_PROTECTION_FROM_SHAPE_CHAN,
          objectData, CLASS_SYMBOLS } from './objects.js';
-import { doname, xname, splitobj, set_bknown, set_corpsenm } from './mkobj.js';
+import { doname, xname, splitobj, set_bknown, set_corpsenm, add_to_buried } from './mkobj.js';
 import { placeFloorObject, look_here, dfeature_at } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { observeObject } from './o_init.js';
@@ -653,11 +653,12 @@ export async function dosinkring(obj, player, map) {
         placeFloorObject(map, obj);
     } else if (!rn2(5)) {
         // Bury the ring
+        freeinv(obj, player);
         obj.in_use = false;
         obj.ox = player.x;
         obj.oy = player.y;
         obj.buried = true;
-        // In C this calls add_to_buried(); simplified — just mark as buried
+        add_to_buried(obj, map);
     } else {
         // Ring is consumed (useup)
         // Object is gone
@@ -2018,7 +2019,7 @@ export async function drop(obj, game, map, player) {
     }
   }
   else {
-    if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj); return ECMD_TIME; }
+    if ((obj.oclass === RING_CLASS || obj.otyp === MEAT_RING) && IS_SINK(map.locations[player.x][player.y].typ)) { await dosinkring(obj, player, map); return ECMD_TIME; }
     if (!can_reach_floor(player, map, true)) {
       let levhack = finesse_ahriman(obj, player);
       // TODO: if (levhack) E(Levitation) = W_ART — autotranslation stub
