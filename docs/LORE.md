@@ -10559,3 +10559,40 @@ Validation:
 - Practical lesson:
   - When a display-only failure involves hallucination, check whether JS is re-sampling randomized glyph choice during repeated redraws inside the same replay step.
   - Fixing an earlier masked repaint bug is still worth landing even if it only exposes the next prompt/display bug underneath.
+
+## 2026-03-14: `tty_getlin()` accepts at most `COLNO - 1` characters
+
+- Context:
+  - After the per-step hallucination cache fix, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) moved to a later wrapped naming prompt drift:
+    - first screen divergence at step `853`
+    - JS echoed extra spaces and `#p` on the wrapped second prompt row
+    - C kept the prompt frozen after step `849`
+  - Gameplay was already exact:
+    - RNG `3125/3125`
+    - events `400/400`
+
+- Root cause:
+  - C `win/tty/getline.c:169` only appends printable input while
+    `bufp - obufp < COLNO`.
+  - In practice tty `getlin()` accepts at most `COLNO - 1` characters of
+    typed input, independent of prompt length.
+  - JS `getlin()` had no equivalent clamp, so once the typed name reached the
+    tty limit it kept appending more spaces and later `#p`, creating a fake
+    wrapped-prompt divergence.
+
+- Fix:
+  - In [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js),
+    clamp live `getlin()` input to `(disp.cols || 80) - 1` characters before
+    appending printable keys.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` first screen divergence moved later again:
+    - from step `853`
+    - to step `867`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` remained fully green.
+  - `scripts/run-and-report.sh --failures` stayed stable on the promoted suite.
+
+- Practical lesson:
+  - For tty prompt parity, buffer limits matter as much as visible wrapping.
+  - If C stops echoing prompt input while JS keeps extending the line, check
+    the tty input acceptance rule before redesigning prompt ownership.

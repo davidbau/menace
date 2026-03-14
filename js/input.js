@@ -639,6 +639,7 @@ export async function getlin(prompt, display) {
     const runtimeDisplay = getRuntimeDisplay();
     const disp = display || runtimeDisplay;
     let line = '';
+    const maxLineLength = Math.max(0, (Number.isInteger(disp?.cols) ? disp.cols : 80) - 1);
 
     // C-faithful boundary: if a message is pending acknowledgement, consume
     // that --More-- before replacing the topline with a getlin prompt.
@@ -717,6 +718,7 @@ export async function getlin(prompt, display) {
                 await updateDisplay();
             }
         } else if (ch >= 32 && ch < 127) {
+            if (line.length >= maxLineLength) continue;
             line += String.fromCharCode(ch);
             await updateDisplay();
         }
