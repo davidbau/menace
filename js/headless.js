@@ -530,6 +530,7 @@ export class HeadlessDisplay {
         }
         this.topMessage = null; // Track current message for concatenation
         this._topMessageStatusHp = null;
+        this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this._topMessageAfterMore = false;
         this._nextTopMessageAfterMore = false;
@@ -614,6 +615,16 @@ export class HeadlessDisplay {
 
     async putstr_message(msg) {
         let topMessageAfterMore = !!this._nextTopMessageAfterMore;
+        const encumberRefreshMsg =
+            msg === 'Your movements are slowed slightly because of your load.'
+            || msg === 'You rebalance your load.  Movement is difficult.'
+            || msg === 'You stagger under your heavy load.  Movement is very hard.'
+            || msg === 'You can barely move a handspan with this load!'
+            || msg === "You can't even move a handspan with this load!"
+            || msg === 'Your movements are now unencumbered.'
+            || msg === 'Your movements are only slowed slightly by your load.'
+            || msg === 'You rebalance your load.  Movement is still difficult.'
+            || msg === 'You stagger under your load.  Movement is still very hard.';
         this._nextTopMessageAfterMore = false;
 
         // Add to message history
@@ -646,6 +657,7 @@ export class HeadlessDisplay {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
             this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
@@ -663,11 +675,15 @@ export class HeadlessDisplay {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
-                this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
-                    ? this._lastMapState.player.uhp
-                    : (Number.isFinite(this._lastMapState?.player?.hp)
-                        ? this._lastMapState.player.hp
+                const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+                this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                    ? statusPlayer.uhp
+                    : (Number.isFinite(statusPlayer?.hp)
+                        ? statusPlayer.hp
                         : null);
+                this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                    ? statusPlayer.encumbrance
+                    : null;
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
@@ -701,6 +717,7 @@ export class HeadlessDisplay {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
             this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
@@ -711,16 +728,23 @@ export class HeadlessDisplay {
         if (msg.length <= this.cols) {
             this.putstr(0, 0, msg.substring(0, this.cols));
             this.topMessage = msg;
-            this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
-                ? this._lastMapState.player.uhp
-                : (Number.isFinite(this._lastMapState?.player?.hp)
-                    ? this._lastMapState.player.hp
+            const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                ? statusPlayer.uhp
+                : (Number.isFinite(statusPlayer?.hp)
+                    ? statusPlayer.hp
                     : null);
+            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                ? statusPlayer.encumbrance
+                : null;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this._topMessageAfterMore = topMessageAfterMore;
             this.messageNeedsMore = true;
+            if (topMessageAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
+                this.renderStatus(activeGame?.player || this._lastMapState?.player || null);
+            }
             if (isDeathMessage) {
                 this.renderMoreMarker();
                 if (this._nhgetch) {
@@ -738,6 +762,7 @@ export class HeadlessDisplay {
                     this.messageNeedsMore = false;
                     this.topMessage = null;
                     this._topMessageStatusHp = null;
+                    this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
                     this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
@@ -749,6 +774,7 @@ export class HeadlessDisplay {
                     this.messageNeedsMore = false;
                     this.topMessage = null;
                     this._topMessageStatusHp = null;
+                    this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
                     this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
@@ -771,16 +797,23 @@ export class HeadlessDisplay {
 
         this.putstr(0, 0, firstLine);
         this.topMessage = firstLine;
-        this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
-            ? this._lastMapState.player.uhp
-            : (Number.isFinite(this._lastMapState?.player?.hp)
-                ? this._lastMapState.player.hp
+        const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+        this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+            ? statusPlayer.uhp
+            : (Number.isFinite(statusPlayer?.hp)
+                ? statusPlayer.hp
                 : null);
+        this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+            ? statusPlayer.encumbrance
+            : null;
         this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
         this._topMessageAfterMore = false;
         this.messageNeedsMore = true;
+        if (topMessageAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
+            this.renderStatus(activeGame?.player || this._lastMapState?.player || null);
+        }
 
         if (wrapped.length === 0) {
             return;
@@ -812,6 +845,7 @@ export class HeadlessDisplay {
         this.messageNeedsMore = false;
         this.topMessage = null;
         this._topMessageStatusHp = null;
+        this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this._topMessageAfterMore = false;
         this.moreMarkerActive = false;

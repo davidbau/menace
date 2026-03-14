@@ -10857,3 +10857,43 @@ Validation:
 - Practical lesson:
   - Any relocation path that redraws the old square must first remove the moving monster from old map occupancy.
   - In this codebase, `newsym()` is not a blind painter; it re-derives the glyph from current state, so stale `mx/my` values will redraw stale monsters.
+
+## 2026-03-14: replacement topline pages need an immediate status redraw for encumbrance transitions
+
+- Context:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) initially failed with:
+    - step `721`: JS showed `Burdened Hallu`, C showed `Stressed Hallu`
+  - After snapshotting encumbrance at visible `--More--` pages, the first mismatch moved to:
+    - step `722`: JS still showed `Stressed Hallu`, C showed `Burdened Hallu`
+  - RNG, events, and cursor were already exact, so the remaining bug was purely about when status row 23 was repainted across successive message pages.
+
+- Root cause:
+  - In the potion hallucination path, JS displayed:
+    - `Oh wow!  Everything looks so cosmic!`
+    - then the encumbrance transition message:
+      - `Your movements are only slowed slightly by your load.`
+  - The second message replaced an already-paged topline inside the same `putstr_message()` flow.
+  - JS refreshed status before dismissing the old page, but did not refresh status again after painting the new encumbrance-transition page.
+  - That left row 23 showing the previous encumbrance for one extra captured step.
+
+- Fix:
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js)
+    - `more()` now uses the visible topline's cached encumbrance snapshot when refreshing status for an explicit `--More--` boundary.
+  - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+    - message pages cache `_topMessageEncumbrance`
+    - when a new page replaces an acknowledged old one, JS now immediately redraws status only for the known encumbrance-transition messages
+    - this is intentionally narrow so it does not reopen unrelated death/lifesave display parity like `hi11`
+
+- Result:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) is fully green:
+    - RNG `2565/2565`
+    - events `121/121`
+    - screens `818/818`
+    - colors `19632/19632`
+    - cursor `818/818`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) stayed fully green.
+
+- Practical lesson:
+  - The status line belongs to the visible message page, not just to the latest live player state.
+  - But broad “always redraw status after page replacement” logic is too aggressive; restrict it to the concrete C-faithful cases you can prove.

@@ -607,7 +607,12 @@ export async function more(display, {
 
     // C ref: win/tty/topl.c more() -> bot() before xwaitforspace().
     // Keep status line current at every explicit --More-- boundary.
-    const statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
+    let statusPlayer = display?._lastMapState?.player || ctxGame?.player || null;
+    const hasSnapshotEnc = Number.isFinite(display?._topMessageEncumbrance);
+    if (statusPlayer && hasSnapshotEnc) {
+        statusPlayer = Object.create(statusPlayer);
+        statusPlayer.encumbrance = display._topMessageEncumbrance;
+    }
     if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
         display.renderStatus(statusPlayer);
         if (statusPlayer._botl) statusPlayer._botl = false;

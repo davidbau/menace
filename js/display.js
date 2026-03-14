@@ -251,6 +251,7 @@ export class Display {
         this.messages = [];
         this.topMessage = null;
         this._topMessageStatusHp = null;
+        this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this.messageNeedsMore = false; // C ref: TOPLINE_NEED_MORE - true if message not acknowledged by keypress
         this.moreMarkerActive = false;
@@ -390,6 +391,17 @@ span.nh-cursor {
     // Display a message on the top line
     // C ref: winprocs.h win_putstr for NHW_MESSAGE
     async putstr_message(msg) {
+        let freshAfterMore = false;
+        const encumberRefreshMsg =
+            msg === 'Your movements are slowed slightly because of your load.'
+            || msg === 'You rebalance your load.  Movement is difficult.'
+            || msg === 'You stagger under your heavy load.  Movement is very hard.'
+            || msg === 'You can barely move a handspan with this load!'
+            || msg === "You can't even move a handspan with this load!"
+            || msg === 'Your movements are now unencumbered.'
+            || msg === 'Your movements are only slowed slightly by your load.'
+            || msg === 'You rebalance your load.  Movement is still difficult.'
+            || msg === 'You stagger under your load.  Movement is still very hard.';
         // Add to message history
         if (msg.trim()) {
             this.messages.push(msg);
@@ -426,7 +438,9 @@ span.nh-cursor {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            freshAfterMore = true;
         }
 
         // C ref: win/tty/topl.c:262-267 — Concatenate messages if they fit.
@@ -438,11 +452,15 @@ span.nh-cursor {
                 this.clearRow(MESSAGE_ROW);
                 this.putstr(0, MESSAGE_ROW, combined, CLR_GRAY);
                 this.topMessage = combined;
-                this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
-                    ? this._lastMapState.player.uhp
-                    : (Number.isFinite(this._lastMapState?.player?.hp)
-                        ? this._lastMapState.player.hp
+                const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+                this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                    ? statusPlayer.uhp
+                    : (Number.isFinite(statusPlayer?.hp)
+                        ? statusPlayer.hp
                         : null);
+                this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                    ? statusPlayer.encumbrance
+                    : null;
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
@@ -471,7 +489,9 @@ span.nh-cursor {
             this.messageNeedsMore = false;
             this.topMessage = null;
             this._topMessageStatusHp = null;
+            this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            freshAfterMore = true;
         }
 
         // Display message, wrapping to row 1 if needed.
@@ -482,15 +502,22 @@ span.nh-cursor {
         if (msg.length <= this.cols) {
             this.putstr(0, MESSAGE_ROW, msg, CLR_GRAY);
             this.topMessage = msg;
-            this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
-                ? this._lastMapState.player.uhp
-                : (Number.isFinite(this._lastMapState?.player?.hp)
-                    ? this._lastMapState.player.hp
+            const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                ? statusPlayer.uhp
+                : (Number.isFinite(statusPlayer?.hp)
+                    ? statusPlayer.hp
                     : null);
+            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                ? statusPlayer.encumbrance
+                : null;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
+            if (freshAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
+                this.renderStatus(_gstate?.player || this._lastMapState?.player || null);
+            }
         } else {
             // Break at word boundary near cols (C uses CO-1 as scan start).
             let breakPoint = msg.lastIndexOf(' ', this.cols - 1);
@@ -503,15 +530,22 @@ span.nh-cursor {
 
             this.putstr(0, MESSAGE_ROW, row0, CLR_GRAY);
             this.topMessage = row0;
-            this._topMessageStatusHp = Number.isFinite(this._lastMapState?.player?.uhp)
-                ? this._lastMapState.player.uhp
-                : (Number.isFinite(this._lastMapState?.player?.hp)
-                    ? this._lastMapState.player.hp
+            const statusPlayer = _gstate?.player || this._lastMapState?.player || null;
+            this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
+                ? statusPlayer.uhp
+                : (Number.isFinite(statusPlayer?.hp)
+                    ? statusPlayer.hp
                     : null);
+            this._topMessageEncumbrance = Number.isFinite(statusPlayer?.encumbrance)
+                ? statusPlayer.encumbrance
+                : null;
             this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                 ? this._lastMapState.gameMap._replayStepIndex
                 : null;
             this.messageCursorCol = Math.min(row0.length, this.cols - 1);
+            if (freshAfterMore && encumberRefreshMsg && typeof this.renderStatus === 'function') {
+                this.renderStatus(_gstate?.player || this._lastMapState?.player || null);
+            }
 
             if (row1rest.length > 0) {
                 // Page via row 1 + --More--, then continue with any remaining text recursively.
@@ -534,6 +568,7 @@ span.nh-cursor {
                 this.messageNeedsMore = false;
                 this.topMessage = null;
                 this._topMessageStatusHp = null;
+                this._topMessageEncumbrance = null;
                 this._topMessageStepIndex = null;
                 const row1overflow = row1rest.substring(this.cols).trimStart();
                 if (row1overflow.length > 0) {
@@ -558,6 +593,7 @@ span.nh-cursor {
                 this.messageNeedsMore = false;
                 this.topMessage = null;
                 this._topMessageStatusHp = null;
+                this._topMessageEncumbrance = null;
                 this._topMessageStepIndex = null;
             }
         }
