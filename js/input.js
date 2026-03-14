@@ -13,6 +13,9 @@ import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.j
 import {
     logRepaint,
     repaintHp,
+    repaintBotl,
+    repaintBotlx,
+    repaintTimeBotl,
     repaintToplineState,
     repaintCursorRow,
     repaintCursorCol,
@@ -668,6 +671,26 @@ export async function getlin(prompt, display) {
         await more(disp, { forceVisual: true });
     }
 
+    const promptStatusPlayer = disp?._lastMapState?.player || activeGame?.player || null;
+    if (promptStatusPlayer) {
+        // C ref: tty_getlin() -> custompline() -> vpline() -> flush_screen() -> bot().
+        // This prompt boundary is repaint-relevant even when the prompt itself
+        // owns the message line and the visible map/status do not otherwise change.
+        logRepaint('flush', {
+            hp: repaintHp(promptStatusPlayer),
+            cursor: 1,
+            botl: repaintBotl(promptStatusPlayer),
+            botlx: repaintBotlx(promptStatusPlayer),
+            time: repaintTimeBotl(promptStatusPlayer),
+        });
+        logRepaint('bot', {
+            hp: repaintHp(promptStatusPlayer),
+            botl: repaintBotl(promptStatusPlayer),
+            botlx: repaintBotlx(promptStatusPlayer),
+            time: repaintTimeBotl(promptStatusPlayer),
+        });
+    }
+
     // Helper to update display
     const updateDisplay = async () => {
         if (disp) {
@@ -709,6 +732,9 @@ export async function getlin(prompt, display) {
 
     // Initial display
     await updateDisplay();
+    if (typeof disp?.flush === 'function') {
+        disp.flush();
+    }
 
     const readPromptKey = async () => nhgetch();
 

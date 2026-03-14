@@ -11027,6 +11027,38 @@ Validation:
   - For diagnostic parity channels, field vocabulary matters as much as hook placement.
   - Before chasing repaint timing, make the JS trace lexically comparable to the C trace; otherwise every mismatch is polluted by schema noise.
 
+## 2026-03-14: `getlin()` owns an early repaint boundary before prompt text appears
+
+- Context:
+  - After the repaint-schema alignment, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) still had its first repaint divergence at step `1` with no JS entries where C already logged a prompt-boundary repaint.
+  - Step `1` in that session is the wizard wish prompt (`For what do you wish?`), not a gameplay move.
+
+- Root cause:
+  - C tty `hooked_tty_getlin()` does more than draw prompt text:
+    - if needed, it resolves pending topline ownership with `more()`
+    - then `custompline()` triggers `vpline()` which calls `flush_screen()` and `bot()`
+  - JS `getlin()` was drawing the prompt text directly, but it emitted no repaint diagnostics for that prompt-ownership boundary.
+
+- Fix:
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/game/js/input.js)
+    - before the initial `getlin()` prompt draw, emit the C-shaped repaint prelude:
+      - `flush`
+      - `bot`
+    - after drawing the prompt, call headless `flush()` so the diagnostic `mark` appears in the same boundary
+
+- Result:
+  - Direct repaint comparison on `t11_s744_w_covmax2_gp.session.json` improved again:
+    - from `62/1412`
+    - to `86/1462`
+  - Gameplay parity remained fully green:
+    - RNG `11024/11024`
+    - screens `892/892`
+    - events `1644/1644`
+
+- Practical lesson:
+  - Prompt functions like `getlin()` are repaint owners in their own right.
+  - If JS treats them as “text only”, repaint parity will miss real C boundaries even when the visible prompt text is correct.
+
 ## 2026-03-14: mdamageu still needs losehp-style deferred status bookkeeping
 
 - Context:
