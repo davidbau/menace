@@ -53,7 +53,8 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid } from './do_name.js';
 import { makeplural, doname, fruitname } from './objnam.js';
-import { mon_hates_blessings, likes_fire } from './mondata.js';
+import { mon_hates_blessings, likes_fire, breathless, haseyes } from './mondata.js';
+import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
@@ -1516,19 +1517,25 @@ async function potionhit(mon, obj, how, player, map) {
         }
     }
 
-    // potionbreathe for nearby hero
-    // C ref: potion.c potionhit() always calls potionbreathe() at the end.
-    // When target is a monster, check if hero is nearby (distu <= 2).
-    // When target is the hero, always breathe.
+    // C ref: potion.c potionhit() end — potionbreathe gate
+    // potionbreathe() does its own docall()
+    // distance == 0 when hero is the target; distu(tx,ty) otherwise
+    // Gate: (distance == 0 || (distance < 3 && !rn2((1+ACURR(A_DEX))/2)))
+    //       && (!breathless(youmonst.data) || haseyes(youmonst.data))
+    let distance;
     if (isyou) {
-        await potionbreathe(player, obj);
+        distance = 0;
     } else {
         const mx = mon.mx ?? mon.x ?? 0;
         const my = mon.my ?? mon.y ?? 0;
-        const distu = (player.x - mx) * (player.x - mx) + (player.y - my) * (player.y - my);
-        if (distu <= 2) {
-            await potionbreathe(player, obj);
-        }
+        distance = (player.x - mx) * (player.x - mx) + (player.y - my) * (player.y - my);
+    }
+    const playerData = player.youmonst?.data || player.data || {};
+    if ((distance === 0 || (distance < 3 && !rn2(Math.floor((1 + acurr(player, A_DEX)) / 2))))
+        && (!breathless(playerData) || haseyes(playerData))) {
+        await potionbreathe(player, obj);
+    } else if (obj.dknown) {
+        await trycall(obj);
     }
 }
 
