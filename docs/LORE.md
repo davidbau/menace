@@ -11045,3 +11045,39 @@ Validation:
 - Practical lesson:
   - RNG-aligned stubs in setup code are dangerous even when they appear harmless.
   - For monster inventory helpers, "consume the same RNG" is not enough; the object has to land in `minvent` or later state/mapdump parity will drift.
+
+## 2026-03-14: `mkgrave()` must bury created objects, not discard them after RNG
+
+- Context:
+  - After the `shknam.js` `mkmonmoney()` fix, a short audit looked for the same broader bug class: setup code that creates objects only to consume RNG, then drops the resulting state mutation.
+  - The clearest next hit was [`js/mklev.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mklev.js) `mkgrave()`.
+
+- Root cause:
+  - JS `mkgrave()` was doing:
+    - `mksobj(GOLD_PIECE, true, false); rnd(20); rnd(5);`
+    - `while (tryct--) mkobj(0, true);`
+  - So it consumed the object-creation and quantity RNG, but it discarded the gold object and every random grave object.
+  - C [`mklev.c:2357-2395`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/mklev.c:2357) instead:
+    - creates the gold object,
+    - assigns quantity with `rnd(20) + level_difficulty() * rnd(5)`,
+    - sets `ox/oy`,
+    - buries it with `add_to_buried()`,
+    - then creates random objects, curses them, positions them, and buries them too.
+
+- Fix:
+  - [`js/mklev.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mklev.js)
+    - import and use `curse`, `add_to_buried`, `weight`, and `level_difficulty`
+    - bury grave gold with real quantity/weight/coords
+    - create, curse, position, and bury random grave objects instead of discarding them
+
+- Validation:
+  - [`hi04_seed1030_wiz_fountain-altar_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/hi04_seed1030_wiz_fountain-altar_gameplay.session.json)
+    - includes `make_grave()` in startup RNG and remains gameplay-green after the fix
+  - [`t04_s703_w_wizbury_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/maze-mines-digging/t04_s703_w_wizbury_gp.session.json)
+    - remains fully green as a buried-object regression control
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - The shadow-helper bug in `shknam.js` was not unique.
+  - The wider pattern to audit is: object creation used only for RNG alignment while the created object is never attached to floor/minvent/buried state.
