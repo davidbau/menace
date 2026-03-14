@@ -363,7 +363,7 @@ export async function replaySession(seed, opts, keys) {
         // terminal reflects the updated status. Force a renderStatus refresh
         // to match, since JS only calls renderStatus at explicit boundaries.
         await Promise.resolve();
-        if (!pendingCommand && opts.captureScreens) {
+        if (!pendingCommand && opts.captureScreens && !game.gameOver) {
             const player = game.u || game.player;
             if (player && typeof display.renderStatus === 'function') {
                 display._suppressReplayCaptureRepaint = true;

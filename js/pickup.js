@@ -28,7 +28,7 @@ import { body_part } from './polyself.js';
 import { HAND, FOOT } from './const.js';
 import { instapetrify, m_at } from './trap.js';
 import { exercise } from './attrib_exercise.js';
-import { newsym, canspotmon } from './display.js';
+import { newsym, canspotmon, docrt } from './display.js';
 import { currency, compactInvletPromptChars, freeinv, addinv,
          inv_cnt, merge_choice, hold_another_object, prinv, g_at, carried } from './invent.js';
 import { setuwep, setuswapwep, setuqwep, welded, weldmsg } from './wield.js';
@@ -128,10 +128,10 @@ export async function show_invalid_direction_cmdassist_help(display) {
         if (display.setCursor) display.setCursor(8, moreRow);
         // C ref: cmdassist blocks on display_nhwindow(WIN_MESSAGE, TRUE)
         // until the user presses a key to dismiss the help screen.
-        // After dismiss, the help text stays on screen (C does not clear
-        // it until the next full redraw); the caller's direction loop
-        // will continue and either accept a direction or re-show help.
+        // After dismiss, C's pline("Never mind.") path triggers flush_screen
+        // → docrt which clears the help text. Redraw here to match.
         await nhgetch();
+        await docrt();
         return;
     }
     await display?.putstr_message?.('cmdassist: Invalid direction key!');
