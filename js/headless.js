@@ -392,6 +392,15 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
 
     const withTags = (typeof options.rngWithTags === 'boolean') ? options.rngWithTags : undefined;
     enableRngLog(withTags);
+    // Use an auto-responding input so --More-- prompts during
+    // teleportToLevel don't hang waiting for keypress.
+    const autoInput = createHeadlessInput();
+    // Poll for pending input waits and auto-feed space keys.
+    // setTimeout(fn, 0) can't fire during deeply nested async chains,
+    // so we use setInterval to reliably break through.
+    const autoFeeder = setInterval(() => {
+        if (autoInput.isWaitingInput()) autoInput.pushKey(32);
+    }, 10);
     const game = await headlessStart(seed, {
         wizard: true,
         roleIndex: Number.isInteger(options.roleIndex) ? options.roleIndex : 11,
@@ -399,6 +408,7 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
         startDlevel: 1,
         startDungeonAlign: options.startDungeonAlign,
         flags: options.flags,
+        input: autoInput,
     });
 
     for (let depth = 1; depth <= targetDepth; depth++) {
@@ -418,6 +428,7 @@ export async function generateMapsWithCoreReplay(seed, maxDepth, options = {}) {
         };
         game.clearRngLog();
     }
+    clearInterval(autoFeeder);
     return { grids, maps, rngLogs };
 }
 
