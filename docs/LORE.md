@@ -10814,3 +10814,46 @@ Validation:
 - Practical lesson:
   - An explicit `more()` boundary and a visible `--More--` marker are separate decisions in JS.
   - Any tty-faithful gameplay page that is visibly blocked in C must request `forceVisual: true` unless the display path already rendered the marker itself.
+
+## 2026-03-14: `rloc_to_core()` must remove the monster from its old square before `newsym(oldx, oldy)`
+
+- Context:
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json) was failing only in the strict gameplay runner.
+  - Parity was otherwise full:
+    - RNG `15900/15900`
+    - events `14269/14269`
+    - mapdump `2/2`
+  - The only miss was screen/color at step `362`:
+    - JS still showed the water nymph glyph `n`
+    - C already showed the underlying corridor `#`
+
+- Root cause:
+  - The discrepancy happens on the nymph theft/teleport boundary:
+    - step `361`: both C and JS still show `n`
+    - step `362`: both say `She stole a +0 short sword.  The water nymph vanishes!`
+    - but only C clears the old square immediately
+  - In [`js/teleport.js`](/share/u/davidbau/git/mazesofmenace/game/js/teleport.js), `rloc_to_core()` called:
+    - `newsym(oldx, oldy)`
+    - before removing the monster from its old coordinates
+  - In this JS port, `newsym()` consults live map state via `map.monsterAt(x, y)`, so it repainted the monster onto its stale location.
+  - C `teleport.c:rloc_to_core()` does:
+    - `remove_monster(oldx, oldy);`
+    - `newsym(oldx, oldy);`
+    - `place_monster(mtmp, x, y);`
+    - `newsym(x, y);`
+
+- Fix:
+  - In JS `rloc_to_core()`, clear `mtmp.mx/my` before the old-square redraw, then place the monster at the destination and redraw the new square as before.
+
+- Result:
+  - `seed329_rogue_wizard_gameplay.session.json`: fully green
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) stayed at its current frontier:
+    - first screen divergence `543`
+
+- Practical lesson:
+  - Any relocation path that redraws the old square must first remove the moving monster from old map occupancy.
+  - In this codebase, `newsym()` is not a blind painter; it re-derives the glyph from current state, so stale `mx/my` values will redraw stale monsters.

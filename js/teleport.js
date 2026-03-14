@@ -351,7 +351,13 @@ async function rloc_to_core(mtmp, x, y, rlocflags, map, player, display, fov) {
             // vanish message and won't see an immediate post-teleport arrival.
             appearmsg = false;
         }
-        // Remove from old position (update grid)
+        // C removes the monster from its old square before redrawing it.
+        // newsym() reads live map state, so clear mx/my first to avoid
+        // repainting a stale monster glyph at the old location.
+        if (!mtmp.wormno) {
+            mtmp.mx = 0;
+            mtmp.my = 0;
+        }
         newsym(oldx, oldy);
     }
 
