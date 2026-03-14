@@ -1041,15 +1041,13 @@ export async function handleOpen(player, map, display, game) {
             dir = [0, 0];
         }
         if (dir) break;
+        // C ref: getdir() returns 0 after help_dir; no retry
         if (game?.flags?.cmdassist !== false) {
             await show_invalid_direction_cmdassist_help(display);
-            continue;
+        } else if (!game?.player?.wizard) {
+            await display.putstr_message('What a strange direction!');
         }
-        if (game?.player?.wizard) {
-            await display.putstr_message('Never mind.');
-        } else {
-            await display.putstr_message('What a strange direction!  Never mind.');
-        }
+        await display.putstr_message('Never mind.');
         return { moved: false, tookTime: false };
     }
 

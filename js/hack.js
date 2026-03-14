@@ -1061,6 +1061,7 @@ export async function domove_core(dir, player, map, display, game) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
             // C ref: doopen_indir (lock.c) — update vision and display
             recalc_block_point(nx, ny);
+            vision_recalc();
             newsym(nx, ny);
             await display.putstr_message("The door opens.");
             domoveNotime('closed-door-autoopen-opened');

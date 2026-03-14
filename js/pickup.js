@@ -1886,9 +1886,9 @@ async function handleLoot(game) {
                 }
                 const delta = lootDirectionDelta(dirCh);
                 if (!delta) {
+                    // C ref: getdir() returns 0 after help_dir; caller prints "Never mind."
                     if (game.flags?.cmdassist !== false) {
                         await show_invalid_direction_cmdassist_help(display);
-                        continue;
                     }
                     await display.putstr_message('Never mind.');
                     return { moved: false, tookTime: false };
