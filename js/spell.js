@@ -1309,9 +1309,9 @@ export async function spelleffects(spell_otyp, atme, player, map, display, game 
                     player.dy = dir.dy;
                     player.dz = dir.dz;
                 } else {
-                    // C fallback: cancelled getdir still releases magical energy.
+                    // C ref: spell.c spelleffects() — cancelled getdir emits the
+                    // message, then continues using the previous direction.
                     await pline_The('magical energy is released!');
-                    return 1;
                 }
                 if (display && typeof display.clearRow === 'function') {
                     display.clearRow(0);

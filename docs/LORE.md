@@ -11730,3 +11730,21 @@ Validation:
 - Practical lesson: when repaint mismatches depend on multiple flushes in one
   boundary window, owner tags alone are not enough. Add caller scope at the C
   flush site so the next JS fix can target the correct semantic layer.
+
+### Cancelled `#cast` direction still reuses the previous direction
+
+- Problem: `t11_s754_w_covmax8_gp` diverged when casting `force bolt` with a
+  cancelled direction prompt. C printed `The magical energy is released!` and
+  still continued through `weffects()` using the previous direction, while JS
+  printed the message and returned early.
+- Root cause: [`js/spell.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/spell.js)
+  handled cancelled `getdir()` in `spelleffects()` as an abort for directed
+  spells, but C `spell.c` only emits the message and then falls through to the
+  normal direction-dependent spell resolution.
+- Fix: keep the message, but do not return early. Let `spelleffects()`
+  continue with the previously remembered `dx/dy/dz`, matching C.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first event divergence moved `792 -> 1224`,
+    first RNG divergence moved `802 -> 1254`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
