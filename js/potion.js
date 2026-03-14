@@ -2,6 +2,7 @@
 // cf. potion.c — dodrink, peffects, healup, potionhit, dodip, status effects
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
+import { obj_resists } from './objdata.js';
 import { more, nhgetch, ynFunction } from './input.js';
 import { buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, useup, useupall, compactInvletPromptChars } from './invent.js';
 import { POTION_CLASS, POT_WATER,
@@ -1400,7 +1401,8 @@ export function impact_arti_light(obj, worsen, seeit) {
     // Simplified: artifact light interaction requires mksobj infrastructure
     // not yet available. Stub for now.
     if ((worsen ? obj.cursed : obj.blessed)) return;
-    // obj_resists check omitted — would need full artifact system
+    // C ref: potion.c:1600 — obj_resists(obj, 25, 75)
+    if (obj_resists(obj, 25, 75)) return;
 }
 
 // cf. potion.c potionhit() — potion hits a monster or hero

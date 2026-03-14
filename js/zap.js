@@ -20,7 +20,7 @@ import {
     HALF_SPDAM,
     HALLUC,
     BLINDED,
-    SLEEP_RES,
+    SLEEP_RES, DISINT_RES,
     EXPL_DARK, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY,
     BURIED_TOO, CONTAINED_TOO, PICK_NONE, MINV_NOLET, MINV_ALL,
     CORPSTAT_GENDER, CORPSTAT_FEMALE, CORPSTAT_MALE,
@@ -104,7 +104,7 @@ import { ERODE_BURN, EF_GREASE, W_ART, COST_DRAIN } from './const.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
 import { mstatusline, run_magic_enlightenment_effect } from './insight.js';
 import { display_minventory, update_inventory } from './invent.js';
-import { obj_resists } from './objdata.js';
+import { obj_resists, is_quest_artifact } from './objdata.js';
 import { is_metallic } from './objdata.js';
 import { defends, defends_when_carried } from './artifact.js';
 import { is_weptool } from './objnam.js';
@@ -2266,7 +2266,9 @@ export async function bhito(obj, otmp, map) {
     break;
 
   case SPE_STONE_TO_FLESH:
-    // stone_to_flesh_obj — simplified
+    // C ref: zap.c stone_to_flesh_obj() — obj_resists(obj, 2, 98) gate
+    if (obj_resists(obj, 2, 98)) { res = 0; break; }
+    // stone_to_flesh_obj — simplified (actual conversion not implemented)
     res = 0;
     break;
 
@@ -2982,6 +2984,22 @@ export async function create_polymon(obj, mndx, map, player) {
 }
 export function disintegrate_mon(mon, map, player) {
   if (!mon) return false;
+  // C ref: zap.c disintegrate_mon() — iterate monster inventory,
+  // destroy items that don't resist disintegration.
+  // oresist_disintegration: oc_oprop == DISINT_RES || obj_resists(obj,5,50)
+  //                         || is_quest_artifact(obj)
+  const inv = mon.minvent || mon.inventory || [];
+  for (let i = inv.length - 1; i >= 0; i--) {
+    const otmp = inv[i];
+    if (!otmp) continue;
+    const od = objectData[otmp.otyp];
+    const oprop_resists = od && od.oc_oprop === DISINT_RES;
+    if (!oprop_resists && !is_quest_artifact(otmp) && !obj_resists(otmp, 5, 50)) {
+      // Item destroyed — remove from inventory
+      inv.splice(i, 1);
+    }
+    // Surviving items stay in inventory and get dropped by mondead
+  }
   mon.mhp = 0;
   if (map?.removeMonster) map.removeMonster(mon);
   mondead(mon, map, player);
