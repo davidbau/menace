@@ -11876,3 +11876,38 @@ Validation:
   - `t11_s754_w_covmax8_gp`: RNG `20848/20848`, events `3292/3292`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### C repaint debug can identify hidden `disp.botl` writers inside a single message window
+
+- Problem: after adding `scope=pline.vpline`, the `t11_s744` step-`433` window
+  was still missing one fact: which C state transition turned `botl` from `0`
+  to `1` between
+  `concat_fit("A lit field surrounds you!")`
+  and
+  `pre_more("The goblin hits!")`.
+- Infrastructure fix: extend the debug-only C repaint patch with owner tags for
+  likely silent `disp.botl = TRUE` writers, including:
+  - `attrib.adjattrib`
+  - `attrib.restore_attrib`
+  - `pickup.encumber_msg`
+  - `botl.update_hilites`
+  - `do_wear.find_ac`
+  - `allmain.stop_occupation`
+  - `allmain.moveloop_core.run_time`
+  - `timeout.done_timeout`
+  - `timeout.incr_deafness`
+  - `invent.getobj`
+  - `hack.nomul`
+  - `hack.unmul`
+- Result: the decisive step-`433` C trace is now:
+  1. `tty.topl.update_topl.concat_fit("A lit field surrounds you!")`
+  2. `hack.nomul.set_botl hp=12 multi=0 nval=0`
+  3. `display.flush_screen scope=pline.vpline hp=12 ... botl=1`
+  4. `botl.bot hp=12 ...`
+  5. `tty.topl.update_topl.pre_more(... "The goblin hits!")`
+- Conclusion:
+  - the hidden writer is `hack.c:nomul(0)`, reached from non-ranged
+    `mhitu.c:mattacku()`
+  - the remaining JS repaint gap is therefore on the melee `hitmsg()` message
+    path, not generic `more()` ownership and not an unknown background status
+    writer.

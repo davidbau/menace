@@ -307,3 +307,165 @@ index 5060b7b36..d4bf1e277 100644
          u.uhs = newhs;
          disp.botl = TRUE;
          bot();
+diff --git a/src/attrib.c b/src/attrib.c
+index ee099df0f..1c5d80750 100644
+--- a/src/attrib.c
++++ b/src/attrib.c
+@@ -187,6 +187,9 @@ adjattrib(int ndx, int incr, int msgflg)
+         return FALSE;
+     }
+ 
++    repaint_debug_log("owner=attrib.adjattrib.set_botl hp=%d ndx=%d incr=%d old=%d new=%d",
++                      (int) u.uhp, ndx, incr, old_acurr, ACURR(ndx));
+     disp.botl = TRUE;
+     if (msgflg <= 0)
+         You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
+@@ -470,6 +473,8 @@ restore_attrib(void)
+             if (!(--(ATIME(i)))) { /* countdown for change */
+                 ATEMP(i) += (ATEMP(i) > 0) ? -1 : 1;
++                repaint_debug_log("owner=attrib.restore_attrib.set_botl hp=%d ndx=%d atemp=%d atime=%d",
++                                  (int) u.uhp, i, ATEMP(i), ATIME(i));
+                 disp.botl = TRUE;
+                 if (ATEMP(i)) /* reset timer */
+                     ATIME(i) = 100 / ACURR(A_CON);
+diff --git a/src/pickup.c b/src/pickup.c
+index 4c782794d..f09a17bfe 100644
+--- a/src/pickup.c
++++ b/src/pickup.c
+@@ -1992,6 +1992,8 @@ encumber_msg(void)
+             You("%s move a handspan with this load!",
+                 newcap == 4 ? "can barely" : "can't even");
+             break;
+         }
++        repaint_debug_log("owner=pickup.encumber_msg.set_botl hp=%d oldcap=%d newcap=%d",
++                          (int) u.uhp, go.oldcap, newcap);
+         disp.botl = TRUE;
+     } else if (go.oldcap > newcap) {
+         switch (newcap) {
+@@ -2007,6 +2009,8 @@ encumber_msg(void)
+             You("%s under your load.  Movement is still very hard.",
+                 stagger(gy.youmonst.data, "stagger"));
+             break;
+         }
++        repaint_debug_log("owner=pickup.encumber_msg.set_botl hp=%d oldcap=%d newcap=%d",
++                          (int) u.uhp, go.oldcap, newcap);
+         disp.botl = TRUE;
+     }
+diff --git a/src/botl.c b/src/botl.c
+index 2f9715f20..0407e14de 100644
+--- a/src/botl.c
++++ b/src/botl.c
+@@ -2043,6 +2043,8 @@ update_hilites(void)
+             prev->time = curr->time;
+ 
+             curr->chg = prev->chg = FALSE;
++            repaint_debug_log("owner=botl.update_hilites.set_botl hp=%d rule=%s reason=chg",
++                              (int) u.uhp, curr->hilite_rule ? curr->hilite_rule : "-");
+             disp.botl = TRUE;
+         }
+         if (disp.botl)
+@@ -2054,6 +2056,8 @@ update_hilites(void)
+             && hilite_reset_needed(curr, this_unhilite + 1L)) {
+             next_unhilite = this_unhilite;
+             if (next_unhilite < gb.bl_hilite_moves)
++                repaint_debug_log("owner=botl.update_hilites.set_botl hp=%d rule=%s reason=timer",
++                                  (int) u.uhp, curr->hilite_rule ? curr->hilite_rule : "-"),
+                 disp.botl = TRUE;
+         }
+     }
+diff --git a/src/do_wear.c b/src/do_wear.c
+index 0e50727d5..095ebccf1 100644
+--- a/src/do_wear.c
++++ b/src/do_wear.c
+@@ -2501,6 +2501,8 @@ find_ac(void)
+ 
+     if (uac != u.uac) {
+         u.uac = uac;
++        repaint_debug_log("owner=do_wear.find_ac.set_botl hp=%d ac=%d",
++                          (int) u.uhp, u.uac);
+         disp.botl = TRUE;
+ #if 0
+         /* these could conceivably be achieved out of order (by being near
+diff --git a/src/allmain.c b/src/allmain.c
+index 54a694a9e..fe0785dbf 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -549,6 +549,8 @@ moveloop_core(void)
+         && (gm.multi && (!svc.context.travel ? !(gm.multi % 7)
+                         : !(svm.moves % 7L)))) {
+         if (flags.time && svc.context.run)
++            repaint_debug_log("owner=allmain.moveloop_core.run_time.set_botl hp=%d time=%ld",
++                              (int) u.uhp, (long) svm.moves),
+             disp.botl = TRUE;
+         /* [should this be flush_screen() instead?] */
+         display_nhwindow(WIN_MAP, FALSE);
+@@ -683,6 +685,8 @@ stop_occupation(void)
+         if (!maybe_finished_meal(TRUE))
+             You("stop %s.", go.occtxt);
+         go.occupation = (int (*)(void)) 0;
++        repaint_debug_log("owner=allmain.stop_occupation.set_botl hp=%d hunger=%d",
++                          (int) u.uhp, (int) u.uhunger);
+         disp.botl = TRUE; /* in case u.uhs changed */
+         nomul(0);
+     } else if (gm.multi >= 0) {
+diff --git a/src/hack.c b/src/hack.c
+index b1bc3848b..3df3be4d8 100644
+--- a/src/hack.c
++++ b/src/hack.c
+@@ -4049,6 +4049,8 @@ void
+ unmul(const char *msg_override)
+ {
++    repaint_debug_log("owner=hack.unmul.set_botl hp=%d multi=%d",
++                      (int) u.uhp, gm.multi);
+     disp.botl = TRUE;
+     gm.multi = 0; /* caller will usually have done this already */
+     if (msg_override)
+diff --git a/src/timeout.c b/src/timeout.c
+index a8e5606b4..85dcb829a 100644
+--- a/src/timeout.c
++++ b/src/timeout.c
+@@ -581,6 +581,8 @@ done_timeout(int how, int which)
+ 
+     /* life-saved */
+     *intrinsic_p &= ~I_SPECIAL;
++    repaint_debug_log("owner=timeout.done_timeout.set_botl hp=%d which=%d",
++                      (int) u.uhp, which);
+     disp.botl = TRUE;
+ }
+@@ -963,6 +965,8 @@ incr_deafness(long how_long, boolean wakeup_msg)
+         /* 3.7: how_long is negative so wasn't actually incrementing the
+            deafness timeout when it used to be passed as-is */
+         incr_itimeout(&HDeaf, abs(how_long));
++        repaint_debug_log("owner=timeout.incr_deafness.set_botl hp=%d deaf=%ld",
++                          (int) u.uhp, (long) HDeaf);
+         disp.botl = TRUE;
+         ga.afternmv = Hear_again; /* this won't give any messages */
+     }
+diff --git a/src/invent.c b/src/invent.c
+index 4c782794d..fded64af4 100644
+--- a/src/invent.c
++++ b/src/invent.c
+@@ -2046,6 +2046,8 @@ getobj(const char *word, getobj_callback_t fn, int mx)
+                     You("%s.", only_one);
+                 continue;
+             }
++        repaint_debug_log("owner=invent.getobj.set_botl hp=%d word=%s ilet=%c",
++                          (int) u.uhp, word ? word : "-", (char) ilet);
+         }
+         disp.botl = TRUE; /* May have changed the amount of money */
+         if (otmp && !gi.in_doagain) {
+diff --git a/src/hack.c b/src/hack.c
+index b1bc3848b..f5cc5e755 100644
+--- a/src/hack.c
++++ b/src/hack.c
+@@ -4034,8 +4034,11 @@ void
+ nomul(int nval)
+ {
+     if (gm.multi < nval)
+         return;              /* This is a bug fix by ab@unido */
++    if (gm.multi >= 0)
++        repaint_debug_log("owner=hack.nomul.set_botl hp=%d multi=%d nval=%d",
++                          (int) u.uhp, gm.multi, nval);
+     disp.botl |= (gm.multi >= 0);
+     u.uinvulnerable = FALSE; /* Kludge to avoid ctrl-C bug -dlc */
+     u.usleep = 0;
