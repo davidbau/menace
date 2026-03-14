@@ -170,6 +170,17 @@ Repaint traces are:
 2. less noisy than per-cell redraw logs
 3. orthogonal to RNG/events/mapdump
 
+## Debug Scope
+
+When owner tags are still ambiguous, use debug-only caller scope:
+
+1. JS: `WEBHACK_REPAINT_DEBUG=1`
+2. C: `NETHACK_REPAINT_DEBUG=1`
+
+Current C debug scope support includes `pline.vpline`, which makes it possible
+to distinguish message preflushes from later `more()`-adjacent repaint work
+without changing canonical `^repaint[...]` traces.
+
 Use them when:
 
 1. RNG/events already match

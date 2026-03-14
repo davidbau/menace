@@ -8,6 +8,9 @@ index 84cf41c52..c7f92ffe9 100644
  extern void event_log(const char *, ...) PRINTF_F(1, 2);
 +extern void repaint_log(const char *, ...) PRINTF_F(1, 2);
 +extern void repaint_debug_log(const char *, ...) PRINTF_F(1, 2);
++extern void repaint_debug_set_scope(const char *);
++extern void repaint_debug_clear_scope(void);
++extern const char *repaint_debug_get_scope(void);
  
  /* ### role.c ### */
  
@@ -22,6 +25,7 @@ index 3ec7de362..23943ca3f 100644
 +static boolean repaint_trace_enabled = FALSE;
 +static boolean repaint_debug_enabled = FALSE;
 +static FILE *repaint_debug_file = (FILE *) 0;
++static const char *repaint_debug_scope = (const char *) 0;
  static boolean rng_log_disp = FALSE;
  
  void
@@ -79,6 +83,24 @@ index 3ec7de362..23943ca3f 100644
 +    fputs("]\n", out);
 +}
 +
++void
++repaint_debug_set_scope(const char *scope)
++{
++    repaint_debug_scope = scope;
++}
++
++void
++repaint_debug_clear_scope(void)
++{
++    repaint_debug_scope = (const char *) 0;
++}
++
++const char *
++repaint_debug_get_scope(void)
++{
++    return repaint_debug_scope;
++}
++
  #ifdef USE_ISAAC64
  #include "isaac64.h"
  
@@ -110,7 +132,8 @@ index ccd03b428..83b13a081 100644
 +    repaint_log("flush hp=%d cursor=%d botl=%d botlx=%d time=%d",
 +                (int) u.uhp, cursor_on_u, (int) disp.botl,
 +                (int) disp.botlx, (int) disp.time_botl);
-+    repaint_debug_log("owner=display.flush_screen hp=%d cursor=%d botl=%d botlx=%d time=%d",
++    repaint_debug_log("owner=display.flush_screen scope=%s hp=%d cursor=%d botl=%d botlx=%d time=%d",
++                      repaint_debug_get_scope() ? repaint_debug_get_scope() : "-",
 +                      (int) u.uhp, cursor_on_u, (int) disp.botl,
 +                      (int) disp.botlx, (int) disp.time_botl);
 +
@@ -199,6 +222,24 @@ index 4c5f633f6..710ed7237 100644
 +                      ttyDisplay ? ttyDisplay->inmore : -1);
      (void) fflush(stdout);
  }
+ 
+diff --git a/src/pline.c b/src/pline.c
+index 18ce50331..dc398e9bc 100644
+--- a/src/pline.c
++++ b/src/pline.c
+@@ -271,8 +271,12 @@ vpline(const char *line, va_list the_args)
+         vision_recalc(0);
+         in_pline = tmp_in_pline;
+     }
+-    if (u.ux)
+-        flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
++    if (u.ux) {
++        repaint_debug_set_scope("pline.vpline");
++        flush_screen((gp.pline_flags & NO_CURS_ON_U) ? 0 : 1); /* %% */
++        repaint_debug_clear_scope();
++    }
+ 
+     putmesg(line);
  
 diff --git a/src/allmain.c b/src/allmain.c
 index 54a694a9e..28336d972 100644

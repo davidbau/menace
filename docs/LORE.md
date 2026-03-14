@@ -11712,3 +11712,21 @@ Validation:
   diff from real edited source files whenever hunk metadata gets suspect. That
   keeps the patch future-rebuild-friendly and avoids wasting time on malformed
   patch bookkeeping.
+### C repaint debug needs flush caller scope, not just adjacent-event inference
+
+- Problem: in the `t11_s744` step-`433` window we could see the decisive C
+  repaint sequence
+  `flush(botl=0) -> concat_fit("A lit field surrounds you!") -> flush(botl=1) -> bot -> pre_more("The goblin hits!")`,
+  but the existing debug channel only labeled both flushes as
+  `owner=display.flush_screen`.
+- Infrastructure fix: extend the debug-only repaint patch so C can tag
+  `flush_screen()` with a lightweight caller scope. The first added scope is
+  `scope=pline.vpline`, set only around `pline.c:vpline()`'s pre-message
+  `flush_screen()` call.
+- Result: a focused rerecord on a throwaway copy of `t11_s744` now shows both
+  disputed step-`433` flushes as `scope=pline.vpline`. That proves the missing
+  JS repaint is specifically a message preflush parity problem, not a `more()`
+  ownership problem.
+- Practical lesson: when repaint mismatches depend on multiple flushes in one
+  boundary window, owner tags alone are not enough. Add caller scope at the C
+  flush site so the next JS fix can target the correct semantic layer.
