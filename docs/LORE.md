@@ -11342,3 +11342,49 @@ Validation:
 - Practical lesson:
   - Some repaint boundaries are inherited from generic inventory-selection semantics even when a command implements its own custom prompt loop.
   - If the JS command bypasses `getobj()`, it may still need to reproduce `getobj()`'s display-side bookkeeping to stay repaint-faithful.
+
+## 2026-03-14: Wizard terrain/trap wishes need live map context, C-visible messages, and trap replacement
+
+- Context:
+  - Continuing the new digging/trap coverage session
+    [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json),
+    the early mismatches were all in wizard terrain/trap wishing:
+    - missing `Can't place a grave here.`
+    - missing `A pit.`
+    - generic `A trap.` instead of `A pit.`
+    - failed `hole` creation where C reused the existing pit trap
+
+- Root causes:
+  - [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js) `makewish()` passed only `player.map` into `readobjnam()`. In live play, `player.map` can be absent while `game.map` is present, so wizard terrain wishes returned an un-applied descriptor with no message.
+  - [`js/objnam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/objnam.js) terrain/trap wishes were treated as an inert `hands_obj` sentinel instead of carrying C-visible success/failure text back to `makewish()`.
+  - [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js) `trapname()` read `defsyms[].explanation`, but the symbol table entries use `desc`, collapsing trap-wish messages to generic `trap`.
+  - [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dungeon.js) `maketrap()` rejected any existing trap at the target square, while C [`trap.c:455`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/trap.c:455) reuses and reinitializes existing traps unless they are undestroyable.
+
+- Fix:
+  - [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js)
+    - pass `game.map` as fallback when `player.map` is missing
+    - emit wizard terrain/trap wish result text via `pline(...)`
+  - [`js/objnam.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/objnam.js)
+    - return the full `terrainwish` / `trapwish` result object from `readobjnam()`
+    - attach C-style messages for grave success/failure and trap creation
+  - [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js)
+    - use `defsyms[].desc` in `trapname()`
+  - [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dungeon.js)
+    - reuse and reinitialize existing traps in `maketrap()` unless they are undestroyable
+
+- Validation:
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - remains fully green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+    - screens moved from `209/220` to `213/220`
+    - colors moved from `5266/5280` to `5272/5280`
+    - events moved from `593/650` to `624/652`
+    - first visible frontier moved from the early grave page to the later burden/trap-object frontier
+
+- Practical lesson:
+  - Wizard wish helpers are another place where “state-lite” ports cause real parity drift:
+    - missing live map context,
+    - missing C-visible messages,
+    - and missing replacement semantics on existing state.

@@ -74,6 +74,7 @@ import {
 import { maketrap, deltrap } from './dungeon.js';
 import { make_grave, del_engr_at } from './engrave.js';
 import { water_damage_chain, fire_damage_chain } from './trap.js';
+import { trapname } from './trap.js';
 import { recalc_block_point } from './vision.js';
 
 // Wrappers around mkobj naming primitives so objnam owns the C-facing names.
@@ -507,6 +508,12 @@ export function wizterrainwish(ctx) {
         const t = maketrap(map, x, y, result.trap);
         result.applied = !!t;
         result.kind = 'trapwish';
+        if (t) {
+            const tname = trapname(t.ttyp, true);
+            result.message = `${An(tname)}${t.ttyp !== MAGIC_PORTAL ? '' : ' to nowhere'}.`;
+        } else {
+            result.message = `Creation of ${an(trapname(result.trap, true))} failed.`;
+        }
         return result;
     }
 
@@ -537,7 +544,14 @@ export function wizterrainwish(ctx) {
     } else if (result.terrain === 'grave') {
         // C ref: objnam.c create_terrain_at() passes NULL text to make_grave().
         make_grave(map, x, y, null);
-        loc.disturbed = text.includes('disturbed') || text.includes('looted');
+        if (loc.typ === GRAVE) {
+            loc.disturbed = text.includes('disturbed') || text.includes('looted');
+            result.applied = true;
+            result.message = `A ${loc.disturbed ? 'disturbed ' : ''}grave.`;
+        } else {
+            result.applied = false;
+            result.message = "Can't place a grave here.";
+        }
     } else if (result.terrain === 'tree') {
         loc.typ = TREE;
         setWallProps();
@@ -588,7 +602,7 @@ export function wizterrainwish(ctx) {
     }
 
     recalc_block_point(x, y);
-    result.applied = true;
+    if (result.applied !== false) result.applied = true;
     return result;
 }
 
@@ -2294,7 +2308,7 @@ export function readobjnam(bp, no_wish, opts = {}) {
                 x: opts.x,
                 y: opts.y,
             });
-            if (terrain) return hands_obj;
+            if (terrain) return terrain;
         }
         return null;
     }

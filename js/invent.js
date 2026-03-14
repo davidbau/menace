@@ -1264,13 +1264,17 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
     if (result && (hold_msg || drop_fmt)) {
         await prinv(hold_msg || null, result, oquan, player);
     }
+    if (player) {
+        // The retained-item page still shows the pre-pickup burden, but the
+        // following encumbrance-transition page redraws status from live carry
+        // state. Switch encumbrance just before encumber_msg_transition().
+        player.encumbrance = newCap;
+    }
     // C ref: pickup.c encumber_msg() sets go.oldcap = newcap AFTER printing the
-    // transition message (not before). Move player.encumbrance update to after the
-    // message so that renderStatus at the --More-- overflow still reads the OLD
-    // encumbrance, matching C's disp.botl/bot() deferred update pattern.
+    // transition message (not before). Keep _oldcap deferred so the transition
+    // messaging still observes the pre-pickup state.
     await encumber_msg_transition(prevCap, newCap);
     if (player) {
-        player.encumbrance = newCap;
         // Keep pickup.c-style oldcap tracking in sync so a subsequent
         // encumber_msg() in the same command (e.g., wiz_wish()) does not
         // duplicate the same transition message.

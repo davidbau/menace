@@ -1846,8 +1846,14 @@ export async function makewish(wishText, player, display, game) {
         wizard: !!player?.wizard,
         wizkit_wishing: !!player?.program_state?.wizkit_wishing,
         player,
-        map: player?.map || null,
+        map: player?.map || game?.map || null,
     });
+    if (otmp && (otmp.kind === 'terrainwish' || otmp.kind === 'trapwish')) {
+        if (otmp.message) {
+            await pline(otmp.message);
+        }
+        return hands_obj;
+    }
     if (otmp === hands_obj) {
         return otmp;
     }

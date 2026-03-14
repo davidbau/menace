@@ -2990,7 +2990,9 @@ export function trapname(ttyp, override) {
         }
         if (nameidx !== 0) ttyp = nameidx;
     }
-    return defsyms[trap_to_defsym(ttyp)]?.explanation || "trap";
+    return defsyms[trap_to_defsym(ttyp)]?.desc
+        || defsyms[trap_to_defsym(ttyp)]?.explanation
+        || "trap";
 }
 
 // cf. trap.c:3170 — force_launch_placement(): place boulder at launch origin if launch aborted
