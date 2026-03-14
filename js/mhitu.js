@@ -133,6 +133,8 @@ export async function hitmsg(monster, attack, display, suppressHitMsg) {
     case AT_BUTT: verb = 'butts'; break;
     case AT_TUCH: verb = 'touches you'; break;
     case AT_TENT: verb = 'tentacles suck your brain'; break;
+    case AT_EXPL: // fall through
+    case AT_BOOM: verb = 'explodes'; break;
     default: verb = 'hits'; break;
     }
     await display.putstr_message(`${Monnam(monster)} ${verb}${again ? ' again' : ''}!`);
@@ -1405,6 +1407,29 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             sum[i] = await castmu(monster, attack, vis, foundyou, player, map);
             if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
             if (postAttackTail(sum[i])) break;
+            continue;
+        }
+
+        // C ref: mhitu.c:830-835 — AT_GAZE can affect you either ranged or not.
+        // Medusa gaze already operated through m_respond in dochug().
+        if (attack.aatyp === AT_GAZE) {
+            const mdat = monster.data || monster.type || {};
+            if (mdat.mndx !== PM_MEDUSA) {
+                sum[i] = await gazemu(monster, attack, player, map, display);
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
+            }
+            continue;
+        }
+
+        // C ref: mhitu.c:837-840 — AT_EXPL is automatic hit if next to.
+        // No to-hit roll needed; goes directly to explmu().
+        if (attack.aatyp === AT_EXPL) {
+            if (!range2) {
+                sum[i] = await explmu(monster, attack, foundyou, player, map, display);
+                if (!Number.isInteger(sum[i])) sum[i] = M_ATTK_MISS;
+                if (postAttackTail(sum[i])) break;
+            }
             continue;
         }
 

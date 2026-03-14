@@ -193,6 +193,28 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
     }
 
     if (!pickedUp && objs.length > 0) {
+        const blind = !!player?.blind;
+        const verb = blind ? 'feel' : 'see';
+
+        // C ref: invent.c:4185-4218 — blind preamble before showing objects
+        if (blind) {
+            const loc = map.at ? map.at(player.x, player.y) : null;
+            const cantReach = !can_reach_floor(player, map, false);
+            if (cantReach) {
+                await display.putstr_message('You try to feel what is lying beneath you.');
+                await display.putstr_message("But you can't reach it!");
+                // C returns ECMD_TIME here
+            } else {
+                const surfName = (loc?.typ === ICE) ? 'ice' : 'floor';
+                const where = `lying here on the ${surfName}`;
+                await display.putstr_message(`You try to feel what is ${where}.`);
+                await more(display, {
+                    site: 'hack.postMoveFloorCheck.blindLook.morePrompt',
+                    forceVisual: true,
+                });
+            }
+        }
+
         if (objs.length === 1) {
             const dfeature = dfeature_at(player.x, player.y, map, {
                 depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
@@ -205,13 +227,13 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
             if (seen.oclass === COIN_CLASS) {
                 const count = seen.quan || 1;
                 if (count === 1) {
-                    await display.putstr_message('You see here a gold piece.');
+                    await display.putstr_message(`You ${verb} here a gold piece.`);
                 } else {
-                    await display.putstr_message(`You see here ${count} gold pieces.`);
+                    await display.putstr_message(`You ${verb} here ${count} gold pieces.`);
                 }
             } else {
                 observeObject(seen);
-                await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
+                await display.putstr_message(`You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`);
             }
         } else {
             await look_here(player, map, objs.length);
