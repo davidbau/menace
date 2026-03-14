@@ -15,9 +15,14 @@ import {
   clockd, thiefd, fightd, swordd,
   objact, vappli, aappli, rappli, oappli,
   score, valuac, newsta,
+  _registerVerbsModule,
 } from './support.js';
 
 import { rdline, parse } from './parser.js';
+
+// Register verb handlers to break circular dependency
+import * as _verbsModule from './verbs.js';
+_registerVerbsModule(_verbsModule);
 
 // ---------------------------------------------------------------
 // DungeonGame class

@@ -753,12 +753,20 @@ export function rappli(G, action) {
 
 /**
  * VAPPLI — Call verb action routine.
- * Stub: returns false.
+ * Delegates to verbs.js implementation.
  */
 export function vappli(G, action) {
   if (action === 0) return false;
-  // TODO: Dispatch to verb action handlers
+  if (_verbsModule && _verbsModule.vappli) {
+    return _verbsModule.vappli(G, action);
+  }
   return false;
+}
+
+// Late-binding for verbs module (to break circular dependency)
+let _verbsModule = null;
+export function _registerVerbsModule(mod) {
+  _verbsModule = mod;
 }
 
 /**
@@ -1614,10 +1622,12 @@ export function fwim(G, f1, f2, rm, con, adv, nocare) {
 
 /**
  * VALUAC(obj) — Handle collective object (valuables, everything, possessions, bunch).
- * Stub: will be expanded.
+ * Delegates to verbs.js implementation.
  */
 export function valuac(G, obj) {
-  // TODO: implement collective object handling
+  if (_verbsModule && _verbsModule.valuac) {
+    _verbsModule.valuac(G, obj);
+  }
 }
 
 /**

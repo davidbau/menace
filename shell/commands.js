@@ -140,6 +140,7 @@ async function whoami(_args, shell) {
 async function who(_args, shell) {
     shell.println(`${USERNAME}    tty07    Mar 12 09:14`);
     shell.println('izchak    tty03    Mar 12 08:30');
+    shell.println('walz      tty06    Mar 12 08:45');
     shell.println('toy       tty04    Mar 11 22:47');
     shell.println('fenlason  tty05    Mar 12 07:15');
     shell.println('lebling   tty02    Mar 11 19:30');

@@ -44,7 +44,8 @@ fenlason:x:1005:1005:Jay Fenlason:/home/fenlason:/bin/sh
 brouwer:x:1006:1006:Andries Brouwer:/home/brouwer:/bin/sh
 lebling:x:1007:1007:Dave Lebling:/home/lebling:/bin/sh
 blank:x:1008:1008:Marc Blank:/home/blank:/bin/sh
-wizard:x:1009:1009:The Wizard of Yendor:/dev/null:/sbin/nologin
+walz:x:1009:1009:Janet Walz:/home/walz:/bin/sh
+wizard:x:1010:1010:The Wizard of Yendor:/dev/null:/sbin/nologin
 gridbug:x:404:404:Grid Bug:/tmp:/bin/false
 `.replace(/Strstrstrstr /g, '');
 
