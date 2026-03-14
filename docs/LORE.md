@@ -79,6 +79,12 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-13)
 
+- C `mhitu.c:mdamageu()` is not equivalent to `hack.c:losehp()`. In
+  particular, `mdamageu()` does not run `maybe_wail()`. For `t11_s744`, routing
+  ordinary monster melee through JS `losehp()` was the reason JS appended
+  `Wizard is about to die.` at step `681` while C did not. Switching the
+  `hitmu` damage application over to a C-shaped `mdamageu()` removed that
+  stray warning and moved the first screen divergence to the next boundary.
 - C `deferred_goto()` level-arrival messaging is sensitive to topline
   ownership, not just content. A second follow-up `pline("You see here ...")`
   after `"You materialize on a different level!"` can preserve RNG/event

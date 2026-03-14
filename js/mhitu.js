@@ -71,7 +71,7 @@ import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
-import { nomul, losehp } from './hack.js';
+import { nomul, losehp, saving_grace, showdamage } from './hack.js';
 import { body_part, polymon, rehumanize } from './polyself.js';
 import { is_wet_towel } from './objnam.js';
 import { night } from './calendar.js';
@@ -1544,17 +1544,17 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             const hpBefore = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
             mhituTrace(
                 game,
-                `pre_losehp mon=${monster?.m_id ?? 0} mndx=${monster?.mndx ?? -1} `
+                `pre_mdamageu mon=${monster?.m_id ?? 0} mndx=${monster?.mndx ?? -1} `
                 + `aatyp=${attack?.aatyp ?? -1} adtyp=${attack?.adtyp ?? -1} `
                 + `dmg=${mhm.damage} hp_before=${hpBefore} `
                 + `halfphys=${hasHalfPhysical ? 1 : 0} ac=${playerAc}`
             );
-            await losehp(mhm.damage, x_monnam(monster), KILLED_BY_AN, player, display, game);
+            await mdamageu(monster, mhm.damage, player, display, game);
             const died = (player.uhp || 0) <= 0;
             const hpAfter = Number.isFinite(player?.uhp) ? player.uhp : (Number(player?.hp) || 0);
             mhituTrace(
                 game,
-                `post_losehp mon=${monster?.m_id ?? 0} hp_after=${hpAfter} died=${died ? 1 : 0}`
+                `post_mdamageu mon=${monster?.m_id ?? 0} hp_after=${hpAfter} died=${died ? 1 : 0}`
             );
 
             if (died) {
@@ -2198,17 +2198,47 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
     if (!player) return;
     if (n < 0) n = 0;
     const gameCtx = game || activeGame || null;
+    const hadLegacyHp = Object.prototype.hasOwnProperty.call(player, 'hp');
+    const hadLegacyHpMax = Object.prototype.hasOwnProperty.call(player, 'hpmax');
 
-    if (n > 0) {
-        await losehp(n, x_monnam(mtmp), KILLED_BY_AN, player, display, gameCtx);
-        if ((player.uhp || 0) <= 0) {
-            player.deathCause = `killed by a ${x_monnam(mtmp)}`;
-            if (gameCtx) {
-                gameCtx.playerDied = true;
-                await done_in_by(mtmp, 0, gameCtx);
-            } else if (display) {
-                await display.putstr_message('You die...');
-            }
+    if (n <= 0) return;
+
+    if (player.upolyd) {
+        let nextMh = (player.mh || 0) - n;
+        player.mh = nextMh;
+        await showdamage(n, player, display, gameCtx);
+        if (nextMh > (player.mhmax || 0)) {
+            nextMh = player.mhmax || 0;
+            player.mh = nextMh;
+        }
+        if (nextMh < 1) {
+            player.mh = 0;
+            await rehumanize(player, display, gameCtx);
+        }
+        return;
+    }
+
+    n = saving_grace(n, player, gameCtx);
+    const heroHp = Number.isFinite(player?.uhp) ? player.uhp : (player?.hp || 0);
+    const heroHpMax = Number.isFinite(player?.uhpmax) ? player.uhpmax : (player?.hpmax || 0);
+    let nextHp = heroHp - n;
+    player.uhp = nextHp;
+    if (hadLegacyHp) player.hp = nextHp;
+    await showdamage(n, player, display, gameCtx);
+    if (nextHp > heroHpMax) {
+        nextHp = heroHpMax;
+        player.uhp = nextHp;
+        if (hadLegacyHp) player.hp = nextHp;
+    }
+    if (nextHp < 1) {
+        player.uhp = 0;
+        if (hadLegacyHp) player.hp = 0;
+        player.deathCause = `killed by a ${x_monnam(mtmp)}`;
+        if (gameCtx) {
+            gameCtx.playerDied = true;
+            await done_in_by(mtmp, 0, gameCtx);
+        } else if (display) {
+            await display.putstr_message('You die...');
         }
     }
 }
