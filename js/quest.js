@@ -36,11 +36,13 @@ import { create_gas_cloud } from './region.js';
 import { AMULET_OF_YENDOR, FAKE_AMULET_OF_YENDOR, BELL_OF_OPENING } from './objects.js';
 import {
     MS_NEMESIS, MS_GUARDIAN, MS_DJINNI,
-    PM_PRISONER, mons,
+    PM_PRISONER, PM_WIZARD, mons,
 } from './monsters.js';
 import { MAGIC_PORTAL, STRAT_WAITMASK, UTOTYPE_PORTAL } from './const.js';
 import { A_WIS } from './const.js';
 import { the, xname } from './objnam.js';
+import { create_nhwindow, destroy_nhwindow, putstr, display_nhwindow } from './windows.js';
+import { NHW_TEXT, ATR_NONE } from './const.js';
 
 // C: #define MIN_QUEST_LEVEL 14
 const MIN_QUEST_LEVEL = 14;
@@ -70,13 +72,30 @@ function Not_firsttime(player) {
 // These stubs produce minimal pline output for quest flow.
 // ======================================================================
 
-async function qt_pager(msgid, game) {
-    // Quest text system not ported; emit minimal placeholder message
-    // In full C, this loads quest.lua and delivers role-specific text.
-    // For now, just log the message id so quest flow still functions.
-    if (msgid) {
-        await pline("[Quest: %s]", msgid);
+async function qt_pager(msgid, game, obj = null) {
+    const player = (game.u || game.player);
+    const isWizardRole = player?.roleMnum === PM_WIZARD
+        || String(player?.roleName || '').toLowerCase() === 'wizard'
+        || String(player?.role || '').toLowerCase() === 'wizard';
+    if (msgid === "gotit" && isWizardRole && obj) {
+        // C ref: questpgr.c com_pager_core() loads nhlib.lua, whose top-level
+        // shuffle() consumes rn2(3), rn2(2) even for single-entry role text.
+        rn2(3);
+        rn2(2);
+        const qname = the(obj.oname || xname(obj));
+        const win = create_nhwindow(NHW_TEXT);
+        await putstr(win, ATR_NONE, `As you touch ${qname}, its comforting power infuses you`);
+        await putstr(win, ATR_NONE, "with new energy.  You feel as if you can detect others' thoughts flowing");
+        await putstr(win, ATR_NONE, `through it.  Although you yearn to wear ${qname} and`);
+        await putstr(win, ATR_NONE, "attack the Wizard of Yendor, you know you must return it to its rightful");
+        await putstr(win, ATR_NONE, "owner, Neferet the Green.");
+        await display_nhwindow(win, true);
+        destroy_nhwindow(win);
+        return;
     }
+    // Quest text system is only partially ported; keep placeholder fallback for
+    // currently unimplemented role/message combinations.
+    if (msgid) await pline("[Quest: %s]", msgid);
 }
 
 async function com_pager(msgid, game) {
@@ -301,7 +320,7 @@ export async function artitouch(obj, game) {
         // observe_object not yet ported globally; stub
         // Only give this message once
         qs.touched_artifact = true;
-        await qt_pager("gotit", game);
+        await qt_pager("gotit", game, obj);
         await exercise(player, A_WIS, true);
     }
 }

@@ -12103,3 +12103,46 @@ Validation:
   - first cursor divergence remains `844`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-14 21:58: quest-artifact wishes need both `readobjnam()` short-circuiting and inventory-add side effects
+
+- Session:
+  - `/tmp/artifact_mix_probe2.session.json`
+- Problem:
+  - a new artifact-heavy wizard coverage probe diverged immediately on the
+    Eye-of-the-Aethiopica wish path
+  - JS was missing two C behaviors:
+    - `objnam.c:readobjnam()` short-circuits the artifact-abuse `rn2()`
+      for a true quest artifact
+    - `invent.c:addinv_core1()` applies quest-artifact side effects as soon as
+      the object joins inventory:
+      - mark `u.uhave.questart`
+      - call `artitouch()`
+      - apply carried artifact intrinsics
+- Fix:
+  - `js/objnam.js`:
+    - changed the artifact-abuse branch to match C short-circuit semantics:
+      `is_quest_artifact(otmp) || (otmp->oartifact && rn2(...) > 1)`
+  - `js/invent.js`:
+    - added quest-artifact inventory-add side effects:
+      - `player.uhave.questart = true`
+      - `await artitouch(obj, _gstate)`
+      - `await set_artifact_intrinsic(obj, true, W_ART, player)`
+  - `js/artifact.js`:
+    - corrected carried artifact intrinsic mappings:
+      - `SPFX_SEARCH -> SEARCHING`
+      - `SPFX_ESP -> TELEPAT`
+    - refreshed telepathy side effects after `SPFX_ESP`
+  - `js/quest.js`:
+    - made the wizard `gotit` quest-artifact path key off live role state
+      (`roleMnum` / `roleName`)
+    - delivered that text through a temporary `NHW_TEXT` window instead of
+      line-by-line `pline()` calls
+- Result:
+  - the artifact probe's first true gameplay blocker moved much later:
+    - RNG `38 -> 84`
+    - events `4 -> 153`
+    - screens matched `37 -> 82`
+  - `seed329_rogue_wizard_gameplay.session.json` stayed fully green
+  - there is still a residual text-window screen mismatch at step `38`, but the
+    quest-artifact path no longer blocks progression at its original frontier

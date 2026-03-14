@@ -21,7 +21,7 @@ import { rn2, rnd, d, c_d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
 import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, PM_KNIGHT, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
-import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, A_WIS, KILLED_BY, ANTIMAGIC, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
+import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, A_WIS, KILLED_BY, ANTIMAGIC, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, SEARCHING, TELEPAT, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
 import { Is_container, obj_extract_self } from './mkobj.js';
@@ -36,6 +36,8 @@ import { exercise } from './attrib_exercise.js';
 import { s_suffix } from './hacklib.js';
 import { the, xname } from './objnam.js';
 import { Role_if } from './role.js';
+import { see_monsters } from './display.js';
+import { recalc_telepat_range } from './worn.js';
 
 // ── Artifact existence tracking ──
 // artiexist[i] tracks artifact i (1-indexed; [0] is unused)
@@ -816,8 +818,8 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
 
   // Map SPFX_ bits to property indices
   const spfxMap = [
-    [SPFX_SEARCH, 31],  // SEARCHING
-    [SPFX_ESP,    49],  // TELEPAT
+    [SPFX_SEARCH, SEARCHING],
+    [SPFX_ESP,    TELEPAT],
     [SPFX_STLTH,  STEALTH],
     [SPFX_REGEN,  REGENERATION],
     [SPFX_TCTRL,  TELEPORT_CONTROL],
@@ -836,6 +838,11 @@ export async function set_artifact_intrinsic(otmp, on, wp_mask, player) {
     if (p) {
       if (on) p.extrinsic |= wp_mask;
       else p.extrinsic &= ~wp_mask;
+    }
+    if (bit === SPFX_ESP && player) {
+      player.ETelepat = player.uprops?.[TELEPAT]?.extrinsic || 0;
+      recalc_telepat_range(player);
+      see_monsters(player.map || null);
     }
   }
 

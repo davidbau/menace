@@ -3,7 +3,7 @@
 
 import { nhgetch, getlin, more } from './input.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
-import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE } from './const.js';
+import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE, W_ART } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
@@ -28,7 +28,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
-import { obj_resists } from './objdata.js';
+import { obj_resists, is_quest_artifact } from './objdata.js';
 import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your, There } from './pline.js';
@@ -39,10 +39,11 @@ import { newsym, flush_screen } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
-import { confers_luck, touch_artifact } from './artifact.js';
+import { confers_luck, touch_artifact, set_artifact_intrinsic } from './artifact.js';
 import { game as _gstate } from './gstate.js';
 import { visctrl } from './hacklib.js';
 import { can_reach_floor } from './engrave.js';
+import { artitouch } from './quest.js';
 
 
 // ============================================================
@@ -1173,6 +1174,16 @@ export async function addinv_core2(obj, player) {
     // C ref: invent.c:1028-1031 — luckstone in inventory sets moreluck
     if (confers_luck(obj)) {
         set_moreluck(player);
+    }
+    // C ref: invent.c:addinv_core1() — quest-artifact touch and carried
+    // artifact intrinsics are applied as soon as the object joins inventory.
+    if (obj?.oartifact) {
+        if (is_quest_artifact(obj)) {
+            if (!player.uhave) player.uhave = {};
+            player.uhave.questart = true;
+            await artitouch(obj, _gstate);
+        }
+        await set_artifact_intrinsic(obj, true, W_ART, player);
     }
     // C ref: invent.c addinv_core2() — archeologists can decipher scroll labels.
     if (player

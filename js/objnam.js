@@ -2343,17 +2343,12 @@ export function readobjnam(bp, no_wish, opts = {}) {
 
     // C ref: objnam.c:5361-5371 — "more wishing abuse" check
     // C: if ((is_quest_artifact(d.otmp) || (d.otmp->oartifact && rn2(nartifact_exist()) > 1)) && !wizard)
-    // rn2(nartifact_exist()) is evaluated due to short-circuit evaluation:
-    //   - only called when is_quest_artifact() returns false (quest not started) AND oartifact is set
-    //   - called even in wizard mode because !wizard check comes after rn2()
-    // C's is_quest_artifact() returns false when quest not started (qdat.qd_flags.notstarted != 0),
-    // which is the common case. We model this by always calling rn2 when oartifact is set
-    // (matching C's behavior before quest start, which is almost always in test sessions).
+    // The rn2() call is short-circuited for true quest artifacts.
     if (otmp && otmp.oartifact) {
-        const abuse = rn2(nartifact_exist()) > 1;
         const wizard = !!opts.wizard;
+        const abuse = is_quest_artifact(otmp)
+            || (otmp.oartifact && rn2(nartifact_exist()) > 1);
         if (abuse && !wizard) {
-            // Not in wizard mode and abuse: remove the artifact
             artifact_exists(otmp, otmp.oname || '', false, 0);
             otmp.oartifact = 0;
             otmp.oname = '';
