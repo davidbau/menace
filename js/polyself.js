@@ -875,6 +875,10 @@ export async function newman(player) {
         player.slimed = 10;
     }
 
+    // C ref: polyself.c newman() sets context.botl = 1 — refresh status line
+    if (_gstate?.disp) _gstate.disp.botl = true;
+    player._botl = true;
+
     // encumber_msg, retouch_equipment, selftouch
     await encumber_msg(player);
     retouch_equipment(2, player);
@@ -1125,6 +1129,9 @@ export async function polymon(player, mntmp, map) {
     player.mtimedone = rn1(500, 500);
     player.umonnum = mntmp;
     set_uasmon(player);
+    // C ref: polyself.c polymon() sets context.botl after updating monster form,
+    // so the next pline() → flush_screen() → bot() picks up the new title/stats.
+    player._botl = true;
 
     // New stats — currently only strength gets changed
     const newMaxStr = uasmon_maxStr(player);
