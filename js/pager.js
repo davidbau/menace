@@ -950,7 +950,7 @@ export async function handleHelp(game) {
     add_menu(win, null, 'n', 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'The NetHack license.', 0);
     add_menu(win, null, 'o', 'o'.charCodeAt(0), 0, ATR_NONE, 0, 'Support information.', 0);
     if (game.wizard) {
-        add_menu(win, null, 'w', 'w'.charCodeAt(0), 0, ATR_NONE, 0, 'List of wizard-mode commands.', 0);
+        add_menu(win, null, 'p', 'p'.charCodeAt(0), 0, ATR_NONE, 0, 'List of wizard-mode commands.', 0);
     }
     end_menu(win, 'Select one item:');
     const sel = await select_menu(win, PICK_ONE);
@@ -1005,7 +1005,7 @@ export async function handleHelp(game) {
         const text = await fetchDataFile('dat/portshelp');
         if (text) await showPager(display, text, 'Support Information');
         else await display.putstr_message('Failed to load support information.');
-    } else if (c === 'w' && game.wizard) {
+    } else if (c === 'p' && game.wizard) {
         const text = await fetchDataFile('dat/wizhelp.txt');
         if (text) await showPager(display, text, 'Wizard Mode Commands');
         else await display.putstr_message('Failed to load wizard help.');

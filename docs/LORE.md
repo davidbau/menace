@@ -12146,3 +12146,27 @@ Validation:
   - `seed329_rogue_wizard_gameplay.session.json` stayed fully green
   - there is still a residual text-window screen mismatch at step `38`, but the
     quest-artifact path no longer blocks progression at its original frontier
+
+### Help menu wizard entry must use the C-visible selector letter
+
+- Problem: after wiring the inventory inspection keys, `t11_s754_w_covmax8_gp`
+  still diverged in the `?` help menu. JS rendered:
+  - `w - List of wizard-mode commands.`
+  while C rendered:
+  - `p - List of wizard-mode commands.`
+- Diagnosis:
+  - this was not a gameplay problem; `RNG` and `events` were already exact
+  - [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js)
+    hardcoded a wizard-only selector of `w`
+  - in the current C build, that help-menu entry lands at `p` because it is
+    the last item in the help menu's auto-assigned order
+- Fix:
+  - change the wizard-help entry selector in `js/pager.js` from `w` to `p`
+  - update the selection handler to dispatch wizard help on `p`
+- Validation:
+  - `t11_s754_w_covmax8_gp`: gameplay remained exact
+    (`RNG 20848/20848`, `events 3292/3292`)
+  - first screen divergence moved `461 -> 802`
+  - first cursor divergence remains `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
