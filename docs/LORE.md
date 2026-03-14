@@ -11748,3 +11748,22 @@ Validation:
     first RNG divergence moved `802 -> 1254`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Shopkeepers must use `move_special()` path selection, not one-tile chase
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was in the same monster
+  window after the `#cast` fix. C moved monster `271` (the shopkeeper) from
+  `(75,4)` to `(76,4)` through `shk_move() -> move_special(...)`, while JS
+  left it in place and immediately re-entered the next `distfleeck()` call.
+- Root cause: [`js/shk.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/shk.js)
+  still had a simplified `shk_move()` one-step chase model, but C
+  `shk.c:shk_move()` uses richer `move_special(...)` path selection with home,
+  following, and door-avoidance logic.
+- Fix: handle the `isshk` branch in [`js/monmove.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/monmove.js)
+  with a C-shaped `shk_move()` decision path built around canonical
+  `move_special(...)`, then run `after_shk_move()` when it succeeds.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first event divergence moved `1224 -> 1228`,
+    first RNG divergence moved later within the same step (`7170 -> 7177`)
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green

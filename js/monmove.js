@@ -42,10 +42,11 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an, vtense, makeplural } from './objnam.js';
-import { delobj, g_at, sobj_at } from './invent.js';
+import { delobj, g_at, sobj_at, carrying } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
 import { can_carry, cursed_object_at } from './dogmove.js';
+import { holetime } from './dig.js';
 import { cansee, couldsee, m_cansee } from './vision.js';
 import { pline, pline_mon, pline_The, You_hear, set_msg_xy, verbalize } from './pline.js';
 import { can_teleport, noeyes, perceives, nohands,
@@ -71,7 +72,7 @@ import { artifact_light } from './artifact.js';
 import { has_magic_key } from './artifact.js';
 import { envFlag } from './runtime_env.js';
 import { cuss } from './wizard.js';
-import { add_damage, after_shk_move, shk_move } from './shk.js';
+import { add_damage, after_shk_move, inhishop, shk_fixes_damage } from './shk.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
@@ -1808,9 +1809,90 @@ export async function m_move(mon, map, player, display = null, fov = null) {
     }
 
     if (mon.isshk) {
+        // C ref: shk.c shk_move() — shopkeepers choose movement via move_special(),
+        // not a single-step chase. Keeping this logic here avoids a module cycle
+        // with monmove.js's canonical move_special().
         const omx = mon.mx, omy = mon.my;
-        shk_move(mon, map, player);
-        return (mon.mx !== omx || mon.my !== omy) ? MMOVE_MOVED : MMOVE_NOTHING;
+        if (inhishop(mon, map)) {
+            await shk_fixes_damage(mon, map, _gstate);
+        }
+
+        let udist = distu(player, omx, omy);
+        let appr = 1;
+        const home = mon.shk || { x: omx, y: omy };
+        let gtx = home.x;
+        let gty = home.y;
+        const satdoor = (gtx === omx && gty === omy);
+        let uondoor = false;
+        let avoid = false;
+        let badinv = false;
+
+        if (udist < 3 && (mon.mndx !== PM_GRID_BUG || omx === player.x || omy === player.y)) {
+            if (!mon_is_peaceful(mon)) {
+                return MMOVE_NOTHING;
+            }
+            if (mon.following) {
+                if (udist < 2) {
+                    return MMOVE_NOTHING;
+                }
+            }
+        }
+
+        const z = holetime(player);
+        if (mon.following || (z >= 0 && z * z <= udist)) {
+            if (udist > 4 && mon.following && !Number(mon.billct || 0)) {
+                // C: return -1 and let generic m_move handle it.
+            } else {
+                gtx = player.x;
+                gty = player.y;
+            }
+        } else if (!mon_is_peaceful(mon)) {
+            if (mon.mcansee && m_canseeu(mon)) {
+                gtx = player.x;
+                gty = player.y;
+            }
+            avoid = false;
+        } else {
+            if (player.invisible || player.Invis || player.usteed) {
+                avoid = false;
+            } else {
+                const door = mon.shd || { x: home.x, y: home.y };
+                uondoor = (player.x === door.x && player.y === door.y);
+                if (uondoor) {
+                    badinv = !!carrying(PICK_AXE, player)
+                        || !!carrying(DWARVISH_MATTOCK, player)
+                        || (((player.Fast || player.fast) ? 1 : 0)
+                            && (!!sobj_at(PICK_AXE, player.x, player.y, map)
+                                || !!sobj_at(DWARVISH_MATTOCK, player.x, player.y, map)));
+                    if (satdoor && badinv) {
+                        return MMOVE_NOTHING;
+                    }
+                    avoid = !badinv;
+                } else {
+                    avoid = !!(player.ushops && distu(player, gtx, gty) > 8);
+                    badinv = false;
+                }
+
+                if (((!Number(mon.robbed || 0) && !Number(mon.billct || 0) && !Number(mon.debit || 0)) || avoid)
+                    && dist2(omx, omy, gtx, gty) < 3) {
+                    if (!badinv && !onlineu(mon, player)) {
+                        return MMOVE_NOTHING;
+                    }
+                    if (satdoor) {
+                        appr = 0;
+                        gtx = 0;
+                        gty = 0;
+                    }
+                }
+            }
+        }
+
+        const moved = move_special(mon, map, player, inhishop(mon, map), appr, uondoor, avoid, gtx, gty);
+        if (moved > 0) {
+            after_shk_move(mon, map);
+            return MMOVE_MOVED;
+        }
+        return MMOVE_NOTHING;
     }
     if (mon.ispriest) {
         if (mon.epri && mon.epri.shrpos) {
