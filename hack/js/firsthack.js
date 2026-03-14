@@ -88,9 +88,9 @@ async function startGame() {
     await gameLoop(seed);
   } catch (e) {
     if (e instanceof GameOver) {
-      display.moveCursor(1, 1);
-      display.putString(`Game over: ${e.reason}. Refresh to play again.`);
-      display.flush();
+      // Return to the main shell — like logging out of hack
+      window.location.href = '/?shell=1';
+      return;
     } else {
       console.error('Hack error:', e);
       display.moveCursor(1, 1);
