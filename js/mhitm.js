@@ -736,7 +736,7 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
             // C ref: mhitm.c:406-410 — wield best melee weapon
             if (magr.weapon_check === NEED_WEAPON || !magr.weapon) {
                 magr.weapon_check = NEED_HTH_WEAPON;
-                if (mon_wield_item(magr) !== 0)
+                if (await mon_wield_item(magr) !== 0)
                     return M_ATTK_MISS;
             }
             possibly_unwield(magr, false);

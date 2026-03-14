@@ -42,7 +42,7 @@ import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
 import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
-import { see_monsters, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
+import { see_monsters, see_objects, see_traps, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
@@ -715,7 +715,12 @@ export async function run_command(game, ch, opts = {}) {
         // C ref: allmain.c:459-474 — "once-per-player-input" section.
         find_ac(game.u || game.player);
         // After monsters move, update display at every monster position.
+        // C ref: allmain.c:456-458 — when hallucinating, call all three.
         see_monsters(game.map);
+        if ((game.u || game.player)?.Hallucination) {
+            see_objects();
+            see_traps();
+        }
         await display_sync();
     };
 
@@ -937,6 +942,10 @@ async function finalizeTimedCommand(game, result, coreOpts) {
         await moveloop_core(game, coreOpts);
         find_ac(game.u || game.player);
         see_monsters(game.map);
+        if ((game.u || game.player)?.Hallucination) {
+            see_objects();
+            see_traps();
+        }
         await display_sync();
     };
     await advanceTimedTurn();

@@ -862,7 +862,7 @@ export async function thrwmu(mon, map, player, display, game) {
     // C ref: mthrowu.c:1157-1159 — wield ranged weapon before selecting
     if (mon.weapon_check === NEED_WEAPON || !mon.weapon) {
         mon.weapon_check = NEED_RANGED_WEAPON;
-        if (mon_wield_item(mon) !== 0)
+        if (await mon_wield_item(mon) !== 0)
             return true; // wielding consumed the turn
     }
     const otmp = select_rwep(mon);
@@ -917,7 +917,7 @@ export async function thrwmm(mtmp, mtarg, map, player, display, game) {
     if (!mtmp || !mtarg) return 0;
     if (mtmp.weapon_check === NEED_WEAPON || !mtmp.weapon) {
         mtmp.weapon_check = NEED_RANGED_WEAPON;
-        if (mon_wield_item(mtmp) !== 0) return 0;
+        if (await mon_wield_item(mtmp) !== 0) return 0;
     }
     const otmp = select_rwep(mtmp);
     if (!otmp) return 0;
@@ -1065,16 +1065,8 @@ export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, n
     // C ref: monmove.c wield gate — trapped monsters with a ranged option
     // should keep that option rather than spend a turn switching to HTH.
     if (mon.mtrapped && !nearby && select_rwep(mon)) return false;
-    const oldWeapon = mon.weapon;
     mon.weapon_check = NEED_HTH_WEAPON;
-    if (mon_wield_item(mon) !== 0) {
-        // Wielding took monster's turn — show message if visible
-        if (mon.weapon && mon.weapon !== oldWeapon) {
-            const visible = canseemon(mon, player, fov, map);
-            if (display && visible) {
-                await display.putstr_message(`The ${x_monnam(mon)} wields ${thrownObjectName(mon.weapon, player)}!`);
-            }
-        }
+    if (await mon_wield_item(mon) !== 0) {
         return true;
     }
     return false;

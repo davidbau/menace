@@ -1471,13 +1471,8 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             // C ref: mhitu.c AT_WEAP melee branch — monsters can still spend
             // this turn wielding before any hit-roll RNG is consumed.
             if ((monster.weapon_check === NEED_WEAPON || !monster.weapon)) {
-                const oldWeapon = monster.weapon;
                 monster.weapon_check = NEED_HTH_WEAPON;
-                if (mon_wield_item(monster) !== 0) {
-                    if (monster.weapon && monster.weapon !== oldWeapon
-                        && canseemon(monster, player, null, opts?.map || game?.map || null)) {
-                        await display.putstr_message(`The ${x_monnam(monster)} wields ${doname(monster.weapon, player)}!`);
-                    }
+                if (await mon_wield_item(monster) !== 0) {
                     sum[i] = M_ATTK_MISS;
                     continue;
                 }

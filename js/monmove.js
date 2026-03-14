@@ -1779,15 +1779,7 @@ async function m_digweapon_check(mon, nix, niy, map, player, display, fov) {
         if (!mw_tmp || (mw_tmp.otyp !== PICK_AXE && mw_tmp.otyp !== DWARVISH_MATTOCK))
             mon.weapon_check = NEED_PICK_AXE;
     }
-    const oldWeapon = mon.weapon;
-    if ((mon.weapon_check ?? 0) >= NEED_PICK_AXE && mon_wield_item(mon) !== 0) {
-        if (display && mon.weapon && mon.weapon !== oldWeapon) {
-            const visible = !fov?.canSee || (fov.canSee(mon.mx, mon.my)
-                && !player?.blind && !mon.minvis);
-            if (visible) {
-                await display.putstr_message(`${Monnam(mon)} wields ${doname(mon.weapon, player)}.`);
-            }
-        }
+    if ((mon.weapon_check ?? 0) >= NEED_PICK_AXE && await mon_wield_item(mon) !== 0) {
         return true;
     }
     return false;

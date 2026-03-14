@@ -609,7 +609,7 @@ export async function make_familiar(otmp, x, y, quietly) {
   mtmp.sleeping = false;
   set_malign(mtmp);
   newsym(mtmp.mx, mtmp.my);
-  if (mtmp.mtame && attacktype(mtmp.data, AT_WEAP)) { mtmp.weapon_check = NEED_HTH_WEAPON; mon_wield_item(mtmp); }
+  if (mtmp.mtame && attacktype(mtmp.data, AT_WEAP)) { mtmp.weapon_check = NEED_HTH_WEAPON; await mon_wield_item(mtmp); }
   return mtmp;
 }
 

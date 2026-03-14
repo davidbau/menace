@@ -53,6 +53,10 @@ import { spec_abon, artifact_light } from './artifact.js';
 import { dist2 } from './hacklib.js';
 import { couldsee } from './vision.js';
 import { game as _gstate } from './gstate.js';
+import { pline } from './pline.js';
+import { Monnam } from './mondata.js';
+import { doname } from './objnam.js';
+import { canseemon } from './display.js';
 
 // Hero skill state (C: P_SKILL/P_MAX_SKILL/P_ADVANCE).
 let skillSystemActive = false;
@@ -623,10 +627,13 @@ export function possibly_unwield(mon, _polyspot) {
 // mon_wield_item — cf. weapon.c:801
 // ============================================================================
 // Monster wields appropriate weapon. Returns 1 if took time, 0 otherwise.
-export function mon_wield_item(mon) {
+export async function mon_wield_item(mon) {
     let obj;
 
     if (mon.weapon_check === NO_WEAPON_WANTED) return 0;
+
+    // C ref: weapon.c:835 — exclaim for combat weapons, period for tool weapons
+    const exclaim = (mon.weapon_check === NEED_HTH_WEAPON || mon.weapon_check === NEED_RANGED_WEAPON);
 
     switch (mon.weapon_check) {
     case NEED_HTH_WEAPON:
@@ -677,6 +684,10 @@ export function mon_wield_item(mon) {
         mon.weapon = obj;
         mon.weapon_check = NEED_WEAPON;
         obj.owornmask = (obj.owornmask || 0) | W_WEP;
+        // C ref: weapon.c:892 — pline("%s wields %s%c", Monnam, doname, exclaim?'!':'.')
+        if (canseemon(mon)) {
+            await pline('%s wields %s%s', Monnam(mon), doname(obj), exclaim ? '!' : '.');
+        }
         return 1;
     }
     mon.weapon_check = NEED_WEAPON;
