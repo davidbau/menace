@@ -12170,3 +12170,27 @@ Validation:
   - first cursor divergence remains `844`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-14 22:26: `#invoke` must normalize `ECMD_TIME` into `{ tookTime }` or monster turns vanish
+
+- Session:
+  - `/tmp/artifact_mix_probe2.session.json`
+- Problem:
+  - after fixing quest-artifact wishing, the next first blocker was `#invoke p`
+    on the Eye of the Aethiopica
+  - JS matched C through `arti_invoke_cost()`, then stopped; C immediately ran
+    monster movement in the same keypress
+  - cause: `cmd.js` returned raw `ECMD_*` from `doinvoke()`, but the command
+    loop expects `{ moved, tookTime }`
+- Fix:
+  - `js/cmd.js`:
+    - normalize `#invoke` like other extended commands:
+      `return { moved: false, tookTime: !!((await doinvoke(...)) & ECMD_TIME) }`
+- Result:
+  - the artifact probe improved again:
+    - RNG `84 -> 94`
+    - events `153/250 -> 250/250` full
+    - screens `82/103 -> 101/103`
+  - `seed329_rogue_wizard_gameplay.session.json` remained fully green
+  - the remaining gameplay blocker is now later and RNG-only, while the older
+    step-38 text-window mismatch is just residual screen rendering

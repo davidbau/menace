@@ -1001,7 +1001,7 @@ async function handleExtendedCommand(game) {
         case 'conduct':
             return { moved: false, tookTime: !!(await doconduct(game)) };
         case 'invoke':
-            return await doinvoke(player, game);
+            return { moved: false, tookTime: !!((await doinvoke(player, game)) & ECMD_TIME) };
         case 'u':
         case 'untrap':
             queueRepeatExtcmd(async (g) => handleExtendedCommandUntrap(g));
