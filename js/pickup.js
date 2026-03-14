@@ -1638,7 +1638,7 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
-            clearMenuOptionRows(38);
+            clearMenuOptionRows();  // full clear — previous class menu may extend left of menuPad
             await putMenuPrompt('Take out what?', menuPad);
             if (typeof display?.putstr === 'function') display.putstr(menuPad, 2, 'Comestibles', 7, 1);
             else drawMenuOptionLine(menuPad, 2, 'Comestibles');
@@ -1682,7 +1682,7 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(menuPad, 3 + tidx, `${available[tidx]} ${indicator} ${doname(visible[tidx], player)}`);
         }
         if (typeof display?.clearRow === 'function') display.clearRow(0);
-        clearMenuOptionRows(38);
+        clearMenuOptionRows();  // full clear — class menu remnants may extend left
         return didTake;
     };
 
