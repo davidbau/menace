@@ -270,6 +270,18 @@ export async function select_menu(win, how, opts = null) {
     if (!w) return null;
     w.how = how;
 
+    // C tty parity: menu selection windows do not render over a pending
+    // topline --More-- page. Resolve that boundary first, then paint the menu.
+    if (ttyDisplay.toplin === TOPLINE_NON_EMPTY || _display?.messageNeedsMore) {
+        await more(_display, { site: 'windows.select_menu.pre-menu', forceVisual: true });
+        if (_display?.clearRow) _display.clearRow(0);
+        ttyDisplay.toplin = TOPLINE_EMPTY;
+        if (_display) {
+            _display.messageNeedsMore = false;
+            _display.topMessage = null;
+        }
+    }
+
     const renderMenu = (selected = null) => {
         const lines = buildMenuLines(w, selected, how);
         if (_display) {

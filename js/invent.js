@@ -89,7 +89,7 @@ export function currency(amount) {
 }
 
 // C ref: invent.c display_inventory() / display_pickinv()
-export function buildInventoryOverlayLines(player) {
+export function buildInventoryOverlayLines(player, filterFn = null) {
     const CLASS_NAMES = {
         [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
         [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
@@ -102,6 +102,7 @@ export function buildInventoryOverlayLines(player) {
 
     const groups = {};
     for (const item of player.inventory || []) {
+        if (filterFn && !filterFn(item)) continue;
         const cls = item?.oclass;
         if (!cls) continue;
         if (!groups[cls]) groups[cls] = [];
@@ -262,6 +263,12 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     const allowCountPrefix = !!(options && options.allowCountPrefix);
     const dismissOnUnrecognized = !!(options && options.dismissOnUnrecognized);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
+    if (display?.messageNeedsMore) {
+        await more(display, { site: 'invent.renderOverlayMenu.pre-menu', forceVisual: true });
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+    }
     let menuOffx = null;
     // Forward display-relevant options (e.g. noTitleInverse) to renderOverlayMenu.
     const menuOpts = options?.noTitleInverse ? { noTitleInverse: true } : null;
@@ -1913,10 +1920,44 @@ export async function identify_pack(id_limit, player, learning_id) {
         }
     } else {
         // C ref: invent.c:2658-2695 — menu_identify(id_limit)
-        // Show a PICK_ANY menu of unidentified items, identify selections.
+        // TTY capture uses the grouped inventory overlay presentation here.
         let first = 1, tryct = 5;
+        const display = _gstate?.display || null;
         while (id_limit > 0) {
             const prompt = `What would you like to identify ${first ? 'first' : 'next'}?`;
+
+            if (display) {
+                const unid = inv.filter((obj) => obj && not_fully_identified(obj));
+                const lines = [
+                    prompt,
+                    '',
+                    ...buildInventoryOverlayLines(player, (obj) => unid.includes(obj))
+                        .filter((line) => line !== '(end)'),
+                ];
+                const choices = unid
+                    .map((obj) => String(obj?.invlet || ''))
+                    .filter(Boolean)
+                    .join('');
+                const selection = selectionFromInventoryResult(
+                    await renderOverlayMenuUntilDismiss(display, lines, choices, { dismissOnUnrecognized: true })
+                );
+                if (selection) {
+                    const obj = unid.find((candidate) => String(candidate?.invlet || '') === selection);
+                    if (obj) {
+                        await identify(obj, player);
+                        id_limit--;
+                        first = 0;
+                        continue;
+                    }
+                }
+                if (!--tryct) {
+                    await pline("That's enough tries.");
+                    break;
+                }
+                await pline("Choose an item; use ESC to decline.");
+                continue;
+            }
+
             const win = create_nhwindow(NHW_MENU);
             start_menu(win, MENU_BEHAVE_STANDARD);
             for (const obj of inv) {
@@ -1931,7 +1972,6 @@ export async function identify_pack(id_limit, player, learning_id) {
             destroy_nhwindow(win);
 
             if (result === null) {
-                // C ref: n == -2 — ESC pressed
                 break;
             } else if (result.length > 0) {
                 let n = Math.min(result.length, id_limit);
@@ -1944,11 +1984,9 @@ export async function identify_pack(id_limit, player, learning_id) {
                 }
                 first = 0;
             } else if (!--tryct) {
-                // C ref: invent.c:2688 — stop re-prompting after 5 tries
                 await pline("That's enough tries.");
                 break;
             } else {
-                // C ref: invent.c:2692 — empty selection, retry
                 await pline("Choose an item; use ESC to decline.");
             }
         }

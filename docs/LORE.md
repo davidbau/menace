@@ -11939,3 +11939,38 @@ Validation:
   - step `433` repaint parity became exact
   - first repaint divergence moved `433 -> 434`
   - gameplay parity stayed fully green on `t11_s744`
+
+## 2026-03-14 20:38: new `shop+read+zap` coverage session exposed menu-boundary bugs before gameplay drift
+
+- Session:
+  - `test/comparison/sessions/pending/hi13_seed1001_wiz_shop-read-zap_gp.session.json`
+- Coverage-campaign value:
+  - this mixed wizard session hits low-coverage surfaces in:
+    - `read.js`
+    - `artifact.js`
+    - `zap.js`
+    - `shk.js`
+- First bring-up findings:
+  - initial replay failed with:
+    - first event divergence at step `261`
+    - first screen divergence at step `267`
+    - first RNG divergence at step `275`
+  - the earliest visible mismatch was JS painting menu/overlay state while C
+    still showed a pending topline `--More--` boundary
+- JS fixes:
+  - `js/windows.js:select_menu()` now resolves a pending topline `--More--`
+    before painting a menu
+  - `js/invent.js:renderOverlayMenuUntilDismiss()` now does the same for
+    inventory-overlay menus
+  - `js/invent.js:identify_pack()` now uses the grouped inventory overlay
+    presentation for identify selection, matching the C capture shape better
+- Result:
+  - the session improved from mixed gameplay drift to a later pure screen/menu
+    boundary
+  - current authoritative replay state:
+    - RNG full: `3305/3305`
+    - events full: `379/379`
+    - first screen divergence at step `273`
+  - guardrails stayed green:
+    - `seed329_rogue_wizard_gameplay`
+    - `seed033_manual_direct`
