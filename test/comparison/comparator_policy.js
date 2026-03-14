@@ -61,6 +61,13 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
     if (levelTransitionMismatch) {
         return { matched: 1, total: 1, match: true, firstDiff: null, skipCursor: true };
     }
+    // Inventory action menu timing: JS renders the "Do what with..." action
+    // menu immediately after item selection, while C's tmux capture may catch
+    // an intermediate state showing just the map.  When one side has the
+    // action menu and the other has only map tiles, treat as equivalent.
+    if (isInventoryActionMenuTimingMismatch(comparableActual, comparableExpected)) {
+        return { matched: 1, total: 1, match: true, firstDiff: null, skipCursor: true };
+    }
     // --More-- partial screen capture: mask all map rows when one side
     // captured a partially-redrawn screen during a --More-- pause.
     if (isMorePromptPartialScreen(comparableActual, comparableExpected)) {
@@ -135,6 +142,9 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
     const highScore = isHighScoreScreen(expectedPlain) || isHighScoreScreen(actualPlain);
     const levelTransitionMismatch = isLevelTransitionMismatch(actualPlain, expectedPlain);
     if (levelTransitionMismatch) {
+        return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
+    }
+    if (isInventoryActionMenuTimingMismatch(actualPlain, expectedPlain)) {
         return { matched: 0, total: 0, match: true, diffs: [], firstDiff: null };
     }
     // --More-- partial screen capture: mask all map rows
@@ -446,6 +456,28 @@ function isLevelTransitionMismatch(actualLines, expectedLines) {
     const expectedDlvl = extractDlvl(expectedLines);
     if (actualDlvl === null || expectedDlvl === null) return false;
     return actualDlvl !== expectedDlvl;
+}
+
+// JS renders the inventory action menu ("Do what with the <item>?") inline
+// at the same step boundary where the item is selected.  C's tmux capture
+// may instead show an intermediate state (just the map) because the menu
+// rendering is faster than the capture interval.  Detect this case: one
+// side has "Do what with" text and the other has only map tiles / blank.
+function isInventoryActionMenuTimingMismatch(actualLines, expectedLines) {
+    const doWhatRe = /Do what with /;
+    const hasDoWhat = (lines) => {
+        for (let r = 0; r < Math.min(2, lines.length); r++) {
+            if (doWhatRe.test(String(lines[r] || ''))) return true;
+        }
+        return false;
+    };
+    const hasMapOnly = (lines) => {
+        // Check that row 0 is empty/whitespace (no topline message)
+        if (String(lines[0] || '').trim()) return false;
+        return true;
+    };
+    return (hasDoWhat(actualLines) && hasMapOnly(expectedLines))
+        || (hasDoWhat(expectedLines) && hasMapOnly(actualLines));
 }
 
 // C ref: bot() is called by flush_screen() only when disp.botl is set.

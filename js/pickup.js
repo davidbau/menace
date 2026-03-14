@@ -126,6 +126,12 @@ export async function show_invalid_direction_cmdassist_help(display) {
         const moreRow = rows > 0 ? rows - 1 : 0;
         display.putstr(0, moreRow, '--More--');
         if (display.setCursor) display.setCursor(8, moreRow);
+        // C ref: cmdassist blocks on display_nhwindow(WIN_MESSAGE, TRUE)
+        // until the user presses a key to dismiss the help screen.
+        // After dismiss, the help text stays on screen (C does not clear
+        // it until the next full redraw); the caller's direction loop
+        // will continue and either accept a direction or re-show help.
+        await nhgetch();
         return;
     }
     await display?.putstr_message?.('cmdassist: Invalid direction key!');

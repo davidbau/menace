@@ -102,6 +102,7 @@ import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { dry_a_towel } from './weapon.js';
+import { dowrite } from './write.js';
 import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname, yname } from './objnam.js';
 import { shk_your } from './shk.js';
 import { useupall, update_inventory, sobj_at } from './invent.js';
@@ -1188,6 +1189,12 @@ export async function handleApply(player, map, display, game) {
 
         if (selected.otyp === LAND_MINE || selected.otyp === BEARTRAP) {
             return await use_trap(selected, player, map, display, game);
+        }
+
+        if (selected.otyp === MAGIC_MARKER) {
+            // C ref: apply.c — case MAGIC_MARKER: res = dowrite(obj);
+            const res = await dowrite(selected, player);
+            return { moved: false, tookTime: res !== 0 };
         }
 
         if (selected.otyp === TINNING_KIT) {

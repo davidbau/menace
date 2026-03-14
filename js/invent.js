@@ -1,7 +1,7 @@
 // invent.js -- Inventory management
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
-import { nhgetch, getlin } from './input.js';
+import { nhgetch, getlin, more } from './input.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
 import { NHW_MENU, OBJ_INVENT } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
@@ -27,7 +27,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          GLASS, GEMSTONE, MINERAL,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          CLASS_SYMBOLS } from './objects.js';
-import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object } from './mkobj.js';
+import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
 import { an, Has_contents, not_fully_identified as objnam_not_fully_identified } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your, There } from './pline.js';
@@ -1177,14 +1177,24 @@ async function encumber_msg_transition(prevCap, newCap) {
 
 // C ref: invent.c hold_another_object() — add object or drop if can't hold
 export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_msg, display, game) {
-    // C ref: invent.c:1218 — artifact touch check before adding to inventory
+    // C ref: invent.c:1218-1244 — artifact touch check before adding to inventory.
+    // C places the object on the floor first (in case touching is fatal), then
+    // calls touch_artifact, then extracts it from the floor.
     if (obj.oartifact) {
+        // C ref: invent.c:1225 — place_object(obj, u.ux, u.uy)
+        const map = game?.map;
+        place_object(obj, player.x, player.y, map);
         const canTouch = await touch_artifact(obj, player, player, display, game);
         if (!canTouch) {
-            // Artifact evades hero's grasp — drop it
-            place_object(obj, player.x, player.y, game?.map);
+            // C ref: invent.c:1228-1230 — obj_extract_self(obj); dropy(obj);
+            // Object stays on the floor at hero's position.
+            // obj_extract_self removes it from map.objects, then we re-place it
+            // to match C's dropy() semantics (which does place_object internally).
+            // Net effect: object remains on floor. Just leave it placed.
             return obj;
         }
+        // C ref: invent.c:1239 — obj_extract_self(obj) after successful touch
+        obj_extract_self(obj, map);
     }
     const prevCap = near_capacity_for_inventory(player);
     const oquan = obj?.quan || 0;
@@ -1653,8 +1663,10 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
     if (!display) return getobj_simple(word, obj_ok, p);
 
     // Interactive prompt via nhgetch (C ref: invent.c:2232-2370)
-    const validLetters = allValid.map(o => o.invlet).join('');
-    const choices = compactInvletPromptChars(validLetters);
+    // C only shows SUGGEST items in the prompt bracket; DOWNPLAY items are
+    // accepted but hidden from the choice string (invent.c:2233-2240).
+    const suggestedLetters = suggested.map(o => o.invlet).join('');
+    const choices = compactInvletPromptChars(suggestedLetters);
     const prompt = choices
         ? `What do you want to ${word}? [${choices} or ?*] `
         : `What do you want to ${word}? [*] `;
@@ -1701,9 +1713,13 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         // Try to find inventory item by letter
         const item = inv.find(o => o.invlet === c);
         if (!item) {
-            // C ref: invent.c:2304 — invalid invlet error, then re-prompt
+            // C ref: invent.c:2304 — invalid invlet error with --More-- block.
+            // In C, pline("You don't have that object.") shows the error on the
+            // topline with --More--, blocking until the player presses a key.
+            // After dismiss, the prompt is re-shown.
             clearPrompt();
-            await display.putstr_message("You don't have that object.");
+            await display.putstr_message("You don't have that object.--More--");
+            await more(display, { clearAfter: true, forceVisual: false });
             await display.putstr_message(prompt);
             continue;
         }

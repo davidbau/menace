@@ -18,8 +18,10 @@ import {
     objectData,
 } from './objects.js';
 
-import { GETOBJ_EXCLUDE, GETOBJ_DOWNPLAY, GETOBJ_SUGGEST, A_WIS } from './const.js';
+import { GETOBJ_EXCLUDE, GETOBJ_DOWNPLAY, GETOBJ_SUGGEST, GETOBJ_PROMPT, A_WIS } from './const.js';
 import { exercise } from './attrib_exercise.js';
+import { getobj } from './invent.js';
+import { pline, You } from './pline.js';
 
 // cf. write.c:14 — returns base cost of writing a scroll or spellbook
 // Cost is the number of marker charges consumed.
@@ -79,14 +81,20 @@ export function write_ok(obj) {
 //       known_spell, bcsign, wipeout_text, check_unpaid, exercise, livelog_printf,
 //       and the full message/conduct system — not yet implemented.
 export async function dowrite(pen, player) {
-    void pen;
-    // TODO: write.c:74 — dowrite(): write on blank scroll/spellbook with magic marker
-    // When fully implemented, add these exercise calls:
-    // - On failure (trying to write on non-blank paper):
-    //     await exercise(player, A_WIS, false);
-    // - On success (writing completes):
-    //     await exercise(player, A_WIS, true);
-    return 0; // ECMD_OK placeholder
+    // C ref: write.c:74 — dowrite(): apply a magic marker to write on a scroll or spellbook
+    // Step 1: prompt for paper to write on
+    const paper = await getobj("write on", write_ok, GETOBJ_PROMPT, player);
+    if (!paper) return 0; // cancelled
+
+    // TODO: write.c — full dowrite implementation:
+    //   - check marker charges (pen->spe)
+    //   - check if paper is blank (SCR_BLANK_PAPER / SPE_BLANK_PAPER)
+    //   - prompt for what to write (getlin)
+    //   - consume marker charges, create written scroll/spellbook
+    //   - exercise(player, A_WIS, true/false)
+    // For now, stub out the rest — the getobj prompt above provides key consumption parity.
+    pline("Unfortunately, you don't seem to be able to write anything right now.");
+    return 0;
 }
 
 // cf. write.c:395 — build the description string for the spellbook-conversion message.
