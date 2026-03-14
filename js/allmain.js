@@ -956,7 +956,11 @@ function postRender(game, result) {
     // after all command processing. In C, bot() runs at end-of-turn and
     // curs_on_u() runs before waiting for the next key.
     const player = game.u || game.player;
-    if (!game.display || !player || result?.terminalScreenOwned) return;
+    if (!game.display || !player || result?.terminalScreenOwned || game?._terminalScreenOwnedByInput) return;
+    if (!result?.tookTime && game.display.messageNeedsMore && !player._botl) {
+        flush_screen(1);
+        return;
+    }
     // C ref: parse()/get_count() count-prefix digits keep topline cursor.
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
@@ -2346,7 +2350,11 @@ export class NetHackGame {
         autosave = false,
         forceRender = false,
     } = {}) {
-        const terminalScreenOwned = !!commandResult?.terminalScreenOwned;
+        const terminalScreenOwned = !!commandResult?.terminalScreenOwned || !!this._terminalScreenOwnedByInput;
+        if (!forceRender && !terminalScreenOwned && !commandResult?.tookTime && this.display?.messageNeedsMore && !this.player?._botl) {
+            flush_screen(1);
+            return;
+        }
         if (forceRender || !terminalScreenOwned) {
             this.docrt();
         }

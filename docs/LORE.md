@@ -11155,6 +11155,52 @@ Validation:
   - The shadow-helper bug in `shknam.js` was not unique.
   - The wider pattern to audit is: object creation used only for RNG alignment while the created object is never attached to floor/minvent/buried state.
 
+## 2026-03-14: untimed pending-topline command tails should use `flush_screen(1)`, not `docrt()`
+
+- Context:
+  - In the repaint campaign, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) first repaint divergence had moved down to steps `18/19`:
+    - C expected two `flush` entries on each step
+    - JS was emitting three `bot` entries instead
+  - Screens, RNG, events, and mapdump were already fully green, so this was a pure repaint-owner mismatch.
+
+- Diagnosis:
+  - These steps are untimed command tails with a still-pending topline:
+    - `commandResult.tookTime === false`
+    - `display.messageNeedsMore === true`
+    - `player._botl === 0`
+  - C behavior there is not “skip redraw”.
+  - C behavior is `flush_screen(1)`:
+    - keep the pending topline
+    - move the cursor to the hero
+    - do not run `bot()` because `disp.botl` is false
+  - JS was instead falling through the generic post-command rendering path:
+    - `docrt()`
+    - `renderStatus()`
+    - `cursorOnPlayer()`
+  - That produced repaint `bot` diagnostics where C only had `flush`.
+
+- Fix:
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    - in both `postRender()` and `renderAndAutosave()`, detect the narrow case:
+      - untimed command result
+      - pending `messageNeedsMore`
+      - no pending status update (`!player._botl`)
+    - use `flush_screen(1)` instead of `docrt()`
+
+- Validation:
+  - `node test/comparison/repaint_step_diff.js test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json --steps=18,19,20`
+    - steps `18/19/20` repaint traces now match exactly
+  - `node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json --parallel=1`
+    - gameplay parity remains fully green
+    - first repaint divergence moved from step `18` to step `416`
+    - repaint matched `224/1341`
+  - `WEBHACK_REPAINT_TRACE=1 node test/comparison/session_test_runner.js --sessions=test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json --parallel=1`
+    - still green
+
+- Practical lesson:
+  - Not every terminal-owned boundary should suppress rendering.
+  - Some boundaries are specifically `flush_screen(1)` boundaries: cursor refresh yes, status refresh only if `_botl` is set.
+
 ## 2026-03-14: sink-ring burial must remove inventory and enter buried chain
 
 - Context:
