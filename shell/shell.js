@@ -32,6 +32,8 @@ export class Shell {
     // Returns: { action: 'exit' } or { action: 'launch', game: 'nethack' } etc.
     async run() {
         this.display.clearScreen();
+        // Enable blinking cursor
+        if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
         this.scrollBuffer = [];
 
         // Show MOTD on first entry

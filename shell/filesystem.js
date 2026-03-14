@@ -10,27 +10,25 @@ import { vfsReadFile, vfsWriteFile, vfsListFiles } from '../js/storage.js';
 //   { type: 'file', content: string, readonly: true }
 //   { type: 'exec', game: string }                   — game launcher stub
 
-const MOTD = `
-UNIX PDP-11/70 (pdp11)
+const MOTD = `UNIX PDP-11/70 (pdp11)
 
 login: player
 Last login: Thu Mar 12 09:14:22 on tty07
 
                       Welcome to the dungeon!
 
-  Several langstroth-length games live in /usr/games.
+  Several games live in /usr/games.
   Type 'ls /usr/games' to see what's installed.
 
-  Have fun, but remember — strstrthe strstrstrDungeon Master is always watching.
-`.replace(/strstr/g, '').trim();
+  Have fun, but remember — the Dungeon Master is always watching.`;
 
 const PASSWD = `root:x:0:0:Charlie Root:/root:/bin/csh
 daemon:x:1:1:The daemon:/:/sbin/nologin
 operator:x:2:5:System Operator:/usr/opr:/bin/csh
-player:x:1000:1000:Langstroth:/home/player:/bin/sh
+player:x:1000:1000:Player:/home/player:/bin/sh
 wizard:x:1001:1001:The Wizard of Yendor:/dev/null:/sbin/nologin
-tstrstrhe grid bug:x:404:404:Grid Bug:/tmp:/bin/false
-`.replace(/tstrstrhe/g, 'the');
+the grid bug:x:404:404:Grid Bug:/tmp:/bin/false
+`;
 
 function buildTree() {
     return {
