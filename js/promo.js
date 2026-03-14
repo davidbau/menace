@@ -203,7 +203,7 @@ export class Promo {
 
         // Ctrl-C: enter secret shell instead of starting a game
         if (pressedKey === 3) {
-            await runShell(display, nhgetch, { restart: onPlay });
+            await runShell(display, nhgetch, { restart: onPlay }, { interrupt: true });
             // After shell exits, return to promo loop
             return this.run(display, nhgetch, onPlay);
         }

@@ -29,20 +29,29 @@ export class Shell {
     }
 
     // Entry point: takes over the display, returns when shell exits.
+    // options.interrupt: if true, simulate Ctrl-C interrupt of current screen
     // Returns: { action: 'exit' } or { action: 'launch', game: 'nethack' } etc.
-    async run() {
-        this.display.clearScreen();
+    async run(options = {}) {
         // Enable blinking cursor
         if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
         this.scrollBuffer = [];
 
-        // Show MOTD on first entry
-        const motd = this.fs.cat('/etc/motd');
-        if (motd) {
-            for (const line of motd.split('\n')) {
-                this._addLine(line, OUTPUT_COLOR);
-            }
+        if (options.interrupt) {
+            // Capture current screen content, then scroll it up with ^C
+            this._captureScreen();
+            this._addLine('^C', PROMPT_COLOR);
+            this._addLine('Interrupt', OUTPUT_COLOR);
             this._addLine('', OUTPUT_COLOR);
+        } else {
+            this.display.clearScreen();
+            // Show MOTD on clean entry
+            const motd = this.fs.cat('/etc/motd');
+            if (motd) {
+                for (const line of motd.split('\n')) {
+                    this._addLine(line, OUTPUT_COLOR);
+                }
+                this._addLine('', OUTPUT_COLOR);
+            }
         }
 
         while (this.running) {
@@ -268,6 +277,30 @@ export class Shell {
         }
     }
 
+    // Read the current display grid into the scroll buffer (for interrupt mode)
+    _captureScreen() {
+        const d = this.display;
+        if (!d.grid) return;
+        for (let r = 0; r < Math.min(d.rows, ROWS - 1); r++) {
+            let line = '';
+            let lastNonSpace = -1;
+            for (let c = 0; c < Math.min(d.cols, COLS); c++) {
+                const cell = d.grid[r][c];
+                line += cell.ch || ' ';
+                if (cell.ch && cell.ch !== ' ') lastNonSpace = c;
+            }
+            // Only add non-empty rows
+            if (lastNonSpace >= 0) {
+                this.scrollBuffer.push({ text: line.slice(0, lastNonSpace + 1), color: OUTPUT_COLOR });
+            }
+        }
+        // Trim to fit screen
+        const maxLines = ROWS - 4; // leave room for ^C, Interrupt, blank, prompt
+        if (this.scrollBuffer.length > maxLines) {
+            this.scrollBuffer = this.scrollBuffer.slice(this.scrollBuffer.length - maxLines);
+        }
+    }
+
     clearDisplay() {
         this.scrollBuffer = [];
         this.display.clearScreen();
@@ -401,9 +434,9 @@ export class Shell {
 // display: Display instance
 // getch: async function returning a character code
 // lifecycle: object with launch methods
-export async function runShell(display, getch, lifecycle) {
+export async function runShell(display, getch, lifecycle, options = {}) {
     const shell = new Shell(display, getch);
-    const result = await shell.run();
+    const result = await shell.run(options);
 
     if (result && result.action === 'launch') {
         const game = result.game;
