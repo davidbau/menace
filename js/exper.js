@@ -177,6 +177,12 @@ export async function pluslvl(player, display, incr) {
     player.pwmax += pwGain;
     player.pw += pwGain;
 
+    // C ref: pline() → vpline() → flush_screen(1) → bot() refreshes the
+    // status line before every message.  JS flush_screen only refreshes when
+    // _botl is set, so flag it now so the status shows updated HP/Pw/Xp at
+    // the --More-- boundary produced by the upcoming level-up message.
+    player._botl = true;
+
     if (player.ulevel < MAXULEV) {
         if (incr) {
             const tmp = newuexp(player.ulevel + 1);
