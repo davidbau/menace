@@ -683,12 +683,6 @@ export async function getlin(prompt, display) {
             botlx: repaintBotlx(promptStatusPlayer),
             time: repaintTimeBotl(promptStatusPlayer),
         });
-        logRepaint('bot', {
-            hp: repaintHp(promptStatusPlayer),
-            botl: repaintBotl(promptStatusPlayer),
-            botlx: repaintBotlx(promptStatusPlayer),
-            time: repaintTimeBotl(promptStatusPlayer),
-        });
     }
 
     // Helper to update display
@@ -732,9 +726,6 @@ export async function getlin(prompt, display) {
 
     // Initial display
     await updateDisplay();
-    if (typeof disp?.flush === 'function') {
-        disp.flush();
-    }
 
     const readPromptKey = async () => nhgetch();
 

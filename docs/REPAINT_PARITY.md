@@ -100,6 +100,9 @@ repaint as a separate non-gating diagnostic channel.
    trace stream
 2. compare them as a separate non-gating metric
 3. use first repaint divergence to localize screen-only bugs
+4. use `node test/comparison/repaint_step_diff.js <session> --steps=...`
+   when you need startup/step-local ordered repaint diffs without dumping the
+   full session trace
 
 ### Phase B: targeted rerecord
 
