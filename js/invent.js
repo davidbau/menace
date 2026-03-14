@@ -34,7 +34,7 @@ import { pline, You, Your, There } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { mons, PM_ARCHEOLOGIST } from './monsters.js';
-import { newsym } from './display.js';
+import { newsym, flush_screen } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
@@ -1675,6 +1675,20 @@ export function getobj_simple(word, obj_ok, player) {
         if (result === GETOBJ_SUGGEST) return obj;
     }
     return null;
+}
+
+// C ref: invent.c:getobj() sets disp.botl = TRUE before validating the
+// chosen inventory letter, so rejection feedback can still force a bot()
+// boundary.  Custom prompt loops which emulate getobj() should use this.
+export function markGetobjSelectionBoundary(player) {
+    if (player) player._botl = true;
+}
+
+// C ref: getobj() feedback often reaches pline()/flush_screen() after the
+// selection boundary has dirtied status. Custom getobj-like loops can use
+// this helper to mirror the message-side repaint ownership.
+export function flushGetobjFeedbackBoundary() {
+    flush_screen(1);
 }
 
 // C ref: invent.c getobj() — interactive inventory item selection.

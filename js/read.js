@@ -53,7 +53,18 @@ import { pline, pline1, impossible, You, You_hear } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon, map_invisible } from './display.js';
 import { S_goodpos } from './symbols.js';
-import { identify_pack, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, getobj, stackobj, delobj, useup, compactInvletPromptChars } from './invent.js';
+import {
+    identify_pack,
+    buildInventoryOverlayLines,
+    renderOverlayMenuUntilDismiss,
+    getobj,
+    stackobj,
+    delobj,
+    useup,
+    compactInvletPromptChars,
+    markGetobjSelectionBoundary,
+    flushGetobjFeedbackBoundary,
+} from './invent.js';
 // nhimport removed — all imports now static
 import { engulfing_u, unique_corpstat, amorphous, is_whirly, unsolid,
          passes_walls, noncorporeal, mhim, DEADMONSTER } from './mondata.js';
@@ -78,7 +89,6 @@ import {
     repaintTimeBotl,
     repaintToplineState,
 } from './repaint_trace.js';
-import { flush_screen } from './display.js';
 import { create_gas_cloud } from './region.js';
 import { placebc } from './ball.js';
 import { trycall } from './do.js';
@@ -396,7 +406,7 @@ async function handleRead(player, display, game) {
             // C ref: invent.c:getobj() sets disp.botl = TRUE before validating
             // the chosen inventory letter, so even invalid read targets carry
             // a dirty-status flush into the message boundary.
-            player._botl = true;
+            markGetobjSelectionBoundary(player);
             if (anyItem.oclass === SPBOOK_CLASS) {
                 replacePromptMessage();
                 // cf. spell.c study_book() (partial)
@@ -568,7 +578,7 @@ async function handleRead(player, display, game) {
                 return { moved: false, tookTime: true };
             }
             replacePromptMessage();
-            flush_screen(1);
+            flushGetobjFeedbackBoundary();
             await display.putstr_message('That is a silly thing to read.');
             return { moved: false, tookTime: false };
         }
