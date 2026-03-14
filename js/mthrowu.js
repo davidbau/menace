@@ -1060,10 +1060,9 @@ export function hasWeaponAttack(mon) {
 // proper weapon AI (select_hwep priority list) instead of first-item scan.
 export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true) {
     if (!hasWeaponAttack(mon)) return false;
-    // Keep legacy behavior for monsters that start unarmed in JS fixtures.
-    // C equivalent checks weapon_check state; JS tests also rely on
-    // !MON_WEP-style entry here.
-    if (mon.weapon_check !== NEED_WEAPON && mon.weapon) return false;
+    // C ref: monmove.c wield gate — only monsters explicitly marked
+    // NEED_WEAPON spend a turn switching to melee.
+    if (mon.weapon_check !== NEED_WEAPON) return false;
     // C ref: monmove.c wield gate — trapped monsters with a ranged option
     // should keep that option rather than spend a turn switching to HTH.
     if (mon.mtrapped && !nearby && select_rwep(mon)) return false;

@@ -11767,3 +11767,21 @@ Validation:
     first RNG divergence moved later within the same step (`7170 -> 7177`)
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Pre-move wielding must require exact `NEED_WEAPON`
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was still in the same
+  monster window after the shopkeeper fix. JS was letting monsters spend a turn
+  on melee wielding before movement even when `weapon_check` was not
+  `NEED_WEAPON`, which can suppress the C movement path.
+- Root cause: [`js/mthrowu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mthrowu.js)
+  had a legacy shortcut in `maybeMonsterWieldBeforeAttack()` for unarmed
+  monsters. C `monmove.c` only takes the pre-move wield path when
+  `mtmp->weapon_check == NEED_WEAPON`.
+- Fix: require exact `weapon_check === NEED_WEAPON` before spending the turn on
+  melee wielding.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1254 -> 1259`
+    (`7177 -> 7190`), matched events increased `1542 -> 1571`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
