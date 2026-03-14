@@ -463,6 +463,17 @@ Execution cadence (required while under 90% coverage):
 - Keep at least one active issue focused on recording targeted new sessions.
 - Run coverage metrics after every merged batch — track the percentage, not the
   session count.
+- Do not spend long stretches on diagnostics alone:
+  - if a debugging sub-campaign is not converting into either
+    1. a promoted green pending session, or
+    2. a newly recorded high-yield pending session,
+    within a small batch of validated commits, pivot back to the coverage
+    pipeline immediately
+- Treat observability work as infrastructure in service of coverage, not as an
+  end state. Its success criterion is faster session promotion and coverage gain.
+- After each meaningful parity-fix batch, explicitly choose one:
+  - promote the pending session that the fixes unblocked, or
+  - record the next highest-yield targeted C session from the coverage report
 
 ## Coverage-Per-Turn Agent Challenge
 
