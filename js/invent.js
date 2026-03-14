@@ -99,18 +99,24 @@ export function buildInventoryOverlayLines(player, filterFn = null) {
 
 function displayOnlyFullyIdentifiedName(item, player) {
     if (!item) return '';
-    const view = { ...item };
-    view.known = true;
-    view.bknown = true;
-    view.rknown = true;
-    view.dknown = true;
-    if (Is_container(view) || view.otyp === STATUE) {
-        view.cknown = true;
-        view.lknown = true;
-    } else if (view.otyp === TIN) {
-        view.cknown = true;
+    // Temporarily set identification flags on the original object so that
+    // doname's reference-equality checks (player.weapon === obj, etc.) still work.
+    const saved = { known: item.known, bknown: item.bknown, rknown: item.rknown,
+                    dknown: item.dknown, cknown: item.cknown, lknown: item.lknown };
+    item.known = true;
+    item.bknown = true;
+    item.rknown = true;
+    item.dknown = true;
+    if (Is_container(item) || item.otyp === STATUE) {
+        item.cknown = true;
+        item.lknown = true;
+    } else if (item.otyp === TIN) {
+        item.cknown = true;
     }
-    return doname(view, player);
+    const result = doname(item, player);
+    // Restore original flags
+    Object.assign(item, saved);
+    return result;
 }
 
 function buildInventoryOverlayLinesFromItems(items, player, options = null) {

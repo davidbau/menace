@@ -1303,18 +1303,16 @@ export async function spelleffects(spell_otyp, atme, player, map, display, game 
                 player.dy = 0;
                 player.dz = 0;
             } else {
-                const dir = await getdir('In what direction?', display);
+                // C ref: spell.c:1488 — getdir((char *) 0) passes NULL (no prompt)
+                const dir = await getdir(null, display);
                 if (dir) {
                     player.dx = dir.dx;
                     player.dy = dir.dy;
                     player.dz = dir.dz;
                 } else {
-                    // C ref: spell.c spelleffects() — cancelled getdir emits the
+                    // C ref: spell.c:1498 — cancelled getdir emits the
                     // message, then continues using the previous direction.
                     await pline_The('magical energy is released!');
-                }
-                if (display && typeof display.clearRow === 'function') {
-                    display.clearRow(0);
                 }
             }
         }

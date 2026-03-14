@@ -1461,7 +1461,13 @@ export function doname(obj, player) {
         result += ' (lit)';
     }
 
-    // Suffix: worn/wielded/charges
+    // C ref: objnam.c doname_base() — charges suffix comes before worn/wielded.
+    // Weptools go through the WEAPON_CLASS branch and never show charges.
+    if (showCharges && !isWeptool) {
+        result += ` (0:${obj.spe})`;
+    }
+
+    // Suffix: worn/wielded
     if (player) {
         if (player.weapon === obj) {
             const dominantHand = player.rightHanded === false ? 'left' : 'right';
@@ -1511,13 +1517,6 @@ export function doname(obj, player) {
         } else if (player.amulet === obj) {
             result += ' (being worn)';
         }
-    }
-
-    // Charges suffix for wands and charged tools
-    // C ref: weptools go through the WEAPON_CLASS branch in doname_base()
-    // and never reach the charges: label, so they don't show charges.
-    if (showCharges && !isWeptool) {
-        result += ` (0:${obj.spe})`;
     }
 
     return result;
