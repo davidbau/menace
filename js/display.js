@@ -1198,8 +1198,10 @@ span.nh-cursor {
 
         for (let i = 0; i < menuRows; i++) {
             const line = lines[i];
-            // C ref: wintty.c — menu prompt (line 0) and category headers use inverse video.
-            const isHeader = (i === 0 && line.trim().length > 0) || isCategoryHeader(line);
+            // C ref: wintty.c — end_menu(prompt) title (line 0) and category headers
+            // use inverse video.  add_menu_str() content lines at line 0 do NOT.
+            // Callers pass opts.noTitleInverse when line 0 is add_menu_str content.
+            const isHeader = (i === 0 && !opts?.noTitleInverse && line.trim().length > 0) || isCategoryHeader(line);
             if (isHeader) {
                 // C ref: wintty.c — category headers have a single leading
                 // space that is part of the pre-cleared region, not inverse video.

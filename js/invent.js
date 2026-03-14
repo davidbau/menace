@@ -261,8 +261,10 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     const dismissOnUnrecognized = !!(options && options.dismissOnUnrecognized);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     let menuOffx = null;
+    // Forward display-relevant options (e.g. noTitleInverse) to renderOverlayMenu.
+    const menuOpts = options?.noTitleInverse ? { noTitleInverse: true } : null;
     if (typeof display.renderOverlayMenu === 'function') {
-        menuOffx = display.renderOverlayMenu(lines);
+        menuOffx = display.renderOverlayMenu(lines, menuOpts);
     } else {
         menuOffx = display.renderChargenMenu(lines, false);
     }
@@ -1985,7 +1987,7 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
 
         if (unid.length === 0) {
             lines.push('(all items are permanently identified already)');
-            await renderOverlayMenuUntilDismiss(d, lines, '');
+            await renderOverlayMenuUntilDismiss(d, lines, '', { noTitleInverse: true });
             return '';
         }
 
@@ -2005,7 +2007,9 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
             choices.push(invlet);
         }
 
-        const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''));
+        // C ref: wiz_identify uses add_menu_str for the title, not end_menu(prompt),
+        // so line 0 should NOT have inverse video.
+        const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''), { noTitleInverse: true });
         const selection = selectionFromInventoryResult(result);
         if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
             await identify_pack(0, p, false);

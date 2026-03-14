@@ -305,7 +305,7 @@ export function makedog(map, player, depth) {
     pet.edog.droptime = 0;
     pet.edog.dropdist = 10000;
     pet.edog.whistletime = 0;
-    pet.edog.ogoal = { x: 0, y: 0 };
+    pet.edog.ogoal = { x: -1, y: -1 };
     pet.edog.abuse = 0;
     pet.edog.revivals = 0;
     pet.edog.mhpmax_penalty = 0;
