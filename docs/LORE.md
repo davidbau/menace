@@ -11308,3 +11308,37 @@ Validation:
 - Practical lesson:
   - Repaint prompt ownership is not the same as gameplay prompt implementation.
   - A `tty_yn_function`-style repaint token can correspond to a prompt owned by a custom command loop, so repaint parity needs owner-class matching, not literal function-name matching.
+
+## 2026-03-14: `getobj()` dirties status before validating the chosen inventory letter
+
+- Context:
+  - Continuing repaint-parity work on:
+    - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json)
+  - After fixing the read-prompt owner, the next repaint frontier was step `417` on:
+    - `That is a silly thing to read.`
+
+- Finding:
+  - In C [`invent.c:getobj()`](/share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/src/invent.c:2024), `disp.botl = TRUE` is set before the chosen inventory letter is validated.
+  - That means an invalid target can still produce a status-owned repaint boundary before the rejection message.
+  - For this exact window, C emits:
+    - `flush(botl=1) -> bot -> flush`
+    before settling on the invalid-read message frame.
+
+- Fix:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/game/js/read.js)
+    - when the inline read selector accepts an inventory letter, mark `player._botl = true` before class validation
+    - for the invalid-read-target branch, call `flush_screen(1)` before:
+      - `That is a silly thing to read.`
+
+- Validation:
+  - `t11_s744`
+    - gameplay parity remains fully green
+    - repaint matched count improved:
+      - `235/1341 -> 244/1345`
+    - the first repaint miss remains at step `417`, but only as one extra trailing JS `flush`
+  - [`seed329_rogue_wizard_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json)
+    - remains fully green
+
+- Practical lesson:
+  - Some repaint boundaries are inherited from generic inventory-selection semantics even when a command implements its own custom prompt loop.
+  - If the JS command bypasses `getobj()`, it may still need to reproduce `getobj()`'s display-side bookkeeping to stay repaint-faithful.

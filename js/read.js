@@ -78,6 +78,7 @@ import {
     repaintTimeBotl,
     repaintToplineState,
 } from './repaint_trace.js';
+import { flush_screen } from './display.js';
 import { create_gas_cloud } from './region.js';
 import { placebc } from './ball.js';
 import { trycall } from './do.js';
@@ -392,6 +393,10 @@ async function handleRead(player, display, game) {
         }
         const anyItem = (player.inventory || []).find((o) => o && o.invlet === c);
         if (anyItem) {
+            // C ref: invent.c:getobj() sets disp.botl = TRUE before validating
+            // the chosen inventory letter, so even invalid read targets carry
+            // a dirty-status flush into the message boundary.
+            player._botl = true;
             if (anyItem.oclass === SPBOOK_CLASS) {
                 replacePromptMessage();
                 // cf. spell.c study_book() (partial)
@@ -563,6 +568,7 @@ async function handleRead(player, display, game) {
                 return { moved: false, tookTime: true };
             }
             replacePromptMessage();
+            flush_screen(1);
             await display.putstr_message('That is a silly thing to read.');
             return { moved: false, tookTime: false };
         }
