@@ -35,6 +35,7 @@ const AUTOSAVE_KEY = 'menace-autosave';
 const BONES_KEY_PREFIX = 'menace-bones-';
 const OPTIONS_KEY = 'menace-options';
 const TOPTEN_KEY = 'menace-topten';
+const FS_KEY = 'menace-fs';
 const SAVE_VERSION = 2;
 
 // Safe localStorage access -- returns null when unavailable (e.g. Node.js tests).
@@ -68,6 +69,54 @@ function storage() {
         }
         return isStorageLike(localStorage) ? localStorage : null;
     } catch (e) { return null; }
+}
+
+// ========================================================================
+// Virtual filesystem -- localStorage-backed flat file system.
+// Stored as a single JSON object under the 'menace-fs' key.
+// ========================================================================
+
+function _readFs() {
+    const s = storage();
+    if (!s) return {};
+    try {
+        const raw = s.getItem(FS_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+}
+
+function _writeFs(fsObj) {
+    const s = storage();
+    if (!s) return false;
+    try {
+        s.setItem(FS_KEY, JSON.stringify(fsObj));
+        return true;
+    } catch (e) { return false; }
+}
+
+export function vfsReadFile(path) {
+    const fs = _readFs();
+    return path in fs ? fs[path] : null;
+}
+
+export function vfsWriteFile(path, content) {
+    const fs = _readFs();
+    fs[path] = content;
+    return _writeFs(fs);
+}
+
+export function vfsDeleteFile(path) {
+    const fs = _readFs();
+    if (!(path in fs)) return false;
+    delete fs[path];
+    _writeFs(fs);
+    return true;
+}
+
+export function vfsListFiles(prefix) {
+    const fs = _readFs();
+    const paths = Object.keys(fs);
+    return prefix ? paths.filter(p => p.startsWith(prefix)) : paths;
 }
 
 // ========================================================================
@@ -635,7 +684,10 @@ export function listSavedData() {
                 const depth = key.slice(BONES_KEY_PREFIX.length);
                 items.push({ key, label: `Bones file (depth ${depth})` });
             } else if (key === OPTIONS_KEY) {
-                items.push({ key, label: 'Options/flags' });
+                items.push({ key, label: 'Options/flags (legacy)' });
+            } else if (key === FS_KEY) {
+                const files = vfsListFiles();
+                items.push({ key, label: `Virtual filesystem (${files.length} file${files.length !== 1 ? 's' : ''})` });
             } else if (key === TOPTEN_KEY) {
                 items.push({ key, label: 'High scores' });
             }
@@ -652,7 +704,7 @@ export function clearAllData() {
     try {
         for (let i = 0; i < s.length; i++) {
             const key = s.key(i);
-            if (key === SAVE_KEY || key.startsWith(BONES_KEY_PREFIX) || key === OPTIONS_KEY || key === TOPTEN_KEY) {
+            if (key === SAVE_KEY || key.startsWith(BONES_KEY_PREFIX) || key === OPTIONS_KEY || key === TOPTEN_KEY || key === FS_KEY) {
                 toRemove.push(key);
             }
         }
@@ -880,6 +932,53 @@ function parseNethackOptionsString(spec) {
     return out;
 }
 
+// ========================================================================
+// .nethackrc serialization -- C ref: options.c all_options_strbuf()
+// ========================================================================
+
+// Serialize flags to .nethackrc text format.  Only writes options that
+// differ from DEFAULT_FLAGS (the C defaults + JS overrides).
+// C ref: cfgfiles.c do_write_config_file(), options.c all_options_strbuf()
+export function serializeFlagsToNethackrc(flags) {
+    const lines = ['# .nethackrc - Mazes of Menace options'];
+    const defaults = DEFAULT_FLAGS;
+    // Sort keys for stable output
+    const keys = Object.keys(C_DEFAULTS).sort();
+    for (const key of keys) {
+        if (!(key in flags)) continue;
+        const val = flags[key];
+        const def = defaults[key];
+        // Skip values that match the default
+        if (val === def) continue;
+        // Skip derived keys
+        if (key === 'invlet_constant') continue;
+        if (typeof def === 'boolean') {
+            lines.push(val ? `OPTIONS=${key}` : `OPTIONS=!${key}`);
+        } else {
+            lines.push(`OPTIONS=${key}:${val}`);
+        }
+    }
+    lines.push('');  // trailing newline
+    return lines.join('\n');
+}
+
+// Parse .nethackrc text content into a flags object.
+// Handles OPTIONS= directives, comments (#), and blank lines.
+export function parseFlagsFromNethackrc(text) {
+    const out = {};
+    for (const rawLine of String(text || '').split('\n')) {
+        // Strip comments
+        const commentIdx = rawLine.indexOf('#');
+        const line = (commentIdx >= 0 ? rawLine.slice(0, commentIdx) : rawLine).trim();
+        if (!line) continue;
+        // Match OPTIONS= prefix (case-insensitive)
+        const match = line.match(/^OPTIONS\s*=\s*(.*)/i);
+        if (!match) continue;
+        Object.assign(out, parseNethackOptionsString(match[1]));
+    }
+    return out;
+}
+
 // Parse URL query: supports ?NETHACKOPTIONS=... and explicit ?name=...&pickup=...
 function parseUrlConfig() {
     if (typeof window === 'undefined' || !window.location) {
@@ -963,13 +1062,25 @@ export function getUrlParams() {
 export function loadFlags(apiOverrides = null) {
     const defaults = { ...C_DEFAULTS, ...JS_OVERRIDES };
 
-    // localStorage
+    // Read options: .nethackrc in vfs first, fallback to old JSON key
     let saved = {};
     const s = storage();
     if (s) {
         try {
-            const json = s.getItem(OPTIONS_KEY);
-            if (json) saved = migrateFlags(JSON.parse(json));
+            const rcContent = vfsReadFile('.nethackrc');
+            if (rcContent !== null) {
+                saved = parseFlagsFromNethackrc(rcContent);
+            } else {
+                // Fallback: read old menace-options JSON and auto-migrate
+                const json = s.getItem(OPTIONS_KEY);
+                if (json) {
+                    saved = migrateFlags(JSON.parse(json));
+                    // Migrate to .nethackrc format
+                    const fullFlags = { ...defaults, ...saved };
+                    vfsWriteFile('.nethackrc', serializeFlagsToNethackrc(fullFlags));
+                    s.removeItem(OPTIONS_KEY);
+                }
+            }
         } catch (e) {}
     }
 
@@ -984,29 +1095,29 @@ export function loadFlags(apiOverrides = null) {
         )
         : {};
 
-    // Merge: defaults < localStorage < NETHACKOPTIONS < explicit URL < API overrides
+    // Merge: defaults < .nethackrc < NETHACKOPTIONS < explicit URL < API overrides
     const flags = { ...defaults, ...saved, ...urlFlags, ...overrideFlags };
     // C ref: flags.invlet_constant backs "fixinv"; keep both names aligned so
     // gameplay/state code and checkpoint output can use C-native field naming.
     flags.invlet_constant = !!(flags.fixinv ?? flags.invlet_constant);
 
-    // Persist URL flag overrides to localStorage
+    // Persist URL flag overrides to .nethackrc
     const persistable = {};
     for (const [k, v] of Object.entries(urlFlags)) {
         if (k in C_DEFAULTS) persistable[k] = v;
     }
     if (Object.keys(persistable).length > 0) {
-        saveFlags({ ...saved, ...persistable });
+        saveFlags({ ...defaults, ...saved, ...persistable });
     }
 
     return flags;
 }
 
-// C ref: options.c doset() — save flags to localStorage
+// C ref: cfgfiles.c do_write_config_file() — save flags to .nethackrc in vfs
 export function saveFlags(flags) {
-    const s = storage();
-    if (!s) return;
-    try { s.setItem(OPTIONS_KEY, JSON.stringify(flags)); } catch (e) { /* ignore */ }
+    try {
+        vfsWriteFile('.nethackrc', serializeFlagsToNethackrc(flags));
+    } catch (e) { /* ignore */ }
 }
 
 // Get a single flag value.
