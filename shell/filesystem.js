@@ -3,16 +3,19 @@
 
 import { vfsReadFile, vfsWriteFile, vfsListFiles } from '../js/storage.js';
 
+// The logged-in user
+export const USERNAME = 'rodney';
+export const HOMEDIR = `/home/${USERNAME}`;
+
 // Read-only directory tree. Each node is either:
 //   { type: 'dir', children: { name: node, ... } }
-//   { type: 'file', content: string }                — static content
+//   { type: 'file', content: string, readonly: true, owner, group, date, size }
 //   { type: 'file', vfsPath: string }                — backed by vfs
-//   { type: 'file', content: string, readonly: true }
-//   { type: 'exec', game: string }                   — game launcher stub
+//   { type: 'exec', game: string, owner, group, date, size }
 
 const MOTD = `UNIX PDP-11/70 (pdp11)
 
-login: player
+login: ${USERNAME}
 Last login: Thu Mar 12 09:14:22 on tty07
 
                       Welcome to the dungeon!
@@ -25,35 +28,43 @@ Last login: Thu Mar 12 09:14:22 on tty07
 const PASSWD = `root:x:0:0:Charlie Root:/root:/bin/csh
 daemon:x:1:1:The daemon:/:/sbin/nologin
 operator:x:2:5:System Operator:/usr/opr:/bin/csh
-player:x:1000:1000:Player:/home/player:/bin/sh
-wizard:x:1001:1001:The Wizard of Yendor:/dev/null:/sbin/nologin
-the grid bug:x:404:404:Grid Bug:/tmp:/bin/false
-`;
+${USERNAME}:x:1000:1000:Rodney:/home/${USERNAME}:/bin/sh
+izchak:x:1001:1001:Strstrstrstr Izchak Miller:/home/izchak:/bin/sh
+crowther:x:1002:1002:William Crowther:/home/crowther:/bin/sh
+toy:x:1003:1003:Michael Toy:/home/toy:/bin/sh
+arnold:x:1004:1004:Ken Arnold:/home/arnold:/bin/sh
+fenlason:x:1005:1005:Jay Fenlason:/home/fenlason:/bin/sh
+brouwer:x:1006:1006:Andries Brouwer:/home/brouwer:/bin/sh
+lebling:x:1007:1007:Dave Lebling:/home/lebling:/bin/sh
+blank:x:1008:1008:Marc Blank:/home/blank:/bin/sh
+wizard:x:1009:1009:The Wizard of Yendor:/dev/null:/sbin/nologin
+gridbug:x:404:404:Grid Bug:/tmp:/bin/false
+`.replace(/Strstrstrstr /g, '');
 
 function buildTree() {
     return {
         type: 'dir', children: {
             etc: {
                 type: 'dir', children: {
-                    motd:   { type: 'file', content: MOTD, readonly: true },
-                    passwd: { type: 'file', content: PASSWD, readonly: true },
+                    motd:   { type: 'file', content: MOTD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                    passwd: { type: 'file', content: PASSWD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                 }
             },
             usr: {
                 type: 'dir', children: {
                     games: {
                         type: 'dir', children: {
-                            nethack: { type: 'exec', game: 'nethack' },
-                            hack:    { type: 'exec', game: 'hack' },
-                            rogue:   { type: 'exec', game: 'rogue' },
-                            dungeon: { type: 'exec', game: 'dungeon' },
+                            rogue:   { type: 'exec', game: 'rogue',   owner: 'root', group: 'wheel', date: 'Jun 15  1980', size: 61440 },
+                            dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'wheel', date: 'Apr  1  1980', size: 204800 },
+                            hack:    { type: 'exec', game: 'hack',    owner: 'root', group: 'wheel', date: 'Dec  8  1984', size: 155648 },
+                            nethack: { type: 'exec', game: 'nethack', owner: 'root', group: 'wheel', date: 'Mar  1  2026', size: 2097152 },
                             lib: {
                                 type: 'dir', children: {
                                     nethackdir: {
                                         type: 'dir', children: {
-                                            'record':  { type: 'file', content: '', readonly: true },
-                                            'perm':    { type: 'file', content: '', readonly: true },
-                                            'license': { type: 'file', content: 'NetHack, Copyright 1985-2024\nSee guidebook for license details.', readonly: true },
+                                            'record':  { type: 'file', content: '', readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                                            'perm':    { type: 'file', content: '', readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
+                                            'license': { type: 'file', content: 'NetHack, Copyright 1985-2024\nSee guidebook for license details.', readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
                                         }
                                     }
                                 }
@@ -64,7 +75,7 @@ function buildTree() {
             },
             home: {
                 type: 'dir', children: {
-                    player: {
+                    [USERNAME]: {
                         type: 'dir', children: {
                             '.nethackrc': { type: 'file', vfsPath: '.nethackrc' },
                         }
@@ -74,9 +85,16 @@ function buildTree() {
             tmp: { type: 'dir', children: {} },
             bin: {
                 type: 'dir', children: {
-                    sh:  { type: 'file', content: '#!/bin/sh\n# Bourne shell', readonly: true },
-                    ls:  { type: 'file', content: '#!/bin/sh\n# list directory', readonly: true },
-                    cat: { type: 'file', content: '#!/bin/sh\n# concatenate files', readonly: true },
+                    sh:    { type: 'file', content: '#!/bin/sh\n# Bourne shell', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 65536 },
+                    cat:   { type: 'file', content: '#!/bin/sh\n# concatenate files', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 24576 },
+                    ls:    { type: 'file', content: '#!/bin/sh\n# list directory', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 32768 },
+                    more:  { type: 'file', content: '#!/bin/sh\n# page through files', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 28672 },
+                    vi:    { type: 'file', content: '#!/bin/sh\n# visual editor', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 245760 },
+                    echo:  { type: 'file', content: '#!/bin/sh\n# echo arguments', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 12288 },
+                    pwd:   { type: 'file', content: '#!/bin/sh\n# print working directory', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192 },
+                    date:  { type: 'file', content: '#!/bin/sh\n# print date', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384 },
+                    who:   { type: 'file', content: '#!/bin/sh\n# who is logged in', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 20480 },
+                    clear: { type: 'file', content: '#!/bin/sh\n# clear screen', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192 },
                 }
             },
         }
@@ -86,7 +104,7 @@ function buildTree() {
 export class VirtualFS {
     constructor() {
         this.tree = buildTree();
-        this.cwd = '/home/player';
+        this.cwd = HOMEDIR;
     }
 
     // Resolve a path string to an absolute path
@@ -94,7 +112,7 @@ export class VirtualFS {
         if (!path) return this.cwd;
         // Handle ~ as home directory
         if (path === '~' || path.startsWith('~/')) {
-            path = '/home/player' + path.slice(1);
+            path = HOMEDIR + path.slice(1);
         }
         if (!path.startsWith('/')) {
             path = this.cwd + '/' + path;
@@ -196,18 +214,45 @@ export class VirtualFS {
         return null;
     }
 
+    // Get file size — real size for vfs files, declared size or content length for others
+    getSize(node) {
+        if (!node) return 0;
+        if (node.type === 'dir') return 512;
+        if (node.size !== undefined) return node.size;
+        if (node.vfsPath !== undefined) {
+            return (vfsReadFile(node.vfsPath) || '').length;
+        }
+        return (node.content || '').length;
+    }
+
     // Get long-format listing info for ls -l
+    // If path points to a file (not dir), return info for just that file
     lsLong(path) {
-        const node = this.getNode(path || '.');
-        if (!node || node.type !== 'dir') return null;
+        const absPath = this.resolve(path || '.');
+        const node = this._lookup(absPath);
+        if (!node) return null;
+
+        if (node.type !== 'dir') {
+            // Single file listing
+            const name = absPath.split('/').pop();
+            return [this._entryInfo(name, node)];
+        }
+
         const entries = [];
         for (const [name, child] of Object.entries(node.children)) {
-            const isDir = child.type === 'dir';
-            const isExec = child.type === 'exec';
-            const perms = isDir ? 'drwxr-xr-x' : isExec ? '-rwxr-xr-x' : '-rw-r--r--';
-            const size = isDir ? 512 : (child.content || '').length;
-            entries.push({ name, perms, size, isDir, isExec });
+            entries.push(this._entryInfo(name, child));
         }
         return entries;
+    }
+
+    _entryInfo(name, child) {
+        const isDir = child.type === 'dir';
+        const isExec = child.type === 'exec';
+        const perms = isDir ? 'drwxr-xr-x' : isExec ? '-rwxr-xr-x' : (child.vfsPath !== undefined ? '-rw-r--r--' : '-rw-r--r--');
+        const size = this.getSize(child);
+        const owner = child.owner || (child.vfsPath !== undefined ? USERNAME : 'root');
+        const group = child.group || (child.vfsPath !== undefined ? USERNAME : 'wheel');
+        const date = child.date || (child.vfsPath !== undefined ? 'Mar 14  2026' : 'Jan  1  1979');
+        return { name, perms, size, isDir, isExec, owner, group, date };
     }
 }

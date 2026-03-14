@@ -5,9 +5,11 @@
 //   shell: the Shell instance (for output, fs access, state changes)
 // Returns: void (output via shell.print/println), or a special action object.
 
+import { USERNAME } from './filesystem.js';
+
 export function getBuiltinCommands() {
     return {
-        ls, cat, more, cd, pwd, echo, clear, whoami, date, uname, man,
+        ls, cat, more, cd, pwd, echo, clear, whoami, date, uname, man, who, sh,
         vi, vim: vi,
         nethack: launchGame('nethack'),
         hack: launchGame('hack'),
@@ -39,11 +41,16 @@ async function ls(args, shell) {
         const filtered = showAll ? entries : entries.filter(e => !e.name.startsWith('.'));
         shell.println(`total ${filtered.length}`);
         for (const e of filtered) {
-            const sizeStr = String(e.size).padStart(6);
+            const sizeStr = String(e.size).padStart(7);
+            const owner = (e.owner || USERNAME).padEnd(8);
+            const group = (e.group || 'wheel').padEnd(6);
             const suffix = e.isDir ? '/' : e.isExec ? '*' : '';
-            shell.println(`${e.perms}  1 player  player ${sizeStr} Mar 12 09:14 ${e.name}${suffix}`);
+            shell.println(`${e.perms}  1 ${owner} ${group} ${sizeStr} ${e.date} ${e.name}${suffix}`);
         }
     } else {
+        // ls on a file path should show just the name
+        const node = shell.fs.getNode(target);
+        if (node && node.type !== 'dir') { shell.println(target.split('/').pop()); return; }
         const names = shell.fs.ls(target);
         if (!names) { shell.println(`ls: ${target}: No such file or directory`); return; }
         const filtered = showAll ? names : names.filter(n => !n.startsWith('.'));
@@ -127,7 +134,20 @@ async function clear(_args, shell) {
 }
 
 async function whoami(_args, shell) {
-    shell.println('player');
+    shell.println(USERNAME);
+}
+
+async function who(_args, shell) {
+    shell.println(`${USERNAME}    tty07    Mar 12 09:14`);
+    shell.println('izchak    tty03    Mar 12 08:30');
+    shell.println('toy       tty04    Mar 11 22:47');
+    shell.println('fenlason  tty05    Mar 12 07:15');
+    shell.println('lebling   tty02    Mar 11 19:30');
+}
+
+async function sh(_args, shell) {
+    shell.println(`$ echo "You are already in sh."`);
+    shell.println('You are already in sh.');
 }
 
 async function date(_args, shell) {

@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
 import {
@@ -72,9 +72,9 @@ export class Shell {
 
     _promptString() {
         const cwd = this.fs.cwd;
-        const display = cwd === '/home/player' ? '~' :
-                        cwd.startsWith('/home/player/') ? '~' + cwd.slice(13) : cwd;
-        return `player@pdp11:${display}$ `;
+        const display = cwd === HOMEDIR ? '~' :
+                        cwd.startsWith(HOMEDIR + '/') ? '~' + cwd.slice(HOMEDIR.length) : cwd;
+        return `${USERNAME}@pdp11:${display}$ `;
     }
 
     // Read a line of input character by character, supporting editing and history.

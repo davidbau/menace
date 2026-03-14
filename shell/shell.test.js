@@ -77,8 +77,8 @@ describe('VirtualFS', () => {
         fs = new VirtualFS();
     });
 
-    it('starts in /home/player', () => {
-        assert.equal(fs.cwd, '/home/player');
+    it('starts in /home/rodney', () => {
+        assert.equal(fs.cwd, '/home/rodney');
     });
 
     it('lists root directory', () => {
@@ -98,9 +98,9 @@ describe('VirtualFS', () => {
         assert.ok(entries.includes('lib'));
     });
 
-    it('resolves ~ to /home/player', () => {
-        assert.equal(fs.resolve('~'), '/home/player');
-        assert.equal(fs.resolve('~/foo'), '/home/player/foo');
+    it('resolves ~ to /home/rodney', () => {
+        assert.equal(fs.resolve('~'), '/home/rodney');
+        assert.equal(fs.resolve('~/foo'), '/home/rodney/foo');
     });
 
     it('resolves relative paths against cwd', () => {
@@ -136,12 +136,12 @@ describe('VirtualFS', () => {
 
     it('cat reads vfs-backed file', () => {
         // .nethackrc is vfs-backed, initially empty
-        const content = fs.cat('/home/player/.nethackrc');
+        const content = fs.cat('/home/rodney/.nethackrc');
         assert.equal(content, '');
 
         // Write to it via vfs and read back
-        fs.write('/home/player/.nethackrc', 'OPTIONS=color');
-        assert.equal(fs.cat('/home/player/.nethackrc'), 'OPTIONS=color');
+        fs.write('/home/rodney/.nethackrc', 'OPTIONS=color');
+        assert.equal(fs.cat('/home/rodney/.nethackrc'), 'OPTIONS=color');
     });
 
     it('cat returns null for directory', () => {
@@ -175,7 +175,7 @@ describe('VirtualFS', () => {
     it('isReadonly for static and vfs files', () => {
         assert.ok(fs.isReadonly('/etc/motd'));
         assert.ok(fs.isReadonly('/etc/passwd'));
-        assert.ok(!fs.isReadonly('/home/player/.nethackrc'));
+        assert.ok(!fs.isReadonly('/home/rodney/.nethackrc'));
     });
 
     it('write to readonly file returns error', () => {
@@ -184,9 +184,9 @@ describe('VirtualFS', () => {
     });
 
     it('write to vfs-backed file succeeds', () => {
-        const err = fs.write('/home/player/.nethackrc', 'OPTIONS=color');
+        const err = fs.write('/home/rodney/.nethackrc', 'OPTIONS=color');
         assert.equal(err, null);
-        assert.equal(fs.cat('/home/player/.nethackrc'), 'OPTIONS=color');
+        assert.equal(fs.cat('/home/rodney/.nethackrc'), 'OPTIONS=color');
     });
 
     it('lsLong returns entry details', () => {
@@ -235,13 +235,13 @@ describe('Shell commands', () => {
     it('pwd prints current directory', async () => {
         const cmds = getBuiltinCommands();
         await cmds.pwd([], shell);
-        assert.equal(output[0], '/home/player');
+        assert.equal(output[0], '/home/rodney');
     });
 
-    it('whoami prints player', async () => {
+    it('whoami prints rodney', async () => {
         const cmds = getBuiltinCommands();
         await cmds.whoami([], shell);
-        assert.equal(output[0], 'player');
+        assert.equal(output[0], 'rodney');
     });
 
     it('echo joins arguments', async () => {
@@ -287,7 +287,7 @@ describe('Shell commands', () => {
 
     it('ls -a shows dotfiles', async () => {
         const cmds = getBuiltinCommands();
-        shell.fs.cd('/home/player');
+        shell.fs.cd('/home/rodney');
         // Without -a, dotfiles hidden
         await cmds.ls([], shell);
         const withoutDots = output.join('\n');
@@ -327,7 +327,7 @@ describe('Shell commands', () => {
         const cmds = getBuiltinCommands();
         shell.fs.cd('/tmp');
         await cmds.cd([], shell);
-        assert.equal(shell.fs.cwd, '/home/player');
+        assert.equal(shell.fs.cwd, '/home/rodney');
     });
 
     it('man shows man page', async () => {
@@ -456,7 +456,7 @@ describe('Shell._execute', () => {
 
     it('runs pwd command', async () => {
         await shell._execute('pwd');
-        assert.ok(shell.scrollBuffer.some(l => l.text.includes('/home/player')));
+        assert.ok(shell.scrollBuffer.some(l => l.text.includes('/home/rodney')));
     });
 
     it('unknown command prints error', async () => {
@@ -541,8 +541,8 @@ describe('Shell.run', () => {
         const result = await shell.run();
         assert.deepEqual(result, { action: 'exit' });
         // Both outputs should be in scroll buffer
-        assert.ok(shell.scrollBuffer.some(l => l.text.includes('/home/player')));
-        assert.ok(shell.scrollBuffer.some(l => l.text === 'player'));
+        assert.ok(shell.scrollBuffer.some(l => l.text.includes('/home/rodney')));
+        assert.ok(shell.scrollBuffer.some(l => l.text === 'rodney'));
     });
 
     it('Ctrl-D on empty line exits', async () => {
@@ -567,7 +567,7 @@ describe('Shell.run', () => {
         const result = await shell.run();
         assert.deepEqual(result, { action: 'exit' });
         // pwd should have printed the cwd
-        assert.ok(shell.scrollBuffer.some(l => l.text.includes('/home/player')));
+        assert.ok(shell.scrollBuffer.some(l => l.text.includes('/home/rodney')));
     });
 
     it('Ctrl-C clears current line', async () => {
@@ -823,7 +823,7 @@ describe('Shell vi integration', () => {
         await shell.run();
 
         // Check the file was saved to the virtual filesystem
-        const content = shell.fs.cat('/home/player/.nethackrc');
+        const content = shell.fs.cat('/home/rodney/.nethackrc');
         assert.equal(content, 'OPTIONS=color');
     });
 });
