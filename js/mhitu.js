@@ -2203,6 +2203,12 @@ export async function mdamageu(mtmp, n, player, display, game = null) {
 
     if (n <= 0) return;
 
+    // C ref: mhitu.c:1904 — mdamageu() sets disp.botl before mutating HP.
+    player._botl = true;
+    player._botlStepIndex = Number.isInteger((gameCtx?.lev || gameCtx?.map)?._replayStepIndex)
+        ? (gameCtx.lev || gameCtx.map)._replayStepIndex
+        : null;
+
     if (player.upolyd) {
         let nextMh = (player.mh || 0) - n;
         player.mh = nextMh;

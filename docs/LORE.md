@@ -10985,3 +10985,35 @@ Validation:
 - Practical lesson:
   - When hallucination uses display RNG, even a dead local like `const defName = ...` can create a real parity regression if it is evaluated outside the exact C message branch.
   - In combat/message code, build hallucinatory names lazily and only inside the branch that actually prints them.
+
+## 2026-03-14: mdamageu still needs losehp-style deferred status bookkeeping
+
+- Context:
+  - upstream commit `50919f40` switched melee hero damage in [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js) from `losehp()` to `mdamageu()`
+  - after rebasing, [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) regressed on clean `origin/main` with gameplay still exact:
+    - RNG `3469/3469`
+    - events `586/586`
+    - first screen divergence at step `409`
+    - JS: `Dlvl:1 $:0 HP:3(12) Pw:7(7) AC:10 Xp:1 Blind`
+    - C:  `Dlvl:1 $:0 HP:0(12) Pw:7(7) AC:10 Xp:1 Blind`
+
+- Root cause:
+  - C `mhitu.c:mdamageu()` explicitly does `disp.botl = TRUE` before mutating HP.
+  - JS `mdamageu()` had the HP mutation and death path, but it omitted the deferred status bookkeeping that `losehp()` already performs:
+    - `player._botl = true`
+    - `player._botlStepIndex = current replay step`
+  - Result: the `Die? [yn]` prompt could render while the bottom line still showed stale pre-hit HP, even though the message stream and game state had already advanced to the death/lifesave boundary.
+
+- Fix:
+  - [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js)
+    - restore the `disp.botl` equivalent at the top of `mdamageu()`
+    - set both `player._botl` and `_botlStepIndex` before HP mutation
+
+- Result:
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) is green again.
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) stays green.
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) moves one step later (`681 -> 682`), which is consistent with the same stale-status class of bug.
+
+- Practical lesson:
+  - Routing combat damage away from `losehp()` is fine, but the replacement path still has to carry all visible C side effects.
+  - For replay parity, `disp.botl`/`_botl` is not optional bookkeeping; it is part of the user-visible semantics of the death prompt boundary.
