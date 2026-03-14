@@ -13,12 +13,13 @@ diff --git a/include/extern.h b/include/extern.h
 diff --git a/src/rnd.c b/src/rnd.c
 --- a/src/rnd.c
 +++ b/src/rnd.c
-@@ -32,18 +32,23 @@
+@@ -32,18 +32,28 @@
  static const char *rng_caller_file = NULL;
  static int rng_caller_line = 0;
  static const char *rng_caller_func = NULL;
 +static boolean repaint_trace_enabled = FALSE;
 +static boolean repaint_debug_enabled = FALSE;
++static FILE *repaint_debug_file = (FILE *) 0;
  static boolean rng_log_disp = FALSE;
  
  void
@@ -27,6 +28,7 @@ diff --git a/src/rnd.c b/src/rnd.c
      const char *logpath = getenv("NETHACK_RNGLOG");
 +    const char *repaint = getenv("NETHACK_REPAINT_TRACE");
 +    const char *repaint_debug = getenv("NETHACK_REPAINT_DEBUG");
++    const char *repaint_debug_path = getenv("NETHACK_REPAINT_DEBUG_LOG");
      const char *disp = getenv("NETHACK_RNGLOG_DISP");
      if (logpath && *logpath) {
          rng_logfile = fopen(logpath, "w");
@@ -35,6 +37,11 @@ diff --git a/src/rnd.c b/src/rnd.c
      }
 +    repaint_trace_enabled = (repaint && *repaint && *repaint != '0') ? TRUE : FALSE;
 +    repaint_debug_enabled = (repaint_debug && *repaint_debug && *repaint_debug != '0') ? TRUE : FALSE;
++    if (repaint_debug_path && *repaint_debug_path) {
++        repaint_debug_file = fopen(repaint_debug_path, "a");
++        if (repaint_debug_file)
++            setvbuf(repaint_debug_file, NULL, _IOLBF, 0);
++    }
      rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
  }
  
@@ -61,13 +68,15 @@ diff --git a/src/rnd.c b/src/rnd.c
 +repaint_debug_log(const char *fmt, ...)
 +{
 +    va_list ap;
++    FILE *out;
 +    if (!repaint_debug_enabled)
 +        return;
-+    fputs("^repaintdbg[", stderr);
++    out = repaint_debug_file ? repaint_debug_file : stderr;
++    fputs("^repaintdbg[", out);
 +    va_start(ap, fmt);
-+    vfprintf(stderr, fmt, ap);
++    vfprintf(out, fmt, ap);
 +    va_end(ap);
-+    fputs("]\n", stderr);
++    fputs("]\n", out);
  }
  
  #ifdef USE_ISAAC64
@@ -107,6 +116,43 @@ diff --git a/src/display.c b/src/display.c
 diff --git a/win/tty/topl.c b/win/tty/topl.c
 --- a/win/tty/topl.c
 +++ b/win/tty/topl.c
+@@ -266,17 +266,32 @@
+     if ((ttyDisplay->toplin == TOPLINE_NEED_MORE || skip)
+         && cw->cury == 0
+         && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
+         && (notdied = strncmp(bp, "You die", 7)) != 0) {
++        repaint_debug_log("owner=tty.topl.update_topl.concat_fit topl=%d cury=%d len=%d existing=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          n0, (int) strlen(gt.toplines), bp ? bp : "");
+         Strcat(gt.toplines, "  ");
+         Strcat(gt.toplines, bp);
+         cw->curx += 2;
+         if (!skip)
+             addtopl(bp);
+         return;
+     } else if (!skip) {
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
++            repaint_debug_log("owner=tty.topl.update_topl.pre_more topl=%d cury=%d len=%d existing=%d msg=%s",
++                              (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                              n0, (int) strlen(gt.toplines), bp ? bp : "");
+             more();
+         } else if (cw->cury) { /* for toplin==TOPLINE_NON_EMPTY && cury > 1 */
+             docorner(1, cw->cury + 1, 0); /* reset cury = 0 if redraw screen */
+             cw->curx = cw->cury = 0;   /* from home--cls() & docorner(1,n,0) */
+         }
+@@ -298,4 +313,8 @@
+     if (!notdied) /* double negative => "You die"; avoid suppressing mesg */
+         cw->flags &= ~WIN_STOP, skip = FALSE;
+-    if (!skip)
++    if (!skip) {
++        repaint_debug_log("owner=tty.topl.update_topl.redotoplin topl=%d cury=%d len=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          (int) strlen(gt.toplines), gt.toplines);
+         redotoplin(gt.toplines);
++    }
+ }
+ 
+ static void
 @@ -214,6 +214,12 @@
          return;
  
