@@ -912,6 +912,8 @@ export async function peffect_gain_energy(player, otmp, display) {
     // C: u.uenmax += num, u.uen += 3*num (with clamping)
     player.pwmax = Math.max(0, (player.pwmax || 0) + num);
     player.pw = Math.max(0, Math.min((player.pw || 0) + 3 * num, player.pwmax));
+    // C ref: potion.c peffect_gain_energy() sets context.botl = 1
+    player._botl = true;
     await exercise(player, A_WIS, true);
     return false;
 }

@@ -988,6 +988,8 @@ async function cpostfx(player, pm, display) {
         break;
     case PM_NURSE:
         player.uhp = player.uhpmax;
+        // C ref: eat.c cpostfx() sets context.botl = 1 for nurse corpse
+        player._botl = true;
         check_intrinsics = true;
         break;
     case PM_STALKER:
@@ -1421,6 +1423,8 @@ async function fpostfx(player, otmp) {
             } else if (player.uhp <= 0) {
                 player.uhp = 1; // simplified — C version kills or rehumanizes
             }
+            // C ref: eat.c cpostfx() sets context.botl = 1 for royal jelly
+            player._botl = true;
         }
         break;
     case EGG:

@@ -148,6 +148,8 @@ export async function losexp(player, display, drainer) {
 
     player.ulevel--;
     player.exp = newuexp(player.ulevel);
+    // C ref: exper.c losexp() sets context.botl = 1
+    player._botl = true;
     if (display) {
         await display.putstr_message(`You feel your life force draining away.`);
     }

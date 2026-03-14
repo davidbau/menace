@@ -450,6 +450,8 @@ export async function adjattrib(player, ndx, incr, msgflg) {
         return false;
     }
 
+    // C ref: attrib.c adjattrib() sets context.botl = 1 when acurr changes
+    player._botl = true;
     if (msgflg <= 0)
         await You_feel("%s%s!", (incr > 1 || incr < -1) ? "very " : "", attrstr);
     if (ndx === A_STR || ndx === A_CON)
@@ -654,8 +656,11 @@ export async function restore_attrib(player) {
             }
         }
     }
-    if (botl)
+    if (botl) {
+        // C ref: attrib.c restore_attrib() sets context.botl = 1
+        player._botl = true;
         await encumber_msg(player);
+    }
 }
 
 // cf. attrib.c:486 — exercise(i, inc_or_dec)

@@ -826,6 +826,8 @@ async function fix_worst_trouble(trouble, player, map) {
             maxhp += rnd(5);
         player.uhpmax = Math.max(maxhp, 6);
         player.uhp = player.uhpmax;
+        // C ref: pray.c fix_worst_trouble() sets context.botl = 1
+        player._botl = true;
         break;
     }
     case TROUBLE_COLLAPSING: {

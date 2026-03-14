@@ -2946,9 +2946,13 @@ export async function drain_en(n, max_already_drained) {
         } else if (player.pw > (player.pwmax || 0)) {
             player.pw = player.pwmax || 0;
         }
+        // C ref: trap.c drain_en() sets context.botl = 1
+        player._botl = true;
         await You_feel("%s%s", mesg, actualPunct);
         return;
     }
+    // C ref: trap.c drain_en() sets context.botl = 1
+    player._botl = true;
     await You_feel("%s%s", mesg, punct);
 }
 
