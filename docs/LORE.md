@@ -10596,3 +10596,41 @@ Validation:
   - For tty prompt parity, buffer limits matter as much as visible wrapping.
   - If C stops echoing prompt input while JS keeps extending the line, check
     the tty input acceptance rule before redesigning prompt ownership.
+
+## 2026-03-14: Blind `feel_location()` must clear stale invisible markers
+
+- Context:
+  - After the `tty_getlin()` width clamp, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) moved to a later blind display drift:
+    - first screen divergence at step `867`
+    - JS kept a remembered `I` one step longer than C on a square adjacent to the blind hero
+  - Gameplay remained exact:
+    - RNG `3125/3125`
+    - events `400/400`
+
+- Root cause:
+  - C `display.c:feel_location()` does not leave `GLYPH_INVISIBLE` in place
+    once the hero feels a changed square, unless an invisible monster is still
+    actually there.
+  - JS `feel_location()` was only a shallow wrapper around `map_location()`
+    plus sensed-monster display and never cleared `loc.mem_invis`.
+  - That left stale remembered-invisible markers behind during blind adjacent
+    updates, even after the square's contents changed.
+
+- Fix:
+  - In [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    `feel_location()` now:
+    - preserves the marker only if `loc.mem_invis` is present and an actually
+      invisible monster still occupies the square,
+    - otherwise clears `loc.mem_invis` before remapping the location.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` moved later again:
+    - first screen divergence from step `867`
+    - to step `878`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` stayed fully green.
+  - Promoted-suite failure report stayed stable.
+
+- Practical lesson:
+  - Blind map parity is not just “don’t show what the hero can’t see.”
+  - The feel/update path has its own cleanup semantics, especially for stale
+    invisible markers and nearby floor memory.

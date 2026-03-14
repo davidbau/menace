@@ -1845,14 +1845,20 @@ export function feel_newsym(x, y, player) {
 export function feel_location(x, y, ctxOrMap = null) {
   if (!isok(x, y)) return;
   const ctx = _resolveDisplayCtx(ctxOrMap);
-  map_location(x, y, 1, ctx);
-
   const player = ctx?.player;
   const gameMap = ctx?.map;
   if (!player || !gameMap) return;
   if (player.x === x && player.y === y) return;
 
   const mon = gameMap.monsterAt?.(x, y) || null;
+  const loc = gameMap.at?.(x, y) || null;
+  if (loc?.mem_invis && mon?.minvis) {
+    return;
+  }
+  if (loc?.mem_invis) {
+    loc.mem_invis = false;
+  }
+  map_location(x, y, 1, ctx);
   if (mon && senseMonsterForMap(mon, gameMap, player)) {
     const detectedByTelepathy = telepathySensesMonsterForMap(mon, player);
     const warnOfMon = hasPlayerProp(player, WARN_OF_MON, 'warnOfMon', 'Warn_of_mon');
