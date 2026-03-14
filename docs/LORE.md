@@ -10906,49 +10906,38 @@ Validation:
   - The status line belongs to the visible message page, not just to the latest live player state.
   - But broad “always redraw status after page replacement” logic is too aggressive; restrict it to the concrete C-faithful cases you can prove.
 
-## 2026-03-14: headless death-staging `more()` status refresh depends on whether the pending topline already crossed a `--More--`
+## 2026-03-14: death-staging status refresh differs for sleep wakeups vs other helpless states
 
 - Context:
-  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) had:
-    - full RNG parity
-    - full event parity
-    - a display-only mismatch at step `543`
-  - The visible miss was:
-    - C: `The orc hits!--More--` with `HP:0(12)`
-    - JS: `The orc hits!--More--` with stale `HP:2(12)`
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) had full RNG and event parity, but first screen divergence at:
+    - step `543`: JS `HP:2(12)` vs C `HP:0(12)` under the same visible topline `The orc hits!--More--`
+  - A broad fix that refreshed status for all `afterMore` death-staging pages moved `t11_s744` later but reopened:
+    - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - step `407`: JS `HP:0(12)` vs C `HP:3(12)`
 
 - Root cause:
-  - This happens in [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/game/js/headless.js) when a death message arrives while another topline is already pending acknowledgement:
-    - branch: `if (this.topMessage && this.messageNeedsMore && isDeathMessage)`
-  - Two cases looked similar but are not equivalent:
-    - earlier step `516`:
-      - pending topline HP cache `1`
-      - live HP `0`
-      - `_topMessageAfterMore = false`
-      - C still wants the old `HP:1`
-    - later step `543`:
-      - pending topline HP cache `2`
-      - live HP `0`
-      - `_topMessageAfterMore = true`
-      - C wants the refreshed `HP:0`
-  - JS had been suppressing the death-staging `more()` status refresh whenever monster movement was in progress and `multi < 0`, which was too broad for the later case.
+  - Both sessions hit the same headless death-staging branch:
+    - `topMessage && messageNeedsMore && msg === "You die..."`
+  - The meaningful split was not wizard mode, prompt ownership, or generic negative `multi`.
+  - Targeted state dumps showed:
+    - `t11_s744`: `multi_reason = "frozen by floating eye's gaze"`, `usleep = 0`, `nomovemsg = null`
+    - `hi11`: `multi_reason = "sleeping"`, `usleep = 7`, `nomovemsg = "You wake up."`
+  - C preserves the pre-death status on those sleep/wakeup boundaries, but updates the visible pending page for the non-sleep helpless case.
 
 - Fix:
-  - In the death-staging `more()` call, only suppress status refresh when all of these are true:
-    - monster movement is in progress
-    - `multi < 0`
-    - the pending topline was **not** itself displayed after an earlier `--More--`
-  - In code, that means the suppression now keys on `!this._topMessageAfterMore`.
+  - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+    - the death-staging `more()` status-refresh suppressor is now narrow:
+      - suppress for monster-phase negative-`multi` pages when the page was not created after an earlier `--More--`
+      - also suppress for the sleep/wakeup boundary (`usleep > 0`, `multi_reason === "sleeping"`, or `nomovemsg === "You wake up."`)
+    - other negative-`multi` helpless states, such as floating-eye paralysis, now refresh the visible pending page and match C later.
 
 - Result:
-  - `t11_s744_w_covmax2_gp` moved:
-    - first screen divergence `543 -> 645`
-  - Guardrails remained green:
-    - `seed031_manual_direct`
-    - `seed032_manual_direct`
-    - `seed033_manual_direct`
-    - `seed329_rogue_wizard_gameplay`
+  - [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json):
+    - first screen divergence moved `543 -> 645`
+    - RNG remains `11024/11024`
+    - events remain `1644/1644`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) stayed fully green.
 
 - Practical lesson:
-  - For headless topline parity, “death staging while a message is pending” is not one case.
-  - Whether the pending topline already came *after* a prior `--More--` changes whether C wants the old status line preserved or the new status line flushed before the dismissal key.
+  - “negative `multi` during monster phase” is too coarse for death-boundary rendering.
+  - Sleep wakeups are their own display-order case and need to stay distinct from other helpless/deferred-death paths.

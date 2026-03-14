@@ -637,6 +637,14 @@ export class HeadlessDisplay {
         }
 
         const isDeathMessage = msg.startsWith('You die...');
+        const sleepWakeBoundary = !!(
+            Number(activeGame?.player?.usleep || 0) > 0
+            || activeGame?.multi_reason === 'sleeping'
+            || activeGame?.nomovemsg === 'You wake up.'
+        );
+        const suppressDeathStagingStatus = !!(activeGame?.context?.mon_moving
+            && Number(activeGame?.multi || 0) < 0
+            && (!this._topMessageAfterMore || sleepWakeBoundary));
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
@@ -652,11 +660,7 @@ export class HeadlessDisplay {
                         site: 'headless.more.dismiss',
                         clearAfter: false,
                         readKey: this._nhgetch,
-                        refreshStatus: !(
-                            activeGame?.context?.mon_moving
-                            && Number(activeGame?.multi || 0) < 0
-                            && !this._topMessageAfterMore
-                        ),
+                        refreshStatus: !suppressDeathStagingStatus,
                     });
                 } catch (e) {
                     if (!e.message?.includes('Concurrent nhgetch')) throw e;
