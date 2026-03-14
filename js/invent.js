@@ -332,6 +332,17 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         if (dismissOnUnrecognized) break;
     }
 
+    restoreOverlayMenu(display, lines, menuOffx);
+
+    if (!allowCountPrefix) return selection;
+    const parsedCount = countDigits.length > 0 ? parseInt(countDigits, 10) : null;
+    return {
+        selection,
+        count: Number.isFinite(parsedCount) ? parsedCount : null,
+    };
+}
+
+function restoreOverlayMenu(display, lines, menuOffx) {
     const last = display?._lastMapState;
     if (last?.gameMap && typeof display.renderMap === 'function') {
         // C tty parity: closing a menu restores map/status/message display.
@@ -342,29 +353,83 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         if (typeof display.renderMessageWindow === 'function') {
             display.renderMessageWindow();
         }
-    } else {
-        const menuRows = Math.min(lines.length, STATUS_ROW_1);
-        if (typeof display.setCell === 'function'
-            && Number.isInteger(display.cols)
-            && Number.isInteger(menuOffx)) {
-            for (let r = 0; r < menuRows; r++) {
-                for (let col = menuOffx; col < display.cols; col++) {
-                    display.setCell(col, r, ' ', 7, 0);
-                }
-            }
-        } else if (typeof display.clearRow === 'function') {
-            for (let r = 0; r < menuRows; r++) {
-                display.clearRow(r);
+        return;
+    }
+    const menuRows = Math.min(lines.length, STATUS_ROW_1);
+    if (typeof display?.setCell === 'function'
+        && Number.isInteger(display?.cols)
+        && Number.isInteger(menuOffx)) {
+        for (let r = 0; r < menuRows; r++) {
+            for (let col = menuOffx; col < display.cols; col++) {
+                display.setCell(col, r, ' ', 7, 0);
             }
         }
+    } else if (typeof display?.clearRow === 'function') {
+        for (let r = 0; r < menuRows; r++) {
+            display.clearRow(r);
+        }
+    }
+}
+
+async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionChars = '') {
+    const allowedSelections = new Set((allowedSelectionChars || '').split(''));
+    if (display?.messageNeedsMore) {
+        await more(display, { site: 'invent.renderOverlayMenuPickAny.pre-menu', forceVisual: true });
+        if (typeof display.clearRow === 'function') display.clearRow(0);
+        if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+        if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
     }
 
-    if (!allowCountPrefix) return selection;
-    const parsedCount = countDigits.length > 0 ? parseInt(countDigits, 10) : null;
-    return {
-        selection,
-        count: Number.isFinite(parsedCount) ? parsedCount : null,
+    const selected = new Set();
+    let menuOffx = null;
+    let renderedLines = [];
+    const render = () => {
+        renderedLines = linesFactory(selected);
+        if (typeof display.renderOverlayMenu === 'function') {
+            menuOffx = display.renderOverlayMenu(renderedLines);
+        } else {
+            menuOffx = display.renderChargenMenu(renderedLines, false);
+        }
+        if (typeof display?.setCursor === 'function' && Number.isInteger(menuOffx) && renderedLines.length > 0) {
+            const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
+            const displayRows = Number.isInteger(display.rows) ? display.rows : STATUS_ROW_2;
+            const fullScreen = renderedLines.length >= displayRows || menuOffx === 1;
+            const menuRows = Math.min(renderedLines.length, fullScreen ? displayRows : STATUS_ROW_1);
+            const lastRow = Math.max(0, menuRows - 1);
+            const lastLine = String(renderedLines[lastRow] || '');
+            display.setCursor(Math.min(menuOffx + lastLine.length + 1, cols - 1), lastRow);
+        }
     };
+
+    render();
+    while (true) {
+        const ch = await nhgetch();
+        if (ch === 27 || ch === 'q'.charCodeAt(0)) {
+            restoreOverlayMenu(display, renderedLines, menuOffx);
+            return null;
+        }
+        if (ch === 13 || ch === 10 || ch === 32) {
+            const result = [...selected];
+            restoreOverlayMenu(display, renderedLines, menuOffx);
+            return result;
+        }
+        if (ch === '.'.charCodeAt(0)) {
+            for (const c of allowedSelections) selected.add(c);
+            render();
+            continue;
+        }
+        if (ch === '-'.charCodeAt(0)) {
+            selected.clear();
+            render();
+            continue;
+        }
+        const c = String.fromCharCode(ch);
+        if (allowedSelections.has(c)) {
+            if (selected.has(c)) selected.delete(c);
+            else selected.add(c);
+            render();
+        }
+    }
 }
 
 // Handle inventory display
@@ -1953,27 +2018,41 @@ export async function identify_pack(id_limit, player, learning_id) {
 
             if (display) {
                 const unid = inv.filter((obj) => obj && not_fully_identified(obj));
-                const lines = [
-                    prompt,
-                    '',
-                    ...buildInventoryOverlayLines(player, (obj) => unid.includes(obj))
-                        .filter((line) => line !== '(end)'),
-                ];
                 const choices = unid
                     .map((obj) => String(obj?.invlet || ''))
                     .filter(Boolean)
                     .join('');
-                const selection = selectionFromInventoryResult(
-                    await renderOverlayMenuUntilDismiss(display, lines, choices, { dismissOnUnrecognized: true })
+                const result = await renderOverlayMenuPickAny(
+                    display,
+                    (selected) => {
+                        const lines = [
+                            prompt,
+                            '',
+                            ...buildInventoryOverlayLines(player, (obj) => unid.includes(obj))
+                                .filter((line) => line !== '(end)'),
+                        ];
+                        return lines.map((line) => {
+                            const match = String(line).match(/^([A-Za-z]) - (.*)$/);
+                            if (!match) return line;
+                            return `${match[1]} ${selected.has(match[1]) ? '+' : '-'} ${match[2]}`;
+                        });
+                    },
+                    choices
                 );
-                if (selection) {
-                    const obj = unid.find((candidate) => String(candidate?.invlet || '') === selection);
-                    if (obj) {
-                        await identify(obj, player);
-                        id_limit--;
-                        first = 0;
-                        continue;
+                if (result === null) {
+                    break;
+                }
+                if (result.length > 0) {
+                    let n = Math.min(result.length, id_limit);
+                    for (let i = 0; i < n; i++) {
+                        const obj = unid.find((candidate) => String(candidate?.invlet || '') === result[i]);
+                        if (obj) {
+                            await identify(obj, player);
+                            id_limit--;
+                        }
                     }
+                    first = 0;
+                    continue;
                 }
                 if (!--tryct) {
                     await pline("That's enough tries.");

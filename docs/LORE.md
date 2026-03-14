@@ -12001,3 +12001,33 @@ Validation:
     gameplay remained exact (`RNG 20848/20848`, `events 3292/3292`)
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-14 20:50: `identify_pack()` needed grouped `PICK_ANY` overlay semantics to bring `hi13` green
+
+- Session:
+  - `test/comparison/sessions/coverage/spells-reads-zaps/hi13_seed1001_wiz_shop-read-zap_gp.session.json`
+- Problem:
+  - after fixing pre-menu `--More--` ownership, the remaining mismatch was in
+    the identify scroll chooser:
+    - C kept the grouped inventory menu visible while `r` toggled selection
+    - JS treated the grouped overlay like a one-shot picker and closed too early
+- Fix:
+  - `js/invent.js`:
+    - added grouped-overlay filtering support to `buildInventoryOverlayLines()`
+    - factored overlay restore logic
+    - added a grouped `PICK_ANY` overlay loop that:
+      - resolves pending `--More--` first
+      - toggles selected inventory letters on keypress
+      - ignores unrelated keys
+      - confirms only on space/enter
+    - switched `identify_pack()` to use that grouped `PICK_ANY` flow
+- Result:
+  - `hi13_seed1001_wiz_shop-read-zap_gp` is now gameplay-green and was promoted
+    from `sessions/pending/` to
+    `sessions/coverage/spells-reads-zaps/`
+  - refreshed parity coverage run moved overall coverage to:
+    - lines `57.15%`
+    - branches `59.42%`
+    - functions `40.67%`
+  - this cleared the line-coverage threshold (`>56%`) but did not yet clear the
+    branch-coverage threshold (`>60%`)
