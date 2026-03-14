@@ -11343,6 +11343,50 @@ Validation:
   - Some repaint boundaries are inherited from generic inventory-selection semantics even when a command implements its own custom prompt loop.
   - If the JS command bypasses `getobj()`, it may still need to reproduce `getobj()`'s display-side bookkeeping to stay repaint-faithful.
 
+## 2026-03-14: repaint debugging needs a separate owner/context channel
+
+- Context:
+  - Continuing the `REPAINT_PARITY` campaign after the first `t11_s744` repaint bring-up wins.
+  - Canonical `^repaint[...]` parity was already useful, but still too weak to explain duplicate-owner cases like:
+    - `postRender()` vs `renderAndAutosave()`
+    - `getlin()` prompt entry vs command-tail `flush_screen()`
+
+- Finding:
+  - Canonical repaint events should stay minimal and stable for rerecord/compare.
+  - But repaint debugging needs richer answers:
+    - which function/path emitted this repaint?
+    - what topline / `messageNeedsMore` state was active?
+    - was this prompt-owned, `more()`-owned, `flush_screen()`-owned, or status-owned?
+
+- Fix:
+  - Added a separate debug-only owner/context channel:
+    - JS: `WEBHACK_REPAINT_DEBUG=1`
+    - C: `NETHACK_REPAINT_DEBUG=1`
+  - This emits `^repaintdbg[...]` lines to stderr/console only.
+  - It does not alter canonical `^repaint[...]` recordings.
+
+- Validation:
+  - `node --test test/unit/comparators.test.js`
+    - still green
+  - `bash test/comparison/c-harness/setup.sh`
+    - patch applies and harness builds cleanly
+  - traced `t11_s744` replay with both debug flags enabled:
+    - gameplay parity still passes
+    - canonical repaint parity is unchanged
+    - debug output now names real owners such as:
+      - `display.flush_screen`
+      - `headless.renderStatus`
+      - `input.getlin.preprompt`
+      - `tty.topl.more`
+      - `tty.topl.yn_function`
+      - `tty.wintty.mark_synch`
+
+- Practical lesson:
+  - Repaint parity needs two channels:
+    - a stable canonical channel for comparison
+    - a richer owner/context channel for debugging
+  - Mixing those together would destabilize recordings and make rerecords noisier than necessary.
+
 ## 2026-03-14: Wizard terrain/trap wishes need live map context, C-visible messages, and trap replacement
 
 - Context:

@@ -30,6 +30,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
 import {
+    debugRepaint,
     logRepaint,
     repaintHp,
     repaintBotl,
@@ -1506,6 +1507,16 @@ export class HeadlessDisplay {
     flush() {
         const player = this._lastMapState?.player || activeGame?.player || null;
         if (player) {
+            debugRepaint('mark', 'headless.flush', {
+                hp: repaintHp(player),
+                topl: repaintToplineState(this),
+                inread: 0,
+                inmore: 0,
+            }, {
+                step: this._lastMapState?.gameMap?._replayStepIndex,
+                top: this.topMessage || null,
+                messageNeedsMore: this.messageNeedsMore,
+            });
             logRepaint('mark', {
                 hp: repaintHp(player),
                 topl: repaintToplineState(this),
@@ -1518,6 +1529,16 @@ export class HeadlessDisplay {
 
     renderStatus(player) {
         if (!player) return;
+        debugRepaint('bot', 'headless.renderStatus', {
+            hp: repaintHp(player),
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
+        }, {
+            step: this._lastMapState?.gameMap?._replayStepIndex,
+            top: this.topMessage || null,
+            messageNeedsMore: this.messageNeedsMore,
+        });
         logRepaint('bot', {
             hp: repaintHp(player),
             botl: repaintBotl(player),

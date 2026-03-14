@@ -207,6 +207,11 @@ def repaint_trace_env():
     v = os.environ.get('NETHACK_REPAINT_TRACE', '')
     return f'NETHACK_REPAINT_TRACE={v} ' if v else ''
 
+def repaint_debug_env():
+    """Pass NETHACK_REPAINT_DEBUG through to the C binary if set."""
+    v = os.environ.get('NETHACK_REPAINT_DEBUG', '')
+    return f'NETHACK_REPAINT_DEBUG={v} ' if v else ''
+
 def rnglog_disp_env():
     """Pass NETHACK_RNGLOG_DISP through to the C binary if set."""
     v = os.environ.get('NETHACK_RNGLOG_DISP', '')
@@ -1123,6 +1128,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
+            f'{repaint_debug_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1381,6 +1387,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
+            f'{repaint_debug_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1670,6 +1677,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
+            f'{repaint_debug_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2036,6 +2044,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{test_move_event_env()}'
             f'{runstep_event_env()}'
             f'{repaint_trace_env()}'
+            f'{repaint_debug_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '

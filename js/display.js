@@ -50,6 +50,7 @@ import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
 import {
+    debugRepaint,
     logRepaint,
     repaintHp,
     repaintBotl,
@@ -2543,6 +2544,18 @@ export function flush_screen(cursor_on_u) {
     const ctx = _getDisplayCtx();
     if (ctx?.display && ctx?.player) {
         const { display, player } = ctx;
+        const step = replayStepIndex(ctx?.gameMap);
+        debugRepaint('flush', 'display.flush_screen', {
+            hp: repaintHp(player),
+            cursor: cursor_on_u,
+            botl: repaintBotl(player),
+            botlx: repaintBotlx(player),
+            time: repaintTimeBotl(player),
+        }, {
+            step,
+            top: display?.topMessage || null,
+            messageNeedsMore: display?.messageNeedsMore,
+        });
         logRepaint('flush', {
             hp: repaintHp(player),
             cursor: cursor_on_u,

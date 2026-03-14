@@ -5,6 +5,10 @@ export function repaintTraceEnabled() {
     return envFlag('WEBHACK_REPAINT_TRACE');
 }
 
+export function repaintDebugEnabled() {
+    return envFlag('WEBHACK_REPAINT_DEBUG');
+}
+
 export function repaintHp(player) {
     return Number.isFinite(player?.uhp) ? (player.uhp | 0) : 0;
 }
@@ -34,6 +38,14 @@ export function repaintCursorCol(display) {
     return Number.isInteger(display?.cursorCol) ? display.cursorCol : -1;
 }
 
+function repaintDebugStack() {
+    try {
+        return new Error().stack?.split('\n').slice(2, 6).map((line) => line.trim()) || [];
+    } catch (_err) {
+        return [];
+    }
+}
+
 function truncateText(value, limit = 48) {
     const text = String(value ?? '');
     return text.length > limit ? `${text.slice(0, limit)}...` : text;
@@ -54,4 +66,18 @@ export function logRepaint(kind, fields = {}) {
         parts.push(`${key}=${encodeValue(value)}`);
     }
     pushRngLogEntry(`^repaint[${parts.length ? `${kind} ${parts.join(' ')}` : kind}]`);
+}
+
+export function debugRepaint(kind, owner, fields = {}, options = {}) {
+    if (!repaintDebugEnabled() || typeof console === 'undefined' || !console.error) return;
+    const payload = {
+        kind,
+        owner,
+        fields,
+    };
+    if (options.step !== undefined) payload.step = options.step;
+    if (options.top !== undefined) payload.top = options.top;
+    if (options.messageNeedsMore !== undefined) payload.messageNeedsMore = !!options.messageNeedsMore;
+    if (options.includeStack !== false) payload.stack = repaintDebugStack();
+    console.error(`^repaintdbg[${JSON.stringify(payload)}]`);
 }

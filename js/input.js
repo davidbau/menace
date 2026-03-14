@@ -11,6 +11,7 @@ import { envFlag } from './runtime_env.js';
 import { waitForMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 import {
+    debugRepaint,
     logRepaint,
     repaintHp,
     repaintBotl,
@@ -604,6 +605,7 @@ export async function nhgetch(opts = {}) {
 
 export async function more(display, {
     game = null,
+    site = null,
     forceVisual = false,
     clearAfter = true,
     readKey = null,
@@ -626,6 +628,16 @@ export async function more(display, {
         statusPlayer.encumbrance = display._topMessageEncumbrance;
     }
     if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
+        debugRepaint('more', site || 'input.more', {
+            hp: repaintHp(statusPlayer),
+            topl: repaintToplineState(display),
+            row: repaintCursorRow(display),
+            col: repaintCursorCol(display),
+        }, {
+            step: display?._lastMapState?.gameMap?._replayStepIndex,
+            top: display?.topMessage || null,
+            messageNeedsMore: display?.messageNeedsMore,
+        });
         logRepaint('more', {
             hp: repaintHp(statusPlayer),
             topl: repaintToplineState(display),
@@ -676,6 +688,17 @@ export async function getlin(prompt, display) {
         // C ref: tty_getlin() -> custompline() -> vpline() -> flush_screen() -> bot().
         // This prompt boundary is repaint-relevant even when the prompt itself
         // owns the message line and the visible map/status do not otherwise change.
+        debugRepaint('flush', 'input.getlin.preprompt', {
+            hp: repaintHp(promptStatusPlayer),
+            cursor: 1,
+            botl: repaintBotl(promptStatusPlayer),
+            botlx: repaintBotlx(promptStatusPlayer),
+            time: repaintTimeBotl(promptStatusPlayer),
+        }, {
+            step: disp?._lastMapState?.gameMap?._replayStepIndex,
+            top: disp?.topMessage || null,
+            messageNeedsMore: disp?.messageNeedsMore,
+        });
         logRepaint('flush', {
             hp: repaintHp(promptStatusPlayer),
             cursor: 1,
@@ -837,6 +860,16 @@ export async function ynFunction(query, choices, def, display, options = {}) {
         }
     }
     ynTrace('prompt', prompt.trimEnd(), `choices=${choices || ''}`, `def=${def || 0}`);
+    debugRepaint('yn', 'input.ynFunction.prompt', {
+        hp: repaintHp(activeGame?.player),
+        topl: repaintToplineState(disp),
+        def: def || 0,
+        query: query || '',
+    }, {
+        step: disp?._lastMapState?.gameMap?._replayStepIndex,
+        top: disp?.topMessage || null,
+        messageNeedsMore: disp?.messageNeedsMore,
+    });
     logRepaint('yn', {
         hp: repaintHp(activeGame?.player),
         topl: repaintToplineState(disp),

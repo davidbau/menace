@@ -54,6 +54,19 @@ Examples:
 The exact vocabulary can expand, but the campaign must keep it small and
 midlevel. These traces are not low-level cell diffs.
 
+Separate debug-only owner/context traces are also allowed:
+
+- canonical trace: `^repaint[...]`
+- debug-only trace: `^repaintdbg[...]`
+
+Debug-only traces must not be recorded into canonical session artifacts. They
+exist to answer ownership questions such as:
+
+1. which function/path emitted this repaint?
+2. what topline / `messageNeedsMore` state was active?
+3. was the repaint owned by prompt entry, `more()`, `flush_screen()`,
+   `mark_synch()`, or status rendering?
+
 ## Non-Goals
 
 1. Do not gate pass/fail on repaint parity immediately.
@@ -78,6 +91,10 @@ screen refresh:
 Use a dedicated `repaint_log(...)` helper and gate it on
 `NETHACK_REPAINT_TRACE=1`.
 
+For owner/context debugging, use a separate `repaint_debug_log(...)` helper
+gated on `NETHACK_REPAINT_DEBUG=1`. This must write to stderr only and must
+not alter canonical `^repaint[...]` output.
+
 ### JS
 
 Add matching diagnostic hooks in the runtime paths that correspond to those C
@@ -91,6 +108,10 @@ boundaries:
 These must emit `^repaint[...]` entries into the same ordered trace stream as
 RNG and existing `^event[...]` entries, with comparator-side filtering keeping
 repaint as a separate non-gating diagnostic channel.
+
+For owner/context debugging, JS may emit `^repaintdbg[...]` lines under
+`WEBHACK_REPAINT_DEBUG=1`, but those lines are diagnostic-only and should not
+be recorded into session artifacts.
 
 ## Session Workflow
 
