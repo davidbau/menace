@@ -436,15 +436,28 @@ export function doname(obj) {
 // C ref: parse() — read and return next command
 // C sequence: curs(player), fflush, getchar (harness captures screen HERE), then clear topl, reset flags
 export async function parse() {
-  const hadMsg = game.flags.topl !== 0;  // save BEFORE any reset
+  // C ref: parse() — read command, consuming digit prefix as repeat count.
+  // C: while((foo=getchar())>='0' && foo<='9') multi+=10*multi+foo-'0';
+  // Each getchar() call (including for digits) is captured as a session step.
+  // Message is cleared AFTER the digit loop, matching C's order.
   game.display.flush();
-  const cmd = await game.input.getKey();  // screen captured WITH message still visible
-  if (hadMsg) {                           // clear top line AFTER capture (matches C: home(); cl_end(); after getchar)
+  let foo = await game.input.getKey();  // screen captured WITH message still visible
+  // Consume digit prefix exactly as C does
+  while (foo >= '0' && foo <= '9') {
+    game.multi += 10 * game.multi + (foo.charCodeAt(0) - 48);
+    foo = await game.input.getKey();    // capture screen again (unchanged in C too)
+  }
+  if (game.multi) {
+    game.multi--;
+    game.save_cm = foo;
+  }
+  // Clear message after all digit reads (matches C: home(); cl_end(); after while loop)
+  if (game.flags.topl) {
     game.display.moveCursor(1, 1);
     game.display.clearToEol();
   }
   game.flags.mdone = game.flags.topl = game.oldux = game.olduy = 0;
-  return cmd;
+  return foo;
 }
 
 // C ref: abon() — strength bonus to hit

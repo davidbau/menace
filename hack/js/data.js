@@ -92,7 +92,7 @@ export const armnam = [
 // C ref: hack.vars char *foodnam[]
 export const foodnam = [
   'food ration',
-  'tripe ration',
+  'fruit',
 ];
 
 // C ref: hack.vars char *wepnam[]

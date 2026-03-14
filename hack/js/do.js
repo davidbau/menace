@@ -126,11 +126,17 @@ function useup(obj) {
 }
 
 // C ref: dodr1(obj) — actually drop an item
-function dodr1(obj) {
-  if (obj === game.uwep) game.uwep = null;
-  if (obj === game.uarm) game.uarm = null;
-  if (obj === game.uleft) { ringoff(obj); game.uleft = null; }
-  if (obj === game.uright) { ringoff(obj); game.uright = null; }
+// C ref: hack.do1.c dodr1() — checks equipped items before dropping
+async function dodr1(obj) {
+  // C: if(obj==uarm || obj==uright || obj==uleft) { pline(WEARI); multi=flags.move=0; return; }
+  if (obj === game.uarm || obj === game.uright || obj === game.uleft) {
+    await pline('You are wearing that!'); game.multi = game.flags.move = 0; return false;
+  }
+  // C: if(obj==uwep) { if(obj->cursed) pline(CURSED); else uwep=0; }
+  if (obj === game.uwep) {
+    if (obj.cursed) { await pline('That is a cursed weapon!'); return false; }
+    game.uwep = null;
+  }
   // Remove from inventory
   if (obj === game.invent) game.invent = obj.nobj;
   else { let p = game.invent; while (p && p.nobj !== obj) p = p.nobj; if (p) p.nobj = obj.nobj; }
@@ -138,6 +144,7 @@ function dodr1(obj) {
   obj.ox = game.u.ux; obj.oy = game.u.uy;
   obj.nobj = game.fobj; game.fobj = obj;
   atl(game.u.ux, game.u.uy, obj.olet);
+  return true;
 }
 
 // C ref: loseone(obj,dx,dy) — fire/throw one item (separate from stack)
@@ -597,11 +604,24 @@ export async function rhack(cmd) {
   }
 
   switch (cmd) {
+    case 'f': {
+      // C ref: hack.do.c case 'f' — run in direction until something interesting
+      const dir = await game.input.getKey();
+      if (movecm(dir)) { game.flags.mv = 3; game.multi += 80; await domove(); }
+      else await pline('Bad f direction.');
+      return;
+    }
     case 's': await dosearch(); break;
     case 'e': {
       const otmp = await getobj('%', 'eat');
       if (!otmp) { game.multi = game.flags.move = 0; return; }
-      if (otmp.otyp) { await pline('That was a delicious fruit.'); lesshungry(100); }
+      if (!rn2(7)) {
+        await pline('Blecch!!  Rotten food!');
+        if (!rn2(4)) { await pline('You feel light headed.'); game.u.uconfused += d(2, 4); }
+        else if (!rn2(4) && !game.u.ublind) { await pline('Everything suddenly goes dark.'); game.u.ublind = d(2, 10); seeoff(0); }
+        else if (!rn2(3)) { await pline('The world spins and goes dark.'); nomul(-rnd(10)); }
+        lesshungry(otmp.otyp ? 20 : 200);
+      } else if (otmp.otyp) { await pline('That was a delicious fruit.'); lesshungry(100); }
       else { await pline('That really hit the spot!'); lesshungry(900); game.multi = -5; }
       useup(otmp); break;
     }
@@ -675,8 +695,8 @@ export async function rhack(cmd) {
           otmp.quan -= num;
           dropped.ox = game.u.ux; dropped.oy = game.u.uy;
           dropped.nobj = game.fobj; game.fobj = dropped;
-        } else dodr1(otmp);
-      } else dodr1(otmp);
+        } else await dodr1(otmp);
+      } else await dodr1(otmp);
       await pline('You dropped %s', doname(game.fobj));
       break;
     }
