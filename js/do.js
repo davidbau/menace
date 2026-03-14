@@ -5,7 +5,7 @@ import { more, nhgetch, ynFunction, getlin } from './input.js';
 import { COLNO, ROWNO, STAIRS,
          CORR, ROOM, AIR, A_DEX,
          IS_FURNITURE, IS_LAVA, IS_POOL, MAGIC_PORTAL, VIBRATING_SQUARE,
-         I_SPECIAL, TIMEOUT, WOUNDED_LEGS,
+         I_SPECIAL, TIMEOUT, WOUNDED_LEGS, is_pit, is_hole,
          W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
 import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
@@ -52,7 +52,7 @@ import { canseemon } from './display.js';
 import { movebubbles } from './mkmaze.js';
 import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
-import { float_down } from './trap.js';
+import { float_down, t_at } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
 import { describeGroundObjectForPlayer } from './shk.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
@@ -60,6 +60,8 @@ import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
 import { finesse_ahriman } from './artifact.js';
 import { freeinv } from './invent.js';
+import { ship_object } from './dokick.js';
+import { game as _gstate } from './gstate.js';
 
 // Translator-compat globals used by some C-emitted helper candidates.
 const gd = {};
@@ -201,6 +203,7 @@ export async function menudrop_split(otmp, cnt, player, map) {
 // cf. do.c drop() — drop a single object from inventory.
 // Returns true if time was consumed.
 async function drop_single(obj, player, map) {
+    const game = _gstate || null;
     if (!obj) return false;
     if (!await canletgo(obj, "drop", player)) return false;
     if (obj.otyp === CORPSE && better_not_try_to_drop_that(obj, player))
@@ -225,6 +228,18 @@ async function drop_single(obj, player, map) {
             await dosinkring(obj, player, map);
             return true;
         }
+        if (!can_reach_floor(player, map, true)) {
+            const levhack = finesse_ahriman(obj, player);
+            if (game?.flags?.verbose) {
+                await You("drop %s.", doname(obj, null));
+            }
+            player.removeFromInventory(obj);
+            await hitfloor(obj, true, player, map);
+            if (levhack) {
+                await float_down(I_SPECIAL | TIMEOUT, W_ARTI | W_ART, player, game);
+            }
+            return true;
+        }
         if (loc && IS_ALTAR(loc.typ)) {
             // Altar drop: don't print "You drop" — altar message instead
         } else {
@@ -234,29 +249,29 @@ async function drop_single(obj, player, map) {
     // Remove from inventory and place
     player.removeFromInventory(obj);
     obj.how_lost = LOST_DROPPED;
-    await dropx(obj, player, map);
+    await dropx(obj, player, map, game);
     return true;
 }
 
 // cf. do.c dropx() — take dropped item out of inventory;
 // may produce output (eg altar identification).
-export async function dropx(obj, player, map) {
+export async function dropx(obj, player, map, game = null) {
     if (!player.uswallow) {
         const loc = map.at(player.x, player.y);
         if (loc && IS_ALTAR(loc.typ))
             await doaltarobj(obj, player, map); // set bknown
     }
-    await dropy(obj, player, map);
+    await dropy(obj, player, map, game);
 }
 
 // cf. do.c dropy() — put dropped object at destination
 // Autotranslated from do.c:800
-export async function dropy(obj, player, map) {
-    await dropz(obj, false, player, map);
+export async function dropy(obj, player, map, game = null) {
+    await dropz(obj, false, player, map, game);
 }
 
 // cf. do.c dropz() — really put dropped object at its destination
-export async function dropz(obj, with_impact, player, map) {
+export async function dropz(obj, with_impact, player, map, game = null) {
     if (obj === player.weapon) uwepgone(player);
     if (obj === player.quiver) uqwepgone(player);
     if (obj === player.swapWeapon) uswapwepgone(player);
@@ -271,7 +286,7 @@ export async function dropz(obj, with_impact, player, map) {
             }
         }
     } else {
-        if (await flooreffects(obj, player.x, player.y, "drop", player, map))
+        if (await flooreffects(obj, player.x, player.y, "drop", player, map, game))
             return;
         // Place on floor
         obj.ox = player.x;
@@ -359,14 +374,17 @@ export async function boulder_hits_pool(otmp, rx, ry, pushing, player, map) {
 
 // cf. do.c flooreffects() — effects of object landing on floor.
 // Returns true if the object goes away.
-export async function flooreffects(obj, x, y, verb, player, map) {
+export async function flooreffects(obj, x, y, verb, player, map, game = null) {
     if (!obj) return false;
 
     if (obj.otyp === BOULDER && await boulder_hits_pool(obj, x, y, false, player, map)) {
         return true;
     }
-    // Boulder into pit/hole — simplified: skip trap interactions for now
-    // as trap system is not fully wired
+    const trap = t_at(x, y, map);
+    if (obj.otyp === BOULDER && trap && (is_pit(trap.ttyp) || is_hole(trap.ttyp))) {
+        // Existing boulder/trap handling remains intentionally separate from the
+        // general object shipping path below.
+    }
 
     if (IS_LAVA(map?.at?.(x, y)?.typ)) {
         // lava_damage would destroy most objects
@@ -377,6 +395,15 @@ export async function flooreffects(obj, x, y, verb, player, map) {
         // water_damage
         // Simplified: some objects may be destroyed
         return false;
+    }
+    if (player && player.x === x && player.y === y && trap && trap.tseen) {
+        if (is_pit(trap.ttyp)) {
+            // Pit tumble messaging is still unported; leave behavior unchanged.
+        } else if (is_hole(trap.ttyp)) {
+            if (await ship_object(obj, x, y, false, player, map, game || _gstate || null)) {
+                return true;
+            }
+        }
     }
     // Altar interaction when monster drops object
     const loc = map?.at?.(x, y);
@@ -760,7 +787,6 @@ export async function handleDrop(player, map, display) {
 }
 
 async function dropSelectedItem(item, player, map, display) {
-    const prevCap = near_capacity(player);
     const isWornArmor =
         player.armor === item
         || player.shield === item
@@ -781,48 +807,8 @@ async function dropSelectedItem(item, player, map, display) {
     if (player.weapon === item) uwepgone(player);
     if (player.swapWeapon === item) uswapwepgone(player);
     if (player.quiver === item) uqwepgone(player);
-
-    player.removeFromInventory(item);
-    item.how_lost = LOST_DROPPED;
-    item.ox = player.x;
-    item.oy = player.y;
-    placeFloorObject(map, item);
-    const newCap = near_capacity(player);
-    const encMsg = dropEncumberMsgForChange(prevCap, newCap);
-    if (player) {
-        player.encumbrance = newCap;
-        player._oldcap = newCap;
-    }
-    if (typeof display.clearRow === 'function') display.clearRow(0);
-    display.topMessage = null;
-    display.messageNeedsMore = false;
-    const dropMsg = `You drop ${doname(item, null)}.`;
-    await display.putstr_message(encMsg ? `${dropMsg}  ${encMsg}` : dropMsg);
-    return { moved: false, tookTime: true };
-}
-
-function dropEncumberMsgForChange(oldcap, newcap) {
-    if (oldcap < newcap) {
-        switch (newcap) {
-        case 1: return 'Your movements are slowed slightly because of your load.';
-        case 2: return 'You rebalance your load.  Movement is difficult.';
-        case 3: return 'You stagger under your heavy load.  Movement is very hard.';
-        default:
-            return (newcap === 4)
-                ? 'You can barely move a handspan with this load!'
-                : "You can't even move a handspan with this load!";
-        }
-    }
-    if (oldcap > newcap) {
-        switch (newcap) {
-        case 0: return 'Your movements are now unencumbered.';
-        case 1: return 'Your movements are only slowed slightly by your load.';
-        case 2: return 'You rebalance your load.  Movement is still difficult.';
-        case 3: return 'You stagger under your load.  Movement is still very hard.';
-        default: return null;
-        }
-    }
-    return null;
+    const tookTime = await drop_single(item, player, map);
+    return { moved: false, tookTime };
 }
 
 async function showDropCandidates(candidates, display) {

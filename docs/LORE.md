@@ -11388,3 +11388,54 @@ Validation:
     - missing live map context,
     - missing C-visible messages,
     - and missing replacement semantics on existing state.
+
+2026-03-14
+
+- Coverage session: [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+
+- Problem:
+  - the live `d` command was bypassing the canonical C-faithful drop path in the new digging/trap coverage session.
+  - after wishing a `hole`, JS prompt-driven dropping placed the item directly on the floor and never entered:
+    - `drop_single()`
+    - `can_reach_floor(...)->hitfloor()`
+    - `ship_object()`
+  - that caused the session to diverge before the hole-drop object migration pages and to fall into monster-turn RNG instead.
+
+- Root causes:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js) `handleDrop()` used a local `dropSelectedItem()` helper that:
+    - removed the item from inventory,
+    - placed it directly on the floor,
+    - printed a bespoke drop message,
+    - and never invoked the shared drop/floor-effects logic.
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js) `drop_single()` itself was also missing the C `!can_reach_floor(...)->hitfloor()` branch.
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js) `hitfloor()` was still simplified:
+    - always described `the floor`,
+    - and never handed off to [`ship_object()`](/share/u/davidbau/git/mazesofmenace/mazes/js/dokick.js) for hole/trapdoor migration.
+
+- Fix:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/do.js)
+    - route `handleDrop()` item selection back through `drop_single()` instead of the local floor-placement bypass.
+    - add the C `can_reach_floor(player, map, true)` branch inside `drop_single()`, including `hitfloor()` handoff.
+  - [`js/dothrow.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/dothrow.js)
+    - make `hitfloor()` trap-aware for surface wording:
+      - `floor`
+      - `trap door`
+      - `edge of the hole`
+      - `edge of the pit`
+    - call `ship_object()` after the impact page and before final floor placement.
+
+- Validation:
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+    - RNG `3655/3655`
+    - events `650/650`
+    - screens `220/220`
+    - colors `5280/5280`
+    - remaining only cursor mismatch at step `216`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - still fully green
+
+- Practical lesson:
+  - prompt-owned command UIs must not fork their own simplified gameplay implementations.
+  - once a command has selected its object, it should rejoin the canonical core path; otherwise parity fixes land in dead code while the live command keeps diverging.

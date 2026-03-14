@@ -59,6 +59,7 @@ import { find_mac } from './worn.js';
 import { spec_abon } from './artifact.js';
 import { is_weptool, Has_contents } from './objnam.js';
 import { erode_obj } from './trap.js';
+import { t_at } from './trap.js';
 import { goodpos } from './teleport.js';
 import { mpickobj } from './steal.js';
 import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
@@ -72,12 +73,16 @@ import {
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { u_wipe_engr } from './engrave.js';
 import { confdir } from './hack.js';
+import { game as _gstate } from './gstate.js';
 import { shop_keeper, in_rooms, costly_spot, is_unpaid,
          stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
 import { potionhit, potionbreathe } from './potion.js';
 import { SHOPBASE, OBJ_MINVENT, MM_NOMSG,
          P_DAGGER, P_KNIFE, P_SHORT_SWORD, P_SABER, P_SPEAR,
-         P_BOW, P_SLING, P_CROSSBOW, P_DART, P_SHURIKEN, P_BOOMERANG } from './const.js';
+         P_BOW, P_SLING, P_CROSSBOW, P_DART, P_SHURIKEN, P_BOOMERANG,
+         HOLE, TRAPDOOR } from './const.js';
+import { is_pit, is_hole } from './const.js';
+import { Doname2 } from './objnam.js';
 
 // ============================================================================
 // C macro equivalents -- weapon classification helpers
@@ -684,9 +689,18 @@ export async function hitfloor(obj, verbosely, player, map) {
     }
     if (verbosely && loc) {
         const verb = (obj.otyp === WAN_STRIKING) ? 'strikes' : 'hits';
-        await pline(`The ${xname(obj)} ${verb} the floor.`);
+        let surf = 'floor';
+        const trap = t_at(ux, uy, map);
+        if (trap && trap.tseen) {
+            if (trap.ttyp === TRAPDOOR) surf = 'trap door';
+            else if (trap.ttyp === HOLE) surf = 'edge of the hole';
+            else if (is_pit(trap.ttyp)) surf = 'edge of the pit';
+        }
+        await pline(`${Doname2(obj)} ${verb} the ${surf}.`);
     }
     if (await hero_breaks(obj, ux, uy, BRK_FROM_INV, player, map)) return;
+    const { ship_object } = await import('./dokick.js');
+    if (await ship_object(obj, ux, uy, false, player, map, _gstate || null)) return;
     obj.ox = ux; obj.oy = uy;
     placeFloorObject(map, obj);
 }
