@@ -556,10 +556,16 @@ export function isIgnorableEventEntry(entry) {
     //   JS uses {ch, color} objects. These are display-only, consume no RNG.
     // `runstep[...]` is command-boundary instrumentation — optional diagnostic
     //   events that may not emit at identical points in C vs JS.
+    // `place[...]` / `remove[...]` are object floor-chain instrumentation from
+    //   C's place_object()/obj_extract_self(). JS doesn't always route through
+    //   the same code paths (e.g., addinv merges in inventory directly while C's
+    //   hold_another_object may drop-to-floor then merge via stackobj). These
+    //   events consume no RNG and are unreliable for cross-implementation parity.
     return typeof entry === 'string'
         && (entry.startsWith('^trick[') || entry.startsWith('^mapdump[')
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
-            || entry.startsWith('^runstep['));
+            || entry.startsWith('^runstep[')
+            || entry.startsWith('^place[') || entry.startsWith('^remove['));
 }
 
 function isTestMoveEvent(entry) {

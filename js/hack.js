@@ -33,6 +33,7 @@ import { defsyms, trap_to_defsym } from './symbols.js';
 import { PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { rn2, rnd, rn1, rnl, d, c_d, pushRngLogEntry } from './rng.js';
 import { exercise, registerNearCapacity } from './attrib_exercise.js';
+import { registerNearCapacityForStatus } from './render.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
@@ -2375,9 +2376,11 @@ export function calc_capacity(player, xtra_wt) {
 export function near_capacity() {
     const player = arguments[0];
     if (!player) return UNENCUMBERED;
-    return calc_capacity(player, 0);
+    const cap = calc_capacity(player, 0);
+    return cap;
 }
 registerNearCapacity(near_capacity);
+registerNearCapacityForStatus(near_capacity);
 
 // C ref: hack.c max_capacity() — how far over max capacity
 export function max_capacity(player) {

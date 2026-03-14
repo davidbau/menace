@@ -27,6 +27,11 @@ import { strongmonst } from './mondata.js';
 import { acurr } from './attrib.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA } from './const.js';
 
+// Lazy registration for near_capacity() to avoid circular imports (hack.js→display.js→render.js).
+// C's bot() calls near_capacity() every status redraw; JS mirrors this via registration.
+var _near_capacity_fn = null;
+export function registerNearCapacityForStatus(fn) { _near_capacity_fn = fn; }
+
 // Re-export shared render constants from const.js for existing imports.
 export {
     CLR_BLACK, CLR_RED, CLR_GREEN, CLR_BROWN, CLR_BLUE, CLR_MAGENTA,
@@ -509,9 +514,13 @@ export function formatStatusLine2(player) {
     else if (player.hunger <= 50) parts.push('Fainting');
     else if (player.hunger <= 150) parts.push('Weak');
     else if (player.hunger <= 300) parts.push('Hungry');
-    if ((player.encumbrance || 0) > 0) {
+    // C ref: botl.c bot() is called by pline→flush_screen when disp.botl is set.
+    // It computes near_capacity() live. JS mirrors this by caching the encumbrance
+    // in player.encumbrance, updated by encumber_msg() before its pline.
+    const enc = player.encumbrance || 0;
+    if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
-        const idx = Math.max(0, Math.min(encNames.length - 1, (player.encumbrance || 1) - 1));
+        const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));
         parts.push(encNames[idx]);
     }
     if (player.Levitation) parts.push('Lev');

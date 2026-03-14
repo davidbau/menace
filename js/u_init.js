@@ -877,6 +877,7 @@ function initAttributes(player) {
 
     // C ref: attrib.c vary_init_attr()
     varyInitAttr(player.attributes, attrmin, attrmax);
+
 }
 
 // C ref: hack.c weight_cap()/inv_weight() + u_init.c u_init_carry_attr_boost()
@@ -1216,6 +1217,8 @@ export function simulatePostLevelInit(player, map, depth, opts = {}) {
     initAttributes(player);
     //    e. u_init_carry_attr_boost() — no RNG
     u_init_carry_attr_boost(player);
+    // C ref: attrib.c init_attr sets AMAX(i) = ABASE(i) after all boosts applied
+    player.attrMax = [...player.attributes];
     // C ref: attrib.c set_moreluck() — called via addinv_core2 during ini_inv;
     // since JS ini_inv uses player.addToInventory directly, we call it once here.
     set_moreluck(player);

@@ -923,13 +923,13 @@ export async function seffect_enchant_weapon(sobj, player, display) {
             await display.putstr_message('Your weapon feels warm for a moment.');
         } else {
             await display.putstr_message(
-                `${doname(uwep, player)} ${scursed ? 'is' : 'is'} covered by a ${scursed ? 'mottled purple' : 'shimmering golden'} ${scursed ? 'glow' : 'shield'}!`);
+                `${Yobjnam2(uwep, 'are')} covered by a ${hcolor(scursed ? 'purple' : 'golden')} ${scursed ? 'glow' : 'shield'}!`);
         }
         if (new_erodeproof && (uwep.oeroded || uwep.oeroded2)) {
             uwep.oeroded = 0;
             uwep.oeroded2 = 0;
             await display.putstr_message(
-                `${doname(uwep, player)} ${player.blind ? 'feels' : 'looks'} as good as new!`);
+                `${Yobjnam2(uwep, player.blind ? 'feel' : 'look')} as good as new!`);
         }
         uwep.oerodeproof = new_erodeproof;
         return false;
@@ -962,7 +962,7 @@ export async function seffect_enchant_weapon(sobj, player, display) {
     if (((uwep.spe > 5 && amount >= 0) || (uwep.spe < -5 && amount < 0))
         && rn2(3)) {
         // Evaporate — weapon too highly enchanted
-        await display.putstr_message(`${doname(uwep, player)} violently glows then evaporates!`);
+        await display.putstr_message(`${Yobjnam2(uwep, 'violently glow')} then evaporates!`);
         player.weapon = null;
         player.removeFromInventory(uwep);
         return false;
@@ -975,13 +975,13 @@ export async function seffect_enchant_weapon(sobj, player, display) {
         if (player.blind) {
             await display.putstr_message('Your weapon feels warm for a moment.');
         } else {
-            await display.putstr_message(`${doname(uwep, player)} glows silver for a moment.`);
+            await display.putstr_message(`${Yobjnam2(uwep, 'glow')} ${hcolor('blue')} for a moment.`);
         }
     } else if (amount < 0) {
         if (player.blind) {
             await display.putstr_message('Your weapon feels cold for a moment.');
         } else {
-            await display.putstr_message(`${doname(uwep, player)} glows black for a moment.`);
+            await display.putstr_message(`${Yobjnam2(uwep, 'glow')} ${hcolor('black')} for a moment.`);
         }
         if (!uwep.cursed) {
             uwep.cursed = true;

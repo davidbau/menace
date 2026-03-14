@@ -485,7 +485,7 @@ function zhitm(mon, type, nd, map) {
                 mon.mblinded = (mon.mblinded || 0) + rnd_tmp;
         }
         if (!rn2(3)) {
-            // destroy_items
+            destroy_items_rng_only(mon, AD_ELEC, tmp, null);
         }
         break;
     case ZT_POISON_GAS:

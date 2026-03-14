@@ -27,7 +27,7 @@ import { FOUNTAIN, A_CON, A_STR, A_WIS, A_INT, A_DEX, A_CHA,
          SICK_VOMITABLE, SICK_NONVOMITABLE, SICK_ALL, COLNO, ROWNO,
          FROMOUTSIDE, INVIS, SEE_INVIS, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, A_MAX } from './const.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib, poisontell } from './attrib.js';
+import { adjattrib, poisontell, ensureAttrArrays } from './attrib.js';
 import { drinkfountain, drinksink, dipfountain, dipsink } from './fountain.js';
 import { pline, You, Your, You_feel, You_cant, impossible } from './pline.js';
 import { tmp_at } from './animation.js';
@@ -1524,10 +1524,11 @@ async function potionbreathe(player, obj) {
             await pline("Ulch!  That potion smells terrible!");
         } else {
             // restore one random attribute toward max
+            // C ref: peffects POT_RESTORE_ABILITY — restores ABASE toward AMAX
             let i = rn2(A_MAX);
+            ensureAttrArrays(player);
             for (let ii = 0; ii < A_MAX; ii++) {
-                if (player.attributes && player.attrmax &&
-                    player.attributes[i] < player.attrmax[i]) {
+                if (player.attributes[i] < player.attrMax[i]) {
                     player.attributes[i]++;
                     player._botl = true;
                     if (!obj.blessed) break;
@@ -1913,7 +1914,7 @@ export function poof(player, potion) {
     // C ref: potion.c:2393-2399
     // trycall(potion) — ID attempt; useup(potion) — consume it
     if (player && player.removeFromInventory) {
-        player.removeFromInventory(potion);
+        useup(potion, player);
     }
 }
 

@@ -579,12 +579,16 @@ async function encumber_msg(player) {
     }
     const encMsg = get_encumber_msg_for_change(oldcap_val, newcap);
 
-    if (encMsg) {
-        await pline(encMsg);
-    }
+    // C parity: update cached encumbrance BEFORE pline so that the
+    // status line rendered at any --More-- prompt during this pline
+    // reflects the new encumbrance level. In C, pline→flush_screen→bot()
+    // recomputes near_capacity() live; JS uses the cached value instead.
     if (player) {
         player._oldcap = newcap;
         player.encumbrance = newcap;
+    }
+    if (encMsg) {
+        await pline(encMsg);
     }
     oldcap = newcap;
 }
