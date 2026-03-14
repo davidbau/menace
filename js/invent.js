@@ -188,15 +188,16 @@ async function drawInventoryPage(display, lines, opts = {}) {
         // "(end)" / "(x of y)" prompt is displayed on the next row.
         const promptRow = STATUS_ROW_1;
         const prompt = lines.length > STATUS_ROW_1 ? String(lines[STATUS_ROW_1] || '') : '';
+        const promptCol = Math.max(0, offx - 1);
         if (prompt && typeof display.setCell === 'function' && Number.isInteger(display.cols)) {
-            for (let col = Math.max(0, offx - 1); col < display.cols; col++) {
+            for (let col = promptCol; col < display.cols; col++) {
                 display.setCell(col, promptRow, ' ', 7, 0);
             }
         } else if (prompt && typeof display.clearRow === 'function') {
             display.clearRow(promptRow);
         }
         if (prompt) {
-            await display.putstr(offx, promptRow, prompt, undefined, 0);
+            await display.putstr(promptCol, promptRow, prompt, undefined, 0);
         }
         // C ref: wintty.c line 2831 — morestr is "(end) " (with trailing space).
         // Cursor sits after the last rendered line. renderOverlayMenu goes
@@ -212,7 +213,7 @@ async function drawInventoryPage(display, lines, opts = {}) {
                 const lastLine = String(lines[lastRow] || '');
                 display.setCursor(Math.min(1 + lastLine.length + 1, cols - 1), lastRow);
             } else if (prompt) {
-                display.setCursor(Math.min(offx + prompt.length + 1, cols - 1), promptRow);
+                display.setCursor(Math.min(promptCol + prompt.length, cols - 1), promptRow);
             } else {
                 const menuRows = Math.min(lines.length, STATUS_ROW_1);
                 const lastRow = menuRows - 1;
@@ -246,7 +247,8 @@ async function drawInventoryPage(display, lines, opts = {}) {
         const cols = display.cols || 80;
         const lastRow = rows - 1;
         const lastLine = String(lines[lastRow] || '');
-        display.setCursor(Math.min(1 + lastLine.length + 1, cols - 1), lastRow);
+        const rendered = lastLine.startsWith(' ') ? lastLine.slice(1) : lastLine;
+        display.setCursor(Math.min(1 + rendered.length, cols - 1), lastRow);
     }
 }
 

@@ -639,6 +639,7 @@ export async function getlin(prompt, display) {
     const runtimeDisplay = getRuntimeDisplay();
     const disp = display || runtimeDisplay;
     let line = '';
+    let overflowCursor = 0;
     const maxLineLength = Math.max(0, (Number.isInteger(disp?.cols) ? disp.cols : 80) - 1);
 
     // C-faithful boundary: if a message is pending acknowledgement, consume
@@ -653,18 +654,26 @@ export async function getlin(prompt, display) {
             const promptPrefix = prompt.endsWith(' ') ? prompt : `${prompt} `;
             const promptLine = `${promptPrefix}${line}`;
             const cols = disp.cols || 80;
+            const wrapWidth = Math.max(1, cols - 1);
             // Clear the message row and display prompt + current input.
             // Don't use putstr_message as it concatenates short messages.
             disp.clearRow(0);
-            const row0Text = promptLine.slice(0, cols);
+            const row0Text = promptLine.slice(0, wrapWidth);
             await disp.putstr(0, 0, row0Text, CLR_GRAY);
             // C ref: tty terminal auto-wraps text past column 80 to row 1.
-            if (promptLine.length > cols) {
-                const overflow = promptLine.slice(cols);
+            if (promptLine.length > wrapWidth || overflowCursor > 0) {
+                const overflow = promptLine.length > wrapWidth
+                    ? promptLine.slice(wrapWidth)
+                    : '';
                 disp.clearRow(1);
-                await disp.putstr(0, 1, overflow, CLR_GRAY);
+                if (overflow.length > 0) {
+                    await disp.putstr(0, 1, overflow, CLR_GRAY);
+                }
                 disp._topMessageRow1 = overflow;
-                const cursorCol = overflow.length;
+                const baseOverflowCol = Math.min(overflow.length, wrapWidth);
+                const cursorCol = (overflowCursor > 0)
+                    ? Math.min(baseOverflowCol + overflowCursor, wrapWidth)
+                    : baseOverflowCol;
                 if (typeof disp.setCursor === 'function') disp.setCursor(cursorCol, 1);
             } else {
                 // Clear row 1 if we previously overflowed but backspaced back
@@ -713,12 +722,26 @@ export async function getlin(prompt, display) {
             }
             return null; // cancelled
         } else if (ch === 8 || ch === 127) { // Backspace
+            if (overflowCursor > 0) {
+                overflowCursor--;
+                await updateDisplay();
+            } else
             if (line.length > 0) {
                 line = line.slice(0, -1);
                 await updateDisplay();
             }
         } else if (ch >= 32 && ch < 127) {
-            if (line.length >= maxLineLength) continue;
+            if (line.length >= maxLineLength) {
+                const promptPrefix = prompt.endsWith(' ') ? prompt : `${prompt} `;
+                const promptLineLength = promptPrefix.length + line.length;
+                const wrapWidth = Math.max(1, (disp?.cols || 80) - 1);
+                overflowCursor = (promptLineLength > wrapWidth)
+                    ? 1
+                    : (overflowCursor + 1);
+                await updateDisplay();
+                continue;
+            }
+            overflowCursor = 0;
             line += String.fromCharCode(ch);
             await updateDisplay();
         }

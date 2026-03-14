@@ -10737,3 +10737,46 @@ Validation:
 - Practical lesson:
   - When parity is full on RNG/events but a monster death leaves a stale glyph, check whether the corpse/drop path redraws the square immediately.
   - In `mhitm` specifically, hand-rolled corpse creation is risky because it bypasses the redraw behavior that C gets automatically from `make_corpse()` / `monkilled()`.
+
+## 2026-03-14: `pnd_s1200` blind prompt/display cleanup moved to final cursor-only gap
+
+- Context:
+  - After the blind `set_seenv()` fix, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) was no longer blocked on gameplay or screen shape.
+  - The remaining drift was a sequence of prompt/display mismatches:
+    - a freshly felt room square showed `CLR_GRAY` instead of remembered `NO_COLOR`
+    - `getlin()` cursor motion diverged at the `COLNO - 1` boundary and on ignored extra keystrokes
+    - paginated inventory footer cursors were too far right in the full-screen inventory path
+
+- Fixes:
+  - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    - `map_background(show=1)` now renders room memory with the same remembered color (`NO_COLOR`) that it stores in `loc.mem_terrain_color`, instead of redrawing with live terrain gray.
+  - [`js/input.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/input.js)
+    - `getlin()` now treats `COLNO - 1` as the tty wrap width for cursor behavior.
+    - Added a small `overflowCursor` model so ignored printable keys past the line limit move the wrapped cursor like tty `getlin()`:
+      - empty wrapped row case: `79,0 -> 1,1 -> 2,1 ...`
+      - visible wrapped second-line case: cursor advances one past visible overflow and then holds.
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    - inventory page counters (`" (N of M)"`) now use the C footer column/cursor rules in both overlay and full-screen inventory rendering.
+
+- Validation:
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json`
+    - RNG `3125/3125`
+    - events `400/400`
+    - screens `905/905`
+    - colors `21720/21720`
+    - remaining cursor-only mismatch moved very late to step `903`
+  - `node test/comparison/session_test_runner.js test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json`
+    - still fully green
+
+- Remaining frontier:
+  - `pnd_s1200` still has one late cursor-only mismatch at step `903`:
+    - C expects cursor after the top-line `--More--`
+    - JS still reports the cursor at the end of the base message
+  - This is now a narrow topline `more()` cursor-state issue, not a gameplay/state mismatch and not a prompt-layout mismatch.
+
+- Practical lesson:
+  - Late display/cursor cleanup is easiest once gameplay parity is already exact.
+  - For tty-faithful prompt work, distinguish three separate concepts:
+    - buffer limit (`COLNO - 1`)
+    - visible wrapped text
+    - cursor movement on ignored extra keystrokes

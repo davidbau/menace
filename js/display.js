@@ -1660,7 +1660,7 @@ export function map_background(xOrMap, yOrX, showOrY = 0, ctxOrShow = null) {
   const rememberedColor = (loc.typ === ROOM) ? NO_COLOR : sym.color;
   loc.mem_terrain_ch = sym.ch;
   loc.mem_terrain_color = rememberedColor;
-  if (show) show_glyph(x, y, { ch: sym.ch, color: sym.color }, ctx);
+  if (show) show_glyph(x, y, { ch: sym.ch, color: rememberedColor }, ctx);
 }
 
 // Autotranslated from display.c:313
