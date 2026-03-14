@@ -1302,7 +1302,7 @@ export async function check_unpaid_usage(otmp, altusage, map) {
         if (!rn2(3))
             arg1 = "Whoa!  ";
         if (!rn2(3))
-            arg1 = "Watch it!  ";
+            arg2 = "Watch it!  ";
     } else {
         if (!rn2(3))
             arg1 = "Hey!  ";

@@ -2205,7 +2205,7 @@ export function rnd_misc_item(mtmp) {
       if (mtmp.isgd) return 0;
     return rn2(6) ? POT_SPEED : WAN_SPEED_MONSTER;
     case 1:
-      if (mtmp.mpeaceful && !See_invisible) return 0;
+      if (mtmp.mpeaceful && !_gstate?.player?.See_invisible) return 0;
     return rn2(6) ? POT_INVISIBILITY : WAN_MAKE_INVISIBLE;
     case 2:
       return POT_GAIN_LEVEL;
