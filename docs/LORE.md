@@ -12194,3 +12194,26 @@ Validation:
   - `seed329_rogue_wizard_gameplay.session.json` remained fully green
   - the remaining gameplay blocker is now later and RNG-only, while the older
     step-38 text-window mismatch is just residual screen rendering
+
+### Cancelled `#cast` direction must not clear the release message row
+
+- Problem: after the help-menu fix, `t11_s754_w_covmax8_gp` still diverged at
+  step `802`: C showed `The magical energy is released!` after cancelling the
+  force-bolt direction prompt, while JS left row 0 blank.
+- Diagnosis:
+  - gameplay and RNG were already exact, so the spell mechanics were not the
+    problem
+  - [`js/spell.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/spell.js)
+    already emitted the correct C message in the cancelled `getdir()` branch
+  - but it immediately called `display.clearRow(0)`, wiping the topline it had
+    just printed
+- Fix:
+  - remove the post-message `clearRow(0)` in the cancelled `getdir()` path of
+    `spelleffects()`
+- Validation:
+  - `t11_s754_w_covmax8_gp`: gameplay remained exact
+    (`RNG 20848/20848`, `events 3292/3292`)
+  - first screen divergence moved `802 -> 1243`
+  - first cursor divergence remains `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
