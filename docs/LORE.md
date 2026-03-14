@@ -11235,3 +11235,41 @@ Validation:
 
 - Practical lesson:
   - The next tier after “fake helper” bugs is “state-lite branch” bugs: live gameplay branches that mutate a visible flag (`obj.buried = true`) but skip the canonical list ownership update (`freeinv`, `add_to_buried`).
+
+## 2026-03-14: `hold_another_object()` must drop overflow wishes back out of inventory
+
+- Context:
+  - While starting the new digging/trap coverage session
+    [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json),
+    the first blocker was an overburdening wish:
+    - C: `Oops!  The boulder drops to the floor!`
+    - JS: kept the boulder in inventory and printed the handspan encumbrance warning.
+
+- Root cause:
+  - C [`invent.c:1208-1300`](/share/u/davidbau/git/mazesofmenace/mazes/../game/nethack-c/patched/src/invent.c:1208) `hold_another_object()` only keeps the object if it survives the post-`addinv_core0()` overflow check:
+    - too many inventory letters, or
+    - encumbrance beyond `max(current_state, pickup_burden)`.
+  - JS [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js) lacked that drop-back-out branch entirely, so wished heavy objects could remain in inventory when C had already dropped them.
+  - JS [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js) `makewish()` also passed `null` for the C-style drop text argument instead of `The(aobjnam(otmp, "drop"))`.
+
+- Fix:
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    - `hold_another_object()` now mirrors the C keep/drop gate:
+      - compute a pickup-burden-adjusted limit only for the overflow decision,
+      - undo merged stacks via `splitobj(...)` when necessary,
+      - remove the object from inventory and drop/hit the floor in the failure branch,
+      - suppress `prinv()` / encumbrance-transition messaging unless the object actually stays carried.
+  - [`js/zap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/zap.js)
+    - `makewish()` now passes `The(aobjnam(otmp, "drop"))` into `hold_another_object()`.
+
+- Validation:
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - remains fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - remains fully green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+    - moved from an immediate boulder-overflow failure at step `77` to a much later grave/trap frontier (first RNG divergence step `211`)
+
+- Practical lesson:
+  - Another recurring parity bug class is “tentative state that must be rolled back.”
+  - If C adds something speculatively and then conditionally ejects it, keeping only the additive half in JS creates late, hard-to-explain state drift.

@@ -111,7 +111,7 @@ import { is_weptool } from './objnam.js';
 import { Is_container } from './mkobj.js';
 import { useup, useupall } from './invent.js';
 import { monflee } from './monmove.js';
-import { readobjnam, hands_obj } from './objnam.js';
+import { readobjnam, hands_obj, aobjnam } from './objnam.js';
 import { make_blinded } from './potion.js';
 import {
   xname, an, The, simpleonames, yname, Yname2, makeplural,
@@ -1855,7 +1855,15 @@ export async function makewish(wishText, player, display, game) {
         if (display) await display.putstr_message('Nothing fitting that description exists.');
         return null;
     }
-    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null, display, game);
+    const got = await hold_another_object(
+        otmp,
+        player,
+        'Oops!  %s to the floor!',
+        The(aobjnam(otmp, 'drop')),
+        null,
+        display,
+        game,
+    );
     if (player) {
         player.ublesscnt = (player.ublesscnt || 0) + rn1(100, 50);
         // C ref: zap.c:6264 — KMH conduct tracking

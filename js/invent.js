@@ -28,7 +28,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
-import { an, Has_contents, not_fully_identified as objnam_not_fully_identified } from './objnam.js';
+import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your, There } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
@@ -41,6 +41,7 @@ import { acurr, acurrstr, set_moreluck } from './attrib.js';
 import { confers_luck, touch_artifact } from './artifact.js';
 import { game as _gstate } from './gstate.js';
 import { visctrl } from './hacklib.js';
+import { can_reach_floor } from './engrave.js';
 
 
 // ============================================================
@@ -1141,6 +1142,27 @@ function near_capacity_for_inventory(player) {
     return Math.min(cap, OVERLOADED);
 }
 
+function parsePickupBurdenLevel(flags) {
+    const raw = flags?.pickup_burden;
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        return Math.max(0, Math.min(5, raw));
+    }
+    if (typeof raw === 'string') {
+        const map = {
+            unencumbered: 0,
+            burdened: 1,
+            stressed: 2,
+            strained: 3,
+            overtaxed: 4,
+            overloaded: 5,
+            moderate: 2,
+        };
+        const norm = raw.trim().toLowerCase();
+        if (norm in map) return map[norm];
+    }
+    return 1;
+}
+
 async function encumber_msg_transition(prevCap, newCap) {
     if (prevCap < newCap) {
         switch (newCap) {
@@ -1199,6 +1221,9 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
         obj_extract_self(obj, map);
     }
     const prevCap = near_capacity_for_inventory(player);
+    let prevCapLimit = prevCap;
+    const pickupBurden = parsePickupBurdenLevel(game?.flags || player?.flags || {});
+    if (prevCapLimit < pickupBurden) prevCapLimit = pickupBurden;
     const oquan = obj?.quan || 0;
     // Inline addinv with withMeta to detect compare-discovery (C ref: invent.c merged())
     addinv_core1(obj, player);
@@ -1212,10 +1237,33 @@ export async function hold_another_object(obj, player, drop_fmt, drop_arg, hold_
     if (addResult?.discoveredByCompare) {
         await pline('You learn more about your items by comparing them.');
     }
+    const newCap = near_capacity_for_inventory(player);
+    const tooManyInvlets = inv_cnt(false, player) > invlet_basic;
+    const tooEncumbered = ((result?.otyp !== LOADSTONE || !result?.cursed) && newCap > prevCapLimit);
+    if (tooManyInvlets || tooEncumbered) {
+        let dropped = result;
+        if ((dropped?.quan || 0) > oquan) {
+            dropped = splitobj(dropped, oquan);
+        }
+        if (drop_fmt) {
+            await pline(drop_fmt, drop_arg);
+        }
+        dropped.nomerge = 0;
+        const map = game?.map || player?.map || null;
+        const { dropx } = await import('./do.js');
+        const { hitfloor } = await import('./dothrow.js');
+        if (can_reach_floor(player, map, true) || player.uswallow) {
+            freeinv(dropped, player);
+            await dropx(dropped, player, map);
+        } else {
+            freeinv(dropped, player);
+            await hitfloor(dropped, false, player, map);
+        }
+        return null;
+    }
     if (result && (hold_msg || drop_fmt)) {
         await prinv(hold_msg || null, result, oquan, player);
     }
-    const newCap = near_capacity_for_inventory(player);
     // C ref: pickup.c encumber_msg() sets go.oldcap = newcap AFTER printing the
     // transition message (not before). Move player.encumbrance update to after the
     // message so that renderStatus at the --More-- overflow still reads the OLD
