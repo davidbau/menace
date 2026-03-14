@@ -1,7 +1,8 @@
 diff --git a/include/extern.h b/include/extern.h
+index 84cf41c52..c7f92ffe9 100644
 --- a/include/extern.h
 +++ b/include/extern.h
-@@ -2747,6 +2747,8 @@
+@@ -2747,6 +2747,8 @@ extern void midlog_exit_ptr(const char *, const void *, const char *, int, const
  
  /* Event logging (012-event-logging patch) */
  extern void event_log(const char *, ...) PRINTF_F(1, 2);
@@ -11,9 +12,10 @@ diff --git a/include/extern.h b/include/extern.h
  /* ### role.c ### */
  
 diff --git a/src/rnd.c b/src/rnd.c
+index 3ec7de362..23943ca3f 100644
 --- a/src/rnd.c
 +++ b/src/rnd.c
-@@ -32,18 +32,28 @@
+@@ -32,18 +32,31 @@ static int rng_call_count = 0;
  static const char *rng_caller_file = NULL;
  static int rng_caller_line = 0;
  static const char *rng_caller_func = NULL;
@@ -45,12 +47,10 @@ diff --git a/src/rnd.c b/src/rnd.c
      rng_log_disp = (disp && *disp && *disp != '0') ? TRUE : FALSE;
  }
  
-@@ -177,6 +182,32 @@
-     vfprintf(rng_logfile, fmt, ap);
-     va_end(ap);
+@@ -179,6 +192,34 @@ event_log(const char *fmt, ...)
      fputc('\n', rng_logfile);
-+}
-+
+ }
+ 
 +void
 +repaint_log(const char *fmt, ...)
 +{
@@ -77,13 +77,16 @@ diff --git a/src/rnd.c b/src/rnd.c
 +    vfprintf(out, fmt, ap);
 +    va_end(ap);
 +    fputs("]\n", out);
- }
- 
++}
++
  #ifdef USE_ISAAC64
+ #include "isaac64.h"
+ 
 diff --git a/src/botl.c b/src/botl.c
+index eddfcccf5..1fca7d11b 100644
 --- a/src/botl.c
 +++ b/src/botl.c
-@@ -255,6 +255,12 @@
+@@ -255,6 +255,12 @@ do_statusline2(void)
  void
  bot(void)
  {
@@ -97,63 +100,28 @@ diff --git a/src/botl.c b/src/botl.c
          return;
      /* dosave() flags completion by setting u.uhp to -1; suppress_map_output()
 diff --git a/src/display.c b/src/display.c
+index ccd03b428..83b13a081 100644
 --- a/src/display.c
 +++ b/src/display.c
-@@ -2211,6 +2211,13 @@
-     /* 3.7: don't update map, status, or perm_invent during save/restore */
+@@ -2212,6 +2212,13 @@ flush_screen(int cursor_on_u)
      if (_suppress_map_output())
          return;
-+
+ 
 +    repaint_log("flush hp=%d cursor=%d botl=%d botlx=%d time=%d",
 +                (int) u.uhp, cursor_on_u, (int) disp.botl,
 +                (int) disp.botlx, (int) disp.time_botl);
 +    repaint_debug_log("owner=display.flush_screen hp=%d cursor=%d botl=%d botlx=%d time=%d",
 +                      (int) u.uhp, cursor_on_u, (int) disp.botl,
 +                      (int) disp.botlx, (int) disp.time_botl);
- 
++
      if (cursor_on_u == -1)
          delay_flushing = !delay_flushing;
+     if (delay_flushing)
 diff --git a/win/tty/topl.c b/win/tty/topl.c
+index c20dfa288..2dbc788ef 100644
 --- a/win/tty/topl.c
 +++ b/win/tty/topl.c
-@@ -266,17 +266,32 @@
-     if ((ttyDisplay->toplin == TOPLINE_NEED_MORE || skip)
-         && cw->cury == 0
-         && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
-         && (notdied = strncmp(bp, "You die", 7)) != 0) {
-+        repaint_debug_log("owner=tty.topl.update_topl.concat_fit topl=%d cury=%d len=%d existing=%d msg=%s",
-+                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
-+                          n0, (int) strlen(gt.toplines), bp ? bp : "");
-         Strcat(gt.toplines, "  ");
-         Strcat(gt.toplines, bp);
-         cw->curx += 2;
-         if (!skip)
-             addtopl(bp);
-         return;
-     } else if (!skip) {
-         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
-+            repaint_debug_log("owner=tty.topl.update_topl.pre_more topl=%d cury=%d len=%d existing=%d msg=%s",
-+                              (int) ttyDisplay->toplin, cw ? cw->cury : -1,
-+                              n0, (int) strlen(gt.toplines), bp ? bp : "");
-             more();
-         } else if (cw->cury) { /* for toplin==TOPLINE_NON_EMPTY && cury > 1 */
-             docorner(1, cw->cury + 1, 0); /* reset cury = 0 if redraw screen */
-             cw->curx = cw->cury = 0;   /* from home--cls() & docorner(1,n,0) */
-         }
-@@ -298,4 +313,8 @@
-     if (!notdied) /* double negative => "You die"; avoid suppressing mesg */
-         cw->flags &= ~WIN_STOP, skip = FALSE;
--    if (!skip)
-+    if (!skip) {
-+        repaint_debug_log("owner=tty.topl.update_topl.redotoplin topl=%d cury=%d len=%d msg=%s",
-+                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
-+                          (int) strlen(gt.toplines), gt.toplines);
-         redotoplin(gt.toplines);
-+    }
- }
- 
- static void
-@@ -214,6 +214,12 @@
+@@ -214,6 +214,12 @@ more(void)
          return;
  
      ttyDisplay->inmore++;
@@ -166,7 +134,41 @@ diff --git a/win/tty/topl.c b/win/tty/topl.c
  
      if (ttyDisplay->toplin) {
          tty_curs(BASE_WINDOW, cw->curx + 1, cw->cury);
-@@ -387,6 +393,12 @@
+@@ -263,6 +269,9 @@ update_topl(const char *bp)
+         && cw->cury == 0
+         && n0 + (int) strlen(gt.toplines) + 3 < CO - 8 /* room for --More-- */
+         && (notdied = strncmp(bp, "You die", 7)) != 0) {
++        repaint_debug_log("owner=tty.topl.update_topl.concat_fit topl=%d cury=%d len=%d existing=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          n0, (int) strlen(gt.toplines), bp ? bp : "");
+         Strcat(gt.toplines, "  ");
+         Strcat(gt.toplines, bp);
+         cw->curx += 2;
+@@ -271,6 +280,9 @@ update_topl(const char *bp)
+         return;
+     } else if (!skip) {
+         if (ttyDisplay->toplin == TOPLINE_NEED_MORE) {
++            repaint_debug_log("owner=tty.topl.update_topl.pre_more topl=%d cury=%d len=%d existing=%d msg=%s",
++                              (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                              n0, (int) strlen(gt.toplines), bp ? bp : "");
+             more();
+         } else if (cw->cury) { /* for toplin==TOPLINE_NON_EMPTY && cury > 1 */
+             docorner(1, cw->cury + 1, 0); /* reset cury = 0 if redraw screen */
+@@ -297,8 +309,12 @@ update_topl(const char *bp)
+     }
+     if (!notdied) /* double negative => "You die"; avoid suppressing mesg */
+         cw->flags &= ~WIN_STOP, skip = FALSE;
+-    if (!skip)
++    if (!skip) {
++        repaint_debug_log("owner=tty.topl.update_topl.redotoplin topl=%d cury=%d len=%d msg=%s",
++                          (int) ttyDisplay->toplin, cw ? cw->cury : -1,
++                          (int) strlen(gt.toplines), gt.toplines);
+         redotoplin(gt.toplines);
++    }
+ }
+ 
+ static void
+@@ -387,6 +403,12 @@ tty_yn_function(
      char prompt[BUFSZ];
  
      yn_number = 0L;
@@ -180,9 +182,10 @@ diff --git a/win/tty/topl.c b/win/tty/topl.c
          && (cw->flags & (WIN_STOP | WIN_NOSTOP)) != WIN_STOP)
          more();
 diff --git a/win/tty/wintty.c b/win/tty/wintty.c
+index 4c5f633f6..710ed7237 100644
 --- a/win/tty/wintty.c
 +++ b/win/tty/wintty.c
-@@ -3716,6 +3716,14 @@
+@@ -3716,6 +3716,14 @@ void
  tty_mark_synch(void)
  {
      HUPSKIP();
@@ -197,3 +200,69 @@ diff --git a/win/tty/wintty.c b/win/tty/wintty.c
      (void) fflush(stdout);
  }
  
+diff --git a/src/allmain.c b/src/allmain.c
+index 54a694a9e..28336d972 100644
+--- a/src/allmain.c
++++ b/src/allmain.c
+@@ -719,6 +719,8 @@ regen_pw(int wtcap)
+         u.uen += rn1(upper, 1);
+         if (u.uen > u.uenmax)
+             u.uen = u.uenmax;
++        repaint_debug_log("owner=allmain.regen_pw.set_botl hp=%d pw=%d/%d",
++                          (int) u.uhp, (int) u.uen, (int) u.uenmax);
+         disp.botl = TRUE;
+         if (u.uen == u.uenmax)
+             interrupt_multi("You feel full of energy.");
+@@ -751,6 +753,8 @@ regen_hp(int wtcap)
+                 heal = 1;
+         }
+         if (heal) {
++            repaint_debug_log("owner=allmain.regen_hp.poly.set_botl mh=%d/%d heal=%d",
++                              (int) u.mh, (int) u.mhmax, heal);
+             disp.botl = TRUE;
+             u.mh += heal;
+             reached_full = (u.mh == u.mhmax);
+@@ -771,6 +775,8 @@ regen_hp(int wtcap)
+                 heal++;
+ 
+             if (heal) {
++                repaint_debug_log("owner=allmain.regen_hp.hero.set_botl hp=%d/%d heal=%d",
++                                  (int) u.uhp, (int) u.uhpmax, heal);
+                 disp.botl = TRUE;
+                 u.uhp += heal;
+                 if (u.uhp > u.uhpmax)
+diff --git a/src/timeout.c b/src/timeout.c
+index a8e5606b4..36d3635c6 100644
+--- a/src/timeout.c
++++ b/src/timeout.c
+@@ -752,6 +752,8 @@ nh_timeout(void)
+             case DEAF:
+                 set_itimeout(&HDeaf, 1L);
+                 make_deaf(0L, TRUE);
++                repaint_debug_log("owner=timeout.deaf.set_botl hp=%d deaf=%ld",
++                                  (int) u.uhp, (long) HDeaf);
+                 disp.botl = TRUE;
+                 if (!Deaf)
+                     stop_occupation();
+@@ -805,6 +807,8 @@ nh_timeout(void)
+             case FLYING:
+                 /* timed Flying is via #wizintrinsic only */
+                 if (was_flying && !Flying) {
++                    repaint_debug_log("owner=timeout.flying.set_botl hp=%d flying=%ld",
++                                      (int) u.uhp, (long) HFlying);
+                     disp.botl = TRUE;
+                     You("land.");
+                     spoteffects(TRUE);
+diff --git a/src/eat.c b/src/eat.c
+index 5060b7b36..d4bf1e277 100644
+--- a/src/eat.c
++++ b/src/eat.c
+@@ -3494,6 +3494,8 @@ newuhs(boolean incr)
+             end_running(TRUE);
+             break;
+         }
++        repaint_debug_log("owner=eat.newuhs.set_botl hp=%d hunger=%d uhs=%d->%d",
++                          (int) u.uhp, (int) u.uhunger, (int) u.uhs, (int) newhs);
+         u.uhs = newhs;
+         disp.botl = TRUE;
+         bot();

@@ -11695,3 +11695,20 @@ Validation:
   while that flag is active. The visible screen capture still happens.
 - Result: restored the true first repaint divergence on `t11_s744` to step
   `433`; gameplay parity unchanged.
+### Repaint writer tagging belongs in the C harness patch, not ad hoc source edits
+
+- Problem: the step-`433` `t11_s744` repaint miss still had an unexplained C-side
+  `botl=1` between `update_topl.concat_fit("A lit field surrounds you!")` and
+  `update_topl.pre_more("The goblin hits!")`.
+- Infrastructure fix: rebuild `024-repaint-trace.patch` from a clean post-`023`
+  source snapshot instead of hand-editing stale unified diff headers, then add
+  debug-only owner tags for plausible silent `disp.botl = TRUE` writers:
+  `allmain.regen_pw`, `allmain.regen_hp`, `timeout.deaf`, `timeout.flying`,
+  and `eat.newuhs`.
+- Result: the rebuilt patch applies cleanly again in `setup.sh`, repaint debug
+  reruns work, and the new owner tags ruled out those candidate writers for the
+  light-scroll / goblin-hit window.
+- Practical lesson: for harness observability patches, regenerate the unified
+  diff from real edited source files whenever hunk metadata gets suspect. That
+  keeps the patch future-rebuild-friendly and avoids wasting time on malformed
+  patch bookkeeping.
