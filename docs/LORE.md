@@ -10947,3 +10947,41 @@ Validation:
 - Practical lesson:
   - “negative `multi` during monster phase” is too coarse for death-boundary rendering.
   - Sleep wakeups are their own display-order case and need to stay distinct from other helpless/deferred-death paths.
+
+## 2026-03-14: avoid unconditional hallucination-name draws in m-vs-m elemental messaging
+
+- Context:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) regressed on clean `main` with gameplay still exact:
+    - RNG `2565/2565`
+    - events `121/121`
+    - first screen divergence at step `724`
+    - JS: `The green dragon bites the green slime.  The hezrou is killed!`
+    - C: `The green dragon bites the green slime.  The peddler is killed!`
+
+- Root cause:
+  - The mismatch was not a bogus-monster table problem and not a gameplay RNG problem.
+  - Targeted tracing in [`js/mhitm.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitm.js) showed two hallucinatory defender-name draws for the same dead monster during one physical attack:
+    - first draw: `peddler`
+    - second draw: `hezrou`
+  - The extra draw came from `mdamagem()` unconditionally computing:
+    - `const defName = monCombatName(mdef, ...)`
+    - before switching on `mattk.adtyp` for elemental-only defender messages.
+  - So a plain `AD_PHYS` bite incorrectly consumed one extra `rndmonnam()` call before the real kill message.
+
+- Fix:
+  - [`js/mhitm.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitm.js)
+    - moved defender-name construction inside the `AD_ELEC` / `AD_FIRE` / `AD_COLD` cases
+    - physical attacks no longer burn a hallucinatory naming draw on the side
+
+- Result:
+  - [`pnd_s1200_w_potionmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potionmix2_gp.session.json) is green again:
+    - RNG `2565/2565`
+    - events `121/121`
+    - screens `818/818`
+    - colors `19632/19632`
+    - cursor `818/818`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) stayed fully green.
+
+- Practical lesson:
+  - When hallucination uses display RNG, even a dead local like `const defName = ...` can create a real parity regression if it is evaluated outside the exact C message branch.
+  - In combat/message code, build hallucinatory names lazily and only inside the branch that actually prints them.

@@ -595,16 +595,21 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
     // C ref: mhitm.c / uhitm.c — m-vs-m elemental damage messages
     // In C, mhitm_ad_elec/fire/cold print visibility-gated messages for the defender.
     if (vis && display && ctx?.defVisible) {
-        const defName = monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null });
         switch (mattk.adtyp) {
         case AD_ELEC:
-            await display.putstr_message(`${defName} gets zapped!`);
+            await display.putstr_message(
+                `${monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null })} gets zapped!`
+            );
             break;
         case AD_FIRE:
-            await display.putstr_message(`${defName} is on fire!`);
+            await display.putstr_message(
+                `${monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null })} is on fire!`
+            );
             break;
         case AD_COLD:
-            await display.putstr_message(`${defName} is covered in frost!`);
+            await display.putstr_message(
+                `${monCombatName(mdef, ctx?.defVisible, { capitalize: true, player: ctx?.player || null })} is covered in frost!`
+            );
             break;
         }
     }
