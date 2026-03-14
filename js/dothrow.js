@@ -71,8 +71,10 @@ import {
 } from './animation.js';
 import { DISP_FLASH, DISP_TETHER, DISP_END, BACKTRACK } from './const.js';
 import { u_wipe_engr } from './engrave.js';
+import { confdir } from './hack.js';
 import { shop_keeper, in_rooms, costly_spot, is_unpaid,
          stolen_value, contained_gold, subfrombill, donate_gold, sellobj } from './shk.js';
+import { potionhit, potionbreathe } from './potion.js';
 import { SHOPBASE, OBJ_MINVENT, MM_NOMSG,
          P_DAGGER, P_KNIFE, P_SHORT_SWORD, P_SABER, P_SPEAR,
          P_BOW, P_SLING, P_CROSSBOW, P_DART, P_SHURIKEN, P_BOOMERANG } from './const.js';
@@ -178,7 +180,7 @@ export function ammo_and_launcher(a, l) {
     return is_ammo(a) && matching_launcher(a, l);
 }
 
-export async function promptDirectionAndThrowItem(player, map, display, item, { fromFire = false } = {}) {
+export async function promptDirectionAndThrowItem(player, map, display, item, { fromFire = false, game = null } = {}) {
     const replacePromptMessage = () => {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         display.topMessage = null;
@@ -196,22 +198,13 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         replacePromptMessage();
         return { moved: false, tookTime: false };
     }
-    let dx = dir[0];
-    let dy = dir[1];
-    // C ref: dothrow.c throwit() cursed/greased slip check consumes rn2(7)
-    // before trajectory resolution.
-    if ((item?.cursed || item?.greased) && (dx || dy)) {
-        if (!rn2(7)) {
-            dx = rn2(3) - 1;
-            dy = rn2(3) - 1;
-        }
-    }
+    player.dx = dir[0];
+    player.dy = dir[1];
+    player.dz = 0;
+    // C ref: getdir() calls confdir() to randomize direction if confused/stunned.
+    confdir(false, player);
     // C ref: throw/firing direction commands smudge floor engravings before resolve.
     await u_wipe_engr(player, map, 2);
-    let targetMonster = null;
-    let throwMessage = null;
-    let landingX = player.x;
-    let landingY = player.y;
     replacePromptMessage();
     if (
         player.armor === item
@@ -224,57 +217,12 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         await display.putstr_message('You cannot throw something you are wearing.');
         return { moved: false, tookTime: false };
     }
-    if ((item.quan || 1) > 1) {
-        const matchedLauncher = ammoAndLauncher(item, player.weapon);
-        if (item.oclass === WEAPON_CLASS || matchedLauncher) {
-            rnd(matchedLauncher ? 2 : 1);
-        }
-    }
-    const crossbowing = ammoAndLauncher(item, player.weapon)
-        && weapon_type(player.weapon) === P_CROSSBOW;
-    let urange = (crossbowing ? 18 : acurr(player, A_STR)) >> 1;
-    let range;
-    if (item.otyp === HEAVY_IRON_BALL) range = urange - Math.floor((item.owt || 0) / 100);
-    else range = urange - Math.floor((item.owt || 0) / 40);
-    if (range < 1) range = 1;
-    if (is_ammo(item)) {
-        if (ammoAndLauncher(item, player.weapon)) {
-            if (crossbowing) range = 8;
-            else range++;
-        } else if (item.oclass !== GEM_CLASS) {
-            range = Math.floor(range / 2);
-        }
-    }
-    if (item.otyp === BOULDER) range = 20;
-    let bx = player.x;
-    let by = player.y;
-    for (let i = 0; i < range; i++) {
-        const nx = bx + dx;
-        const ny = by + dy;
-        if (!isok(nx, ny)) break;
-        const loc = typeof map.at === 'function' ? map.at(nx, ny) : null;
-        if (!loc || !ZAP_POS(loc.typ)) break;
-        bx = nx;
-        by = ny;
-        const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
-        if (mon) {
-            targetMonster = mon;
-            break;
-        }
-    }
-    landingX = bx;
-    landingY = by;
-    if (targetMonster) {
-        rnd(20);
-        rn2(3);
-        obj_resists(item, 0, 0);
-        const od = objectData[item.otyp];
-        const baseName = od?.oc_name || item.oname || 'item';
-        const named = (typeof item.oname === 'string' && item.oname.length > 0)
-            ? `${baseName} named ${item.oname}`
-            : baseName;
-        throwMessage = `The ${named} misses the ${x_monnam(targetMonster)}.`;
-    }
+    // C ref: dothrow.c dothrow() — split item from stack, remove from inventory,
+    // then delegate to throwit() for trajectory + hit resolution.
+    let wep_mask = 0;
+    if (player.weapon === item) wep_mask |= W_WEP;
+    if (player.swapWeapon === item) wep_mask |= W_SWAPWEP;
+    if (player.quiver === item) wep_mask |= W_QUIVER;
     let thrownItem = item;
     if ((item.quan || 1) > 1) {
         item.quan = (item.quan || 1) - 1;
@@ -285,58 +233,14 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         if (player.swapWeapon === item) uswapwepgone(player);
         if (player.quiver === item) uqwepgone(player);
     }
-    if (!targetMonster && fromFire) {
-        obj_resists(thrownItem, 0, 0);
-    }
-    // C-style visual parity hook: show transient projectile flight frame.
-    if (isok(landingX, landingY)) {
-        const projGlyph = objectTmpGlyph(thrownItem);
-        tmp_at(DISP_FLASH, projGlyph);
-        try {
-            // C ref: throw_obj() immediate direction-target throw path doesn't
-            // guarantee a visible bhit() flight frame before resolution.
-            // Keep a start/end-only transient marker here.
-            await nh_delay_output();
-        } finally {
-            tmp_at(DISP_END, 0);
-            flush_screen(1); // C ref: dothrow.c:912 — flush after throw animation frame
-        }
-    }
-    const landingLoc = (typeof map.at === 'function')
-        ? map.at(landingX, landingY)
-        : ((typeof map.getCell === 'function')
-            ? map.getCell(landingX, landingY)
-            : (map?.cells?.[landingY]?.[landingX] || null));
-    if (landingLoc && !ACCESSIBLE(landingLoc.typ)) {
-        landingX = player.x;
-        landingY = player.y;
-    }
-    thrownItem.ox = landingX;
-    thrownItem.oy = landingY;
-    if (!isok(thrownItem.ox, thrownItem.oy)) {
-        thrownItem.ox = player.x;
-        thrownItem.oy = player.y;
-    }
-    const finalLoc = (typeof map.at === 'function')
-        ? map.at(thrownItem.ox, thrownItem.oy)
-        : ((typeof map.getCell === 'function')
-            ? map.getCell(thrownItem.ox, thrownItem.oy)
-            : (map?.cells?.[thrownItem.oy]?.[thrownItem.ox] || null));
-    if (!targetMonster && !fromFire && finalLoc && !IS_SOFT(finalLoc.typ)) {
-        obj_resists(thrownItem, 1, 99);
-    }
     thrownItem._thrownByPlayer = true;
-    placeFloorObject(map, thrownItem);
-    replacePromptMessage();
-    if (throwMessage) {
-        await display.putstr_message(throwMessage);
-    }
+    await throwit(thrownItem, wep_mask, false, null, player, map, game);
     return { moved: false, tookTime: true };
 }
 
 // Handle throwing
 // C ref: dothrow()
-export async function handleThrow(player, map, display) {
+export async function handleThrow(player, map, display, game) {
     if (!player.inventory || player.inventory.length === 0) {
         await display.putstr_message("You don't have anything to throw.");
         return { moved: false, tookTime: false };
@@ -423,7 +327,7 @@ export async function handleThrow(player, map, display) {
             await display.putstr_message(throwPrompt);
             continue;
         }
-        return await promptDirectionAndThrowItem(player, map, display, selItem);
+        return await promptDirectionAndThrowItem(player, map, display, selItem, { game });
     }
 }
 
@@ -489,7 +393,7 @@ export async function handleFire(player, map, display, game) {
         }
     }
     if (quiverItem) {
-        const throwResult = await promptDirectionAndThrowItem(player, map, display, quiverItem, { fromFire: true });
+        const throwResult = await promptDirectionAndThrowItem(player, map, display, quiverItem, { fromFire: true, game });
         if (deferredTimedTurn && !throwResult?.tookTime) {
             return { ...(throwResult || { moved: false, tookTime: false }), tookTime: true };
         }
@@ -504,7 +408,7 @@ export async function handleFire(player, map, display, game) {
     } else {
         autoquiver(player);
         if (player.quiver && inventory.includes(player.quiver)) {
-            const throwResult = await promptDirectionAndThrowItem(player, map, display, player.quiver, { fromFire: true });
+            const throwResult = await promptDirectionAndThrowItem(player, map, display, player.quiver, { fromFire: true, game });
             if (deferredTimedTurn && !throwResult?.tookTime) {
                 return { ...(throwResult || { moved: false, tookTime: false }), tookTime: true };
             }
@@ -607,7 +511,7 @@ export async function handleFire(player, map, display, game) {
                 await display.putstr_message(`You ready: ${selected.invlet} - ${readyName}.`);
                 await more(display, { game, site: 'dothrow.ready-from-fire.more' });
             }
-            return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true });
+            return await promptDirectionAndThrowItem(player, map, display, selected, { fromFire: true, game });
         }
         await display.putstr_message("You don't have that object.");
         await more(display, { game, site: 'dothrow.handleFire.invalidInvlet.more' });
@@ -974,7 +878,7 @@ export async function toss_up(obj, hitsroof, player, map) {
     }
     await pline(`The ${xname(obj)} hits the ceiling, then falls back on top of your head.`);
     if (obj.oclass === POTION_CLASS) {
-        // potionhit stub
+        await potionhit(player, obj, 1, player, map); // POTHIT_HERO_THROW=1
         return false;
     } else if (breaktest(obj)) {
         await breakmsg(obj, !player.blind);
@@ -1338,7 +1242,7 @@ export async function thitmonst(mon, obj, player, map, game) {
         if (mon.mhp !== undefined) mon.mhp -= dmg;
         return 1;
     } else if (obj.oclass === POTION_CLASS && (dex > rnd(25))) {
-        // potionhit stub
+        await potionhit(mon, obj, 1, player, map); // POTHIT_HERO_THROW=1
         return 1;
     } else {
         await tmiss(obj, mon, true, player, map);
@@ -1420,7 +1324,21 @@ export async function breakobj(obj, x, y, hero_caused, from_invent, player, map)
     const etype = obj.oclass === POTION_CLASS ? POT_WATER : obj.otyp;
     switch (etype) {
     case MIRROR: if (hero_caused) change_luck(-2, player); break;
-    case POT_WATER: break; // potion effects stub
+    case POT_WATER:
+        // C ref: breakobj() calls potionhit or potionbreathe when a potion breaks.
+        // If hero is at the location, potionhit hits the hero directly.
+        // Otherwise if hero is within distance 2, potionbreathe for vapors.
+        if (player && x === player.x && y === player.y) {
+            await potionhit(player, obj, 2, player, map); // POTHIT_OTHER_THROW=2
+        } else if (player && distmin(x, y, player.x, player.y) <= 2) {
+            await potionbreathe(player, obj);
+        }
+        // C ref: breakobj() calls obj_resists(obj, 1, 99) after potionhit/potionbreathe
+        // to check if artifact potion resists destruction.
+        if (obj_resists(obj, 1, 99)) {
+            return 0; // potion resists breaking
+        }
+        break;
     case EXPENSIVE_CAMERA: await release_camera_demon(obj, x, y, map); break;
     case EGG:
         if (hero_caused && obj.spe && obj.corpsenm !== undefined && obj.corpsenm >= 0)

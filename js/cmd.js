@@ -341,7 +341,7 @@ export async function rhack(ch, game) {
     // Throw item
     // C ref: dothrow()
     if (c === 't') {
-        return await handleThrow(player, map, display);
+        return await handleThrow(player, map, display, game);
     }
 
     // Fire from quiver/launcher

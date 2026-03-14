@@ -122,76 +122,26 @@ export async function wizGenesis(game) {
     }
 
     // C-ref faithful shape: create_particular_creation() uses MM_NOEXCLAM.
-    // MM_EDOG ensures makemon allocates edog data for taming.
-    const mon = await makemon_appear(whichpm, player.x, player.y, MM_NOEXCLAM | MM_EDOG, player.dungeonLevel, map);
+    // C only passes MM_EDOG and calls tamedog()/initedog() when d->maketame
+    // is set (user typed "tame" prefix). Default wizard genesis creates a
+    // non-tame, non-peaceful monster — do NOT call initedog here.
+    const mon = await makemon_appear(whichpm, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
     if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
     } else {
         mon.sleeping = false;
-        // C ref: create_particular_creation() calls tamedog() for d->maketame.
-        // initedog() initializes pet edog data and sets mtame/mpeaceful.
-        initedog(mon, true, player, game);
     }
     return { moved: false, tookTime: false };
 }
 
-// cf. wizcmds.c — wiz_teleport (via teleport.c tele())
+// cf. cmd.c wiz_teleport — calls tele() directly (not dotele)
 export async function wizTeleport(game) {
-    const { player, map, display, fov } = game;
     if (!game.wizard) {
-        await display.putstr_message('Unavailable command.');
+        await game.display.putstr_message('Unavailable command.');
         return { moved: false, tookTime: false };
     }
-    const input = await getlin('Teleport to (x,y): ', display);
-    let nx, ny;
-    if (input === null) {
-        return { moved: false, tookTime: false };
-    }
-    const trimmed = input.trim();
-    if (trimmed === '') {
-        let found = false;
-        for (let attempts = 0; attempts < 500; attempts++) {
-            const rx = 1 + rn2(COLNO - 2);
-            const ry = rn2(ROWNO);
-            const loc = map.at(rx, ry);
-            if (loc && ACCESSIBLE(loc.typ) && !map.monsterAt(rx, ry)) {
-                nx = rx;
-                ny = ry;
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            await display.putstr_message('Failed to find a valid teleport destination.');
-            return { moved: false, tookTime: false };
-        }
-    } else {
-        const parts = trimmed.split(',');
-        if (parts.length !== 2) {
-            await display.putstr_message('Bad format. Use: x,y');
-            return { moved: false, tookTime: false };
-        }
-        nx = parseInt(parts[0].trim(), 10);
-        ny = parseInt(parts[1].trim(), 10);
-        if (isNaN(nx) || isNaN(ny)) {
-            await display.putstr_message('Bad coordinates.');
-            return { moved: false, tookTime: false };
-        }
-        if (!isok(nx, ny)) {
-            await display.putstr_message('Out of bounds.');
-            return { moved: false, tookTime: false };
-        }
-        const loc = map.at(nx, ny);
-        if (!loc || !ACCESSIBLE(loc.typ)) {
-            await display.putstr_message('That location is not accessible.');
-            return { moved: false, tookTime: false };
-        }
-    }
-    player.x = nx;
-    player.y = ny;
-    fov.compute(map, player.x, player.y);
-    display.renderMap(map, player, fov);
-    await display.putstr_message(`You teleport to (${nx},${ny}).`);
+    // C ref: cmd.c wiz_teleport() calls tele() directly
+    await tele(game);
     return { moved: true, tookTime: true };
 }
 
@@ -231,7 +181,7 @@ import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, M
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
     Never_mind, ECMD_OK } from './const.js';
 import { makemon, makemon_appear, mkclass } from './makemon.js';
-import { initedog } from './dog.js';
+// initedog import removed: wizGenesis no longer tames by default
 import { mons, PM_LONG_WORM, PM_STALKER, PM_WIZARD, MAXMCLASSES, S_invisible, S_WORM_TAIL } from './monsters.js';
 import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
@@ -250,6 +200,7 @@ import { defsyms } from './symbols.js';
 import { name_to_mon, name_to_monclass } from './mondata.js';
 import { Role_if } from './role.js';
 import { do_mapping } from './detect.js';
+import { tele } from './teleport.js';
 
 // cf. wizcmds.c:32 — wiz_wish(): prompt then call makewish()
 export async function wizWish(game) {

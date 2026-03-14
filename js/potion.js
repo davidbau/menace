@@ -55,7 +55,7 @@ import { hliquid } from './do_name.js';
 import { makeplural, doname, fruitname } from './objnam.js';
 import { mon_hates_blessings, likes_fire } from './mondata.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
-import { do_enlightenment_effect } from './zap.js';
+import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
 import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
@@ -1468,9 +1468,16 @@ async function potionhit(mon, obj, how, player, map) {
             angermon = false;
             // mon_set_minvis not called here to avoid import complexity
             break;
-        case POT_SLEEPING:
-            // sleep_monst(mon, rnd(12), POTION_CLASS)
+        case POT_SLEEPING: {
+            // C ref: potion.c potionhit() calls sleep_monst(mon, rnd(12), POTION_CLASS)
+            // sleep_monst calls resist(mon, POTION_CLASS) first
+            const sleepamt = rnd(12);
+            if (!resist(mon, POTION_CLASS)) {
+                mon.msleeping = true;
+                mon.mfrozen = (mon.mfrozen || 0) + sleepamt;
+            }
             break;
+        }
         case POT_PARALYSIS:
             if (mon.mcanmove !== false) {
                 mon.mcanmove = false;
@@ -1510,7 +1517,19 @@ async function potionhit(mon, obj, how, player, map) {
     }
 
     // potionbreathe for nearby hero
-    // C ref: distance check omitted for simplicity
+    // C ref: potion.c potionhit() always calls potionbreathe() at the end.
+    // When target is a monster, check if hero is nearby (distu <= 2).
+    // When target is the hero, always breathe.
+    if (isyou) {
+        await potionbreathe(player, obj);
+    } else {
+        const mx = mon.mx ?? mon.x ?? 0;
+        const my = mon.my ?? mon.y ?? 0;
+        const distu = (player.x - mx) * (player.x - mx) + (player.y - my) * (player.y - my);
+        if (distu <= 2) {
+            await potionbreathe(player, obj);
+        }
+    }
 }
 
 // ============================================================

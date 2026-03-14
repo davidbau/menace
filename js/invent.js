@@ -643,7 +643,7 @@ export async function handleInventory(player, display, game) {
                         (game.lev || game.map),
                         display,
                         selected,
-                        { fromFire: stackCanShoot }
+                        { fromFire: stackCanShoot, game }
                     );
                 }
                 if (actionKey === 'i') {
