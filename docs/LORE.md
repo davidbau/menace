@@ -10702,3 +10702,38 @@ Validation:
   - The hero’s memory model (`seenv`) must be updated at the same time, or JS
     will keep blank remembered cells where C has already converted them into
     corridor/room memory.
+
+## 2026-03-14: `mhitm` corpse creation must redraw the death square immediately
+
+- Context:
+  - After the frozen-turn headless fix, [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/t11_s744_w_covmax2_gp.session.json) still had:
+    - full RNG parity
+    - full event parity
+    - a first screen divergence at step `516`
+  - The visible miss was a stale map cell: C showed `%`, JS still showed floor.
+
+- Root cause:
+  - The death happened in monster-vs-monster combat, inside [`js/mhitm.js`](/share/u/davidbau/git/mazesofmenace/game/js/mhitm.js) `mdamagem(...)`.
+  - JS already created the corpse with `mkcorpstat(...)`, but that path did not redraw the square afterward.
+  - A targeted trace confirmed `newsym(7,2)` was never called on the corpse-creation step.
+  - C `mhitm.c` routes this through `monkilled(...)`, and C `make_corpse()` ends with `newsym(x, y)`.
+
+- Fix:
+  - After `mkcorpstat(CORPSE, ...)` in `mdamagem(...)`, JS now calls:
+    - `newsym(mdef.mx, mdef.my)`
+
+- Result:
+  - `t11_s744_w_covmax2_gp` moved:
+    - first screen divergence `516 -> 543`
+  - RNG stayed full:
+    - `11024/11024`
+  - Events stayed full:
+    - `1644/1644`
+  - Guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+
+- Practical lesson:
+  - When parity is full on RNG/events but a monster death leaves a stale glyph, check whether the corpse/drop path redraws the square immediately.
+  - In `mhitm` specifically, hand-rolled corpse creation is risky because it bypasses the redraw behavior that C gets automatically from `make_corpse()` / `monkilled()`.

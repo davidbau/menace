@@ -602,6 +602,7 @@ async function mdamagem(magr, mdef, mattk, mwep, dieroll, display, vis, map, ctx
             const corpse = mkcorpstat(CORPSE, mdef.mndx || 0, true,
                 mdef.mx, mdef.my, map, { zombify: canZombify });
             corpse.age = ctx?.turnCount || 1;
+            if (map) newsym(mdef.mx, mdef.my);
         }
 
         if (mhm.hitflags === M_ATTK_AGR_DIED) {
