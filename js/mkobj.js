@@ -37,7 +37,7 @@ import {
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
     PM_SAMURAI
 } from './monsters.js';
-import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE,
+import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE, MAX_OIL_IN_FLASK,
          OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED, OBJ_DELETED } from './const.js';
 import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
@@ -712,6 +712,11 @@ function mksobj_init(obj, artif, skipErosion) {
         break;
 
     case POTION_CLASS:
+        if (obj.otyp === POT_OIL) {
+            obj.age = MAX_OIL_IN_FLASK; // C ref: mkobj.c:1232-1233
+        }
+        blessorcurse(obj, 4);
+        break;
     case SCROLL_CLASS:
         blessorcurse(obj, 4);
         break;

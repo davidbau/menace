@@ -63,7 +63,7 @@ import { u_at } from './hack.js';
 import { obfree } from './shk.js';
 import { which_armor, setworn } from './worn.js';
 import { dmgval } from './weapon.js';
-import { hard_helmet, find_ac } from './do_wear.js';
+import { hard_helmet, find_ac, makeknown } from './do_wear.js';
 import { flooreffects } from './do.js';
 import { snuff_light_source } from './light.js';
 import { Is_rogue_level, In_endgame, Is_earthlevel, has_ceiling, avoid_ceiling, ceiling } from './dungeon.js';
@@ -513,7 +513,7 @@ async function handleRead(player, display, game) {
                 }
                 // C ref: read.c seffects() — track whether type was known before reading
                 const od = objectData[anyItem.otyp] || {};
-                const alreadyKnown = !!od.oc_name_known;
+                const alreadyKnown = isObjectNameKnown(anyItem.otyp);
                 const prevKnownFlag = !!_gstate?.known;
                 if (_gstate) _gstate.known = false;
                 const consumed = await seffects(anyItem, player, display, game);
@@ -521,7 +521,7 @@ async function handleRead(player, display, game) {
                 if (_gstate) _gstate.known = prevKnownFlag;
                 // C ref: read.c:2147 — if scroll type wasn't identified by the
                 // effect, prompt the player to name/call the scroll type.
-                if (!alreadyKnown && !(objectData[anyItem.otyp] || {}).oc_name_known) {
+                if (!alreadyKnown && !isObjectNameKnown(anyItem.otyp)) {
                     if (effectKnown) {
                         learnscroll(anyItem);
                     } else {
@@ -987,14 +987,13 @@ export async function seffect_enchant_weapon(sobj, player, display) {
             uwep.cursed = true;
         }
     }
+    makeknown(sobj.otyp);
     // C: elven weapons vibrate warningly when enchanted beyond a limit
     // C: (spe > 5) && (is_elven_weapon || oartifact || !rn2(7))
     // rn2(7) only consumed when not elven and not artifact (short-circuit)
     if (uwep.spe > 5 && !uwep.oartifact) {
         rn2(7); // vibration check — is_elven_weapon not implemented, safe approximation
     }
-    // C ref: chwepon() — exercise dexterity after weapon enchantment
-    await exercise(player, A_DEX, amount >= 0);
     return false;
 }
 

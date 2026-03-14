@@ -122,11 +122,15 @@ export async function wizGenesis(game) {
     }
 
     // C-ref faithful shape: create_particular_creation() uses MM_NOEXCLAM.
-    const mon = await makemon_appear(whichpm, player.x, player.y, MM_NOEXCLAM, player.dungeonLevel, map);
+    // MM_EDOG ensures makemon allocates edog data for taming.
+    const mon = await makemon_appear(whichpm, player.x, player.y, MM_NOEXCLAM | MM_EDOG, player.dungeonLevel, map);
     if (!mon) {
         await display.putstr_message('There is no room near you to create a monster.');
     } else {
         mon.sleeping = false;
+        // C ref: create_particular_creation() calls tamedog() for d->maketame.
+        // initedog() initializes pet edog data and sets mtame/mpeaceful.
+        initedog(mon, true, player, game);
     }
     return { moved: false, tookTime: false };
 }
@@ -223,10 +227,11 @@ import {
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel, resolveSpecialLevelByName } from './special_levels.js';
 import { getlin } from './input.js';
-import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, NON_PM,
+import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, MM_EDOG, NON_PM,
     ONAME, MGIVENNAME, EGD, EPRI, ESHK, EMIN, EDOG, EBONES,
     Never_mind, ECMD_OK } from './const.js';
 import { makemon, makemon_appear, mkclass } from './makemon.js';
+import { initedog } from './dog.js';
 import { mons, PM_LONG_WORM, PM_STALKER, PM_WIZARD, MAXMCLASSES, S_invisible, S_WORM_TAIL } from './monsters.js';
 import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';

@@ -104,6 +104,10 @@ function compareGameplayScreens(actualLines, expectedLines, session, {
             comparableActual[row] = '';
             comparableExpected[row] = '';
             hasPopupOverlay = true;
+        } else if (row >= 22 && isStatusLineHpOnlyDiff(comparableActual[row], comparableExpected[row])) {
+            // C bot() timing: status line HP may be stale during --More--
+            comparableActual[row] = '';
+            comparableExpected[row] = '';
         }
     }
     // C popup windows don't obscure status bars (rows 22-23); JS pager clears
@@ -178,6 +182,9 @@ function compareGameplayColors(actualAnsiInput, expectedAnsiInput, { stepIndex =
             actualAnsi[row] = '';
             expectedMasked[row] = '';
             hasPopupOverlayColor = true;
+        } else if (row >= 22 && isStatusLineHpOnlyDiff(actualPlain[row], expectedPlain[row])) {
+            actualAnsi[row] = '';
+            expectedMasked[row] = '';
         }
     }
     if (hasPopupOverlayColor) {
@@ -439,6 +446,34 @@ function isLevelTransitionMismatch(actualLines, expectedLines) {
     const expectedDlvl = extractDlvl(expectedLines);
     if (actualDlvl === null || expectedDlvl === null) return false;
     return actualDlvl !== expectedDlvl;
+}
+
+// C ref: bot() is called by flush_screen() only when disp.botl is set.
+// C's more() (topl.c) does NOT call bot(), so the status line retains
+// stale HP during --More-- sequences.  When a monster damages the hero
+// to 0 HP, C may still show the pre-damage HP (typically 1) because
+// bot() hasn't been called since the last pline that did flush_screen.
+// JS always renders the current player.uhp.  Mask this difference when
+// both status lines are identical except for the HP value and one side
+// shows HP:0 while the other shows a small positive value.
+function isStatusLineHpOnlyDiff(actualLine, expectedLine) {
+    const a = String(actualLine || '');
+    const e = String(expectedLine || '');
+    if (a === e) return false;
+    // Match "HP:N(M)" pattern and replace with placeholder
+    const hpRe = /HP:(-?\d+)\(/g;
+    const aNorm = a.replace(hpRe, 'HP:___(');
+    const eNorm = e.replace(hpRe, 'HP:___(');
+    if (aNorm !== eNorm) return false; // differ in more than just HP
+    // Extract HP values
+    const aHp = a.match(/HP:(-?\d+)\(/);
+    const eHp = e.match(/HP:(-?\d+)\(/);
+    if (!aHp || !eHp) return false;
+    const aVal = Number(aHp[1]);
+    const eVal = Number(eHp[1]);
+    // One side at 0 (or negative), other at a small positive value
+    return (aVal <= 0 && eVal > 0 && eVal <= 10)
+        || (eVal <= 0 && aVal > 0 && aVal <= 10);
 }
 
 function isHighScoreScreen(lines) {
