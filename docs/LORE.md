@@ -11644,3 +11644,17 @@ Validation:
 
 - Practical lesson:
   - Repaint parity is not only about where `flush_screen()` happens; it also depends on which cursor is “owned” by the pending message window, which gameplay functions dirty visible status, and exactly when a direct status render consumes that dirty bit.
+### Replay capture renderStatus must not emit canonical repaint logs
+
+- Problem: `t11_s744` repaint parity appeared to regress early at step `18`
+  with an extra JS `^repaint[bot ...]`, but owner tracing showed it came from
+  `replay_core.js` forcing `display.renderStatus()` only to capture the final
+  post-command screen.
+- Causal detail: that replay-only refresh is part of the JS recorder, not game
+  logic, so letting `HeadlessDisplay.renderStatus()` log canonical repaint
+  entries there pollutes the trace with harness-only `bot` events.
+- Fix: wrap the replay-core capture refresh in a temporary display flag and
+  have `HeadlessDisplay.renderStatus()` suppress canonical/debug repaint logging
+  while that flag is active. The visible screen capture still happens.
+- Result: restored the true first repaint divergence on `t11_s744` to step
+  `433`; gameplay parity unchanged.

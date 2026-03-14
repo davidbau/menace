@@ -366,7 +366,12 @@ export async function replaySession(seed, opts, keys) {
         if (!pendingCommand && opts.captureScreens) {
             const player = game.u || game.player;
             if (player && typeof display.renderStatus === 'function') {
-                display.renderStatus(player);
+                display._suppressReplayCaptureRepaint = true;
+                try {
+                    display.renderStatus(player);
+                } finally {
+                    display._suppressReplayCaptureRepaint = false;
+                }
             }
         }
         const screenCapture = opts.captureScreens ? captureScreen(display) : '';

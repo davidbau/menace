@@ -1556,22 +1556,24 @@ export class HeadlessDisplay {
 
     renderStatus(player) {
         if (!player) return;
-        debugRepaint('bot', 'headless.renderStatus', {
-            hp: repaintHp(player),
-            botl: repaintBotl(player),
-            botlx: repaintBotlx(player),
-            time: repaintTimeBotl(player),
-        }, {
-            step: this._lastMapState?.gameMap?._replayStepIndex,
-            top: this.topMessage || null,
-            messageNeedsMore: this.messageNeedsMore,
-        });
-        logRepaint('bot', {
-            hp: repaintHp(player),
-            botl: repaintBotl(player),
-            botlx: repaintBotlx(player),
-            time: repaintTimeBotl(player),
-        });
+        if (!this._suppressReplayCaptureRepaint) {
+            debugRepaint('bot', 'headless.renderStatus', {
+                hp: repaintHp(player),
+                botl: repaintBotl(player),
+                botlx: repaintBotlx(player),
+                time: repaintTimeBotl(player),
+            }, {
+                step: this._lastMapState?.gameMap?._replayStepIndex,
+                top: this.topMessage || null,
+                messageNeedsMore: this.messageNeedsMore,
+            });
+            logRepaint('bot', {
+                hp: repaintHp(player),
+                botl: repaintBotl(player),
+                botlx: repaintBotlx(player),
+                time: repaintTimeBotl(player),
+            });
+        }
 
         this.clearRow(STATUS_ROW_1);
         const line1 = formatStatusLine1(player, rankOf);
