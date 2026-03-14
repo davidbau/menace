@@ -216,12 +216,25 @@ export async function maybeDoTutorial(game) {
     start_menu(win, MENU_BEHAVE_STANDARD);
     add_menu(win, null, { ival: 'y' }, 'y'.charCodeAt(0), 0, ATR_NONE, 0, 'Yes, do a tutorial', 0);
     add_menu(win, null, { ival: 'n' }, 'n'.charCodeAt(0), 0, ATR_NONE, 0, 'No, just start play', 0);
-    add_menu(win, null, null, 0, 0, ATR_NONE, 0, '', 0);  // C ref: options.c add_menu_str(win, "")
-    add_menu(win, null, null, 0, 0, ATR_NONE, 0, 'Put "OPTIONS=!tutorial" in .nethackrc to skip this query.', 0);
+    // Browser-only: offer a "don't ask again" option that persists !tutorial.
+    // Omitted in headless replay to keep C-parity for session tests.
+    const inBrowser = typeof window !== 'undefined';
+    if (inBrowser) {
+        add_menu(win, null, { ival: 'N' }, 'N'.charCodeAt(0), 0, ATR_NONE, 0, "No, and don't ask again", 0);
+    } else {
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, '', 0);
+        add_menu(win, null, null, 0, 0, ATR_NONE, 0, 'Put "OPTIONS=!tutorial" in .nethackrc to skip this query.', 0);
+    }
     end_menu(win, 'Do you want a tutorial?');  // C ref: options.c — no leading space
     const sel = await select_menu(win, PICK_ONE);
     destroy_nhwindow(win);
-    if (sel && sel[0].identifier.ival === 'y') {
+    const choice = sel?.[0]?.identifier?.ival;
+    if (choice === 'N') {
+        // Persist !tutorial so the prompt never appears again
+        game.flags.tutorial = false;
+        saveFlags(game.flags);
+    }
+    if (choice === 'y') {
         await enterTutorial(game);
     } else {
         // Clear the chargen menu from screen then re-render the map that was
