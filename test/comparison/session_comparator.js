@@ -3,7 +3,7 @@
 
 import { stripAnsiSequences } from './session_loader.js';
 import { createGameplayComparatorPolicy } from './comparator_policy.js';
-import { compareMapdumpCheckpoints } from './comparators.js';
+import { compareMapdumpCheckpoints, stripEventContext } from './comparators.js';
 
 export function compareRecordedGameplaySession(session, replay, options = {}) {
     const policy = options.policy || createGameplayComparatorPolicy(session);
@@ -41,6 +41,41 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
     let cursorMatched = 0;
     let cursorTotal = 0;
     let firstCursorDivergence = null;
+    let repaintMatched = 0;
+    let repaintTotal = 0;
+    let firstRepaintDivergence = null;
+
+    const compareExactTrace = (actualEntries, expectedEntries, step) => {
+        const expected = Array.isArray(expectedEntries) ? expectedEntries : [];
+        const actual = Array.isArray(actualEntries) ? actualEntries : [];
+        if (expected.length === 0) return null;
+        const total = Math.max(expected.length, actual.length);
+        let matched = 0;
+        let firstDiff = null;
+        for (let j = 0; j < total; j++) {
+            if (stripEventContext(expected[j]) === stripEventContext(actual[j])) {
+                matched++;
+            } else if (!firstDiff) {
+                firstDiff = {
+                    step,
+                    index: j,
+                    expected: expected[j] ?? null,
+                    actual: actual[j] ?? null,
+                };
+            }
+        }
+        return { matched, total, firstDiff };
+    };
+
+    const collectRepaintEntries = (stepLike) => {
+        const out = [];
+        const rng = Array.isArray(stepLike?.rng) ? stepLike.rng : [];
+        for (let i = 0; i < rng.length; i++) {
+            const entry = rng[i];
+            if (typeof entry === 'string' && entry.startsWith('^repaint[')) out.push(entry);
+        }
+        return out;
+    };
 
     for (let i = 0; i < count; i++) {
         const expected = session.steps[i];
@@ -140,6 +175,19 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
                 };
             }
         }
+
+        const repaintCmp = compareExactTrace(
+            collectRepaintEntries(actual),
+            collectRepaintEntries(expected),
+            i + 1
+        );
+        if (repaintCmp) {
+            repaintMatched += repaintCmp.matched;
+            repaintTotal += repaintCmp.total;
+            if (!firstRepaintDivergence && repaintCmp.firstDiff) {
+                firstRepaintDivergence = repaintCmp.firstDiff;
+            }
+        }
     }
 
     const eventCmp = policy.compareEvents(allJsRng, allSessionRng);
@@ -199,6 +247,11 @@ export function compareRecordedGameplaySession(session, replay, options = {}) {
             matched: cursorMatched,
             total: cursorTotal,
             firstDivergence: firstCursorDivergence,
+        },
+        repaint: {
+            matched: repaintMatched,
+            total: repaintTotal,
+            firstDivergence: firstRepaintDivergence,
         },
     };
 }

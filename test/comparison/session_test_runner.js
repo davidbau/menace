@@ -54,6 +54,7 @@ import {
     recordMapdump,
     recordAnimationBoundaries,
     recordCursor,
+    recordRepaint,
     markFailed,
     setDuration,
     createResultsBundle,
@@ -131,6 +132,7 @@ function sessionWantsTestMoveEvents(session) {
 }
 
 const _sessionRunstepHintCache = new Map();
+const _sessionRepaintHintCache = new Map();
 
 function sessionWantsRunstepEvents(session) {
     const cacheKey = session?.file || session;
@@ -161,6 +163,37 @@ function sessionWantsRunstepEvents(session) {
     return false;
 }
 
+function sessionWantsRepaintTrace(session) {
+    const cacheKey = session?.file || session;
+    if (_sessionRepaintHintCache.has(cacheKey)) {
+        return _sessionRepaintHintCache.get(cacheKey);
+    }
+
+    const regenEnv = session?.meta?.regen?.env || session?.raw?.regen?.env || {};
+    if (envEnabled(regenEnv.NETHACK_REPAINT_TRACE) || envEnabled(regenEnv.WEBHACK_REPAINT_TRACE)) {
+        _sessionRepaintHintCache.set(cacheKey, true);
+        return true;
+    }
+
+    const startupRng = Array.isArray(session?.startup?.rng) ? session.startup.rng : [];
+    if (startupRng.some((entry) => typeof entry === 'string' && entry.startsWith('^repaint['))) {
+        _sessionRepaintHintCache.set(cacheKey, true);
+        return true;
+    }
+
+    const steps = Array.isArray(session?.steps) ? session.steps : [];
+    for (let i = 0; i < steps.length; i++) {
+        const rng = Array.isArray(steps[i]?.rng) ? steps[i].rng : [];
+        if (rng.some((entry) => typeof entry === 'string' && entry.startsWith('^repaint['))) {
+            _sessionRepaintHintCache.set(cacheKey, true);
+            return true;
+        }
+    }
+
+    _sessionRepaintHintCache.set(cacheKey, false);
+    return false;
+}
+
 async function withSessionFixedDatetime(session, fn) {
     const prev = process.env.NETHACK_FIXED_DATETIME;
     const sourcePref = process.env.NETHACK_SESSION_DATETIME_SOURCE || 'session';
@@ -178,10 +211,13 @@ async function withSessionFixedDatetime(session, fn) {
 async function withSessionReplayEnv(session, fn) {
     const prevTestMove = process.env.WEBHACK_EVENT_TEST_MOVE;
     const prevRunstep = process.env.WEBHACK_EVENT_RUNSTEP;
+    const prevRepaint = process.env.WEBHACK_REPAINT_TRACE;
     const shouldEnableTestMove = sessionWantsTestMoveEvents(session);
     const shouldEnableRunstep = sessionWantsRunstepEvents(session);
+    const shouldEnableRepaint = sessionWantsRepaintTrace(session);
     const preserveExplicit = envEnabled(prevTestMove);
     const preserveExplicitRunstep = envEnabled(prevRunstep);
+    const preserveExplicitRepaint = envEnabled(prevRepaint);
     if (!preserveExplicit) {
         if (shouldEnableTestMove) process.env.WEBHACK_EVENT_TEST_MOVE = '1';
         else delete process.env.WEBHACK_EVENT_TEST_MOVE;
@@ -190,6 +226,10 @@ async function withSessionReplayEnv(session, fn) {
         if (shouldEnableRunstep) process.env.WEBHACK_EVENT_RUNSTEP = '1';
         else delete process.env.WEBHACK_EVENT_RUNSTEP;
     }
+    if (!preserveExplicitRepaint) {
+        if (shouldEnableRepaint) process.env.WEBHACK_REPAINT_TRACE = '1';
+        else delete process.env.WEBHACK_REPAINT_TRACE;
+    }
     try {
         return await fn();
     } finally {
@@ -197,6 +237,8 @@ async function withSessionReplayEnv(session, fn) {
         else process.env.WEBHACK_EVENT_TEST_MOVE = prevTestMove;
         if (prevRunstep == null) delete process.env.WEBHACK_EVENT_RUNSTEP;
         else process.env.WEBHACK_EVENT_RUNSTEP = prevRunstep;
+        if (prevRepaint == null) delete process.env.WEBHACK_REPAINT_TRACE;
+        else process.env.WEBHACK_REPAINT_TRACE = prevRepaint;
     }
 }
 
@@ -586,6 +628,10 @@ async function runGameplayResult(session) {
         if (cmp.cursor?.total > 0) {
             recordCursor(result, cmp.cursor.matched, cmp.cursor.total);
             setFirstDivergence(result, 'cursor', cmp.cursor.firstDivergence);
+        }
+        if (cmp.repaint?.total > 0) {
+            recordRepaint(result, cmp.repaint.matched, cmp.repaint.total);
+            setFirstDivergence(result, 'repaint', cmp.repaint.firstDivergence);
         }
         if ((cmp.screenWindow?.rerecordCandidate || cmp.colorWindow?.rerecordCandidate) && !result.rerecordHint) {
             const steps = [];

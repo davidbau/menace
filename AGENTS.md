@@ -56,6 +56,7 @@ Read these first for active work:
 3. `docs/CODEMATCH.md`
 4. `docs/PARITY_TEST_MATRIX.md`
 5. `docs/ASYNC_CLEANUP.md`
+6. `docs/REPAINT_PARITY.md`
 
 Historical/reference docs:
 1. `docs/IRON_PARITY_PLAN.md` (campaign history and architecture lessons)

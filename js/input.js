@@ -10,6 +10,7 @@ import {
 import { envFlag } from './runtime_env.js';
 import { waitForMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
+import { logRepaint } from './repaint_trace.js';
 
 function ynTraceEnabled() {
     return envFlag('WEBHACK_YN_TRACE');
@@ -616,6 +617,11 @@ export async function more(display, {
         statusPlayer.encumbrance = display._topMessageEncumbrance;
     }
     if (refreshStatus && statusPlayer && typeof display.renderStatus === 'function') {
+        logRepaint('more', {
+            hp: Number.isFinite(statusPlayer?.uhp) ? statusPlayer.uhp | 0 : 0,
+            topl: display?.topMessage || '',
+            needsMore: display?.messageNeedsMore ? 1 : 0,
+        });
         display.renderStatus(statusPlayer);
         if (statusPlayer._botl) statusPlayer._botl = false;
     }
@@ -807,6 +813,12 @@ export async function ynFunction(query, choices, def, display, options = {}) {
         }
     }
     ynTrace('prompt', prompt.trimEnd(), `choices=${choices || ''}`, `def=${def || 0}`);
+    logRepaint('yn', {
+        hp: Number.isFinite(activeGame?.player?.uhp) ? activeGame.player.uhp | 0 : 0,
+        query: query || '',
+        choices: choices || '',
+        def: def || '',
+    });
 
     // C ref: tty_yn_function() lowercases responses unless choices contain
     // explicit uppercase entries, in which case case is preserved.

@@ -202,6 +202,11 @@ def runstep_event_env():
     v = os.environ.get('NETHACK_EVENT_RUNSTEP', '')
     return f'NETHACK_EVENT_RUNSTEP={v} ' if v else ''
 
+def repaint_trace_env():
+    """Pass NETHACK_REPAINT_TRACE through to the C binary if set."""
+    v = os.environ.get('NETHACK_REPAINT_TRACE', '')
+    return f'NETHACK_REPAINT_TRACE={v} ' if v else ''
+
 def rnglog_disp_env():
     """Pass NETHACK_RNGLOG_DISP through to the C binary if set."""
     v = os.environ.get('NETHACK_RNGLOG_DISP', '')
@@ -1117,6 +1122,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{repaint_trace_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1374,6 +1380,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{repaint_trace_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -1662,6 +1669,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{fixed_datetime_env()}'
             f'{diag_events_env()}'
             f'{no_delay_env()}'
+            f'{repaint_trace_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2027,6 +2035,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{no_delay_env()}'
             f'{test_move_event_env()}'
             f'{runstep_event_env()}'
+            f'{repaint_trace_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2114,12 +2123,15 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             session_data['regen']['final_capture_delay_s'] = final_capture_delay_s
         test_move_ev = os.environ.get('NETHACK_EVENT_TEST_MOVE')
         runstep_ev = os.environ.get('NETHACK_EVENT_RUNSTEP')
-        if test_move_ev or runstep_ev:
+        repaint_ev = os.environ.get('NETHACK_REPAINT_TRACE')
+        if test_move_ev or runstep_ev or repaint_ev:
             session_env = {}
             if test_move_ev:
                 session_env['NETHACK_EVENT_TEST_MOVE'] = test_move_ev
             if runstep_ev:
                 session_env['NETHACK_EVENT_RUNSTEP'] = runstep_ev
+            if repaint_ev:
+                session_env['NETHACK_REPAINT_TRACE'] = repaint_ev
             session_data['regen']['env'] = session_env
         if record_more_spaces:
             session_data['regen']['record_more_spaces'] = True

@@ -29,6 +29,7 @@ import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS } from './objects.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
+import { logRepaint } from './repaint_trace.js';
 import { NetHackGame } from './allmain.js';
 import {
     wallIsVisible,
@@ -1488,6 +1489,11 @@ export class HeadlessDisplay {
 
     renderStatus(player) {
         if (!player) return;
+        logRepaint('bot', {
+            hp: Number.isFinite(player?.uhp) ? player.uhp | 0 : 0,
+            hpmax: Number.isFinite(player?.uhpmax) ? player.uhpmax | 0 : 0,
+            botl: player?._botl ? 1 : 0,
+        });
 
         this.clearRow(STATUS_ROW_1);
         const line1 = formatStatusLine1(player, rankOf);

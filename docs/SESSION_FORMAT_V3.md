@@ -335,6 +335,34 @@ Event entries are treated as midlog entries by the RNG comparator (filtered out
 of RNG matching) but are compared separately via `compareEvents()` in
 `comparators.js`. Tools that don't understand events simply ignore them.
 
+### Repaint Entries
+
+Repaint entries are an optional diagnostic channel recorded in the same
+ordered `rng` trace stream using the `^repaint[...]` prefix. They are not
+counted as RNG parity and are compared separately by filtering.
+
+Purpose:
+
+1. localize screen-only divergences where RNG/events already match
+2. explain exactly when C makes status/topline changes visible
+3. distinguish gameplay parity from repaint ownership parity
+
+Example entries:
+
+```
+^repaint[flush cursor=1 hp=1 botl=1 botlx=0 time=0]
+^repaint[bot hp=1 botl=1 botlx=0 time=0]
+^repaint[more hp=1 topl=2 row=0 col=23]
+^repaint[yn hp=0 topl=3 query="Die?"]
+```
+
+Initial policy:
+
+1. repaint parity is diagnostic-only
+2. sessions may omit repaint entries entirely
+3. tooling should compare them when present, but not fail sessions on repaint
+   mismatch yet
+
 #### Identifier References
 
 | Field | Meaning | C source | JS equivalent |

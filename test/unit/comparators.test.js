@@ -6,6 +6,8 @@ import {
     compareScreenLines,
     compareGrids,
     findFirstGridDiff,
+    getComparableEventStreams,
+    isIgnorableEventEntry,
     formatRngDivergence,
     formatScreenDiff,
     formatGridDiff,
@@ -106,5 +108,17 @@ describe('comparators diagnostic formatting', () => {
         assert.ok(report.channels.grid);
         assert.ok(report.channels.screen);
         assert.equal(report.channels.error.message, 'boom');
+    });
+});
+
+describe('comparators event filtering', () => {
+    it('treats repaint trace entries as non-event diagnostic data', () => {
+        assert.equal(isIgnorableEventEntry('^repaint[flush hp=1]'), true);
+        const streams = getComparableEventStreams(
+            ['^event[a]', '^repaint[flush hp=1]', '^event[b]'],
+            ['^event[a]', '^event[b]']
+        );
+        assert.deepEqual(streams.js, ['^event[a]', '^event[b]']);
+        assert.deepEqual(streams.session, ['^event[a]', '^event[b]']);
     });
 });

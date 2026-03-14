@@ -561,11 +561,14 @@ export function isIgnorableEventEntry(entry) {
     //   the same code paths (e.g., addinv merges in inventory directly while C's
     //   hold_another_object may drop-to-floor then merge via stackobj). These
     //   events consume no RNG and are unreliable for cross-implementation parity.
+    // `repaint[...]` is a diagnostic-only midlevel display channel; compare it
+    //   separately without polluting gameplay event parity.
     return typeof entry === 'string'
         && (entry.startsWith('^trick[') || entry.startsWith('^mapdump[')
             || entry.startsWith('^wipe[') || entry.startsWith('^tmp_at_')
             || entry.startsWith('^runstep[')
-            || entry.startsWith('^place[') || entry.startsWith('^remove['));
+            || entry.startsWith('^place[') || entry.startsWith('^remove[')
+            || entry.startsWith('^repaint['));
 }
 
 function isTestMoveEvent(entry) {
