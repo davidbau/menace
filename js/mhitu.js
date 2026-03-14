@@ -14,6 +14,7 @@ import {
     NATTK, XKILL_NOMSG,
     ERODE_RUST, ERODE_CORRODE, ERODE_ROT, EF_GREASE, EF_VERBOSE, ER_NOTHING, ER_DAMAGED, ER_DESTROYED,
     SLIMED, KILLED_BY_AN, NEW_MOON, HALF_PHDAM,
+    NEED_WEAPON, NEED_HTH_WEAPON,
 } from './const.js';
 import {
     G_UNIQ, M2_NEUTER, M2_MALE, M2_FEMALE, M2_PNAME,
@@ -46,7 +47,7 @@ import { mattackm } from './mhitm.js';
 import {
     mhitm_mgc_atk_negated, do_stone_u,
 } from './uhitm.js';
-import { dmgval, hitval as weaponHitval } from './weapon.js';
+import { dmgval, hitval as weaponHitval, mon_wield_item } from './weapon.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { touch_of_death } from './mcastu.js';
@@ -1459,6 +1460,17 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             await wildmiss(monster, attack, player, display);
             skipnonmagc = true;
             continue;
+        }
+        if (attack.aatyp === AT_WEAP) {
+            // C ref: mhitu.c AT_WEAP melee branch — monsters can still spend
+            // this turn wielding before any hit-roll RNG is consumed.
+            if ((monster.weapon_check === NEED_WEAPON || !monster.weapon)) {
+                monster.weapon_check = NEED_HTH_WEAPON;
+                if (mon_wield_item(monster) !== 0) {
+                    sum[i] = M_ATTK_MISS;
+                    continue;
+                }
+            }
         }
         if (attack.aatyp === AT_WEAP && monster.weapon) {
             // C ref: mhitu.c:905-907 — add temporary hitval bonus for this strike.

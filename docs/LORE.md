@@ -11785,3 +11785,22 @@ Validation:
     (`7177 -> 7190`), matched events increased `1542 -> 1571`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### `mattacku()` needs the internal `AT_WEAP` wield branch too
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was still in monster
+  melee. C entered `mattacku()` for a goblin, then spent the attack on the
+  internal `AT_WEAP` wield path with no hit-roll RNG before returning to the
+  next monster. JS skipped straight to hit-roll RNG once it reached the melee
+  `AT_WEAP` branch.
+- Root cause: [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js)
+  was missing the C `mhitu.c` check inside `mattacku()`:
+  if `weapon_check == NEED_WEAPON` or there is no wielded weapon, set
+  `NEED_HTH_WEAPON` and allow `mon_wield_item()` to consume the attack.
+- Fix: port that internal `AT_WEAP` wield branch before any melee hit-roll RNG
+  is consumed.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1259 -> 1678`,
+    matched events increased `1571 -> 2786`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
