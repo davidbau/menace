@@ -670,7 +670,21 @@ export class HeadlessDisplay {
             && Number(activeGame?.multi || 0) < 0
             && (!this._topMessageAfterMore || sleepWakeBoundary));
         if (this.topMessage && this.messageNeedsMore) {
+            // C ref: flush_screen(1) here mirrors C's vpline() which fires
+            // flush_screen before the new message replaces the old one.
+            // At that point C's bot() recomputes encumbrance from the CURRENT
+            // inventory (which may still contain an item that JS has already
+            // consumed via useup). Restore the snapshot encumbrance so the
+            // status line matches C's state at this boundary.
+            const _fsPlayer = this._lastMapState?.player || activeGame?.player || null;
+            const _savedFsEnc = _fsPlayer?.encumbrance;
+            if (_fsPlayer && this._topMessageEncumbrance != null) {
+                _fsPlayer.encumbrance = this._topMessageEncumbrance;
+            }
             flush_screen(1);
+            if (_fsPlayer && this._topMessageEncumbrance != null) {
+                _fsPlayer.encumbrance = _savedFsEnc;
+            }
         }
         if (this._deferredBotlAfterPendingFlush && activeGame?.player) {
             activeGame.player._botl = true;
