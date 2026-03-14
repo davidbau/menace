@@ -42,7 +42,7 @@ import {
 import { distmin, dist2 } from './hacklib.js';
 import { mondead, corpse_chance } from './mon.js';
 import { flush_screen, canSeeMonsterForMap } from './display.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, delobj_core } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
 import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON,
@@ -418,10 +418,9 @@ export async function drop_throw(obj, ohit, x, y, map, player, game) {
         broken = !!(ohit && should_mulch_missile(obj, true));
     }
     if (broken) {
-        // C ref: mthrowu.c drop_throw() -> delobj(obj). In C, invent.c
-        // delobj_core() always evaluates obj_resists(obj, 0, 0), which can
-        // consume rn2(100) for non-protected objects.
-        obj_resists(obj, 0, 0);
+        // C ref: mthrowu.c drop_throw() -> delobj(obj) -> delobj_core(obj, FALSE).
+        // delobj_core always evaluates obj_resists(obj, 0, 0), consuming rn2(100).
+        delobj_core(obj, map, false);
         return true;
     }
     if (!isok(x, y)) return true;

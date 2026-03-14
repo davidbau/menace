@@ -21,6 +21,7 @@ import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
          SILVER, TRIPE_RATION,
          objectData } from './objects.js';
 import { doname, next_ident, weight } from './mkobj.js';
+import { delobj_core } from './invent.js';
 import { obj_resists, is_organic, is_metallic, is_rustprone } from './objdata.js';
 import { observeObject } from './o_init.js';
 import { dogfood } from './dog.js';
@@ -336,13 +337,14 @@ export async function dog_eat(mon, obj, map, turnCount, ctx = null) {
         if (edog.apport <= 0) edog.apport = 1;
     }
 
-    // C ref: m_consume_obj → delobj → delobj_core calls obj_resists(obj, 0, 0)
-    // to check if the object is indestructible (Amulet, invocation tools, Rider
-    // corpses). This consumes rn2(100) for non-artifact objects. We must match
-    // this RNG consumption even though JS doesn't implement the protection logic.
-    obj_resists(obj, 0, 0);
+    // C ref: m_consume_obj → delobj → delobj_core(obj, FALSE).
+    // delobj_core calls obj_resists(obj, 0, 0), consuming rn2(100).
     if (removeFromMap) {
-        map.removeObject(obj);
+        delobj_core(obj, map, false);
+    } else {
+        // Split-off single portion: still consume the rn2(100) from
+        // obj_resists to match C's delobj path for the consumed item.
+        obj_resists(obj, 0, 0);
     }
 
     return 1;
