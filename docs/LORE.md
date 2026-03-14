@@ -12239,3 +12239,36 @@ Validation:
   - remaining mismatch on that probe is now only screen-only at step `38`
     (wizard quest text window rendering)
   - `seed329_rogue_wizard_gameplay.session.json` stayed fully green
+
+### Internal `mattacku()` wield turns must print the visible wield message
+
+- Problem: after the cancelled-cast topline fix, `t11_s754_w_covmax8_gp`
+  still diverged at step `1259`: C showed `The goblin wields a crude dagger!`
+  while JS left row 0 blank.
+- Diagnosis:
+  - gameplay was already exact (`RNG 20848/20848`, `events 3292/3292`), so the
+    goblin was taking the same wield-consumes-turn action in both runtimes
+  - the missing screen text came from the internal `AT_WEAP` branch in
+    [`js/mhitu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mhitu.js):
+    JS called `mon_wield_item()` and consumed the attack, but did not emit the
+    visible wield message that C `weapon.c:mon_wield_item()` prints
+  - the existing pre-move message path in [`js/mthrowu.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mthrowu.js)
+    was not enough because this session was using the later in-`mattacku()`
+    wield path
+- Fix:
+  - `js/mhitu.js` now records the old weapon, and when the internal `AT_WEAP`
+    wield branch consumes the turn it prints
+    `The ${x_monnam(mon)} wields ${doname(mon.weapon, player)}!`
+    when canonical `canseemon(...)` visibility holds
+  - `js/mthrowu.js` / `js/monmove.js` were also tightened to use the same
+    canonical `canseemon(...)` visibility check for the pre-move wield message
+- Result:
+  - `t11_s754_w_covmax8_gp` improved materially:
+    - screens `1863/1866 -> 1864/1866`
+    - colors `44781/44784 -> 44782/44784`
+    - first screen divergence `1259 -> 1610`
+  - remaining failures are later display/mapdump-only:
+    - first screen/color divergence: step `1610`
+    - first cursor divergence: step `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green

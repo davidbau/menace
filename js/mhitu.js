@@ -32,7 +32,7 @@ import {
     mons, G_EXTINCT,
 } from './monsters.js';
 import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS, PIERCE } from './objects.js';
-import { xname } from './mkobj.js';
+import { xname, doname } from './mkobj.js';
 import {
     x_monnam, is_humanoid, thick_skinned, hides_under,
     resists_fire, resists_cold, resists_elec, resists_acid, resists_ston,
@@ -60,7 +60,7 @@ import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
 import { erode_obj, t_at } from './trap.js';
 import { xkilled, mondead } from './mon.js';
-import { flush_screen, newsym, map_invisible, canSpotMonsterForMap, mon_visible } from './display.js';
+import { flush_screen, newsym, map_invisible, canSpotMonsterForMap, mon_visible, canseemon } from './display.js';
 import { mon_explodes } from './explode.js';
 import { spec_dbon, defends } from './artifact.js';
 import { msummon } from './minion.js';
@@ -1471,8 +1471,13 @@ export async function mattacku(monster, player, display, game = null, opts = {})
             // C ref: mhitu.c AT_WEAP melee branch — monsters can still spend
             // this turn wielding before any hit-roll RNG is consumed.
             if ((monster.weapon_check === NEED_WEAPON || !monster.weapon)) {
+                const oldWeapon = monster.weapon;
                 monster.weapon_check = NEED_HTH_WEAPON;
                 if (mon_wield_item(monster) !== 0) {
+                    if (monster.weapon && monster.weapon !== oldWeapon
+                        && canseemon(monster, player, null, opts?.map || game?.map || null)) {
+                        await display.putstr_message(`The ${x_monnam(monster)} wields ${doname(monster.weapon, player)}!`);
+                    }
                     sum[i] = M_ATTK_MISS;
                     continue;
                 }

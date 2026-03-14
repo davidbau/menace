@@ -41,7 +41,7 @@ import {
 } from './monsters.js';
 import { distmin, dist2 } from './hacklib.js';
 import { mondead, corpse_chance } from './mon.js';
-import { flush_screen, canSeeMonsterForMap } from './display.js';
+import { flush_screen, canSeeMonsterForMap, canseemon } from './display.js';
 import { placeFloorObject, delobj_core } from './invent.js';
 import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
@@ -1057,7 +1057,7 @@ export function hasWeaponAttack(mon) {
 // C ref: monmove.c:853-860 — dochug weapon wielding gate
 // Called from monmove.js before melee attacks. Uses mon_wield_item for
 // proper weapon AI (select_hwep priority list) instead of first-item scan.
-export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true) {
+export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby = true, map = null) {
     if (!hasWeaponAttack(mon)) return false;
     // C ref: monmove.c wield gate — only monsters explicitly marked
     // NEED_WEAPON spend a turn switching to melee.
@@ -1070,8 +1070,7 @@ export async function maybeMonsterWieldBeforeAttack(mon, player, display, fov, n
     if (mon_wield_item(mon) !== 0) {
         // Wielding took monster's turn — show message if visible
         if (mon.weapon && mon.weapon !== oldWeapon) {
-            const visible = !fov?.canSee || (fov.canSee(mon.mx, mon.my)
-                && !player?.blind && !mon.minvis);
+            const visible = canseemon(mon, player, fov, map);
             if (display && visible) {
                 await display.putstr_message(`The ${x_monnam(mon)} wields ${thrownObjectName(mon.weapon, player)}!`);
             }

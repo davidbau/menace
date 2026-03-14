@@ -1453,7 +1453,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
         && dist2(mon.mx, mon.my, targetX, targetY) <= 8
         && hasWeaponAttack(mon)
         && !scaredNow) {
-        if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby)) {
+        if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, nearby, map)) {
             return;
         }
     }
@@ -1614,7 +1614,7 @@ async function dochug(mon, map, player, display, fov, game = null) {
                 // !phase3Cond: monster never entered movement (was already adjacent).
                 // !mmoved: monster entered movement but didn't actually move.
                 if (!phase3Cond || !mmoved) {
-                    if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, true)) {
+                    if (await maybeMonsterWieldBeforeAttack(mon, player, display, fov, true, map)) {
                         return;
                     }
                     await mattacku(mon, player, display, game, { map });
