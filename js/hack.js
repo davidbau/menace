@@ -59,6 +59,7 @@ import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, set_msg_
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap } from './teleport.js';
+import { trapeffect_bear_trap_you } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -1286,6 +1287,10 @@ export async function domove_core(dir, player, map, display, game) {
             // C ref: burnarmor(&youmonst) || rn2(3)
             if (!(await burnarmor_player(player, player))) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
+        }
+        // C ref: trap.c:1468 trapeffect_bear_trap — hero branch
+        else if (trap.ttyp === BEAR_TRAP) {
+            await trapeffect_bear_trap_you(trap, 0, player, game, map);
         }
         // C ref: trap.c trapeffect_pit() — set trap timeout and apply damage.
         else if (trap.ttyp === PIT || trap.ttyp === SPIKED_PIT) {

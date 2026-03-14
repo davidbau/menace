@@ -31,7 +31,7 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER, is_metallivore } from './mondata.js';
 import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
-import { newsym } from './display.js';
+import { newsym, map_trap } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { find_mac, which_armor } from './worn.js';
@@ -1511,7 +1511,10 @@ export async function float_down(hmask, emask, player, game) {
 
 // Autotranslated from trap.c:1030
 export function set_utrap(tim, typ, game, player) {
-  if (!player.utrap ^ !tim) game.disp.botl = true;
+  if (!player.utrap ^ !tim) {
+    if (game?.disp) game.disp.botl = true;
+    player._botl = true;
+  }
   player.utrap = tim;
   player.utraptype = tim ? typ : TT_NONE;
   // C: float_vs_flight() adjusts BFlying/BLevitation block state
@@ -2323,13 +2326,14 @@ async function trapeffect_sqky_board_you(trap, trflags, player, game) {
 }
 
 // C ref: trap.c:1468 trapeffect_bear_trap — player branch
-async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
+export async function trapeffect_bear_trap_you(trap, trflags, player, game, map) {
     const forcetrap = ((trflags & FORCETRAP) !== 0
         || (trflags & FAILEDUNTRAP) !== 0
         || (trflags & VIASITTING) !== 0);
     const lev = !!(player?.Levitation || player?.levitating);
     const fly = !!(player?.Flying || player?.flying);
-    const dmg = d(2, 4);
+    // C ref: d(2,4) in trap.c — use c_d to match C's composite RNG logging
+    const dmg = c_d(2, 4);
 
     if ((lev || fly) && !forcetrap) return Trap_Effect_Finished;
     feeltrap(trap);
