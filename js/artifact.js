@@ -357,8 +357,8 @@ export function spec_m2(otmp) {
 export function bane_applies(oart, mon) {
   let atmp;
   if (oart !== artilist[ART_NONARTIFACT] && (oart.spfx & SPFX_DBONUS) !== 0) {
-    atmp = oart;
-    atmp.spfx &= SPFX_DBONUS;
+    // C uses struct copy; JS references are shared — must not mutate oart.
+    atmp = { ...oart, spfx: oart.spfx & SPFX_DBONUS };
     if (spec_applies( atmp, mon)) return true;
   }
   return false;

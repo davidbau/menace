@@ -1317,6 +1317,10 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
     // C uses gem-name logic that yields "flint stone(s)" for FLINT.
     if (obj.otyp === FLINT) base = 'flint stone';
     if ((obj.quan || 1) !== 1) base = pluralizeName(base);
+    // C ref: objnam.c xname() — append " named <oname>" for named objects
+    if (dknown && obj.oname) {
+        base += ` named ${obj.oname}`;
+    }
     return base;
 }
 
@@ -1445,10 +1449,7 @@ export function doname(obj, player) {
     if (quan === 1 && !result.startsWith('the ')) {
         result = `${just_an(result)} ${result}`;
     }
-    const objGivenName = typeof obj.oname === 'string' ? obj.oname : '';
-    if (objGivenName.length > 0) {
-        result += ` named ${objGivenName}`;
-    }
+    // C ref: "named" suffix is now handled in xname_for_doname() — no duplication here.
 
     // C ref: objnam.c doname() appends "(lit)" for lit light sources.
     if (obj.lamplit) {

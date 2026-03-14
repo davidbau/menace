@@ -261,7 +261,7 @@ export async function wizWish(game) {
     // then encumber_msg().
     const saveVerbose = game.flags?.verbose;
     if (game.flags) game.flags.verbose = false;
-    await makewish(wishText, player, display);
+    await makewish(wishText, player, display, game);
     if (game.flags) game.flags.verbose = saveVerbose;
     await encumber_msg(player);
     return { moved: false, tookTime: false };

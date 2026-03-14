@@ -144,9 +144,9 @@ function buildInventoryPages(lines, rows = STATUS_ROW_1) {
     const pages = [];
     for (let i = 0, page = 1; i < content.length; i += contentRows, page++) {
         const chunk = content.slice(i, i + contentRows);
-        pages.push([...chunk, ` (${page} of ${totalPages})`]);
+        pages.push([...chunk, `(${page} of ${totalPages})`]);
     }
-    return pages.length > 0 ? pages : [[' (1 of 1)']];
+    return pages.length > 0 ? pages : [['(1 of 1)']];
 }
 
 function clearInventoryOverlayArea(display, lines = []) {
@@ -188,7 +188,7 @@ async function drawInventoryPage(display, lines, opts = {}) {
         // "(end)" / "(x of y)" prompt is displayed on the next row.
         const promptRow = STATUS_ROW_1;
         const prompt = lines.length > STATUS_ROW_1 ? String(lines[STATUS_ROW_1] || '') : '';
-        const promptCol = Math.max(0, offx - 1);
+        const promptCol = Math.max(0, offx);
         if (prompt && typeof display.setCell === 'function' && Number.isInteger(display.cols)) {
             for (let col = promptCol; col < display.cols; col++) {
                 display.setCell(col, promptRow, ' ', 7, 0);

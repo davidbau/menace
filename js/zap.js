@@ -1841,7 +1841,7 @@ export function do_osshock(obj, map, player) {
 }
 
 // C ref: zap.c makewish() — grant an object wish and hand it to hero.
-export async function makewish(wishText, player, display) {
+export async function makewish(wishText, player, display, game) {
     let otmp = readobjnam(wishText, false, {
         wizard: !!player?.wizard,
         wizkit_wishing: !!player?.program_state?.wizkit_wishing,
@@ -1855,7 +1855,7 @@ export async function makewish(wishText, player, display) {
         if (display) await display.putstr_message('Nothing fitting that description exists.');
         return null;
     }
-    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null, display);
+    const got = await hold_another_object(otmp, player, 'Oops!  %s to the floor!', null, null, display, game);
     if (player) {
         player.ublesscnt = (player.ublesscnt || 0) + rn1(100, 50);
         // C ref: zap.c:6264 — KMH conduct tracking
