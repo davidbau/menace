@@ -98,6 +98,10 @@ Historical/reference docs:
    - no broad refactors unrelated to the active divergence
    - no compatibility shims unless required for immediate correctness
    - remove temporary debug scaffolding before commit unless explicitly retained for observability
+8. Treat generated version files as expected collateral, not unexpected changes:
+   - `_data/version.yml` and `js/version.js` may update during hooks or normal commit flow
+   - keep the newest generated values
+   - include them with the active commit when they change; do not stop work just because these two files updated
 
 ## No-Fake-Implementation Rule (Strict)
 1. Do not present scaffolds, placeholders, or heuristics as completed parity or translation work.
