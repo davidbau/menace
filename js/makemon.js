@@ -19,7 +19,7 @@ import {
     MM_NOCOUNTBIRTH, MM_IGNOREWATER, MM_ADJACENTOK, MM_NONAME, MM_MALE,
     MM_FEMALE, MM_EDOG, MM_ASLEEP, MM_NOGRP, MM_NOMSG, MM_NOEXCLAM,
     MM_IGNORELAVA, MM_ASYNC,
-    BOLT_LIM, LS_MONSTER,
+    BOLT_LIM, LS_MONSTER, NON_PM,
 } from './const.js';
 import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, SIZE, ALIGNWEIGHT } from './const.js';
 import { couldsee, cansee, getActiveFov } from './vision.js';
@@ -1762,6 +1762,11 @@ function apply_newcham_direct(mon, targetMndx, depth, map = null, player = null,
 // Runtime helper for parity ports which need a direct, known-form transform.
 export function runtimeApplyNewchamDirect(mon, targetMndx, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
     return apply_newcham_direct(mon, targetMndx, depth, map, player, fov, display, showMsg);
+}
+
+export function runtimeApplyNewchamRandom(mon, depth = 1, map = null, player = null, fov = null, display = null, showMsg = false) {
+    const baseMndx = Number.isInteger(mon?.cham) ? mon.cham : NON_PM;
+    return apply_newcham_from_base(mon, baseMndx, depth, map, player, fov, display, showMsg);
 }
 
 function maybe_apply_newcham(mon, baseMndx, depth, map = null) {

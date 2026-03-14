@@ -11849,3 +11849,30 @@ Validation:
     `2786 -> 2804`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Monster poly traps must call real `newcham()`
+
+- Problem: after the `mfndpos()` fix, `t11_s754_w_covmax8_gp` still diverged
+  at step `1759`. C transformed monster `44` during `m_move()` via
+  `select_newcham_form(mon.c:5214)` and then continued with the new monster
+  form. JS skipped straight into later movement RNG like `rnd(12)`.
+- Diagnosis: the C raw window showed `resist(zap.c:6111)` followed by
+  `select_newcham_form()`, `mgender_from_permonst()`, and `newmonhp()`. That
+  is the `trap.c:trapeffect_poly_trap()` monster branch. JS still had a literal
+  stub in [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js):
+  after `!resist(mon, WAND_CLASS)` it consumed the RNG but skipped polymorph.
+- Root cause: [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js)
+  never invoked the runtime `newcham()` machinery for monster poly traps, so
+  the monster stayed in its old form and all downstream movement/combat RNG
+  drifted.
+- Fix:
+  - export [`runtimeApplyNewchamRandom()`](/share/u/davidbau/git/mazesofmenace/mazes/js/makemon.js)
+    from [`js/makemon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/makemon.js)
+    to run the random-form `newcham()` path for any monster, using `mon.cham`
+    when present and `NON_PM` otherwise
+  - call that helper from the monster `POLY_TRAP` branch in
+    [`js/trap.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/trap.js)
+- Validation:
+  - `t11_s754_w_covmax8_gp`: RNG `20848/20848`, events `3292/3292`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
