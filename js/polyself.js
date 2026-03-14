@@ -87,7 +87,7 @@ import {
     poly_when_stoned, name_to_mon,
     attacktype_fordmg,
 } from './mondata.js';
-import { pline, You, Your, You_cant, You_feel, pline_The } from './pline.js';
+import { pline, You, Your, You_cant, You_feel, pline_The, impossible } from './pline.js';
 import { Monnam, mon_nam } from './do_name.js';
 import { s_suffix, mungspaces } from './hacklib.js';
 import { dist2 } from './hacklib.js';

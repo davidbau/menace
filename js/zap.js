@@ -132,7 +132,7 @@ import { more_experienced } from './exper.js';
 import { u_teleport_mon, rloco, enexto } from './teleport.js';
 import { boxlock, doorlock } from './lock.js';
 import { cansee, do_clear_area, mark_vision_dirty } from './vision.js';
-import { newsym, vision_recalc, zapdir_to_glyph } from './display.js';
+import { newsym, vision_recalc, zapdir_to_glyph, canseemon } from './display.js';
 import {
     tmp_at, nh_delay_output,
 } from './animation.js';

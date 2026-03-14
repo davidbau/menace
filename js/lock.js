@@ -217,13 +217,10 @@ export async function breakchestlock(game, box, destroyit) {
             stackobj(otmp, map);
         }
 
-        // C delobj_core(obj, FALSE) always evaluates obj_resists(obj, 0, 0),
-        // consuming rn2(100) for non-invocation items before extraction/free.
-        if (!obj_resists(box, 0, 0)) {
-            delobj_core(box, map, false);
-        } else {
-            box.in_use = false;
-        }
+        // C ref: lock.c breakchestlock() calls delobj(box) which calls
+        // delobj_core(box, FALSE) — obj_resists(box, 0, 0) is evaluated
+        // inside delobj_core, consuming rn2(100).
+        delobj_core(box, map, false);
     }
 }
 

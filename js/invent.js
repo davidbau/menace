@@ -28,6 +28,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          ARM_SUIT, ARM_SHIELD, ARM_HELM, ARM_GLOVES, ARM_BOOTS, ARM_CLOAK, ARM_SHIRT,
          CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
+import { obj_resists } from './objdata.js';
 import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your, There } from './pline.js';
@@ -1371,7 +1372,8 @@ export function delobj(obj) {
 
 // C ref: invent.c delobj_core() — core object deletion
 export function delobj_core(obj, map, force) {
-    if (!force && obj_resists(obj)) {
+    // C ref: invent.c:1429 — obj_resists(obj, 0, 0) always consumes rn2(100)
+    if (!force && obj_resists(obj, 0, 0)) {
         obj.in_use = false;
         return;
     }
@@ -1391,14 +1393,8 @@ export function delobj_core(obj, map, force) {
     }
 }
 
-// Helper: obj_resists — simplified check for indestructible objects
-function obj_resists(obj) {
-    if (obj.otyp === AMULET_OF_YENDOR) return true;
-    if (obj.otyp === CANDELABRUM_OF_INVOCATION) return true;
-    if (obj.otyp === BELL_OF_OPENING) return true;
-    if (obj.otyp === SPE_BOOK_OF_THE_DEAD) return true;
-    return false;
-}
+// Local obj_resists stub removed — use objdata.obj_resists(obj, 0, 0)
+// which correctly consumes rn2(100) matching C's RNG stream.
 
 
 // ============================================================
