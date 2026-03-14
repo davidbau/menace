@@ -93,7 +93,7 @@ export async function dowrite(pen, player) {
     //   - consume marker charges, create written scroll/spellbook
     //   - exercise(player, A_WIS, true/false)
     // For now, stub out the rest — the getobj prompt above provides key consumption parity.
-    pline("Unfortunately, you don't seem to be able to write anything right now.");
+    await pline("Unfortunately, you don't seem to be able to write anything right now.");
     return 0;
 }
 

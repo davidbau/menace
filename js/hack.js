@@ -1073,6 +1073,16 @@ export async function domove_core(dir, player, map, display, game) {
         }
         return { moved: false, tookTime: false };
     }
+    // C ref: hack.c:2800-2823 — order is u_rooted, utrap, then test_move.
+    if (await u_rooted(player, display, game)) {
+        domoveNotime('u-rooted');
+        return { moved: false, tookTime: false };
+    }
+    if (player.utrap) {
+        const moved = await trapmove(player, nx, ny, display, map);
+        // C ref: hack.c trapmove() — failed escape attempt still uses a turn.
+        if (!moved) return { moved: false, tookTime: true };
+    }
     if (!await test_move(player.x, player.y, moveDir[0], moveDir[1], DO_MOVE, player, map, display, game)) {
         // C ref: hack.c:2824-2829 — when test_move fails, C sets
         // context.move = 0 and calls nomul(0) (unless door_opened).
@@ -1090,15 +1100,6 @@ export async function domove_core(dir, player, map, display, game) {
         nomul(0, game);
         domoveNotime('swim-move-danger');
         return { moved: false, tookTime: false };
-    }
-    if (await u_rooted(player, display, game)) {
-        domoveNotime('u-rooted');
-        return { moved: false, tookTime: false };
-    }
-    if (player.utrap) {
-        const moved = await trapmove(player, nx, ny, display, map);
-        // C ref: hack.c trapmove() — failed escape attempt still uses a turn.
-        if (!moved) return { moved: false, tookTime: true };
     }
     loc = map.at(nx, ny);
     const steppingTrap = map.trapAt(nx, ny);

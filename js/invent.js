@@ -2,8 +2,8 @@
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
 import { nhgetch, getlin, more } from './input.js';
-import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr } from './windows.js';
-import { NHW_MENU, OBJ_INVENT } from './const.js';
+import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
@@ -1912,13 +1912,44 @@ export async function identify_pack(id_limit, player, learning_id) {
             }
         }
     } else {
-        // identify up to id_limit items — simplified: identify first N
-        let remaining = id_limit;
-        for (const obj of inv) {
-            if (remaining <= 0) break;
-            if (not_fully_identified(obj)) {
-                await identify(obj, player);
-                remaining--;
+        // C ref: invent.c:2658-2695 — menu_identify(id_limit)
+        // Show a PICK_ANY menu of unidentified items, identify selections.
+        let first = 1, tryct = 5;
+        while (id_limit > 0) {
+            const prompt = `What would you like to identify ${first ? 'first' : 'next'}?`;
+            const win = create_nhwindow(NHW_MENU);
+            start_menu(win, MENU_BEHAVE_STANDARD);
+            for (const obj of inv) {
+                if (not_fully_identified(obj)) {
+                    const ch = typeof obj.invlet === 'string' ? obj.invlet.charCodeAt(0) : (obj.invlet || 0);
+                    add_menu(win, null, { a_obj: obj }, ch, 0,
+                        ATR_NONE, 0, doname(obj, player), 0);
+                }
+            }
+            end_menu(win, prompt);
+            const result = await select_menu(win, PICK_ANY);
+            destroy_nhwindow(win);
+
+            if (result === null) {
+                // C ref: n == -2 — ESC pressed
+                break;
+            } else if (result.length > 0) {
+                let n = Math.min(result.length, id_limit);
+                for (let i = 0; i < n; i++) {
+                    const obj = result[i].identifier?.a_obj || result[i].item?.a_obj || result[i].a_obj;
+                    if (obj) {
+                        await identify(obj, player);
+                        id_limit--;
+                    }
+                }
+                first = 0;
+            } else if (!--tryct) {
+                // C ref: invent.c:2688 — stop re-prompting after 5 tries
+                await pline("That's enough tries.");
+                break;
+            } else {
+                // C ref: invent.c:2692 — empty selection, retry
+                await pline("Choose an item; use ESC to decline.");
             }
         }
     }
