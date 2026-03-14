@@ -1977,8 +1977,11 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         const lines = [];
         const choices = [];
 
-        // C menu title is a fixed short header.
-        lines.push('Debug Identify');
+        // C ref: invent.c:3227-3231 — title includes suffix for unid items
+        const hasUnid = unid.length > 0;
+        lines.push(hasUnid
+            ? `Debug Identify -- unidentified or partially identified item${unid.length !== 1 ? 's' : ''}`
+            : 'Debug Identify');
 
         if (unid.length === 0) {
             lines.push('(all items are permanently identified already)');
