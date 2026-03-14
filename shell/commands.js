@@ -205,7 +205,7 @@ function launchGame(name) {
 }
 
 async function launchDungeon(_args, shell) {
-    shell.println('Segmentation fault (core dumped)');
+    return { action: 'dungeon' };
 }
 
 async function doExit(_args, shell) {

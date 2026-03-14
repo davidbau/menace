@@ -347,6 +347,7 @@ export class Shell {
         if (cmdName.includes('/')) {
             const game = this.fs.getGame(cmdName);
             if (game) {
+                if (game === 'dungeon') return { action: 'dungeon' };
                 return { action: 'launch', game };
             }
             if (this.fs.getNode(cmdName)) {
@@ -366,6 +367,10 @@ export class Shell {
         const result = await cmd(args, this);
         if (result && result.action === 'vi') {
             return await this._runVi(result.file);
+        }
+        if (result && result.action === 'dungeon') {
+            await this._runDungeon();
+            return;
         }
         return result;
     }
@@ -393,6 +398,46 @@ export class Shell {
         };
 
         await editor.run();
+
+        // Restore shell display
+        this.display.clearScreen();
+        this._renderScrollBuffer();
+    }
+
+    async _runDungeon() {
+        try {
+            const { DungeonGame } = await import('../dungeon/js/game.js');
+            const dataResp = await fetch('../dungeon/js/dungeon-data.json');
+            const data = await dataResp.json();
+
+            const game = new DungeonGame();
+            game.init(data);
+
+            // Line input: read a line using shell's getch
+            const input = async () => {
+                this._renderInputLine();
+                const line = await this._readLine();
+                if (line === null) return ''; // Ctrl-C → empty
+                // Echo the typed line
+                const prompt = '>';
+                this._addLine(prompt + line, OUTPUT_COLOR);
+                return line;
+            };
+
+            // Line output: print to shell's scroll buffer
+            const output = (text) => {
+                for (const line of (text || '').split('\n')) {
+                    this.println(line);
+                }
+            };
+
+            this.display.clearScreen();
+            this.scrollBuffer = [];
+
+            await game.run(input, output);
+        } catch (e) {
+            this.println(`dungeon: ${e.message}`);
+        }
 
         // Restore shell display
         this.display.clearScreen();

@@ -407,16 +407,16 @@ describe('Shell commands', () => {
         assert.deepEqual(result, { action: 'launch', game: 'rogue' });
     });
 
-    it('dungeon prints segfault', async () => {
+    it('dungeon returns dungeon action', async () => {
         const cmds = getBuiltinCommands();
-        await cmds.dungeon([], shell);
-        assert.ok(output[0].includes('Segmentation fault'));
+        const result = await cmds.dungeon([], shell);
+        assert.deepEqual(result, { action: 'dungeon' });
     });
 
-    it('zork also prints segfault', async () => {
+    it('zork returns dungeon action', async () => {
         const cmds = getBuiltinCommands();
-        await cmds.zork([], shell);
-        assert.ok(output[0].includes('Segmentation fault'));
+        const result = await cmds.zork([], shell);
+        assert.deepEqual(result, { action: 'dungeon' });
     });
 
     it('exit returns exit action', async () => {
