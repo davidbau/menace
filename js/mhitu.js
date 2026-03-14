@@ -1314,6 +1314,12 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         return !!(attackResult & (M_ATTK_AGR_DIED | M_ATTK_AGR_DONE));
     };
 
+    // C ref: mhitu.c:mattacku() — melee-capable attackers stop hero running
+    // before any hit messaging and mark botl dirty via nomul(0).
+    if (!range2 && game) {
+        nomul(0, game);
+    }
+
     // C ref: mhitu.c:527-546 — mounted hero: attackers may target steed.
     if (player?.usteed) {
         if (monster === player.usteed) {

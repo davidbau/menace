@@ -2874,6 +2874,19 @@ export function nomul(nval, game) {
     if (!game) return;
     if (typeof game.multi !== 'number') game.multi = 0;
     if (game.multi < nval) return; // bug fix from C
+    if (game.multi >= 0 && game.player) {
+        const stepIndex = Number.isInteger((game?.lev || game?.map)?._replayStepIndex)
+            ? (game.lev || game.map)._replayStepIndex
+            : null;
+        const display = game.display || null;
+        if (display?.messageNeedsMore) {
+            display._deferredBotlAfterPendingFlush = true;
+            display._deferredBotlStepIndex = stepIndex;
+        } else {
+            game.player._botl = true;
+            game.player._botlStepIndex = stepIndex;
+        }
+    }
     game.multi = nval;
     if (nval === 0) {
         game.multi_reason = null;

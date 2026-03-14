@@ -11911,3 +11911,31 @@ Validation:
   - the remaining JS repaint gap is therefore on the melee `hitmsg()` message
     path, not generic `more()` ownership and not an unknown background status
     writer.
+
+## 2026-03-14 20:06: melee `nomul(0)` dirty bit must defer across pending topline flush
+
+- Session:
+  - `test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json`
+- Problem:
+  - repaint first diverged at step `433`
+  - expected:
+    - `flush(botl=1) -> bot -> flush(botl=0) -> flush(botl=1) -> bot -> more`
+  - JS had:
+    - `flush(botl=1) -> bot -> flush(botl=0) -> more`
+- C cause:
+  - `mhitu.c:mattacku()` calls `nomul(0)` before melee hit messaging
+  - `hack.c:nomul()` sets `disp.botl |= (gm.multi >= 0)`
+  - but in this window the visible dirty repaint belongs to the *new* hitmsg
+    boundary, after the old pending topline has already been flushed
+- JS fix:
+  - restore the missing melee `nomul(0, game)` call at the start of
+    `js/mhitu.js:mattacku()` for non-ranged attacks
+  - in `js/hack.js:nomul()`, if a pending topline is active, defer the botl
+    dirty bit onto the display object instead of consuming it immediately
+  - in `js/headless.js` and `js/display.js`, consume that deferred dirty bit
+    immediately after the old pending topline flush and before concat-overflow
+    handling
+- Result:
+  - step `433` repaint parity became exact
+  - first repaint divergence moved `433 -> 434`
+  - gameplay parity stayed fully green on `t11_s744`

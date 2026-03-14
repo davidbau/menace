@@ -431,6 +431,12 @@ span.nh-cursor {
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
+        if (this._deferredBotlAfterPendingFlush && activeGame?.player) {
+            activeGame.player._botl = true;
+            activeGame.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+            this._deferredBotlAfterPendingFlush = false;
+            this._deferredBotlStepIndex = null;
+        }
         // C-faithful death staging: if a death line arrives while another
         // message is pending acknowledgement, force a --More-- boundary first.
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
