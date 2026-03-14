@@ -20,7 +20,7 @@ import { initrack } from './monmove.js';
 import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
-import { newsym } from './display.js';
+import { newsym, getCachedMapCell } from './display.js';
 import { game as activeGame } from './gstate.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
@@ -1300,7 +1300,13 @@ export class HeadlessDisplay {
             // Keep the last terminal column blank for map rows.
             this.setCell(COLNO - 1, row, ' ', CLR_GRAY);
             for (let x = 1; x < COLNO; x++) {
-                newsym(x, y, renderCtx);
+                const loc = gameMap.at?.(x, y);
+                const cached = getCachedMapCell(loc, gameMap);
+                if (cached && !(player && x === player.x && y === player.y && !player.usteed)) {
+                    this.setCell(x - 1, row, cached.ch, cached.color, cached.attr || 0);
+                } else {
+                    newsym(x, y, renderCtx);
+                }
             }
         }
         this._captureMapBase();

@@ -81,6 +81,29 @@ const COLOR_CSS = [
     '#fff',    // 15 - CLR_WHITE
 ];
 
+function replayStepIndex(map) {
+    return Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex : null;
+}
+
+export function getCachedMapCell(loc, map) {
+    if (!loc || !loc._displayCell) return null;
+    const step = replayStepIndex(map);
+    if (step === null || loc._displayCellStepIndex !== step) return null;
+    return loc._displayCell;
+}
+
+export function cacheMapCell(loc, map, ch, color, attr = 0) {
+    if (!loc) return;
+    loc._displayCell = { ch, color, attr };
+    loc._displayCellStepIndex = replayStepIndex(map);
+}
+
+function putMapCell(display, loc, map, col, row, ch, color, attr = 0) {
+    cacheMapCell(loc, map, ch, color, attr);
+    display.setCell(col, row, ch, color, attr);
+}
+
+
 // Terrain symbol tables and rendering logic live in render.js.
 
 function spotShowsEngravings(loc) {
@@ -607,6 +630,7 @@ span.nh-cursor {
             this.cellInfo[row][COLNO - 1] = null;
             for (let x = 1; x < COLNO; x++) {
                 const col = x - 1;
+                const loc = gameMap.at?.(x, y);
 
                 // C ref: always render the player glyph at the hero's position,
                 // even when out of FOV (e.g. during levitation on stairs).
@@ -618,6 +642,12 @@ span.nh-cursor {
                         desc: 'you, the adventurer',
                         color: heroGlyph.color,
                     };
+                    continue;
+                }
+
+                const cached = getCachedMapCell(loc, gameMap);
+                if (cached) {
+                    this.setCell(col, row, cached.ch, cached.color, cached.attr || 0);
                     continue;
                 }
 
@@ -634,7 +664,6 @@ span.nh-cursor {
                         continue;
                     }
                     // Show remembered terrain or nothing
-                    const loc = gameMap.at(x, y);
                     // C ref: map_invisible() uses show_glyph() directly,
                     // so mem_invis displays even at unseen locations.
                     if (loc && loc.mem_invis) {
@@ -679,7 +708,6 @@ span.nh-cursor {
                     continue;
                 }
 
-                const loc = gameMap.at(x, y);
                 if (!loc) {
                     this.setCell(col, row, ' ', CLR_GRAY);
                     this.cellInfo[row][col] = null;
@@ -1727,7 +1755,10 @@ export function show_glyph(x, y, glyph, ctxOrMap = null) {
   }
   if (!cell || typeof cell.ch !== 'string' || cell.ch.length === 0) return;
   const mapOffset = ctx?.flags?.msg_window ? 3 : MAP_ROW_START;
-  display.setCell(x - 1, y + mapOffset, cell.ch[0], Number.isInteger(cell.color) ? cell.color : CLR_GRAY);
+  const ch = cell.ch[0];
+  const color = Number.isInteger(cell.color) ? cell.color : CLR_GRAY;
+  cacheMapCell(loc, gameMap, ch, color, 0);
+  display.setCell(x - 1, y + mapOffset, ch, color);
 }
 
 // Autotranslated from display.c:481
@@ -2219,11 +2250,10 @@ export function newsym(x, y, ctxOrMap = null) {
     const ctx = _resolveDisplayCtx(ctxOrMap);
     const map = ctx?.map;
     if (!map || !isok(x, y)) return;
-    const loc = map.at(x, y);
-    if (!loc) return;
-
     const { display, player, fov, flags } = ctx;
     if (!display || typeof display.setCell !== 'function') return;
+    const loc = map.at(x, y);
+    if (!loc) return;
     const mapOffset = flags?.msg_window ? 3 : MAP_ROW_START;
     const col = x - 1;
     const row = y + mapOffset;
@@ -2258,7 +2288,7 @@ export function newsym(x, y, ctxOrMap = null) {
             // when Detect_monsters is active; glyph is inverse-video.
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
-            display.setCell(col, row, glyph.ch, glyph.color, 1);
+            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color, 1);
             mon.meverseen = 1;
             return;
         }
@@ -2269,23 +2299,23 @@ export function newsym(x, y, ctxOrMap = null) {
         if (monVisibleByOwnLight) {
             const hallu = !!player?.hallucinating;
             const glyph = monsterMapGlyph(mon, hallu);
-            display.setCell(col, row, glyph.ch, glyph.color);
+            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
             return;
         }
         if (loc.mem_invis) {
-            display.setCell(col, row, 'I', CLR_GRAY);
+            putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
             return;
         }
         if (loc.mem_obj) {
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
-            display.setCell(col, row, loc.mem_obj, rememberedObjColor);
+            putMapCell(display, loc, map, col, row, loc.mem_obj, rememberedObjColor);
             return;
         }
         if (loc.mem_trap) {
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
-            display.setCell(col, row, loc.mem_trap, memTrapColor);
+            putMapCell(display, loc, map, col, row, loc.mem_trap, memTrapColor);
             return;
         }
         if (loc.seenv) {
@@ -2293,13 +2323,13 @@ export function newsym(x, y, ctxOrMap = null) {
                 const rememberedColor = Number.isInteger(loc.mem_terrain_color)
                     ? loc.mem_terrain_color
                     : CLR_GRAY;
-                display.setCell(col, row, loc.mem_terrain_ch, rememberedColor);
+                putMapCell(display, loc, map, col, row, loc.mem_terrain_ch, rememberedColor);
             } else {
                 const remembered = rememberTerrain();
-                display.setCell(col, row, remembered.ch, remembered.color);
+                putMapCell(display, loc, map, col, row, remembered.ch, remembered.color);
             }
         } else {
-            display.setCell(col, row, ' ', CLR_GRAY);
+            putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
         }
         return;
     }
@@ -2333,7 +2363,7 @@ export function newsym(x, y, ctxOrMap = null) {
         }
         const hallu = !!player?.hallucinating;
         const glyph = monsterMapGlyph(mon, hallu);
-        display.setCell(col, row, glyph.ch, glyph.color);
+        putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         mon.meverseen = 1;
         return;
     }
@@ -2342,7 +2372,7 @@ export function newsym(x, y, ctxOrMap = null) {
         return;
     }
     if (loc.mem_invis) {
-        display.setCell(col, row, 'I', CLR_GRAY);
+        putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
         return;
     }
 
@@ -2358,7 +2388,7 @@ export function newsym(x, y, ctxOrMap = null) {
         loc.mem_obj = memGlyph.ch || 0;
         loc.mem_obj_color = Number.isInteger(memGlyph.color)
             ? memGlyph.color : CLR_GRAY;
-        display.setCell(col, row, glyph.ch, glyph.color);
+        putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         return;
     }
     loc.mem_obj = 0;
@@ -2370,7 +2400,7 @@ export function newsym(x, y, ctxOrMap = null) {
         const tg = trapGlyph(trap.ttyp);
         loc.mem_trap = tg.ch;
         loc.mem_trap_color = tg.color;
-        display.setCell(col, row, tg.ch, tg.color);
+        putMapCell(display, loc, map, col, row, tg.ch, tg.color);
         return;
     }
     loc.mem_trap = 0;
@@ -2384,17 +2414,17 @@ export function newsym(x, y, ctxOrMap = null) {
         const engrCh = (loc.typ === CORR || loc.typ === SCORR) ? '#' : '`';
         loc.mem_obj = engrCh;
         loc.mem_obj_color = CLR_BRIGHT_BLUE;
-        display.setCell(col, row, engrCh, CLR_BRIGHT_BLUE);
+        putMapCell(display, loc, map, col, row, engrCh, CLR_BRIGHT_BLUE);
         return;
     }
 
     // Terrain
     if (IS_WALL(loc.typ) && !wallIsVisible(loc.typ, loc.seenv, loc.flags)) {
-        display.setCell(col, row, ' ', CLR_GRAY);
+        putMapCell(display, loc, map, col, row, ' ', CLR_GRAY);
         return;
     }
     const sym = renderTerrainSymbol(loc, map, x, y, flags);
-    display.setCell(col, row, sym.ch, sym.color);
+    putMapCell(display, loc, map, col, row, sym.ch, sym.color);
 }
 
 // C ref: display.c:1480 see_monsters()

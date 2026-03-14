@@ -10525,3 +10525,37 @@ Validation:
 - Practical lesson:
   - When a late RNG fork appears to start in an action helper, inspect the session key window first. Here the keys showed a `yn` default-cancel flow, which made the missing confirmation gate obvious.
   - `#apply` helpers must return a real `tookTime` result. For confirmation-gated actions, assuming unconditional time consumption will shift later monster-turn work even if the visible prompts appear to line up.
+
+## 2026-03-14: Per-step map-cell caching removes masked hallucination repaint drift
+
+- Context:
+  - After the blind `:` fix, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/pnd_s1200_w_potprayspell_gp.session.json) was gameplay-green but still had an earlier display-only failure:
+    - first screen divergence at step `756`
+    - first cursor divergence at step `827`
+  - The bad frame appeared during hallucination-heavy redraws, where the same square was rendered multiple times within one replay step.
+
+- Root cause:
+  - C reuses the already-chosen glyph for the current cell within a step.
+  - JS was re-running `monsterMapGlyph(mon, hallu)` on every redraw path (`newsym()`, `show_glyph()`, full-map repaint), so a hallucinating monster square could change glyph mid-step even when gameplay state had not changed.
+  - That earlier repaint instability masked a later, real wrapped-`getlin()` prompt bug in the potion naming flow.
+
+- Fix:
+  - Add per-step cached display cells on `loc` in [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js):
+    - `cacheMapCell(loc, map, ch, color, attr)`
+    - `getCachedMapCell(loc, map)`
+  - Use the cached cell during full map repaints in both:
+    - [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js)
+    - [`js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js)
+  - Keep hero rendering uncached so the player glyph still wins at the live hero square.
+
+- Result:
+  - `pnd_s1200_w_potprayspell_gp` first screen divergence moved from step `756` to step `853`.
+  - RNG/events stayed exact:
+    - RNG `3125/3125`
+    - events `417/417`
+  - `hi11_seed1100_wiz_zap-deep_gameplay.session.json` remained fully green.
+  - The promoted gameplay suite stayed stable: `scripts/run-and-report.sh --failures` still reports the same 11 known screen-only failures and no new regressions.
+
+- Practical lesson:
+  - When a display-only failure involves hallucination, check whether JS is re-sampling randomized glyph choice during repeated redraws inside the same replay step.
+  - Fixing an earlier masked repaint bug is still worth landing even if it only exposes the next prompt/display bug underneath.
