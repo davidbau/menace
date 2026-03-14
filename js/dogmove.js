@@ -313,7 +313,9 @@ export async function dog_eat(mon, obj, map, turnCount, ctx = null) {
     let removeFromMap = true;
     if ((obj.quan || 1) > 1 && obj.oclass === FOOD_CLASS) {
         obj.quan--;
-        obj = { ...obj, quan: 1 };
+        // C ref: splitobj() allocates via newobj() which calls next_ident(),
+        // consuming rnd(2). Must match this RNG consumption.
+        obj = { ...obj, quan: 1, o_id: next_ident() };
         removeFromMap = false;
     }
 
@@ -660,13 +662,9 @@ async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov
             if ((edible <= CADAVER
                 || (edog.mhpmax_penalty && edible === ACCFOOD))
                 && could_reach_item(map, mon, obj.ox, obj.oy)) {
-                const canSeePet = display && player && (
-                    fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
-                );
-                if (canSeePet) {
-                    await display.putstr_message(`${YMonnam(mon)} eats ${doname(obj, null)}.`);
-                }
-                await dog_eat(mon, obj, map, turnCount);
+                // C ref: dog_eat() prints the message AFTER splitobj(),
+                // so pass ctx to let dog_eat handle messaging with correct quan.
+                await dog_eat(mon, obj, map, turnCount, { display, player, fov, startX: omx, startY: omy });
                 pushRngLogEntry(`^dog_invent_decision[${mon.mndx}@${omx},${omy} ud=${udist} act=2 otyp=${obj.otyp} carry=0 rv=1]`);
                 return 1;
             }
@@ -1575,17 +1573,16 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 
         // C ref: dogmove.c:1324-1327 — eat after moving
         if (do_eat && eatObj) {
-            const sawPet = fov?.canSee ? fov.canSee(omx, omy) : couldsee(map, player, omx, omy);
-            const seeObj = fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my);
-            if (display && (sawPet || seeObj)) {
+            if (display) {
                 // Keep pre-message map state aligned with C around --More-- boundaries:
                 // when pet movement + eat message shares a turn, refresh old/new pet
                 // squares before the message can block.
                 newsym(omx, omy);
                 newsym(mon.mx, mon.my);
-                await display.putstr_message(`${YMonnam(mon)} eats ${doname(eatObj, null)}.`);
             }
-            await dog_eat(mon, eatObj, map, turnCount);
+            // C ref: dog_eat() prints the message AFTER splitobj(),
+            // so pass ctx to let dog_eat handle messaging with correct quan.
+            await dog_eat(mon, eatObj, map, turnCount, { display, player, fov, startX: omx, startY: omy });
         }
     } else if (mon.mleashed && udist > 4) {
         // C ref: dogmove.c:1330-1348 — leashed pet drag-along

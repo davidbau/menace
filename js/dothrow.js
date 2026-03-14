@@ -1067,8 +1067,27 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             if (!loc || !ZAP_POS(loc.typ)) break;
             bx = nx; by = ny;
             // C ref: zap.c bhit() checks monster hit before tmp_at(x,y).
+            // If thitmonst returns 0 (miss), object continues past the monster.
             const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
-            if (mon) { hitMon = mon; break; }
+            if (mon) {
+                if (mon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === mon) {
+                    hitMon = mon; break;
+                }
+                // C ref: bhit() ends animation before calling fhitm callback
+                tmp_at(DISP_END, 0);
+                const obj_gone = await thitmonst(mon, obj, player, map, game);
+                if (obj_gone) {
+                    if (game) game.thrownobj = null;
+                    hitMon = mon;
+                    animationClosed = true;
+                    break;
+                }
+                // miss: object flies past the monster, restart animation and continue
+                tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
+                tmp_at(bx, by);
+                await nh_delay_output();
+                continue;
+            }
             tmp_at(bx, by);
             await nh_delay_output();
         }
@@ -1077,7 +1096,7 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     }
     if (game) game.bhitpos = { x: bx, y: by };
 
-    if (await throwit_mon_hit(obj, hitMon, player, map, game)) { throwit_return(true, game); return; }
+    if (hitMon) { throwit_return(true, game); return; }
     if (game && !game.thrownobj) { throwit_return(false, game); return; }
 
     if (tethered_weapon) {
