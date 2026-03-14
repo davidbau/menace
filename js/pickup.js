@@ -1495,7 +1495,9 @@ async function containerMenu(game, container) {
     const clearMenuOptionRows = (startCol = 0) => {
         const cols = display?.cols || 80;
         for (let r = 2; r <= 10; r++) {
-            if (startCol > 0 && typeof display?.putstr === 'function') {
+            if (typeof display?.putstr === 'function') {
+                // C ref: tty clears only the menu text area, preserving the
+                // underlying map cells on the left side of the screen.
                 display.putstr(startCol, r, ' '.repeat(Math.max(0, cols - startCol)));
             } else if (typeof display?.clearRow === 'function') {
                 display.clearRow(r);
@@ -1527,7 +1529,11 @@ async function containerMenu(game, container) {
     // Helper: take items out of container (the 'o' flow).
     // cf. pickup.c traditional_loot(FALSE) / menu_loot(FALSE).
     // Returns true if any items were taken (tookTime).
+    // Track leftmost menu column across sub-menus to preserve map cells.
+    let _containerMenuPad = 0;
+
     const doTakeOut = async () => {
+        let lowestMenuPad = _containerMenuPad || 0;
         const currentContents = getContainerContents(container);
         if (!currentContents.length) {
             await display.putstr_message('It is empty.');
@@ -1546,6 +1552,7 @@ async function containerMenu(game, container) {
             const classOrder = [...seenClasses];
             const classPrompt = 'Take out what type of objects?';
             const classPad = centeredPad(classPrompt, 23);
+            lowestMenuPad = Math.min(lowestMenuPad, classPad);
             const hasUnknownBUC = currentContents.some((o) => !o?.bknown);
             clearMenuOptionRows(classPad);
             await putMenuPrompt(classPrompt, classPad);
@@ -1644,7 +1651,9 @@ async function containerMenu(game, container) {
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
-            clearMenuOptionRows();  // full clear — previous class menu may extend left of menuPad
+            // C ref: clear menu area but preserve map cells on the left.
+            // Previous class menu may extend left of menuPad; use tracked minimum.
+            clearMenuOptionRows(lowestMenuPad);
             await putMenuPrompt('Take out what?', menuPad);
             if (typeof display?.putstr === 'function') display.putstr(menuPad, 2, 'Comestibles', 7, 1);
             else drawMenuOptionLine(menuPad, 2, 'Comestibles');
@@ -1688,7 +1697,7 @@ async function containerMenu(game, container) {
             drawMenuOptionLine(menuPad, 3 + tidx, `${available[tidx]} ${indicator} ${doname(visible[tidx], player)}`);
         }
         if (typeof display?.clearRow === 'function') display.clearRow(0);
-        clearMenuOptionRows();  // full clear — class menu remnants may extend left
+        clearMenuOptionRows(lowestMenuPad);  // clear menu area, preserve map cells left
         return didTake;
     };
 
@@ -1761,6 +1770,7 @@ async function containerMenu(game, container) {
             ? `Do what with the ${cname}?`
             : `The ${cname} is empty.  Do what with it?`;
         const pad = centeredPad(prompt, 38);
+        _containerMenuPad = pad;
         clearMenuOptionRows(pad);
         await putMenuPrompt(prompt, pad);
         if (outmaybe) {
