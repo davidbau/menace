@@ -11804,3 +11804,22 @@ Validation:
     matched events increased `1571 -> 2786`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### `poisoned()` must use C-style composite dice logging
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier moved into later
+  monster-vs-hero poison handling. After `rn2(30)=0`, JS emitted four
+  primitive `rn2(6)` rolls before knockback/combat continued, while C had
+  already advanced to the next composite poison/knockback rolls.
+- Root cause: [`js/attrib.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/attrib.js)
+  still used Lua-style `d()` inside the C `attrib.c:poisoned()` path for the
+  severe-reaction `4d6` roll and the later `2d2` attribute-loss roll. For C
+  gameplay paths, these must use `c_d()` so RNG consumption and logging match
+  C `rnd.c d()`.
+- Fix: switch the `poisoned()` severe-reaction and attribute-loss dice from
+  `d(...)` to `c_d(...)`.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1678 -> 1752`,
+    matched RNG increased `17297 -> 19901`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green

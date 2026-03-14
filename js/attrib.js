@@ -7,7 +7,7 @@
 //                newhp, minuhpmax, setuhpmax, adjuhploss, acurr, acurrstr,
 //                extremeattr, adjalign, uchangealign
 
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
          FAST, STEALTH, SEARCHING, SEE_INVIS, WARNING, JUMPING,
@@ -558,7 +558,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
     const i = !fatal ? 1 : rn2(fatal + (thrown_weapon ? 20 : 0));
     if (i === 0 && typ !== A_CHA) {
         // sometimes survivable instant kill
-        const loss0 = 6 + d(4, 6); // 10..34
+        const loss0 = 6 + c_d(4, 6); // 10..34
         if (player.uhp <= loss0) {
             player.uhp = -1;
             await pline_The("poison was deadly...");
@@ -581,7 +581,7 @@ export async function poisoned(player, reason, typ, pkiller, fatal, thrown_weapo
             loss = Math.floor((loss + 1) / 2);
         await losehp(loss, pkiller, kprefix, player, _gstate?.display, _gstate);
     } else {
-        const loss = (thrown_weapon || !fatal) ? 1 : d(2, 2);
+        const loss = (thrown_weapon || !fatal) ? 1 : c_d(2, 2);
         if (await adjattrib(player, typ, -loss, 1))
             await poisontell(player, typ, true);
     }
