@@ -2423,7 +2423,9 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       damage = orig_dmg;
       await exercise(player, A_CON, false);
     }
-    // C: destroy_items(&youmonst, AD_ELEC, orig_dmg) — stub
+    // C ref: zap.c:2738-2739 — unconditional destroy_item for self-zap
+    destroy_item(WAND_CLASS, AD_ELEC, player);
+    destroy_item(RING_CLASS, AD_ELEC, player);
     // C: flashburn(rnd(100), TRUE)
     rnd(100); // flashburn duration — RNG consumed unconditionally
     break;
@@ -2438,7 +2440,10 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     }
     // C ref: zap.c:2755-2757 — unconditional burnarmor + destroy_items
     await burnarmor_player(player, player);
-    // destroy_items(&youmonst, AD_FIRE, orig_dmg) — stub
+    // C ref: zap.c:2756-2757 — unconditional destroy_item for self-zap fire
+    destroy_item(SCROLL_CLASS, AD_FIRE, player);
+    destroy_item(SPBOOK_CLASS, AD_FIRE, player);
+    destroy_item(POTION_CLASS, AD_FIRE, player);
     break;
   }
   case WAN_COLD: {
@@ -2449,8 +2454,8 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       await pline('You imitate a popsicle!');
       damage = orig_dmg;
     }
-    // C ref: zap.c:2775 — unconditional destroy_items
-    // destroy_items(&youmonst, AD_COLD, orig_dmg) — stub
+    // C ref: zap.c:2775 — unconditional destroy_item for self-zap cold
+    destroy_item(POTION_CLASS, AD_COLD, player);
     break;
   }
   case WAN_MAGIC_MISSILE:
