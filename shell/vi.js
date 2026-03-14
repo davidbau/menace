@@ -104,7 +104,22 @@ export class ViEditor {
         }
         // Delete line (dd)
         else if (c === 'd') {
-            this._pendingD = true;
+            if (this._pendingD) {
+                // Second d: execute dd
+                this._pushUndo();
+                if (this.lines.length > 1) {
+                    this.lines.splice(this.cursorRow, 1);
+                    if (this.cursorRow >= this.lines.length) this.cursorRow = this.lines.length - 1;
+                } else {
+                    this.lines[0] = '';
+                }
+                this._clampCol();
+                this.modified = true;
+                this._pendingD = false;
+            } else {
+                this._pendingD = true;
+            }
+            return;
         }
         // Undo
         else if (c === 'u') {
@@ -121,7 +136,14 @@ export class ViEditor {
             this.cursorRow = this.lines.length - 1;
             this._clampCol();
         } else if (c === 'g') {
-            this._pendingG = true;
+            if (this._pendingG) {
+                this.cursorRow = 0;
+                this._clampCol();
+                this._pendingG = false;
+            } else {
+                this._pendingG = true;
+            }
+            return;
         }
         // Page movement
         else if (c === '$') {
@@ -136,35 +158,9 @@ export class ViEditor {
             this.cmdBuf = '';
         }
 
-        // Handle pending double-key commands
-        if (this._pendingD && c === 'd' && !this._justSetD) {
-            this._pushUndo();
-            if (this.lines.length > 1) {
-                this.lines.splice(this.cursorRow, 1);
-                if (this.cursorRow >= this.lines.length) this.cursorRow = this.lines.length - 1;
-            } else {
-                this.lines[0] = '';
-            }
-            this._clampCol();
-            this.modified = true;
-            this._pendingD = false;
-        } else if (c === 'd') {
-            this._justSetD = true;
-        } else {
-            if (this._pendingD && c !== 'd') this._pendingD = false;
-            this._justSetD = false;
-        }
-
-        if (this._pendingG && c === 'g' && !this._justSetG) {
-            this.cursorRow = 0;
-            this._clampCol();
-            this._pendingG = false;
-        } else if (c === 'g') {
-            this._justSetG = true;
-        } else {
-            if (this._pendingG && c !== 'g') this._pendingG = false;
-            this._justSetG = false;
-        }
+        // Cancel pending multi-key commands on non-matching key
+        if (c !== 'd') this._pendingD = false;
+        if (c !== 'g') this._pendingG = false;
     }
 
     _handleInsert(ch) {
