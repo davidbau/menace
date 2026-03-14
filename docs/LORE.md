@@ -12217,3 +12217,25 @@ Validation:
   - first cursor divergence remains `844`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-14 23:05: artifact cooldown penalties use C `d()` logging, not Lua-style `d()`
+
+- Session:
+  - `/tmp/artifact_mix_probe2.session.json`
+- Problem:
+  - the artifact probe still showed a late RNG blocker at step `94` after
+    `#invoke p` on a tired artifact
+  - C logs that cooldown penalty as composite `d(3,10)=...` from `rnd.c:d()`
+  - JS was using Lua-style `d()` in `arti_invoke_cost()`, which emits three
+    underlying `rn2(10)` calls instead
+- Fix:
+  - `js/artifact.js`:
+    - change both tired-artifact cooldown penalties from `d(3, 10)` to
+      `c_d(3, 10)`
+- Result:
+  - the artifact probe is now fully green on gameplay channels:
+    - `RNG 2811/2811`
+    - `events 250/250`
+  - remaining mismatch on that probe is now only screen-only at step `38`
+    (wizard quest text window rendering)
+  - `seed329_rogue_wizard_gameplay.session.json` stayed fully green

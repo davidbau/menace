@@ -1498,7 +1498,7 @@ export async function arti_invoke_cost(obj, player, game) {
     const en = playerEnergy(player);
     if (pw_cost < 0 || en < pw_cost) {
       await You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
-      obj.age += d(3, 10);
+      obj.age += c_d(3, 10);
       return false;
     } else {
       await You_feel("drained...");
@@ -1560,7 +1560,7 @@ export async function arti_invoke(obj, player, game) {
     if (on && obj.age > moves) {
       prop.extrinsic ^= W_ARTI; // undo
       await You_feel("that %s is ignoring you.", obj.oname || 'the artifact');
-      obj.age += d(3, 10);
+      obj.age += c_d(3, 10);
       return 1;
     } else if (!on) {
       obj.age = moves + rnz(100);
