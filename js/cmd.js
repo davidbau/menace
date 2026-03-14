@@ -47,6 +47,7 @@ import { handleSet } from './options.js';
 import { dosit } from './sit.js';
 import { doride } from './steed.js';
 import { wiz_debug_cmd_bury } from './dig.js';
+import { runShell } from '../shell/shell.js';
 import { doattributes, doconduct } from './insight.js';
 import { pline, pline1, impossible, You, Norep, set_msg_xy } from './pline.js';
 import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
@@ -975,6 +976,11 @@ async function handleExtendedCommand(game) {
         case 'untrap':
             queueRepeatExtcmd(async (g) => handleExtendedCommandUntrap(g));
             return await handleExtendedCommandUntrap(game);
+        case 'shell':
+            await runShell(display, nhgetch, game.lifecycle);
+            // Restore display after shell returns
+            display.clearScreen();
+            return { moved: false, tookTime: false };
         default:
             // C-style unknown extended command feedback
             await display.putstr_message(`#${rawCmd}: unknown extended command.`);

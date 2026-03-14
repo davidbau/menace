@@ -5,6 +5,7 @@
 import { CLR_RED, CLR_YELLOW, CLR_BRIGHT_GREEN, CLR_WHITE, CLR_GRAY, CLR_ORANGE } from './display.js';
 import { loadScores, formatTopTenHeader, formatTopTenEntry } from './topten.js';
 import { VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL } from './const.js';
+import { runShell } from '../shell/shell.js';
 
 // NETHACK logo — hand-crafted 5×5 pixel-art letterforms
 const LETTERS = {
@@ -229,8 +230,10 @@ export class Promo {
         // A single persistent key-read call covers all scene transitions.
         // Racing it against per-scene timers lets us advance slides without
         // calling it again (which would overwrite the pending resolver).
+        let pressedKey = null;
         const keyPromise = nhgetch().then(ch => {
             keyPressed = true;
+            pressedKey = ch;
             return ch;
         });
 
@@ -243,6 +246,13 @@ export class Promo {
 
             if (keyPressed) break;
             sceneIdx++;
+        }
+
+        // Ctrl-C: enter secret shell instead of starting a game
+        if (pressedKey === 3) {
+            await runShell(display, nhgetch, { restart: onPlay });
+            // After shell exits, return to promo loop
+            return this.run(display, nhgetch, onPlay);
         }
 
         onPlay();
