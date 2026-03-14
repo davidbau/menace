@@ -79,6 +79,14 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-13)
 
+- C `deferred_goto()` level-arrival messaging is sensitive to topline
+  ownership, not just content. A second follow-up `pline("You see here ...")`
+  after `"You materialize on a different level!"` can preserve RNG/event
+  parity while still shifting later screen boundaries. For the single-object
+  arrival case in `t11_s744`, the correct direction was to emit one combined
+  arrival line from `deferred_goto()` instead of creating a second message
+  boundary.
+
 ### Headless internal `more()` waits need narrower status refresh than command-boundary `more()`
 
 The broad revert in `1ce3031c` was directionally right for ordinary `--More--`

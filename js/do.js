@@ -29,7 +29,7 @@ import { COIN_CLASS, RING_CLASS, POTION_CLASS,
          RIN_PROTECTION_FROM_SHAPE_CHAN,
          objectData, CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, splitobj, set_bknown, set_corpsenm } from './mkobj.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, look_here, dfeature_at } from './invent.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
@@ -54,6 +54,7 @@ import { newuexp, pluslvl } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
 import { float_down } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
+import { describeGroundObjectForPlayer } from './shk.js';
 import { W_ART, W_ARTI, KILLED_BY, KILLED_BY_AN, OBJ_INVENT, OBJ_FLOOR } from './const.js';
 import { hitfloor } from './dothrow.js';
 import { can_reach_floor } from './engrave.js';
@@ -1246,6 +1247,7 @@ export async function deferred_goto(player, game) {
     const fromDnum = Number.isInteger(game?.dnum)
         ? game.dnum
         : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : 0);
+    let arrivalMsg = null;
     if (dest !== player.dungeonLevel) {
         if (player.dfr_pre_msg)
             await pline(player.dfr_pre_msg);
@@ -1259,7 +1261,7 @@ export async function deferred_goto(player, game) {
             : (Number.isInteger(game?.map?._genDnum) ? game.map._genDnum : fromDnum);
         const levelChanged = (Number(player.dungeonLevel) !== fromDepth) || (toDnum !== fromDnum);
         if (player.dfr_post_msg && levelChanged) {
-            await pline(player.dfr_post_msg);
+            arrivalMsg = player.dfr_post_msg;
         }
         // C ref: do.c goto_level(falling) damage uses d(max(dist,1),6) from
         // rnd.c (composite d() log entry).
@@ -1276,6 +1278,32 @@ export async function deferred_goto(player, game) {
         const newMap = game?.map || game?.lev;
         move_update(true, player, newMap);
         await check_special_room(false, player, newMap, game?.display, game?.fov || null);
+        const objs = newMap?.objectsAt ? newMap.objectsAt(player.x, player.y) : [];
+        if (arrivalMsg && objs.length === 1) {
+            observeObject(objs[0]);
+            await pline(`${arrivalMsg}  You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
+        } else {
+            if (arrivalMsg) {
+                await pline(arrivalMsg);
+            }
+        }
+        if (!arrivalMsg && objs.length > 0) {
+            if (objs.length === 1) {
+                const dfeature = dfeature_at(player.x, player.y, newMap, {
+                    depth: player.dungeonLevel || (newMap.uz ? newMap.uz.dlevel : undefined),
+                    dnum: (player.uz ? player.uz.dnum : undefined)
+                        ?? (newMap.uz ? newMap.uz.dnum : undefined)
+                        ?? newMap._genDnum
+                });
+                if (dfeature) {
+                    await pline(`There is ${an(dfeature)} here.`);
+                }
+                observeObject(objs[0]);
+                await pline(`You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
+            } else {
+                await look_here(player, newMap, objs.length);
+            }
+        }
     }
     player.utotype = 0;
     player.dfr_pre_msg = null;

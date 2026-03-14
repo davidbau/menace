@@ -81,6 +81,7 @@ import { envFlag, getEnv } from './runtime_env.js';
 import { autokey, pick_lock } from './lock.js';
 import { is_pool, is_lava, is_ice, is_pool_or_lava, is_waterwall } from './dbridge.js';
 import { game as _gstate } from './gstate.js';
+import { notake } from './mondata.js';
 
 function runTraceEnabled() {
     return envFlag('WEBHACK_RUN_TRACE');
@@ -95,6 +96,127 @@ function traceStepWindow() {
         from: Number.isInteger(from) ? from : null,
         to: Number.isInteger(to) ? to : null,
     };
+}
+
+// C ref: pickup.c autopick_testobj() / pickup() filter gate used by post-move
+// and post-level-change floor checks.
+function shouldAutopickupAtCurrentSquare(obj, pickupTypes, costly, game) {
+    const howLost = obj?.how_lost;
+    const wasThrown = howLost === LOST_THROWN;
+    const wasDropped = howLost === LOST_DROPPED;
+    const wasStolen = howLost === LOST_STOLEN;
+    const wasExploding = howLost === LOST_EXPLODING;
+    const droppedNoPick = !!(game.flags?.nopick_dropped || game.flags?.dropped_nopick);
+
+    if ((game.flags?.pickup_thrown && (wasThrown || !!obj?._thrownByPlayer))
+        || (game.flags?.pickup_stolen && wasStolen)) {
+        return true;
+    }
+    if (droppedNoPick && wasDropped) return false;
+    if (wasExploding) return false;
+
+    if (costly && !obj?.no_charge) {
+        return false;
+    }
+    if (!pickupTypes || pickupTypes === '') {
+        return true;
+    }
+
+    const classToSymbol = {
+        [WEAPON_CLASS]: ')',
+        [ARMOR_CLASS]: '[',
+        [RING_CLASS]: '=',
+        [AMULET_CLASS]: '"',
+        [TOOL_CLASS]: '(',
+        [FOOD_CLASS]: '%',
+        [POTION_CLASS]: '!',
+        [SCROLL_CLASS]: '?',
+        [SPBOOK_CLASS]: '+',
+        [WAND_CLASS]: '/',
+        [COIN_CLASS]: '$',
+        [GEM_CLASS]: '*',
+        [ROCK_CLASS]: '`',
+    };
+
+    const symbol = classToSymbol[obj.oclass];
+    return symbol && pickupTypes.includes(symbol);
+}
+
+// C ref: pickup(1) post-step/post-level-change floor handling: engravings,
+// autopickup, then look_here()/single-object message.
+export async function postMoveFloorCheck(player, map, display, game, opts = {}) {
+    const trap = opts.trap || null;
+    const nopick = !!opts.nopick;
+    const suppressAutopick = !!opts.suppressAutopick;
+    const objs = map.objectsAt(player.x, player.y);
+    let pickedUp = false;
+    const costly = costly_spot(player.x, player.y, map);
+    const mdat = player?.polyData || player?.data || null;
+    const inPool = is_pool(player.x, player.y, map) && !player.underwater;
+    const inLava = is_lava(player.x, player.y, map);
+    const canReachFloor = can_reach_floor(player, map, !!(trap && is_pit(trap.ttyp)));
+    let canAutopickThisStep = !!(game.flags?.pickup && !nopick && !suppressAutopick && objs.length > 0);
+    if (canAutopickThisStep && (inPool || inLava || !canReachFloor || (mdat && notake(mdat)))) {
+        canAutopickThisStep = false;
+    }
+
+    if (canAutopickThisStep) {
+        const gold = objs.find(o => o.oclass === COIN_CLASS);
+        if (gold && shouldAutopickupAtCurrentSquare(gold, '', costly, game)) {
+            player.addToInventory(gold);
+            map.removeObject(gold);
+            await display.putstr_message(formatGoldPickupMessage(gold, player));
+            pickedUp = true;
+        }
+    }
+
+    if (canAutopickThisStep) {
+        const pickupTypes = game.flags?.pickup_types || '';
+        const obj = objs.find(o => o.oclass !== COIN_CLASS
+            && shouldAutopickupAtCurrentSquare(o, pickupTypes, costly, game));
+        if (obj) {
+            observeObject(obj);
+            const addResult = player.addToInventory(obj, { withMeta: true });
+            const inventoryObj = addResult.item;
+            map.removeObject(obj);
+            if (addResult.discoveredByCompare) {
+                await display.putstr_message('You learn more about your items by comparing them.');
+            }
+            await display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
+            pickedUp = true;
+        }
+    }
+
+    if (!is_lava(player.x, player.y, map)
+        && !(is_pool(player.x, player.y, map) && !player.underwater)) {
+        await read_engr_at(map, player.x, player.y, player, game);
+    }
+
+    if (!pickedUp && objs.length > 0) {
+        if (objs.length === 1) {
+            const dfeature = dfeature_at(player.x, player.y, map, {
+                depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
+                dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
+            });
+            if (dfeature) {
+                await display.putstr_message(`There is ${an(dfeature)} here.`);
+            }
+            const seen = objs[0];
+            if (seen.oclass === COIN_CLASS) {
+                const count = seen.quan || 1;
+                if (count === 1) {
+                    await display.putstr_message('You see here a gold piece.');
+                } else {
+                    await display.putstr_message(`You see here ${count} gold pieces.`);
+                }
+            } else {
+                observeObject(seen);
+                await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
+            }
+        } else {
+            await look_here(player, map, objs.length);
+        }
+    }
 }
 
 function parseTraceStep(args) {
@@ -1253,60 +1375,7 @@ export async function domove_core(dir, player, map, display, game) {
         }
     }
 
-    // Helper function: Check if object class matches pickup_types string
-    // C ref: pickup.c pickup_filter() and flags.pickup_types
-    function shouldAutopickup(obj, pickupTypes, costly) {
-        const howLost = obj?.how_lost;
-        const wasThrown = howLost === LOST_THROWN;
-        const wasDropped = howLost === LOST_DROPPED;
-        const wasStolen = howLost === LOST_STOLEN;
-        const wasExploding = howLost === LOST_EXPLODING;
-        const droppedNoPick = !!(game.flags?.nopick_dropped || game.flags?.dropped_nopick);
-
-        // C ref: pickup.c autopick_testobj() loss-state overrides.
-        if ((game.flags?.pickup_thrown && (wasThrown || !!obj?._thrownByPlayer))
-            || (game.flags?.pickup_stolen && wasStolen)) {
-            return true;
-        }
-        if (droppedNoPick && wasDropped) return false;
-        if (wasExploding) return false;
-
-        // C ref: pickup.c autopick_testobj() — reject unpaid floor items in shops.
-        if (costly && !obj?.no_charge) {
-            return false;
-        }
-        // If pickup_types is empty, pick up all non-gold items (backward compat)
-        if (!pickupTypes || pickupTypes === '') {
-            return true;
-        }
-
-        // Map object class to symbol character
-        const classToSymbol = {
-            [WEAPON_CLASS]: ')',
-            [ARMOR_CLASS]: '[',
-            [RING_CLASS]: '=',
-            [AMULET_CLASS]: '"',
-            [TOOL_CLASS]: '(',
-            [FOOD_CLASS]: '%',
-            [POTION_CLASS]: '!',
-            [SCROLL_CLASS]: '?',
-            [SPBOOK_CLASS]: '+',
-            [WAND_CLASS]: '/',
-            [COIN_CLASS]: '$',
-            [GEM_CLASS]: '*',
-            [ROCK_CLASS]: '`',
-        };
-
-        const symbol = classToSymbol[obj.oclass];
-        return symbol && pickupTypes.includes(symbol);
-    }
-
-    // Autopickup — C ref: hack.c:3265 pickup(1)
-    // C ref: pickup.c pickup() checks flags.pickup && !context.nopick
     const objs = map.objectsAt(nx, ny);
-    let pickedUp = false;
-
-    const costly = costly_spot(nx, ny, map);
 
     // C ref: pickup.c pickup() — running into objects stops running before
     // autopick processing (which can suppress pickup on this step).
@@ -1315,85 +1384,11 @@ export async function domove_core(dir, player, map, display, game) {
         nomul(0, game);
         suppressAutopickThisStep = true;
     }
-
-    const mdat = player?.polyData || player?.data || null;
-    const inPool = is_pool(player.x, player.y, map) && !player.underwater;
-    const inLava = is_lava(player.x, player.y, map);
-    const canReachFloor = can_reach_floor(player, map, !!(trap && is_pit(trap.ttyp)));
-    let canAutopickThisStep = !!(game.flags?.pickup && !nopick && !suppressAutopickThisStep && objs.length > 0);
-    if (canAutopickThisStep && (inPool || inLava || !canReachFloor || (mdat && notake(mdat)))) {
-        canAutopickThisStep = false;
-    }
-
-    // Pick up gold first if autopickup is enabled
-    // C ref: pickup.c pickup() — autopickup gate applies to ALL items including gold
-    if (canAutopickThisStep) {
-        const gold = objs.find(o => o.oclass === COIN_CLASS);
-        if (gold && shouldAutopickup(gold, '', costly)) {
-            player.addToInventory(gold);
-            map.removeObject(gold);
-            await display.putstr_message(formatGoldPickupMessage(gold, player));
-            pickedUp = true;
-        }
-    }
-
-    // Then pick up other items if autopickup is enabled
-    // C ref: pickup.c pickup() filters by pickup_types
-    if (canAutopickThisStep) {
-        const pickupTypes = game.flags?.pickup_types || '';
-        const obj = objs.find(o => o.oclass !== COIN_CLASS && shouldAutopickup(o, pickupTypes, costly));
-        if (obj) {
-            observeObject(obj);
-            const addResult = player.addToInventory(obj, { withMeta: true });
-            const inventoryObj = addResult.item;
-            map.removeObject(obj);
-            if (addResult.discoveredByCompare) {
-                await display.putstr_message('You learn more about your items by comparing them.');
-            }
-            await display.putstr_message(formatInventoryPickupMessage(obj, inventoryObj, player));
-            pickedUp = true;
-        }
-    }
-
-    // C ref: pickup.c pickup() — engravings come BEFORE items.
-
-    // C ref: read engravings on the current square when not submerged.
-    if (!is_lava(player.x, player.y, map)
-        && !(is_pool(player.x, player.y, map) && !player.underwater)) {
-        await read_engr_at(map, player.x, player.y, player, game);
-    }
-
-    // Show what's here if nothing was picked up
-    // C ref: invent.c look_here() — terrain features (stairs, fountain, doorway)
-    // are shown via dfeature_at() inside look_here(), not via flags.verbose.
-    if (!pickedUp && objs.length > 0) {
-        if (objs.length === 1) {
-            // C ref: invent.c look_here() — show dfeature BEFORE object.
-            const dfeature = dfeature_at(player.x, player.y, map, {
-                depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
-                dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
-            });
-            if (dfeature) {
-                await display.putstr_message(`There is ${an(dfeature)} here.`);
-            }
-            const seen = objs[0];
-            if (seen.oclass === COIN_CLASS) {
-                const count = seen.quan || 1;
-                if (count === 1) {
-                    await display.putstr_message('You see here a gold piece.');
-                } else {
-                    await display.putstr_message(`You see here ${count} gold pieces.`);
-                }
-            } else {
-                observeObject(seen);
-                await display.putstr_message(`You see here ${describeGroundObjectForPlayer(seen, player, map)}.`);
-            }
-        } else {
-            // C ref: invent.c look_here() — for 2+ objects, C uses a NHW_MENU
-            // popup window ("Things that are here:") that the player dismisses.
-            await look_here(player, map, objs.length);
-        }
-    }
+    await postMoveFloorCheck(player, map, display, game, {
+        trap,
+        nopick,
+        suppressAutopick: suppressAutopickThisStep,
+    });
 
     if (!pitTrap && trap) {
         const trapResult = await applySteppedTrap(trap);
