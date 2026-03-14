@@ -82,7 +82,7 @@ import { mon_nam, x_monnam } from './do_name.js';
 import { xkilled, killed,
          monkilled, wakeup, healmon, mondead } from './mon.js';
 import { more, nhgetch } from './input.js';
-import { getdir, registerBurnarmor, registerBurnarmorPlayer, losehp } from './hack.js';
+import { getdir, losehp } from './hack.js';
 import { nonliving, is_undead, is_demon,
          resists_fire, resists_cold, resists_elec,
          resists_poison, resists_acid, resists_disint } from './mondata.js';
@@ -331,7 +331,6 @@ export function burnarmor(victim, player) {
     }
     return false;
 }
-registerBurnarmor(burnarmor);
 
 // C-faithful player-facing burnarmor path for async message boundaries.
 // This mirrors burnarmor() but routes hero erosion through erode_obj_player()
@@ -387,7 +386,6 @@ export async function burnarmor_player(victim, player) {
     }
     return false;
 }
-registerBurnarmorPlayer(burnarmor_player);
 
 // C ref: zap.c:4646 zap_hit() — determine if beam hits a monster
 function zap_hit(ac, type) {

@@ -12,9 +12,7 @@ import { game as _gstate } from './gstate.js';
 import { You } from './pline.js';
 import { races } from './player.js';
 
-// Lazy import to avoid circular dependency (hack.js imports from attrib_exercise.js)
-var _near_capacity = null;
-export function registerNearCapacity(fn) { _near_capacity = fn; }
+import { near_capacity } from './hack.js';
 
 const DEFAULT_NEXT_CHECK = 600;
 const ATTR_COUNT = 6;
@@ -161,7 +159,7 @@ export async function exerper(player, moves) {
         }
 
         // Encumbrance checks
-        const wtcap = _near_capacity ? _near_capacity(player) : 0;
+        const wtcap = near_capacity(player);
         if (wtcap === MOD_ENCUMBER) {
             await exercise(player, A_STR, true);
         } else if (wtcap === HVY_ENCUMBER) {

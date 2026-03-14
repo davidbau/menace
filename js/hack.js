@@ -2,11 +2,7 @@
 // Mirrors hack.c from the C source.
 // domove(), findtravelpath(), lookaround(), etc.
 
-// Lazy-registered function to avoid circular import (zap.js imports from hack.js)
-var _burnarmor = () => false;
-var _burnarmor_player = async () => false;
-export function registerBurnarmor(fn) { _burnarmor = fn; }
-export function registerBurnarmorPlayer(fn) { _burnarmor_player = fn; }
+import { burnarmor, burnarmor_player } from './zap.js';
 
 import { COLNO, ROWNO, STONE, CORR, SDOOR, SCORR, STAIRS, FOUNTAIN, SINK, THRONE, ALTAR, GRAVE,
          POOL, LAVAPOOL, IRONBARS, TREE, ROOM, IS_DOOR, D_CLOSED, D_LOCKED,
@@ -32,8 +28,7 @@ import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { rn2, rnd, rn1, rnl, d, c_d, pushRngLogEntry } from './rng.js';
-import { exercise, registerNearCapacity } from './attrib_exercise.js';
-import { registerNearCapacityForStatus } from './render.js';
+import { exercise } from './attrib_exercise.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS,
          TOOL_CLASS, FOOD_CLASS, POTION_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
          WAND_CLASS, COIN_CLASS, GEM_CLASS, ROCK_CLASS, BOULDER,
@@ -1288,7 +1283,7 @@ export async function domove_core(dir, player, map, display, game) {
             await display.putstr_message('A tower of flame erupts from the floor!');
             await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player, display, game);
             // C ref: burnarmor(&youmonst) || rn2(3)
-            if (!(await _burnarmor_player(player, player))) rn2(3);
+            if (!(await burnarmor_player(player, player))) rn2(3);
             void origDmg; // kept for parity readability with C's orig_dmg handling.
         }
         // C ref: trap.c trapeffect_pit() — set trap timeout and apply damage.
@@ -2396,8 +2391,6 @@ export function near_capacity() {
     const cap = calc_capacity(player, 0);
     return cap;
 }
-registerNearCapacity(near_capacity);
-registerNearCapacityForStatus(near_capacity);
 
 // C ref: hack.c max_capacity() — how far over max capacity
 export function max_capacity(player) {

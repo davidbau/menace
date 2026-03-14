@@ -26,11 +26,7 @@ import { defsyms, trap_to_defsym } from './symbols.js';
 import { strongmonst } from './mondata.js';
 import { acurr } from './attrib.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA } from './const.js';
-
-// Lazy registration for near_capacity() to avoid circular imports (hack.js→display.js→render.js).
-// C's bot() calls near_capacity() every status redraw; JS mirrors this via registration.
-var _near_capacity_fn = null;
-export function registerNearCapacityForStatus(fn) { _near_capacity_fn = fn; }
+import { near_capacity } from './hack.js';
 
 // Re-export shared render constants from const.js for existing imports.
 export {
@@ -514,13 +510,8 @@ export function formatStatusLine2(player) {
     else if (player.hunger <= 50) parts.push('Fainting');
     else if (player.hunger <= 150) parts.push('Weak');
     else if (player.hunger <= 300) parts.push('Hungry');
-    // C ref: botl.c bot() computes near_capacity() live via flush_screen.
-    // JS caches encumbrance in player.encumbrance, updated by encumber_msg
-    // and the pline flush_screen equivalent.  The display-level snapshot
-    // _topMessageEncumbrance (set in putstr_message) overrides this when
-    // rendering status at a deferred --More-- boundary, matching C's
-    // behavior where bot() ran before the message text was displayed.
-    const enc = player.encumbrance || 0;
+    // C ref: botl.c bot() computes near_capacity() live every status redraw.
+    const enc = near_capacity(player);
     if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
         const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));

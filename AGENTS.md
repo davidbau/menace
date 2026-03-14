@@ -92,6 +92,20 @@ Historical/reference docs:
 5. Do not patch screen/cursor behavior speculatively. If the first divergence is visible output only, localize it with repaint traces before changing core JS.
 6. Repaint work is still core parity work: fix JS display/runtime ownership, not the comparator, replay harness, or session artifacts.
 
+## Circular Import Policy
+Circular function imports between gameplay files are fine — ESM resolves
+function bindings lazily at call time. See `docs/MODULES.md` for the design.
+
+**Do NOT use registration patterns** (`registerFoo(fn)` + module-level `var`)
+to avoid circular imports. This adds unnecessary complexity and is fragile:
+`var x = null` initializers can reset values set during circular module
+evaluation, causing hard-to-debug bugs. Instead, just import the function
+directly — circular function imports work correctly by design.
+
+If you encounter an existing registration pattern, replace it with a direct
+import. Read `docs/MODULES.md` before concluding that a circular import
+needs special handling.
+
 ## Non-Negotiable Engineering Rules
 1. Fix behavior in core JS game code, not by patching comparator/harness logic.
 2. Keep harness simple, deterministic, and high-signal for debugging.

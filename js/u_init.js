@@ -19,6 +19,7 @@ import { initrack } from './monmove.js';
 import { resetPlineState } from './pline.js';
 import { resetNoisesState } from './mhitm.js';
 import { resetHungerState } from './eat.js';
+import { hack_artifacts } from './artifact.js';
 import { skill_init_from_inventory } from './weapon.js';
 import { skill_based_spellbook_id } from './spell.js';
 import { withMakemonPlayerOverride } from './makemon.js';
@@ -1293,6 +1294,8 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
     resetPlineState();
     resetNoisesState();
     resetHungerState();
+    // C ref: allmain.c:787 — init_artifacts() before u_init(), includes hack_artifacts()
+    hack_artifacts(player);
     const { enadv_roll, rightHanded } = initLevelGeneration(roleIndex, wizard, {
         alignment: player.alignment,
         race: player.race,

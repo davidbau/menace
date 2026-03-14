@@ -20,7 +20,7 @@ import {
 import { rn2, rnd, d, c_d, rnz } from './rng.js';
 import { objectData, LUCKSTONE, WEAPON_CLASS, STRANGE_OBJECT,
          GOLD_DRAGON_SCALE_MAIL, GOLD_DRAGON_SCALES, FAKE_AMULET_OF_YENDOR, CRYSTAL_BALL } from './objects.js';
-import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
+import { AD_PHYS, AD_MAGM, AD_FIRE, AD_COLD, AD_ELEC, AD_DRST, AD_DRLI, AD_STUN, AD_BLND, AD_WERE, AD_DISN, AD_STON, PM_WATER_ELEMENTAL, PM_JABBERWOCK, PM_ROGUE, PM_CLAY_GOLEM, PM_KNIGHT, M2_UNDEAD, M2_WERE, M2_ELF, M2_ORC, M2_DEMON, M2_GIANT, MZ_LARGE, AT_MAGC, mons, MR_FIRE, MR_COLD, MR_ELEC, MR_POISON } from './monsters.js';
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL, A_WIS, KILLED_BY, ANTIMAGIC, LAST_PROP, CONFLICT, LEVITATION, INVIS, W_ARM, W_ART, W_ARTI, W_WEP, PROTECTION, STEALTH, REGENERATION, TELEPORT_CONTROL, ENERGY_REGENERATION, HALF_SPDAM, HALF_PHDAM, REFLECTING, WARN_OF_MON, WARNING, HALLUC_RES, ONAME_NO_FLAGS, ONAME_VIA_NAMING, ONAME_WISH, ONAME_GIFT, ONAME_VIA_DIP, ONAME_LEVEL_DEF, ONAME_BONES, ONAME_RANDOM, ONAME_KNOW_ARTI, NON_PM, D_TRAPPED, IS_DOOR, isok, ECMD_OK, ECMD_TIME, ECMD_CANCEL, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, TIMEOUT, BLINDED, SICK, SLIMED } from './const.js';
 import { SILVER } from './objects.js';
 import { pline, pline_The, You, You_feel, You_cant } from './pline.js';
@@ -114,10 +114,41 @@ export function init_artifacts() {
 
 // cf. artifact.c:87 — hack_artifacts()
 // Adjusts artifact entries for special cases at startup.
+// Must be called after player role/alignment are set.
+// Saves original values so they can be restored between sessions.
+var _originalArtiValues = null;
 function hack_artifacts(player) {
-  // Fix up alignments of gift artifacts for hero's role
-  // This requires player context which may not be available at init.
-  // For now, this is a placeholder; full implementation needs player role/alignment.
+  // Restore original values before applying role-specific modifications
+  // (artilist is shared across sessions in JS, unlike C's per-process static)
+  if (!_originalArtiValues) {
+    _originalArtiValues = [];
+    for (let i = 0; i < artilist.length; i++) {
+      _originalArtiValues[i] = { alignment: artilist[i].alignment, role: artilist[i].role };
+    }
+  } else {
+    for (let i = 0; i < _originalArtiValues.length; i++) {
+      artilist[i].alignment = _originalArtiValues[i].alignment;
+      artilist[i].role = _originalArtiValues[i].role;
+    }
+  }
+
+  if (!player) return;
+
+  // C ref: artifact.c:93-95 — fix up alignments of "gift" artifacts
+  const alignmnt = player.alignment; // C: aligns[flags.initalign].value
+  for (let i = 1; i < artilist.length && artilist[i].otyp; i++) {
+    const art = artilist[i];
+    if (art.role === player.roleMnum && art.alignment !== A_NONE) {
+      art.alignment = alignmnt;
+    }
+  }
+
+  // C ref: artifact.c:97-99 — Excalibur can be used by any lawful character
+  if (!Role_if(player, PM_KNIGHT)) {
+    artilist[ART_EXCALIBUR].role = NON_PM;
+  }
+
+  // TODO: C ref: artifact.c:102-105 — fix up quest artifact alignment/role
 }
 export { hack_artifacts };
 
