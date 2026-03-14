@@ -126,11 +126,17 @@ export async function show_invalid_direction_cmdassist_help(display) {
         const moreRow = rows > 0 ? rows - 1 : 0;
         display.putstr(0, moreRow, '--More--');
         if (display.setCursor) display.setCursor(8, moreRow);
-        // C ref: cmdassist blocks on display_nhwindow(WIN_MESSAGE, TRUE)
-        // until the user presses a key to dismiss the help screen.
+        // C ref: cmdassist help is shown via display_nhwindow(..., TRUE),
+        // which uses tty_more()-style dismissal semantics rather than
+        // "any key continues" prompt behavior.
+        while (true) {
+            const ch = await nhgetch();
+            if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) {
+                break;
+            }
+        }
         // After dismiss, C's pline("Never mind.") path triggers flush_screen
         // → docrt which clears the help text. Redraw here to match.
-        await nhgetch();
         await docrt();
         return;
     }

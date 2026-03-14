@@ -12272,3 +12272,33 @@ Validation:
     - first cursor divergence: step `844`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-14 23:15: cmdassist invalid-direction help must dismiss on `--More--` keys only
+
+- Sessions:
+  - `test/comparison/sessions/seed031_manual_direct.session.json`
+  - guardrails: `seed032_manual_direct`, `seed033_manual_direct`, `seed329_rogue_wizard_gameplay`
+- Problem:
+  - `seed031` had regressed badly from historical pass state
+  - first screen blocker was early:
+    - step `52`
+    - JS: `Never mind.`
+    - C: still the cmdassist help page
+  - owner tracing showed JS entered `show_invalid_direction_cmdassist_help()`
+    at step `51`, then dismissed it on step `52` key `a`
+  - C does not dismiss that help page on arbitrary keys; it behaves like a
+    blocking `display_nhwindow(..., TRUE)` / `tty_more()` boundary
+- Fix:
+  - `js/pickup.js`:
+    - change `show_invalid_direction_cmdassist_help()` to wait for real
+      dismiss keys only:
+      `Space`, `Enter`, `Return`, `Esc`, `Ctrl-P`
+    - keep the follow-up `docrt()` so the caller's later `Never mind.` redraw
+      starts from a cleared help screen
+- Result:
+  - `seed031_manual_direct` returned to full gameplay parity:
+    - `RNG 9079/9079`
+    - `screens 1365/1365`
+    - `events 2655/2655`
+  - `seed032_manual_direct`, `seed033_manual_direct`, and `seed329` stayed
+    fully green on gameplay parity
