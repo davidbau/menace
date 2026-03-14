@@ -27,18 +27,21 @@ import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_obj
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
-import { s_suffix, distu } from './hacklib.js';
+import { s_suffix, distu, upwords } from './hacklib.js';
 import { make_confused, make_stunned } from './potion.js';
 import { makemon, makemon_appear } from './makemon.js';
 import { NO_MINVENT, HEAD, STOMACH } from './const.js';
 import { mons, PM_ACID_BLOB, PM_YELLOW_LIGHT, PM_BLACK_LIGHT, PM_GREMLIN, S_HUMAN,
          PM_GUARD, PM_SHOPKEEPER, PM_HIGH_CLERIC, PM_ALIGNED_CLERIC, PM_ANGEL,
          PM_LONG_WORM_TAIL, PM_LONG_WORM, PM_HUMAN_ZOMBIE, PM_DOPPELGANGER,
+         PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND, PM_IMP, PM_LARGE_MIMIC,
+         PM_LEOCROTTA, PM_SCORPION, PM_XAN, PM_GIANT_BAT, PM_WATER_MOCCASIN,
+         PM_FLESH_GOLEM, PM_BARBED_DEVIL, PM_MARILITH, PM_PIRANHA,
          G_GENO, G_NOCORPSE } from './monsters.js';
 import { resist, lightdamage } from './zap.js';
 import { monflee } from './monmove.js';
 import { Yobjnam2, Yname2, makeplural, an, is_weptool, xname } from './objnam.js';
-import { hcolor, Monnam, mon_nam } from './do_name.js';
+import { hcolor, Monnam, mon_nam, pmname } from './do_name.js';
 import { body_part, mbodypart } from './polyself.js';
 import { t_at, m_at } from './trap.js';
 import { sokoban_guilt } from './trap.js';
@@ -49,7 +52,7 @@ import { EXPL_FIERY } from './const.js';
 import { tmp_at } from './animation.js';
 import { DISP_BEAM, DISP_END, thats_enough_tries, MAX_SPELL_STUDY } from './const.js';
 import { getpos_sethilite, getpos_async } from './getpos.js';
-import { pline, pline1, impossible, You, You_hear } from './pline.js';
+import { pline, pline1, impossible, You, You_hear, You_cant } from './pline.js';
 import { cansee, mark_vision_dirty } from './vision.js';
 import { newsym, cmap_to_glyph, canspotmon, map_invisible } from './display.js';
 import { S_goodpos } from './symbols.js';
@@ -127,8 +130,8 @@ async function stripspe(obj, player, display) {
 // cf. read.c read_ok() — validate object is readable
 export function read_ok(obj) {
     if (!obj) return false;
-    if (obj.oclass === SCROLL_CLASS || obj.oclass === SPBOOK_CLASS) return true;
-    return false;
+    if (obj.oclass === SCROLL_CLASS || obj.oclass === SPBOOK_CLASS) return GETOBJ_SUGGEST;
+    return GETOBJ_DOWNPLAY;
 }
 
 // ============================================================
@@ -332,6 +335,12 @@ export function assign_candy_wrapper(obj) {
 // Implemented: inventory selection, spellbook study (cf. spell.c study_book).
 // TODO: read_ok validation, scroll identification, seffects dispatch
 async function handleRead(player, display, game) {
+    const redMons = [
+        PM_FIRE_ANT, PM_PYROLISK, PM_HELL_HOUND, PM_IMP,
+        PM_LARGE_MIMIC, PM_LEOCROTTA, PM_SCORPION, PM_XAN,
+        PM_GIANT_BAT, PM_WATER_MOCCASIN, PM_FLESH_GOLEM,
+        PM_BARBED_DEVIL, PM_MARILITH, PM_PIRANHA,
+    ];
     const readableClasses = new Set([SCROLL_CLASS, SPBOOK_CLASS]);
     const readable = (player.inventory || []).filter((o) => o && readableClasses.has(o.oclass));
     const letters = compactInvletPromptChars(readable.map((o) => o.invlet).join(''));
@@ -575,6 +584,27 @@ async function handleRead(player, display, game) {
                     } else {
                         player.removeFromInventory(anyItem);
                     }
+                }
+                return { moved: false, tookTime: true };
+            }
+            if (anyItem.otyp === MAGIC_MARKER) {
+                replacePromptMessage();
+                if (player.blind) {
+                    await You_cant('feel any Braille writing.');
+                    return { moved: false, tookTime: false };
+                }
+                const pm = mons[redMons[anyItem.o_id % redMons.length]];
+                if (game?.flags?.verbose) {
+                    await display.putstr_message('It reads:');
+                }
+                await display.putstr_message(
+                    `"Magic Marker(TM) ${upwords(pmname(pm, 'neutral'))} Red Ink Marker Pen.  Water Soluble."`
+                );
+                if (!(player.uconduct?.literate)) {
+                    if (!player.uconduct) player.uconduct = {};
+                    player.uconduct.literate = 1;
+                } else {
+                    player.uconduct.literate++;
                 }
                 return { moved: false, tookTime: true };
             }

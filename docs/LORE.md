@@ -11566,6 +11566,43 @@ Validation:
 
 2026-03-14
 
+- Pending session: [`t11_s754_w_covmax8_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s754_w_covmax8_gp.session.json)
+
+- Problem:
+  - the first real gameplay drift was earlier than the pet-AI symptom suggested.
+  - session step `758` is inventory letter `m` during `#read`, and the recorded C screen is `It reads:--More--`.
+  - JS treated that path as untimed/non-readable, so the kitten and nearby monster state froze while C advanced the monster turn.
+
+- Root cause:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/read.js) still treated non-scroll/non-spellbook reads as "silly" by default.
+  - C [`read.c:doread()`](/share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/src/read.c) treats several downplayed inventory items as genuinely readable and timed, including `MAGIC_MARKER`.
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/read.js) `read_ok()` also rejected those objects instead of marking them `GETOBJ_DOWNPLAY`.
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js) `getobj()` was also missing the C `GETOBJ_EXCLUDE -> silly_thing(word, otmp) -> return NULL` validation path after letter selection.
+
+- Fix:
+  - [`js/read.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/read.js)
+    - `read_ok()` now returns `GETOBJ_DOWNPLAY` for non-scroll/non-spellbook items, matching C.
+    - added the C-faithful `MAGIC_MARKER` timed read branch:
+      - optional `It reads:`
+      - deterministic branded marker text based on `o_id`
+      - increments literacy conduct
+      - returns `tookTime: true`
+  - [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    - `getobj()` now validates the chosen item with `obj_ok(item)` after letter selection and routes `GETOBJ_EXCLUDE` through `silly_thing(...)`, matching C `invent.c`.
+
+- Validation:
+  - [`t11_s754_w_covmax8_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t11_s754_w_covmax8_gp.session.json)
+    - first RNG divergence moved `758 -> 802`
+    - first event divergence moved `749 -> 792`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still green
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - still green
+
+- Practical lesson:
+  - `getobj()`-driven commands often fail because the chosen item is "downplayed" rather than outright unreadable/unusable.
+  - when C models those items in the main command handler as real timed branches, JS must not collapse them into a generic "silly thing" fallback.
+
 - Coverage session: [`t11_s744_w_covmax2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/monster-ai-combat/t11_s744_w_covmax2_gp.session.json)
 
 - Problem:

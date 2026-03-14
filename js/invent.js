@@ -1803,6 +1803,17 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
             continue;
         }
 
+        // C ref: invent.c:getobj() sets disp.botl = TRUE before validating the
+        // chosen inventory letter, so rejection feedback can still force a
+        // message-side flush.
+        markGetobjSelectionBoundary(p);
+        const okResult = obj_ok(item);
+        if (okResult === GETOBJ_EXCLUDE) {
+            clearPrompt();
+            await silly_thing(word, item);
+            return null;
+        }
+
         // Found a valid inventory item — clear prompt and return
         clearPrompt();
         return item;
