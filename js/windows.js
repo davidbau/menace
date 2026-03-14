@@ -230,6 +230,23 @@ function buildMenuLines(w, selected = null, how = PICK_NONE) {
     return lines;
 }
 
+function paginateMenuLines(lines, rows, currentPage) {
+    const pageRows = Math.max(1, rows | 0);
+    if (!Array.isArray(lines) || lines.length <= pageRows) {
+        return { lines: Array.isArray(lines) ? lines.slice() : [], totalPages: 1, currentPage: 0 };
+    }
+    const content = (lines.length > 0 && lines[lines.length - 1] === '(end)')
+        ? lines.slice(0, -1)
+        : lines.slice();
+    const contentRows = Math.max(1, pageRows - 1);
+    const totalPages = Math.max(1, Math.ceil(content.length / contentRows));
+    const normalizedPage = Math.max(0, Math.min((currentPage | 0), totalPages - 1));
+    const start = normalizedPage * contentRows;
+    const pageLines = content.slice(start, start + contentRows);
+    pageLines.push(`(${normalizedPage + 1} of ${totalPages})`);
+    return { lines: pageLines, totalPages, currentPage: normalizedPage };
+}
+
 function forEachActiveTextPopupWindow(visitor) {
     for (let i = 1; i < wins.length; i++) {
         const w = wins[i];
@@ -269,6 +286,7 @@ export async function select_menu(win, how, opts = null) {
     const w = wins[win];
     if (!w) return null;
     w.how = how;
+    const displayRows = Number.isInteger(_display?.rows) ? _display.rows : 24;
 
     // C tty parity: menu selection windows do not render over a pending
     // topline --More-- page. Resolve that boundary first, then paint the menu.
@@ -282,8 +300,12 @@ export async function select_menu(win, how, opts = null) {
         }
     }
 
-    const renderMenu = (selected = null) => {
-        const lines = buildMenuLines(w, selected, how);
+    const renderMenu = (selected = null, currentPage = 0) => {
+        const builtLines = buildMenuLines(w, selected, how);
+        const paged = (how === PICK_ANY)
+            ? paginateMenuLines(builtLines, displayRows, currentPage)
+            : { lines: builtLines, totalPages: 1, currentPage: 0 };
+        const lines = paged.lines;
         if (_display) {
             let offx = 0;
             const isPickupMenu = typeof w.prompt === 'string' && w.prompt === 'Pick up what?';
@@ -301,8 +323,10 @@ export async function select_menu(win, how, opts = null) {
                 _display.setCursor(col, lastRow);
             }
         }
+        return paged;
     };
-    renderMenu(null);
+    let currentPage = 0;
+    let paged = renderMenu(null, currentPage);
 
     if (how === PICK_NONE) {
         await _nhgetch();
@@ -343,10 +367,6 @@ export async function select_menu(win, how, opts = null) {
         // C ref: wintty.c — menus are paged. Space advances to next page.
         // On the last page, space confirms selections (or cancels if none).
         // C's page_lines is typically LI-4 = 20 lines per page.
-        const PAGE_LINES = 20;
-        const totalLines = buildMenuLines(w, null, how).length;
-        const totalPages = Math.max(1, Math.ceil(totalLines / PAGE_LINES));
-        let currentPage = 0;
         while (true) {
             const ch = await _nhgetch();
             if (ch === 13 || ch === 10) {
@@ -364,29 +384,32 @@ export async function select_menu(win, how, opts = null) {
                 for (const item of w.mlist) if (item.ch) selected.add(item.ch);
             } else if (ch === '-'.charCodeAt(0)) {
                 selected.clear();
-            } else if (ch === ' '.charCodeAt(0)) {
-                // C ref: wintty.c — space pages forward; on last page, closes menu.
-                if (currentPage < totalPages - 1) {
-                    currentPage++;
-                    // Page forward — consume key without closing
-                } else {
-                    // Last page — confirm selections (return [] if nothing selected)
-                    const result = [];
-                    for (const item of w.mlist) {
-                        if (item.ch && selected.has(item.ch)) {
-                            result.push({ identifier: item.id, count: -1 });
-                        }
-                    }
-                    return result;
-                }
             } else {
-                const item = w.mlist.find(i => i.ch === ch);
-                if (item && item.ch) {
-                    if (selected.has(item.ch)) selected.delete(item.ch);
-                    else selected.add(item.ch);
+                const grouped = w.mlist.filter((item) => item.gch === ch && item.ch);
+                if (grouped.length > 0) {
+                    for (const item of grouped) selected.add(item.ch);
+                } else if (ch === ' '.charCodeAt(0)) {
+                    // C ref: wintty.c — space pages forward; on last page, closes menu.
+                    if (currentPage < paged.totalPages - 1) {
+                        currentPage++;
+                    } else {
+                        const result = [];
+                        for (const item of w.mlist) {
+                            if (item.ch && selected.has(item.ch)) {
+                                result.push({ identifier: item.id, count: -1 });
+                            }
+                        }
+                        return result;
+                    }
+                } else {
+                    const item = w.mlist.find(i => i.ch === ch);
+                    if (item && item.ch) {
+                        if (selected.has(item.ch)) selected.delete(item.ch);
+                        else selected.add(item.ch);
+                    }
                 }
             }
-            renderMenu(selected);
+            paged = renderMenu(selected, currentPage);
         }
     }
 

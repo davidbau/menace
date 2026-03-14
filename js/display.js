@@ -1223,7 +1223,7 @@ span.nh-cursor {
 
         // C ref: wintty.c line 1926 — force full-screen when offx hits the
         // minimum (10) or menu fills the terminal height (maxrow >= rows).
-        const fullScreen = (offx === 10 || lines.length >= this.rows);
+        const fullScreen = (offx === 10 || lines.length >= this.rows || !!opts?.forceFullScreen);
         if (fullScreen) offx = 1;
 
         const menuRows = Math.min(lines.length, fullScreen ? this.rows : STATUS_ROW_1);

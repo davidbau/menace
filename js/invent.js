@@ -287,6 +287,8 @@ function isMenuDismissKey(ch) {
 export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '', options = null) {
     const allowCountPrefix = !!(options && options.allowCountPrefix);
     const dismissOnUnrecognized = !!(options && options.dismissOnUnrecognized);
+    const paginate = !!(options && options.paginate);
+    const forceFullScreen = !!(options && options.forceFullScreen);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     if (display?.messageNeedsMore) {
         await more(display, { site: 'invent.renderOverlayMenu.pre-menu', forceVisual: true });
@@ -294,32 +296,47 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
         if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
     }
-    let menuOffx = null;
-    // Forward display-relevant options (e.g. noTitleInverse) to renderOverlayMenu.
-    const menuOpts = options?.noTitleInverse ? { noTitleInverse: true } : null;
-    if (typeof display.renderOverlayMenu === 'function') {
-        menuOffx = display.renderOverlayMenu(lines, menuOpts);
-    } else {
-        menuOffx = display.renderChargenMenu(lines, false);
-    }
-    // C tty parity: when a menu window is shown, cursor sits after the last
-    // rendered menu line (typically "(end)" or "(x of y)"), not at topline.
-    if (typeof display?.setCursor === 'function' && Number.isInteger(menuOffx) && lines.length > 0) {
-        const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
-        const displayRows = Number.isInteger(display.rows) ? display.rows : STATUS_ROW_2;
-        const fullScreen = lines.length >= displayRows || menuOffx === 1;
-        const menuRows = Math.min(lines.length, fullScreen ? displayRows : STATUS_ROW_1);
-        const lastRow = Math.max(0, menuRows - 1);
-        const lastLine = String(lines[lastRow] || '');
-        display.setCursor(Math.min(menuOffx + lastLine.length + 1, cols - 1), lastRow);
-    }
+    const pageRows = Number.isInteger(display?.rows) ? display.rows : STATUS_ROW_1;
+    const pages = paginate ? buildInventoryPages(lines, pageRows) : [lines];
+    let currentPage = 0;
+    let currentLines = pages[currentPage] || lines;
+
+    const renderCurrentPage = () => {
+        let offx = null;
+        const menuOpts = {};
+        if (options?.noTitleInverse) menuOpts.noTitleInverse = true;
+        if (forceFullScreen || (paginate && pages.length > 1)) menuOpts.forceFullScreen = true;
+        if (typeof display.renderOverlayMenu === 'function') {
+            offx = display.renderOverlayMenu(currentLines, Object.keys(menuOpts).length ? menuOpts : null);
+        } else {
+            offx = display.renderChargenMenu(currentLines, false);
+        }
+        if (typeof display?.setCursor === 'function' && Number.isInteger(offx) && currentLines.length > 0) {
+            const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
+            const displayRows = Number.isInteger(display.rows) ? display.rows : STATUS_ROW_2;
+            const fullScreen = currentLines.length >= displayRows || offx === 1;
+            const menuRows = Math.min(currentLines.length, fullScreen ? displayRows : STATUS_ROW_1);
+            const lastRow = Math.max(0, menuRows - 1);
+            const lastLine = String(currentLines[lastRow] || '');
+            display.setCursor(Math.min(offx + lastLine.length, cols - 1), lastRow);
+        }
+        return offx;
+    };
+
+    let menuOffx = renderCurrentPage();
 
     let selection = null;
     let countDigits = '';
     while (true) {
         const ch = await nhgetch();
-        if (isMenuDismissKey(ch)) break;
         const c = String.fromCharCode(ch);
+        if (ch === 32 && currentPage < pages.length - 1) {
+            currentPage++;
+            currentLines = pages[currentPage] || lines;
+            menuOffx = renderCurrentPage();
+            continue;
+        }
+        if (isMenuDismissKey(ch)) break;
         if (allowCountPrefix && c >= '0' && c <= '9') {
             countDigits += c;
             continue;
@@ -332,7 +349,7 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         if (dismissOnUnrecognized) break;
     }
 
-    restoreOverlayMenu(display, lines, menuOffx);
+    restoreOverlayMenu(display, currentLines, menuOffx);
 
     if (!allowCountPrefix) return selection;
     const parsedCount = countDigits.length > 0 ? parseInt(countDigits, 10) : null;
@@ -2235,7 +2252,6 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         const lines = [];
         const choices = [];
 
-        // C ref: invent.c:3227-3231 — title includes suffix for unid items
         const hasUnid = unid.length > 0;
         lines.push(hasUnid
             ? `Debug Identify -- unidentified or partially identified item${unid.length !== 1 ? 's' : ''}`
@@ -2264,28 +2280,12 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
             choices.push(invlet);
         }
 
-        // C ref: wiz_identify uses add_menu_str for the title, not end_menu(prompt),
-        // so line 0 should NOT have inverse video.
-        if (!want_reply && Number.isInteger(d?.rows)) {
-            const visualPages = buildInventoryPages(lines, d.rows);
-            if (visualPages.length > 1) {
-                const result = await renderOverlayMenuUntilDismiss(d, visualPages[0] || lines, choices.join(''), { noTitleInverse: true });
-                const selection = selectionFromInventoryResult(result);
-                if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
-                    await identify_pack(0, p, false);
-                    return '';
-                }
-                if (selection) {
-                    const target = unid.find((obj) => String(obj?.invlet || '') === selection);
-                    if (target && not_fully_identified(target)) {
-                        await identify(target);
-                        update_inventory(p);
-                    }
-                }
-                return '';
-            }
-        }
-        const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''), { noTitleInverse: true });
+        const result = await renderOverlayMenuUntilDismiss(
+            d,
+            lines,
+            want_reply ? choices.join('') : '',
+            { noTitleInverse: true, paginate: !want_reply }
+        );
         const selection = selectionFromInventoryResult(result);
         if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
             await identify_pack(0, p, false);

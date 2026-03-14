@@ -12031,3 +12031,44 @@ Validation:
     - functions `40.67%`
   - this cleared the line-coverage threshold (`>56%`) but did not yet clear the
     branch-coverage threshold (`>60%`)
+
+### Wizard identify display uses shared paged overlay ownership
+
+- Problem: after the display-name fix, `t11_s754_w_covmax8_gp` still diverged
+  on the wizard `^I` page handoff. C tty showed:
+  - page 1 on the `^I` step
+  - page 2 after the first space
+  - page 2 still visible while a later non-dismiss key (`i`) was ignored
+  - map restore only after the second space
+  JS instead dropped back to the map too early because the display-only
+  overlay helper only rendered a single synthetic first page.
+- Diagnosis:
+  - this was not a gameplay bug; `RNG` and `events` were already exact
+  - the central display-only helper
+    [`renderOverlayMenuUntilDismiss()`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    needed real tty-style page progression
+  - paged overlays also need fullscreen clearing on later shorter pages, or old
+    page-1 text survives underneath page-2 rows
+- Fix:
+  - teach `renderOverlayMenuUntilDismiss()` to paginate through
+    [`buildInventoryPages()`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    instead of rendering only page 1
+  - while paged, space now advances pages; non-dismiss keys remain ignored for
+    display-only flows
+  - force fullscreen clearing for multi-page overlay frames so page 2 is drawn
+    onto a clean tty-sized menu surface
+  - align the overlay footer cursor with the C tty position by placing it at
+    `offx + line.length`, not one column past that
+  - also fix the shared menu stack in
+    [`js/windows.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/windows.js)
+    so `select_menu(PICK_ANY)` actually renders paged menu lines rather than
+    tracking `currentPage` without changing the visible page
+- Validation:
+  - `t11_s754_w_covmax8_gp` regained full gameplay parity
+    (`RNG 20848/20848`, `events 3292/3292`)
+  - first screen divergence moved `451 -> 455`
+  - first remaining failures are display-only:
+    - screen `455`
+    - cursor `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
