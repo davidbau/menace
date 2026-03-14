@@ -75,7 +75,7 @@ import { change_luck, acurr } from './attrib.js';
 import { invault } from './vault.js';
 import { amulet } from './wizard.js';
 import { dosounds } from './sounds.js';
-import { find_ac } from './do_wear.js';
+import { find_ac, set_wear } from './do_wear.js';
 import { run_regions } from './region.js';
 
 const QUEST_PORTAL_INFO_BY_ROLE = {
@@ -1760,6 +1760,7 @@ export class NetHackGame {
         this.levels[startDlevel] = map;
         this.player.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;
+        await set_wear(this.player, null);
 
         // For manual-direct-live session replays, the preamble (rnd(9000)+rnd(30)) is
         // already consumed by simulatePostLevelInit above. If the player chose the tutorial,
