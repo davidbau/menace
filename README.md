@@ -133,22 +133,40 @@ High scores and tombstone. ISAAC64 PRNG, bit-identical to C NetHack.
 
 ---
 
-## What's Not Yet Implemented
+## Coverage
 
 *A cloud of gas surrounds you! You have a peculiar feeling about your code.*
 
-- **Shops** -- billing and payment are substantially ported; the full shop
-  economy (paying on exit, anger mechanics, guards) is not yet wired
-- **Special level events** -- all 131 levels generate correctly as maps,
-  but their unique triggers and scripted mechanics are mostly missing
-- **Player trap effects** -- monster traps work; the player `dotrap()`
-  path is not yet implemented
-- **Some artifact invocations** -- taming, healing, and energy-boost work;
-  portal creation, demon banishment, and a few others are stubs
+NetHack 3.7 has ~420,000 lines of C across ~8,600 functions.  This port
+tracks every C function in
+**[CODEMATCH.md](docs/CODEMATCH.md)**: of 3,779 gameplay-relevant
+functions, 3,297 are implemented, 129 are partial, 16 are stubs, and
+none are missing.  The remaining 621 unported functions are all in
+system/platform files (memory allocation, file I/O, Lua bindings, etc.)
+that have no JS equivalent by design.
 
-NetHack 3.7 has ~420,000 lines of C across ~8,600 functions. This port
-covers the core engine and most major systems in <span data-stat="js_lines_display">197,000+</span> lines of
-JavaScript. The Hive is aware of this.
+The JS codebase is smaller than the C (~197K vs ~420K lines) because
+~141K lines of headers, multi-platform windowing backends, build
+tooling, and the embedded Lua interpreter have no JS counterpart.
+The ~244K lines of gameplay C + Lua map to ~197K lines of JS (0.81×
+ratio — JS is structurally more compact).  Completing all remaining
+partial implementations would bring the total to roughly 200–205K
+lines.  See **[CODEMATCH.md](docs/CODEMATCH.md)** for the full
+function-level accounting.
+
+**Remaining depth.** The 129 partial implementations are concentrated
+in a few systems where edge-case paths are not yet fully wired:
+
+- **Traps** (26 partial) -- `dotrap()` core works; advanced effects
+  like `launch_obj`, `drown`, `climb_pit`, `lava_damage` are partial
+- **Monster-vs-hero combat** (17 partial) -- main attack pipeline works;
+  `gazemu`, `gulpmu`, `expels`, `doseduce` are partial
+- **Hero-vs-monster combat** (16 partial) -- core melee works; some
+  `mhitm_ad_*` type handlers are partial
+- **Artifact invocations** (17 partial) -- combat effects work;
+  invoke/retouch-intrinsic depth paths are partial
+- **Special level events** -- all 131 levels generate correctly as maps,
+  but their unique triggers and scripted mechanics are mostly unimplemented
 
 ---
 
