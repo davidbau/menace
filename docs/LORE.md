@@ -10780,3 +10780,37 @@ Validation:
     - buffer limit (`COLNO - 1`)
     - visible wrapped text
     - cursor movement on ignored extra keystrokes
+
+## 2026-03-14: blind `dolook()` must request a visible `--More--` marker
+
+- Context:
+  - After the prompt/input/footer cleanup, [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potprayspell_gp.session.json) had only one mismatch left:
+    - step `903`
+    - cursor-only
+  - C showed:
+    - `You try to feel what is lying here on the doorway.--More--`
+    - cursor after `--More--`
+  - JS showed only the base message and left the cursor at the end of the text.
+
+- Root cause:
+  - The blind `dolook()` intro in [`js/pager.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/pager.js) called:
+    - `await more(display, { site: 'pager.dolook.blindLook.morePrompt' })`
+  - `more()` only renders a marker when `forceVisual: true` is requested or when the display implementation itself already emitted one.
+  - This callsite wanted an explicit visible marker for parity with C `look_here()` paging, but never asked for it.
+
+- Fix:
+  - `pager.js:dolook()` blind intro now calls:
+    - `await more(display, { site: 'pager.dolook.blindLook.morePrompt', forceVisual: true })`
+
+- Result:
+  - [`pnd_s1200_w_potprayspell_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/potions-prayer-spells/pnd_s1200_w_potprayspell_gp.session.json) is now fully green:
+    - RNG `3125/3125`
+    - events `400/400`
+    - screens `905/905`
+    - colors `21720/21720`
+    - cursor `905/905`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json) remained fully green.
+
+- Practical lesson:
+  - An explicit `more()` boundary and a visible `--More--` marker are separate decisions in JS.
+  - Any tty-faithful gameplay page that is visibly blocked in C must request `forceVisual: true` unless the display path already rendered the marker itself.

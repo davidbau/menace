@@ -376,6 +376,7 @@ export async function dolook(game) {
             if (loc?.typ === ICE || loc?.typ === DOOR) skipTerrainDescription = true;
             await more(display, {
                 site: 'pager.dolook.blindLook.morePrompt',
+                forceVisual: true,
             });
         }
 
