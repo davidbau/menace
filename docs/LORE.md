@@ -11974,3 +11974,30 @@ Validation:
   - guardrails stayed green:
     - `seed329_rogue_wizard_gameplay`
     - `seed033_manual_direct`
+
+### Wizard identify display uses display-only full names
+
+- Problem: after gameplay parity went green on `t11_s754_w_covmax8_gp`, the
+  first remaining screen divergence was the wizard `^I` identify display. JS
+  still rendered raw inventory-order rows like `n - a maple wand`, while C
+  showed class-grouped rows like `Comestibles` and fully identified display
+  names such as `H - an uncursed food ration`.
+- Diagnosis: C `invent.c` wizard identify does not call real `identify()` for
+  menu display. It increments `iflags.override_ID`, then feeds `doname(otmp)`
+  into the menu. JS was reusing ordinary inventory-row formatting, so it kept
+  ordinary unknown names and raw inventory order.
+- Fix:
+  - factor [`buildInventoryOverlayLinesFromItems()`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    so display-only inventory menus can reuse the grouped class layout
+  - add a display-only fully identified name path in
+    [`js/invent.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/invent.js)
+    by cloning the object, setting the `known/bknown/rknown/dknown` display
+    flags, and calling `doname()` without mutating actual discovery state
+  - for display-only multi-page wizard identify, render the first visual page
+    with the C-style `(1 of 2)` footer instead of spilling later item rows into
+    row 23
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first screen divergence moved `450 -> 451`,
+    gameplay remained exact (`RNG 20848/20848`, `events 3292/3292`)
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green

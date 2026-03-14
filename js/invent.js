@@ -90,6 +90,30 @@ export function currency(amount) {
 
 // C ref: invent.c display_inventory() / display_pickinv()
 export function buildInventoryOverlayLines(player, filterFn = null) {
+    const items = Array.isArray(player?.inventory)
+        ? player.inventory.filter((item) => !filterFn || filterFn(item))
+        : [];
+    return buildInventoryOverlayLinesFromItems(items, player);
+}
+
+function displayOnlyFullyIdentifiedName(item, player) {
+    if (!item) return '';
+    const view = { ...item };
+    view.known = true;
+    view.bknown = true;
+    view.rknown = true;
+    view.dknown = true;
+    if (Is_container(view) || view.otyp === STATUE) {
+        view.cknown = true;
+        view.lknown = true;
+    } else if (view.otyp === TIN) {
+        view.cknown = true;
+    }
+    return doname(view, player);
+}
+
+function buildInventoryOverlayLinesFromItems(items, player, options = null) {
+    const fullyIdentify = !!options?.fullyIdentify;
     const CLASS_NAMES = {
         [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
         [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
@@ -101,8 +125,7 @@ export function buildInventoryOverlayLines(player, filterFn = null) {
         GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
 
     const groups = {};
-    for (const item of player.inventory || []) {
-        if (filterFn && !filterFn(item)) continue;
+    for (const item of items || []) {
         const cls = item?.oclass;
         if (!cls) continue;
         if (!groups[cls]) groups[cls] = [];
@@ -121,7 +144,9 @@ export function buildInventoryOverlayLines(player, filterFn = null) {
         if (!groups[cls]) continue;
         lines.push(CLASS_NAMES[cls] || 'Other');
         for (const item of groups[cls]) {
-            const named = doname(item, player);
+            const named = fullyIdentify
+                ? displayOnlyFullyIdentifiedName(item, player)
+                : doname(item, player);
             lines.push(`${item.invlet} - ${named}`);
         }
     }
@@ -2151,16 +2176,36 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         choices.push('_');
         choices.push(String.fromCharCode(wizIdentifyAccel));
 
+        const groupedLines = buildInventoryOverlayLinesFromItems(unid, p, { fullyIdentify: true })
+            .filter((line) => line !== '(end)');
+        lines.push(...groupedLines);
         for (const obj of unid) {
             const invlet = String(obj.invlet || '');
             if (!invlet) continue;
-            const line = xprname(obj, null, invlet, true, 0, 0, p);
-            lines.push(line);
             choices.push(invlet);
         }
 
         // C ref: wiz_identify uses add_menu_str for the title, not end_menu(prompt),
         // so line 0 should NOT have inverse video.
+        if (!want_reply && Number.isInteger(d?.rows)) {
+            const visualPages = buildInventoryPages(lines, d.rows);
+            if (visualPages.length > 1) {
+                const result = await renderOverlayMenuUntilDismiss(d, visualPages[0] || lines, choices.join(''), { noTitleInverse: true });
+                const selection = selectionFromInventoryResult(result);
+                if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
+                    await identify_pack(0, p, false);
+                    return '';
+                }
+                if (selection) {
+                    const target = unid.find((obj) => String(obj?.invlet || '') === selection);
+                    if (target && not_fully_identified(target)) {
+                        await identify(target);
+                        update_inventory(p);
+                    }
+                }
+                return '';
+            }
+        }
         const result = await renderOverlayMenuUntilDismiss(d, lines, choices.join(''), { noTitleInverse: true });
         const selection = selectionFromInventoryResult(result);
         if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
