@@ -11469,12 +11469,12 @@ Validation:
     - call `ship_object()` after the impact page and before final floor placement.
 
 - Validation:
-  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/pending/t22_s1250_w_digtrapmix_gp.session.json)
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
     - RNG `3655/3655`
     - events `650/650`
     - screens `220/220`
     - colors `5280/5280`
-    - remaining only cursor mismatch at step `216`
+    - cursor `220/220`
   - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
     - still fully green
   - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
@@ -11483,3 +11483,43 @@ Validation:
 - Practical lesson:
   - prompt-owned command UIs must not fork their own simplified gameplay implementations.
   - once a command has selected its object, it should rejoin the canonical core path; otherwise parity fixes land in dead code while the live command keeps diverging.
+
+2026-03-14
+
+- Coverage session: [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+
+- Problem:
+  - after the gameplay/state fixes were green, `t22` still had one cursor-only miss at step `216`:
+    - expected `[8,1,1]`
+    - actual `[79,0,1]`
+  - the visible screen already matched C, including a visible `--More--` on row `1`, so the remaining bug was repaint ownership, not gameplay.
+
+- Root cause:
+  - C `tty more()` in [`win/tty/topl.c`](/share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/win/tty/topl.c) does:
+    - if `curx >= CO - 8`, emit a newline before printing `--More--`
+  - JS [`renderMoreMarker()` in `js/headless.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/headless.js) and [`js/display.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/display.js) were still using a one-row policy for single-line toplines:
+    - append `--More--` on row `0`
+    - leave cursor ownership at the end of row `0`
+  - in `t22`, that left cursor parity wrong exactly when the visible marker belonged on row `1`.
+
+- Fix:
+  - update both JS `renderMoreMarker()` implementations to follow the C tty rule:
+    - if the current topline length is `>= cols - "--More--".length`, move the marker to the next row
+    - set the cursor after `--More--` on row `1`
+    - otherwise keep the existing same-row behavior
+
+- Validation:
+  - [`t22_s1250_w_digtrapmix_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/digging/t22_s1250_w_digtrapmix_gp.session.json)
+    - RNG `3655/3655`
+    - events `650/650`
+    - screens `220/220`
+    - colors `5280/5280`
+    - cursor `220/220`
+  - [`hi11_seed1100_wiz_zap-deep_gameplay.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/spells-reads-zaps/hi11_seed1100_wiz_zap-deep_gameplay.session.json)
+    - still fully green
+  - [`t01_s940_v_sinkmix2_gp.session.json`](/share/u/davidbau/git/mazesofmenace/mazes/test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s940_v_sinkmix2_gp.session.json)
+    - still fully green
+
+- Practical lesson:
+  - repaint parity should be explained with owner semantics, not vague boundary language.
+  - when C makes `--More--` visible on a different row, JS must transfer cursor ownership to that exact visible marker.

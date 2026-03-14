@@ -649,9 +649,15 @@ span.nh-cursor {
             this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
         } else {
             const msgLen = (this.topMessage || '').length;
-            const col = Math.min(msgLen, this.cols - moreStr.length);
-            this.putstr(col, MESSAGE_ROW, moreStr, CLR_GRAY);
-            this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
+            if (msgLen >= this.cols - moreStr.length) {
+                this.clearRow(MESSAGE_ROW + 1);
+                this.putstr(0, MESSAGE_ROW + 1, moreStr, CLR_GRAY);
+                this.setCursor(Math.min(moreStr.length, this.cols - 1), MESSAGE_ROW + 1);
+            } else {
+                const col = Math.min(msgLen, this.cols - moreStr.length);
+                this.putstr(col, MESSAGE_ROW, moreStr, CLR_GRAY);
+                this.setCursor(Math.min(col + moreStr.length, this.cols - 1), MESSAGE_ROW);
+            }
         }
     }
 
