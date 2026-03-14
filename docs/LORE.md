@@ -11823,3 +11823,29 @@ Validation:
     matched RNG increased `17297 -> 19901`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### `mfndpos()` must gate obstructed tiles through `rockok/treeok`
+
+- Problem: the next `t11_s754_w_covmax8_gp` frontier was in monster movement
+  for dwarf `44`. C hit `rn2(16)` in the `m_move()` revisit check, while JS
+  hit `rn2(32)`.
+- Diagnosis: targeted trace showed JS `mfndpos()` was admitting all eight
+  neighboring squares for that dwarf, including wall/corner tiles. C only had
+  four legal candidates there. The JS bug was treating `ALLOW_DIG` as
+  “all obstructed terrain is legal.”
+- Root cause: C `mon.c:mfndpos()` only admits obstructed terrain when either:
+  - `ALLOW_WALL && may_passwall(nx, ny)`, or
+  - `(IS_TREE ? treeok : rockok) && may_dig(nx, ny)`
+  and `rockok/treeok` depend on the monster's actual carried/wielded digging
+  tools. JS had reduced that to a broad `ALLOW_DIG` check and never modeled the
+  C `rockok/treeok` gate.
+- Fix: in [`js/mon.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/mon.js),
+  port the `rockok/treeok` gating logic into `mfndpos()`, including tool checks
+  across linked-list or array monster inventories, and require `may_dig()` for
+  obstructed squares.
+- Validation:
+  - `t11_s754_w_covmax8_gp`: first RNG divergence moved `1752 -> 1759`,
+    matched RNG increased `19901 -> 19998`, matched events increased
+    `2786 -> 2804`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green

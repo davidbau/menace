@@ -17,7 +17,7 @@
 // - passivemm: only AD_ACID/AD_ENCH/generic modeled; many passive types missing
 // - handleHiderPremove: no mimic furniture/object appearance selection
 
-import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, ACCESSIBLE,
+import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, IS_TREE, ACCESSIBLE,
          POOL, ROOM, WATER, LAVAWALL, IRONBARS,
          D_CLOSED, D_LOCKED, D_BROKEN,
          SHOPBASE, ROOMOFFSET, TEMPLE, isok,
@@ -66,24 +66,25 @@ import { makemon, makemon_appear } from './makemon.js';
 import { rn2, rnd, rnl, d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
          AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
-         ROCK_CLASS, RANDOM_CLASS, FOOD_CLASS, ARMOR_CLASS } from './objects.js';
+         ROCK_CLASS, RANDOM_CLASS, FOOD_CLASS, ARMOR_CLASS,
+         PICK_AXE, DWARVISH_MATTOCK, AXE, BATTLE_AXE, WEAPON_CLASS } from './objects.js';
 import { couldsee, m_cansee, cansee } from './vision.js';
 import { is_hider, hides_under, is_mindless, is_displacer, perceives,
          is_human, is_elf, is_dwarf, is_gnome, is_orc, is_shapeshifter,
          mon_knows_traps, passes_bars, nohands, is_clinger,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
-         is_golem, is_rider, is_mplayer, canseemon } from './mondata.js';
+         is_golem, is_rider, is_mplayer, canseemon, needspick } from './mondata.js';
 import { y_monnam, locomotion, Monnam, is_watch } from './mondata.js';
 import { PM_ANGEL, PM_GRID_BUG, PM_FIRE_ELEMENTAL, PM_SALAMANDER, PM_FLOATING_EYE, PM_MINOTAUR, PM_PURPLE_WORM, PM_BABY_PURPLE_WORM, PM_SHRIEKER, PM_GHOUL, PM_SKELETON, PM_DEATH, PM_PESTILENCE, PM_FAMINE, PM_LIZARD, PM_VLAD_THE_IMPALER, PM_DISPLACER_BEAST, PM_KOBOLD, PM_DWARF, PM_GNOME, PM_ORC, PM_ELF, PM_HUMAN, PM_GIANT, PM_ETTIN, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_KOBOLD_ZOMBIE, PM_DWARF_ZOMBIE, PM_GNOME_ZOMBIE, PM_ORC_ZOMBIE, PM_ELF_ZOMBIE, PM_HUMAN_ZOMBIE, PM_GIANT_ZOMBIE, PM_ETTIN_ZOMBIE, PM_KOBOLD_MUMMY, PM_DWARF_MUMMY, PM_GNOME_MUMMY, PM_ORC_MUMMY, PM_ELF_MUMMY, PM_HUMAN_MUMMY, PM_GIANT_MUMMY, PM_ETTIN_MUMMY, PM_STUDENT, PM_CHIEFTAIN, PM_NEANDERTHAL, PM_ATTENDANT, PM_PAGE, PM_ABBOT, PM_ACOLYTE, PM_HUNTER, PM_THUG, PM_ROSHI, PM_GUIDE, PM_WARRIOR, PM_APPRENTICE, PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER, PM_KNIGHT, PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE, PM_SAMURAI, PM_TOURIST, PM_VALKYRIE, PM_WIZARD, PM_IRON_GOLEM, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_WOOD_GOLEM, PM_ROPE_GOLEM, PM_LEATHER_GOLEM, PM_GOLD_GOLEM, PM_PAPER_GOLEM, PM_GREMLIN, PM_GELATINOUS_CUBE, PM_RUST_MONSTER, PM_STALKER, PM_GREEN_SLIME, PM_GRAY_DRAGON, PM_GOLD_DRAGON, PM_SILVER_DRAGON, PM_RED_DRAGON, PM_ORANGE_DRAGON, PM_WHITE_DRAGON, PM_BLACK_DRAGON, PM_BLUE_DRAGON, PM_GREEN_DRAGON, PM_YELLOW_DRAGON, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_LONG_WORM, PM_GRAY_OOZE, PM_BROWN_PUDDING, PM_BLACK_PUDDING, PM_STEAM_VORTEX, NUMMONS, mons, AT_NONE, AT_BOOM, AT_ENGL, AT_HUGS, AD_PHYS, AD_ACID, AD_ENCH, AD_STCK, M1_FLY, M1_SWIM, M1_AMPHIBIOUS, M1_AMORPHOUS, M1_WALLWALK, M1_BREATHLESS, M1_TUNNEL, M1_NEEDPICK, M1_SLITHY, M1_UNSOLID, MZ_TINY, MZ_MEDIUM, MZ_LARGE, MZ_HUMAN, MR_FIRE, MR_COLD, MR_SLEEP, MR_DISINT, MR_ELEC, MR_POISON, G_FREQ, G_GENO, G_NOCORPSE, G_UNIQ, S_EYE, S_LIGHT, S_EEL, S_PIERCER, S_MIMIC, S_UNICORN, S_ZOMBIE, S_LICH, S_KOBOLD, S_ORC, S_GIANT, S_HUMANOID, S_GNOME, S_KOP, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, S_VAMPIRE, PM_FLESH_GOLEM, PM_STONE_GOLEM, PM_ERINYS } from './monsters.js';
 import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER, TAINT_AGE, NON_PM,
          FIRE_RES, COLD_RES, SLEEP_RES, DISINT_RES, SHOCK_RES, POISON_RES,
          ACID_RES, STONE_RES, TELEPORT, TELEPORT_CONTROL, TELEPAT, LAST_PROP,
          EDOG, ESHK, has_emin, has_epri, has_eshk,
-         ACH_MEDU, I_SPECIAL } from './const.js';
+         ACH_MEDU, I_SPECIAL, NO_WEAPON_WANTED } from './const.js';
 import { S_poisoncloud } from './symbols.js';
 import { m_harmless_trap, m_at } from './trap.js';
 import { dist2, distmin } from './hacklib.js';
-import { in_rooms } from './hack.js';
+import { in_rooms, may_dig, may_passwall } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
 import { monsterAtWithSegments, worm_cross } from './worm.js';
 import { ansimpleoname, Has_contents, vtense, makeplural } from './objnam.js';
@@ -433,6 +434,19 @@ function cant_squeeze_thru_mon(mon) {
     return load > 600;
 }
 
+function mon_inventory_has(mon, otyp) {
+    if (!mon) return null;
+    if (Array.isArray(mon.minvent)) {
+        return mon.minvent.find((obj) => obj && obj.otyp === otyp) || null;
+    }
+    const seen = new Set();
+    for (let obj = mon.minvent; obj && typeof obj === 'object' && !seen.has(obj); obj = obj.nobj || null) {
+        if (obj.otyp === otyp) return obj;
+        seen.add(obj);
+    }
+    return null;
+}
+
 // C ref: monmove.c monlineu() — true if (nx,ny) lies on a line from mon through hero.
 // Used for NOTONL: shopkeepers/priests avoid standing on a line from hero.
 export function monlineu(mon, player, nx, ny) {
@@ -499,8 +513,9 @@ export function mfndpos(mon, map, player, flag) {
     const likesLava = (mon.mndx === PM_FIRE_ELEMENTAL || mon.mndx === PM_SALAMANDER);
     // C ref: mon.c:2160 — lavaok: flyers (not floaters) or lava-likers; exclude floating eye
     const lavaok = ((m_in_air && !isFloater) || likesLava) && mon.mndx !== PM_FLOATING_EYE;
-    // C ref: mon.c:2162 — thrudoor = passes_walls || BUSTDOOR
-    const thrudoor = !!((flag & (ALLOW_WALL | BUSTDOOR)) !== 0);
+    // C ref: mon.c:2162 — thrudoor = passes_walls || BUSTDOOR; digging-capable
+    // monsters can also pass doors once rockok/treeok is established below.
+    let thrudoor = !!((flag & (ALLOW_WALL | BUSTDOOR)) !== 0);
     const isAmorphous = !!(mflags1 & M1_AMORPHOUS);
     // C ref: mon.c:2164 — can_fog(mon): amorphous or unsolid fog form
     // Simplified: amorphous monsters can pass through doors
@@ -533,6 +548,26 @@ export function mfndpos(mon, map, player, flag) {
     const in_poisongas = visiblePoisonGasAt(omx, omy);
     const maxx = Math.min(omx + 1, COLNO - 1);
     const maxy = Math.min(omy + 1, ROWNO - 1);
+    let rockok = false;
+    let treeok = false;
+    if (flag & ALLOW_DIG) {
+        if (!needspick(mdat)) {
+            rockok = true;
+            treeok = true;
+        } else if (mon.weapon?.cursed && (mon.weapon_check ?? 0) === NO_WEAPON_WANTED) {
+            rockok = mon.weapon.otyp === PICK_AXE || mon.weapon.otyp === DWARVISH_MATTOCK;
+            treeok = mon.weapon.oclass === WEAPON_CLASS
+                && (mon.weapon.otyp === AXE || mon.weapon.otyp === BATTLE_AXE);
+        } else {
+            rockok = !!mon_inventory_has(mon, PICK_AXE)
+                || (!!mon_inventory_has(mon, DWARVISH_MATTOCK) && !which_armor(mon, W_ARMS));
+            treeok = !!mon_inventory_has(mon, AXE)
+                || (!!mon_inventory_has(mon, BATTLE_AXE) && !which_armor(mon, W_ARMS));
+        }
+        if (rockok || treeok) {
+            thrudoor = true;
+        }
+    }
 
     let nexttry = 0; // C ref: eel retry loop
     for (;;) {
@@ -548,7 +583,9 @@ export function mfndpos(mon, map, player, flag) {
 
             // C ref: mon.c:2192-2197 — IS_OBSTRUCTED: need ALLOW_WALL, ALLOW_ROCK, or ALLOW_DIG
             if (IS_OBSTRUCTED(ntyp)) {
-                if (!(flag & ALLOW_WALL) && !(flag & ALLOW_ROCK) && !(flag & ALLOW_DIG)) continue;
+                const wallPass = !!((flag & ALLOW_WALL) && may_passwall(nx, ny, map));
+                const digPass = !!((IS_TREE(ntyp) ? treeok : rockok) && may_dig(nx, ny, map));
+                if (!wallPass && !digPass) continue;
             }
             if (ntyp === WATER && !isSwimmer) continue;
             // C ref: mon.c:2203-2206 — IRONBARS: check ALLOW_BARS flag
