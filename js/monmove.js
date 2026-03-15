@@ -73,6 +73,7 @@ import { has_magic_key } from './artifact.js';
 import { envFlag } from './runtime_env.js';
 import { cuss } from './wizard.js';
 import { add_damage, after_shk_move, inhishop, shk_fixes_damage } from './shk.js';
+import { gd_move } from './vault.js';
 
 // Shared utilities — re-exported for consumers
 import { dist2, distmin, distu } from './hacklib.js';
@@ -1899,6 +1900,12 @@ export async function m_move(mon, map, player, display = null, fov = null) {
             move_special(mon, map, player, false, 1, false, true, ggx, ggy);
             return (mon.mx !== omx || mon.my !== omy) ? MMOVE_MOVED : MMOVE_NOTHING;
         }
+    }
+    if (mon.isgd) {
+        const xm = await gd_move(mon, map, player, fov);
+        if (xm === -2) return MMOVE_DIED;
+        if (xm === 1) return MMOVE_MOVED;
+        return MMOVE_NOTHING;
     }
 
     const ptr = mon.data || mon.type || mons[mon.mndx] || {};
