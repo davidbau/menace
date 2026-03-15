@@ -1,3 +1,6 @@
 [submodule "nethack-upstream"]
 	path = nethack-c/upstream
 	url = https://github.com/NetHack/NetHack.git
+[submodule "dungeon/fortran-upstream"]
+	path = dungeon/fortran-upstream
+	url = https://github.com/GOFAI/dungeon.git

@@ -1,0 +1,36 @@
+--- a/subr.f	2026-03-15 07:24:18
++++ b/subr.f	2026-03-15 07:25:36
+@@ -654,6 +654,7 @@
+ 	IMPLICIT INTEGER (A-Z)
+ 	INCLUDE 'dparam.for'
+ C
++	WRITE(0,*) 'FINDXT: dir=',DIR,' rm=',RM,' rexit=',REXIT(RM)
+ 	FINDXT=.TRUE.				! assume wins.
+ 	XI=REXIT(RM)				! find first entry.
+ 	IF(XI.EQ.0) GO TO 1000			! no exits?
+@@ -661,6 +662,9 @@
+ 100	I=TRAVEL(XI)				! get entry.
+ 	XROOM1=IAND(I, XRMASK)			! isolate room.
+ 	XTYPE=IAND((IAND(I, NOT(XLFLAG))/XFSHFT), XFMASK)+1
++	WRITE(0,*) '  xi=',XI,' entry=',I,' xroom1=',XROOM1,
++	1 ' xtype=',XTYPE,' entrydir=',IAND(I,XDMASK),
++	2 ' last=',IAND(I,XLFLAG).NE.0
+ 	GO TO (110,120,130,130),XTYPE		! branch on entry.
+ 	CALL BUG(10,XTYPE)
+ C
+@@ -668,9 +672,13 @@
+ 	XACTIO=TRAVEL(XI+2)/XASHFT
+ 120	XSTRNG=TRAVEL(XI+1)			! door/cexit/nexit - string.
+ 110	XI=XI+XELNT(XTYPE)			! advance to next entry.
+-	IF(IAND(I, XDMASK).EQ.DIR) RETURN	! match?
++	IF(IAND(I, XDMASK).EQ.DIR) THEN
++	  WRITE(0,*) '  MATCH! xroom1=',XROOM1,' xtype=',XTYPE
++	  RETURN				! match?
++	ENDIF
+ 	IF(IAND(I, XLFLAG).EQ.0) GO TO 100	! last entry?
+-1000	FINDXT=.FALSE.				! yes, lose.
++1000	FINDXT=.FALSE.
++	WRITE(0,*) '  NO MATCH for dir=',DIR
+ 	RETURN
+ C
+ 	END
