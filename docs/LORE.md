@@ -12585,3 +12585,44 @@ Validation:
     noise to a later `finalize_level()` vs `shkinit()` boundary,
   - first event divergence remains in the first shopkeeper inventory sequence,
     which is now the correct narrow next target.
+
+### Minetown wizload deferred finalize needs the earlier boundary hardening, and `dopay()` must import `GOLD_PIECE`
+
+- Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` showed the step-5 blocker was
+  not broad shrine/fixup noise anymore. The concrete bad state was in Minetown
+  wizload topology:
+  - JS left extra mineralize candidates alive on the left/right boundary,
+  - C already had `W_NONDIGGABLE` on those deferred-finalize edge stones.
+- The useful narrowing was:
+  - running the mineralize-eligibility scan over the step-5 mapdumps gave
+    `JS=63` vs `C=43`,
+  - the JS-only candidates were exactly:
+    - `x=3,y=10..14`
+    - `x=77,y=6..19`
+    - plus one terrain-side extra at `(46,17)`
+- Root cause for the boundary portion:
+  - the wizload split path already let script `des.finalize_level()` request a
+    deferred finalize,
+  - but `finalize_special_checkpoint_stage()` stopped before `bound_digging()`,
+    so the persistent first-pass edge hardening never happened in JS.
+- Fix:
+  - `js/sp_lev.js:finalize_special_checkpoint_stage()` now applies
+    `bound_digging(levelState.map)` when deferred finalize was requested,
+    restoring the C-faithful persistent edge hardening without duplicating
+    `mineralize()` RNG in the first stage.
+- This immediately moved `hi15` past the original step-5 wizload mineralize /
+  `shkinit()` blocker and exposed a later real shop path bug:
+  - `js/shk.js:dopay()` referenced `GOLD_PIECE` without importing it.
+  - importing `GOLD_PIECE` fixed that crash.
+- Validation after both fixes:
+  - `hi15_seed42_barb_minetn5_shop-pay_gp`
+    - improved from the original `step 5` wizload blocker to:
+      - `RNG 5869/6221`
+      - `events 94/450`
+      - `screens 34/57`
+      - `colors 1317/1368`
+    - current first visible mismatch is now much later, in the shop interaction
+      flow rather than special-level generation
+  - guard sessions remained green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
