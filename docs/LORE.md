@@ -12368,3 +12368,29 @@ Validation:
     session from that knowledge
   - this same method should be used to build long, high-yield sessions through
     quests, special levels, shops, and other expensive branch-dense areas
+## 2026-03-14: watched-cell repaint tracing is now a reusable parity tool
+
+- Problem:
+  - step-local screen mismatches were repeatedly collapsing to the same
+    question: for one square, in one short step range, which runtime writer
+    last touched it?
+  - `dbgmapdump` was good for settled state and `^repaint[...]` was good for
+    broad ownership, but neither gave a compact per-cell write timeline
+- Tooling:
+  - added watched-cell trace support to both runtime display implementations:
+    - `js/headless.js` for parity/session replay
+    - `js/display.js` for browser/runtime debugging
+  - added driver:
+    - `scripts/debug/repaint_square_trace.mjs`
+  - documented usage and guardrails:
+    - `docs/SQUARE_REPAINT_TRACE.md`
+    - `skills/square-repaint-triage/SKILL.md`
+- Usage:
+  - `node scripts/debug/repaint_square_trace.mjs <session> --cell <col,row> --steps <from-to> --stack`
+- First concrete payoff:
+  - on `t11_s754_w_covmax8_gp`, watching cell `34,18` over `1609-1611`
+    showed:
+    - `show_glyph()` writing the web glyph `"` to the square
+    - then `putMapCell()` restoring the spider glyph `s`
+  - that proved the live bug is repaint/write order on one runtime cell, not a
+    vague replay boundary issue or a generic settled-state trap mismatch
