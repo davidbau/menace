@@ -54,7 +54,7 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid, mon_nam, Monnam } from './do_name.js';
 import { makeplural, doname, fruitname, Tobjnam } from './objnam.js';
-import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head } from './mondata.js';
+import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists_acid } from './mondata.js';
 import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { do_enlightenment_effect, resist } from './zap.js';
@@ -1490,25 +1490,26 @@ async function potionhit(mon, obj, how, player, map) {
             break;
         case POT_CONFUSION:
         case POT_BOOZE:
-            mon.mconf = true;
+            // C ref: potion.c:1776 — resist gate before applying confusion
+            if (!resist(mon, POTION_CLASS))
+                mon.mconf = true;
             break;
         case POT_INVISIBILITY:
             angermon = false;
             // mon_set_minvis not called here to avoid import complexity
             break;
         case POT_SLEEPING: {
-            // C ref: potion.c potionhit() calls sleep_monst(mon, rnd(12), POTION_CLASS)
-            // sleep_monst calls resist(mon, POTION_CLASS) first
-            // C: angermon = FALSE for sleep potion
-            angermon = false;
+            // C ref: potion.c:1788-1793 — sleep_monst(mon, rnd(12), POTION_CLASS)
+            // C does NOT set angermon=FALSE for sleeping potions.
+            // wakeup(mon, TRUE) clears msleeping and makes hostile, but doesn't
+            // undo the mcanmove=0/mfrozen from sleep_monst.
             const sleepamt = rnd(12);
-            if (!resist(mon, POTION_CLASS)) {
+            if (!resist(mon, POTION_CLASS) && mon.mcanmove !== false) {
                 mon.mcanmove = false;
                 mon.mfrozen = Math.min((mon.mfrozen || 0) + sleepamt, 127);
-                // C ref: potionhit() — if canspotmon, print "falls asleep" then makeknown
-                if (canspotmon(mon, player)) {
-                    await pline("%s falls asleep.", Monnam(mon));
-                }
+                // C ref: potionhit() — print "falls asleep" and makeknown on success
+                // C does NOT gate on canspotmon here (unlike some other potion cases)
+                await pline("%s falls asleep.", Monnam(mon));
                 discoverObject(obj.otyp, true, true, false);
             }
             break;
@@ -1523,16 +1524,27 @@ async function potionhit(mon, obj, how, player, map) {
             angermon = false;
             // mon_adjust_speed(mon, 1, obj) — speed adjustment not called here
             break;
-        case POT_BLINDNESS:
-            if (mon.mcansee !== false) {
-                const btmp = Math.min(64 + rn2(32) + rn2(32) + (mon.mblinded || 0), 127);
+        case POT_BLINDNESS: {
+            // C ref: potion.c:1808-1815
+            // C: if (haseyes(mon->data) && !mon_perma_blind(mon))
+            //    btmp = 64 + rn2(32) + rn2(32) * !resist(mon, POTION_CLASS, 0, NOTELL);
+            const monData = mon.data || (mons ? mons[mon.mndx] : {});
+            if (haseyes(monData) && mon.mcansee !== false) {
+                const r1 = rn2(32);
+                const r2 = rn2(32);
+                const resisted = resist(mon, POTION_CLASS) ? 0 : 1;
+                const btmp = Math.min(64 + r1 + r2 * resisted + (mon.mblinded || 0), 127);
                 mon.mblinded = btmp;
                 mon.mcansee = false;
             }
             break;
+        }
         case POT_ACID: {
-            const acidDmg = c_d(obj.cursed ? 2 : 1, obj.blessed ? 4 : 8);
-            mon.mhp -= acidDmg;
+            // C ref: potion.c:1857 — resists_acid + resist gate
+            if (!resists_acid(mon) && !resist(mon, POTION_CLASS)) {
+                const acidDmg = c_d(obj.cursed ? 2 : 1, obj.blessed ? 4 : 8);
+                mon.mhp -= acidDmg;
+            }
             break;
         }
         case POT_WATER:
@@ -1540,10 +1552,17 @@ async function potionhit(mon, obj, how, player, map) {
             break;
         }
 
-        // wake monster if angered (C ref: potionhit — wakeup(mon) only when angermon)
-        if (mon.mhp > 0 && angermon) {
-            mon.msleeping = false;
-            mon.mpeaceful = false;
+        // C ref: potion.c:1884-1889 — post-switch wake logic
+        if (mon.mhp > 0) {
+            if (angermon) {
+                // C: wakeup(mon, TRUE) — clears msleeping, sets hostile
+                mon.msleeping = false;
+                mon.mpeaceful = false;
+            } else {
+                // C: mon->msleeping = 0 — clear natural sleep flag
+                // (frozen sleep via mcanmove/mfrozen is unaffected)
+                mon.msleeping = false;
+            }
         }
     }
 
@@ -1565,6 +1584,7 @@ async function potionhit(mon, obj, how, player, map) {
         && (!breathless(playerData) || haseyes(playerData))) {
         await potionbreathe(player, obj);
     } else if (obj.dknown) {
+        // C ref: also checks cansee(tx, ty) but JS doesn't have fov context here
         await trycall(obj);
     }
 }

@@ -21,6 +21,8 @@ import {
     BELL_OF_OPENING, UNICORN_HORN, BOULDER, ROCK,
     HEAVY_IRON_BALL, BALL_CLASS, CHAIN_CLASS,
     WAND_CLASS, RING_CLASS, TOOL_CLASS,
+    ELVEN_ARROW, ELVEN_SPEAR, ELVEN_DAGGER,
+    ELVEN_SHORT_SWORD, ELVEN_BROADSWORD, ELVEN_BOW,
 } from './objects.js';
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES, W_ARMH } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
@@ -1059,8 +1061,11 @@ export async function seffect_enchant_weapon(sobj, player, display) {
     // C: elven weapons vibrate warningly when enchanted beyond a limit
     // C: (spe > 5) && (is_elven_weapon || oartifact || !rn2(7))
     // rn2(7) only consumed when not elven and not artifact (short-circuit)
-    if (uwep.spe > 5 && !uwep.oartifact) {
-        rn2(7); // vibration check — is_elven_weapon not implemented, safe approximation
+    const is_elven = uwep.otyp === ELVEN_ARROW || uwep.otyp === ELVEN_SPEAR
+        || uwep.otyp === ELVEN_DAGGER || uwep.otyp === ELVEN_SHORT_SWORD
+        || uwep.otyp === ELVEN_BROADSWORD || uwep.otyp === ELVEN_BOW;
+    if (uwep.spe > 5 && !is_elven && !uwep.oartifact) {
+        rn2(7); // C: vibration check
     }
     return false;
 }
