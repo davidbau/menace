@@ -331,7 +331,10 @@ export function monmulti(mon, otmp) {
 
 function thrownObjectName(obj, player) {
     if (!obj) return 'a weapon';
-    if ((obj._m_shot || obj.m_shot) && Number.isInteger(obj.otyp)) {
+    const shot = obj._m_shot || obj.m_shot;
+    // C ref: thitu uses mshot_xname for multishot (n>1) which prepends "the Nth";
+    // single shots still go through doname for proper article + identified name.
+    if (shot && shot.n > 1 && Number.isInteger(obj.otyp)) {
         return mshot_xname(obj);
     }
     const oneShot = { ...obj, quan: 1, dknown: true };
