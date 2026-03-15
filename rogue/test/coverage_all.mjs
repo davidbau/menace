@@ -946,27 +946,74 @@ async function testOptionsScreen() {
   }));
   loadOptions();
 
-  // option() interactive screen:
-  // 'a' → toggle terse (bool)
-  // 'b' → toggle fight_flush (another bool)
-  // 'f' → edit whoami (string): type 'X', backspace, 'Y', enter
-  // 'g' → edit fruit (string): type 'A', ESC (restore)
-  // ' ' → save and quit
-  input.inject('a');    // toggle bool 0 (terse)
-  input.inject('b');    // toggle bool 1 (fight_flush)
-  input.inject('f');    // edit string 0 (whoami)
-  // inner loop for string editing:
-  input.inject('X');    // type char (buf.length < 30 branch)
-  input.inject('\x7f'); // backspace (buf.length > 0 branch)
-  input.inject('Y');    // type char
-  input.inject('\r');   // confirm (exit inner loop)
-  input.inject('g');    // edit string 1 (fruit)
-  // type 31 chars to hit the length-limit branch
-  for (let i = 0; i < 31; i++) input.inject('z');
-  input.inject('\x1b'); // escape (restore original, exit inner loop)
-  input.inject(' ');    // save and quit
+  // option() interactive screen — correct key sequences:
+  // get_bool: valid keys are 't', 'f', '\n', '\r', '\x1b', '\x07', '-'
+  // get_str: any chars, '\n'/'\r' to confirm, '\x1b'/'\x07' to quit
 
-  await option();
+  // Test 1: step through all bools with '\n' (keep current), then all strings with '\n'
+  // Then cover backspace (line 100) in get_str by: 'X', '\x7f', 'Y', '\n'
+  {
+    const { g: go, input: io } = await setupGame(67);
+    // 5 bools: all '\n' (keep current)
+    for (let i = 0; i < 5; i++) io.inject('\n');
+    // 3 strings: first with backspace test: 'X', '\x7f', 'Y', '\n'
+    io.inject('X'); io.inject('\x7f'); io.inject('Y'); io.inject('\n'); // whoami
+    // second string: 31 chars to hit buf.length limit
+    for (let i = 0; i < 31; i++) io.inject('z');
+    io.inject('\n'); // fruit
+    // third string: just enter
+    io.inject('\n'); // file_name
+    io.inject(' ');  // --Press space to continue--
+    await option();
+  }
+
+  // Test 2: cover MINUS in bool (lines 141-143): inject '-' at bool op=1 (go back to op=0)
+  {
+    const { g: go, input: io } = await setupGame(68);
+    io.inject('\n');   // bool 0: keep, NORM → op=1
+    io.inject('-');    // bool 1: MINUS → op > 0, go back: op=0
+    // Now at bool 0 again; need to step through remaining bools
+    for (let i = 0; i < 5; i++) io.inject('\n'); // bools 0-4
+    // MINUS at bool 0 (op===0 → lines 142-143)
+    // We need to go back to there... actually, after injecting 5 '\n' above we complete bools
+    // Instead let's do: first 0 → '-' at op=0 which covers op===0 branch
+    // Can't do it in same run, need separate...
+    // Add extra '\n' for all strings
+    for (let i = 0; i < 3; i++) io.inject('\n');
+    io.inject(' ');  // continue
+    await option();
+  }
+
+  // Test 3: cover MINUS at bool op=0 (line 142-143): '-' as first bool
+  {
+    const { g: go, input: io } = await setupGame(69);
+    io.inject('-');    // bool 0: MINUS at op=0 → op-- then op++ → stays at 0
+    for (let i = 0; i < 5; i++) io.inject('\n'); // complete bools
+    for (let i = 0; i < 3; i++) io.inject('\n'); // complete strings
+    io.inject(' ');
+    await option();
+  }
+
+  // Test 4: cover MINUS in str at op > 0 (lines 152-153): '-' at str op=1 (go back to op=0)
+  {
+    const { g: go, input: io } = await setupGame(70);
+    for (let i = 0; i < 5; i++) io.inject('\n'); // complete bools
+    io.inject('\n');   // str 0 (whoami): keep, NORM → op=1
+    io.inject('-');    // str 1 (fruit): MINUS at op > 0 → go to op=0
+    for (let i = 0; i < 3; i++) io.inject('\n'); // complete strs
+    io.inject(' ');
+    await option();
+  }
+
+  // Test 5: cover MINUS at str op=0 (lines 153-154)
+  {
+    const { g: go, input: io } = await setupGame(71);
+    for (let i = 0; i < 5; i++) io.inject('\n'); // complete bools
+    io.inject('-');    // str 0 (whoami): MINUS at op=0 → goes back visually, stays at 0
+    for (let i = 0; i < 3; i++) io.inject('\n'); // complete strs
+    io.inject(' ');
+    await option();
+  }
 
   console.assert(typeof g.terse === 'boolean', 'options: terse is bool');
 }
@@ -2180,6 +2227,890 @@ async function testPackPaths() {
 }
 
 // Always run direct coverage tests (skip with --sessions-only)
+async function testSticksPaths() {
+  const { do_zap } = await import('../js/sticks.js');
+  const {
+    WS_DRAIN, WS_MISSILE, WS_HIT, WS_ELECT, ISGONE,
+    R_SEARCH, R_TELEPORT,
+  } = await import('../js/const.js');
+
+  function mkStickItem(which, charges = 5) {
+    return new_item({
+      o_type: STICK, o_which: which, o_charges: charges, o_flags: 0,
+      o_count: 1, o_hplus: 0, o_dplus: 0, o_damage: '1d1', o_hurldmg: '1d1',
+      o_ac: 0, o_launch: 0, o_group: 0, o_pos: { x: 0, y: 0 },
+    });
+  }
+
+  function addMonsterAt(g, type, y, x, lvl = 5) {
+    const mitem = new_item({
+      t_pos: { x, y }, t_type: type, t_disguise: type, t_oldch: '.',
+      t_dest: null, t_flags: 0, t_pack: null, t_turn: true,
+      t_stats: { s_lvl: lvl, s_arm: 10, s_hpt: 200, s_dmg: '1d4', s_exp: 10,
+                 s_str: { st_str: 10, st_add: 0 } },
+    });
+    mitem.l_prev = null; mitem.l_next = g.mlist;
+    if (g.mlist) g.mlist.l_prev = mitem;
+    g.mlist = mitem;
+    g.mw[y][x] = type;
+    return mitem;
+  }
+
+  // WS_DRAIN in passage (lines 129-130): roomin returns null
+  {
+    const { g, input } = await setupGame(170);
+    // Mark all rooms as ISGONE so player is "in a passage"
+    for (const rp of g.rooms) rp.r_flags |= ISGONE;
+    g.player.t_pos = { x: 40, y: 12 };
+    // Add monsters near player for drain to drain
+    addMonsterAt(g, 'A', 11, 40);
+    addMonsterAt(g, 'B', 11, 41);
+    // Add WS_DRAIN stick to pack
+    const stick = mkStickItem(WS_DRAIN, 5);
+    g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+    g.delta = { y: 0, x: 1 };
+    g.player.t_stats.s_hpt = 1000;
+    // 'a' selects item; spaces for messages from drain/killed
+    input.inject('a');
+    for (let i = 0; i < 20; i++) input.inject(' ');
+    await do_zap(true);
+    g.pack = null; g.inpack = 0;
+  }
+
+  // WS_MISSILE bolt hits monster (lines 204-207): monster doesn't save → hit_monster
+  // WS_MISSILE bolt misses (lines 208-210): monster saves → "Missile vanishes"
+  {
+    for (const seed of [171, 172, 173, 174, 175]) {
+      const { g, input } = await setupGame(seed);
+      g.player.t_pos = { x: 10, y: 10 };
+      g.stdscr[10][10] = '.';
+      // Place monster at (10, 11) — 1 step right, low level so bolt likely hits
+      addMonsterAt(g, 'A', 10, 11, 3);
+      const stick = mkStickItem(WS_MISSILE, 3);
+      g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+      g.delta = { y: 0, x: 1 };
+      // 'a' selects item; spaces for hit/kill messages
+      input.inject('a');
+      for (let i = 0; i < 15; i++) input.inject(' ');
+      await do_zap(true);
+      g.pack = null; g.inpack = 0;
+    }
+  }
+
+  // WS_HIT no monster (line 233): delta toward empty space — if block not entered
+  {
+    const { g, input } = await setupGame(176);
+    g.player.t_pos = { x: 20, y: 10 };
+    g.stdscr[10][20] = '.';
+    g.stdscr[10][21] = '.'; // empty floor to the right — no monster
+    const stick = mkStickItem(WS_HIT, 5);
+    g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+    g.delta = { y: 0, x: 1 }; // right — no monster there
+    input.inject('a');
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await do_zap(true);
+    g.pack = null; g.inpack = 0;
+  }
+
+  // WS_HIT with monster: run many seeds to hit rnd(20)===0 (lines 226-227)
+  {
+    for (const seed of [177, 178, 179, 180, 181, 182, 183, 184, 185, 186,
+                        187, 188, 189, 190, 191, 192, 193, 194, 195, 196,
+                        197, 198, 199, 201, 202, 203]) {
+      const { g, input } = await setupGame(seed);
+      g.player.t_pos = { x: 20, y: 10 };
+      g.stdscr[10][20] = '.';
+      g.stdscr[10][21] = '.';
+      addMonsterAt(g, 'A', 10, 21, 5);
+      const stick = mkStickItem(WS_HIT, 1);
+      g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+      g.delta = { y: 0, x: 1 };
+      input.inject('a');
+      for (let i = 0; i < 15; i++) input.inject(' ');
+      await do_zap(true);
+      g.pack = null; g.inpack = 0;
+    }
+  }
+
+  // WS_ELECT bolt hitting monster (line 296: used=true) and bounced bolt (308-313)
+  {
+    // Set up bolt hitting monster (no save → used=true, line 296)
+    // Use low-level monster so save rarely succeeds
+    for (const seed of [204, 205, 206]) {
+      const { g, input } = await setupGame(seed);
+      g.player.t_pos = { x: 10, y: 10 };
+      g.stdscr[10][10] = '.';
+      addMonsterAt(g, 'A', 10, 11, 1); // very low level = rarely saves
+      const stick = mkStickItem(WS_ELECT, 3);
+      g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+      g.delta = { y: 0, x: 1 };
+      input.inject('a');
+      for (let i = 0; i < 15; i++) input.inject(' ');
+      await do_zap(true);
+      g.pack = null; g.inpack = 0;
+    }
+
+    // Bounced bolt hits player (lines 308-313)
+    // Wall at (10,12), player at (10,10), fire right → bolt bounces at (10,12) → hits player at (10,10)
+    for (const seed of [207, 208, 209, 210, 211]) {
+      const { g, input } = await setupGame(seed);
+      g.player.t_pos = { x: 10, y: 10 };
+      g.stdscr[10][10] = '.';
+      g.stdscr[10][11] = '.';
+      g.stdscr[10][12] = '|'; // wall 2 steps right → bolt bounces back to player
+      const stick = mkStickItem(WS_ELECT, 3);
+      g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+      g.delta = { y: 0, x: 1 };
+      input.inject('a');
+      for (let i = 0; i < 15; i++) input.inject(' ');
+      await do_zap(true);
+      g.pack = null; g.inpack = 0;
+    }
+  }
+}
+
+async function testThingsDrop() {
+  const { drop, dropcheck, new_thing, pick_one } = await import('../js/things.js');
+  const { R_ADDSTR, R_SEEINVIS } = await import('../js/const.js');
+
+  // drop() on FLOOR: player on FLOOR tile, drop single item
+  {
+    const { g, input } = await setupGame(212);
+    g.player.t_pos = { x: 20, y: 10 };
+    g.stdscr[10][20] = '.'; // FLOOR
+    const item = new_item({
+      o_type: POTION, o_which: 0, o_count: 1, o_flags: 0,
+      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    g.cur_weapon = null; g.cur_armor = null; g.cur_ring = [null, null];
+    // 'a' selects item; spaces for "Dropped ..." message
+    input.inject('a');
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await drop();
+    g.pack = null; g.inpack = 0;
+  }
+
+  // drop() o_count>=2 and not WEAPON: splits the stack (lines 226-229)
+  {
+    const { g, input } = await setupGame(213);
+    g.player.t_pos = { x: 20, y: 10 };
+    g.stdscr[10][20] = '.'; // FLOOR
+    const item = new_item({
+      o_type: POTION, o_which: 0, o_count: 3, o_flags: 0,
+      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    g.cur_weapon = null; g.cur_armor = null; g.cur_ring = [null, null];
+    input.inject('a');
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await drop();
+    g.pack = null; g.inpack = 0;
+  }
+
+  // dropcheck() R_ADDSTR ring (lines 264-265)
+  {
+    const { g } = await setupGame(214);
+    const ring = { o_type: RING, o_which: R_ADDSTR, o_ac: 2, o_flags: 0,
+                   o_count: 1, o_hplus: 0, o_dplus: 0, o_group: 0, o_charges: 0,
+                   o_pos: { x: 0, y: 0 }, o_damage: '0d0', o_hurldmg: '0d0', o_launch: 0 };
+    g.cur_ring = [ring, null];
+    const result = dropcheck(ring);
+    console.assert(result === true, 'dropcheck R_ADDSTR returns true');
+    g.cur_ring = [null, null];
+  }
+
+  // dropcheck() R_SEEINVIS ring (lines 267-271)
+  {
+    const { g } = await setupGame(215);
+    const ring = { o_type: RING, o_which: R_SEEINVIS, o_ac: 0, o_flags: 0,
+                   o_count: 1, o_hplus: 0, o_dplus: 0, o_group: 0, o_charges: 0,
+                   o_pos: { x: 0, y: 0 }, o_damage: '0d0', o_hurldmg: '0d0', o_launch: 0 };
+    g.cur_ring = [ring, null];
+    g.player.t_pos = { x: 20, y: 10 };
+    const result = dropcheck(ring);
+    console.assert(result === true, 'dropcheck R_SEEINVIS returns true');
+    g.cur_ring = [null, null];
+  }
+
+  // new_thing() FOOD (lines 364-365): run many seeds until we get FOOD (default case)
+  {
+    for (const seed of [216, 217, 218, 219, 220, 221, 222, 223, 224, 225,
+                        226, 227, 228, 229, 230]) {
+      const { g } = await setupGame(seed);
+      const item = new_thing();
+      // Just run it - FOOD is the default case, covered statistically
+    }
+  }
+}
+
+async function testCommandMore() {
+  const { command } = await import('../js/command.js');
+  const {
+    R_SEARCH, R_TELEPORT, LEFT, RIGHT,
+  } = await import('../js/const.js');
+  const { sprintf, resetCursorState, printw, wprintw, mvwprintw } = await import('../js/curses.js');
+
+  // ISRING R_SEARCH on LEFT: runs _search after command (lines 202-204)
+  {
+    const { g, input } = await setupGame(231);
+    g.player.t_pos = { x: 20, y: 10 };
+    g.cur_ring = [
+      { o_type: RING, o_which: R_SEARCH, o_ac: 0, o_flags: 0 },
+      null,
+    ];
+    // space = rest; command reads it, dispatches rest, then checks ring ISRING
+    input.inject(' ');
+    for (let i = 0; i < 20; i++) input.inject(' ');
+    await command();
+    g.cur_ring = [null, null];
+  }
+
+  // ISRING R_SEARCH on RIGHT: runs _search after command (lines 207-209)
+  {
+    const { g, input } = await setupGame(232);
+    g.player.t_pos = { x: 20, y: 10 };
+    g.cur_ring = [
+      null,
+      { o_type: RING, o_which: R_SEARCH, o_ac: 0, o_flags: 0 },
+    ];
+    input.inject(' ');
+    for (let i = 0; i < 20; i++) input.inject(' ');
+    await command();
+    g.cur_ring = [null, null];
+  }
+
+  // 't' throw when get_dir returns false (lines 237-238): inject ESC
+  {
+    const { g, input } = await setupGame(233);
+    g.terse = true;
+    input.inject('t');    // 't' command
+    input.inject('\x1b'); // ESC → get_dir returns false → g.after=false
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await command();
+    console.assert(g.after === false, 't-cancel: after is false');
+    g.terse = false;
+  }
+
+  // 'p' zap-with-pointer when get_dir returns false (lines 264-265): inject ESC
+  {
+    const { g, input } = await setupGame(234);
+    g.terse = true;
+    input.inject('p');    // 'p' command
+    input.inject('\x1b'); // ESC → get_dir returns false → g.after=false
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await command();
+    console.assert(g.after === false, 'p-cancel: after is false');
+    g.terse = false;
+  }
+
+  // Ctrl-L: redraw (lines 271-273)
+  {
+    const { g, input } = await setupGame(235);
+    input.inject('\x0c'); // Ctrl-L
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await command();
+    // g.after should be false (draw was called)
+  }
+
+  // 'S' save game (lines 279-286): saves and sets g.playing=false
+  {
+    const { g, input } = await setupGame(236);
+    input.inject('S');  // dispatch 'S'
+    input.inject('y');  // confirm save
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await command();
+    clearSave(); // clean up
+  }
+
+  // curses.js printw/wprintw/mvwprintw (lines 155-173)
+  {
+    const { g } = await setupGame(237);
+    printw('%s %d', 'hello', 42);    // uses stdscr
+    wprintw(g.cw, '%s', 'world');    // uses specific window
+    mvwprintw(g.cw, 5, 5, '%d', 7); // move + print
+  }
+
+  // curses.js resetCursorState (lines 216-219)
+  {
+    const { g } = await setupGame(238);
+    resetCursorState();
+  }
+
+  // sprintf width/pad and type variants (lines 281-295)
+  {
+    // 'd'/'i' with positive width (padStart)
+    console.assert(sprintf('%5d', [42]) === '   42', 'sprintf %5d');
+    // 'd'/'i' with negative width (padEnd = left-align)
+    console.assert(sprintf('%-5d', [42]) === '42   ', 'sprintf %-5d');
+    // 's' with precision
+    console.assert(sprintf('%.3s', ['hello']) === 'hel', 'sprintf %.3s prec');
+    // 's' with negative width (padEnd)
+    console.assert(sprintf('%-5s', ['hi']) === 'hi   ', 'sprintf %-5s padEnd');
+    // 's' with positive width (padStart)
+    console.assert(sprintf('%5s', ['hi']) === '   hi', 'sprintf %5s padStart');
+    // 'u' unsigned
+    console.assert(sprintf('%u', [-1]) === '4294967295', 'sprintf %u');
+    // 'f' float
+    console.assert(sprintf('%f', [3.14]) === '3.14', 'sprintf %f');
+    // 'e' scientific
+    const e = sprintf('%e', [1000.0]);
+    console.assert(typeof e === 'string', 'sprintf %e');
+    // 'g'
+    const gv = sprintf('%g', [0.001]);
+    console.assert(typeof gv === 'string', 'sprintf %g');
+    // 'o' octal
+    console.assert(sprintf('%o', [8]) === '10', 'sprintf %o');
+    // 'x' hex
+    console.assert(sprintf('%x', [255]) === 'ff', 'sprintf %x');
+    // 'X' hex upper
+    console.assert(sprintf('%X', [255]) === 'FF', 'sprintf %X');
+    // 'c' char
+    console.assert(sprintf('%c', [65]) === 'A', 'sprintf %c char');
+  }
+}
+
+async function testMainPlayit() {
+  const { playit } = await import('../js/main.js');
+
+  // playit() runs command() in a loop while g.playing; quit immediately
+  {
+    const { g, input } = await setupGame(239);
+    input.inject('Q'); // Q = quit
+    input.inject('y'); // confirm quit → g.playing=false → loop ends
+    for (let i = 0; i < 20; i++) input.inject(' ');
+    await playit();
+    console.assert(g.playing === false, 'playit: quit sets playing false');
+  }
+}
+
+async function testMoreCoverage() {
+  // ==== sticks.js: WS_LIGHT in corridor, WS_DRAIN hpt<2, more WS_HIT seeds ====
+  const { do_zap } = await import('../js/sticks.js');
+  const { WS_LIGHT, WS_DRAIN, WS_HIT, WS_ELECT, ISGONE } = await import('../js/const.js');
+
+  function mkStick2(which, charges = 5) {
+    return new_item({
+      o_type: STICK, o_which: which, o_charges: charges, o_flags: 0,
+      o_count: 1, o_hplus: 0, o_dplus: 0, o_damage: '1d1', o_hurldmg: '1d1',
+      o_ac: 0, o_launch: 0, o_group: 0, o_pos: { x: 0, y: 0 },
+    });
+  }
+
+  function addMon2(g, type, y, x, lvl = 5) {
+    const mitem = new_item({
+      t_pos: { x, y }, t_type: type, t_disguise: type, t_oldch: '.',
+      t_dest: null, t_flags: 0, t_pack: null, t_turn: true,
+      t_stats: { s_lvl: lvl, s_arm: 10, s_hpt: 200, s_dmg: '1d4', s_exp: 10,
+                 s_str: { st_str: 10, st_add: 0 } },
+    });
+    mitem.l_prev = null; mitem.l_next = g.mlist;
+    if (g.mlist) g.mlist.l_prev = mitem;
+    g.mlist = mitem;
+    g.mw[y][x] = type;
+    return mitem;
+  }
+
+  // sticks.js line 110: WS_LIGHT in corridor (not in a room)
+  {
+    const { g, input } = await setupGame(240);
+    for (const rp of g.rooms) rp.r_flags |= ISGONE;
+    g.player.t_pos = { x: 40, y: 12 };
+    const stick = mkStick2(WS_LIGHT, 3);
+    g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+    g.delta = { y: 0, x: 1 };
+    input.inject('a');
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await do_zap(true);
+    g.pack = null; g.inpack = 0;
+  }
+
+  // sticks.js lines 124-126: WS_DRAIN when player.hpt < 2
+  {
+    const { g, input } = await setupGame(241);
+    g.player.t_stats.s_hpt = 1; // too weak
+    const stick = mkStick2(WS_DRAIN, 3);
+    g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+    g.delta = { y: 0, x: 1 };
+    input.inject('a');
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    await do_zap(true);
+    g.pack = null; g.inpack = 0;
+  }
+
+  // sticks.js lines 226-227: WS_HIT rnd(20)===0 — need ~60 seeds for ~95% hit rate
+  {
+    for (const seed of [242, 243, 244, 245, 246, 247, 248, 249, 250, 251,
+                        252, 253, 254, 255, 256, 257, 258, 259, 260, 261,
+                        262, 263, 264, 265, 266, 267, 268, 269, 270, 271,
+                        272, 273, 274, 275, 276, 277, 278, 279, 280, 281,
+                        282, 283, 284, 285, 286, 287, 288, 289, 290, 291]) {
+      const { g, input } = await setupGame(seed);
+      g.player.t_pos = { x: 20, y: 10 };
+      g.stdscr[10][20] = '.'; g.stdscr[10][21] = '.';
+      addMon2(g, 'A', 10, 21, 5);
+      const stick = mkStick2(WS_HIT, 1);
+      g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+      g.delta = { y: 0, x: 1 };
+      input.inject('a');
+      for (let i = 0; i < 15; i++) input.inject(' ');
+      await do_zap(true);
+      g.pack = null; g.inpack = 0;
+    }
+  }
+
+  // sticks.js lines 312-313: bounced bolt whizzes by player (player saves)
+  {
+    for (const seed of [292, 293, 294, 295, 296, 297, 298, 299, 300, 301,
+                        302, 303, 304, 305, 306, 307]) {
+      const { g, input } = await setupGame(seed);
+      g.player.t_pos = { x: 10, y: 10 };
+      g.stdscr[10][10] = '.'; g.stdscr[10][11] = '.'; g.stdscr[10][12] = '|';
+      g.player.t_stats.s_hpt = 10000; g.max_hp = 10000;
+      const stick = mkStick2(WS_ELECT, 3);
+      g.pack = stick; stick.l_prev = null; stick.l_next = null; g.inpack = 1;
+      g.delta = { y: 0, x: 1 };
+      input.inject('a');
+      for (let i = 0; i < 15; i++) input.inject(' ');
+      await do_zap(true);
+      g.pack = null; g.inpack = 0;
+    }
+  }
+
+  // ==== things.js: inv_name branches, money(), drop() on non-floor ====
+  const { inv_name, money, drop } = await import('../js/things.js');
+
+  // inv_name: RING with r_guess set (line 141)
+  {
+    const { g } = await setupGame(308);
+    g.r_guess[0] = 'speedy ring';
+    g.r_stones[0] = 'jade';
+    const ring = { o_type: RING, o_which: 0, o_flags: 0, o_ac: 0, o_count: 1,
+                   o_hplus: 0, o_dplus: 0, o_group: 0, o_pos: { x: 0, y: 0 },
+                   o_damage: '0d0', o_hurldmg: '0d0', o_launch: 0, o_charges: 0 };
+    const name = inv_name(ring, false);
+    console.assert(name.includes('called'), `inv_name ring guess: "${name}"`);
+    g.r_guess[0] = null;
+  }
+
+  // inv_name: default case (line 148) — unknown o_type char (not any known item type)
+  {
+    const { g } = await setupGame(309);
+    const weird = { o_type: 'X', o_which: 0, o_flags: 0, o_ac: 0, o_count: 1,
+                    o_hplus: 0, o_dplus: 0, o_group: 0, o_pos: { x: 0, y: 0 },
+                    o_damage: '0d0', o_hurldmg: '0d0', o_launch: 0, o_charges: 0 };
+    const name = inv_name(weird, false);
+    console.assert(name.includes('bizarre'), `inv_name default: "${name}"`);
+  }
+
+  // inv_name: !drop + prbuf starts lowercase → capitalize (lines 158-160)
+  {
+    const { g } = await setupGame(310);
+    // Armor with ISKNOW — num() returns '+1' which starts with '+', not a letter
+    // Let's use FOOD with o_which=1 fruit='papaya' → prbuf='A papaya' or...
+    // Actually need prbuf[0] to be lowercase. Food o_count>1: prbuf='N papayas'
+    // No, use food with count=1 → 'A papaya'. That starts with 'A' (uppercase).
+    // For the !drop && lowercase path: use food with o_count=2 → '2 papayas'.
+    // Hmm. Let me try potion not known, count=2 → '2 <color> potions' starts with '2'.
+    // Actually what starts with lowercase? Let me use POTION known, o_count=2 → '2 potions...'
+    // That starts with '2', not a letter. Needs first char to be a lowercase letter.
+    // A ring 'A some ring' starts with 'A' (uppercase).
+    // What about 'Armor' with ISKNOW: num() = '+0 armor_name' — starts with '+'
+    // Hmm. Let me just pass drop=false with an item whose prbuf[0] IS lowercase:
+    // POTION with p_know=true, o_count=1 → 'A potion of ...' starts with 'A'.
+    // Actually I realize drop=true returns lowercase, drop=false capitalizes.
+    // For line 158: `prbuf[0] >= 'a' && <= 'z'` → needs lowercase start.
+    // This would happen with FOOD drop=false when prbuf starts with 's' (Some food).
+    // 'Some food' starts with 'S', not lowercase.
+    // How about: nothing in the list naturally produces lowercase[0]...
+    // Maybe the default case: 'Something bizarre ...' starts with 'S'.
+    // Actually wait - after the switch, prbuf is set. Then:
+    //   if (drop && prbuf[0] >= 'A' && 'Z') → lowercase prbuf
+    //   else if (!drop && prbuf[0] >= 'a' && 'z') → uppercase prbuf
+    // For !drop path: prbuf[0] must be 'a'-'z'. When can prbuf start with lowercase?
+    // Only if the switch produces lowercase... let me check all cases.
+    // Most cases start with 'A' or a digit. But WEAPON o_count>1: starts with digit.
+    // ARMOR with !ISKNOW: starts with g.a_names[0][0] which could be anything.
+    // Actually armor names in data.js start with 'Leather', 'Ring Mail', etc. → uppercase.
+    // Hmm. Let me just try: drop=true → lowercase → then call inv_name(item, false) on same item
+    // Actually after drop=true: prbuf[0] is lowercased. Then if we call inv_name with drop=false
+    // on same obj, it rebuilds prbuf fresh, not using the previous lowercase.
+    // I think line 158-160 might be a dead path too...
+    // Actually no. Let me re-read: the switch builds prbuf. If no case matches, prbuf=''.
+    // Then line 156: if (drop && prbuf[0] >= 'A') → only if prbuf is non-empty uppercase
+    // line 158: else if (!drop && prbuf[0] >= 'a') → only if prbuf starts lowercase
+    // When would prbuf[0] be lowercase for any item type? Let me look...
+    // None of the cases above produce a lowercase[0] prbuf! So lines 158-160 are dead code.
+    // But wait: num() can return '+0' → prbuf = '+0 sword' etc. Not lowercase.
+    // Actually, could be armor with ISKNOW and negative bonus: prbuf = '-1 armor_name'.
+    // Still starts with '-', not a letter.
+    // Hmm - what if a_names has a lowercase entry? Let me check data.js...
+    const name = inv_name({ o_type: RING, o_which: 0, o_flags: 0, o_ac: 0, o_count: 1,
+                            o_hplus: 0, o_dplus: 0, o_group: 0, o_pos: {x:0,y:0},
+                            o_damage: '0d0', o_hurldmg: '0d0', o_launch: 0, o_charges: 0 },
+                          false);
+    // This just covers the ring case without r_guess/r_know → 'A jade ring' etc.
+  }
+
+  // money() when no gold at player position (line 206)
+  {
+    const { g, input } = await setupGame(311);
+    g.player.t_pos = { x: 20, y: 10 };
+    // No room has gold at player's position
+    for (const rp of g.rooms) rp.r_goldval = 0;
+    input.inject(' ');
+    await money();
+  }
+
+  // drop() when player NOT on FLOOR or PASSAGE (lines 216-218)
+  {
+    const { g, input } = await setupGame(312);
+    g.player.t_pos = { x: 20, y: 10 };
+    g.stdscr[10][20] = '+'; // DOOR — not FLOOR or PASSAGE
+    const item = new_item({
+      o_type: POTION, o_which: 0, o_count: 1, o_flags: 0,
+      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    input.inject(' '); // for "There is something there already" message
+    await drop();
+    g.pack = null; g.inpack = 0;
+  }
+
+  // ==== command.js: count prefix and 'f' fight command ====
+  const { command } = await import('../js/command.js');
+
+  // count prefix (lines 145-165): inject '3j' → count=3, then move south
+  {
+    const { g, input } = await setupGame(313);
+    g.player.t_pos = { x: 20, y: 10 };
+    // Make south safe to move (floor tiles)
+    for (let y = 10; y <= 14; y++) g.stdscr[y][20] = '.';
+    input.inject('3'); // digit prefix
+    input.inject('j'); // move south
+    for (let i = 0; i < 20; i++) input.inject(' ');
+    await command();
+  }
+
+  // count prefix non-repeatable command (line 162-164): inject '3Q' → count reset
+  {
+    const { g, input } = await setupGame(314);
+    input.inject('3');   // digit prefix
+    input.inject('Q');   // Q = quit, not in repeatable list → count=0
+    input.inject('n');   // decline quit
+    for (let i = 0; i < 10; i++) input.inject(' ');
+    await command();
+  }
+
+  // 'f' fight command (lines 168-180): inject 'fj' → fight south
+  {
+    const { g, input } = await setupGame(315);
+    g.player.t_pos = { x: 20, y: 10 };
+    for (let y = 10; y <= 15; y++) g.stdscr[y][20] = '.';
+    input.inject('f'); // fight command
+    input.inject('j'); // direction south
+    for (let i = 0; i < 10; i++) input.inject(' ');
+    await command();
+  }
+
+  // R_TELEPORT ring: run many commands to hit 2% teleport (lines 205-206, 210-211)
+  {
+    const { R_TELEPORT } = await import('../js/const.js');
+    const { g, input } = await setupGame(316);
+    g.cur_ring = [
+      null,
+      { o_type: RING, o_which: R_TELEPORT, o_ac: 0, o_flags: 0 },
+    ];
+    g.player.t_pos = { x: 20, y: 10 };
+    // Inject many space keys for 200 command() iterations + messages
+    for (let i = 0; i < 600; i++) input.inject(' ');
+    // Run 200 commands; each has 2% chance of teleport on RIGHT ring
+    for (let i = 0; i < 200; i++) {
+      if (!g.playing) break;
+      await command();
+    }
+    g.cur_ring = [null, null];
+  }
+
+  // Also cover LEFT R_TELEPORT
+  {
+    const { R_TELEPORT } = await import('../js/const.js');
+    const { g, input } = await setupGame(317);
+    g.cur_ring = [
+      { o_type: RING, o_which: R_TELEPORT, o_ac: 0, o_flags: 0 },
+      null,
+    ];
+    g.player.t_pos = { x: 20, y: 10 };
+    for (let i = 0; i < 600; i++) input.inject(' ');
+    for (let i = 0; i < 200; i++) {
+      if (!g.playing) break;
+      await command();
+    }
+    g.cur_ring = [null, null];
+  }
+
+  // ==== things.js: more inv_name branches ====
+  {
+    // POTION with p_know, o_count > 1 (line 82)
+    {
+      const { g } = await setupGame(319);
+      g.p_know[0] = true;
+      const pot = { o_type: POTION, o_which: 0, o_count: 3, o_flags: 0,
+                    o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+                    o_pos: { x:0,y:0 }, o_damage: '0d0', o_hurldmg: '0d0' };
+      const name = inv_name(pot, false);
+      console.assert(name.includes('potions'), `inv_name potion known multi: "${name}"`);
+      g.p_know[0] = false;
+    }
+
+    // POTION with p_guess, o_count=1 (lines 85-87)
+    {
+      const { g } = await setupGame(320);
+      g.p_guess[0] = 'healing';
+      const pot = { o_type: POTION, o_which: 0, o_count: 1, o_flags: 0,
+                    o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+                    o_pos: { x:0,y:0 }, o_damage: '0d0', o_hurldmg: '0d0' };
+      const name = inv_name(pot, false);
+      console.assert(name.includes('called'), `inv_name potion guess single: "${name}"`);
+      g.p_guess[0] = null;
+    }
+
+    // POTION with p_guess, o_count > 1 (lines 85-87)
+    {
+      const { g } = await setupGame(321);
+      g.p_guess[0] = 'mana';
+      const pot = { o_type: POTION, o_which: 0, o_count: 2, o_flags: 0,
+                    o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+                    o_pos: { x:0,y:0 }, o_damage: '0d0', o_hurldmg: '0d0' };
+      const name = inv_name(pot, false);
+      console.assert(name.includes('potions'), `inv_name potion guess multi: "${name}"`);
+      g.p_guess[0] = null;
+    }
+
+    // FOOD with o_which=1 (fruit), o_count > 1 (lines 97-98)
+    {
+      const { g } = await setupGame(322);
+      g.fruit = 'mango';
+      const food = { o_type: FOOD, o_which: 1, o_count: 3, o_flags: 0,
+                     o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+                     o_pos: { x:0,y:0 }, o_damage: '0d0', o_hurldmg: '0d0' };
+      const name = inv_name(food, false);
+      console.assert(name.includes('mango'), `inv_name food fruit multi: "${name}"`);
+    }
+
+    // STICK with ws_guess set (line 130)
+    {
+      const { g } = await setupGame(323);
+      g.ws_guess[0] = 'lightning';
+      g.ws_type = g.ws_type || new Array(20).fill('wand');
+      g.ws_made = g.ws_made || new Array(20).fill('oak');
+      const stick = { o_type: STICK, o_which: 0, o_count: 1, o_flags: 0,
+                      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 5,
+                      o_pos: { x:0,y:0 }, o_damage: '0d0', o_hurldmg: '0d0' };
+      const name = inv_name(stick, false);
+      console.assert(name.includes('called'), `inv_name stick guess: "${name}"`);
+      g.ws_guess[0] = null;
+    }
+  }
+
+  // ==== curses.js: _arr fallback, _state fallback, winch() ====
+  const { winch, mvwaddch: cwAddch, wmove } = await import('../js/curses.js');
+  {
+    const { g } = await setupGame(318);
+    // Pass arbitrary array to trigger _arr fallback (line 36) and _state fallback (line 45)
+    const customWin = [];
+    for (let r = 0; r < 24; r++) customWin[r] = new Array(80).fill(' ');
+    cwAddch(customWin, 5, 5, 'X'); // triggers _arr(customWin) → return win (line 36)
+    wmove(customWin, 5, 5);        // triggers _state(customWin) → return _stdscrState (line 45)
+    // winch() (lines 61-63)
+    const ch = winch(g.cw);
+    console.assert(typeof ch === 'string', 'winch returns string');
+  }
+}
+
+async function testFinalPush() {
+  // ==== armor.js line 51: terse wear armor ====
+  {
+    const { wear } = await import('../js/armor.js');
+    const { ARMOR: ARMTYPE } = await import('../js/const.js');
+    const { g, input } = await setupGame(324);
+    g.terse = true;
+    g.cur_armor = null;
+    const armorItem = new_item({
+      o_type: ARMTYPE, o_which: 0, o_count: 1, o_flags: 0,
+      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 7,
+      o_damage: '0d0', o_hurldmg: '0d0', o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = armorItem; armorItem.l_prev = null; armorItem.l_next = null; g.inpack = 1;
+    input.inject('a');          // select armor item from get_item
+    for (let i = 0; i < 10; i++) input.inject(' '); // --More-- messages
+    await wear();
+    g.terse = false;
+    g.cur_armor = null;
+    g.pack = null; g.inpack = 0;
+  }
+
+
+  // ==== pack.js 206, 214: slow_invent inventory ====
+  {
+    const { inventory } = await import('../js/pack.js');
+    const { g, input } = await setupGame(325);
+    g.slow_invent = true;
+    const mk = (otype, owhich) => {
+      const it = new_item({
+        o_type: otype, o_which: owhich, o_count: 1, o_flags: 0,
+        o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+        o_damage: '0d0', o_hurldmg: '0d0', o_pos: { x: 0, y: 0 },
+      });
+      return it;
+    };
+    const i1 = mk(WEAPON, 0);
+    const i2 = mk(WEAPON, 1);
+    const i3 = mk(POTION, 0);
+    i1.l_prev = null; i1.l_next = i2;
+    i2.l_prev = i1; i2.l_next = i3;
+    i3.l_prev = i2; i3.l_next = null;
+    g.pack = i1; g.inpack = 3;
+    for (let i = 0; i < 15; i++) input.inject(' ');
+    await inventory(g.pack, 0);
+    g.slow_invent = false;
+    g.pack = null; g.inpack = 0;
+  }
+
+
+  // ==== pack.js 320-321: '*' during get_item loops back ====
+  {
+    const { wield } = await import('../js/weapons.js');
+    const { g, input } = await setupGame(326);
+    const wItem = new_item({
+      o_type: WEAPON, o_which: 2, o_count: 1, o_flags: 0,
+      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+      o_damage: '1d6', o_hurldmg: '1d6', o_pos: { x: 0, y: 0 },
+    });
+    g.pack = wItem; wItem.l_prev = null; wItem.l_next = null; g.inpack = 1;
+    g.cur_weapon = null;
+    input.inject('*');   // show list (inventory) → continue back to loop
+    input.inject(' ');   // --More-- before second get_item prompt (mpos>0 from inventory msg)
+    input.inject('a');   // now select item 'a'
+    for (let i = 0; i < 10; i++) input.inject(' ');
+    await wield();
+    g.pack = null; g.inpack = 0; g.cur_weapon = null;
+  }
+
+
+  // ==== chase.js 83-84: floating eye ('F') moving — chase() returns true, type=F → return ====
+  {
+    const { do_chase } = await import('../js/chase.js');
+    const { ISRUN } = await import('../js/const.js');
+    const { g, input } = await setupGame(327);
+    // Place player at a known position, floating eye far from its target
+    const py = g.player.t_pos.y;
+    const px = g.player.t_pos.x;
+    // Put floating eye adjacent to player but targeting somewhere far away
+    const ey = py + 1 < 23 ? py + 1 : py - 1;
+    const ex = px;
+    g.stdscr[ey][ex] = '.'; // floor
+    g.mw[ey][ex] = 'F';
+    const eyeItem = new_item({
+      t_pos: { x: ex, y: ey }, t_type: 'F', t_disguise: 'F', t_oldch: '.',
+      t_dest: { x: 5, y: 5 }, t_flags: ISRUN, t_pack: null, t_turn: true,
+      t_stats: { s_lvl: 1, s_arm: 9, s_hpt: 10, s_dmg: '1d1', s_exp: 10,
+                 s_str: { st_str: 10, st_add: 0 } },
+    });
+    eyeItem.l_prev = null; eyeItem.l_next = g.mlist;
+    if (g.mlist) g.mlist.l_prev = eyeItem;
+    g.mlist = eyeItem;
+    const th = eyeItem.l_data;
+    // Target (5,5) is far from eye — chase returns true (dist > 0)
+    // And type 'F' → hits lines 82-84
+    await do_chase(th);
+    // cleanup
+    g.mw[ey][ex] = ' ';
+    g.mlist = eyeItem.l_next;
+    if (g.mlist) g.mlist.l_prev = null;
+  }
+
+
+  // ==== chase.js 156-158: scare scroll blocks monster path ====
+  {
+    const { do_chase } = await import('../js/chase.js');
+    const { ISRUN, S_SCARE } = await import('../js/const.js');
+    const { g, input } = await setupGame(329);
+    const py = g.player.t_pos.y;
+    const px = g.player.t_pos.x;
+    // Place monster one row below player
+    const my = py + 2 < 22 ? py + 2 : py - 2;
+    const mx = px;
+    g.stdscr[my][mx] = '.';
+    // Place scare scroll directly adjacent to monster (1 cell right)
+    const sx = mx + 1 < 78 ? mx + 1 : mx - 1;
+    g.stdscr[my][sx] = '?';
+    g.mw[my][mx] = 'A';
+    // Add scare scroll to lvl_obj
+    const sItem = new_item({
+      o_type: SCROLL, o_which: S_SCARE, o_count: 1, o_flags: 0,
+      o_hplus: 0, o_dplus: 0, o_group: 0, o_ac: 0, o_launch: 0, o_charges: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_pos: { y: my, x: sx },
+    });
+    sItem.l_prev = null; sItem.l_next = g.lvl_obj;
+    if (g.lvl_obj) g.lvl_obj.l_prev = sItem;
+    g.lvl_obj = sItem;
+    const monItem = new_item({
+      t_pos: { x: mx, y: my }, t_type: 'A', t_disguise: 'A', t_oldch: '.',
+      t_dest: { x: sx + 5, y: my }, // far target so monster tries to move through scroll area
+      t_flags: ISRUN, t_pack: null, t_turn: true,
+      t_stats: { s_lvl: 2, s_arm: 3, s_hpt: 20, s_dmg: '1d6', s_exp: 10,
+                 s_str: { st_str: 10, st_add: 0 } },
+    });
+    monItem.l_prev = null; monItem.l_next = g.mlist;
+    if (g.mlist) g.mlist.l_prev = monItem;
+    g.mlist = monItem;
+    await do_chase(monItem.l_data);  // → chase() scans (my,sx) → '?' + S_SCARE → 156-158
+    g.mw[my][mx] = ' ';
+    g.mlist = monItem.l_next;
+    if (g.mlist) g.mlist.l_prev = null;
+    g.lvl_obj = sItem.l_next;
+    if (g.lvl_obj) g.lvl_obj.l_prev = null;
+  }
+
+  // ==== chase.js 105-106: monster at its own destination — stoprun cleared ====
+  {
+    const { do_chase } = await import('../js/chase.js');
+    const { ISRUN } = await import('../js/const.js');
+    const { g, input } = await setupGame(328);
+    // Put player far away, place monster 'A' at position = its own destination
+    const py = g.player.t_pos.y;
+    const px = g.player.t_pos.x;
+    // Choose a position not equal to player position
+    const my = (py + 5) % 22 + 1;
+    const mx = (px + 10) % 78 + 1;
+    g.stdscr[my][mx] = '.';
+    g.mw[my][mx] = 'A';
+    const monItem = new_item({
+      t_pos: { x: mx, y: my }, t_type: 'A', t_disguise: 'A', t_oldch: '.',
+      t_dest: { x: mx, y: my },  // destination = own position → chase() returns dist=0
+      t_flags: ISRUN, t_pack: null, t_turn: true,
+      t_stats: { s_lvl: 2, s_arm: 3, s_hpt: 20, s_dmg: '1d6', s_exp: 10,
+                 s_str: { st_str: 10, st_add: 0 } },
+    });
+    monItem.l_prev = null; monItem.l_next = g.mlist;
+    if (g.mlist) g.mlist.l_prev = monItem;
+    g.mlist = monItem;
+    const th = monItem.l_data;
+    // chase() with er=t_pos, ee=thisPos=t_dest=(my,mx) → dist=0 → returns false
+    // !chase → thisPos != player_pos → stoprun=true
+    // th.t_pos = ch_ret = (my,mx) = t_dest → lines 105-106 clear ISRUN
+    await do_chase(th);
+    g.mw[my][mx] = ' ';
+    g.mlist = monItem.l_next;
+    if (g.mlist) g.mlist.l_prev = null;
+  }
+}
+
 if (!args.includes('--sessions-only')) {
   await testDeath();
   await testDeathArrow();
@@ -2204,4 +3135,10 @@ if (!args.includes('--sessions-only')) {
   await testScorePaths();
   await testCommandPaths();
   await testPackPaths();
+  await testSticksPaths();
+  await testThingsDrop();
+  await testCommandMore();
+  await testMainPlayit();
+  await testMoreCoverage();
+  await testFinalPush();
 }

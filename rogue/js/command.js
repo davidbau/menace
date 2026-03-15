@@ -9,7 +9,7 @@ import { wmove, wclrtoeol, mvwaddstr, waddstr, wprintw, draw, wclear } from './c
 import { helpstr } from './data.js';
 import {
   BEFORE, AFTER, LEFT, RIGHT, R_SEARCH, R_TELEPORT, ISHASTE, LINES,
-  CALLABLE, RING, POTION, SCROLL, STICK,
+  CALLABLE, RING, POTION, SCROLL, STICK, ISBLIND,
 } from './const.js';
 import { do_daemons, do_fuses } from './daemon.js';
 import { runners } from './chase.js';
