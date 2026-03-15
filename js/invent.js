@@ -36,7 +36,7 @@ import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { mons, PM_ARCHEOLOGIST } from './monsters.js';
 import { newsym, flush_screen } from './display.js';
-import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
+import { observeObject, discoverObject, isObjectNameKnown, setOverrideID } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
 import { confers_luck, touch_artifact, set_artifact_intrinsic } from './artifact.js';
@@ -99,6 +99,9 @@ export function buildInventoryOverlayLines(player, filterFn = null) {
 
 function displayOnlyFullyIdentifiedName(item, player) {
     if (!item) return '';
+    // C ref: iflags.override_ID — temporarily treat all types as name-known
+    // for display, matching C's wiz_identify menu behavior.
+    setOverrideID(true);
     // Temporarily set identification flags on the original object so that
     // doname's reference-equality checks (player.weapon === obj, etc.) still work.
     const saved = { known: item.known, bknown: item.bknown, rknown: item.rknown,
@@ -116,6 +119,7 @@ function displayOnlyFullyIdentifiedName(item, player) {
     const result = doname(item, player);
     // Restore original flags
     Object.assign(item, saved);
+    setOverrideID(false);
     return result;
 }
 
@@ -2438,9 +2442,13 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
             for (const invlet of result) {
                 const target = unid.find((obj) => String(obj?.invlet || '') === invlet);
                 if (target && not_fully_identified(target)) {
-                    // C's wiz_identify sets flags directly without exercise
-                    // No prinv feedback — C identifies in-place via override_ID
-                    fully_identify_obj(target, false);
+                    // C ref: wiz_identify sets per-object flags only, without
+                    // globally discovering the type (no makeknown/discoverObject).
+                    // C uses override_ID for display-only identification.
+                    target.known = true;
+                    target.bknown = true;
+                    target.rknown = true;
+                    target.dknown = true;
                 }
             }
             update_inventory(p);

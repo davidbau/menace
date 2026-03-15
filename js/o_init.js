@@ -447,7 +447,13 @@ export function initDiscoveryState() {
     resetDiscoByClass();
 }
 
+// C ref: iflags.override_ID — when set, all types treated as name-known.
+// Used by wiz_identify menu to display real names without modifying state.
+let overrideID = false;
+export function setOverrideID(val) { overrideID = !!val; }
+
 export function isObjectNameKnown(otyp) {
+    if (overrideID) return true;
     if (ocNameKnown.length === 0) {
         const od = objectData[otyp];
         return !!od?.known || !od?.oc_descr;

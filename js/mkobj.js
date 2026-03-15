@@ -1171,7 +1171,7 @@ const QUIVER_IN_QUIVER_TYPES = new Set([ARROW, ELVEN_ARROW, ORCISH_ARROW, YA, CR
 // C ref: objnam.c xname() (subset used by current JS engine)
 function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
     const od = objectData[obj.otyp];
-    const nameKnown = isObjectNameKnown(obj.otyp) || !!known;
+    const nameKnown = isObjectNameKnown(obj.otyp);
     let base = od.oc_name;
     switch (obj.oclass) {
     case RING_CLASS:
