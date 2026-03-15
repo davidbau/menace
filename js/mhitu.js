@@ -31,7 +31,7 @@ import {
     AD_MAGM, AD_DISN,
     mons, G_EXTINCT,
 } from './monsters.js';
-import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS, PIERCE } from './objects.js';
+import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, GAUNTLETS_OF_POWER, WEAPON_CLASS, PIERCE } from './objects.js';
 import { xname, doname } from './mkobj.js';
 import {
     x_monnam, is_humanoid, thick_skinned, hides_under,
@@ -340,7 +340,10 @@ async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
             // against the defender (plus separate artifact logic).
             const wepDmg = dmgval(monster.weapon, player);
             mhm.damage += wepDmg;
-            // Gauntlets of power branch not yet ported.
+            // cf. uhitm.c:4040-4042 — gauntlets of power bonus
+            if (monster.gloves && monster.gloves.otyp === GAUNTLETS_OF_POWER) {
+                mhm.damage += rn1(4, 3); // 3..6
+            }
             if (mhm.damage <= 0) mhm.damage = 1;
             await hitmsg(monster, attack, display, suppressHitMsg);
             mhm.hitflags |= M_ATTK_HIT;
@@ -357,8 +360,14 @@ async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
                 + `base_after_d=${mhm.damage - wepDmg - artBonus} dmgval=${wepDmg} `
                 + `art=${artBonus} final=${mhm.damage}`
             );
-            // Weapon poison: C checks dieroll <= 5 for poisoned weapons
-            // TODO: implement weapon poison path
+            // cf. uhitm.c:4085-4099 — weapon poison check
+            const was_poisoned = monster.weapon.opoisoned;
+            if (was_poisoned && ctx.dieRoll <= 5) {
+                const buf = `${s_suffix(Monnam(monster))} ${mpoisons_subj(monster, attack)}`;
+                await poisoned(player, buf, A_STR,
+                    pmname(monster.data || mons[monster.mndx], Mgender(monster)),
+                    10, false);
+            }
         } else if (attack.aatyp !== AT_TUCH || mhm.damage !== 0
                    || monster !== player.ustuck) {
             await hitmsg(monster, attack, display, suppressHitMsg);
@@ -1546,7 +1555,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         }
 
         // Context for handlers
-        const ctx = { display, game, suppressHitMsg, map, combatState };
+        const ctx = { display, game, suppressHitMsg, map, combatState, dieRoll };
 
         // cf. mhitu.c:1187 — mhitm_adtyping dispatch
         // Each handler calls hitmsg() and applies effects.
