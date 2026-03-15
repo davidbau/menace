@@ -1,0 +1,18 @@
+--- a/subr.f	2026-03-15 07:49:44
++++ b/subr.f	2026-03-15 07:50:08
+@@ -1258,8 +1258,14 @@
+ 	IMPLICIT INTEGER (A-Z)
+ 	REAL RAN
+ 	COMMON /SEED/ RNSEED
++	INTEGER RNGCNT
++	COMMON /RNGLOG/ RNGCNT
+ 
+-	RND = RAND(0)*FLOAT(N)
++	RAN = RAND(0)
++	RND = RAN*FLOAT(N)
++	RNGCNT = RNGCNT + 1
++	WRITE(0,*) 'RNG #',RNGCNT,': val=',RAN,' n=',N,
++	1 ' result=',RND
+ 	RETURN
+ 
+ 	END

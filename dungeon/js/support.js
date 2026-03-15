@@ -1224,14 +1224,25 @@ let _rngSeed = 123459876; // gfortran default seed
 const _RNG_A = 16807;
 const _RNG_M = 2147483647; // 2^31 - 1
 const _RNG_MASK = (~0 << 9) >>> 0; // 0xFFFFFE00 — strip low bits for float32 precision
+let _rngCallCount = 0;
+let _rngTrace = false;
 
 export function dungeonSrand(seed) {
   _rngSeed = seed || 123459876;
+  _rngCallCount = 0;
 }
+
+export function dungeonRngTrace(on) { _rngTrace = on; }
+export function dungeonRngCount() { return _rngCallCount; }
 
 function dungeonRand() {
   _rngSeed = (_rngSeed * _RNG_A) % _RNG_M;
-  return ((_rngSeed - 1) & _RNG_MASK) * (2 ** -31);
+  _rngCallCount++;
+  const result = ((_rngSeed - 1) & _RNG_MASK) * (2 ** -31);
+  if (_rngTrace) {
+    console.error(`RNG #${_rngCallCount}: seed=${_rngSeed} result=${result.toFixed(9)}`);
+  }
+  return result;
 }
 
 /**
