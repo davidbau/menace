@@ -1266,6 +1266,11 @@ async function handlePickup(player, map, display, game = null) {
             const obj = pick?.identifier;
             if (!obj || !map.objects.includes(obj)) continue;
             observeObject(obj);
+            // C ref: pickup.c pick_obj() — addtobill before addinv for shop items
+            if (!player.uswallow && obj !== player.uchain
+                && costly_spot(obj.ox, obj.oy, map) && !obj.no_charge) {
+                await addtobill(obj, true, false, false);
+            }
             const addResult = player.addToInventory(obj, { withMeta: true });
             map.removeObject(obj);
             // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
