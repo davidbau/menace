@@ -12627,7 +12627,6 @@ Validation:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
 
-<<<<<<< HEAD
 ### `hi15` shop-pay bring-up: maze-extents split, wall-state mirroring, and first real payment path
 
 - Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` exposed that two separate
