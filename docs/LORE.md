@@ -12665,3 +12665,31 @@ Validation:
   - stable guardrails remained green:
     - `seed031_manual_direct`
     - `seed329_rogue_wizard_gameplay`
+
+### `hi15` shop-pay bring-up: unpaid pickup needs real shop billing and deferred turn ownership
+
+- Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` from step `32` showed that
+  JS single-item `,` pickup was still bypassing the C `pick_obj()->addtobill()`
+  billing path.
+- Evidence:
+  - C step `32` shows the quoted billing line:
+    `"For you, most gracious sir; only 30 zorkmids for this lock pick."--More--`
+  - JS originally skipped straight to ordinary inventory pickup text and then
+    advanced monster movement too early.
+- Fixes:
+  - `js/pickup.js` single-item `completePickup()` now calls `addtobill(..., ininv=true)`
+    before manual inventory insertion when the pickup square is costly.
+  - `js/shknam.js` now gives generated shopkeepers real `ESHK` state during
+    `shkinit()`, which `wizload` Minetown shops needed for billing.
+  - `js/shk.js:get_cost()` now mirrors C charisma / tourist / visible-shirt
+    pricing adjustments, so quoted shop prices match C.
+  - billed objects now retain price metadata for unpaid inventory naming, and
+    pickup inventory lines use `doname_with_price()` for unpaid objects.
+  - unpaid pickup `--More--` now defers timed-turn advancement until the
+    acknowledgment key, but only for unpaid shop pickups, avoiding regressions
+    on ordinary pickups.
+- Result:
+  - `hi15` moved from step `32` to step `34`.
+  - stable guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed329_rogue_wizard_gameplay`

@@ -25,7 +25,6 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          BRASS_LANTERN, MAGIC_FLUTE, DRUM_OF_EARTHQUAKE,
          CAN_OF_GREASE, TINNING_KIT, EXPENSIVE_CAMERA,
          POT_OIL, CORPSE, EGG, TIN,
-         GOLD_PIECE,
          FIRST_REAL_GEM, FIRST_GLASS_GEM,
          DIAMOND, RUBY, JACINTH, SAPPHIRE, BLACK_OPAL, EMERALD,
          CITRINE, AQUAMARINE, AMBER, TOPAZ, JET, OPAL, CHRYSOBERYL,
@@ -35,7 +34,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
 import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
 import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object, obj_extract_self } from './mkobj.js';
-import { Has_contents } from './objnam.js';
+import { Has_contents, xname, The, the } from './objnam.js';
 import { currency, o_on } from './invent.js';
 import { Hello } from './player.js';
 import { shtypes, shkname, Shknam, saleable, is_izchak } from './shknam.js';
@@ -305,6 +304,7 @@ function get_cost(obj, shkp) {
     let tmp = getprice_base(obj, false);
     let multiplier = 1;
     let divisor = 1;
+    const player = _gstate?.player || null;
 
     if (!tmp) tmp = 5;
 
@@ -331,15 +331,33 @@ function get_cost(obj, shkp) {
         }
     }
 
-    // Dunce cap or Tourist penalty
-    // C ref: player.helmet && player.helmet->otyp == DUNCE_CAP
-    // We check via the shkp.player reference or a global approach
-    // For now, just handle the basic multiplier/divisor as in getCost
-    // (The existing getCost function already handles player attributes;
-    //  this get_cost is the internal C-faithful version used for billing)
+    if (player?.helmet?.otyp === DUNCE_CAP) {
+        multiplier *= 4;
+        divisor *= 3;
+    } else if ((Role_if(player, PM_TOURIST) && Number(player?.ulevel || 1) < (MAXULEV / 2))
+        || (player?.shirt && !player?.armor && !player?.cloak)) {
+        multiplier *= 4;
+        divisor *= 3;
+    }
 
-    if (obj.oartifact)
-        tmp *= 4;
+    const cha = Number(player?.attributes?.[A_CHA] || 10);
+    if (cha > 18) {
+        divisor *= 2;
+    } else if (cha === 18) {
+        multiplier *= 2;
+        divisor *= 3;
+    } else if (cha >= 16) {
+        multiplier *= 3;
+        divisor *= 4;
+    } else if (cha <= 5) {
+        multiplier *= 2;
+    } else if (cha <= 7) {
+        multiplier *= 3;
+        divisor *= 2;
+    } else if (cha <= 10) {
+        multiplier *= 4;
+        divisor *= 3;
+    }
 
     // Apply multiplier/divisor
     tmp *= multiplier;
@@ -351,6 +369,9 @@ function get_cost(obj, shkp) {
     }
 
     if (tmp <= 0) tmp = 1;
+
+    if (obj.oartifact)
+        tmp *= 4;
 
     // Anger surcharge
     if (shkp && shkp.surcharge)
@@ -595,11 +616,18 @@ function ensureBill(shkp) {
 export async function add_one_tobill(obj, dummy, shkp, player) {
   let eshkp, bp, bct, unbilled = false;
   eshkp = ESHK(shkp);
+  if (!eshkp) {
+    if (!shkp.mextra) shkp.mextra = {};
+    shkp.mextra.eshk = { bill: [], billct: 0, bill_p: null };
+    eshkp = shkp.mextra.eshk;
+  }
+  if (!Array.isArray(eshkp.bill)) eshkp.bill = [];
   if (!eshkp.bill_p) eshkp.bill_p = eshkp.bill; // C: bill_p = &bill[0] (pointer to array start)
   if (!billable( shkp, obj, player.ushops, true)) { unbilled = true; }
   else if (eshkp.billct === BILLSZ) { await You("got that for free!"); unbilled = true; }
   if (unbilled) { if (obj.where === OBJ_FREE) dealloc_obj(obj); return; }
   bct = eshkp.billct;
+  if (!eshkp.bill_p[bct]) eshkp.bill_p[bct] = {};
   bp = eshkp.bill_p[bct];
   bp.bo_id = obj.o_id;
   bp.bquan = obj.quan;
@@ -615,6 +643,8 @@ export async function add_one_tobill(obj, dummy, shkp, player) {
   }
   eshkp.billct++;
   obj.unpaid = 1;
+  obj.price = bp.price;
+  obj.unpaidCost = Number(bp.price || 0) * Number(obj.quan || 1);
 }
 
 // C ref: shk.c sub_one_frombill()
@@ -647,9 +677,7 @@ export function sub_one_frombill(obj, shkp) {
 }
 
 // C ref: shk.c addtobill() -- add object to shop bill
-export function addtobill(obj, ininv, dummy, silent) {
-    void ininv;
-    void silent;
+export async function addtobill(obj, ininv, dummy, silent) {
     if (obj.oclass === COIN_CLASS) return;
     if (obj.no_charge) {
         obj.no_charge = 0;
@@ -667,8 +695,45 @@ export function addtobill(obj, ininv, dummy, silent) {
     if (!rooms.length) return;
     const shkp = shop_keeper(map, rooms[0]);
     if (!shkp) return;
-    // add_one_tobill is async but mostly synchronous in current runtime; keep compatibility.
-    void add_one_tobill(obj, !!dummy, shkp, player);
+    const noCharge = !!obj.no_charge;
+    let ltmp = 0;
+    if (!noCharge) {
+        ltmp = get_cost(obj, shkp);
+        if (obj.globby) ltmp *= get_pricing_units(obj);
+    }
+    await add_one_tobill(obj, !!dummy, shkp, player);
+
+    if (silent || player?.Deaf || muteshk(shkp)) return;
+    if (!ltmp) {
+        await pline("%s has no interest in %s.", Shknam(shkp), the(xname(obj)));
+        return;
+    }
+    if (!ininv) {
+        await pline("%s will cost you %d %s%s.",
+            The(xname(obj)),
+            ltmp,
+            currency(ltmp),
+            (obj.quan > 1) ? " each" : "");
+        return;
+    }
+
+    let buf = '"For you,';
+    if (ANGRY(shkp)) {
+        buf += ' scum;';
+    } else if (!ESHK(shkp)?.surcharge) {
+        buf = append_honorific(`${buf} `, player);
+        buf += '; only';
+    }
+    const saveQuan = obj.quan;
+    obj.quan = 1;
+    const itemName = xname(obj);
+    obj.quan = saveQuan;
+    await pline("%s %d %s %s %s.\"",
+        buf,
+        ltmp,
+        currency(ltmp),
+        (saveQuan > 1) ? 'per' : 'for this',
+        itemName);
 }
 
 // C ref: shk.c splitbill() -- split bill entry when stack is split

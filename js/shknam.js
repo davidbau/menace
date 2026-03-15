@@ -509,19 +509,31 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     // gender rn2(2), m_initweap, m_initinv, saddle rn2(100)
     const shk = makemon(PM_SHOPKEEPER, sx, sy, NO_MM_FLAGS, depth, map);
     if (!shk) return -1;
+    neweshk(shk);
+    const eshkp = shk.mextra.eshk;
 
     // C ref: shknam.c:666-681 — set shopkeeper flags
     shk.peaceful = true;
     shk.isshk = true;
     shk.shoptype = shp_indx + SHOPBASE; // C ref: shknam.c:672 eshkp->shoptype = sroom->rtype
     shk.shoproom = (map.rooms || []).indexOf(sroom) + ROOMOFFSET;
+    eshkp.shoptype = shk.shoptype;
+    eshkp.shoproom = shk.shoproom;
     // Minimal ESHK-like state used by shk_move/move_special parity.
     shk.shk = { x: sx, y: sy }; // shopkeeper "home" square
     shk.shd = { x: map.doors[sh].x, y: map.doors[sh].y }; // shop door square
+    eshkp.shk = { ...shk.shk };
+    eshkp.shd = { ...shk.shd };
     shk.following = false;
     shk.billct = 0;
     shk.robbed = 0;
     shk.debit = 0;
+    eshkp.following = false;
+    eshkp.bill = [];
+    eshkp.bill_p = eshkp.bill;
+    eshkp.billct = 0;
+    eshkp.robbed = 0;
+    eshkp.debit = 0;
 
     // C ref: shknam.c:682 — mkmonmoney(shk, 1000 + 30 * rnd(100))
     const capital = 1000 + 30 * rnd(100);
