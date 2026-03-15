@@ -38,7 +38,7 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          WAN_DIGGING, WAN_NOTHING,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT, WAN_CREATE_MONSTER, WAN_WISHING,
          WAN_SLOW_MONSTER, WAN_SPEED_MONSTER, WAN_UNDEAD_TURNING,
-         WAN_POLYMORPH, WAN_CANCELLATION, WAN_TELEPORTATION,
+         WAN_POLYMORPH, POT_POLYMORPH, WAN_CANCELLATION, WAN_TELEPORTATION,
          WAN_MAKE_INVISIBLE, WAN_LOCKING, WAN_PROBING, WAN_OPENING,
          WAN_LIGHT,
          SPE_FORCE_BOLT, SPE_KNOCK, SPE_WIZARD_LOCK,
@@ -1158,6 +1158,7 @@ export async function bhitm(mon, otmp, map, player) {
   }
   case WAN_POLYMORPH:
   case SPE_POLYMORPH:
+  case POT_POLYMORPH:
     // C: resists_magm gate (no RNG) before resist() call
     if ((mons[mon.mndx]?.mr || 0) > 50) {
       // magic resistance blocks polymorph — no RNG consumed

@@ -61,7 +61,7 @@ import { mon_adjust_speed, mon_set_minvis } from './worn.js';
 import { healmon, mondead } from './mon.js';
 import { new_were } from './were.js';
 import { mcureblindness } from './muse.js';
-import { do_enlightenment_effect, resist } from './zap.js';
+import { do_enlightenment_effect, resist, bhitm } from './zap.js';
 import { mons } from './monsters.js';
 import { PM_HEALER, PM_GHOST, PM_DJINNI, PM_GREMLIN, PM_IRON_GOLEM, G_GONE, AD_DISE, AD_PEST } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
@@ -1602,6 +1602,10 @@ async function potionhit(mon, obj, how, player, map) {
             }
             break;
         }
+        case POT_POLYMORPH:
+            // C ref: potion.c:1871-1873 — bhitm(mon, obj) for polymorph
+            await bhitm(mon, obj, map, player);
+            break;
         } // close switch (obj.otyp)
 
         // C ref: potion.c:1884-1889 — post-switch wake logic
