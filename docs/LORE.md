@@ -12394,3 +12394,36 @@ Validation:
     - then `putMapCell()` restoring the spider glyph `s`
   - that proved the live bug is repaint/write order on one runtime cell, not a
     vague replay boundary issue or a generic settled-state trap mismatch
+
+## 2026-03-15 00:20: shop reconnaissance needs both compact and wizload checkpoint support, and `minetn-5` is the cleaner first shop candidate
+
+- Sessions/probes:
+  - `/tmp/shopseed700l2.session.json`
+  - `/tmp/shop700_wiz_settle.session.json`
+  - `/tmp/minetn-4_probe.session.json`
+  - `/tmp/minetn-5_probe.session.json`
+- Problem:
+  - ordinary levelport checkpoints can be captured at awkward boundary states;
+    for `seed 700 / dlvl 2`, the shopkeeper and merchandise were real, but the
+    hero position was still effectively pre-settle and not usable for path
+    planning
+  - `wizload` probes are much better for stable special-level reconnaissance,
+    but their checkpoints live inside `steps[].checkpoints` as structured
+    objects instead of the top-level compact mapdump map
+- Fix/tooling:
+  - `test/comparison/shop_checkpoint_debug.js` now accepts both checkpoint
+    shapes:
+    - top-level compact checkpoint blobs
+    - structured per-step checkpoints from `wizload`
+  - it also emits shortest-path movement strings from hero to an explicit target
+    coordinate, which is enough to turn reconnaissance into candidate session
+    routes
+- Result:
+  - `minetn-4` has nearby shops, but too many adjacent hostiles; it immediately
+    turns a shop probe into combat noise
+  - `minetn-5` is the better first `shops-economy` candidate:
+    - nearest shopkeeper at `(70,10)`
+    - adjacent shop goods at `(69..72,11)`
+    - only one nearby hostile in the initial shop neighborhood
+  - this is the right next probe target for building the first real
+    branch-dense shop coverage session
