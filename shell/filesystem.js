@@ -60,7 +60,8 @@ brouwer:x:1006:1006:Andries Brouwer:/home/brouwer:/bin/sh
 lebling:x:1007:1007:Dave Lebling:/home/lebling:/bin/sh
 blank:x:1008:1008:Marc Blank:/home/blank:/bin/sh
 walz:x:1009:1009:Janet Walz:/home/walz:/bin/sh
-wizard:x:1010:1010:The Wizard of Yendor:/dev/null:/sbin/nologin
+harvey:x:1010:1010:Brian Harvey:/home/harvey:/bin/sh
+wizard:x:1011:1011:The Wizard of Yendor:/dev/null:/sbin/nologin
 gridbug:x:404:404:Grid Bug:/tmp:/bin/false
 `.replace(/Strstrstrstr /g, '');
 
@@ -360,6 +361,21 @@ function buildTree() {
                     lebling:  { type: 'dir', children: {}, restricted: true },
                     blank:    { type: 'dir', children: {}, restricted: true },
                     walz:     { type: 'dir', children: {}, restricted: true },
+                    harvey:   { type: 'dir', children: {}, restricted: true },
+                }
+            },
+            var: {
+                type: 'dir', children: {
+                    mail: {
+                        type: 'dir', children: {
+                            [USERNAME]: { type: 'file', content: '', readonly: true, owner: USERNAME, group: 'mail', date: 'Mar 14  2026', size: 0 },
+                        }
+                    },
+                    spool: {
+                        type: 'dir', children: {
+                            mail: { type: 'symlink', target: '/var/mail', owner: 'root', group: 'wheel', date: 'Jan  1  1979' },
+                        }
+                    },
                 }
             },
             tmp: { type: 'dir', children: {} },
