@@ -472,7 +472,13 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
         pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
         const newlyKnown = !ocNameKnown[otyp] && markAsKnown;
-        if (newlyKnown) ocNameKnown[otyp] = true;
+        if (newlyKnown) {
+            ocNameKnown[otyp] = true;
+            // Mirror into objectData.oc_name_known so direct od.oc_name_known checks
+            // stay consistent with the runtime discovery state (ocNameKnown[]).
+            // C uses a single objects[] table that makeknown() modifies in-place.
+            if (objectData[otyp]) objectData[otyp].oc_name_known = true;
+        }
         // C ref: o_init.c:474-477 — when a name transitions unknown->known,
         // exercise wisdom iff credit_hero (creditClue in JS) is true.
         // Gate on newlyKnown: only fire when name was not already known.

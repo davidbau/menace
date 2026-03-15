@@ -61,7 +61,7 @@ import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
 import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
-import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking } from './display.js';
+import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking, canspotmon } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
 import { eatmupdate, newuhs, fix_petrification } from './eat.js';
 import { you_were, you_unwere, set_ulycn } from './were.js';
@@ -1499,10 +1499,17 @@ async function potionhit(mon, obj, how, player, map) {
         case POT_SLEEPING: {
             // C ref: potion.c potionhit() calls sleep_monst(mon, rnd(12), POTION_CLASS)
             // sleep_monst calls resist(mon, POTION_CLASS) first
+            // C: angermon = FALSE for sleep potion
+            angermon = false;
             const sleepamt = rnd(12);
             if (!resist(mon, POTION_CLASS)) {
-                mon.msleeping = true;
-                mon.mfrozen = (mon.mfrozen || 0) + sleepamt;
+                mon.mcanmove = false;
+                mon.mfrozen = Math.min((mon.mfrozen || 0) + sleepamt, 127);
+                // C ref: potionhit() — if canspotmon, print "falls asleep" then makeknown
+                if (canspotmon(mon, player)) {
+                    await pline("%s falls asleep.", Monnam(mon));
+                }
+                discoverObject(obj.otyp, true, true, false);
             }
             break;
         }
@@ -1533,14 +1540,10 @@ async function potionhit(mon, obj, how, player, map) {
             break;
         }
 
-        // wake monster if angered
-        if (mon.mhp > 0) {
-            if (angermon) {
-                mon.msleeping = false;
-                mon.mpeaceful = false;
-            } else {
-                mon.msleeping = false;
-            }
+        // wake monster if angered (C ref: potionhit — wakeup(mon) only when angermon)
+        if (mon.mhp > 0 && angermon) {
+            mon.msleeping = false;
+            mon.mpeaceful = false;
         }
     }
 
