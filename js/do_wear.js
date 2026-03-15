@@ -48,7 +48,7 @@ import {
     setworn,
     setnotworn,
 } from './worn.js';
-import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing, compactInvletPromptChars, prinv } from './invent.js';
+import { useup, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, silly_thing, compactInvletPromptChars, prinv, wearing_armor } from './invent.js';
 import { discoverObject } from './o_init.js';
 import { pline, You, Your, You_cant, You_feel, updateLastPlineMessage, impossible } from './pline.js';
 import { newsym, see_monsters, set_mimic_blocking } from './display.js';
@@ -78,6 +78,7 @@ import { mark_vision_dirty } from './vision.js';
 import { nohands, nolimbs, cantweararm, slithy, has_horns, has_head, is_humanoid } from './mondata.js';
 import { MZ_SMALL, S_CENTAUR } from './monsters.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
+import { setuwep, setuswapwep, setuqwep, empty_handed, welded } from './wield.js';
 
 // W_* flags imported from const.js
 
@@ -1556,59 +1557,167 @@ function menu_remarm(_retry) {
     return 0;
 }
 
-// cf. do_wear.c doddoremarm() — 'A' command: show category menu for take-off-all
-export async function handleRemoveAll(player, display, _game) {
-    // Collect currently equipped/wielded items from canonical hero slot pointers.
-    // (owornmask is now kept in sync; this path stays slot-driven to match command UX.)
-    const wornItems = [
-        player.weapon, player.swapwep, player.quiver,
-        player.armor, player.cloak, player.shirt, player.helmet,
-        player.gloves, player.boots, player.shield,
-        player.leftRing, player.rightRing, player.amulet,
-    ].filter(Boolean);
-    if (wornItems.length === 0) {
-        await pline("Not wearing anything.");
+// cf. do_wear.c doddoremarm() — 'A' command: take off/remove items
+// C ref: with MENU_FULL (default), calls menu_remarm() which uses:
+//   1. query_category("What type of things do you want to take off?", ...)
+//      - Skipped when only one worn category (ccount==1)
+//   2. query_objlist("What do you want to take off?", ...) — PICK_ANY overlay menu
+export async function handleRemoveAll(player, display, game = null) {
+    // C ref: doddoremarm checks context.takeoff for in-progress disrobing first
+    // (not applicable in JS since we don't have persistent occupation state here)
+
+    // C ref: check if anything is worn/wielded at all
+    if (!player.weapon && !player.swapWeapon && !player.quiver
+        && !player.amulet && !player.blindfold
+        && !player.leftRing && !player.rightRing && !wearing_armor(player)) {
+        await You("are not wearing anything.");
         return { moved: false, tookTime: false };
     }
 
-    // Build category menu (cf. C query_category with WORN_TYPES|ALL_TYPES|BUCX_TYPES)
+    // Collect all worn/wielded items (matching is_worn filter)
+    const wornSet = new Set();
+    if (player.weapon) wornSet.add(player.weapon);
+    if (player.swapWeapon) wornSet.add(player.swapWeapon);
+    if (player.quiver) wornSet.add(player.quiver);
+    for (const obj of getWornArmorItems(player)) wornSet.add(obj);
+    for (const obj of getWornAccessoryItems(player)) wornSet.add(obj);
+    const wornAll = (player.inventory || []).filter(obj => wornSet.has(obj));
+
+    if (wornAll.length === 0) {
+        await You("are not wearing anything.");
+        return { moved: false, tookTime: false };
+    }
+
+    // C class labels used by query_category (matching C def_inv_order)
     const CLASS_LABEL = {
         [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
         [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
         [POTION_CLASS]: 'Potions', [SCROLL_CLASS]: 'Scrolls', [SPBOOK_CLASS]: 'Spellbooks',
         [WAND_CLASS]: 'Wands', [COIN_CLASS]: 'Coins', [GEM_CLASS]: 'Gems/Stones',
     };
-    // Mirrors C def_inv_order (COIN, AMULET, WEAPON, ARMOR, FOOD, SCROLL, SPBOOK, POTION, RING, WAND, TOOL, GEM, ROCK, BALL, CHAIN)
     const INV_ORDER = [COIN_CLASS, AMULET_CLASS, WEAPON_CLASS, ARMOR_CLASS, FOOD_CLASS,
         SCROLL_CLASS, SPBOOK_CLASS, POTION_CLASS, RING_CLASS, WAND_CLASS, TOOL_CLASS,
         GEM_CLASS, ROCK_CLASS, BALL_CLASS, CHAIN_CLASS];
 
-    const lines = ["What type of things do you want to take off?", ""];
-    lines.push("a - All worn and wielded types");
+    // Count worn item categories (cf. query_category ccount)
+    const wornClasses = new Set(wornAll.map(o => o.oclass));
+    const ccount = wornClasses.size;
 
-    let autoChar = 'b'.charCodeAt(0);
-    const wornClasses = new Set(wornItems.map(o => o.oclass));
-    for (const cls of INV_ORDER) {
-        if (!wornClasses.has(cls)) continue;
-        const label = CLASS_LABEL[cls] || 'Other';
-        lines.push(String.fromCharCode(autoChar) + " - " + label);
-        autoChar++;
-        if (autoChar > 'z'.charCodeAt(0)) autoChar = 'A'.charCodeAt(0);
+    // Phase 1: query_category — category selection
+    // C ref: pickup.c:1288 "no point in actually showing a menu for a single category"
+    // When ccount==1, skip the category menu entirely (C returns the single class immediately)
+    let selectedClasses = null; // null = all categories
+    if (ccount > 1) {
+        // Build category menu overlay (cf. C query_category with WORN_TYPES|ALL_TYPES|BUCX_TYPES)
+        const catLines = ["What type of things do you want to take off?", ""];
+        catLines.push("a - All worn and wielded types");
+
+        let autoChar = 'b'.charCodeAt(0);
+        const catMap = new Map(); // char → class set
+        for (const cls of INV_ORDER) {
+            if (!wornClasses.has(cls)) continue;
+            const label = CLASS_LABEL[cls] || 'Other';
+            const ch = String.fromCharCode(autoChar);
+            catLines.push(ch + " - " + label);
+            catMap.set(ch, cls);
+            autoChar++;
+            if (autoChar > 'z'.charCodeAt(0)) autoChar = 'A'.charCodeAt(0);
+        }
+
+        // BUC entries (only shown if any worn item has that status)
+        const bucLines = [];
+        if (wornAll.some(o => o.bknown && o.blessed))               bucLines.push("B - Items known to be Blessed");
+        if (wornAll.some(o => o.bknown && o.cursed))                 bucLines.push("C - Items known to be Cursed");
+        if (wornAll.some(o => o.bknown && !o.blessed && !o.cursed))  bucLines.push("U - Items known to be Uncursed");
+        if (wornAll.some(o => !o.bknown))                            bucLines.push("X - Items of unknown B/C/U status");
+        if (bucLines.length > 0) {
+            catLines.push("", ...bucLines);
+        }
+        catLines.push("(end)");
+
+        // Show category menu as PICK_ANY overlay
+        const catAllowedChars = 'a' + [...catMap.keys()].join('') + 'BUCX';
+        const catResult = await renderOverlayMenuUntilDismiss(display, catLines, catAllowedChars);
+        if (!catResult) {
+            // Dismissed without selection
+            return { moved: false, tookTime: false };
+        }
+        if (catResult !== 'a') {
+            // Specific category selected
+            const selCls = catMap.get(catResult);
+            if (selCls != null) {
+                selectedClasses = new Set([selCls]);
+            }
+            // BUC filter selections (B/C/U/X) — not fully implemented, treat as all
+        }
     }
 
-    // BUC entries with fixed letters (only shown if any worn item has that status)
-    const bucLines = [];
-    if (wornItems.some(o => o.bknown && o.blessed))                  bucLines.push("B - Items known to be Blessed");
-    if (wornItems.some(o => o.bknown && o.cursed))                   bucLines.push("C - Items known to be Cursed");
-    if (wornItems.some(o => o.bknown && !o.blessed && !o.cursed))    bucLines.push("U - Items known to be Uncursed");
-    if (wornItems.some(o => !o.bknown))                              bucLines.push("X - Items of unknown B/C/U status");
-    if (bucLines.length > 0) {
-        lines.push("", ...bucLines);
-    }
-    lines.push("(end)");
+    // Phase 2: query_objlist — item selection
+    // C ref: query_objlist("What do you want to take off?", ..., PICK_ANY, is_worn/is_worn_by_type)
+    // Build item overlay grouped by class
+    const filteredItems = selectedClasses
+        ? wornAll.filter(o => selectedClasses.has(o.oclass))
+        : wornAll;
 
-    await renderOverlayMenuUntilDismiss(display, lines, '');
-    return { moved: false, tookTime: false };
+    if (filteredItems.length === 0) {
+        await pline("There is nothing else you can remove or unwield.");
+        return { moved: false, tookTime: false };
+    }
+
+    const itemLines = ["What do you want to take off?", ""];
+    let lastClass = -1;
+    for (const obj of filteredItems) {
+        if (obj.oclass !== lastClass) {
+            const label = CLASS_LABEL[obj.oclass] || 'Other';
+            if (lastClass !== -1) itemLines.push(""); // blank line between sections
+            itemLines.push(label);
+            lastClass = obj.oclass;
+        }
+        const name = doname(obj, player);
+        itemLines.push(`${obj.invlet} - ${name}`);
+    }
+    itemLines.push("(end)");
+
+    const itemAllowedChars = filteredItems.map(o => o.invlet).join('');
+    const itemResult = await renderOverlayMenuUntilDismiss(display, itemLines, itemAllowedChars);
+    if (!itemResult) {
+        // Dismissed without selection
+        return { moved: false, tookTime: false };
+    }
+
+    const item = filteredItems.find(o => o.invlet === itemResult);
+    if (!item) {
+        return { moved: false, tookTime: false };
+    }
+
+    // Handle weapon slots via setuwep/setuswapwep/setuqwep (cf. do_takeoff W_WEP/W_SWAPWEP/W_QUIVER)
+    if (item === player.weapon) {
+        if (welded(item, player)) {
+            await You("can't. It is cursed.");
+            item.bknown = true;
+            return { moved: false, tookTime: false };
+        }
+        const wasTwoweap = player.twoweap;
+        setuwep(player, null);
+        if (wasTwoweap) await You("are no longer wielding either weapon.");
+        else await You("are %s.", empty_handed(player));
+        return { moved: false, tookTime: true };
+    }
+    if (item === player.swapWeapon) {
+        const wasTwoweap = player.twoweap;
+        setuswapwep(player, null);
+        await You("%sno longer %s.", wasTwoweap ? "are " : "",
+            wasTwoweap ? "wielding two weapons at once" : "have a second weapon readied");
+        return { moved: false, tookTime: true };
+    }
+    if (item === player.quiver) {
+        setuqwep(player, null);
+        await You("no longer have ammunition readied.");
+        return { moved: false, tookTime: true };
+    }
+
+    // Armor or accessory — use existing removal path
+    return await removeArmorOrAccessory(player, display, game, item);
 }
 
 // ============================================================

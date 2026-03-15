@@ -2091,8 +2091,8 @@ export function not_fully_identified(obj) {
 }
 
 // C ref: invent.c fully_identify_obj() — fully identify an object
-export function fully_identify_obj(otmp) {
-    discoverObject(otmp.otyp, true, true);  // C ref: makeknown → discover_object → exercise(A_WIS)
+export function fully_identify_obj(otmp, creditClue = true) {
+    discoverObject(otmp.otyp, true, true, creditClue);  // C ref: makeknown → discover_object → exercise(A_WIS)
     otmp.known = true;
     otmp.bknown = true;
     otmp.rknown = true;
@@ -2102,8 +2102,8 @@ export function fully_identify_obj(otmp) {
 
 // C ref: invent.c identify() — identify object and give feedback
 // Autotranslated from invent.c:2650
-export async function identify(otmp, player) {
-  fully_identify_obj(otmp);
+export async function identify(otmp, player, creditClue = true) {
+  fully_identify_obj(otmp, creditClue);
   await prinv( 0, otmp, 0);
   // C ref: invent.c:2650 — C's identify() does NOT call exercise().
   // The exercise(A_WIS) call belongs in seffects() after identification completes.
@@ -2122,7 +2122,7 @@ export function count_unidentified(objchn) {
 }
 
 // C ref: invent.c identify_pack() — identify pack items
-export async function identify_pack(id_limit, player, learning_id) {
+export async function identify_pack(id_limit, player, learning_id, creditClue = true) {
     const inv = player.inventory || [];
     let unid_cnt = count_unidentified(inv);
 
@@ -2134,7 +2134,7 @@ export async function identify_pack(id_limit, player, learning_id) {
     if (!id_limit || id_limit >= unid_cnt) {
         for (const obj of inv) {
             if (not_fully_identified(obj)) {
-                await identify(obj, player);
+                await identify(obj, player, creditClue);
                 if (--unid_cnt < 1) break;
             }
         }
@@ -2177,7 +2177,7 @@ export async function identify_pack(id_limit, player, learning_id) {
                     for (let i = 0; i < n; i++) {
                         const obj = unid.find((candidate) => String(candidate?.invlet || '') === result[i]);
                         if (obj) {
-                            await identify(obj, player);
+                            await identify(obj, player, creditClue);
                             id_limit--;
                         }
                     }
@@ -2212,7 +2212,7 @@ export async function identify_pack(id_limit, player, learning_id) {
                 for (let i = 0; i < n; i++) {
                     const obj = result[i].identifier?.a_obj || result[i].item?.a_obj || result[i].a_obj;
                     if (obj) {
-                        await identify(obj, player);
+                        await identify(obj, player, creditClue);
                         id_limit--;
                     }
                 }
@@ -2410,14 +2410,16 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         );
         if (result === null) return '';
         if (result.includes('_') || result.includes(String.fromCharCode(wizIdentifyAccel))) {
-            await identify_pack(0, p, false);
+            await identify_pack(0, p, false, false);  // wizard identify: no exercise
             return '';
         }
         if (result.length > 0) {
             for (const invlet of result) {
                 const target = unid.find((obj) => String(obj?.invlet || '') === invlet);
                 if (target && not_fully_identified(target)) {
-                    await identify(target);
+                    // C's wiz_identify sets flags directly without exercise
+                    fully_identify_obj(target, false);
+                    await prinv(0, target, 0);
                 }
             }
             update_inventory(p);
