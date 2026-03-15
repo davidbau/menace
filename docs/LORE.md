@@ -13214,3 +13214,20 @@ Validation:
   - skip `_`/Ctrl+I from select-all/invert to mirror `MENU_ITEMFLAGS_SKIPINVERT`
 - Validation:
   - `t11_s746_w_covmax3_gp` first divergence moved `step 405 -> 652`
+
+### Text popup teardown must not rerender full map during detect browse_map
+
+- `t06_s621_w_qstat_gp` and `t06_s622_w_qabil_gp` diverged on the object-detect
+  browse_map screen: JS restored the full terrain after dismissing the getpos
+  tip window, while C keeps the detection-only overlay.
+- Root cause: `destroy_nhwindow()` always invoked the rerender callback for
+  `NHW_TEXT`/`NHW_MENU`, which re-rendered the live map after `clearTextPopup()`
+  already restored the overlay.
+- Fix:
+  - skip `_rerenderCallback()` when `w._popupRendered` is true (popup already
+    restored), preserving detect overlays and matching C.
+  - keep detect clear/draw path explicit by calling `cls()` with display context
+    and routing detect `show_glyph` through display’s `show_glyph`.
+- Validation:
+  - `t06_s621_w_qstat_gp` now passes.
+  - `t06_s622_w_qabil_gp` now passes.

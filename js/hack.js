@@ -1243,7 +1243,7 @@ export async function domove_core(dir, player, map, display, game) {
             await pline(isDart ? 'A little dart shoots out at you!' : 'An arrow shoots out at you!');
             const otmp = t_missile(isDart ? DART : ARROW, trap);
             if (isDart && !rn2(6)) otmp.opoisoned = 1;
-            const projectileName = isDart ? 'a little dart' : 'an arrow';
+            const projectileName = isDart ? 'little dart' : 'arrow';
             const hit = await thitu(
                 isDart ? 7 : 8,
                 dmgval(otmp, player),

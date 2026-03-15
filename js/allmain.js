@@ -1651,10 +1651,7 @@ export class NetHackGame {
         startRecording(seed, this.flags);
         this._emitRuntimeBindings();
 
-        // Show welcome message
-        const wizStr = this.wizard ? ' [WIZARD MODE]' : '';
-        const seedStr = urlOpts.seed !== null ? ` (seed:${seed})` : '';
-        await this.display.putstr_message(`NetHack Royal Jelly -- Welcome to the Mazes of Menace!${wizStr}${seedStr}`);
+        // C does not display a welcome banner before chargen; keep parity.
 
         // Player selection
         if (urlOpts.character) {

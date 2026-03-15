@@ -159,7 +159,7 @@ export function destroy_nhwindow(win) {
     if (!w) return;
     const type = w.type;
     wins[win] = null;
-    if ((type === NHW_MENU || type === NHW_TEXT) && _rerenderCallback) {
+    if ((type === NHW_MENU || type === NHW_TEXT) && _rerenderCallback && !w._popupRendered) {
         _rerenderCallback();
     }
 }
