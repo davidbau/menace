@@ -2210,7 +2210,7 @@ export function insane_object(obj, fmt = '', mesg = '', mon = null) {
 
 // C ref: mkobj.c:3344
 export function init_dummyobj() {
-    return { where: 'OBJ_FREE', quan: 1, owt: 0, otyp: STRANGE_OBJECT };
+    return { where: OBJ_FREE, quan: 1, owt: 0, otyp: STRANGE_OBJECT };
 }
 
 // C ref: mkobj.c:3371

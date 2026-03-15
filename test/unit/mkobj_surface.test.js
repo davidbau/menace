@@ -17,12 +17,12 @@ import {
   replace_object,
 } from '../../js/mkobj.js';
 import { FOOD_CLASS, APPLE, STATUE, ICE_BOX, POT_WATER } from '../../js/objects.js';
-import { ICE, ROOM } from '../../js/const.js';
+import { ICE, ROOM, OBJ_FREE } from '../../js/const.js';
 
 describe('mkobj compatibility surface', () => {
   it('initializes and reports object location names', () => {
     const d = init_dummyobj();
-    assert.equal(d.where, 'OBJ_FREE');
+    assert.equal(d.where, OBJ_FREE);
     assert.equal(where_name(d), 'free');
   });
 

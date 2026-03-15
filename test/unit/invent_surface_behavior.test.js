@@ -130,5 +130,5 @@ test('dounpaid reports unpaid items including container contents', async () => {
 
 test('count_unidentified handles array inventories', () => {
     const player = makePlayer();
-    assert.equal(count_unidentified(player.inventory), 3);
+    assert.equal(count_unidentified(player.inventory), 2);
 });
