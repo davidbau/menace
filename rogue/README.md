@@ -1,4 +1,4 @@
-# Rogue: A Guide to the Dungeons of Doom
+# Rogue: A Guide to the <nobr>Dungeons of Doom</nobr>
 
 *by Glenn Wichman and Michael Toy*
 
