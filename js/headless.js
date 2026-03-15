@@ -614,8 +614,6 @@ export class HeadlessDisplay {
         this._topMessageStatusHp = null;
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
-        this._topMessageAfterMore = false;
-        this._nextTopMessageAfterMore = false;
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
@@ -677,8 +675,6 @@ export class HeadlessDisplay {
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
         this.messageCursorRow = 0;
-        this._topMessageAfterMore = false;
-        this._nextTopMessageAfterMore = false;
     }
 
     // No-op for headless mode; the browser display refreshes the DOM here.
@@ -716,8 +712,8 @@ export class HeadlessDisplay {
         }
     }
 
-    async putstr_message(msg) {
-        let topMessageAfterMore = !!this._nextTopMessageAfterMore;
+    async putstr_message(msg, { fromTopMoreBoundary = false } = {}) {
+        let topMessageAfterMore = !!fromTopMoreBoundary;
         const encumberRefreshMsg =
             msg === 'Your movements are slowed slightly because of your load.'
             || msg === 'You rebalance your load.  Movement is difficult.'
@@ -728,7 +724,6 @@ export class HeadlessDisplay {
             || msg === 'Your movements are only slowed slightly by your load.'
             || msg === 'You rebalance your load.  Movement is still difficult.'
             || msg === 'You stagger under your load.  Movement is still very hard.';
-        this._nextTopMessageAfterMore = false;
 
         // Add to message history
         if (msg.trim()) {
@@ -746,7 +741,7 @@ export class HeadlessDisplay {
         );
         const suppressDeathStagingStatus = !!(activeGame?.context?.mon_moving
             && Number(activeGame?.multi || 0) < 0
-            && (!this._topMessageAfterMore || sleepWakeBoundary));
+            && (!topMessageAfterMore || sleepWakeBoundary));
         if (this.topMessage && this.messageNeedsMore) {
             // C ref: flush_screen(1) here mirrors C's vpline() which fires
             // flush_screen before the new message replaces the old one.
@@ -802,7 +797,6 @@ export class HeadlessDisplay {
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
             this._topMessageEncumbrance = null;
-            this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
             topMessageAfterMore = true;
         }
@@ -830,7 +824,6 @@ export class HeadlessDisplay {
                 this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
-                this._topMessageAfterMore = false;
                 this.messageNeedsMore = true;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
                 this.messageCursorRow = 0;
@@ -883,7 +876,6 @@ export class HeadlessDisplay {
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
             this._topMessageEncumbrance = null;
-            this._topMessageAfterMore = false;
             this.moreMarkerActive = false;
             topMessageAfterMore = true;
         }
@@ -912,7 +904,6 @@ export class HeadlessDisplay {
                 const _msgPlayer = this._lastMapState?.player || activeGame?.player || null;
                 this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
             }
-            this._topMessageAfterMore = topMessageAfterMore;
             this.messageNeedsMore = true;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
@@ -931,7 +922,7 @@ export class HeadlessDisplay {
                             site: 'headless.more.dismiss',
                             clearAfter: false,
                             readKey: this._nhgetch,
-                            refreshStatus: !(activeGame?.context?.mon_moving && this._topMessageAfterMore),
+                            refreshStatus: !(activeGame?.context?.mon_moving && topMessageAfterMore),
                         });
                     } catch (e) {
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -943,7 +934,6 @@ export class HeadlessDisplay {
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
                     this._topMessageEncumbrance = null;
-                    this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
                 } else {
                     // Parity fallback for harness contexts without a wired
@@ -956,7 +946,6 @@ export class HeadlessDisplay {
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
                     this._topMessageEncumbrance = null;
-                    this._topMessageAfterMore = false;
                     this.moreMarkerActive = false;
                 }
             }
@@ -989,7 +978,6 @@ export class HeadlessDisplay {
         this._topMessageStepIndex = Number.isInteger(this._lastMapState?.gameMap?._replayStepIndex)
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
-        this._topMessageAfterMore = false;
         this.messageNeedsMore = true;
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
         this.messageCursorRow = 0;
@@ -1036,11 +1024,9 @@ export class HeadlessDisplay {
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
         this._topMessageEncumbrance = null;
-        this._topMessageAfterMore = false;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
-            this._nextTopMessageAfterMore = true;
-            await this.putstr_message(remainder);
+            await this.putstr_message(remainder, { fromTopMoreBoundary: true });
         }
         return;
     }
