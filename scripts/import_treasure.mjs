@@ -66,22 +66,29 @@ const grid = parseAns(buf);
 const artRows = [];
 for (let row = 0; row < 24; row++) {
     const cells = grid[row];
+    // Non-space chars with reset color (-1) are drawn in the editor using the
+    // terminal's default foreground (typically light gray). Map them to color 7.
+    const resolved = cells.map(cell =>
+        (cell.color < 0 && cell.ch !== ' ') ? { ch: cell.ch, color: 7 } : cell
+    );
     let lastContent = -1;
-    for (let col = cells.length - 1; col >= 0; col--) {
-        if (cells[col].color >= 0) { lastContent = col; break; }
+    for (let col = resolved.length - 1; col >= 0; col--) {
+        if (resolved[col].color >= 0) { lastContent = col; break; }
     }
     if (lastContent < 0) {
         // Empty row — include only if there are more content rows below
-        const hasMore = grid.slice(row + 1).some(r => r.some(c => c.color >= 0));
-        if (!hasMore) break; // trailing empty rows: stop here
+        const hasMore = grid.slice(row + 1).some(r =>
+            r.some(c => c.color >= 0 || c.ch !== ' ')
+        );
+        if (!hasMore) break;
         artRows.push(['', []]);
         continue;
     }
     let chars = '';
     const colors = [];
     for (let col = 0; col <= lastContent; col++) {
-        chars += cells[col].ch;
-        colors.push(cells[col].color);
+        chars += resolved[col].ch;
+        colors.push(resolved[col].color);
     }
     artRows.push([chars, colors]);
 }

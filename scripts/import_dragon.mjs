@@ -90,18 +90,23 @@ const artRows = [];
 for (let dr = 0; dr < DRAGON_ROWS; dr++) {
     const row = grid[DRAGON_START + dr];
 
-    // Find last explicitly-colored (non-default) cell
+    // Non-space chars with reset color (-1) are drawn in the editor using the
+    // terminal's default foreground (typically light gray). Map them to color 7.
+    const resolved = row.map(cell =>
+        (cell.color < 0 && cell.ch !== ' ') ? { ch: cell.ch, color: 7 } : cell
+    );
+
     let lastContent = -1;
-    for (let col = row.length - 1; col >= 0; col--) {
-        if (row[col].color >= 0) { lastContent = col; break; }
+    for (let col = resolved.length - 1; col >= 0; col--) {
+        if (resolved[col].color >= 0) { lastContent = col; break; }
     }
 
     // Build chars string and colors array up to lastContent
     let chars = '';
     const colors = [];
     for (let col = 0; col <= lastContent; col++) {
-        chars += row[col].ch;
-        colors.push(row[col].color); // -1 = transparent, 0-15 = colored
+        chars += resolved[col].ch;
+        colors.push(resolved[col].color); // -1 = transparent, 0-15 = colored
     }
 
     artRows.push([chars, colors]);
