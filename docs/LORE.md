@@ -12693,3 +12693,30 @@ Validation:
   - stable guardrails remained green:
     - `seed031_manual_direct`
     - `seed329_rogue_wizard_gameplay`
+
+### `hi15` shopkeeper movement after `wizload`: use `ESHK` state, not stale root shadows
+
+- Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` from step `34` exposed an
+  earlier gameplay drift in step `5`: a Minetown shopkeeper moved off `(60,6)`
+  in JS while C left it in place.
+- Focused tracing in `js/monmove.js` showed the root cause:
+  - the shopkeeper branch was still reading root-level shadow fields like
+    `mon.billct`, `mon.debit`, `mon.robbed`, `mon.following`, `mon.shk`,
+    and `mon.shd`
+  - but after `wizload` special-level bring-up, the authoritative values lived
+    in `mextra.eshk`
+  - on the failing turn, JS had `mon.billct == 0` while `ESHK(mon).billct == 1`
+    so the branch incorrectly took the `satdoor -> appr=0` random-move path
+- Fix:
+  - `js/monmove.js` now sources shopkeeper movement state from `ESHK(mon)` in
+    the same places C `shk_move()` does, falling back to root fields only if
+    `mextra.eshk` is absent.
+- Result:
+  - `hi15` moved later again:
+    - first divergence `34 -> 31` on events/screens
+    - first RNG divergence `34 -> 35`
+  - the remaining blocker is no longer shop billing or shopkeeper state; it is
+    a stacked teleport/shop-entry `--More--` boundary around steps `29..35`.
+  - stable guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed329_rogue_wizard_gameplay`

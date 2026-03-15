@@ -1811,7 +1811,13 @@ export async function m_move(mon, map, player, display = null, fov = null) {
 
         let udist = distu(player, omx, omy);
         let appr = 1;
-        const home = mon.shk || { x: omx, y: omy };
+        const eshkp = mon.mextra?.eshk || null;
+        const home = eshkp?.shk || mon.shk || { x: omx, y: omy };
+        const door = eshkp?.shd || mon.shd || { x: home.x, y: home.y };
+        const following = Number(eshkp?.following ?? mon.following ?? 0);
+        const billct = Number(eshkp?.billct ?? mon.billct ?? 0);
+        const debit = Number(eshkp?.debit ?? mon.debit ?? 0);
+        const robbed = Number(eshkp?.robbed ?? mon.robbed ?? 0);
         let gtx = home.x;
         let gty = home.y;
         const satdoor = (gtx === omx && gty === omy);
@@ -1823,7 +1829,7 @@ export async function m_move(mon, map, player, display = null, fov = null) {
             if (!mon_is_peaceful(mon)) {
                 return MMOVE_NOTHING;
             }
-            if (mon.following) {
+            if (following) {
                 if (udist < 2) {
                     return MMOVE_NOTHING;
                 }
@@ -1831,8 +1837,8 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         }
 
         const z = holetime(player);
-        if (mon.following || (z >= 0 && z * z <= udist)) {
-            if (udist > 4 && mon.following && !Number(mon.billct || 0)) {
+        if (following || (z >= 0 && z * z <= udist)) {
+            if (udist > 4 && following && !billct) {
                 // C: return -1 and let generic m_move handle it.
             } else {
                 gtx = player.x;
@@ -1848,7 +1854,6 @@ export async function m_move(mon, map, player, display = null, fov = null) {
             if (player.invisible || player.Invis || player.usteed) {
                 avoid = false;
             } else {
-                const door = mon.shd || { x: home.x, y: home.y };
                 uondoor = (player.x === door.x && player.y === door.y);
                 if (uondoor) {
                     badinv = !!carrying(PICK_AXE, player)
@@ -1865,7 +1870,7 @@ export async function m_move(mon, map, player, display = null, fov = null) {
                     badinv = false;
                 }
 
-                if (((!Number(mon.robbed || 0) && !Number(mon.billct || 0) && !Number(mon.debit || 0)) || avoid)
+                if (((!robbed && !billct && !debit) || avoid)
                     && dist2(omx, omy, gtx, gty) < 3) {
                     if (!badinv && !onlineu(mon, player)) {
                         return MMOVE_NOTHING;
@@ -2112,6 +2117,10 @@ export async function m_move(mon, map, player, display = null, fov = null) {
 
         const ndist = dist2(nx, ny, ggx, ggy);
         const nearer = ndist < nidist;
+        let appr0Pick = false;
+        if (appr === 0) {
+            appr0Pick = (rn2(++chcnt) === 0);
+        }
 
         // C ref: monmove.c m_move() candidate pick order.
         // Important: for appr==0, rn2(++chcnt) is evaluated even when this is
@@ -2119,7 +2128,7 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         // the final OR term in C.
         if ((appr === 1 && nearer)
             || (appr === -1 && !nearer)
-            || (appr === 0 && !rn2(++chcnt))
+            || appr0Pick
             || !mmoved) {
             nix = nx;
             niy = ny;
