@@ -21,7 +21,7 @@ import {
     SHARED,
 } from './const.js';
 import { rn1, rn2, rnd, getRngCallCount } from './rng.js';
-import { makeRoom } from './mkroom.js';
+import { makeRoom, has_dnstairs, has_upstairs } from './mkroom.js';
 import { mksobj, mkobj, mkcorpstat, curse, add_to_buried, weight } from './mkobj.js';
 import { placeFloorObject } from './invent.js';
 import { GOLD_PIECE, BELL, CORPSE, SCR_TELEPORTATION } from './objects.js';
@@ -384,14 +384,10 @@ export function mkstairs(map, x, y, isUp, isBranch = false) {
 
 // C ref: mklev.c generate_stairs_room_good()
 export function generate_stairs_room_good(map, croom, phase) {
-    const has_upstairs = Number.isInteger(map.upstair?.x)
-        && Number.isInteger(map.upstair?.y)
-        && inside_room(croom, map.upstair.x, map.upstair.y, map);
-    const has_dnstairs = Number.isInteger(map.dnstair?.x)
-        && Number.isInteger(map.dnstair?.y)
-        && inside_room(croom, map.dnstair.x, map.dnstair.y, map);
+    const roomHasUpstairs = has_upstairs(croom, map);
+    const roomHasDnstairs = has_dnstairs(croom, map);
     return (croom.needjoining || phase < 0)
-        && ((!has_dnstairs && !has_upstairs) || phase < 1)
+        && ((!roomHasDnstairs && !roomHasUpstairs) || phase < 1)
         && (croom.rtype === OROOM
             || (phase < 2 && croom.rtype === THEMEROOM));
 }

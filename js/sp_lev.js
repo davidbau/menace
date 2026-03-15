@@ -29,7 +29,7 @@ import {
     baalz_fixup,
 } from './mkmaze.js';
 import { count_level_features, create_subroom, topologize } from './mklev.js';
-import { somex, somey, somexy } from './mkroom.js';
+import { somex, somey, somexy, priestini } from './mkroom.js';
 import { make_engr_at, del_engr, make_grave } from './engrave.js';
 import { random_epitaph_text } from './rumors.js';
 import { seedFromMT } from './xoshiro256.js';
@@ -62,7 +62,7 @@ import {
     D_NODOOR, D_ISOPEN, D_CLOSED, D_LOCKED, D_BROKEN, D_SECRET,
     W_NONDIGGABLE, W_NONPASSWALL,
     COLNO, ROWNO, IS_ROOM, IS_OBSTRUCTED, IS_WALL, IS_STWALL, IS_POOL, IS_LAVA,
-    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, Align2amask,
+    A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, Align2amask, AM_SHRINE, AM_SANCTUM, TEMPLE,
     NO_MM_FLAGS,
     MKTRAP_SEEN, MKTRAP_MAZEFLAG, MKTRAP_NOSPIDERONWEB, MKTRAP_NOVICTIM,
     MAXNROFROOMS, ROOMOFFSET,
@@ -1317,7 +1317,7 @@ async function fixupSpecialLevel() {
     if (fixupTrace) {
         const nroom = Number.isInteger(levelState.map?.nroom) ? levelState.map.nroom : 0;
         pushRngLogEntry(
-            `^wizfixup[name=${specialName || 'unknown'} isBranch=${ctx.isBranchLevel ? 1 : 0} nroom=${nroom} regions=${initialRegionCount} placed=${placedRegionCalls} addedBranch=${addedBranch ? 1 : 0} fallback=${usedFallbackBranchPlacement ? 1 : 0} rng=${getRngCallCount() | 0}]`
+            `^wizfixup[name=${specialName || 'unknown'} dnum=${Number.isFinite(ctx.dnum) ? ctx.dnum : -1} dlevel=${Number.isFinite(ctx.dlevel) ? ctx.dlevel : -1} isBranch=${ctx.isBranchLevel ? 1 : 0} nroom=${nroom} regions=${initialRegionCount} placed=${placedRegionCalls} addedBranch=${addedBranch ? 1 : 0} fallback=${usedFallbackBranchPlacement ? 1 : 0} rng=${getRngCallCount() | 0}]`
         );
     }
     // C ref: mkmaze.c fixup_special() frees gl.lregions and zeroes num_lregions.
@@ -5669,6 +5669,7 @@ export function create_altar(opts) {
     let ax;
     let ay;
     let alignSpec;
+    let shrineSpec = 'altar';
 
     if (opts === undefined) {
         ax = -1;
@@ -5689,16 +5690,25 @@ export function create_altar(opts) {
         }
         // Some converted scripts use aligned instead of align.
         alignSpec = opts.align ?? opts.aligned;
+        shrineSpec = opts.type ?? 'altar';
     } else {
         return;
     }
 
-    const currentRoom = levelState.currentRoom || null;
+    const map = levelState.map;
+    let currentRoom = levelState.currentRoom || null;
     const pos = currentRoom
         ? getFreeRoomLoc(ax, ay, currentRoom)
         : getLocationCoord(ax, ay, GETLOC_DRY, null);
     if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) {
         return;
+    }
+
+    if (!currentRoom) {
+        const roomno = Number(map.locations[pos.x]?.[pos.y]?.roomno || 0);
+        if (roomno >= ROOMOFFSET) {
+            currentRoom = map.rooms?.[roomno - ROOMOFFSET] || null;
+        }
     }
 
     const inducedAlignForCurrentLevel = () => {
@@ -5733,10 +5743,25 @@ export function create_altar(opts) {
         altarAlign = inducedAlignForCurrentLevel();
     }
 
-    if (!setLevlTypAt(levelState.map, pos.x, pos.y, ALTAR)) return;
-    const loc = levelState.map.locations[pos.x][pos.y];
+    if (!setLevlTypAt(map, pos.x, pos.y, ALTAR)) return;
+    const loc = map.locations[pos.x][pos.y];
     loc.altarAlign = altarAlign;
-    loc.flags = altarAlign;
+    loc.flags = Align2amask(altarAlign);
+
+    let shrine = 0;
+    if (typeof shrineSpec === 'string') {
+        const st = shrineSpec.toLowerCase();
+        if (st === 'shrine') shrine = 1;
+        else if (st === 'sanctum') shrine = 2;
+    }
+
+    if (currentRoom && currentRoom.rtype === TEMPLE && shrine) {
+        priestini(currentRoom, pos.x, pos.y, shrine > 1, levelState.depth || levelState.levelDepth || 1, map);
+        loc.flags |= AM_SHRINE;
+        if (shrine > 1) loc.flags |= AM_SANCTUM;
+        map.flags.has_temple = true;
+    }
+
     markSpLevTouched(pos.x, pos.y);
 }
 
@@ -7094,6 +7119,12 @@ export async function finalize_special_checkpoint_stage() {
         : flip_level_rnd();
     if (levelState.map && flipped) {
         fix_wall_spines(levelState.map, 1, 0, COLNO - 1, ROWNO - 1);
+    }
+    if (levelState.map) {
+        count_level_features(levelState.map);
+    }
+    if (levelState.map && levelState.coder?.solidify) {
+        solidify_map(levelState.map);
     }
     await fixupSpecialLevel();
     captureCheckpoint('after_finalize_special');

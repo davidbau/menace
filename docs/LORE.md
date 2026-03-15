@@ -12553,3 +12553,36 @@ Validation:
   - promoted to `sessions/coverage/monster-ai-combat/`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### Minetown wizload parity depends on shrine priest creation and non-stubbed `monkfoodshop()` helpers
+
+- Continuing the `hi15_seed42_barb_minetn5_shop-pay_gp` bring-up exposed three
+  more real C-vs-JS special-level bugs.
+- First, `js/sp_lev.js:create_altar()` was not C-faithful for shrine altars:
+  - it ignored `opts.type = "shrine"|"sanctum"`,
+  - it only looked at `currentRoom`, instead of also resolving the room from
+    the altar tile when the altar is placed into a map-defined temple region,
+  - and it stored raw alignment in `loc.flags` instead of the altar bitmask.
+- C `sp_lev.c:create_altar()` calls `priestini()` for shrine altars inside
+  `TEMPLE` rooms. Porting that behavior in JS moved the first `hi15` blocker
+  from “missing priest path before `after_wallification_special`” to the later
+  branch-placement/finalization window.
+- Second, the Minetown level family still had fake converted helpers:
+  `js/levels/minetn-{2,3,4,5,6,7}.js` defined `monkfoodshop()` as a stub.
+  C `dat/nhlib.lua` returns `"health food shop"` for Monks and `"food shop"`
+  otherwise. Implementing that helper restored the missing Minetown food-shop
+  room on `minetn-5`, raising JS room count from `4` to `5` and moving the
+  `hi15` first RNG divergence later again.
+- Third, `js/wizcmds.js:handleWizLoadDes()` needs two finalize contexts, not
+  one shared `skipRandomFlip` flag:
+  - the `load_special()`-equivalent pass must still do the C
+    `flip_level_rnd()`,
+  - the later `lspo_finalize_level(NULL)` pass must skip the extra flip.
+- Guardrails after these fixes:
+  - `seed329_rogue_wizard_gameplay`: fully green
+  - `seed031_manual_direct`: fully green
+- Current `hi15` state after this increment:
+  - first RNG divergence moved from the original step-5 priest/branch prelude
+    noise to a later `finalize_level()` vs `shkinit()` boundary,
+  - first event divergence remains in the first shopkeeper inventory sequence,
+    which is now the correct narrow next target.
