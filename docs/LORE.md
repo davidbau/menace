@@ -12427,3 +12427,161 @@ Validation:
     - only one nearby hostile in the initial shop neighborhood
   - this is the right next probe target for building the first real
     branch-dense shop coverage session
+## 2026-03-14: `show_map_spot()` must restore trap/object glyphs after `newsym()` during mapping
+
+- Problem:
+  - `t11_s754_w_covmax8_gp` was gameplay-green but still had a screen/color
+    divergence at step `1610` on wizard mapping (`Ctrl-F`)
+  - JS showed the giant spider glyph `s` on the watched square while C showed
+    the seen web glyph `"`
+- Diagnosis:
+  - watched-cell repaint tracing on `34,18` showed the exact overwrite chain:
+    - `show_glyph()` painted the web glyph
+    - then `putMapCell()` restored the spider during `show_map_spot() -> newsym()`
+  - JS `detect.js:show_map_spot()` was incomplete
+  - C `detect.c:show_map_spot()` does more than force background + `newsym()`:
+    after that redraw it restores visible trap/engraving state, or re-shows the
+    prior trap/object glyph, so mapping uses trap-over-object precedence rather
+    than normal in-sight monster-over-trap precedence
+- Fix:
+  - `js/detect.js:show_map_spot()` now ports the missing C post-`newsym()`
+    restoration logic:
+    - preserve `oldglyph = glyph_at(x, y)`
+    - after `newsym()`, if not furniture:
+      - `map_trap(trap, 1)` when a seen trap is present
+      - else `map_engraving(engr, 1)` when applicable
+      - else `show_glyph(x, y, oldglyph)` when the prior glyph was a trap or
+        object
+- Result:
+  - `t11_s754_w_covmax8_gp` is now full green on gameplay display channels:
+    - `RNG 20848/20848`
+    - `events 3292/3292`
+    - `screens 1866/1866`
+    - `colors 44784/44784`
+  - remaining failures are now only older non-screen channels:
+    - mapdump `d0l10_006`
+    - cursor step `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-15: invalid throw prompt needs a visible `--More--` owner
+
+- Problem:
+  - after the mapping fix, `t11_s754_w_covmax8_gp` was still failing on cursor only
+    at step `844`
+  - session expected cursor `[35,0,1]` on `You don't have that object.--More--`
+  - JS ended at `[27,0,1]`
+- Diagnosis:
+  - watched-cell cursor tracing showed step `844` cursor placement came from
+    `js/dothrow.js:handleThrow()`
+  - the invalid inventory-letter path called `more()` without `forceVisual`, so
+    JS kept the cursor at message-end column `27` instead of the visible
+    `--More--` marker at column `35`
+- Fix:
+  - `js/dothrow.js` now calls `more(..., { forceVisual: true })` for the
+    invalid-inventory-letter throw path
+- Result:
+  - `t11_s754_w_covmax8_gp` cursor is now full green (`1866/1866`)
+  - screens/colors remain fully green
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+
+### wizload `nhlib` shuffle and special-checkpoint flip duplication were both real RNG debt for new Minetown shop coverage
+
+- New pending coverage session:
+  `test/comparison/sessions/pending/hi15_seed42_barb_minetn5_shop-pay_gp.session.json`
+  uses `--wizload minetn-5` plus reconnaissance-guided wizard teleport to hit:
+  - tool-shop greeting,
+  - unpaid pickup,
+  - `p` with no money,
+  - wizard `^W` gold wish,
+  - pay menu entry.
+- Initial parity on that session failed immediately during `wizload` special-level
+  setup, before the shop logic itself.
+- Two independent JS wizload RNG mistakes were exposed and fixed:
+  - `js/wizcmds.js:handleWizLoadDes()` was manually burning
+    `rn2(3); rn2(2);` for an imagined `nhlib.lua shuffle(align)` prelude even
+    though the translated level generator already performs its own
+    `shuffle(align)`. This duplicated the `nhlib` shuffle cost.
+  - `js/sp_lev.js:finalize_special_checkpoint_stage()` always called
+    `flip_level_rnd()`, ignoring `finalizeContext.skipRandomFlip`, even though
+    the regular `finalize_level()` path already respected that C wizload rule.
+- After those fixes:
+  - first RNG divergence on the pending Minetown shop session moved later,
+  - matched events increased substantially,
+  - wizard guardrail `seed329_rogue_wizard_gameplay` stayed fully green.
+- Remaining first blocker on that session is now a narrower wizload
+  finalization/branch-placement ordering issue (`place_branch` vs C `priestini`)
+  rather than broad special-level prelude noise.
+
+## 2026-03-15: generated stairs must go through `mkstairs()`
+
+- Problem:
+  - after fixing `t11_s754_w_covmax8_gp` screen/color/cursor parity, the last
+    remaining mismatch was mapdump-only:
+    - `d0l10_006 U[9]`: JS `context.move=1`, session `0`
+  - forcing checkpoint payloads to emit `moveOverride: 0` fixed that mismatch,
+    but exposed an earlier state bug:
+    - `d0l4_003 W[52,13]`: JS `0`, session `2`
+- Diagnosis:
+  - direct runtime inspection at step `1370` showed cell `(52,13)` was
+    `STAIRS`, but had no `flags`, no `wall_info`, no `stairdir`, and was not
+    `map.upstair` or `map.dnstair`
+  - C `mklev.c:generate_stairs()` calls `mkstairs(...)` for both down and up
+    stair placement
+  - JS `js/mklev.js:generate_stairs()` still used a legacy direct-assignment
+    shortcut:
+    - `loc.typ = STAIRS`
+    - `loc.flags = 0/1`
+    - `map.dnstair` / `map.upstair`
+  - that shortcut dropped the C stair direction metadata (`stairdir`) whenever
+    later placement overwrote the primary stair pointers
+- Fix:
+  - `js/mklev.js:generate_stairs()` now calls `mkstairs(map, x, y, ...)` for
+    both generated stairs
+  - `js/dungeon.js` mapdump checkpoint payloads now force `context.move=0`
+    during level-generation checkpoints, matching the captured C checkpoint
+    state
+- Result:
+  - `t11_s754_w_covmax8_gp` is now fully green:
+    - `RNG 20848/20848`
+    - `events 3292/3292`
+    - `screens 1866/1866`
+    - `colors 44784/44784`
+    - `cursor 1866/1866`
+    - `mapdump 6/6`
+  - promoted to `sessions/coverage/monster-ai-combat/`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
+### Minetown wizload parity depends on shrine priest creation and non-stubbed `monkfoodshop()` helpers
+
+- Continuing the `hi15_seed42_barb_minetn5_shop-pay_gp` bring-up exposed three
+  more real C-vs-JS special-level bugs.
+- First, `js/sp_lev.js:create_altar()` was not C-faithful for shrine altars:
+  - it ignored `opts.type = "shrine"|"sanctum"`,
+  - it only looked at `currentRoom`, instead of also resolving the room from
+    the altar tile when the altar is placed into a map-defined temple region,
+  - and it stored raw alignment in `loc.flags` instead of the altar bitmask.
+- C `sp_lev.c:create_altar()` calls `priestini()` for shrine altars inside
+  `TEMPLE` rooms. Porting that behavior in JS moved the first `hi15` blocker
+  from “missing priest path before `after_wallification_special`” to the later
+  branch-placement/finalization window.
+- Second, the Minetown level family still had fake converted helpers:
+  `js/levels/minetn-{2,3,4,5,6,7}.js` defined `monkfoodshop()` as a stub.
+  C `dat/nhlib.lua` returns `"health food shop"` for Monks and `"food shop"`
+  otherwise. Implementing that helper restored the missing Minetown food-shop
+  room on `minetn-5`, raising JS room count from `4` to `5` and moving the
+  `hi15` first RNG divergence later again.
+- Third, `js/wizcmds.js:handleWizLoadDes()` needs two finalize contexts, not
+  one shared `skipRandomFlip` flag:
+  - the `load_special()`-equivalent pass must still do the C
+    `flip_level_rnd()`,
+  - the later `lspo_finalize_level(NULL)` pass must skip the extra flip.
+- Guardrails after these fixes:
+  - `seed329_rogue_wizard_gameplay`: fully green
+  - `seed031_manual_direct`: fully green
+- Current `hi15` state after this increment:
+  - first RNG divergence moved from the original step-5 priest/branch prelude
+    noise to a later `finalize_level()` vs `shkinit()` boundary,
+  - first event divergence remains in the first shopkeeper inventory sequence,
+    which is now the correct narrow next target.

@@ -67,6 +67,8 @@ ensure_head_note() {
 
   if has_note "$current_commit"; then
     echo "  ✅ Test note created for $current_short"
+    # Sync notes to remote immediately so work isn't lost if push is interrupted
+    git push --no-verify "$REMOTE_NAME" +refs/notes/test-results:refs/notes/test-results 2>/dev/null || true
     return 0
   fi
 
@@ -181,6 +183,8 @@ for commit in "${COMMITS_TO_CHECK[@]}"; do
   echo "  Running session tests in temporary worktree..."
   if generate_note_for_commit "$commit" && has_note "$commit"; then
     echo "  ✅ Test note created for $short"
+    # Sync notes to remote immediately so work isn't lost if push is interrupted
+    git push --no-verify "$REMOTE_NAME" +refs/notes/test-results:refs/notes/test-results 2>/dev/null || true
   else
     echo "  ❌ Unable to create test note for $short"
     FAILURES=$((FAILURES + 1))
@@ -192,8 +196,7 @@ if [ "$FAILURES" -gt 0 ]; then
   exit 1
 fi
 
-# Push notes alongside branches.
-# Use --no-verify to avoid recursion (this push triggers pre-push again otherwise).
+# Final notes sync (catches HEAD note and any stragglers).
 echo "Syncing test-results notes..."
 git push --no-verify "$REMOTE_NAME" +refs/notes/test-results:refs/notes/test-results 2>/dev/null && \
   echo "✅ Notes pushed" || \

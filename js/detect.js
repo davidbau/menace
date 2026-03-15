@@ -1,6 +1,6 @@
 import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          D_CLOSED, D_LOCKED, D_TRAPPED, D_NODOOR, D_BROKEN, D_ISOPEN,
-         IS_DOOR, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
+         IS_DOOR, IS_FURNITURE, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
          BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP,
          BOLT_LIM, FOOT, TOE, NOSE, WM_MASK } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
@@ -15,9 +15,9 @@ import { is_hider, hides_under, DEADMONSTER, M_AP_TYPE } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
-    map_invisible, map_object, map_trap, map_background,
+    map_invisible, map_object, map_trap, map_engraving, map_background, map_location,
     cls,
-    newsym, flush_screen,
+    newsym, flush_screen, glyph_at,
     canSpotMonsterForMap, senseMonsterForMap,
     warning_of, feel_newsym, feel_location, docrt, under_water, under_ground,
     unmap_invisible,
@@ -31,7 +31,7 @@ import { distu } from './hacklib.js';
 import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END, TER_FULL, TER_DETECT, TER_OBJ, TER_MON } from './const.js';
-import { defsyms, trap_to_defsym, glyph_is_invisible } from './symbols.js';
+import { defsyms, trap_to_defsym, glyph_is_invisible, glyph_is_object, glyph_is_trap } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
 import { sobj_at } from './invent.js';
@@ -742,10 +742,35 @@ export async function use_crystal_ball(obj, player, map, display, game) {
 export function show_map_spot(x, y, cnf, map) {
     if (cnf && rn2(7)) return;
     const lev = map.at(x, y); if (!lev) return;
+    // C ref: detect.c:1399 — save old glyph before newsym overwrites it.
+    // Check both JS glyph buffer (loc.glyph) and remembered object/trap state.
+    const oldglyph = glyph_at(x, y);
+    const hadMemObj = !!lev.mem_obj;
+    const hadMemTrap = !!lev.mem_trap;
     lev.seenv = 0xFF;
     if (lev.typ === SCORR) { lev.typ = CORR; unblock_point(x, y); }
     map_background(map, x, y, 0);
     newsym(x, y);
+    // C ref: detect.c:1406-1415 — after newsym, mapping overlays traps/engravings/objects
+    // on top of any visible monster.  Mapping reveals the map layout, not monster positions.
+    if (IS_FURNITURE(lev.typ)) return;
+    const trap = map.trapAt ? map.trapAt(x, y) : null;
+    if (trap && trap.tseen) {
+        map_trap(trap, 1);
+    } else {
+        const engr = map.engravingAt ? map.engravingAt(x, y) : null;
+        if (engr && !cnf) {
+            map_engraving(engr, 1);
+        } else if (glyph_is_trap(oldglyph) || glyph_is_object(oldglyph)) {
+            // C ref: restore the previously-displayed trap/object glyph.
+            show_glyph(x, y, oldglyph);
+            if (map.flags?.hero_memory) lev.glyph = oldglyph;
+        } else if (hadMemTrap || hadMemObj) {
+            // Fallback: loc.glyph may not be maintained for all cells in JS.
+            // Use map_location to re-render objects/traps/terrain without the monster.
+            map_location(x, y, 1, map);
+        }
+    }
 }
 
 // ========================================================================

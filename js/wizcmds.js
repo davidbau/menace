@@ -267,16 +267,17 @@ export async function handleWizLoadDes(game) {
         rn2(100);
         rn2(100);
     }
-    // C ref: nhl_init() creates a fresh Lua state and loads nhlib.lua,
-    // whose top-level shuffle(align) consumes rn2(3), rn2(2).
-    rn2(3);
-    rn2(2);
     resetLevelState();
     // C ref: wiz_load_splua -> fixup_special() uses Is_branchlev(&u.uz),
     // i.e. the hero's current level context (not the loaded special file's
     // nominal dungeon coordinates).
-    const dnum = Number.isInteger(player?.uz?.dnum) ? player.uz.dnum : 0;
-    const dlevel = Number.isInteger(player?.uz?.dlevel) ? player.uz.dlevel : player.dungeonLevel;
+    const liveMap = game.map || game.lev || null;
+    const dnum = Number.isInteger(liveMap?._genDnum)
+        ? liveMap._genDnum
+        : (Number.isInteger(player?.uz?.dnum) ? player.uz.dnum : 0);
+    const dlevel = Number.isInteger(liveMap?._genDlevel)
+        ? liveMap._genDlevel
+        : (Number.isInteger(player?.uz?.dlevel) ? player.uz.dlevel : player.dungeonLevel);
     const finalizeCtx = {
         dnum,
         dlevel,
@@ -291,16 +292,23 @@ export async function handleWizLoadDes(game) {
             { ...finalizeCtx, deferFinalize: true },
             async () => await generator()
         );
+        await withFinalizeContext(
+            {
+                ...finalizeCtx,
+                skipAfterFinalizeCheckpoint: true,
+                skipRandomFlip: false,
+            },
+            async () => {
+                await finalize_special_checkpoint_stage();
+            }
+        );
         return await withFinalizeContext(
             {
                 ...finalizeCtx,
                 skipAfterFinalizeCheckpoint: true,
                 skipRandomFlip: true,
             },
-            async () => {
-                await finalize_special_checkpoint_stage();
-                return await finalize_level();
-            }
+            async () => await finalize_level()
         );
     });
     if (newMap) {

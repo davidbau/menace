@@ -358,10 +358,18 @@ function buildHarnessMapdumpGrid(map, which) {
                     if (value === 0 && typ === ALTAR) {
                         value = Number(loc?.altarmask ?? 0) & 0x1f;
                     }
-                    // C stores stair direction in rm.flags low bits.
-                    if (value === 0 && typ === STAIRS) {
-                        if (map?.upstair?.x === x && map?.upstair?.y === y) value = LA_UP;
-                        else if (map?.dnstair?.x === x && map?.dnstair?.y === y) value = LA_DOWN;
+                    // C stores stair/ladder direction in rm.flags low bits.
+                    if (value === 0 && (typ === STAIRS || typ === LADDER)) {
+                        if (typ === STAIRS) {
+                            if (map?.upstair?.x === x && map?.upstair?.y === y) value = LA_UP;
+                            else if (map?.dnstair?.x === x && map?.dnstair?.y === y) value = LA_DOWN;
+                        } else {
+                            if (map?.upladder?.x === x && map?.upladder?.y === y) value = LA_UP;
+                            else if (map?.dnladder?.x === x && map?.dnladder?.y === y) value = LA_DOWN;
+                        }
+                        if (value === 0 && Number.isInteger(loc?.stairdir)) {
+                            value = loc.stairdir ? LA_UP : LA_DOWN;
+                        }
                     }
                     break;
                 }
@@ -418,9 +426,11 @@ function buildHarnessMapdumpPayload(map, options = {}) {
     const utrap = Number.isFinite(hero?.utrap) ? Math.trunc(hero.utrap) : 0;
     const utraptype = Number.isFinite(hero?.utraptype) ? Math.trunc(hero.utraptype) : 0;
     // C mapdump emits svc.context.move (not a per-hero cached field).
-    const move = Number.isFinite(_gstate?.context?.move)
+    const move = Number.isFinite(options.moveOverride)
+        ? Math.trunc(options.moveOverride)
+        : (Number.isFinite(_gstate?.context?.move)
         ? Math.trunc(_gstate.context.move)
-        : (Number.isFinite(_gstate?.move) ? Math.trunc(_gstate.move) : 0);
+        : (Number.isFinite(_gstate?.move) ? Math.trunc(_gstate.move) : 0));
     const moves = Number.isFinite(hero?.moves)
         ? Math.trunc(hero.moves)
         : (heroUnplaced && Number.isFinite(hero?.turns)
@@ -622,7 +632,9 @@ function emitHarnessMapdumpEvent(map, depth, dnum, dlevel) {
             : (Number.isInteger(depth) && depth > 0 ? depth : 1));
     const serial = String(++_harnessMapdumpSerial).padStart(3, '0');
     const dumpId = `d${useDnum}l${useDlevel}_${serial}`;
-    _harnessMapdumpPayloads.set(dumpId, buildHarnessMapdumpPayload(map));
+    _harnessMapdumpPayloads.set(dumpId, buildHarnessMapdumpPayload(map, {
+        moveOverride: 0,
+    }));
     pushRngLogEntry(`^mapdump[${dumpId}]`);
 }
 

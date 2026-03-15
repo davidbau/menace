@@ -4,12 +4,12 @@
  */
 
 import * as des from '../sp_lev.js';
-import { percent, shuffle } from '../sp_lev.js';
+import { percent, shuffle, u } from '../sp_lev.js';
 import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../const.js';
 
 // Helper function: returns shop type based on role.
 function monkfoodshop() {
-    // return percent(50) ? "health food shop" : "food shop";
+    return u.role === 'Monk' ? "health food shop" : "food shop";
 }
 
 
