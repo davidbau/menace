@@ -59,6 +59,15 @@ import {
 } from './support.js';
 
 // ---------------------------------------------------------------
+// Fortran .OR. and .AND. do NOT short-circuit — all operands are
+// always evaluated, including function calls with side effects like
+// PROB() and RND(). To match RNG consumption order, use these helpers
+// instead of JS || and && when the chain contains prob/rnd calls.
+// ---------------------------------------------------------------
+function OR(...args) { return args.some(Boolean); }
+function AND(...args) { return args.every(Boolean); }
+
+// ---------------------------------------------------------------
 // CLOCKD — Intermove clock events demon
 // ---------------------------------------------------------------
 
@@ -416,7 +425,7 @@ function cev15(G) {
 // ---- CEV16: Forest murmurs. ----
 function cev16(G) {
   G.cflag[CEVFOR - 1] = (G.here === MTREE) || (G.here >= FORE1 && G.here < CLEAR);
-  if (G.cflag[CEVFOR - 1] && prob(G, 10, 10)) rspeak(G, 635);
+  if (AND(G.cflag[CEVFOR - 1], prob(G, 10, 10))) rspeak(G, 635);
 }
 
 // ---- CEV17: Scol alarm. ----
@@ -662,8 +671,9 @@ export function fightd(G) {
 
     if (G.ocapac[obj - 1] < 0) {
       // Villain asleep
-      if (G.vprob[i - 1] !== 0 &&
-          prob(G, G.vprob[i - 1], Math.floor((100 + G.vprob[i - 1]) / 2))) {
+      // Fortran: IF((VPROB(I).EQ.0).OR..NOT.PROB(...)) — .OR. doesn't short-circuit
+      if (!OR(G.vprob[i - 1] === 0,
+              !prob(G, G.vprob[i - 1], Math.floor((100 + G.vprob[i - 1]) / 2)))) {
         // Wakes up
         G.ocapac[obj - 1] = Math.abs(G.ocapac[obj - 1]);
         G.vprob[i - 1] = 0;
@@ -837,7 +847,8 @@ export function blow(G, h, v, rmk, hflg, out) {
     }
 
     // Weapon loss check
-    if (res === RSTAG && dweap !== 0 && prob(G, 25, pblose)) res = RLOSE;
+    // Fortran: IF((RES.EQ.RSTAG).AND.(DWEAP.NE.0).AND.PROB(25,PBLOSE))
+    if (AND(res === RSTAG, dweap !== 0, prob(G, 25, pblose))) res = RLOSE;
   }
 
   // Print message
@@ -1164,13 +1175,13 @@ export function thiefd(G) {
 
         // Thief not announced yet
         // 1088: IF((RHERE.NE.0).OR.PROB(70,70)) GO TO 1150
-        if (rhere !== 0 || prob(G, 70, 70)) {
+        if (OR(rhere !== 0, prob(G, 70, 70))) {
           // ---- label 1150 ----
           // 1094: IF((RHERE.EQ.0).OR.(FITEBT.EQ.0)) GO TO 1200
           if (rhere === 0 || (G.oflag2[THIEF - 1] & FITEBT) === 0) {
             // ---- label 1200 ----
             // 1104: IF((RHERE.EQ.0).OR.PROB(70,70)) GO TO 1250
-            if (rhere === 0 || prob(G, 70, 70)) {
+            if (OR(rhere === 0, prob(G, 70, 70))) {
               // goto 1250 — rob
               if (prob(G, 70, 70)) return; // 70% do nothing
               thief_1250_rob(G, rhere, waslit, qstill);
@@ -1186,7 +1197,7 @@ export function thiefd(G) {
               // ---- label 1175: thief winning ----
               if (prob(G, 90, 90)) break thief_body; // 90% stay, goto 1700
               // 10%: fall to label 1200
-              if (rhere === 0 || prob(G, 70, 70)) {
+              if (OR(rhere === 0, prob(G, 70, 70))) {
                 if (prob(G, 70, 70)) return;
                 thief_1250_rob(G, rhere, waslit, qstill);
               } else {
