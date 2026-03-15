@@ -73,7 +73,7 @@ import { addToMonsterInventory } from './invent.js';
 import { possibly_unwield } from './weapon.js';
 import { uwepgone, uswapwepgone, uqwepgone } from './wield.js';
 import { find_mac, extract_from_minvent } from './worn.js';
-import { destroy_items_rng_only } from './zap.js';
+import { destroy_items_rng_only, resist } from './zap.js';
 import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
@@ -81,7 +81,7 @@ import {
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL, STONED } from './const.js';
-import { pline, pline_The, You, impossible } from './pline.js';
+import { pline, pline_The, You, Your, impossible } from './pline.js';
 import { mon_nam, Monnam } from './do_name.js';
 import { tele_restrict, rloc } from './teleport.js';
 import { night } from './calendar.js';
@@ -791,6 +791,18 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
     }
     if (hmd.destroyed && !hmd.already_killed) {
         // Kill handled by caller (hmon)
+    }
+
+    // Phase 11: confusion touch
+    // cf. uhitm.c:1889-1896 — umconf hand-glow confusion touch
+    if (!hmd.destroyed && player.umconf && hmd.hand_to_hand) {
+        nohandglow(mon, player);
+        if (!mon.mconf && !resist(mon, SPBOOK_CLASS)) {
+            mon.mconf = 1;
+            if (!mon.mstun && display && canspotmon(mon)) {
+                await pline("%s appears confused.", Monnam(mon));
+            }
+        }
     }
 
     return hmd.destroyed ? false : true;
@@ -1906,11 +1918,15 @@ export function disguised_as_mon(mtmp) {
 // cf. uhitm.c:6293 — nohandglow(mon):
 //   Reduce hero's umconf counter (hand-glow for confusion touch).
 //   Called after a hand-to-hand hit when umconf > 0 and mon is not confused.
-export function nohandglow(mon) {
-    const player = arguments[1] || null;
-    if (!player || !Number(player.umconf || 0) || mon?.mconf) return false;
-    player.umconf = Math.max(0, Number(player.umconf || 0) - 1);
-    return true;
+export async function nohandglow(mon, player) {
+    if (!player || !player.umconf || mon?.mconf) return;
+    // C ref: uhitm.c:6303-6313 — messages depend on umconf count and visibility
+    if (player.umconf === 1) {
+        await Your("%s stop glowing.", "hands");
+    } else {
+        await Your("%s no longer glow so brightly.", "hands");
+    }
+    player.umconf--;
 }
 
 // cf. uhitm.c:6319 — flash_hits_mon(mtmp, otmp):

@@ -1123,8 +1123,11 @@ export async function bhitm(mon, otmp, map, player) {
     const zap_type_text = otyp === WAN_STRIKING ? 'wand' : 'spell';
     const mac = find_mac ? find_mac(mon) : (mon.mac || 10);
     if (rnd(20) < 10 + mac) {
-      const dmg = d(2, 12);
-      resist(mon, otmp.oclass);
+      let dmg = d(2, 12);
+      // C ref: zap.c:209 — resist() halves damage if monster resists
+      if (resist(mon, otmp.oclass)) {
+        dmg = Math.floor((dmg + 1) / 2);
+      }
       mon.mhp -= dmg;
     } else {
       await miss(zap_type_text, mon);
