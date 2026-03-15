@@ -1,7 +1,7 @@
 // filesystem.js -- Virtual directory tree over the flat menace-fs (localStorage).
 // Provides a Unix-like directory abstraction for the shell: ls, cat, cd, etc.
 
-import { vfsReadFile, vfsWriteFile, vfsListFiles } from '../js/storage.js';
+import { vfsReadFile, vfsWriteFile, vfsListFiles, loadSaveMeta, loadAutosaveMeta } from '../js/storage.js';
 import { loadScores } from '../js/topten.js';
 
 // The logged-in user
@@ -77,6 +77,107 @@ function formatRecord() {
     }).join('\n');
 }
 
+// Format a Unix ls-style date from a timestamp.
+// Same year as today: "Mar 14 10:30".  Older: "Mar 14  2024".
+function formatTimestamp(ts) {
+    const d = new Date(ts);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = months[d.getMonth()];
+    const day = String(d.getDate()).padStart(2);
+    const now = new Date();
+    if (d.getFullYear() === now.getFullYear()) {
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${m} ${day} ${h}:${min}`;
+    }
+    return `${m} ${day}  ${d.getFullYear()}`;
+}
+
+// Build a save/autosave filename from character metadata.
+// Example: "rodney_ValHumNeuFem_XP5_D3_T1234.Z"
+function saveFilename(meta, ext) {
+    const name = (meta.name || 'rodney').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const desc = `${meta.role || '???'}${meta.race || '???'}${meta.align || '???'}${meta.gender || '???'}`;
+    return `${name}_${desc}_XP${meta.xp || 0}_D${meta.dlvl || 1}_T${meta.turns || 0}${ext}`;
+}
+
+// Dynamically list nethack save + autosave files from meta keys.
+function computeNetHackSaveChildren() {
+    const result = {};
+    const saveMeta = loadSaveMeta();
+    if (saveMeta && lsRead('menace-save') !== null) {
+        const fname = saveFilename(saveMeta, '.Z');
+        result[fname] = {
+            type: 'file', lsKey: 'menace-save', removable: true,
+            owner: USERNAME, group: USERNAME, _ts: saveMeta.saved,
+        };
+    } else if (lsRead('menace-save') !== null) {
+        // Save exists but no meta (old format) — show with generic name
+        result[`${USERNAME}.Z`] = {
+            type: 'file', lsKey: 'menace-save', removable: true,
+            owner: USERNAME, group: USERNAME,
+        };
+    }
+    const autoMeta = loadAutosaveMeta();
+    if (autoMeta && lsRead('menace-autosave') !== null) {
+        const fname = saveFilename(autoMeta, '.autosave');
+        result[fname] = {
+            type: 'file', lsKey: 'menace-autosave', removable: true,
+            owner: USERNAME, group: USERNAME, _ts: autoMeta.saved,
+        };
+    } else if (lsRead('menace-autosave') !== null) {
+        result[`${USERNAME}.autosave`] = {
+            type: 'file', lsKey: 'menace-autosave', removable: true,
+            owner: USERNAME, group: USERNAME,
+        };
+    }
+    return result;
+}
+
+// Dynamically enumerate bones files from localStorage keys.
+function computeBonesChildren() {
+    const result = {};
+    try {
+        if (typeof localStorage === 'undefined') return result;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key || !key.startsWith('menace-bones-')) continue;
+            const depthStr = key.slice('menace-bones-'.length);
+            const depth = parseInt(depthStr, 10);
+            if (isNaN(depth)) continue;
+            const raw = lsRead(key);
+            if (!raw) continue;
+            let when = null, size = raw.length;
+            try { when = JSON.parse(raw)?.when ?? null; } catch (e) { /* ignore */ }
+            const name = `bones.D${String(depth).padStart(4, '0')}`;
+            result[name] = {
+                type: 'file', lsKey: key, removable: true,
+                owner: 'root', group: 'wheel',
+                _ts: when, size,
+            };
+        }
+    } catch (e) { /* ignore if localStorage unavailable */ }
+    return result;
+}
+
+// Dynamically list save files in /home/rodney (dungeon.sav, future games).
+function computeHomeDirChildren() {
+    const result = {};
+    try {
+        const dungeonRaw = lsRead('menace-dungeon');
+        if (dungeonRaw !== null) {
+            let when = null;
+            try { when = parseInt(lsRead('menace-dungeon-when') || '0', 10) || null; } catch (e) {}
+            result['dungeon.sav'] = {
+                type: 'file', lsKey: 'menace-dungeon', removable: true,
+                owner: USERNAME, group: USERNAME,
+                _ts: when, size: dungeonRaw.length,
+            };
+        }
+    } catch (e) { /* localStorage unavailable */ }
+    return result;
+}
+
 function buildTree() {
     return {
         type: 'dir', children: {
@@ -116,13 +217,12 @@ function buildTree() {
 '0:0:2026/02/25:nethack:3.7.0:run',
                                                 readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
                                             'license': { type: 'file', content: 'NetHack, Copyright 1985-2024\nSee guidebook for license details.', readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
-                                            'bones.D0302': { type: 'file', content: '(binary data)', removable: true, owner: 'root', group: 'wheel', date: 'Feb 28  2026', size: 32768 },
                                             'save': {
-                                                type: 'dir', children: {
-                                                    [USERNAME + '.Z']: { type: 'file', lsKey: 'nethack_save', removable: true, owner: USERNAME, group: USERNAME, date: 'Mar 12  2026' },
-                                                }
+                                                type: 'dir', children: {},
+                                                computeChildren: computeNetHackSaveChildren,
                                             },
-                                        }
+                                        },
+                                        computeChildren: computeBonesChildren,
                                     }
                                 }
                             }
@@ -133,10 +233,12 @@ function buildTree() {
             home: {
                 type: 'dir', children: {
                     [USERNAME]: {
-                        type: 'dir', children: {
+                        type: 'dir',
+                        children: {
                             '.nethackrc': { type: 'file', vfsPath: '.nethackrc' },
                             'rogue.sav':  { type: 'file', lsKey: 'rogue-save', removable: true, owner: USERNAME, group: USERNAME, date: 'Jun 15  1980' },
-                        }
+                        },
+                        computeChildren: computeHomeDirChildren,
                     },
                     izchak:   { type: 'dir', children: {}, restricted: true },
                     crowther: { type: 'dir', children: {}, restricted: true },
@@ -197,6 +299,14 @@ export class VirtualFS {
         return '/' + resolved.join('/');
     }
 
+    // Get the effective children of a dir node (merging static + computed).
+    _children(node) {
+        if (!node || node.type !== 'dir') return {};
+        const base = node.children || {};
+        if (!node.computeChildren) return base;
+        return { ...base, ...node.computeChildren() };
+    }
+
     // Look up a node by absolute path
     _lookup(absPath) {
         if (absPath === '/') return this.tree;
@@ -204,7 +314,7 @@ export class VirtualFS {
         let node = this.tree;
         for (const p of parts) {
             if (!node || node.type !== 'dir') return null;
-            node = node.children[p];
+            node = this._children(node)[p];
         }
         return node || null;
     }
@@ -227,7 +337,8 @@ export class VirtualFS {
         if (!node) return null;
         if (node.type !== 'dir') return null;
         if (node.restricted) return 'PERMISSION_DENIED';
-        return Object.keys(node.children).filter(name => this._nodeExists(node.children[name]));
+        const ch = this._children(node);
+        return Object.keys(ch).filter(name => this._nodeExists(ch[name]));
     }
 
     // Read file content
@@ -348,7 +459,8 @@ export class VirtualFS {
         }
 
         const entries = [];
-        for (const [name, child] of Object.entries(node.children)) {
+        const ch = this._children(node);
+        for (const [name, child] of Object.entries(ch)) {
             if (!this._nodeExists(child)) continue; // hide absent save files
             entries.push(this._entryInfo(name, child));
         }
@@ -363,7 +475,9 @@ export class VirtualFS {
         const size = this.getSize(child);
         const owner = child.owner || (userOwned ? USERNAME : 'root');
         const group = child.group || (userOwned ? USERNAME : 'wheel');
-        const date = child.date || (userOwned ? 'Mar 14  2026' : 'Jan  1  1979');
+        const date = child.date
+            || (child._ts ? formatTimestamp(child._ts) : null)
+            || (userOwned ? 'Mar 14  2026' : 'Jan  1  1979');
         return { name, perms, size, isDir, isExec, owner, group, date };
     }
 }

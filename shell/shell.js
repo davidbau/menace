@@ -32,6 +32,9 @@ export class Shell {
     // options.interrupt: if true, simulate Ctrl-C interrupt of current screen
     // Returns: { action: 'exit' } or { action: 'launch', game: 'nethack' } etc.
     async run(options = {}) {
+        // Hide NetHack side panels (key reference, hover info) — not relevant in shell
+        if (typeof window !== 'undefined') window._panelFns?.setForceHide?.(true);
+
         // Enable blinking cursor
         if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
         this.scrollBuffer = [];
@@ -83,7 +86,12 @@ export class Shell {
             }
         }
 
-        return this.result || { action: 'exit' };
+        const result = this.result || { action: 'exit' };
+        // Restore panels only when returning normally (not navigating away)
+        if (result.action !== 'launch') {
+            if (typeof window !== 'undefined') window._panelFns?.setForceHide?.(false);
+        }
+        return result;
     }
 
     _promptString() {
@@ -453,9 +461,42 @@ export class Shell {
             const game = new DungeonGame();
             game.init(data, textRecords);
 
-            // Dungeon-specific input: rdline() already outputs ">" via G.output(),
-            // so we just need to show the input on the same line after "> ".
+            // Wire up save/restore to localStorage
+            const DUNGEON_SAVE_KEY = 'menace-dungeon';
+            const DUNGEON_WHEN_KEY = 'menace-dungeon-when';
+            game.doSave = () => {
+                try {
+                    const s = JSON.stringify(game.getSaveState());
+                    localStorage.setItem(DUNGEON_SAVE_KEY, s);
+                    localStorage.setItem(DUNGEON_WHEN_KEY, String(Date.now()));
+                } catch (e) { /* ignore */ }
+            };
+            game.doRestore = () => {
+                try {
+                    const raw = localStorage.getItem(DUNGEON_SAVE_KEY);
+                    if (!raw) return false;
+                    game.setSaveState(JSON.parse(raw));
+                    return true;
+                } catch (e) { return false; }
+            };
+
+            // Auto-restore a previously saved game
+            let restored = false;
+            try {
+                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(DUNGEON_SAVE_KEY) : null;
+                if (raw) {
+                    game.setSaveState(JSON.parse(raw));
+                    restored = true;
+                }
+            } catch (e) { /* ignore corrupt save, start fresh */ }
+
+            // Dungeon-specific input: rdline() emits ">" via G.output() as the prompt,
+            // but we strip it and draw our own ">[space]" so the line reads "> input".
             const input = async () => {
+                // Strip rdline's bare ">" prompt — shell draws its own "> " below
+                while (pendingLines.length > 0 && pendingLines[pendingLines.length - 1] === '>') {
+                    pendingLines.pop();
+                }
                 // Page any buffered output before accepting input
                 await this._flushDungeonBuffer(pendingLines);
                 pendingLines.length = 0;
@@ -474,10 +515,8 @@ export class Shell {
                     const ch = await this.getch();
                     if (ch === 13 || ch === 10) {
                         const line = this.inputLine;
-                        // Replace the ">" line rdline added with "> input"
-                        if (this.scrollBuffer.length > 0) {
-                            this.scrollBuffer[this.scrollBuffer.length - 1] = { text: '> ' + line, color: OUTPUT_COLOR };
-                        }
+                        // Echo "> input" to scrollBuffer
+                        this.scrollBuffer.push({ text: '> ' + line, color: OUTPUT_COLOR });
                         return line;
                     }
                     if (ch === 8 || ch === 127) {
@@ -496,18 +535,21 @@ export class Shell {
                 }
             };
 
-            // Line output: buffer lines, page them when input is requested
+            // Line output: buffer lines, page them when input is requested.
+            // The dungeon game inherits Fortran-era 1-space leading indent on narrative;
+            // strip it for cleaner display.
             const pendingLines = [];
             const output = (text) => {
                 for (const line of (text || '').split('\n')) {
-                    pendingLines.push(line);
+                    const stripped = line.startsWith(' ') ? line.slice(1) : line;
+                    pendingLines.push(stripped);
                 }
             };
 
             this.display.clearScreen();
             this.scrollBuffer = [];
 
-            await game.run(input, output);
+            await game.run(input, output, { restored });
             // Flush any remaining output after game ends
             if (pendingLines.length > 0) {
                 await this._flushDungeonBuffer(pendingLines);
@@ -565,6 +607,8 @@ export async function runShell(display, getch, lifecycle, options = {}) {
 
     if (result && result.action === 'launch') {
         const game = result.game;
+        display.clearScreen();
+        display.flush();
         if (game === 'nethack') {
             // Navigate to main game
             if (lifecycle && lifecycle.restart) {

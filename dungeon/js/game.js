@@ -317,11 +317,39 @@ export class DungeonGame {
   }
 
   /**
+   * Serialize all mutable game state (excludes large static text databases).
+   * Used for save/restore persistence.
+   */
+  getSaveState() {
+    const skip = new Set(['textRecords', 'messageTexts', 'rdesc2', 'input', 'output', 'doSave', 'doRestore']);
+    const state = {};
+    for (const [key, val] of Object.entries(this)) {
+      if (skip.has(key)) continue;
+      if (typeof val === 'function') continue;
+      if (val !== null && typeof val === 'object' && !Array.isArray(val)) continue;
+      state[key] = Array.isArray(val) ? [...val] : val;
+    }
+    return state;
+  }
+
+  /**
+   * Restore mutable game state from a previously saved snapshot.
+   */
+  setSaveState(state) {
+    const skip = new Set(['textRecords', 'messageTexts', 'rdesc2', 'input', 'output', 'doSave', 'doRestore']);
+    for (const [key, val] of Object.entries(state)) {
+      if (skip.has(key)) continue;
+      this[key] = val;
+    }
+  }
+
+  /**
    * Run the main game loop.
    * @param {Function} input - Async function that returns a line of input (string).
    * @param {Function} output - Function that takes a string and displays it.
+   * @param {object} [options] - { restored: bool } — skip welcome if restoring a save.
    */
-  async run(input, output) {
+  async run(input, output, options = {}) {
     const G = this;
     G.input = input;
     G.output = output;
@@ -336,11 +364,17 @@ export class DungeonGame {
       dungeonSrand(((j << 16) + i) | 1);
     }
 
-    // Welcome message
-    rspeak(G, 1);
+    if (options.restored) {
+      // Restored from save — describe current location
+      G.output('Saved game restored.');
+      rmdesc(G, 3);
+    } else {
+      // Welcome message
+      rspeak(G, 1);
 
-    // Describe starting location
-    rmdesc(G, 3);
+      // Describe starting location
+      rmdesc(G, 3);
+    }
 
     // Main game loop
     while (!G.gameOver) {

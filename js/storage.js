@@ -29,10 +29,13 @@ import { GameMap } from './game.js';
 import { makeRoom } from './mkroom.js';
 import { getDiscoveryState, setDiscoveryState } from './o_init.js';
 import { nh_delay_output } from './animation.js';
+import { roles, races } from './role.js';
 
 const SAVE_KEY = 'menace-save';
 const AUTOSAVE_KEY = 'menace-autosave';
 const BONES_KEY_PREFIX = 'menace-bones-';
+const SAVE_META_KEY = 'menace-save-meta';
+const AUTOSAVE_META_KEY = 'menace-autosave-meta';
 const OPTIONS_KEY = 'menace-options';
 const TOPTEN_KEY = 'menace-topten';
 const FS_KEY = 'menace-fs';
@@ -489,11 +492,69 @@ export function buildSaveData(game) {
     };
 }
 
+// Build a lightweight metadata object describing the current player state.
+// Used to generate meaningful filenames for save/autosave listings.
+export function buildSaveMeta(game) {
+    const { player } = game;
+    const role = roles[player.roleIndex];
+    const race = races[player.race];
+    const raceName = race ? race.name : 'unknown';
+    return {
+        name: player.name || 'rodney',
+        role: role ? role.abbr : '???',
+        race: raceName.charAt(0).toUpperCase() + raceName.slice(0, 2),
+        align: player.alignment > 0 ? 'Law' : player.alignment < 0 ? 'Cha' : 'Neu',
+        gender: player.gender === 1 ? 'Fem' : 'Mal',
+        xp: player.ulevel,
+        dlvl: player.dungeonLevel,
+        turns: player.turns,
+    };
+}
+
+// Save lightweight character metadata for filename generation and date display.
+function saveSaveMeta(game) {
+    const s = storage();
+    if (!s) return;
+    try {
+        const meta = { ...buildSaveMeta(game), saved: Date.now() };
+        s.setItem(SAVE_META_KEY, JSON.stringify(meta));
+    } catch (e) { /* ignore */ }
+}
+
+// Load save metadata. Returns object or null.
+export function loadSaveMeta() {
+    try {
+        const s = storage();
+        if (!s) return null;
+        return JSON.parse(s.getItem(SAVE_META_KEY) || 'null');
+    } catch (e) { return null; }
+}
+
+// Save autosave metadata (same structure, separate key).
+function saveAutosaveMeta(game) {
+    const s = storage();
+    if (!s) return;
+    try {
+        const meta = { ...buildSaveMeta(game), saved: Date.now() };
+        s.setItem(AUTOSAVE_META_KEY, JSON.stringify(meta));
+    } catch (e) { /* ignore */ }
+}
+
+// Load autosave metadata. Returns object or null.
+export function loadAutosaveMeta() {
+    try {
+        const s = storage();
+        if (!s) return null;
+        return JSON.parse(s.getItem(AUTOSAVE_META_KEY) || 'null');
+    } catch (e) { return null; }
+}
+
 // Save the game to localStorage. Returns true on success.
 export function saveGame(game) {
     const s = storage();
     if (!s) return false;
     try {
+        saveSaveMeta(game);
         const data = buildSaveData(game);
         const json = JSON.stringify(data);
         s.setItem(SAVE_KEY, json);
@@ -621,6 +682,7 @@ export function scheduleAutosave(game) {
     if (!storage()) return;               // no-op in headless/Node.js tests
     if (game.flags?.autosave === false) return;  // explicitly disabled
     _autosaveCancelled = false;           // re-arm after any prior deleteAutosave()
+    saveAutosaveMeta(game);              // sync: update metadata for filename/date display
     const snapshot = buildSaveData(game);
     if (_autosaveInFlight) {
         _autosavePending = snapshot;      // replace any queued snapshot
@@ -660,6 +722,7 @@ export function deleteAutosave() {
     const s = storage();
     if (!s) return;
     try { s.removeItem(AUTOSAVE_KEY); } catch (e) { /* ignore */ }
+    try { s.removeItem(AUTOSAVE_META_KEY); } catch (e) { /* ignore */ }
 }
 
 // Check if a save exists without fully parsing it.
@@ -704,7 +767,7 @@ export function clearAllData() {
     try {
         for (let i = 0; i < s.length; i++) {
             const key = s.key(i);
-            if (key === SAVE_KEY || key.startsWith(BONES_KEY_PREFIX) || key === OPTIONS_KEY || key === TOPTEN_KEY || key === FS_KEY) {
+            if (key === SAVE_KEY || key === AUTOSAVE_KEY || key === SAVE_META_KEY || key === AUTOSAVE_META_KEY || key.startsWith(BONES_KEY_PREFIX) || key === OPTIONS_KEY || key === TOPTEN_KEY || key === FS_KEY || key === 'menace-dungeon' || key === 'menace-dungeon-when' || key === 'rogue-save') {
                 toRemove.push(key);
             }
         }
@@ -731,6 +794,7 @@ export function saveBones(depth, mapData, playerName, playerX, playerY, playerLe
         const bonesData = {
             version: SAVE_VERSION,
             depth,
+            when: Date.now(),
             map: mapData,
             ghost: {
                 name: 'Ghost of ' + playerName,
