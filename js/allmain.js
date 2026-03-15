@@ -31,7 +31,7 @@ import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          COLNO, ROWNO, A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, NORMAL_SPEED,
          FEMALE, MALE, TERMINAL_COLS, MAXULEV,
          RACE_HUMAN, RACE_ELF, RACE_DWARF, RACE_GNOME, RACE_ORC,
-         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE,
+         SLT_ENCUMBER, MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER, SIZE, TER_DETECT,
          TELEPORT, POLYMORPH, Upolyd } from './const.js';
 import { ageSpells } from './spell.js';
 import { wipe_engr_at } from './engrave.js';
@@ -42,7 +42,7 @@ import { exercise } from './attrib.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
 import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';
-import { see_monsters, see_objects, see_traps, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
+import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vision_dirty, flush_screen, CLR_GRAY } from './display.js';
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
@@ -76,7 +76,7 @@ import { invault } from './vault.js';
 import { amulet } from './wizard.js';
 import { dosounds } from './sounds.js';
 import { find_ac, set_wear } from './do_wear.js';
-import { run_regions } from './region.js';
+import { any_visible_region, run_regions } from './region.js';
 
 const QUEST_PORTAL_INFO_BY_ROLE = {
     Arc: { leader: 'Lord Carnarvon', homebase: 'the College of Archeology' },
@@ -713,13 +713,26 @@ export async function run_command(game, ch, opts = {}) {
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
         // C ref: allmain.c:459-474 — "once-per-player-input" section.
-        find_ac(game.u || game.player);
-        // After monsters move, update display at every monster position.
-        // C ref: allmain.c:456-458 — when hallucinating, call all three.
-        see_monsters(game.map);
-        if ((game.u || game.player)?.Hallucination) {
-            see_objects();
-            see_traps();
+        const player = game.u || game.player;
+        find_ac(player);
+        const ctx = game.context || {};
+        const canUpdateVision = !ctx.mv || player?.blind;
+        if (canUpdateVision) {
+            if (player?.Hallucination) {
+                see_monsters(game.map);
+                see_objects();
+                see_traps();
+                if (player?.uswallow) {
+                    swallowed(0);
+                }
+            } else if (
+                player?.Blind_telepat
+                || player?.warning
+                || player?.warnOfMon
+                || any_visible_region(game.map)
+            ) {
+                see_monsters(game.map);
+            }
         }
         await display_sync();
     };
@@ -939,11 +952,26 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     if (!(result && result.tookTime)) return;
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
-        find_ac(game.u || game.player);
-        see_monsters(game.map);
-        if ((game.u || game.player)?.Hallucination) {
-            see_objects();
-            see_traps();
+        const player = game.u || game.player;
+        find_ac(player);
+        const ctx = game.context || {};
+        const canUpdateVision = !ctx.mv || player?.blind;
+        if (canUpdateVision) {
+            if (player?.Hallucination) {
+                see_monsters(game.map);
+                see_objects();
+                see_traps();
+                if (player?.uswallow) {
+                    swallowed(0);
+                }
+            } else if (
+                player?.Blind_telepat
+                || player?.warning
+                || player?.warnOfMon
+                || any_visible_region(game.map)
+            ) {
+                see_monsters(game.map);
+            }
         }
         await display_sync();
     };
@@ -2043,6 +2071,7 @@ export class NetHackGame {
         // Preserve detect/getpos NHW_TEXT overlays while blocked on input:
         // docrt() here can erase temporary detect symbols before dismissal.
         if (this.display?._lastTextPopup?.isTextWindow) return;
+        if (this.display?.flags?.terrainmode & TER_DETECT) return;
         this.docrt();
         redrawActiveTextPopupWindows();
     }
