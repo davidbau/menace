@@ -42,7 +42,7 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
          MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON,
          def_warnsyms, WARNCOUNT, ECMD_OK } from './const.js';
-import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
+import { cansee, couldsee, clear_vision_full_recalc, block_point, unblock_point } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
@@ -2147,17 +2147,29 @@ export async function under_ground(mode, player) {
   else { newsym(player.x, player.y); }
 }
 
-// Autotranslated from display.c:1520
+// C ref: display.c:1520 mimic_light_blocking()
+// C ref: monst.h is_lightblocker_mappear() — boulder mimic, or furniture
+// mimic disguised as wall/closed door/tree blocks light.
 export function mimic_light_blocking(mtmp) {
-  if (mtmp.minvis && is_lightblocker_mappear(mtmp)) {
-    if (See_invisible) block_point(mtmp.mx, mtmp.my);
-    else {
-      unblock_point(mtmp.mx, mtmp.my);
-    }
-  }
+  if (!mtmp || !mtmp.minvis) return;
+  const apType = Number(mtmp.m_ap_type ?? mtmp.mappearanceType ?? 0);
+  const app = mtmp.mappearance;
+  // C: is_lightblocker_mappear — checks boulder object mimic, or furniture
+  // mimic with wall/closed door/tree appearance
+  const isLightBlocker =
+      (apType === 2 /* M_AP_OBJECT */ && app === 472 /* BOULDER */)
+      || (apType === 1 /* M_AP_FURNITURE */
+          && (app === 16 /* S_hcdoor */ || app === 15 /* S_vcdoor */
+              || app < 12 /* S_ndoor = walls */
+              || app === 18 /* S_tree */));
+  if (!isLightBlocker) return;
+  const player = _gstate?.player;
+  const seeInvis = !!(player?.seeInvisible || player?.See_invisible);
+  if (seeInvis) block_point(mtmp.mx, mtmp.my);
+  else unblock_point(mtmp.mx, mtmp.my);
 }
 
-// Autotranslated from display.c:1536
+// C ref: display.c:1536 set_mimic_blocking()
 export function set_mimic_blocking() {
   const map = _gstate?.map;
   const monsters = Array.isArray(map?.monsters) ? map.monsters : [];
