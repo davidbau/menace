@@ -2490,6 +2490,14 @@ export function newsym(x, y, ctxOrMap = null) {
             mon.meverseen = 1;
             return;
         }
+        // C ref: display.c:1039-1040 — infravision: see warm-blooded monsters
+        if (mon && see_with_infrared(mon, player) && monVisibleForMap(mon, player)) {
+            const hallu = !!(player?.Hallucination || player?.hallucinating);
+            const glyph = monsterMapGlyph(mon, hallu);
+            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
+            mon.meverseen = 1;
+            return;
+        }
         const monVisibleByOwnLight = !!(mon
             && emits_light(mon.data || mon.type || {}) > 0
             && couldsee(map, player, x, y)
