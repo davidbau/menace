@@ -4880,7 +4880,6 @@ export async function region(opts_or_selection, type) {
                 const loc = levelState.map.locations[x][y];
                 loc.roomno = roomno;
                 if (rlit) loc.lit = 1;
-                loc.edge = (x === rx1 || x === rx2 || y === ry1 || y === ry2);
             }
         }
 
