@@ -12721,7 +12721,6 @@ Validation:
   - stable guardrails remained green:
     - `seed031_manual_direct`
     - `seed329_rogue_wizard_gameplay`
-=======
 ### `selection.line()` must convert map-relative coordinates before `des.terrain()` edits
 
 - Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` showed the remaining early
@@ -12757,4 +12756,3 @@ Validation:
 - This is a broad special-level translation fix, not a Minetown-only patch;
   any translated level script using `des.terrain(selection.line(...), ...)`
   under map-relative coordinate mode depends on this behavior.
->>>>>>> fix(parity): honor map-relative selection.line coords
