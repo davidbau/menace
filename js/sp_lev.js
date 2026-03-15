@@ -7142,9 +7142,6 @@ export async function finalize_special_checkpoint_stage() {
         solidify_map(levelState.map);
     }
     await fixupSpecialLevel();
-    if (levelState.map && levelState.deferredFinalizeRequested) {
-        bound_digging(levelState.map);
-    }
     captureCheckpoint('after_finalize_special');
     return levelState.map;
 }

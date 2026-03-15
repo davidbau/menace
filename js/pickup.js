@@ -1137,7 +1137,6 @@ async function handlePickup(player, map, display, game = null) {
     const deferTimedPickupUntilMore = (pickedObj, inventoryObj, gameCtx = game, displayCtx = display) => {
         if (!(pickedObj?.unpaid || inventoryObj?.unpaid)) return null;
         if (!gameCtx || !displayCtx?.messageNeedsMore) return null;
-        gameCtx._pendingDeferredTurnAfterMore = true;
         gameCtx.pendingPrompt = {
             type: 'pickup_more_ack',
             onKey: async (chCode, nextGameCtx) => {
@@ -1147,7 +1146,6 @@ async function handlePickup(player, map, display, game = null) {
                 }
                 dismissOwnedMore(nextGameCtx);
                 nextGameCtx.pendingPrompt = null;
-                nextGameCtx._pendingDeferredTurnAfterMore = false;
                 return { handled: true, moved: false, tookTime: true, prompt: true };
             },
         };

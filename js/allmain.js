@@ -754,9 +754,7 @@ export async function run_command(game, ch, opts = {}) {
     game.advanceRunTurn = null;
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
-    if (result && result.tookTime && !skipTurnEnd
-        && !game._pendingDeferredTurnAfterMore
-    ) {
+    if (result && result.tookTime && !skipTurnEnd) {
         await finalizeTimedCommand(game, result, coreOpts);
         await repeatLoop(game, {
             coreOpts,
@@ -938,9 +936,7 @@ async function promptStep(game, chCode, {
 }
 
 async function finalizeTimedCommand(game, result, coreOpts) {
-    if (!(result && result.tookTime) || game._pendingDeferredTurnAfterMore) {
-        return;
-    }
+    if (!(result && result.tookTime)) return;
     const advanceTimedTurn = async () => {
         await moveloop_core(game, coreOpts);
         find_ac(game.u || game.player);
