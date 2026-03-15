@@ -337,6 +337,61 @@ When Rodney sends a message to user X, `scheduleReply(user, subject, body)`:
 
 Each user also responds generically to: hello, hi, thanks, question, help, rodney
 
+### Social forwarding / off-topic routing
+
+When Rodney's message to user X has **no keyword match** (complete miss), there
+is a chance (~40%) that instead of (or in addition to) X's generic reply, a
+*different* user Y who **is** the expert on a topic found in the message reaches
+out — as if X mentioned it at lunch or forwarded the email.
+
+#### Topic → expert routing table
+
+| Topic keywords found in message | Expert who may chime in |
+|---------------------------------|------------------------|
+| wand, shop, buy, sell, potion, scroll, ring, armor | izchak |
+| bug, crash, quota, disk, backup, system | walz |
+| rogue, bsd, random seed, terminal | toy |
+| curses, vt100, display, attribute | arnold |
+| hack, monster, item, balance | fenlason |
+| nethack, patch, parity, branch | brouwer |
+| zork, parser, infocom, narrative | lebling |
+| infocom, license, sales, rights | blank |
+| cave, adventure, colossal, spelunk | crowther |
+| logo, scheme, lisp, recursion, goto | harvey |
+| prophecy, fate, future, oracle | oracle |
+| steal, treasure, jewel, fence | thief |
+
+#### Social reply templates
+
+Each social reply picks one of these framing templates, filled in with
+`[via]` (the user Rodney originally emailed) and `[topic]` (paraphrase of
+the matched keyword cluster):
+
+```
+"[via] forwarded me your note about [topic] — thought I should weigh in."
+
+"I ran into [via] at lunch and he mentioned you'd asked about [topic].
+ That's actually more my area, so..."
+
+"[via] CC'd me on your message.  On the subject of [topic], I can tell you..."
+
+"Word travels fast around here.  [via] said you were asking about [topic].
+ Let me just say..."
+
+"[via] thought you might want to hear from me directly about [topic]."
+
+"I happened to see your mail to [via] about [topic] — hope you don't mind
+ if I jump in."
+```
+
+The body of the social reply is drawn from the expert's own `replyRules`
+matching the topic keywords, or their `genericResponses` if nothing matches.
+The subject line is prefixed: `"Re: [via] fwd: [original subject]"` or
+`"Re: [original subject] (via [via])"`.
+
+Social replies are scheduled with a slightly longer delay: 10–45 minutes,
+to feel like the message had time to circulate before the expert saw it.
+
 ---
 
 ## Part E: NetHack Mail Daemon

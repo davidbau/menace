@@ -6,6 +6,15 @@
 // Returns: void (output via shell.print/println), or a special action object.
 
 import { USERNAME, HOMEDIR, getSessionStart } from './filesystem.js';
+import {
+    loadMailState, saveMailState, seedInboxIfNeeded, deliverPending,
+    getMessages, getMessage, saveMessage, deleteSavedMessage,
+    addToInbox, addToSent, getSentMessages, getUnreadCount,
+    scheduleReply, pickAndDeliverCorpusMessage, isDaemonDue, resetDaemonTimer,
+} from '../js/mail.js';
+import {
+    SEED_MESSAGES, CORPUS, REPLY_RULES, SOCIAL_ROUTING, SOCIAL_TEMPLATES,
+} from '../js/mailcorpus.js';
 
 // Currently active sessions. Rodney is always index 0.
 // who() shows a deterministic subset; finger() shows "On since" for these users.
@@ -19,6 +28,7 @@ const USER_SESSIONS = [
     { user: 'crowther', tty: '01', minAgo: 1440 },
     { user: 'arnold',   tty: '09', minAgo: 203 },
     { user: 'brouwer',  tty: '10', minAgo: 95 },
+    { user: 'harvey',   tty: '11', minAgo: 445 },
 ];
 
 // Returns true if a non-Rodney session user is "currently logged in"
@@ -89,6 +99,9 @@ const FINGER_DB = {
     walz:     { name: 'Janet Walz',
                  mail: '1 message.',
                  plan: "If you encounter a bug, it's a feature.\nIf you encounter a feature, read the man page." },
+    harvey:   { name: 'Brian Harvey',            office: 'UC Berkeley, EECS 523',
+                 mail: 'No mail.',
+                 plan: 'Office hours: Mon/Wed 2-4pm.\nTopic this week: why GOTO is considered harmful (Dijkstra, 1968).\nLogo interpreter available on the VAX.' },
     wizard:   { name: 'The Wizard of Yendor',   mail: 'No mail.' },
     gridbug:  { name: 'Grid Bug',               office: '/tmp', mail: 'No mail.',
                  plan: 'ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP' },
@@ -105,7 +118,7 @@ export function getBuiltinCommands() {
         zork: launchDungeon,
         exit: doExit,
         logout: doExit,
-        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger,
+        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger, mail,
     };
 }
 
@@ -346,6 +359,8 @@ async function help(_args, shell) {
         ['uname',    'print system information'],
         ['man',      'display manual pages'],
         ['vi',       'text editor'],
+        ['finger',   'show user info'],
+        ['mail',     'read and send mail'],
         ['help',     'display this help'],
         ['exit',     'exit shell'],
         ['nethack',  'launch NetHack'],
@@ -400,7 +415,16 @@ async function finger(args, shell) {
         } else {
             shell.println('Never logged in.');
         }
-        shell.println(info.mail || 'No mail.');
+        // Show live mail count for rodney; static text for others
+        if (login === USERNAME) {
+            const unread = getUnreadCount();
+            const total = getMessages().filter(m => !m.deleted).length;
+            if (total === 0) shell.println('No mail.');
+            else if (unread === 0) shell.println(`Mail last read: ${total} message${total !== 1 ? 's' : ''}.`);
+            else shell.println(`New mail: ${unread} unread message${unread !== 1 ? 's' : ''} (${total} total).`);
+        } else {
+            shell.println(info.mail || 'No mail.');
+        }
 
         // For rodney: read .plan from VFS if it exists
         let plan = null;
@@ -503,4 +527,307 @@ async function vi(args, shell) {
         return;
     }
     return { action: 'vi', file: args[0] };
+}
+
+// -------------------------------------------------------------------------
+// mail(1) -- BSD-style mail reader / composer
+// -------------------------------------------------------------------------
+
+// Simple line reader for the mail prompt row (no cursor movement, backspace only)
+async function _mailReadLine(shell, prompt) {
+    let line = '';
+    while (true) {
+        shell.printPrompt(prompt + line);
+        const ch = await shell.getch();
+        if (ch === 13 || ch === 10) {
+            shell.clearPromptLine();
+            return line;
+        }
+        if (ch === 3) { shell.clearPromptLine(); return null; } // Ctrl-C
+        if (ch === 8 || ch === 127) {
+            if (line.length > 0) line = line.slice(0, -1);
+        } else if (ch >= 32 && ch < 127) {
+            line += String.fromCharCode(ch);
+        }
+    }
+}
+
+// Format a message date for the header list
+function _mailFmtDate(dateMs) {
+    const d = new Date(dateMs);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = months[d.getMonth()];
+    const day = String(d.getDate()).padStart(2);
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${m} ${day} ${h}:${min}`;
+}
+
+// Print the message list (headers)
+function _mailPrintHeaders(msgs, currentIdx, shell) {
+    shell.println(`Inbox (${msgs.length} message${msgs.length !== 1 ? 's' : ''})`);
+    for (let i = 0; i < msgs.length; i++) {
+        const m = msgs[i];
+        const marker = (i === currentIdx) ? '>' : (m.read ? ' ' : 'N');
+        const del = m._pendingDelete ? 'd' : ' ';
+        const num = String(i + 1).padStart(3);
+        const from = (m.from || '?').padEnd(12);
+        const date = _mailFmtDate(m.date || 0);
+        const subj = (m.subject || '(no subject)').slice(0, 37);
+        shell.println(`${marker}${del}${num} ${from} ${date}  ${subj}`);
+    }
+}
+
+// Print a single message
+function _mailPrintMsg(msg, shell) {
+    const line = (s) => shell.println(s);
+    line(`From ${msg.from}  ${_mailFmtDate(msg.date || 0)}`);
+    line(`From: ${msg.from}`);
+    line(`To: rodney`);
+    line(`Subject: ${msg.subject || '(no subject)'}`);
+    line('');
+    for (const l of (msg.body || '').split('\n')) line(l);
+    line('');
+}
+
+// Select a reply for a given outgoing message using REPLY_RULES + SOCIAL_ROUTING
+function _pickReply(to, subject, body) {
+    const toKey = to.toLowerCase();
+    const textLower = (subject + ' ' + body).toLowerCase();
+
+    const rules = REPLY_RULES[toKey];
+    if (rules) {
+        // Try keyword-matching rules first
+        for (const rule of (rules.replyRules || [])) {
+            if ((rule.keywords || []).some(k => textLower.includes(k))) {
+                const responses = rule.responses || [];
+                if (responses.length > 0) {
+                    return { ...responses[Math.floor(Math.random() * responses.length)], from: to };
+                }
+            }
+        }
+        // Try generic responses
+        const generics = rules.genericResponses || [];
+        if (generics.length > 0) {
+            return { ...generics[Math.floor(Math.random() * generics.length)], from: to };
+        }
+    }
+
+    // Social routing: check if another expert should chime in
+    for (const route of SOCIAL_ROUTING) {
+        if ((route.keywords || []).some(k => textLower.includes(k))) {
+            const tmpl = SOCIAL_TEMPLATES[Math.floor(Math.random() * SOCIAL_TEMPLATES.length)];
+            const intro = tmpl.replace('{via}', to).replace('{topic}', route.topic);
+            const expert = route.expert;
+            const expertRules = REPLY_RULES[expert];
+            if (expertRules) {
+                // Try to find a relevant response from the actual expert
+                for (const rule of (expertRules.replyRules || [])) {
+                    if ((rule.keywords || []).some(k => textLower.includes(k))) {
+                        const responses = rule.responses || [];
+                        if (responses.length > 0) {
+                            const r = responses[Math.floor(Math.random() * responses.length)];
+                            return { from: expert, subject: r.subject, body: intro + '\n\n' + r.body };
+                        }
+                    }
+                }
+                const generics2 = expertRules.genericResponses || [];
+                if (generics2.length > 0) {
+                    const r = generics2[Math.floor(Math.random() * generics2.length)];
+                    return { from: expert, subject: r.subject, body: intro + '\n\n' + r.body };
+                }
+            }
+            // Expert has no applicable response; just use the intro
+            return { from: expert, subject: 'Re: ' + subject, body: intro };
+        }
+    }
+
+    return null; // no reply
+}
+
+// Compose and send a message
+// replySubject: if set, skip subject prompt and use "Re: <replySubject>"
+async function _mailCompose(to, shell, replySubject) {
+    let subject;
+    if (replySubject) {
+        subject = 'Re: ' + replySubject;
+        shell.println(`To: ${to}`);
+        shell.println(`Subject: ${subject}`);
+    } else {
+        shell.println(`To: ${to}`);
+        const subjLine = await _mailReadLine(shell, 'Subject: ');
+        if (subjLine === null) { shell.println('Cancelled.'); return; }
+        subject = subjLine.trim() || '(no subject)';
+    }
+
+    shell.println('Enter message body. End with "." on a line by itself.');
+    const lines = [];
+    while (true) {
+        const line = await _mailReadLine(shell, '');
+        if (line === null) { shell.println('Cancelled.'); return; }
+        if (line.trim() === '.') break;
+        // _mailReadLine clears the prompt row; echo the typed line to scroll buffer
+        shell.println(line);
+        lines.push(line);
+    }
+    const body = lines.join('\n');
+
+    addToSent(to, subject, body);
+    shell.println(`Message sent to ${to}.`);
+
+    // Schedule a reply if one is available (1–8 minute delay)
+    const reply = _pickReply(to, subject, body);
+    if (reply) {
+        const delayMs = (1 + Math.floor(Math.random() * 7)) * 60 * 1000;
+        scheduleReply(reply.from, reply.subject, reply.body, delayMs);
+    }
+}
+
+// Main mail command
+async function mail(args, shell) {
+    // Seed inbox on first run and deliver any pending replies
+    seedInboxIfNeeded(SEED_MESSAGES);
+    deliverPending();
+
+    const nonFlags = args.filter(a => !a.startsWith('-'));
+
+    // Compose mode: mail recipient
+    if (nonFlags.length > 0) {
+        const to = nonFlags[0];
+        // Validate user exists in FINGER_DB or is a known user
+        const validUsers = Object.keys(FINGER_DB);
+        if (!validUsers.includes(to.toLowerCase())) {
+            shell.println(`mail: ${to}: User unknown.`);
+            return;
+        }
+        if (to.toLowerCase() === USERNAME) {
+            shell.println(`mail: sending to yourself seems lonely.`);
+        }
+        await _mailCompose(to.toLowerCase(), shell, null);
+        return;
+    }
+
+    // Read mode
+    const allMsgs = getMessages().filter(m => !m.deleted);
+    if (allMsgs.length === 0) {
+        shell.println('No mail.');
+        return;
+    }
+
+    // Working copy with pending-delete markers (not committed until q/quit)
+    const msgs = allMsgs.map(m => ({ ...m, _pendingDelete: false }));
+    let cur = msgs.findIndex(m => !m.read); // first unread, or 0
+    if (cur < 0) cur = 0;
+
+    // Mark current as read
+    msgs[cur].read = true;
+    _mailPrintMsg(msgs[cur], shell);
+    const msgCount = msgs.length;
+
+    while (true) {
+        const cmdLine = await _mailReadLine(shell, '& ');
+        if (cmdLine === null) break; // Ctrl-C = exit no save
+
+        const tokens = (cmdLine || '').trim().split(/\s+/);
+        const cmd = tokens[0] || '';
+        const num = tokens[1] ? parseInt(tokens[1], 10) : null;
+
+        if (cmd === '' || cmd === 'p') {
+            // Print current message
+            _mailPrintMsg(msgs[cur], shell);
+        } else if (cmd === 'n') {
+            // Next message
+            if (cur + 1 >= msgs.length) {
+                shell.println('At EOF.');
+            } else {
+                cur++;
+                msgs[cur].read = true;
+                _mailPrintMsg(msgs[cur], shell);
+            }
+        } else if (/^\d+$/.test(cmd)) {
+            // Jump to message N
+            const n = parseInt(cmd, 10) - 1;
+            if (n < 0 || n >= msgs.length) {
+                shell.println(`No message ${parseInt(cmd, 10)}.`);
+            } else {
+                cur = n;
+                msgs[cur].read = true;
+                _mailPrintMsg(msgs[cur], shell);
+            }
+        } else if (cmd === 'h' || cmd === 'H') {
+            _mailPrintHeaders(msgs, cur, shell);
+        } else if (cmd === 'd') {
+            const target = num != null ? num - 1 : cur;
+            if (target < 0 || target >= msgs.length) {
+                shell.println(`No message ${num}.`);
+            } else {
+                msgs[target]._pendingDelete = true;
+                shell.println(`Message ${target + 1} deleted.`);
+                // Advance to next non-deleted
+                const next = msgs.findIndex((m, i) => i > target && !m._pendingDelete);
+                if (next >= 0) {
+                    cur = next;
+                    msgs[cur].read = true;
+                    _mailPrintMsg(msgs[cur], shell);
+                }
+            }
+        } else if (cmd === 'u') {
+            // Undelete
+            const target = num != null ? num - 1 : cur;
+            if (target >= 0 && target < msgs.length) {
+                msgs[target]._pendingDelete = false;
+                shell.println(`Message ${target + 1} undeleted.`);
+            }
+        } else if (cmd === 'r' || cmd === 'R') {
+            const target = num != null ? num - 1 : cur;
+            if (target < 0 || target >= msgs.length) {
+                shell.println(`No message ${num}.`);
+            } else {
+                const orig = msgs[target];
+                await _mailCompose(orig.from, shell, orig.subject);
+            }
+        } else if (cmd === 'm') {
+            // Compose new mail to someone
+            const to = tokens[1];
+            if (!to) { shell.println('usage: m user'); }
+            else if (!Object.keys(FINGER_DB).includes(to.toLowerCase())) {
+                shell.println(`mail: ${to}: User unknown.`);
+            } else {
+                await _mailCompose(to.toLowerCase(), shell, null);
+            }
+        } else if (cmd === 'q' || cmd === 'Q') {
+            break; // quit with saves
+        } else if (cmd === 'x' || cmd === 'X') {
+            // Exit without saving deletes
+            shell.println('Exiting. No changes saved.');
+            return;
+        } else if (cmd === '?') {
+            shell.println('Mail commands:');
+            shell.println('  [number]  print message N        p  print current message');
+            shell.println('  n         next message           h  show message list');
+            shell.println('  d [N]     delete message         u [N]  undelete');
+            shell.println('  r [N]     reply to message       m user  compose new message');
+            shell.println('  q         quit (save deletes)    x  exit (no changes)');
+            shell.println('  ?         this help');
+        } else if (cmd) {
+            shell.println(`Unknown command "${cmd}". Type ? for help.`);
+        }
+    }
+
+    // Commit pending deletes
+    let deleted = 0;
+    for (const m of msgs) {
+        if (m._pendingDelete) {
+            deleteSavedMessage(m.id);
+            deleted++;
+        } else {
+            // Persist read status
+            const orig = getMessage(m.id);
+            if (orig && !orig.read) {
+                saveMessage({ ...orig, read: true });
+            }
+        }
+    }
+    if (deleted > 0) shell.println(`${deleted} message${deleted !== 1 ? 's' : ''} deleted.`);
+    if (deleted < msgCount) shell.println('Saved 0 messages.');
 }
