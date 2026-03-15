@@ -516,9 +516,11 @@ export function formatStatusLine2(player) {
     // turn boundaries and by --More-- snapshot restore) so the status line
     // matches C's timing — C's bot() fires mid-command while JS renders
     // after command completion when inventory weight may already have changed.
-    const enc = player._botl
-        ? near_capacity(player)
-        : (Number.isFinite(player.encumbrance) ? player.encumbrance : near_capacity(player));
+    // NOTE: do NOT use player._botl to trigger a live recompute here;
+    // near_capacity() may see post-useup weight before encumber_msg has run,
+    // which causes the status bar to show the wrong encumbrance at peffects
+    // --More-- prompts (potionmix2 regression, commit ecc8f7683).
+    const enc = Number.isFinite(player.encumbrance) ? player.encumbrance : near_capacity(player);
     if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
         const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));

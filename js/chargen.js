@@ -465,7 +465,6 @@ export async function showRoleMenu(game, raceIdx, gender, align, isFirstMenu) {
 
     // Extra items
     lines.push(' * * Random');
-    lines.push('');
     lines.push(raceIdx >= 0 ? ' / - Pick another race first' : ' / - Pick race first');
     if (gender < 0 && validGenderCandidates(game, -1, raceIdx, align).length > 1) {
         lines.push(' " - Pick gender first');

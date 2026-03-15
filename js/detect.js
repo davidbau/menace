@@ -17,7 +17,7 @@ import { pline, You, Your, You_feel, You_see, pline_The,
 import {
     map_invisible, map_object, map_trap, map_engraving, map_background, map_location,
     cls,
-    newsym, flush_screen, glyph_at,
+    newsym, flush_screen, glyph_at, show_glyph as display_show_glyph,
     canSpotMonsterForMap, senseMonsterForMap,
     warning_of, feel_newsym, feel_location, docrt, under_water, under_ground,
     unmap_invisible,
@@ -119,8 +119,7 @@ export function map_monst() {}
 export function display_self() {}
 export function show_glyph(x, y, glyph) {
     if (!isok(x, y)) return;
-    tmp_at(DISP_CHANGE, glyph);
-    tmp_at(x, y);
+    display_show_glyph(x, y, glyph);
 }
 async function flash_glyph_at(x, y, glyph, repeatCount = 1) {
     if (!isok(x, y)) return;
@@ -289,7 +288,8 @@ export async function gold_detect(sobj, player, map, display, game) {
     return 0;
 }
 async function _gold_detect_outgoldmap(sobj, player, map, display) {
-    cls(); unconstrain_map(player);
+    await cls({ display, map, player, flags: display?.flags || {} });
+    unconstrain_map(player);
     let ugold = false;
     for (const obj of (map.objects || [])) {
         let temp = null;
@@ -375,7 +375,8 @@ export async function food_detect(sobj, player, map, display, game) {
             player.uedibility = 1;
         }
     } else {
-        cls(); unconstrain_map(player);
+        await cls({ display, map, player, flags: display?.flags || {} });
+        unconstrain_map(player);
         for (const obj of (map.objects || [])) {
             const temp = o_in(obj, oclass);
             if (temp) { if (temp !== obj) { temp.ox = obj.ox; temp.oy = obj.oy; } map_object(temp, 1); }
@@ -451,7 +452,8 @@ export async function object_detect(detector, oclass, player, map, display, game
         }
         await You("sense %s nearby.", stuff); return 0;
     }
-    cls(); unconstrain_map(player);
+    await cls({ display, map, player, flags: display?.flags || {} });
+    unconstrain_map(player);
     for (const obj of buried) {
         let otmp = null;
         if ((!oclass && !boulder) || (otmp = o_in(obj, oclass))) {
@@ -522,7 +524,8 @@ export async function monster_detect(otmp, mclass, player, map, display, game) {
     } else {
         let woken = false;
         const swallowed = player.uswallow;
-        cls(); unconstrain_map(player);
+        await cls({ display, map, player, flags: display?.flags || {} });
+        unconstrain_map(player);
         for (const mtmp of (map.monsters || [])) {
             if (DEADMONSTER(mtmp) || (mtmp.isgd && !mtmp.mx)) continue;
             const mdat = mtmp.data || mtmp.type || {};
@@ -593,7 +596,8 @@ export function detect_obj_traps(objlist, show_them, how, ft, player, map, displ
 // cf. detect.c:956 -- display_trap_map
 // ========================================================================
 async function display_trap_map(cursed_src, player, map, display) {
-    cls(); unconstrain_map(player);
+    await cls({ display, map, player, flags: display?.flags || {} });
+    unconstrain_map(player);
     detect_obj_traps(map.objects || [], true, cursed_src, null, player, map, display);
     for (const mon of (map.monsters || [])) {
         if (DEADMONSTER(mon) || (mon.isgd && !mon.mx)) continue;
