@@ -1529,9 +1529,10 @@ function synmch(G) {
         G.oprep2 = prep2;
         G.oobj2 = obj2;
         G.bunsub = 0;
-        // Print "verb what?"
-        const vb = findVerbString(act);
-        G.output(` ${vb} what?`);
+        // Print "verb prep what?" — Fortran: LCWORD + LCPRP1 + "what?"
+        const vb = lcify(findVerbString(act), 2);
+        const prep = lcify(findPrepString(G._dobj & VPMASK), 1);
+        G.output(` ${vb}${prep ? ' ' + prep : ''} what?`);
         G.telflg = true;
         return false;
       }
@@ -1555,8 +1556,9 @@ function synmch(G) {
         G.oprep2 = 0;
         G.oobj2 = 0;
         G.bunsub = 0;
-        const vb = findVerbString(act);
-        G.output(` ${vb} what?`);
+        const vb = lcify(findVerbString(act), 2);
+        const prep = lcify(findPrepString(G._iobj & VPMASK), 1);
+        G.output(` ${vb}${prep ? ' ' + prep : ''} what?`);
         G.telflg = true;
         return false;
       }
@@ -1578,6 +1580,16 @@ function synmch(G) {
 }
 
 // Find verb string for a given syntax index (for error messages)
+// Fortran LCIFY(string, start) — lowercase from position `start`.
+// start=1: all lowercase. start=2: capitalize first letter, rest lowercase.
+function lcify(str, start) {
+  if (!str) return str;
+  const lower = str.toLowerCase();
+  if (start <= 1) return lower;
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+// Fortran FINDVB — find verb word for a syntax index.
 function findVerbString(syntaxIdx) {
   let j = 0;
   for (let k = 0; k < VWORD.length; k++) {
@@ -1587,11 +1599,20 @@ function findVerbString(syntaxIdx) {
     if (j + 1 <= syntaxIdx && syntaxIdx < newj + 1) {
       let str = VWORD[k];
       if (str.charAt(0) === '*') str = str.substring(1);
-      return str.toLowerCase();
+      return str;
     }
     j = newj;
   }
-  return 'do';
+  return '';
+}
+
+// Fortran FINDPR — find preposition word for a preposition number.
+function findPrepString(prepno) {
+  if (prepno === 0) return '';
+  for (let i = 0; i < PVOC.length; i++) {
+    if (PVOC[i] === prepno) return PWORD[i];
+  }
+  return '';
 }
 
 // ---------------------------------------------------------------
