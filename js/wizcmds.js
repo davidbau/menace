@@ -267,10 +267,6 @@ export async function handleWizLoadDes(game) {
         rn2(100);
         rn2(100);
     }
-    // C ref: nhl_init() creates a fresh Lua state and loads nhlib.lua,
-    // whose top-level shuffle(align) consumes rn2(3), rn2(2).
-    rn2(3);
-    rn2(2);
     resetLevelState();
     // C ref: wiz_load_splua -> fixup_special() uses Is_branchlev(&u.uz),
     // i.e. the hero's current level context (not the loaded special file's

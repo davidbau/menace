@@ -12485,3 +12485,31 @@ Validation:
   - screens/colors remain fully green
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+### wizload `nhlib` shuffle and special-checkpoint flip duplication were both real RNG debt for new Minetown shop coverage
+
+- New pending coverage session:
+  `test/comparison/sessions/pending/hi15_seed42_barb_minetn5_shop-pay_gp.session.json`
+  uses `--wizload minetn-5` plus reconnaissance-guided wizard teleport to hit:
+  - tool-shop greeting,
+  - unpaid pickup,
+  - `p` with no money,
+  - wizard `^W` gold wish,
+  - pay menu entry.
+- Initial parity on that session failed immediately during `wizload` special-level
+  setup, before the shop logic itself.
+- Two independent JS wizload RNG mistakes were exposed and fixed:
+  - `js/wizcmds.js:handleWizLoadDes()` was manually burning
+    `rn2(3); rn2(2);` for an imagined `nhlib.lua shuffle(align)` prelude even
+    though the translated level generator already performs its own
+    `shuffle(align)`. This duplicated the `nhlib` shuffle cost.
+  - `js/sp_lev.js:finalize_special_checkpoint_stage()` always called
+    `flip_level_rnd()`, ignoring `finalizeContext.skipRandomFlip`, even though
+    the regular `finalize_level()` path already respected that C wizload rule.
+- After those fixes:
+  - first RNG divergence on the pending Minetown shop session moved later,
+  - matched events increased substantially,
+  - wizard guardrail `seed329_rogue_wizard_gameplay` stayed fully green.
+- Remaining first blocker on that session is now a narrower wizload
+  finalization/branch-placement ordering issue (`place_branch` vs C `priestini`)
+  rather than broad special-level prelude noise.
