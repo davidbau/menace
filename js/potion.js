@@ -54,13 +54,15 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid, mon_nam, Monnam } from './do_name.js';
 import { makeplural, doname, fruitname, Tobjnam } from './objnam.js';
-import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists_acid } from './mondata.js';
+import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists_acid, dmgtype, resists_poison } from './mondata.js';
 import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { mon_adjust_speed, mon_set_minvis } from './worn.js';
+import { healmon } from './mon.js';
+import { mcureblindness } from './muse.js';
 import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
-import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE } from './monsters.js';
+import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE, AD_DISE, AD_PEST } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking, canspotmon } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
@@ -1479,16 +1481,32 @@ async function potionhit(mon, obj, how, player, map) {
             // fallthrough
         case POT_RESTORE_ABILITY:
         case POT_GAIN_ABILITY:
+            // C ref: potion.c:1745-1753 — do_healing label
             angermon = false;
             if (mon.mhp < (mon.mhpmax || mon.mhp)) {
-                mon.mhp = mon.mhpmax || mon.mhp;
+                healmon(mon, mon.mhpmax || mon.mhp, 0);
+                if (canspotmon(mon, player))
+                    await pline("%s looks sound and hale again.", Monnam(mon));
             }
+            if (cureblind)
+                await mcureblindness(mon, canspotmon(mon, player), player);
             break;
-        case POT_SICKNESS:
+        case POT_SICKNESS: {
+            // C ref: potion.c:1755-1773 — disease/poison resist checks
+            const monData = mon.data || (mons ? mons[mon.mndx] : {});
+            if (dmgtype(monData, AD_DISE) || dmgtype(monData, AD_PEST)
+                || resists_poison(mon)) {
+                if (canspotmon(mon, player))
+                    await pline("%s looks unharmed.", Monnam(mon));
+                break;
+            }
             if (mon.mhp > 2) {
                 mon.mhp = Math.floor(mon.mhp / 2);
+                if (canspotmon(mon, player))
+                    await pline("%s looks rather ill.", Monnam(mon));
             }
             break;
+        }
         case POT_CONFUSION:
         case POT_BOOZE:
             // C ref: potion.c:1776 — resist gate before applying confusion
