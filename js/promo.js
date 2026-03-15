@@ -8,14 +8,15 @@ import { VERSION_MAJOR, VERSION_MINOR, PATCHLEVEL } from './const.js';
 import { runShell } from '../shell/shell.js';
 
 // NETHACK logo — hand-crafted 5×5 pixel-art letterforms
+// Uses sub-block characters (▀▄▌▐▜▛▟▙) to smooth diagonals in N, A, C, K.
 const LETTERS = {
-    N: ['█   █', '██  █', '█ █ █', '█  ██', '█   █'],
+    N: ['█   █', '██▄ █', '█▝█▘█', '█ ▀██', '█   █'],
     E: ['█████', '█    ', '████ ', '█    ', '█████'],
     T: ['█████', '  █  ', '  █  ', '  █  ', '  █  '],
     H: ['█   █', '█   █', '█████', '█   █', '█   █'],
-    A: [' ███ ', '█   █', '█████', '█   █', '█   █'],
-    C: [' ████', '█    ', '█    ', '█    ', ' ████'],
-    K: ['█   █', '█  █ ', '███  ', '█  █ ', '█   █'],
+    A: [' ▄█▄ ', '█   █', '█████', '█   █', '█   █'],
+    C: [' ▄███', '█    ', '█    ', '█    ', ' ▀███'],
+    K: ['█ ▄█ ', '██▘  ', '███  ', '██▖  ', '█ ▀█ '],
 };
 
 // Draw the "NETHACK" logo starting at the given row, centered on 80 cols.
@@ -30,8 +31,8 @@ function drawLogo(display, startRow, color) {
         const colOff = startCol + li * (letterWidth + gap);
         for (let r = 0; r < 5; r++) {
             for (let c = 0; c < letterWidth; c++) {
-                if (rows[r][c] === '█') {
-                    display.setCell(colOff + c, startRow + r, '█', color);
+                if (rows[r][c] !== ' ') {
+                    display.setCell(colOff + c, startRow + r, rows[r][c], color);
                 }
             }
         }
