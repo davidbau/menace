@@ -2330,7 +2330,8 @@ export async function map(data) {
             let isokp = true;
             for (let cy = y - 1; cy < Math.min(ROWNO, y + height) + 1 && isokp; cy++) {
                 for (let cx = x - 1; cx < Math.min(COLNO, x + width) + 1 && isokp; cx++) {
-                    if (cx < 0 || cx >= COLNO || cy < 0 || cy >= ROWNO) {
+                    // C ref: isok() requires x >= 1 (column 0 is off-limits)
+                    if (cx < 1 || cx >= COLNO || cy < 0 || cy >= ROWNO) {
                         isokp = false;
                     } else if (cy < y || cy >= y + height || cx < x || cx >= x + width) {
                         // Border cell — must be STONE with no room
