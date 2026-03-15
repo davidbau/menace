@@ -437,7 +437,16 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
     const render = () => {
         renderedLines = linesFactory(selected);
         const shouldPaginate = renderedLines.length > Math.max(1, pageRows - 1);
-        pages = shouldPaginate ? buildInventoryPages(renderedLines, pageRows) : [renderedLines];
+        // C ref: tty_end_menu always appends morestr ("(end) " single page,
+        // "(N of M) " multi-page).  For single-page, add "(end)" so the line
+        // count matches C (needed for fullScreen threshold in renderOverlayMenu).
+        if (!shouldPaginate) {
+            const withEnd = renderedLines.slice();
+            withEnd.push('(end)');
+            pages = [withEnd];
+        } else {
+            pages = buildInventoryPages(renderedLines, pageRows);
+        }
         if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
         currentLines = pages[currentPage] || renderedLines;
         const menuOpts = options ? { ...options } : {};
@@ -2418,8 +2427,8 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
                 const target = unid.find((obj) => String(obj?.invlet || '') === invlet);
                 if (target && not_fully_identified(target)) {
                     // C's wiz_identify sets flags directly without exercise
+                    // No prinv feedback — C identifies in-place via override_ID
                     fully_identify_obj(target, false);
-                    await prinv(0, target, 0);
                 }
             }
             update_inventory(p);
