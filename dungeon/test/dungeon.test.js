@@ -241,4 +241,39 @@ describe('Replay sessions', () => {
             'Should have darkness when lamp is off'
         );
     });
+
+    it('troll session matches Fortran reference', async () => {
+        const { inputLines, goldenOutput } = loadSession('troll');
+        const { outputLines } = await runSession(inputLines);
+        const jsOutput = outputLines.join('\n');
+
+        const keyPhrases = [
+            'window', 'kitchen', 'living room', 'lamp',
+            'sword', 'rug', 'trap door', 'cellar',
+            'troll', 'axe',
+        ];
+        for (const phrase of keyPhrases) {
+            assert.ok(
+                jsOutput.toLowerCase().includes(phrase.toLowerCase()),
+                `JS output should contain "${phrase}"`
+            );
+        }
+    });
+
+    it('window-entry session matches Fortran reference', async () => {
+        const { inputLines, goldenOutput } = loadSession('window-entry');
+        const { outputLines } = await runSession(inputLines);
+        const jsOutput = outputLines.join('\n');
+
+        const keyPhrases = [
+            'white house', 'north side', 'behind',
+            'window', 'south side', 'kitchen',
+        ];
+        for (const phrase of keyPhrases) {
+            assert.ok(
+                jsOutput.toLowerCase().includes(phrase.toLowerCase()),
+                `JS output should contain "${phrase}"`
+            );
+        }
+    });
 });

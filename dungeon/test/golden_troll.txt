@@ -4,26 +4,48 @@
  A rubber mat saying "Welcome to Dungeon!" lies by the door.
  > You are facing the north side of a white house.  There is no door here,
  and all the windows are barred.
- > This is a dimly lit forest, with large trees all around.  One
- particularly large tree with some low branches stands here.
- > This is a clearing, with a forest surrounding you on the west
- and south.
- There is a pile of leaves on the ground.
- > You can't go that way.
- > Forest
- > I can't see any lamp here.
- > I can't see any sword here.
- > I can't see any lamp here.
- > Clearing
- There is a pile of leaves on the ground.
- > You can't go that way.
- > You can't go that way.
- > I can't see any trap door here.
- > You can't go down.
- > Clearing
- There is a pile of leaves on the ground.
- > I can't see any troll here.
- > Your score would be+   0 [total of 616 points], in   16 moves.
- This gives you the rank of Beginner.
+ > You are behind the white house.  In one corner of the house
+ there is a small window which is slightly ajar.
+ > With great effort, you open the window far enough to allow entry.
+ > This is the kitchen of the white house.  A table seems to have been
+ used recently for the preparation of food.  A passage leads to the
+ west, and a dark staircase can be seen leading upward.  To the east
+ is a small window which is open.
+ On the table is an elongated brown sack, smelling of hot peppers.
+ A bottle is sitting on the table.
+ The glass bottle contains:
+   A quantity of water.
+ > This is the living room.  There is a door to the east.  To the west
+ is a wooden door with strange gothic lettering, which appears to be
+ nailed shut.
+ In the center of the room is a large oriental rug.
+ There is a trophy case here.
+ On hooks above the mantelpiece hangs an elvish sword of great antiquity.
+ A battery-powered brass lantern is on the trophy case.
+ There is an issue of US NEWS & DUNGEON REPORT here.
+ > Taken.
+ > Taken.
+ > The lamp is now on.
+ > With a great effort, the rug is moved to one side of the room.
+ With the rug moved, the dusty cover of a closed trap door appears.
+ > The door reluctantly opens to reveal a rickety staircase descending
+ into darkness.
+ > This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.
+ The door crashes shut, and you hear someone barring it.
+ Your sword is glowing with a faint blue glow.
+ > This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ A nasty-looking troll, brandishing a bloody axe, blocks all passages
+ out of the room.
+ Your sword has begun to glow very brightly.
+ > This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ A nasty-looking troll, brandishing a bloody axe, blocks all passages
+ out of the room.
+ > Your score would be+  35 [total of 616 points], in   14 moves.
+ This gives you the rank of Amateur Adventurer.
  Do you wish to leave the game?
  Ok.
