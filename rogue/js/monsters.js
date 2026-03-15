@@ -20,6 +20,7 @@ import {
 } from './const.js';
 import { new_item, _attach, ll_next } from './list.js';
 import { roomin, rnd_room, rnd_pos, inroom } from './rooms.js';
+import { addmsg } from './io.js';
 
 // Injected dependencies
 let _msg = null;
@@ -286,9 +287,8 @@ export async function genocide() {
   }
 }
 
-let _addmsg_buf = null;
 function addmsg_helper(s) {
-  // Used internally; real addmsg is in io.js
+  addmsg('%s', s);
 }
 
 function mk_thing_data() {

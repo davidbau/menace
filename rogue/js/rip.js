@@ -6,7 +6,7 @@
 import { game } from './gstate.js';
 import { clear, draw, mvwaddstr } from './curses.js';
 import { wait_for } from './io.js';
-import { addScore, showScores } from './score.js';
+import { addScore } from './score.js';
 import {
   FOOD, WEAPON, ARMOR, AMULET, SCROLL, POTION, RING, STICK,
   MACE, SWORD, BOW, ARROW, DAGGER, ROCK, TWOSWORD, SLING, DART,
@@ -86,11 +86,9 @@ export async function death(monst) {
   // Year at col 28
   mvwaddstr(g.stdscr, 18, 28, String(year).padStart(2, ' '));
 
-  mvwaddstr(g.stdscr, LINES - 1, 0, '--Press space to continue--');
+  // C death() does not print "--Press space to continue--"; it just draws and exits.
   draw(g.stdscr);
-  await wait_for(' ');
   addScore(g.purse, g.level, false);
-  await showScores();
   g.playing = false;
 }
 
@@ -103,16 +101,19 @@ export async function total_winner() {
   clear();
 
   // "YOU MADE IT" banner
-  mvwaddstr(g.stdscr, 1,  0, '                                                               ');
-  mvwaddstr(g.stdscr, 2,  0, '  @   @               @   @           @          @@@  @     @  ');
-  mvwaddstr(g.stdscr, 3,  0, '  @   @               @@ @@           @           @   @     @  ');
-  mvwaddstr(g.stdscr, 4,  0, '  @   @  @@@  @   @   @ @ @  @@@   @@@@  @@@      @  @@@    @  ');
-  mvwaddstr(g.stdscr, 5,  0, '   @@@@ @   @ @   @   @   @     @ @   @ @   @     @   @     @  ');
-  mvwaddstr(g.stdscr, 6,  0, '      @ @   @ @   @   @   @  @@@@ @   @ @@@@@     @   @     @  ');
-  mvwaddstr(g.stdscr, 7,  0, '  @   @ @   @ @  @@   @   @ @   @ @   @ @         @   @  @     ');
-  mvwaddstr(g.stdscr, 8,  0, '   @@@   @@@   @@ @   @   @  @@@@  @@@@  @@@     @@@   @@   @  ');
-  mvwaddstr(g.stdscr, 9,  0, '                                                               ');
-  mvwaddstr(g.stdscr, 10, 0, '     Congratulations, you have made it to the light of day!    ');
+  mvwaddstr(g.stdscr, 0,  0, '                                                               ');
+  mvwaddstr(g.stdscr, 1,  0, '  @   @               @   @           @          @@@  @     @  ');
+  mvwaddstr(g.stdscr, 2,  0, '  @   @               @@ @@           @           @   @     @  ');
+  mvwaddstr(g.stdscr, 3,  0, '  @   @  @@@  @   @   @ @ @  @@@   @@@@  @@@      @  @@@    @  ');
+  mvwaddstr(g.stdscr, 4,  0, '   @@@@ @   @ @   @   @   @     @ @   @ @   @     @   @     @  ');
+  mvwaddstr(g.stdscr, 5,  0, '      @ @   @ @   @   @   @  @@@@ @   @ @@@@@     @   @     @  ');
+  mvwaddstr(g.stdscr, 6,  0, '  @   @ @   @ @  @@   @   @ @   @ @   @ @         @   @  @     ');
+  mvwaddstr(g.stdscr, 7,  0, '   @@@   @@@   @@ @   @   @  @@@@  @@@@  @@@     @@@   @@   @  ');
+  mvwaddstr(g.stdscr, 8,  0, '                                                               ');
+  mvwaddstr(g.stdscr, 9,  0, '     Congratulations, you have made it to the light of day!    ');
+  mvwaddstr(g.stdscr, 11, 0, 'You have joined the elite ranks of those who have escaped the');
+  mvwaddstr(g.stdscr, 12, 0, 'Dungeons of Doom alive.  You journey home and sell all your loot at');
+  mvwaddstr(g.stdscr, 13, 0, 'a great profit and are admitted to the fighters guild.');
 
   mvwaddstr(g.stdscr, LINES - 1, 0, '--Press space to continue--');
   draw(g.stdscr);
@@ -177,20 +178,20 @@ export async function total_winner() {
     totalWorth += worth;
 
     const { inv_name } = await import('./things.js');
-    const worthStr = String(worth).padStart(7);
+    const worthStr = String(worth).padStart(5);  // C uses %5d
     mvwaddstr(g.stdscr, row, 0, `${c}) ${worthStr}  ${inv_name(obj, false)}`);
     row++;
     c = String.fromCharCode(c.charCodeAt(0) + 1);
     if (row >= LINES - 2) break; // don't overflow screen
   }
 
-  const goldStr = String(g.purse).padStart(7);
-  mvwaddstr(g.stdscr, row, 0, `   ${goldStr}  Gold Pieces`);
+  // C: "   %5d  Gold Peices" (note: "Peices" is the original C misspelling)
+  const goldStr = String(g.purse).padStart(5);
+  mvwaddstr(g.stdscr, row, 0, `   ${goldStr}  Gold Peices`);
 
-  mvwaddstr(g.stdscr, LINES - 1, 0, `Total worth: ${totalWorth} Au  --Press space to continue--`);
+  // C total_winner() calls refresh() then score() (fails silently in harness) then exit().
+  // No second wait_for or score display screen.
   draw(g.stdscr);
-  await wait_for(' ');
   addScore(totalWorth, g.level, true);
-  await showScores();
   g.playing = false;
 }

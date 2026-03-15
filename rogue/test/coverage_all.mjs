@@ -31,7 +31,7 @@ import { death, total_winner } from '../js/rip.js';
 import { GameState } from '../js/game.js';
 import { setGame } from '../js/gstate.js';
 import { wireGameDeps, startGameState } from '../js/main.js';
-import { saveGame, loadGameState, clearSave } from '../js/save.js';
+import { saveGame, loadGameState, clearSave, hasSave } from '../js/save.js';
 import { MockDisplay } from './mock_display.mjs';
 import { MockInput } from './mock_input.mjs';
 
@@ -201,7 +201,7 @@ import { new_monster, find_mons, wake_monster, DISTANCE, cansee } from '../js/mo
 import { option, loadOptions } from '../js/options.js';
 import {
   ISREGEN, ISCANC, ISBLIND, CANSEE, ISGREED, ISINVIS, ISMEAN, ISRUN, ISFOUND, ISHUH,
-  ARMOR, WEAPON, POTION, SCROLL, RING, STICK, AMULET,
+  ARMOR, WEAPON, POTION, SCROLL, RING, STICK, AMULET, FOOD,
   R_ADDDAM, R_ADDHIT, R_PROTECT, LEFT, RIGHT,
   ISMISL, WS_HIT, R_SUSTSTR, R_AGGR,
 } from '../js/const.js';
@@ -971,6 +971,1050 @@ async function testOptionsScreen() {
   console.assert(typeof g.terse === 'boolean', 'options: terse is bool');
 }
 
+// ===== Daemons, misc.js, move.js extra coverage =====
+
+import { doctor, unsee, sight, stomach, unconfuse } from '../js/daemons.js';
+import { search, chg_str, look } from '../js/misc.js';
+import { be_trapped, trap_at, rndmove, do_move, show } from '../js/move.js';
+import {
+  SECRETDOOR, DOOR, TRAP, TRAPDOOR, BEARTRAP, SLEEPTRAP,
+  ARROWTRAP, TELTRAP, DARTTRAP, FLOOR, PASSAGE,
+} from '../js/const.js';
+
+async function testDaemonsPaths() {
+  const { g, input } = await setupGame(77);
+  for (let i = 0; i < 100; i++) input.inject(' ');
+
+  // doctor() at level >= 8 with quiet >= 3 (lines 44-45)
+  g.player.t_stats.s_lvl = 9;
+  g.player.t_stats.s_hpt = 50;
+  g.max_hp = 100;
+  g.quiet = 5;
+  doctor();
+  g.player.t_stats.s_lvl = 1;
+
+  // unsee(): clear CANSEE (lines 92-94)
+  g.player.t_flags |= CANSEE;
+  unsee();
+  console.assert(!(g.player.t_flags & CANSEE), 'unsee: CANSEE cleared');
+
+  // sight(): restore sight when blind (lines 102-106)
+  g.player.t_flags |= ISBLIND;
+  await sight();
+  // Call again when NOT blind (early return path)
+  g.player.t_flags &= ~ISBLIND;
+  await sight();
+
+  // stomach(): food_left <= 0 → faint path (lines 124-130)
+  g.food_left = 0;
+  g.no_command = 0;
+  for (let i = 0; i < 20; i++) await stomach(); // runs until 80% rnd triggers
+  g.food_left = 1000;
+
+  // stomach(): 2*MORETIME crossing (food 300→299, lines 141-147)
+  // oldfood=300 >= 300, new food_left=299 < 300 → non-terse "starting to get hungry"
+  g.food_left = 300;
+  await stomach();
+  g.hungry_state = 0;
+
+  // stomach(): terse version of 2*MORETIME crossing
+  g.terse = true;
+  g.food_left = 300;
+  await stomach(); // terse: "Getting hungry"
+  g.terse = false;
+  g.hungry_state = 0;
+
+  // stomach(): MORETIME crossing (food 150→149, lines 138-139)
+  // oldfood=150 >= 150, new food_left=149 < 150 → "starting to feel weak"
+  g.food_left = 150;
+  await stomach();
+  g.hungry_state = 0;
+  g.food_left = 1000;
+
+  // status() with hungry_state > 0: covers hunger display (io.js lines 176-180)
+  const { status } = await import('../js/io.js');
+  const { resetStatus } = await import('../js/io.js');
+  resetStatus();
+  for (const hs of [1, 2, 3]) {
+    g.hungry_state = hs;
+    status();
+    resetStatus(); // force re-render next call
+  }
+  g.hungry_state = 0;
+}
+
+async function testSearchPaths() {
+  const { g, input } = await setupGame(88);
+  for (let i = 0; i < 50; i++) input.inject(' ');
+
+  // search() with secret door adjacent (lines 363-367)
+  // Place player at (5, 5), secret door at (5, 6)
+  g.player.t_pos = { x: 5, y: 5 };
+  g.player.t_flags &= ~0x04; // not blind
+  if (!g.stdscr[5]) g.stdscr[5] = new Array(80).fill(' ');
+  if (!g.stdscr[4]) g.stdscr[4] = new Array(80).fill(' ');
+  if (!g.stdscr[6]) g.stdscr[6] = new Array(80).fill(' ');
+  if (!g.cw[5]) g.cw[5] = new Array(80).fill(' ');
+  if (!g.cw[4]) g.cw[4] = new Array(80).fill(' ');
+  if (!g.cw[6]) g.cw[6] = new Array(80).fill(' ');
+  // Run many times so rnd(100) < 20 triggers at least once
+  for (let i = 0; i < 50; i++) {
+    g.stdscr[5][6] = SECRETDOOR;
+    await search();
+  }
+
+  // search() with hidden trap adjacent (lines 369-380)
+  // Set up a trap at (5, 6), not yet shown in cw
+  g.ntraps = 1;
+  g.traps[0] = { tr_pos: { x: 6, y: 5 }, tr_type: BEARTRAP, tr_flags: 0 };
+  g.stdscr[5][6] = TRAP;
+  g.cw[5][6] = ' '; // not revealed in cw yet
+  // Run many times so rnd(100) <= 50 triggers
+  for (let i = 0; i < 50; i++) {
+    g.cw[5][6] = ' '; // reset so it's not already revealed
+    g.traps[0].tr_flags = 0;
+    await search();
+  }
+
+  // chg_str high add paths (lines 245, 247 in misc.js)
+  // st_add 51-75 range → line 245: becomes 76+rnd(14)
+  g.player.t_stats.s_str = { st_str: 18, st_add: 60 };
+  chg_str(1);
+  // st_add 76-90 → line 247: becomes 91
+  g.player.t_stats.s_str = { st_str: 18, st_add: 80 };
+  chg_str(1);
+  // st_add 91-99 → line 248: st_add++
+  g.player.t_stats.s_str = { st_str: 18, st_add: 95 };
+  chg_str(1);
+
+  // chg_str high add DECREASE paths (lines 271-272 in misc.js)
+  // st_add 76-90 → decrease: line 265 → becomes 51+rnd(25)
+  g.player.t_stats.s_str = { st_str: 18, st_add: 80 };
+  chg_str(-1);
+  // st_add 91-99 → decrease: line 267 → becomes 76+rnd(14)
+  g.player.t_stats.s_str = { st_str: 18, st_add: 95 };
+  chg_str(-1);
+  // st_add = 100 → decrease: line 271 → becomes 91+rnd(8)
+  g.player.t_stats.s_str = { st_str: 18, st_add: 100 };
+  chg_str(-1);
+}
+
+async function testTrapPaths() {
+  const { g, input } = await setupGame(99);
+  for (let i = 0; i < 500; i++) input.inject(' ');
+
+  // Set up a trap in traps array
+  g.ntraps = 1;
+  g.traps[0] = { tr_pos: { x: 10, y: 10 }, tr_type: BEARTRAP, tr_flags: 0 };
+  if (!g.cw[10]) g.cw[10] = new Array(80).fill(' ');
+  if (!g.mw[10]) g.mw[10] = new Array(80).fill(' ');
+  if (!g.stdscr[10]) g.stdscr[10] = new Array(80).fill(' ');
+
+  // BEARTRAP (lines 251-253)
+  g.traps[0].tr_type = BEARTRAP;
+  await be_trapped({ y: 10, x: 10 });
+
+  // SLEEPTRAP (lines 255-257)
+  g.traps[0].tr_type = SLEEPTRAP;
+  await be_trapped({ y: 10, x: 10 });
+
+  // TELTRAP (lines 279-281)
+  g.traps[0].tr_type = TELTRAP;
+  await be_trapped({ y: 10, x: 10 });
+
+  // TRAPDOOR (lines 246-249): triggers new level
+  g.traps[0].tr_type = TRAPDOOR;
+  await be_trapped({ y: 10, x: 10 });
+
+  // ARROWTRAP miss path (lines 265-277): make player have very good armor
+  g.traps[0].tr_type = ARROWTRAP;
+  g.player.t_pos = { x: 10, y: 10 };
+  g.player.t_stats.s_arm = -20; // excellent armor → arrow misses
+  g.player.t_stats.s_hpt = 100;
+  for (let i = 0; i < 10; i++) await be_trapped({ y: 10, x: 10 });
+
+  // ARROWTRAP hit path (lines 259-264): with bad armor
+  g.traps[0].tr_type = ARROWTRAP;
+  g.player.t_stats.s_arm = 15; // terrible armor → arrow hits
+  g.player.t_stats.s_hpt = 1000;
+  g.player.t_stats.s_lvl = 1;
+  for (let i = 0; i < 10; i++) {
+    g.player.t_stats.s_hpt = 1000;
+    await be_trapped({ y: 10, x: 10 });
+  }
+
+  // ARROWTRAP death path (lines 262-264): HP = 1 → arrow kills player
+  g.traps[0].tr_type = ARROWTRAP;
+  g.player.t_stats.s_arm = 15;
+  g.player.t_stats.s_hpt = 1;
+  g.player.t_stats.s_lvl = 1;
+  await be_trapped({ y: 10, x: 10 }); // may or may not hit, keep trying
+  g.player.t_stats.s_hpt = 1000; // reset
+
+  // DARTTRAP miss path (lines 292-294): similarly with good armor
+  g.traps[0].tr_type = DARTTRAP;
+  g.player.t_stats.s_arm = -20;
+  g.player.t_stats.s_hpt = 100;
+  for (let i = 0; i < 10; i++) await be_trapped({ y: 10, x: 10 });
+
+  // DARTTRAP hit path (lines 283-291): with bad armor
+  g.traps[0].tr_type = DARTTRAP;
+  g.player.t_stats.s_arm = 15; // terrible armor → dart hits
+  g.player.t_stats.s_hpt = 1000;
+  g.player.t_stats.s_lvl = 1;
+  for (let i = 0; i < 10; i++) {
+    g.player.t_stats.s_hpt = 1000;
+    await be_trapped({ y: 10, x: 10 });
+  }
+
+  // DARTTRAP death path (lines 286-288): HP = 1 → dart kills player
+  g.traps[0].tr_type = DARTTRAP;
+  g.player.t_stats.s_arm = 15;
+  g.player.t_stats.s_hpt = 1;
+  g.player.t_stats.s_lvl = 1;
+  await be_trapped({ y: 10, x: 10 });
+  g.player.t_stats.s_hpt = 1000; // reset
+
+  // trap_at() fallback (line 308): no trap at location → returns traps[0]
+  g.ntraps = 0; // no traps registered
+  const fallback = trap_at(99, 99);
+  console.assert(fallback === g.traps[0], 'trap_at fallback');
+  g.ntraps = 1; // restore
+
+  // rndmove() with SCROLL scare check (lines 330-340)
+  // Place a SCROLL of scare at a position adjacent to player
+  const { new_item: ni } = await import('../js/list.js');
+  const scareItem = ni({
+    o_type: '?', o_pos: { x: 11, y: 10 }, o_count: 1, o_which: 9, // S_SCARE
+    o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+    o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+  });
+  g.lvl_obj = scareItem;
+  scareItem.l_prev = null; scareItem.l_next = null;
+  // Make adjacent cells walkable and include scare scroll cell
+  if (!g.stdscr[10]) g.stdscr[10] = new Array(80).fill(' ');
+  g.stdscr[10][11] = '?'; // SCROLL character
+  const monster = {
+    t_pos: { x: 10, y: 10 },
+    t_flags: 0,
+    t_stats: { s_str: { st_str: 10, st_add: 0 } },
+  };
+  // Run multiple times to cover the scare check
+  for (let i = 0; i < 10; i++) rndmove(monster);
+  g.lvl_obj = null;
+
+  // do_move() with no_move > 0 (lines 82-85): bear trap stuck
+  g.no_move = 3;
+  await do_move(0, 1); // still stuck → returns early
+
+  // do_move() with ISHELD (lines 107-110): held by fungus
+  g.no_move = 0;
+  g.player.t_pos = { x: 10, y: 10 };
+  g.player.t_flags |= 0o000400; // ISHELD
+  g.stdscr[10][11] = '.'; // FLOOR ahead
+  await do_move(0, 1);
+  g.player.t_flags &= ~0o000400;
+
+  // do_move() with running + ISHUH + all neighbors blocked (lines 101-103)
+  // When confused (ISHUH), rndmove() is used. If all adjacent tiles are walls,
+  // rndmove() returns player.pos → nh === player.pos → lines 101-103 fire
+  {
+    const { ISHUH } = await import('../js/const.js');
+    g.player.t_pos = { x: 10, y: 10 };
+    g.player.t_flags |= ISHUH;
+    g.running = true;
+    // Surround player with walls in stdscr so rndmove returns player.pos
+    for (let y = 9; y <= 11; y++)
+      for (let x = 9; x <= 11; x++)
+        if (!(y === 10 && x === 10)) g.stdscr[y][x] = '|';
+    g.stdscr[10][10] = '.'; // player's own tile
+    // Try multiple times (rnd(100) < 80 has 80% chance per call)
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) input.inject(' '); // pre-fill any waits
+      await do_move(0, 1);
+      g.running = true; // reset running after each call
+    }
+    g.player.t_flags &= ~ISHUH;
+    g.running = false;
+    for (let y = 9; y <= 11; y++)
+      for (let x = 9; x <= 11; x++)
+        g.stdscr[y][x] = ' ';
+  }
+
+  // show() with invisible monster 'I' and mimic 'M' in mlist (lines 221-229)
+  const { new_item: ni2 } = await import('../js/list.js');
+  const { _attach: attach2 } = await import('../js/list.js');
+  // Add invisible monster to mlist at (12, 12)
+  const invisMon = ni2({
+    t_pos: { x: 12, y: 12 }, t_type: 'I', t_disguise: 'I',
+    t_flags: 0o000020, // ISINVIS
+    t_oldch: '.', t_turn: true, t_dest: null, t_pack: null,
+    t_stats: { s_str: { st_str: 10, st_add: 0 }, s_exp: 0, s_lvl: 1, s_arm: 10, s_hpt: 5, s_dmg: '1d3' },
+  });
+  const mlistRef = { val: g.mlist };
+  attach2(mlistRef, invisMon);
+  g.mlist = mlistRef.val;
+  if (!g.mw[12]) g.mw[12] = new Array(80).fill(' ');
+  if (!g.stdscr[12]) g.stdscr[12] = new Array(80).fill(' ');
+  g.mw[12][12] = 'I';
+  g.stdscr[12][12] = '.';
+  g.player.t_flags &= ~CANSEE; // can't see invisible → returns stdscr char
+  show(12, 12); // invisible monster: CANSEE not set → returns mvwinch(stdscr)
+  g.player.t_flags |= CANSEE;
+  show(12, 12); // invisible monster: CANSEE set → returns 'I'
+  // Add mimic at (13, 12)
+  invisMon.l_data.t_pos = { x: 13, y: 12 };
+  invisMon.l_data.t_type = 'M';
+  invisMon.l_data.t_disguise = '*'; // disguised as gold
+  if (!g.mw[12]) g.mw[12] = new Array(80).fill(' ');
+  g.mw[12][13] = 'M';
+  show(12, 13); // mimic → returns t_disguise '*'
+  g.mw[12][12] = ' ';
+  g.mw[12][13] = ' ';
+}
+
+async function testWeaponsPaths() {
+  const { num, missile, wield } = await import('../js/weapons.js');
+  // num() (lines 228-231): format plus numbers
+  console.assert(num(0, 0) === '+0', 'num(0,0)');
+  console.assert(num(2, 0) === '+2', 'num(2,0)');
+  console.assert(num(-1, 0) === '-1', 'num(-1,0)');
+  console.assert(num(1, 1) === '+1,+1', 'num(1,1)');
+  console.assert(num(1, -1) === '+1,-1', 'num(1,-1)');
+
+  // missile() with single item (o_count=1): covers detach_from_pack (lines 79-80, 101-106)
+  {
+    const { g, input } = await setupGame(151);
+    const missileItem = new_item({
+      o_type: WEAPON, o_which: 1, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = missileItem; missileItem.l_prev = null; missileItem.l_next = null; g.inpack = 1;
+    g.player.t_pos = { x: 10, y: 10 };
+    g.stdscr[10][10] = '.';  // floor under player
+    input.inject('a');  // select missile
+    input.inject(' ');  // any --More-- that might appear
+    await missile(0, 1); // throw right
+    // pack should be null after detach
+    console.assert(g.pack === null || g.inpack === 0, 'missile: single item detached from pack');
+  }
+
+  // wield() with cursed current weapon → dropcheck fails (lines 242-244)
+  {
+    const { g, input } = await setupGame(152);
+    const { ISCURSED } = await import('../js/const.js');
+    const cursedWeapon = { o_type: WEAPON, o_which: 0, o_flags: ISCURSED,
+                           o_hplus: -1, o_dplus: -1, o_count: 1, o_group: 0,
+                           o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+                           o_pos: { x: 0, y: 0 } };
+    g.cur_weapon = cursedWeapon;
+    input.inject(' ');  // just in case
+    await wield();
+    console.assert(g.cur_weapon === cursedWeapon, 'wield: cursed weapon not changed');
+    g.cur_weapon = null;
+  }
+
+  // wield() with armor item in pack → can't wield armor (lines 250-253)
+  {
+    const { g, input } = await setupGame(153);
+    const armorItem = new_item({
+      o_type: ARMOR, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 5, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = armorItem; armorItem.l_prev = null; armorItem.l_next = null; g.inpack = 1;
+    g.cur_weapon = null;
+    input.inject('a');  // select armor item
+    input.inject(' ');  // --More-- for "You can't wield armor"
+    await wield();
+    g.pack = null; g.inpack = 0;
+  }
+}
+
+async function testPotionAskme() {
+  // Test the askme path, know+guess path, default case, and get_str in potions.js
+  // Also covers internal is_magic() via P_TFIND with magic items on level
+  //
+  // Key insight: get_item() reads ONE key to select the item (letter 'a').
+  // Then each message shown via _msg() when g.mpos!=0 requires ONE space via wait_for(' ').
+  // Sequence: 'a' (select item), ' ' (--More-- after get_item prompt), ...
+  const { quaff } = await import('../js/potions.js');
+
+  function addPotionToGame(g, which) {
+    const item = new_item({
+      o_type: POTION, o_which: which, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    return item;
+  }
+
+  // Test askme path with get_str (lines 207, 209-212, 231-243):
+  // P_NOP (safe: no game-changing effects), askme=true, item unknown, no guess
+  // Key sequence:
+  //   'a' → select item from get_item
+  //   ' ' → --More-- before showing P_NOP message (g.mpos was set by get_item prompt)
+  //   ' ' → --More-- before showing "What do you want to call it?"
+  //   't','e','\x7f','s','\n' → get_str: type, backspace, type, Enter
+  {
+    const { g, input } = await setupGame(113);
+    addPotionToGame(g, 13); // P_NOP
+    g.p_know[13] = false; g.p_guess[13] = null;
+    g.askme = true;
+    input.inject('a');          // select item
+    input.inject(' ');          // --More-- (after get_item prompt sets mpos)
+    input.inject(' ');          // --More-- (after P_NOP message sets mpos)
+    input.inject('t'); input.inject('e'); input.inject('\x7f'); input.inject('s'); input.inject('\n');
+    await quaff();
+    g.askme = false;
+  }
+
+  // Test know+guess path (line 207): item IS known and has a guess → clears guess
+  // Key: 'a' select, ' ' --More-- (if mpos set), done
+  {
+    const { g, input } = await setupGame(114);
+    addPotionToGame(g, 13); // P_NOP
+    g.p_know[13] = true; g.p_guess[13] = 'boring';
+    g.askme = false;
+    input.inject('a'); // select item
+    input.inject(' '); // --More-- for P_NOP message
+    await quaff();
+  }
+
+  // Test askme path with ESC (get_str returns null → no guess stored)
+  {
+    const { g, input } = await setupGame(115);
+    addPotionToGame(g, 13); // P_NOP
+    g.p_know[13] = false; g.p_guess[13] = null;
+    g.askme = true;
+    input.inject('a');   // select item
+    input.inject(' ');   // --More-- for P_NOP message
+    input.inject(' ');   // --More-- for "What do you want to call it?"
+    input.inject('\x1b'); // ESC in get_str → returns null
+    await quaff();
+    g.askme = false;
+  }
+
+  // Test default case in potions switch (lines 200-201): o_which = 99 (out of range)
+  {
+    const { g, input } = await setupGame(116);
+    const item = new_item({
+      o_type: POTION, o_which: 99, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    input.inject('a'); // select item
+    input.inject(' '); // --More-- for "What an odd tasting potion!"
+    await quaff();
+  }
+
+  // Test P_TFIND with magic items on level → covers internal is_magic (lines 224-229)
+  {
+    const { g, input } = await setupGame(117);
+    addPotionToGame(g, 7); // P_TFIND
+    const scrollItem = new_item({
+      o_type: SCROLL, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 5, y: 5 },
+    });
+    g.lvl_obj = scrollItem; scrollItem.l_prev = null; scrollItem.l_next = null;
+    input.inject('a'); // select item
+    input.inject(' '); // --More-- for P_TFIND message
+    await quaff();
+    g.lvl_obj = null;
+  }
+
+  // Test quaff() with non-potion item (lines 67-70): non-terse AND terse paths
+  {
+    const { g, input } = await setupGame(118);
+    const weapItem = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = weapItem; weapItem.l_prev = null; weapItem.l_next = null; g.inpack = 1;
+    g.terse = false;
+    input.inject('a'); // select item
+    input.inject(' '); // --More-- for error message
+    await quaff();
+    // Terse path (line 68)
+    g.pack = weapItem; weapItem.l_prev = null; weapItem.l_next = null; g.inpack = 1;
+    g.terse = true;
+    input.inject('a');
+    input.inject(' ');
+    await quaff();
+    g.terse = false;
+  }
+
+  // Test P_POISON with R_SUSTSTR ring (lines 93-94)
+  {
+    const { R_SUSTSTR, LEFT: L } = await import('../js/const.js');
+    const { g, input } = await setupGame(119);
+    addPotionToGame(g, 2); // P_POISON
+    // Wear a SUSTSTR ring
+    g.cur_ring[0] = { o_which: R_SUSTSTR, o_type: RING, o_flags: 0 };
+    input.inject('a');
+    input.inject(' '); // --More-- for poison message
+    await quaff();
+    g.cur_ring[0] = null;
+  }
+
+  // Test P_MFIND when no monsters (lines 117-118)
+  {
+    const { g, input } = await setupGame(120);
+    addPotionToGame(g, 6); // P_MFIND
+    g.mlist = null; // no monsters
+    input.inject('a');
+    input.inject(' '); // --More-- for "strange feeling" message
+    await quaff();
+  }
+
+  // Test P_RAISE (line 160 break): quaff potion of raise level
+  {
+    const { g, input } = await setupGame(122);
+    addPotionToGame(g, 8); // P_RAISE
+    input.inject('a');
+    input.inject(' '); // --More-- for raise level message
+    input.inject(' '); // --More-- for level-up message
+    await quaff();
+  }
+
+  // Test P_TFIND with monster pack magic item (lines 129-130)
+  {
+    const { g, input } = await setupGame(121);
+    addPotionToGame(g, 7); // P_TFIND
+    // Create a monster with a magic item in its pack
+    const { new_item: ni2 } = await import('../js/list.js');
+    const { _attach: at2 } = await import('../js/list.js');
+    const magicPackItem = ni2({
+      o_type: POTION, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 5, y: 5 },
+    });
+    const monItem = ni2({
+      t_pos: { x: 5, y: 5 }, t_type: 'B', t_disguise: 'B',
+      t_flags: 0, t_oldch: '.', t_turn: true, t_dest: null, t_pack: magicPackItem,
+      t_stats: { s_str: { st_str: 10, st_add: 0 }, s_exp: 0, s_lvl: 1, s_arm: 10, s_hpt: 5, s_dmg: '1d3' },
+    });
+    magicPackItem.l_prev = null; magicPackItem.l_next = null;
+    const mlistRef = { val: g.mlist };
+    at2(mlistRef, monItem);
+    g.mlist = mlistRef.val;
+    input.inject('a');
+    input.inject(' '); // --More-- for P_TFIND message
+    await quaff();
+    g.mlist = null;
+  }
+}
+
+async function testRingsPaths() {
+  const { ring_on, ring_off } = await import('../js/rings.js');
+  const { R_ADDSTR, R_SEEINVIS } = await import('../js/const.js');
+
+  // ring_on() with non-ring item, terse path (line 44)
+  {
+    const { g, input } = await setupGame(130);
+    const weapItem = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = weapItem; weapItem.l_prev = null; weapItem.l_next = null; g.inpack = 1;
+    g.terse = true;
+    input.inject('a'); // select item
+    input.inject(' '); // --More-- for "Not a ring"
+    await ring_on();
+    g.terse = false;
+    g.pack = null; g.inpack = 0;
+  }
+
+  // ring_on() with two rings already worn, terse path (line 60)
+  {
+    const { g, input } = await setupGame(131);
+    const ringItem = new_item({
+      o_type: RING, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = ringItem; ringItem.l_prev = null; ringItem.l_next = null; g.inpack = 1;
+    g.cur_ring[0] = { o_which: 0, o_type: RING, o_flags: 0 };
+    g.cur_ring[1] = { o_which: 1, o_type: RING, o_flags: 0 };
+    g.terse = true;
+    input.inject('a');
+    input.inject(' '); // --More-- for "Wearing two"
+    await ring_on();
+    g.terse = false;
+    g.cur_ring[0] = null; g.cur_ring[1] = null;
+    g.pack = null; g.inpack = 0;
+  }
+
+  // ring_on() askme path (lines 84-91, 147-159): both ring slots empty → gethand
+  // Key seq: 'a' (get_item, mpos=0 so no wait), 'l' (gethand, mpos=0 so no wait),
+  //          'r','\n' (get_str name)
+  {
+    const { g, input } = await setupGame(132);
+    const ringItem = new_item({
+      o_type: RING, o_which: R_ADDSTR, o_count: 1, o_ac: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = ringItem; ringItem.l_prev = null; ringItem.l_next = null; g.inpack = 1;
+    g.r_know[R_ADDSTR] = false; g.r_guess[R_ADDSTR] = null;
+    g.cur_ring[0] = null; g.cur_ring[1] = null;
+    g.askme = true;
+    // mpos=0 at all points: no --More-- waits needed
+    input.inject('a');    // get_item select (get_item resets mpos to 0 after reading)
+    input.inject('l');    // gethand: left hand
+    input.inject('r'); input.inject('\x7f'); input.inject('s'); input.inject('\n'); // get_str: 'r'→'\x7f'→'s'→enter (covers backspace line)
+    await ring_on();
+    g.askme = false;
+    g.cur_ring[0] = null; g.cur_ring[1] = null;
+    g.pack = null; g.inpack = 0;
+  }
+
+  // ring_on() know+guess path (line 84): only left ring slot empty → auto-picks LEFT
+  // Key seq: 'a' (get_item), done (know+guess clears guess, no more input needed)
+  {
+    const { g, input } = await setupGame(133);
+    const ringItem = new_item({
+      o_type: RING, o_which: R_ADDSTR, o_count: 1, o_ac: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = ringItem; ringItem.l_prev = null; ringItem.l_next = null; g.inpack = 1;
+    g.r_know[R_ADDSTR] = true; g.r_guess[R_ADDSTR] = 'strength';
+    g.cur_ring[0] = null;
+    g.cur_ring[1] = { o_which: R_SEEINVIS, o_type: RING, o_flags: 0 }; // right ring worn
+    // Only left slot empty → auto picks LEFT (no gethand call)
+    // know+guess path clears guess, no message prompt
+    input.inject('a'); // get_item
+    await ring_on();
+    g.cur_ring[0] = null; g.cur_ring[1] = null;
+    g.pack = null; g.inpack = 0;
+  }
+
+  // ring_off() with no rings → terse path (lines 100-101)
+  {
+    const { g, input } = await setupGame(134);
+    g.cur_ring[0] = null; g.cur_ring[1] = null;
+    g.terse = true;
+    input.inject(' '); // --More-- just in case
+    await ring_off();
+    g.terse = false;
+  }
+}
+
+async function testScrollsPaths() {
+  const { read_scroll } = await import('../js/scrolls.js');
+  const {
+    S_NOP, S_GFIND, S_ENCH, S_CREATE, S_MAP, SCROLL: SCR,
+  } = await import('../js/const.js');
+
+  function addScrollToGame(g, which) {
+    const item = new_item({
+      o_type: SCROLL, o_which: which, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    return item;
+  }
+
+  // S_NOP with askme → covers askme path (lines 267, 269-272) and get_str (319-331)
+  {
+    const { g, input } = await setupGame(140);
+    addScrollToGame(g, S_NOP);
+    g.s_know[S_NOP] = false; g.s_guess[S_NOP] = null;
+    g.askme = true;
+    input.inject('a');   // select item
+    input.inject(' ');   // --More-- for "This scroll seems to be blank."
+    input.inject(' ');   // --More-- for "What do you want to call it?"
+    // get_str: type name with backspace + Enter
+    input.inject('x'); input.inject('\x7f'); input.inject('y'); input.inject('\n');
+    await read_scroll();
+    g.askme = false;
+  }
+
+  // S_NOP with known+guess → covers line 267
+  {
+    const { g, input } = await setupGame(141);
+    addScrollToGame(g, S_NOP);
+    g.s_know[S_NOP] = true; g.s_guess[S_NOP] = 'blank';
+    g.askme = false;
+    input.inject('a');
+    input.inject(' '); // --More-- for scroll message
+    await read_scroll();
+  }
+
+  // S_GFIND with no gold (lines 204-205): clear all room gold values
+  {
+    const { g, input } = await setupGame(142);
+    addScrollToGame(g, S_GFIND);
+    for (const r of g.rooms) r.r_goldval = 0;
+    input.inject('a');
+    input.inject(' '); // --More-- for "pull downward" message
+    await read_scroll();
+  }
+
+  // S_ENCH with weapon (dplus path, line 224-225): run multiple times for coverage
+  {
+    const { g, input } = await setupGame(143);
+    g.cur_weapon = { o_which: 0, o_type: WEAPON, o_flags: 0, o_hplus: 0, o_dplus: 0 };
+    for (let i = 0; i < 5; i++) {
+      addScrollToGame(g, S_ENCH);
+      input.inject('a');
+      input.inject(' '); // --More-- for ench message
+    }
+    for (let i = 0; i < 5; i++) await read_scroll();
+    g.cur_weapon = null;
+  }
+
+  // default case (lines 259-260): scroll with o_which = 99 (out of range)
+  {
+    const { g, input } = await setupGame(144);
+    const item = new_item({
+      o_type: SCROLL, o_which: 99, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    input.inject('a');
+    input.inject(' '); // --More-- for "puzzling scroll" message
+    await read_scroll();
+  }
+
+  // get_str with ESC (line 324 in scrolls.js get_str)
+  {
+    const { g, input } = await setupGame(145);
+    addScrollToGame(g, S_NOP);
+    g.s_know[S_NOP] = false; g.s_guess[S_NOP] = null;
+    g.askme = true;
+    input.inject('a');
+    input.inject(' ');   // --More-- for scroll msg
+    input.inject(' ');   // --More-- for "What do you want to call it?"
+    input.inject('\x1b'); // ESC in get_str → null
+    await read_scroll();
+    g.askme = false;
+  }
+
+  // terse "Nothing to read" (line 77): read a non-scroll item while terse=true
+  {
+    const { g, input } = await setupGame(146);
+    const weapItem = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = weapItem; weapItem.l_prev = null; weapItem.l_next = null; g.inpack = 1;
+    g.terse = true;
+    input.inject('a');   // select non-scroll item
+    input.inject(' ');   // --More-- for "Nothing to read"
+    await read_scroll();
+    g.terse = false;
+    g.pack = null; g.inpack = 0;
+  }
+
+  // S_CREATE with no adjacent walkable tiles (lines 161-162): surround player with walls
+  {
+    const { g, input } = await setupGame(147);
+    addScrollToGame(g, S_CREATE);
+    // Put player at (10,10), fill adjacent positions with walls in stdscr
+    g.player.t_pos = { x: 10, y: 10 };
+    // S_CREATE loops y=[py..py+1], x=[px..px+1] skipping player pos
+    // Make those 3 adjacent squares non-walkable
+    g.stdscr[10][11] = '|';
+    g.stdscr[11][10] = '|';
+    g.stdscr[11][11] = '|';
+    input.inject('a');
+    input.inject(' ');   // --More-- for "faint cry" message
+    await read_scroll();
+    // restore
+    g.stdscr[10][11] = ' '; g.stdscr[11][10] = ' '; g.stdscr[11][11] = ' ';
+  }
+
+  // S_MAP with SECRETDOOR in stdscr (lines 184-186)
+  {
+    const { g, input } = await setupGame(148);
+    addScrollToGame(g, S_MAP);
+    // Place a SECRETDOOR ('&') in stdscr and leave cw as ' '
+    g.stdscr[5][5] = '&';
+    g.cw[5][5] = ' ';
+    input.inject('a');
+    input.inject(' ');   // --More-- for map message
+    await read_scroll();
+    console.assert(g.stdscr[5][5] === '+', 'S_MAP: SECRETDOOR converted to door');
+    console.assert(g.cw[5][5] === '+', 'S_MAP: cw updated for SECRETDOOR');
+    g.stdscr[5][5] = ' '; g.cw[5][5] = ' ';
+  }
+
+  // S_ENCH dplus path (lines 224-225): run with multiple seeds until dplus branch hits
+  // (rnd(100) > 50 is false → dplus++). Run with several seeds for coverage.
+  for (const seed of [149, 150, 200, 777, 1234]) {
+    const { g, input } = await setupGame(seed);
+    g.cur_weapon = { o_which: 0, o_type: WEAPON, o_flags: 0, o_hplus: 0, o_dplus: 0 };
+    for (let i = 0; i < 20; i++) {
+      addScrollToGame(g, S_ENCH);
+      input.inject('a');
+      input.inject(' '); // --More-- for ench message
+    }
+    for (let i = 0; i < 20; i++) await read_scroll();
+    g.cur_weapon = null;
+  }
+}
+
+async function testMiscMore() {
+  const { g, input } = await setupGame(111);
+  for (let i = 0; i < 50; i++) input.inject(' ');
+
+  // chg_str(1): st_str < 18 path (line 239)
+  g.player.t_stats.s_str = { st_str: 10, st_add: 0 };
+  chg_str(1);
+  console.assert(g.player.t_stats.s_str.st_str === 11, 'chg_str +1 st_str < 18');
+
+  // chg_str(1): st_str == 18, st_add === 0 (line 241)
+  g.player.t_stats.s_str = { st_str: 18, st_add: 0 };
+  chg_str(1);
+  console.assert(g.player.t_stats.s_str.st_add > 0, 'chg_str +1 st_add 0→nonzero');
+
+  // chg_str(1): st_str == 18, st_add <= 50 (line 243)
+  g.player.t_stats.s_str = { st_str: 18, st_add: 30 };
+  chg_str(1);
+  console.assert(g.player.t_stats.s_str.st_add >= 51, 'chg_str +1 st_add 30→51+');
+
+  // vowelstr() (lines 292-297)
+  const { vowelstr, secretdoor, eat } = await import('../js/misc.js');
+  console.assert(vowelstr('apple') === 'n', 'vowelstr vowel');
+  console.assert(vowelstr('bread') === '', 'vowelstr consonant');
+  console.assert(vowelstr('') === '', 'vowelstr empty');
+  console.assert(vowelstr(null) === '', 'vowelstr null');
+
+  // secretdoor() at non-room position → returns 'p' (line 171)
+  const pchar = secretdoor(0, 0);
+  console.assert(pchar === 'p', 'secretdoor: non-room position returns p');
+
+  // eat() non-food item, terse path (line 197)
+  {
+    const { g: ge, input: ie } = await setupGame(112);
+    const weapItem = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    ge.pack = weapItem; weapItem.l_prev = null; weapItem.l_next = null; ge.inpack = 1;
+    ge.terse = true;
+    ie.inject('a');   // select non-food item
+    ie.inject(' ');   // --More-- for "That's Inedible!"
+    await eat();
+    ge.terse = false;
+    ge.pack = null; ge.inpack = 0;
+  }
+
+  // eat() non-food item, non-terse path (line 196)
+  {
+    const { g: ge, input: ie } = await setupGame(113);
+    const weapItem = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    ge.pack = weapItem; weapItem.l_prev = null; weapItem.l_next = null; ge.inpack = 1;
+    ge.terse = false;
+    ie.inject('a');   // select non-food item
+    ie.inject(' ');   // --More-- for "Ugh, you would get ill..."
+    await eat();
+    ge.pack = null; ge.inpack = 0;
+  }
+
+  // eat() with o_which=1 (fruit) → "My, that was a yummy..." (line 207)
+  {
+    const { g: ge, input: ie } = await setupGame(114);
+    const foodItem = new_item({
+      o_type: FOOD, o_which: 1, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    ge.pack = foodItem; foodItem.l_prev = null; foodItem.l_next = null; ge.inpack = 1;
+    ie.inject('a');   // select food
+    ie.inject(' ');   // --More-- for "yummy" message
+    await eat();
+    ge.pack = null; ge.inpack = 0;
+  }
+
+  // eat() "Yum" path (lines 214-215): use multiple seeds to hit rnd(100) <= 70 path
+  for (const s of [115, 116, 117, 118, 119]) {
+    const { g: ge, input: ie } = await setupGame(s);
+    const foodItem = new_item({
+      o_type: FOOD, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    ge.pack = foodItem; foodItem.l_prev = null; foodItem.l_next = null; ge.inpack = 1;
+    ie.inject('a');   // select food
+    ie.inject(' ');   // --More-- for food message
+    await eat();
+    ge.pack = null; ge.inpack = 0;
+  }
+
+  // look() with monster on TRAP (lines 100-102): monster at adjacent tile, stdscr has TRAP
+  {
+    const { g: gl, input: il } = await setupGame(120);
+    for (let i = 0; i < 10; i++) il.inject(' ');
+    const { mk_thing_data } = await import('../js/monsters.js').catch(() => null) || {};
+    // Place monster at (10, 11) in mw
+    gl.player.t_pos = { x: 10, y: 10 };
+    gl.mw[10][11] = 'A'; // monster
+    gl.stdscr[10][11] = TRAP; // underlying is TRAP
+    // Set up trap at that location
+    gl.ntraps = 1;
+    gl.traps[0] = { tr_pos: { x: 11, y: 10 }, tr_type: 1, tr_flags: 0 };  // no ISFOUND
+    // Add monster to mlist so find_mons can find it
+    const monItem = new_item({
+      t_pos: { x: 11, y: 10 }, t_type: 'A', t_disguise: 'A',
+      t_flags: 0, t_oldch: TRAP, t_turn: true, t_dest: null, t_pack: null,
+      t_stats: { s_str: { st_str: 10, st_add: 0 }, s_exp: 0, s_lvl: 1, s_arm: 10, s_hpt: 5, s_dmg: '1d4' },
+    });
+    const { _attach } = await import('../js/list.js');
+    const mlistRef = { val: gl.mlist };
+    _attach(mlistRef, monItem);
+    gl.mlist = mlistRef.val;
+    await look(false); // wakeup=false → uses find_mons
+    // Also test with ISFOUND set (lines 101 true branch)
+    gl.traps[0].tr_flags |= ISFOUND;
+    gl.mw[10][11] = 'A'; // reset monster
+    await look(false);
+    // cleanup
+    gl.mw[10][11] = ' ';
+    gl.stdscr[10][11] = ' ';
+    gl.mlist = null;
+    gl.ntraps = 0;
+  }
+
+  // look() with door_stop + running (lines 122-143): trigger door_stop running paths
+  {
+    const { g: gl, input: il } = await setupGame(121);
+    for (let i = 0; i < 10; i++) il.inject(' ');
+    gl.player.t_pos = { x: 10, y: 10 };
+    gl.door_stop = true;
+    gl.firstmove = false;
+    gl.running = true;
+    // Place a DOOR, PASSAGE, and other chars adjacent to player
+    gl.stdscr[10][9] = DOOR;  // left of player (x-1)
+    gl.stdscr[9][10] = PASSAGE; // above player
+    gl.stdscr[11][10] = FLOOR; // below player
+    gl.stdscr[10][11] = '|';  // right
+    // Run through different runch directions
+    for (const dir of ['h', 'j', 'k', 'l', 'y', 'u', 'n', 'b']) {
+      gl.runch = dir;
+      gl.running = true;
+      await look(false);
+    }
+    // default: running=false when unknown char seen
+    gl.stdscr[10][9] = '$'; // gold (not FLOOR/DOOR/PASSAGE/wall)
+    gl.runch = 'h';
+    gl.running = true;
+    await look(false);
+    // passcount > 1: two passages visible
+    gl.stdscr[10][9] = PASSAGE;
+    gl.stdscr[9][9] = PASSAGE;
+    gl.runch = 'h';
+    gl.running = true;
+    await look(false);
+    // cleanup
+    gl.door_stop = false; gl.running = false;
+    gl.stdscr[10][9] = ' '; gl.stdscr[9][10] = ' ';
+    gl.stdscr[11][10] = ' '; gl.stdscr[10][11] = ' ';
+    gl.stdscr[9][9] = ' ';
+  }
+}
+
+async function testSaveEdgeCases() {
+  // saveGame() with user pressing 'n' (decline) → lines 192-194
+  const { g, input } = await setupGame(44);
+  input.inject('n');
+  input.inject(' ');
+  clearSave();
+  const result = await saveGame();
+  console.assert(result === false, 'saveGame: declined');
+
+  // saveGame() with localStorage.setItem throwing → lines 367-369
+  const { g: g2, input: input2 } = await setupGame(45);
+  input2.inject('y'); input2.inject(' ');
+  const realSetItem = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = () => { throw new Error('simulated storage full'); };
+  await saveGame();
+  localStorage.setItem = realSetItem;
+
+  // loadGameState() with corrupted JSON → lines 384-385
+  const { g: g3 } = await setupGame(46);
+  const realGetItem = localStorage.getItem.bind(localStorage);
+  localStorage.getItem = () => 'not-valid-json{{{';
+  loadGameState(g3);
+  localStorage.getItem = realGetItem;
+
+  // hasSave() with localStorage throwing → lines 168-173
+  localStorage.getItem = () => { throw new Error('simulated error'); };
+  const hs = hasSave();
+  console.assert(hs === false, 'hasSave: localStorage throws → false');
+  localStorage.getItem = realGetItem;
+
+  // findPackIndex line 162: cur_weapon set but not in pack (empty pack)
+  {
+    const { g: g4, input: input4 } = await setupGame(47);
+    // Set cur_weapon to an object NOT in g.pack
+    g4.cur_weapon = { o_type: WEAPON, o_which: 0, o_flags: 0, o_hplus: 0, o_dplus: 0,
+                      o_count: 1, o_group: 0, o_damage: '1d4', o_hurldmg: '1d4',
+                      o_ac: 0, o_launch: 0, o_charges: 0, o_pos: { x: 0, y: 0 } };
+    g4.pack = null; g4.inpack = 0;
+    input4.inject('y'); input4.inject(' ');
+    await saveGame();
+    g4.cur_weapon = null;
+    clearSave();
+  }
+}
+
+async function testScorePaths() {
+  const { g, input } = await setupGame(55);
+  for (let i = 0; i < 10; i++) input.inject(' ');
+
+  const { showScores, addScore } = await import('../js/score.js');
+
+  // addScore: add a score entry
+  g.whoami = 'testplayer';
+  addScore(1234, 5, false);
+  addScore(9999, 10, true);
+
+  // showScores(): cover lines 44-71 (renders top scores list)
+  await showScores();
+
+  // getScores() catch path (lines 17-18): temporarily corrupt localStorage
+  const realGetItem = localStorage.getItem.bind(localStorage);
+  localStorage.getItem = () => { throw new Error('simulated parse error'); };
+  // getScores returns [] on error; calling showScores will invoke getScores
+  await showScores();
+  localStorage.getItem = realGetItem;
+}
+
 // ===== Main =====
 
 const args = process.argv.slice(2);
@@ -987,6 +2031,154 @@ if (allIdx >= 0 && allIdx + 1 < args.length) {
   }
 }
 
+async function testCommandPaths() {
+  const { quit, d_level, u_level } = await import('../js/command.js');
+  const { STAIRS } = await import('../js/const.js');
+
+  // quit() with 'n' (lines 332-338)
+  {
+    const { g, input } = await setupGame(170);
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    input.inject('n'); // decline quit
+    await quit();
+    console.assert(g.playing === true, 'quit: declined → still playing');
+  }
+
+  // d_level() not on stairs (line 349)
+  {
+    const { g, input } = await setupGame(171);
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    g.player.t_pos = { x: 10, y: 10 };
+    g.stdscr[10][10] = '.'; // not stairs
+    input.inject(' ');  // --More-- for "I see no way down"
+    await d_level();
+  }
+
+  // u_level() with amulet + level=2 → goes to level 1 + "wrenching" (lines 371-374)
+  {
+    const { g, input } = await setupGame(172);
+    for (let i = 0; i < 20; i++) input.inject(' ');
+    g.player.t_pos = { x: 10, y: 10 };
+    g.stdscr[10][10] = STAIRS;
+    g.amulet = true;
+    g.level = 2;
+    await u_level(); // level → 1, new_level + msg
+    g.amulet = false;
+    g.level = 1;
+  }
+
+  // u_level() not on stairs (line 376)
+  {
+    const { g, input } = await setupGame(173);
+    for (let i = 0; i < 5; i++) input.inject(' ');
+    g.player.t_pos = { x: 10, y: 10 };
+    g.stdscr[10][10] = '.'; // not stairs
+    input.inject(' ');  // --More-- for "I see no way up"
+    await u_level();
+  }
+}
+
+async function testPackPaths() {
+  const { inventory, picky_inven } = await import('../js/pack.js');
+  const { wield } = await import('../js/weapons.js');
+
+  // inventory() with exactly 1 item (lines 226-229)
+  {
+    const { g, input } = await setupGame(160);
+    const item = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    input.inject(' '); // just in case --More-- fires
+    await inventory(g.pack, 0); // lists 1 item → msg(inv_temp), return true
+    g.pack = null; g.inpack = 0;
+  }
+
+  // picky_inven() with empty pack (line 266)
+  {
+    const { g, input } = await setupGame(161);
+    g.pack = null; g.inpack = 0;
+    input.inject(' '); // --More-- for "not carrying anything"
+    await picky_inven();
+  }
+
+  // picky_inven() with single item (line 268)
+  {
+    const { g, input } = await setupGame(162);
+    const item = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    input.inject(' '); // --More-- for single item display
+    await picky_inven();
+    g.pack = null; g.inpack = 0;
+  }
+
+  // picky_inven() with multi-item pack, select 'a' (lines 278-282)
+  // picky_inven calls _msg('Which item...'), then g.mpos=0, then _readchar()
+  // So NO leading space needed - first key goes directly to _readchar()
+  {
+    const { g, input } = await setupGame(163);
+    const item1 = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    const item2 = new_item({
+      o_type: POTION, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '0d0', o_hurldmg: '0d0', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item1; item1.l_prev = null; item1.l_next = item2;
+    item2.l_prev = item1; item2.l_next = null; g.inpack = 2;
+    // First _readchar() reads 'a' directly (no --More-- needed for prompt)
+    input.inject('a');  // select item 'a' → found, msg("a) ..."), return
+    input.inject(' ');  // just in case --More-- fires for found-item msg
+    await picky_inven();
+    g.pack = null; g.inpack = 0;
+  }
+
+  // get_item() ESC → returns null (lines 308-312 in pack.js)
+  {
+    const { g, input } = await setupGame(164);
+    const item = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    g.pack = item; item.l_prev = null; item.l_next = null; g.inpack = 1;
+    g.cur_weapon = null;
+    input.inject('\x1b'); // ESC → get_item returns null → wield returns early
+    input.inject(' ');
+    await wield();
+    g.pack = null; g.inpack = 0;
+  }
+
+  // pack_char() not found (line 347): item not in pack
+  {
+    const { g } = await setupGame(165);
+    const { pack_char } = await import('../js/pack.js');
+    const item = new_item({
+      o_type: WEAPON, o_which: 0, o_count: 1,
+      o_hplus: 0, o_dplus: 0, o_flags: 0, o_group: 0,
+      o_damage: '1d4', o_hurldmg: '1d4', o_ac: 0, o_launch: 0, o_charges: 0,
+      o_pos: { x: 0, y: 0 },
+    });
+    // item not in pack → returns 'z'
+    const ch = pack_char(item.l_data);
+    console.assert(ch === 'z', `pack_char not found returns 'z', got '${ch}'`);
+  }
+}
+
 // Always run direct coverage tests (skip with --sessions-only)
 if (!args.includes('--sessions-only')) {
   await testDeath();
@@ -1000,4 +2192,16 @@ if (!args.includes('--sessions-only')) {
   await testMimicTypes();
   await testWakeMonsterPaths();
   await testOptionsScreen();
+  await testDaemonsPaths();
+  await testSearchPaths();
+  await testTrapPaths();
+  await testWeaponsPaths();
+  await testPotionAskme();
+  await testRingsPaths();
+  await testScrollsPaths();
+  await testMiscMore();
+  await testSaveEdgeCases();
+  await testScorePaths();
+  await testCommandPaths();
+  await testPackPaths();
 }
