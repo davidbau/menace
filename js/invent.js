@@ -263,7 +263,10 @@ async function drawInventoryPage(display, lines, opts = {}) {
     }
     const isCategoryHeader = (line) => {
         const text = String(line || '').trimStart();
-        return /^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Rocks|Balls|Chains|Venoms|Other)\b/.test(text);
+        if (/^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Rocks|Balls|Chains|Venoms|Other)\b/.test(text)) return true;
+        // C ref: invent.c inuse_headers[] — in-use inventory grouping headers
+        if (/^(Wielded\/Readied Weapons|Worn Armor|Accessories|Miscellaneous)\b/.test(text)) return true;
+        return false;
     };
     if (typeof display.clearScreen === 'function') {
         display.clearScreen();
@@ -330,7 +333,14 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
             const menuRows = Math.min(currentLines.length, fullScreen ? displayRows : STATUS_ROW_1);
             const lastRow = Math.max(0, menuRows - 1);
             const lastLine = String(currentLines[lastRow] || '');
-            display.setCursor(Math.min(offx + lastLine.length, cols - 1), lastRow);
+            // C ref: wintty.c tty_end_menu — single-page morestr is "(end) "
+            // with trailing space; multi-page is "(%d of %d)" without.
+            // dmore() prints morestr at offx+1 (via tty_curs offset=2), so
+            // cursor = offx + 1 + strlen(morestr).  For "(end) " that's +7,
+            // but our "(end)" line is 5 chars at offx, giving offx+5.
+            // Add +1 for the trailing space parity.
+            const morestrPad = (lastLine === '(end)') ? 1 : 0;
+            display.setCursor(Math.min(offx + lastLine.length + morestrPad, cols - 1), lastRow);
         }
         return offx;
     };
@@ -465,7 +475,9 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
             const menuRows = Math.min(currentLines.length, fullScreen ? displayRows : STATUS_ROW_1);
             const lastRow = Math.max(0, menuRows - 1);
             const lastLine = String(currentLines[lastRow] || '');
-            display.setCursor(Math.min(menuOffx + lastLine.length + 1, cols - 1), lastRow);
+            // C ref: single-page morestr "(end) " has trailing space; add +1.
+            const morestrPad = (lastLine === '(end)') ? 1 : 0;
+            display.setCursor(Math.min(menuOffx + lastLine.length + morestrPad, cols - 1), lastRow);
         }
     };
 

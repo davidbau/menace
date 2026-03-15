@@ -1280,6 +1280,10 @@ span.nh-cursor {
             if (/^(Fighting Skills|Weapon Skills|Spellcasting Skills)\b/.test(text)) {
                 return true;
             }
+            // C ref: invent.c inuse_headers[] — in-use inventory grouping headers
+            if (/^(Wielded\/Readied Weapons|Worn Armor|Accessories|Miscellaneous)\b/.test(text)) {
+                return true;
+            }
             if (text === 'Currently known spells') return true;
             if (/^Name\s+Level\s+Category\s+Fail\s+Retention/.test(text)) return true;
             return false;
