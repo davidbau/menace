@@ -15,7 +15,7 @@ import { POTION_CLASS, POT_WATER,
          POT_OIL, POT_POLYMORPH, POT_LEVITATION,
          POT_ENLIGHTENMENT, POT_FRUIT_JUICE,
          POT_MONSTER_DETECTION, POT_OBJECT_DETECTION,
-         STRANGE_OBJECT, UNICORN_HORN, AMETHYST,
+         STRANGE_OBJECT, UNICORN_HORN, AMETHYST, ALCHEMY_SMOCK,
          COIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS,
          SPE_HASTE_SELF, SPE_DETECT_TREASURE, SPE_DETECT_MONSTERS,
          SPE_LEVITATION, SPE_RESTORE_ABILITY, SPE_INVISIBILITY,
@@ -2058,12 +2058,17 @@ export function poof(player, potion) {
 // cf. potion.c dip_potion_explosion() — do dipped potions explode?
 async function dip_potion_explosion(player, obj, dmg) {
     // C ref: potion.c:2401-2424
+    // C: rn2 argument is 30 if wearing alchemy smock, else 10
+    const smockProtection = player.cloak && player.cloak.otyp === ALCHEMY_SMOCK;
     if (obj.cursed || obj.otyp === POT_ACID
         || (obj.otyp === POT_OIL && obj.lamplit)
-        || !rn2(10)) {
+        || !rn2(smockProtection ? 30 : 10)) {
         await pline("%sThey explode!", player.deaf ? "" : "BOOM!  ");
         await exercise(player, A_STR, false);
-        await potionbreathe(player, obj);
+        // C ref: potion.c:2416 — breathless/haseyes gate for potionbreathe
+        const playerData = player.data || {};
+        if (!breathless(playerData) || haseyes(playerData))
+            await potionbreathe(player, obj);
         // useupall(obj) — remove entire stack
         useupall(obj, player);
         player.uhp -= dmg;

@@ -67,7 +67,7 @@ import { msummon } from './minion.js';
 import { new_were, were_summon, set_ulycn, counter_were } from './were.js';
 import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
-import { resists_blnd, drain_item } from './zap.js';
+import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
@@ -381,9 +381,7 @@ async function mhitu_ad_fire(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2557 — destroy_items check: magr->m_lev > rn2(20)
         if (monster.mlevel > rn2(20)) {
-            // destroy_items(youmonst, AD_FIRE, orig_dmg) — not fully implemented
-            // C always consumes rn2(DMG_DESTROY_SCALE=5) for limit computation
-            rn2(5);
+            destroy_items_rng_only(monster, AD_FIRE, mhm.damage, player);
         }
     } else {
         mhm.damage = 0;
@@ -404,8 +402,7 @@ async function mhitu_ad_cold(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2638 — destroy_items check
         if (monster.mlevel > rn2(20)) {
-            // destroy_items(youmonst, AD_COLD, orig_dmg) — not fully implemented
-            rn2(5);
+            destroy_items_rng_only(monster, AD_COLD, mhm.damage, player);
         }
     } else {
         mhm.damage = 0;
@@ -426,8 +423,7 @@ async function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2696 — destroy_items check
         if (monster.mlevel > rn2(20)) {
-            // destroy_items(youmonst, AD_ELEC, orig_dmg) — not fully implemented
-            rn2(5);
+            destroy_items_rng_only(monster, AD_ELEC, mhm.damage, player);
         }
     } else {
         if (!ctx.suppressHitMsg) {
