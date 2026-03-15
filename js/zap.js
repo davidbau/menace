@@ -1151,9 +1151,15 @@ export async function bhitm(mon, otmp, map, player) {
     const mdat = mons[mon.mndx];
     if (is_undead(mdat)) {
       wake = true;
-      const dmg = rnd(8);
-      if (!resist(mon, otmp.oclass)) {
-        mon.mhp -= dmg;
+      let dmg = rnd(8);
+      // C ref: zap.c:255 — resist() applies dmg (halved if resisted),
+      // then monflee only if NOT resisted
+      const resisted = resist(mon, otmp.oclass);
+      if (resisted) {
+        dmg = Math.floor((dmg + 1) / 2);
+      }
+      mon.mhp -= dmg;
+      if (!resisted && mon.mhp > 0) {
         await monflee(mon, 0, false, true);
       }
     }
@@ -1206,7 +1212,12 @@ export async function bhitm(mon, otmp, map, player) {
     if (mon.mndx !== PM_DEATH - 1) { // not Pestilence
       healmon(mon, healamt, 0);
     } else {
-      resist(mon, otmp.oclass);
+      // C ref: zap.c:468 — Pestilence always resists; damage = (healamt/2 + 1) / 2
+      let pdmg = Math.floor(healamt / 2);
+      if (resist(mon, otmp.oclass)) {
+        pdmg = Math.floor((pdmg + 1) / 2);
+      }
+      mon.mhp -= pdmg;
     }
     break;
   }
@@ -1218,13 +1229,22 @@ export async function bhitm(mon, otmp, map, player) {
     if (sleep_monst(mon, d(1 + (otmp.spe || 0), 12), WAND_CLASS))
       slept_monst(mon);
     break;
-  case SPE_DRAIN_LIFE:
-    // drain life — simplified
-    if (!resist(mon, otmp.oclass)) {
-      const dmg = d(2, 8);
+  case SPE_DRAIN_LIFE: {
+    // C ref: zap.c:529 — resist() applies dmg (halved if resisted),
+    // then if NOT resisted: additional drain to mhp + mhpmax + mlevel
+    let dmg = d(2, 8);
+    const resisted_drain = resist(mon, otmp.oclass);
+    if (resisted_drain) {
+      dmg = Math.floor((dmg + 1) / 2);
+    }
+    mon.mhp -= dmg;
+    if (!resisted_drain && mon.mhp > 0) {
       mon.mhp -= dmg;
+      mon.mhpmax -= dmg;
+      if (mon.m_lev > 0) mon.m_lev--;
     }
     break;
+  }
   default:
     ret = 0;
     break;
