@@ -61,6 +61,7 @@ function parseAns(buf, ROWS = 24, COLS = 80) {
             continue;
         }
 
+        if (b === 0x1A) break; // EOF / SAUCE record marker
         if (b === 0x0D) { c = 0; i++; continue; } // CR
         if (b === 0x0A) { r++; c = 0; i++; continue; } // LF
 
@@ -70,6 +71,7 @@ function parseAns(buf, ROWS = 24, COLS = 80) {
             grid[r][c] = { ch, color: curColor };
         }
         c++;
+        if (c >= COLS) { r++; c = 0; } // auto-wrap at col 80
         i++;
     }
     return grid;

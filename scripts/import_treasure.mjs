@@ -30,7 +30,7 @@ function parseSGR(params) {
 }
 
 // ── Parse .ans into 24×80 grid ────────────────────────────────────────────────
-function parseAns(buf, ROWS = 24, COLS = 80) {
+function parseAns(buf, ROWS = 50, COLS = 80) {
     const grid = Array.from({ length: ROWS }, () =>
         Array.from({ length: COLS }, () => ({ ch: ' ', color: -1 })));
     let r = 0, c = 0, curColor = -1, i = 0;
@@ -47,11 +47,14 @@ function parseAns(buf, ROWS = 24, COLS = 80) {
             }
             continue;
         }
+        if (b === 0x1A) break; // EOF / SAUCE record marker
         if (b === 0x0D) { c = 0; i++; continue; }
         if (b === 0x0A) { r++; c = 0; i++; continue; }
         const ch = CP437[b] || '?';
         if (r < ROWS && c < COLS) grid[r][c] = { ch, color: curColor };
-        c++; i++;
+        c++;
+        if (c >= COLS) { r++; c = 0; } // auto-wrap at col 80
+        i++;
     }
     return grid;
 }
