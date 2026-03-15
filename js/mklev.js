@@ -481,12 +481,7 @@ export function generate_stairs(map, depth) {
         const pos = somexyspace(map, croom);
         let x; let y;
         if (pos) { x = pos.x; y = pos.y; } else { x = somex(croom); y = somey(croom); }
-        const loc = map.at(x, y);
-        if (loc) {
-            loc.typ = STAIRS;
-            loc.flags = 0;
-            map.dnstair = { x, y };
-        }
+        mkstairs(map, x, y, false);
     }
     if (depth > 1) {
         croom = generate_stairs_find_room(map);
@@ -494,12 +489,7 @@ export function generate_stairs(map, depth) {
             const pos = somexyspace(map, croom);
             let x; let y;
             if (pos) { x = pos.x; y = pos.y; } else { x = somex(croom); y = somey(croom); }
-            const loc = map.at(x, y);
-            if (loc) {
-                loc.typ = STAIRS;
-                loc.flags = 1;
-                map.upstair = { x, y };
-            }
+            mkstairs(map, x, y, true);
         }
     }
 }

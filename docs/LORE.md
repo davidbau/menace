@@ -12513,3 +12513,43 @@ Validation:
 - Remaining first blocker on that session is now a narrower wizload
   finalization/branch-placement ordering issue (`place_branch` vs C `priestini`)
   rather than broad special-level prelude noise.
+
+## 2026-03-15: generated stairs must go through `mkstairs()`
+
+- Problem:
+  - after fixing `t11_s754_w_covmax8_gp` screen/color/cursor parity, the last
+    remaining mismatch was mapdump-only:
+    - `d0l10_006 U[9]`: JS `context.move=1`, session `0`
+  - forcing checkpoint payloads to emit `moveOverride: 0` fixed that mismatch,
+    but exposed an earlier state bug:
+    - `d0l4_003 W[52,13]`: JS `0`, session `2`
+- Diagnosis:
+  - direct runtime inspection at step `1370` showed cell `(52,13)` was
+    `STAIRS`, but had no `flags`, no `wall_info`, no `stairdir`, and was not
+    `map.upstair` or `map.dnstair`
+  - C `mklev.c:generate_stairs()` calls `mkstairs(...)` for both down and up
+    stair placement
+  - JS `js/mklev.js:generate_stairs()` still used a legacy direct-assignment
+    shortcut:
+    - `loc.typ = STAIRS`
+    - `loc.flags = 0/1`
+    - `map.dnstair` / `map.upstair`
+  - that shortcut dropped the C stair direction metadata (`stairdir`) whenever
+    later placement overwrote the primary stair pointers
+- Fix:
+  - `js/mklev.js:generate_stairs()` now calls `mkstairs(map, x, y, ...)` for
+    both generated stairs
+  - `js/dungeon.js` mapdump checkpoint payloads now force `context.move=0`
+    during level-generation checkpoints, matching the captured C checkpoint
+    state
+- Result:
+  - `t11_s754_w_covmax8_gp` is now fully green:
+    - `RNG 20848/20848`
+    - `events 3292/3292`
+    - `screens 1866/1866`
+    - `colors 44784/44784`
+    - `cursor 1866/1866`
+    - `mapdump 6/6`
+  - promoted to `sessions/coverage/monster-ai-combat/`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
