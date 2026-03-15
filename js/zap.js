@@ -71,7 +71,7 @@ import { mons, M1_NOEYES,
          PM_LONG_WORM, PM_GREMLIN, S_TROLL, S_ZOMBIE, S_EEL, S_GOLEM, S_MIMIC,
          AD_DRLI, AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM } from './monsters.js';
 import {
-  rndmonnum, makemon, makemon_appear,
+  rndmonnum, makemon, makemon_appear, monhp_per_lvl,
 } from './makemon.js';
 import { NO_MINVENT } from './const.js';
 import { next_ident, mksobj, mkobj, costly_alteration } from './mkobj.js';
@@ -85,7 +85,8 @@ import { more, nhgetch } from './input.js';
 import { getdir, losehp } from './hack.js';
 import { nonliving, is_undead, is_demon,
          resists_fire, resists_cold, resists_elec,
-         resists_poison, resists_acid, resists_disint } from './mondata.js';
+         resists_poison, resists_acid, resists_disint,
+         resists_magm, resists_drli } from './mondata.js';
 import { placeFloorObject } from './invent.js';
 import { zap_dig as zap_dig_core } from './dig.js';
 import { pline, You } from './pline.js';
@@ -1120,12 +1121,20 @@ export async function bhitm(mon, otmp, map, player) {
   switch (otyp) {
   case WAN_STRIKING:
   case SPE_FORCE_BOLT: {
-    // C ref: zap.c:200 — rnd(20) < 10 + find_mac(mon)
+    // C ref: zap.c:186-215 bhitm WAN_STRIKING/SPE_FORCE_BOLT
     const zap_type_text = otyp === WAN_STRIKING ? 'wand' : 'spell';
     const mac = find_mac ? find_mac(mon) : (mon.mac || 10);
-    if (rnd(20) < 10 + mac) {
+    if (resists_magm(mon)) {
+      // C ref: zap.c:194-199 — magic resistance blocks entirely
+      // shieldeff + "Boing!" — no rnd(20), no damage, no resist() RNG
+      await pline("Boing!");
+    } else if (player?.uswallow || rnd(20) < 10 + mac) {
       let dmg = d(2, 12);
-      // C ref: zap.c:209 — resist() halves damage if monster resists
+      if (otyp === SPE_FORCE_BOLT) {
+        dmg = spell_damage_bonus(dmg, player);
+      }
+      await hit(zap_type_text, mon, exclam(dmg));
+      // C ref: zap.c:209 — resist() applies damage (halved if resisted)
       if (resist(mon, otmp.oclass)) {
         dmg = Math.floor((dmg + 1) / 2);
       }
@@ -1153,6 +1162,9 @@ export async function bhitm(mon, otmp, map, player) {
     if (is_undead(mdat)) {
       wake = true;
       let dmg = rnd(8);
+      if (otyp === SPE_TURN_UNDEAD) {
+        dmg = spell_damage_bonus(dmg, player);
+      }
       // C ref: zap.c:255 — resist() applies dmg (halved if resisted),
       // then monflee only if NOT resisted
       const resisted = resist(mon, otmp.oclass);
@@ -1170,8 +1182,8 @@ export async function bhitm(mon, otmp, map, player) {
   case SPE_POLYMORPH:
   case POT_POLYMORPH:
     // C: resists_magm gate (no RNG) before resist() call
-    if ((mons[mon.mndx]?.mr || 0) > 50) {
-      // magic resistance blocks polymorph — no RNG consumed
+    if (resists_magm(mon)) {
+      // C ref: zap.c:268 — magic resistance blocks polymorph, no RNG consumed
     } else if (!resist(mon, otmp.oclass)) {
       // C: rn2(25) only for natural (non-shapechanger) monsters
       const NON_PM = -1;
@@ -1231,18 +1243,27 @@ export async function bhitm(mon, otmp, map, player) {
       slept_monst(mon);
     break;
   case SPE_DRAIN_LIFE: {
-    // C ref: zap.c:529 — resist() applies dmg (halved if resisted),
-    // then if NOT resisted: additional drain to mhp + mhpmax + mlevel
-    let dmg = d(2, 8);
-    const resisted_drain = resist(mon, otmp.oclass);
-    if (resisted_drain) {
-      dmg = Math.floor((dmg + 1) / 2);
-    }
-    mon.mhp -= dmg;
-    if (!resisted_drain && mon.mhp > 0) {
+    // C ref: zap.c:519-541 — drain life spell
+    let dmg = monhp_per_lvl(mon);
+    dmg = spell_damage_bonus(dmg, player);
+    if (resists_drli(mon)) {
+      // C: shieldeff_mon — drain resistance blocks entirely, no resist() RNG
+    } else {
+      // C: resist() applies dmg (halved if resisted), then additional drain
+      const resisted_drain = resist(mon, otmp.oclass);
+      if (resisted_drain) {
+        dmg = Math.floor((dmg + 1) / 2);
+      }
       mon.mhp -= dmg;
-      mon.mhpmax -= dmg;
-      if (mon.m_lev > 0) mon.m_lev--;
+      if (!resisted_drain && mon.mhp > 0) {
+        mon.mhp -= dmg;
+        mon.mhpmax -= dmg;
+        if (mon.mhp <= 0 || mon.mhpmax <= 0 || mon.m_lev < 1) {
+          // monster killed by drain
+        } else {
+          mon.m_lev--;
+        }
+      }
     }
     break;
   }
