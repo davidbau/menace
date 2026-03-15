@@ -1759,6 +1759,19 @@ async function potionbreathe(player, obj) {
         await make_blinded(player,
                      itimeout_incr(player.getPropTimeout(BLINDED), rnd(5)), false);
         break;
+    case POT_WATER:
+        // cf. potion.c:2066-2077 — gremlin split or lycanthropy trigger
+        if (player.umonnum === PM_GREMLIN) {
+            split_mon(player, null);
+        } else if (isValidPm(player.ulycn)) {
+            // vapor from holy/unholy water triggers transformation but doesn't cure
+            if (obj.blessed && player.umonnum === player.ulycn) {
+                await you_unwere(player, false);
+            } else if (obj.cursed && !isUpolyd(player)) {
+                await you_were(player);
+            }
+        }
+        break;
     case POT_ACID:
     case POT_POLYMORPH:
         await exercise(player, A_CON, false);
