@@ -2264,7 +2264,9 @@ export function trollp(G, arg) {
   if (G.prsa === FIGHTW) {
     if (G.ocan[AXE - 1] === TROLL) return false; // got axe, nothing
     let i = 433;
-    if (qhere(G, AXE, G.here) && !prob(G, 25, 10)) {
+    // Fortran: IF(.NOT.QHERE(AXE,HERE).OR.PROB(25,10)) — .OR. doesn't short-circuit
+    const _pAxe = prob(G, 25, 10);
+    if (qhere(G, AXE, G.here) && !_pAxe) {
       i = 434;
       newsta(G, AXE, 0, 0, TROLL, 0);
     }

@@ -367,8 +367,9 @@ function cxappl_c5(G) {
 // ---------------------------------------------------------------
 
 function walk(G) {
-  // Assume wins
-  if (G.winner !== PLAYER || lit(G, G.here) || prob(G, 25, 25)) {
+  // Fortran .OR. does NOT short-circuit — prob() must always be called.
+  const p = prob(G, 25, 25);
+  if (G.winner !== PLAYER || lit(G, G.here) || p) {
     // Room is lit, or winner is not player (no grue)
     return walkLit(G);
   }

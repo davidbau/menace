@@ -1019,11 +1019,13 @@ export function rmdesc(G, full) {
     return false;
   }
 
-  // Determine which description to use
+  // Determine which description to use.
+  // Fortran .AND./.OR. do NOT short-circuit — prob(80,80) is always called.
+  const _p80 = prob(G, 80, 80);
   let descIdx = G.rdesc2 - G.here; // short description (negative record number)
   if ((full === 0) &&
       (G.superf || ((G.rflag[G.here - 1] & RSEEN) !== 0) &&
-       (G.brieff || prob(G, 80, 80)))) {
+       (G.brieff || _p80))) {
     // Use short description
   } else {
     descIdx = G.rdesc1[G.here - 1]; // long description
