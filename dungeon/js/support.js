@@ -745,11 +745,13 @@ export function _registerObjectsModule(mod) {
 
 /**
  * AAPPLI — Call actor action routine.
- * Stub: returns false.
+ * Delegates to timefnc module if registered.
  */
 export function aappli(G, action) {
   if (action === 0) return false;
-  // TODO: Dispatch to actor action handlers
+  if (_timefncModule && _timefncModule.aappli) {
+    return _timefncModule.aappli(G, action);
+  }
   return false;
 }
 
@@ -1254,18 +1256,20 @@ export function rnd(n) {
 
 /**
  * CLOCKD — Process clock events.
- * Stub: will be expanded when clock event handlers are ported.
+ * Delegates to timefnc module if registered.
  */
 export function clockd(G) {
+  if (_timefncModule && _timefncModule.clockd) {
+    return _timefncModule.clockd(G);
+  }
+  // Fallback stub
   let ret = false;
   for (let i = 0; i < G.clnt; i++) {
     if (!G.cflag[i]) continue;
     if (G.ctick[i] === 0) continue;
-    if (G.ctick[i] < 0) continue; // infinite timer
+    if (G.ctick[i] < 0) continue;
     G.ctick[i]--;
     if (G.ctick[i] !== 0) continue;
-    // Timer expired — call the clock action
-    // TODO: dispatch to clock event handlers via cactio[i]
     G.cflag[i] = false;
   }
   return ret;
@@ -1687,24 +1691,36 @@ export function valuac(G, obj) {
 
 /**
  * THIEFD — Thief demon.
- * Stub: will be expanded when demons are ported.
+ * Delegates to timefnc module if registered.
  */
 export function thiefd(G) {
-  // TODO: implement thief demon
+  if (_timefncModule && _timefncModule.thiefd) {
+    _timefncModule.thiefd(G);
+  }
 }
 
 /**
  * FIGHTD — Fight demon.
- * Stub.
+ * Delegates to timefnc module if registered.
  */
 export function fightd(G) {
-  // TODO: implement fight demon
+  if (_timefncModule && _timefncModule.fightd) {
+    _timefncModule.fightd(G);
+  }
 }
 
 /**
  * SWORDD — Sword demon.
- * Stub.
+ * Delegates to timefnc module if registered.
  */
 export function swordd(G) {
-  // TODO: implement sword demon
+  if (_timefncModule && _timefncModule.swordd) {
+    _timefncModule.swordd(G);
+  }
+}
+
+// Late-binding for timefnc module (to break circular dependency)
+let _timefncModule = null;
+export function _registerTimefncModule(mod) {
+  _timefncModule = mod;
 }

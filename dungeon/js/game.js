@@ -18,6 +18,7 @@ import {
   _registerVerbsModule,
   _registerObjectsModule,
   _registerRoomsModule,
+  _registerTimefncModule,
   dungeonSrand,
 } from './support.js';
 
@@ -30,6 +31,8 @@ import * as _objectsModule from './objects.js';
 _registerObjectsModule(_objectsModule);
 import * as _roomsModule from './rooms.js';
 _registerRoomsModule(_roomsModule);
+import * as _timefncModule from './timefnc.js';
+_registerTimefncModule(_timefncModule);
 
 // ---------------------------------------------------------------
 // DungeonGame class
