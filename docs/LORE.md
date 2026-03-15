@@ -13134,3 +13134,31 @@ Validation:
 - Result:
   - `hi19` is fully parity-green
   - nearby polymorph and global gameplay guardrails stayed green
+
+### Monster multishot naming affects real page boundaries
+
+- `t11_s755_w_covmax9_gp` still had a raw-step drift in the gnome lord
+  crossbow volley even after the earlier `monmulti()` RNG fix.
+- C `mthrowu.c` uses `gm.m_shot` in two places that JS was not modeling:
+  - the intro message uses `shoots 3 crossbow bolts` rather than a singular
+    `throws a crossbow bolt`
+  - per-projectile hit text uses `mshot_xname()` so the hero sees
+    `the 1st/2nd/3rd crossbow bolt`
+- JS was emitting shorter generic text like `a crossbow bolt` for each hit.
+  That changed topline packing, letting two hit messages fit on one page and
+  pulling later monster-bite pages one raw step earlier than C.
+- Fix in `js/mthrowu.js`:
+  - attach `_m_shot = { n, i, o, s }` metadata to each projectile in
+    `monshoot()`
+  - use `mshot_xname()` for projectile naming in `thitu()` paths via
+    `thrownObjectName()`
+  - render the C-style multishot intro message with `shoots` plus pluralized
+    count when ammo+launcher are in use
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved to full RNG parity: `26517/26517`
+    - events improved to `7012/7287`
+    - remaining first divergence moved to screen/event state at step `1349`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
