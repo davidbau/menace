@@ -17,15 +17,18 @@ import {
   score, valuac, newsta,
   _registerVerbsModule,
   _registerObjectsModule,
+  _registerRoomsModule,
 } from './support.js';
 
 import { rdline, parse } from './parser.js';
 
-// Register verb and object handlers to break circular dependencies
+// Register verb, object, and room handlers to break circular dependencies
 import * as _verbsModule from './verbs.js';
 _registerVerbsModule(_verbsModule);
 import * as _objectsModule from './objects.js';
 _registerObjectsModule(_objectsModule);
+import * as _roomsModule from './rooms.js';
+_registerRoomsModule(_roomsModule);
 
 // ---------------------------------------------------------------
 // DungeonGame class

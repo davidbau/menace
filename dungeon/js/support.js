@@ -755,11 +755,20 @@ export function aappli(G, action) {
 
 /**
  * RAPPLI — Call room action routine.
- * Stub: does nothing.
+ * Delegates to rooms module if registered.
  */
 export function rappli(G, action) {
   if (action === 0) return;
-  // TODO: Dispatch to room action handlers
+  if (_roomsModule && _roomsModule.rappli) {
+    _roomsModule.rappli(G, action);
+    return;
+  }
+}
+
+// Late-binding for rooms module (to break circular dependency)
+let _roomsModule = null;
+export function _registerRoomsModule(mod) {
+  _roomsModule = mod;
 }
 
 /**
