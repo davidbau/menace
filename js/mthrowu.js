@@ -771,6 +771,13 @@ export async function m_throw_timed(
         }
 
         if (x === player.x && y === player.y) {
+            // C ref: mthrowu.c:670-672 — potion hits player, call potionhit
+            if (weapon?.oclass === POTION_CLASS) {
+                await potionhit(player, weapon, 1 /*POTHIT_MONST_THROW*/, player, map);
+                dropHandledInImpact = true;
+                hitPlayer = true;
+                break;
+            }
             if (weapon?.oclass === GEM_CLASS && await ucatchgem(weapon, mon, player, map, display)) {
                 break;
             }
