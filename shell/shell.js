@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR, loginBanner } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner, initDefaultVfsFiles } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
 import {
@@ -17,6 +17,7 @@ export class Shell {
     constructor(display, getch) {
         this.display = display;
         this.getch = getch;
+        initDefaultVfsFiles();
         this.fs = new VirtualFS();
         this.commands = getBuiltinCommands();
         this.scrollBuffer = []; // lines currently on screen
@@ -32,6 +33,9 @@ export class Shell {
     // options.interrupt: if true, simulate Ctrl-C interrupt of current screen
     // Returns: { action: 'exit' } or { action: 'launch', game: 'nethack' } etc.
     async run(options = {}) {
+        // Hide NetHack side panels (key reference, hover info) — not relevant in shell
+        if (typeof window !== 'undefined') window._panelFns?.setForceHide?.(true);
+
         // Enable blinking cursor
         if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
         this.scrollBuffer = [];
@@ -83,7 +87,12 @@ export class Shell {
             }
         }
 
-        return this.result || { action: 'exit' };
+        const result = this.result || { action: 'exit' };
+        // Restore panels only when returning normally (not navigating away)
+        if (result.action !== 'launch') {
+            if (typeof window !== 'undefined') window._panelFns?.setForceHide?.(false);
+        }
+        return result;
     }
 
     _promptString() {
@@ -412,15 +421,18 @@ export class Shell {
     }
 
     async _runVi(filename) {
-        const absPath = this.fs.resolve(filename);
-        const node = this.fs.getNode(filename);
+        let node = this.fs.getNode(filename);
 
-        // If file doesn't exist and it's in a writable area, that's an error for now
         if (!node) {
-            this.println(`vi: ${filename}: No such file or directory`);
-            return;
+            // Allow creating new files under home dir
+            const err = this.fs.createFile(filename);
+            if (err) {
+                this.println(`vi: ${filename}: ${err}`);
+                return;
+            }
+            node = this.fs.getNode(filename); // re-fetch after creation
         }
-        if (node.type === 'dir') {
+        if (node && node.type === 'dir') {
             this.println(`vi: ${filename}: Is a directory`);
             return;
         }
@@ -453,9 +465,42 @@ export class Shell {
             const game = new DungeonGame();
             game.init(data, textRecords);
 
-            // Dungeon-specific input: rdline() already outputs ">" via G.output(),
-            // so we just need to show the input on the same line after "> ".
+            // Wire up save/restore to localStorage
+            const DUNGEON_SAVE_KEY = 'menace-dungeon';
+            const DUNGEON_WHEN_KEY = 'menace-dungeon-when';
+            game.doSave = () => {
+                try {
+                    const s = JSON.stringify(game.getSaveState());
+                    localStorage.setItem(DUNGEON_SAVE_KEY, s);
+                    localStorage.setItem(DUNGEON_WHEN_KEY, String(Date.now()));
+                } catch (e) { /* ignore */ }
+            };
+            game.doRestore = () => {
+                try {
+                    const raw = localStorage.getItem(DUNGEON_SAVE_KEY);
+                    if (!raw) return false;
+                    game.setSaveState(JSON.parse(raw));
+                    return true;
+                } catch (e) { return false; }
+            };
+
+            // Auto-restore a previously saved game
+            let restored = false;
+            try {
+                const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(DUNGEON_SAVE_KEY) : null;
+                if (raw) {
+                    game.setSaveState(JSON.parse(raw));
+                    restored = true;
+                }
+            } catch (e) { /* ignore corrupt save, start fresh */ }
+
+            // Dungeon-specific input: rdline() emits ">" via G.output() as the prompt,
+            // but we strip it and draw our own ">[space]" so the line reads "> input".
             const input = async () => {
+                // Strip rdline's bare ">" prompt — shell draws its own "> " below
+                while (pendingLines.length > 0 && pendingLines[pendingLines.length - 1] === '>') {
+                    pendingLines.pop();
+                }
                 // Page any buffered output before accepting input
                 await this._flushDungeonBuffer(pendingLines);
                 pendingLines.length = 0;
@@ -474,10 +519,8 @@ export class Shell {
                     const ch = await this.getch();
                     if (ch === 13 || ch === 10) {
                         const line = this.inputLine;
-                        // Replace the ">" line rdline added with "> input"
-                        if (this.scrollBuffer.length > 0) {
-                            this.scrollBuffer[this.scrollBuffer.length - 1] = { text: '> ' + line, color: OUTPUT_COLOR };
-                        }
+                        // Echo "> input" to scrollBuffer
+                        this.scrollBuffer.push({ text: '> ' + line, color: OUTPUT_COLOR });
                         return line;
                     }
                     if (ch === 8 || ch === 127) {
@@ -496,18 +539,21 @@ export class Shell {
                 }
             };
 
-            // Line output: buffer lines, page them when input is requested
+            // Line output: buffer lines, page them when input is requested.
+            // The dungeon game inherits Fortran-era 1-space leading indent on narrative;
+            // strip it for cleaner display.
             const pendingLines = [];
             const output = (text) => {
                 for (const line of (text || '').split('\n')) {
-                    pendingLines.push(line);
+                    const stripped = line.startsWith(' ') ? line.slice(1) : line;
+                    pendingLines.push(stripped);
                 }
             };
 
             this.display.clearScreen();
             this.scrollBuffer = [];
 
-            await game.run(input, output);
+            await game.run(input, output, { restored });
             // Flush any remaining output after game ends
             if (pendingLines.length > 0) {
                 await this._flushDungeonBuffer(pendingLines);
@@ -558,6 +604,78 @@ export class Shell {
 // Main entry point: run the shell, returning when done.
 // display: Display instance
 // getch: async function returning a character code
+// Show a login prompt and loop until rodney/yendor is entered.
+// Then run a clean shell session; on exit, loop back to login prompt.
+async function runLoginLoop(display, getch, lifecycle) {
+    while (true) {
+        display.clearScreen();
+        display.flush();
+
+        // Read a raw line, optionally with echo suppressed
+        const loginRow = display.rows - 1;
+        async function readRaw(prompt, echo) {
+            display.putstr(0, loginRow, prompt, CLR_WHITE);
+            display.setCursor(prompt.length, loginRow);
+            display.flush();
+            let line = '';
+            while (true) {
+                const ch = await getch();
+                if (ch === 13 || ch === 10) break;
+                if (ch === 8 || ch === 127) {
+                    if (line.length > 0) {
+                        line = line.slice(0, -1);
+                        if (echo) {
+                            display.putstr(prompt.length, loginRow, line + ' ', CLR_WHITE);
+                            display.setCursor(prompt.length + line.length, loginRow);
+                            display.flush();
+                        }
+                    }
+                } else if (ch >= 32 && ch < 127) {
+                    line += String.fromCharCode(ch);
+                    if (echo) {
+                        display.putstr(prompt.length, loginRow, line, CLR_WHITE);
+                        display.setCursor(prompt.length + line.length, loginRow);
+                        display.flush();
+                    }
+                }
+            }
+            return line;
+        }
+
+        const username = await readRaw('pdp11 login: ', true);
+        display.clearScreen();
+        display.flush();
+        const password = await readRaw('Password: ', false);
+
+        if (username === 'rodney' && password === 'yendor') {
+            // Successful login — run a clean shell; loop back on exit
+            const shell = new Shell(display, getch);
+            const result = await shell.run({});
+            if (result && result.action === 'launch') {
+                const game = result.game;
+                display.clearScreen();
+                display.flush();
+                if (game === 'nethack') {
+                    if (lifecycle && lifecycle.restart) lifecycle.restart();
+                    else window.location.href = '/';
+                } else if (game === 'hack') {
+                    window.location.href = '/hack/';
+                } else if (game === 'rogue') {
+                    window.location.href = '/rogue/';
+                }
+                return;
+            }
+            // Shell exited normally — loop back to login prompt
+        } else {
+            // Wrong credentials
+            display.clearScreen();
+            display.putstr(0, display.rows - 1, 'Login incorrect', CLR_WHITE);
+            display.flush();
+            await new Promise(r => setTimeout(r, 1500));
+        }
+    }
+}
+
 // lifecycle: object with launch methods
 export async function runShell(display, getch, lifecycle, options = {}) {
     const shell = new Shell(display, getch);
@@ -565,6 +683,8 @@ export async function runShell(display, getch, lifecycle, options = {}) {
 
     if (result && result.action === 'launch') {
         const game = result.game;
+        display.clearScreen();
+        display.flush();
         if (game === 'nethack') {
             // Navigate to main game
             if (lifecycle && lifecycle.restart) {
@@ -577,6 +697,13 @@ export async function runShell(display, getch, lifecycle, options = {}) {
         } else if (game === 'rogue') {
             window.location.href = '/rogue/';
         }
+        return result;
+    }
+
+    // Interrupt-mode shell: on exit show login prompt instead of returning to promo
+    if (options.interrupt && result.action === 'exit') {
+        await runLoginLoop(display, getch, lifecycle);
+        return result;
     }
 
     return result;

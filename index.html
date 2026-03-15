@@ -982,6 +982,7 @@
         var panelToggle = document.getElementById('panel-toggle');
         var gameDiv = document.getElementById('game');
         var autoHidden = false;
+        var forceHidden = false;  // set by shell/dungeon/other non-NH games
 
         // helppanel values: 'both' | 'control' (LHS only) | 'objects' (RHS only) | 'none'
         function getHelppanel() {
@@ -1000,16 +1001,16 @@
             } catch(e) {}
         }
 
-        // Apply panel visibility: autoHidden overrides mode and hides everything
+        // Apply panel visibility: autoHidden/forceHidden override mode and hide everything
         function applyPanels() {
-            var mode = autoHidden ? 'none' : getHelppanel();
+            var mode = (autoHidden || forceHidden) ? 'none' : getHelppanel();
             keyrefPanel.classList.toggle('hidden', mode !== 'both' && mode !== 'control');
             hoverPanel.classList.toggle('hidden',  mode !== 'both' && mode !== 'objects');
         }
 
         function updateToggleButton() {
             var mode = getHelppanel();
-            if (autoHidden) {
+            if (autoHidden || forceHidden) {
                 panelToggle.classList.add('panels-auto-hidden');
                 panelToggle.classList.remove('panels-hidden');
             } else if (mode === 'none') {
@@ -1089,6 +1090,11 @@
         window._panelFns = {
             toggle: togglePanels,
             isAutoHidden: function() { return autoHidden; },
+            setForceHide: function(val) {
+                forceHidden = !!val;
+                applyPanels();
+                updateToggleButton();
+            },
         };
     })();
 

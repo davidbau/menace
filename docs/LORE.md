@@ -13134,3 +13134,54 @@ Validation:
 - Result:
   - `hi19` is fully parity-green
   - nearby polymorph and global gameplay guardrails stayed green
+
+### Monster multishot naming affects real page boundaries
+
+- `t11_s755_w_covmax9_gp` still had a raw-step drift in the gnome lord
+  crossbow volley even after the earlier `monmulti()` RNG fix.
+- C `mthrowu.c` uses `gm.m_shot` in two places that JS was not modeling:
+  - the intro message uses `shoots 3 crossbow bolts` rather than a singular
+    `throws a crossbow bolt`
+  - per-projectile hit text uses `mshot_xname()` so the hero sees
+    `the 1st/2nd/3rd crossbow bolt`
+- JS was emitting shorter generic text like `a crossbow bolt` for each hit.
+  That changed topline packing, letting two hit messages fit on one page and
+  pulling later monster-bite pages one raw step earlier than C.
+- Fix in `js/mthrowu.js`:
+  - attach `_m_shot = { n, i, o, s }` metadata to each projectile in
+    `monshoot()`
+  - use `mshot_xname()` for projectile naming in `thitu()` paths via
+    `thrownObjectName()`
+  - render the C-style multishot intro message with `shoots` plus pluralized
+    count when ammo+launcher are in use
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved to full RNG parity: `26517/26517`
+    - events improved to `7012/7287`
+    - remaining first divergence moved to screen/event state at step `1349`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
+
+### Filtered wizard identify menus must not inject synthetic gold
+
+- `t11_s755_w_covmax9_gp` next diverged at step `1349` on the debug identify
+  overlay after RNG parity was already fully green.
+- C showed the filtered unidentified-item menu beginning with `Comestibles`.
+- JS began with `Coins` because `buildInventoryOverlayLinesFromItems()` always
+  injected the synthetic `player.gold` section whenever no `COIN_CLASS` items
+  were present, even for filtered submenus.
+- That behavior is correct for the full inventory view, but wrong for the
+  wizard-identify filtered overlay.
+- Fix in `js/invent.js`:
+  - add `includeSyntheticGold` option to `buildInventoryOverlayLinesFromItems()`
+  - disable it for the wizard-identify filtered overlay path
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - first screen divergence moved `1349 -> 1350`
+    - screens `1678/1789 -> 1681/1789`
+    - colors `42748/42936 -> 42827/42936`
+    - RNG stayed fully green: `26517/26517`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`

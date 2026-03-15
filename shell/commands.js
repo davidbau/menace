@@ -5,7 +5,94 @@
 //   shell: the Shell instance (for output, fs access, state changes)
 // Returns: void (output via shell.print/println), or a special action object.
 
-import { USERNAME } from './filesystem.js';
+import { USERNAME, HOMEDIR, getSessionStart } from './filesystem.js';
+
+// Currently active sessions. Rodney is always index 0.
+// who() shows a deterministic subset; finger() shows "On since" for these users.
+const USER_SESSIONS = [
+    { user: 'rodney',   tty: '07', minAgo: 0 },
+    { user: 'walz',     tty: '06', minAgo: 29 },
+    { user: 'toy',      tty: '04', minAgo: 627 },
+    { user: 'fenlason', tty: '05', minAgo: 119 },
+    { user: 'lebling',  tty: '02', minAgo: 864 },
+    { user: 'blank',    tty: '08', minAgo: 312 },
+    { user: 'crowther', tty: '01', minAgo: 1440 },
+    { user: 'arnold',   tty: '09', minAgo: 203 },
+    { user: 'brouwer',  tty: '10', minAgo: 95 },
+];
+
+// Returns true if a non-Rodney session user is "currently logged in"
+// (deterministic per day+hour, stable across who/finger calls).
+function isCurrentlyLoggedIn(sessionIndex) {
+    if (sessionIndex === 0) return true; // Rodney always logged in
+    const now = new Date();
+    const seed = now.getFullYear() * 366 + now.getMonth() * 31 + now.getDate() + now.getHours();
+    return ((seed * 31 + sessionIndex * 7) % 13) < 5;
+}
+
+// Format a login time for finger/who output.
+// Includes year only when it differs from the current year.
+function formatLoginTime(date) {
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dy = days[date.getDay()];
+    const mo = months[date.getMonth()];
+    const d = String(date.getDate()).padStart(2);
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    const yr = date.getFullYear();
+    const thisYr = new Date().getFullYear();
+    return yr !== thisYr
+        ? `${dy} ${mo} ${d} ${h}:${m} ${yr}`
+        : `${dy} ${mo} ${d} ${h}:${m}`;
+}
+
+// finger(1) user info database.
+// lastLogin: pre-formatted string for users not in USER_SESSIONS.
+//   Omit for users who never logged in (daemon, wizard, gridbug).
+//   For deceased users the date should reflect their final login.
+const FINGER_DB = {
+    root:     { name: 'Charlie Root',           office: 'Machine Room, B-Level', phone: 'x0000',
+                 lastLogin: 'Sat Mar  8 03:12 on console',
+                 mail: 'No mail.',
+                 plan: 'Do not disturb.\nSystem maintenance scheduled.  Or possibly never.' },
+    daemon:   { name: 'The Daemon',             mail: 'No mail.' },
+    operator: { name: 'System Operator',        office: 'Room 104', phone: 'x0002',
+                 lastLogin: 'Fri Mar  7 17:30 on tty02',
+                 mail: 'No mail.' },
+    rodney:   { name: 'Rodney, Wiz. of Yendor', office: 'Dungeon Level 26', phone: 'unlisted',
+                 mail: '1 unread message (from oracle@delphi).' },
+    // Izchak Miller, 1947–1994. NetHack developer; the shopkeeper is his memorial.
+    izchak:   { name: 'Izchak Miller',          office: 'Lighting Emporium, Level 5', phone: 'x1001',
+                 lastLogin: 'Sun Mar  6 09:14 1994 on tty03',
+                 mail: 'No mail.',
+                 plan: "Welcome, welcome!  Please don't steal anything.\nSpecial today: uncursed +0 torches.  Genuine lichen." },
+    crowther: { name: 'William Crowther',       office: 'Somewhere underground',
+                 mail: 'No mail.',
+                 plan: 'YOU ARE STANDING AT THE END OF A ROAD BEFORE A SMALL BRICK BUILDING.\nAROUND YOU IS A FOREST.  A SMALL STREAM FLOWS OUT OF THE BUILDING\nAND DOWN A GULLY.' },
+    toy:      { name: 'Michael Toy',
+                 mail: 'No mail.',
+                 plan: "Working on something new.  No, you can't see it yet." },
+    arnold:   { name: 'Ken Arnold',
+                 mail: '3 messages.',
+                 plan: 'curses(3) bugs: none known.  Please keep it that way.' },
+    fenlason: { name: 'Jay Fenlason',
+                 mail: 'No mail.',
+                 plan: 'Hack 1.0 is done.  No I will not add color.  Stop asking.' },
+    brouwer:  { name: 'Andries Brouwer',
+                 mail: '2 messages.',
+                 plan: 'NetHack patch queue: 17 items.  Progress: slow but steady.' },
+    lebling:  { name: 'Dave Lebling',           office: 'MIT AI Lab, Room 9-4',
+                 mail: 'No mail.',
+                 plan: '>inventory\nYou are carrying:\n  a leaflet\n  a brass lantern\n  a sword' },
+    blank:    { name: 'Marc Blank',             mail: 'No mail.' },
+    walz:     { name: 'Janet Walz',
+                 mail: '1 message.',
+                 plan: "If you encounter a bug, it's a feature.\nIf you encounter a feature, read the man page." },
+    wizard:   { name: 'The Wizard of Yendor',   mail: 'No mail.' },
+    gridbug:  { name: 'Grid Bug',               office: '/tmp', mail: 'No mail.',
+                 plan: 'ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP' },
+};
 
 export function getBuiltinCommands() {
     return {
@@ -18,7 +105,7 @@ export function getBuiltinCommands() {
         zork: launchDungeon,
         exit: doExit,
         logout: doExit,
-        rm, chmod, su, emacs, nano,
+        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger,
     };
 }
 
@@ -45,8 +132,9 @@ async function ls(args, shell) {
             const sizeStr = String(e.size).padStart(7);
             const owner = (e.owner || USERNAME).padEnd(8);
             const group = (e.group || 'wheel').padEnd(6);
-            const suffix = e.isDir ? '/' : e.isExec ? '*' : '';
-            shell.println(`${e.perms}  1 ${owner} ${group} ${sizeStr} ${e.date} ${e.name}${suffix}`);
+            const suffix = e.isDir ? '/' : e.isSymlink ? '@' : e.isExec ? '*' : '';
+            const display = e.displayName || e.name;
+            shell.println(`${e.perms}  1 ${owner} ${group} ${sizeStr} ${e.date} ${display}${suffix}`);
         }
     } else {
         // ls on a file path should show just the name
@@ -65,7 +153,7 @@ async function ls(args, shell) {
             for (let j = 0; j < numCols && i + j < filtered.length; j++) {
                 const name = filtered[i + j];
                 const node = shell.fs.getNode(target === '.' ? name : target + '/' + name);
-                const suffix = node?.type === 'dir' ? '/' : node?.type === 'exec' ? '*' : '';
+                const suffix = node?.type === 'dir' ? '/' : node?.type === 'symlink' ? '@' : node?.type === 'exec' ? '*' : '';
                 line += (name + suffix).padEnd(colWidth);
             }
             shell.println(line.trimEnd());
@@ -152,26 +240,16 @@ async function who(_args, shell) {
     const now = new Date();
     const mon = months[now.getMonth()];
     const day = String(now.getDate()).padStart(2);
-    const fmt = (user, tty, minAgo) => {
-        const t = new Date(now.getTime() - minAgo * 60000);
+    const fmt = ({ user, tty, minAgo }) => {
+        const t = user === USERNAME
+            ? new Date(getSessionStart())
+            : new Date(now.getTime() - minAgo * 60000);
         const th = String(t.getHours()).padStart(2, '0');
         const tm = String(t.getMinutes()).padStart(2, '0');
         return `${user.padEnd(10)}tty${tty}    ${mon} ${day} ${th}:${tm}`;
     };
-    // Current user always shown
-    shell.println(fmt(USERNAME, '07', 0));
-    // Other users: deterministic random subset based on day/hour
-    const others = [
-        ['izchak', '03', 44], ['walz', '06', 29], ['toy', '04', 627],
-        ['fenlason', '05', 119], ['lebling', '02', 864], ['blank', '08', 312],
-        ['crowther', '01', 1440], ['arnold', '09', 203], ['brouwer', '10', 95],
-    ];
-    const seed = now.getFullYear() * 366 + now.getMonth() * 31 + now.getDate() + now.getHours();
-    for (let i = 0; i < others.length; i++) {
-        // Use seed to deterministically pick 2-4 users
-        if (((seed * 31 + i * 7) % 13) < 5) {
-            shell.println(fmt(others[i][0], others[i][1], others[i][2]));
-        }
+    for (let i = 0; i < USER_SESSIONS.length; i++) {
+        if (isCurrentlyLoggedIn(i)) shell.println(fmt(USER_SESSIONS[i]));
     }
 }
 
@@ -286,6 +364,87 @@ async function doExit(_args, shell) {
 }
 
 // Easter egg commands (with special handling for removable files)
+async function finger(args, shell) {
+    const targets = args.filter(a => !a.startsWith('-'));
+    const users = targets.length > 0 ? targets : [USERNAME];
+
+    for (const user of users) {
+        const info = FINGER_DB[user.toLowerCase()];
+        if (!info) { shell.println(`finger: ${user}: no such user.`); continue; }
+
+        const login = user.toLowerCase();
+        const pad = (s, n) => s.padEnd(n);
+        shell.println(`Login: ${pad(login, 24)} Name: ${info.name}`);
+
+        const dir = login === USERNAME ? `~` : `/home/${login}`;
+        const shell_ = login === 'root' ? '/bin/csh' : login === 'daemon' || login === 'wizard' || login === 'gridbug' ? '/sbin/nologin' : '/bin/sh';
+        shell.println(`Directory: ${pad(dir, 22)} Shell: ${shell_}`);
+
+        if (info.office) shell.println(`Office: ${info.office}${info.phone ? ', ' + info.phone : ''}`);
+        const sessionIdx = USER_SESSIONS.findIndex(s => s.user === login);
+        const session = sessionIdx >= 0 ? USER_SESSIONS[sessionIdx] : null;
+        const loggedIn = session && isCurrentlyLoggedIn(sessionIdx);
+        if (loggedIn) {
+            const t = login === USERNAME
+                ? new Date(getSessionStart())
+                : new Date(Date.now() - session.minAgo * 60000);
+            const idleMin = login === USERNAME ? 0 : Math.floor(session.minAgo % 37);
+            const idleStr = idleMin === 0 ? '0:00' : `0:${String(idleMin).padStart(2, '0')}`;
+            shell.println(`On since ${formatLoginTime(t)} on tty${session.tty}   (idle ${idleStr})`);
+        } else if (session) {
+            // Has a session entry but not currently logged in — show last login time
+            const t = new Date(Date.now() - session.minAgo * 60000);
+            shell.println(`Last login ${formatLoginTime(t)} on tty${session.tty}`);
+        } else if (info.lastLogin) {
+            shell.println(`Last login ${info.lastLogin}`);
+        } else {
+            shell.println('Never logged in.');
+        }
+        shell.println(info.mail || 'No mail.');
+
+        // For rodney: read .plan from VFS if it exists
+        let plan = null;
+        if (login === USERNAME) {
+            plan = shell.fs.cat(`${HOMEDIR}/.plan`);
+            if (plan === null || plan === '') plan = null;
+        } else {
+            plan = info.plan || null;
+        }
+        if (plan) {
+            shell.println('Plan:');
+            for (const line of plan.split('\n')) shell.println(line);
+        } else {
+            shell.println('No Plan.');
+        }
+        if (users.length > 1) shell.println('');
+    }
+}
+
+async function mv(args, shell) {
+    const paths = args.filter(a => !a.startsWith('-'));
+    if (paths.length < 2) { shell.println('usage: mv source dest'); return; }
+    const [src, dest] = paths;
+    const err = shell.fs.moveFile(src, dest);
+    if (err) shell.println(`mv: ${err}`);
+}
+
+async function cp(args, shell) {
+    const paths = args.filter(a => !a.startsWith('-'));
+    if (paths.length < 2) { shell.println('usage: cp source dest'); return; }
+    const [src, dest] = paths;
+    const srcNode = shell.fs.getNode(src);
+    if (!srcNode) { shell.println(`cp: ${src}: No such file or directory`); return; }
+    if (srcNode.type === 'dir') { shell.println(`cp: ${src}: Is a directory`); return; }
+    if (!srcNode.vfsPath) {
+        if (srcNode.lsKey) shell.println('Nice try.');
+        else shell.println('cp: Permission denied');
+        return;
+    }
+    const content = shell.fs.cat(src);
+    const err = shell.fs.createFile(dest) || shell.fs.write(dest, content);
+    if (err) shell.println(`cp: ${dest}: ${err}`);
+}
+
 async function rm(args, shell) {
     const flags = args.filter(a => a.startsWith('-'));
     const paths = args.filter(a => !a.startsWith('-'));
@@ -301,6 +460,22 @@ async function rm(args, shell) {
     for (const path of paths) {
         const err = shell.fs.remove(path);
         if (err) shell.println(`rm: ${err}`);
+    }
+}
+
+async function mkdir(args, shell) {
+    if (args.length === 0) { shell.println('usage: mkdir directory'); return; }
+    for (const arg of args) {
+        const err = shell.fs.createDir(arg);
+        if (err) shell.println(`mkdir: ${arg}: ${err}`);
+    }
+}
+
+async function rmdir(args, shell) {
+    if (args.length === 0) { shell.println('usage: rmdir directory'); return; }
+    for (const arg of args) {
+        const err = shell.fs.removeDir(arg);
+        if (err) shell.println(`rmdir: ${arg}: ${err}`);
     }
 }
 

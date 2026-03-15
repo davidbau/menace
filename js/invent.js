@@ -121,6 +121,7 @@ function displayOnlyFullyIdentifiedName(item, player) {
 
 function buildInventoryOverlayLinesFromItems(items, player, options = null) {
     const fullyIdentify = !!options?.fullyIdentify;
+    const includeSyntheticGold = options?.includeSyntheticGold !== false;
     const CLASS_NAMES = {
         [WEAPON_CLASS]: 'Weapons', [ARMOR_CLASS]: 'Armor', [RING_CLASS]: 'Rings',
         [AMULET_CLASS]: 'Amulets', [TOOL_CLASS]: 'Tools', [FOOD_CLASS]: 'Comestibles',
@@ -141,7 +142,7 @@ function buildInventoryOverlayLinesFromItems(items, player, options = null) {
 
     const lines = [];
     for (const cls of INV_ORDER) {
-        if (cls === COIN_CLASS && !groups[cls] && (player.gold || 0) > 0) {
+        if (includeSyntheticGold && cls === COIN_CLASS && !groups[cls] && (player.gold || 0) > 0) {
             const gold = player.gold || 0;
             const goldLabel = gold === 1 ? 'gold piece' : 'gold pieces';
             lines.push('Coins');
@@ -2288,7 +2289,10 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         choices.push('_');
         choices.push(String.fromCharCode(wizIdentifyAccel));
 
-        const groupedLines = buildInventoryOverlayLinesFromItems(unid, p, { fullyIdentify: true })
+        const groupedLines = buildInventoryOverlayLinesFromItems(unid, p, {
+            fullyIdentify: true,
+            includeSyntheticGold: false,
+        })
             .filter((line) => line !== '(end)');
         lines.push(...groupedLines);
         for (const obj of unid) {

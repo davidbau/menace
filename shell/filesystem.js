@@ -1,7 +1,7 @@
 // filesystem.js -- Virtual directory tree over the flat menace-fs (localStorage).
 // Provides a Unix-like directory abstraction for the shell: ls, cat, cd, etc.
 
-import { vfsReadFile, vfsWriteFile, vfsListFiles } from '../js/storage.js';
+import { vfsReadFile, vfsWriteFile, vfsDeleteFile, vfsListFiles, loadSaveMeta, loadAutosaveMeta } from '../js/storage.js';
 import { loadScores } from '../js/topten.js';
 
 // The logged-in user
@@ -77,6 +77,217 @@ function formatRecord() {
     }).join('\n');
 }
 
+// Format a Unix ls-style date from a timestamp.
+// Same year as today: "Mar 14 10:30".  Older: "Mar 14  2024".
+function formatTimestamp(ts) {
+    const d = new Date(ts);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const m = months[d.getMonth()];
+    const day = String(d.getDate()).padStart(2);
+    const now = new Date();
+    if (d.getFullYear() === now.getFullYear()) {
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${m} ${day} ${h}:${min}`;
+    }
+    return `${m} ${day}  ${d.getFullYear()}`;
+}
+
+// Build a save/autosave filename from character metadata.
+// Example: "rodney_ValHumNeuFem_XP5_D3_T1234.Z"
+function saveFilename(meta, ext) {
+    const name = (meta.name || 'rodney').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const desc = `${meta.role || '???'}${meta.race || '???'}${meta.align || '???'}${meta.gender || '???'}`;
+    return `${name}_${desc}_XP${meta.xp || 0}_D${meta.dlvl || 1}_T${meta.turns || 0}${ext}`;
+}
+
+// Dynamically list nethack save + autosave files from meta keys.
+function computeNetHackSaveChildren() {
+    const result = {};
+    const saveMeta = loadSaveMeta();
+    if (saveMeta && lsRead('menace-save') !== null) {
+        const fname = saveFilename(saveMeta, '.Z');
+        result[fname] = {
+            type: 'file', lsKey: 'menace-save', removable: true,
+            owner: USERNAME, group: USERNAME, _ts: saveMeta.saved,
+        };
+    } else if (lsRead('menace-save') !== null) {
+        // Save exists but no meta (old format) — show with generic name
+        result[`${USERNAME}.Z`] = {
+            type: 'file', lsKey: 'menace-save', removable: true,
+            owner: USERNAME, group: USERNAME,
+        };
+    }
+    const autoMeta = loadAutosaveMeta();
+    if (autoMeta && lsRead('menace-autosave') !== null) {
+        const fname = saveFilename(autoMeta, '.autosave');
+        result[fname] = {
+            type: 'file', lsKey: 'menace-autosave', removable: true,
+            owner: USERNAME, group: USERNAME, _ts: autoMeta.saved,
+        };
+    } else if (lsRead('menace-autosave') !== null) {
+        result[`${USERNAME}.autosave`] = {
+            type: 'file', lsKey: 'menace-autosave', removable: true,
+            owner: USERNAME, group: USERNAME,
+        };
+    }
+    return result;
+}
+
+// Dynamically enumerate bones files from localStorage keys.
+function computeBonesChildren() {
+    const result = {};
+    try {
+        if (typeof localStorage === 'undefined') return result;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key || !key.startsWith('menace-bones-')) continue;
+            const depthStr = key.slice('menace-bones-'.length);
+            const depth = parseInt(depthStr, 10);
+            if (isNaN(depth)) continue;
+            const raw = lsRead(key);
+            if (!raw) continue;
+            let when = null, size = raw.length;
+            try { when = JSON.parse(raw)?.when ?? null; } catch (e) { /* ignore */ }
+            const name = `bones.D${String(depth).padStart(4, '0')}`;
+            result[name] = {
+                type: 'file', lsKey: key, removable: true,
+                owner: 'root', group: 'wheel',
+                _ts: when, size,
+            };
+        }
+    } catch (e) { /* ignore if localStorage unavailable */ }
+    return result;
+}
+
+// VFS prefix used for user home files: "home/myfile" -> /home/rodney/myfile
+const USER_HOME_VFS_PREFIX = 'home/';
+
+// Default file contents written to Rodney's home dir on first shell login.
+const DEFAULT_FILES = {
+    'todo': `\
+Things to do:
+  [ ] Find out who keeps taking the Amulet
+  [ ] Restock eye of newt (running very low -- check pantry)
+  [ ] Fix teleport trap on level 14 (keeps miscalibrating to level 1)
+  [ ] Send invoice to Oracle for overdue consultation fees
+  [ ] Change dungeon lock combination (obviously compromised)
+  [ ] Write strongly-worded letter to Sokoban re: noise complaints
+  [ ] Remember to put Amulet in the LOCKED BOX this time
+`,
+    'shopping': `\
+Magical supplies needed:
+  eye of newt ............. 2 dozen
+  bat wings ............... 1 lb
+  blessed candles ......... 12 (the dungeon is drafty)
+  wand of death ........... 1 (current one down to 3 charges)
+  scroll of magic mapping . 6 (for internal reference only)
+  potion of full healing .. 3 (blessed if possible)
+  new padlock ............. 1 (for the Amulet box)
+
+  NOTE: Do NOT buy from Izchak again. He knows who I am.
+`,
+    'notes': `\
+Research notes  --  Rodney, Wiz. of Yendor
+
+Level 5:  Gnomes tunneling through east wall of room 3 again.
+          Boarded it up twice.  Considering ogres as deterrent.
+
+Level 14: Teleport trap recalibrated to target DL 1.  Should
+          slow them down.  Shopkeeper still filing complaints.
+          Not my problem.
+
+Spell research: extended "Finger of Death" range to 6 squares.
+          Side effect: scorches carpet.  Acceptable.
+
+Memo from Oracle (received via crystal ball, 3rd hand):
+  "A great hero approaches.  Or possibly a tourist."
+
+Note to self: the Amulet goes in the box.  The box.  The box.
+`,
+};
+
+// sessionStorage key recording when the current browser visit began.
+const SESSION_START_KEY = 'menace-session-start';
+
+// Return the timestamp (ms) when this browser session began.
+// Set once per tab/session on first Shell construction.
+export function getSessionStart() {
+    try {
+        const v = sessionStorage.getItem(SESSION_START_KEY);
+        if (v) return parseInt(v, 10);
+    } catch (e) { /* unavailable */ }
+    return Date.now();
+}
+
+// Write default home-dir files on first shell login (idempotent sentinel).
+export function initDefaultVfsFiles() {
+    // Record session start time (once per browser tab, cleared on tab close)
+    try {
+        if (!sessionStorage.getItem(SESSION_START_KEY)) {
+            sessionStorage.setItem(SESSION_START_KEY, String(Date.now()));
+        }
+    } catch (e) { /* unavailable */ }
+
+    const sentinel = USER_HOME_VFS_PREFIX + '.initialized';
+    if (vfsReadFile(sentinel) !== null) return; // already done
+    for (const [name, content] of Object.entries(DEFAULT_FILES)) {
+        vfsWriteFile(USER_HOME_VFS_PREFIX + name, content);
+    }
+    vfsWriteFile(sentinel, '1');
+}
+
+// Dynamically list user-created files and directories from the VFS.
+// vfsPrefix is like "home/" for the home dir, or "home/mydir/" for subdirs.
+function computeUserFiles(vfsPrefix) {
+    const result = {};
+    try {
+        for (const key of vfsListFiles(vfsPrefix)) {
+            const rest = key.slice(vfsPrefix.length);
+            if (!rest) continue;
+            const slashPos = rest.indexOf('/');
+            if (slashPos === -1) {
+                // Plain file at this level
+                result[rest] = {
+                    type: 'file', vfsPath: key, removable: true,
+                    owner: USERNAME, group: USERNAME,
+                };
+            } else if (slashPos === rest.length - 1) {
+                // Directory sentinel: "dirname/"
+                const dirName = rest.slice(0, slashPos);
+                if (!result[dirName]) {
+                    const subPrefix = vfsPrefix + dirName + '/';
+                    result[dirName] = {
+                        type: 'dir', children: {},
+                        computeChildren: () => computeUserFiles(subPrefix),
+                        removable: true, owner: USERNAME, group: USERNAME,
+                    };
+                }
+            }
+            // Files inside subdirectories: skip at this level
+        }
+    } catch (e) { /* localStorage unavailable */ }
+    return result;
+}
+
+// Dynamically list save files in /home/rodney (dungeon.sav + user files).
+function computeHomeDirChildren() {
+    const result = computeUserFiles(USER_HOME_VFS_PREFIX);
+    try {
+        const dungeonRaw = lsRead('menace-dungeon');
+        if (dungeonRaw !== null) {
+            let when = null;
+            try { when = parseInt(lsRead('menace-dungeon-when') || '0', 10) || null; } catch (e) {}
+            result['dungeon.sav'] = {
+                type: 'file', lsKey: 'menace-dungeon', removable: true,
+                owner: USERNAME, group: USERNAME,
+                _ts: when, size: dungeonRaw.length,
+            };
+        }
+    } catch (e) { /* localStorage unavailable */ }
+    return result;
+}
+
 function buildTree() {
     return {
         type: 'dir', children: {
@@ -92,6 +303,7 @@ function buildTree() {
                         type: 'dir', children: {
                             rogue:   { type: 'exec', game: 'rogue',   owner: 'root', group: 'wheel', date: 'Jun 15  1980', size: 61440 },
                             dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'wheel', date: 'Apr  1  1980', size: 204800 },
+                            zork:    { type: 'symlink', target: 'dungeon', game: 'dungeon', owner: 'root', group: 'wheel', date: 'Apr  1  1980' },
                             hack:    { type: 'exec', game: 'hack',    owner: 'root', group: 'wheel', date: 'Dec  8  1984', size: 155648 },
                             nethack: { type: 'exec', game: 'nethack', owner: 'root', group: 'wheel', date: 'Mar  1  2026', size: 2097152 },
                             lib: {
@@ -116,13 +328,12 @@ function buildTree() {
 '0:0:2026/02/25:nethack:3.7.0:run',
                                                 readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
                                             'license': { type: 'file', content: 'NetHack, Copyright 1985-2024\nSee guidebook for license details.', readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
-                                            'bones.D0302': { type: 'file', content: '(binary data)', removable: true, owner: 'root', group: 'wheel', date: 'Feb 28  2026', size: 32768 },
                                             'save': {
-                                                type: 'dir', children: {
-                                                    [USERNAME + '.Z']: { type: 'file', lsKey: 'nethack_save', removable: true, owner: USERNAME, group: USERNAME, date: 'Mar 12  2026' },
-                                                }
+                                                type: 'dir', children: {},
+                                                computeChildren: computeNetHackSaveChildren,
                                             },
-                                        }
+                                        },
+                                        computeChildren: computeBonesChildren,
                                     }
                                 }
                             }
@@ -133,10 +344,12 @@ function buildTree() {
             home: {
                 type: 'dir', children: {
                     [USERNAME]: {
-                        type: 'dir', children: {
+                        type: 'dir',
+                        children: {
                             '.nethackrc': { type: 'file', vfsPath: '.nethackrc' },
                             'rogue.sav':  { type: 'file', lsKey: 'rogue-save', removable: true, owner: USERNAME, group: USERNAME, date: 'Jun 15  1980' },
-                        }
+                        },
+                        computeChildren: computeHomeDirChildren,
                     },
                     izchak:   { type: 'dir', children: {}, restricted: true },
                     crowther: { type: 'dir', children: {}, restricted: true },
@@ -197,6 +410,14 @@ export class VirtualFS {
         return '/' + resolved.join('/');
     }
 
+    // Get the effective children of a dir node (merging static + computed).
+    _children(node) {
+        if (!node || node.type !== 'dir') return {};
+        const base = node.children || {};
+        if (!node.computeChildren) return base;
+        return { ...base, ...node.computeChildren() };
+    }
+
     // Look up a node by absolute path
     _lookup(absPath) {
         if (absPath === '/') return this.tree;
@@ -204,7 +425,7 @@ export class VirtualFS {
         let node = this.tree;
         for (const p of parts) {
             if (!node || node.type !== 'dir') return null;
-            node = node.children[p];
+            node = this._children(node)[p];
         }
         return node || null;
     }
@@ -227,7 +448,8 @@ export class VirtualFS {
         if (!node) return null;
         if (node.type !== 'dir') return null;
         if (node.restricted) return 'PERMISSION_DENIED';
-        return Object.keys(node.children).filter(name => this._nodeExists(node.children[name]));
+        const ch = this._children(node);
+        return Object.keys(ch).filter(name => this._nodeExists(ch[name]));
     }
 
     // Read file content
@@ -246,7 +468,7 @@ export class VirtualFS {
         return node.content !== undefined ? node.content : '';
     }
 
-    // Write file content (only for vfs-backed files)
+    // Write file content (vfs-backed files, or user files under home dir).
     write(path, content) {
         const node = this.getNode(path);
         if (!node) return 'No such file or directory';
@@ -260,6 +482,59 @@ export class VirtualFS {
         return "Permission denied";
     }
 
+    // Move/rename a user file within /home/rodney/.
+    // Returns an error string, or null on success.
+    moveFile(src, dest) {
+        const srcNode = this.getNode(src);
+        if (!srcNode) return `${src}: No such file or directory`;
+        if (srcNode.type === 'dir') return `${src}: Is a directory`;
+        if (!srcNode.vfsPath) return `${src}: Permission denied`;
+        // If dest is a directory, move src into it
+        let destPath = dest;
+        const destNode = this.getNode(dest);
+        if (destNode && destNode.type === 'dir') {
+            const name = src.split('/').pop();
+            destPath = dest.replace(/\/?$/, '/') + name;
+        }
+        const content = this.cat(src);
+        const createErr = this.createFile(destPath);
+        if (createErr) return `${destPath}: ${createErr}`;
+        this.write(destPath, content);
+        vfsDeleteFile(srcNode.vfsPath);
+        return null;
+    }
+
+    // Create a new user file under /home/rodney/ (or subdirectories).
+    // Returns an error string, or null on success.
+    createFile(path) {
+        const absPath = this.resolve(path);
+        if (!absPath.startsWith(HOMEDIR + '/')) return 'Permission denied';
+        const rel = absPath.slice(HOMEDIR.length + 1); // e.g. "myfile" or "mydir/file"
+        if (!rel || rel.endsWith('/')) return 'Invalid filename';
+        // Check it doesn't already exist as a directory
+        const existing = this.getNode(path);
+        if (existing && existing.type === 'dir') return 'Is a directory';
+        const vfsKey = USER_HOME_VFS_PREFIX + rel;
+        vfsWriteFile(vfsKey, ''); // create empty
+        return null; // success
+    }
+
+    // Create a new directory under /home/rodney/.
+    // Returns an error string, or null on success.
+    createDir(path) {
+        const absPath = this.resolve(path);
+        if (!absPath.startsWith(HOMEDIR + '/')) return 'Permission denied';
+        const rel = absPath.slice(HOMEDIR.length + 1);
+        if (!rel) return 'Permission denied';
+        // Check parent exists
+        const parentAbs = absPath.slice(0, absPath.lastIndexOf('/'));
+        if (parentAbs !== HOMEDIR && !this._lookup(parentAbs)) return 'No such file or directory';
+        const sentinel = USER_HOME_VFS_PREFIX + rel + '/';
+        if (vfsReadFile(sentinel) !== null || this._lookup(absPath)) return 'File exists';
+        vfsWriteFile(sentinel, '');
+        return null;
+    }
+
     // Check if a node is a directory
     isDir(path) {
         const node = this.getNode(path);
@@ -269,13 +544,13 @@ export class VirtualFS {
     // Check if a node is executable (game launcher)
     isExec(path) {
         const node = this.getNode(path);
-        return node && node.type === 'exec';
+        return node && (node.type === 'exec' || node.type === 'symlink');
     }
 
     // Get the game name for an executable
     getGame(path) {
         const node = this.getNode(path);
-        return node && node.type === 'exec' ? node.game : null;
+        return node && (node.type === 'exec' || node.type === 'symlink') ? node.game : null;
     }
 
     // Remove a file (only for removable files — save data, bones, records)
@@ -290,14 +565,33 @@ export class VirtualFS {
         if (node.lsKey) lsRemove(node.lsKey);
         if (node.removeKey) lsRemove(node.removeKey);
         if (node.content !== undefined) node.content = '';
-        // Remove from parent directory
+        if (node.vfsPath !== undefined) vfsDeleteFile(node.vfsPath);
+        // Remove from parent directory (static children only; dynamic nodes vanish via computeChildren)
         const parts = absPath.split('/').filter(Boolean);
         const name = parts.pop();
         const parentPath = '/' + parts.join('/');
         const parent = this._lookup(parentPath);
-        if (parent && parent.type === 'dir' && parent.children[name]) {
+        if (parent && parent.type === 'dir' && parent.children && parent.children[name]) {
             delete parent.children[name];
         }
+        return null;
+    }
+
+    // Remove a user-created directory (must be empty)
+    // Returns error message or null on success
+    removeDir(path) {
+        const absPath = this.resolve(path);
+        if (!absPath.startsWith(HOMEDIR + '/')) return 'Permission denied';
+        const node = this._lookup(absPath);
+        if (!node) return 'No such file or directory';
+        if (node.type !== 'dir') return 'Not a directory';
+        if (!node.removable) return 'Permission denied';
+        // Check empty
+        const children = this._children(node);
+        if (Object.keys(children).length > 0) return 'Directory not empty';
+        // Delete sentinel from VFS
+        const rel = absPath.slice(HOMEDIR.length + 1);
+        vfsDeleteFile(USER_HOME_VFS_PREFIX + rel + '/');
         return null;
     }
 
@@ -348,7 +642,8 @@ export class VirtualFS {
         }
 
         const entries = [];
-        for (const [name, child] of Object.entries(node.children)) {
+        const ch = this._children(node);
+        for (const [name, child] of Object.entries(ch)) {
             if (!this._nodeExists(child)) continue; // hide absent save files
             entries.push(this._entryInfo(name, child));
         }
@@ -357,13 +652,17 @@ export class VirtualFS {
 
     _entryInfo(name, child) {
         const isDir = child.type === 'dir';
-        const isExec = child.type === 'exec';
+        const isExec = child.type === 'exec' || child.type === 'symlink';
+        const isSymlink = child.type === 'symlink';
         const userOwned = child.vfsPath !== undefined || child.lsKey !== undefined;
-        const perms = isDir ? 'drwxr-xr-x' : isExec ? '-rwxr-xr-x' : '-rw-r--r--';
-        const size = this.getSize(child);
+        const perms = isDir ? 'drwxr-xr-x' : isSymlink ? 'lrwxrwxrwx' : isExec ? '-rwxr-xr-x' : '-rw-r--r--';
+        const size = isSymlink ? (child.target || '').length : this.getSize(child);
         const owner = child.owner || (userOwned ? USERNAME : 'root');
         const group = child.group || (userOwned ? USERNAME : 'wheel');
-        const date = child.date || (userOwned ? 'Mar 14  2026' : 'Jan  1  1979');
-        return { name, perms, size, isDir, isExec, owner, group, date };
+        const date = child.date
+            || (child._ts ? formatTimestamp(child._ts) : null)
+            || (userOwned ? 'Mar 14  2026' : 'Jan  1  1979');
+        const displayName = isSymlink ? `${name} -> ${child.target}` : name;
+        return { name, displayName, perms, size, isDir, isExec, isSymlink, owner, group, date };
     }
 }

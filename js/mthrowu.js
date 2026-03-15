@@ -30,6 +30,7 @@ import {
     ARM_GLOVES,
 } from './objects.js';
 import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mkobj.js';
+import { mshot_xname } from './objnam.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
@@ -330,6 +331,9 @@ export function monmulti(mon, otmp) {
 
 function thrownObjectName(obj, player) {
     if (!obj) return 'a weapon';
+    if ((obj._m_shot || obj.m_shot) && Number.isInteger(obj.otyp)) {
+        return mshot_xname(obj);
+    }
     const oneShot = { ...obj, quan: 1, dknown: true };
     return doname(oneShot, player);
 }
@@ -640,8 +644,14 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
 
     if (display && canSeeMonsterForMap(mon, map, player, game?.fov)) {
         const targetName = mtarg ? ` at the ${x_monnam(mtarg)}` : '';
+        const shooting = ammo_and_launcher(otmp, mwep);
+        const onm = shots > 1
+            ? `${shots} ${xname(otmp)}`
+            : thrownObjectName({ ...otmp, quan: 1, dknown: true }, player);
         throwTrace(map, display, 'monshoot:before_throws_msg');
-        await display.putstr_message(`The ${x_monnam(mon)} throws ${thrownObjectName(otmp, player)}${targetName}!`);
+        await display.putstr_message(
+            `The ${x_monnam(mon)} ${shooting ? 'shoots' : 'throws'} ${onm}${targetName}!`
+        );
         throwTrace(map, display, 'monshoot:after_throws_msg');
     }
 
@@ -650,7 +660,14 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
     for (let i = 0; i < shots; i++) {
         throwTrace(map, display, 'monshoot:loop:before_m_throw_timed', `shot=${i + 1}/${shots}`);
         const splittingStack = Number.isInteger(otmp?.quan) && otmp.quan > 1;
-        const projectile = { ...otmp, quan: 1, ox: mon.mx, oy: mon.my, invlet: null };
+        const projectile = {
+            ...otmp,
+            quan: 1,
+            ox: mon.mx,
+            oy: mon.my,
+            invlet: null,
+            _m_shot: { n: shots, i: i + 1, o: otmp.otyp, s: ammo_and_launcher(otmp, mwep) },
+        };
         // C ref: mthrowu.c uses splitobj() for stack throws; splitobj assigns
         // a fresh object id via next_ident() (consumes rnd(2)).
         if (splittingStack) projectile.o_id = next_ident();

@@ -1701,8 +1701,12 @@ function v_save(G) {
     rspeak(G, 828);
     return true;
   }
-  // Save game functionality — stub in JS
-  rspeak(G, 597); // "Saved."
+  if (typeof G.doSave === 'function') {
+    G.doSave();
+    rspeak(G, 597); // "Saved."
+  } else {
+    G.output(' Save unavailable.');
+  }
   G.prswon = false;
   G.prscon = 0;
   return true;
@@ -1714,8 +1718,12 @@ function v_restore(G) {
     rspeak(G, 829);
     return true;
   }
-  // Restore game functionality — stub in JS
-  rspeak(G, 598); // "Can't do it."
+  if (typeof G.doRestore === 'function' && G.doRestore()) {
+    G.output('Saved game restored.');
+    rmdesc(G, 3);
+  } else {
+    rspeak(G, 598); // "Can't do it."
+  }
   G.prswon = false;
   G.prscon = 0;
   return true;
