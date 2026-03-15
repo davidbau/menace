@@ -12856,3 +12856,28 @@ Validation:
 - This is useful for reconnaissance-driven Phase 3 work because it lets us
   inspect hard-to-reach ordinary-level states, like long digging routes toward
   a vault, without adding comparator exceptions or gameplay-side hacks.
+
+### Knox generator parity: await `selection.iterate()` when the callback is async
+
+- `js/levels/knox.js` defines `async function treasure_spot(x, y)` for the
+  vault treasury tiles because each spot can place gold and optionally create a
+  trap.
+- JS then called `treasury.iterate(treasure_spot)` without `await`, even
+  though `selection.iterate()` itself is async and preserves the C y-major
+  ordering only when awaited.
+- That let later generator code run too early, so the first `wizload knox`
+  parity divergence happened inside generation:
+  - before fix: first RNG divergence at step `5`, index `2336`
+    - JS: `rn2(100)=22 @ percent(sp_lev.js:7239) <= generate(knox.js:83)`
+    - C: `rn2(301)=226 @ random src=nhlib.lua:10 parent=lua(knox.lua:58)`
+- Fix:
+  - change `treasury.iterate(treasure_spot);` to
+    `await treasury.iterate(treasure_spot);`
+- Result on `/tmp/knox_candidate1.session.json`:
+  - first RNG divergence moved later from index `2336` to `5372`
+  - guardrails `seed031_manual_direct` and
+    `seed329_rogue_wizard_gameplay` stayed green.
+- Practical rule:
+  - when a translated special-level callback is async, always `await`
+    `selection.iterate(...)`; otherwise RNG from later level-generation
+    branches can interleave ahead of the intended C/Lua order.

@@ -77,7 +77,7 @@ export async function generate() {
 
     await des.region({ region: [21,8,35,11], lit: 1, type: "ordinary" });
     let treasury = selection.area(21,8,35,11);
-    treasury.iterate(treasure_spot);
+    await treasury.iterate(treasure_spot);
 
     // Vault entrance also varies
     if (percent(50)) {
