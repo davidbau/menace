@@ -402,25 +402,29 @@ function zap_hit(ac, type) {
 
 // C ref: zap.c:4224 zhitm() — apply beam damage to a monster
 // Returns damage dealt
-function zhitm(mon, type, nd, map) {
+function zhitm(mon, type, nd, map, player) {
     const mdat = mons[mon.mndx];
     let tmp = 0;
     const damgtype = zaptype(type) % 10;
+    const spellcaster = is_hero_spell(type);
 
     switch (damgtype) {
     case ZT_MAGIC_MISSILE:
         // C: resists_magm(mon) || defended(mon, AD_MAGM)
-        // Approximation: mr > 50 (high magic resistance score)
-        if ((mdat.mr || 0) > 50) {
+        if (resists_magm(mon)) {
             break;
         }
         tmp = c_d(nd, 6);
+        if (spellcaster)
+            tmp = spell_damage_bonus(tmp, player);
         break;
     case ZT_FIRE:
         if (mdat.mresists & MR_FIRE) {
             break; // resistant — no damage
         }
         tmp = c_d(nd, 6);
+        if (spellcaster)
+            tmp = spell_damage_bonus(tmp, player);
         if (mdat.mresists & MR_COLD) tmp += 7; // cold-resistant takes extra fire
         // C ref: if (burnarmor(mtmp)) { if (!rn2(3)) destroy_items(mtmp, AD_FIRE, tmp); }
         if (burnarmor(mon)) {
@@ -434,6 +438,8 @@ function zhitm(mon, type, nd, map) {
             break; // resistant
         }
         tmp = c_d(nd, 6);
+        if (spellcaster)
+            tmp = spell_damage_bonus(tmp, player);
         if (mdat.mresists & MR_FIRE) tmp += c_d(nd, 3); // fire-resistant takes extra cold
         if (!rn2(3)) {
             destroy_items_rng_only(mon, AD_COLD, tmp, null);
@@ -472,11 +478,13 @@ function zhitm(mon, type, nd, map) {
         break;
     case ZT_LIGHTNING:
         tmp = c_d(nd, 6);
+        if (spellcaster)
+            tmp = spell_damage_bonus(tmp, player);
         if (mdat.mresists & MR_ELEC) {
             tmp = 0; // resistant, but still rolls damage for RNG
         }
         // blindness from lightning
-        if (!(mdat.mflags1 & M1_NOEYES) && nd > 2) {
+        if (!resists_blnd(mon) && nd > 2) {
             const rnd_tmp = rnd(50);
             mon.mcansee = 0;
             if (((mon.mblinded || 0) + rnd_tmp) > 127)
@@ -1514,7 +1522,7 @@ async function dobuzz(type, nd, sx, sy, dx, dy, sayhit, saymiss, map, player) {
         const mac = find_mac ? find_mac(mon) : (mon.mac || 10);
         if (zap_hit(mac, 0)) {
           // C ref: zap.c:4825 — zhitm
-          const tmp = zhitm(mon, type, nd, map);
+          const tmp = zhitm(mon, type, nd, map, player);
 
           if (tmp === MAGIC_COOKIE) {
             // C ref: zap.c — disintegration path

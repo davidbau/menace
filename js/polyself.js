@@ -1137,7 +1137,6 @@ export async function polymon(player, mntmp, map) {
     player.mtimedone = rn1(500, 500);
     player.umonnum = mntmp;
     set_uasmon(player);
-    newsym(player.x, player.y, map || _gstate?.map || null);
     // C ref: polyself.c polymon() sets context.botl after updating monster form,
     // so the next pline() → flush_screen() → bot() picks up the new title/stats.
     player._botl = true;
@@ -1218,6 +1217,9 @@ export async function polymon(player, mntmp, map) {
         player.blind = 0;
         mark_vision_dirty();
     }
+
+    // C ref: polyself.c:899 — newsym after break_armor/drop_weapon/find_ac/pit/blindness
+    newsym(player.x, player.y, map || _gstate?.map || null);
 
     // Egg type learning
     if (lays_eggs(mons[mntmp])) {
