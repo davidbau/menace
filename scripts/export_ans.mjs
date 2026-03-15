@@ -58,10 +58,12 @@ function toBuf(str) {
 }
 
 // ── ANSI color helpers ────────────────────────────────────────────────────────
-// CGA index → ANSI foreground escape (ASCII-safe)
+// CGA index → ANSI foreground escape (ASCII-safe).
+// Color 0 (CLR_BLACK) is rendered as gray in the game (use_darkgray flag maps it
+// to NO_COLOR = #ccc), so we export it as color 7 (gray) to match on-screen appearance.
 function fg(idx) {
     if (idx < 0)   return '\x1b[0m';
-    if (idx === 0) return '\x1b[30m';
+    if (idx === 0) idx = 7; // black → gray (matches game's use_darkgray rendering)
     if (idx < 8)   return `\x1b[3${idx}m`;
     return `\x1b[9${idx - 8}m`;
 }
@@ -148,15 +150,21 @@ let DRAGON_ART, POTION_ART;
 eval(`DRAGON_ART = ${dragonMatch[1]}`);
 eval(`POTION_ART = ${potionMatch[1]}`);
 
-function renderScene(art, startRow, ROWS = 24, COLS = 80) {
+// bgColor: fill undrawn cells with this color (-1 = editor default/transparent,
+// 7 = gray to match the game's clearScreen fill of CLR_GRAY spaces).
+function renderScene(art, startRow, ROWS = 24, COLS = 80, bgColor = -1) {
     const grid = emptyGrid(ROWS, COLS);
+    // Apply background fill to match game's clearScreen state
+    if (bgColor >= 0) {
+        for (const row of grid) row.forEach(cell => { cell.color = bgColor; });
+    }
     for (let r = 0; r < art.length; r++) {
         const [chars, colors] = art[r];
         const row = startRow + r;
         if (row >= ROWS) break;
-        for (let c = 0; c < chars.length && c < COLS; c++) {
+        for (let c = 0; c < [...chars].length && c < COLS; c++) {
             const ci = colors[c];
-            if (ci >= 0) grid[row][c] = { ch: chars[c], color: ci };
+            if (ci >= 0) grid[row][c] = { ch: [...chars][c], color: ci };
         }
     }
     return gridToAns(grid);
@@ -169,5 +177,7 @@ console.log('Written: ~/dragon.ans');
 
 // ── treasure.ans ──────────────────────────────────────────────────────────────
 
-writeFileSync(path.join(home, 'treasure.ans'), toBuf(renderScene(POTION_ART, 0)));
+// bgColor=7 (gray) to match clearScreen — reveals all cells that the game
+// shows as gray background where the art doesn't draw.
+writeFileSync(path.join(home, 'treasure.ans'), toBuf(renderScene(POTION_ART, 0, 24, 80, 7)));
 console.log('Written: ~/treasure.ans');
