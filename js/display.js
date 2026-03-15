@@ -108,9 +108,10 @@ function parseTraceStepSpec(raw) {
     return { from: Math.min(from, to), to: Math.max(from, to) };
 }
 
-const TRACE_CELL_SPEC = parseTraceCellSpec(process?.env?.WEBHACK_TRACE_CELL);
-const TRACE_CELL_STEPS = parseTraceStepSpec(process?.env?.WEBHACK_TRACE_CELL_STEPS);
-const TRACE_CELL_STACK = process?.env?.WEBHACK_TRACE_CELL_STACK === '1';
+const _env = typeof process !== 'undefined' ? process.env : {};
+const TRACE_CELL_SPEC = parseTraceCellSpec(_env.WEBHACK_TRACE_CELL);
+const TRACE_CELL_STEPS = parseTraceStepSpec(_env.WEBHACK_TRACE_CELL_STEPS);
+const TRACE_CELL_STACK = _env.WEBHACK_TRACE_CELL_STACK === '1';
 
 function traceStepForDisplay(display) {
     const stepIndex = Number.isInteger(display?._lastMapState?.gameMap?._replayStepIndex)
