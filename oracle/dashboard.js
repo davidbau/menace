@@ -36,16 +36,27 @@ const selectionBarPlugin = {
     ctx.beginPath();
     ctx.moveTo(x, yTop);
     ctx.lineTo(x, yBottom);
-    ctx.strokeStyle = 'rgba(107, 44, 44, 0.7)';
+    ctx.strokeStyle = 'rgba(220, 40, 40, 0.75)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Draw handle at top
+    // Draw hollow drag-thumb handle at top
     ctx.beginPath();
-    ctx.arc(x, yTop, 5, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(107, 44, 44, 0.9)';
+    ctx.arc(x, yTop + 1, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.fill();
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = 'rgba(220, 40, 40, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Inner grip lines
+    ctx.beginPath();
+    ctx.moveTo(x - 2, yTop - 1);
+    ctx.lineTo(x - 2, yTop + 3);
+    ctx.moveTo(x, yTop - 1);
+    ctx.lineTo(x, yTop + 3);
+    ctx.moveTo(x + 2, yTop - 1);
+    ctx.lineTo(x + 2, yTop + 3);
+    ctx.strokeStyle = 'rgba(220, 40, 40, 0.5)';
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.restore();
@@ -426,6 +437,14 @@ function updateChart() {
     grid: { color: 'rgba(196, 168, 130, 0.2)' },
   };
 
+  // Store original styles for legend hover highlighting
+  datasets.forEach(ds => {
+    ds._origColor = ds.borderColor;
+    ds._origWidth = ds.borderWidth;
+    // Dimmed version: reduce opacity for non-hovered datasets
+    ds._dimColor = ds.borderColor.replace(/[\d.]+\)$/, '0.2)');
+  });
+
   chart = new Chart(ctx, {
     type: 'line',
     data: { labels, datasets },
@@ -445,6 +464,35 @@ function updateChart() {
             font: { size: 10 },
             boxWidth: 12,
             padding: 8,
+          },
+          onClick(e, legendItem, legend) {
+            // Toggle dataset visibility (default behavior)
+            const index = legendItem.datasetIndex;
+            const ci = legend.chart;
+            const meta = ci.getDatasetMeta(index);
+            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+            ci.update();
+            // Mark that this click was on the legend, so canvas click handler skips it
+            e._legendClick = true;
+          },
+          onHover(e, legendItem, legend) {
+            const ci = legend.chart;
+            ci.data.datasets.forEach((ds, i) => {
+              const meta = ci.getDatasetMeta(i);
+              if (meta.hidden) return;
+              const isTarget = (i === legendItem.datasetIndex);
+              ds.borderWidth = isTarget ? (ds._origWidth || 2) + 2 : Math.max((ds._origWidth || 2) - 0.5, 0.5);
+              ds.borderColor = isTarget ? (ds._origColor || ds.borderColor) : (ds._dimColor || ds.borderColor);
+            });
+            ci.update('none');
+          },
+          onLeave(e, legendItem, legend) {
+            const ci = legend.chart;
+            ci.data.datasets.forEach((ds) => {
+              ds.borderWidth = ds._origWidth || 2;
+              ds.borderColor = ds._origColor || ds.borderColor;
+            });
+            ci.update('none');
           },
         },
         tooltip: {
@@ -1124,11 +1172,17 @@ function setupChartBarInteraction() {
     }
   });
 
-  // Click on chart sets the bar position (only if not a drag-zoom)
+  // Click on chart sets the bar position (only if not a drag-zoom or legend click)
   canvas.addEventListener('click', (e) => {
     if (isDraggingBar || isPanning) return;
     // If mouse moved significantly, it was a drag-zoom, not a click
     if (Math.abs(e.clientX - mouseDownX) > 5) return;
+    // Don't move bar when clicking in the legend area
+    if (chart && chart.chartArea) {
+      const rect = canvas.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      if (y < chart.chartArea.top) return;
+    }
     const idx = getIndexFromX(e.clientX);
     if (idx >= 0 && idx < filteredData.length) {
       selectCommit(filteredData[idx]);
