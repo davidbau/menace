@@ -1,6 +1,6 @@
 import { isok, COLNO, ROWNO, SDOOR, SCORR, DOOR, CORR, STONE,
          D_CLOSED, D_LOCKED, D_TRAPPED, D_NODOOR, D_BROKEN, D_ISOPEN,
-         IS_DOOR, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
+         IS_DOOR, IS_FURNITURE, A_WIS, A_INT, TRAPPED_CHEST, TRAPPED_DOOR,
          BEAR_TRAP, STATUE_TRAP, SQKY_BOARD, SLP_GAS_TRAP,
          BOLT_LIM, FOOT, TOE, NOSE, WM_MASK } from './const.js';
 import { rn2, rnd, rnl } from './rng.js';
@@ -15,9 +15,9 @@ import { is_hider, hides_under, DEADMONSTER, M_AP_TYPE } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
-    map_invisible, map_object, map_trap, map_background,
+    map_invisible, map_object, map_trap, map_engraving, map_background,
     cls,
-    newsym, flush_screen,
+    newsym, flush_screen, glyph_at,
     canSpotMonsterForMap, senseMonsterForMap,
     warning_of, feel_newsym, feel_location, docrt, under_water, under_ground,
     unmap_invisible,
@@ -31,7 +31,7 @@ import { distu } from './hacklib.js';
 import { Is_box, Has_contents } from './objnam.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_FLASH, DISP_CHANGE, DISP_END, TER_FULL, TER_DETECT, TER_OBJ, TER_MON } from './const.js';
-import { defsyms, trap_to_defsym, glyph_is_invisible } from './symbols.js';
+import { defsyms, trap_to_defsym, glyph_is_invisible, glyph_is_object, glyph_is_trap } from './symbols.js';
 import { u_at, money_cnt, nomul } from './hack.js';
 import { closed_door } from './monmove.js';
 import { sobj_at } from './invent.js';
@@ -742,10 +742,22 @@ export async function use_crystal_ball(obj, player, map, display, game) {
 export function show_map_spot(x, y, cnf, map) {
     if (cnf && rn2(7)) return;
     const lev = map.at(x, y); if (!lev) return;
+    const trap = map.trapAt ? map.trapAt(x, y) : null;
+    const engr = map.engravingAt ? map.engravingAt(x, y) : null;
+    const oldglyph = glyph_at(x, y);
     lev.seenv = 0xFF;
     if (lev.typ === SCORR) { lev.typ = CORR; unblock_point(x, y); }
     map_background(map, x, y, 0);
     newsym(x, y);
+    if (IS_FURNITURE(lev.typ)) return;
+    if (trap && trap.tseen) {
+        map_trap(trap, 1);
+    } else if (engr && !cnf) {
+        map_engraving(engr, 1);
+    } else if (glyph_is_trap(oldglyph) || glyph_is_object(oldglyph)) {
+        show_glyph(x, y, oldglyph);
+        if (map.flags?.hero_memory) lev.glyph = oldglyph;
+    }
 }
 
 // ========================================================================

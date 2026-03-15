@@ -12427,3 +12427,39 @@ Validation:
     - only one nearby hostile in the initial shop neighborhood
   - this is the right next probe target for building the first real
     branch-dense shop coverage session
+## 2026-03-14: `show_map_spot()` must restore trap/object glyphs after `newsym()` during mapping
+
+- Problem:
+  - `t11_s754_w_covmax8_gp` was gameplay-green but still had a screen/color
+    divergence at step `1610` on wizard mapping (`Ctrl-F`)
+  - JS showed the giant spider glyph `s` on the watched square while C showed
+    the seen web glyph `"`
+- Diagnosis:
+  - watched-cell repaint tracing on `34,18` showed the exact overwrite chain:
+    - `show_glyph()` painted the web glyph
+    - then `putMapCell()` restored the spider during `show_map_spot() -> newsym()`
+  - JS `detect.js:show_map_spot()` was incomplete
+  - C `detect.c:show_map_spot()` does more than force background + `newsym()`:
+    after that redraw it restores visible trap/engraving state, or re-shows the
+    prior trap/object glyph, so mapping uses trap-over-object precedence rather
+    than normal in-sight monster-over-trap precedence
+- Fix:
+  - `js/detect.js:show_map_spot()` now ports the missing C post-`newsym()`
+    restoration logic:
+    - preserve `oldglyph = glyph_at(x, y)`
+    - after `newsym()`, if not furniture:
+      - `map_trap(trap, 1)` when a seen trap is present
+      - else `map_engraving(engr, 1)` when applicable
+      - else `show_glyph(x, y, oldglyph)` when the prior glyph was a trap or
+        object
+- Result:
+  - `t11_s754_w_covmax8_gp` is now full green on gameplay display channels:
+    - `RNG 20848/20848`
+    - `events 3292/3292`
+    - `screens 1866/1866`
+    - `colors 44784/44784`
+  - remaining failures are now only older non-screen channels:
+    - mapdump `d0l10_006`
+    - cursor step `844`
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green
