@@ -6163,6 +6163,7 @@ export function mineralize(opts = {}) {
         gold_prob: parseOpt(opts.gold_prob),
         kelp_moat: parseOpt(opts.kelp_moat),
         kelp_pool: parseOpt(opts.kelp_pool),
+        skip_lvl_checks: true, // C: lspo_mineralize passes skip_lvl_checks=TRUE
     };
 
     const depth = levelState.levelDepth || 1;
