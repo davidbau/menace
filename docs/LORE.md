@@ -12881,3 +12881,38 @@ Validation:
   - when a translated special-level callback is async, always `await`
     `selection.iterate(...)`; otherwise RNG from later level-generation
     branches can interleave ahead of the intended C/Lua order.
+
+### `t11_s755` canceled directed spell: zero direction must self-zap, and force-bolt self-zap must use C dice logging
+
+- `t11_s755_w_covmax9_gp` was diverging at step `652` on a canceled directed
+  `force bolt` cast:
+  - JS: `The magical energy is released!  The kitten drops a gold piece.`
+  - C: `The magical energy is released!  You bash yourself!`
+- The root cause was in `js/spell.js:spelleffects()`.
+  - After the existing canceled-`getdir()` handling, JS always dispatched
+    directed spells through `weffects(...)`.
+  - C `spell.c` instead routes zero remembered direction through
+    `zapyourself(...)`, and only non-zero direction through `weffects(...)`.
+- Fix:
+  - `js/spell.js:spelleffects()` now checks `!player.dx && !player.dy &&
+    !player.dz` and calls `zapyourself(...)` for the zero-direction case.
+- That exposed a second C-shape mismatch in `js/zap.js:zapyourself()`.
+  - The `WAN_STRIKING` / `SPE_FORCE_BOLT` self-zap branch was using Lua-style
+    `d(...)`, which logs individual `rn2(...)` calls.
+  - C `zap.c` uses `d(2,12)` / `d(spe+1,6)` from `rnd.c`, logged as a
+    composite `d(...)` entry before the later `exercise(...)` RNG.
+- Fix:
+  - switched that self-zap damage roll to `c_d(...)`.
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved from:
+      - `RNG 3456/26517`
+      - first RNG divergence at step `652`
+    - to:
+      - `RNG 22759/26517`
+      - first RNG divergence at step `1669`
+      - new frontier in special-level scripted monster creation:
+        `resolveMonsterIndex(sp_lev.js)` vs `rndmonst_adj(makemon.c)`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`

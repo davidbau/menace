@@ -40,7 +40,7 @@ import { is_undead, is_vampshifter } from './mondata.js';
 import { nhgetch } from './input.js';
 import { getdir } from './hack.js';
 import { mksobj } from './mkobj.js';
-import { weffects } from './zap.js';
+import { weffects, zapyourself } from './zap.js';
 import { create_nhwindow, destroy_nhwindow, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, ATR_NONE, PICK_ONE, NO_COLOR, MENU_ITEMFLAGS_NONE, MENU_ITEMFLAGS_SELECTED } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
@@ -1316,7 +1316,11 @@ export async function spelleffects(spell_otyp, atme, player, map, display, game 
                 }
             }
         }
-        await weffects(pseudo, player, map, display, game);
+        if (!player.dx && !player.dy && !player.dz) {
+            await zapyourself(pseudo, player, true, map);
+        } else {
+            await weffects(pseudo, player, map, display, game);
+        }
         break;
     }
 

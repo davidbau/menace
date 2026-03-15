@@ -2409,7 +2409,9 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       await pline('Boing!');
     } else {
       if (ordinary) await pline('You bash yourself!');
-      damage = ordinary ? d(2, 12) : d(1 + Math.max(0, obj.spe || 0), 6);
+      damage = ordinary
+        ? c_d(2, 12)
+        : c_d(1 + Math.max(0, obj.spe || 0), 6);
       await exercise(player, A_STR, false);
     }
     break;
