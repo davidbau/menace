@@ -7116,9 +7116,8 @@ export async function finalize_special_checkpoint_stage() {
         wallification(levelState.map);
     }
     captureCheckpoint('after_wallification_special');
-    const flipped = levelState.finalizeContext?.skipRandomFlip
-        ? false
-        : flip_level_rnd();
+    // C ref: load_special() always calls flip_level_rnd() (sp_lev.c:6483).
+    const flipped = flip_level_rnd();
     if (levelState.map && flipped) {
         fix_wall_spines(levelState.map, 1, 0, COLNO - 1, ROWNO - 1);
     }
