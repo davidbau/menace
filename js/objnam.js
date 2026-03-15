@@ -36,6 +36,7 @@ import {
     CREAM_PIE, ENORMOUS_MEATBALL, MAGIC_MARKER, GRAPPLING_HOOK,
     RIN_PROTECTION_FROM_SHAPE_CHAN, RIN_INCREASE_ACCURACY,
     LUCKSTONE, LOADSTONE, TOUCHSTONE,
+    LAST_REAL_GEM,
 } from './objects.js';
 import {
     mons, G_UNIQ,
@@ -2087,6 +2088,22 @@ export function readobjnam_postparse1(state) {
     state.actualn = readobjnam_classify(state, text);
     if (!state.dn) state.dn = state.actualn;
     state.text = text;
+
+    // cf. objnam.c:4523-4535 — gold piece / zorkmid / gold / money / coin
+    const bp = (state.actualn || '').toLowerCase();
+    if (bp.endsWith('gold piece') || bp.endsWith('gold pieces')
+        || bp.endsWith('zorkmid') || bp.endsWith('zorkmids')
+        || bp === 'gold' || bp === 'money'
+        || bp === 'coin' || bp === 'coins') {
+        let cnt = state.quan;
+        if (cnt > 5000) cnt = 5000; // wizard check omitted — C uses !wizard
+        else if (cnt < 1) cnt = 1;
+        const otmp = mksobj(GOLD_PIECE, false, false);
+        otmp.quan = cnt;
+        otmp.owt = weight(otmp);
+        state.otmp = otmp;
+    }
+
     return state;
 }
 
@@ -2164,6 +2181,26 @@ export function readobjnam_postparse2(state) {
 }
 
 export function readobjnam_postparse3(state) {
+    // cf. objnam.c:4717-4740 — check real gem names before rnd_otyp_by_namedesc
+    // In C, these checks return 2 (typfnd), completely skipping
+    // rnd_otyp_by_namedesc. We use typfndTyp (not forcedTyp) to signal
+    // that the type was resolved here and rnd_otyp_by_namedesc should be skipped.
+    if (!state.oclass && state.actualn) {
+        const actualn_lc = (state.actualn || '').toLowerCase();
+        const gemBase = bases[GEM_CLASS];
+        for (let i = gemBase; i <= LAST_REAL_GEM; i++) {
+            const zn = objectData[i]?.oc_name;
+            if (zn && zn.toLowerCase() === actualn_lc) {
+                state.typfndTyp = i;
+                return state;
+            }
+        }
+        // cf. objnam.c:4733-4736 — plain "tin" → TIN (avoid "tin wand" match)
+        if (actualn_lc === 'tin') {
+            state.typfndTyp = TIN;
+            return state;
+        }
+    }
     return state;
 }
 
@@ -2225,6 +2262,7 @@ export function readobjnam(bp, no_wish, opts = {}) {
     if (!readobjnam_preparse(state, bp)) return null;
 
     readobjnam_postparse1(state);
+    if (state.otmp) return state.otmp; // cf. objnam.c:4931 — case 3: return d.otmp
     readobjnam_postparse2(state);
     readobjnam_postparse3(state);
 
@@ -2235,7 +2273,12 @@ export function readobjnam(bp, no_wish, opts = {}) {
     const oclass = state.oclass || 0;
     const forcedTyp = state.forcedTyp || 0;
 
-    let otyp = rnd_otyp_by_namedesc(actualn, oclass, 1);
+    // cf. objnam.c:4949 — postparse3 returns 2 (typfnd) for gems/tin,
+    // completely skipping rnd_otyp_by_namedesc. typfndTyp signals this.
+    let otyp = state.typfndTyp || STRANGE_OBJECT;
+    if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
+        otyp = rnd_otyp_by_namedesc(actualn, oclass, 1);
+    }
     if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
         otyp = rnd_otyp_by_namedesc(dn, oclass, 1);
     }
