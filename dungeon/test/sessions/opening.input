@@ -1,0 +1,18 @@
+look
+open mailbox
+read leaflet
+go south
+go north
+go north
+go east
+open window
+enter
+look
+go west
+take lamp
+take sword
+go east
+go up
+inventory
+quit
+y

@@ -1,0 +1,33 @@
+ Welcome to Dungeon.			This version created 2-Dec-15.
+ This is an open field west of a white house with a boarded front door.
+ There is a small mailbox here.
+ A rubber mat saying "Welcome to Dungeon!" lies by the door.
+ > You are facing the north side of a white house.  There is no door here,
+ and all the windows are barred.
+ > This is a dimly lit forest, with large trees all around.  One
+ particularly large tree with some low branches stands here.
+ > This is a clearing, with a forest surrounding you on the west
+ and south.
+ There is a pile of leaves on the ground.
+ > You can't go that way.
+ > Forest
+ > I can't see any lamp here.
+ > I can't see any lamp here.
+ > This is a clearing, with a forest surrounding you on the west
+ and south.
+ There is a pile of leaves on the ground.
+ > You can't go that way.
+ > This is a clearing, with a forest surrounding you on the west
+ and south.
+ There is a pile of leaves on the ground.
+ > You can't go down.
+ > This is a dimly lit forest, with large trees all around.  One
+ particularly large tree with some low branches stands here.
+ > I can't see any lamp here.
+ > This is a dimly lit forest, with large trees all around.  One
+ particularly large tree with some low branches stands here.
+ > I can't see any lamp here.
+ > Your score would be+   0 [total of 616 points], in   16 moves.
+ This gives you the rank of Beginner.
+ Do you wish to leave the game?
+ Ok.

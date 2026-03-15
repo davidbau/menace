@@ -97,7 +97,16 @@ function buildTree() {
                             '.nethackrc': { type: 'file', vfsPath: '.nethackrc' },
                             'rogue.sav':  { type: 'file', lsKey: 'rogue-save', readonly: true, owner: USERNAME, group: USERNAME, date: 'Jun 15  1980' },
                         }
-                    }
+                    },
+                    izchak:   { type: 'dir', children: {} },
+                    crowther: { type: 'dir', children: {} },
+                    toy:      { type: 'dir', children: {} },
+                    arnold:   { type: 'dir', children: {} },
+                    fenlason: { type: 'dir', children: {} },
+                    brouwer:  { type: 'dir', children: {} },
+                    lebling:  { type: 'dir', children: {} },
+                    blank:    { type: 'dir', children: {} },
+                    walz:     { type: 'dir', children: {} },
                 }
             },
             tmp: { type: 'dir', children: {} },

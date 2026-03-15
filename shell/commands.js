@@ -138,12 +138,31 @@ async function whoami(_args, shell) {
 }
 
 async function who(_args, shell) {
-    shell.println(`${USERNAME}    tty07    Mar 12 09:14`);
-    shell.println('izchak    tty03    Mar 12 08:30');
-    shell.println('walz      tty06    Mar 12 08:45');
-    shell.println('toy       tty04    Mar 11 22:47');
-    shell.println('fenlason  tty05    Mar 12 07:15');
-    shell.println('lebling   tty02    Mar 11 19:30');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+    const mon = months[now.getMonth()];
+    const day = String(now.getDate()).padStart(2);
+    const fmt = (user, tty, minAgo) => {
+        const t = new Date(now.getTime() - minAgo * 60000);
+        const th = String(t.getHours()).padStart(2, '0');
+        const tm = String(t.getMinutes()).padStart(2, '0');
+        return `${user.padEnd(10)}tty${tty}    ${mon} ${day} ${th}:${tm}`;
+    };
+    // Current user always shown
+    shell.println(fmt(USERNAME, '07', 0));
+    // Other users: deterministic random subset based on day/hour
+    const others = [
+        ['izchak', '03', 44], ['walz', '06', 29], ['toy', '04', 627],
+        ['fenlason', '05', 119], ['lebling', '02', 864], ['blank', '08', 312],
+        ['crowther', '01', 1440], ['arnold', '09', 203], ['brouwer', '10', 95],
+    ];
+    const seed = now.getFullYear() * 366 + now.getMonth() * 31 + now.getDate() + now.getHours();
+    for (let i = 0; i < others.length; i++) {
+        // Use seed to deterministically pick 2-4 users
+        if (((seed * 31 + i * 7) % 13) < 5) {
+            shell.println(fmt(others[i][0], others[i][1], others[i][2]));
+        }
+    }
 }
 
 async function sh(_args, shell) {

@@ -407,21 +407,52 @@ export class Shell {
     async _runDungeon() {
         try {
             const { DungeonGame } = await import('../dungeon/js/game.js');
-            const dataResp = await fetch('../dungeon/js/dungeon-data.json');
+            const [dataResp, textResp] = await Promise.all([
+                fetch('../dungeon/js/dungeon-data.json'),
+                fetch('../dungeon/js/dungeon-text.json'),
+            ]);
             const data = await dataResp.json();
+            const textRecords = await textResp.json();
 
             const game = new DungeonGame();
-            game.init(data);
+            game.init(data, textRecords);
 
-            // Line input: read a line using shell's getch
+            // Dungeon-specific input: show ">" prompt, no shell prompt
             const input = async () => {
-                this._renderInputLine();
-                const line = await this._readLine();
-                if (line === null) return ''; // Ctrl-C → empty
-                // Echo the typed line
-                const prompt = '>';
-                this._addLine(prompt + line, OUTPUT_COLOR);
-                return line;
+                const promptRow = Math.min(this.scrollBuffer.length, ROWS - 1);
+                this.display.clearRow(promptRow);
+                this.display.putstr(0, promptRow, '>', OUTPUT_COLOR);
+
+                this.inputLine = '';
+                this.cursorPos = 0;
+                while (true) {
+                    const col = 1 + this.cursorPos;
+                    this.display.putstr(1, promptRow, this.inputLine, OUTPUT_COLOR);
+                    if (typeof this.display.setCursor === 'function') {
+                        this.display.setCursor(Math.min(col, COLS - 1), promptRow);
+                    }
+                    const ch = await this.getch();
+                    if (ch === 13 || ch === 10) {
+                        const line = this.inputLine;
+                        this._addLine('>' + line, OUTPUT_COLOR);
+                        return line;
+                    }
+                    if (ch === 8 || ch === 127) {
+                        if (this.cursorPos > 0) {
+                            this.inputLine = this.inputLine.slice(0, this.cursorPos - 1) + this.inputLine.slice(this.cursorPos);
+                            this.cursorPos--;
+                            this.display.clearRow(promptRow);
+                            this.display.putstr(0, promptRow, '>' + this.inputLine, OUTPUT_COLOR);
+                        }
+                        continue;
+                    }
+                    if (ch === 3) return ''; // Ctrl-C
+                    if (ch >= 32 && ch < 127) {
+                        this.inputLine = this.inputLine.slice(0, this.cursorPos) +
+                            String.fromCharCode(ch) + this.inputLine.slice(this.cursorPos);
+                        this.cursorPos++;
+                    }
+                }
             };
 
             // Line output: print to shell's scroll buffer
@@ -436,7 +467,9 @@ export class Shell {
 
             await game.run(input, output);
         } catch (e) {
-            this.println(`dungeon: ${e.message}`);
+            if (e?.message !== 'quit') {
+                this.println(`dungeon: ${e.message}`);
+            }
         }
 
         // Restore shell display
