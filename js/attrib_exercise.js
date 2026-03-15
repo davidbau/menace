@@ -4,7 +4,7 @@
 import { rn2, rn1 } from './rng.js';
 import { A_STR, A_INT, A_CHA, A_DEX, A_CON, A_WIS,
     MOD_ENCUMBER, HVY_ENCUMBER, EXT_ENCUMBER,
-    CLAIRVOYANT, REGENERATION, INTRINSIC, TIMEOUT, Upolyd } from './const.js';
+    CLAIRVOYANT, REGENERATION, STUNNED, INTRINSIC, TIMEOUT, Upolyd } from './const.js';
 import { PM_MONK } from './monsters.js';
 import { acurr, adjattrib, AVAL } from './attrib.js';
 import { sgn } from './hacklib.js';
@@ -190,9 +190,12 @@ export async function exerper(player, moves) {
         if (player.confused || player.hallucinating) {
             await exercise(player, A_WIS, false);
         }
-        const woundedLegs = !!player.woundedLegs
-            || (player.woundedLegsTimeout || 0) > 0;
-        if (woundedLegs || player.fumbling || player.stunned) {
+        // C ref: attrib.c:578 — (Wounded_legs && !u.usteed) || Fumbling || HStun
+        const woundedLegs = (!!player.woundedLegs
+            || (player.woundedLegsTimeout || 0) > 0) && !player.usteed;
+        // C uses HStun (intrinsic stun only), not general Stunned property
+        const hStun = player.uprops?.[STUNNED]?.intrinsic || 0;
+        if (woundedLegs || player.fumbling || hStun) {
             await exercise(player, A_DEX, false);
         }
     }
