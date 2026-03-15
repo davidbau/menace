@@ -6348,7 +6348,7 @@ async function createScriptMonster(deferred) {
         }
     } else if (opts_or_class && typeof opts_or_class === 'object') {
         opts = opts_or_class;
-        monsterId = opts.id || opts.class || '@';
+        monsterId = opts.id ?? opts.class ?? null;
         // Prefer absolute coords captured at enqueue time.
         if (x !== undefined && y !== undefined) {
             coordX = x;
@@ -6376,7 +6376,7 @@ async function createScriptMonster(deferred) {
         }
     }
 
-    if (!monsterId) {
+    if (monsterId === '') {
         return;
     }
     if (!deferred.deferCoord

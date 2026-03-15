@@ -12916,3 +12916,35 @@ Validation:
   - guard sessions stayed green:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
+
+### `sp_lev` object-form `des.monster({...})` must stay random when `id`/`class` is omitted
+
+- `t11_s755_w_covmax9_gp` next diverged at step `1669` during special-level
+  monster creation:
+  - JS: `resolveMonsterIndex(sp_lev.js)` starting with `rn2(9)=1`
+  - C: `rndmonst_adj(makemon.c)` starting with `rn2(3)=1`
+- The root cause was a JS default in `createScriptMonster()`:
+  - object-form monster specs were using `opts.id || opts.class || '@'`
+  - so `des.monster({ x: ..., y: ... })` was treated like an explicit `'@'`
+    class request
+  - C does not do that; missing `id`/`class` stays unspecified and falls
+    through to `makemon(NULL, ...)`, which is the `rndmonst_adj()` path.
+- Fix:
+  - `js/sp_lev.js:createScriptMonster()` now uses
+    `opts.id ?? opts.class ?? null`
+  - it only rejects the truly empty-string monster id, not `null`
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved from:
+      - `RNG 22759/26517`
+      - `events 6262/7287`
+      - first RNG divergence at step `1669`
+    - to:
+      - `RNG 26238/26780`
+      - `events 6815/7474`
+      - first RNG divergence at step `1700`
+      - new frontier in later monster action timing:
+        JS `dochug(monmove.js)` vs C `monmulti(mthrowu.c)`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
