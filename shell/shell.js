@@ -272,26 +272,37 @@ export class Shell {
             if (i < this.scrollBuffer.length) {
                 const entry = this.scrollBuffer[i];
                 const line = entry.text.slice(0, COLS);
-                d.putstr(0, i, line, entry.color);
+                if (entry.colors) {
+                    // Per-cell colors (captured screen with preserved art colors)
+                    for (let c = 0; c < line.length && c < entry.colors.length; c++) {
+                        d.setCell(c, i, line[c], entry.colors[c]);
+                    }
+                } else {
+                    // Single color (normal shell output)
+                    d.putstr(0, i, line, entry.color);
+                }
             }
         }
     }
 
     // Read the current display grid into the scroll buffer (for interrupt mode)
+    // Preserves per-cell colors so the promo art doesn't desaturate.
     _captureScreen() {
         const d = this.display;
         if (!d.grid) return;
         for (let r = 0; r < Math.min(d.rows, ROWS - 1); r++) {
-            let line = '';
             let lastNonSpace = -1;
+            const cells = [];
             for (let c = 0; c < Math.min(d.cols, COLS); c++) {
                 const cell = d.grid[r][c];
-                line += cell.ch || ' ';
+                cells.push({ ch: cell.ch || ' ', color: cell.color });
                 if (cell.ch && cell.ch !== ' ') lastNonSpace = c;
             }
-            // Only add non-empty rows
+            // Only add non-empty rows — store as cells array for color preservation
             if (lastNonSpace >= 0) {
-                this.scrollBuffer.push({ text: line.slice(0, lastNonSpace + 1), color: OUTPUT_COLOR });
+                const text = cells.slice(0, lastNonSpace + 1).map(c => c.ch).join('');
+                const colors = cells.slice(0, lastNonSpace + 1).map(c => c.color);
+                this.scrollBuffer.push({ text, colors });
             }
         }
         // Trim to fit screen
