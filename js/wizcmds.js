@@ -190,7 +190,7 @@ import { COLNO, ROWNO, ACCESSIBLE, MAXLEVEL, MAXULEV, isok, SIZE, MM_NOEXCLAM, M
     Never_mind, ECMD_OK } from './const.js';
 import { makemon, makemon_appear, mkclass } from './makemon.js';
 // initedog import removed: wizGenesis no longer tames by default
-import { mons, PM_LONG_WORM, PM_STALKER, PM_WIZARD, MAXMCLASSES, S_invisible, S_WORM_TAIL } from './monsters.js';
+import { mons, PM_LONG_WORM, PM_STALKER, MAXMCLASSES, S_invisible, S_WORM_TAIL } from './monsters.js';
 import { makewish } from './zap.js';
 import { encumber_msg } from './pickup.js';
 import { schedule_goto } from './do.js';
@@ -206,7 +206,6 @@ import {
 import { glyph_to_cmap } from './glyphs.js';
 import { defsyms } from './symbols.js';
 import { name_to_mon, name_to_monclass } from './mondata.js';
-import { Role_if } from './role.js';
 import { do_mapping } from './detect.js';
 import { map_trap, map_engraving } from './display.js';
 import { tele } from './teleport.js';
@@ -263,10 +262,6 @@ export async function handleWizLoadDes(game) {
     if (!generator) {
         await display.putstr_message(`Cannot find level: ${levelName}`);
         return { moved: false, tookTime: false };
-    }
-    if (Role_if(player, PM_WIZARD)) {
-        rn2(100);
-        rn2(100);
     }
     // C ref: nhl_init() creates a fresh Lua state and loads nhlib.lua,
     // whose top-level shuffle(align) consumes rn2(3), rn2(2).
