@@ -77,7 +77,7 @@ export async function generate() {
 
     await des.region({ region: [21,8,35,11], lit: 1, type: "ordinary" });
     let treasury = selection.area(21,8,35,11);
-    treasury.iterate(treasure_spot);
+    await treasury.iterate(treasure_spot);
 
     // Vault entrance also varies
     if (percent(50)) {
@@ -107,6 +107,8 @@ await des.region({ region: [6,15,9,16],lit: 0,type: "ordinary",arrival_room: tru
 // hide this lighting quirk.
 await des.region(selection.area(5,14,5,17),"unlit");
 await des.region(selection.area(5,14,9,14),"unlit");
+await des.region(selection.area(5,17,9,17),"unlit");
+await des.region(selection.area(10,17,10,17),"unlit");
 // (Entering the treasure zoo while blind && then regaining sight might
 // expose the new oddity of these walls ! appearing when on the lit side
 // but that's even less likely to occur than the rare instance of entering

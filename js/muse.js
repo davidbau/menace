@@ -24,13 +24,13 @@ import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
 import { mondead, monnear, helpless as monHelpless } from './mon.js';
 import { mpickobj } from './steal.js';
-import { newsym, map_invisible, canspotmon } from './display.js';
+import { newsym, map_invisible, canspotmon, canseemon } from './display.js';
 import { is_animal, is_mindless, mindless, nohands, is_mercenary, is_unicorn,
          is_floater, is_flyer, throws_rocks, passes_walls,
          haseyes, is_undead, poly_when_stoned,
          resists_ston, touch_petrifies, amorphous, noncorporeal,
          unsolid, resists_fire, resists_acid, dmgtype, attacktype,
-         can_blow, x_monnam, canseemon, needspick,
+         can_blow, x_monnam, needspick,
          dmgtype_fromattack, is_bat, nonliving, acidic,
          mon_knows_traps, mon_learns_traps } from './mondata.js';
 import { mons, PM_GHOST, PM_DJINNI, PM_GUARD, PM_PESTILENCE, PM_KI_RIN, PM_LIZARD, PM_ACID_BLOB, PM_SILVER_DRAGON, PM_CHROMATIC_DRAGON, PM_GRID_BUG, AT_EXPL, AT_GAZE, AT_BREA, S_GHOST, S_KOP, AD_HEAL } from './monsters.js';
@@ -57,7 +57,9 @@ import { CORPSE, TIN, EGG, BOULDER,
          PICK_AXE, TIN_OPENER, ICE_BOX, LARGE_BOX,
          GLOB_OF_GREEN_SLIME,
          objectData, CLOTH, BAG_OF_TRICKS } from './objects.js';
-import { bcsign, splitobj, Is_container, unknow_object } from './mkobj.js';
+import { bcsign, splitobj, Is_container, unknow_object, doname } from './mkobj.js';
+import { singular } from './objnam.js';
+import { observeObject } from './o_init.js';
 import { m_carrying } from './mthrowu.js';
 import { cansee, couldsee, mark_vision_dirty } from './vision.js';
 import { which_armor, extract_from_minvent,
@@ -586,10 +588,12 @@ async function mreadmsg(mtmp, otmp, player) {
 // mquaffmsg — C ref: muse.c:291
 // ========================================================================
 export async function mquaffmsg(mtmp, otmp, player) {
-    const vismon = canseemon(mtmp, player);
+    const vismon = canseemon(mtmp, player, null, _gstate?.map || player?.map || null);
     if (vismon) {
+        if (otmp) observeObject(otmp);
         const name = x_monnam(mtmp, { article: 'the', capitalize: true });
-        await pline_mon(mtmp, `${name} drinks a potion!`);
+        const potionName = otmp ? await singular(otmp, doname) : 'a potion';
+        await pline_mon(mtmp, `${name} drinks ${potionName}!`);
     } else {
         await You_hear('a chugging sound.');
     }
@@ -2102,6 +2106,7 @@ export async function use_misc(mon, map, player) {
     case MUSE_MISC_POT_SPEED:
         if (!otmp) return 0;
         await mquaffmsg(mon, otmp, player);
+        if (oseen) makeknown(otmp.otyp);
         mon_adjust_speed(mon, 1, otmp);
         m_useup(mon, otmp);
         return 2;

@@ -24,16 +24,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.64% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>73/74</span>
+                <span class='fraction'>74/74</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.68% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>14/19</span>
+                <span class='fraction'>16/20</span>
             </div>
         
             
@@ -45,15 +45,15 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">98.64% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>73/74</span>
+                <span class='fraction'>74/74</span>
             </div>
         
             
         </div>
         <p class="quiet">
-        <div class="nh-fortune nh-excellent"><span class="nh-bracket">[</span> You are surrounded by a shimmering aura.  Some code lurks just beyond the light. <span class="nh-bracket">]</span></div>
+        <div class="nh-fortune nh-perfect"><span class="nh-bracket">[</span> The light of Tyr shines upon thy code.  All paths are illuminated! <span class="nh-bracket">]</span></div>
         
             Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
         </p>
@@ -159,42 +159,42 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
-<span class="cline-any cline-yes">201x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">445x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">10x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -264,7 +264,7 @@ export async function wear() {
   }
   await _waste_time();
   if (!g.terse) _addmsg('You are now w');
-<span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >  else _addmsg('W');</span></span>
+  else _addmsg('W');
   await _msg(`earing ${g.a_names[obj.o_which]}.`);
   g.cur_armor = obj;
   obj.o_flags |= ISKNOW;
@@ -294,7 +294,7 @@ export async function take_off() {
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Coverage divined by the Oracle of Istanbul
-                at 2026-03-11T20:34:49.498Z
+                at 2026-03-15T03:54:22.507Z
             </div>
         <script src="prettify.js"></script>
         <script>

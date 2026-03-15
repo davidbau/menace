@@ -5,7 +5,7 @@
 
 import { game } from './gstate.js';
 import { rnd } from './rng.js';
-import { mvaddch, mvwinch, waddch } from './curses.js';
+import { mvaddch, mvwaddch, mvwinch, waddch } from './curses.js';
 import {
   SCROLL, POTION, FOOD, WEAPON, ARMOR, RING, STICK, AMULET,
   LEFT, RIGHT, GOLD, FLOOR, PASSAGE,

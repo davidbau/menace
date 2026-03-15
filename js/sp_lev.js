@@ -6163,6 +6163,7 @@ export function mineralize(opts = {}) {
         gold_prob: parseOpt(opts.gold_prob),
         kelp_moat: parseOpt(opts.kelp_moat),
         kelp_pool: parseOpt(opts.kelp_pool),
+        skip_lvl_checks: true, // C: lspo_mineralize passes skip_lvl_checks=TRUE
     };
 
     const depth = levelState.levelDepth || 1;
@@ -6347,7 +6348,7 @@ async function createScriptMonster(deferred) {
         }
     } else if (opts_or_class && typeof opts_or_class === 'object') {
         opts = opts_or_class;
-        monsterId = opts.id || opts.class || '@';
+        monsterId = opts.id ?? opts.class ?? null;
         // Prefer absolute coords captured at enqueue time.
         if (x !== undefined && y !== undefined) {
             coordX = x;
@@ -6375,7 +6376,7 @@ async function createScriptMonster(deferred) {
         }
     }
 
-    if (!monsterId) {
+    if (monsterId === '') {
         return;
     }
     if (!deferred.deferCoord
@@ -7668,7 +7669,7 @@ export const selection = {
         let y = y1;
 
         while (true) {
-            coords.push({ x, y });
+            coords.push(selection._toAbsoluteCoord(x, y));
             if (x === x2 && y === y2) break;
             const e2 = 2 * err;
             if (e2 > -dy) {

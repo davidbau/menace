@@ -77,6 +77,7 @@ import {
 } from './monsters.js';
 import { init_objects, setgemprobs } from './o_init.js';
 import { roles } from './player.js';
+import { distmin } from './hacklib.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
     STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL, KELP_FROND, LUMP_OF_ROYAL_JELLY,
@@ -664,7 +665,7 @@ const RUNTIME_SPECIAL_LEVEL_CANON = new Map([
         { index: 8, canonDlevel: 6 },  // orcus
     ]],
     [GNOMISH_MINES, [
-        { index: 0, canonDlevel: 5 }, // minetn
+        { index: 0, canonDlevel: 5, town: true }, // minetn (C: flags="town")
         { index: 1, canonDlevel: 8 }, // minend
     ]],
     [SOKOBAN, [
@@ -3815,6 +3816,7 @@ function fill_zoo_room(map, sroom, depth) {
     const type = sroom.rtype;
     const door = Array.isArray(map.doors) ? map.doors[sroom.fdoor] : null;
     const difficulty = Math.max(Math.trunc(depth), 1);
+    const rmno = Number.isInteger(sroom.roomnoidx) ? sroom.roomnoidx + ROOMOFFSET : 0;
     let goldlim = 0;
     let tx = 0, ty = 0;
 
@@ -3866,13 +3868,20 @@ function fill_zoo_room(map, sroom, depth) {
             const loc = map.at(sx, sy);
             if (!loc) continue;
 
-            // SPACE_POS check + door adjacency skip
-            if (loc.typ <= DOOR) continue;
-            if (sroom.doorct && door
-                && ((sx === sroom.lx && door.x === sx - 1)
-                    || (sx === sroom.hx && door.x === sx + 1)
-                    || (sy === sroom.ly && door.y === sy - 1)
-                    || (sy === sroom.hy && door.y === sy + 1))) {
+            if (sroom.irregular) {
+                if (rmno && loc.roomno !== rmno) continue;
+                // Keep the existing wall/door guard here. C's irregular path
+                // relies on edge-marked room metadata, but JS floor topology in
+                // translated special levels is more reliable than edge bits on
+                // this path and still matches the intended eligible cells.
+                if (loc.typ <= DOOR) continue;
+                if (sroom.doorct && door && distmin(sx, sy, door.x, door.y) <= 1) continue;
+            } else if (loc.typ <= DOOR
+                || (sroom.doorct && door
+                    && ((sx === sroom.lx && door.x === sx - 1)
+                        || (sx === sroom.hx && door.x === sx + 1)
+                        || (sy === sroom.ly && door.y === sy - 1)
+                        || (sy === sroom.hy && door.y === sy + 1)))) {
                 continue;
             }
 
@@ -4259,13 +4268,15 @@ export function init_dungeon_dungeons({
             }
             const canonList = RUNTIME_SPECIAL_LEVEL_CANON.get(jsDnum);
             if (canonList) {
-                for (const { index, canonDlevel } of canonList) {
-                    const actualDlevel = placed[index];
+                for (const canonEntry of canonList) {
+                    const actualDlevel = placed[canonEntry.index];
                     if (!Number.isInteger(actualDlevel) || actualDlevel < 1) continue;
-                    _runtimeSpecialLevelMap.set(`${jsDnum}:${actualDlevel}`, {
+                    const entry = {
                         dnum: jsDnum,
-                        dlevel: canonDlevel,
-                    });
+                        dlevel: canonEntry.canonDlevel,
+                    };
+                    if (canonEntry.town) entry.town = true;
+                    _runtimeSpecialLevelMap.set(`${jsDnum}:${actualDlevel}`, entry);
                 }
             }
         }
@@ -4658,7 +4669,7 @@ export function mineralize(map, depth, opts = null) {
         ? Math.trunc(opts.kelp_moat) : 30; // C default when kelp_moat < 0
 
     const DEBUG = envFlag('DEBUG_MINERALIZE');
-    if (DEBUG) console.log(`  mineralize depth=${depth}`);
+    if (DEBUG) console.log(`  mineralize depth=${depth} dnum=${map._genDnum ?? '?'} dlevel=${map._genDlevel ?? '?'} skip=${!!(opts && opts.skip_lvl_checks)}`);
     let eligible_count = 0;
     let rng_calls = 0;
     const startRng = DEBUG ? getRngCallCount() : 0;
@@ -4678,11 +4689,29 @@ export function mineralize(map, depth, opts = null) {
         }
     }
 
-    // C ref: mklev.c:1459-1466 — Skip mineralization for special levels
-    // (hell, Vlad's tower, rogue level, arboreal, most special levels)
-    // Wizard tower is a special level, so we would skip... but C trace shows
-    // mineralize DOES run. This suggests skip_lvl_checks=TRUE for special levels.
-    // For now, proceed with mineralization.
+    // C ref: mklev.c:1459-1478 — Skip mineralization for special levels
+    // skip_lvl_checks=TRUE (from lspo_mineralize/des.mineralize) bypasses this.
+    // When FALSE (from level_finalize_topology): skip for hell, Vlad's tower,
+    // rogue level, arboreal, and special levels (except oracle and non-town mines).
+    const skip_lvl_checks = !!(opts && opts.skip_lvl_checks);
+    if (!skip_lvl_checks) {
+        const dnum = Number.isInteger(map._genDnum) ? map._genDnum : -1;
+        const dlevel = Number.isInteger(map._genDlevel) ? map._genDlevel : -1;
+        const isHell = (dnum === GEHENNOM);
+        const isVTower = (dnum === VLADS_TOWER);
+        const isRogue = !!(map.flags && map.flags.is_rogue);
+        const isArboreal = !!(map.flags && map.flags.arboreal);
+        const sp = (dnum >= 0 && dlevel >= 0) ? runtimeSpecialLevelFor(dnum, dlevel) : null;
+        const isOracle = !!(map.flags && map.flags.is_oracle_level);
+        const isMines = (dnum === GNOMISH_MINES);
+        // C: sp->flags.town — stored in runtime special level map from dungeon.lua
+        const isTown = !!(sp && sp.town);
+        if (isHell || isVTower || isRogue || isArboreal
+            || (sp && !isOracle && (!isMines || isTown))) {
+            if (DEBUG) console.log(`  mineralize: SKIP (hell=${isHell} vtower=${isVTower} rogue=${isRogue} arboreal=${isArboreal} special=${!!sp} oracle=${isOracle} mines=${isMines} town=${isTown})`);
+            return;
+        }
+    }
 
     // C ref: mklev.c:1468-1472 — default probabilities
     let goldprob = (opts && Number.isFinite(opts.gold_prob) && opts.gold_prob >= 0)
@@ -4693,7 +4722,16 @@ export function mineralize(map, depth, opts = null) {
     // C ref: mklev.c:1475-1483 — adjust probabilities for dungeon branches
     // Mines: goldprob *= 2, gemprob *= 3
     // Quest: goldprob /= 4, gemprob /= 6
-    // Wizard tower is neither, so use defaults
+    if (!skip_lvl_checks) {
+        const dnum = Number.isInteger(map._genDnum) ? map._genDnum : -1;
+        if (dnum === GNOMISH_MINES) {
+            goldprob *= 2;
+            gemprob *= 3;
+        } else if (dnum === QUEST) {
+            goldprob = Math.floor(goldprob / 4);
+            gemprob = Math.floor(gemprob / 6);
+        }
+    }
 
     // C ref: mklev.c:1490-1529 — scan for eligible stone tiles
     let debug_nondig = 0, debug_neighbor = 0, debug_null = 0;

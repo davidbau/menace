@@ -31,7 +31,7 @@ import {
     AD_MAGM, AD_DISN,
     mons, G_EXTINCT,
 } from './monsters.js';
-import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, WEAPON_CLASS, PIERCE } from './objects.js';
+import { objectData, BULLWHIP, CLOAK_OF_DISPLACEMENT, LOW_BOOTS, IRON_SHOES, GAUNTLETS_OF_POWER, WEAPON_CLASS, PIERCE } from './objects.js';
 import { xname, doname } from './mkobj.js';
 import {
     x_monnam, is_humanoid, thick_skinned, hides_under,
@@ -47,12 +47,13 @@ import { mattackm } from './mhitm.js';
 import {
     mhitm_mgc_atk_negated, do_stone_u,
 } from './uhitm.js';
-import { dmgval, hitval as weaponHitval, mon_wield_item } from './weapon.js';
+import { dmgval, hitval as weaponHitval, mon_wield_item, drain_weapon_skill } from './weapon.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { touch_of_death } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned, acurr } from './attrib.js';
+import { poisoned, acurr, adjattrib } from './attrib.js';
+import { losespells } from './spell.js';
 import { set_wounded_legs } from './do.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
 import { losexp } from './exper.js';
@@ -67,7 +68,7 @@ import { msummon } from './minion.js';
 import { new_were, were_summon, set_ulycn, counter_were } from './were.js';
 import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
-import { resists_blnd, drain_item } from './zap.js';
+import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
 import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
 import { s_suffix } from './hacklib.js';
@@ -340,7 +341,10 @@ async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
             // against the defender (plus separate artifact logic).
             const wepDmg = dmgval(monster.weapon, player);
             mhm.damage += wepDmg;
-            // Gauntlets of power branch not yet ported.
+            // cf. uhitm.c:4040-4042 — gauntlets of power bonus
+            if (monster.gloves && monster.gloves.otyp === GAUNTLETS_OF_POWER) {
+                mhm.damage += rn1(4, 3); // 3..6
+            }
             if (mhm.damage <= 0) mhm.damage = 1;
             await hitmsg(monster, attack, display, suppressHitMsg);
             mhm.hitflags |= M_ATTK_HIT;
@@ -357,8 +361,14 @@ async function mhitu_ad_phys(monster, attack, player, mhm, ctx) {
                 + `base_after_d=${mhm.damage - wepDmg - artBonus} dmgval=${wepDmg} `
                 + `art=${artBonus} final=${mhm.damage}`
             );
-            // Weapon poison: C checks dieroll <= 5 for poisoned weapons
-            // TODO: implement weapon poison path
+            // cf. uhitm.c:4085-4099 — weapon poison check
+            const was_poisoned = monster.weapon.opoisoned;
+            if (was_poisoned && ctx.dieRoll <= 5) {
+                const buf = `${s_suffix(Monnam(monster))} ${mpoisons_subj(monster, attack)}`;
+                await poisoned(player, buf, A_STR,
+                    pmname(monster.data || mons[monster.mndx], Mgender(monster)),
+                    10, false);
+            }
         } else if (attack.aatyp !== AT_TUCH || mhm.damage !== 0
                    || monster !== player.ustuck) {
             await hitmsg(monster, attack, display, suppressHitMsg);
@@ -381,7 +391,7 @@ async function mhitu_ad_fire(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2557 — destroy_items check: magr->m_lev > rn2(20)
         if (monster.mlevel > rn2(20)) {
-            // destroy_items() — not implemented, but RNG consumed
+            destroy_items_rng_only(monster, AD_FIRE, mhm.damage, player);
         }
     } else {
         mhm.damage = 0;
@@ -402,7 +412,7 @@ async function mhitu_ad_cold(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2638 — destroy_items check
         if (monster.mlevel > rn2(20)) {
-            // destroy_items() — not implemented
+            destroy_items_rng_only(monster, AD_COLD, mhm.damage, player);
         }
     } else {
         mhm.damage = 0;
@@ -423,7 +433,7 @@ async function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2696 — destroy_items check
         if (monster.mlevel > rn2(20)) {
-            // destroy_items() — not implemented
+            destroy_items_rng_only(monster, AD_ELEC, mhm.damage, player);
         }
     } else {
         if (!ctx.suppressHitMsg) {
@@ -650,18 +660,23 @@ async function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
     }
     // C: Half physical damage applies before mdamageu() for this branch.
     mhm.damage = maybe_half_phys(mhm.damage, player);
-    // Simplified eat_brains effects: message + INT drain side effects.
-    // cf. adjattrib(A_INT, -rnd(2), FALSE)
-    // Then: !rn2(5) → losespells, !rn2(5) → drain_weapon_skill
+    // cf. eat.c:611 — eat_brains() always consumes rnd(10) for xtra_dmg
+    rnd(10); // eat_brains xtra_dmg (discarded for mhitu since dmg_p=NULL)
     if (!ctx.suppressHitMsg)
         await ctx.display.putstr_message('Your brain is being eaten!');
-    // INT drain
-    const intLoss = rnd(2);
-    if (player.attributes && player.attributes[1] > 3) { // A_INT=1
-        player.attributes[1] = Math.max(3, player.attributes[1] - intLoss);
+    // cf. eat.c:722 — eat_brains calls exercise(A_WIS, FALSE) for mhitu path
+    await exercise(player, A_WIS, false);
+    // cf. uhitm.c:3240-3249 — adjattrib + losespells + drain_weapon_skill
+    // C: adjattrib(A_INT, -rnd(2), FALSE) — proper attribute adjustment with messaging
+    await adjattrib(player, A_INT, -rnd(2), false);
+    if (!rn2(5)) {
+        await losespells(player);
+        if (ctx.combatState) ctx.combatState.skipdrin = true;
     }
-    rn2(5); // losespells check
-    rn2(5); // drain_weapon_skill check
+    if (!rn2(5)) {
+        drain_weapon_skill(rnd(2));
+        if (ctx.combatState) ctx.combatState.skipdrin = true;
+    }
 }
 
 // cf. uhitm.c:3649 mhitm_ad_slow — mhitu branch
@@ -1546,7 +1561,7 @@ export async function mattacku(monster, player, display, game = null, opts = {})
         }
 
         // Context for handlers
-        const ctx = { display, game, suppressHitMsg, map, combatState };
+        const ctx = { display, game, suppressHitMsg, map, combatState, dieRoll };
 
         // cf. mhitu.c:1187 — mhitm_adtyping dispatch
         // Each handler calls hitmsg() and applies effects.

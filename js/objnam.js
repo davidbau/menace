@@ -36,20 +36,24 @@ import {
     CREAM_PIE, ENORMOUS_MEATBALL, MAGIC_MARKER, GRAPPLING_HOOK,
     RIN_PROTECTION_FROM_SHAPE_CHAN, RIN_INCREASE_ACCURACY,
     LUCKSTONE, LOADSTONE, TOUCHSTONE,
+    LAST_REAL_GEM,
+    EGG, FIGURINE, SCALE_MAIL,
 } from './objects.js';
 import {
     mons, G_UNIQ,
-    PM_HIGH_CLERIC, PM_LONG_WORM_TAIL, PM_WIZARD_OF_YENDOR,
+    PM_HIGH_CLERIC, PM_LONG_WORM, PM_LONG_WORM_TAIL, PM_WIZARD_OF_YENDOR,
+    PM_GRAY_DRAGON, PM_YELLOW_DRAGON,
 } from './monsters.js';
-import { type_is_pname } from './mondata.js';
+import { type_is_pname, name_to_monplus } from './mondata.js';
 import {
     xname as mkobj_xname, doname as mkobj_doname, erosion_matters as mkobj_erosion_matters,
     is_rustprone, is_corrodeable, is_flammable, is_crackable, is_rottable,
-    Is_container, mksobj, mkobj, bless, curse, uncurse, weight,
+    Is_container, mksobj, mkobj, bless, curse, uncurse, weight, set_corpsenm,
 } from './mkobj.js';
 import { isObjectNameKnown } from './o_init.js';
 import { artiname, undiscovered_artifact, artifact_name, artifact_exists, nartifact_exist } from './artifact.js';
 import { is_quest_artifact } from './objdata.js';
+import { can_be_hatched } from './mon.js';
 import { ART_EYES_OF_THE_OVERWORLD, ART_ORB_OF_DETECTION } from './artifacts.js';
 import {
     highc, lowc, upstart, s_suffix, letter, digit,
@@ -70,6 +74,7 @@ import {
     HOLE, TRAPDOOR, TELEP_TRAP, LEVEL_TELEP, MAGIC_PORTAL, WEB, STATUE_TRAP,
     MAGIC_TRAP, ANTI_MAGIC, POLY_TRAP, VIBRATING_SQUARE,
     M_AP_OBJECT, ONAME_WISH,
+    NON_PM, LOW_PM,
 } from './const.js';
 import { maketrap, deltrap } from './dungeon.js';
 import { make_grave, del_engr_at } from './engrave.js';
@@ -1992,6 +1997,14 @@ function readobjnam_classify(state, rawText) {
     let oclass = state.oclass || 0;
     let forcedTyp = state.forcedTyp || 0;
 
+    // C ref: objnam.c direct coin parsing — wishes for gold pieces do not go
+    // through weighted name matching. They resolve directly to GOLD_PIECE.
+    if (/^(gold|gold piece|gold pieces|zorkmid|zorkmids)$/.test(text)) {
+        state.oclass = COIN_CLASS;
+        state.forcedTyp = GOLD_PIECE;
+        return 'gold piece';
+    }
+
     if (!oclass) {
         for (const [prefix, cls] of readobjnam_class_prefixes) {
             if (text.startsWith(prefix)) {
@@ -2087,6 +2100,78 @@ export function readobjnam_postparse1(state) {
     state.actualn = readobjnam_classify(state, text);
     if (!state.dn) state.dn = state.actualn;
     state.text = text;
+
+    // cf. objnam.c:4523-4535 — gold piece / zorkmid / gold / money / coin
+    const bp = (state.actualn || '').toLowerCase();
+    if (bp.endsWith('gold piece') || bp.endsWith('gold pieces')
+        || bp.endsWith('zorkmid') || bp.endsWith('zorkmids')
+        || bp === 'gold' || bp === 'money'
+        || bp === 'coin' || bp === 'coins') {
+        let cnt = state.quan;
+        if (cnt > 5000) cnt = 5000; // wizard check omitted — C uses !wizard
+        else if (cnt < 1) cnt = 1;
+        const otmp = mksobj(GOLD_PIECE, false, false);
+        otmp.quan = cnt;
+        otmp.owt = weight(otmp);
+        state.otmp = otmp;
+    }
+
+    // cf. objnam.c:4360-4387 — Find corpse type using "of"
+    // (figurine of an orc, tin of orc meat)
+    // Don't check if it's a wand or spellbook.
+    if (!strstri(text, 'wand ') && !strstri(text, 'spellbook ')
+        && !strstri(text, 'gauntlets ') && !strstri(text, 'gloves ')
+        && !strstri(text, 'finger ')) {
+        const ofIdx = text.toLowerCase().indexOf(' of ');
+        if (ofIdx >= 0) {
+            const afterOf = text.slice(ofIdx + 4);
+            const mntmp = name_to_monplus(afterOf, null);
+            // Note: null >= 0 is true in JS, so explicitly check for number type
+            if (typeof mntmp === 'number' && mntmp >= LOW_PM) {
+                state.mntmp = mntmp;
+                // C: *d->p = 0 — truncate at " of " to keep only the object part
+                state.actualn = text.slice(0, ofIdx);
+                state.dn = state.actualn;
+                state.text = state.actualn;
+            }
+        }
+    }
+
+    // cf. objnam.c:4388-4422 — Find corpse type w/o "of" (newt egg, yeti corpse)
+    // Monster name prefix followed by object name (e.g., "newt egg", "troll corpse")
+    if (state.mntmp === undefined || !(typeof state.mntmp === 'number' && state.mntmp >= LOW_PM)) {
+        const tbp = (state.actualn || '').toLowerCase();
+        if (!tbp.startsWith('samurai sword') && !tbp.startsWith('wizard lock')
+            && !tbp.startsWith('death wand') && !tbp.startsWith('master key')
+            && !tbp.startsWith('ninja-to') && !tbp.startsWith('magenta')) {
+            if (tbp.length > 2) {
+                const restRef = {};
+                const mntmp = name_to_monplus(tbp, restRef);
+                if (typeof mntmp === 'number' && mntmp >= LOW_PM && restRef.value !== undefined) {
+                    let rest = restRef.value;
+                    if (rest.startsWith(' ')) {
+                        rest = rest.slice(1);
+                    } else if (rest.startsWith('s ') || rest.startsWith("' ")) {
+                        rest = rest.slice(2);
+                    } else if (rest.startsWith('es ') || rest.startsWith("'s ")) {
+                        rest = rest.slice(3);
+                    } else if (!rest) {
+                        // no referent; they don't really mean a monster type
+                        rest = null;
+                    } else {
+                        rest = null;
+                    }
+                    if (rest !== null) {
+                        state.mntmp = mntmp;
+                        state.actualn = rest;
+                        state.dn = rest;
+                        state.text = rest;
+                    }
+                }
+            }
+        }
+    }
+
     return state;
 }
 
@@ -2164,6 +2249,26 @@ export function readobjnam_postparse2(state) {
 }
 
 export function readobjnam_postparse3(state) {
+    // cf. objnam.c:4717-4740 — check real gem names before rnd_otyp_by_namedesc
+    // In C, these checks return 2 (typfnd), completely skipping
+    // rnd_otyp_by_namedesc. We use typfndTyp (not forcedTyp) to signal
+    // that the type was resolved here and rnd_otyp_by_namedesc should be skipped.
+    if (!state.oclass && state.actualn) {
+        const actualn_lc = (state.actualn || '').toLowerCase();
+        const gemBase = bases[GEM_CLASS];
+        for (let i = gemBase; i <= LAST_REAL_GEM; i++) {
+            const zn = objectData[i]?.oc_name;
+            if (zn && zn.toLowerCase() === actualn_lc) {
+                state.typfndTyp = i;
+                return state;
+            }
+        }
+        // cf. objnam.c:4733-4736 — plain "tin" → TIN (avoid "tin wand" match)
+        if (actualn_lc === 'tin') {
+            state.typfndTyp = TIN;
+            return state;
+        }
+    }
     return state;
 }
 
@@ -2225,6 +2330,7 @@ export function readobjnam(bp, no_wish, opts = {}) {
     if (!readobjnam_preparse(state, bp)) return null;
 
     readobjnam_postparse1(state);
+    if (state.otmp) return state.otmp; // cf. objnam.c:4931 — case 3: return d.otmp
     readobjnam_postparse2(state);
     readobjnam_postparse3(state);
 
@@ -2235,28 +2341,36 @@ export function readobjnam(bp, no_wish, opts = {}) {
     const oclass = state.oclass || 0;
     const forcedTyp = state.forcedTyp || 0;
 
-    let otyp = rnd_otyp_by_namedesc(actualn, oclass, 1);
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
-        otyp = rnd_otyp_by_namedesc(dn, oclass, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
-        otyp = rnd_otyp_by_namedesc(un, oclass, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
-        otyp = rnd_otyp_by_namedesc(origbp, oclass, 1);
-    }
+    const directTyp = (oclass === COIN_CLASS && forcedTyp === GOLD_PIECE)
+        ? forcedTyp
+        : 0;
+    // cf. objnam.c:4949 — postparse3 returns 2 (typfnd) for gems/tin,
+    // completely skipping rnd_otyp_by_namedesc. typfndTyp signals this.
+    let otyp = state.typfndTyp || directTyp || STRANGE_OBJECT;
+    if (!(otyp > STRANGE_OBJECT && otyp < NUM_OBJECTS)) {
+        otyp = rnd_otyp_by_namedesc(actualn, oclass, 1);
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
+            otyp = rnd_otyp_by_namedesc(dn, oclass, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
+            otyp = rnd_otyp_by_namedesc(un, oclass, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
+            otyp = rnd_otyp_by_namedesc(origbp, oclass, 1);
+        }
 
-    if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
-        otyp = rnd_otyp_by_namedesc(actualn, 0, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
-        otyp = rnd_otyp_by_namedesc(dn, 0, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
-        otyp = rnd_otyp_by_namedesc(un, 0, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
-        otyp = rnd_otyp_by_namedesc(origbp, 0, 1);
+        if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
+            otyp = rnd_otyp_by_namedesc(actualn, 0, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
+            otyp = rnd_otyp_by_namedesc(dn, 0, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
+            otyp = rnd_otyp_by_namedesc(un, 0, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
+            otyp = rnd_otyp_by_namedesc(origbp, 0, 1);
+        }
     }
 
     // C ref: objnam.c:4862-4870 — artifact lookup by name (before alt spellings)
@@ -2330,6 +2444,42 @@ export function readobjnam(bp, no_wish, opts = {}) {
 
     if (state.spe !== null) {
         otmp.spe = state.spe;
+    }
+
+    // cf. objnam.c:5181-5243 — set otmp->corpsenm or dragon scale [mail]
+    const mntmp = state.mntmp;
+    if (typeof mntmp === 'number' && mntmp >= LOW_PM) {
+        const adjustedMntmp = (mntmp === PM_LONG_WORM_TAIL) ? PM_LONG_WORM : mntmp;
+        switch (otyp) {
+        case EGG: {
+            const hatched = can_be_hatched(adjustedMntmp);
+            set_corpsenm(otmp, hatched);
+            break;
+        }
+        case CORPSE:
+            if (!(mons[adjustedMntmp]?.geno & G_UNIQ) || !!opts.wizard) {
+                set_corpsenm(otmp, adjustedMntmp);
+            }
+            break;
+        case FIGURINE:
+            if (!(mons[adjustedMntmp]?.geno & G_UNIQ)) {
+                otmp.corpsenm = adjustedMntmp;
+            }
+            break;
+        case STATUE:
+            otmp.corpsenm = adjustedMntmp;
+            break;
+        case TIN:
+            otmp.corpsenm = adjustedMntmp;
+            break;
+        default:
+            // Dragon scales / scale mail
+            if (otyp === SCALE_MAIL && adjustedMntmp >= PM_GRAY_DRAGON
+                && adjustedMntmp <= PM_YELLOW_DRAGON) {
+                otmp.otyp = GRAY_DRAGON_SCALE_MAIL + adjustedMntmp - PM_GRAY_DRAGON;
+            }
+            break;
+        }
     }
 
     // C ref: objnam.c:5336-5356 — if name matches an artifact, call oname/artifact_exists

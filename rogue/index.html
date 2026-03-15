@@ -492,6 +492,28 @@
       margin: 0.3em 0;
     }
 
+    #docs-content table {
+      border-collapse: collapse;
+      margin: 1em 0;
+      font-size: 0.92em;
+    }
+
+    #docs-content th, #docs-content td {
+      border: 1px solid #ccc;
+      padding: 0.35em 0.75em;
+      text-align: left;
+    }
+
+    #docs-content th {
+      background: #f0ede6;
+      font-weight: 600;
+      color: var(--color-accent-dark);
+    }
+
+    #docs-content tr:nth-child(even) td {
+      background: #faf8f4;
+    }
+
     #docs-content img {
       max-width: 100%;
       border-radius: 4px;
@@ -537,7 +559,8 @@
 <body>
   <div id="page">
     <nav id="nav" role="navigation">
-      <a href="#about" id="about-link">About Rogue (1980)</a>
+      <a href="#readme" id="readme-link">How to play Rogue</a>
+      <a href="#history" id="about-link">About Rogue (1980)</a>
     </nav>
     <main id="main">
       <div id="rogue-container">
@@ -853,20 +876,23 @@
     };
   })();
 
-  /* Docs overlay — fetch HISTORY.md, render as HTML, minimap the game */
+  /* Docs overlay — fetch HISTORY.md or README.md, render as HTML, minimap the game */
   (function() {
     var overlay = document.getElementById('docs-overlay');
     var content = document.getElementById('docs-content');
     var dismissBtn = document.getElementById('minimap-dismiss');
     var aboutLink = document.getElementById('about-link');
+    var readmeLink = document.getElementById('readme-link');
     var page = document.getElementById('page');
+    var loadedDocs = {};
+    var currentDoc = null;
     var loaded = false;
     var docsOpen = false;
 
     function renderMarkdown(md) {
       var html = '';
       var lines = md.split('\n');
-      var inPre = false, inList = false;
+      var inPre = false, inList = false, inTable = false;
       var bqLines = [], inBlockquote = false;
       var paraLines = [];
 
@@ -875,6 +901,10 @@
           html += '<p>' + processInline(paraLines.join(' ')) + '</p>\n';
           paraLines = [];
         }
+      }
+
+      function flushTable() {
+        if (inTable) { html += '</tbody></table>\n'; inTable = false; }
       }
 
       function flushBq() {
@@ -904,7 +934,7 @@
           continue;
         }
         if (inPre) { html += line.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n'; continue; }
-        if (line.trim() === '') { flushPara(); flushBq(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
+        if (line.trim() === '') { flushPara(); flushBq(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
         if (line.match(/^>\s?/)) {
           flushPara();
           inBlockquote = true;
@@ -913,16 +943,41 @@
           continue;
         } else if (inBlockquote) { flushBq(); }
         var hMatch = line.match(/^(#{1,6})\s+(.+)/);
-        if (hMatch) { flushPara(); if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
-        if (line.match(/^---+\s*$/)) { flushPara(); if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
-        if (line.match(/^[-*]\s+/)) { flushPara(); if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
+        if (hMatch) { flushPara(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
+        if (line.match(/^---+\s*$/)) { flushPara(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
+        if (line.match(/^[-*]\s+/)) { flushPara(); flushTable(); if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
         if (inList) { html += '</ul>\n'; inList = false; }
+        // Table rows: lines starting and ending with |
+        if (line.match(/^\|/) && line.match(/\|$/)) {
+          flushPara();
+          var cells = line.replace(/^\||\|$/g, '').replace(/\\\|/g, '\x00').split('|').map(function(c) { return c.replace(/\x00/g, '|'); });
+          // Separator row (---|---) → skip (marks end of header)
+          if (cells.every(function(c) { return c.trim().match(/^[-: ]+$/); })) {
+            if (!inTable) { /* header not yet started, ignore */ } // shouldn't happen
+            continue;
+          }
+          var isHeader = !inTable && lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/);
+          if (isHeader) {
+            html += '<table><thead><tr>';
+            cells.forEach(function(c) { html += '<th>' + processInline(c.trim()) + '</th>'; });
+            html += '</tr></thead><tbody>\n';
+            inTable = true;
+          } else {
+            if (!inTable) { html += '<table><tbody>\n'; inTable = true; }
+            html += '<tr>';
+            cells.forEach(function(c) { html += '<td>' + processInline(c.trim()) + '</td>'; });
+            html += '</tr>\n';
+          }
+          continue;
+        }
+        if (inTable) { flushTable(); }
         paraLines.push(line.trim());
       }
       flushPara();
       if (inPre) html += '</code></pre>\n';
       if (inList) html += '</ul>\n';
       flushBq();
+      flushTable();
       return html;
     }
 
@@ -1095,19 +1150,27 @@
       dismissBtn.style.top = (rect.top + 4) + 'px';
     }
 
-    function openDocs(animate) {
-      if (!loaded) {
+    function openDocs(animate, docFile, hash) {
+      docFile = docFile || 'HISTORY.md';
+      hash = hash || '#history';
+      if (!loadedDocs[docFile]) {
         content.innerHTML = '<p style="color:#888;">Loading...</p>';
-        fetch('HISTORY.md')
+        fetch(docFile)
           .then(function(r) { return r.text(); })
-          .then(function(md) { content.innerHTML = renderMarkdown(md); loaded = true; })
-          .catch(function() { content.innerHTML = '<p>Could not load history. <a href="HISTORY.md">View directly</a>.</p>'; });
+          .then(function(md) { content.innerHTML = renderMarkdown(md); loadedDocs[docFile] = true; loaded = true; currentDoc = docFile; })
+          .catch(function() { content.innerHTML = '<p>Could not load document. <a href="' + docFile + '">View directly</a>.</p>'; });
+      } else if (currentDoc !== docFile) {
+        fetch(docFile)
+          .then(function(r) { return r.text(); })
+          .then(function(md) { content.innerHTML = renderMarkdown(md); currentDoc = docFile; });
       }
+      currentDoc = docFile;
+      loaded = true;
       document.body.classList.remove('docs-standalone');
       overlay.classList.add('open');
       overlay.scrollTop = 0;
       docsOpen = true;
-      history.replaceState(null, '', '#about');
+      history.replaceState(null, '', hash);
 
       if (animate) {
         var fromRect = page.getBoundingClientRect();
@@ -1164,7 +1227,8 @@
     function dismissMinimap() {
       document.body.classList.add('docs-standalone');
       document.body.classList.remove('minimap-hover');
-      history.replaceState(null, '', 'HISTORY');
+      var docName = (currentDoc || 'HISTORY.md').replace('.md', '');
+      history.replaceState(null, '', docName);
     }
 
     // Hover detection for dismiss button near minimap
@@ -1187,7 +1251,15 @@
     aboutLink.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      if (docsOpen) closeDocs(); else openDocs(true);
+      if (docsOpen && currentDoc === 'HISTORY.md') closeDocs();
+      else openDocs(true, 'HISTORY.md', '#history');
+    });
+
+    readmeLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (docsOpen && currentDoc === 'README.md') closeDocs();
+      else openDocs(true, 'README.md', '#readme');
     });
 
     dismissBtn.addEventListener('click', function(e) {
@@ -1206,8 +1278,10 @@
       }
     });
 
-    if (window.location.hash === '#about') {
-      setTimeout(openDocs, 100);
+    if (window.location.hash === '#about' || window.location.hash === '#history') {
+      setTimeout(function() { openDocs(false, 'HISTORY.md', '#history'); }, 100);
+    } else if (window.location.hash === '#readme') {
+      setTimeout(function() { openDocs(false, 'README.md', '#readme'); }, 100);
     }
   })();
   </script>

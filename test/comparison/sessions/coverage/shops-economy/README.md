@@ -1,6 +1,6 @@
 # Theme: shops-economy
 
-Status: planned
+Status: active; hi15 shop payment route promoted
 
 Reconnaissance workflow:
 1. Find a seed/depth with a live shopkeeper from C-grounded checkpoints.

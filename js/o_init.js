@@ -331,7 +331,7 @@ export function observe_object(obj) {
 // Autotranslated from o_init.c:519
 export function interesting_to_discover(i) {
   if (Role_if(_gstate.player, PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
-  return  (objectData[i].oc_uname !==  0 || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr !==  0));
+  return  (objectData[i].oc_uname != null || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr != null));
 }
 
 // Autotranslated from o_init.c:601
@@ -472,7 +472,13 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
         pushDisco(otyp);
         if (markAsEncountered) ocEncountered[otyp] = true;
         const newlyKnown = !ocNameKnown[otyp] && markAsKnown;
-        if (newlyKnown) ocNameKnown[otyp] = true;
+        if (newlyKnown) {
+            ocNameKnown[otyp] = true;
+            // Mirror into objectData.oc_name_known so direct od.oc_name_known checks
+            // stay consistent with the runtime discovery state (ocNameKnown[]).
+            // C uses a single objects[] table that makeknown() modifies in-place.
+            if (objectData[otyp]) objectData[otyp].oc_name_known = true;
+        }
         // C ref: o_init.c:474-477 — when a name transitions unknown->known,
         // exercise wisdom iff credit_hero (creditClue in JS) is true.
         // Gate on newlyKnown: only fire when name was not already known.

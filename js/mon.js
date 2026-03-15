@@ -31,7 +31,8 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, IS_TREE, ACCESS
          IS_ALTAR,
          STRAT_WAITMASK, A_CHAOTIC, A_NONE, NORMAL_SPEED, MSLOW, MFAST } from './const.js';
 import { M2_COLLECT, MS_NEMESIS, MS_GUARDIAN, MR_ACID, MR_STONE,
-         PM_KILLER_BEE, PM_SCORPION } from './monsters.js';
+         PM_KILLER_BEE, PM_SCORPION, PM_SCORPIUS,
+         PM_QUEEN_BEE, PM_GARGOYLE, PM_WINGED_GARGOYLE } from './monsters.js';
 import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
          GRAY_DRAGON_SCALES, UNICORN_HORN, WORM_TOOTH,
          IRON_CHAIN, ROCK as OBJ_ROCK, FIRST_GLASS_GEM, NUM_GLASS_GEMS,
@@ -47,7 +48,8 @@ import { nonliving, resists_ston, resists_fire, resists_poison,
          vegan as vegan_mondata,
          mon_hates_silver, touch_petrifies, flesh_petrifies,
          is_male, is_female, is_neuter,
-         dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG, ismnum } from './mondata.js';
+         dmgtype, attacktype, DEADMONSTER, M_AP_TYPE, NODIAG, ismnum,
+         lays_eggs } from './mondata.js';
 import { Is_rogue_level, surface } from './dungeon.js';
 import { mkcorpstat, weight, is_rustprone, mkobj, mksobj_at, mkgold, place_object } from './mkobj.js';
 import { impossible, pline_mon, pline, pline_The, livelog_printf, You_hear } from './pline.js';
@@ -95,7 +97,7 @@ import { adjalign, change_luck, currentAlignLim } from './attrib.js';
 import { envFlag, writeStderr } from './runtime_env.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { sgn } from './hacklib.js';
-import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu } from './mondata.js';
+import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_canseeu, little_to_big } from './mondata.js';
 import { record_achievement } from './insight.js';
 import { pmname, Mgender, x_monnam } from './do_name.js';
 import { place_monster } from './steed.js';

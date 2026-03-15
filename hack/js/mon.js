@@ -1,5 +1,5 @@
 // C ref: hack.mon.c — monster AI, combat, movement
-import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP, HPM, ULV, UEX, SDOOR, DOOR, COLNO, ROWNO } from './const.js';
+import { MNORM, FLEE, SLEEP, MFROZ, MCONF, MSLOW, MFAST, SEEN, HP, HPM, AC, ULV, UEX, SDOOR, DOOR, COLNO, ROWNO } from './const.js';
 import { rn1, rn2, rnd, d, logEvent } from './rng.js';
 import { game } from './gstate.js';
 import { makeMonst, makeStole, makeGen } from './game.js';

@@ -33,10 +33,10 @@ import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mk
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
-    throws_rocks, is_unicorn, hates_silver,
+    throws_rocks, is_unicorn, hates_silver, resists_poison, resists_acid, can_blnd,
 } from './mondata.js';
 import {
-    mons, AT_WEAP, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
+    mons, AT_WEAP, AT_SPIT, G_NOCORPSE, AD_ACID, AD_BLND, AD_DRST,
     AD_MAGM, AD_FIRE, AD_COLD, AD_SLEE, AD_DISN, AD_ELEC, MZ_TINY, MZ_HUMAN, MZ_LARGE,
 } from './monsters.js';
 import { distmin, dist2 } from './hacklib.js';
@@ -47,7 +47,7 @@ import { select_rwep as weapon_select_rwep,
     mon_wield_item, dmgval } from './weapon.js';
 import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON,
          P_DAGGER, P_SPEAR, P_BOW, P_CROSSBOW, P_DART, P_SHURIKEN } from './const.js';
-import { ammo_and_launcher, multishot_class_bonus } from './dothrow.js';
+import { ammo_and_launcher, is_ammo, multishot_class_bonus } from './dothrow.js';
 import { losehp } from './hack.js';
 import { KILLED_BY_AN } from './const.js';
 import { breaks, harmless_missile } from './dothrow.js';
@@ -70,6 +70,14 @@ import { stairway_at } from './stairs.js';
 import { t_at } from './trap.js';
 import { envFlag, getEnv, writeStderr } from './runtime_env.js';
 import { obj_resists } from './objdata.js';
+import { potionhit } from './potion.js';
+
+// C ref: obj.h is_poisonable() — ammo that can be poisoned (arrows, darts, shuriken, etc.)
+function _is_poisonable(obj) {
+    if (!obj || obj.oclass !== WEAPON_CLASS) return false;
+    const skill = objectData[obj.otyp]?.oc_subtyp ?? 0;
+    return skill >= -P_SHURIKEN && skill <= -P_BOW;
+}
 
 const hallublasts = [
     'bubbles', 'butterflies', 'dust specks', 'flowers', 'glitter',
@@ -297,22 +305,23 @@ export function monmulti(mon, otmp) {
     const quan = Number.isInteger(otmp?.quan) ? otmp.quan : 1;
     const mwep = mon?.weapon || null;
     const od = objectData[otmp.otyp];
-    const launcherOk = ammo_and_launcher(otmp, mwep);
-    const stackableWeapon = od && od.oc_class === WEAPON_CLASS;
-    if (quan > 1 && (launcherOk || stackableWeapon) && !mon.mconf) {
+    // C: is_ammo ? matching_launcher : oclass == WEAPON_CLASS (mthrowu.c:207-212)
+    const gateOk = is_ammo(otmp) ? ammo_and_launcher(otmp, mwep) : (od && od.oc_class === WEAPON_CLASS);
+    if (quan > 1 && gateOk && !mon.mconf) {
         const ptr = mon?.type || {};
         if (is_prince(ptr)) multishot += 2;
         else if (is_lord(ptr) || is_mplayer(ptr)) multishot += 1;
         if (otmp.otyp === ELVEN_ARROW && !otmp.cursed) multishot += 1;
-        if (mwep && mwep.otyp === ELVEN_BOW && otmp.otyp === ELVEN_ARROW && !mwep.cursed) multishot += 1;
+        if (mwep && mwep.otyp === ELVEN_BOW && ammo_and_launcher(otmp, mwep) && !mwep.cursed) multishot += 1;
         if (mwep && ammo_and_launcher(otmp, mwep) && (mwep.spe || 0) > 1) multishot += Math.floor(((mwep.spe || 0) + 1) / 3);
+        // C: rnd() BEFORE class/racial bonuses (mthrowu.c:238-250)
+        multishot = rnd(multishot);
         multishot += multishot_class_bonus(mon?.mndx ?? -1, otmp, mwep);
         if ((is_elf(ptr) && otmp.otyp === ELVEN_ARROW && mwep?.otyp === ELVEN_BOW)
             || (is_orc(ptr) && otmp.otyp === ORCISH_ARROW && mwep?.otyp === ORCISH_BOW)
             || (is_gnome(ptr) && otmp.otyp === CROSSBOW_BOLT && mwep?.otyp === CROSSBOW)) {
             multishot += 1;
         }
-        multishot = rnd(multishot);
     }
     if (multishot > quan) multishot = quan;
     if (multishot < 1) multishot = 1;
@@ -538,7 +547,18 @@ export async function ohitmon(
         if (launcher?.oartifact) hitThreshold += spec_abon(launcher, mtmp);
     }
     const dieRoll = rnd(20);
-    if (hitThreshold >= dieRoll) {
+    if (hitThreshold < dieRoll) {
+        // C ref: mthrowu.c:350-360 — miss
+        if (!range) {
+            await drop_throw(otmp, false, mtmp.mx, mtmp.my, map, player, game);
+            return { stop: true, deathMessage: null };
+        }
+    } else if (otmp.oclass === POTION_CLASS) {
+        // C ref: mthrowu.c:361-368 — potion hits monster, call potionhit
+        mtmp.msleeping = false;
+        await potionhit(mtmp, otmp, 2 /*POTHIT_OTHER_THROW*/, player, map);
+        return { stop: true, deathMessage: null };
+    } else {
         let deathMessage = null;
         let damage = 0;
         if (otmp.oclass === WEAPON_CLASS || otmp.oclass === GEM_CLASS) {
@@ -546,6 +566,10 @@ export async function ohitmon(
         } else if ((od.oc_wsdam || 0) > 0) {
             damage = rnd(od.oc_wsdam || 0);
         }
+        // C ref: mthrowu.c:374-375 — acid venom resistance
+        if (otmp.otyp === ACID_VENOM && resists_acid(mtmp))
+            damage = 0;
+        mtmp.msleeping = false;
         damage += (otmp.spe || 0);
         if (damage < 1) damage = 1;
         // C ref: mthrowu.c ohitmon() — pline("The %s hits %s%s", xname, mon_nam, exclam)
@@ -553,6 +577,16 @@ export async function ohitmon(
             const msg = `The ${xname({ ...otmp, dknown: true })} hits ${mon_nam(mtmp)}${exclam(damage)}`;
             await maybeFlushToplineBeforeMessage(display, msg, game);
             await display.putstr_message(msg);
+        }
+        // C ref: mthrowu.c:403-416 — poison damage
+        if (otmp.opoisoned && _is_poisonable(otmp)) {
+            if (!resists_poison(mtmp)) {
+                if (rn2(30)) {
+                    damage += rnd(6);
+                } else {
+                    damage = mtmp.mhp; // deadly poison
+                }
+            }
         }
         mtmp.mhp -= damage;
         if (mtmp.mhp <= 0) {
@@ -572,6 +606,14 @@ export async function ohitmon(
                 const corpse = mkcorpstat(CORPSE, mtmp.mndx || 0, true, mtmp.mx, mtmp.my, map);
                 if (corpse) corpse.age = (player?.turns || 0) + 1;
             }
+        }
+        // C ref: mthrowu.c:470-488 — blinding venom / cream pie
+        if (mtmp.mhp > 0 && can_blnd(null, mtmp,
+                otmp.otyp === BLINDING_VENOM ? AT_SPIT : AT_WEAP, otmp)) {
+            mtmp.mcansee = false;
+            let btmp = (mtmp.mblinded || 0) + rnd(25) + 20;
+            if (btmp > 127) btmp = 127;
+            mtmp.mblinded = btmp;
         }
         await drop_throw(otmp, true, mtmp.mx, mtmp.my, map, player, game);
         return { stop: true, deathMessage };
@@ -729,6 +771,13 @@ export async function m_throw_timed(
         }
 
         if (x === player.x && y === player.y) {
+            // C ref: mthrowu.c:670-672 — potion hits player, call potionhit
+            if (weapon?.oclass === POTION_CLASS) {
+                await potionhit(player, weapon, 1 /*POTHIT_MONST_THROW*/, player, map);
+                dropHandledInImpact = true;
+                hitPlayer = true;
+                break;
+            }
             if (weapon?.oclass === GEM_CLASS && await ucatchgem(weapon, mon, player, map, display)) {
                 break;
             }

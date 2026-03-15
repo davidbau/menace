@@ -70,9 +70,11 @@ export class Shell {
             }
             this.historyIdx = -1;
 
-            // Echo the command in the scroll buffer
+            // Echo the command: prompt in green, typed command in output color
             const promptStr = this._promptString();
-            this._addLine(promptStr + line, PROMPT_COLOR);
+            const echoText = promptStr + line;
+            const echoColors = Array.from(echoText, (_, i) => i < promptStr.length ? PROMPT_COLOR : OUTPUT_COLOR);
+            this._addLine(echoText, PROMPT_COLOR, echoColors);
 
             const result = await this._execute(line.trim());
             if (result) {
@@ -258,9 +260,10 @@ export class Shell {
         this._renderInputLine();
     }
 
-    // Add a line to the scroll buffer and render it
-    _addLine(text, color) {
-        this.scrollBuffer.push({ text, color: color || OUTPUT_COLOR });
+    // Add a line to the scroll buffer and render it.
+    // Optional `colors` is a per-cell color array (overrides `color`).
+    _addLine(text, color, colors) {
+        this.scrollBuffer.push(colors ? { text, colors } : { text, color: color || OUTPUT_COLOR });
         // Keep only enough lines to fill the screen (minus input row)
         const maxLines = ROWS - 1;
         if (this.scrollBuffer.length > maxLines) {

@@ -4,7 +4,15 @@ import { readFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
 import { PM_SHOPKEEPER, mons } from '../../js/monsters.js';
-import { ACCESSIBLE, OBJ_BURIED, OBJ_CONTAINED, OBJ_FLOOR, OBJ_FREE, OBJ_INVENT, OBJ_MINVENT, OBJ_ONBILL } from '../../js/const.js';
+import {
+    ACCESSIBLE, OBJ_BURIED, OBJ_CONTAINED, OBJ_FLOOR, OBJ_FREE, OBJ_INVENT,
+    OBJ_MINVENT, OBJ_ONBILL, ROOMOFFSET, OROOM, THEMEROOM, COURT, SWAMP,
+    VAULT, BEEHIVE, MORGUE, BARRACKS, ZOO, DELPHI, TEMPLE, SHOPBASE,
+    STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
+    CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DBWALL, TREE, IRONBARS,
+    DOOR, CORR, ROOM, STAIRS, LADDER, FOUNTAIN, ALTAR, GRAVE, SINK,
+    THRONE, SDOOR, SCORR,
+} from '../../js/const.js';
 import { objectData } from '../../js/objects.js';
 import { normalizeSession, parseCompactMapdump } from './session_loader.js';
 
@@ -55,21 +63,6 @@ function loadTarget(targetPath, checkpointId) {
         const session = normalizeSession(raw, { file: basename(targetPath), dir: resolve(targetPath, '..') });
         const checkpoints = session.mapdumpCheckpoints || {};
         const ids = Object.keys(checkpoints).sort();
-        if (ids.length > 0) {
-            if (!checkpointId) {
-                throw new Error(`Checkpoint id required for session file. Available: ${ids.join(', ')}`);
-            }
-            if (!checkpoints[checkpointId]) {
-                throw new Error(`Checkpoint '${checkpointId}' not found. Available: ${ids.join(', ')}`);
-            }
-            return {
-                sourceKind: 'session',
-                sourcePath: targetPath,
-                checkpointId,
-                parsed: parseCompactMapdump(checkpoints[checkpointId]),
-                checkpointIds: ids,
-            };
-        }
         const structured = [];
         session.steps.forEach((step, stepIndex) => {
             (step.checkpoints || []).forEach((cp, cpIndex) => {
@@ -78,6 +71,31 @@ function loadTarget(targetPath, checkpointId) {
             });
         });
         const structuredIds = structured.map((row) => row.id);
+        if (ids.length > 0) {
+            if (!checkpointId) {
+                throw new Error(`Checkpoint id required for session file. Available: ${ids.join(', ')}`);
+            }
+            if (checkpoints[checkpointId]) {
+                return {
+                    sourceKind: 'session',
+                    sourcePath: targetPath,
+                    checkpointId,
+                    parsed: parseCompactMapdump(checkpoints[checkpointId]),
+                    checkpointIds: ids,
+                };
+            }
+            const foundStructured = structured.find((row) => row.id === checkpointId);
+            if (foundStructured) {
+                return {
+                    sourceKind: 'session',
+                    sourcePath: targetPath,
+                    checkpointId,
+                    parsed: foundStructured.checkpoint,
+                    checkpointIds: ids.concat(structuredIds),
+                };
+            }
+            throw new Error(`Checkpoint '${checkpointId}' not found. Available: ${ids.concat(structuredIds).join(', ')}`);
+        }
         if (structured.length === 0) {
             throw new Error(`No checkpoints found in ${targetPath}`);
         }
@@ -114,6 +132,24 @@ function objectName(otyp) {
 function monsterName(mndx) {
     const mon = mons[mndx];
     return mon?.mname || `mndx=${mndx}`;
+}
+
+function roomTypeName(rtype) {
+    if (rtype >= SHOPBASE) return `shop(${rtype - SHOPBASE})`;
+    switch (rtype) {
+    case OROOM: return 'ordinary';
+    case THEMEROOM: return 'themeroom';
+    case COURT: return 'court';
+    case SWAMP: return 'swamp';
+    case VAULT: return 'vault';
+    case BEEHIVE: return 'beehive';
+    case MORGUE: return 'morgue';
+    case BARRACKS: return 'barracks';
+    case ZOO: return 'zoo';
+    case DELPHI: return 'delphi';
+    case TEMPLE: return 'temple';
+    default: return `rtype=${rtype}`;
+    }
 }
 
 function whereName(where) {
@@ -190,6 +226,41 @@ function shortestPath(parsed, from, to) {
     }
     moves.reverse();
     return moves.join('');
+}
+
+function normalizeRooms(parsed) {
+    if (!Array.isArray(parsed?.rooms)) return [];
+    return parsed.rooms
+        .map((room, idx) => {
+            if (!room || !Number.isInteger(room.lx) || !Number.isInteger(room.hx)
+                || !Number.isInteger(room.ly) || !Number.isInteger(room.hy)) {
+                return null;
+            }
+            const roomnoidx = Number.isInteger(room.roomnoidx) ? room.roomnoidx : idx;
+            return {
+                ...room,
+                roomnoidx,
+                roomno: roomnoidx + ROOMOFFSET,
+                center: {
+                    x: Math.floor((room.lx + room.hx) / 2),
+                    y: Math.floor((room.ly + room.hy) / 2),
+                },
+            };
+        })
+        .filter(Boolean);
+}
+
+function interestingRooms(parsed) {
+    return normalizeRooms(parsed).filter((room) => room.rtype !== OROOM && room.rtype !== THEMEROOM);
+}
+
+function nearestInterestingRoom(parsed, hero) {
+    const rooms = interestingRooms(parsed);
+    if (rooms.length === 0) return null;
+    if (!hero) return rooms[0];
+    return rooms.slice().sort((a, b) =>
+        Math.abs(a.center.x - hero.x) + Math.abs(a.center.y - hero.y)
+        - (Math.abs(b.center.x - hero.x) + Math.abs(b.center.y - hero.y)))[0];
 }
 
 function mergeObjects(parsed) {
@@ -332,6 +403,76 @@ function inRadius(row, anchor, radius) {
     return Math.abs(row.x - anchor.x) <= radius && Math.abs(row.y - anchor.y) <= radius;
 }
 
+function terrainChar(parsed, x, y) {
+    const typ = gridCell(parsed.typGrid, x, y);
+    if (!Number.isInteger(typ)) return '?';
+    switch (typ) {
+    case STONE: return ' ';
+    case ROOM: return '.';
+    case CORR: return '#';
+    case DOOR: return '+';
+    case SDOOR: return 's';
+    case SCORR: return ':';
+    case VWALL:
+    case IRONBARS:
+        return '|';
+    case HWALL:
+        return '-';
+    case TLCORNER:
+    case TRCORNER:
+    case BLCORNER:
+    case BRCORNER:
+    case CROSSWALL:
+    case TUWALL:
+    case TDWALL:
+    case TLWALL:
+    case TRWALL:
+    case DBWALL:
+        return '+';
+    case STAIRS: {
+        const stair = (parsed.stairs || []).find((row) => row.x === x && row.y === y);
+        return stair?.up ? '<' : '>';
+    }
+    case LADDER:
+        return 'L';
+    case FOUNTAIN:
+        return '{';
+    case ALTAR:
+        return '_';
+    case GRAVE:
+        return '\\';
+    case SINK:
+        return '#';
+    case THRONE:
+        return '\\';
+    case TREE:
+        return 'T';
+    default:
+        return ACCESSIBLE(typ) ? '.' : '?';
+    }
+}
+
+function printTerrainNeighborhood(parsed, anchor, radius, hero) {
+    if (!anchor) return;
+    const x0 = Math.max(0, anchor.x - radius);
+    const x1 = Math.min(79, anchor.x + radius);
+    const y0 = Math.max(0, anchor.y - radius);
+    const y1 = Math.min(20, anchor.y + radius);
+    console.log('');
+    console.log(`Terrain around (${anchor.x},${anchor.y}) radius=${radius}`);
+    for (let y = y0; y <= y1; y++) {
+        const parts = [];
+        for (let x = x0; x <= x1; x++) {
+            let ch = terrainChar(parsed, x, y);
+            if (hero && x === hero.x && y === hero.y) ch = 'H';
+            else if (x === anchor.x && y === anchor.y) ch = '@';
+            parts.push(ch);
+        }
+        console.log(`${String(y).padStart(2, '0')}: ${parts.join('')}`);
+    }
+    console.log('Legend: H hero, @ anchor, .=room, #=corridor, +=door/wall junction, |=vertical wall/bars, -=horizontal wall, s=secret, :=secret corridor');
+}
+
 function printNeighborhood(parsed, anchor, radius, hero) {
     if (!anchor) return;
     const x0 = Math.max(0, anchor.x - radius);
@@ -387,7 +528,9 @@ function main() {
     const monsters = mergeMonsters(parsed);
     const objects = mergeObjects(parsed);
     const shkp = nearestShopkeeper(monsters, hero);
-    const anchor = shkp || hero;
+    const specialRooms = interestingRooms(parsed);
+    const nearestRoom = nearestInterestingRoom(parsed, hero);
+    const anchor = shkp || nearestRoom?.center || hero;
 
     console.log(`Source: ${sourceKind} ${sourcePath}`);
     console.log(`Checkpoint: ${resolvedCheckpoint}`);
@@ -399,6 +542,14 @@ function main() {
         console.log(`Nearest shopkeeper: (${shkp.x},${shkp.y}) room=${gridCell(parsed.roomnoGrid, shkp.x, shkp.y) ?? '?'} m_id=${shkp.m_id ?? '?'} hp=${shkp.mhp}/${shkp.mhpmax ?? '?'} peaceful=${shkp.mpeaceful ?? '?'} minvent=${shkp.minventCount ?? '?'}`);
     } else {
         console.log('Nearest shopkeeper: none');
+    }
+    if (specialRooms.length > 0) {
+        console.log('');
+        console.log(`Special rooms (${specialRooms.length})`);
+        for (const room of specialRooms) {
+            const path = hero ? shortestPath(parsed, hero, room.center) : null;
+            console.log(`- room=${room.roomno} ${roomTypeName(room.rtype)} box=(${room.lx},${room.ly})..(${room.hx},${room.hy}) center=(${room.center.x},${room.center.y}) lit=${room.rlit ?? '?'} needfill=${room.needfill ?? '?'} path=${path || 'no accessible path'}`);
+        }
     }
 
     const visibleMonsters = showAll ? monsters : monsters.filter((m) => inRadius(m, anchor, radius));
@@ -428,6 +579,13 @@ function main() {
         console.log('');
         console.log('Suggested paths from hero');
         const targets = [];
+        for (const room of specialRooms.slice(0, 8)) {
+            targets.push({
+                label: `${roomTypeName(room.rtype)} room ${room.roomno}`,
+                x: room.center.x,
+                y: room.center.y,
+            });
+        }
         if (shkp) {
             targets.push({ label: 'shopkeeper', x: shkp.x, y: shkp.y });
             const sameRoomObjects = objects
@@ -449,6 +607,14 @@ function main() {
         }
     }
 
+    if (hero && (!anchor || anchor.x !== hero.x || anchor.y !== hero.y)) {
+        printTerrainNeighborhood(parsed, hero, radius, hero);
+        console.log('');
+        printNeighborhood(parsed, hero, radius, hero);
+        console.log('');
+    }
+    printTerrainNeighborhood(parsed, anchor, radius, hero);
+    console.log('');
     printNeighborhood(parsed, anchor, radius, hero);
 }
 

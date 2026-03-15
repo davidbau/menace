@@ -12427,6 +12427,40 @@ Validation:
     - only one nearby hostile in the initial shop neighborhood
   - this is the right next probe target for building the first real
     branch-dense shop coverage session
+
+## 2026-03-15: post-`hi15` coverage refresh still leaves branch coverage below 60%, and structured reconnaissance should drive the next vault session
+
+- Ran a full `npm run coverage:session-parity:refresh` after promoting
+  [`hi15_seed42_barb_minetn5_shop-pay_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/shops-economy/hi15_seed42_barb_minetn5_shop-pay_gp.session.json).
+- New committed coverage snapshot:
+  - lines `58.09%`
+  - branches `59.50%`
+  - functions `42.18%`
+- Coverage impact from `hi15` was real and correctly targeted:
+  - `js/shk.js`: `26.01% -> 39.35%`
+  - `js/muse.js`: `33.50% -> 36.84%`
+- Conclusion:
+  - line coverage is no longer the immediate bottleneck
+  - branch coverage is still under `60%`, so the next session must be
+    branch-dense rather than merely long
+  - `js/vault.js` remains one of the largest low-coverage gameplay files
+- Tooling improvement:
+  - extended [`test/comparison/shop_checkpoint_debug.js`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/shop_checkpoint_debug.js)
+    so structured `wizload` checkpoints now print:
+    - special-room type/name
+    - room bounds and centers
+    - hero-to-room shortest-path strings
+- Real smoke test:
+  - on promoted `hi15`, the tool now surfaces Minetown’s structured shops and
+    temple with usable path strings from the hero
+- Practical rule:
+  - for future branch-dense sessions through shops, temples, vaults, quests,
+    and similar expensive areas, prefer structured `wizload` reconnaissance
+    over compact post-settle mapdumps when room-type knowledge matters
+- Follow-up:
+  - opened `#374` for the next reconnaissance-driven vault/guard coverage
+    session
+
 ## 2026-03-14: `show_map_spot()` must restore trap/object glyphs after `newsym()` during mapping
 
 - Problem:
@@ -12720,3 +12754,319 @@ Validation:
   - stable guardrails remained green:
     - `seed031_manual_direct`
     - `seed329_rogue_wizard_gameplay`
+### `selection.line()` must convert map-relative coordinates before `des.terrain()` edits
+
+- Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` showed the remaining early
+  Minetown setup drift was deterministic and present before wallification:
+  - JS and C matched in the local stair pocket at `after_map`,
+  - but diverged by `after_wallification_special`,
+  - while RNG was still aligned.
+- The crucial mismatch in the translated special-level helpers was:
+  - `selection.area()` already converted map-relative points through
+    `get_location_coord()`,
+  - `selection.line()` returned raw relative `{x,y}` pairs,
+  - `des.terrain(selection.line(...), ...)` then applied those raw points as if
+    they were absolute cells.
+- That is not C-faithful. In `nhlsel.c`, `selection.line()` routes both endpoints
+  through `get_location_coord(..., ANY_LOC, croom, SP_COORD_PACK(...))` before
+  constructing the line selection.
+- Fix:
+  - `js/sp_lev.js:selection.line()` now pushes
+    `selection._toAbsoluteCoord(x, y)` for each point on the line.
+- Validation:
+  - `hi15_seed42_barb_minetn5_shop-pay_gp`
+    - improved from:
+      - `RNG 5869/6221`
+      - `events 94/450`
+    - to:
+      - `RNG 5902/6221`
+      - `events 212/449`
+      - first RNG divergence now at step `32` instead of the old step-`5`
+        Minetown setup blocker
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
+- This is a broad special-level translation fix, not a Minetown-only patch;
+  any translated level script using `des.terrain(selection.line(...), ...)`
+  under map-relative coordinate mode depends on this behavior.
+
+### `hi15` shop payment bring-up: ESHK billing state and billed-purchase messaging
+
+- While bringing up `hi15_seed42_barb_minetn5_shop-pay_gp`, the `#pay` path
+  initially failed before the billed-items menu because JS was reading bill
+  state from the shopkeeper monster shell instead of `ESHK(shkp)`.
+- The C-faithful fix was to route `make_itemized_bill()` and related billing
+  helpers through `ESHK(shkp)` and to zero-initialize `credit`, `debit`,
+  `loan`, `bill`, and `billct` in `neweshk()`/`shkinit()`.
+- That exposed the next missing C behavior: `dopayobj()` must call
+  `shk_names_obj()` after a successful billed purchase so the player sees
+  `You bought ...` before the later shopkeeper thank-you.
+- For object wishing, bypassing weighted `rnd_otyp_by_namedesc()` is only safe
+  for true coin wishes (`gold`, `gold piece(s)`, `zorkmid(s)`). Applying the
+  same shortcut to all `forcedTyp` resolutions regressed normal item wishes
+  like `gray dragon scale mail`.
+- Status after these fixes:
+  - `hi15` now has full RNG and event parity through the payment path.
+  - Remaining `hi15` mismatches are down to the post-payment gold total on the
+    status line and the older teleport cursor boundary.
+  - `seed031_manual_direct` and `seed329_rogue_wizard_gameplay` stayed green.
+
+### `hi15` final shop-payment gold sync: partial coin-stack payment must update `player.gold`
+
+- After the billed purchase path was green on RNG/events, `hi15` still had one
+  screen mismatch at step `57`: JS showed `$:1000` while C showed `$:970`.
+- Root cause: `shk.js:money2mon()` used `splitobj()` for partial payment from a
+  carried coin stack, then tried to `removeFromInventory(payment)`. But the
+  split-off payment object is detached; the carried stack remains in inventory
+  with reduced `quan`, so the hero's `player.gold` shadow never changed.
+- Fix:
+  - debit `player.gold` directly in the partial-stack branch of `money2mon()`.
+- Result:
+  - `hi15_seed42_barb_minetn5_shop-pay_gp` became gameplay-green.
+  - remaining mismatch is cursor-only at step `29`, which is non-gating for
+    gameplay parity.
+  - `seed031_manual_direct` and `seed329_rogue_wizard_gameplay` stayed green.
+
+### Gameplay recon: explicit `#dumpsnap` checkpoints are usable inside ordinary session probes
+
+- For ordinary gameplay coverage probes, the existing C harness already had the
+  raw ingredients for step-local reconnaissance, but they were split across two
+  paths:
+  - gameplay `run_session.py` set `NETHACK_MAPDUMP_DIR` and collected compact
+    auto-mapdump checkpoints only at level-transition boundaries;
+  - wizload `run_session.py` read structured `checkpoints.jsonl` entries, but
+    gameplay did not.
+- Two small harness/tool fixes make ordinary gameplay recon much more useful:
+  - `test/comparison/c-harness/run_session.py`
+    - gameplay sessions now set `NETHACK_DUMPSNAP=<checkpoint_file>`;
+    - gameplay step capture now reads any new structured checkpoint entries
+      from that file and attaches them to the corresponding step as
+      `step.checkpoints`, mirroring wizload behavior.
+  - `test/comparison/shop_checkpoint_debug.js`
+    - if a requested session checkpoint id is not found in top-level compact
+      `mapdumpCheckpoints`, it now falls back to step-attached structured
+      checkpoints like `52:afterwest:0`;
+    - it also prints the hero neighborhood separately when the anchor is a
+      special room rather than the hero.
+- Practical workflow:
+  - in a raw gameplay probe, insert `#dumpsnap`, then provide a short phase tag
+    and press `Enter`;
+  - inspect the resulting tagged checkpoint with
+    `shop_checkpoint_debug.js <session> <step:phase:index>`.
+- This is useful for reconnaissance-driven Phase 3 work because it lets us
+  inspect hard-to-reach ordinary-level states, like long digging routes toward
+  a vault, without adding comparator exceptions or gameplay-side hacks.
+
+### Knox generator parity: await `selection.iterate()` when the callback is async
+
+- `js/levels/knox.js` defines `async function treasure_spot(x, y)` for the
+  vault treasury tiles because each spot can place gold and optionally create a
+  trap.
+- JS then called `treasury.iterate(treasure_spot)` without `await`, even
+  though `selection.iterate()` itself is async and preserves the C y-major
+  ordering only when awaited.
+- That let later generator code run too early, so the first `wizload knox`
+  parity divergence happened inside generation:
+  - before fix: first RNG divergence at step `5`, index `2336`
+    - JS: `rn2(100)=22 @ percent(sp_lev.js:7239) <= generate(knox.js:83)`
+    - C: `rn2(301)=226 @ random src=nhlib.lua:10 parent=lua(knox.lua:58)`
+- Fix:
+  - change `treasury.iterate(treasure_spot);` to
+    `await treasury.iterate(treasure_spot);`
+- Result on `/tmp/knox_candidate1.session.json`:
+  - first RNG divergence moved later from index `2336` to `5372`
+  - guardrails `seed031_manual_direct` and
+    `seed329_rogue_wizard_gameplay` stayed green.
+- Practical rule:
+  - when a translated special-level callback is async, always `await`
+    `selection.iterate(...)`; otherwise RNG from later level-generation
+    branches can interleave ahead of the intended C/Lua order.
+### `t11_s755` canceled directed spell: zero direction must self-zap, and force-bolt self-zap must use C dice logging
+
+- `t11_s755_w_covmax9_gp` was diverging at step `652` on a canceled directed
+  `force bolt` cast:
+  - JS: `The magical energy is released!  The kitten drops a gold piece.`
+  - C: `The magical energy is released!  You bash yourself!`
+- The root cause was in `js/spell.js:spelleffects()`.
+  - After the existing canceled-`getdir()` handling, JS always dispatched
+    directed spells through `weffects(...)`.
+  - C `spell.c` instead routes zero remembered direction through
+    `zapyourself(...)`, and only non-zero direction through `weffects(...)`.
+- Fix:
+  - `js/spell.js:spelleffects()` now checks `!player.dx && !player.dy &&
+    !player.dz` and calls `zapyourself(...)` for the zero-direction case.
+- That exposed a second C-shape mismatch in `js/zap.js:zapyourself()`.
+  - The `WAN_STRIKING` / `SPE_FORCE_BOLT` self-zap branch was using Lua-style
+    `d(...)`, which logs individual `rn2(...)` calls.
+  - C `zap.c` uses `d(2,12)` / `d(spe+1,6)` from `rnd.c`, logged as a
+    composite `d(...)` entry before the later `exercise(...)` RNG.
+- Fix:
+  - switched that self-zap damage roll to `c_d(...)`.
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved from:
+      - `RNG 3456/26517`
+      - first RNG divergence at step `652`
+    - to:
+      - `RNG 22759/26517`
+      - first RNG divergence at step `1669`
+      - new frontier in special-level scripted monster creation:
+        `resolveMonsterIndex(sp_lev.js)` vs `rndmonst_adj(makemon.c)`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
+
+### `sp_lev` object-form `des.monster({...})` must stay random when `id`/`class` is omitted
+
+- `t11_s755_w_covmax9_gp` next diverged at step `1669` during special-level
+  monster creation:
+  - JS: `resolveMonsterIndex(sp_lev.js)` starting with `rn2(9)=1`
+  - C: `rndmonst_adj(makemon.c)` starting with `rn2(3)=1`
+- The root cause was a JS default in `createScriptMonster()`:
+  - object-form monster specs were using `opts.id || opts.class || '@'`
+  - so `des.monster({ x: ..., y: ... })` was treated like an explicit `'@'`
+    class request
+  - C does not do that; missing `id`/`class` stays unspecified and falls
+    through to `makemon(NULL, ...)`, which is the `rndmonst_adj()` path.
+- Fix:
+  - `js/sp_lev.js:createScriptMonster()` now uses
+    `opts.id ?? opts.class ?? null`
+  - it only rejects the truly empty-string monster id, not `null`
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved from:
+      - `RNG 22759/26517`
+      - `events 6262/7287`
+      - first RNG divergence at step `1669`
+    - to:
+      - `RNG 26238/26780`
+      - `events 6815/7474`
+      - first RNG divergence at step `1700`
+      - new frontier in later monster action timing:
+        JS `dochug(monmove.js)` vs C `monmulti(mthrowu.c)`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
+
+### Knox parity: irregular zoo fill and arrival-wall lighting (2026-03-15)
+
+- `wizload knox` on `/tmp/knox_candidate1.session.json` had two separate blockers:
+  1. gameplay drift in `fill_zoo_room()` for the irregular entry zoo,
+  2. a screen-only mismatch on the arrival chamber wall after gameplay was already green.
+- The gameplay fix in [js/dungeon.js](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js) was:
+  - keep the existing `SPACE_POS`-style wall guard for irregular rooms,
+  - add the missing C constraints that matter on this level:
+    - `loc.roomno === rmno`
+    - `distmin(sx, sy, door.x, door.y) > 1`
+- This was the safe version of the C logic. A straight `edge`-based port was too risky on the current JS special-level metadata path, but `roomno + distmin` moved `knox` to full RNG/event parity without regressing `seed031` or `seed329`.
+- The remaining screen mismatch was the arrival chamber bottom wall/corner showing on the first Knox screen when C left that row blank.
+- The translated [js/levels/knox.js](/share/u/davidbau/git/mazesofmenace/game/js/levels/knox.js) already carried a level-script workaround to unlight the left and top arrival walls. Extending that workaround to the bottom wall and its bottom-right corner matched the C capture and made the session fully green.
+- Result:
+  - promoted [hi16_seed1200_wiz_knox_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/quest-special-levels/hi16_seed1200_wiz_knox_gp.session.json)
+  - `RNG 11601/11601`
+  - `screens 10/10`
+  - `colors 240/240`
+  - `events 1999/1999`
+  - `cursor 10/10`
+
+### `monmulti()` must roll before class and racial bonuses
+
+- `t11_s755_w_covmax9_gp` next diverged at step `1700` on a gnome lord's
+  crossbow attack:
+  - JS: `rnd(3)=3 @ dochug(monmove.js)`
+  - C: `rnd(2)=2 @ monmulti(mthrowu.c)`
+- The acting monster and loadout were aligned:
+  - monster `166` = gnome lord
+  - launcher `CROSSBOW`
+  - projectile `CROSSBOW_BOLT`
+- The mismatch was in `js/mthrowu.js:monmulti()`.
+  - JS was adding `multishot_class_bonus(...)` and the racial
+    elf/orc/gnome ammo bonus before `rnd(multishot)`.
+  - C `mthrowu.c:monmulti()` rolls `rnd(multishot)` first, then adds class
+    and racial bonuses afterward.
+- Fix:
+  - leave prince/lord/launcher-enchantment bonuses in the pre-roll bucket
+  - move `multishot_class_bonus(...)` and the racial ammo bonus to the
+    post-`rnd(multishot)` path
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved from:
+      - `RNG 26238/26780`
+      - first RNG divergence at step `1700`
+    - to:
+      - `RNG 26239/26780`
+      - first RNG divergence at step `1733`
+      - new frontier:
+        JS `rn2(5)=1 @ dochug(monmove.js)` vs
+        C `rn2(20)=16 @ gethungry(eat.c)`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
+
+### Vault coverage reconnaissance: scan seed/dlevel pairs first, then route the winning vault (2026-03-15)
+
+- The first "vault" route on `seed1200/dlvl12` was not an ordinary vault-guard
+  candidate at all. The calibrated probe reached a magic portal into Knox:
+  - `You activated a magic portal!--More--`
+- Blind route tuning there was the wrong optimization target.
+- To stop repeating that mistake, add a dedicated C-grounded scanner:
+  - [test/comparison/level_recon_scan.js](/share/u/davidbau/git/mazesofmenace/game/test/comparison/level_recon_scan.js)
+- Workflow:
+  1. probe seed/dlevel pairs through `run_session.py` with `#dumpsnap`
+  2. extract the best structured or compact checkpoint
+  3. list matching special rooms with:
+     - hero coordinate
+     - taxi distance
+     - center/bounds
+     - direct accessible path if one exists
+  4. only then use [shop_checkpoint_debug.js](/share/u/davidbau/git/mazesofmenace/game/test/comparison/shop_checkpoint_debug.js) to design the actual coverage route
+- Early useful hits for ordinary vault work:
+  - `seed700/dlvl4`
+    - hero `(34,17)`
+    - vault center `(19,16)`
+    - taxi distance `16`
+  - `seed1200/dlvl2`
+    - hero `(46,11)`
+    - vault center `(59,16)`
+    - taxi distance `18`
+  - `seed1200/dlvl3`
+    - hero `(57,2)`
+    - vault center `(64,14)`
+    - taxi distance `19`
+- Takeaway:
+  - for vault, temple, shop, quest, and other branch-dense coverage sessions,
+    first solve "which level is worth routing?" with a short scanner pass
+    instead of hand-probing one candidate blindly.
+
+### `hi17` ordinary vault route: seed700/dlvl4 reaches real guard summon, and the first blocker is JS failing to enter `invault()` summon behavior (2026-03-15)
+
+- The first successful ordinary-vault candidate is:
+  - `seed700/dlvl4`
+  - route shape:
+    - wizard levelport to dlvl `4`
+    - wish `wand of digging`
+    - route to the nearest clean dig square at `(28,16)` via `hhhyhh`
+    - dig west into the vault
+    - step onto the gold and pick it up
+    - wait long enough for the guard timer
+    - answer the guard prompt with `Wizard`
+    - comply with `d$`
+- That route is now recorded as pending:
+  - [hi17_seed700_w_vault-guard_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/hi17_seed700_w_vault-guard_gp.session.json)
+- Useful C-visible milestones from the session:
+  - `Suddenly one of the Vault's guards enters!--More--`
+  - `"Hello stranger, who are you?"`
+  - `"I don't know you."--More--`
+  - `"Most likely all your gold was stolen from this vault."--More--`
+  - `"Please drop that gold and follow me."`
+  - `d$` cleanly drops the carried gold
+- Authoritative JS first divergence on the new pending session:
+  - step `65`
+  - C enters `invault(vault.c)` guard creation:
+    - `rnd(2)=2 @ next_ident(mkobj.c:522)`
+    - stack includes `makemon @ invault(vault.c:407)`
+  - JS does not summon the guard there and instead continues ordinary turn RNG:
+    - `rn2(82)=67 @ moveloop_core(allmain.js:246)`
+- Practical diagnosis:
+  - this is not a recorder artifact
+  - the new session proves the next real blocker is ordinary-vault state ownership on the JS side, most likely around whether the dug-in hero state is being recognized as `vault_occupied(...)` before `allmain.invault()`

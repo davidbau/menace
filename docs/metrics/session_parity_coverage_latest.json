@@ -1,7 +1,7 @@
 {
   "kind": "session_parity_coverage_snapshot_v1",
-  "generatedAt": "2026-03-14T23:30:14.676Z",
-  "commit": "05479062bd47e01a219b85966671a0f62409f171",
+  "generatedAt": "2026-03-15T07:08:37.932Z",
+  "commit": "2a424ff89b6411a6b64536b09d113a201b0ca438",
   "sourceSummaryPath": "/share/u/davidbau/git/mazesofmenace/game/coverage/coverage-summary.json",
   "filters": {
     "top": 50,
@@ -10,9 +10,9 @@
     "includeGenerated": false
   },
   "overall": {
-    "linesPct": 57.45,
-    "branchesPct": 59.46,
-    "functionsPct": 41.06
+    "linesPct": 58.23,
+    "branchesPct": 59.65,
+    "functionsPct": 42.24
   },
   "filteredCount": 112,
   "lowestCovered": [
@@ -112,25 +112,6 @@
       }
     },
     {
-      "relPath": "js/shk.js",
-      "baseName": "shk.js",
-      "lines": {
-        "total": 3425,
-        "covered": 891,
-        "pct": 26.01
-      },
-      "branches": {
-        "total": 119,
-        "covered": 40,
-        "pct": 33.61
-      },
-      "functions": {
-        "total": 159,
-        "covered": 15,
-        "pct": 9.43
-      }
-    },
-    {
       "relPath": "js/mkmaze.js",
       "baseName": "mkmaze.js",
       "lines": {
@@ -139,9 +120,9 @@
         "pct": 27.55
       },
       "branches": {
-        "total": 140,
-        "covered": 78,
-        "pct": 55.71
+        "total": 143,
+        "covered": 82,
+        "pct": 57.34
       },
       "functions": {
         "total": 54,
@@ -291,33 +272,14 @@
         "pct": 33.28
       },
       "branches": {
-        "total": 88,
-        "covered": 33,
-        "pct": 37.5
+        "total": 87,
+        "covered": 32,
+        "pct": 36.78
       },
       "functions": {
         "total": 8,
         "covered": 4,
         "pct": 50
-      }
-    },
-    {
-      "relPath": "js/muse.js",
-      "baseName": "muse.js",
-      "lines": {
-        "total": 2495,
-        "covered": 836,
-        "pct": 33.5
-      },
-      "branches": {
-        "total": 398,
-        "covered": 143,
-        "pct": 35.92
-      },
-      "functions": {
-        "total": 70,
-        "covered": 9,
-        "pct": 12.85
       }
     },
     {
@@ -363,18 +325,37 @@
       "baseName": "trap.js",
       "lines": {
         "total": 3215,
-        "covered": 1138,
-        "pct": 35.39
+        "covered": 1159,
+        "pct": 36.04
       },
       "branches": {
-        "total": 356,
-        "covered": 186,
-        "pct": 52.24
+        "total": 364,
+        "covered": 189,
+        "pct": 51.92
       },
       "functions": {
         "total": 142,
-        "covered": 38,
-        "pct": 26.76
+        "covered": 39,
+        "pct": 27.46
+      }
+    },
+    {
+      "relPath": "js/muse.js",
+      "baseName": "muse.js",
+      "lines": {
+        "total": 2500,
+        "covered": 921,
+        "pct": 36.84
+      },
+      "branches": {
+        "total": 441,
+        "covered": 164,
+        "pct": 37.18
+      },
+      "functions": {
+        "total": 70,
+        "covered": 13,
+        "pct": 18.57
       }
     },
     {
@@ -435,41 +416,41 @@
       }
     },
     {
-      "relPath": "js/mhitu.js",
-      "baseName": "mhitu.js",
+      "relPath": "js/shk.js",
+      "baseName": "shk.js",
       "lines": {
-        "total": 2617,
-        "covered": 1024,
-        "pct": 39.12
+        "total": 3580,
+        "covered": 1409,
+        "pct": 39.35
       },
       "branches": {
-        "total": 448,
-        "covered": 224,
-        "pct": 50
+        "total": 376,
+        "covered": 111,
+        "pct": 29.52
       },
       "functions": {
-        "total": 89,
-        "covered": 30,
-        "pct": 33.7
+        "total": 163,
+        "covered": 47,
+        "pct": 28.83
       }
     },
     {
       "relPath": "js/display.js",
       "baseName": "display.js",
       "lines": {
-        "total": 2772,
-        "covered": 1093,
-        "pct": 39.43
+        "total": 2856,
+        "covered": 1138,
+        "pct": 39.84
       },
       "branches": {
-        "total": 370,
-        "covered": 225,
-        "pct": 60.81
+        "total": 388,
+        "covered": 230,
+        "pct": 59.27
       },
       "functions": {
-        "total": 119,
-        "covered": 48,
-        "pct": 40.33
+        "total": 125,
+        "covered": 51,
+        "pct": 40.8
       }
     },
     {
@@ -530,17 +511,36 @@
       }
     },
     {
+      "relPath": "js/mhitu.js",
+      "baseName": "mhitu.js",
+      "lines": {
+        "total": 2612,
+        "covered": 1086,
+        "pct": 41.57
+      },
+      "branches": {
+        "total": 481,
+        "covered": 232,
+        "pct": 48.23
+      },
+      "functions": {
+        "total": 89,
+        "covered": 33,
+        "pct": 37.07
+      }
+    },
+    {
       "relPath": "js/read.js",
       "baseName": "read.js",
       "lines": {
         "total": 2285,
-        "covered": 955,
-        "pct": 41.79
+        "covered": 957,
+        "pct": 41.88
       },
       "branches": {
-        "total": 223,
-        "covered": 92,
-        "pct": 41.25
+        "total": 224,
+        "covered": 94,
+        "pct": 41.96
       },
       "functions": {
         "total": 70,
@@ -568,44 +568,6 @@
       }
     },
     {
-      "relPath": "js/pickup.js",
-      "baseName": "pickup.js",
-      "lines": {
-        "total": 2565,
-        "covered": 1076,
-        "pct": 41.94
-      },
-      "branches": {
-        "total": 316,
-        "covered": 144,
-        "pct": 45.56
-      },
-      "functions": {
-        "total": 98,
-        "covered": 29,
-        "pct": 29.59
-      }
-    },
-    {
-      "relPath": "js/detect.js",
-      "baseName": "detect.js",
-      "lines": {
-        "total": 1159,
-        "covered": 492,
-        "pct": 42.45
-      },
-      "branches": {
-        "total": 143,
-        "covered": 64,
-        "pct": 44.75
-      },
-      "functions": {
-        "total": 56,
-        "covered": 16,
-        "pct": 28.57
-      }
-    },
-    {
       "relPath": "js/dog.js",
       "baseName": "dog.js",
       "lines": {
@@ -622,6 +584,44 @@
         "total": 31,
         "covered": 12,
         "pct": 38.7
+      }
+    },
+    {
+      "relPath": "js/pickup.js",
+      "baseName": "pickup.js",
+      "lines": {
+        "total": 2643,
+        "covered": 1144,
+        "pct": 43.28
+      },
+      "branches": {
+        "total": 342,
+        "covered": 154,
+        "pct": 45.02
+      },
+      "functions": {
+        "total": 103,
+        "covered": 34,
+        "pct": 33
+      }
+    },
+    {
+      "relPath": "js/detect.js",
+      "baseName": "detect.js",
+      "lines": {
+        "total": 1184,
+        "covered": 514,
+        "pct": 43.41
+      },
+      "branches": {
+        "total": 156,
+        "covered": 74,
+        "pct": 47.43
+      },
+      "functions": {
+        "total": 56,
+        "covered": 16,
+        "pct": 28.57
       }
     },
     {
@@ -690,9 +690,9 @@
         "pct": 45.77
       },
       "branches": {
-        "total": 183,
-        "covered": 64,
-        "pct": 34.97
+        "total": 184,
+        "covered": 66,
+        "pct": 35.86
       },
       "functions": {
         "total": 44,
@@ -761,14 +761,14 @@
       "relPath": "js/dothrow.js",
       "baseName": "dothrow.js",
       "lines": {
-        "total": 1478,
-        "covered": 690,
-        "pct": 46.68
+        "total": 1481,
+        "covered": 693,
+        "pct": 46.79
       },
       "branches": {
-        "total": 285,
-        "covered": 133,
-        "pct": 46.66
+        "total": 292,
+        "covered": 142,
+        "pct": 48.63
       },
       "functions": {
         "total": 62,
@@ -781,13 +781,13 @@
       "baseName": "apply.js",
       "lines": {
         "total": 1332,
-        "covered": 647,
-        "pct": 48.57
+        "covered": 650,
+        "pct": 48.79
       },
       "branches": {
-        "total": 199,
-        "covered": 140,
-        "pct": 70.35
+        "total": 200,
+        "covered": 142,
+        "pct": 71
       },
       "functions": {
         "total": 79,
@@ -823,9 +823,9 @@
         "pct": 49.09
       },
       "branches": {
-        "total": 342,
-        "covered": 169,
-        "pct": 49.41
+        "total": 344,
+        "covered": 172,
+        "pct": 50
       },
       "functions": {
         "total": 120,
@@ -895,37 +895,18 @@
       "baseName": "end.js",
       "lines": {
         "total": 1177,
-        "covered": 609,
-        "pct": 51.74
+        "covered": 611,
+        "pct": 51.91
       },
       "branches": {
-        "total": 88,
-        "covered": 23,
-        "pct": 26.13
+        "total": 90,
+        "covered": 28,
+        "pct": 31.11
       },
       "functions": {
         "total": 39,
         "covered": 12,
         "pct": 30.76
-      }
-    },
-    {
-      "relPath": "js/wizcmds.js",
-      "baseName": "wizcmds.js",
-      "lines": {
-        "total": 1075,
-        "covered": 558,
-        "pct": 51.9
-      },
-      "branches": {
-        "total": 55,
-        "covered": 22,
-        "pct": 40
-      },
-      "functions": {
-        "total": 50,
-        "covered": 8,
-        "pct": 16
       }
     },
     {
@@ -948,17 +929,36 @@
       }
     },
     {
+      "relPath": "js/save.js",
+      "baseName": "save.js",
+      "lines": {
+        "total": 332,
+        "covered": 174,
+        "pct": 52.4
+      },
+      "branches": {
+        "total": 1,
+        "covered": 1,
+        "pct": 100
+      },
+      "functions": {
+        "total": 24,
+        "covered": 0,
+        "pct": 0
+      }
+    },
+    {
       "relPath": "js/spell.js",
       "baseName": "spell.js",
       "lines": {
         "total": 1905,
-        "covered": 995,
-        "pct": 52.23
+        "covered": 999,
+        "pct": 52.44
       },
       "branches": {
-        "total": 326,
-        "covered": 143,
-        "pct": 43.86
+        "total": 329,
+        "covered": 148,
+        "pct": 44.98
       },
       "functions": {
         "total": 67,

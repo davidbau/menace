@@ -38,7 +38,7 @@ import { objectData, WAND_CLASS, TOOL_CLASS, WEAPON_CLASS, SCROLL_CLASS,
          WAN_DIGGING, WAN_NOTHING,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT, WAN_CREATE_MONSTER, WAN_WISHING,
          WAN_SLOW_MONSTER, WAN_SPEED_MONSTER, WAN_UNDEAD_TURNING,
-         WAN_POLYMORPH, WAN_CANCELLATION, WAN_TELEPORTATION,
+         WAN_POLYMORPH, POT_POLYMORPH, WAN_CANCELLATION, WAN_TELEPORTATION,
          WAN_MAKE_INVISIBLE, WAN_LOCKING, WAN_PROBING, WAN_OPENING,
          WAN_LIGHT,
          SPE_FORCE_BOLT, SPE_KNOCK, SPE_WIZARD_LOCK,
@@ -1123,8 +1123,11 @@ export async function bhitm(mon, otmp, map, player) {
     const zap_type_text = otyp === WAN_STRIKING ? 'wand' : 'spell';
     const mac = find_mac ? find_mac(mon) : (mon.mac || 10);
     if (rnd(20) < 10 + mac) {
-      const dmg = d(2, 12);
-      resist(mon, otmp.oclass);
+      let dmg = d(2, 12);
+      // C ref: zap.c:209 — resist() halves damage if monster resists
+      if (resist(mon, otmp.oclass)) {
+        dmg = Math.floor((dmg + 1) / 2);
+      }
       mon.mhp -= dmg;
     } else {
       await miss(zap_type_text, mon);
@@ -1158,6 +1161,7 @@ export async function bhitm(mon, otmp, map, player) {
   }
   case WAN_POLYMORPH:
   case SPE_POLYMORPH:
+  case POT_POLYMORPH:
     // C: resists_magm gate (no RNG) before resist() call
     if ((mons[mon.mndx]?.mr || 0) > 50) {
       // magic resistance blocks polymorph — no RNG consumed
@@ -2409,7 +2413,9 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       await pline('Boing!');
     } else {
       if (ordinary) await pline('You bash yourself!');
-      damage = ordinary ? d(2, 12) : d(1 + Math.max(0, obj.spe || 0), 6);
+      damage = ordinary
+        ? c_d(2, 12)
+        : c_d(1 + Math.max(0, obj.spe || 0), 6);
       await exercise(player, A_STR, false);
     }
     break;

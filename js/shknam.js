@@ -527,13 +527,19 @@ function shkinit(shp, shp_indx, sroom, map, depth, ubirthday, ledgerNo) {
     shk.following = false;
     shk.billct = 0;
     shk.robbed = 0;
+    shk.credit = 0;
     shk.debit = 0;
+    shk.loan = 0;
+    shk.surcharge = 0;
     eshkp.following = false;
     eshkp.bill = [];
     eshkp.bill_p = eshkp.bill;
     eshkp.billct = 0;
+    eshkp.credit = 0;
     eshkp.robbed = 0;
     eshkp.debit = 0;
+    eshkp.loan = 0;
+    eshkp.surcharge = 0;
 
     // C ref: shknam.c:682 — mkmonmoney(shk, 1000 + 30 * rnd(100))
     const capital = 1000 + 30 * rnd(100);
@@ -801,6 +807,14 @@ export function neweshk(mtmp) {
     mtmp.mextra.eshk = {
         ...mtmp.mextra.eshk,
         parentmid: mtmp.m_id || 0,
+        bill: [],
+        billct: 0,
         bill_p: null,
+        credit: 0,
+        debit: 0,
+        loan: 0,
+        robbed: 0,
+        surcharge: 0,
+        following: false,
     };
 }

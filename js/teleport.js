@@ -38,8 +38,76 @@ import { set_apparxy, mon_track_clear } from './monmove.js';
 import { pline } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { Monnam, Amonnam, mon_nam } from './do_name.js';
+import { maybeHandleShopEntryMessage, describeGroundObjectForPlayer } from './shk.js';
 import { deltrap } from './dungeon.js';
 import { couldsee } from './vision.js';
+
+function pendingToplineNeedsAck(display) {
+    return !!(display?.messageNeedsMore
+        && (display?.moreMarkerActive || display?._topMessageAfterMore));
+}
+
+function dismissOwnedToplineMore(game) {
+    const display = game?.display;
+    if (!display) return;
+    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+    if (Object.hasOwn(display, '_topMessageAfterMore')) display._topMessageAfterMore = false;
+    if (Object.hasOwn(display, '_nextTopMessageAfterMore')) display._nextTopMessageAfterMore = false;
+    if (typeof display.clearRow === 'function') {
+        display.clearRow(0);
+        if (display._topMessageRow1 !== undefined) {
+            display.clearRow(1);
+            display._topMessageRow1 = undefined;
+        }
+    }
+}
+
+function installTeleportArrivalMorePrompt(game, oldX, oldY) {
+    if (!game?.display || !pendingToplineNeedsAck(game.display)) return;
+    let stage = 0;
+    game._pendingDeferredTurnAfterMore = true;
+    game.pendingPrompt = {
+        type: 'teleport_arrival_more',
+        onKey: async (chCode, gameCtx) => {
+            if (chCode !== 32 && chCode !== 10 && chCode !== 13
+                && chCode !== 27 && chCode !== 16) {
+                return { handled: true, moved: false, tookTime: false, prompt: true };
+            }
+
+            dismissOwnedToplineMore(gameCtx);
+
+            if (stage === 0) {
+                stage = 1;
+                if (Object.hasOwn(gameCtx.display || {}, '_nextTopMessageAfterMore')) {
+                    gameCtx.display._nextTopMessageAfterMore = true;
+                }
+                await maybeHandleShopEntryMessage(gameCtx, oldX, oldY);
+                if (pendingToplineNeedsAck(gameCtx.display)) {
+                    return { handled: true, moved: false, tookTime: false, prompt: true };
+                }
+            }
+
+            if (stage === 1) {
+                stage = 2;
+                const objs = gameCtx.map?.objectsAt
+                    ? gameCtx.map.objectsAt(gameCtx.player.x, gameCtx.player.y)
+                    : [];
+                if (objs.length === 1) {
+                    await pline(`You see here ${describeGroundObjectForPlayer(objs[0], gameCtx.player, gameCtx.map)}.`);
+                    if (pendingToplineNeedsAck(gameCtx.display)) {
+                        return { handled: true, moved: false, tookTime: false, prompt: true };
+                    }
+                }
+            }
+
+            gameCtx.pendingPrompt = null;
+            gameCtx._pendingDeferredTurnAfterMore = false;
+            return { handled: true, moved: false, tookTime: true, prompt: true };
+        },
+    };
+}
 
 // ============================================================================
 // Flags (cf. hack.h)
@@ -736,6 +804,7 @@ export async function teleds(nx, ny, flags, game) {
     if (is_teleport) {
         const same = (nx === ux0 && ny === uy0);
         await pline(`You materialize in ${same ? "the same" : "a different"} location!`);
+        if (game) installTeleportArrivalMorePrompt(game, ux0, uy0);
     }
 }
 

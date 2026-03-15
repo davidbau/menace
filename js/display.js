@@ -41,8 +41,9 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          BOLT_LIM,
          MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
          MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON,
-         def_warnsyms, WARNCOUNT, ECMD_OK } from './const.js';
-import { cansee, couldsee, clear_vision_full_recalc } from './vision.js';
+         def_warnsyms, WARNCOUNT, ECMD_OK,
+         BEAR_TRAP, WEB, is_pit } from './const.js';
+import { cansee, couldsee, clear_vision_full_recalc, block_point, unblock_point } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
 import { worm_known } from './worm.js';
@@ -2147,17 +2148,29 @@ export async function under_ground(mode, player) {
   else { newsym(player.x, player.y); }
 }
 
-// Autotranslated from display.c:1520
+// C ref: display.c:1520 mimic_light_blocking()
+// C ref: monst.h is_lightblocker_mappear() — boulder mimic, or furniture
+// mimic disguised as wall/closed door/tree blocks light.
 export function mimic_light_blocking(mtmp) {
-  if (mtmp.minvis && is_lightblocker_mappear(mtmp)) {
-    if (See_invisible) block_point(mtmp.mx, mtmp.my);
-    else {
-      unblock_point(mtmp.mx, mtmp.my);
-    }
-  }
+  if (!mtmp || !mtmp.minvis) return;
+  const apType = Number(mtmp.m_ap_type ?? mtmp.mappearanceType ?? 0);
+  const app = mtmp.mappearance;
+  // C: is_lightblocker_mappear — checks boulder object mimic, or furniture
+  // mimic with wall/closed door/tree appearance
+  const isLightBlocker =
+      (apType === 2 /* M_AP_OBJECT */ && app === 472 /* BOULDER */)
+      || (apType === 1 /* M_AP_FURNITURE */
+          && (app === 16 /* S_hcdoor */ || app === 15 /* S_vcdoor */
+              || app < 12 /* S_ndoor = walls */
+              || app === 18 /* S_tree */));
+  if (!isLightBlocker) return;
+  const player = _gstate?.player;
+  const seeInvis = !!(player?.seeInvisible || player?.See_invisible);
+  if (seeInvis) block_point(mtmp.mx, mtmp.my);
+  else unblock_point(mtmp.mx, mtmp.my);
 }
 
-// Autotranslated from display.c:1536
+// C ref: display.c:1536 set_mimic_blocking()
 export function set_mimic_blocking() {
   const map = _gstate?.map;
   const monsters = Array.isArray(map?.monsters) ? map.monsters : [];
@@ -2446,6 +2459,15 @@ export function newsym(x, y, ctxOrMap = null) {
         return { ch: sym.ch, color: rememberedColor };
     };
 
+    // C ref: display.c:930-935 — when swallowed, only show hero at own position
+    if (player?.uswallow || player?.engulfed) {
+        if (x === player.x && y === player.y) {
+            const heroGlyph = playerMapGlyph(player);
+            putMapCell(display, loc, map, col, row, heroGlyph.ch, heroGlyph.color);
+        }
+        return;
+    }
+
     // C ref: always render the player glyph at the hero's position,
     // even when out of FOV (e.g. during levitation on stairs).
     // When mounted, C shows the steed glyph on hero square instead.
@@ -2465,6 +2487,14 @@ export function newsym(x, y, ctxOrMap = null) {
             const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
             putMapCell(display, loc, map, col, row, glyph.ch, glyph.color, 1);
+            mon.meverseen = 1;
+            return;
+        }
+        // C ref: display.c:1039-1040 — infravision: see warm-blooded monsters
+        if (mon && see_with_infrared(mon, player) && monVisibleForMap(mon, player)) {
+            const hallu = !!(player?.Hallucination || player?.hallucinating);
+            const glyph = monsterMapGlyph(mon, hallu);
+            putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
             mon.meverseen = 1;
             return;
         }
@@ -2511,6 +2541,8 @@ export function newsym(x, y, ctxOrMap = null) {
     }
 
     // --- Visible (in FOV) ---
+    // C ref: display.c:958 — update waslit for this tile
+    loc.waslit = !!(loc.lit);
     rememberTerrain();
     const visEngr = map.engravingAt(x, y);
     if (visEngr) visEngr.erevealed = true;
@@ -2518,6 +2550,15 @@ export function newsym(x, y, ctxOrMap = null) {
     // Monster
     const mon = map.monsterAt(x, y);
     if (monsterShownOnMap(mon, player, map)) {
+        // C ref: display.c:1008-1014 — trapped monster reveals physical traps
+        if (mon.mtrapped) {
+            const trap = map.trapAt ? map.trapAt(x, y) : null;
+            if (trap) {
+                const tt = trap.ttyp ?? trap.typ ?? -1;
+                if (tt === BEAR_TRAP || is_pit(tt) || tt === WEB)
+                    trap.tseen = true;
+            }
+        }
         loc.mem_invis = false;
         const underObjs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
         if (underObjs.length > 0) {
@@ -2608,11 +2649,19 @@ export function see_monsters(map) {
     if (!map || !map.monsters) return;
     const ctx = _getDisplayCtx();
     if (!ctx || !ctx.display) return;
+    const player = ctx.player;
+
+    // C ref: display.c:1486 — defer_see_monsters check
+    if (ctx.defer_see_monsters) return;
+
+    // C ref: display.c:1493-1496 — steed/ustuck always meverseen
+    if (player?.usteed) player.usteed.meverseen = 1;
+    if (player?.ustuck) player.ustuck.meverseen = 1;
+
     for (const mon of map.monsters) {
         if (!mon || mon.mhp <= 0) continue;
         newsym(mon.mx, mon.my);
     }
-    const player = ctx.player;
     if (player && !player.usteed) {
         newsym(player.x, player.y);
     }
