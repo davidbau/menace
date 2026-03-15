@@ -179,7 +179,8 @@ import {
     capture_wizload_after_finalize_checkpoint,
     resetLevelState,
     withFinalizeContext,
-    withSpecialLevelDepth
+    withSpecialLevelDepth,
+    nhlib_shuffle_align,
 } from './sp_lev.js';
 import { isBranchLevel } from './dungeon.js';
 import { otherSpecialLevels, findSpecialLevelByName, getSpecialLevel, resolveSpecialLevelByName } from './special_levels.js';
@@ -267,6 +268,11 @@ export async function handleWizLoadDes(game) {
         rn2(100);
         rn2(100);
     }
+    // C ref: nhl_init() creates a fresh Lua state and loads nhlib.lua,
+    // whose top-level shuffle(align) consumes rn2(3), rn2(2).
+    // nhlib_shuffle_align() does the actual shuffle so level scripts can
+    // read the result via get_nhlib_align().
+    nhlib_shuffle_align();
     resetLevelState();
     // C ref: wiz_load_splua -> fixup_special() uses Is_branchlev(&u.uz),
     // i.e. the hero's current level context (not the loaded special file's

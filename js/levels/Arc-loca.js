@@ -4,12 +4,11 @@
  */
 
 import * as des from '../sp_lev.js';
-import { selection, shuffle } from '../sp_lev.js';
-import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../const.js';
+import { selection, get_nhlib_align } from '../sp_lev.js';
 
 export async function generate() {
-    const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
-    shuffle(align);
+    // C ref: nhlib.lua pre-shuffles a global `align` array; level scripts just read it.
+    const align = get_nhlib_align();
 
     // NetHack Archeologist Arc-loca.lua	$NHDT-Date: 1652195999 2022/5/10 15:19:59 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.2 $
     // Copyright (c) 1989 by Jean-Christophe Collet

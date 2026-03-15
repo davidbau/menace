@@ -289,7 +289,7 @@ main {
 
 .category-bar {
   height: 8px;
-  background: var(--fail);
+  background: var(--border-light);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.3rem;

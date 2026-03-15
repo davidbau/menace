@@ -7262,6 +7262,37 @@ export function shuffle(arr) {
 }
 
 /**
+ * nhlib_align - the pre-shuffled alignment array from nhlib.lua simulation.
+ *
+ * C ref: nhlib.lua defines a global `align = { "law", "neutral", "chaos" }`
+ * and calls `shuffle(align)` at top level. All level scripts read this global.
+ * In JS, we simulate this by calling nhlib_shuffle_align() in the nhlib.lua
+ * padding (dungeon.js, wizcmds.js, etc.) before each level generator runs.
+ * Level generators should import `nhlib_align` instead of creating and
+ * shuffling their own align arrays.
+ */
+let _nhlib_align = [A_LAWFUL, A_NEUTRAL, A_CHAOTIC];
+
+/**
+ * Simulate nhlib.lua's top-level shuffle(align).
+ * Consumes rn2(3), rn2(2) and stores the shuffled result.
+ * Must be called by nhlib.lua padding sites before level generation.
+ */
+export function nhlib_shuffle_align() {
+    _nhlib_align = [A_LAWFUL, A_NEUTRAL, A_CHAOTIC];
+    shuffle(_nhlib_align);
+}
+
+/**
+ * Get the current nhlib.lua shuffled alignment array.
+ * Level generators use this instead of shuffling their own align array.
+ * Note: C's Lua uses 1-based indexing (align[1]), JS uses 0-based (nhlib_align[0]).
+ */
+export function get_nhlib_align() {
+    return _nhlib_align;
+}
+
+/**
  * nh object - NetHack game state queries
  * Stub implementations for Lua level compatibility
  */
