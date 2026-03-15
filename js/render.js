@@ -515,7 +515,9 @@ export function formatStatusLine2(player) {
     // turn boundaries and by --More-- snapshot restore) so the status line
     // matches C's timing — C's bot() fires mid-command while JS renders
     // after command completion when inventory weight may already have changed.
-    const enc = Number.isFinite(player.encumbrance) ? player.encumbrance : near_capacity(player);
+    const enc = player._botl
+        ? near_capacity(player)
+        : (Number.isFinite(player.encumbrance) ? player.encumbrance : near_capacity(player));
     if (enc > 0) {
         const encNames = ['Burdened', 'Stressed', 'Strained', 'Overtaxed', 'Overloaded'];
         const idx = Math.max(0, Math.min(encNames.length - 1, enc - 1));
@@ -526,7 +528,7 @@ export function formatStatusLine2(player) {
     if (player.usteed) parts.push('Ride');
     if (player.blind) parts.push('Blind');
     if (player.confused) parts.push('Conf');
-    if (player.stunned) parts.push('Stun');
+    if (player.stunned || player.Stunned) parts.push('Stun');
     if (player.hallucinating) parts.push('Hallu');
     return parts.join(' ');
 }

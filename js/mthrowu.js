@@ -30,7 +30,7 @@ import {
     ARM_GLOVES,
 } from './objects.js';
 import { doname, xname, mkcorpstat, mksobj, add_to_minv, next_ident } from './mkobj.js';
-import { mshot_xname } from './objnam.js';
+import { mshot_xname, obj_is_pname, the, an } from './objnam.js';
 import { couldsee, m_cansee } from './vision.js';
 import {
     x_monnam, mon_nam, Monnam, is_prince, is_lord, is_mplayer, is_elf, is_orc, is_gnome,
@@ -50,7 +50,7 @@ import { NEED_WEAPON, NEED_HTH_WEAPON, NEED_RANGED_WEAPON,
          P_DAGGER, P_SPEAR, P_BOW, P_CROSSBOW, P_DART, P_SHURIKEN } from './const.js';
 import { ammo_and_launcher, is_ammo, multishot_class_bonus } from './dothrow.js';
 import { losehp } from './hack.js';
-import { KILLED_BY_AN } from './const.js';
+import { KILLED_BY_AN, KILLED_BY } from './const.js';
 import { breaks, harmless_missile } from './dothrow.js';
 import { should_mulch_missile } from './dothrow.js';
 import { breaktest } from './dothrow.js';
@@ -329,16 +329,29 @@ export function monmulti(mon, otmp) {
     return multishot;
 }
 
-function thrownObjectName(obj, player) {
+function thrownObjectName(obj, player, { forceSingle = false, useDonameForPlural = false } = {}) {
     if (!obj) return 'a weapon';
-    const shot = obj._m_shot || obj.m_shot;
-    // C ref: thitu uses mshot_xname for multishot (n>1) which prepends "the Nth";
-    // single shots still go through doname for proper article + identified name.
-    if (shot && shot.n > 1 && Number.isInteger(obj.otyp)) {
-        return mshot_xname(obj);
+    const withKnowledge = {
+        ...obj,
+        dknown: true,
+        quan: forceSingle ? 1 : (Number.isInteger(obj.quan) ? obj.quan : 1),
+    };
+    if ((obj._m_shot || obj.m_shot) && Number.isInteger(obj.otyp)) {
+        return mshot_xname(withKnowledge);
     }
-    const oneShot = { ...obj, quan: 1, dknown: true };
-    return doname(oneShot, player);
+    if (useDonameForPlural && (Number.isInteger(obj.quan) ? obj.quan : 1) > 1) {
+        return doname(withKnowledge, player);
+    }
+    return xname(withKnowledge);
+}
+
+function thrownObjectMessageName(obj, player, { forceSingle = false, useDonameForPlural = false, forceArticleForPlural = false } = {}) {
+    const baseName = thrownObjectName(obj, player, { forceSingle, useDonameForPlural });
+    if (!obj) return baseName;
+    const quantity = Number.isInteger(obj.quan) ? obj.quan : 1;
+    if (obj_is_pname(obj)) return the(baseName);
+    if (quantity > 1 && !forceArticleForPlural) return baseName;
+    return an(baseName);
 }
 
 function stairFallMessage(obj, player, toloc) {
@@ -381,6 +394,21 @@ async function maybeFlushToplineBeforeMessage(display, msg, game) {
 // C ref: mthrowu.c thitu().
 export async function thitu(tlev, dam, objp, name, player, display, game, mon = null) {
     const obj = objp || null;
+    const explicitName = typeof name === 'string' ? name : '';
+    const namedObj = explicitName
+        ? ''
+        : (obj ? thrownObjectName(obj, player, { useDonameForPlural: true }) : 'thrown object');
+    let kprefix = KILLED_BY_AN;
+    if (explicitName) {
+        if (/^(a|an|the)\s+/i.test(explicitName)) {
+            kprefix = KILLED_BY;
+        }
+    } else if (obj) {
+        kprefix = KILLED_BY;
+    }
+    const objName = explicitName
+        ? an(explicitName)
+        : thrownObjectMessageName(obj, player, { useDonameForPlural: true });
     const dieRoll = rnd(20);
     if ((player.ac || 10) + tlev <= dieRoll) {
         if (display) {
@@ -389,11 +417,10 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
             if (player.blind || !verbose) {
                 msg = 'It misses.';
             } else if ((player.ac || 10) + tlev <= dieRoll - 2) {
-                const objName = name || thrownObjectName(obj, player);
                 const cap = objName.charAt(0).toUpperCase() + objName.slice(1);
                 msg = `${cap} misses you.`;
             } else {
-                msg = `You are almost hit by ${name || thrownObjectName(obj, player)}.`;
+                msg = `You are almost hit by ${objName}.`;
             }
             throwTrace(game?.map || null, display, 'thitu:miss:before_putstr', `msg=${JSON.stringify(msg)}`);
             await maybeFlushToplineBeforeMessage(display, msg, game);
@@ -404,15 +431,14 @@ export async function thitu(tlev, dam, objp, name, player, display, game, mon = 
     }
 
     if (display) {
-        const text = name || thrownObjectName(obj, player);
         const punct = exclam(Number.isFinite(dam) ? dam : 0);
-        const msg = `You are hit by ${text}${punct}`;
+        const msg = `You are hit by ${objName}${punct}`;
         throwTrace(game?.map || null, display, 'thitu:hit:before_putstr', `msg=${JSON.stringify(msg)}`);
         await maybeFlushToplineBeforeMessage(display, msg, game);
         await display.putstr_message(msg);
         throwTrace(game?.map || null, display, 'thitu:hit:after_putstr', `msg=${JSON.stringify(msg)}`);
     }
-    await losehp(dam, name || "thrown object", KILLED_BY_AN, player, display, game);
+    await losehp(dam, namedObj || objName, kprefix, player, display, game);
     await exercise(player, A_STR, false);
     // C ref: mthrowu.c thitu() — silver searing when thrown silver hits hero
     if (obj && objectData[obj.otyp]?.oc_material === SILVER
@@ -650,7 +676,10 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
         const shooting = ammo_and_launcher(otmp, mwep);
         const onm = shots > 1
             ? `${shots} ${xname(otmp)}`
-            : thrownObjectName({ ...otmp, quan: 1, dknown: true }, player);
+            : thrownObjectMessageName({ ...otmp, quan: 1 }, player, {
+                forceSingle: true,
+                forceArticleForPlural: true,
+            });
         throwTrace(map, display, 'monshoot:before_throws_msg');
         await display.putstr_message(
             `The ${x_monnam(mon)} ${shooting ? 'shoots' : 'throws'} ${onm}${targetName}!`

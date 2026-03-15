@@ -50,6 +50,7 @@ import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
+import { game as activeGame } from './gstate.js';
 import {
     debugRepaint,
     logRepaint,

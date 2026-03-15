@@ -713,6 +713,7 @@ export class HeadlessDisplay {
     }
 
     async putstr_message(msg, { fromTopMoreBoundary = false } = {}) {
+        let topMessageAfterMore = !!fromTopMoreBoundary;
         const encumberRefreshMsg =
             msg === 'Your movements are slowed slightly because of your load.'
             || msg === 'You rebalance your load.  Movement is difficult.'
@@ -738,11 +739,9 @@ export class HeadlessDisplay {
             || activeGame?.multi_reason === 'sleeping'
             || activeGame?.nomovemsg === 'You wake up.'
         );
-        const suppressDeathStagingStatus = !!(
-            activeGame?.context?.mon_moving
+        const suppressDeathStagingStatus = !!(activeGame?.context?.mon_moving
             && Number(activeGame?.multi || 0) < 0
-            && (!fromTopMoreBoundary || sleepWakeBoundary)
-        );
+            && (!topMessageAfterMore || sleepWakeBoundary));
         if (this.topMessage && this.messageNeedsMore) {
             // C ref: flush_screen(1) here mirrors C's vpline() which fires
             // flush_screen before the new message replaces the old one.
@@ -797,8 +796,9 @@ export class HeadlessDisplay {
             this._topMessageStatusHp = null;
             this._topMessageEncumbrance = null;
             this._topMessageStepIndex = null;
+            this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
-            fromTopMoreBoundary = true;
+            topMessageAfterMore = true;
         }
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
@@ -877,7 +877,7 @@ export class HeadlessDisplay {
             this._topMessageStepIndex = null;
             this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
-            fromTopMoreBoundary = true;
+            topMessageAfterMore = true;
         }
 
         this.clearRow(0);
@@ -907,7 +907,7 @@ export class HeadlessDisplay {
             this.messageNeedsMore = true;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
-            if (fromTopMoreBoundary && typeof this.renderStatus === 'function') {
+            if (topMessageAfterMore && typeof this.renderStatus === 'function') {
                 const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
                 if (encumberRefreshMsg || refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
@@ -922,7 +922,7 @@ export class HeadlessDisplay {
                             site: 'headless.more.dismiss',
                             clearAfter: false,
                             readKey: this._nhgetch,
-                            refreshStatus: !suppressDeathStagingStatus,
+                            refreshStatus: !(activeGame?.context?.mon_moving && topMessageAfterMore),
                         });
                     } catch (e) {
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -933,6 +933,7 @@ export class HeadlessDisplay {
                     this._topMessageStatusHp = null;
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
+                    this._topMessageEncumbrance = null;
                     this.moreMarkerActive = false;
                 } else {
                     // Parity fallback for harness contexts without a wired
@@ -944,6 +945,7 @@ export class HeadlessDisplay {
                     this._topMessageStatusHp = null;
                     this._topMessageEncumbrance = null;
                     this._topMessageStepIndex = null;
+                    this._topMessageEncumbrance = null;
                     this.moreMarkerActive = false;
                 }
             }
@@ -979,7 +981,7 @@ export class HeadlessDisplay {
         this.messageNeedsMore = true;
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
         this.messageCursorRow = 0;
-        if (fromTopMoreBoundary && typeof this.renderStatus === 'function') {
+        if (topMessageAfterMore && typeof this.renderStatus === 'function') {
             const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
             if (encumberRefreshMsg || refreshPlayer?._botl) {
                 this.renderStatus(refreshPlayer);
@@ -1021,6 +1023,7 @@ export class HeadlessDisplay {
         this._topMessageStatusHp = null;
         this._topMessageEncumbrance = null;
         this._topMessageStepIndex = null;
+        this._topMessageEncumbrance = null;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
             await this.putstr_message(remainder, { fromTopMoreBoundary: true });

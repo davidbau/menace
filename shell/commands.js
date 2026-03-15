@@ -536,8 +536,15 @@ async function vi(args, shell) {
 // Simple line reader for the mail prompt row (no cursor movement, backspace only)
 async function _mailReadLine(shell, prompt) {
     let line = '';
+    const COLS = 80;
     while (true) {
         shell.printPrompt(prompt + line);
+        // Position cursor at end of typed text
+        const promptRow = Math.min(shell.scrollBuffer.length, 23);
+        if (typeof shell.display.setCursor === 'function') {
+            shell.display.setCursor(Math.min(prompt.length + line.length, COLS - 1), promptRow);
+        }
+        if (typeof shell.display.flush === 'function') shell.display.flush();
         const ch = await shell.getch();
         if (ch === 13 || ch === 10) {
             shell.clearPromptLine();

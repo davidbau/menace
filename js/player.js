@@ -593,7 +593,8 @@ export class Player {
     get Fumbling() { return this.hasProp(FUMBLING); }
     get fumbling() { return this.hasProp(FUMBLING); }
     set fumbling(val) { this._setPropBool(FUMBLING, val); }
-    get Stunned() { return this.stunned; }
+    // C macro Stunned tests the property, not just the timeout field.
+    get Stunned() { return this.hasProp(STUNNED); }
     get Confusion() { return this.confused; }
     get regeneration() { return this.hasProp(REGENERATION); }
     get teleportation() { return this.hasProp(TELEPORT); }
