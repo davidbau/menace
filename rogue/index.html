@@ -950,7 +950,7 @@
         // Table rows: lines starting and ending with |
         if (line.match(/^\|/) && line.match(/\|$/)) {
           flushPara();
-          var cells = line.replace(/^\||\|$/g, '').split('|');
+          var cells = line.replace(/^\||\|$/g, '').replace(/\\\|/g, '\x00').split('|').map(function(c) { return c.replace(/\x00/g, '|'); });
           // Separator row (---|---) → skip (marks end of header)
           if (cells.every(function(c) { return c.trim().match(/^[-: ]+$/); })) {
             if (!inTable) { /* header not yet started, ignore */ } // shouldn't happen
