@@ -16,13 +16,16 @@ import {
   objact, vappli, aappli, rappli, oappli,
   score, valuac, newsta,
   _registerVerbsModule,
+  _registerObjectsModule,
 } from './support.js';
 
 import { rdline, parse } from './parser.js';
 
-// Register verb handlers to break circular dependency
+// Register verb and object handlers to break circular dependencies
 import * as _verbsModule from './verbs.js';
 _registerVerbsModule(_verbsModule);
+import * as _objectsModule from './objects.js';
+_registerObjectsModule(_objectsModule);
 
 // ---------------------------------------------------------------
 // DungeonGame class
@@ -350,6 +353,7 @@ export class DungeonGame {
 
       // Parse input
       G.prswon = parse(G, G.inbuf, G.inlnt, true);
+      if (G._trace) console.error(`GAME: move=${G.moves} here=${G.here} prsa=${G.prsa} prso=${G.prso} prsi=${G.prsi} prswon=${G.prswon}`);
 
       if (!G.prswon) {
         // Parse failed

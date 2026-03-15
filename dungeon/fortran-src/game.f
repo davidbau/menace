@@ -43,6 +43,9 @@ C
 	PRVHER=HERE				! save current location.
 	PRVLIT=LIT(HERE)			! save current lighting.
 	PRSWON=PARSE(INBUF,INLNT,.TRUE.)	! parse input, normal mode.
+	WRITE(0,*) 'GAME: move=',MOVES,' here=',HERE,
+	1 ' prsa=',PRSA,' prso=',PRSO,' prsi=',PRSI,
+	2 ' prswon=',PRSWON
 	IF(.NOT.PRSWON) GO TO 400		! parse lose?
 	IF(AAPPLI(AACTIO(WINNER))) GO TO 400	! player handle?
 	IF(XVEHIC(1)) GO TO 400			! vehicle handle?

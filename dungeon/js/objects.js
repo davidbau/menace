@@ -24,7 +24,11 @@ export function oappli(G, ri, arg) {
         return nobjs(G, ri, arg);
     }
 
-    // Complex objects: ri > 99
+    // Complex objects: ri > 99 — subtract MXSMP to get dispatch index
+    // Fortran: GO TO (table), (RI-MXSMP)
+    const MXSMP = 99;
+    const dispatchIdx = ri - MXSMP;
+
     // Set up common variables
     let odo2 = 0, odi2 = 0;
     if (G.prso !== 0 && G.prso <= OMAX) odo2 = G.odesc2[G.prso - 1];
@@ -33,7 +37,7 @@ export function oappli(G, ri, arg) {
     const flobts = FLAMBT + LITEBT + ONBT;
     const waslit = lit(G, G.here);
 
-    const result = oappli_complex(G, ri, arg);
+    const result = oappli_complex(G, dispatchIdx, arg);
 
     // After complex handler: check for light source change
     if (result && waslit && !lit(G, G.here)) {

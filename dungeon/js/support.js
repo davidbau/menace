@@ -713,6 +713,9 @@ export function jirone(G, obj, container, room) {
  * Returns true if an object handler processed the action.
  */
 export function objact(G) {
+  if (_objectsModule && _objectsModule.objact) {
+    return _objectsModule.objact(G);
+  }
   if (G.prsi !== 0) {
     if (oappli(G, G.oactio[G.prsi - 1], 0)) return true;
   }
@@ -724,12 +727,20 @@ export function objact(G) {
 
 /**
  * OAPPLI — Call object action routine.
- * Stub: returns false (will be filled in when verb/object handlers are ported).
+ * Delegates to objects module if registered, otherwise stub.
  */
 export function oappli(G, action, arg) {
   if (action === 0) return false;
-  // TODO: Dispatch to object action handlers
+  if (_objectsModule && _objectsModule.oappli) {
+    return _objectsModule.oappli(G, action, arg);
+  }
   return false;
+}
+
+// Late-binding for objects module (to break circular dependency)
+let _objectsModule = null;
+export function _registerObjectsModule(mod) {
+  _objectsModule = mod;
 }
 
 /**
@@ -811,6 +822,7 @@ export function findxt(G, dir, rm) {
   const xelnt = [1, 2, 3, 3]; // lengths of exit types (indexed 0-3 for types 1-4)
 
   let xi = G.rexit[rm - 1];
+  if (G._trace) console.error(`FINDXT: dir=${dir} rm=${rm} rexit=${xi}`);
   if (xi === 0) return result;
 
   while (true) {
@@ -818,6 +830,8 @@ export function findxt(G, dir, rm) {
     result.xroom1 = entry & XRMASK;
     result.xtype = ((entry & ~XLFLAG) >>> 0) / XFSHFT;
     result.xtype = (result.xtype & XFMASK) + 1;
+
+    if (G._trace) console.error(`  xi=${xi} entry=${entry} xroom1=${result.xroom1} xtype=${result.xtype} entrydir=${entry & XDMASK} last=${(entry & XLFLAG) !== 0}`);
 
     // Extract fields based on type
     if (result.xtype >= 3) {
@@ -836,6 +850,7 @@ export function findxt(G, dir, rm) {
     // Check direction match
     if ((entry & XDMASK) === dir) {
       result.found = true;
+      if (G._trace) console.error(`  MATCH! xroom1=${result.xroom1} xtype=${result.xtype}`);
       // Store xi for later use
       G.xtype = result.xtype;
       G.xroom1 = result.xroom1;
@@ -849,6 +864,7 @@ export function findxt(G, dir, rm) {
     if ((entry & XLFLAG) !== 0) break;
   }
 
+  if (G._trace) console.error(`  NO MATCH for dir=${dir}`);
   return result;
 }
 

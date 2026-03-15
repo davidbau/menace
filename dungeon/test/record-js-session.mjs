@@ -15,9 +15,11 @@ const data = JSON.parse(readFileSync(dataPath));
 const textRecords = JSON.parse(readFileSync(textPath));
 
 // Read input
+const args = process.argv.slice(2).filter(a => !a.startsWith('--'));
+const flags = process.argv.slice(2).filter(a => a.startsWith('--'));
 let inputLines;
-if (process.argv[2]) {
-    inputLines = readFileSync(process.argv[2], 'utf8').trim().split('\n');
+if (args[0]) {
+    inputLines = readFileSync(args[0], 'utf8').trim().split('\n');
 } else {
     inputLines = readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 }
@@ -27,6 +29,7 @@ const { DungeonGame } = await import(join(__dirname, '..', 'js', 'game.js'));
 
 const game = new DungeonGame();
 game.init(data, textRecords);
+if (flags.includes('--trace')) game._trace = true;
 
 const session = {
     format: 'zork-parity-v1',
