@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR, loginBanner } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner, initDefaultVfsFiles } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
 import {
@@ -17,6 +17,7 @@ export class Shell {
     constructor(display, getch) {
         this.display = display;
         this.getch = getch;
+        initDefaultVfsFiles();
         this.fs = new VirtualFS();
         this.commands = getBuiltinCommands();
         this.scrollBuffer = []; // lines currently on screen
@@ -420,15 +421,18 @@ export class Shell {
     }
 
     async _runVi(filename) {
-        const absPath = this.fs.resolve(filename);
-        const node = this.fs.getNode(filename);
+        let node = this.fs.getNode(filename);
 
-        // If file doesn't exist and it's in a writable area, that's an error for now
         if (!node) {
-            this.println(`vi: ${filename}: No such file or directory`);
-            return;
+            // Allow creating new files under home dir
+            const err = this.fs.createFile(filename);
+            if (err) {
+                this.println(`vi: ${filename}: ${err}`);
+                return;
+            }
+            node = this.fs.getNode(filename); // re-fetch after creation
         }
-        if (node.type === 'dir') {
+        if (node && node.type === 'dir') {
             this.println(`vi: ${filename}: Is a directory`);
             return;
         }
@@ -600,6 +604,78 @@ export class Shell {
 // Main entry point: run the shell, returning when done.
 // display: Display instance
 // getch: async function returning a character code
+// Show a login prompt and loop until rodney/yendor is entered.
+// Then run a clean shell session; on exit, loop back to login prompt.
+async function runLoginLoop(display, getch, lifecycle) {
+    while (true) {
+        display.clearScreen();
+        display.flush();
+
+        // Read a raw line, optionally with echo suppressed
+        const loginRow = display.rows - 1;
+        async function readRaw(prompt, echo) {
+            display.putstr(0, loginRow, prompt, CLR_WHITE);
+            display.setCursor(prompt.length, loginRow);
+            display.flush();
+            let line = '';
+            while (true) {
+                const ch = await getch();
+                if (ch === 13 || ch === 10) break;
+                if (ch === 8 || ch === 127) {
+                    if (line.length > 0) {
+                        line = line.slice(0, -1);
+                        if (echo) {
+                            display.putstr(prompt.length, loginRow, line + ' ', CLR_WHITE);
+                            display.setCursor(prompt.length + line.length, loginRow);
+                            display.flush();
+                        }
+                    }
+                } else if (ch >= 32 && ch < 127) {
+                    line += String.fromCharCode(ch);
+                    if (echo) {
+                        display.putstr(prompt.length, loginRow, line, CLR_WHITE);
+                        display.setCursor(prompt.length + line.length, loginRow);
+                        display.flush();
+                    }
+                }
+            }
+            return line;
+        }
+
+        const username = await readRaw('pdp11 login: ', true);
+        display.clearScreen();
+        display.flush();
+        const password = await readRaw('Password: ', false);
+
+        if (username === 'rodney' && password === 'yendor') {
+            // Successful login — run a clean shell; loop back on exit
+            const shell = new Shell(display, getch);
+            const result = await shell.run({});
+            if (result && result.action === 'launch') {
+                const game = result.game;
+                display.clearScreen();
+                display.flush();
+                if (game === 'nethack') {
+                    if (lifecycle && lifecycle.restart) lifecycle.restart();
+                    else window.location.href = '/';
+                } else if (game === 'hack') {
+                    window.location.href = '/hack/';
+                } else if (game === 'rogue') {
+                    window.location.href = '/rogue/';
+                }
+                return;
+            }
+            // Shell exited normally — loop back to login prompt
+        } else {
+            // Wrong credentials
+            display.clearScreen();
+            display.putstr(0, display.rows - 1, 'Login incorrect', CLR_WHITE);
+            display.flush();
+            await new Promise(r => setTimeout(r, 1500));
+        }
+    }
+}
+
 // lifecycle: object with launch methods
 export async function runShell(display, getch, lifecycle, options = {}) {
     const shell = new Shell(display, getch);
@@ -621,6 +697,13 @@ export async function runShell(display, getch, lifecycle, options = {}) {
         } else if (game === 'rogue') {
             window.location.href = '/rogue/';
         }
+        return result;
+    }
+
+    // Interrupt-mode shell: on exit show login prompt instead of returning to promo
+    if (options.interrupt && result.action === 'exit') {
+        await runLoginLoop(display, getch, lifecycle);
+        return result;
     }
 
     return result;
