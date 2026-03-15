@@ -660,9 +660,13 @@ async function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
     }
     // C: Half physical damage applies before mdamageu() for this branch.
     mhm.damage = maybe_half_phys(mhm.damage, player);
-    // cf. uhitm.c:3240-3249 — adjattrib + losespells + drain_weapon_skill
+    // cf. eat.c:611 — eat_brains() always consumes rnd(10) for xtra_dmg
+    rnd(10); // eat_brains xtra_dmg (discarded for mhitu since dmg_p=NULL)
     if (!ctx.suppressHitMsg)
         await ctx.display.putstr_message('Your brain is being eaten!');
+    // cf. eat.c:722 — eat_brains calls exercise(A_WIS, FALSE) for mhitu path
+    await exercise(player, A_WIS, false);
+    // cf. uhitm.c:3240-3249 — adjattrib + losespells + drain_weapon_skill
     // C: adjattrib(A_INT, -rnd(2), FALSE) — proper attribute adjustment with messaging
     await adjattrib(player, A_INT, -rnd(2), false);
     if (!rn2(5)) {
