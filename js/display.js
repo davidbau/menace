@@ -2459,6 +2459,15 @@ export function newsym(x, y, ctxOrMap = null) {
         return { ch: sym.ch, color: rememberedColor };
     };
 
+    // C ref: display.c:930-935 — when swallowed, only show hero at own position
+    if (player?.uswallow || player?.engulfed) {
+        if (x === player.x && y === player.y) {
+            const heroGlyph = playerMapGlyph(player);
+            putMapCell(display, loc, map, col, row, heroGlyph.ch, heroGlyph.color);
+        }
+        return;
+    }
+
     // C ref: always render the player glyph at the hero's position,
     // even when out of FOV (e.g. during levitation on stairs).
     // When mounted, C shows the steed glyph on hero square instead.
