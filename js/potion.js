@@ -57,6 +57,7 @@ import { makeplural, doname, fruitname, Tobjnam } from './objnam.js';
 import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists_acid } from './mondata.js';
 import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
+import { mon_adjust_speed } from './worn.js';
 import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
 import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE } from './monsters.js';
@@ -1522,7 +1523,7 @@ async function potionhit(mon, obj, how, player, map) {
             break;
         case POT_SPEED:
             angermon = false;
-            // mon_adjust_speed(mon, 1, obj) — speed adjustment not called here
+            mon_adjust_speed(mon, 1, obj);
             break;
         case POT_BLINDNESS: {
             // C ref: potion.c:1808-1815
