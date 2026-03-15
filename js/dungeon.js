@@ -97,7 +97,7 @@ import {
 } from './special_levels.js';
 import { envFlag, hasEnv } from './runtime_env.js';
 import { litstate_rnd } from './mkmap.js';
-import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState, nhlib_shuffle_align } from './sp_lev.js';
+import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState, nhlib_shuffle_align, getLevelState } from './sp_lev.js';
 import {
     themerooms_generate as themermsGenerate,
     themerooms_post_level_generate,
@@ -4551,9 +4551,19 @@ export function get_level_extends(map, opts = null) {
     const mazeOverride = opts && typeof opts.isMazeLevelOverride === 'boolean'
         ? opts.isMazeLevelOverride
         : null;
-    const is_maze_lev = (mazeOverride !== null)
-        ? mazeOverride
-        : !!(map && map.flags && map.flags.is_maze_lev);
+    let is_maze_lev;
+    if (mazeOverride !== null) {
+        is_maze_lev = mazeOverride;
+    } else {
+        // When called without explicit opts (e.g. from finalize_special_checkpoint_stage),
+        // check the active finalizeContext for a boundDiggingIsMazeLevel override.
+        // This avoids modifying sp_lev.js's finalize_special_checkpoint_stage function
+        // which triggers module sensitivity issues in hi15/hi16 sessions.
+        const ctxOverride = getLevelState()?.finalizeContext?.boundDiggingIsMazeLevel;
+        is_maze_lev = (typeof ctxOverride === 'boolean')
+            ? ctxOverride
+            : !!(map && map.flags && map.flags.is_maze_lev);
+    }
 
     let xmin, xmax, ymin, ymax;
     let found, nonwall;
