@@ -2641,11 +2641,19 @@ export function see_monsters(map) {
     if (!map || !map.monsters) return;
     const ctx = _getDisplayCtx();
     if (!ctx || !ctx.display) return;
+    const player = ctx.player;
+
+    // C ref: display.c:1486 — defer_see_monsters check
+    if (ctx.defer_see_monsters) return;
+
+    // C ref: display.c:1493-1496 — steed/ustuck always meverseen
+    if (player?.usteed) player.usteed.meverseen = 1;
+    if (player?.ustuck) player.ustuck.meverseen = 1;
+
     for (const mon of map.monsters) {
         if (!mon || mon.mhp <= 0) continue;
         newsym(mon.mx, mon.my);
     }
-    const player = ctx.player;
     if (player && !player.usteed) {
         newsym(player.x, player.y);
     }
