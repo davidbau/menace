@@ -1,6 +1,6 @@
 go north
-go north
 go east
+open window
 enter
 go west
 take lamp
@@ -8,8 +8,6 @@ turn on lamp
 go east
 go up
 look
-go down
-go west
 turn off lamp
 look
 turn on lamp

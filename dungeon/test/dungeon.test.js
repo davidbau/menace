@@ -139,7 +139,7 @@ describe('Movement', () => {
 
     it('dark room warns about grue', async () => {
         const { outputLines } = await runSession([
-            'go north', 'go east', 'enter', 'go west', 'go east', 'go up', 'quit', 'y'
+            'go north', 'go east', 'open window', 'enter', 'go west', 'go east', 'go up', 'quit', 'y'
         ]);
         const text = outputLines.join('\n');
         assert.ok(text.includes('dark') || text.includes('grue'), 'Dark room should mention darkness or grue');
