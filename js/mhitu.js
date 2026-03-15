@@ -381,7 +381,9 @@ async function mhitu_ad_fire(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2557 — destroy_items check: magr->m_lev > rn2(20)
         if (monster.mlevel > rn2(20)) {
-            // destroy_items() — not implemented, but RNG consumed
+            // destroy_items(youmonst, AD_FIRE, orig_dmg) — not fully implemented
+            // C always consumes rn2(DMG_DESTROY_SCALE=5) for limit computation
+            rn2(5);
         }
     } else {
         mhm.damage = 0;
@@ -402,7 +404,8 @@ async function mhitu_ad_cold(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2638 — destroy_items check
         if (monster.mlevel > rn2(20)) {
-            // destroy_items() — not implemented
+            // destroy_items(youmonst, AD_COLD, orig_dmg) — not fully implemented
+            rn2(5);
         }
     } else {
         mhm.damage = 0;
@@ -423,7 +426,8 @@ async function mhitu_ad_elec(monster, attack, player, mhm, ctx) {
         }
         // cf. uhitm.c:2696 — destroy_items check
         if (monster.mlevel > rn2(20)) {
-            // destroy_items() — not implemented
+            // destroy_items(youmonst, AD_ELEC, orig_dmg) — not fully implemented
+            rn2(5);
         }
     } else {
         if (!ctx.suppressHitMsg) {

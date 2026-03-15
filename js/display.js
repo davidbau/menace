@@ -41,7 +41,8 @@ import { isok, SEE_INVIS, DETECT_MONSTERS, TELEPAT, INFRAVISION, WARNING, WARN_O
          BOLT_LIM,
          MONSEEN_NORMAL, MONSEEN_SEEINVIS, MONSEEN_INFRAVIS, MONSEEN_TELEPAT,
          MONSEEN_XRAYVIS, MONSEEN_DETECT, MONSEEN_WARNMON,
-         def_warnsyms, WARNCOUNT, ECMD_OK } from './const.js';
+         def_warnsyms, WARNCOUNT, ECMD_OK,
+         BEAR_TRAP, WEB, is_pit } from './const.js';
 import { cansee, couldsee, clear_vision_full_recalc, block_point, unblock_point } from './vision.js';
 import { do_light_sources } from './light.js';
 import { emits_light, infravisible, is_mindless, monsndx } from './mondata.js';
@@ -2523,6 +2524,8 @@ export function newsym(x, y, ctxOrMap = null) {
     }
 
     // --- Visible (in FOV) ---
+    // C ref: display.c:958 — update waslit for this tile
+    loc.waslit = !!(loc.lit);
     rememberTerrain();
     const visEngr = map.engravingAt(x, y);
     if (visEngr) visEngr.erevealed = true;
@@ -2530,6 +2533,15 @@ export function newsym(x, y, ctxOrMap = null) {
     // Monster
     const mon = map.monsterAt(x, y);
     if (monsterShownOnMap(mon, player, map)) {
+        // C ref: display.c:1008-1014 — trapped monster reveals physical traps
+        if (mon.mtrapped) {
+            const trap = map.trapAt ? map.trapAt(x, y) : null;
+            if (trap) {
+                const tt = trap.ttyp ?? trap.typ ?? -1;
+                if (tt === BEAR_TRAP || is_pit(tt) || tt === WEB)
+                    trap.tseen = true;
+            }
+        }
         loc.mem_invis = false;
         const underObjs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
         if (underObjs.length > 0) {
