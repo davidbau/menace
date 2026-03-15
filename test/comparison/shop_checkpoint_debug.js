@@ -8,6 +8,10 @@ import {
     ACCESSIBLE, OBJ_BURIED, OBJ_CONTAINED, OBJ_FLOOR, OBJ_FREE, OBJ_INVENT,
     OBJ_MINVENT, OBJ_ONBILL, ROOMOFFSET, OROOM, THEMEROOM, COURT, SWAMP,
     VAULT, BEEHIVE, MORGUE, BARRACKS, ZOO, DELPHI, TEMPLE, SHOPBASE,
+    STONE, VWALL, HWALL, TLCORNER, TRCORNER, BLCORNER, BRCORNER,
+    CROSSWALL, TUWALL, TDWALL, TLWALL, TRWALL, DBWALL, TREE, IRONBARS,
+    DOOR, CORR, ROOM, STAIRS, LADDER, FOUNTAIN, ALTAR, GRAVE, SINK,
+    THRONE, SDOOR, SCORR,
 } from '../../js/const.js';
 import { objectData } from '../../js/objects.js';
 import { normalizeSession, parseCompactMapdump } from './session_loader.js';
@@ -399,6 +403,76 @@ function inRadius(row, anchor, radius) {
     return Math.abs(row.x - anchor.x) <= radius && Math.abs(row.y - anchor.y) <= radius;
 }
 
+function terrainChar(parsed, x, y) {
+    const typ = gridCell(parsed.typGrid, x, y);
+    if (!Number.isInteger(typ)) return '?';
+    switch (typ) {
+    case STONE: return ' ';
+    case ROOM: return '.';
+    case CORR: return '#';
+    case DOOR: return '+';
+    case SDOOR: return 's';
+    case SCORR: return ':';
+    case VWALL:
+    case IRONBARS:
+        return '|';
+    case HWALL:
+        return '-';
+    case TLCORNER:
+    case TRCORNER:
+    case BLCORNER:
+    case BRCORNER:
+    case CROSSWALL:
+    case TUWALL:
+    case TDWALL:
+    case TLWALL:
+    case TRWALL:
+    case DBWALL:
+        return '+';
+    case STAIRS: {
+        const stair = (parsed.stairs || []).find((row) => row.x === x && row.y === y);
+        return stair?.up ? '<' : '>';
+    }
+    case LADDER:
+        return 'L';
+    case FOUNTAIN:
+        return '{';
+    case ALTAR:
+        return '_';
+    case GRAVE:
+        return '\\';
+    case SINK:
+        return '#';
+    case THRONE:
+        return '\\';
+    case TREE:
+        return 'T';
+    default:
+        return ACCESSIBLE(typ) ? '.' : '?';
+    }
+}
+
+function printTerrainNeighborhood(parsed, anchor, radius, hero) {
+    if (!anchor) return;
+    const x0 = Math.max(0, anchor.x - radius);
+    const x1 = Math.min(79, anchor.x + radius);
+    const y0 = Math.max(0, anchor.y - radius);
+    const y1 = Math.min(20, anchor.y + radius);
+    console.log('');
+    console.log(`Terrain around (${anchor.x},${anchor.y}) radius=${radius}`);
+    for (let y = y0; y <= y1; y++) {
+        const parts = [];
+        for (let x = x0; x <= x1; x++) {
+            let ch = terrainChar(parsed, x, y);
+            if (hero && x === hero.x && y === hero.y) ch = 'H';
+            else if (x === anchor.x && y === anchor.y) ch = '@';
+            parts.push(ch);
+        }
+        console.log(`${String(y).padStart(2, '0')}: ${parts.join('')}`);
+    }
+    console.log('Legend: H hero, @ anchor, .=room, #=corridor, +=door/wall junction, |=vertical wall/bars, -=horizontal wall, s=secret, :=secret corridor');
+}
+
 function printNeighborhood(parsed, anchor, radius, hero) {
     if (!anchor) return;
     const x0 = Math.max(0, anchor.x - radius);
@@ -534,9 +608,13 @@ function main() {
     }
 
     if (hero && (!anchor || anchor.x !== hero.x || anchor.y !== hero.y)) {
+        printTerrainNeighborhood(parsed, hero, radius, hero);
+        console.log('');
         printNeighborhood(parsed, hero, radius, hero);
         console.log('');
     }
+    printTerrainNeighborhood(parsed, anchor, radius, hero);
+    console.log('');
     printNeighborhood(parsed, anchor, radius, hero);
 }
 

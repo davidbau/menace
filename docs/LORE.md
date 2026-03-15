@@ -13002,3 +13002,38 @@ Validation:
   - guard sessions stayed green:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
+
+### Vault coverage reconnaissance: scan seed/dlevel pairs first, then route the winning vault (2026-03-15)
+
+- The first "vault" route on `seed1200/dlvl12` was not an ordinary vault-guard
+  candidate at all. The calibrated probe reached a magic portal into Knox:
+  - `You activated a magic portal!--More--`
+- Blind route tuning there was the wrong optimization target.
+- To stop repeating that mistake, add a dedicated C-grounded scanner:
+  - [test/comparison/level_recon_scan.js](/share/u/davidbau/git/mazesofmenace/game/test/comparison/level_recon_scan.js)
+- Workflow:
+  1. probe seed/dlevel pairs through `run_session.py` with `#dumpsnap`
+  2. extract the best structured or compact checkpoint
+  3. list matching special rooms with:
+     - hero coordinate
+     - taxi distance
+     - center/bounds
+     - direct accessible path if one exists
+  4. only then use [shop_checkpoint_debug.js](/share/u/davidbau/git/mazesofmenace/game/test/comparison/shop_checkpoint_debug.js) to design the actual coverage route
+- Early useful hits for ordinary vault work:
+  - `seed700/dlvl4`
+    - hero `(34,17)`
+    - vault center `(19,16)`
+    - taxi distance `16`
+  - `seed1200/dlvl2`
+    - hero `(46,11)`
+    - vault center `(59,16)`
+    - taxi distance `18`
+  - `seed1200/dlvl3`
+    - hero `(57,2)`
+    - vault center `(64,14)`
+    - taxi distance `19`
+- Takeaway:
+  - for vault, temple, shop, quest, and other branch-dense coverage sessions,
+    first solve "which level is worth routing?" with a short scanner pass
+    instead of hand-probing one candidate blindly.

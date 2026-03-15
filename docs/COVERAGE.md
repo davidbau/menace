@@ -133,6 +133,10 @@ Useful reconnaissance tooling:
 ```bash
 # Inspect one checkpoint from a C-recorded session or raw mapdump.
 node test/comparison/shop_checkpoint_debug.js <session-or-mapdump> <checkpoint-id> --radius=12
+
+# Probe seed/dlevel pairs through the C harness and rank matching special rooms.
+node test/comparison/level_recon_scan.js \
+  --seed=700,1001,1200 --levels=2-6 --room=vault
 ```
 
 That tool merges compact `O/Q` and `M/N` sections so you can see:
@@ -144,6 +148,12 @@ When the checkpoint is a structured `wizload` probe, it also reports special-roo
 metadata and hero-to-room paths, which is the preferred way to route coverage
 sessions through branch-dense areas like shops, temples, vaults, and other
 special rooms.
+
+Use the level scanner first when the open question is "which seed/level should
+we target at all?" It records short C probes, attaches a structured checkpoint,
+and reports candidate rooms with hero position, taxi distance, and pathability.
+Then switch to `shop_checkpoint_debug.js` on the winning candidate to design the
+actual command route.
 
 Generation guidance for Step 2:
 - Work one session at a time and optimize it for coverage-per-turn.
