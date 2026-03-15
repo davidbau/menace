@@ -5703,6 +5703,9 @@ export function create_altar(opts) {
     if (pos.x < 0 || pos.x >= COLNO || pos.y < 0 || pos.y >= ROWNO) {
         return;
     }
+    if (!currentRoom) {
+        currentRoom = levelState.map?.roomAt?.(pos.x, pos.y) || null;
+    }
 
     if (!currentRoom) {
         const roomno = Number(map.locations[pos.x]?.[pos.y]?.roomno || 0);
@@ -5761,7 +5764,6 @@ export function create_altar(opts) {
         if (shrine > 1) loc.flags |= AM_SANCTUM;
         map.flags.has_temple = true;
     }
-
     markSpLevTouched(pos.x, pos.y);
 }
 

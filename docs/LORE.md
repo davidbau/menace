@@ -12553,7 +12553,6 @@ Validation:
   - promoted to `sessions/coverage/monster-ai-combat/`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
-
 ### Minetown wizload parity depends on shrine priest creation and non-stubbed `monkfoodshop()` helpers
 
 - Continuing the `hi15_seed42_barb_minetn5_shop-pay_gp` bring-up exposed three
