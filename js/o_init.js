@@ -439,6 +439,10 @@ export function initDiscoveryState() {
         const od = objectData[i];
         ocNameKnown[i] = !!od?.known || !od?.oc_descr;
         ocEncountered[i] = false;
+        if (od) {
+            od.oc_name_known = ocNameKnown[i];
+            od.name_known = ocNameKnown[i];
+        }
     }
     resetDiscoByClass();
 }
@@ -477,7 +481,10 @@ export function discoverObject(otyp, markAsKnown, markAsEncountered, creditClue 
             // Mirror into objectData.oc_name_known so direct od.oc_name_known checks
             // stay consistent with the runtime discovery state (ocNameKnown[]).
             // C uses a single objects[] table that makeknown() modifies in-place.
-            if (objectData[otyp]) objectData[otyp].oc_name_known = true;
+            if (objectData[otyp]) {
+                objectData[otyp].oc_name_known = true;
+                objectData[otyp].name_known = true;
+            }
         }
         // C ref: o_init.c:474-477 — when a name transitions unknown->known,
         // exercise wisdom iff credit_hero (creditClue in JS) is true.

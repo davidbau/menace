@@ -2690,20 +2690,26 @@ export function rndmonst() {
 // Autotranslated from makemon.c:2045
 export async function grow_up(mtmp, victim, game) {
   let oldtype, newtype, max_increase, cur_increase, lev_limit, hp_threshold;
-  let fem, ptr = mtmp.data;
+  let fem, ptr = mtmp.data || mtmp.type || null;
+  if (Number.isInteger(ptr)) ptr = mons[ptr] || null;
+  if (!ptr) return 0;
+  const mtmpLev = Number.isFinite(mtmp.m_lev) ? mtmp.m_lev : (mtmp.mlevel || 0);
+  const victimLev = victim
+      ? (Number.isFinite(victim.m_lev) ? victim.m_lev : (victim.mlevel || 0))
+      : 0;
   if (DEADMONSTER(mtmp)) return  0;
   oldtype = monsndx(ptr);
   newtype = (oldtype === PM_KILLER_BEE && !victim) ? PM_QUEEN_BEE : little_to_big(oldtype);
   if (victim) {
-    hp_threshold = mtmp.m_lev * 8;
-    if (!mtmp.m_lev) hp_threshold = 4;
+    hp_threshold = mtmpLev * 8;
+    if (!mtmpLev) hp_threshold = 4;
     else if (is_golem(ptr)) hp_threshold = (Math.floor(mtmp.mhpmax / 10) + 1) * 10 - 1;
     else if (is_home_elemental(ptr)) {
       hp_threshold *= 3;
     }
     lev_limit = Math.floor(3 *  ptr.mlevel / 2);
     if (oldtype !== newtype && mons[newtype].mlevel > lev_limit) lev_limit =  mons[newtype].mlevel;
-    max_increase = rnd( victim.m_lev + 1);
+    max_increase = rnd(victimLev + 1);
     if (mtmp.mhpmax + max_increase > hp_threshold + 1) max_increase = Math.max((hp_threshold + 1) - mtmp.mhpmax, 0);
     cur_increase = (max_increase > 1) ? rn2(max_increase) : 0;
   }
@@ -2750,7 +2756,10 @@ export async function grow_up(mtmp, victim, game) {
 // Autotranslated from makemon.c:2315
 export function set_malign(mtmp, player = null) {
   const playerCtx = player || _gstate?.player || _getMakemonPlayerCtx();
-  let mal = mtmp.data.maligntyp, coaligned;
+  let mdata = mtmp.data || mtmp.type || null;
+  if (Number.isInteger(mdata)) mdata = mons[mdata] || null;
+  if (!mdata) mdata = {};
+  let mal = mdata.maligntyp, coaligned;
   if (mtmp.ispriest || mtmp.isminion) {
     if (mtmp.ispriest && EPRI(mtmp)) mal = EPRI(mtmp).shralign;
     else if (mtmp.isminion && EMIN(mtmp)) mal = EMIN(mtmp).min_align;
@@ -2759,21 +2768,21 @@ export function set_malign(mtmp, player = null) {
     }
   }
   coaligned = !!playerCtx && (sgn(mal) === sgn(playerCtx.alignment));
-  if (mtmp.data.msound === MS_LEADER) { mtmp.malign = -20; }
+  if (mdata.msound === MS_LEADER) { mtmp.malign = -20; }
   else if (mal === A_NONE) {
     if (mtmp.mpeaceful) mtmp.malign = 0;
     else {
       mtmp.malign = 20;
     }
   }
-  else if (always_peaceful(mtmp.data)) {
+  else if (always_peaceful(mdata)) {
     let absmal = Math.abs(mal);
     if (mtmp.mpeaceful) mtmp.malign = -3 * Math.max(5, absmal);
     else {
       mtmp.malign = 3 * Math.max(5, absmal);
     }
   }
-  else if (always_hostile(mtmp.data)) {
+  else if (always_hostile(mdata)) {
     let absmal = Math.abs(mal);
     if (coaligned) mtmp.malign = 0;
     else {

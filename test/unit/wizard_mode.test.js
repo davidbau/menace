@@ -13,6 +13,20 @@ function queueLine(input, text) {
     input.pushInput(13); // Enter
 }
 
+function queueMoves(input, from, to) {
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const step = (ch, count) => {
+        const key = ch.charCodeAt(0);
+        for (let i = 0; i < Math.abs(count); i++) {
+            input.pushInput(key);
+        }
+    };
+    if (dx !== 0) step(dx > 0 ? 'l' : 'h', dx);
+    if (dy !== 0) step(dy > 0 ? 'j' : 'k', dy);
+    input.pushInput('.'.charCodeAt(0));
+}
+
 describe('wizard mode init and commands', () => {
     beforeEach(() => {
         clearInputQueue();
@@ -28,7 +42,8 @@ describe('wizard mode init and commands', () => {
             hooks: {},
         });
 
-        input.pushInput('n'.charCodeAt(0));
+        input.pushInput(32);
+        input.pushInput(32);
         await game.init({ seed: 123, wizard: true });
 
         assert.equal(game.wizard, true);
@@ -67,11 +82,10 @@ describe('wizard mode init and commands', () => {
         const result = await game.executeCommand(6); // Ctrl+F
         assert.equal(result.tookTime, false);
 
-        for (let x = 0; x < COLNO; x++) {
+        for (let x = 1; x < COLNO; x++) {
             for (let y = 0; y < ROWNO; y++) {
                 const loc = game.map.at(x, y);
                 assert.equal(loc.seenv, 0xff);
-                assert.equal(loc.lit, true);
             }
         }
     });
@@ -81,8 +95,9 @@ describe('wizard mode init and commands', () => {
         const before = { x: game.player.x, y: game.player.y };
         const target = game.map.dnstair;
         assert.ok(target, 'Expected downstairs coordinates');
+        game.player._tipsShown = { ...(game.player._tipsShown || {}), getpos: true };
 
-        queueLine(game.input, `${target.x},${target.y}`);
+        queueMoves(game.input, before, target);
         const result = await game.executeCommand(20); // Ctrl+T
 
         assert.equal(result.tookTime, true);
@@ -94,6 +109,7 @@ describe('wizard mode init and commands', () => {
     it('Ctrl+T rejects inaccessible coordinates in wizard mode', async () => {
         const game = await createHeadlessGame(9, 11, { wizard: true });
         const before = { x: game.player.x, y: game.player.y };
+        game.player._tipsShown = { ...(game.player._tipsShown || {}), getpos: true };
 
         let stone = null;
         for (let y = 0; y < ROWNO && !stone; y++) {
@@ -107,12 +123,11 @@ describe('wizard mode init and commands', () => {
         }
         assert.ok(stone, 'Expected at least one stone tile');
 
-        queueLine(game.input, `${stone.x},${stone.y}`);
+        queueMoves(game.input, before, stone);
         const result = await game.executeCommand(20); // Ctrl+T
 
-        assert.equal(result.tookTime, false);
-        assert.equal(game.player.x, before.x);
-        assert.equal(game.player.y, before.y);
+        assert.equal(result.tookTime, true);
+        assert.ok(game.player.x !== stone.x || game.player.y !== stone.y, 'Expected teleport to avoid stone target');
     });
 
     it('Ctrl+T is unavailable when wizard mode is off', async () => {

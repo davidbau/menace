@@ -1332,6 +1332,12 @@ export function invoke_ok(obj) {
 export async function doinvoke(player, game = null) {
   const obj = await getobj('invoke', invoke_ok, GETOBJ_PROMPT, player);
   if (!obj) return ECMD_CANCEL;
+  if (obj.oartifact && !Number.isInteger(obj.otyp)) {
+    const art = artilist[obj.oartifact];
+    if (art && Number.isInteger(art.otyp)) {
+      obj.otyp = art.otyp;
+    }
+  }
   if (!await retouch_object(obj, false, player)) return ECMD_TIME;
   return await arti_invoke(obj, player, game);
 }

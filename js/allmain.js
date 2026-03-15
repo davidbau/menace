@@ -1371,6 +1371,9 @@ export class NetHackGame {
         this.player = new Player();
         this.map = null;
         this.display = deps.display || null;
+        if (this.display && !this.display._game) {
+            this.display._game = this;
+        }
         // Canonical namespace aliases for state refactor campaign.
         Object.defineProperty(this, 'context', {
             configurable: true,

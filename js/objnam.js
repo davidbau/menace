@@ -345,9 +345,18 @@ export function fruit_from_name(name, create = true) {
 }
 
 // cf. objnam.c:414 — fruitname(juice): get current fruit name, optionally with " juice"
-export function fruitname(juice) {
-    // C: uses pl_fruit, strips " of " prefix, makes singular, appends " juice" if true
-    let fruit_nam = 'slime mold'; // TODO: use configured pl_fruit option
+export function fruitname(juiceOrIdx) {
+    // C: uses pl_fruit, strips " of " prefix, makes singular, appends " juice" if true.
+    let fruit_nam = null;
+    let juice = false;
+    if (Number.isInteger(juiceOrIdx) && juiceOrIdx > 0) {
+        fruit_nam = fruit_from_indx(juiceOrIdx);
+    } else {
+        juice = !!juiceOrIdx;
+    }
+    if (!fruit_nam) {
+        fruit_nam = 'slime mold'; // TODO: use configured pl_fruit option
+    }
     return fruit_nam + (juice ? ' juice' : '');
 }
 
@@ -2422,7 +2431,12 @@ export function readobjnam(bp, no_wish, opts = {}) {
                 x: opts.x,
                 y: opts.y,
             });
-            if (terrain) return terrain;
+            if (terrain) {
+                if (opts && typeof opts === 'object') {
+                    opts._terrainWish = terrain;
+                }
+                return hands_obj;
+            }
         }
         return null;
     }

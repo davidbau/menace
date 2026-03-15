@@ -1894,15 +1894,17 @@ export function do_osshock(obj, map, player) {
 
 // C ref: zap.c makewish() — grant an object wish and hand it to hero.
 export async function makewish(wishText, player, display, game) {
-    let otmp = readobjnam(wishText, false, {
+    const opts = {
         wizard: !!player?.wizard,
         wizkit_wishing: !!player?.program_state?.wizkit_wishing,
         player,
         map: player?.map || game?.map || null,
-    });
-    if (otmp && (otmp.kind === 'terrainwish' || otmp.kind === 'trapwish')) {
-        if (otmp.message) {
-            await pline(otmp.message);
+    };
+    let otmp = readobjnam(wishText, false, opts);
+    const terrainWish = opts._terrainWish || null;
+    if (terrainWish) {
+        if (terrainWish.message) {
+            await pline(terrainWish.message);
         }
         return hands_obj;
     }

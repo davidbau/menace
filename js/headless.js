@@ -759,9 +759,10 @@ export class HeadlessDisplay {
                 _fsPlayer.encumbrance = _savedFsEnc;
             }
         }
-        if (this._deferredBotlAfterPendingFlush && activeGame?.player) {
-            activeGame.player._botl = true;
-            activeGame.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+        const gameCtx = this._game || activeGame || null;
+        if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
+            gameCtx.player._botl = true;
+            gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
             this._deferredBotlAfterPendingFlush = false;
             this._deferredBotlStepIndex = null;
         }

@@ -159,7 +159,7 @@ export function destroy_nhwindow(win) {
     if (!w) return;
     const type = w.type;
     wins[win] = null;
-    if (type === NHW_MENU && _rerenderCallback) {
+    if ((type === NHW_MENU || type === NHW_TEXT) && _rerenderCallback) {
         _rerenderCallback();
     }
 }
@@ -385,7 +385,7 @@ export async function select_menu(win, how, opts = null) {
                         result.push({ identifier: item.id, count: -1 });
                     }
                 }
-                return result;
+                return result.length ? result : null;
             }
             if (ch === 27 || ch === 'q'.charCodeAt(0)) return null;
             if (ch === '.'.charCodeAt(0)) {
@@ -407,7 +407,7 @@ export async function select_menu(win, how, opts = null) {
                                 result.push({ identifier: item.id, count: -1 });
                             }
                         }
-                        return result;
+                        return result.length ? result : null;
                     }
                 } else {
                     const item = w.mlist.find(i => i.ch === ch);

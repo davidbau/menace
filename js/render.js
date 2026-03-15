@@ -180,7 +180,8 @@ export function determineWallType(gameMap, x, y) {
 // ============================================================================
 export function terrainSymbol(loc, gameMap = null, x = -1, y = -1, flags = {}) {
     const typ = loc.typ;
-    const useDEC = flags.DECgraphics || false;
+    const safeFlags = (flags && typeof flags === 'object') ? flags : {};
+    const useDEC = !!safeFlags.DECgraphics;
     const TERRAIN_SYMBOLS = useDEC ? TERRAIN_SYMBOLS_DEC : TERRAIN_SYMBOLS_ASCII;
 
     // C ref: display.c wall_angle() — T-wall glyph depends on seenv viewing angle.

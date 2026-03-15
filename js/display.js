@@ -500,9 +500,10 @@ span.nh-cursor {
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
-        if (this._deferredBotlAfterPendingFlush && activeGame?.player) {
-            activeGame.player._botl = true;
-            activeGame.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
+        const gameCtx = this._game || (typeof activeGame !== 'undefined' ? activeGame : null);
+        if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
+            gameCtx.player._botl = true;
+            gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
             this._deferredBotlAfterPendingFlush = false;
             this._deferredBotlStepIndex = null;
         }
