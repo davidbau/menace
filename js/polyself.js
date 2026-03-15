@@ -65,6 +65,7 @@ import {
     YELLOW_DRAGON_SCALE_MAIL, YELLOW_DRAGON_SCALES,
     BLINDING_VENOM, ACID_VENOM,
 } from './objects.js';
+import { STAIRS, LADDER } from './const.js';
 import {
     is_humanoid, slithy, nohands, is_hider, hides_under,
     is_golem, attacktype, sticks,
@@ -1780,9 +1781,9 @@ export async function dospinweb(player, map) {
     }
 
     // Check for stairs/ladders — cop out: don't let them hide the stairs
-    if (loc && loc.isStairs) {
+    if (loc && (loc.typ === STAIRS || loc.typ === LADDER)) {
         await Your("web fails to impede access to the %s.",
-             loc.isLadder ? "ladder" : "stairs");
+             loc.typ === LADDER ? "ladder" : "stairs");
         return 1;
     }
 

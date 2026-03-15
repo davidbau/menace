@@ -1559,8 +1559,11 @@ async function mbhitm(mtmp, otmp, map, player) {
                 learnit = true;
             } else if (rnd(20) < 10 + find_mac(mtmp)) {
                 tmp = d(2, 12);
+                // C ref: zap.c:209 — resist() halves damage if monster resists
+                if (resist(mtmp, WAND_CLASS)) {
+                    tmp = Math.floor((tmp + 1) / 2);
+                }
                 mtmp.mhp -= tmp;
-                resist(mtmp, WAND_CLASS);
                 learnit = true;
             }
         }

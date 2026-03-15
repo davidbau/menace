@@ -13072,3 +13072,35 @@ Validation:
   - `hi17` is parity-green end to end
   - this gives coverage on ordinary vault summon, interrogation, accusation,
     and compliant gold-drop behavior without a harness workaround
+
+### `hi18` polymorph-web route: `#monster` must dispatch the real C ability ladder (2026-03-15)
+
+- A short new coverage session is now promoted:
+  - [hi18_seed503_w_polyweb_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/potions-prayer-spells/hi18_seed503_w_polyweb_gp.session.json)
+- Route shape:
+  - start with the baseline human `#monster` no-ability branch
+  - wish `blessed potion of polymorph`
+  - quaff it and choose `giant spider`
+  - drain the post-polymorph `--More--` chain
+  - use `#monster` to hit `dospinweb()`
+- The two concrete JS bugs exposed by this session were:
+  - startup only initialized `flags.female`, while `polyself.js` reads and
+    mutates `player.female`
+    - this caused sex-dependent polymorph text drift such as
+      `female giant spider` vs C `male giant spider`
+  - `cmd.js` only recognized the breath-weapon branch of C `domonability()`
+    - C dispatches a ladder of already-ported abilities:
+      `dospit`, `doremove`, `dogaze`, `dosummon`, `dohide`, `dospinweb`,
+      `domindblast`, `dopoly`, and others
+- `dospinweb()` also needed one C-faithful tile test:
+  - use `loc.typ === STAIRS || loc.typ === LADDER`, not `loc.isStairs`
+- Result:
+  - `hi18` is fully parity-green
+  - existing nearby guardrails stayed green:
+    - `seed503_extcmd_monster`
+    - `seed031_manual_direct`
+    - `seed329_rogue_wizard_gameplay`
+- Follow-up value:
+  - the same `#monster` dispatcher fix materially improves the viability of
+    future `mind flayer`, `gaze`, `were`, and `vampire` active-ability
+    coverage sessions
