@@ -12881,7 +12881,6 @@ Validation:
   - when a translated special-level callback is async, always `await`
     `selection.iterate(...)`; otherwise RNG from later level-generation
     branches can interleave ahead of the intended C/Lua order.
-
 ### `t11_s755` canceled directed spell: zero direction must self-zap, and force-bolt self-zap must use C dice logging
 
 - `t11_s755_w_covmax9_gp` was diverging at step `652` on a canceled directed
@@ -12948,3 +12947,24 @@ Validation:
   - guard sessions stayed green:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
+
+### Knox parity: irregular zoo fill and arrival-wall lighting (2026-03-15)
+
+- `wizload knox` on `/tmp/knox_candidate1.session.json` had two separate blockers:
+  1. gameplay drift in `fill_zoo_room()` for the irregular entry zoo,
+  2. a screen-only mismatch on the arrival chamber wall after gameplay was already green.
+- The gameplay fix in [js/dungeon.js](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js) was:
+  - keep the existing `SPACE_POS`-style wall guard for irregular rooms,
+  - add the missing C constraints that matter on this level:
+    - `loc.roomno === rmno`
+    - `distmin(sx, sy, door.x, door.y) > 1`
+- This was the safe version of the C logic. A straight `edge`-based port was too risky on the current JS special-level metadata path, but `roomno + distmin` moved `knox` to full RNG/event parity without regressing `seed031` or `seed329`.
+- The remaining screen mismatch was the arrival chamber bottom wall/corner showing on the first Knox screen when C left that row blank.
+- The translated [js/levels/knox.js](/share/u/davidbau/git/mazesofmenace/game/js/levels/knox.js) already carried a level-script workaround to unlight the left and top arrival walls. Extending that workaround to the bottom wall and its bottom-right corner matched the C capture and made the session fully green.
+- Result:
+  - promoted [hi16_seed1200_wiz_knox_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/quest-special-levels/hi16_seed1200_wiz_knox_gp.session.json)
+  - `RNG 11601/11601`
+  - `screens 10/10`
+  - `colors 240/240`
+  - `events 1999/1999`
+  - `cursor 10/10`

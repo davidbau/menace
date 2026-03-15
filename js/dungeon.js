@@ -77,6 +77,7 @@ import {
 } from './monsters.js';
 import { init_objects, setgemprobs } from './o_init.js';
 import { roles } from './player.js';
+import { distmin } from './hacklib.js';
 import {
     ARROW, DART, ROCK, BOULDER, LARGE_BOX, CHEST, GOLD_PIECE, CORPSE,
     STATUE, TALLOW_CANDLE, WAX_CANDLE, BELL, KELP_FROND, LUMP_OF_ROYAL_JELLY,
@@ -3815,6 +3816,7 @@ function fill_zoo_room(map, sroom, depth) {
     const type = sroom.rtype;
     const door = Array.isArray(map.doors) ? map.doors[sroom.fdoor] : null;
     const difficulty = Math.max(Math.trunc(depth), 1);
+    const rmno = Number.isInteger(sroom.roomnoidx) ? sroom.roomnoidx + ROOMOFFSET : 0;
     let goldlim = 0;
     let tx = 0, ty = 0;
 
@@ -3866,13 +3868,20 @@ function fill_zoo_room(map, sroom, depth) {
             const loc = map.at(sx, sy);
             if (!loc) continue;
 
-            // SPACE_POS check + door adjacency skip
-            if (loc.typ <= DOOR) continue;
-            if (sroom.doorct && door
-                && ((sx === sroom.lx && door.x === sx - 1)
-                    || (sx === sroom.hx && door.x === sx + 1)
-                    || (sy === sroom.ly && door.y === sy - 1)
-                    || (sy === sroom.hy && door.y === sy + 1))) {
+            if (sroom.irregular) {
+                if (rmno && loc.roomno !== rmno) continue;
+                // Keep the existing wall/door guard here. C's irregular path
+                // relies on edge-marked room metadata, but JS floor topology in
+                // translated special levels is more reliable than edge bits on
+                // this path and still matches the intended eligible cells.
+                if (loc.typ <= DOOR) continue;
+                if (sroom.doorct && door && distmin(sx, sy, door.x, door.y) <= 1) continue;
+            } else if (loc.typ <= DOOR
+                || (sroom.doorct && door
+                    && ((sx === sroom.lx && door.x === sx - 1)
+                        || (sx === sroom.hx && door.x === sx + 1)
+                        || (sy === sroom.ly && door.y === sy - 1)
+                        || (sy === sroom.hy && door.y === sy + 1)))) {
                 continue;
             }
 
