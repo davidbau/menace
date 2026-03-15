@@ -50,6 +50,7 @@ import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
+import { game as activeGame } from './gstate.js';
 import {
     debugRepaint,
     logRepaint,
@@ -499,7 +500,7 @@ span.nh-cursor {
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
-        const gameCtx = this._game || null;
+        const gameCtx = this._game || activeGame || null;
         if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
             gameCtx.player._botl = true;
             gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
