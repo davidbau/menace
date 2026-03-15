@@ -13104,3 +13104,33 @@ Validation:
   - the same `#monster` dispatcher fix materially improves the viability of
     future `mind flayer`, `gaze`, `were`, and `vampire` active-ability
     coverage sessions
+
+### `hi19` mind-flayer route: polymorph must redraw the hero glyph and sync form strength immediately (2026-03-15)
+
+- A second short polymorph coverage session is now promoted:
+  - [hi19_seed503_w_mindblast_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/potions-prayer-spells/hi19_seed503_w_mindblast_gp.session.json)
+- Route shape:
+  - baseline human `#monster` no-ability branch
+  - wish `blessed potion of gain energy` and quaff it
+  - wish `blessed potion of polymorph` and choose `mind flayer`
+  - drain the polymorph `--More--` page
+  - use `#monster` to emit the psychic blast via `domindblast()`
+- The first blocker was screen-only, not gameplay:
+  - C already showed `h` on the `You turn into a mind flayer!` screen
+  - JS still showed `@` until the following step
+- The C-faithful fix was not a replay/harness change:
+  - force an immediate hero-square `newsym()` from the actual display layer
+    when `polymon()` and `polyman()` change form
+  - this moves the glyph update onto the same message screen C already shows
+- That exposed one more real state bug:
+  - polymorph strength updates were only changing the legacy `acurr/amax`
+    shadow objects
+  - the status line reads `player.attributes[A_STR]`
+  - JS therefore kept stale human exceptional strength like `18/04` while C
+    already showed plain `18` for the mind flayer form
+- Fix:
+  - synchronize `player.attributes[A_STR]` when form strength changes or when
+    human strength is restored
+- Result:
+  - `hi19` is fully parity-green
+  - nearby polymorph and global gameplay guardrails stayed green
