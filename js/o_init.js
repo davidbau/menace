@@ -331,7 +331,7 @@ export function observe_object(obj) {
 // Autotranslated from o_init.c:519
 export function interesting_to_discover(i) {
   if (Role_if(_gstate.player, PM_SAMURAI) && Japanese_item_name(i,  0)) return true;
-  return  (objectData[i].oc_uname !==  0 || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr !==  0));
+  return  (objectData[i].oc_uname != null || ((objectData[i].oc_name_known || objectData[i].oc_encountered) && objectData[i].oc_descr != null));
 }
 
 // Autotranslated from o_init.c:601
