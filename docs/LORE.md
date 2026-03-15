@@ -12463,3 +12463,25 @@ Validation:
     - cursor step `844`
   - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
   - `t22_s1250_w_digtrapmix_gp`: still green
+
+## 2026-03-15: invalid throw prompt needs a visible `--More--` owner
+
+- Problem:
+  - after the mapping fix, `t11_s754_w_covmax8_gp` was still failing on cursor only
+    at step `844`
+  - session expected cursor `[35,0,1]` on `You don't have that object.--More--`
+  - JS ended at `[27,0,1]`
+- Diagnosis:
+  - watched-cell cursor tracing showed step `844` cursor placement came from
+    `js/dothrow.js:handleThrow()`
+  - the invalid inventory-letter path called `more()` without `forceVisual`, so
+    JS kept the cursor at message-end column `27` instead of the visible
+    `--More--` marker at column `35`
+- Fix:
+  - `js/dothrow.js` now calls `more(..., { forceVisual: true })` for the
+    invalid-inventory-letter throw path
+- Result:
+  - `t11_s754_w_covmax8_gp` cursor is now full green (`1866/1866`)
+  - screens/colors remain fully green
+  - `hi11_seed1100_wiz_zap-deep_gameplay`: still green
+  - `t22_s1250_w_digtrapmix_gp`: still green

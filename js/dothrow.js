@@ -327,7 +327,10 @@ export async function handleThrow(player, map, display, game) {
         if (!selItem) {
             replacePromptMessage();
             await display.putstr_message("You don't have that object.");
-            await more(display, { site: 'dothrow.handleThrow.invalidInvlet.more' });
+            await more(display, {
+                site: 'dothrow.handleThrow.invalidInvlet.more',
+                forceVisual: true,
+            });
             replacePromptMessage();
             await display.putstr_message(throwPrompt);
             continue;
