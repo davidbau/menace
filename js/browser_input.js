@@ -98,6 +98,7 @@ export function mapBrowserKeyToNhCode(e, flags = {}) {
             case 'End':        return 'b'.charCodeAt(0);
             case 'PageUp':     return 'K'.charCodeAt(0); // run up
             case 'PageDown':   return 'J'.charCodeAt(0); // run down
+            case 'Tab':        return 9;  // tab completion in shell
         }
     }
 
