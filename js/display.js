@@ -222,9 +222,9 @@ function trapShownOnMap(trap, player) {
 }
 
 function playerMapGlyph(player) {
-    // C ref: display.h hero_glyph + mapglyph hallucination randomization
-    const hallu = !!(player?.Hallucination || player?.hallucinating);
-    if (hallu) return monsterMapGlyph(null, true);
+    // C ref: display.h hero_glyph — player glyph is NEVER hallucinated.
+    // C's display_self() uses hero_glyph directly (no rn2_on_display_rng call).
+    // Only polymorph changes the player glyph, not hallucination.
     const upolyd = !!((Number(player?.mtimedone) || 0) > 0);
     const mlet = Number(player?.type?.mlet);
     if (upolyd && Number.isInteger(mlet) && mlet >= 0) {
