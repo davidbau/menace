@@ -73,10 +73,7 @@ function drawDragonScene(display) {
     }
 }
 
-// Scene 2: potion bottle — cropped left half of colored block-art source.
-// Full-screen scene (25 rows), shown without the logo overlay.
-// Colors: 0=black, 3=brown, 5=magenta, 6=cyan, 7=gray, 9=orange,
-// 11=yellow, 12=bright blue, 15=white.
+// Scene 2: treasure chest — hand-edited ANSI block art, full-screen (no logo overlay).
 
 const POTION_ART = [
   ["                            ▓▓▓▓  ▓▓▓▓▓▒▒▒▒▒▒▒▓", [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,3,3,3,3,3,3,3,3,3,7,7,7]],
