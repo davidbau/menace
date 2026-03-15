@@ -51,6 +51,7 @@ import { cansee, couldsee, block_point, unblock_point, recalc_block_point } from
 import { t_at } from './trap.js';
 import { m_canseeu } from './mondata.js';
 import { Has_contents } from './objnam.js';
+import { getlin } from './input.js';
 
 // ---------- Constants ----------
 const FCSIZ = ROWNO + COLNO;
@@ -780,9 +781,31 @@ export async function invault(map, player, fov) {
     }
 
     // C: stop_occupation(), nomul(0), unmul — simplified
-    // C: getlin("Hello stranger, who are you?") — simplified
-    // In JS, the guard dialog would need async UI; for now, proceed to
-    // "I don't know you" path (no name given)
+    let buf = '';
+    let trycount = 5;
+    const prompt = player.deaf
+        ? 'You are required to supply your name. -'
+        : '"Hello stranger, who are you?" -';
+    const promptDisplay = _gstate?.display || _gstate?.disp || null;
+    do {
+        buf = await getlin(prompt, promptDisplay);
+        buf = String(buf || '').replace(/\s+/g, ' ').trim();
+    } while (!buf && --trycount > 0);
+
+    if (buf
+        && (/^croesus$/i.test(buf)
+            || /^kroisos$/i.test(buf)
+            || /^creosote$/i.test(buf))) {
+        if (player.deaf) {
+            if (!player.blind) {
+                await pline('%s waves goodbye.', noit_Monnam(guard));
+            }
+        } else {
+            await verbalize('Oh, yes, of course.  Sorry to have disturbed you.');
+        }
+        mongone(guard, map, player);
+        return;
+    }
 
     if (player.deaf) {
         await pline("%s doesn't %srecognize you.", noit_Monnam(guard),

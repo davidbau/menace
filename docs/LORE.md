@@ -13038,7 +13038,7 @@ Validation:
     first solve "which level is worth routing?" with a short scanner pass
     instead of hand-probing one candidate blindly.
 
-### `hi17` ordinary vault route: seed700/dlvl4 reaches real guard summon, and the first blocker is JS failing to enter `invault()` summon behavior (2026-03-15)
+### `hi17` ordinary vault route: vaults must stay typed, and guards must stay on the `gd_move()` path (2026-03-15)
 
 - The first successful ordinary-vault candidate is:
   - `seed700/dlvl4`
@@ -13051,8 +13051,8 @@ Validation:
     - wait long enough for the guard timer
     - answer the guard prompt with `Wizard`
     - comply with `d$`
-- That route is now recorded as pending:
-  - [hi17_seed700_w_vault-guard_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/pending/hi17_seed700_w_vault-guard_gp.session.json)
+- That route is now promoted:
+  - [hi17_seed700_w_vault-guard_gp.session.json](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/quest-special-levels/hi17_seed700_w_vault-guard_gp.session.json)
 - Useful C-visible milestones from the session:
   - `Suddenly one of the Vault's guards enters!--More--`
   - `"Hello stranger, who are you?"`
@@ -13060,13 +13060,15 @@ Validation:
   - `"Most likely all your gold was stolen from this vault."--More--`
   - `"Please drop that gold and follow me."`
   - `d$` cleanly drops the carried gold
-- Authoritative JS first divergence on the new pending session:
-  - step `65`
-  - C enters `invault(vault.c)` guard creation:
-    - `rnd(2)=2 @ next_ident(mkobj.c:522)`
-    - stack includes `makemon @ invault(vault.c:407)`
-  - JS does not summon the guard there and instead continues ordinary turn RNG:
-    - `rn2(82)=67 @ moveloop_core(allmain.js:246)`
-- Practical diagnosis:
-  - this is not a recorder artifact
-  - the new session proves the next real blocker is ordinary-vault state ownership on the JS side, most likely around whether the dug-in hero state is being recognized as `vault_occupied(...)` before `allmain.invault()`
+- The two actual JS bugs were:
+  - `hack.js check_special_room()` was demoting discovered `VAULT` rooms to `OROOM`
+    even though C explicitly preserves vault room types for `vault_occupied()`
+  - `monmove.js m_move()` routed guards through ordinary monster AI instead of
+    the C `gd_move()` special-monster path
+- The session also needed the real guard interrogation prompt:
+  - `vault.js invault()` now uses the existing `getlin()` flow for
+    `"Hello stranger, who are you?" -`
+- Result:
+  - `hi17` is parity-green end to end
+  - this gives coverage on ordinary vault summon, interrogation, accusation,
+    and compliant gold-drop behavior without a harness workaround

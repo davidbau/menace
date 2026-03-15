@@ -1402,6 +1402,11 @@ export async function domove_core(dir, player, map, display, game) {
 
     const objs = map.objectsAt(nx, ny);
 
+    // C ref: hack.c spoteffects() runs check_special_room() immediately after
+    // pool/terrain handling and before trap/pickup work. The current domove()
+    // inlines the post-move flow, so refresh room-entry state here.
+    await check_special_room(false, player, map, display, game?.fov || null);
+
     // C ref: pickup.c pickup() — running into objects stops running before
     // autopick processing (which can suppress pickup on this step).
     let suppressAutopickThisStep = false;
@@ -3046,7 +3051,6 @@ export function move_update(newlev, player, map) {
     }
     const rooms = in_rooms(player.x, player.y, 0, map);
     player.urooms = rooms.map(r => String.fromCharCode(r)).join('');
-
     let entered = '';
     let shops = '';
     let shopsEntered = '';
@@ -3154,8 +3158,9 @@ export async function check_special_room(newlev, player, map, display, fov) {
             }
         }
 
-        // Mark room as discovered (type -> OROOM) after first entry
-        if (rt !== OROOM && rt !== TEMPLE && rt < SHOPBASE) {
+        // C ref: hack.c check_special_room() keeps vaults and temples typed.
+        // Other non-shop special rooms become OROOM after first discovery.
+        if (rt !== OROOM && rt !== TEMPLE && rt !== VAULT && rt < SHOPBASE) {
             map.rooms[roomno].rtype = OROOM;
         }
     }
