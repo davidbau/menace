@@ -2350,22 +2350,27 @@ function still_chewing(_x, _y, _player, _map, _display) {
 
 // C ref: hack.c weight_cap() — maximum carrying capacity
 export function weight_cap(player) {
+    const map = player?.map || null;
     const str = acurrstr(player);
     const con = acurr(player, A_CON);
     let carrcap = WT_WEIGHTCAP_STRCON * (str + con) + WT_WEIGHTCAP_SPARE;
     // C ref: hack.c:4242-4252 — polymorph carry capacity adjustments
     const Upolyd = !!((Number(player?.mtimedone) || 0) > 0);
-    if (Upolyd && player.data) {
-        if (player.data.mlet === S_NYMPH) {
+    const polyData = Upolyd ? (player.type || player.data || null) : null;
+    if (polyData) {
+        if (polyData.mlet === S_NYMPH) {
             carrcap = MAX_CARR_CAP;
-        } else if (!player.data.cwt) {
-            carrcap = Math.floor(carrcap * (player.data.msize || MZ_HUMAN) / MZ_HUMAN);
-        } else if (!strongmonst(player.data)
-                   || (strongmonst(player.data) && player.data.cwt > WT_HUMAN)) {
-            carrcap = Math.floor(carrcap * player.data.cwt / WT_HUMAN);
+        } else if (!polyData.cwt) {
+            carrcap = Math.floor(carrcap * (polyData.msize || MZ_HUMAN) / MZ_HUMAN);
+        } else if (!strongmonst(polyData)
+                   || (strongmonst(polyData) && polyData.cwt > WT_HUMAN)) {
+            carrcap = Math.floor(carrcap * polyData.cwt / WT_HUMAN);
         }
     }
-    if (player.levitating || player.flying) {
+    // C ref: hack.c weight_cap() only grants MAX_CARR_CAP for levitation,
+    // air levels, or riding a strong steed. Flying alone does not.
+    if (player.levitating || (map && map.flags && map.flags.is_airlevel)
+        || (player.usteed && strongmonst(player.usteed.data))) {
         carrcap = MAX_CARR_CAP;
     } else {
         if (carrcap > MAX_CARR_CAP) carrcap = MAX_CARR_CAP;

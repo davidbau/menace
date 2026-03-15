@@ -508,7 +508,6 @@ export function set_uasmon(player) {
     }
     const mdat = player.type;
     if (!mdat) return;
-
     // Ensure uprops exists
     if (!player.uprops) player.uprops = {};
 
