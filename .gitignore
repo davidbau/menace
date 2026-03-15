@@ -26,3 +26,4 @@ tmp/session-comparisons/
 # Debug scripts should go in scripts/debug/, not root
 /*.mjs
 /CURRENT_ISSUE.md
+js/mailcorpus_plain.js
