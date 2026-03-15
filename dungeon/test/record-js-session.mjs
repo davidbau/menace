@@ -68,7 +68,7 @@ const input = async () => {
 
     if (inputIdx >= inputLines.length) {
         game.gameOver = true;
-        return '';
+        return null;
     }
 
     moveAtInput = game.moves + 1;
