@@ -1037,7 +1037,13 @@ export async function handleOpen(player, map, display, game) {
         if (!dir && (c === '.' || c === 's')) {
             dir = [0, 0];
         }
-        if (dir) break;
+        if (dir) {
+            // C ref: getdir() sets u.dx/u.dy as side effect
+            player.dx = dir[0];
+            player.dy = dir[1];
+            player.dz = 0;
+            break;
+        }
         // C ref: getdir() returns 0 after help_dir; no retry
         if (game?.flags?.cmdassist !== false) {
             await show_invalid_direction_cmdassist_help(display);
@@ -1070,6 +1076,10 @@ export async function handleClose(player, map, display, game) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
         return { moved: false, tookTime: false };
     }
+    // C ref: getdir() sets u.dx/u.dy as side effect
+    player.dx = dir[0];
+    player.dy = dir[1];
+    player.dz = 0;
 
     const nx = player.x + dir[0];
     const ny = player.y + dir[1];

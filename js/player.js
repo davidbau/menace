@@ -94,6 +94,10 @@ export class Player {
         this.umovement = NORMAL_SPEED;
         this.speed = NORMAL_SPEED;
         this.moved = false;
+        // C ref: you.h u.dx, u.dy, u.dz — last direction input (zero-initialized)
+        this.dx = 0;
+        this.dy = 0;
+        this.dz = 0;
 
         // Luck
         // C ref: you.h u.uluck, u.moreluck.

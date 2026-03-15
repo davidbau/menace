@@ -3874,10 +3874,22 @@ export async function getdir(prompt, display) {
     }
     const c = String.fromCharCode(ch);
     const dir = DIRECTION_KEYS[c.toLowerCase()];
-    if (dir) return { dx: dir[0], dy: dir[1], dz: 0 };
-    if (c === '>' || c === '<') return { dx: 0, dy: 0, dz: c === '>' ? 1 : -1 };
-    if (c === '.') return { dx: 0, dy: 0, dz: 0 };
-    return null; // invalid direction
+    let result = null;
+    if (dir) result = { dx: dir[0], dy: dir[1], dz: 0 };
+    else if (c === '>' || c === '<') result = { dx: 0, dy: 0, dz: c === '>' ? 1 : -1 };
+    else if (c === '.') result = { dx: 0, dy: 0, dz: 0 };
+    // C ref: getdir() always sets u.dx/u.dy/u.dz as a side effect when a
+    // valid direction is chosen.  Other code relies on these persisting
+    // after getdir returns (e.g. spelleffects when a later getdir fails).
+    if (result) {
+        const u = _gstate?.player || _gstate?.u;
+        if (u) {
+            u.dx = result.dx;
+            u.dy = result.dy;
+            u.dz = result.dz;
+        }
+    }
+    return result;
 }
 
 // C ref: hack.c hurtle_step() — one step of hurtling through the air
