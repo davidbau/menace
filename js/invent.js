@@ -165,7 +165,9 @@ function buildInventoryOverlayLinesFromItems(items, player, options = null) {
 function buildInventoryPages(lines, rows = STATUS_ROW_1) {
     // C tty parity: if everything fits in the available menu rows,
     // keep a single page ending with "(end)".
-    if (lines.length <= rows) {
+    const hasEndLine = lines.length > 0 && lines[lines.length - 1] === '(end)';
+    const singlePageLimit = hasEndLine ? rows : Math.max(1, rows - 1);
+    if (lines.length <= singlePageLimit) {
         return [lines.slice()];
     }
     // Strip trailing "(end)" before paginating — it gets replaced by "(N of M)".
@@ -295,7 +297,6 @@ function isMenuDismissKey(ch) {
 export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelectionChars = '', options = null) {
     const allowCountPrefix = !!(options && options.allowCountPrefix);
     const dismissOnUnrecognized = !!(options && options.dismissOnUnrecognized);
-    const paginate = !!(options && options.paginate);
     const forceFullScreen = !!(options && options.forceFullScreen);
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
     if (display?.messageNeedsMore) {
@@ -305,6 +306,9 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
         if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
     }
     const pageRows = Number.isInteger(display?.rows) ? display.rows : STATUS_ROW_1;
+    const paginate = (options && Object.hasOwn(options, 'paginate'))
+        ? !!options.paginate
+        : (lines.length > Math.max(1, pageRows - 1));
     const pages = paginate ? buildInventoryPages(lines, pageRows) : [lines];
     let currentPage = 0;
     let currentLines = pages[currentPage] || lines;
@@ -338,11 +342,28 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
     while (true) {
         const ch = await nhgetch();
         const c = String.fromCharCode(ch);
-        if (ch === 32 && currentPage < pages.length - 1) {
-            currentPage++;
-            currentLines = pages[currentPage] || lines;
-            menuOffx = renderCurrentPage();
-            continue;
+        if (paginate && pages.length > 1) {
+            if ((ch === 32 || ch === 9 || c === '>') && currentPage < pages.length - 1) {
+                currentPage++;
+                currentLines = pages[currentPage] || lines;
+                menuOffx = renderCurrentPage();
+                continue;
+            }
+            if ((c === '<' || c === '^') && currentPage > 0) {
+                currentPage = (c === '^') ? 0 : (currentPage - 1);
+                currentLines = pages[currentPage] || lines;
+                menuOffx = renderCurrentPage();
+                continue;
+            }
+            if (c === '|' && currentPage < pages.length - 1) {
+                currentPage = pages.length - 1;
+                currentLines = pages[currentPage] || lines;
+                menuOffx = renderCurrentPage();
+                continue;
+            }
+            if (c === '>' || c === '<' || c === '^' || c === '|') {
+                continue;
+            }
         }
         if (isMenuDismissKey(ch)) break;
         if (allowCountPrefix && c >= '0' && c <= '9') {
@@ -396,8 +417,9 @@ function restoreOverlayMenu(display, lines, menuOffx) {
     }
 }
 
-async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionChars = '') {
+async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionChars = '', options = null) {
     const allowedSelections = new Set((allowedSelectionChars || '').split(''));
+    const skipInvertSelections = new Set(options?.skipInvertSelections || []);
     if (display?.messageNeedsMore) {
         await more(display, { site: 'invent.renderOverlayMenuPickAny.pre-menu', forceVisual: true });
         if (typeof display.clearRow === 'function') display.clearRow(0);
@@ -406,40 +428,114 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
     }
 
     const selected = new Set();
+    const pageRows = Number.isInteger(display?.rows) ? display.rows : STATUS_ROW_1;
     let menuOffx = null;
     let renderedLines = [];
+    let pages = [];
+    let currentPage = 0;
+    let currentLines = [];
     const render = () => {
         renderedLines = linesFactory(selected);
-        if (typeof display.renderOverlayMenu === 'function') {
-            menuOffx = display.renderOverlayMenu(renderedLines);
-        } else {
-            menuOffx = display.renderChargenMenu(renderedLines, false);
+        const shouldPaginate = renderedLines.length > Math.max(1, pageRows - 1);
+        pages = shouldPaginate ? buildInventoryPages(renderedLines, pageRows) : [renderedLines];
+        if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
+        currentLines = pages[currentPage] || renderedLines;
+        const menuOpts = options ? { ...options } : {};
+        if (pages.length > 1) {
+            menuOpts.forceFullScreen = true;
         }
-        if (typeof display?.setCursor === 'function' && Number.isInteger(menuOffx) && renderedLines.length > 0) {
+        if (typeof display.renderOverlayMenu === 'function') {
+            menuOffx = display.renderOverlayMenu(currentLines, Object.keys(menuOpts).length ? menuOpts : null);
+        } else {
+            menuOffx = display.renderChargenMenu(currentLines, false);
+        }
+        if (typeof display?.setCursor === 'function' && Number.isInteger(menuOffx) && currentLines.length > 0) {
             const cols = Number.isInteger(display.cols) ? display.cols : COLNO;
             const displayRows = Number.isInteger(display.rows) ? display.rows : STATUS_ROW_2;
-            const fullScreen = renderedLines.length >= displayRows || menuOffx === 1;
-            const menuRows = Math.min(renderedLines.length, fullScreen ? displayRows : STATUS_ROW_1);
+            const fullScreen = currentLines.length >= displayRows || menuOffx === 1;
+            const menuRows = Math.min(currentLines.length, fullScreen ? displayRows : STATUS_ROW_1);
             const lastRow = Math.max(0, menuRows - 1);
-            const lastLine = String(renderedLines[lastRow] || '');
+            const lastLine = String(currentLines[lastRow] || '');
             display.setCursor(Math.min(menuOffx + lastLine.length + 1, cols - 1), lastRow);
         }
+    };
+
+    const lineInvlet = (line) => {
+        const text = String(line || '');
+        const match = text.match(/^([A-Za-z_]) [+-] /) || text.match(/^([A-Za-z_]) - /);
+        return match ? match[1] : null;
     };
 
     render();
     while (true) {
         const ch = await nhgetch();
+        const c = String.fromCharCode(ch);
+        if (pages.length > 1) {
+            if ((ch === 32 || ch === 9 || c === '>') && currentPage < pages.length - 1) {
+                currentPage++;
+                render();
+                continue;
+            }
+            if ((c === '<' || c === '^') && currentPage > 0) {
+                currentPage = (c === '^') ? 0 : (currentPage - 1);
+                render();
+                continue;
+            }
+            if (c === '|' && currentPage < pages.length - 1) {
+                currentPage = pages.length - 1;
+                render();
+                continue;
+            }
+            if (c === ',') {
+                for (const line of currentLines) {
+                    const invlet = lineInvlet(line);
+                    if (invlet && allowedSelections.has(invlet) && !skipInvertSelections.has(invlet)) {
+                        selected.add(invlet);
+                    }
+                }
+                render();
+                continue;
+            }
+            if (c === '\\') {
+                for (const line of currentLines) {
+                    const invlet = lineInvlet(line);
+                    if (invlet) selected.delete(invlet);
+                }
+                render();
+                continue;
+            }
+            if (c === '~') {
+                for (const line of currentLines) {
+                    const invlet = lineInvlet(line);
+                    if (invlet && allowedSelections.has(invlet) && !skipInvertSelections.has(invlet)) {
+                        if (selected.has(invlet)) selected.delete(invlet);
+                        else selected.add(invlet);
+                    }
+                }
+                render();
+                continue;
+            }
+            if (c === '>' || c === '<' || c === '^' || c === '|') {
+                continue;
+            }
+        }
         if (ch === 27 || ch === 'q'.charCodeAt(0)) {
-            restoreOverlayMenu(display, renderedLines, menuOffx);
+            restoreOverlayMenu(display, currentLines, menuOffx);
             return null;
         }
         if (ch === 13 || ch === 10 || ch === 32) {
-            const result = [...selected];
-            restoreOverlayMenu(display, renderedLines, menuOffx);
-            return result;
+            const ordered = [];
+            for (const line of renderedLines) {
+                const invlet = lineInvlet(line);
+                if (invlet && selected.has(invlet)) ordered.push(invlet);
+            }
+            restoreOverlayMenu(display, currentLines, menuOffx);
+            return ordered;
         }
         if (ch === '.'.charCodeAt(0)) {
-            for (const c of allowedSelections) selected.add(c);
+            for (const c of allowedSelections) {
+                if (!skipInvertSelections.has(c)) selected.add(c);
+            }
             render();
             continue;
         }
@@ -448,7 +544,6 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
             render();
             continue;
         }
-        const c = String.fromCharCode(ch);
         if (allowedSelections.has(c)) {
             if (selected.has(c)) selected.delete(c);
             else selected.add(c);
@@ -2300,24 +2395,32 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
             if (!invlet) continue;
             choices.push(invlet);
         }
-
-        const result = await renderOverlayMenuUntilDismiss(
+        const result = await renderOverlayMenuPickAny(
             d,
-            lines,
-            want_reply ? choices.join('') : '',
-            { noTitleInverse: true, paginate: !want_reply }
+            (selected) => lines.map((line) => {
+                const match = String(line).match(/^([A-Za-z_]) - (.*)$/);
+                if (!match) return line;
+                return `${match[1]} ${selected.has(match[1]) ? '+' : '-'} ${match[2]}`;
+            }),
+            choices.join(''),
+            {
+                noTitleInverse: true,
+                skipInvertSelections: ['_', String.fromCharCode(wizIdentifyAccel)],
+            }
         );
-        const selection = selectionFromInventoryResult(result);
-        if (selection === '_' || selection === String.fromCharCode(wizIdentifyAccel)) {
+        if (result === null) return '';
+        if (result.includes('_') || result.includes(String.fromCharCode(wizIdentifyAccel))) {
             await identify_pack(0, p, false);
             return '';
         }
-        if (selection) {
-            const target = unid.find((obj) => String(obj?.invlet || '') === selection);
-            if (target && not_fully_identified(target)) {
-                await identify(target);
-                update_inventory(p);
+        if (result.length > 0) {
+            for (const invlet of result) {
+                const target = unid.find((obj) => String(obj?.invlet || '') === invlet);
+                if (target && not_fully_identified(target)) {
+                    await identify(target);
+                }
             }
+            update_inventory(p);
         }
         return '';
     }

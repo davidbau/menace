@@ -13185,3 +13185,21 @@ Validation:
   - guard sessions stayed green:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
+
+### Wizard identify menu now matches C pick-any paging and selection ordering
+
+- `t11_s746_w_covmax3_gp` diverged early inside the Ctrl+I (wizard identify)
+  menu because JS treated it as a pick-one overlay without paging or menu
+  commands, which broke `.`/`,` selection behavior and shifted RNG soon after.
+- C uses `PICK_ANY` for wizard identify and skips the special `_` entry on
+  select-all/invert.
+- Fix in `js/invent.js`:
+  - page overlay menus based on available rows even when the menu lacks an
+    explicit `(end)` line
+  - add paging and menu-command support to `renderOverlayMenuPickAny()`
+  - force full-screen rendering for paged pick-any menus to keep a stable
+    `offx`
+  - return pick-any selections in menu order (matching C), not insertion order
+  - skip `_`/Ctrl+I from select-all/invert to mirror `MENU_ITEMFLAGS_SKIPINVERT`
+- Validation:
+  - `t11_s746_w_covmax3_gp` first divergence moved `step 405 -> 652`
