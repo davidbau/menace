@@ -2,6 +2,7 @@
 // Provides a Unix-like directory abstraction for the shell: ls, cat, cd, etc.
 
 import { vfsReadFile, vfsWriteFile, vfsListFiles } from '../js/storage.js';
+import { loadScores } from '../js/topten.js';
 
 // The logged-in user
 export const USERNAME = 'rodney';
@@ -18,6 +19,11 @@ export const HOMEDIR = `/home/${USERNAME}`;
 function lsRead(key) {
     try { return typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null; }
     catch (e) { return null; }
+}
+
+function lsRemove(key) {
+    try { if (typeof localStorage !== 'undefined') localStorage.removeItem(key); }
+    catch (e) { /* ignore */ }
 }
 
 const MOTD = `                      Welcome to the dungeon!
@@ -58,6 +64,19 @@ wizard:x:1010:1010:The Wizard of Yendor:/dev/null:/sbin/nologin
 gridbug:x:404:404:Grid Bug:/tmp:/bin/false
 `.replace(/Strstrstrstr /g, '');
 
+function formatRecord() {
+    const scores = loadScores();
+    if (scores.length === 0) return '(no games recorded)';
+    return scores.map(e => {
+        const pts = String(e.points || 0).padStart(9);
+        const name = `${e.name || '?'}-${e.plrole || '?'}-${e.plrace || '?'}-${e.plgend || '?'}-${e.plalign || '?'}`;
+        const death = e.death || 'died';
+        const dd = String(e.deathdate || '');
+        const date = dd.length === 8 ? `${dd.slice(0,4)}/${dd.slice(4,6)}/${dd.slice(6,8)}` : '';
+        return `${pts} ${name.padEnd(28)} ${death.padEnd(32)} ${date}`;
+    }).join('\n');
+}
+
 function buildTree() {
     return {
         type: 'dir', children: {
@@ -81,16 +100,28 @@ function buildTree() {
                                         type: 'dir', children: {
                                             save: {
                                                 type: 'dir', children: {
-                                                    [USERNAME]: { type: 'file', lsKey: 'hack_save', readonly: true, owner: USERNAME, group: USERNAME, date: 'Dec  8  1984' },
+                                                    [USERNAME]: { type: 'file', lsKey: 'hack_save', removable: true, owner: USERNAME, group: USERNAME, date: 'Dec  8  1984' },
                                                 }
                                             },
                                         }
                                     },
                                     nethackdir: {
                                         type: 'dir', children: {
-                                            'record':  { type: 'file', content: '', readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
-                                            'perm':    { type: 'file', content: '', readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
+                                            'record':  { type: 'file', compute: formatRecord,
+                                                removable: true, removeKey: 'menace-topten',
+                                                owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                                            'perm':    { type: 'file', content:
+'0:0:2026/03/01:nethack:3.7.0:run\n' +
+'0:0:2026/02/28:nethack:3.7.0:run\n' +
+'0:0:2026/02/25:nethack:3.7.0:run',
+                                                readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
                                             'license': { type: 'file', content: 'NetHack, Copyright 1985-2024\nSee guidebook for license details.', readonly: true, owner: 'root', group: 'wheel', date: 'Mar  1  2026' },
+                                            'bones.D0302': { type: 'file', content: '(binary data)', removable: true, owner: 'root', group: 'wheel', date: 'Feb 28  2026', size: 32768 },
+                                            'save': {
+                                                type: 'dir', children: {
+                                                    [USERNAME + '.Z']: { type: 'file', lsKey: 'nethack_save', removable: true, owner: USERNAME, group: USERNAME, date: 'Mar 12  2026' },
+                                                }
+                                            },
                                         }
                                     }
                                 }
@@ -104,7 +135,7 @@ function buildTree() {
                     [USERNAME]: {
                         type: 'dir', children: {
                             '.nethackrc': { type: 'file', vfsPath: '.nethackrc' },
-                            'rogue.sav':  { type: 'file', lsKey: 'rogue-save', readonly: true, owner: USERNAME, group: USERNAME, date: 'Jun 15  1980' },
+                            'rogue.sav':  { type: 'file', lsKey: 'rogue-save', removable: true, owner: USERNAME, group: USERNAME, date: 'Jun 15  1980' },
                         }
                     },
                     izchak:   { type: 'dir', children: {}, restricted: true },
@@ -131,6 +162,8 @@ function buildTree() {
                     date:  { type: 'file', content: '#!/bin/sh\n# print date', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384 },
                     who:   { type: 'file', content: '#!/bin/sh\n# who is logged in', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 20480 },
                     clear: { type: 'file', content: '#!/bin/sh\n# clear screen', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192 },
+                    help:  { type: 'file', content: '#!/bin/sh\n# display help', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 12288 },
+                    man:   { type: 'file', content: '#!/bin/sh\n# manual pages', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384 },
                 }
             },
         }
@@ -202,7 +235,8 @@ export class VirtualFS {
         const node = this.getNode(path);
         if (!node) return null;
         if (node.type === 'dir') return null; // Is a directory
-        if (node.type === 'exec') return `#!/usr/games/${node.game}\n# game binary`;
+        if (node.type === 'exec') return null; // executables are not readable
+        if (node.compute) return node.compute();
         if (node.vfsPath !== undefined) {
             return vfsReadFile(node.vfsPath) || '';
         }
@@ -242,6 +276,29 @@ export class VirtualFS {
     getGame(path) {
         const node = this.getNode(path);
         return node && node.type === 'exec' ? node.game : null;
+    }
+
+    // Remove a file (only for removable files — save data, bones, records)
+    // Returns error message or null on success
+    remove(path) {
+        const absPath = this.resolve(path);
+        const node = this._lookup(absPath);
+        if (!node) return `${path}: No such file or directory`;
+        if (node.type === 'dir') return `${path}: Is a directory`;
+        if (!node.removable) return `${path}: Permission denied`;
+        // Clear backing data
+        if (node.lsKey) lsRemove(node.lsKey);
+        if (node.removeKey) lsRemove(node.removeKey);
+        if (node.content !== undefined) node.content = '';
+        // Remove from parent directory
+        const parts = absPath.split('/').filter(Boolean);
+        const name = parts.pop();
+        const parentPath = '/' + parts.join('/');
+        const parent = this._lookup(parentPath);
+        if (parent && parent.type === 'dir' && parent.children[name]) {
+            delete parent.children[name];
+        }
+        return null;
     }
 
     // Check if a node is read-only

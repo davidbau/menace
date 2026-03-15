@@ -46,7 +46,7 @@ import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2 } from '
 import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
-import { obfree, costly_spot, dopay } from './shk.js';
+import { obfree, costly_spot, dopay, addtobill } from './shk.js';
 import { getEnv, writeStderr } from './runtime_env.js';
 
 // pickup.js -- Autopickup, floor object pickup, container looting
@@ -515,15 +515,15 @@ export async function pick_obj(otmp, player) {
   let robshop = (!player.uswallow && otmp !== uball && costly_spot(ox, oy));
   obj_extract_self(otmp);
   newsym(ox, oy);
-  if (robshop) {
-    let saveushops, fakeshop;
-    saveushops = player.ushops;
-    fakeshop = String.fromCharCode(in_rooms(ox, oy, SHOPBASE));
-    player.ushops = fakeshop;
-    addtobill(otmp, true, false, false);
-    player.ushops = saveushops;
-    robshop = otmp.unpaid && !strchr(player.ushops, fakeshop);
-  }
+    if (robshop) {
+        let saveushops, fakeshop;
+        saveushops = player.ushops;
+        fakeshop = String.fromCharCode(in_rooms(ox, oy, SHOPBASE));
+        player.ushops = fakeshop;
+        await addtobill(otmp, true, false, false);
+        player.ushops = saveushops;
+        robshop = otmp.unpaid && !strchr(player.ushops, fakeshop);
+    }
   result = await addinv(otmp, player);
   if (robshop) await remote_burglary(ox, oy);
   return result;
@@ -1134,6 +1134,27 @@ function burden_prefix(enc) {
 }
 
 async function handlePickup(player, map, display, game = null) {
+    const deferTimedPickupUntilMore = (pickedObj, inventoryObj) => {
+        if (!(pickedObj?.unpaid || inventoryObj?.unpaid)) return null;
+        if (!game || !display?.messageNeedsMore) return null;
+        game._pendingDeferredTurnAfterMore = true;
+        game.pendingPrompt = {
+            type: 'pickup_more_ack',
+            onKey: async (chCode, gameCtx) => {
+                if (chCode !== 32 && chCode !== 10 && chCode !== 13
+                    && chCode !== 27 && chCode !== 16) {
+                    return { handled: true, moved: false, tookTime: false, prompt: true };
+                }
+                if (Object.hasOwn(gameCtx.display, 'messageNeedsMore')) {
+                    gameCtx.display.messageNeedsMore = false;
+                }
+                gameCtx.pendingPrompt = null;
+                gameCtx._pendingDeferredTurnAfterMore = false;
+                return { handled: true, moved: false, tookTime: true, prompt: true };
+            },
+        };
+        return { moved: false, tookTime: false, prompt: true };
+    };
     const objs = map.objectsAt(player.x, player.y);
     if (objs.length === 0) {
         const loc = map.at(player.x, player.y);
@@ -1271,6 +1292,11 @@ async function handlePickup(player, map, display, game = null) {
             }
         }
 
+        if (!player.uswallow && pickedObj !== player.uchain
+            && costly_spot(obj.ox, obj.oy, map) && !pickedObj.no_charge) {
+            await addtobill(pickedObj, true, false, false);
+        }
+
         const addResult = player.addToInventory(pickedObj, { withMeta: true });
         const inventoryObj = addResult.item;
         // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
@@ -1306,7 +1332,7 @@ async function handlePickup(player, map, display, game = null) {
             || ((pickupMsg.length + 2 + encMsg.length + 9) < Number(display?.cols || 80));
 
         if (encMsg && !combinedFits && game) {
-            await display.putstr_message(pickupMsg);
+            await pline("%s", pickupMsg);
             await more(display, { game, site: 'pickup.encumber.split.more' });
             player._oldcap = newcapVal;
             player.encumbrance = newcapVal;
@@ -1321,9 +1347,11 @@ async function handlePickup(player, map, display, game = null) {
                 },
             };
         } else {
-            await display.putstr_message(pickupMsg);
+            await pline("%s", pickupMsg);
             await encumber_msg(player);
         }
+        const deferredPickup = deferTimedPickupUntilMore(pickedObj, inventoryObj);
+        if (deferredPickup) return deferredPickup;
         return { moved: false, tookTime: true };
     };
 

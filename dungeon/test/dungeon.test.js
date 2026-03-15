@@ -12,10 +12,19 @@ function loadData() {
     return data;
 }
 
+function loadTextRecords() {
+    try {
+        return JSON.parse(readFileSync(new URL('../js/dungeon-text.json', import.meta.url)));
+    } catch (e) {
+        return {};
+    }
+}
+
 function createGame() {
     const data = loadData();
+    const textRecords = loadTextRecords();
     const game = new DungeonGame();
-    game.init(data);
+    game.init(data, textRecords);
     return game;
 }
 

@@ -35,7 +35,7 @@ import { observeObject } from './o_init.js';
 import { compactInvletPromptChars, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { pline, pline_The, You, Your, You_hear, You_see, You_feel, There, Norep } from './pline.js';
 import { hcolor, hliquid, rndmonnam, Monnam, Adjmonnam, mon_nam, docall } from './do_name.js';
-import { an, makeplural } from './objnam.js';
+import { an, makeplural, doname_with_price } from './objnam.js';
 import { corpse_xname, The } from './objnam.js';
 import { body_part } from './polyself.js';
 import { FACE, HAND, LEG, STOMACH, UTOTYPE_DEFERRED, UTOTYPE_FALLING, LEFT_SIDE, RIGHT_SIDE, BOTH_SIDES } from './const.js';
@@ -88,7 +88,8 @@ export function formatInventoryPickupMessage(pickedObj, inventoryObj, player) {
     const pickedCount = Number(pickedObj?.quan || 1);
     const total = Number(inventoryObj?.quan || pickedCount);
     const slot = String(inventoryObj?.invlet || pickedObj?.invlet || '?');
-    let detail = doname(pickedObj, null);
+    const msgObj = inventoryObj || pickedObj;
+    let detail = msgObj?.unpaid ? doname_with_price(msgObj, player) : doname(pickedObj, null);
     if (player?.quiver === inventoryObj) {
         detail += ' (at the ready)';
     }

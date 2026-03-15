@@ -10,7 +10,7 @@ import { USERNAME } from './filesystem.js';
 export function getBuiltinCommands() {
     return {
         ls, cat, more, cd, pwd, echo, clear, whoami, date, uname, man, who, sh,
-        vi, vim: vi,
+        vi, vim: vi, help,
         nethack: launchGame('nethack'),
         hack: launchGame('hack'),
         rogue: launchGame('rogue'),
@@ -76,6 +76,10 @@ async function ls(args, shell) {
 async function cat(args, shell) {
     if (args.length === 0) { shell.println('usage: cat file [...]'); return; }
     for (const path of args) {
+        if (shell.fs.isExec(path)) {
+            shell.println(`cat: ${path}: Permission denied`);
+            continue;
+        }
         const content = shell.fs.cat(path);
         if (content === null) {
             if (shell.fs.isDir(path)) {
@@ -94,6 +98,10 @@ async function cat(args, shell) {
 async function more(args, shell) {
     if (args.length === 0) { shell.println('usage: more file [...]'); return; }
     for (const path of args) {
+        if (shell.fs.isExec(path)) {
+            shell.println(`more: ${path}: Permission denied`);
+            continue;
+        }
         const content = shell.fs.cat(path);
         if (content === null) {
             if (shell.fs.isDir(path)) {
@@ -220,27 +228,79 @@ async function man(args, shell) {
     }
 }
 
+const GAME_HELP = {
+    nethack: 'usage: nethack\nNetHack -- Exploring The Mazes of Menace\nA single player dungeon exploration game.',
+    hack:    'usage: hack\nHack -- Exploring The Dungeons of Doom\nA dungeon crawl inspired by Rogue.',
+    rogue:   'usage: rogue\nRogue -- Exploring The Dungeons of Doom\nThe original dungeon crawling adventure.',
+    dungeon: 'usage: dungeon\nDungeon -- The game of Zork\nExplore an ancient dungeon, seeking the Twenty Treasures of Zork.',
+};
+
 function launchGame(name) {
-    return async function(_args, shell) {
+    return async function(args, shell) {
+        if (args.includes('--help') || args.includes('-h')) {
+            shell.println(GAME_HELP[name]);
+            return;
+        }
         return { action: 'launch', game: name };
     };
 }
 
-async function launchDungeon(_args, shell) {
+async function launchDungeon(args, shell) {
+    if (args.includes('--help') || args.includes('-h')) {
+        shell.println(GAME_HELP.dungeon);
+        return;
+    }
     return { action: 'dungeon' };
+}
+
+async function help(_args, shell) {
+    const cmds = [
+        ['ls',       'list directory contents'],
+        ['cat',      'display file contents'],
+        ['more',     'page through files'],
+        ['cd',       'change directory'],
+        ['pwd',      'print working directory'],
+        ['echo',     'echo arguments'],
+        ['clear',    'clear screen'],
+        ['whoami',   'print login name'],
+        ['date',     'print date and time'],
+        ['who',      'list logged-in users'],
+        ['uname',    'print system information'],
+        ['man',      'display manual pages'],
+        ['vi',       'text editor'],
+        ['help',     'display this help'],
+        ['exit',     'exit shell'],
+        ['nethack',  'launch NetHack'],
+        ['hack',     'launch Hack'],
+        ['rogue',    'launch Rogue'],
+        ['dungeon',  'launch Dungeon/Zork'],
+    ];
+    shell.println('Available commands:');
+    for (const [name, desc] of cmds) {
+        shell.println(`  ${name.padEnd(12)}${desc}`);
+    }
 }
 
 async function doExit(_args, shell) {
     return { action: 'exit' };
 }
 
-// Easter egg commands
+// Easter egg commands (with special handling for removable files)
 async function rm(args, shell) {
-    if (args.some(a => a.includes('-rf') || a.includes('-r'))) {
+    const flags = args.filter(a => a.startsWith('-'));
+    const paths = args.filter(a => !a.startsWith('-'));
+    if (flags.some(a => a.includes('r'))) {
         shell.println('rm: cannot remove: Permission denied');
         shell.println('Nice try.');
-    } else {
-        shell.println('rm: cannot remove: Permission denied');
+        return;
+    }
+    if (paths.length === 0) {
+        shell.println('rm: missing operand');
+        return;
+    }
+    for (const path of paths) {
+        const err = shell.fs.remove(path);
+        if (err) shell.println(`rm: ${err}`);
     }
 }
 

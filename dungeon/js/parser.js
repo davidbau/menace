@@ -374,9 +374,7 @@ const VVOC = [
   4,0o40170,0o60000,-1,-1,
   11,0o60206,0o61000,0o200,0,0o61002,-1,-1,
   0o40206,0o61000,0o200,0,
-  // FILL
-  4,0o40177,0o60000,-1,-1,
-  // FIND
+  // FILL/SEE
   4,0o40177,0o60000,-1,-1,
   // FOLLOW
   2,0o125,0o50125,1,0o50153,
@@ -1389,7 +1387,7 @@ function unpack(G, oldj) {
   G._vflag = VVOC[oldj - 1];
   let j = oldj;
 
-  if ((G._vflag & SDIR) === 0) return j;
+  if ((G._vflag & SDIR) === 0) return j + 1;
   G._dfl1 = -1;
   G._dfl2 = -1;
 
@@ -1407,7 +1405,7 @@ function unpack(G, oldj) {
     }
   }
 
-  if ((G._vflag & SIND) === 0) return j;
+  if ((G._vflag & SIND) === 0) return j + 1;
   G._ifl1 = -1;
   G._ifl2 = -1;
   G._iobj = VVOC[j]; j++;
@@ -1418,7 +1416,7 @@ function unpack(G, oldj) {
     G._ifl2 = G._ifw2;
   }
 
-  return j;
+  return j + 1;
 }
 
 function syneql(G, prep, obj, sprep, sfl1, sfl2) {

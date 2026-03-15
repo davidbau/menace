@@ -58,6 +58,38 @@ export class ViEditor {
         const c = String.fromCharCode(ch);
         this.statusMsg = '';
 
+        // Replace char mode (r + next char)
+        if (this._pendingR) {
+            this._pendingR = false;
+            const line = this.lines[this.cursorRow] || '';
+            if (line.length > 0 && ch >= 32 && ch < 127) {
+                this._pushUndo();
+                this.lines[this.cursorRow] = line.slice(0, this.cursorCol) + c + line.slice(this.cursorCol + 1);
+                this.modified = true;
+            }
+            return;
+        }
+
+        // Search mode (/ + pattern + enter)
+        if (this._pendingSearch) {
+            if (ch === 27) { this._pendingSearch = false; this._searchBuf = ''; return; }
+            if (ch === 13 || ch === 10) {
+                this._pendingSearch = false;
+                this._doSearch(this._searchBuf);
+                return;
+            }
+            if (ch === 8 || ch === 127) {
+                this._searchBuf = this._searchBuf.slice(0, -1);
+                this.statusMsg = '/' + this._searchBuf;
+                return;
+            }
+            if (ch >= 32 && ch < 127) {
+                this._searchBuf += c;
+                this.statusMsg = '/' + this._searchBuf;
+            }
+            return;
+        }
+
         // Movement
         if (c === 'h' || ch === 260) { // left arrow mapped by some inputs
             if (this.cursorCol > 0) this.cursorCol--;
@@ -71,12 +103,27 @@ export class ViEditor {
             const line = this.lines[this.cursorRow] || '';
             if (this.cursorCol < line.length - 1) this.cursorCol++;
         }
+        // Word movement
+        else if (c === 'w') {
+            this._wordForward();
+        } else if (c === 'b') {
+            this._wordBackward();
+        } else if (c === 'e') {
+            this._wordEnd();
+        }
         // Enter insert mode
         else if (c === 'i') {
+            this.mode = 'insert';
+        } else if (c === 'I') {
+            this.cursorCol = 0;
             this.mode = 'insert';
         } else if (c === 'a') {
             const line = this.lines[this.cursorRow] || '';
             this.cursorCol = Math.min(this.cursorCol + 1, line.length);
+            this.mode = 'insert';
+        } else if (c === 'A') {
+            const line = this.lines[this.cursorRow] || '';
+            this.cursorCol = line.length;
             this.mode = 'insert';
         } else if (c === 'o') {
             this._pushUndo();
@@ -92,21 +139,47 @@ export class ViEditor {
             this.mode = 'insert';
             this.modified = true;
         }
-        // Delete character
+        // Delete character (x), save to yank buffer
         else if (c === 'x') {
             const line = this.lines[this.cursorRow] || '';
             if (line.length > 0) {
                 this._pushUndo();
+                this._yankBuf = line[this.cursorCol] || '';
+                this._yankLine = false;
                 this.lines[this.cursorRow] = line.slice(0, this.cursorCol) + line.slice(this.cursorCol + 1);
                 this._clampCol();
                 this.modified = true;
             }
         }
-        // Delete line (dd)
+        // D — delete to end of line
+        else if (c === 'D') {
+            const line = this.lines[this.cursorRow] || '';
+            if (this.cursorCol < line.length) {
+                this._pushUndo();
+                this._yankBuf = line.slice(this.cursorCol);
+                this._yankLine = false;
+                this.lines[this.cursorRow] = line.slice(0, this.cursorCol);
+                this._clampCol();
+                this.modified = true;
+            }
+        }
+        // C — change to end of line
+        else if (c === 'C') {
+            const line = this.lines[this.cursorRow] || '';
+            this._pushUndo();
+            this._yankBuf = line.slice(this.cursorCol);
+            this._yankLine = false;
+            this.lines[this.cursorRow] = line.slice(0, this.cursorCol);
+            this.modified = true;
+            this.mode = 'insert';
+        }
+        // Delete line (dd), save to yank buffer
         else if (c === 'd') {
             if (this._pendingD) {
                 // Second d: execute dd
                 this._pushUndo();
+                this._yankBuf = this.lines[this.cursorRow];
+                this._yankLine = true;
                 if (this.lines.length > 1) {
                     this.lines.splice(this.cursorRow, 1);
                     if (this.cursorRow >= this.lines.length) this.cursorRow = this.lines.length - 1;
@@ -120,6 +193,63 @@ export class ViEditor {
                 this._pendingD = true;
             }
             return;
+        }
+        // p — paste after cursor/line
+        else if (c === 'p') {
+            if (this._yankBuf !== undefined && this._yankBuf !== '') {
+                this._pushUndo();
+                if (this._yankLine) {
+                    this.lines.splice(this.cursorRow + 1, 0, this._yankBuf);
+                    this.cursorRow++;
+                    this.cursorCol = 0;
+                } else {
+                    const line = this.lines[this.cursorRow] || '';
+                    this.lines[this.cursorRow] = line.slice(0, this.cursorCol + 1) + this._yankBuf + line.slice(this.cursorCol + 1);
+                    this.cursorCol += this._yankBuf.length;
+                }
+                this.modified = true;
+            }
+        }
+        // J — join lines
+        else if (c === 'J') {
+            if (this.cursorRow < this.lines.length - 1) {
+                this._pushUndo();
+                const next = this.lines[this.cursorRow + 1];
+                const cur = this.lines[this.cursorRow];
+                this.lines[this.cursorRow] = cur + (cur.length > 0 && next.length > 0 ? ' ' : '') + next;
+                this.lines.splice(this.cursorRow + 1, 1);
+                this.cursorCol = cur.length;
+                this.modified = true;
+            }
+        }
+        // r — replace single character (waits for next key)
+        else if (c === 'r') {
+            const line = this.lines[this.cursorRow] || '';
+            if (line.length > 0) this._pendingR = true;
+            return;
+        }
+        // ~ — toggle case
+        else if (c === '~') {
+            const line = this.lines[this.cursorRow] || '';
+            if (line.length > 0) {
+                this._pushUndo();
+                const ch = line[this.cursorCol];
+                const toggled = ch === ch.toUpperCase() ? ch.toLowerCase() : ch.toUpperCase();
+                this.lines[this.cursorRow] = line.slice(0, this.cursorCol) + toggled + line.slice(this.cursorCol + 1);
+                if (this.cursorCol < line.length - 1) this.cursorCol++;
+                this.modified = true;
+            }
+        }
+        // / — search forward
+        else if (c === '/') {
+            this._pendingSearch = true;
+            this._searchBuf = '';
+            this.statusMsg = '/';
+            return;
+        }
+        // n — repeat search
+        else if (c === 'n') {
+            if (this._lastSearch) this._doSearch(this._lastSearch);
         }
         // Undo
         else if (c === 'u') {
@@ -145,7 +275,7 @@ export class ViEditor {
             }
             return;
         }
-        // Page movement
+        // End/start of line
         else if (c === '$') {
             const line = this.lines[this.cursorRow] || '';
             this.cursorCol = Math.max(0, line.length - 1);
@@ -161,6 +291,70 @@ export class ViEditor {
         // Cancel pending multi-key commands on non-matching key
         if (c !== 'd') this._pendingD = false;
         if (c !== 'g') this._pendingG = false;
+    }
+
+    // Word movement helpers
+    _wordForward() {
+        const line = this.lines[this.cursorRow] || '';
+        let col = this.cursorCol;
+        // Skip current word chars
+        while (col < line.length && /\w/.test(line[col])) col++;
+        // Skip non-word chars
+        while (col < line.length && !/\w/.test(line[col])) col++;
+        if (col >= line.length && this.cursorRow < this.lines.length - 1) {
+            this.cursorRow++;
+            this.cursorCol = 0;
+        } else {
+            this.cursorCol = Math.min(col, Math.max(0, line.length - 1));
+        }
+    }
+
+    _wordBackward() {
+        const line = this.lines[this.cursorRow] || '';
+        let col = this.cursorCol;
+        if (col === 0 && this.cursorRow > 0) {
+            this.cursorRow--;
+            const prev = this.lines[this.cursorRow] || '';
+            this.cursorCol = Math.max(0, prev.length - 1);
+            return;
+        }
+        if (col > 0) col--;
+        // Skip non-word chars
+        while (col > 0 && !/\w/.test(line[col])) col--;
+        // Skip word chars
+        while (col > 0 && /\w/.test(line[col - 1])) col--;
+        this.cursorCol = col;
+    }
+
+    _wordEnd() {
+        const line = this.lines[this.cursorRow] || '';
+        let col = this.cursorCol;
+        if (col < line.length - 1) col++;
+        // Skip non-word chars
+        while (col < line.length && !/\w/.test(line[col])) col++;
+        // Skip word chars
+        while (col < line.length - 1 && /\w/.test(line[col + 1])) col++;
+        this.cursorCol = Math.min(col, Math.max(0, line.length - 1));
+    }
+
+    // Search
+    _doSearch(pattern) {
+        if (!pattern) return;
+        this._lastSearch = pattern;
+        const startRow = this.cursorRow;
+        const startCol = this.cursorCol + 1;
+        for (let i = 0; i < this.lines.length; i++) {
+            const row = (startRow + i) % this.lines.length;
+            const line = this.lines[row];
+            const searchFrom = i === 0 ? startCol : 0;
+            const idx = line.indexOf(pattern, searchFrom);
+            if (idx >= 0) {
+                this.cursorRow = row;
+                this.cursorCol = idx;
+                return;
+            }
+        }
+        this.statusMsg = `Pattern not found: ${pattern}`;
     }
 
     _handleInsert(ch) {
