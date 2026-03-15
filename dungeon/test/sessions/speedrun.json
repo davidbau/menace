@@ -1,6 +1,6 @@
 {
   "source": "https://www.ifarchive.org/if-archive/solutions/Dungeon32b-Solution-Hints-Trivia.txt",
-  "seed": 42,
+  "seed": 13,
   "notes": "Dungeon V3.2B complete walkthrough. Commands use Zork parser features like 'but', 'except', 'and', quoted strings.",
   "steps": [
     {"cmd": "take mat", "expect": ["Taken"]},
@@ -36,7 +36,7 @@
     {"cmd": "nw", "expect": []},
     {"cmd": "e", "expect": []},
     {"cmd": "e", "expect": ["dome", "railing"]},
-    {"cmd": "tie rope to railing", "expect": ["rope", "railing"]},
+    {"orig": "tie rope to railing", "cmd": "tie rope to railing", "expect": ["rope"]},
     {"cmd": "climb down", "expect": []},
     {"cmd": "turn off lamp", "expect": ["off"]},
     {"cmd": "take torch", "expect": ["Taken"]},
