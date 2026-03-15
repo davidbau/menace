@@ -310,9 +310,16 @@ export function monmulti(mon, otmp) {
         if ((is_elf(ptr) && otmp.otyp === ELVEN_ARROW && mwep?.otyp === ELVEN_BOW)
             || (is_orc(ptr) && otmp.otyp === ORCISH_ARROW && mwep?.otyp === ORCISH_BOW)
             || (is_gnome(ptr) && otmp.otyp === CROSSBOW_BOLT && mwep?.otyp === CROSSBOW)) {
-            multishot += 1;
+            // racial bonus applied after randomness in C; handled below
         }
         multishot = rnd(multishot);
+
+        multishot += multishot_class_bonus(mon?.mndx ?? -1, otmp, mwep);
+        if ((is_elf(ptr) && otmp.otyp === ELVEN_ARROW && mwep?.otyp === ELVEN_BOW)
+            || (is_orc(ptr) && otmp.otyp === ORCISH_ARROW && mwep?.otyp === ORCISH_BOW)
+            || (is_gnome(ptr) && otmp.otyp === CROSSBOW_BOLT && mwep?.otyp === CROSSBOW)) {
+            multishot += 1;
+        }
     }
     if (multishot > quan) multishot = quan;
     if (multishot < 1) multishot = 1;

@@ -12968,3 +12968,37 @@ Validation:
   - `colors 240/240`
   - `events 1999/1999`
   - `cursor 10/10`
+
+### `monmulti()` must roll before class and racial bonuses
+
+- `t11_s755_w_covmax9_gp` next diverged at step `1700` on a gnome lord's
+  crossbow attack:
+  - JS: `rnd(3)=3 @ dochug(monmove.js)`
+  - C: `rnd(2)=2 @ monmulti(mthrowu.c)`
+- The acting monster and loadout were aligned:
+  - monster `166` = gnome lord
+  - launcher `CROSSBOW`
+  - projectile `CROSSBOW_BOLT`
+- The mismatch was in `js/mthrowu.js:monmulti()`.
+  - JS was adding `multishot_class_bonus(...)` and the racial
+    elf/orc/gnome ammo bonus before `rnd(multishot)`.
+  - C `mthrowu.c:monmulti()` rolls `rnd(multishot)` first, then adds class
+    and racial bonuses afterward.
+- Fix:
+  - leave prince/lord/launcher-enchantment bonuses in the pre-roll bucket
+  - move `multishot_class_bonus(...)` and the racial ammo bonus to the
+    post-`rnd(multishot)` path
+- Validation:
+  - `t11_s755_w_covmax9_gp`
+    - improved from:
+      - `RNG 26238/26780`
+      - first RNG divergence at step `1700`
+    - to:
+      - `RNG 26239/26780`
+      - first RNG divergence at step `1733`
+      - new frontier:
+        JS `rn2(5)=1 @ dochug(monmove.js)` vs
+        C `rn2(20)=16 @ gethungry(eat.c)`
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
