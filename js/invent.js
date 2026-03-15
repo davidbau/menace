@@ -29,7 +29,7 @@ import { objectData, WEAPON_CLASS, FOOD_CLASS, WAND_CLASS, SPBOOK_CLASS,
          CLASS_SYMBOLS } from './objects.js';
 import { doname, xname, weight, splitobj, Is_container, erosion_matters, mergable, place_object, obj_extract_self } from './mkobj.js';
 import { obj_resists, is_quest_artifact } from './objdata.js';
-import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The } from './objnam.js';
+import { an, Has_contents, not_fully_identified as objnam_not_fully_identified, aobjnam, The, vtense } from './objnam.js';
 import { promptDirectionAndThrowItem, ammoAndLauncher } from './dothrow.js';
 import { pline, You, Your, There } from './pline.js';
 import { rn2, pushRngLogEntry } from './rng.js';
@@ -2657,21 +2657,33 @@ export async function look_here(player, map, obj_cnt) {
         depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
         dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
     });
+    const featureText = dfeature ? an(dfeature) : null;
 
     // C ref: invent.c:4252-4264 — skip_objects when pile_limit is set
     const pile_limit = _gstate?.flags?.pile_limit ?? 0;
     const skip_objects = (pile_limit > 0 && objects.length >= pile_limit);
+    const picked_some = Number(obj_cnt) > 0;
+    const verb = player?.blind ? 'feel' : 'see';
+    const featureVerb = featureText ? vtense(featureText, 'are') : null;
 
     if (skip_objects) {
-        // C: "There are <numeral> objects here." (or " more objects" if picked_some)
-        const numeral = (objects.length < 5) ? "a few"
-                      : (objects.length < 10) ? "several"
-                      : "many";
-        await There("are %s objects here.", numeral);
-    } else if (objects.length >= 2 || dfeature) {
+        if (featureText && featureVerb) {
+            await There("%s %s here.", featureVerb, featureText);
+        }
+        if (objects.length === 1) {
+            // C: with exactly one object and skip-objects mode
+            await There("is %s object here.", picked_some ? "another" : "an");
+        } else {
+            const numeral = (objects.length < 5) ? "a few"
+                          : (objects.length < 10) ? "several"
+                          : "many";
+            // C: adds " more" when some already picked
+            await There("are %s%s objects here.", numeral, picked_some ? " more" : "");
+        }
+    } else if (objects.length >= 2) {
         const tmpwin = create_nhwindow(NHW_MENU);
-        if (dfeature) {
-            await win_putstr(tmpwin, 0, `There is ${an(dfeature)} here.`);
+        if (featureText && featureVerb) {
+            await win_putstr(tmpwin, 0, `There ${featureVerb} ${featureText} here.`);
         }
         if (objects.length >= 2) {
             await win_putstr(tmpwin, 0, 'Things that are here:');
@@ -2684,13 +2696,18 @@ export async function look_here(player, map, obj_cnt) {
         await display_nhwindow(tmpwin, true);
         destroy_nhwindow(tmpwin);
     } else if (objects.length === 1) {
-        if (dfeature) {
-            await pline(`There is ${an(dfeature)} here.`);
+        if (featureText && featureVerb) {
+            await pline(`There ${featureVerb} ${featureText} here.`);
         }
         observeObject(objects[0]);
         await You('see here %s.', doname(objects[0]));
-    } else if (!dfeature) {
-        await You('see no objects here.');
+    } else if (featureText && featureVerb) {
+        await There("%s %s here.", featureVerb, featureText);
+        if (player?.blind) {
+            await You('%s no objects here.', verb);
+        }
+    } else {
+        await You('%s no objects here.', verb);
     }
 }
 
@@ -2818,15 +2835,59 @@ export async function doprtool(player) {
 }
 
 // C ref: invent.c doprinuse() — print all items in use
+// C calls dispinv_with_action(NULL, TRUE, NULL) which shows an overlay menu
+// grouped by slot category ("Wielded/Readied Weapons", "Worn Armor", etc.).
 export async function doprinuse(player) {
-    const inuse = (player.inventory || []).filter(o => is_inuse(o, player));
+    const p = player || _gstate?.player || null;
+    const d = _gstate?.display || null;
+    const inuse = (p?.inventory || []).filter(o => is_inuse(o, p));
     if (!inuse.length) {
         await You('are not wearing or wielding anything.');
     } else {
-        for (const obj of inuse) {
-            await prinv(null, obj, 0, player);
+        // C: dispinv_with_action(NULL, TRUE, NULL) — use_inuse_ordering=TRUE
+        // Build overlay lines matching C's tty inuse-ordering format.
+        const lines = buildInuseOverlayLines(inuse, p);
+        await renderOverlayMenuUntilDismiss(d, lines, '');
+    }
+}
+
+// Build overlay lines for doprinuse matching C's inuse-ordering format.
+// C groups equipped items by slot category rather than object class.
+// C ref: invent.c sortloot() with SORTLOOT_INUSE flag, inuse_classify()
+function buildInuseOverlayLines(inuse, player) {
+    // C ref: inuse_headers[] — order: Accessories, Wielded/Readied, Armor, Misc
+    const categories = [
+        { name: 'Accessories', mask: W_ACCESSORY },
+        { name: 'Wielded/Readied Weapons', mask: W_WEAPONS },
+        { name: 'Worn Armor', mask: W_ARMOR },
+    ];
+
+    // First pass: classify items into groups
+    const groups = [];
+    const used = new Set();
+    for (const cat of categories) {
+        const items = inuse.filter(o => !used.has(o) && (o.owornmask & cat.mask));
+        if (!items.length) continue;
+        groups.push({ name: cat.name, items });
+        for (const obj of items) used.add(obj);
+    }
+    const remaining = inuse.filter(o => !used.has(o));
+    if (remaining.length) {
+        groups.push({ name: 'Miscellaneous', items: remaining });
+    }
+
+    // C: category headers are only shown when there are multiple groups
+    const showHeaders = groups.length > 1;
+
+    const lines = ['Inventory in use'];
+    for (const group of groups) {
+        if (showHeaders) lines.push(group.name);
+        for (const obj of group.items) {
+            lines.push(`${obj.invlet} - ${doname(obj, player)}`);
         }
     }
+    lines.push('(end)');
+    return lines;
 }
 
 

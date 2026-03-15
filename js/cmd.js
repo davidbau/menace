@@ -27,7 +27,7 @@ import { handleWield, handleSwapWeapon, handleQuiver, handleTwoWeapon } from './
 import { handleDownstairs, handleUpstairs, handleDrop, handleDropTypes, dowipe } from './do.js';
 import {
     handleInventory, currency, doorganize, display_inventory, renderOverlayMenuUntilDismiss, getobj,
-    doprwep, doprarm, doprring, dopramulet, doprtool, doprinuse,
+    doprwep, doprarm, doprring, dopramulet, doprtool, doprinuse, doprgold,
 } from './invent.js';
 import { dopray, doturn, dosacrifice } from './pray.js';
 import { doinvoke } from './artifact.js';
@@ -334,8 +334,7 @@ export async function rhack(ch, game) {
     // Count gold
     // C ref: cmd.c doprgold()
     if (c === '$') {
-        const amount = Number.isFinite(player.gold) ? Math.max(0, Math.floor(player.gold)) : 0;
-        await display.putstr_message(`Your wallet contains ${amount} ${currency(amount)}.`);
+        await doprgold(player);
         return { moved: false, tookTime: false };
     }
 

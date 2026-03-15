@@ -1289,7 +1289,8 @@ export async function deferred_goto(player, game) {
                 observeObject(objs[0]);
                 await pline(`You see here ${describeGroundObjectForPlayer(objs[0], player, newMap)}.`);
             } else {
-                await look_here(player, newMap, objs.length);
+                // C path for plain floor presence after arrival does not pass picked_some.
+                await look_here(player, newMap, 0);
             }
         }
     }

@@ -1315,9 +1315,8 @@ async function handlePickup(player, map, display, game = null) {
             const inventoryObj = addResult.item;
             // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
             if (inventoryObj) inventoryObj.pickup_prev = 1;
-            if (pickedObj === obj) {
-                map.removeObject(obj);
-            }
+            // Note: obj was already removed from map above (before addtobill),
+            // matching C's pick_obj() order: obj_extract_self → addtobill → addinv.
             // C pickup behavior can collect additional stacks for the same
             // selected type at this square.
             const px = obj.ox, py = obj.oy;
@@ -1367,6 +1366,12 @@ async function handlePickup(player, map, display, game = null) {
             const deferred = deferTimedPickupUntilMore(pickedObj, inventoryObj, gameCtx, displayCtx);
             return deferred || { moved: false, tookTime: true };
         };
+
+        // C ref: pick_obj() — obj_extract_self BEFORE addtobill, then addinv.
+        // Remove object from floor first to match C's RNG ordering.
+        if (pickedObj === obj) {
+            map.removeObject(obj);
+        }
 
         if (!player.uswallow && pickedObj !== player.uchain
             && costly_spot(obj.ox, obj.oy, map) && !pickedObj.no_charge) {

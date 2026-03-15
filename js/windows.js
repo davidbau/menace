@@ -144,6 +144,12 @@ export async function display_nhwindow(win, blocking) {
             if ((w.type === NHW_TEXT || w.type === NHW_MENU)
                 && typeof _display?.clearTextPopup === 'function') {
                 _display.clearTextPopup();
+                // C ref: erase_menu_or_text clears the topline after popup dismiss.
+                // clearTextPopup restores saved cells which may include a stale
+                // message line at row 0.  Clear it so the next screen capture
+                // matches C's blank topline.  This is safe for detect overlays
+                // since they occupy map rows (1+), not the message row.
+                if (_display?.clearRow) _display.clearRow(0);
             }
             // For text-popups with no menu entries, clearTextPopup() restores the
             // covered cells; forcing a full rerender here can wipe temporary

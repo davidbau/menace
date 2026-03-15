@@ -8,7 +8,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { W_WEP, W_ARMOR, A_DEX } from './const.js';
+import { W_WEP, W_SWAPWEP, W_QUIVER, W_ARMOR, A_DEX } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
 import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, compactInvletPromptChars } from './invent.js';
@@ -21,32 +21,60 @@ import { ammo_and_launcher } from './dothrow.js';
 // ============================================================
 
 // cf. wield.c:100 — setuwep(obj): set hero's main weapon slot
+// C clears W_WEP from old uwep->owornmask and sets it on the new one.
 function setuwep(player, obj) {
+    if (player.weapon && player.weapon !== obj) {
+        player.weapon.owornmask = (player.weapon.owornmask || 0) & ~W_WEP;
+    }
     player.weapon = obj;
+    if (obj) {
+        obj.owornmask = (obj.owornmask || 0) | W_WEP;
+    }
 }
 
 // cf. wield.c:280 — setuswapwep(obj): set secondary weapon slot
 export function setuswapwep(player, obj) {
+    if (player.swapWeapon && player.swapWeapon !== obj) {
+        player.swapWeapon.owornmask = (player.swapWeapon.owornmask || 0) & ~W_SWAPWEP;
+    }
     player.swapWeapon = obj;
+    if (obj) {
+        obj.owornmask = (obj.owornmask || 0) | W_SWAPWEP;
+    }
 }
 
 // cf. wield.c:271 — setuqwep(obj): set quivered ammunition slot
 export function setuqwep(player, obj) {
+    if (player.quiver && player.quiver !== obj) {
+        player.quiver.owornmask = (player.quiver.owornmask || 0) & ~W_QUIVER;
+    }
     player.quiver = obj;
+    if (obj) {
+        obj.owornmask = (obj.owornmask || 0) | W_QUIVER;
+    }
 }
 
 // cf. wield.c:864 — uwepgone(): force-remove main weapon (consumed/destroyed)
 function uwepgone(player) {
+    if (player.weapon) {
+        player.weapon.owornmask = (player.weapon.owornmask || 0) & ~W_WEP;
+    }
     player.weapon = null;
 }
 
 // cf. wield.c:879 — uswapwepgone(): force-remove secondary weapon
 export function uswapwepgone(player) {
+    if (player.swapWeapon) {
+        player.swapWeapon.owornmask = (player.swapWeapon.owornmask || 0) & ~W_SWAPWEP;
+    }
     player.swapWeapon = null;
 }
 
 // cf. wield.c:888 — uqwepgone(): force-remove quivered weapon
 export function uqwepgone(player) {
+    if (player.quiver) {
+        player.quiver.owornmask = (player.quiver.owornmask || 0) & ~W_QUIVER;
+    }
     player.quiver = null;
 }
 

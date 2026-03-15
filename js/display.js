@@ -50,7 +50,7 @@ import { worm_known } from './worm.js';
 import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
-import { game as activeGame } from './gstate.js';
+import { game as _gstate } from './gstate.js';
 import {
     debugRepaint,
     logRepaint,
@@ -500,7 +500,7 @@ span.nh-cursor {
         if (this.topMessage && this.messageNeedsMore) {
             flush_screen(1);
         }
-        const gameCtx = this._game || activeGame || null;
+        const gameCtx = this._game || _gstate || null;
         if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
             gameCtx.player._botl = true;
             gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
@@ -610,7 +610,7 @@ span.nh-cursor {
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
-                const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
+            const refreshPlayer = _gstate?.player || this._lastMapState?.player || null;
                 if (encumberRefreshMsg || refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -1352,6 +1352,9 @@ span.nh-cursor {
     // Render a text popup (e.g. "Things that are here:", NHW_TEXT windows)
     // C ref: tty_display_nhwindow → process_text_window / process_menu_window
     renderTextPopup(lines, opts = {}) {
+        if (this._lastTextPopup) {
+            this.clearTextPopup();
+        }
         // Filter out trailing empty lines
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);
@@ -2384,7 +2387,6 @@ export function fn_cmap_to_glyph(cmap) {
 // Display functions moved from monutil.js — C ref: display.c / vision.c
 // ========================================================================
 
-import { game as _gstate } from './gstate.js';
 import { impossible } from './pline.js';
 
 function _getDisplayCtx() {

@@ -39,14 +39,14 @@ test('display_inventory returns NUL when no display runtime is available', async
     assert.equal(selected, '');
 });
 
-test('getobj C-name wrapper delegates to simplified selector', () => {
+test('getobj C-name wrapper delegates to simplified selector', async () => {
     const player = {
         inventory: [
             { invlet: 'a', oclass: WEAPON_CLASS },
             { invlet: 'b', oclass: TOOL_CLASS },
         ],
     };
-    const selected = getobj('apply', (obj) => (obj.invlet === 'b' ? 1 : 0), 0, player);
+    const selected = await getobj('apply', (obj) => (obj.invlet === 'b' ? 1 : 0), 0, player);
     assert.equal(selected?.invlet, 'b');
 });
 
