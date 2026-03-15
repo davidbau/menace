@@ -273,7 +273,7 @@ async function help(_args, shell) {
         ['nethack',  'launch NetHack'],
         ['hack',     'launch Hack'],
         ['rogue',    'launch Rogue'],
-        ['dungeon',  'launch Dungeon/Zork'],
+        ['dungeon',  'launch Dungeon'],
     ];
     shell.println('Available commands:');
     for (const [name, desc] of cmds) {

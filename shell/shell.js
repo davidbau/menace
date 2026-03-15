@@ -322,6 +322,23 @@ export class Shell {
         this.display.clearScreen();
     }
 
+    // Flush buffered dungeon output with --More-- pagination
+    async _flushDungeonBuffer(lines) {
+        const pageSize = ROWS - 2;
+        let count = 0;
+        for (const line of lines) {
+            this.println(line);
+            count++;
+            if (count >= pageSize && count < lines.length) {
+                this.printPrompt('--More--');
+                const ch = await this.getch();
+                this.clearPromptLine();
+                if (ch === 'q'.charCodeAt(0) || ch === 27) break;
+                count = 0;
+            }
+        }
+    }
+
     // Print a line to the shell output
     println(text) {
         // Handle long lines by wrapping
@@ -433,32 +450,37 @@ export class Shell {
             const game = new DungeonGame();
             game.init(data, textRecords);
 
-            // Dungeon-specific input: show ">" prompt, no shell prompt
+            // Dungeon-specific input: rdline() already outputs ">" via G.output(),
+            // so we just need to show the input on the same line after "> ".
             const input = async () => {
+                // Page any buffered output before accepting input
+                await this._flushDungeonBuffer(pendingLines);
+                pendingLines.length = 0;
+
                 const promptRow = Math.min(this.scrollBuffer.length, ROWS - 1);
-                this.display.clearRow(promptRow);
-                this.display.putstr(0, promptRow, '>', OUTPUT_COLOR);
+                const promptLen = 2; // "> " prefix
 
                 this.inputLine = '';
                 this.cursorPos = 0;
                 while (true) {
-                    const col = 1 + this.cursorPos;
-                    this.display.putstr(1, promptRow, this.inputLine, OUTPUT_COLOR);
+                    this.display.clearRow(promptRow);
+                    this.display.putstr(0, promptRow, '> ' + this.inputLine, OUTPUT_COLOR);
                     if (typeof this.display.setCursor === 'function') {
-                        this.display.setCursor(Math.min(col, COLS - 1), promptRow);
+                        this.display.setCursor(Math.min(promptLen + this.cursorPos, COLS - 1), promptRow);
                     }
                     const ch = await this.getch();
                     if (ch === 13 || ch === 10) {
                         const line = this.inputLine;
-                        this._addLine('>' + line, OUTPUT_COLOR);
+                        // Replace the ">" line rdline added with "> input"
+                        if (this.scrollBuffer.length > 0) {
+                            this.scrollBuffer[this.scrollBuffer.length - 1] = { text: '> ' + line, color: OUTPUT_COLOR };
+                        }
                         return line;
                     }
                     if (ch === 8 || ch === 127) {
                         if (this.cursorPos > 0) {
                             this.inputLine = this.inputLine.slice(0, this.cursorPos - 1) + this.inputLine.slice(this.cursorPos);
                             this.cursorPos--;
-                            this.display.clearRow(promptRow);
-                            this.display.putstr(0, promptRow, '>' + this.inputLine, OUTPUT_COLOR);
                         }
                         continue;
                     }
@@ -471,10 +493,11 @@ export class Shell {
                 }
             };
 
-            // Line output: print to shell's scroll buffer
+            // Line output: buffer lines, page them when input is requested
+            const pendingLines = [];
             const output = (text) => {
                 for (const line of (text || '').split('\n')) {
-                    this.println(line);
+                    pendingLines.push(line);
                 }
             };
 
@@ -482,6 +505,11 @@ export class Shell {
             this.scrollBuffer = [];
 
             await game.run(input, output);
+            // Flush any remaining output after game ends
+            if (pendingLines.length > 0) {
+                await this._flushDungeonBuffer(pendingLines);
+                pendingLines.length = 0;
+            }
         } catch (e) {
             if (e?.message !== 'quit') {
                 this.println(`dungeon: ${e.message}`);
