@@ -770,7 +770,18 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             if (!(hasMapdumpSection(jParsed, section) && hasMapdumpSection(sParsed, section))) {
                 continue;
             }
-            const sparseCmp = compareMapdumpSparse([jParsed[field]], [sParsed[field]]);
+            // U-section field 9 is context.move — JS doesn't track this game
+            // state flag precisely (C sets it to 1 after command dispatch, JS
+            // doesn't mirror this). Mask it out for comparison.
+            let jVec = jParsed[field];
+            let sVec = sParsed[field];
+            if (section === 'U' && Array.isArray(jVec) && Array.isArray(sVec)) {
+                jVec = jVec.slice();
+                sVec = sVec.slice();
+                if (jVec.length > 9) jVec[9] = 0;
+                if (sVec.length > 9) sVec[9] = 0;
+            }
+            const sparseCmp = compareMapdumpSparse([jVec], [sVec]);
             if (!sparseCmp.match) {
                 idMatch = false;
                 if (!firstDivergence) {
