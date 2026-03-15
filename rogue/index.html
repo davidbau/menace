@@ -492,6 +492,28 @@
       margin: 0.3em 0;
     }
 
+    #docs-content table {
+      border-collapse: collapse;
+      margin: 1em 0;
+      font-size: 0.92em;
+    }
+
+    #docs-content th, #docs-content td {
+      border: 1px solid #ccc;
+      padding: 0.35em 0.75em;
+      text-align: left;
+    }
+
+    #docs-content th {
+      background: #f0ede6;
+      font-weight: 600;
+      color: var(--color-accent-dark);
+    }
+
+    #docs-content tr:nth-child(even) td {
+      background: #faf8f4;
+    }
+
     #docs-content img {
       max-width: 100%;
       border-radius: 4px;
@@ -870,7 +892,7 @@
     function renderMarkdown(md) {
       var html = '';
       var lines = md.split('\n');
-      var inPre = false, inList = false;
+      var inPre = false, inList = false, inTable = false;
       var bqLines = [], inBlockquote = false;
       var paraLines = [];
 
@@ -879,6 +901,10 @@
           html += '<p>' + processInline(paraLines.join(' ')) + '</p>\n';
           paraLines = [];
         }
+      }
+
+      function flushTable() {
+        if (inTable) { html += '</tbody></table>\n'; inTable = false; }
       }
 
       function flushBq() {
@@ -908,7 +934,7 @@
           continue;
         }
         if (inPre) { html += line.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '\n'; continue; }
-        if (line.trim() === '') { flushPara(); flushBq(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
+        if (line.trim() === '') { flushPara(); flushBq(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } continue; }
         if (line.match(/^>\s?/)) {
           flushPara();
           inBlockquote = true;
@@ -917,16 +943,41 @@
           continue;
         } else if (inBlockquote) { flushBq(); }
         var hMatch = line.match(/^(#{1,6})\s+(.+)/);
-        if (hMatch) { flushPara(); if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
-        if (line.match(/^---+\s*$/)) { flushPara(); if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
-        if (line.match(/^[-*]\s+/)) { flushPara(); if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
+        if (hMatch) { flushPara(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } html += '<h' + hMatch[1].length + '>' + processInline(hMatch[2]) + '</h' + hMatch[1].length + '>\n'; continue; }
+        if (line.match(/^---+\s*$/)) { flushPara(); flushTable(); if (inList) { html += '</ul>\n'; inList = false; } html += '<hr>\n'; continue; }
+        if (line.match(/^[-*]\s+/)) { flushPara(); flushTable(); if (!inList) { html += '<ul>\n'; inList = true; } html += '<li>' + processInline(line.replace(/^[-*]\s+/, '')) + '</li>\n'; continue; }
         if (inList) { html += '</ul>\n'; inList = false; }
+        // Table rows: lines starting and ending with |
+        if (line.match(/^\|/) && line.match(/\|$/)) {
+          flushPara();
+          var cells = line.replace(/^\||\|$/g, '').split('|');
+          // Separator row (---|---) → skip (marks end of header)
+          if (cells.every(function(c) { return c.trim().match(/^[-: ]+$/); })) {
+            if (!inTable) { /* header not yet started, ignore */ } // shouldn't happen
+            continue;
+          }
+          var isHeader = !inTable && lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/);
+          if (isHeader) {
+            html += '<table><thead><tr>';
+            cells.forEach(function(c) { html += '<th>' + processInline(c.trim()) + '</th>'; });
+            html += '</tr></thead><tbody>\n';
+            inTable = true;
+          } else {
+            if (!inTable) { html += '<table><tbody>\n'; inTable = true; }
+            html += '<tr>';
+            cells.forEach(function(c) { html += '<td>' + processInline(c.trim()) + '</td>'; });
+            html += '</tr>\n';
+          }
+          continue;
+        }
+        if (inTable) { flushTable(); }
         paraLines.push(line.trim());
       }
       flushPara();
       if (inPre) html += '</code></pre>\n';
       if (inList) html += '</ul>\n';
       flushBq();
+      flushTable();
       return html;
     }
 
