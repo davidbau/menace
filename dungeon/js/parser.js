@@ -1048,7 +1048,8 @@ function sparse(G, lbuf, llnt, vbflag) {
               lobj = obj;
             }
           }
-          continue;
+          prepFound = true;
+          break;
         }
         if (andflg) {
           if (vbflag) rspeak(G, 1049);
@@ -1056,7 +1057,7 @@ function sparse(G, lbuf, llnt, vbflag) {
           G.bunsub = 0;
           return -1;
         }
-        if (prep !== 0) continue; // ignore duplicate prep
+        if (prep !== 0) { prepFound = true; break; } // ignore duplicate prep
         prep = PVOC[j];
         prepFound = true;
         break;
@@ -1237,7 +1238,7 @@ function sparse(G, lbuf, llnt, vbflag) {
 
   // End of parse — handle dangling adjective
   if (adj !== 0) {
-    // Try as object word
+    // Try as object word (Fortran: GO TO 4500 -> GO TO 400)
     const resolvedWord = AWORD[adjptr];
     adj = 0;
     const oresult = findObjWord(G, resolvedWord);
@@ -1256,6 +1257,32 @@ function sparse(G, lbuf, llnt, vbflag) {
         prep = 0;
         lobj = obj;
         andflg = false;
+      } else {
+        // Object word found but not identifiable (Fortran: 7000-7300)
+        if (obj === 0) {
+          if (!lit(G, G.here)) {
+            if (vbflag) rspeak(G, 579);
+          } else {
+            if (vbflag) G.output(` I can't see any ${resolvedWord.toLowerCase()} here.`);
+          }
+        } else if (obj === -10000) {
+          if (vbflag) rspsub(G, 620, G.odesc2[G.avehic[G.winner - 1] - 1]);
+        } else {
+          // Ambiguous
+          if (act === 0) act = G.oflag & G.oact;
+          G.oflag = -1;
+          G.oact = act;
+          G.oprep1 = prep1;
+          G.oobj1 = obj1;
+          G.oprep = prep;
+          G.oname = resolvedWord;
+          G.oprep2 = 0;
+          G.oobj2 = 0;
+          if (vbflag) G.output(` Which ${resolvedWord.toLowerCase()} do you mean?`);
+        }
+        G.telflg = true;
+        G.bunsub = 0;
+        return -1;
       }
     }
   }
