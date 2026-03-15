@@ -18,6 +18,7 @@ import {
   _registerVerbsModule,
   _registerObjectsModule,
   _registerRoomsModule,
+  dungeonSrand,
 } from './support.js';
 
 import { rdline, parse } from './parser.js';
@@ -324,6 +325,16 @@ export class DungeonGame {
     const G = this;
     G.input = input;
     G.output = output;
+
+    // Initialize RNG — use fixed seed if set, otherwise date/time like Fortran
+    if (G._rngSeed !== undefined) {
+      dungeonSrand(G._rngSeed);
+    } else {
+      const now = new Date();
+      const i = now.getMonth() * 64 + now.getDate() * 8 + Math.floor(now.getFullYear() / 100);
+      const j = now.getHours() * 64 + now.getMinutes() * 8 + now.getSeconds();
+      dungeonSrand(((j << 16) + i) | 1);
+    }
 
     // Welcome message
     rspeak(G, 1);

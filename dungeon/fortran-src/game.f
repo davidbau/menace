@@ -203,6 +203,7 @@ C
 	INCLUDE 'dparam.for'
 	LOGICAL PROTCT
 	CHARACTER*1 KEDIT
+	CHARACTER CHSEED*20
 	
 C INITFL, PAGE 2
 C
@@ -266,6 +267,12 @@ C
 	CALL ITIME(TMARRAY)			! get time.
 	J=(TMARRAY(1)*64)+(TMARRAY(2)*8)+TMARRAY(3)	! second seed
 	CALL INIRND(I,J)	! init random number gen.
+C Check for DUNGEON_SEED environment variable (for parity testing)
+	CALL GET_ENVIRONMENT_VARIABLE('DUNGEON_SEED', CHSEED)
+	IF(CHSEED(1:1).NE.' '.AND.CHSEED(1:1).NE.CHAR(0)) THEN
+	  READ(CHSEED,*,IOSTAT=IOERR) I
+	  IF(IOERR.EQ.0) CALL SRAND(I)
+	ENDIF
 	SHOUR=TMARRAY(1)	! set start hour
 	SMIN=TMARRAY(2)		! set start minute
 C

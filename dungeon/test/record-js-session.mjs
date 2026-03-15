@@ -30,6 +30,8 @@ const { DungeonGame } = await import(join(__dirname, '..', 'js', 'game.js'));
 const game = new DungeonGame();
 game.init(data, textRecords);
 if (flags.includes('--trace')) game._trace = true;
+const seedFlag = flags.find(f => f.startsWith('--seed='));
+if (seedFlag) game._rngSeed = parseInt(seedFlag.split('=')[1], 10);
 
 const session = {
     format: 'zork-parity-v1',

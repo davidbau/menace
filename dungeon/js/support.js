@@ -1216,10 +1216,29 @@ export function prob(G, g, b) {
 }
 
 /**
+ * Seedable PRNG matching gfortran's SRAND/RAND implementation.
+ * Algorithm: Park-Miller LCG with float32 precision masking.
+ * Ref: S.K. Park and K.W. Miller, Comm. ACM, 31, 1192-1201 (1988).
+ */
+let _rngSeed = 123459876; // gfortran default seed
+const _RNG_A = 16807;
+const _RNG_M = 2147483647; // 2^31 - 1
+const _RNG_MASK = (~0 << 9) >>> 0; // 0xFFFFFE00 — strip low bits for float32 precision
+
+export function dungeonSrand(seed) {
+  _rngSeed = seed || 123459876;
+}
+
+function dungeonRand() {
+  _rngSeed = (_rngSeed * _RNG_A) % _RNG_M;
+  return ((_rngSeed - 1) & _RNG_MASK) * (2 ** -31);
+}
+
+/**
  * RND(n) — Return random integer in [0, n).
  */
 export function rnd(n) {
-  return Math.floor(Math.random() * n);
+  return Math.floor(dungeonRand() * n);
 }
 
 /**
