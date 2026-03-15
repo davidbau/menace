@@ -1737,9 +1737,11 @@ export class NetHackGame {
             await _playerSelection(this);
         }
 
-        // C ref: you.h uhis()/uhim()/uhe() use flags.female.
-        // Set it after gender is finalized so gender-dependent messages work.
-        this.flags.female = (this.player.gender === FEMALE);
+        // C ref: flags.female is the source of truth for current hero sex, and
+        // polymorph code mutates the mirrored player.female state directly.
+        const female = (this.player.gender === FEMALE);
+        this.flags.female = female;
+        this.player.female = female;
 
         // C ref: allmain.c moveloop_preamble() — real-world side effects.
         this.flags.moonphase = phase_of_the_moon();

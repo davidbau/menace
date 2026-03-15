@@ -57,10 +57,16 @@ import { domove, do_run, do_rush, findPath, dotravel, dotravel_target,
          performWaitSearch, dist2, u_at } from './hack.js';
 import { cnv_trap_obj, t_at, m_at } from './trap.js';
 import { an } from './objnam.js';
-import { PM_GRID_BUG, AT_BREA } from './monsters.js';
+import { PM_GRID_BUG, AT_BREA, AT_SPIT, AT_GAZE, MS_SHRIEK, S_NYMPH } from './monsters.js';
 import { canspotmon, glyph_at } from './display.js';
-import { attacktype, can_breathe } from './mondata.js';
-import { dobreathe } from './polyself.js';
+import {
+    attacktype, can_breathe, is_hider, hides_under, webmaker,
+    is_were, is_mind_flayer, is_vampire,
+} from './mondata.js';
+import {
+    dobreathe, dospit, doremove, dogaze, dosummon, dohide,
+    dospinweb, dopoly, domindblast,
+} from './polyself.js';
 import { glyph_is_invisible } from './symbols.js';
 import { IS_STWALL, IS_DOOR, IS_TREE, IS_WATERWALL,
          LAVAWALL, IRONBARS, SCORR, SDOOR, DRAWBRIDGE_UP,
@@ -922,8 +928,45 @@ async function handleExtendedCommand(game) {
             // cf. cmd.c domonability() — use polymorphed monster special ability.
             const isPolyd = !!(player.Upolyd || (player.mtimedone && player.mtimedone > 0));
             if (isPolyd) {
-                if (player.type && can_breathe(player.type) && attacktype(player.type, AT_BREA)) {
+                const uptr = player.type;
+                const mightHide = !!(uptr && (is_hider(uptr) || hides_under(uptr)));
+                let c = null;
+                if (mightHide && uptr && webmaker(uptr)) {
+                    c = String.fromCharCode(await ynFunction(
+                        'Hide [h] or spin a web [s]?', 'hsq', 'q'.charCodeAt(0), display
+                    ));
+                    if (c === 'q' || c === '\x1b') return { moved: false, tookTime: false };
+                }
+                if (uptr && can_breathe(uptr) && attacktype(uptr, AT_BREA)) {
                     return { moved: false, tookTime: !!(await dobreathe(player, game.map, display, game)) };
+                }
+                if (uptr && attacktype(uptr, AT_SPIT)) {
+                    return { moved: false, tookTime: !!(await dospit(player, game.map, display, game)) };
+                }
+                if (uptr?.mlet === S_NYMPH) {
+                    return { moved: false, tookTime: !!(await doremove(player)) };
+                }
+                if (uptr && attacktype(uptr, AT_GAZE)) {
+                    return { moved: false, tookTime: !!(await dogaze(player, game.map)) };
+                }
+                if (uptr && is_were(uptr)) {
+                    return { moved: false, tookTime: !!(await dosummon(player, game.map)) };
+                }
+                if (c ? c === 'h' : mightHide) {
+                    return { moved: false, tookTime: !!(await dohide(player, game.map)) };
+                }
+                if (c ? c === 's' : (uptr && webmaker(uptr))) {
+                    return { moved: false, tookTime: !!(await dospinweb(player, game.map)) };
+                }
+                if (uptr && is_mind_flayer(uptr)) {
+                    return { moved: false, tookTime: !!(await domindblast(player, game.map)) };
+                }
+                if (uptr?.msound === MS_SHRIEK) {
+                    await You('shriek.');
+                    return { moved: false, tookTime: true };
+                }
+                if (uptr && is_vampire(uptr)) {
+                    return { moved: false, tookTime: !!(await dopoly(player, game.map)) };
                 }
                 await display.putstr_message('Any special ability you may have is purely reflexive.');
             } else {
