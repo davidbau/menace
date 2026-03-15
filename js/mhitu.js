@@ -47,12 +47,13 @@ import { mattackm } from './mhitm.js';
 import {
     mhitm_mgc_atk_negated, do_stone_u,
 } from './uhitm.js';
-import { dmgval, hitval as weaponHitval, mon_wield_item } from './weapon.js';
+import { dmgval, hitval as weaponHitval, mon_wield_item, drain_weapon_skill } from './weapon.js';
 import { thrwmu, spitmu, breamu } from './mthrowu.js';
 import { castmu, buzzmu } from './mcastu.js';
 import { touch_of_death } from './mcastu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned, acurr } from './attrib.js';
+import { poisoned, acurr, adjattrib } from './attrib.js';
+import { losespells } from './spell.js';
 import { set_wounded_legs } from './do.js';
 import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
 import { losexp } from './exper.js';
@@ -659,18 +660,19 @@ async function mhitu_ad_drin(monster, attack, player, mhm, ctx) {
     }
     // C: Half physical damage applies before mdamageu() for this branch.
     mhm.damage = maybe_half_phys(mhm.damage, player);
-    // Simplified eat_brains effects: message + INT drain side effects.
-    // cf. adjattrib(A_INT, -rnd(2), FALSE)
-    // Then: !rn2(5) → losespells, !rn2(5) → drain_weapon_skill
+    // cf. uhitm.c:3240-3249 — adjattrib + losespells + drain_weapon_skill
     if (!ctx.suppressHitMsg)
         await ctx.display.putstr_message('Your brain is being eaten!');
-    // INT drain
-    const intLoss = rnd(2);
-    if (player.attributes && player.attributes[1] > 3) { // A_INT=1
-        player.attributes[1] = Math.max(3, player.attributes[1] - intLoss);
+    // C: adjattrib(A_INT, -rnd(2), FALSE) — proper attribute adjustment with messaging
+    await adjattrib(player, A_INT, -rnd(2), false);
+    if (!rn2(5)) {
+        await losespells(player);
+        if (ctx.combatState) ctx.combatState.skipdrin = true;
     }
-    rn2(5); // losespells check
-    rn2(5); // drain_weapon_skill check
+    if (!rn2(5)) {
+        drain_weapon_skill(rnd(2));
+        if (ctx.combatState) ctx.combatState.skipdrin = true;
+    }
 }
 
 // cf. uhitm.c:3649 mhitm_ad_slow — mhitu branch
