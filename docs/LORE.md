@@ -12826,3 +12826,33 @@ Validation:
   - remaining mismatch is cursor-only at step `29`, which is non-gating for
     gameplay parity.
   - `seed031_manual_direct` and `seed329_rogue_wizard_gameplay` stayed green.
+
+### Gameplay recon: explicit `#dumpsnap` checkpoints are usable inside ordinary session probes
+
+- For ordinary gameplay coverage probes, the existing C harness already had the
+  raw ingredients for step-local reconnaissance, but they were split across two
+  paths:
+  - gameplay `run_session.py` set `NETHACK_MAPDUMP_DIR` and collected compact
+    auto-mapdump checkpoints only at level-transition boundaries;
+  - wizload `run_session.py` read structured `checkpoints.jsonl` entries, but
+    gameplay did not.
+- Two small harness/tool fixes make ordinary gameplay recon much more useful:
+  - `test/comparison/c-harness/run_session.py`
+    - gameplay sessions now set `NETHACK_DUMPSNAP=<checkpoint_file>`;
+    - gameplay step capture now reads any new structured checkpoint entries
+      from that file and attaches them to the corresponding step as
+      `step.checkpoints`, mirroring wizload behavior.
+  - `test/comparison/shop_checkpoint_debug.js`
+    - if a requested session checkpoint id is not found in top-level compact
+      `mapdumpCheckpoints`, it now falls back to step-attached structured
+      checkpoints like `52:afterwest:0`;
+    - it also prints the hero neighborhood separately when the anchor is a
+      special room rather than the hero.
+- Practical workflow:
+  - in a raw gameplay probe, insert `#dumpsnap`, then provide a short phase tag
+    and press `Enter`;
+  - inspect the resulting tagged checkpoint with
+    `shop_checkpoint_debug.js <session> <step:phase:index>`.
+- This is useful for reconnaissance-driven Phase 3 work because it lets us
+  inspect hard-to-reach ordinary-level states, like long digging routes toward
+  a vault, without adding comparator exceptions or gameplay-side hacks.

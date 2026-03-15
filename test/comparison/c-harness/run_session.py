@@ -217,6 +217,21 @@ def repaint_debug_env(log_path=None):
         out += f'NETHACK_REPAINT_DEBUG_LOG={log_path} '
     return out
 
+def dumpsnap_env():
+    """Pass harness dumpsnap controls through to the C binary if set."""
+    out = ''
+    for key in (
+        'NETHACK_DUMPSNAP_EVERY_KEY',
+        'NETHACK_DUMPSNAP_KEY_STEPS',
+        'NETHACK_DUMPSNAP_EVERY_INPUT',
+        'NETHACK_DUMPSNAP_INPUT_EVERY',
+        'NETHACK_DUMPSNAP_STEPS',
+    ):
+        value = os.environ.get(key, '')
+        if value:
+            out += f'{key}={value} '
+    return out
+
 def rnglog_disp_env():
     """Pass NETHACK_RNGLOG_DISP through to the C binary if set."""
     v = os.environ.get('NETHACK_RNGLOG_DISP', '')
@@ -1144,6 +1159,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
+            f'{dumpsnap_env()}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -2046,9 +2062,10 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
 
     setup_home(char)
 
-    # Temp files for RNG log and auto-mapdump checkpoints
+    # Temp files for RNG log, explicit dumpsnap checkpoints, and auto-mapdump checkpoints
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')
     rng_log_file = os.path.join(tmpdir, 'rnglog.txt')
+    checkpoint_file = os.path.join(tmpdir, 'checkpoints.jsonl')
     mapdump_dir = os.path.join(tmpdir, 'mapdumps')
     repaint_debug_file = os.path.join(tmpdir, 'repaint-debug.log')
     os.makedirs(mapdump_dir, exist_ok=True)
@@ -2069,6 +2086,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
+            f'NETHACK_DUMPSNAP={checkpoint_file} '
             f'NETHACK_MAPDUMP_DIR={mapdump_dir} '
             f'HOME={RESULTS_DIR} '
             f'TERM=xterm-256color '
@@ -2169,6 +2187,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         # Execute moves - send each character individually (no grouping)
         prev_rng_count = startup_rng_count
         prev_depth_recorded = None  # Record depth only when it changes
+        checkpoint_cursor = 0
         # Expand move-string escapes/shortcuts into the actual key stream.
         # This makes advertised encodings (e.g. "\x14", "^Dh") replay as
         # real control-key sequences rather than literal text.
@@ -2230,6 +2249,13 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
                 'screen': screen_compressed,
                 'cursor': step_cursor,
             }
+            checkpoints, checkpoint_cursor = read_checkpoint_entries(checkpoint_file, checkpoint_cursor)
+            if checkpoints:
+                for cp in checkpoints:
+                    for grid_key in ('typGrid', 'flagGrid', 'wallInfoGrid'):
+                        if grid_key in cp and isinstance(cp[grid_key], list):
+                            cp[grid_key] = encode_typgrid_rle(cp[grid_key])
+                step['checkpoints'] = checkpoints
             if depth != prev_depth_recorded:
                 step['depth'] = depth
                 prev_depth_recorded = depth

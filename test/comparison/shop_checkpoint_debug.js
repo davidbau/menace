@@ -59,21 +59,6 @@ function loadTarget(targetPath, checkpointId) {
         const session = normalizeSession(raw, { file: basename(targetPath), dir: resolve(targetPath, '..') });
         const checkpoints = session.mapdumpCheckpoints || {};
         const ids = Object.keys(checkpoints).sort();
-        if (ids.length > 0) {
-            if (!checkpointId) {
-                throw new Error(`Checkpoint id required for session file. Available: ${ids.join(', ')}`);
-            }
-            if (!checkpoints[checkpointId]) {
-                throw new Error(`Checkpoint '${checkpointId}' not found. Available: ${ids.join(', ')}`);
-            }
-            return {
-                sourceKind: 'session',
-                sourcePath: targetPath,
-                checkpointId,
-                parsed: parseCompactMapdump(checkpoints[checkpointId]),
-                checkpointIds: ids,
-            };
-        }
         const structured = [];
         session.steps.forEach((step, stepIndex) => {
             (step.checkpoints || []).forEach((cp, cpIndex) => {
@@ -82,6 +67,31 @@ function loadTarget(targetPath, checkpointId) {
             });
         });
         const structuredIds = structured.map((row) => row.id);
+        if (ids.length > 0) {
+            if (!checkpointId) {
+                throw new Error(`Checkpoint id required for session file. Available: ${ids.join(', ')}`);
+            }
+            if (checkpoints[checkpointId]) {
+                return {
+                    sourceKind: 'session',
+                    sourcePath: targetPath,
+                    checkpointId,
+                    parsed: parseCompactMapdump(checkpoints[checkpointId]),
+                    checkpointIds: ids,
+                };
+            }
+            const foundStructured = structured.find((row) => row.id === checkpointId);
+            if (foundStructured) {
+                return {
+                    sourceKind: 'session',
+                    sourcePath: targetPath,
+                    checkpointId,
+                    parsed: foundStructured.checkpoint,
+                    checkpointIds: ids.concat(structuredIds),
+                };
+            }
+            throw new Error(`Checkpoint '${checkpointId}' not found. Available: ${ids.concat(structuredIds).join(', ')}`);
+        }
         if (structured.length === 0) {
             throw new Error(`No checkpoints found in ${targetPath}`);
         }
@@ -523,6 +533,10 @@ function main() {
         }
     }
 
+    if (hero && (!anchor || anchor.x !== hero.x || anchor.y !== hero.y)) {
+        printNeighborhood(parsed, hero, radius, hero);
+        console.log('');
+    }
     printNeighborhood(parsed, anchor, radius, hero);
 }
 
