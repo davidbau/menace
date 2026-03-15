@@ -233,7 +233,8 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
                 await display.putstr_message(`You ${verb} here ${describeGroundObjectForPlayer(seen, player, map)}.`);
             }
         } else {
-            await look_here(player, map, objs.length);
+            // C check_here() for non-autopickup reporting uses PICK_SOME == false here.
+            await look_here(player, map, 0);
         }
     }
 }

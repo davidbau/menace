@@ -973,7 +973,8 @@ function postRender(game, result) {
     // putstr_message() already positioned it there; skip docrt+cursorOnPlayer
     // because docrt() internally calls cursorOnPlayer and would clobber it.
     if (result?.isCountDigitWithDisplay) return;
-    if (typeof game.docrt === 'function') {
+    const mapReady = !!(game?.lev || game?.map);
+    if (typeof game.docrt === 'function' && mapReady) {
         game.docrt();
     }
     if (typeof game.display.renderStatus === 'function') {
