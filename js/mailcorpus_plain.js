@@ -3374,6 +3374,65 @@ You understand.
     ],
   },
 
+  blank: {
+    replyRules: [
+      {
+        keywords: ['zork', 'infocom', 'game', 'product'],
+        responses: [
+          {
+            subject: "Re: Infocom",
+            body: `Rodney,
+
+I appreciate the interest.  We've put a lot into these products and
+it's gratifying when people notice.
+
+Zork has done well for us -- better than we expected when we first
+moved it from the PDP-10 to microcomputers.  The interactive fiction
+market is real, and I think we've only scratched the surface.
+
+What specifically were you asking about?
+
+  Marc Blank`
+          },
+        ],
+      },
+      {
+        keywords: ['license', 'rights', 'sale', 'business'],
+        responses: [
+          {
+            subject: "Re: licensing",
+            body: `Rodney,
+
+Licensing questions are best directed to our business office.
+
+That said: we're generally open to conversations about distribution,
+but any agreement would need to go through proper channels.
+
+I can pass your inquiry along.  What is it you have in mind?
+
+  Marc Blank`
+          },
+        ],
+      },
+    ],
+    genericResponses: [
+      {
+        subject: "Re: your message",
+        body: `Rodney,
+
+Thanks for writing.
+
+I'm spread a bit thin between development and the business side,
+so apologies if replies are slow.
+
+What's on your mind?
+
+  Marc Blank
+  Infocom, Inc.`
+      },
+    ],
+  },
+
 };
 
 // =========================================================================
