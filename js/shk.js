@@ -594,7 +594,7 @@ export function money2mon(mon, amount) {
             if (quan <= 0) continue;
             if (quan > remaining) {
                 const payment = splitobj(otmp, remaining);
-                player.removeFromInventory(payment);
+                player.gold = Math.max(0, Number(player.gold || 0) - remaining);
                 dealloc_obj(payment);
                 remaining = 0;
                 break;

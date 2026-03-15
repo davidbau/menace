@@ -12776,3 +12776,19 @@ Validation:
   - Remaining `hi15` mismatches are down to the post-payment gold total on the
     status line and the older teleport cursor boundary.
   - `seed031_manual_direct` and `seed329_rogue_wizard_gameplay` stayed green.
+
+### `hi15` final shop-payment gold sync: partial coin-stack payment must update `player.gold`
+
+- After the billed purchase path was green on RNG/events, `hi15` still had one
+  screen mismatch at step `57`: JS showed `$:1000` while C showed `$:970`.
+- Root cause: `shk.js:money2mon()` used `splitobj()` for partial payment from a
+  carried coin stack, then tried to `removeFromInventory(payment)`. But the
+  split-off payment object is detached; the carried stack remains in inventory
+  with reduced `quan`, so the hero's `player.gold` shadow never changed.
+- Fix:
+  - debit `player.gold` directly in the partial-stack branch of `money2mon()`.
+- Result:
+  - `hi15_seed42_barb_minetn5_shop-pay_gp` became gameplay-green.
+  - remaining mismatch is cursor-only at step `29`, which is non-gating for
+    gameplay parity.
+  - `seed031_manual_direct` and `seed329_rogue_wizard_gameplay` stayed green.
