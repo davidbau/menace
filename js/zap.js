@@ -111,6 +111,7 @@ import { is_weptool } from './objnam.js';
 import { Is_container } from './mkobj.js';
 import { useup, useupall } from './invent.js';
 import { monflee } from './monmove.js';
+import { hero_breaks, breaks } from './dothrow.js';
 import { readobjnam, hands_obj, aobjnam } from './objnam.js';
 import { make_blinded } from './potion.js';
 import {
@@ -2232,15 +2233,28 @@ export async function bhito(obj, otmp, map) {
     break;
 
   case WAN_STRIKING:
-  case SPE_FORCE_BOLT:
-    // C ref: zap.c:2273-2310 — break boulders, statues
+  case SPE_FORCE_BOLT: {
+    // C ref: zap.c:2273-2310 — break boulders, statues, or other objects
     if (obj.otyp === BOULDER) {
       // fracture_rock — simplified
       obj.otyp = ROCK;
       obj.oclass = GEM_CLASS;
       obj.quan = rn1(60, 7);
+    } else if (obj.otyp === STATUE) {
+      // TODO: break_statue not fully ported
+      res = 0;
+    } else {
+      // C ref: zap.c:2298-2306 — hero_breaks / breaks for other objects
+      const oox = obj.ox, ooy = obj.oy;
+      const player = _gstate?.player;
+      if (_gstate?.context?.mon_moving
+          ? !await breaks(obj, oox, ooy, player, map)
+          : !await hero_breaks(obj, oox, ooy, 0, player, map)) {
+        res = 0;
+      }
     }
     break;
+  }
 
   case WAN_CANCELLATION:
   case SPE_CANCELLATION:

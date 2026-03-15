@@ -237,6 +237,14 @@ export async function rhack(ch, game) {
 
     // Run keys (capital letter = run in that direction)
     if (RUN_KEYS[c]) {
+        // C ref: cmd.c:3808 — F prefix only valid before movement commands
+        // (CMD_gGF_PREFIX), not run/rush commands. Uppercase direction keys
+        // map to do_run_* which lack CMD_gGF_PREFIX.
+        if (getForceFight()) {
+            setForceFight(false);
+            await display.putstr_message("The 'F' prefix should be followed by a movement command.");
+            return { moved: false, tookTime: false };
+        }
         // C ref: do_run_<dir>() uses set_move_cmd(dir, 1), which differs from
         // #run/G prefix semantics (context.run=3). Preserve that distinct mode.
         return do_run(RUN_KEYS[c], player, map, display, fov, game, 'shiftRun');
