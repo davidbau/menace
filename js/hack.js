@@ -1437,6 +1437,14 @@ export async function domove_core(dir, player, map, display, game) {
         await maybe_smudge_engr(map, oldX, oldY, player.x, player.y, player);
     }
 
+    // C ref: hack.c:2961 — spoteffects(TRUE) after u.umoved
+    // JS inlines most spoteffects above (traps, pickup), but check_special_room
+    // (room entry/exit tracking) was missing. This updates player.urooms so that
+    // invault() can detect when the player enters a vault.
+    if (player.umoved) {
+        await check_special_room(false, player, map, display, game?.fov || null);
+    }
+
     await runmode_delay_output(game, display);
 
     return { moved: true, tookTime: true };
