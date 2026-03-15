@@ -7668,7 +7668,7 @@ export const selection = {
         let y = y1;
 
         while (true) {
-            coords.push({ x, y });
+            coords.push(selection._toAbsoluteCoord(x, y));
             if (x === x2 && y === y2) break;
             const e2 = 2 * err;
             if (e2 > -dy) {

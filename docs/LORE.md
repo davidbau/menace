@@ -12627,6 +12627,7 @@ Validation:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
 
+<<<<<<< HEAD
 ### `hi15` shop-pay bring-up: maze-extents split, wall-state mirroring, and first real payment path
 
 - Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` exposed that two separate
@@ -12720,3 +12721,40 @@ Validation:
   - stable guardrails remained green:
     - `seed031_manual_direct`
     - `seed329_rogue_wizard_gameplay`
+=======
+### `selection.line()` must convert map-relative coordinates before `des.terrain()` edits
+
+- Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` showed the remaining early
+  Minetown setup drift was deterministic and present before wallification:
+  - JS and C matched in the local stair pocket at `after_map`,
+  - but diverged by `after_wallification_special`,
+  - while RNG was still aligned.
+- The crucial mismatch in the translated special-level helpers was:
+  - `selection.area()` already converted map-relative points through
+    `get_location_coord()`,
+  - `selection.line()` returned raw relative `{x,y}` pairs,
+  - `des.terrain(selection.line(...), ...)` then applied those raw points as if
+    they were absolute cells.
+- That is not C-faithful. In `nhlsel.c`, `selection.line()` routes both endpoints
+  through `get_location_coord(..., ANY_LOC, croom, SP_COORD_PACK(...))` before
+  constructing the line selection.
+- Fix:
+  - `js/sp_lev.js:selection.line()` now pushes
+    `selection._toAbsoluteCoord(x, y)` for each point on the line.
+- Validation:
+  - `hi15_seed42_barb_minetn5_shop-pay_gp`
+    - improved from:
+      - `RNG 5869/6221`
+      - `events 94/450`
+    - to:
+      - `RNG 5902/6221`
+      - `events 212/449`
+      - first RNG divergence now at step `32` instead of the old step-`5`
+        Minetown setup blocker
+  - guard sessions stayed green:
+    - `hi11_seed1100_wiz_zap-deep_gameplay`
+    - `t22_s1250_w_digtrapmix_gp`
+- This is a broad special-level translation fix, not a Minetown-only patch;
+  any translated level script using `des.terrain(selection.line(...), ...)`
+  under map-relative coordinate mode depends on this behavior.
+>>>>>>> fix(parity): honor map-relative selection.line coords
