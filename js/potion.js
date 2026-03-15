@@ -54,15 +54,16 @@ import { HEAD, FACE, KILLED_BY, KILLED_BY_AN, LEVITATION, UNCHANGING,
          A_NONE as A_NONE_ALIGN, A_LAWFUL, A_CHAOTIC } from './const.js';
 import { hliquid, mon_nam, Monnam } from './do_name.js';
 import { makeplural, doname, fruitname, Tobjnam } from './objnam.js';
-import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists_acid, dmgtype, resists_poison } from './mondata.js';
+import { mon_hates_blessings, likes_fire, breathless, haseyes, has_head, resists_acid, dmgtype, resists_poison, is_were, is_vampshifter, is_silent, is_human } from './mondata.js';
 import { acurr } from './attrib.js';
 import { burn_away_slime, fall_asleep } from './timeout.js';
 import { mon_adjust_speed, mon_set_minvis } from './worn.js';
-import { healmon } from './mon.js';
+import { healmon, mondead } from './mon.js';
+import { new_were } from './were.js';
 import { mcureblindness } from './muse.js';
 import { do_enlightenment_effect, resist } from './zap.js';
 import { mons } from './monsters.js';
-import { PM_HEALER, PM_GHOST, PM_DJINNI, G_GONE, AD_DISE, AD_PEST } from './monsters.js';
+import { PM_HEALER, PM_GHOST, PM_DJINNI, PM_GREMLIN, PM_IRON_GOLEM, G_GONE, AD_DISE, AD_PEST } from './monsters.js';
 import { game as gstateGame } from './gstate.js';
 import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, unmap_object, newsym, set_mimic_blocking, canspotmon } from './display.js';
 import { update_inventory, learn_unseen_invent } from './invent.js';
@@ -1566,10 +1567,42 @@ async function potionhit(mon, obj, how, player, map) {
             }
             break;
         }
-        case POT_WATER:
-            // holy/unholy water vs undead — simplified
+        case POT_WATER: {
+            // C ref: potion.c:1817-1851 — holy/unholy water effects
+            const monData = mon.data || (mons ? mons[mon.mndx] : {});
+            if (mon_hates_blessings(mon) || is_were(monData) || is_vampshifter(mon)) {
+                if (obj.blessed) {
+                    if (is_silent(monData))
+                        await pline("%s writhes in pain!", Monnam(mon));
+                    else
+                        await pline("%s shrieks in pain!", Monnam(mon));
+                    mon.mhp -= c_d(2, 6);
+                    if (mon.mhp <= 0) {
+                        mondead(mon, map);
+                    } else if (is_were(monData) && !is_human(monData)) {
+                        await new_were(mon);
+                    }
+                } else if (obj.cursed) {
+                    angermon = false;
+                    if (canspotmon(mon, player))
+                        await pline("%s looks healthier.", Monnam(mon));
+                    healmon(mon, c_d(2, 6), 0);
+                    if (is_were(monData) && is_human(monData))
+                        await new_were(mon);
+                }
+            } else if (mon.mndx === PM_GREMLIN) {
+                angermon = false;
+                split_mon(mon, null);
+            } else if (mon.mndx === PM_IRON_GOLEM) {
+                if (canspotmon(mon, player))
+                    await pline("%s rusts.", Monnam(mon));
+                mon.mhp -= c_d(1, 6);
+                if (mon.mhp <= 0)
+                    mondead(mon, map);
+            }
             break;
         }
+        } // close switch (obj.otyp)
 
         // C ref: potion.c:1884-1889 — post-switch wake logic
         if (mon.mhp > 0) {
