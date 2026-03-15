@@ -3,7 +3,7 @@
 
 import { nhgetch, getlin, more } from './input.js';
 import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
-import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE, W_ART } from './const.js';
+import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE, W_ART, W_ARMOR, W_ACCESSORY, W_SADDLE, W_WEAPONS, W_TOOL } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
          STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
