@@ -8,6 +8,7 @@ import { COLNO, ROWNO, ROOM, STONE, HWALL, WATER, W_WEP, MTSZ } from '../../js/c
 import { GameMap } from '../../js/game.js';
 import { movemon, mon_track_add, mon_track_clear, monhaskey, m_can_break_boulder } from '../../js/monmove.js';
 import { Player } from '../../js/player.js';
+import { setGame } from '../../js/gstate.js';
 import { GOLD_PIECE, COIN_CLASS, WEAPON_CLASS, ARMOR_CLASS, ORCISH_DAGGER, ORCISH_HELM,
          SKELETON_KEY, LOCK_PICK, CREDIT_CARD, PICK_AXE, DWARVISH_MATTOCK } from '../../js/objects.js';
 import { mons, PM_GOBLIN, PM_LITTLE_DOG, PM_DEATH, PM_PELIAS, AT_WEAP, G_NOCORPSE,
@@ -214,7 +215,7 @@ describe('Monster movement', () => {
         player.x = 20; player.y = 10;
         player.initRole(0);
 
-        const pet = makeGoblin(20, 10, player);
+        const pet = makeGoblin(19, 10, player);
         pet.peaceful = true;
         pet.tame = true;
         pet.edog = {
@@ -252,7 +253,7 @@ describe('Monster movement', () => {
             'wielded pick-axe should remain in inventory'
         );
         assert.ok(
-            map.objects.some((obj) => obj.otyp === DWARVISH_MATTOCK && obj.ox === 20 && obj.oy === 10),
+            map.objects.some((obj) => obj.otyp === DWARVISH_MATTOCK && obj.ox === 19 && obj.oy === 10),
             'spare mattock should be dropped at pet location'
         );
     });
@@ -363,12 +364,14 @@ describe('Monster movement', () => {
                 messages.push(msg);
             },
         };
+        setGame({ display, map, player, fov: { canSee: () => true }, flags: { msg_window: false } });
 
         await movemon(map, player, display);
 
         assert.equal(goblin.weapon, dagger);
         assert.equal(player.hp, hpBefore);
         assert.ok(messages.some((msg) => /wields/.test(msg)));
+        setGame(null);
     });
 
     it('AT_WEAP throws consume inventory and leave a floor projectile', async () => {

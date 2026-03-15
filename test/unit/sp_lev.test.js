@@ -413,7 +413,7 @@ describe('sp_lev.js - des.* API', () => {
 
         assert.equal(map.locations[30][10].nondiggable, true, 'untouched stone should become nondiggable');
         assert.equal(map.locations[30][10].nonpasswall, true, 'untouched stone should become nonpasswall');
-        assert.equal(map.locations[10][5].nonpasswall, undefined, 'touched tile should not be force-solidified');
+        assert.equal(map.locations[10][5].nonpasswall, false, 'touched tile should not be force-solidified');
     });
 
     it('should preserve leading and trailing blank map lines', async () => {
@@ -534,7 +534,7 @@ describe('sp_lev.js - des.* API', () => {
         des.wall_property({ x1: 0, y1: 0, x2: 0, y2: 0, property: 'nonpasswall' });
         const map = getLevelState().map;
         assert.equal(map.locations[10][5].nonpasswall, true, 'wall should become non-passwall');
-        assert.equal(map.locations[10][6].nonpasswall, undefined, 'non-wall tiles should remain unchanged');
+        assert.equal(map.locations[10][6].nonpasswall, false, 'non-wall tiles should remain unchanged');
     });
 
     it('applies des.wallify bounded x1/y1/x2/y2 semantics', () => {

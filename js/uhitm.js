@@ -190,7 +190,7 @@ export async function attack_checks(mtmp, wep, opts = {}) {
 
     // C ref: uhitm.c:229-251 — invisible monster check (before pet/peaceful)
     const map = opts.map || null;
-    if (!canspotmon(mtmp, player, null, map) && !forcefight) {
+    if (map && player && !canspotmon(mtmp, player, null, map) && !forcefight) {
         const mdat = mtmp.data || mtmp.type || null;
         if (!(!player?.Blind && mtmp.mundetected && mdat && hides_under(mdat))) {
             await pline("Wait!  There's %s there you can't see!", "something");
@@ -1918,15 +1918,16 @@ export function disguised_as_mon(mtmp) {
 // cf. uhitm.c:6293 — nohandglow(mon):
 //   Reduce hero's umconf counter (hand-glow for confusion touch).
 //   Called after a hand-to-hand hit when umconf > 0 and mon is not confused.
-export async function nohandglow(mon, player) {
-    if (!player || !player.umconf || mon?.mconf) return;
+export function nohandglow(mon, player) {
+    if (!player || !player.umconf || mon?.mconf) return false;
     // C ref: uhitm.c:6303-6313 — messages depend on umconf count and visibility
     if (player.umconf === 1) {
-        await Your("%s stop glowing.", "hands");
+        void Your("%s stop glowing.", "hands");
     } else {
-        await Your("%s no longer glow so brightly.", "hands");
+        void Your("%s no longer glow so brightly.", "hands");
     }
     player.umconf--;
+    return true;
 }
 
 // cf. uhitm.c:6319 — flash_hits_mon(mtmp, otmp):

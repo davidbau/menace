@@ -64,7 +64,6 @@ function dismissOwnedToplineMore(game) {
 function installTeleportArrivalMorePrompt(game, oldX, oldY) {
     if (!game?.display || !pendingToplineNeedsAck(game.display)) return;
     let stage = 0;
-    game._pendingDeferredTurnAfterMore = true;
     game.pendingPrompt = {
         type: 'teleport_arrival_more',
         onKey: async (chCode, gameCtx) => {
@@ -97,7 +96,6 @@ function installTeleportArrivalMorePrompt(game, oldX, oldY) {
             }
 
             gameCtx.pendingPrompt = null;
-            gameCtx._pendingDeferredTurnAfterMore = false;
             return { handled: true, moved: false, tookTime: true, prompt: true };
         },
     };

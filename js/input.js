@@ -468,21 +468,14 @@ function popQueuedInputKey(inDoAgain = false) {
     return null;
 }
 
-function hasVisibleMoreMarker(display) {
-    if (display?.moreMarkerActive) return true;
-    if (!display?.grid) return false;
-    const moreStr = '--More--';
-    const rowHasMore = (rowIndex) => {
-        const row = display.grid[rowIndex];
-        if (!Array.isArray(row)) return false;
-        const cols = Number.isInteger(display.cols) ? display.cols : row.length;
-        let text = '';
-        for (let c = 0; c < cols; c++) {
-            text += String(row[c]?.ch || ' ');
-        }
-        return text.includes(moreStr);
-    };
-    return rowHasMore(0) || rowHasMore(1);
+function hasActiveMoreBoundary(display) {
+    if (!display) return false;
+    if (display.moreMarkerActive) return true;
+    if (typeof display.getScreenLines !== 'function') return false;
+    const lines = display.getScreenLines() || [];
+    const row0 = lines[0] || '';
+    const row1 = lines[1] || '';
+    return row0.includes('--More--') || row1.includes('--More--');
 }
 
 // Lowest-level runtime key read (no queue/replay/keylog/--More-- handling).
@@ -567,7 +560,8 @@ export async function nhgetch(opts = {}) {
     // C-faithful command boundary: when a topline --More-- is pending,
     // consume only a dismiss key and return "no command" (0), allowing
     // queued canned commands to execute next.
-    if ((!pendingPromptOwnsInput && commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display))
+    if ((!pendingPromptOwnsInput && commandBoundary
+            && display?.messageNeedsMore && hasActiveMoreBoundary(display))
         || hasQueuedCannedBoundary) {
         const readBoundaryKey = async () => {
             if (isReplayMode() && allowDirectReplayNhgetch()) {

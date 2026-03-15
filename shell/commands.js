@@ -391,7 +391,7 @@ async function finger(args, shell) {
         const pad = (s, n) => s.padEnd(n);
         shell.println(`Login: ${pad(login, 24)} Name: ${info.name}`);
 
-        const dir = login === USERNAME ? `~` : `/home/${login}`;
+        const dir = `/home/${login}`;
         const shell_ = login === 'root' ? '/bin/csh' : login === 'daemon' || login === 'wizard' || login === 'gridbug' ? '/sbin/nologin' : '/bin/sh';
         shell.println(`Directory: ${pad(dir, 22)} Shell: ${shell_}`);
 

@@ -168,6 +168,8 @@ const USER_HOME_VFS_PREFIX = 'home/';
 const DEFAULT_FILES = {
     'todo': `\
 Things to do:
+  [x] Evict squatters from level 3 (took care of it -- mostly)
+  [x] Order new supply of confusion scrolls
   [ ] Find out who keeps taking the Amulet
   [ ] Restock eye of newt (running very low -- check pantry)
   [ ] Fix teleport trap on level 14 (keeps miscalibrating to level 1)

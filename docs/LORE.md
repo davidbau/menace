@@ -110,13 +110,14 @@ refresh immediately to `HP:0`.
 Practical rule:
 1. keep the simple unconditional status refresh in generic `input.more()`,
 2. track whether the visible top line was created after a prior page break
-   (`_topMessageAfterMore`),
+   (headless `putstr_message` now receives that context as `fromTopMoreBoundary`),
 3. in headless internal `putstr_message()` `more()` waits, suppress status
-   refresh only when both are true:
+   refresh only when all are true:
    - `activeGame?.context?.mon_moving`
-   - `_topMessageAfterMore`
+   - `fromTopMoreBoundary`
+   - not in a sleep/wake boundary (`sleepWakeBoundary`)
 4. treat this as a narrow replay/display staging rule, not a reason to revive
-   broad `_botlStepIndex` gating in generic `more()`.
+ broad `_botlStepIndex` gating in generic `more()`.
 
 Validated effect:
 1. `hi11_seed1100_wiz_zap-deep_gameplay` returns to full green,
@@ -128,6 +129,16 @@ Failure mode:
 1. gameplay RNG/events can remain fully green,
 2. but the status line flips to `HP:0` one `--More--` too early,
 3. creating a pure screen-only divergence like `hi11` step 407.
+
+### Wizload special checkpoint should not pre-bound digging
+
+`load_special()` in C does not call `bound_digging()`; only
+`level_finalize_topology()` does (via `lspo_finalize_level`). The JS
+`finalize_special_checkpoint_stage()` was calling `bound_digging()` as part
+of the wizload checkpoint staging, which marked boundary stone nondiggable
+too early and shifted mineralize eligibility. Removing that pre-bound fixed
+RNG parity for `t04_s706_w_minetn1_gp` (minetown) while keeping later
+`finalize_level()` behavior aligned with C.
 
 ### Display RNG divergence needs caller-tagged diagnostics
 
@@ -4589,8 +4600,8 @@ hard-won wisdom:
   - In [`js/wield.js`](/share/u/davidbau/git/mazesofmenace/mazes/js/wield.js),
     when entering two-weapon mode with a secondary weapon message:
     - keep C-style `--More--` message semantics
-    - schedule `game._pendingDeferredTurnAfterMore = true` so timed turn logic
-      runs at the command-boundary dismissal hook.
+    - gate turn advancement on prompt-owned `tookTime` instead of a global
+      deferred-turn flag.
 - Validation:
   - `./scripts/run-and-report.sh --failures` remains `31/34` gameplay sessions passing.
   - `seed031_manual_direct` improved from roughly `680/1365` to
@@ -13185,3 +13196,21 @@ Validation:
   - guard sessions stayed green:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
+
+### Wizard identify menu now matches C pick-any paging and selection ordering
+
+- `t11_s746_w_covmax3_gp` diverged early inside the Ctrl+I (wizard identify)
+  menu because JS treated it as a pick-one overlay without paging or menu
+  commands, which broke `.`/`,` selection behavior and shifted RNG soon after.
+- C uses `PICK_ANY` for wizard identify and skips the special `_` entry on
+  select-all/invert.
+- Fix in `js/invent.js`:
+  - page overlay menus based on available rows even when the menu lacks an
+    explicit `(end)` line
+  - add paging and menu-command support to `renderOverlayMenuPickAny()`
+  - force full-screen rendering for paged pick-any menus to keep a stable
+    `offx`
+  - return pick-any selections in menu order (matching C), not insertion order
+  - skip `_`/Ctrl+I from select-all/invert to mirror `MENU_ITEMFLAGS_SKIPINVERT`
+- Validation:
+  - `t11_s746_w_covmax3_gp` first divergence moved `step 405 -> 652`
