@@ -1259,9 +1259,10 @@ export function thiefd(G) {
   let j = 1055;
   if (G.thfpos !== G.here) j = 0;
   for (let i = 1; i <= G.olnt; i++) {
-    if (G.oadv[i - 1] !== -THIEF) continue;
-    if (prob(G, 70, 30)) continue;
-    if (G.otval[i - 1] > 0) continue;
+    // Fortran: IF((OADV(I).NE.-THIEF).OR.PROB(70,30).OR.(OTVAL(I).GT.0))
+    // .OR. does NOT short-circuit — prob() is always called.
+    const p = prob(G, 70, 30);
+    if (G.oadv[i - 1] !== -THIEF || p || G.otval[i - 1] > 0) continue;
     newsta(G, i, j, G.thfpos, 0, 0);
     j = 0;
   }
@@ -1298,10 +1299,11 @@ function thief_1400(G, rhere, waslit, qstill) {
   if (G.thfpos >= MAZE1 && G.thfpos <= MAZ15 &&
       G.here >= MAZE1 && G.here <= MAZ15) {
     for (let i = 1; i <= G.olnt; i++) {
-      if (!qhere(G, i, G.thfpos)) continue;
-      if (prob(G, 60, 60)) continue;
-      if (i === WATER) continue;
-      if ((G.oflag1[i - 1] & (VISIBT | TAKEBT)) !== (VISIBT | TAKEBT)) continue;
+      // Fortran .OR. does NOT short-circuit — prob() must always be called
+      // to match RNG consumption order.
+      const p = prob(G, 60, 60);
+      if (!qhere(G, i, G.thfpos) || p || i === WATER ||
+          (G.oflag1[i - 1] & (VISIBT | TAKEBT)) !== (VISIBT | TAKEBT)) continue;
       if (!G.deadf) rspsub(G, 590, G.odesc2[i - 1]);
       if (prob(G, 40, 20)) return; // leave without stealing
       newsta(G, i, 0, 0, 0, -THIEF);
@@ -1313,11 +1315,11 @@ function thief_1400(G, rhere, waslit, qstill) {
 
   // Not in maze
   for (let i = 1; i <= G.olnt; i++) {
-    if (!qhere(G, i, G.thfpos)) continue;
-    if (G.otval[i - 1] !== 0) continue;
-    if (prob(G, 80, 60)) continue;
-    if (i === WATER) continue;
-    if ((G.oflag1[i - 1] & (VISIBT | TAKEBT)) !== (VISIBT | TAKEBT)) continue;
+    // Fortran .OR. does NOT short-circuit — prob() must always be called
+    const p = prob(G, 80, 60);
+    if (!qhere(G, i, G.thfpos) || G.otval[i - 1] !== 0 ||
+        p || i === WATER ||
+        (G.oflag1[i - 1] & (VISIBT | TAKEBT)) !== (VISIBT | TAKEBT)) continue;
     newsta(G, i, 0, 0, 0, -THIEF);
     G.oflag2[i - 1] |= TCHBT;
     if (G.thfpos === G.here && !G.deadf) rspsub(G, rmk, G.odesc2[i - 1]);

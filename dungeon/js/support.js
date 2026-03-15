@@ -1407,8 +1407,11 @@ export function robrm(G, rm, pr, nr, nc, na) {
   for (let i = 0; i < G.olnt; i++) {
     const obj = i + 1;
     if (!qhere(G, obj, rm)) continue;
+    // Fortran .OR. does not short-circuit, so PROB is always called.
+    // We must call prob unconditionally to match RNG consumption.
+    const p = prob(G, pr, pr);
     if (G.otval[i] > 0 && (G.oflag2[i] & SCRDBT) === 0 &&
-        (G.oflag1[i] & VISIBT) !== 0 && prob(G, pr, pr)) {
+        (G.oflag1[i] & VISIBT) !== 0 && p) {
       newsta(G, obj, 0, nr, nc, na);
       count++;
       G.oflag2[i] |= TCHBT;
