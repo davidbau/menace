@@ -3356,6 +3356,7 @@ const SPINE_ARRAY = [
 
 // C ref: rm.h WM_* wall mode flags (stored in rm.flags/wall_info low bits)
 const WM_MASK = 0x07;
+const WALL_FLAG_MASK = WM_MASK | W_NONDIGGABLE;
 const WM_W_LEFT = 1;
 const WM_W_RIGHT = 2;
 const WM_W_TOP = WM_W_LEFT;
@@ -4615,7 +4616,9 @@ export function bound_digging(map, opts = null) {
             const loc = map.at(x, y);
             if (loc && IS_STWALL(loc.typ)
                 && (y <= ymin || y >= ymax || x <= xmin || x >= xmax)) {
-                loc.wall_info = (Number(loc.wall_info || 0) | W_NONDIGGABLE);
+                const next = Number(loc.wall_info || 0) | W_NONDIGGABLE;
+                loc.wall_info = next;
+                loc.flags = (Number(loc.flags || 0) & ~WALL_FLAG_MASK) | (next & WALL_FLAG_MASK);
                 loc.nondiggable = true; // compatibility mirror
             }
         }

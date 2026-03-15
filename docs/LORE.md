@@ -12626,3 +12626,42 @@ Validation:
   - guard sessions remained green:
     - `hi11_seed1100_wiz_zap-deep_gameplay`
     - `t22_s1250_w_digtrapmix_gp`
+
+### `hi15` shop-pay bring-up: maze-extents split, wall-state mirroring, and first real payment path
+
+- Continuing `hi15_seed42_barb_minetn5_shop-pay_gp` exposed that two separate
+  special-level problems had been conflated:
+  - `minetn-5` really wants the native maze-level `bound_digging()` extents
+    during wizload finalization,
+  - but the older `t04_s706_w_minetn1_gp` fixture is already red on current
+    `main` for an earlier `minetn-1` generation mismatch and is not a valid
+    regression signal for this work.
+- Evidence:
+  - applying C `bound_digging()` to the recorded `hi15` `after_wallification`
+    checkpoint yields exactly `43` eligible mineralize cells only when
+    `is_maze_lev=true`, matching the C RNG trace through the first
+    `shkinit()` object.
+  - with the JS wizload path left at non-maze extents, `hi15` stayed stuck at
+    the old step-5 extra `rn2(1000)` mineralize tail.
+- Fixes:
+  - `js/sp_lev.js:terrain()` now translates raw coordinate-list entries
+    through `toAbsoluteCoords()` when `mapCoordMode` is active, matching C map
+    coordinate mode for `selection.line()`/`selection.area()` writes.
+  - `js/sp_lev.js` and `js/dungeon.js` now mirror `wall_info` updates into the
+    low wall-flag bits in `loc.flags` for:
+    - `bound_digging()`
+    - `sel_set_wall_property()`
+    - `solidify_map()`
+    - drawbridge wall creation
+    This keeps hidden wall-state faithful and makes checkpoint capture reflect
+    the same effective wall flags that mineralize sees.
+  - `js/shk.js` imported `GOLD_PIECE` so `dopay()` can finally execute once
+    `hi15` reaches the real payment path.
+- Result:
+  - `hi15` moved from the old step-5 wizload/mineralize blocker all the way to
+    live shop interaction at step `32`.
+  - first RNG divergence is now in later shopkeeper/dialog behavior instead of
+    special-level topology finalization.
+  - stable guardrails remained green:
+    - `seed031_manual_direct`
+    - `seed329_rogue_wizard_gameplay`
