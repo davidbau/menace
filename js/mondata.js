@@ -1519,7 +1519,10 @@ export function name_to_monplus(in_str, remainder_ref) {
     }
     if (mntmp === NON_PM) {
         const result = title_to_mon(str, null, null);
-        if (result >= 0) mntmp = result;
+        // title_to_mon returns { mnum, rank_indx, title_length } or null
+        if (result && typeof result === 'object' && typeof result.mnum === 'number' && result.mnum >= 0) {
+            mntmp = result.mnum;
+        }
     }
     if (bestLen && remainder_ref) {
         remainder_ref.value = in_str.slice(in_str.length - str.length + bestLen);
