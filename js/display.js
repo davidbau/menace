@@ -1352,6 +1352,9 @@ span.nh-cursor {
     // Render a text popup (e.g. "Things that are here:", NHW_TEXT windows)
     // C ref: tty_display_nhwindow → process_text_window / process_menu_window
     renderTextPopup(lines, opts = {}) {
+        if (this._lastTextPopup) {
+            this.clearTextPopup();
+        }
         // Filter out trailing empty lines
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);

@@ -1177,6 +1177,9 @@ export class HeadlessDisplay {
     // Renders a text popup as a right-side overlay on the map.
     // Used by look_here() for "Things that are here:" and similar displays.
     renderTextPopup(lines, opts = {}) {
+        if (this._lastTextPopup) {
+            this.clearTextPopup();
+        }
         // Filter out trailing empty lines from the data
         while (lines.length > 0 && lines[lines.length - 1] === '') {
             lines = lines.slice(0, -1);

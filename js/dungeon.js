@@ -4948,7 +4948,7 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             // Mirror special-level alignment for known deterministic specials.
             const specialName = typeof special.name === 'string' ? special.name : '';
             let specialAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
-            if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
+            if (specialName.startsWith('oracle')) specialAlign = A_NONE;
             else if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
             else if (specialName.startsWith('tut-')) specialAlign = A_LAWFUL;
             if (_gstate) _gstate._dungeonAlign = specialAlign;

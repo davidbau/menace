@@ -9,7 +9,7 @@ import {
     D_NODOOR, D_CLOSED, D_ISOPEN, D_LOCKED,
     IS_WALL, IS_DOOR, IS_ROOM, ACCESSIBLE,
     MAXNROFROOMS, ROOMOFFSET,
-    isok
+    isok, OBJ_FLOOR
 } from './const.js';
 import { pushRngLogEntry } from './rng.js';
 
@@ -186,7 +186,12 @@ export class GameMap {
 
     // Find objects at (x,y)
     objectsAt(x, y) {
-        return this.objects.filter(o => o.ox === x && o.oy === y);
+        return this.objects.filter((o) =>
+            o.ox === x
+            && o.oy === y
+            && !o.buried
+            && (o.where === OBJ_FLOOR
+                || o.where == null));
     }
 
     // Find trap at (x,y)
