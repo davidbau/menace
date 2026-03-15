@@ -37,6 +37,7 @@ async function ls(args, shell) {
 
     if (showLong) {
         const entries = shell.fs.lsLong(target);
+        if (entries === 'PERMISSION_DENIED') { shell.println(`ls: ${target}: Permission denied`); return; }
         if (!entries) { shell.println(`ls: ${target}: No such file or directory`); return; }
         const filtered = showAll ? entries : entries.filter(e => !e.name.startsWith('.'));
         shell.println(`total ${filtered.length}`);
@@ -52,6 +53,7 @@ async function ls(args, shell) {
         const node = shell.fs.getNode(target);
         if (node && node.type !== 'dir') { shell.println(target.split('/').pop()); return; }
         const names = shell.fs.ls(target);
+        if (names === 'PERMISSION_DENIED') { shell.println(`ls: ${target}: Permission denied`); return; }
         if (!names) { shell.println(`ls: ${target}: No such file or directory`); return; }
         const filtered = showAll ? names : names.filter(n => !n.startsWith('.'));
         // Multi-column output

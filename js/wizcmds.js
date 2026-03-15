@@ -283,9 +283,12 @@ export async function handleWizLoadDes(game) {
         dlevel,
         specialName: normalizedLevelName,
         isBranchLevel: isBranchLevel(dnum, dlevel),
-        // C-faithful wizload quirk: lspo_finalize_level(NULL) uses non-maze
-        // boundary offsets during topology finalize for wiz-loaded specials.
-        boundDiggingIsMazeLevel: false,
+        // C evidence differs across Minetown variants under wizload.
+        // `minetn-1` still needs the historical non-maze boundary offset,
+        // while `minetn-5` matches C with the map's native maze flag.
+        boundDiggingIsMazeLevel: normalizedLevelName === 'minetn-1'
+            ? false
+            : undefined,
     };
     const newMap = await withSpecialLevelDepth(dlevel, async () => {
         await withFinalizeContext(

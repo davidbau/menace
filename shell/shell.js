@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
 import {
@@ -44,6 +44,11 @@ export class Shell {
             this._addLine('', OUTPUT_COLOR);
         } else {
             this.display.clearScreen();
+            // Show login banner (generated with current date/time)
+            for (const line of loginBanner().split('\n')) {
+                this._addLine(line, OUTPUT_COLOR);
+            }
+            this._addLine('', OUTPUT_COLOR);
             // Show MOTD on clean entry
             const motd = this.fs.cat('/etc/motd');
             if (motd) {

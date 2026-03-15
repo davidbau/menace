@@ -20,17 +20,26 @@ function lsRead(key) {
     catch (e) { return null; }
 }
 
-const MOTD = `UNIX PDP-11/70 (pdp11)
-
-login: ${USERNAME}
-Last login: Thu Mar 12 09:14:22 on tty07
-
-                      Welcome to the dungeon!
+const MOTD = `                      Welcome to the dungeon!
 
   Several games live in /usr/games.
   Type 'ls /usr/games' to see what's installed.
 
   Have fun, but remember — the Dungeon Master is always watching.`;
+
+// Generate the login banner programmatically
+export function loginBanner() {
+    const now = new Date();
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const d = days[now.getDay()];
+    const m = months[now.getMonth()];
+    const day = String(now.getDate()).padStart(2);
+    const h = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    return `UNIX PDP-11/70 (pdp11)\n\nlogin: ${USERNAME}\nLast login: ${d} ${m} ${day} ${h}:${min}:${s} on tty07`;
+}
 
 const PASSWD = `root:x:0:0:Charlie Root:/root:/bin/csh
 daemon:x:1:1:The daemon:/:/sbin/nologin
@@ -98,15 +107,15 @@ function buildTree() {
                             'rogue.sav':  { type: 'file', lsKey: 'rogue-save', readonly: true, owner: USERNAME, group: USERNAME, date: 'Jun 15  1980' },
                         }
                     },
-                    izchak:   { type: 'dir', children: {} },
-                    crowther: { type: 'dir', children: {} },
-                    toy:      { type: 'dir', children: {} },
-                    arnold:   { type: 'dir', children: {} },
-                    fenlason: { type: 'dir', children: {} },
-                    brouwer:  { type: 'dir', children: {} },
-                    lebling:  { type: 'dir', children: {} },
-                    blank:    { type: 'dir', children: {} },
-                    walz:     { type: 'dir', children: {} },
+                    izchak:   { type: 'dir', children: {}, restricted: true },
+                    crowther: { type: 'dir', children: {}, restricted: true },
+                    toy:      { type: 'dir', children: {}, restricted: true },
+                    arnold:   { type: 'dir', children: {}, restricted: true },
+                    fenlason: { type: 'dir', children: {}, restricted: true },
+                    brouwer:  { type: 'dir', children: {}, restricted: true },
+                    lebling:  { type: 'dir', children: {}, restricted: true },
+                    blank:    { type: 'dir', children: {}, restricted: true },
+                    walz:     { type: 'dir', children: {}, restricted: true },
                 }
             },
             tmp: { type: 'dir', children: {} },
@@ -184,6 +193,7 @@ export class VirtualFS {
         const node = this.getNode(path || '.');
         if (!node) return null;
         if (node.type !== 'dir') return null;
+        if (node.restricted) return 'PERMISSION_DENIED';
         return Object.keys(node.children).filter(name => this._nodeExists(node.children[name]));
     }
 
@@ -247,6 +257,7 @@ export class VirtualFS {
         const node = this._lookup(abs);
         if (!node) return `cd: ${path}: No such file or directory`;
         if (node.type !== 'dir') return `cd: ${path}: Not a directory`;
+        if (node.restricted) return `cd: ${path}: Permission denied`;
         this.cwd = abs;
         return null;
     }
@@ -271,6 +282,7 @@ export class VirtualFS {
         const absPath = this.resolve(path || '.');
         const node = this._lookup(absPath);
         if (!node) return null;
+        if (node.restricted) return 'PERMISSION_DENIED';
 
         if (node.type !== 'dir') {
             // Single file listing

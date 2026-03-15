@@ -131,7 +131,7 @@ describe('VirtualFS', () => {
 
     it('cat reads static file content', () => {
         const motd = fs.cat('/etc/motd');
-        assert.ok(motd.includes('PDP-11'));
+        assert.ok(motd.includes('dungeon') || motd.includes('Dungeon'));
     });
 
     it('cat reads vfs-backed file', () => {
@@ -353,7 +353,7 @@ describe('Shell commands', () => {
         const cmds = getBuiltinCommands();
         await cmds.cat(['/etc/motd'], shell);
         const text = output.join('\n');
-        assert.ok(text.includes('PDP-11'));
+        assert.ok(text.includes('dungeon') || text.includes('Dungeon'));
     });
 
     it('cat of directory prints error', async () => {
@@ -562,7 +562,7 @@ describe('Shell.run', () => {
         const shell = new Shell(display, mockGetch(input));
         await shell.run();
         // MOTD should have been added to scroll buffer
-        assert.ok(shell.scrollBuffer.some(l => l.text.includes('PDP-11')));
+        assert.ok(shell.scrollBuffer.some(l => l.text.includes('PDP-11') || l.text.includes('dungeon') || l.text.includes('Dungeon')));
     });
 
     it('game launch command returns launch result', async () => {

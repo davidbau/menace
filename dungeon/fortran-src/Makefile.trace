@@ -1,0 +1,17 @@
+# Build instrumented dungeon binary with parser/game tracing
+# Trace output goes to stderr (unit 0) as JSON lines
+
+FC = gfortran -g -cpp -DTRACE_PARITY
+SOURCE = dungeon.o game.o gdt.o objects.o parser.o rooms.o subr.o timefnc.o verbs.o
+EXE = dungeon_trace
+
+all : $(EXE)
+
+$(EXE) : $(SOURCE)
+	$(FC) -o $(EXE) $^
+
+%.o : %.f
+	$(FC) -c $<
+
+clean:
+	rm -f *.o $(EXE)

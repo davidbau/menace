@@ -356,7 +356,14 @@ export function spo_end_moninvent() {
     return levelState.monsterInventoryStack.pop() || null;
 }
 
-const WALL_INFO_MASK = 0x07;
+const WALL_INFO_MASK = 0x07 | W_NONDIGGABLE | W_NONPASSWALL;
+
+function setWallInfoBits(loc, bits) {
+    if (!loc) return;
+    const next = Number(loc.wall_info || 0) | bits;
+    loc.wall_info = next;
+    loc.flags = (Number(loc.flags || 0) & ~WALL_INFO_MASK) | (next & WALL_INFO_MASK);
+}
 const MATCH_WALL = 38;
 const INVALID_TYPE = 127;
 let checkpointCaptureEnabled = false;
@@ -2703,7 +2710,14 @@ export function terrain(x_or_opts, y_or_type, type) {
 
             // selection.line() / selection.area() coord list
             for (const coord of x_or_opts) {
-                applyTerrain(coord.x, coord.y, terrainType);
+                let x = coord.x;
+                let y = coord.y;
+                if (levelState.mapCoordMode) {
+                    const abs = toAbsoluteCoords(x, y);
+                    x = abs.x;
+                    y = abs.y;
+                }
+                applyTerrain(x, y, terrainType);
             }
         } else if (x_or_opts.x !== undefined && x_or_opts.y !== undefined) {
             // {x, y, typ} format
@@ -4934,10 +4948,10 @@ export function sel_set_wall_property(x, y, propKind) {
     // C ref: sel_set_wall_property() only applies to walls, trees, and iron bars.
     if (!(IS_WALL(loc.typ) || loc.typ === TREE || loc.typ === IRONBARS)) return;
     if (propKind === 'nondiggable') {
-        loc.wall_info = (Number(loc.wall_info || 0) | W_NONDIGGABLE);
+        setWallInfoBits(loc, W_NONDIGGABLE);
         loc.nondiggable = true; // compatibility mirror
     } else if (propKind === 'nonpasswall') {
-        loc.wall_info = (Number(loc.wall_info || 0) | W_NONPASSWALL);
+        setWallInfoBits(loc, W_NONPASSWALL);
         loc.nonpasswall = true; // compatibility mirror
     }
 }
@@ -6854,9 +6868,7 @@ export function solidify_map(map) {
             const loc = map.locations[x][y];
             if (!loc) continue;
             if (IS_STWALL(loc.typ) && !spLevMap[x]?.[y]) {
-                loc.wall_info = (Number(loc.wall_info || 0)
-                    | W_NONDIGGABLE
-                    | W_NONPASSWALL);
+                setWallInfoBits(loc, W_NONDIGGABLE | W_NONPASSWALL);
                 loc.nondiggable = true; // compatibility mirror
                 loc.nonpasswall = true; // compatibility mirror
             }
@@ -7129,6 +7141,9 @@ export async function finalize_special_checkpoint_stage() {
         solidify_map(levelState.map);
     }
     await fixupSpecialLevel();
+    if (levelState.map && levelState.deferredFinalizeRequested) {
+        bound_digging(levelState.map);
+    }
     captureCheckpoint('after_finalize_special');
     return levelState.map;
 }
@@ -8712,7 +8727,7 @@ export function drawbridge(opts) {
         if (isOpen) wallLoc.flags = D_NODOOR;
         else {
             wallLoc.flags = 0;
-            wallLoc.wall_info = (Number(wallLoc.wall_info || 0) | W_NONDIGGABLE);
+            setWallInfoBits(wallLoc, W_NONDIGGABLE);
             wallLoc.nondiggable = true; // compatibility mirror
         }
         wallLoc.horizontal = horiz;
