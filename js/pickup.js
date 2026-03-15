@@ -1134,26 +1134,47 @@ function burden_prefix(enc) {
 }
 
 async function handlePickup(player, map, display, game = null) {
-    const deferTimedPickupUntilMore = (pickedObj, inventoryObj) => {
+    const deferTimedPickupUntilMore = (pickedObj, inventoryObj, gameCtx = game, displayCtx = display) => {
         if (!(pickedObj?.unpaid || inventoryObj?.unpaid)) return null;
-        if (!game || !display?.messageNeedsMore) return null;
-        game._pendingDeferredTurnAfterMore = true;
-        game.pendingPrompt = {
+        if (!gameCtx || !displayCtx?.messageNeedsMore) return null;
+        gameCtx._pendingDeferredTurnAfterMore = true;
+        gameCtx.pendingPrompt = {
             type: 'pickup_more_ack',
-            onKey: async (chCode, gameCtx) => {
+            onKey: async (chCode, nextGameCtx) => {
                 if (chCode !== 32 && chCode !== 10 && chCode !== 13
                     && chCode !== 27 && chCode !== 16) {
                     return { handled: true, moved: false, tookTime: false, prompt: true };
                 }
-                if (Object.hasOwn(gameCtx.display, 'messageNeedsMore')) {
-                    gameCtx.display.messageNeedsMore = false;
-                }
-                gameCtx.pendingPrompt = null;
-                gameCtx._pendingDeferredTurnAfterMore = false;
+                dismissOwnedMore(nextGameCtx);
+                nextGameCtx.pendingPrompt = null;
+                nextGameCtx._pendingDeferredTurnAfterMore = false;
                 return { handled: true, moved: false, tookTime: true, prompt: true };
             },
         };
         return { moved: false, tookTime: false, prompt: true };
+    };
+
+    const dismissOwnedMore = (gameCtx) => {
+        if (!gameCtx?.display) return;
+        if (Object.hasOwn(gameCtx.display, 'messageNeedsMore')) {
+            gameCtx.display.messageNeedsMore = false;
+        }
+        if (Object.hasOwn(gameCtx.display, 'moreMarkerActive')) {
+            gameCtx.display.moreMarkerActive = false;
+        }
+        if (Object.hasOwn(gameCtx.display, '_topMessageAfterMore')) {
+            gameCtx.display._topMessageAfterMore = false;
+        }
+        if (Object.hasOwn(gameCtx.display, '_nextTopMessageAfterMore')) {
+            gameCtx.display._nextTopMessageAfterMore = false;
+        }
+        if (typeof gameCtx.display.clearRow === 'function') {
+            gameCtx.display.clearRow(0);
+            if (gameCtx.display._topMessageRow1 !== undefined) {
+                gameCtx.display.clearRow(1);
+                gameCtx.display._topMessageRow1 = undefined;
+            }
+        }
     };
     const objs = map.objectsAt(player.x, player.y);
     if (objs.length === 0) {
@@ -1292,67 +1313,86 @@ async function handlePickup(player, map, display, game = null) {
             }
         }
 
+        const finishPickupAfterBilling = async (displayCtx = display, gameCtx = game) => {
+            const addResult = player.addToInventory(pickedObj, { withMeta: true });
+            const inventoryObj = addResult.item;
+            // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
+            if (inventoryObj) inventoryObj.pickup_prev = 1;
+            if (pickedObj === obj) {
+                map.removeObject(obj);
+            }
+            // C pickup behavior can collect additional stacks for the same
+            // selected type at this square.
+            const px = obj.ox, py = obj.oy;
+            while (true) {
+                const extra = (map.objectsAt(px, py) || []).find((o) =>
+                    o
+                    && o !== pickedObj
+                    && o.oclass !== COIN_CLASS
+                    && o.otyp === pickedObj.otyp
+                );
+                if (!extra) break;
+                const extraResult = player.addToInventory(extra, { withMeta: true });
+                // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
+                if (extraResult?.item) extraResult.item.pickup_prev = 1;
+                map.removeObject(extra);
+            }
+            observeObject(pickedObj);
+            if (addResult.discoveredByCompare) {
+                await displayCtx.putstr_message('You learn more about your items by comparing them.');
+            }
+            const pickupMsg = formatInventoryPickupMessage(pickedObj, inventoryObj, player);
+            const oldcapVal = Number.isInteger(player?._oldcap) ? player._oldcap : 0;
+            const newcapVal = near_capacity(player);
+            const encMsg = get_encumber_msg_for_change(oldcapVal, newcapVal);
+            const combinedFits = !encMsg
+                || ((pickupMsg.length + 2 + encMsg.length + 9) < Number(displayCtx?.cols || 80));
+
+            if (encMsg && !combinedFits && gameCtx) {
+                await pline("%s", pickupMsg);
+                await more(displayCtx, { game: gameCtx, site: 'pickup.encumber.split.more' });
+                player._oldcap = newcapVal;
+                player.encumbrance = newcapVal;
+                gameCtx.pendingPrompt = {
+                    type: 'pickup_encumber_more',
+                    onKey: async (_chCode, nextGameCtx) => {
+                        nextGameCtx.pendingPrompt = null;
+                        if (typeof displayCtx.clearRow === 'function') displayCtx.clearRow(0);
+                        if ('messageNeedsMore' in displayCtx) displayCtx.messageNeedsMore = false;
+                        await displayCtx.putstr_message(encMsg);
+                        return { handled: true, moved: false, tookTime: false };
+                    },
+                };
+            } else {
+                await pline("%s", pickupMsg);
+                await encumber_msg(player);
+            }
+            const deferred = deferTimedPickupUntilMore(pickedObj, inventoryObj, gameCtx, displayCtx);
+            return deferred || { moved: false, tookTime: true };
+        };
+
         if (!player.uswallow && pickedObj !== player.uchain
             && costly_spot(obj.ox, obj.oy, map) && !pickedObj.no_charge) {
             await addtobill(pickedObj, true, false, false);
+            if (game && display?.messageNeedsMore) {
+                game.pendingPrompt = {
+                    type: 'pickup_quote_more',
+                    onKey: async (chCode, gameCtx) => {
+                        if (chCode !== 32 && chCode !== 10 && chCode !== 13
+                            && chCode !== 27 && chCode !== 16) {
+                            return { handled: true, moved: false, tookTime: false, prompt: true };
+                        }
+                        dismissOwnedMore(gameCtx);
+                        gameCtx.pendingPrompt = null;
+                        const resumed = await finishPickupAfterBilling(gameCtx.display, gameCtx);
+                        return { handled: true, ...(resumed || { moved: false, tookTime: true }) };
+                    },
+                };
+                return { moved: false, tookTime: false, prompt: true };
+            }
         }
 
-        const addResult = player.addToInventory(pickedObj, { withMeta: true });
-        const inventoryObj = addResult.item;
-        // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
-        if (inventoryObj) inventoryObj.pickup_prev = 1;
-        if (pickedObj === obj) {
-            map.removeObject(obj);
-        }
-        // C pickup behavior can collect additional stacks for the same
-        // selected type at this square.
-        const px = obj.ox, py = obj.oy;
-        while (true) {
-            const extra = (map.objectsAt(px, py) || []).find((o) =>
-                o
-                && o !== pickedObj
-                && o.oclass !== COIN_CLASS
-                && o.otyp === pickedObj.otyp
-            );
-            if (!extra) break;
-            const extraResult = player.addToInventory(extra, { withMeta: true });
-            // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
-            if (extraResult?.item) extraResult.item.pickup_prev = 1;
-            map.removeObject(extra);
-        }
-        observeObject(pickedObj);
-        if (addResult.discoveredByCompare) {
-            await display.putstr_message('You learn more about your items by comparing them.');
-        }
-        const pickupMsg = formatInventoryPickupMessage(pickedObj, inventoryObj, player);
-        const oldcapVal = Number.isInteger(player?._oldcap) ? player._oldcap : 0;
-        const newcapVal = near_capacity(player);
-        const encMsg = get_encumber_msg_for_change(oldcapVal, newcapVal);
-        const combinedFits = !encMsg
-            || ((pickupMsg.length + 2 + encMsg.length + 9) < Number(display?.cols || 80));
-
-        if (encMsg && !combinedFits && game) {
-            await pline("%s", pickupMsg);
-            await more(display, { game, site: 'pickup.encumber.split.more' });
-            player._oldcap = newcapVal;
-            player.encumbrance = newcapVal;
-            game.pendingPrompt = {
-                type: 'pickup_encumber_more',
-                onKey: async (_chCode, gameCtx) => {
-                    gameCtx.pendingPrompt = null;
-                    if (typeof display.clearRow === 'function') display.clearRow(0);
-                    if ('messageNeedsMore' in display) display.messageNeedsMore = false;
-                    await display.putstr_message(encMsg);
-                    return { handled: true, moved: false, tookTime: false };
-                },
-            };
-        } else {
-            await pline("%s", pickupMsg);
-            await encumber_msg(player);
-        }
-        const deferredPickup = deferTimedPickupUntilMore(pickedObj, inventoryObj);
-        if (deferredPickup) return deferredPickup;
-        return { moved: false, tookTime: true };
+        return finishPickupAfterBilling(display, game);
     };
 
     const saveQuan = obj.quan;

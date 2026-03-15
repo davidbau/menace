@@ -555,6 +555,9 @@ export async function nhgetch(opts = {}) {
     };
 
     const display = getRuntimeDisplay();
+    const pendingPromptOwnsInput = !!(
+        activeGame?.pendingPrompt && typeof activeGame.pendingPrompt.onKey === 'function'
+    );
     const hasQueuedCannedBoundary = !!(
         commandBoundary
         && cmdq_peek(CQ_CANNED)
@@ -564,7 +567,7 @@ export async function nhgetch(opts = {}) {
     // C-faithful command boundary: when a topline --More-- is pending,
     // consume only a dismiss key and return "no command" (0), allowing
     // queued canned commands to execute next.
-    if ((commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display))
+    if ((!pendingPromptOwnsInput && commandBoundary && display?.messageNeedsMore && hasVisibleMoreMarker(display))
         || hasQueuedCannedBoundary) {
         const readBoundaryKey = async () => {
             if (isReplayMode() && allowDirectReplayNhgetch()) {

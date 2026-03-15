@@ -10,7 +10,6 @@ import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
 // C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 function ANGRY(mon) { return !mon.mpeaceful; }
 import { PM_TOURIST } from './monsters.js';
-import { exercise } from './attrib_exercise.js';
 import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -33,7 +32,7 @@ import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_C
          CANDELABRUM_OF_INVOCATION } from './objects.js';
 import { m_next2u } from './muse.js';
 import { isObjectNameKnown } from './o_init.js';
-import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object, obj_extract_self } from './mkobj.js';
+import { doname, next_ident, weight, Is_container, add_to_minv, dealloc_obj, bill_dummy_object, obj_extract_self, splitobj } from './mkobj.js';
 import { Has_contents, xname, The, the } from './objnam.js';
 import { currency, o_on } from './invent.js';
 import { Hello } from './player.js';
@@ -52,6 +51,13 @@ import { o_unleash } from './apply.js';
 import { food_disappears } from './eat.js';
 import { book_disappears } from './spell.js';
 import { makemon } from './makemon.js';
+import { money_cnt } from './hack.js';
+import {
+    NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE, nul_glyphinfo,
+} from './const.js';
+import {
+    create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu,
+} from './windows.js';
 
 // ============================================================
 // Constants
@@ -558,7 +564,8 @@ export async function pay(tmp, shkp, game) {
   let balance = ((tmp <= 0) ? tmp : await check_credit(tmp, shkp));
   if (balance > 0) money2mon(shkp, balance);
   else if (balance < 0) money2u(shkp, -balance);
-  game.disp.botl = true;
+  if (game?.disp) game.disp.botl = true;
+  if (game?.player) game.player._botl = true;
   if (robbed) {
     robbed -= tmp;
     if (robbed < 0) robbed = 0;
@@ -577,8 +584,28 @@ export function money2mon(mon, amount) {
         return 0;
     }
     const player = _gstate?.player || null;
-    if (player) {
-        player.gold = Math.max(0, Number(player.gold || 0) - amount);
+    let remaining = amount;
+    if (player && Array.isArray(player.inventory)) {
+        for (const otmp of [...player.inventory]) {
+            if (remaining <= 0) break;
+            if (!otmp) continue;
+            if (!(otmp.oclass === COIN_CLASS || otmp.otyp === GOLD_PIECE)) continue;
+            const quan = Number(otmp.quan || 0);
+            if (quan <= 0) continue;
+            if (quan > remaining) {
+                const payment = splitobj(otmp, remaining);
+                player.removeFromInventory(payment);
+                dealloc_obj(payment);
+                remaining = 0;
+                break;
+            }
+            player.removeFromInventory(otmp);
+            dealloc_obj(otmp);
+            remaining -= quan;
+        }
+    }
+    if (player && remaining > 0) {
+        player.gold = Math.max(0, Number(player.gold || 0) - remaining);
     }
     if (mon) {
         mon.mgold = (mon.mgold || 0) + amount;
@@ -1546,9 +1573,8 @@ export async function shk_chat(shkp, map) {
 export async function shk_names_obj(shkp, obj, fmt, amt, arg) {
     const player = _gstate?.player || null;
     const obj_name = doname(obj, player);
-    await You(fmt, obj_name, amt, plur(amt), arg || "");
-    // C ref: shk.c ~3366 — exercise WIS when shopkeeper identifies/names item
-    if (player) await exercise(player, A_WIS, true);
+    const jsFmt = String(fmt || '').replace(/%ld/g, '%d');
+    await You(jsFmt, obj_name, amt, plur(amt), arg || "");
 }
 
 // ============================================================
@@ -1566,7 +1592,7 @@ function getShopQuoteForFloorObject(obj, player, map) {
     if (!shoproom) return null;
 
     const shkp = findShopkeeper(map, shoproom);
-    if (!shkp || insideShop(map, shkp.mx, shkp.my) !== shoproom) return null;
+    if (!residentShopkeeperAvailableForGreeting(shkp, shoproom, map)) return null;
 
     const freeSpot = !!(shkp.shk
         && Number(shkp.shk.x) === obj.ox
@@ -1577,6 +1603,16 @@ function getShopQuoteForFloorObject(obj, player, map) {
     }
     const units = Math.max(1, Number(obj.quan || 1));
     return { cost: units * getCost(obj, player, shkp), noCharge: false };
+}
+
+function residentShopkeeperAvailableForGreeting(shkp, shoproom, map) {
+    if (!shkp) return false;
+    const home = shkp.mextra?.eshk?.shk || shkp.shk || null;
+    const door = shkp.mextra?.eshk?.shd || shkp.shd || null;
+    const shkpInShop = (insideShop(map, shkp.mx, shkp.my) === shoproom);
+    const shkpAtHome = !!(home && Number(home.x) === Number(shkp.mx) && Number(home.y) === Number(shkp.my));
+    const shkpAtDoor = !!(door && Number(door.x) === Number(shkp.mx) && Number(door.y) === Number(shkp.my));
+    return shkpInShop || shkpAtHome || shkpAtDoor;
 }
 
 export function describeGroundObjectForPlayer(obj, player, map) {
@@ -1598,11 +1634,17 @@ export async function maybeHandleShopEntryMessage(game, oldX, oldY) {
     const newShops = in_rooms(map, player.x, player.y, SHOPBASE);
     game._ushops = newShops;
     const entered = newShops.filter((r) => !oldShops.includes(r));
-    if (entered.length === 0) return;
+    if (entered.length === 0) {
+        return;
+    }
 
     const shoproom = entered[0];
     const shkp = findShopkeeper(map, shoproom);
-    if (!shkp || insideShop(map, shkp.mx, shkp.my) !== shoproom || shkp.following) return;
+    if (!shkp) return;
+    if (!residentShopkeeperAvailableForGreeting(shkp, shoproom, map)) {
+        return;
+    }
+    if (shkp.following) return;
 
     const room = map.rooms?.[shoproom - ROOMOFFSET];
     const rtype = Number(room?.rtype || SHOPBASE);
@@ -1669,7 +1711,6 @@ export async function dopay(game) {
             resident = m;
         }
     }
-
     let shkp = null;
     if (nxtm && nexttosk === 1) {
         shkp = nxtm;
@@ -1723,9 +1764,8 @@ export async function dopay(game) {
     }
 
     if (!shkp) return 0;
-
     const robbed = Number(shkp.robbed || 0);
-    if (robbed || Number(shkp.billct || 0) || Number(shkp.debit || 0)) {
+    if (robbed || Number(ESHK(shkp)?.billct || 0) || Number(ESHK(shkp)?.debit || 0)) {
         rouse_shk(shkp, true);
     }
     if (monHelpless(shkp)) {
@@ -1753,7 +1793,7 @@ export async function dopay(game) {
 
     let paid = false;
     let pay_done = true;
-    const eshkp = shkp;
+    const eshkp = ESHK(shkp);
 
     if (!eshkp.billct && !eshkp.debit) {
         const umoney = moneyOnHand();
@@ -1874,7 +1914,7 @@ export async function dopay(game) {
 
 // C ref: shk.c make_itemized_bill()
 function make_itemized_bill(shkp) {
-    const eshkp = shkp || {};
+    const eshkp = ESHK(shkp) || {};
     const bill = Array.isArray(eshkp.bill) ? eshkp.bill : [];
     const ebillct = Number(eshkp.billct || bill.length);
     const player = _gstate?.player || null;
@@ -1950,11 +1990,42 @@ function make_itemized_bill(shkp) {
 }
 
 // C ref: shk.c menu_pick_pay_items()
-function menu_pick_pay_items(_ibillct, ibill) {
-    for (const item of (ibill || [])) {
-        item.queuedpay = true;
+async function menu_pick_pay_items(_ibillct, ibill) {
+    if (!Array.isArray(ibill) || ibill.length === 0) return 0;
+    const tmpwin = create_nhwindow(NHW_MENU);
+    try {
+        start_menu(tmpwin, MENU_BEHAVE_STANDARD);
+        for (let i = 0; i < ibill.length; i++) {
+            const item = ibill[i];
+            if (!item?.obj) continue;
+            const cost = Math.max(0, Number(item.cost || 0));
+            const label = `${cost} Zm, ${doname(item.obj, _gstate?.player || null)}`;
+            add_menu(
+                tmpwin,
+                nul_glyphinfo,
+                { index: i },
+                0,
+                0,
+                ATR_NONE,
+                0,
+                label,
+                0
+            );
+            item.queuedpay = false;
+        }
+        end_menu(tmpwin, 'Pay for which items?');
+        const picks = await select_menu(tmpwin, PICK_ANY);
+        if (!Array.isArray(picks) || picks.length === 0) return 0;
+        for (const pick of picks) {
+            const idx = Number(pick?.identifier?.index);
+            if (Number.isInteger(idx) && idx >= 0 && idx < ibill.length) {
+                ibill[idx].queuedpay = true;
+            }
+        }
+        return picks.length;
+    } finally {
+        destroy_nhwindow(tmpwin);
     }
-    return 1;
 }
 
 // C ref: shk.c reject_purchase()
@@ -1982,7 +2053,7 @@ function insufficient_funds(shkp, obj, ltmp) {
 }
 
 // C ref: shk.c dopayobj()
-async function dopayobj(shkp, bp, obj, which, itemize, _sightunseen) {
+async function dopayobj(shkp, bp, obj, which, itemize, sightunseen) {
     if (!shkp || !bp || !obj) return PAY_SKIP;
     if (!obj.unpaid && !bp.useup && !(Has_contents(obj) && unpaid_cost(obj, COST_CONTENTS, _gstate?.player || null))) {
         impossible("Paid object on bill??");
@@ -2008,6 +2079,17 @@ async function dopayobj(shkp, bp, obj, which, itemize, _sightunseen) {
     }
     if (buy === PAY_BUY) {
         await pay(ltmp, shkp, _gstate);
+        if (!sightunseen) {
+            await shk_names_obj(
+                shkp,
+                obj,
+                consumed
+                    ? "paid for %s at a cost of %ld gold piece%s.%s"
+                    : "bought %s for %ld gold piece%s.%s",
+                ltmp,
+                ""
+            );
+        }
     }
     obj.quan = saveQuan;
 
@@ -2019,7 +2101,7 @@ async function buy_container(shkp, indx, ibillct, ibill) {
     if (!Array.isArray(ibill) || indx < 0 || indx >= ibill.length) return 2;
     const item = ibill[indx];
     const container = item?.obj;
-    const eshkp = shkp || {};
+    const eshkp = ESHK(shkp) || {};
     const ebillct = Number(eshkp.billct || 0);
     const bill = Array.isArray(eshkp.bill) ? eshkp.bill : [];
     if (!container || !ebillct) return 2;
@@ -2069,9 +2151,15 @@ async function buy_container(shkp, indx, ibillct, ibill) {
 }
 
 // C ref: shk.c pay_billed_items()
-async function pay_billed_items(shkp, ibillct, ibill, _stashedGold, paidRef = { paid: false }) {
-    const eshkp = shkp || {};
-    if (!menu_pick_pay_items(ibillct, ibill)) return false;
+async function pay_billed_items(shkp, ibillct, ibill, stashedGold, paidRef = { paid: false }) {
+    const eshkp = ESHK(shkp) || {};
+    const umoney = money_cnt(_gstate?.player?.inventory || _gstate?.player?.invent || []);
+    if (!umoney && !Number(eshkp.credit || 0)) {
+        await You("%shave no gold or credit%s.",
+            stashedGold ? "seem to " : "", paidRef.paid ? " left" : "");
+        return true;
+    }
+    if (!await menu_pick_pay_items(ibillct, ibill)) return false;
     let paidAny = false;
     for (let i = 0; i < ibill.length; i++) {
         const item = ibill[i];

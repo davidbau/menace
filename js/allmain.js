@@ -754,7 +754,9 @@ export async function run_command(game, ch, opts = {}) {
     game.advanceRunTurn = null;
 
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
-    if (result && result.tookTime && !skipTurnEnd && !game._pendingDeferredTurnAfterMore) {
+    if (result && result.tookTime && !skipTurnEnd
+        && !game._pendingDeferredTurnAfterMore
+    ) {
         await finalizeTimedCommand(game, result, coreOpts);
         await repeatLoop(game, {
             coreOpts,
@@ -931,6 +933,7 @@ async function promptStep(game, chCode, {
         moved: promptMoved,
         prompt: true,
         terminalScreenOwned: !!promptResult.terminalScreenOwned,
+        onAfterTurn: (typeof promptResult.onAfterTurn === 'function') ? promptResult.onAfterTurn : null,
     };
 }
 

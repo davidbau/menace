@@ -1993,6 +1993,14 @@ function readobjnam_classify(state, rawText) {
     let oclass = state.oclass || 0;
     let forcedTyp = state.forcedTyp || 0;
 
+    // C ref: objnam.c direct coin parsing — wishes for gold pieces do not go
+    // through weighted name matching. They resolve directly to GOLD_PIECE.
+    if (/^(gold|gold piece|gold pieces|zorkmid|zorkmids)$/.test(text)) {
+        state.oclass = COIN_CLASS;
+        state.forcedTyp = GOLD_PIECE;
+        return 'gold piece';
+    }
+
     if (!oclass) {
         for (const [prefix, cls] of readobjnam_class_prefixes) {
             if (text.startsWith(prefix)) {
@@ -2273,33 +2281,36 @@ export function readobjnam(bp, no_wish, opts = {}) {
     const oclass = state.oclass || 0;
     const forcedTyp = state.forcedTyp || 0;
 
+    const directTyp = (oclass === COIN_CLASS && forcedTyp === GOLD_PIECE)
+        ? forcedTyp
+        : 0;
     // cf. objnam.c:4949 — postparse3 returns 2 (typfnd) for gems/tin,
     // completely skipping rnd_otyp_by_namedesc. typfndTyp signals this.
-    let otyp = state.typfndTyp || STRANGE_OBJECT;
-    if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
+    let otyp = state.typfndTyp || directTyp || STRANGE_OBJECT;
+    if (!(otyp > STRANGE_OBJECT && otyp < NUM_OBJECTS)) {
         otyp = rnd_otyp_by_namedesc(actualn, oclass, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
-        otyp = rnd_otyp_by_namedesc(dn, oclass, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
-        otyp = rnd_otyp_by_namedesc(un, oclass, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
-        otyp = rnd_otyp_by_namedesc(origbp, oclass, 1);
-    }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
+            otyp = rnd_otyp_by_namedesc(dn, oclass, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
+            otyp = rnd_otyp_by_namedesc(un, oclass, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
+            otyp = rnd_otyp_by_namedesc(origbp, oclass, 1);
+        }
 
-    if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
-        otyp = rnd_otyp_by_namedesc(actualn, 0, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
-        otyp = rnd_otyp_by_namedesc(dn, 0, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
-        otyp = rnd_otyp_by_namedesc(un, 0, 1);
-    }
-    if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
-        otyp = rnd_otyp_by_namedesc(origbp, 0, 1);
+        if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
+            otyp = rnd_otyp_by_namedesc(actualn, 0, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
+            otyp = rnd_otyp_by_namedesc(dn, 0, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
+            otyp = rnd_otyp_by_namedesc(un, 0, 1);
+        }
+        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
+            otyp = rnd_otyp_by_namedesc(origbp, 0, 1);
+        }
     }
 
     // C ref: objnam.c:4862-4870 — artifact lookup by name (before alt spellings)

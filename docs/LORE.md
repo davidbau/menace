@@ -12756,3 +12756,24 @@ Validation:
 - This is a broad special-level translation fix, not a Minetown-only patch;
   any translated level script using `des.terrain(selection.line(...), ...)`
   under map-relative coordinate mode depends on this behavior.
+
+### `hi15` shop payment bring-up: ESHK billing state and billed-purchase messaging
+
+- While bringing up `hi15_seed42_barb_minetn5_shop-pay_gp`, the `#pay` path
+  initially failed before the billed-items menu because JS was reading bill
+  state from the shopkeeper monster shell instead of `ESHK(shkp)`.
+- The C-faithful fix was to route `make_itemized_bill()` and related billing
+  helpers through `ESHK(shkp)` and to zero-initialize `credit`, `debit`,
+  `loan`, `bill`, and `billct` in `neweshk()`/`shkinit()`.
+- That exposed the next missing C behavior: `dopayobj()` must call
+  `shk_names_obj()` after a successful billed purchase so the player sees
+  `You bought ...` before the later shopkeeper thank-you.
+- For object wishing, bypassing weighted `rnd_otyp_by_namedesc()` is only safe
+  for true coin wishes (`gold`, `gold piece(s)`, `zorkmid(s)`). Applying the
+  same shortcut to all `forcedTyp` resolutions regressed normal item wishes
+  like `gray dragon scale mail`.
+- Status after these fixes:
+  - `hi15` now has full RNG and event parity through the payment path.
+  - Remaining `hi15` mismatches are down to the post-payment gold total on the
+    status line and the older teleport cursor boundary.
+  - `seed031_manual_direct` and `seed329_rogue_wizard_gameplay` stayed green.
