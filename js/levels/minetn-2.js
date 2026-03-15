@@ -4,8 +4,7 @@
  */
 
 import * as des from '../sp_lev.js';
-import { percent, shuffle, u } from '../sp_lev.js';
-import { A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from '../const.js';
+import { percent, u, get_nhlib_align } from '../sp_lev.js';
 
 // Helper function: returns shop type based on role.
 function monkfoodshop() {
@@ -14,8 +13,8 @@ function monkfoodshop() {
 
 
 export async function generate() {
-    const align = [A_CHAOTIC, A_NEUTRAL, A_LAWFUL];
-    shuffle(align);
+    // C ref: nhlib.lua pre-shuffles a global `align` array; level scripts just read it.
+    const align = get_nhlib_align();
 
     // NetHack mines minetn-2.lua	$NHDT-Date: 1652196030 2022/5/10 15:20:30 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.3 $
     // Copyright (c) 1989-95 by Jean-Christophe Collet

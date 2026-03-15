@@ -96,7 +96,7 @@ import {
 } from './special_levels.js';
 import { envFlag, hasEnv } from './runtime_env.js';
 import { litstate_rnd } from './mkmap.js';
-import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState } from './sp_lev.js';
+import { withLevelContext, withFinalizeContext, withSpecialLevelDepth, initLuaMT, resetLevelState, nhlib_shuffle_align } from './sp_lev.js';
 import {
     themerooms_generate as themermsGenerate,
     themerooms_post_level_generate,
@@ -1776,8 +1776,9 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
             // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
             // Each load initializes a fresh Lua state and executes nhlib.lua,
             // whose top-level shuffle(align) consumes rn2(3), rn2(2).
-            rn2(3);
-            rn2(2);
+            // Level scripts read nhlib's global `align` — nhlib_shuffle_align()
+            // performs the actual shuffle so level generators can use the result.
+            nhlib_shuffle_align();
             return await special.generator();
         })
     );
