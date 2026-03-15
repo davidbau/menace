@@ -43,8 +43,7 @@ import { deltrap } from './dungeon.js';
 import { couldsee } from './vision.js';
 
 function pendingToplineNeedsAck(display) {
-    return !!(display?.messageNeedsMore
-        && (display?.moreMarkerActive || display?._topMessageAfterMore));
+    return !!(display?.messageNeedsMore && display?.moreMarkerActive);
 }
 
 function dismissOwnedToplineMore(game) {
@@ -53,8 +52,6 @@ function dismissOwnedToplineMore(game) {
     if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
     if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
     if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
-    if (Object.hasOwn(display, '_topMessageAfterMore')) display._topMessageAfterMore = false;
-    if (Object.hasOwn(display, '_nextTopMessageAfterMore')) display._nextTopMessageAfterMore = false;
     if (typeof display.clearRow === 'function') {
         display.clearRow(0);
         if (display._topMessageRow1 !== undefined) {
@@ -80,9 +77,6 @@ function installTeleportArrivalMorePrompt(game, oldX, oldY) {
 
             if (stage === 0) {
                 stage = 1;
-                if (Object.hasOwn(gameCtx.display || {}, '_nextTopMessageAfterMore')) {
-                    gameCtx.display._nextTopMessageAfterMore = true;
-                }
                 await maybeHandleShopEntryMessage(gameCtx, oldX, oldY);
                 if (pendingToplineNeedsAck(gameCtx.display)) {
                     return { handled: true, moved: false, tookTime: false, prompt: true };

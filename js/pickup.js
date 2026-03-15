@@ -1162,12 +1162,6 @@ async function handlePickup(player, map, display, game = null) {
         if (Object.hasOwn(gameCtx.display, 'moreMarkerActive')) {
             gameCtx.display.moreMarkerActive = false;
         }
-        if (Object.hasOwn(gameCtx.display, '_topMessageAfterMore')) {
-            gameCtx.display._topMessageAfterMore = false;
-        }
-        if (Object.hasOwn(gameCtx.display, '_nextTopMessageAfterMore')) {
-            gameCtx.display._nextTopMessageAfterMore = false;
-        }
         if (typeof gameCtx.display.clearRow === 'function') {
             gameCtx.display.clearRow(0);
             if (gameCtx.display._topMessageRow1 !== undefined) {
