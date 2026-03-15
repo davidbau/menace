@@ -12427,6 +12427,40 @@ Validation:
     - only one nearby hostile in the initial shop neighborhood
   - this is the right next probe target for building the first real
     branch-dense shop coverage session
+
+## 2026-03-15: post-`hi15` coverage refresh still leaves branch coverage below 60%, and structured reconnaissance should drive the next vault session
+
+- Ran a full `npm run coverage:session-parity:refresh` after promoting
+  [`hi15_seed42_barb_minetn5_shop-pay_gp.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/shops-economy/hi15_seed42_barb_minetn5_shop-pay_gp.session.json).
+- New committed coverage snapshot:
+  - lines `58.09%`
+  - branches `59.50%`
+  - functions `42.18%`
+- Coverage impact from `hi15` was real and correctly targeted:
+  - `js/shk.js`: `26.01% -> 39.35%`
+  - `js/muse.js`: `33.50% -> 36.84%`
+- Conclusion:
+  - line coverage is no longer the immediate bottleneck
+  - branch coverage is still under `60%`, so the next session must be
+    branch-dense rather than merely long
+  - `js/vault.js` remains one of the largest low-coverage gameplay files
+- Tooling improvement:
+  - extended [`test/comparison/shop_checkpoint_debug.js`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/shop_checkpoint_debug.js)
+    so structured `wizload` checkpoints now print:
+    - special-room type/name
+    - room bounds and centers
+    - hero-to-room shortest-path strings
+- Real smoke test:
+  - on promoted `hi15`, the tool now surfaces Minetown’s structured shops and
+    temple with usable path strings from the hero
+- Practical rule:
+  - for future branch-dense sessions through shops, temples, vaults, quests,
+    and similar expensive areas, prefer structured `wizload` reconnaissance
+    over compact post-settle mapdumps when room-type knowledge matters
+- Follow-up:
+  - opened `#374` for the next reconnaissance-driven vault/guard coverage
+    session
+
 ## 2026-03-14: `show_map_spot()` must restore trap/object glyphs after `newsym()` during mapping
 
 - Problem:

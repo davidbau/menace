@@ -4,7 +4,11 @@ import { readFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
 import { PM_SHOPKEEPER, mons } from '../../js/monsters.js';
-import { ACCESSIBLE, OBJ_BURIED, OBJ_CONTAINED, OBJ_FLOOR, OBJ_FREE, OBJ_INVENT, OBJ_MINVENT, OBJ_ONBILL } from '../../js/const.js';
+import {
+    ACCESSIBLE, OBJ_BURIED, OBJ_CONTAINED, OBJ_FLOOR, OBJ_FREE, OBJ_INVENT,
+    OBJ_MINVENT, OBJ_ONBILL, ROOMOFFSET, OROOM, THEMEROOM, COURT, SWAMP,
+    VAULT, BEEHIVE, MORGUE, BARRACKS, ZOO, DELPHI, TEMPLE, SHOPBASE,
+} from '../../js/const.js';
 import { objectData } from '../../js/objects.js';
 import { normalizeSession, parseCompactMapdump } from './session_loader.js';
 
@@ -116,6 +120,24 @@ function monsterName(mndx) {
     return mon?.mname || `mndx=${mndx}`;
 }
 
+function roomTypeName(rtype) {
+    if (rtype >= SHOPBASE) return `shop(${rtype - SHOPBASE})`;
+    switch (rtype) {
+    case OROOM: return 'ordinary';
+    case THEMEROOM: return 'themeroom';
+    case COURT: return 'court';
+    case SWAMP: return 'swamp';
+    case VAULT: return 'vault';
+    case BEEHIVE: return 'beehive';
+    case MORGUE: return 'morgue';
+    case BARRACKS: return 'barracks';
+    case ZOO: return 'zoo';
+    case DELPHI: return 'delphi';
+    case TEMPLE: return 'temple';
+    default: return `rtype=${rtype}`;
+    }
+}
+
 function whereName(where) {
     switch (where) {
     case OBJ_FREE: return 'free';
@@ -190,6 +212,41 @@ function shortestPath(parsed, from, to) {
     }
     moves.reverse();
     return moves.join('');
+}
+
+function normalizeRooms(parsed) {
+    if (!Array.isArray(parsed?.rooms)) return [];
+    return parsed.rooms
+        .map((room, idx) => {
+            if (!room || !Number.isInteger(room.lx) || !Number.isInteger(room.hx)
+                || !Number.isInteger(room.ly) || !Number.isInteger(room.hy)) {
+                return null;
+            }
+            const roomnoidx = Number.isInteger(room.roomnoidx) ? room.roomnoidx : idx;
+            return {
+                ...room,
+                roomnoidx,
+                roomno: roomnoidx + ROOMOFFSET,
+                center: {
+                    x: Math.floor((room.lx + room.hx) / 2),
+                    y: Math.floor((room.ly + room.hy) / 2),
+                },
+            };
+        })
+        .filter(Boolean);
+}
+
+function interestingRooms(parsed) {
+    return normalizeRooms(parsed).filter((room) => room.rtype !== OROOM && room.rtype !== THEMEROOM);
+}
+
+function nearestInterestingRoom(parsed, hero) {
+    const rooms = interestingRooms(parsed);
+    if (rooms.length === 0) return null;
+    if (!hero) return rooms[0];
+    return rooms.slice().sort((a, b) =>
+        Math.abs(a.center.x - hero.x) + Math.abs(a.center.y - hero.y)
+        - (Math.abs(b.center.x - hero.x) + Math.abs(b.center.y - hero.y)))[0];
 }
 
 function mergeObjects(parsed) {
@@ -387,7 +444,9 @@ function main() {
     const monsters = mergeMonsters(parsed);
     const objects = mergeObjects(parsed);
     const shkp = nearestShopkeeper(monsters, hero);
-    const anchor = shkp || hero;
+    const specialRooms = interestingRooms(parsed);
+    const nearestRoom = nearestInterestingRoom(parsed, hero);
+    const anchor = shkp || nearestRoom?.center || hero;
 
     console.log(`Source: ${sourceKind} ${sourcePath}`);
     console.log(`Checkpoint: ${resolvedCheckpoint}`);
@@ -399,6 +458,14 @@ function main() {
         console.log(`Nearest shopkeeper: (${shkp.x},${shkp.y}) room=${gridCell(parsed.roomnoGrid, shkp.x, shkp.y) ?? '?'} m_id=${shkp.m_id ?? '?'} hp=${shkp.mhp}/${shkp.mhpmax ?? '?'} peaceful=${shkp.mpeaceful ?? '?'} minvent=${shkp.minventCount ?? '?'}`);
     } else {
         console.log('Nearest shopkeeper: none');
+    }
+    if (specialRooms.length > 0) {
+        console.log('');
+        console.log(`Special rooms (${specialRooms.length})`);
+        for (const room of specialRooms) {
+            const path = hero ? shortestPath(parsed, hero, room.center) : null;
+            console.log(`- room=${room.roomno} ${roomTypeName(room.rtype)} box=(${room.lx},${room.ly})..(${room.hx},${room.hy}) center=(${room.center.x},${room.center.y}) lit=${room.rlit ?? '?'} needfill=${room.needfill ?? '?'} path=${path || 'no accessible path'}`);
+        }
     }
 
     const visibleMonsters = showAll ? monsters : monsters.filter((m) => inRadius(m, anchor, radius));
@@ -428,6 +495,13 @@ function main() {
         console.log('');
         console.log('Suggested paths from hero');
         const targets = [];
+        for (const room of specialRooms.slice(0, 8)) {
+            targets.push({
+                label: `${roomTypeName(room.rtype)} room ${room.roomno}`,
+                x: room.center.x,
+                y: room.center.y,
+            });
+        }
         if (shkp) {
             targets.push({ label: 'shopkeeper', x: shkp.x, y: shkp.y });
             const sameRoomObjects = objects
