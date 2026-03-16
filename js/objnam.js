@@ -2375,18 +2375,10 @@ export function readobjnam(bp, no_wish, opts = {}) {
             otyp = rnd_otyp_by_namedesc(origbp, oclass, 1);
         }
 
-        if (otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) {
-            otyp = rnd_otyp_by_namedesc(actualn, 0, 1);
-        }
-        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && dn && dn !== actualn) {
-            otyp = rnd_otyp_by_namedesc(dn, 0, 1);
-        }
-        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && un) {
-            otyp = rnd_otyp_by_namedesc(un, 0, 1);
-        }
-        if ((otyp <= STRANGE_OBJECT || otyp >= NUM_OBJECTS) && origbp && origbp !== actualn) {
-            otyp = rnd_otyp_by_namedesc(origbp, 0, 1);
-        }
+        // C ref: objnam.c:4750 — after oclass-specific rnd_otyp_by_namedesc fails,
+        // C does NOT retry with oclass=0. It falls through to Japanese items,
+        // armor "mail" append, spinach, and fruit checks instead.
+        // The oclass=0 fallback was JS-only and consumed extra RNG.
     }
 
     // C ref: objnam.c:4862-4870 — artifact lookup by name (before alt spellings)
