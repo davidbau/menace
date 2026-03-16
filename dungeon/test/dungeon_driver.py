@@ -162,6 +162,130 @@ def validate_moves(moves, steps):
             move['issues'] = issues
 
 
+def run_js(commands, seed=None, js_dir=None):
+    """Run JS Dungeon with given commands, return (stdout, stderr)."""
+    if js_dir is None:
+        js_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'js')
+
+    # Use absolute paths to avoid cwd issues
+    abs_js_dir = os.path.abspath(js_dir)
+    abs_data = os.path.join(abs_js_dir, 'dungeon-data.json')
+    abs_text = os.path.join(abs_js_dir, 'dungeon-text.json')
+
+    script = f"""
+import {{ DungeonGame }} from '{abs_js_dir}/game.js';
+import {{ dungeonRngTrace, dungeonRngCount }} from '{abs_js_dir}/support.js';
+import {{ readFileSync }} from 'fs';
+const data = JSON.parse(readFileSync('{abs_data}'));
+const text = JSON.parse(readFileSync('{abs_text}'));
+const game = new DungeonGame();
+game.init(data, text);
+{'game._rngSeed = ' + str(seed) + ';' if seed is not None else ''}
+dungeonRngTrace(true);
+const cmds = {json.dumps(commands)};
+let i = 0;
+const outputs = [];
+let currentOut = [];
+let welcomeDone = false;
+await game.run(async () => {{
+  if (!welcomeDone) {{
+    // First call: output so far is the welcome text
+    outputs.push([...currentOut]); // welcome as outputs[0]
+    currentOut = [];
+    welcomeDone = true;
+  }} else {{
+    outputs.push([...currentOut]);
+    currentOut = [];
+  }}
+  if (i >= cmds.length) {{ game.gameOver = true; return null; }}
+  return cmds[i++];
+}}, (t) => {{ currentOut.push(t || ''); }}).catch(() => {{}});
+if (currentOut.length) outputs.push([...currentOut]);
+// outputs[0] = welcome, outputs[1..N] = command responses
+console.log(JSON.stringify(outputs));
+"""
+    result = subprocess.run(
+        ['node', '--input-type=module', '-e', script],
+        capture_output=True, text=True, timeout=120,
+        cwd=os.path.dirname(js_dir),
+    )
+    return result.stdout, result.stderr
+
+
+def parse_js_output(stdout, stderr, commands):
+    """Parse JS output into moves."""
+    # stdout is a single JSON array of arrays
+    # all_outputs[0] = welcome text, all_outputs[1..N] = command responses
+    try:
+        raw_outputs = json.loads(stdout.strip())
+    except (json.JSONDecodeError, ValueError):
+        raw_outputs = []
+    # Skip welcome (index 0), command outputs start at index 1
+    all_outputs = raw_outputs[1:] if len(raw_outputs) > 1 else []
+
+    # Parse RNG calls from stderr (format: RNG #N: seed=S result=R)
+    rng_per_move = [[]]  # first bucket for welcome/setup RNG calls
+    for line in stderr.split('\n'):
+        stripped = line.strip()
+        m = re.match(r'RNG #(\d+):\s*seed=(\d+)\s*result=([0-9.]+)', stripped)
+        if m:
+            rng_per_move[-1].append({
+                'seq': int(m.group(1)),
+                'seed': int(m.group(2)),
+                'val': float(m.group(3)),
+            })
+
+    moves = []
+    for i, cmd in enumerate(commands):
+        output = all_outputs[i] if i < len(all_outputs) else []
+        rng = rng_per_move[i + 1] if i + 1 < len(rng_per_move) else []
+        moves.append({
+            'move': i + 1,
+            'command': cmd,
+            'output': output,
+            'rng_calls': rng,
+        })
+
+    return moves
+
+
+def _normalize(lines):
+    """Normalize output lines for comparison: strip, collapse whitespace, skip prompts."""
+    result = []
+    for l in lines:
+        s = ' '.join(l.split()).strip()  # collapse whitespace
+        if s and s != '>':
+            result.append(s)
+    return result
+
+
+def compare_logs(fortran_moves, js_moves):
+    """Compare Fortran and JS move outputs, report divergences."""
+    max_moves = min(len(fortran_moves), len(js_moves))
+    matches = 0
+    divergences = []
+    for i in range(max_moves):
+        fm = fortran_moves[i]
+        jm = js_moves[i]
+        fo = _normalize(fm['output'])
+        jo = _normalize(jm['output'])
+        if fo == jo:
+            matches += 1
+        else:
+            divergences.append({
+                'move': i + 1,
+                'command': fm['command'],
+                'fortran': fo[:3],
+                'js': jo[:3],
+            })
+    return {
+        'matches': matches,
+        'divergences': len(divergences),
+        'total': max_moves,
+        'first_divergences': divergences[:10],
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description='Dungeon game driver')
     parser.add_argument('--seed', type=int, default=None, help='RNG seed (overrides speedrun.json)')
@@ -171,6 +295,8 @@ def main():
     parser.add_argument('--binary-dir', type=str, help='Path to fortran-src directory')
     parser.add_argument('--commands', nargs='*', help='Commands to send (alternative to --input)')
     parser.add_argument('--brief', action='store_true', help='Print brief summary to stderr')
+    parser.add_argument('--js', action='store_true', help='Run JS engine instead of Fortran')
+    parser.add_argument('--compare', action='store_true', help='Run both and compare')
     args = parser.parse_args()
 
     # Get commands and seed
@@ -188,9 +314,43 @@ def main():
         print("Error: provide --input or --commands", file=sys.stderr)
         sys.exit(1)
 
-    # Run
-    stdout, stderr = run_dungeon(commands, seed=seed, binary_dir=args.binary_dir)
-    welcome, moves = parse_output(stdout, stderr, commands)
+    if args.compare:
+        # Run both engines and compare
+        print("Running Fortran...", file=sys.stderr)
+        f_stdout, f_stderr = run_dungeon(commands, seed=seed, binary_dir=args.binary_dir)
+        f_welcome, f_moves = parse_output(f_stdout, f_stderr, commands)
+
+        print("Running JS...", file=sys.stderr)
+        js_stdout, js_stderr = run_js(commands, seed=seed)
+        js_moves = parse_js_output(js_stdout, js_stderr, commands)
+
+        comparison = compare_logs(f_moves, js_moves)
+        print(f"{comparison['matches']}/{comparison['total']} match "
+              f"({100*comparison['matches']/max(1,comparison['total']):.1f}%)", file=sys.stderr)
+
+        if comparison['first_divergences']:
+            for d in comparison['first_divergences'][:5]:
+                print(f"  Step {d['move']} ({d['command']}):", file=sys.stderr)
+                print(f"    F: {d['fortran'][0] if d['fortran'] else '(empty)'}", file=sys.stderr)
+                print(f"    J: {d['js'][0] if d['js'] else '(empty)'}", file=sys.stderr)
+
+        log = {'comparison': comparison, 'seed': seed}
+        if args.output:
+            with open(args.output, 'w') as f:
+                json.dump(log, f, indent=2)
+        else:
+            json.dump(log, sys.stdout, indent=2)
+            print()
+        return
+
+    # Single engine run
+    if args.js:
+        js_stdout, js_stderr = run_js(commands, seed=seed)
+        moves = parse_js_output(js_stdout, js_stderr, commands)
+        welcome = []
+    else:
+        stdout, stderr = run_dungeon(commands, seed=seed, binary_dir=args.binary_dir)
+        welcome, moves = parse_output(stdout, stderr, commands)
 
     # Validate if we have step expectations
     if steps:
@@ -199,6 +359,7 @@ def main():
     # Build log
     log = {
         'seed': seed,
+        'engine': 'js' if args.js else 'fortran',
         'welcome': welcome,
         'moves': moves,
     }
