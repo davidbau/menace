@@ -676,10 +676,20 @@ function normalizeQRowForComparison(row) {
     ];
 }
 
+function normalizeNRowForComparison(row) {
+    if (!Array.isArray(row) || row.length < 2) return row;
+    // Zero out oid (field 0) — same rationale as Q-section: C and JS assign
+    // monster IDs independently, so m_id values are not comparable.
+    const normalized = row.slice();
+    normalized[0] = 0;
+    return normalized;
+}
+
 function normalizeForSparseComparison(section, rows = []) {
     const list = Array.isArray(rows) ? rows : [];
-    if (section !== 'Q') return list;
-    return list.map(normalizeQRowForComparison);
+    if (section === 'Q') return list.map(normalizeQRowForComparison);
+    if (section === 'N') return list.map(normalizeNRowForComparison);
+    return list;
 }
 
 function hasMapdumpSection(parsed, section) {

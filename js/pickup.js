@@ -1814,7 +1814,7 @@ async function containerMenu(game, container) {
         for (const item of candidates) {
             if (oneByOne) {
                 const ans = await ynFunction(
-                    `Put in ${doname(item, player)}?`, 'ynaq', 'n'.charCodeAt(0), display);
+                    `Put in ${doname(item, player)}?`, 'ynaq', 'y'.charCodeAt(0), display);
                 const ansC = String.fromCharCode(ans);
                 if (ansC === 'q') break;
                 if (ansC === 'n') continue;

@@ -1870,6 +1870,11 @@ export function map_object(obj, show = 0, ctxOrMap = null) {
   const memGlyph = hallu
       ? objectMapGlyph(obj, false, { player, x: obj.ox, y: obj.oy, observe: false })
       : glyph;
+  // C uses a single lev->glyph field overwritten by show_glyph. JS uses
+  // separate mem_obj/mem_trap fields with priority mem_obj > mem_trap in
+  // out-of-FOV newsym. Clear mem_trap so the object takes visual precedence.
+  loc.mem_trap = 0;
+  loc.mem_trap_color = 0;
   loc.mem_obj = memGlyph.ch || 0;
   loc.mem_obj_color = Number.isInteger(memGlyph.color) ? memGlyph.color : CLR_GRAY;
   if (show) show_glyph(obj.ox, obj.oy, glyph, ctx);
@@ -1887,6 +1892,9 @@ export function map_trap(trap, show = 0, ctxOrMap = null) {
   const loc = map.at(x, y);
   if (!loc) return;
   const tg = trapGlyph(trap.ttyp);
+  // Clear mem_obj so trap takes visual precedence (inverse of map_object).
+  loc.mem_obj = 0;
+  loc.mem_obj_color = 0;
   loc.mem_trap = tg.ch;
   loc.mem_trap_color = tg.color;
   if (show) show_glyph(x, y, { ch: tg.ch, color: tg.color }, ctx);
