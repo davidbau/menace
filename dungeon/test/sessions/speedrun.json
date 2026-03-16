@@ -1100,6 +1100,18 @@
       "note": "fight 5"
     },
     {
+      "cmd": "kill thief with sword",
+      "note": "fight (need 8 total)"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight (need 8 total)"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight (need 8 total)"
+    },
+    {
       "cmd": "take all except coffin",
       "note": "take treasures"
     },
