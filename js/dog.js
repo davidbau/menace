@@ -34,8 +34,9 @@ import { obj_resists, is_organic, is_metallic, is_rustprone, hasPoisonTrapBit, i
 import {
     carnivorous, herbivorous, is_undead, is_elf,
     is_humanoid, acidic, poisonous, is_metallivore,
-    canseemon, slimeproof, DEADMONSTER, is_domestic, ismnum,
+    slimeproof, DEADMONSTER, is_domestic, ismnum,
 } from './mondata.js';
+import { canseemon } from './display.js';
 import { rn2, rn1 } from './rng.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, IS_DOOR, D_CLOSED, D_LOCKED,
          POOL, LAVAPOOL,

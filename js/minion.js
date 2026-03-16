@@ -13,10 +13,10 @@ import { mons, S_ANGEL, S_DEMON, PM_WIZARD_OF_YENDOR, PM_ANGEL, PM_ARCHON, PM_BO
 import { A_NONE, A_CHAOTIC, A_NEUTRAL, A_LAWFUL } from './const.js';
 import {
     is_ndemon, is_dlord, is_dprince,
-    is_lord, canseemon, is_lminion,
+    is_lord, is_lminion,
 } from './mondata.js';
 import { Monnam, Amonnam } from './do_name.js';
-import { newsym } from './display.js';
+import { newsym, canseemon } from './display.js';
 import { enexto } from './teleport.js';
 import { RLOC_MSG, NON_PM } from './const.js';
 

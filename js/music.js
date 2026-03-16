@@ -23,15 +23,15 @@ import { Monnam, mon_nam, a_monnam, x_monnam, Amonnam } from './do_name.js';
 import { SUPPRESS_SADDLE, SIZE, M_AP_NOTHING, M_AP_MONSTER, STRAT_WAITMASK, has_mgivenname } from './const.js';
 import { Role_if } from './role.js';
 import { Tobjnam, yname, Yname2, xname, thesimpleoname, an, the } from './objnam.js';
-import { unique_corpstat, is_mindless, canseemon, is_mercenary,
+import { unique_corpstat, is_mindless, is_mercenary,
          is_flyer, is_clinger, is_humanoid, slithy, nolimbs,
          ceiling_hider, can_blow, DEADMONSTER, mdistu, M_AP_TYPE } from './mondata.js';
+import { canseemon, newsym } from './display.js';
 import { mons, PM_GUARD, S_SNAKE, S_NYMPH, PM_ARCHEOLOGIST } from './monsters.js';
 import { onscary, wakeup, seemimic, xkilled } from './mon.js';
 import { monflee } from './monmove.js';
 import { resist } from './zap.js';
 import { sleep_monst, slept_monst } from './mhitm.js';
-import { newsym } from './display.js';
 import { dist2, highc, mungspaces, plur, ROLL_FROM } from './hacklib.js';
 import { consume_obj_charge, sobj_at } from './invent.js';
 import { selftouch, mselftouch, t_at, m_at } from './trap.js';

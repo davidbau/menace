@@ -28,10 +28,10 @@ import { M1_SWIM, M1_AMPHIBIOUS, M1_FLY, M1_WALLWALK, M1_AMORPHOUS, M2_ROCKTHROW
 import { rn2, rnd, rn1 } from './rng.js';
 import { is_pool, is_lava, is_waterwall } from './dbridge.js';
 import { passes_walls, is_swimmer, is_flyer, is_floater,
-         likes_lava, canseemon,
+         likes_lava,
          is_rider, is_dlord, is_dprince, control_teleport,
          } from './mondata.js';
-import { newsym, mark_vision_dirty } from './display.js';
+import { canseemon, newsym, mark_vision_dirty } from './display.js';
 import { getpos_async } from './getpos.js';
 import { mondead, onscary } from './mon.js';
 import { set_apparxy, mon_track_clear } from './monmove.js';

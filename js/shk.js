@@ -42,8 +42,8 @@ import { pline, You, Your, You_hear, You_cant, pline_The, There,
          verbalize, Norep, impossible, livelog_printf } from './pline.js';
 import { s_suffix, strchr, plur, sgn } from './hacklib.js';
 import { helpless as monHelpless, angry_guards } from './mon.js';
-import { newsym, canspotmon } from './display.js';
-import { canseemon, y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER } from './mondata.js';
+import { newsym, canspotmon, canseemon } from './display.js';
+import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';

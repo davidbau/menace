@@ -8,6 +8,7 @@ import { mons, M1_FLY, M1_SWIM, M1_AMORPHOUS, M1_WALLWALK, M1_CLING, M1_TUNNEL, 
     PM_CHICKATRICE, PM_COCKATRICE, PM_LITTLE_DOG, PM_DOG, PM_LARGE_DOG, PM_HELL_HOUND_PUP, PM_HELL_HOUND, PM_WINTER_WOLF_CUB, PM_WINTER_WOLF, PM_KITTEN, PM_HOUSECAT, PM_LARGE_CAT, PM_KOBOLD, PM_LARGE_KOBOLD, PM_KOBOLD_LEADER, PM_GNOME, PM_GNOME_LEADER, PM_GNOME_RULER, PM_DWARF, PM_DWARF_LEADER, PM_DWARF_RULER, PM_MIND_FLAYER, PM_MASTER_MIND_FLAYER, PM_ORC, PM_HILL_ORC, PM_MORDOR_ORC, PM_URUK_HAI, PM_ORC_CAPTAIN, PM_SEWER_RAT, PM_GIANT_RAT, PM_CAVE_SPIDER, PM_GIANT_SPIDER, PM_OGRE, PM_OGRE_LEADER, PM_OGRE_TYRANT, PM_ELF, PM_WOODLAND_ELF, PM_GREEN_ELF, PM_GREY_ELF, PM_ELF_NOBLE, PM_ELVEN_MONARCH, PM_LICH, PM_DEMILICH, PM_MASTER_LICH, PM_ARCH_LICH, PM_VAMPIRE, PM_VAMPIRE_LEADER, PM_BAT, PM_GIANT_BAT, PM_BABY_GRAY_DRAGON, PM_GRAY_DRAGON, PM_BABY_GOLD_DRAGON, PM_GOLD_DRAGON, PM_BABY_SILVER_DRAGON, PM_SILVER_DRAGON, PM_BABY_RED_DRAGON, PM_RED_DRAGON, PM_BABY_WHITE_DRAGON, PM_WHITE_DRAGON, PM_BABY_ORANGE_DRAGON, PM_ORANGE_DRAGON, PM_BABY_BLACK_DRAGON, PM_BLACK_DRAGON, PM_BABY_BLUE_DRAGON, PM_BLUE_DRAGON, PM_BABY_GREEN_DRAGON, PM_GREEN_DRAGON, PM_BABY_YELLOW_DRAGON, PM_YELLOW_DRAGON, PM_RED_NAGA_HATCHLING, PM_RED_NAGA, PM_BLACK_NAGA_HATCHLING, PM_BLACK_NAGA, PM_GOLDEN_NAGA_HATCHLING, PM_GOLDEN_NAGA, PM_GUARDIAN_NAGA_HATCHLING, PM_GUARDIAN_NAGA, PM_SMALL_MIMIC, PM_LARGE_MIMIC, PM_GIANT_MIMIC, PM_BABY_LONG_WORM, PM_LONG_WORM, PM_LONG_WORM_TAIL, PM_BABY_PURPLE_WORM, PM_PURPLE_WORM, PM_BABY_CROCODILE, PM_CROCODILE, PM_SOLDIER, PM_SERGEANT, PM_LIEUTENANT, PM_CAPTAIN, PM_WATCHMAN, PM_WATCH_CAPTAIN, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_STUDENT, PM_ARCHEOLOGIST, PM_ATTENDANT, PM_HEALER, PM_PAGE, PM_KNIGHT, PM_ACOLYTE, PM_CLERIC, PM_APPRENTICE, PM_WIZARD, PM_MANES, PM_LEMURE, PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN, PM_GARGOYLE, PM_KILLER_BEE, PM_QUEEN_BEE, PM_DEATH, PM_FAMINE, PM_PESTILENCE, PM_KOBOLD_ZOMBIE, PM_KOBOLD_MUMMY, PM_MONKEY, PM_APE, PM_LICHEN,
     PM_WATER_DEMON, PM_WATER_ELEMENTAL, PM_EARTH_ELEMENTAL, PM_ICE_VORTEX, PM_FREEZING_SPHERE, PM_STEAM_VORTEX, PM_DUST_VORTEX, PM_ENERGY_VORTEX, PM_GLASS_GOLEM, PM_CLAY_GOLEM, PM_GOLD_GOLEM, PM_YELLOW_LIGHT, PM_ANGEL, PM_RAVEN, PM_AMOROUS_DEMON, PM_VIOLET_FUNGUS, PM_HOMUNCULUS, PM_BALUCHITHERIUM, PM_LURKER_ABOVE, PM_CAVE_DWELLER, PM_DJINNI, PM_MUMAK, PM_ERINYS, PM_HOBBIT, PM_MASTER_OF_THIEVES, PM_MASTER_ASSASSIN, PM_HUMAN_WERERAT, PM_HUMAN_WEREJACKAL, PM_HUMAN_WEREWOLF, PM_WERERAT, PM_WEREJACKAL, PM_WEREWOLF, PM_SOLDIER_ANT, PM_WOOD_NYMPH, PM_OLOG_HAI, PM_GRID_BUG, S_XAN } from './monsters.js';
 import { m_cansee, couldsee } from './vision.js';
+import { canseemon as _canseemon } from './display.js';
 
 import { AMULET_OF_YENDOR, AMULET_OF_GUARDING, FOOD_CLASS, VEGGY, CORPSE, BANANA,
          GRAY_DRAGON_SCALES, YELLOW_DRAGON_SCALES,
@@ -1395,7 +1396,7 @@ export function pronoun_gender(mtmp, pg_flags) {
     const player = _gstate?.player;
 
     if (hallu_rand && player?.hallucination) return rn2(4);
-    if (!override_vis && !canseemon(mtmp)) return 2;
+    if (!override_vis && !_canseemon(mtmp)) return 2;
     if (is_neuter(mtmp.data || mtmp)) return 2;
     const ptr = mtmp.data || mtmp;
     return (humanoid(ptr) || (ptr.geno & G_UNIQ) || type_is_pname(ptr))
@@ -1944,15 +1945,8 @@ export function is_bat(ptr) {
 // C ref: #define is_bird(ptr) ((ptr)->mlet == S_BAT && !is_bat(ptr))
 export function is_bird(ptr) { return ptr.mlet === S_BAT && !is_bat(ptr); }
 
-// cf. monst.h canseemon(mon) — player can see this monster
-export function canseemon(mon, player, fov) {
-    if (!mon || !player) return false;
-    if (!(fov?.canSee ? fov.canSee(mon.mx, mon.my) : false)) return false;
-    if (player.blind) return false;
-    if (mon.mundetected) return false;
-    if (mon.minvis && !player.seeInvisible) return false;
-    return true;
-}
+// canseemon removed — use display.js canseemon (full C-parity version with
+// infrared, worm segments, and proper Blind check)
 
 // Diet predicates — C ref: mondata.h
 // C ref: #define vegan(ptr) (blobs/jellies/fungi/vortexes/lights/most elementals/most golems/noncorporeal)

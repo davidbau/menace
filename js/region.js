@@ -27,7 +27,7 @@ import { pline, You, You_feel, pline_The, You_see } from './pline.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, M_POISONGAS_OK, POISON_RES } from './const.js';
 import { newsym } from './display.js';
 import { cansee, block_point, unblock_point, mark_vision_dirty } from './vision.js';
-import { nonliving, haseyes, is_silent, resists_poison, canseemon } from './mondata.js';
+import { nonliving, haseyes, is_silent, resists_poison } from './mondata.js';
 import { Monnam } from './do_name.js';
 import { body_part } from './polyself.js';
 import { makeplural } from './objnam.js';

@@ -4,7 +4,7 @@
 import { rn2, rnd, rn1 } from './rng.js';
 import { makemon } from './makemon.js';
 import { NO_MM_FLAGS } from './const.js';
-import { canseemon } from './mondata.js';
+import { canseemon } from './display.js';
 import { mon_break_armor } from './worn.js';
 import { newsym } from './display.js';
 import { possibly_unwield } from './weapon.js';
@@ -81,7 +81,7 @@ function isHumanWereForm(mndx) {
         || mndx === PM_HUMAN_WEREWOLF;
 }
 
-// canSeeMonster: alias for shared canseemon (mondata.js)
+// canSeeMonster: alias for shared canseemon (display.js)
 const canSeeMonster = canseemon;
 
 // Helper: wake monsters near a location (cf. mon.c:4369 wake_nearto_core)

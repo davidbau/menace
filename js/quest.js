@@ -29,7 +29,7 @@ import { nomul } from './hack.js';
 import { carrying, fully_identify_obj, update_inventory } from './invent.js';
 import { setmangry, monnear, helpless } from './mon.js';
 import { Monnam, mon_nam } from './do_name.js';
-import { canseemon } from './mondata.js';
+import { canseemon } from './display.js';
 import { is_quest_artifact } from './objdata.js';
 import { deltrap } from './dungeon.js';
 import { create_gas_cloud } from './region.js';

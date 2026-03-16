@@ -17,8 +17,8 @@ import { pline, verbalize, You, Your, You_feel,
 import { mons, PM_ALIGNED_CLERIC, PM_HIGH_CLERIC, PM_ANGEL,
          PM_GHOST, MS_LEADER } from './monsters.js';
 import { mon_nam, Monnam, mon_pmname, rndmonnam } from './do_name.js';
-import { is_minion, is_rider, canseemon, mon_learns_traps, resist_conflict, m_canseeu } from './mondata.js';
-import { newsym } from './display.js';
+import { is_minion, is_rider, mon_learns_traps, resist_conflict, m_canseeu } from './mondata.js';
+import { canseemon, newsym } from './display.js';
 import { In_endgame, Is_astralevel, Is_sanctum, Is_valley, find_mapseen } from './dungeon.js';
 import { m_next2u } from './muse.js';
 import { move_special as move_special_monmove } from './monmove.js';

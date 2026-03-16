@@ -74,8 +74,8 @@ import { place_monster } from './steed.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
 import { mpickobj, findgold } from './steal.js';
 import { dist2, sgn } from './hacklib.js';
-import { newsym, senseMonsterForMap, canspotmon, sensemon } from './display.js';
-import { canseemon, mon_learns_traps, emits_light, set_mon_data, monsndx,
+import { newsym, senseMonsterForMap, canspotmon, sensemon, canseemon } from './display.js';
+import { mon_learns_traps, emits_light, set_mon_data, monsndx,
          is_golem, nonliving, is_humanoid, is_shapeshifter,
          is_swimmer, pm_resistance, is_flyer, is_floater, amorphous,
          noncorporeal, is_whirly, is_lminion,
