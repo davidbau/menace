@@ -1656,6 +1656,13 @@ export class NetHackGame {
 
         // Load user flags (C ref: flags struct from flag.h)
         this.flags = loadFlags(urlOpts.flags || null);
+        // In non-browser runtimes (replay/headless), default to skipping the
+        // startup tutorial prompt unless explicitly requested.  This preserves
+        // deterministic replay behavior and avoids hanging on unattended input
+        // paths.
+        if (typeof urlOpts.tutorial !== 'boolean' && !interactiveMode) {
+            this.flags.tutorial = false;
+        }
         this._emitRuntimeBindings();
 
         // Check for saved game before RNG init.

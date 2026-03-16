@@ -341,6 +341,15 @@ export function hasStartupBurstInFirstStep(session) {
 export function prepareReplayArgs(seed, session, opts = {}) {
     const chargenKeys = getChargenKeys(session);
     const sessionChar = parseSessionCharacter(session);
+    const tutorialFlag = typeof opts.tutorial === 'boolean'
+        ? opts.tutorial
+        : undefined;
+    const replayFlags = typeof opts.flags === 'object' && opts.flags !== null
+        ? { ...opts.flags }
+        : {};
+    if (typeof tutorialFlag === 'boolean') {
+        replayFlags.tutorial = tutorialFlag;
+    }
     const initOpts = chargenKeys.length > 0
         ? { flags: { name: sessionChar.name || '' } }
         : {
@@ -355,7 +364,7 @@ export function prepareReplayArgs(seed, session, opts = {}) {
             startDnum: Number.isInteger(opts.startDnum) ? opts.startDnum : undefined,
             startDlevel: Number.isInteger(opts.startDlevel) ? opts.startDlevel : 1,
             dungeonAlignOverride: Number.isInteger(opts.startDungeonAlign) ? opts.startDungeonAlign : undefined,
-            flags: { tutorial: opts.tutorial === true },
+            flags: replayFlags,
             replayTutorialStartupPrompts: Array.isArray(opts.replayTutorialStartupPrompts)
                 ? opts.replayTutorialStartupPrompts : [],
             tutorialStartupEnterAfterPromptCount: Number.isInteger(opts.tutorialStartupEnterAfterPromptCount)

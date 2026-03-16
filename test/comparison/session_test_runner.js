@@ -429,7 +429,9 @@ async function replayInterfaceSession(session) {
                 captureScreens: true,
                 startupBurstInFirstStep: false,
                 flags: replayFlags,
-                tutorial: subtype === 'tutorial' || session.meta.regen?.tutorial === true,
+                tutorial: subtype === 'tutorial'
+                    ? true
+                    : (session.meta.regen?.tutorial === true ? true : undefined),
             }
         );
         const jsSession = await replaySession(replaySeed, replayOpts, keys);
