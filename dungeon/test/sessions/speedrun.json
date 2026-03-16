@@ -1201,6 +1201,562 @@
     {
       "cmd": "score",
       "note": "check score"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "need light"
+    },
+    {
+      "cmd": "take bottle",
+      "note": "need water for exorcism"
+    },
+    {
+      "cmd": "take matches",
+      "note": "need to light candles"
+    },
+    {
+      "cmd": "d",
+      "note": "cellar"
+    },
+    {
+      "cmd": "e",
+      "note": "troll room"
+    },
+    {
+      "cmd": "n",
+      "note": "E-W passage"
+    },
+    {
+      "cmd": "e",
+      "note": "round room"
+    },
+    {
+      "cmd": "e",
+      "note": "grail room(95)"
+    },
+    {
+      "cmd": "u",
+      "note": "room 96 - take bell"
+    },
+    {
+      "cmd": "take bell",
+      "note": "brass bell"
+    },
+    {
+      "cmd": "e",
+      "note": "room 97"
+    },
+    {
+      "cmd": "take book",
+      "note": "black book"
+    },
+    {
+      "cmd": "take candles",
+      "note": "candles"
+    },
+    {
+      "cmd": "w",
+      "note": "96"
+    },
+    {
+      "cmd": "w",
+      "note": "95/grail room"
+    },
+    {
+      "cmd": "e",
+      "note": "55"
+    },
+    {
+      "cmd": "s",
+      "note": "53"
+    },
+    {
+      "cmd": "d",
+      "note": "93 - Entrance to Hades"
+    },
+    {
+      "cmd": "open bottle",
+      "note": "open bottle of water"
+    },
+    {
+      "cmd": "ring bell",
+      "note": "ring the bell"
+    },
+    {
+      "cmd": "pour water in bell",
+      "note": "cool the bell"
+    },
+    {
+      "cmd": "take bell",
+      "note": "take cooled bell"
+    },
+    {
+      "cmd": "take candles",
+      "note": "take candles off floor"
+    },
+    {
+      "cmd": "light match",
+      "note": "light a match"
+    },
+    {
+      "cmd": "light candles with match",
+      "note": "light candles"
+    },
+    {
+      "cmd": "read book",
+      "note": "exorcise spirits"
+    },
+    {
+      "cmd": "e",
+      "note": "enter Hades"
+    },
+    {
+      "cmd": "e",
+      "note": "east in Hades"
+    },
+    {
+      "cmd": "w",
+      "note": "back"
+    },
+    {
+      "cmd": "w",
+      "note": "back to entrance"
+    },
+    {
+      "cmd": "u",
+      "note": "up from entrance"
+    },
+    {
+      "cmd": "w",
+      "note": "to mirror room"
+    },
+    {
+      "cmd": "touch mirror",
+      "note": "transport"
+    },
+    {
+      "cmd": "e",
+      "note": "east"
+    },
+    {
+      "cmd": "d",
+      "note": "down"
+    },
+    {
+      "cmd": "se",
+      "note": "SE"
+    },
+    {
+      "cmd": "s",
+      "note": "trunk area"
+    },
+    {
+      "cmd": "take trunk",
+      "note": "take trunk"
+    },
+    {
+      "cmd": "n",
+      "note": "north"
+    },
+    {
+      "cmd": "n",
+      "note": "north"
+    },
+    {
+      "cmd": "u",
+      "note": "up"
+    },
+    {
+      "cmd": "n",
+      "note": "north"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "d",
+      "note": "slide to cellar"
+    },
+    {
+      "cmd": "u",
+      "note": "living room"
+    },
+    {
+      "cmd": "put trunk in case",
+      "note": "deposit trunk"
+    },
+    {
+      "cmd": "drop all",
+      "note": "clean up"
+    },
+    {
+      "cmd": "score",
+      "note": "check score"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "light"
+    },
+    {
+      "cmd": "take torch",
+      "note": "from case"
+    },
+    {
+      "cmd": "take screwdriver",
+      "note": "for machine"
+    },
+    {
+      "cmd": "open sack",
+      "note": "open sack"
+    },
+    {
+      "cmd": "take garlic",
+      "note": "garlic"
+    },
+    {
+      "cmd": "d",
+      "note": "cellar"
+    },
+    {
+      "cmd": "e",
+      "note": "troll room"
+    },
+    {
+      "cmd": "n",
+      "note": "E-W passage"
+    },
+    {
+      "cmd": "e",
+      "note": "round room"
+    },
+    {
+      "cmd": "se",
+      "note": "winding passage"
+    },
+    {
+      "cmd": "e",
+      "note": "mirror room"
+    },
+    {
+      "cmd": "touch mirror",
+      "note": "transport north"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "n",
+      "note": "mine entrance"
+    },
+    {
+      "cmd": "nw",
+      "note": "squeaky room"
+    },
+    {
+      "cmd": "w",
+      "note": "bat room"
+    },
+    {
+      "cmd": "take figurine",
+      "note": "jade figurine"
+    },
+    {
+      "cmd": "e",
+      "note": "squeaky room"
+    },
+    {
+      "cmd": "s",
+      "note": "mine entrance"
+    },
+    {
+      "cmd": "ne",
+      "note": "shaft room"
+    },
+    {
+      "cmd": "put torch in basket",
+      "note": "torch in basket"
+    },
+    {
+      "cmd": "put screwdriver in basket",
+      "note": "screwdriver in basket"
+    },
+    {
+      "cmd": "n",
+      "note": "62"
+    },
+    {
+      "cmd": "w",
+      "note": "63/smelly room"
+    },
+    {
+      "cmd": "d",
+      "note": "64/gas room"
+    },
+    {
+      "cmd": "take bracelet",
+      "note": "bracelet"
+    },
+    {
+      "cmd": "u",
+      "note": "63"
+    },
+    {
+      "cmd": "e",
+      "note": "62"
+    },
+    {
+      "cmd": "ne",
+      "note": "66"
+    },
+    {
+      "cmd": "n",
+      "note": "69"
+    },
+    {
+      "cmd": "ne",
+      "note": "71"
+    },
+    {
+      "cmd": "nw",
+      "note": "72"
+    },
+    {
+      "cmd": "d",
+      "note": "65"
+    },
+    {
+      "cmd": "d",
+      "note": "73"
+    },
+    {
+      "cmd": "ne",
+      "note": "74/coal room"
+    },
+    {
+      "cmd": "take coal",
+      "note": "coal"
+    },
+    {
+      "cmd": "s",
+      "note": "73"
+    },
+    {
+      "cmd": "u",
+      "note": "65"
+    },
+    {
+      "cmd": "u",
+      "note": "72"
+    },
+    {
+      "cmd": "e",
+      "note": "66"
+    },
+    {
+      "cmd": "e",
+      "note": "62"
+    },
+    {
+      "cmd": "s",
+      "note": "61/shaft room"
+    },
+    {
+      "cmd": "put coal in basket",
+      "note": "coal in basket"
+    },
+    {
+      "cmd": "lower basket",
+      "note": "lower to bottom"
+    },
+    {
+      "cmd": "n",
+      "note": "62"
+    },
+    {
+      "cmd": "ne",
+      "note": "66"
+    },
+    {
+      "cmd": "n",
+      "note": "69"
+    },
+    {
+      "cmd": "ne",
+      "note": "71"
+    },
+    {
+      "cmd": "nw",
+      "note": "72"
+    },
+    {
+      "cmd": "d",
+      "note": "65"
+    },
+    {
+      "cmd": "d",
+      "note": "73"
+    },
+    {
+      "cmd": "s",
+      "note": "75/narrow room"
+    },
+    {
+      "cmd": "drop all",
+      "note": "narrow passage"
+    },
+    {
+      "cmd": "sw",
+      "note": "76/bottom shaft"
+    },
+    {
+      "cmd": "take coal",
+      "note": "coal"
+    },
+    {
+      "cmd": "take torch",
+      "note": "torch"
+    },
+    {
+      "cmd": "take screwdriver",
+      "note": "screwdriver"
+    },
+    {
+      "cmd": "e",
+      "note": "77/machine room"
+    },
+    {
+      "cmd": "open lid",
+      "note": "open"
+    },
+    {
+      "cmd": "put coal in machine",
+      "note": "coal in"
+    },
+    {
+      "cmd": "close lid",
+      "note": "close"
+    },
+    {
+      "cmd": "turn switch with screwdriver",
+      "note": "compress!"
+    },
+    {
+      "cmd": "open lid",
+      "note": "open"
+    },
+    {
+      "cmd": "take diamond",
+      "note": "diamond!"
+    },
+    {
+      "cmd": "nw",
+      "note": "76/bottom shaft"
+    },
+    {
+      "cmd": "put diamond in basket",
+      "note": "diamond safe"
+    },
+    {
+      "cmd": "put torch in basket",
+      "note": "torch safe"
+    },
+    {
+      "cmd": "put screwdriver in basket",
+      "note": "screwdriver safe"
+    },
+    {
+      "cmd": "ne",
+      "note": "75/narrow room"
+    },
+    {
+      "cmd": "take garlic",
+      "note": "garlic"
+    },
+    {
+      "cmd": "take figurine",
+      "note": "figurine"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "lamp"
+    },
+    {
+      "cmd": "take bracelet",
+      "note": "bracelet"
+    },
+    {
+      "cmd": "n",
+      "note": "73"
+    },
+    {
+      "cmd": "u",
+      "note": "65"
+    },
+    {
+      "cmd": "u",
+      "note": "72"
+    },
+    {
+      "cmd": "e",
+      "note": "66"
+    },
+    {
+      "cmd": "e",
+      "note": "62"
+    },
+    {
+      "cmd": "s",
+      "note": "61/shaft room"
+    },
+    {
+      "cmd": "raise basket",
+      "note": "raise"
+    },
+    {
+      "cmd": "take all from basket",
+      "note": "diamond, torch, screwdriver"
+    },
+    {
+      "cmd": "turn off lamp",
+      "note": "save battery, torch provides light"
+    },
+    {
+      "cmd": "w",
+      "note": "59"
+    },
+    {
+      "cmd": "s",
+      "note": "south"
+    },
+    {
+      "cmd": "d",
+      "note": "slide"
+    },
+    {
+      "cmd": "u",
+      "note": "living room"
+    },
+    {
+      "cmd": "put treasure in case",
+      "note": "deposit"
+    },
+    {
+      "cmd": "drop all",
+      "note": "clean"
+    },
+    {
+      "cmd": "score",
+      "note": "check"
     }
   ]
 }
