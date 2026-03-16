@@ -1112,8 +1112,8 @@
       "note": "fight (need 8 total)"
     },
     {
-      "cmd": "take all except coffin",
-      "note": "take treasures"
+      "cmd": "take all",
+      "note": "take treasures (coffin too heavy, separate trip)"
     },
     {
       "cmd": "d",
