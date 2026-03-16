@@ -105,14 +105,20 @@ export async function browse_map(ter_typ = 0, ter_explain = 'anything of interes
     if (!player || !map || !display || typeof getpos_async !== 'function') return;
     const cc = { x: player.x, y: player.y };
     const gpFlags = { ...(flags || display.flags || {}), autodescribe: true, terrainmode: ter_typ };
-    await getpos_async(cc, false, ter_explain, {
-        map,
-        display,
-        flags: gpFlags,
-        goalPrompt: ter_explain,
-        player,
-        forceVerbosePrompt: true,
-    });
+    const prevTerrainMode = display.flags?.terrainmode ?? 0;
+    if (display.flags) display.flags.terrainmode = gpFlags.terrainmode;
+    try {
+        await getpos_async(cc, false, ter_explain, {
+            map,
+            display,
+            flags: gpFlags,
+            goalPrompt: ter_explain,
+            player,
+            forceVerbosePrompt: true,
+        });
+    } finally {
+        if (display.flags) display.flags.terrainmode = prevTerrainMode;
+    }
     gpFlags.terrainmode = 0;
 }
 export function map_monst() {}

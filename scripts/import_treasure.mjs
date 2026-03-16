@@ -16,24 +16,13 @@ CP437[0xB0] = '░'; CP437[0xB1] = '▒'; CP437[0xB2] = '▓';
 CP437[0xDB] = '█'; CP437[0xDC] = '▄'; CP437[0xDD] = '▌';
 CP437[0xDE] = '▐'; CP437[0xDF] = '▀';
 
-// ── ANSI SGR parser ───────────────────────────────────────────────────────────
-function parseSGR(params) {
-    let bold = false, color = null;
-    for (const p of params) {
-        if (p === 0)             { bold = false; color = -1; }
-        else if (p === 1)        { bold = true; }
-        else if (p >= 30 && p <= 37) { color = p - 30; }
-        else if (p >= 90 && p <= 97) { color = p - 90 + 8; }
-    }
-    if (color !== null && color >= 0 && color < 8 && bold) color += 8;
-    return color;
-}
-
 // ── Parse .ans into 24×80 grid ────────────────────────────────────────────────
+// Bold is tracked persistently across SGR calls so editors that send \x1b[1m
+// and \x1b[33m as separate sequences still produce bright colors correctly.
 function parseAns(buf, ROWS = 50, COLS = 80) {
     const grid = Array.from({ length: ROWS }, () =>
         Array.from({ length: COLS }, () => ({ ch: ' ', color: -1 })));
-    let r = 0, c = 0, curColor = -1, i = 0;
+    let r = 0, c = 0, curColor = -1, curBold = false, i = 0;
     while (i < buf.length) {
         const b = buf[i];
         if (b === 0x1B && buf[i+1] === 0x5B) {
@@ -42,8 +31,16 @@ function parseAns(buf, ROWS = 50, COLS = 80) {
             while (i < buf.length && !(buf[i] >= 0x40 && buf[i] <= 0x7E)) raw += String.fromCharCode(buf[i++]);
             const cmd = buf[i++];
             if (cmd === 0x6D) {
-                const nc = parseSGR(raw.split(';').map(s => parseInt(s) || 0));
-                if (nc !== null) curColor = nc;
+                for (const p of raw.split(';').map(s => parseInt(s) || 0)) {
+                    if (p === 0)  { curBold = false; curColor = -1; }
+                    else if (p === 1)  { curBold = true;
+                        if (curColor >= 0 && curColor < 8) curColor += 8; }
+                    else if (p === 22) { curBold = false;
+                        if (curColor >= 8) curColor -= 8; }
+                    else if (p >= 30 && p <= 37) { curColor = p - 30;
+                        if (curBold) curColor += 8; }
+                    else if (p >= 90 && p <= 97) { curColor = p - 90 + 8; }
+                }
             }
             continue;
         }
@@ -66,22 +63,29 @@ const grid = parseAns(buf);
 const artRows = [];
 for (let row = 0; row < 24; row++) {
     const cells = grid[row];
+    // Non-space chars with reset color (-1) are drawn in the editor using the
+    // terminal's default foreground (typically light gray). Map them to color 7.
+    const resolved = cells.map(cell =>
+        (cell.color < 0 && cell.ch !== ' ') ? { ch: cell.ch, color: 7 } : cell
+    );
     let lastContent = -1;
-    for (let col = cells.length - 1; col >= 0; col--) {
-        if (cells[col].color >= 0) { lastContent = col; break; }
+    for (let col = resolved.length - 1; col >= 0; col--) {
+        if (resolved[col].color >= 0) { lastContent = col; break; }
     }
     if (lastContent < 0) {
         // Empty row — include only if there are more content rows below
-        const hasMore = grid.slice(row + 1).some(r => r.some(c => c.color >= 0));
-        if (!hasMore) break; // trailing empty rows: stop here
+        const hasMore = grid.slice(row + 1).some(r =>
+            r.some(c => c.color >= 0 || c.ch !== ' ')
+        );
+        if (!hasMore) break;
         artRows.push(['', []]);
         continue;
     }
     let chars = '';
     const colors = [];
     for (let col = 0; col <= lastContent; col++) {
-        chars += cells[col].ch;
-        colors.push(cells[col].color);
+        chars += resolved[col].ch;
+        colors.push(resolved[col].color);
     }
     artRows.push([chars, colors]);
 }

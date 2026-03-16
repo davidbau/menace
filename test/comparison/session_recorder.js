@@ -86,13 +86,16 @@ export async function recordGameplaySessionFromInputs(session, opts = {}) {
     let stepBoundaries;
     await withRecorderFixedDatetime(session, async () => {
         const flags = opts.flags || buildGameplayReplayFlags(session);
-        const tutorial = typeof opts.tutorial === 'boolean'
+        const hasExplicitTutorial = typeof opts.tutorial === 'boolean';
+        const tutorial = hasExplicitTutorial
             ? opts.tutorial
             : (
                 session?.meta?.regen?.tutorial === true
                 || session?.meta?.options?.tutorial === true
                 || session?.raw?.options?.tutorial === true
-            );
+            )
+                ? true
+                : undefined;
         const replayTutorialStartupPrompts = Array.isArray(session?.raw?.replayTutorialStartupPrompts)
             ? session.raw.replayTutorialStartupPrompts
             : [];

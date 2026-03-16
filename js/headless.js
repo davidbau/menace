@@ -21,7 +21,6 @@ import { NORMAL_SPEED } from './const.js';
 import { FOV } from './vision.js';
 import { monsterNearby } from './hack.js';
 import { newsym, getCachedMapCell, flush_screen } from './display.js';
-import { game as activeGame } from './gstate.js';
 import { getArrivalPosition, changeLevel as changeLevelCore } from './do.js';
 import { doname } from './mkobj.js';
 import { WEAPON_CLASS, ARMOR_CLASS, RING_CLASS, AMULET_CLASS, TOOL_CLASS,
@@ -655,6 +654,10 @@ export class HeadlessDisplay {
         }
     }
 
+    _gameRef() {
+        return this._game || null;
+    }
+
     clearRow(row) {
         for (let c = 0; c < this.cols; c++) {
             this.grid[row][c] = ' ';
@@ -712,8 +715,8 @@ export class HeadlessDisplay {
         }
     }
 
-    async putstr_message(msg, { fromTopMoreBoundary = false } = {}) {
-        let topMessageAfterMore = !!fromTopMoreBoundary;
+    async putstr_message(msg) {
+        let freshAfterMore = false;
         const encumberRefreshMsg =
             msg === 'Your movements are slowed slightly because of your load.'
             || msg === 'You rebalance your load.  Movement is difficult.'
@@ -734,14 +737,15 @@ export class HeadlessDisplay {
         }
 
         const isDeathMessage = msg.startsWith('You die...');
+        const gameRef = this._gameRef();
         const sleepWakeBoundary = !!(
-            Number(activeGame?.player?.usleep || 0) > 0
-            || activeGame?.multi_reason === 'sleeping'
-            || activeGame?.nomovemsg === 'You wake up.'
+            Number(gameRef?.player?.usleep || 0) > 0
+            || gameRef?.multi_reason === 'sleeping'
+            || gameRef?.nomovemsg === 'You wake up.'
         );
-        const suppressDeathStagingStatus = !!(activeGame?.context?.mon_moving
-            && Number(activeGame?.multi || 0) < 0
-            && (!topMessageAfterMore || sleepWakeBoundary));
+        const suppressDeathStagingStatus = !!(gameRef?.context?.mon_moving
+            && Number(gameRef?.multi || 0) < 0
+            && !sleepWakeBoundary);
         if (this.topMessage && this.messageNeedsMore) {
             // C ref: flush_screen(1) here mirrors C's vpline() which fires
             // flush_screen before the new message replaces the old one.
@@ -749,7 +753,7 @@ export class HeadlessDisplay {
             // inventory (which may still contain an item that JS has already
             // consumed via useup). Restore the snapshot encumbrance so the
             // status line matches C's state at this boundary.
-            const _fsPlayer = this._lastMapState?.player || activeGame?.player || null;
+            const _fsPlayer = this._lastMapState?.player || gameRef?.player || null;
             const _savedFsEnc = _fsPlayer?.encumbrance;
             if (_fsPlayer && this._topMessageEncumbrance != null) {
                 _fsPlayer.encumbrance = this._topMessageEncumbrance;
@@ -759,7 +763,7 @@ export class HeadlessDisplay {
                 _fsPlayer.encumbrance = _savedFsEnc;
             }
         }
-        const gameCtx = this._game || activeGame || null;
+        const gameCtx = this._game || gameRef || null;
         if (this._deferredBotlAfterPendingFlush && gameCtx?.player) {
             gameCtx.player._botl = true;
             gameCtx.player._botlStepIndex = this._deferredBotlStepIndex ?? null;
@@ -771,7 +775,7 @@ export class HeadlessDisplay {
         if (this.topMessage && this.messageNeedsMore && isDeathMessage) {
             this.renderMoreMarker();
             if (this._nhgetch) {
-                const _morePlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _morePlayer = this._lastMapState?.player || gameRef?.player || null;
                 const _savedEnc = _morePlayer?.encumbrance;
                 if (_morePlayer && this._topMessageEncumbrance != null) {
                     _morePlayer.encumbrance = this._topMessageEncumbrance;
@@ -799,7 +803,7 @@ export class HeadlessDisplay {
             this._topMessageStepIndex = null;
             this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
-            topMessageAfterMore = true;
+            freshAfterMore = true;
         }
 
         // C ref: win/tty/topl.c:264-267 — Concatenate messages if they fit.
@@ -813,7 +817,7 @@ export class HeadlessDisplay {
                 this.clearRow(0);
                 this.putstr(0, 0, combined.substring(0, this.cols));
                 this.topMessage = combined;
-                const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+                const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
                 this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
                     ? statusPlayer.uhp
                     : (Number.isFinite(statusPlayer?.hp)
@@ -843,7 +847,7 @@ export class HeadlessDisplay {
                 // the pending topMessage was stored, so renderStatus inside
                 // more() shows the value from that point (matching C's
                 // flush_screen→bot() which ran BEFORE the message text).
-                const _morePlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _morePlayer = this._lastMapState?.player || gameRef?.player || null;
                 const _savedEnc = _morePlayer?.encumbrance;
                 if (_morePlayer && this._topMessageEncumbrance != null) {
                     _morePlayer.encumbrance = this._topMessageEncumbrance;
@@ -878,14 +882,14 @@ export class HeadlessDisplay {
             this._topMessageStepIndex = null;
             this._topMessageEncumbrance = null;
             this.moreMarkerActive = false;
-            topMessageAfterMore = true;
+            freshAfterMore = true;
         }
 
         this.clearRow(0);
         if (msg.length <= this.cols) {
             this.putstr(0, 0, msg.substring(0, this.cols));
             this.topMessage = msg;
-            const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+            const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
             this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
                 ? statusPlayer.uhp
                 : (Number.isFinite(statusPlayer?.hp)
@@ -902,14 +906,14 @@ export class HeadlessDisplay {
             // the NEXT message overflows), renderStatus should show the
             // encumbrance that was current when THIS message was stored.
             {
-                const _msgPlayer = this._lastMapState?.player || activeGame?.player || null;
+                const _msgPlayer = this._lastMapState?.player || gameRef?.player || null;
                 this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
             }
             this.messageNeedsMore = true;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
-            if (topMessageAfterMore && typeof this.renderStatus === 'function') {
-                const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
+            if (freshAfterMore && typeof this.renderStatus === 'function') {
+                const refreshPlayer = gameRef?.player || this._lastMapState?.player || null;
                 if (encumberRefreshMsg || refreshPlayer?._botl) {
                     this.renderStatus(refreshPlayer);
                     if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -923,7 +927,7 @@ export class HeadlessDisplay {
                             site: 'headless.more.dismiss',
                             clearAfter: false,
                             readKey: this._nhgetch,
-                            refreshStatus: !(activeGame?.context?.mon_moving && topMessageAfterMore),
+                            refreshStatus: !(gameRef?.context?.mon_moving && gameRef?.multi < 0),
                         });
                     } catch (e) {
                         if (!e.message?.includes('Concurrent nhgetch')) throw e;
@@ -967,7 +971,7 @@ export class HeadlessDisplay {
 
         this.putstr(0, 0, firstLine);
         this.topMessage = firstLine;
-        const statusPlayer = activeGame?.player || this._lastMapState?.player || null;
+        const statusPlayer = gameRef?.player || this._lastMapState?.player || null;
         this._topMessageStatusHp = Number.isFinite(statusPlayer?.uhp)
             ? statusPlayer.uhp
             : (Number.isFinite(statusPlayer?.hp)
@@ -982,8 +986,8 @@ export class HeadlessDisplay {
         this.messageNeedsMore = true;
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
         this.messageCursorRow = 0;
-        if (topMessageAfterMore && typeof this.renderStatus === 'function') {
-            const refreshPlayer = activeGame?.player || this._lastMapState?.player || null;
+        if (freshAfterMore && typeof this.renderStatus === 'function') {
+            const refreshPlayer = gameRef?.player || this._lastMapState?.player || null;
             if (encumberRefreshMsg || refreshPlayer?._botl) {
                 this.renderStatus(refreshPlayer);
                 if (refreshPlayer?._botl) refreshPlayer._botl = false;
@@ -1027,7 +1031,7 @@ export class HeadlessDisplay {
         this._topMessageEncumbrance = null;
         this.moreMarkerActive = false;
         if (remainder.length > 0) {
-            await this.putstr_message(remainder, { fromTopMoreBoundary: true });
+            await this.putstr_message(remainder);
         }
         return;
     }
@@ -1096,6 +1100,10 @@ export class HeadlessDisplay {
                 return true;
             }
             if (/^(Fighting Skills|Weapon Skills|Spellcasting Skills)\b/.test(text)) {
+                return true;
+            }
+            // C ref: invent.c inuse_headers[] — in-use inventory grouping headers
+            if (/^(Wielded\/Readied Weapons|Worn Armor|Accessories|Miscellaneous)\b/.test(text)) {
                 return true;
             }
             if (text === 'Currently known spells') return true;
@@ -1622,7 +1630,7 @@ export class HeadlessDisplay {
     }
 
     flush() {
-        const player = this._lastMapState?.player || activeGame?.player || null;
+        const player = this._lastMapState?.player || this._gameRef()?.player || null;
         if (player) {
             debugRepaint('mark', 'headless.flush', {
                 hp: repaintHp(player),

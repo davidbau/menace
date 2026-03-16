@@ -13231,3 +13231,24 @@ Validation:
 - Validation:
   - `t06_s621_w_qstat_gp` now passes.
   - `t06_s622_w_qabil_gp` now passes.
+
+### 2026-03-15 boundary drift from command finalization and detect overlays
+
+- A step-725-style divergence in `pnd_s1200_w_potionmix2_gp` was traced to a
+  mixed prompt/vision timing issue, not RNG drift. The key was restoring the
+  C-style single-threaded command lifecycle while keeping boundary effects narrow:
+  - `run_command()` and `finalizeTimedCommand()` now gate monster/object/trap
+    vision refresh with movement context (`ctx.mv`), so normal movement-mode steps
+    do not eagerly re-evaluate visibility.
+  - swallowed redraw is only called in the same `Hallucination` branch that owns it.
+  - detect browse/getpos overlays keep their terrain mode during prompt interaction
+    and are restored cleanly after dismissal.
+- Secondary boundary fix:
+  - map/object hallucination checks now respect both `Hallucination` and
+    `hallucinating`.
+  - message `more()` restores status encumbrance from snapshot without forcing a
+    full `_botl` recompute.
+- Validation:
+  - `pnd_s1200_w_potionmix2_gp` is now passing all channels in
+    `session_test_runner`,
+  - `hi19_seed503_w_mindblast_gp` remains green.

@@ -36,7 +36,7 @@ import { rn2, pushRngLogEntry } from './rng.js';
 import { touch_petrifies } from './mondata.js';
 import { mons, PM_ARCHEOLOGIST } from './monsters.js';
 import { newsym, flush_screen } from './display.js';
-import { observeObject, discoverObject, isObjectNameKnown } from './o_init.js';
+import { observeObject, discoverObject, isObjectNameKnown, setOverrideID } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
 import { confers_luck, touch_artifact, set_artifact_intrinsic } from './artifact.js';
@@ -99,6 +99,9 @@ export function buildInventoryOverlayLines(player, filterFn = null) {
 
 function displayOnlyFullyIdentifiedName(item, player) {
     if (!item) return '';
+    // C ref: iflags.override_ID — temporarily treat all types as name-known
+    // for display, matching C's wiz_identify menu behavior.
+    setOverrideID(true);
     // Temporarily set identification flags on the original object so that
     // doname's reference-equality checks (player.weapon === obj, etc.) still work.
     const saved = { known: item.known, bknown: item.bknown, rknown: item.rknown,
@@ -116,6 +119,7 @@ function displayOnlyFullyIdentifiedName(item, player) {
     const result = doname(item, player);
     // Restore original flags
     Object.assign(item, saved);
+    setOverrideID(false);
     return result;
 }
 
@@ -263,7 +267,10 @@ async function drawInventoryPage(display, lines, opts = {}) {
     }
     const isCategoryHeader = (line) => {
         const text = String(line || '').trimStart();
-        return /^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Rocks|Balls|Chains|Venoms|Other)\b/.test(text);
+        if (/^(Weapons|Armor|Rings|Amulets|Tools|Comestibles|Potions|Scrolls|Spellbooks|Wands|Coins|Gems\/Stones|Rocks|Balls|Chains|Venoms|Other)\b/.test(text)) return true;
+        // C ref: invent.c inuse_headers[] — in-use inventory grouping headers
+        if (/^(Wielded\/Readied Weapons|Worn Armor|Accessories|Miscellaneous)\b/.test(text)) return true;
+        return false;
     };
     if (typeof display.clearScreen === 'function') {
         display.clearScreen();
@@ -330,7 +337,14 @@ export async function renderOverlayMenuUntilDismiss(display, lines, allowedSelec
             const menuRows = Math.min(currentLines.length, fullScreen ? displayRows : STATUS_ROW_1);
             const lastRow = Math.max(0, menuRows - 1);
             const lastLine = String(currentLines[lastRow] || '');
-            display.setCursor(Math.min(offx + lastLine.length, cols - 1), lastRow);
+            // C ref: wintty.c tty_end_menu — single-page morestr is "(end) "
+            // with trailing space; multi-page is "(%d of %d)" without.
+            // dmore() prints morestr at offx+1 (via tty_curs offset=2), so
+            // cursor = offx + 1 + strlen(morestr).  For "(end) " that's +7,
+            // but our "(end)" line is 5 chars at offx, giving offx+5.
+            // Add +1 for the trailing space parity.
+            const morestrPad = (lastLine === '(end)') ? 1 : 0;
+            display.setCursor(Math.min(offx + lastLine.length + morestrPad, cols - 1), lastRow);
         }
         return offx;
     };
@@ -437,7 +451,16 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
     const render = () => {
         renderedLines = linesFactory(selected);
         const shouldPaginate = renderedLines.length > Math.max(1, pageRows - 1);
-        pages = shouldPaginate ? buildInventoryPages(renderedLines, pageRows) : [renderedLines];
+        // C ref: tty_end_menu always appends morestr ("(end) " single page,
+        // "(N of M) " multi-page).  For single-page, add "(end)" so the line
+        // count matches C (needed for fullScreen threshold in renderOverlayMenu).
+        if (!shouldPaginate) {
+            const withEnd = renderedLines.slice();
+            withEnd.push('(end)');
+            pages = [withEnd];
+        } else {
+            pages = buildInventoryPages(renderedLines, pageRows);
+        }
         if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
         currentLines = pages[currentPage] || renderedLines;
         const menuOpts = options ? { ...options } : {};
@@ -456,7 +479,9 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
             const menuRows = Math.min(currentLines.length, fullScreen ? displayRows : STATUS_ROW_1);
             const lastRow = Math.max(0, menuRows - 1);
             const lastLine = String(currentLines[lastRow] || '');
-            display.setCursor(Math.min(menuOffx + lastLine.length + 1, cols - 1), lastRow);
+            // C ref: single-page morestr "(end) " has trailing space; add +1.
+            const morestrPad = (lastLine === '(end)') ? 1 : 0;
+            display.setCursor(Math.min(menuOffx + lastLine.length + morestrPad, cols - 1), lastRow);
         }
     };
 
@@ -2091,8 +2116,8 @@ export function not_fully_identified(obj) {
 }
 
 // C ref: invent.c fully_identify_obj() — fully identify an object
-export function fully_identify_obj(otmp) {
-    discoverObject(otmp.otyp, true, true);  // C ref: makeknown → discover_object → exercise(A_WIS)
+export function fully_identify_obj(otmp, creditClue = true) {
+    discoverObject(otmp.otyp, true, true, creditClue);  // C ref: makeknown → discover_object → exercise(A_WIS)
     otmp.known = true;
     otmp.bknown = true;
     otmp.rknown = true;
@@ -2102,8 +2127,8 @@ export function fully_identify_obj(otmp) {
 
 // C ref: invent.c identify() — identify object and give feedback
 // Autotranslated from invent.c:2650
-export async function identify(otmp, player) {
-  fully_identify_obj(otmp);
+export async function identify(otmp, player, creditClue = true) {
+  fully_identify_obj(otmp, creditClue);
   await prinv( 0, otmp, 0);
   // C ref: invent.c:2650 — C's identify() does NOT call exercise().
   // The exercise(A_WIS) call belongs in seffects() after identification completes.
@@ -2122,7 +2147,7 @@ export function count_unidentified(objchn) {
 }
 
 // C ref: invent.c identify_pack() — identify pack items
-export async function identify_pack(id_limit, player, learning_id) {
+export async function identify_pack(id_limit, player, learning_id, creditClue = true) {
     const inv = player.inventory || [];
     let unid_cnt = count_unidentified(inv);
 
@@ -2134,7 +2159,7 @@ export async function identify_pack(id_limit, player, learning_id) {
     if (!id_limit || id_limit >= unid_cnt) {
         for (const obj of inv) {
             if (not_fully_identified(obj)) {
-                await identify(obj, player);
+                await identify(obj, player, creditClue);
                 if (--unid_cnt < 1) break;
             }
         }
@@ -2177,7 +2202,7 @@ export async function identify_pack(id_limit, player, learning_id) {
                     for (let i = 0; i < n; i++) {
                         const obj = unid.find((candidate) => String(candidate?.invlet || '') === result[i]);
                         if (obj) {
-                            await identify(obj, player);
+                            await identify(obj, player, creditClue);
                             id_limit--;
                         }
                     }
@@ -2212,7 +2237,7 @@ export async function identify_pack(id_limit, player, learning_id) {
                 for (let i = 0; i < n; i++) {
                     const obj = result[i].identifier?.a_obj || result[i].item?.a_obj || result[i].a_obj;
                     if (obj) {
-                        await identify(obj, player);
+                        await identify(obj, player, creditClue);
                         id_limit--;
                     }
                 }
@@ -2410,14 +2435,20 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         );
         if (result === null) return '';
         if (result.includes('_') || result.includes(String.fromCharCode(wizIdentifyAccel))) {
-            await identify_pack(0, p, false);
+            await identify_pack(0, p, false, false);  // wizard identify: no exercise
             return '';
         }
         if (result.length > 0) {
             for (const invlet of result) {
                 const target = unid.find((obj) => String(obj?.invlet || '') === invlet);
                 if (target && not_fully_identified(target)) {
-                    await identify(target);
+                    // C ref: wiz_identify sets per-object flags only, without
+                    // globally discovering the type (no makeknown/discoverObject).
+                    // C uses override_ID for display-only identification.
+                    target.known = true;
+                    target.bknown = true;
+                    target.rknown = true;
+                    target.dknown = true;
                 }
             }
             update_inventory(p);

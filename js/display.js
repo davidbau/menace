@@ -806,7 +806,7 @@ span.nh-cursor {
                         && couldsee(gameMap, player, x, y)
                         && monVisibleForMap(mon, player));
                     if (monVisibleByOwnLight) {
-                        const hallu = !!player?.hallucinating;
+                        const hallu = !!(player?.Hallucination || player?.hallucinating);
                         const glyph = monsterMapGlyph(mon, hallu);
                         this.setCell(col, row, glyph.ch, glyph.color);
                         continue;
@@ -894,7 +894,7 @@ span.nh-cursor {
                             loc.mem_obj_color = 0;
                         }
                     }
-                    const hallu = !!player?.hallucinating;
+                    const hallu = !!(player?.Hallucination || player?.hallucinating);
                     const glyph = monsterMapGlyph(mon, hallu);
                     this.setCell(col, row, glyph.ch, glyph.color);
                     const look = do_lookat({ map: gameMap, player }, { x, y });
@@ -919,7 +919,7 @@ span.nh-cursor {
                 const objs = coversObjectsAt(loc, player) ? [] : gameMap.objectsAt(x, y);
                 if (objs.length > 0) {
                     const topObj = objs[objs.length - 1];
-                    const hallu = !!player?.hallucinating;
+                    const hallu = !!(player?.Hallucination || player?.hallucinating);
                     const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
                     const memGlyph = hallu
                         ? objectMapGlyph(topObj, false, { player, x, y, observe: false })
@@ -1278,6 +1278,10 @@ span.nh-cursor {
                 return true;
             }
             if (/^(Fighting Skills|Weapon Skills|Spellcasting Skills)\b/.test(text)) {
+                return true;
+            }
+            // C ref: invent.c inuse_headers[] — in-use inventory grouping headers
+            if (/^(Wielded\/Readied Weapons|Worn Armor|Accessories|Miscellaneous)\b/.test(text)) {
                 return true;
             }
             if (text === 'Currently known spells') return true;
@@ -2507,7 +2511,7 @@ export function newsym(x, y, ctxOrMap = null) {
             && couldsee(map, player, x, y)
             && monVisibleForMap(mon, player));
         if (monVisibleByOwnLight) {
-            const hallu = !!player?.hallucinating;
+            const hallu = !!(player?.Hallucination || player?.hallucinating);
             const glyph = monsterMapGlyph(mon, hallu);
             putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
             return;
@@ -2582,7 +2586,7 @@ export function newsym(x, y, ctxOrMap = null) {
                 loc.mem_obj_color = 0;
             }
         }
-        const hallu = !!player?.hallucinating;
+        const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = monsterMapGlyph(mon, hallu);
         putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         mon.meverseen = 1;
@@ -2601,7 +2605,7 @@ export function newsym(x, y, ctxOrMap = null) {
     const objs = coversObjectsAt(loc, player) ? [] : map.objectsAt(x, y);
     if (objs.length > 0) {
         const topObj = objs[objs.length - 1];
-        const hallu = !!player?.hallucinating;
+        const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = objectMapGlyph(topObj, hallu, { player, x, y });
         const memGlyph = hallu
             ? objectMapGlyph(topObj, false, { player, x, y, observe: false })

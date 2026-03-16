@@ -2519,8 +2519,6 @@ export function readobjnam(bp, no_wish, opts = {}) {
         }
     }
 
-    // C readobjnam returns an object with dknown set (appearance seen),
-    // but does not auto-discover the true object type.
     otmp.dknown = true;
 
     return otmp;

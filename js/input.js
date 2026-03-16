@@ -623,6 +623,7 @@ export async function more(display, {
     if (statusPlayer && hasSnapshotEnc) {
         statusPlayer = Object.create(statusPlayer);
         statusPlayer.encumbrance = display._topMessageEncumbrance;
+        statusPlayer._botl = false;
     }
     if (statusPlayer) {
         debugRepaint('more', site || 'input.more', {

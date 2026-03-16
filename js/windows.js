@@ -230,6 +230,11 @@ function buildMenuLines(w, selected = null, how = PICK_NONE) {
         // store str as-is; selectable items store "%c - str". Render to match.
         if (item.id === null) {
             lines.push(item.str);          // add_menu_str equivalent: raw text, no prefix
+        } else if (how === PICK_NONE) {
+            // C ref: PICK_NONE menus display items without selection indicators.
+            // In C, display_nhwindow(PICK_NONE) renders "ch - str" but the
+            // tty code path for PICK_NONE never shows invlet/dash prefixes.
+            lines.push(item.str);
         } else {
             const preselected = !!(item.itemflags & MENU_ITEMFLAGS_SELECTED);
             const picked = !!(item.ch && selected && selected.has(item.ch));

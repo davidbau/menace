@@ -344,6 +344,7 @@ export function weight(obj) {
         return obj.quan * mons[obj.corpsenm].cwt;
     }
     if (obj.oclass === COIN_CLASS) {
+        // C ref: mkobj.c:1964-1966 — always weigh at least 1 unit (3.7+ change)
         return Math.max(Math.floor((obj.quan + 50) / 100), 1);
     }
     return wt ? wt * obj.quan : (obj.quan + 1) >> 1;
@@ -866,19 +867,23 @@ function mkbox_cnts(box) {
 
             // C ref: mkobj.c:360-370 — coin quantity and rock substitution
             if (otmp.oclass === COIN_CLASS) {
-                // C ref: rnd(level_difficulty() + 2) * rnd(75)
-                rnd(_getLevelDepth() + 2);
-                rnd(75);
+                // C ref: mkobj.c:363-364 — set gold quantity and weight
+                otmp.quan = rnd(_getLevelDepth() + 2) * rnd(75);
+                otmp.owt = weight(otmp);
             } else {
-                // C ref: while (otmp->otyp == ROCK) rnd_class(...)
+                // C ref: mkobj.c:366-370 — substitute rocks with gems
                 while (otmp.otyp === ROCK) {
                     otmp.otyp = rnd_class(DILITHIUM_CRYSTAL, LOADSTONE);
+                    if (otmp.quan > 2) otmp.quan = 1;
+                    otmp.owt = weight(otmp);
                 }
             }
-            // C ref: mkobj.c:371-378 — bag of holding special cases
+            // C ref: mkobj.c:372-379 — bag of holding special cases
             if (box.otyp === BAG_OF_HOLDING) {
                 if (is_mbag(otmp)) {
                     otmp.otyp = SACK;
+                    otmp.spe = 0;
+                    otmp.owt = weight(otmp);
                 } else {
                     while (otmp.otyp === WAN_CANCELLATION) {
                         otmp.otyp = rnd_class(WAN_LIGHT, WAN_LIGHTNING);
@@ -1171,7 +1176,7 @@ const QUIVER_IN_QUIVER_TYPES = new Set([ARROW, ELVEN_ARROW, ORCISH_ARROW, YA, CR
 // C ref: objnam.c xname() (subset used by current JS engine)
 function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
     const od = objectData[obj.otyp];
-    const nameKnown = isObjectNameKnown(obj.otyp) || !!known;
+    const nameKnown = isObjectNameKnown(obj.otyp);
     let base = od.oc_name;
     switch (obj.oclass) {
     case RING_CLASS:

@@ -1879,6 +1879,11 @@ async function containerMenu(game, container) {
                 // NHW_TEXT preserves step ownership (contents on ':' step, prompt
                 // redraw on the subsequent dismiss key step).
                 const win = create_nhwindow(NHW_MENU);
+                // Clear the "Do what with the bag?" option lines so they don't
+                // bleed through the text popup (the popup's offx may be > pad,
+                // leaving residual characters like "-" from "o - take something
+                // out" visible at columns the popup doesn't overwrite).
+                clearMenuOptionRows(pad);
                 if (typeof display?.clearRow === 'function') {
                     display.clearRow(0);
                     display.clearRow(1);
