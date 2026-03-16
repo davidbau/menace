@@ -289,7 +289,7 @@ export async function gold_detect(sobj, player, map, display, game) {
         await strange_feeling(sobj, buf, player, display);
         return 1;
     }
-    if (stale) docrt();
+    if (stale) await docrt();
     await You("notice some gold between your %s.", body_part(FOOT, player));
     return 0;
 }
@@ -356,7 +356,7 @@ export async function food_detect(sobj, player, map, display, game) {
     }
     if (!ct && !ctu) {
         if (stale) {
-            docrt();
+            await docrt();
             await You("sense a lack of %s nearby.", what);
             if (sobj && sobj.blessed) {
                 if (!player.uedibility) await Your("%s starts to tingle.", body_part(NOSE, player));
