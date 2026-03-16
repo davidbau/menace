@@ -765,6 +765,8 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             // N-section (monsterDetails): strip minvcount (field 14) — shopkeeper
             // inventory merging differences can cause count mismatches even with
             // 100% RNG parity.
+            // Q-section normalization is handled by normalizeForSparseComparison()
+            // which zeroes out volatile fields (oid, where, blessed, owt, etc.)
             const stripNMinvcount = (rows) =>
                 (rows || []).filter((m) => m[4] !== 0).map((m) => m.slice(0, 14));
             const jField = (section === 'M')
