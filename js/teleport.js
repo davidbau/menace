@@ -998,7 +998,35 @@ export async function domagicportal(trap, game) {
         return;
     }
 
-    // TODO: implement schedule_goto for portal destination
+    // Tutorial portal — restore pre-tutorial inventory and drop into main dungeon level 1.
+    if (game && (game.u || game.player)?.inTutorial) {
+        const player = game.u || game.player;
+        const stored = game._tutorialStoredState;
+        if (stored) {
+            player.inventory = Array.isArray(stored.inventory) ? stored.inventory.slice() : [];
+            player.weapon     = stored.weapon;
+            player.swapWeapon = stored.swapWeapon;
+            player.quiver     = stored.quiver;
+            player.armor      = stored.armor;
+            player.shield     = stored.shield;
+            player.helmet     = stored.helmet;
+            player.gloves     = stored.gloves;
+            player.boots      = stored.boots;
+            player.cloak      = stored.cloak;
+            player.shirt      = stored.shirt;
+            player.amulet     = stored.amulet;
+            player.leftRing   = stored.leftRing;
+            player.rightRing  = stored.rightRing;
+            player.blindfold  = stored.blindfold;
+            player.twoweap    = !!stored.twoweap;
+            if (stored.lastInvlet !== null) player.lastInvlet = stored.lastInvlet;
+            game._tutorialStoredState = null;
+        }
+        await game.changeLevel(1, 'teleport', { targetDnum: 0 });
+        return;
+    }
+
+    // TODO: implement schedule_goto for non-tutorial portal destination
 }
 
 // ============================================================================
