@@ -16,29 +16,17 @@ CP437[0xB0] = '░'; CP437[0xB1] = '▒'; CP437[0xB2] = '▓';
 CP437[0xDB] = '█'; CP437[0xDC] = '▄'; CP437[0xDD] = '▌';
 CP437[0xDE] = '▐'; CP437[0xDF] = '▀';
 
-// ── ANSI SGR parser → CGA color index (-1 = default/reset) ───────────────────
-// Handles: 0=reset, 1=bold, 30-37=standard fg, 90-97=bright fg
-function parseSGR(params) {
-    let bold = false, color = null;
-    for (const p of params) {
-        if (p === 0)             { bold = false; color = -1; }
-        else if (p === 1)        { bold = true; }
-        else if (p >= 30 && p <= 37) { color = p - 30; }
-        else if (p >= 90 && p <= 97) { color = p - 90 + 8; }
-        // 38;5;n, 48;5;n etc. — ignored
-    }
-    if (color !== null && color >= 0 && color < 8 && bold) color += 8;
-    return color; // null = no fg change, -1 = reset, 0-15 = color
-}
-
 // ── Parse .ans into 24×80 grid of {ch, color} ─────────────────────────────────
 // color=-1 means "not explicitly colored" (transparent/default)
+// Bold is tracked persistently across SGR calls so editors that send \x1b[1m
+// and \x1b[33m as separate sequences still produce bright colors correctly.
 function parseAns(buf, ROWS = 24, COLS = 80) {
     const grid = Array.from({ length: ROWS }, () =>
         Array.from({ length: COLS }, () => ({ ch: ' ', color: -1 })));
 
     let r = 0, c = 0;
     let curColor = -1; // current SGR foreground (-1 = reset)
+    let curBold = false; // bold persists across SGR calls
     let i = 0;
 
     while (i < buf.length) {
@@ -54,8 +42,16 @@ function parseAns(buf, ROWS = 24, COLS = 80) {
             const cmd = buf[i++]; // consume command byte
             if (cmd === 0x6D) { // 'm' = SGR
                 const params = raw.split(';').map(s => parseInt(s) || 0);
-                const newColor = parseSGR(params);
-                if (newColor !== null) curColor = newColor;
+                for (const p of params) {
+                    if (p === 0)  { curBold = false; curColor = -1; }
+                    else if (p === 1)  { curBold = true;
+                        if (curColor >= 0 && curColor < 8) curColor += 8; }
+                    else if (p === 22) { curBold = false;
+                        if (curColor >= 8) curColor -= 8; }
+                    else if (p >= 30 && p <= 37) { curColor = p - 30;
+                        if (curBold) curColor += 8; }
+                    else if (p >= 90 && p <= 97) { curColor = p - 90 + 8; }
+                }
             }
             // Other CSI commands (cursor movement etc.) ignored
             continue;
