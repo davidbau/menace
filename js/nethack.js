@@ -17,6 +17,9 @@ function createBrowserLifecycle(display, promo, restart) {
     return {
         restart,
         promo: () => promo.run(display, nhgetch, restart),
+        shell: async () => {
+            await runShell(display, nhgetch, { restart }, { interrupt: true });
+        },
         replaceUrlParams: (params) => {
             const url = new URL(window.location.href);
             for (const [key, value] of Object.entries(params || {})) {

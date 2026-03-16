@@ -597,12 +597,12 @@ export async function rhack(ch, game) {
         return await handleTogglePickup(game);
     }
 
-    // Quit (#quit or Ctrl+C)
+    // Ctrl+C interrupt — quit and drop to shell
     if (ch === 3) {
         const ans = await ynFunction('Really quit?', 'yn', 'n'.charCodeAt(0), display);
         if (String.fromCharCode(ans) === 'y') {
             game.gameOver = true;
-            game.gameOverReason = 'quit';
+            game.gameOverReason = 'ctrlc';
             player.deathCause = 'quit';
             await display.putstr_message('Goodbye...');
         }
