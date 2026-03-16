@@ -29,7 +29,7 @@ import { more, nhgetch, getlin } from './input.js';
 import { impossible, pline, You, verbalize, livelog_printf } from './pline.js';
 import { discoverObject, undiscoverObject } from './o_init.js';
 import { doname, xname } from './mkobj.js';
-import { an, simpleonames, safe_qbuf } from './objnam.js';
+import { an, just_an, simpleonames, safe_qbuf } from './objnam.js';
 import { helpless } from './mon.js';
 import { objectData,
          AMULET_CLASS, SCROLL_CLASS, POTION_CLASS, WAND_CLASS, RING_CLASS,
@@ -111,15 +111,7 @@ export function mon_pmname(mon) {
 // W_SADDLE imported from const.js
 
 // ========================================================================
-// just_an — local helper matching C's just_an()
-// Returns "a " or "an " for the given string.
-// ========================================================================
-function just_an(str) {
-    const s = String(str || '').trimStart();
-    if (!s) return 'a ';
-    const c = s[0].toLowerCase();
-    return 'aeiou'.includes(c) ? 'an ' : 'a ';
-}
+// just_an imported from objnam.js — handles special cases (unicorn, one, eu, etc.)
 
 // ========================================================================
 // x_monnam — cf. do_name.c:826

@@ -17,7 +17,7 @@ import { TIMEOUT, INTRINSIC, FROMOUTSIDE,
          STONED, SLIMED, STRANGLED, INVIS, SEE_INVIS, DISPLACED,
          PASSES_WALLS, MAGICAL_BREATHING, FLYING,
          FIRE_RES, STONE_RES, DETECT_MONSTERS, PROT_FROM_SHAPE_CHANGERS,
-         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE, ICE,
+         SICK_NONVOMITABLE, A_CON, A_DEX, A_STR, ACCESSIBLE, ICE, I_SPECIAL,
          TIMER_KIND, TIMER_FUNC, MELT_ICE_AWAY,
          NO_MINVENT, MM_NOMSG,
          LS_OBJECT, OBJ_INVENT, OBJ_FLOOR, OBJ_CONTAINED,
@@ -33,6 +33,7 @@ import { revive_mon, zombify_mon, heal_legs } from './do.js';
 import { rot_corpse } from './dig.js';
 import { makemon, makemon_appear } from './makemon.js';
 import { update_inventory } from './invent.js';
+import { float_down } from './trap.js';
 
 const OBJ_TIMER_KIND = TIMER_KIND.SHORT;
 
@@ -725,9 +726,12 @@ async function _fireExpiryEffect(player, prop, context = {}) {
         // C ref: if (Sleepy) { fall_asleep(); incr_itimeout(); }
         break;
 
-    case LEVITATION:
+    case LEVITATION: {
         // C ref: float_down(I_SPECIAL | TIMEOUT, 0L);
+        const game = context.game || _gstate;
+        await float_down(I_SPECIAL | TIMEOUT, 0, player, game);
         break;
+    }
 
     case FLYING:
         // C ref: if (was_flying && !Flying) { "You land."; spoteffects(TRUE); }

@@ -171,10 +171,8 @@ function OBJ_AT(x, y, map) {
 }
 
 
-// isok helper
-function isok(x, y) {
-    return x >= 0 && x < 80 && y >= 0 && y < 21;
-}
+// isok imported from const.js (local copy had wrong bounds: x>=0 instead of x>=1)
+import { isok } from './const.js';
 
 // obfree — free an object (destroy it)
 function obfree(obj, map) {

@@ -9,7 +9,7 @@
 // Segments are wseg objects: { nseg, wx, wy }.
 // The dummy head segment is NOT displayed; only wtails..wheads-1 are shown.
 
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { pline, impossible, You } from './pline.js';
 import { newsym } from './display.js';
 import { isok, xdir, ydir, N_DIRS, NORMAL_SPEED, COLNO, ROWNO } from './const.js';
@@ -191,7 +191,7 @@ export function worm_move(worm, map, game) {
             whplimit = MHPMAX;
 
         prev_mhp = worm.mhp;
-        worm.mhp += d(2, 2);
+        worm.mhp += c_d(2, 2);
         whpcap = Math.max(whplimit, worm.mhpmax);
         if (worm.mhp < whpcap) {
             if (worm.mhp > whplimit)
@@ -215,7 +215,7 @@ export function worm_nomove(worm, map) {
     shrink_worm(worm.wormno, map);
 
     if (worm.mhp > count_wsegs(worm)) {
-        worm.mhp -= d(2, 2);
+        worm.mhp -= c_d(2, 2);
         if (worm.mhp < 1)
             worm.mhp = 1;
     }
@@ -332,8 +332,8 @@ export async function cutworm(worm, x, y, cuttier, map, player, game) {
     new_worm.m_lev = worm.m_lev;
 
     // Calculate lower-level mhp
-    new_worm.mhpmax = new_worm.mhp = d(new_worm.m_lev, 8);
-    worm.mhpmax = d(worm.m_lev, 8);
+    new_worm.mhpmax = new_worm.mhp = c_d(new_worm.m_lev, 8);
+    worm.mhpmax = c_d(worm.m_lev, 8);
     if (worm.mhpmax < worm.mhp)
         worm.mhp = worm.mhpmax;
 

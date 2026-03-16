@@ -1307,6 +1307,131 @@ async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, on
     return handler;
 }
 
+// Welcome-only --More-- prompt.  Used when record_more_spaces auto-dismissed
+// the lore text but the welcome --More-- is still active in the C session.
+// Mirrors C's xwaitforspace("\033 ") behaviour: accepts space, ESC, enter/CR.
+function buildWelcomeMorePrompt(welcomeMsg) {
+    const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13);
+    return {
+        source: 'welcome_more',
+        async onKey(ch, g) {
+            if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
+            g.pendingPrompt = null;
+            return { handled: true, tookTime: false, moved: false, prompt: true };
+        },
+    };
+}
+
+// Tutorial menu prompt: two-phase pendingPrompt.
+// Phase 1 (more): consume --More-- dismiss keys for the welcome message.
+// Phase 2 (menu): render PICK_ONE tutorial menu overlay, consume selection keys.
+function buildTutorialMenuPrompt(welcomeMsg) {
+    const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13);
+    let phase = 'more'; // 'more' -> 'menu'
+    // Menu items: 'y' = yes, 'n' = no
+    const menuItems = [
+        { ch: 'y'.charCodeAt(0), label: 'Yes, do a tutorial' },
+        { ch: 'n'.charCodeAt(0), label: 'No, just start play' },
+    ];
+    // Build menu lines matching chargen.js maybeDoTutorial
+    const menuLines = [
+        'Do you want a tutorial?',
+        '',
+        'y - Yes, do a tutorial',
+        'n - No, just start play',
+        '',
+        'Put "OPTIONS=!tutorial" in .nethackrc to skip this query.',
+        '(end)',
+    ];
+
+    const renderMenu = (display) => {
+        if (typeof display?.renderOverlayMenu !== 'function') return;
+        const offx = display.renderOverlayMenu(menuLines);
+        // Position cursor at end of last menu line (matching C tty).
+        // C pads each line with a leading space before the text, so the
+        // cursor lands at offx + 1 + strlen(lastLine).
+        const lastLine = menuLines[menuLines.length - 1] || '';
+        const lastRow = menuLines.length - 1;
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(offx + lastLine.length + 1, lastRow);
+        }
+    };
+
+    const clearAndRerender = (g) => {
+        const display = g?.display;
+        if (display && typeof display.clearScreen === 'function') {
+            display.clearScreen();
+        }
+        if (g.fov && (g.lev || g.map) && (g.u || g.player)) {
+            const map = g.lev || g.map;
+            const player = g.u || g.player;
+            g.fov.compute(map, player.x, player.y);
+            if (typeof display?.renderMap === 'function') {
+                display.renderMap(map, player, g.fov, g.flags);
+            }
+            if (typeof display?.renderStatus === 'function') {
+                display.renderStatus(player);
+            }
+            if (typeof display?.cursorOnPlayer === 'function') {
+                display.cursorOnPlayer(player);
+            }
+        }
+    };
+
+    return {
+        source: 'tutorial_menu',
+        async onKey(ch, g) {
+            if (phase === 'more') {
+                if (!isDismiss(ch)) {
+                    return { handled: true, tookTime: false, moved: false, prompt: true, terminalScreenOwned: true };
+                }
+                // Dismiss the welcome --More--. Clear row 0, then render the menu.
+                phase = 'menu';
+                if (g?.display && typeof g.display.clearRow === 'function') {
+                    g.display.clearRow(0);
+                }
+                if (g?.display) {
+                    g.display.messageNeedsMore = false;
+                    g.display.topMessage = null;
+                }
+                renderMenu(g?.display);
+                // terminalScreenOwned prevents postRender from calling docrt()
+                // which would overwrite the menu overlay.
+                return { handled: true, tookTime: false, moved: false, prompt: true, terminalScreenOwned: true };
+            }
+            // Phase: menu — PICK_ONE behavior
+            if (ch === 27 || ch === 'q'.charCodeAt(0)) {
+                // ESC / q = cancel = treat as "no"
+                g.pendingPrompt = null;
+                clearAndRerender(g);
+                return { handled: true, tookTime: false, moved: false, prompt: true };
+            }
+            if (ch === 32 || ch === 13 || ch === 10) {
+                // Space/Enter = cancel for PICK_ONE with no preselected
+                g.pendingPrompt = null;
+                clearAndRerender(g);
+                return { handled: true, tookTime: false, moved: false, prompt: true };
+            }
+            const item = menuItems.find(m => m.ch === ch);
+            if (!item) {
+                // Unrecognized key — ignore (stay in menu)
+                // terminalScreenOwned prevents postRender from calling docrt()
+                return { handled: true, tookTime: false, moved: false, prompt: true, terminalScreenOwned: true };
+            }
+            // Valid selection
+            g.pendingPrompt = null;
+            if (ch === 'y'.charCodeAt(0)) {
+                // Enter tutorial — for now just clear and re-render
+                // (full tutorial entry would require more complex async handling)
+                await _enterTutorial(g, { direct: false });
+            } else {
+                clearAndRerender(g);
+            }
+            return { handled: true, tookTime: false, moved: false, prompt: true };
+        },
+    };
+}
+
 function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
     const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13 || ch === 16);
     const clearLoreOverlay = (display) => {
@@ -1876,9 +2001,61 @@ export class NetHackGame {
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
             this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg);
+        } else if (urlOpts.showWelcomeMore && urlOpts.character && !this.flags.tutorial) {
+            // Welcome --More-- only (lore was auto-dismissed by record_more_spaces).
+            // Build welcome message for display but only create a --More-- prompt.
+            const roleIdx = this.player.roleIndex;
+            const raceIdx = this.player.race;
+            const female = this.player.gender === FEMALE;
+            const align = this.player.alignment;
+            const greeting = greetingForRole(roleIdx);
+            const rName = roleNameForGender(roleIdx, female);
+            const raceAdj = races[raceIdx].adj;
+            const alignStr = alignName(align);
+            let genderStr = '';
+            if (roles[roleIdx].namef || roles[roleIdx].forceGender) {
+                // Gender implicit in role name or forced — omit
+            } else {
+                genderStr = female ? 'female ' : 'male ';
+            }
+            const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
+            const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+            if (this.display && typeof this.display.putstr_message === 'function') {
+                await this.display.putstr_message(welcomeMsg);
+            }
+            this.pendingPrompt = buildWelcomeMorePrompt(welcomeMsg);
         }
 
-        if (this.flags.tutorial && urlOpts.character) {
+        if (this.flags.tutorial && urlOpts.showTutorialMenu && urlOpts.character) {
+            // Replay path: session recorded C's "Do you want a tutorial?" menu.
+            // Display the welcome message (matching C's hello()) and set up a
+            // pendingPrompt that first shows the welcome --More--, then renders
+            // the tutorial menu as a PICK_ONE overlay.  The replay loop feeds
+            // keys one at a time so each step produces a screen capture.
+            const roleIdx = this.player.roleIndex;
+            const raceIdx = this.player.race;
+            const female = this.player.gender === FEMALE;
+            const align = this.player.alignment;
+            const greeting = greetingForRole(roleIdx);
+            const rName = roleNameForGender(roleIdx, female);
+            const raceAdj = races[raceIdx].adj;
+            const alignStr = alignName(align);
+            let genderStr = '';
+            if (roles[roleIdx].namef || roles[roleIdx].forceGender) {
+            } else {
+                genderStr = female ? 'female ' : 'male ';
+            }
+            const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
+            const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+            if (this.display && typeof this.display.putstr_message === 'function') {
+                await this.display.putstr_message(welcomeMsg);
+                // Render the --More-- marker so the cursor lands on it (matching C).
+                if (typeof this.display.renderMoreMarker === 'function') {
+                    this.display.renderMoreMarker();
+                }
+            }
+            this.pendingPrompt = buildTutorialMenuPrompt(welcomeMsg);
+        } else if (this.flags.tutorial && urlOpts.character) {
             const replayStartupPrompts = Array.isArray(urlOpts.replayTutorialStartupPrompts)
                 ? urlOpts.replayTutorialStartupPrompts.filter((s) => String(s || '').length > 0)
                 : [];

@@ -912,7 +912,7 @@ async function mhitu_ad_heal(monster, attack, player, mhm, ctx) {
         // C ref: uhitm.c:4338 — nurse teleport/flee
         if (!rn2(33)) {
             // C ref: uhitm.c:4341 — d(3,6) for flee timer
-            d(3, 6);
+            c_d(3, 6);
         }
         mhm.damage = 0;
     } else {
@@ -2177,7 +2177,7 @@ export async function gazemu(mtmp, mattk, player, map, display) {
                 // Cancelled — just look confused
                 if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks confused.`);
             } else {
-                const conf = d(3, 4);
+                const conf = c_d(3, 4);
                 mtmp.mspec_used = (mtmp.mspec_used || 0) + conf + rn2(6);
                 if (!player.confused) {
                     if (display) await display.putstr_message(`The ${x_monnam(mtmp)}'s gaze confuses you!`);
@@ -2197,7 +2197,7 @@ export async function gazemu(mtmp, mattk, player, map, display) {
             if (cancelled) {
                 if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks stunned.`);
             } else {
-                const stun = d(2, 6);
+                const stun = c_d(2, 6);
                 mtmp.mspec_used = (mtmp.mspec_used || 0) + stun + rn2(6);
                 if (display) await display.putstr_message(`The ${x_monnam(mtmp)} stares piercingly at you!`);
                 const oldTimeout = player.getPropTimeout
@@ -2230,7 +2230,7 @@ export async function gazemu(mtmp, mattk, player, map, display) {
                 const reaction = rn2(2) ? 'irritated' : 'inflamed';
                 if (display) await display.putstr_message(`The ${x_monnam(mtmp)} looks ${reaction}.`);
             } else {
-                let dmg = d(2, 6);
+                let dmg = c_d(2, 6);
                 if (display) await display.putstr_message(`The ${x_monnam(mtmp)} attacks you with a fiery gaze!`);
                 if (playerHasProp(player, FIRE_RES)) {
                     if (display) await display.putstr_message("The fire doesn't feel hot!");

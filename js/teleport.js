@@ -39,7 +39,7 @@ import { pline } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { Monnam, Amonnam, mon_nam } from './do_name.js';
 import { maybeHandleShopEntryMessage, describeGroundObjectForPlayer } from './shk.js';
-import { deltrap } from './dungeon.js';
+import { deltrap, In_hell } from './dungeon.js';
 import { couldsee } from './vision.js';
 
 function pendingToplineNeedsAck(display) {
@@ -119,8 +119,13 @@ const CC_SKIP_INACCS = 0x10;
 // ============================================================================
 
 export function noteleport_level(mon, map) {
-    // demon court in Gehennom prevents others from teleporting
-    // Simplified: check map.flags.noteleport
+    // C ref: teleport.c:30 — demon court in Gehennom prevents non-demons from teleporting
+    if (map && In_hell(map) && mon?.data
+        && !(is_dlord(mon.data) || is_dprince(mon.data))) {
+        const monsters = map.monsters || [];
+        if (monsters.some(m => m_blocks_teleporting(m))) return true;
+    }
+    // natural no-teleport level
     if (map && map.flags && map.flags.noteleport) return true;
     return false;
 }

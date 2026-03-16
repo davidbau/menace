@@ -31,7 +31,7 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER, is_metallivore } from './mondata.js';
 import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
-import { newsym, map_trap } from './display.js';
+import { newsym, map_trap, feel_newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { find_mac, which_armor } from './worn.js';
@@ -53,6 +53,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          WEB, STATUE_TRAP, MAGIC_TRAP, ANTI_MAGIC,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
+import { ynFunction } from './input.js';
 import { game as _gstate } from './gstate.js';
 import { makemon, runtimeApplyNewchamRandom, set_malign } from './makemon.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
@@ -416,7 +417,7 @@ async function trapeffect_rocktrap_mon(mon, trap, map, player, fov) {
     trap.once = 1;
     const otmp = t_missile(ROCK, trap);
     if (in_sight) seetrap(trap);  // C ref: trap.c:1377 — only if visible
-    if (await thitm(0, mon, otmp, d(2, 6), false, map, player))
+    if (await thitm(0, mon, otmp, c_d(2, 6), false, map, player))
         trapkilled = true;
 
     return trapkilled ? Trap_Killed_Mon
@@ -572,7 +573,7 @@ async function trapeffect_rust_trap_mon(mon, trap, map, player, fov) {
 async function trapeffect_fire_trap_mon(mon, trap, map, player) {
     let trapkilled = false;
     const mptr = mons[mon.mndx] || {};
-    const orig_dmg = d(2, 4);
+    const orig_dmg = c_d(2, 4);
 
     if (resists_fire(mon)) {
         // immune — no damage
@@ -759,7 +760,7 @@ async function trapeffect_anti_magic_mon(mon, trap, map, player, fov) {
         // lose spell energy
         if (!mon.mcan && (attacktype(mptr, AT_MAGC)
                           || attacktype(mptr, AT_BREA))) {
-            mon.mspec_used = (mon.mspec_used || 0) + d(2, 6);
+            mon.mspec_used = (mon.mspec_used || 0) + c_d(2, 6);
             if (in_sight) {
                 seetrap(trap);
                 pline_mon(mon, "%s seems lethargic.", Monnam(mon));
@@ -1760,7 +1761,7 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 22:
       case 21:
         await pline(`${Tobjnam(obj, "explode")}!`);
-        await losehp(d(6, 6), `exploding ${xname(obj)}`, KILLED_BY_AN, player, game?.display, game);
+        await losehp(c_d(6, 6), `exploding ${xname(obj)}`, KILLED_BY_AN, player, game?.display, game);
         await exercise(player, A_STR, false);
         return true;
       case 20:
@@ -1791,14 +1792,14 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
       case 7:
       case 6:
         await You("are jolted by a surge of electricity!");
-        await losehp(d(4, 4), "electric shock", KILLED_BY_AN, player, game?.display, game);
+        await losehp(c_d(4, 4), "electric shock", KILLED_BY_AN, player, game?.display, game);
         break;
       case 5:
       case 4:
       case 3:
         if (!player.Free_action) {
           await pline("Suddenly you are frozen in place!");
-          if (game) game.multi = -(d(5, 6));
+          if (game) game.multi = -(c_d(5, 6));
           await exercise(player, A_DEX, false);
         } else {
           await You("momentarily stiffen.");
@@ -1864,7 +1865,9 @@ export async function untrap_box(box, force, confused, player) {
     box.tknown = 1;
     observe_object(box);
     if (!confused) await exercise(player, A_WIS, true);
-    if (ynq("Disarm it?") === 'y') await disarm_box(box, force, confused);
+    // C ref: trap.c:5739 ynq("Disarm it?") — default 'q'
+    const ans = await ynFunction("Disarm it?", 'ynq', 'q'.charCodeAt(0), _gstate?.display);
+    if (String.fromCharCode(ans) === 'y') await disarm_box(box, force, confused);
   }
   else { await You("find no traps on %s.", the(xname(box))); }
 }
@@ -2078,7 +2081,7 @@ async function steedintrap(trap, otmp, player, game, map) {
 // C ref: trap.c:4141 dofiretrap() — fire trap effect on player
 // Called with null box for floor fire trap.
 async function dofiretrap(box, player, game, map) {
-    const orig_dmg = d(2, 4);
+    const orig_dmg = c_d(2, 4);
     let num = orig_dmg;
 
     // C: Underwater / is_pool check — simplified
@@ -2112,7 +2115,7 @@ async function dofiretrap(box, player, game, map) {
             }
             if (alt > num) num = alt;
         } else {
-            num = d(2, 4);
+            num = c_d(2, 4);
             // C: reduce uhpmax by rn2(num+1) — simplified
             if (player?.uhpmax !== undefined) {
                 player.uhpmax = Math.max(1, player.uhpmax - rn2(num + 1));
@@ -2278,7 +2281,7 @@ async function trapeffect_rocktrap_you(trap, trflags, player, game, map) {
     }
     trap.once = 1;
     feeltrap(trap);
-    const dmg = d(2, 6);
+    const dmg = c_d(2, 6);
     const otmp = t_missile(ROCK, trap);
     place_object(otmp, player.x, player.y, map);
     await pline('A trap door in the ceiling opens and a rock falls on your head!');
@@ -2665,7 +2668,7 @@ async function trapeffect_anti_magic_you(trap, trflags, player, game, map) {
                      player, game?.display, game);
     }
     // Energy drain
-    const drain = d(2, 6);
+    const drain = c_d(2, 6);
     const halfd = rnd(Math.floor(drain / 2));
     let actualDrain = drain;
     if ((player.uenmax || 0) > drain) {

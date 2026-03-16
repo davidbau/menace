@@ -22,7 +22,7 @@
 //     inside_f: number, player_flags: number, monsters: number[],
 //     visible: bool, glyph: number, arg: number }
 
-import { rn1, rn2, rnd, d } from './rng.js';
+import { rn1, rn2, rnd, d, c_d } from './rng.js';
 import { pline, You, You_feel, pline_The, You_see } from './pline.js';
 import { isok, ACCESSIBLE, COLNO, ROWNO, M_POISONGAS_OK, POISON_RES } from './const.js';
 import { newsym } from './display.js';
@@ -937,7 +937,7 @@ export async function region_safety(map, player, game) {
         if (region_danger(map, player)) {
             // Grant temporary breathlessness
             // set_itimeout(&HMagical_breathing, d(4,4)+4)
-            const dur = d(4, 4) + 4;
+            const dur = c_d(4, 4) + 4;
             if (player.uprops) {
                 // Simplified: set breathless timeout
                 player.breathlessTimeout = dur;

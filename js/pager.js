@@ -987,7 +987,7 @@ export async function handleHelp(game) {
     } else if (c === 'i') {
         await showMoreTextPages(display, OPTIONS_FULL_COMMAND_HELP_TEXT);
         if (typeof game.docrt === 'function') {
-            game.docrt();
+            await game.docrt();
         }
     } else if (c === 'j') {
         await showPager(display, keyHelpText, 'Key Bindings');

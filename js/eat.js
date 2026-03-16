@@ -1,8 +1,8 @@
 // eat.js -- Eating mechanics
 // cf. eat.c — doeat, start_eating, eatfood, bite, corpse intrinsics, hunger
 
-import { rn2, rn1, rnd, d } from './rng.js';
-import { more, nhgetch } from './input.js';
+import { rn2, rn1, rnd, d, c_d } from './rng.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import { Is_astralevel } from './dungeon.js';
 import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
@@ -16,7 +16,7 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS, SCR_MAIL,
          WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
 import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js';
-import { corpse_xname, singular, the, an, obj_is_pname } from './objnam.js';
+import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf } from './objnam.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
@@ -837,13 +837,13 @@ async function givit(player, type, ptr) {
         // Timed resistance
         await You_feel('less concerned about being harmed by acid.');
         prop.intrinsic = (prop.intrinsic & ~TIMEOUT)
-            | Math.min(((prop.intrinsic & TIMEOUT) + d(3, 6)), TIMEOUT);
+            | Math.min(((prop.intrinsic & TIMEOUT) + c_d(3, 6)), TIMEOUT);
         break;
     case STONE_RES:
         // Timed resistance
         await You_feel('less concerned about becoming petrified.');
         prop.intrinsic = (prop.intrinsic & ~TIMEOUT)
-            | Math.min(((prop.intrinsic & TIMEOUT) + d(3, 6)), TIMEOUT);
+            | Math.min(((prop.intrinsic & TIMEOUT) + c_d(3, 6)), TIMEOUT);
         break;
     }
 }
@@ -1033,7 +1033,7 @@ async function cpostfx(player, pm, display) {
         break;
     case PM_DISPLACER_BEAST:
         // Would grant temporary displacement; consume d(6,6)
-        d(6, 6);
+        c_d(6, 6);
         break;
     case PM_DISENCHANTER:
         // Would strip a random intrinsic
@@ -1137,7 +1137,7 @@ async function rottenfood(player, obj) {
             await You_feel('rather trippy.');
         else
             await You_feel('rather light-headed.');
-        const confDuration = d(2, 4);
+        const confDuration = c_d(2, 4);
         const oldConf = player.getPropTimeout ? player.getPropTimeout(CONFUSION) : 0;
         if (player.ensureUProp) {
             const entry = player.ensureUProp(CONFUSION);
@@ -1146,7 +1146,7 @@ async function rottenfood(player, obj) {
     } else if (!rn2(4)) {
         // C: make_blinded(Blinded + d(2,10), FALSE) — only if !Blind
         await pline('Everything suddenly goes dark.');
-        const blindDuration = d(2, 10);
+        const blindDuration = c_d(2, 10);
         // TODO: apply blindness when blind system is ported
     } else if (!rn2(3)) {
         const duration = rnd(10);
@@ -1304,7 +1304,7 @@ async function fprefx(player, otmp, reqtime, map) {
     case EGG:
         if (otmp.corpsenm === PM_PYROLISK) {
             // C: explode(u.ux, u.uy, -11, d(3,6), 0, EXPL_FIERY)
-            d(3, 6); // consume RNG for explosion damage
+            c_d(3, 6); // consume RNG for explosion damage
             // TODO: actual explosion when explode() is ported
             return false; // abort eating
         }
@@ -1312,7 +1312,7 @@ async function fprefx(player, otmp, reqtime, map) {
         if (otmp.age && game && game.moves && (game.moves - otmp.age) > 250) {
             await pline('Ugh.  Rotten egg.');
             // C: make_vomiting((Vomiting & TIMEOUT) + d(10, 4), TRUE)
-            const vomDuration = d(10, 4);
+            const vomDuration = c_d(10, 4);
             // TODO: apply make_vomiting when ported
         } else {
             giveFeedback = true;
@@ -2295,7 +2295,10 @@ export async function use_tin_opener(obj) {
   if (obj !== uwep) {
     if (obj.cursed && obj.bknown) {
       let qbuf;
-      if (ynq(safe_qbuf(qbuf, "Really wield ", "?", obj, doname, thesimpleoname, "that")) !== 'y') return ECMD_OK;
+      // C ref: eat.c:3099 ynq(safe_qbuf(..., doname, thesimpleoname, "that"))
+      const prompt = safe_qbuf("Really wield ", "?", doname(obj), "that");
+      const ans = await ynFunction(prompt, 'ynq', 'q'.charCodeAt(0), _gstate?.display);
+      if (String.fromCharCode(ans) !== 'y') return ECMD_OK;
     }
     if (!await wield_tool(obj, "use")) return ECMD_OK;
     res = ECMD_TIME;

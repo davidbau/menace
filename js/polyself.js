@@ -1915,7 +1915,7 @@ export async function dogaze(player, map) {
                 if (mtmp.mconf !== undefined) mtmp.mconf = 1;
             } else if (adtyp === AD_FIRE) {
                 // RNG: d(2,6) for fire damage, rn2(20) for item destroy chance
-                let dmg = d(2, 6);
+                let dmg = c_d(2, 6);
                 const orig_dmg = dmg;
                 const lev = player.ulevel || 1;
 

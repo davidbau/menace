@@ -45,7 +45,7 @@ import { place_object } from './mkobj.js';
 import { an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
@@ -1283,8 +1283,8 @@ export async function domove_core(dir, player, map, display, game) {
         }
         // C ref: trap.c dofiretrap() for hero path (non-resistant baseline)
         else if (trap.ttyp === FIRE_TRAP) {
-            const origDmg = d(2, 4);
-            const fireDmg = d(2, 4);
+            const origDmg = c_d(2, 4);
+            const fireDmg = c_d(2, 4);
             await display.putstr_message('A tower of flame erupts from the floor!');
             await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player, display, game);
             // C ref: burnarmor(&youmonst) || rn2(3)
@@ -3810,8 +3810,9 @@ export function u_simple_floortyp(x, y, player, map) {
 }
 
 // C ref: hack.c feel_location() — feel terrain when blind
-export function feel_location(_x, _y, _map) {
-    // Display update for blind hero; stub.
+// Delegates to the full implementation in display.js
+export function feel_location(x, y, map) {
+    display_feel_location(x, y, map);
 }
 
 // C ref: hack.c feel_newsym() — update map display for a newly felt/seen location.
@@ -3842,7 +3843,7 @@ export async function lava_effects(player, map, display) {
         return false;
     }
     // Damage from lava
-    const dmg = d(6, 6);
+    const dmg = c_d(6, 6);
     if (display) await display.putstr_message("The lava burns you!");
     await losehp(dmg, "molten lava", KILLED_BY, player, display, _gstate);
     return false;

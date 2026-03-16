@@ -63,6 +63,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
 import { more, nhgetch, ynFunction, cmdq_add_ec, cmdq_add_key } from './input.js';
+import { do_play_instrument } from './music.js';
 import { doname, xname } from './mkobj.js';
 import { make_glib, make_blinded, incr_itimeout, set_itimeout } from './potion.js';
 import { gulp_blnd_check } from './mhitu.js';
@@ -71,7 +72,7 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT, HAND, FACE, HEAD, CQ_CANNED } from './const.js';
-import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
+import { rn2, rnd, rn1, d, c_d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { pline, You, Your, You_cant, You_hear,
@@ -496,7 +497,7 @@ export async function use_lamp(obj) {
     if (obj.cursed && !rn2(2)) {
         if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) && !rn2(3)) {
             await pline("The lamp spills and covers your fingers with oil.");
-            make_glib(player, (player.getPropTimeout(GLIB) || 0) + d(2, 10));
+            make_glib(player, (player.getPropTimeout(GLIB) || 0) + c_d(2, 10));
         } else {
             await pline("%s flickers for a moment, then dies.", xname(obj));
         }
@@ -711,7 +712,7 @@ export async function use_unicorn_horn(obj, player) {
         }
     }
     // C: val_limit = rn2(d(2, blessed ? 4 : 2))
-    const val_limit = rn2(d(2, obj.blessed ? 4 : 2));
+    const val_limit = rn2(c_d(2, obj.blessed ? 4 : 2));
     // Actual trouble curing is simplified — RNG consumed above is what matters
     await pline(nothing_happens);
 }
@@ -1188,6 +1189,16 @@ export async function handleApply(player, map, display, game) {
         if (selected.oclass === WAND_CLASS) {
             const tookTime = await do_break_wand(selected, player, map, display);
             return { moved: false, tookTime };
+        }
+
+        // C ref: apply.c — musical instruments
+        if (selected.otyp === WOODEN_FLUTE || selected.otyp === MAGIC_FLUTE
+            || selected.otyp === TOOLED_HORN || selected.otyp === FROST_HORN
+            || selected.otyp === FIRE_HORN || selected.otyp === BUGLE
+            || selected.otyp === WOODEN_HARP || selected.otyp === MAGIC_HARP
+            || selected.otyp === LEATHER_DRUM || selected.otyp === DRUM_OF_EARTHQUAKE) {
+            const res = await do_play_instrument(selected, player, map, display, game.fov || FOV);
+            return { moved: false, tookTime: res !== 0 };
         }
 
         await display.putstr_message("Sorry, I don't know how to use that.");

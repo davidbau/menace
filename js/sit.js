@@ -1,7 +1,7 @@
 // sit.js -- Sitting effects and related hero intrinsic/inventory curses
 // cf. sit.c -- #sit command, throne effects, rndcurse, attrcurse
 
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FOUNTAIN, ICE, DRAWBRIDGE_DOWN,
          A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
@@ -446,7 +446,7 @@ export async function dosit(player, map, display) {
             } else if (player.utraptype === TT_LAVA) { // TT_LAVA
                 await You("sit in the lava!");
                 player.utrap += rnd(4);
-                const dmg = d(2, 10);
+                const dmg = c_d(2, 10);
                 // TODO: losehp(dmg, "sitting in lava", KILLED_BY)
             } else if (player.utraptype === TT_INFLOOR || player.utraptype === TT_BURIEDBALL) {
                 // TT_INFLOOR or TT_BURIEDBALL
@@ -480,7 +480,7 @@ export async function dosit(player, map, display) {
         }
         await pline_The("lava burns you!");
         {
-            const dmg = d(player.hasProp(FIRE_RES) ? 2 : 10, 10);
+            const dmg = c_d(player.hasProp(FIRE_RES) ? 2 : 10, 10);
             // TODO: losehp(dmg, "sitting on lava", KILLED_BY)
         }
     } else if (is_ice(px, py, map)) {

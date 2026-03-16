@@ -848,7 +848,7 @@ export async function rejectcasting(player) {
     }
     // C: !freehand() — welded weapon+shield
     if (player.weapon?.welded && player.shield &&
-        player.weapon.otyp !== QUARTERSTAFF) {
+        player.weapon?.otyp !== QUARTERSTAFF) {
         await Your("arms are not free to cast!");
         return true;
     }

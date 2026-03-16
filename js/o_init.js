@@ -714,7 +714,7 @@ export async function handleDiscoveries(game) {
         && typeof display.setScreenLines === 'function') {
         display.setScreenLines(savedLines);
     } else if (typeof game.docrt === 'function') {
-        game.docrt();
+        await game.docrt();
     }
     display.topMessage = null;
     display.messageNeedsMore = false;

@@ -32,7 +32,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          BOLT_LIM, NATTK, Upolyd, DIED, ESCAPED, ASCENDED, DROWNING, BURNING, DISSOLVED,
          IS_AIR, IS_WATERWALL } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
-import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
+import { rn2, rnd, rn1, rnl, rnz, d, c_d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
          livelog_printf } from './pline.js';
@@ -94,7 +94,7 @@ import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
 import { set_itimeout, make_sick, make_stunned, make_confused,
          make_hallucinated, make_blinded, make_stoned, make_slimed } from './potion.js';
-import { feel_cockatrice, sobj_at, carried, update_inventory } from './invent.js';
+import { feel_cockatrice, sobj_at, carried, update_inventory, carrying } from './invent.js';
 import { reset_utrap } from './trap.js';
 import { destroy_arm, makeknown } from './do_wear.js';
 import { init_uhunger } from './eat.js';
@@ -253,10 +253,7 @@ function u_wield_art(player, artid) {
     return player.weapon && player.weapon.oartifact === artid;
 }
 
-// Helper: carrying check -- is item type in inventory?
-function carrying(player, otyp) {
-    return player.inventory.some(o => o.otyp === otyp);
-}
+// carrying() imported from invent.js — signature: carrying(type, player)
 
 // Helper: dropy -- drop object at player's feet
 function dropy(obj, player, map) {
@@ -582,7 +579,7 @@ function blocked_boulder(dx, dy, player, map) {
     }
     if (dx && dy && in_sokoban(map)) return true;
     if (!isok(nx, ny)) return true;
-    if (IS_OBSTRUCTED(map.at(nx, ny).typ)) return true;
+    if (IS_OBSTRUCTED(map.at(nx, ny)?.typ)) return true;
     if (sobj_at(BOULDER, nx, ny, map)) return true;
     return false;
 }
@@ -854,7 +851,7 @@ async function fix_worst_trouble(trouble, player, map) {
             await Your("surroundings change.");
         } else {
             // C: set_itimeout(&HPasses_walls, d(4,4)+4) — confer phasing
-            d(4, 4); // consume RNG for passes_walls timeout
+            c_d(4, 4); // consume RNG for passes_walls timeout
             await You_feel("much slimmer.");
         }
         break;
@@ -1150,11 +1147,11 @@ async function gcrownu(player, map) {
     if (Role_if(player, PM_WIZARD)
         && !u_wield_art(player, ART_VORPAL_BLADE)
         && !u_wield_art(player, ART_STORMBRINGER)
-        && !carrying(player, SPE_FINGER_OF_DEATH)) {
+        && !carrying(SPE_FINGER_OF_DEATH, player)) {
         class_gift = SPE_FINGER_OF_DEATH;
     } else if (Role_if(player, PM_MONK)
                && (!player.weapon || !player.weapon.oartifact)
-               && !carrying(player, SPE_RESTORE_ABILITY)) {
+               && !carrying(SPE_RESTORE_ABILITY, player)) {
         class_gift = SPE_RESTORE_ABILITY;
     }
 

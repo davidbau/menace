@@ -21,7 +21,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, BALL_CLASS, CHAIN_CLAS
          BOW, ELVEN_BOW, ORCISH_BOW, YUMI, SLING, CROSSBOW,
          SILVER,
        } from './objects.js';
-import { rnd, d, rn2 } from './rng.js';
+import { rnd, d, c_d, rn2 } from './rng.js';
 import { mon_hates_blessings, mon_hates_silver, mon_hates_light,
          thick_skinned, strongmonst, is_giant, resists_ston, likes_gems,
          is_animal, is_mindless, touch_petrifies, attacktype, x_monnam,
@@ -130,9 +130,9 @@ export function dmgval(otmp, mon) {
         case ACID_VENOM: case HALBERD: case SPETUM:
             tmp += rnd(6); break;
         case BATTLE_AXE: case BARDICHE: case TRIDENT:
-            tmp += d(2, 4); break;
+            tmp += c_d(2, 4); break;
         case TSURUGI: case DWARVISH_MATTOCK: case TWO_HANDED_SWORD:
-            tmp += d(2, 6); break;
+            tmp += c_d(2, 6); break;
         }
     } else {
         if (info.oc_wsdam) tmp = rnd(info.oc_wsdam);

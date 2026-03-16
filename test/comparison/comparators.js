@@ -576,10 +576,14 @@ function isTestMoveEvent(entry) {
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
+// Also normalize oid=NNN values — object IDs are internal counters that don't
+// affect gameplay (Q-section already zeroes oid for the same reason).
 export function stripEventContext(entry) {
     if (typeof entry !== 'string') return entry;
     const at = entry.indexOf('] @');
-    return at >= 0 ? entry.slice(0, at + 1) : entry;
+    let s = at >= 0 ? entry.slice(0, at + 1) : entry;
+    s = s.replace(/\boid=\d+/g, 'oid=X');
+    return s;
 }
 
 export function getComparableEventStreams(jsRng = [], sessionRng = []) {
@@ -672,10 +676,20 @@ function normalizeQRowForComparison(row) {
     ];
 }
 
+function normalizeNRowForComparison(row) {
+    if (!Array.isArray(row) || row.length < 2) return row;
+    // Zero out oid (field 0) — same rationale as Q-section: C and JS assign
+    // monster IDs independently, so m_id values are not comparable.
+    const normalized = row.slice();
+    normalized[0] = 0;
+    return normalized;
+}
+
 function normalizeForSparseComparison(section, rows = []) {
     const list = Array.isArray(rows) ? rows : [];
-    if (section !== 'Q') return list;
-    return list.map(normalizeQRowForComparison);
+    if (section === 'Q') return list.map(normalizeQRowForComparison);
+    if (section === 'N') return list.map(normalizeNRowForComparison);
+    return list;
 }
 
 function hasMapdumpSection(parsed, section) {
@@ -732,7 +746,22 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             // This doesn't affect visible output (screens + colors are compared
             // separately and gate pass/fail).
             if (section === 'L') continue;
-            const diff = findFirstGridDiff(jParsed[field] || [], sParsed[field] || []);
+            // W-section (wallInfoGrid): mask out D_LOCKED (0x08) on STONE cells.
+            // Same root cause as F-section skip: C initializes STONE rm.flags to
+            // D_LOCKED=8; JS doesn't.  D_LOCKED matters for doors, not STONE.
+            let jGrid = jParsed[field] || [];
+            let sGrid = sParsed[field] || [];
+            if (section === 'W') {
+                const typGrid = jParsed.typGrid || [];
+                const D_LOCKED = 0x08;
+                const STONE = 0;
+                const mask = (grid) => grid.map((row, y) =>
+                    (row || []).map((val, x) =>
+                        (typGrid[y] && typGrid[y][x] === STONE) ? (val & ~D_LOCKED) : val));
+                jGrid = mask(jGrid);
+                sGrid = mask(sGrid);
+            }
+            const diff = findFirstGridDiff(jGrid, sGrid);
             if (diff) {
                 idMatch = false;
                 if (!firstDivergence) {
