@@ -1,0 +1,55 @@
+--- a/game.f	2026-03-15 21:28:45
++++ b/game.f	2026-03-15 21:30:53
+@@ -60,6 +60,7 @@
+ 	CALL RAPPLI(RACTIO(HERE))		! room action?
+ C
+ 400	CALL XENDMV(TELFLG)			! do end of move.
++	CALL SURVEIL(MOVES)			! surveillance log.
+ 	IF(.NOT.LIT(HERE)) PRSCON=1		! if not lit, restart.
+ 	GO TO 100
+ C
+@@ -327,5 +328,44 @@
+ 	IMPLICIT INTEGER (A-Z)
+ C
+ 	PROTCT=.TRUE.
++	RETURN
++	END
++
++C SURVEIL-- Log surveillance of key game state after each move
++C
++	SUBROUTINE SURVEIL(MV)
++	IMPLICIT INTEGER(A-Z)
++	INCLUDE 'dparam.for'
++	INTEGER THFINV
++C
++C Count thief inventory
++	THFINV=0
++	DO 10 I=1,OLNT
++	  IF(OADV(I).EQ.-THIEF) THFINV=THFINV+1
++10	CONTINUE
++C
++C Count player inventory
++	PINV=0
++	DO 20 I=1,OLNT
++	  IF(OADV(I).EQ.WINNER) PINV=PINV+1
++20	CONTINUE
++C
++	WRITE(0,100) MV, HERE, PRSA, PRSO, PRSI,
++	1 THFPOS, OROOM(THIEF), THFINV, OCAPAC(THIEF),
++	2 OROOM(TROLL), OCAPAC(TROLL),
++	3 OROOM(CYCLO), OCAPAC(CYCLO),
++	4 CTICK(CEVLNT), SWDSTA, CAROFF,
++	5 RWSCOR, ASTREN(PLAYER),
++	6 PINV, DEADF
++100	FORMAT('SURVEIL:',
++	1 ' mv=',I4,' here=',I4,
++	2 ' prsa=',I4,' prso=',I4,' prsi=',I4,
++	3 ' thfpos=',I4,' thfroom=',I4,
++	4 ' thfinv=',I3,' thfstr=',I3,
++	5 ' trollrm=',I4,' trollhp=',I3,
++	6 ' cyclrm=',I4,' cyclhp=',I3,
++	7 ' lamp=',I4,' sword=',I2,' caroff=',L1,
++	8 ' score=',I4,' pstr=',I4,
++	9 ' pinv=',I3,' dead=',L1)
+ 	RETURN
+ 	END
