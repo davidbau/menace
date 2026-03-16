@@ -383,6 +383,24 @@ export async function select_menu(win, how, opts = null) {
                 selected.add(item.ch);
             }
         }
+
+        // C ref: wintty.c process_menu_window — item letters only select items
+        // on the current page. Items on other pages are rejected. Group
+        // accelerators (gch) toggle across ALL pages.
+        // Compute which mlist items are visible on the current page.
+        const headerLines = (w.prompt ? 2 : 1); // prompt + blank, or just blank
+        const contentRows = Math.max(1, displayRows - 1); // 1 row for page indicator
+        const totalContentLines = headerLines + w.mlist.length;
+        const totalPages = Math.max(1, Math.ceil(totalContentLines / contentRows));
+        const itemsOnPage = (page) => {
+            const normPage = Math.max(0, Math.min(page, totalPages - 1));
+            const start = normPage * contentRows;
+            // mlist[i] maps to content line (headerLines + i)
+            const firstItem = Math.max(0, start - headerLines);
+            const lastItem = Math.min(w.mlist.length, start + contentRows - headerLines);
+            return { firstItem, lastItem };
+        };
+
         // C ref: wintty.c — menus are paged. Space advances to next page.
         // On the last page, space confirms selections (or cancels if none).
         // C's page_lines is typically LI-4 = 20 lines per page.
@@ -404,6 +422,8 @@ export async function select_menu(win, how, opts = null) {
             } else if (ch === '-'.charCodeAt(0)) {
                 selected.clear();
             } else {
+                // C ref: wintty.c — group accelerators toggle ALL items with
+                // that group across ALL pages.
                 const grouped = w.mlist.filter((item) => item.gch === ch && item.ch);
                 if (grouped.length > 0) {
                     for (const item of grouped) selected.add(item.ch);
@@ -421,10 +441,16 @@ export async function select_menu(win, how, opts = null) {
                         return result.length ? result : null;
                     }
                 } else {
-                    const item = w.mlist.find(i => i.ch === ch);
-                    if (item && item.ch) {
-                        if (selected.has(item.ch)) selected.delete(item.ch);
-                        else selected.add(item.ch);
+                    // C ref: wintty.c — item letters only match items on the
+                    // CURRENT page. Items on other pages are silently rejected.
+                    const { firstItem, lastItem } = itemsOnPage(currentPage);
+                    let matched = null;
+                    for (let idx = firstItem; idx < lastItem; idx++) {
+                        if (w.mlist[idx].ch === ch) { matched = w.mlist[idx]; break; }
+                    }
+                    if (matched && matched.ch) {
+                        if (selected.has(matched.ch)) selected.delete(matched.ch);
+                        else selected.add(matched.ch);
                     }
                 }
             }
