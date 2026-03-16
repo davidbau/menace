@@ -21,7 +21,7 @@ import { is_rider, touch_petrifies, nohands, nolimbs,
          poly_when_stoned } from './mondata.js';
 import { W_ARMOR, W_ACCESSORY, W_WEAPONS, W_SADDLE, nul_glyphinfo, STONE_RES,
          MENU_ITEMFLAGS_SELECTED } from './const.js';
-import { rn2, rnd, d } from './rng.js';
+import { rn2, rnd, d, c_d } from './rng.js';
 import { pline, You, Your, You_cant, pline_The, There, Norep,
          impossible } from './pline.js';
 import { body_part } from './polyself.js';
@@ -811,7 +811,7 @@ async function in_container(obj, player) {
         await pline("As you put %s inside, you are blasted by a magical explosion!",
               doname(obj, player));
         // d(6,6) damage — RNG preserved
-        const dmg = d(6, 6);
+        const dmg = c_d(6, 6);
         // losehp stub
         await do_boh_explosion(current_container, !carried(current_container));
         current_container = null;

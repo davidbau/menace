@@ -71,7 +71,7 @@ import { IS_DOOR, IS_STWALL, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN,
          isok, COLNO, ROWNO, IS_OBSTRUCTED,
          SICK, BLINDED, GLIB, HALLUC, VOMITING, CONFUSION, STUNNED, DEAF,
          TIMEOUT, HAND, FACE, HEAD, CQ_CANNED } from './const.js';
-import { rn2, rnd, rn1, d, shuffle_int_array } from './rng.js';
+import { rn2, rnd, rn1, d, c_d, shuffle_int_array } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr } from './attrib.js';
 import { pline, You, Your, You_cant, You_hear,
@@ -496,7 +496,7 @@ export async function use_lamp(obj) {
     if (obj.cursed && !rn2(2)) {
         if ((obj.otyp === OIL_LAMP || obj.otyp === MAGIC_LAMP) && !rn2(3)) {
             await pline("The lamp spills and covers your fingers with oil.");
-            make_glib(player, (player.getPropTimeout(GLIB) || 0) + d(2, 10));
+            make_glib(player, (player.getPropTimeout(GLIB) || 0) + c_d(2, 10));
         } else {
             await pline("%s flickers for a moment, then dies.", xname(obj));
         }

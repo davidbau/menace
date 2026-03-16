@@ -65,7 +65,7 @@ import { in_your_sanctuary, inhistemple, p_coaligned } from './priest.js';
 import { create_gas_cloud } from './region.js';
 import { makemon, makemon_appear } from './makemon.js';
 
-import { rn2, rnd, rnl, d, pushRngLogEntry, withRngTag } from './rng.js';
+import { rn2, rnd, rnl, d, c_d, pushRngLogEntry, withRngTag } from './rng.js';
 import { BOULDER, COIN_CLASS, SCR_SCARE_MONSTER, CLOVE_OF_GARLIC,
          AMULET_OF_STRANGULATION, RIN_SLOW_DIGESTION,
          ROCK_CLASS, RANDOM_CLASS, FOOD_CLASS, ARMOR_CLASS,
@@ -1230,7 +1230,7 @@ export function make_corpse(mon, corpseflags, map) {
     }
     case PM_IRON_GOLEM:
         // C ref: mon.c:631-636 — iron chains
-        num = d(2, 6);
+        num = c_d(2, 6);
         while (num-- > 0)
             obj = mksobj_at(IRON_CHAIN, x, y, true, false);
         makeDefaultCorpse = false;
@@ -1238,7 +1238,7 @@ export function make_corpse(mon, corpseflags, map) {
 
     case PM_GLASS_GOLEM:
         // C ref: mon.c:637-643 — glass gems
-        num = d(2, 4);
+        num = c_d(2, 4);
         while (num-- > 0)
             obj = mksobj_at(FIRST_GLASS_GEM + rn2(NUM_GLASS_GEMS), x, y, true, false);
         makeDefaultCorpse = false;
@@ -1262,7 +1262,7 @@ export function make_corpse(mon, corpseflags, map) {
 
     case PM_WOOD_GOLEM:
         // C ref: mon.c:655-666 — wooden items
-        num = d(2, 4);
+        num = c_d(2, 4);
         while (num-- > 0) {
             obj = mksobj_at(
                 rn2(2) ? QUARTERSTAFF
@@ -1288,7 +1288,7 @@ export function make_corpse(mon, corpseflags, map) {
 
     case PM_LEATHER_GOLEM:
         // C ref: mon.c:676-683 — leather items
-        num = d(2, 4);
+        num = c_d(2, 4);
         while (num-- > 0)
             obj = mksobj_at(
                 rn2(4) ? LEATHER_ARMOR
@@ -1868,7 +1868,7 @@ async function minliquid_core(mon, map, player) {
 
     // Iron golem rusting in pools
     if (mon.mndx === PM_IRON_GOLEM && inpool && !rn2(5)) {
-        const dam = d(2, 6);
+        const dam = c_d(2, 6);
         mon.mhp = (mon.mhp || 0) - dam;
         if ((mon.mhpmax || 0) > dam)
             mon.mhpmax -= dam;

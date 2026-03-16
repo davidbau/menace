@@ -1137,7 +1137,7 @@ export async function bhitm(mon, otmp, map, player) {
       // shieldeff + "Boing!" — no rnd(20), no damage, no resist() RNG
       await pline("Boing!");
     } else if (player?.uswallow || rnd(20) < 10 + mac) {
-      let dmg = d(2, 12);
+      let dmg = c_d(2, 12);
       if (otyp === SPE_FORCE_BOLT) {
         dmg = spell_damage_bonus(dmg, player);
       }
@@ -2159,12 +2159,12 @@ export async function zap_updown(obj, player, map) {
     case SPE_STONE_TO_FLESH:
       if (engr.type === 'engrave') {
         await pline("The edges on the floor get smoother.");
-        await wipe_engr_at(map, x, y, d(2, 4), true);
+        await wipe_engr_at(map, x, y, c_d(2, 4), true);
       }
       break;
     case WAN_STRIKING:
     case SPE_FORCE_BOLT:
-      await wipe_engr_at(map, x, y, d(2, 4), true);
+      await wipe_engr_at(map, x, y, c_d(2, 4), true);
       break;
     default:
       break;
@@ -2500,7 +2500,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     break;
   case WAN_LIGHTNING: {
     // C: orig_dmg = d(12, 6) consumed unconditionally (before resistance check)
-    const orig_dmg = d(12, 6);
+    const orig_dmg = c_d(12, 6);
     if (player.hasProp(SHOCK_RES)) {
       await pline('You zap yourself, but seem unharmed.');
     } else {
@@ -2516,7 +2516,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     break;
   }
   case WAN_FIRE: {
-    const orig_dmg = d(12, 6);
+    const orig_dmg = c_d(12, 6);
     if (player.hasProp(FIRE_RES)) {
       await pline('You feel rather warm.');
     } else {
@@ -2532,7 +2532,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     break;
   }
   case WAN_COLD: {
-    const orig_dmg = d(12, 6);
+    const orig_dmg = c_d(12, 6);
     if (player.hasProp(COLD_RES)) {
       await pline('You feel a little chill.');
     } else {
@@ -2549,7 +2549,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
       await pline('The missiles bounce!');
     } else {
       await pline("Idiot!  You've shot yourself!");
-      damage = d(4, 6);
+      damage = c_d(4, 6);
     }
     break;
   case WAN_CANCELLATION:
@@ -2570,7 +2570,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     break;
   default:
     await pline('You zap yourself.');
-    damage = d(2, 6);
+    damage = c_d(2, 6);
     break;
   }
   if (Number.isFinite(player.uhp) && damage > 0) player.uhp -= damage;
@@ -3223,7 +3223,7 @@ export function unturn_dead(_obj, mon, map, player) {
   if (!mon) return false;
   const mdat = mons[mon.mndx] || {};
   if (!is_undead(mdat)) return false;
-  mon.mhp -= d(2, 6);
+  mon.mhp -= c_d(2, 6);
   if (mon.mhp <= 0) disintegrate_mon(mon, map, player);
   return true;
 }

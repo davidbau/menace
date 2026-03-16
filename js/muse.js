@@ -19,7 +19,7 @@ import { isok, STAIRS, LADDER, SCORR, CORR, ACCESSIBLE,
          XKILL_NOMSG, XKILL_NOCONDUCT,
          W_ARM, W_ARMH, W_ARMS, W_AMUL, W_WEP, W_ARMG,
          BOLT_LIM, MFAST, P_DAGGER, P_KNIFE } from './const.js';
-import { rn2, rnd, rn1, d } from './rng.js';
+import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { pline, pline_mon, You_hear } from './pline.js';
 import { dist2, distmin } from './hacklib.js';
 import { mondead, monnear, helpless as monHelpless } from './mon.js';
@@ -1546,7 +1546,7 @@ async function mbhitm(mtmp, otmp, map, player) {
                 learnit = true;
             } else if (rnd(20) < 10 + (player.ac ?? 10)) {
                 await pline('The wand hits you!');
-                tmp = d(2, 12);
+                tmp = c_d(2, 12);
                 if (player.halfSpellDamage) tmp = Math.floor((tmp + 1) / 2);
                 player.uhp = Math.max(0, (player.uhp || 0) - tmp);
                 learnit = true;
@@ -1558,7 +1558,7 @@ async function mbhitm(mtmp, otmp, map, player) {
             if (resists_magm(mtmp)) {
                 learnit = true;
             } else if (rnd(20) < 10 + find_mac(mtmp)) {
-                tmp = d(2, 12);
+                tmp = c_d(2, 12);
                 // C ref: zap.c:209 — resist() halves damage if monster resists
                 if (resist(mtmp, WAND_CLASS)) {
                     tmp = Math.floor((tmp + 1) / 2);

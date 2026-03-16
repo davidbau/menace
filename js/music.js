@@ -13,7 +13,7 @@
 //   awaken_soldiers(): wake all soldiers when bugle is played.
 //   do_earthquake(): create multiple pits from instrument use.
 
-import { rn2, rnd, rn1, d, rnl } from './rng.js';
+import { rn2, rnd, rn1, d, c_d, rnl } from './rng.js';
 import { exercise } from './attrib_exercise.js';
 import { incr_itimeout } from './potion.js';
 import { acurr as ACURR } from './attrib.js';
@@ -112,7 +112,7 @@ export function put_monsters_to_sleep(distance, map, player) {
     for (const mtmp of (map.monsters || [])) {
         if (DEADMONSTER(mtmp)) continue;
         if (mdistu(mtmp, player) < distance
-            && sleep_monst(mtmp, d(10, 10), TOOL_CLASS)) {
+            && sleep_monst(mtmp, c_d(10, 10), TOOL_CLASS)) {
             mtmp.msleeping = 1; /* 10d10 turns + wake_nearby to rouse */
             slept_monst(mtmp);
         }

@@ -1283,8 +1283,8 @@ export async function domove_core(dir, player, map, display, game) {
         }
         // C ref: trap.c dofiretrap() for hero path (non-resistant baseline)
         else if (trap.ttyp === FIRE_TRAP) {
-            const origDmg = d(2, 4);
-            const fireDmg = d(2, 4);
+            const origDmg = c_d(2, 4);
+            const fireDmg = c_d(2, 4);
             await display.putstr_message('A tower of flame erupts from the floor!');
             await losehp(Math.max(0, fireDmg), "a fire trap", KILLED_BY_AN, player, display, game);
             // C ref: burnarmor(&youmonst) || rn2(3)
@@ -3842,7 +3842,7 @@ export async function lava_effects(player, map, display) {
         return false;
     }
     // Damage from lava
-    const dmg = d(6, 6);
+    const dmg = c_d(6, 6);
     if (display) await display.putstr_message("The lava burns you!");
     await losehp(dmg, "molten lava", KILLED_BY, player, display, _gstate);
     return false;

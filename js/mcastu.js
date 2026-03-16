@@ -4,7 +4,7 @@
 //                cast_wizard_spell, cast_cleric_spell,
 //                is_undirected_spell, spell_would_be_useless
 
-import { rn2, rnd, d } from './rng.js';
+import { rn2, rnd, d, c_d } from './rng.js';
 import {
   AD_FIRE, AD_COLD, AD_ELEC, AD_MAGM, AD_SLEE, AD_DISN, AD_DRST, AD_ACID, AD_SPC2, AD_SPEL, AD_CLRC, AT_MAGC,
 } from './monsters.js';
@@ -78,7 +78,7 @@ export function choose_clerical_spell(n) {
 
 // cf. mcastu.c:359 — m_cure_self(mtmp, dmg)
 export function m_cure_self(mtmp, dmg) {
-  const heal = d(3, 6);
+  const heal = c_d(3, 6);
   if (mtmp.mhp < mtmp.mhpmax) {
     mtmp.mhp = Math.min(mtmp.mhpmax, mtmp.mhp + heal);
   }
@@ -90,7 +90,7 @@ export function touch_of_death(mtmp, player) {
   if (!player) return 0;
   // C-like shape: fatal touch unless protected by antimagic/magic resistance.
   const resisted = !!player.antimagic;
-  const dmg = resisted ? d(8, 6) : (50 + d(8, 6));
+  const dmg = resisted ? c_d(8, 6) : (50 + c_d(8, 6));
   if (player.uhp !== undefined) {
     player.uhp = Math.max(0, player.uhp - dmg);
   } else if (player.hp !== undefined) {
@@ -166,21 +166,21 @@ export function cast_cleric_spell(mtmp, dmg, spellid, player, map) {
     case CLC_GEYSER:
       // Geyser: d(8, 6) physical damage
       if (player) {
-        const gdam = d(8, 6);
+        const gdam = c_d(8, 6);
         // Would apply physical damage
       }
       break;
     case CLC_FIRE_PILLAR:
       // Fire pillar: d(8, 6) fire damage
       if (player) {
-        const fdam = d(8, 6);
+        const fdam = c_d(8, 6);
         // Would apply fire damage + burnarmor
       }
       break;
     case CLC_LIGHTNING:
       // Lightning: d(8, 6) electrical damage
       if (player) {
-        const edam = d(8, 6);
+        const edam = c_d(8, 6);
         // Would apply electrical damage + blind via flashburn(rnd(100))
         rnd(100); // blind duration RNG consumed
       }
