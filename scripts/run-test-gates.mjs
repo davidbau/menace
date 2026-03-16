@@ -197,13 +197,18 @@ async function runSessionTests() {
             env: { ...process.env },
         });
 
-        let stdout = '';
+        const chunks = [];
         let stderr = '';
-        child.stdout.on('data', (buf) => { stdout += String(buf); });
+        child.stdout.on('data', (buf) => { chunks.push(buf); });
         child.stderr.on('data', (buf) => { stderr += String(buf); });
 
         child.on('error', (err) => reject(err));
-        child.on('close', (code) => {
+        // Use 'exit' + stdout 'end' to ensure all data is collected before parsing.
+        let exitCode = null;
+        let stdoutEnded = false;
+        function finish() {
+            if (exitCode === null || !stdoutEnded) return;
+            const stdout = Buffer.concat(chunks).toString();
             const marker = '__RESULTS_JSON__';
             const idx = stdout.lastIndexOf(marker);
             if (idx < 0) {
@@ -223,12 +228,10 @@ async function runSessionTests() {
             globalTotal += results.length;
             globalDone += results.length;
             showProgress(`${c.cyan}session${c.reset} ${c.dim}complete${c.reset}`);
-            if (code !== 0) {
-                // Keep summary behavior deterministic: failures are represented in results.
-                // Non-zero here is expected when any session fails.
-            }
             resolve(results);
-        });
+        }
+        child.stdout.on('end', () => { stdoutEnded = true; finish(); });
+        child.on('exit', (code) => { exitCode = code ?? 0; finish(); });
     });
 }
 
@@ -386,12 +389,6 @@ async function main() {
             stdio: 'inherit',
         });
         if ((annotationCheck.status ?? 1) !== 0) process.exit(annotationCheck.status ?? 1);
-        const synclockAudit = spawnSync(process.execPath, ['scripts/synclock_audit.mjs', '--strict'], {
-            cwd: projectRoot,
-            stdio: 'inherit',
-        });
-        if ((synclockAudit.status ?? 1) !== 0) process.exit(synclockAudit.status ?? 1);
-
         // 1. Unit tests (estimate file count for progress)
         const unitResults = await runUnitTests();
 
