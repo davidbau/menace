@@ -15,7 +15,7 @@ import { is_hider, hides_under, DEADMONSTER, M_AP_TYPE } from './mondata.js';
 import { pline, You, Your, You_feel, You_see, pline_The,
          Norep, There, set_msg_xy } from './pline.js';
 import {
-    map_invisible, map_object, map_trap, map_engraving, map_background, map_location,
+    map_invisible, map_object, map_trap, map_engraving, map_background,
     cls,
     newsym, flush_screen, glyph_at, show_glyph as display_show_glyph,
     canSpotMonsterForMap, senseMonsterForMap,
@@ -755,39 +755,25 @@ export function show_map_spot(x, y, cnf, map) {
     // C ref: detect.c:1399 — save old glyph before newsym overwrites it.
     // Check both JS glyph buffer (loc.glyph) and remembered object/trap state.
     const oldglyph = glyph_at(x, y);
-    const hadMemObj = !!lev.mem_obj;
-    const hadMemTrap = !!lev.mem_trap;
     lev.seenv = 0xFF;
     if (lev.typ === SCORR) { lev.typ = CORR; unblock_point(x, y); }
     map_background(map, x, y, 0);
     newsym(x, y);
     // C ref: detect.c:1406-1415 — after newsym, mapping overlays traps/engravings/objects
     // on top of any visible monster.  Mapping reveals the map layout, not monster positions.
-    if (IS_FURNITURE(lev.typ)) return;
-    const trap = map.trapAt ? map.trapAt(x, y) : null;
-    if (trap && trap.tseen) {
-        map_trap(trap, 1);
-    } else {
-        const engr = map.engravingAt ? map.engravingAt(x, y) : null;
-        if (engr && !cnf) {
-            map_engraving(engr, 1);
-        } else if (glyph_is_trap(oldglyph) || glyph_is_object(oldglyph)) {
-            // C ref: restore the previously-displayed trap/object glyph.
-            show_glyph(x, y, oldglyph);
-            if (map.flags?.hero_memory) lev.glyph = oldglyph;
-        } else if (hadMemTrap) {
-            // C ref: detect.c:1406-1415 — during mapping, traps take precedence
-            // over objects ("opposite to how normal vision behaves").
-            // map_location() checks objects first, so call map_trap() directly.
-            const t2 = map.trapAt ? map.trapAt(x, y) : null;
-            if (t2) {
-                map_trap(t2, 1);
-            } else {
-                map_location(x, y, 1, map);
+    // Furniture > traps > engravings > old trap/object glyph (opposite of normal vision).
+    if (!IS_FURNITURE(lev.typ)) {
+        const trap = map.trapAt ? map.trapAt(x, y) : null;
+        if (trap && trap.tseen) {
+            map_trap(trap, 1);
+        } else {
+            const engr = map.engravingAt ? map.engravingAt(x, y) : null;
+            if (engr && !cnf) {
+                map_engraving(engr, 1);
+            } else if (glyph_is_trap(oldglyph) || glyph_is_object(oldglyph)) {
+                show_glyph(x, y, oldglyph);
+                if (map.flags?.hero_memory) lev.glyph = oldglyph;
             }
-        } else if (hadMemObj) {
-            // Fallback: loc.glyph may not be maintained for all cells in JS.
-            map_location(x, y, 1, map);
         }
     }
 }
