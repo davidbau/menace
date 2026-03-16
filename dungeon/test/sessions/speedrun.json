@@ -1136,44 +1136,97 @@
       "note": "clean up"
     },
     {
-      "cmd": "take lamp",
-      "note": "need light"
+      "cmd": "take lamp"
     },
     {
-      "cmd": "w",
-      "note": "strange passage"
+      "cmd": "d"
     },
     {
-      "cmd": "s",
-      "note": "cyclops room"
+      "cmd": "e"
     },
     {
-      "cmd": "u",
-      "note": "treasure room"
+      "cmd": "n"
     },
     {
-      "cmd": "take coffin",
-      "note": "gold coffin"
+      "cmd": "d"
     },
     {
       "cmd": "d",
-      "note": "cyclops room"
+      "note": "39"
+    },
+    {
+      "cmd": "w",
+      "note": "42"
     },
     {
       "cmd": "n",
-      "note": "strange passage"
+      "note": "45"
     },
     {
       "cmd": "e",
+      "note": "44/EGYPT"
+    },
+    {
+      "cmd": "take coffin",
+      "note": "gold coffin!"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n",
+      "note": "north mirror"
+    },
+    {
+      "cmd": "touch mirror"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n",
+      "note": "grail room"
+    },
+    {
+      "cmd": "w",
+      "note": "round room"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u",
       "note": "living room"
     },
     {
-      "cmd": "put coffin in case",
-      "note": "deposit coffin"
+      "cmd": "put coffin in case"
     },
     {
-      "cmd": "drop all",
-      "note": "clean up"
+      "cmd": "drop all"
     },
     {
       "cmd": "score",
