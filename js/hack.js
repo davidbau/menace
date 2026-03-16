@@ -58,7 +58,7 @@ import { getpos_async } from './getpos.js';
 import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { maybe_unhide_at } from './mon.js';
-import { tele_trap } from './teleport.js';
+import { tele_trap, domagicportal } from './teleport.js';
 import { trapeffect_bear_trap_you } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
@@ -1360,6 +1360,11 @@ export async function domove_core(dir, player, map, display, game) {
         // C ref: trap.c dotrap() TELEP_TRAP -> teleds/safe_teleds path.
         else if (trap.ttyp === TELEP_TRAP) {
             await tele_trap(trap, game);
+            return 'teleported';
+        }
+        // C ref: trap.c trapeffect_magic_portal
+        else if (trap.ttyp === MAGIC_PORTAL) {
+            await domagicportal(trap, game);
             return 'teleported';
         }
         // C ref: trap.c dotrap() -> fall_through(TRUE, ...)
