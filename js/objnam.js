@@ -2223,11 +2223,26 @@ export function readobjnam_postparse2(state) {
     let actualn = (state.actualn || '').trim();
     if (!actualn) return state;
 
+    // C ref: objnam.c:4546-4554 — "holy water" / "unholy water" special case
+    // Maps to POT_WATER with blessed/cursed status.
+    const actualn_lc = actualn.toLowerCase();
+    if (actualn_lc === 'holy water') {
+        state.forcedTyp = POT_WATER;
+        state.oclass = POTION_CLASS;
+        if (!state.buc) state.buc = 1; // blessed
+        return state;
+    }
+    if (actualn_lc === 'unholy water') {
+        state.forcedTyp = POT_WATER;
+        state.oclass = POTION_CLASS;
+        if (!state.buc) state.buc = -1; // cursed
+        return state;
+    }
+
     // C ref: objnam.c:4661-4665 — o_ranges check: generic category → rnd_class type
     // Must happen before singularization (C checks d->bp at top of postparse2).
     // JS makesingular() preserves "gloves","boots","gauntlets" etc. so actualn
     // still matches the table entries at this point.
-    const actualn_lc = actualn.toLowerCase();
     for (const { name, first, last } of o_ranges_table) {
         if (actualn_lc === name) {
             state.forcedTyp = rnd_class(first, last);
