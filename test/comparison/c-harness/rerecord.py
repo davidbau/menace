@@ -295,6 +295,9 @@ def _build_gameplay(seed, output, regen, options, steps, force_record_more_space
         if name and name != DEFAULT_CHARACTER['name']:
             cmd += ['--name', name]
 
+    startup_mode = regen.get('startup_mode') or regen.get('startupMode')
+    if startup_mode:
+        cmd += ['--startup-mode', startup_mode]
     if regen.get('raw_moves') or regen.get('rawMoves'):
         cmd.append('--raw-moves')
     if force_record_more_spaces:

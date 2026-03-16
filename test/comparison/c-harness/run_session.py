@@ -342,17 +342,26 @@ def ensure_install_sysconf():
             f.write(updated)
 
 
-def setup_home(character=None):
+def setup_home(character=None, chargen_in_keys=False):
+    """Write .nethackrc for the session.
+
+    chargen_in_keys=True: write no character OPTIONS at all so that the full
+    interactive chargen flows (role/race/gender/align/name/tutorial) and the
+    key sequence drives every prompt from game launch.
+    chargen_in_keys=False (default): pre-set all character fields so
+    wait_for_game_ready() can auto-advance through all chargen prompts.
+    """
     char = character or CHARACTER
     ensure_install_sysconf()
     os.makedirs(RESULTS_DIR, exist_ok=True)
     nethackrc = os.path.join(RESULTS_DIR, '.nethackrc')
     with open(nethackrc, 'w') as f:
-        f.write(f'OPTIONS=name:{char["name"]}\n')
-        f.write(f'OPTIONS=race:{char["race"]}\n')
-        f.write(f'OPTIONS=role:{char["role"]}\n')
-        f.write(f'OPTIONS=gender:{char["gender"]}\n')
-        f.write(f'OPTIONS=align:{char["align"]}\n')
+        if not chargen_in_keys:
+            f.write(f'OPTIONS=name:{char["name"]}\n')
+            f.write(f'OPTIONS=race:{char["race"]}\n')
+            f.write(f'OPTIONS=role:{char["role"]}\n')
+            f.write(f'OPTIONS=gender:{char["gender"]}\n')
+            f.write(f'OPTIONS=align:{char["align"]}\n')
         f.write('OPTIONS=!autopickup\n')
         f.write('OPTIONS=suppress_alert:3.4.3\n')
         f.write('OPTIONS=symset:DECgraphics\n')
@@ -1960,6 +1969,16 @@ def main():
         interface_keys = args[idx + 1]
         args = args[:idx] + args[idx+2:]
 
+    # Parse --startup-mode flag
+    startup_mode = 'ready'
+    if '--startup-mode' in args:
+        idx = args.index('--startup-mode')
+        if idx + 1 >= len(args):
+            print("Error: --startup-mode requires a value (ready|from-keylog)")
+            sys.exit(1)
+        startup_mode = args[idx + 1]
+        args = args[:idx] + args[idx+2:]
+
     # Parse --raw-moves flag
     raw_moves = '--raw-moves' in args
     if raw_moves:
@@ -2033,10 +2052,11 @@ def main():
             record_more_spaces=record_more_spaces,
             character=char_override,
             wizard_mode=wizard_mode,
+            startup_mode=startup_mode,
         )
 
 
-def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces=False, character=None, wizard_mode=True):
+def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces=False, character=None, wizard_mode=True, startup_mode='ready'):
     """Run a session replaying the given move string.
 
     Args:
@@ -2051,6 +2071,9 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         character: Character config dict (name, role, race, gender, align).
                    Uses default CHARACTER if None.
         wizard_mode: If True, launch C NetHack with -D and capture typGrid via #dumpmap.
+        startup_mode: 'ready' (default) = auto-advance through chargen before replaying
+                      moves; 'from-keylog' = do not auto-advance, move_str includes the
+                      full key sequence starting from game launch (chargen + gameplay).
     """
     char = character or CHARACTER
     output_json = os.path.abspath(output_json)
@@ -2060,7 +2083,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         print(f"Run setup.sh first: bash {os.path.join(SCRIPT_DIR, 'setup.sh')}")
         sys.exit(1)
 
-    setup_home(char)
+    setup_home(char, chargen_in_keys=(startup_mode == 'from-keylog'))
 
     # Temp files for RNG log, explicit dumpsnap checkpoints, and auto-mapdump checkpoints
     tmpdir = tempfile.mkdtemp(prefix='webhack-session-')
@@ -2101,30 +2124,28 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         time.sleep(1.0)
 
         print(f'=== Capturing session: seed={seed}, role={char["role"]}, moves="{move_str}" ===')
-        print(f'=== STARTUP ===')
-        wait_for_game_ready(session_name, rng_log_file)
-        time.sleep(0.02)
-        # Do not inject synthetic key input here; gameplay replay should
-        # only send recorded session keys.
+        print(f'=== STARTUP (startup_mode={startup_mode}) ===')
+        if startup_mode == 'from-keylog':
+            # move_str contains full key sequence from game launch including chargen.
+            # Do not auto-advance prompts — the key sequence handles everything.
+            time.sleep(0.5)
+        else:
+            wait_for_game_ready(session_name, rng_log_file)
+            time.sleep(0.02)
+            # Defensive remediation: if tutorial prompt is still visible, dismiss it.
+            startup_screen_compressed = capture_screen_compressed(session_name)
+            if 'Do you want a tutorial?' in startup_screen_compressed:
+                print('WARNING: tutorial prompt leaked into gameplay startup; answering "n" and recapturing startup.')
+                tmux_send(session_name, 'n', 0.1)
+                wait_for_game_ready(session_name, rng_log_file)
+                time.sleep(0.02)
 
         # Capture startup state
         startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
         print(f'Startup: {startup_rng_count} RNG calls')
 
-        # Capture compressed ANSI screen for startup.
-        # Defensive remediation: if tutorial prompt is still visible here, we are
-        # not in true gameplay-ready state yet. Dismiss it and recapture startup.
         startup_screen_compressed = capture_screen_compressed(session_name)
         startup_cursor = capture_cursor(session_name)
-        if 'Do you want a tutorial?' in startup_screen_compressed:
-            print('WARNING: tutorial prompt leaked into gameplay startup; answering "n" and recapturing startup.')
-            tmux_send(session_name, 'n', 0.1)
-            wait_for_game_ready(session_name, rng_log_file)
-            time.sleep(0.02)
-            startup_rng_count, startup_rng_lines = read_rng_log(rng_log_file)
-            startup_screen_compressed = capture_screen_compressed(session_name)
-            startup_cursor = capture_cursor(session_name)
-            print(f'Startup recaptured: {startup_rng_count} RNG calls')
 
         # Build session object (unified format v3)
         startup_rng_entries = parse_rng_lines(startup_rng_lines)
@@ -2146,6 +2167,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             'regen': {
                 'mode': 'gameplay',
                 'moves': move_str,
+                **({'startup_mode': startup_mode} if startup_mode != 'ready' else {}),
             },
             'options': {
                 'name': char['name'],
