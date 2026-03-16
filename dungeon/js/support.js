@@ -992,8 +992,9 @@ export function scrupd(G, n) {
 export function rmdesc(G, full) {
   const ra = G.ractio[G.here - 1];
 
-  // If direction given, save and clear
-  if (G.prso < XMIN) {
+  // If direction given (prso >= XMIN), save and clear
+  // Fortran: IF(PRSO.LT.XMIN) GO TO 50 (skip if NOT direction)
+  if (G.prso >= XMIN) {
     G.fromdr = G.prso;
     G.prso = 0;
   }
