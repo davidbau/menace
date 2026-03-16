@@ -11,9 +11,9 @@ of early 2026, the DevTeam still hasn't shipped it. This port puts
 the unreleased version in your browser.
 
 The version of the game you find here is a complete reimplementation
-written entirely by AI coding agents. <a href="https://github.com/davidbau/menace/tree/main/js" target="_blank"><span data-stat="js_lines_display">197,000+</span> lines of JavaScript</a>,
+written entirely by AI coding agents. <a href="https://github.com/davidbau/menace/tree/main/js" target="_blank"><span data-stat="js_lines_display">202,000+</span> lines of JavaScript</a>,
 <span data-stat="js_modules">145</span> modules mirroring the C source structure, <a href="https://github.com/davidbau/menace/blob/main/js/rng.js" target="_blank">bit-identical PRNG</a>,
-<a href="https://mazesofmenace.net/oracle/" target="_blank"><span data-stat="session_count">296</span> golden C-comparison test sessions</a>. <a href="https://github.com/davidbau/menace/commits/main/" target="_blank"><span data-stat="commit_count">4,800+</span> commits</a>.
+<a href="https://mazesofmenace.net/oracle/" target="_blank"><span data-stat="session_count">398</span> golden C-comparison test sessions</a>. <a href="https://github.com/davidbau/menace/commits/main/" target="_blank"><span data-stat="commit_count">5,100+</span> commits</a>.
 
 Open the page, pick a role, descend.
 
@@ -271,7 +271,7 @@ compiled C output.
 │   └── ...
 ├── test/
 │   ├── unit/               232 unit test files
-│   ├── comparison/         C-vs-JS golden session tests (296 sessions)
+│   ├── comparison/         C-vs-JS golden session tests (398 sessions)
 │   └── e2e/                Puppeteer browser tests
 ├── hack/                   1982 Hack browser port
 ├── rogue/                  1980 Rogue browser port
