@@ -118,7 +118,11 @@ def setup_home(character, symset, tutorial_enabled=False, interactive=False):
             f.write(f'OPTIONS=gender:{character["gender"]}\n')
             f.write(f'OPTIONS=align:{character["align"]}\n')
             f.write('OPTIONS=!autopickup\n')
-            f.write('OPTIONS=tutorial\n' if tutorial_enabled else 'OPTIONS=!tutorial\n')
+            if tutorial_enabled is True:
+                f.write('OPTIONS=tutorial\n')
+            elif tutorial_enabled is False:
+                f.write('OPTIONS=!tutorial\n')
+            # None: omit tutorial OPTIONS entirely — game will prompt the player
             f.write('OPTIONS=suppress_alert:3.4.3\n')
         if symset == 'DECgraphics':
             f.write('OPTIONS=symset:DECgraphics\n')
@@ -219,9 +223,14 @@ def resolve_tutorial_mode(mode, metadata):
         return True
     if mode == 'off':
         return False
+    # auto: use metadata value as-is (True/False/None)
+    # None means "let the game prompt" — do not write OPTIONS=tutorial or OPTIONS=!tutorial
     if metadata and 'tutorial' in metadata:
-        return bool(metadata['tutorial'])
-    return False
+        val = metadata['tutorial']
+        if val is None:
+            return None
+        return bool(val)
+    return None
 
 
 def resolve_wizard_mode(mode, metadata):
@@ -372,7 +381,7 @@ def run_from_keylog(
             # Do not auto-advance prompts here or we will double-apply startup.
             time.sleep(0.5)
         else:
-            wait_for_game_ready(session_name, rng_log_file)
+            wait_for_game_ready(session_name, rng_log_file, tutorial_enabled=tutorial_enabled)
             time.sleep(0.1)
             clear_more_prompts(session_name)
             time.sleep(0.1)

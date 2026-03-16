@@ -859,8 +859,12 @@ def reset_clear_more_stats():
     _clear_more_stats = {'cleared': 0, 'calls': 0}
 
 
-def wait_for_game_ready(session, rng_log_file):
-    """Navigate startup prompts until the game is ready."""
+def wait_for_game_ready(session, rng_log_file, tutorial_enabled=False):
+    """Navigate startup prompts until the game is ready.
+
+    tutorial_enabled: True = press 'y', False = press 'n', None = leave the
+    tutorial prompt unanswered (stop and let the caller handle it).
+    """
     for attempt in range(60):
         try:
             content = tmux_capture(session)
@@ -898,7 +902,11 @@ def wait_for_game_ready(session, rng_log_file):
             continue
 
         if 'Do you want a tutorial?' in content:
-            tmux_send(session, 'n', 0.1)
+            if tutorial_enabled is None:
+                # Leave the prompt for the keylog replay to handle
+                print(f'  [startup-{attempt}] rng={rng_count} tutorial prompt — deferring to keylog')
+                break
+            tmux_send(session, 'y' if tutorial_enabled else 'n', 0.1)
             continue
 
         if 'pick a role' in content or 'Pick a role' in content:
