@@ -92,9 +92,13 @@ for (let dr = 0; dr < DRAGON_ROWS; dr++) {
 
     // Non-space chars with reset color (-1) are drawn in the editor using the
     // terminal's default foreground (typically light gray). Map them to color 7.
-    const resolved = row.map(cell =>
-        (cell.color < 0 && cell.ch !== ' ') ? { ch: cell.ch, color: 7 } : cell
-    );
+    // Also: ANSI 33 ("yellow" in editor) maps to CGA index 3 (CLR_BROWN = #a50),
+    // but in this fire/dragon scene the user intends yellow highlights — remap to 11.
+    const resolved = row.map(cell => {
+        if (cell.color < 0 && cell.ch !== ' ') return { ch: cell.ch, color: 7 };
+        if (cell.color === 3) return { ch: cell.ch, color: 11 }; // editor "yellow" → CLR_YELLOW
+        return cell;
+    });
 
     let lastContent = -1;
     for (let col = resolved.length - 1; col >= 0; col--) {
