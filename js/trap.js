@@ -53,6 +53,7 @@ import { ARROW_TRAP, DART_TRAP, ROCKTRAP, SQKY_BOARD,
          WEB, STATUE_TRAP, MAGIC_TRAP, ANTI_MAGIC,
          POLY_TRAP, VIBRATING_SQUARE, TRAPNUM
        } from './const.js';
+import { ynFunction } from './input.js';
 import { game as _gstate } from './gstate.js';
 import { makemon, runtimeApplyNewchamRandom, set_malign } from './makemon.js';
 import { is_flammable, is_rustprone, is_rottable, is_corrodeable,
@@ -1864,7 +1865,9 @@ export async function untrap_box(box, force, confused, player) {
     box.tknown = 1;
     observe_object(box);
     if (!confused) await exercise(player, A_WIS, true);
-    if (ynq("Disarm it?") === 'y') await disarm_box(box, force, confused);
+    // C ref: trap.c:5739 ynq("Disarm it?") — default 'q'
+    const ans = await ynFunction("Disarm it?", 'ynq', 'q'.charCodeAt(0), _gstate?.display);
+    if (String.fromCharCode(ans) === 'y') await disarm_box(box, force, confused);
   }
   else { await You("find no traps on %s.", the(xname(box))); }
 }

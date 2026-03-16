@@ -407,7 +407,7 @@ export async function read_engr_at(map, x, y, player, game = null) {
         // C-parity for in-command engraving prompts: movement side effects have
         // already happened; refresh map/status before waiting for dismissal.
         if (typeof game.docrt === 'function') {
-            game.docrt();
+            await game.docrt();
         }
         await more(game.display, { game, site: 'engrave.read_engr_at.more' });
     }

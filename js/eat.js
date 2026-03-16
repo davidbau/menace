@@ -2,7 +2,7 @@
 // cf. eat.c — doeat, start_eating, eatfood, bite, corpse intrinsics, hunger
 
 import { rn2, rn1, rnd, d, c_d } from './rng.js';
-import { more, nhgetch } from './input.js';
+import { more, nhgetch, ynFunction } from './input.js';
 import { Is_astralevel } from './dungeon.js';
 import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARLIC,
          TIN, EGG, FOOD_RATION, LEMBAS_WAFER, CRAM_RATION,
@@ -16,7 +16,7 @@ import { objectData, FOOD_CLASS, COIN_CLASS, CORPSE, TRIPE_RATION, CLOVE_OF_GARL
          BALL_CLASS, CHAIN_CLASS, WEAPON_CLASS, SPBOOK_CLASS, SCR_MAIL,
          WAX, PAPER, LEATHER, BONE, DRAGON_HIDE } from './objects.js';
 import { doname, next_ident, xname, weight, costly_alteration } from './mkobj.js';
-import { corpse_xname, singular, the, an, obj_is_pname } from './objnam.js';
+import { corpse_xname, singular, the, an, obj_is_pname, safe_qbuf } from './objnam.js';
 import { ART_ORB_OF_DETECTION } from './artifacts.js';
 import { mons, PM_LIZARD, PM_LICHEN, PM_NEWT,
          PM_ACID_BLOB, PM_COCKATRICE, PM_CHICKATRICE,
@@ -2295,7 +2295,10 @@ export async function use_tin_opener(obj) {
   if (obj !== uwep) {
     if (obj.cursed && obj.bknown) {
       let qbuf;
-      if (ynq(safe_qbuf(qbuf, "Really wield ", "?", obj, doname, thesimpleoname, "that")) !== 'y') return ECMD_OK;
+      // C ref: eat.c:3099 ynq(safe_qbuf(..., doname, thesimpleoname, "that"))
+      const prompt = safe_qbuf("Really wield ", "?", doname(obj), "that");
+      const ans = await ynFunction(prompt, 'ynq', 'q'.charCodeAt(0), _gstate?.display);
+      if (String.fromCharCode(ans) !== 'y') return ECMD_OK;
     }
     if (!await wield_tool(obj, "use")) return ECMD_OK;
     res = ECMD_TIME;

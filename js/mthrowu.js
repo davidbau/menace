@@ -723,7 +723,7 @@ export async function monshoot(mon, otmp, mwep, map, player, display, game, mtar
                 projectile.oy = result.y;
                 placeFloorObject(map, projectile);
                 if (game?.docrt) {
-                    game.docrt();
+                    await game.docrt();
                 }
             }
         }
