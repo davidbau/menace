@@ -1745,7 +1745,7 @@ export function charge_ok(obj) {
 // Autotranslated from read.c:1018
 export async function forget(howmuch, game, map, player) {
   let mtmp;
-  if (Punished) player.bc_felt = 0;
+  if (player.Punished) player.bc_felt = 0;
   if (howmuch & ALL_SPELLS) await losespells();
   drain_weapon_skill(rnd(howmuch ? 5 : 3));
   for (mtmp = (map?.fmon || null); mtmp; mtmp = mtmp.nmon) {
