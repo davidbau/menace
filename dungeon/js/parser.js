@@ -885,7 +885,27 @@ function sparse(G, lbuf, llnt, vbflag) {
     }
 
     if (word === 'EXCEPT' || word === 'BUT') {
-      if (adj !== 0) { i--; adj = 0; continue; }
+      if (adj !== 0) {
+        // Fortran: GO TO 4100 — back up and resolve adjective as object word
+        i--; // back up to re-parse after resolving
+        const resolvedWord = AWORD[adjptr];
+        adj = 0;
+        const oresult = findObjWord(G, resolvedWord);
+        if (oresult) {
+          const obj = getobj(G, oresult.j, 0, 0);
+          if (obj > 0) {
+            if (pptr < 2) {
+              pptr++;
+              if (pptr === 1) { prep1 = prep; obj1 = obj; }
+              else { prep2 = prep; obj2 = obj; }
+              prep = 0;
+              lobj = obj;
+              andflg = false;
+            }
+          }
+        }
+        continue;
+      }
       if (andflg || bunflg || pptr !== 1 || i >= llnt) {
         if (vbflag) {
           G.output(` Misplaced "${word.toLowerCase()}".`);
