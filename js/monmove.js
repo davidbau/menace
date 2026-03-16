@@ -55,7 +55,7 @@ import { can_teleport, noeyes, perceives, nohands,
          is_mindless, telepathic,
          is_giant, is_undead, is_unicorn, is_minion, throws_rocks,
          passes_walls, corpse_eater, amorphous,
-         passes_bars, is_human, canseemon, monsdat,
+         passes_bars, is_human, monsdat,
          webmaker, tunnels, needspick,
          dmgtype, attacktype, is_metallivore,
          can_track, likes_gold,
@@ -80,7 +80,7 @@ import { dist2, distmin, distu } from './hacklib.js';
 import { monnear, helpless, mondead, unstuck, meatmetal, meatobj, meatcorpse } from './mon.js';
 import { attackVerb } from './mhitm.js';
 import { monAttackName } from './do_name.js';
-import { canSpotMonsterForMap, map_invisible, newsym, canspotmon } from './display.js';
+import { canSpotMonsterForMap, map_invisible, newsym, canspotmon, canseemon } from './display.js';
 import { addToMonsterInventory, canMergeMonsterInventoryObj } from './invent.js';
 import { mpickobj, mdrop_obj, findgold } from './steal.js';
 import { game as _gstate } from './gstate.js';

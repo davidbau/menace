@@ -48,10 +48,10 @@ import { IS_TREE, IS_FOUNTAIN, IS_SINK, IS_GRAVE, IS_ALTAR, IS_THRONE, KILLED_BY
          MAGIC_PORTAL, VIBRATING_SQUARE } from './const.js';
 import { rn2, rnd, rn1, rnl } from './rng.js';
 import { unblock_point, recalc_block_point } from './vision.js';
-import { newsym } from './display.js';
+import { newsym, canseemon } from './display.js';
 import { cansee } from './vision.js';
 import { mb_trapped, closed_door } from './monmove.js';
-import { canseemon, is_whirly, digests, unique_corpstat, is_flyer, is_floater } from './mondata.js';
+import { is_whirly, digests, unique_corpstat, is_flyer, is_floater } from './mondata.js';
 import { mksobj, add_to_buried } from './mkobj.js';
 import { placeFloorObject, sobj_at } from './invent.js';
 import { obj_resists, is_organic } from './objdata.js';

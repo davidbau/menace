@@ -26,12 +26,12 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
          webmaker, grounded, is_flyer, is_floater, breathless,
          resists_fire, resists_sleep, attacktype, strongmonst,
          extra_nasty, flaming, acidic, completelyrusts,
-         canseemon, stagger
+         stagger
        } from './mondata.js';
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER, is_metallivore } from './mondata.js';
 import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
-import { newsym, map_trap, feel_newsym } from './display.js';
+import { newsym, map_trap, feel_newsym, canseemon } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { find_mac, which_armor } from './worn.js';

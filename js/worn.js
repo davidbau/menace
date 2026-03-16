@@ -10,7 +10,7 @@ import { objectData, ARMOR_CLASS, AMULET_CLASS, RING_CLASS, WEAPON_CLASS,
        } from './objects.js';
 import { nohands, is_animal, is_mindless, cantweararm, slithy, has_horns,
          is_humanoid, breakarm, sliparm, is_whirly, noncorporeal,
-         attacktype, canseemon,
+         attacktype,
        } from './mondata.js';
 import {
     W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMG, W_ARMF, W_ARMU, W_ARMOR,
@@ -28,7 +28,7 @@ import { S_MUMMY, S_CENTAUR,
          AT_WEAP,
        } from './monsters.js';
 import { mons } from './monsters.js';
-import { newsym } from './display.js';
+import { newsym, canseemon } from './display.js';
 import { You_hear } from './pline.js';
 import { placeFloorObject } from './invent.js';
 import { Has_contents } from './objnam.js';
