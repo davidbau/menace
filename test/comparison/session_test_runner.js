@@ -1312,7 +1312,7 @@ export async function runSessionCli() {
     });
     console.log('\n__RESULTS_JSON__');
     console.log(JSON.stringify(bundle));
-    process.exit(bundle.summary.failed > 0 ? 1 : 0);
+    process.exitCode = bundle.summary.failed > 0 ? 1 : 0;
 }
 
 if (process.argv[1] && process.argv[1].endsWith('session_test_runner.js')) {
