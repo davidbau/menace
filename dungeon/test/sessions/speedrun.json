@@ -259,7 +259,7 @@
     },
     {
       "cmd": "untie rope",
-      "note": "untie from railing"
+      "note": "free balloon"
     },
     {
       "cmd": "take rope",
@@ -1921,6 +1921,326 @@
     {
       "cmd": "score",
       "note": "check"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "touch mirror"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "take rope"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "u",
+      "note": "living room"
+    },
+    {
+      "cmd": "drop rope"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "take matches"
+    },
+    {
+      "cmd": "take newspaper"
+    },
+    {
+      "cmd": "take rope"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "throw torch",
+      "note": "melt glacier!"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take ruby"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "board basket"
+    },
+    {
+      "cmd": "open receptacle"
+    },
+    {
+      "cmd": "put newspaper in receptacle"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light newspaper with match"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "take coin"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take purple book"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "board basket"
+    },
+    {
+      "cmd": "untie rope"
+    },
+    {
+      "cmd": "close receptacle"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "open purple book"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "put stamp in case"
+    },
+    {
+      "cmd": "take egg"
+    },
+    {
+      "cmd": "take canary from egg"
+    },
+    {
+      "cmd": "put egg in case"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "wind canary"
+    },
+    {
+      "cmd": "take bauble"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take brochure"
+    },
+    {
+      "cmd": "take stamp"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "score"
     }
   ]
 }
