@@ -254,6 +254,9 @@ export function maybe_extend_timed_resist(prop, player) {
 // Ported faithfully for RNG parity. Accessory hunger (rings/amulets)
 // is simplified since intrinsic sources aren't fully tracked.
 async function gethungry(player) {
+    // C ref: eat.c:3162-3163 — invulnerable or debug_hunger skips all hunger
+    if (player.uinvulnerable) return;
+
     // C Unaware macro (youprop.h): gm.multi < 0 && (unconscious() || is_fainted()).
     // unconscious() (trap.c) checks usleep or specific nomovemsg wakeup strings.
     const game = _gstate;
