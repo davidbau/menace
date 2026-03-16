@@ -2704,8 +2704,9 @@ export async function see_nearby_monsters(game, player) {
         continue;
       }
       if (canseemon(mtmp) || (mtmp.mundetected && sensemon(mtmp))) {
-        gb.bhitpos.x = x, gb.bhitpos.y = y;
-        gn.notonhead = (x !== mtmp.mx || y !== mtmp.my);
+        if (!game.bhitpos) game.bhitpos = { x: 0, y: 0 };
+        game.bhitpos.x = x; game.bhitpos.y = y;
+        game.notonhead = (x !== mtmp.mx || y !== mtmp.my);
         see_monster_closeup(mtmp, false);
       }
     }

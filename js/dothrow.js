@@ -1467,8 +1467,8 @@ export async function throw_gold(obj, player, map, _game) {
 
 // Autotranslated from dothrow.c:1441
 export async function sho_obj_return_to_u(obj, game, player) {
-  if ((player.dx || player.dy) && (game.gb.bhitpos.x !== player.x || game.gb.bhitpos.y !== player.y)) {
-    let x = game.gb.bhitpos.x - player.dx, y = game.gb.bhitpos.y - player.dy;
+  if ((player.dx || player.dy) && (game.bhitpos.x !== player.x || game.bhitpos.y !== player.y)) {
+    let x = game.bhitpos.x - player.dx, y = game.bhitpos.y - player.dy;
     tmp_at(DISP_FLASH, obj_to_glyph(obj, rn2_on_display_rng));
     while (isok(x,y) && (x !== player.x || y !== player.y)) {
       tmp_at(x, y);
