@@ -1384,6 +1384,10 @@
       "note": "from case"
     },
     {
+      "cmd": "turn off lamp",
+      "note": "torch provides light, save battery"
+    },
+    {
       "cmd": "take screwdriver",
       "note": "for machine"
     },
@@ -1458,6 +1462,10 @@
     {
       "cmd": "ne",
       "note": "shaft room"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "torch going in basket"
     },
     {
       "cmd": "put torch in basket",
@@ -1705,6 +1713,10 @@
     },
     {
       "cmd": "turn off lamp",
+      "note": "torch back, save battery"
+    },
+    {
+      "cmd": "turn off lamp",
       "note": "save battery, torch provides light"
     },
     {
@@ -1722,6 +1734,10 @@
     {
       "cmd": "u",
       "note": "living room"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "need for living room deposits"
     },
     {
       "cmd": "put treasure in case",
@@ -2269,7 +2285,7 @@
     },
     {
       "cmd": "score",
-      "note": "final!"
+      "note": "final score - 492/616"
     }
   ]
 }
