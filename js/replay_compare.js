@@ -390,6 +390,44 @@ export function prepareReplayArgs(seed, session, opts = {}) {
             initOpts.showWelcomeMore = true;
         }
     }
+    // Detect tutorial menu: C's "Do you want a tutorial?" PICK_ONE overlay.
+    // When present, pre-push the keys consumed during init (welcome --More--
+    // dismiss + tutorial menu selection) so maybeDoTutorial can run to
+    // completion inside game.init() without deadlocking on nhgetch.
+    if (chargenKeys.length === 0 && initOpts.showWelcomeMore) {
+        const allSteps = Array.isArray(session.steps) ? session.steps : [];
+        let tutorialMenuEndIdx = -1;
+        for (let si = 1; si < Math.min(allSteps.length, 15); si++) {
+            const scr = String(allSteps[si]?.screen || '');
+            if (/Do you want a tutorial\?/.test(scr)) {
+                // Find the step where the menu is dismissed (next step without
+                // the tutorial menu text).
+                for (let di = si; di < Math.min(allSteps.length, si + 10); di++) {
+                    const nextScr = String(allSteps[di + 1]?.screen || '');
+                    if (!/Do you want a tutorial\?/.test(nextScr)) {
+                        tutorialMenuEndIdx = di;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        if (tutorialMenuEndIdx >= 1) {
+            // Collect all keys from step 1 through the tutorial menu dismiss.
+            // These are consumed during init (welcome --More-- + select_menu).
+            let tutorialMenuKeys = '';
+            for (let si = 1; si <= tutorialMenuEndIdx; si++) {
+                const k = allSteps[si]?.key;
+                if (typeof k === 'string') tutorialMenuKeys += k;
+            }
+            if (tutorialMenuKeys.length > 0) {
+                initOpts.showTutorialMenu = true;
+                // Keep tutorial=true so init uses the tutorial menu prompt
+                initOpts.tutorial = true;
+            }
+        }
+    }
+
     // For manual-direct-live sessions, add RNG simulation so the JS startup matches
     // the combined C startup (chargen + level-gen + moveloop_preamble steps folded in).
     if (session.regen?.mode === 'manual-direct-live') {

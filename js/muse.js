@@ -502,7 +502,7 @@ async function precheck(mon, obj, map, player) {
     }
 
     if (obj.oclass === WAND_CLASS && obj.cursed && !rn2(WAND_BACKFIRE_CHANCE)) {
-        const dam = d(obj.spe + 2, 6);
+        const dam = c_d(obj.spe + 2, 6);
         if (vis) {
             const name = x_monnam(mon, { article: 'the', capitalize: true });
             await pline_mon(mon, `${name} zaps something, which suddenly explodes!`);
@@ -1200,7 +1200,7 @@ export async function use_defensive(mon, map, player) {
     case MUSE_POT_HEALING:
         if (!otmp) return 0;
         await mquaffmsg(mon, otmp, player);
-        i = d(6 + 2 * bcsign(otmp), 4);
+        i = c_d(6 + 2 * bcsign(otmp), 4);
         healmon(mon, i, 1);
         if (!otmp.cursed && !mon_can_see(mon))
             await mcureblindness(mon, vismon, player);
@@ -1213,7 +1213,7 @@ export async function use_defensive(mon, map, player) {
     case MUSE_POT_EXTRA_HEALING:
         if (!otmp) return 0;
         await mquaffmsg(mon, otmp, player);
-        i = d(6 + 2 * bcsign(otmp), 8);
+        i = c_d(6 + 2 * bcsign(otmp), 8);
         healmon(mon, i, otmp.blessed ? 5 : 2);
         if (!mon_can_see(mon))
             await mcureblindness(mon, vismon, player);

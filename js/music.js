@@ -697,7 +697,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
     if (instr.otyp !== LEATHER_DRUM && instr.otyp !== DRUM_OF_EARTHQUAKE
         && !(player.Stunned || player.Confusion || player.Hallucination)) {
         // ynq("Improvise?")
-        const ans = await ynFunction('Improvise?', 'ynq', 'y'.charCodeAt(0), display);
+        const ans = await ynFunction('Improvise?', 'ynq', 'q'.charCodeAt(0), display);
         c = String.fromCharCode(ans);
         if (c === 'q') {
             await pline('Never mind.');
@@ -712,7 +712,7 @@ export async function do_play_instrument(instr, player, map, display, fov) {
     // Playing a specific tune
     let buf = '';
     if ((player.uevent && (player.uevent.uheard_tune || 0)) === 2) {
-        const ans2 = await ynFunction('Play the passtune?', 'ynq', 'y'.charCodeAt(0), display);
+        const ans2 = await ynFunction('Play the passtune?', 'ynq', 'q'.charCodeAt(0), display);
         c = String.fromCharCode(ans2);
     }
     if (c === 'q') {

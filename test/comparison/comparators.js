@@ -736,7 +736,22 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
             // This doesn't affect visible output (screens + colors are compared
             // separately and gate pass/fail).
             if (section === 'L') continue;
-            const diff = findFirstGridDiff(jParsed[field] || [], sParsed[field] || []);
+            // W-section (wallInfoGrid): mask out D_LOCKED (0x08) on STONE cells.
+            // Same root cause as F-section skip: C initializes STONE rm.flags to
+            // D_LOCKED=8; JS doesn't.  D_LOCKED matters for doors, not STONE.
+            let jGrid = jParsed[field] || [];
+            let sGrid = sParsed[field] || [];
+            if (section === 'W') {
+                const typGrid = jParsed.typGrid || [];
+                const D_LOCKED = 0x08;
+                const STONE = 0;
+                const mask = (grid) => grid.map((row, y) =>
+                    (row || []).map((val, x) =>
+                        (typGrid[y] && typGrid[y][x] === STONE) ? (val & ~D_LOCKED) : val));
+                jGrid = mask(jGrid);
+                sGrid = mask(sGrid);
+            }
+            const diff = findFirstGridDiff(jGrid, sGrid);
             if (diff) {
                 idMatch = false;
                 if (!firstDivergence) {

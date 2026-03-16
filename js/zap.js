@@ -1235,7 +1235,7 @@ export async function bhitm(mon, otmp, map, player) {
     break;
   case SPE_HEALING:
   case SPE_EXTRA_HEALING: {
-    const healamt = d(6, otyp === SPE_EXTRA_HEALING ? 8 : 4);
+    const healamt = c_d(6, otyp === SPE_EXTRA_HEALING ? 8 : 4);
     wake = false;
     if (mon.mndx !== PM_DEATH - 1) { // not Pestilence
       healmon(mon, healamt, 0);
@@ -1258,7 +1258,7 @@ export async function bhitm(mon, otmp, map, player) {
     break;
   case WAN_SLEEP:
     // broken wand sleep effect
-    if (sleep_monst(mon, d(1 + (otmp.spe || 0), 12), WAND_CLASS))
+    if (sleep_monst(mon, c_d(1 + (otmp.spe || 0), 12), WAND_CLASS))
       slept_monst(mon);
     break;
   case SPE_DRAIN_LIFE: {
@@ -1792,7 +1792,7 @@ export async function backfire(obj, player) {
   if (!obj || !player) return;
   // C ref: zap.c:2593-2602
   await pline("The wand suddenly explodes!");
-  const dmg = d((obj.spe || 0) + 2, 6);
+  const dmg = c_d((obj.spe || 0) + 2, 6);
   if (player.uhp) player.uhp -= dmg;
   // C would call useupall — simplified
 }
@@ -2008,10 +2008,10 @@ export async function break_wand(obj, player, map) {
   if (beamType >= 0) {
     // RAY wand — explodes with beam damage
     // C ref: damage is d(spe+2, 6) for the wand explosion
-    dmg = d(spe + 2, 6);
+    dmg = c_d(spe + 2, 6);
   } else {
     // Non-beam wand — less dramatic
-    dmg = d(spe + 2, 6);
+    dmg = c_d(spe + 2, 6);
   }
 
   await pline("The wand explodes!");
@@ -2558,7 +2558,7 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     // Keep no-damage behavior here to avoid misapplying monster-only logic.
     break;
   case WAN_LIGHT:
-    damage = await lightdamage(obj, player, ordinary ? 5 : d(Math.max(1, obj.spe || 1), 25), ordinary);
+    damage = await lightdamage(obj, player, ordinary ? 5 : c_d(Math.max(1, obj.spe || 1), 25), ordinary);
     if (await flashburn(rnd(25) + damage, false, player)) {
       discoverObject(obj.otyp, true, true);
     }

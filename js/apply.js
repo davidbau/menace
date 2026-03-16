@@ -63,6 +63,7 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, SPBOOK_CLASS,
          WAN_UNDEAD_TURNING, WAN_DIGGING, WAN_CREATE_MONSTER, WAN_LIGHT,
          WAN_SECRET_DOOR_DETECTION, WAN_ENLIGHTENMENT } from './objects.js';
 import { more, nhgetch, ynFunction, cmdq_add_ec, cmdq_add_key } from './input.js';
+import { do_play_instrument } from './music.js';
 import { doname, xname } from './mkobj.js';
 import { make_glib, make_blinded, incr_itimeout, set_itimeout } from './potion.js';
 import { gulp_blnd_check } from './mhitu.js';
@@ -711,7 +712,7 @@ export async function use_unicorn_horn(obj, player) {
         }
     }
     // C: val_limit = rn2(d(2, blessed ? 4 : 2))
-    const val_limit = rn2(d(2, obj.blessed ? 4 : 2));
+    const val_limit = rn2(c_d(2, obj.blessed ? 4 : 2));
     // Actual trouble curing is simplified — RNG consumed above is what matters
     await pline(nothing_happens);
 }
@@ -1188,6 +1189,16 @@ export async function handleApply(player, map, display, game) {
         if (selected.oclass === WAND_CLASS) {
             const tookTime = await do_break_wand(selected, player, map, display);
             return { moved: false, tookTime };
+        }
+
+        // C ref: apply.c — musical instruments
+        if (selected.otyp === WOODEN_FLUTE || selected.otyp === MAGIC_FLUTE
+            || selected.otyp === TOOLED_HORN || selected.otyp === FROST_HORN
+            || selected.otyp === FIRE_HORN || selected.otyp === BUGLE
+            || selected.otyp === WOODEN_HARP || selected.otyp === MAGIC_HARP
+            || selected.otyp === LEATHER_DRUM || selected.otyp === DRUM_OF_EARTHQUAKE) {
+            const res = await do_play_instrument(selected, player, map, display, game.fov || FOV);
+            return { moved: false, tookTime: res !== 0 };
         }
 
         await display.putstr_message("Sorry, I don't know how to use that.");
