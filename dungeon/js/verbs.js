@@ -4,6 +4,7 @@
 // COPYRIGHT 1980, 1990, INFOCOM COMPUTERS AND COMMUNICATIONS, CAMBRIDGE MA.
 // Faithful port to JavaScript by machine translation.
 
+import { blow } from './timefnc.js';
 import {
   // Array/size params
   OMAX, FMAX, WRDLNT, HFACTR,
@@ -1638,37 +1639,7 @@ function v_attackCommon(G, i, odo2, odi2, rmk) {
   return true;
 }
 
-// BLOW — Strike a blow (simplified stub that delegates to support.js blow if available)
-function blow(G, h, v, rmk, hflg, out) {
-  // The blow function is in timefnc.f/fights.c
-  // Since it's not yet ported, we provide a basic combat implementation
-  if (typeof G._blow === 'function') {
-    return G._blow(h, v, rmk, hflg, out);
-  }
-  // Fallback: basic combat
-  const def = G.ocapac[v - 1]; // villain strength
-  const off = fights(G, h, true);
-  if (off <= 0) {
-    rspeak(G, 476); // can't fight
-    return 0;
-  }
-  // Simple probability-based combat
-  if (prob(G, 50 + (off - def) * 10, 30 + (off - def) * 10)) {
-    // Hit!
-    G.ocapac[v - 1]--;
-    if (G.ocapac[v - 1] <= 0) {
-      rspsub(G, 1140, G.odesc2[v - 1]); // try to say "killed"
-      newsta(G, v, 0, 0, 0, 0);
-      G.oflag2[v - 1] &= ~FITEBT;
-      return -1; // killed
-    }
-    rspeak(G, 511 + rnd(4)); // generic hit messages
-    return 1;
-  }
-  // Miss
-  rspeak(G, 515 + rnd(4)); // generic miss messages
-  return 0;
-}
+// BLOW — imported from timefnc.js via the import at top of file.
 
 // V146 — Give
 function v_give(G, odo2) {
