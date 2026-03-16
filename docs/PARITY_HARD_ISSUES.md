@@ -6,6 +6,10 @@ findings, a concrete fix plan, phasing, and risk analysis.
 
 Status as of 2026-03-16: **262/262 sessions passing**, 12 pending.
 
+**Completed:**
+- Issue 2 (canseemon) — DONE: 18 files switched to display.js version
+- Issue 3 (bhitpos) — DONE: dothrow.js/mon.js fixed, muse.js local tracked
+
 ---
 
 ## Issue 1: Exercise Timing — `exerchk` Moves Offset
@@ -288,19 +292,61 @@ It's caused by the turn-processing order (Issue 1).
 
 ## Prioritization & Phasing
 
-### Phase A: Quick wins (LOW RISK, do first)
-1. **canseemon unification** (Issue 2) — 7 import changes + delete
-2. **bhitpos unification** (Issue 3) — 4-5 file changes
+### Phase A: Quick wins (LOW RISK, do first) — DONE
+1. ~~**canseemon unification** (Issue 2)~~ — DONE (18 files, commit 73bedc8bd)
+2. ~~**bhitpos unification** (Issue 3)~~ — DONE (commit 4a3995da8)
 
 ### Phase B: Core fix (HIGH RISK, do on branch)
 3. **Exercise timing restructure** (Issue 1) — game loop rewrite
 
 ### Phase C: Low priority (defer)
 4. **costly_alteration** (Issue 4) — no RNG impact
+5. **Squash `game.g[a-z]` C-ism subobjects** (Issue 7) — cosmetic cleanup
 
 ### Not needed:
 5. FOG_CLOUD (Issue 5) — confirmed correct
 6. Monster iteration (Issue 6) — confirmed correct
+
+---
+
+## Issue 7: Squash `game.g[a-z]` C-ism Subobjects
+
+**Sessions affected:** None (dead code paths).
+
+### Root cause
+
+C groups instance globals alphabetically: `instance_globals_b` → `gb`,
+`instance_globals_d` → `gd`, etc. The auto-translator preserved these
+as `game.gb`, `game.gd`, `game.gi`, `game.gn` subobjects, but **none
+of them are ever initialized** — any access would crash at runtime.
+
+### Current state (4 subobjects, ~18 references)
+
+| Subobject | Property | File | Refs | Status |
+|-----------|----------|------|------|--------|
+| `game.gb` | `blstats[0/1]` | botl.js | 12 | Dead — hilite thresholds not implemented |
+| `game.gd` | `domove_attempting` | cmd.js | 2 | Dead — `game.gb` never created |
+| `game.gi` | `item_action_in_progress` | do_wear.js | 2 | Dead — guarded by `game?.gi` |
+| `game.gn` | `n_menu_mapped` | options.js | 2 | Dead — menu mapping not implemented |
+
+### Fix plan
+
+**Option A — Flatten to `game.*`** (preferred when features are implemented):
+- `game.gb.blstats` → `game.blstats`
+- `game.gd.domove_attempting` → `game.domove_attempting`
+- `game.gi.item_action_in_progress` → `game.item_action_in_progress`
+- `game.gn.n_menu_mapped` → `game.n_menu_mapped`
+
+Initialize these in game constructor or first-use sites.
+
+**Option B — Delete dead code paths** (simpler, if features aren't needed):
+Remove the unreachable code that references these subobjects.
+
+### Risk: NONE
+All references are dead code. No session impact possible.
+
+### Recommended: Do when implementing hilite/menu-mapping features,
+or as a drive-by cleanup. Not urgent.
 
 ---
 
@@ -314,15 +360,11 @@ Add to `rng_step_diff.js`:
 This lets us confirm the RNG stream position difference between JS and C
 at the exact point of exercise divergence.
 
-### 2. bhitpos assertion mode
-Add a debug assertion in dothrow.js that warns if `game.gb?.bhitpos`
-differs from `game.bhitpos` after writes. This catches any remaining
-divergence during development.
+### 2. ~~bhitpos assertion mode~~ — RESOLVED
+Fixed: unified to `game.bhitpos` everywhere. No assertion needed.
 
-### 3. canseemon audit helper
-A one-off script that replays sessions and logs every `canseemon` call
-with both implementations, flagging cases where they return different
-results. This measures the real-world impact of the unification.
+### 3. ~~canseemon audit helper~~ — RESOLVED
+Fixed: all consumers now use display.js version. mondata.js version deleted.
 
 ---
 
