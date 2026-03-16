@@ -1052,6 +1052,12 @@ async function handleExtendedCommand(game) {
             return { moved: false, tookTime: !!(await doconduct(game)) };
         case 'invoke':
             return { moved: false, tookTime: !!((await doinvoke(player, game)) & ECMD_TIME) };
+        case 'kick':
+            queueRepeatExtcmd((g) => handleKick(g.player, g.map, g.display, g));
+            return await handleKick(player, map, display, game);
+        case 'twoweapon':
+            queueRepeatExtcmd((g) => handleTwoWeapon(g.player, g.display, g));
+            return await handleTwoWeapon(player, display, game);
         case 'u':
         case 'untrap':
             queueRepeatExtcmd(async (g) => handleExtendedCommandUntrap(g));
@@ -1072,7 +1078,7 @@ function knownExtendedCommands(game) {
     const cmds = [
         'options', 'optionsfull', 'adjust', 'attributes', 'wipe', 'pray', 'turn', 'dip',
         'enhance', 'chat', 'conduct', 'offer', 'sit', 'monster', 'name', 'force', 'loot',
-        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap', 'invoke',
+        'ride', 'quit', 'wield', 'wear', 'eat', 'read', 'again', 'repeat', 'untrap', 'invoke', 'twoweapon', 'kick',
     ];
     if (game?.wizard) {
         cmds.push('levelchange', 'wish', 'map', 'teleport', 'genesis', 'wizloaddes', 'wizbury');

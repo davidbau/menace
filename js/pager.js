@@ -193,6 +193,11 @@ export function do_screen_description(ctx, cc) {
         return { found: true, firstmatch: terrain, outStr: '', text: terrain, kind: 'terrain' };
     }
 
+    // C ref: pager.c — unexplored areas (seenv == 0) described as such
+    if (loc && !loc.seenv) {
+        return { found: true, firstmatch: 'unexplored area', outStr: '', text: 'unexplored area', kind: 'terrain' };
+    }
+
     // C ref: pager.c do_screen_description — basic terrain types use
     // defsyms[glyph].explanation. Wall tiles that don't face a visited
     // room render as stone (blank) on screen, so describe them as "stone".

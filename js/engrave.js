@@ -800,6 +800,10 @@ export async function handleEngrave(player, display, game) {
     buf += finalText;
 
     make_engr_at(map, player.x, player.y, buf, de.type);
+    // C ref: engrave.c:443-450 — exercise(A_WIS, TRUE) when player engraves "Elbereth"
+    if (buf === 'Elbereth') {
+        exercise(player, A_WIS, true);
+    }
     const newEp = engr_at(map, player.x, player.y);
     if (newEp) {
         newEp.eread = true;
