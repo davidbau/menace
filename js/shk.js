@@ -6,10 +6,15 @@
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
          OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
-         ESHK, MAXULEV } from './const.js';
+         ESHK, MAXULEV,
+         FIRE_RES, SLEEP_RES, COLD_RES, DISINT_RES, SHOCK_RES,
+         POISON_RES, ACID_RES, STONE_RES,
+         TELEPORT, TELEPORT_CONTROL, TELEPAT,
+         MM_NOMSG } from './const.js';
 // C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 function ANGRY(mon) { return !mon.mpeaceful; }
-import { PM_TOURIST } from './monsters.js';
+import { mons, PM_TOURIST, G_GONE,
+         PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN } from './monsters.js';
 import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -43,14 +48,16 @@ import { pline, You, Your, You_hear, You_cant, pline_The, There,
 import { s_suffix, strchr, plur, sgn } from './hacklib.js';
 import { helpless as monHelpless, angry_guards } from './mon.js';
 import { newsym, canspotmon, canseemon } from './display.js';
-import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER } from './mondata.js';
+import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER, unique_corpstat } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
 import { o_unleash } from './apply.js';
-import { food_disappears } from './eat.js';
+import { food_disappears, intrinsic_possible } from './eat.js';
 import { book_disappears } from './spell.js';
 import { makemon } from './makemon.js';
+import { enexto } from './teleport.js';
+import { depth } from './dungeon.js';
 import { money_cnt } from './hack.js';
 import {
     NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE, nul_glyphinfo,
@@ -3063,18 +3070,18 @@ export async function call_kops(shkp, nearshop, game, player) {
     if (game.flags.verbose) await pline_The("Keystone Kops appear!");
     mm.x = player.x;
     mm.y = player.y;
-    makekops( mm);
+    makekops( mm, game, _gstate?.map, player);
     return;
   }
   if (game.flags.verbose) await pline_The("Keystone Kops are after you!");
   if (isok(sx, sy)) {
     mm.x = sx;
     mm.y = sy;
-    makekops( mm);
+    makekops( mm, game, _gstate?.map, player);
   }
   mm.x = shkp.mx;
   mm.y = shkp.my;
-  makekops( mm);
+  makekops( mm, game, _gstate?.map, player);
 }
 
 function kops_gone(silent) {
@@ -3545,7 +3552,7 @@ function litter_scatter(litter, x, y, _shkp) {
 }
 
 // Autotranslated from shk.c:5047
-export function makekops(mm, game, map) {
+export function makekops(mm, game, map, player) {
   let k_mndx = [ PM_KEYSTONE_KOP, PM_KOP_SERGEANT, PM_KOP_LIEUTENANT, PM_KOP_KAPTAIN ];
   let k_cnt = [], cnt, mndx, k;
   k_cnt[0] = cnt = Math.abs(depth(map.uz)) + rnd(5);
@@ -3561,8 +3568,8 @@ export function makekops(mm, game, map) {
       continue;
     }
     while (cnt--) {
-      if (enexto(mm, mm.x, mm.y, mons[mndx])) {
-        makemon( mons[mndx], mm.x, mm.y, MM_NOMSG);
+      if (enexto(mm, mm.x, mm.y, mons[mndx], map, player)) {
+        makemon(mons[mndx], mm.x, mm.y, MM_NOMSG, depth(map.uz), map);
       }
     }
   }

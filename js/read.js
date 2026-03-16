@@ -680,6 +680,7 @@ function some_armor(player) {
 
 // cf. read.c seffect_blank_paper()
 export async function seffect_blank_paper(sobj, player, display) {
+    if (_gstate) _gstate.known = true;
     if (player.blind) {
         await display.putstr_message("You don't remember there being any magic words on this scroll.");
     } else {
@@ -1218,6 +1219,7 @@ async function seffect_destroy_armor(sobj, player, display) {
         }
         player.removeFromInventory(otmp);
         find_ac(player);
+        if (_gstate) _gstate.known = true;
     } else {
         // Both armor and scroll cursed: degrade
         await display.putstr_message(`${doname(otmp, player)} vibrates.`);
@@ -1228,6 +1230,7 @@ async function seffect_destroy_armor(sobj, player, display) {
         await make_stunned(player,
             (player.getPropTimeout ? (player.getPropTimeout(STUNNED) || 0) : 0)
             + rn1(10, 10), true);
+        if (_gstate) _gstate.known = true;
     }
     return false;
 }
@@ -1256,6 +1259,8 @@ export async function seffect_create_monster(sobj, player, display, game) {
     }
     if (!created) {
         await display.putstr_message('You feel as if nothing combative is near.');
+    } else {
+        if (_gstate) _gstate.known = true;
     }
     return false;
 }
@@ -1272,6 +1277,7 @@ export async function seffect_teleportation(sobj, player, display, game) {
         // cf. scrolltele(sobj) — normal teleport
         await scrolltele(sobj, game);
     }
+    if (_gstate) _gstate.known = true;
     return false;
 }
 
@@ -1348,11 +1354,13 @@ async function seffect_magic_mapping(sobj, player, display, game) {
         if (player.confused === 1) player.confused = 0;
         await display.putstr_message("Unfortunately, you can't grasp the details.");
     }
+    if (_gstate) _gstate.known = true;
     return false;
 }
 
 // cf. read.c seffect_amnesia()
 async function seffect_amnesia(sobj, player, display) {
+    if (_gstate) _gstate.known = true;
     const sblessed = sobj.blessed;
 
     // cf. forget(!sblessed ? ALL_SPELLS : 0)
@@ -1447,6 +1455,9 @@ export async function seffect_taming(sobj, player, display, game) {
         await display.putstr_message(
             `Nothing interesting ${!candidates ? 'happens' : 'seems to happen'}.`);
     } else {
+        if (vis_results) {
+            if (_gstate) _gstate.known = true;
+        }
         await display.putstr_message(
             `The neighborhood ${vis_results ? 'is' : 'seems'} ${results < 0 ? 'un' : ''}friendlier.`);
     }
@@ -1463,6 +1474,7 @@ export async function seffect_genocide(sobj, player, display, game) {
     if (!already_known) {
         await display.putstr_message('You have found a scroll of genocide!');
     }
+    if (_gstate) _gstate.known = true;
     // cf. C: if (sblessed) do_class_genocide(); else do_genocide((!scursed) | (2 * !!Confusion))
     if (sblessed) {
         await do_class_genocide(player, game);
@@ -1586,6 +1598,7 @@ export async function seffect_earth(sobj, player, display, game) {
     } else {
         await display.putstr_message(`${sblessed ? 'Avalanches' : 'An avalanche'} of boulders materialize ${sblessed ? 'around' : 'above'} you!`);
     }
+    if (_gstate) _gstate.known = true;
     sokoban_guilt();
 
     // cf. C: if not cursed, affect surrounding squares.
@@ -1613,6 +1626,7 @@ export async function seffect_earth(sobj, player, display, game) {
 
 // cf. read.c seffect_punishment()
 export async function seffect_punishment(sobj, player, display) {
+    if (_gstate) _gstate.known = true;
     const sblessed = sobj.blessed;
     const confused = !!player.confused;
 
@@ -1626,6 +1640,7 @@ export async function seffect_punishment(sobj, player, display) {
 
 // cf. read.c seffect_stinking_cloud()
 export async function seffect_stinking_cloud(sobj, player, display, game) {
+    if (_gstate) _gstate.known = true;
     const already_known = isObjectNameKnown(sobj.otyp);
 
     if (!already_known) {
@@ -1730,7 +1745,7 @@ export function charge_ok(obj) {
 // Autotranslated from read.c:1018
 export async function forget(howmuch, game, map, player) {
   let mtmp;
-  if (Punished) player.bc_felt = 0;
+  if (player.Punished) player.bc_felt = 0;
   if (howmuch & ALL_SPELLS) await losespells();
   drain_weapon_skill(rnd(howmuch ? 5 : 3));
   for (mtmp = (map?.fmon || null); mtmp; mtmp = mtmp.nmon) {
@@ -2245,6 +2260,7 @@ export async function recharge(obj, curse_bless, player, game) {
 // Handle reading a scroll of mail.
 // ---------------------------------------------------------------------------
 export async function seffect_mail(sobj) {
+    if (_gstate) _gstate.known = true;
     const odd = ((sobj.o_id || 0) % 2) === 1;
     switch (sobj.spe) {
     case 2:

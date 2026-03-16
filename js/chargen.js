@@ -146,8 +146,8 @@ export async function showGameOver(game) {
     // Word-wrap death description for tombstone (max ~16 chars per line)
     const deathLines = wrapDeathText(deathCause, 16);
 
-    // Show tombstone if flags.tombstone is enabled
-    if (game.flags && game.flags.tombstone) {
+    // Show tombstone if flags.tombstone is enabled (not for ctrlc — C NetHack skips tombstone on QUIT)
+    if (game.flags && game.flags.tombstone && game.gameOverReason !== 'ctrlc') {
         const year = String(new Date().getFullYear());
         game.display.renderTombstone(p.name, p.gold, deathLines, year);
         // Press any key prompt below tombstone
@@ -198,6 +198,13 @@ export async function showGameOver(game) {
     const roleName = roleNameForGender(p.roleIndex, female);
     const farewell = `${Goodbye(p.roleIndex)} ${p.name} the ${roleName}...`;
     await game.display.putstr(0, row++, farewell, 14);
+
+    // After Ctrl-C quit, drop into the shell instead of prompting to play again.
+    // This simulates C NetHack's behavior of returning to the shell on interrupt.
+    if (game.gameOverReason === 'ctrlc') {
+        await game._runLifecycle('shell');
+        return;
+    }
 
     // Play again prompt
     row = Math.min(row + 1, game.display.rows - 1);

@@ -78,9 +78,8 @@ export async function wizMap(game) {
     await do_mapping(player, map, display);
     player.HConfusion = save_Hconf;
     player.HHallucination = save_Hhallu;
-    // Refresh display
-    fov.compute(map, player.x, player.y);
-    display.renderMap(map, player, fov);
+    // C ref: wizcmds.c:198 — wiz_map returns ECMD_OK; no extra renderMap.
+    // do_mapping already handles display via show_map_spot → map_trap → show_glyph.
     return { moved: false, tookTime: false };
 }
 
