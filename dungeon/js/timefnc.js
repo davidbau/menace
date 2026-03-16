@@ -820,9 +820,11 @@ export function blow(G, h, v, rmk, hflg, out) {
   }
 
   // --- label 2000: parties equipped ---
+  let alreadyDead = false;
   if (def <= 0) {
     res = RKILL;
     if (hflg) rspsub(G, 595, dv);
+    alreadyDead = true; // Fortran: GO TO 3000 (skip message printing)
   } else {
     // Choose table
     let tbl;
@@ -851,13 +853,15 @@ export function blow(G, h, v, rmk, hflg, out) {
     if (AND(res === RSTAG, dweap !== 0, prob(G, 25, pblose))) res = RLOSE;
   }
 
-  // Print message
-  const mi = RSTATE[((rmk - 1) * 9) + res];
-  if (mi !== 0) {
-    const i = (mi % 1000) + rnd(Math.floor(mi / 1000)) + G.mbase + 1;
-    let j = dv;
-    if (!hflg && dweap !== 0) j = G.odesc2[dweap - 1];
-    rspsub(G, i, j);
+  // Print message (skip if defender was already dead/unconscious — Fortran GO TO 3000)
+  if (!alreadyDead) {
+    const mi = RSTATE[((rmk - 1) * 9) + res];
+    if (mi !== 0) {
+      const i = (mi % 1000) + rnd(Math.floor(mi / 1000)) + G.mbase + 1;
+      let j = dv;
+      if (!hflg && dweap !== 0) j = G.odesc2[dweap - 1];
+      rspsub(G, i, j);
+    }
   }
 
   // --- label 3000: apply result ---
