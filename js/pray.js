@@ -579,7 +579,7 @@ function blocked_boulder(dx, dy, player, map) {
     }
     if (dx && dy && in_sokoban(map)) return true;
     if (!isok(nx, ny)) return true;
-    if (IS_OBSTRUCTED(map.at(nx, ny).typ)) return true;
+    if (IS_OBSTRUCTED(map.at(nx, ny)?.typ)) return true;
     if (sobj_at(BOULDER, nx, ny, map)) return true;
     return false;
 }
