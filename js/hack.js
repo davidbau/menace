@@ -3921,12 +3921,8 @@ export function hurtle_step(x, y, player, map) {
 }
 
 // C ref: hack.c drag_ball() — drag ball & chain when punished
-// Returns true if movement can proceed.
-export function drag_ball(_x, _y, _player, _map) {
-    // Ball & chain (punishment) system not yet fully implemented.
-    // Always allow movement.
-    return true;
-}
+// Real implementation in ball.js; re-exported here for legacy callers.
+export { drag_ball } from './ball.js';
 
 // ========================================================================
 // Functions moved from monutil.js — C ref: hack.h / hack.c

@@ -32,7 +32,7 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          BOULDER, HEAVY_IRON_BALL,
          EGG, CREAM_PIE, MELON,
          MIRROR, EXPENSIVE_CAMERA, CRYSTAL_BALL, LENSES,
-         POT_WATER,
+         POT_WATER, POT_OIL,
          ACID_VENOM, BLINDING_VENOM,
          YA, YUMI, ELVEN_ARROW, ORCISH_ARROW, ELVEN_BOW, ORCISH_BOW,
          RUBBER_HOSE, BAG_OF_TRICKS, SACK, OILSKIN_SACK, BAG_OF_HOLDING,
@@ -43,12 +43,12 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
        } from './objects.js';
 import { compactInvletPromptChars, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
 import { doname, next_ident, xname, is_crackable } from './mkobj.js';
-import { x_monnam, is_unicorn, nohands, notake } from './mondata.js';
+import { x_monnam, is_unicorn, nohands, notake, breathless, haseyes } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { uwepgone, uswapwepgone, uqwepgone, handleSwapWeapon, setuqwep } from './wield.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, delobj } from './invent.js';
 import { pline } from './pline.js';
-import { sgn, distmin } from './hacklib.js';
+import { sgn, distmin, distu } from './hacklib.js';
 import { Monnam, a_monnam, mon_nam } from './do_name.js';
 import { wakeup, setmangry } from './mon.js';
 import { MZ_MEDIUM, MZ_HUGE, PM_HOMUNCULUS, PM_IMP, mons,
@@ -1083,27 +1083,18 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             const loc = typeof map.at === 'function' ? map.at(nx, ny) : null;
             if (!loc || !ZAP_POS(loc.typ)) break;
             bx = nx; by = ny;
-            // C ref: zap.c bhit() checks monster hit before tmp_at(x,y).
-            // If thitmonst returns 0 (miss), object continues past the monster.
+            // C ref: zap.c bhit() ALWAYS stops at the first monster for
+            // THROWN_WEAPON. thitmonst is called after the loop.
             const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
             if (mon) {
-                if (mon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === mon) {
-                    hitMon = mon; break;
-                }
-                // C ref: bhit() ends animation before calling fhitm callback
-                tmp_at(DISP_END, 0);
-                const obj_gone = await thitmonst(mon, obj, player, map, game);
-                if (obj_gone) {
-                    if (game) game.thrownobj = null;
-                    hitMon = mon;
+                // C ref: bhit() ends animation and ALWAYS stops at the monster
+                // position for THROWN_WEAPON. throwit_mon_hit then calls thitmonst.
+                if (!tethered_weapon) {
+                    tmp_at(DISP_END, 0);
                     animationClosed = true;
-                    break;
                 }
-                // miss: object flies past the monster, restart animation and continue
-                tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
-                tmp_at(bx, by);
-                await nh_delay_output();
-                continue;
+                hitMon = mon;
+                break;
             }
             tmp_at(bx, by);
             await nh_delay_output();
@@ -1113,7 +1104,16 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     }
     if (game) game.bhitpos = { x: bx, y: by };
 
-    if (hitMon) { throwit_return(true, game); return; }
+    // C ref: dothrow.c:1482-1506 throwit_mon_hit() — call thitmonst after bhit
+    if (hitMon) {
+        if (hitMon.isshk && obj.where === OBJ_MINVENT && obj.ocarry === hitMon) {
+            throwit_return(true, game); return;
+        }
+        const obj_gone = await thitmonst(hitMon, obj, player, map, game);
+        if (obj_gone) {
+            if (game) game.thrownobj = null;
+        }
+    }
     if (game && !game.thrownobj) { throwit_return(false, game); return; }
 
     if (tethered_weapon) {
@@ -1140,6 +1140,11 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
 
     const landLoc = typeof map.at === 'function' ? map.at(bx, by) : null;
     if (landLoc && !IS_SOFT(landLoc.typ) && breaktest(obj)) {
+        // C ref: dothrow.c:1784-1787 — show break animation before breakmsg/breakobj
+        tmp_at(DISP_FLASH, objectTmpGlyph(obj));
+        tmp_at(bx, by);
+        await nh_delay_output();
+        tmp_at(DISP_END, 0);
         await breakmsg(obj, true);
         if (await breakobj(obj, bx, by, true, true, player, map)) { throwit_return(true, game); return; }
     }
@@ -1361,19 +1366,29 @@ export async function breakobj(obj, x, y, hero_caused, from_invent, player, map)
     switch (etype) {
     case MIRROR: if (hero_caused) change_luck(-2, player); break;
     case POT_WATER:
-        // C ref: breakobj() calls potionhit or potionbreathe when a potion breaks.
-        // If hero is at the location, potionhit hits the hero directly.
-        // Otherwise if hero is within distance 2, potionbreathe for vapors.
-        if (player && x === player.x && y === player.y) {
-            await potionhit(player, obj, 2, player, map); // POTHIT_OTHER_THROW=2
-        } else if (player && distmin(x, y, player.x, player.y) <= 2) {
-            await potionbreathe(player, obj);
+        // C ref: dothrow.c:2498-2521 breakobj() POT_WATER case
+        obj.in_use = 1; // in case it's fatal
+        if (obj.otyp === POT_OIL && obj.lamplit) {
+            // C ref: explode_oil(obj, x, y) — not yet implemented
+        } else if (player && distu(player, x, y) <= 2) {
+            // C ref: next2u(x,y) — hero is at or adjacent to break location
+            const playerData = player.youmonst?.data || player.data || {};
+            if (!breathless(playerData) || haseyes(playerData)) {
+                if (obj.otyp !== POT_WATER) {
+                    // C ref: Half_gas_damage = wet towel worn as blindfold
+                    // Skip "peculiar odor" / "eyes water" message check for simplicity
+                    // (the message itself doesn't consume RNG)
+                    if (!breathless(playerData)) {
+                        await pline("You smell a peculiar odor...");
+                    } else {
+                        // hero is breathless but has eyes
+                        await pline("Your eyes water.");
+                    }
+                }
+                await potionbreathe(player, obj);
+            }
         }
-        // C ref: breakobj() calls obj_resists(obj, 1, 99) after potionhit/potionbreathe
-        // to check if artifact potion resists destruction.
-        if (obj_resists(obj, 1, 99)) {
-            return 0; // potion resists breaking
-        }
+        // monster breathing isn't handled... [yet?]
         break;
     case EXPENSIVE_CAMERA: await release_camera_demon(obj, x, y, map); break;
     case EGG:
@@ -1385,8 +1400,8 @@ export async function breakobj(obj, x, y, hero_caused, from_invent, player, map)
     }
     if (hero_caused && (from_invent || obj.unpaid)) await check_shop_obj(obj, x, y, true, player, map);
     if (!fracture) {
-        if (typeof map.removeFloorObject === 'function') map.removeFloorObject(obj);
-        obj._deleted = true;
+        // C ref: dothrow.c:2569-2570 — delobj(obj) which calls obj_resists(obj, 0, 0)
+        delobj(obj);
     }
     return 1;
 }

@@ -12,92 +12,179 @@ Status as of 2026-03-16: **262/262 sessions passing**, 12 pending.
 
 ---
 
-## Issue 1: Exercise Timing — `exerchk` Moves Offset
+## Issue 1: Exercise Timing — `wiz_identify` Type Discovery Gap
 
 **Sessions affected:** s746, s748, s749, s751, s752, s753 (6 sessions)
 
-### Root cause (REVISED after investigation)
+### Root cause (REVISED: March 16 deep investigation)
 
-Previous theory was "fundamental turn-processing order difference."
-Deep investigation reveals:
+Previous theories:
+- ~~"exerchk fires at different RNG stream position"~~ — WRONG.
+  The step boundary at `--More--` / `nhgetch` already splits RNG
+  correctly via `drainUntilInput()`. Confirmed by deferred-advance
+  experiment (163/262 regressions when turn-end was moved, reverted).
+- ~~"turn-processing order difference"~~ — WRONG. Same as above.
 
-1. **Monster iteration order is CORRECT** — JS uses `unshift()` (prepend)
-   and iterates index 0 onwards, matching C's `fmon` linked-list prepend
-   and head-to-tail traversal.
+**The ACTUAL root cause is two interacting bugs:**
 
-2. **The `turnCount + 1` offset is INTENTIONAL** — documented at
-   allmain.js:271, insight.js:619. JS `turnCount` is initialized to 0
-   while C's `svm.moves` starts at 1. After increment, the +1 offset
-   produces the same absolute value C uses.
+#### Bug A: JS wizard identify individual item path skips `discoverObject`
 
-3. **The REAL issue** is not the moves value — it's that exerchk fires
-   at a different point in the RNG stream relative to command execution.
-   In C, the entire moveloop_core is one function: turn-end processing
-   (with exerchk) happens, then rhack reads input and executes command.
-   In JS, rhack executes first, THEN turn-end fires. Any RNG consumed
-   during command execution shifts the exerchk RNG relative to C.
-
-### The actual divergence mechanism
-
-When a command consumes RNG (e.g., inventory paging with `--More--`),
-the exerchk modulo gates (`moves % 5`, `moves % 10`) fire with the
-same moves value as C, but at a different position in the RNG stream
-because the command's RNG was consumed before vs after exerchk.
-
-Example: Turn N where `N % 10 == 0`:
-- **C**: exerchk consumes rn2 for exercise → then rhack runs command
-- **JS**: rhack runs command (consumes rn2) → then exerchk consumes rn2
-- The exercise rn2 calls get DIFFERENT values from the stream.
-
-### Fix plan
-
-**Phase 1 — Measure the gap** (tooling)
-- Add a diagnostic mode to `rng_step_diff.js` that logs the exact
-  RNG index when exerchk fires in both JS and C sessions.
-- Compare divergent sessions to confirm the mechanism above.
-
-**Phase 2 — Restructure turn-end ordering**
-The fix requires running turn-end processing BEFORE the next command,
-not AFTER the current one. This means:
-
-```
-Current JS flow:
-  rhack(key)          // execute command
-  moveloop_core()     // monsters + turn-end (exerchk here)
-
-Target JS flow:
-  moveloop_core()     // monsters + turn-end (exerchk here)
-  rhack(key)          // execute command
+C's `display_pickinv` wizard identify path (invent.c:3393-3404):
+```c
+// When individual items are selected:
+if (not_fully_identified(otmp))
+    (void) identify(otmp);
+// identify → fully_identify_obj → makeknown(otyp)
+// makeknown = discover_object(otyp, TRUE, TRUE, TRUE)
+// → sets objects[otyp].oc_name_known = 1
+// → calls exercise(A_WIS, TRUE) if type was not already known
 ```
 
-Implementation approach:
-1. On game start (or level entry), run the first `moveloop_core()` to
-   set up the initial turn-end state (matches C's moveloop_core being
-   called first, which blocks on nhgetch inside rhack).
-2. After rhack returns, DON'T run turn-end. Instead, store the
-   `tookTime` flag and process it at the START of the next run_command.
-3. This requires a `game.pendingTurnEnd` flag.
+JS's wizard identify individual item path (invent.js:2441-2453):
+```javascript
+// BUG: Sets per-object flags WITHOUT calling discoverObject
+target.known = true;
+target.bknown = true;
+target.rknown = true;
+target.dknown = true;
+// Result: item appears identified, but isObjectNameKnown(otyp)
+// stays false — type is NOT globally discovered
+```
 
-**Concerns:**
-- Screen captures happen between commands. C captures AFTER turn-end
-  and BEFORE rhack. JS currently captures AFTER rhack and AFTER turn-end.
-  Reordering turn-end changes when the screen snapshot happens relative
-  to hunger messages, exercise effects, etc.
-- Multi-turn commands (travel, repeated moves) call advanceTimedTurn
-  inline — these would need the same reordering.
-- Occupation draining (eating, lock-picking) runs between turns.
+**Consequence:** Types never become globally known from JS's individual
+item wizard identify. At the NEXT wizard identify, these items appear
+again in the unid list (because `isObjectNameKnown(otyp)` is false),
+and if `discoverObject` is then called with `creditClue=true`, exercise
+fires for types that C already knows. Or exercise is suppressed
+(creditClue=false) when C expects it to fire.
 
-**Phase 3 — Validate**
+#### Bug B: JS overlay PICK_ANY menu interprets keystrokes differently from C's tty menu
+
+The same keystroke sequence produces **different item selections** in
+C's tty PICK_ANY menu vs JS's overlay PICK_ANY menu. Specifically:
+
+- C's tty menu uses page-based navigation. Pressing an item letter on a
+  different page may be ignored or handled differently than in JS.
+- JS's overlay menu may select items regardless of which "page" is
+  currently displayed.
+
+**Evidence from t11_s754 (step 1243):** C's wizard identify menu has
+2 pages. The keystrokes `space, o, l, space` are interpreted as:
+- C: page to page 2, then 'o' and 'l' may not produce valid selections
+  on page 2 (items 'o' and 'l' are on page 1). No items are identified.
+  Status line continues showing "forked wand" (type unknown).
+- JS: 'o' selects item 'o' (wand of fire) regardless of page state.
+  Item is identified. If `discoverObject` is called, status line changes
+  to "wand of fire" (type known).
+
+This is confirmed by C's screen at step 1335 (after wizard identify)
+showing "forked wand" — the type remained unknown in C, proving the
+wizard identify did NOT actually identify it.
+
+#### How the bugs interact
+
+The two bugs produce opposing effects in different sessions:
+
+| Session | C behavior | JS old behavior | What happens |
+|---------|-----------|----------------|--------------|
+| s746 | Wizard identify selects items → exercise fires | Individual item path doesn't call discoverObject → exercise suppressed | JS MISSING exercise |
+| t11_s754 | Wizard identify doesn't select items (menu key mismatch) → no exercise | Individual item path sets flags, no discoverObject → types stay unknown | Match (both: no exercise) |
+| t11_s754 (with fix) | Same as above | Individual item path calls discoverObject → exercise fires for types C never discovered | EXTRA exercise in JS |
+
+**This is why no single `creditClue` change can fix both sessions.**
+
+### C code reference: wiz_identify architecture
+
+C's wizard identify is NOT the simple display shown in `wizcmds.c:50-66`.
+The `wiz_identify` function sets `iflags.override_ID` and calls
+`display_inventory`, which calls `display_pickinv`. When `wizid` is true,
+`display_pickinv` (invent.c:3222-3404):
+
+1. Shows "Debug Identify" header with unidentified items
+2. Uses `_` as "identify all" accelerator (backed by `wizid_fakeobj`)
+3. Shows unidentified items filtered by `not_fully_identified(otmp)`
+4. After menu returns, clears `override_ID` (line 3391)
+5. For `wizid_fakeobj` selection: calls `identify_pack(0, FALSE)` (line 3396)
+6. For individual items: calls `identify(otmp)` (line 3402)
+7. Both paths call `fully_identify_obj → makeknown → discover_object(credit_hero=TRUE)`
+
+**Important:** C's `not_fully_identified` (objnam.c:1790) checks raw
+`objects[otyp].oc_name_known`, NOT `iflags.override_ID`. JS's version
+calls `isObjectNameKnown(otyp)` which respects `overrideID`. Both produce
+the same result here since `overrideID` is not set when the unid list
+is built.
+
+### C exercise gate: AVAL saturation
+
+C's `exercise()` (attrib.c:496) has an accumulator saturation check:
+```c
+if (abs(AEXE(i)) < AVAL)  // AVAL = 50
+    AEXE(i) += (inc_or_dec) ? (rn2(19) > ACURR(i)) : -rn2(2);
+```
+If `|AEXE(A_WIS)| >= 50`, exercise does NOT consume RNG. JS has the
+same gate (attrib_exercise.js:67). Investigation confirmed this is NOT
+the cause of the divergence — the accumulator value is ~0-1 during
+wizard identify in both C and JS for t11_s754.
+
+### Attempted fixes and results
+
+| Approach | Change | t11_s754 | s746 | Reason |
+|----------|--------|----------|------|--------|
+| Original code | Manual flag setting, creditClue=false | PASS (1866/1866) | FAIL (missing exercise) | Bug A: no discoverObject |
+| creditClue=true | identify_pack + identify with creditClue=true | FAIL (rng 7267/20848) | Needs test | Extra exercise from newly-discovered types |
+| creditClue=false + identify() | fully_identify_obj(target, false) | rng 100%, screens 1842/1866 | Needs test | Types become known → screen names change |
+| Pure display_inventory | setOverrideID + regular inventory | FAIL (hi13 regresses) | N/A | C also has Debug Identify UI |
+
+### Fix plan (REVISED)
+
+**The root fix is Bug B: fix overlay PICK_ANY menu paging to match C's tty menu.**
+
+If the overlay menu handles keystrokes identically to C's tty menu:
+- Same items get selected in both C and JS
+- Same types get discovered at the same wizard identify steps
+- Exercise fires/doesn't fire at the same points
+- Screen content matches (type names shown/hidden consistently)
+
+**Phase 1 — Audit C's tty PICK_ANY menu behavior**
+Study `nethack-c/src/wintty.c` (or `win/tty/wintty.c`) to understand:
+1. How page navigation works (space = next page, on last page = dismiss)
+2. How item letter selection works across pages (does pressing 'o' on
+   page 2 select item 'o' from page 1, or is it ignored?)
+3. How group accelerators (like `_` and ctrl+I) work across pages
+
+**Phase 2 — Fix JS overlay PICK_ANY paging**
+Modify `renderOverlayMenuPickAny` in invent.js (or headless.js) to match
+C's tty behavior. Key behaviors to match:
+- Item letter presses should only toggle items visible on current page
+  (OR should toggle regardless — match whichever C does)
+- Space should page forward, not dismiss, until the last page
+- Group accelerators should work regardless of page
+
+**Phase 3 — Fix individual item path to call `fully_identify_obj`**
+Once Bug B is fixed, change the individual item path to:
+```javascript
+if (target && not_fully_identified(target)) {
+    fully_identify_obj(target, true);  // creditClue=true matches C's makeknown
+}
+```
+With matching menu behavior, the same items get identified in both C and JS,
+so exercise fires at the same points.
+
+Note: Use `fully_identify_obj` (not `identify`) to avoid `prinv()` output
+since JS's wizard identify already displays items in the overlay menu.
+
+**Phase 4 — Validate**
 - Run all 262 sessions + the 6 exercise-divergent pending sessions.
-- If the 6 sessions now pass, promote them.
+- Check screens, RNG, and events for regressions.
+- Promote sessions that now pass.
 
-### Risk: HIGH
-This touches the core game loop. Extensive testing required.
-Recommend doing this work on a branch with a worktree.
+### Risk: MEDIUM-HIGH
+Phase 2 (overlay menu paging fix) affects ALL PICK_ANY menus, not just
+wizard identify. Needs comprehensive testing. Phase 3 is low-risk once
+Phase 2 is correct.
 
-### Gate: Phase 1 diagnostic tooling must confirm the mechanism
-before attempting Phase 2. If the divergence is NOT explained by
-command-relative RNG position, there's another cause.
+### Gate: Phase 1 audit must determine exactly how C's tty menu handles
+cross-page item selection before implementing Phase 2.
 
 ---
 

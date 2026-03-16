@@ -1983,11 +1983,11 @@ async function dodip(player, map, display) {
     const at_fountain = !!(here && here.typ === FOUNTAIN);
     const at_sink = !!(here && IS_SINK(here.typ));
 
-    // C chooses object first (dip target), then possibly asks about floor feature.
-    const obj = await getobj_prompt_local(
+    // C ref: potion.c:2265 — getobj("dip", dip_ok, GETOBJ_PROMPT)
+    const obj = await getobj(
         'dip',
         (o) => dip_ok(o) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        display,
+        GETOBJ_PROMPT,
         player
     );
     if (!obj) {
@@ -2014,16 +2014,14 @@ async function dodip(player, map, display) {
         }
     }
 
-    const potion = await getobj_prompt_local(
+    // C ref: potion.c:2354 — getobj(qbuf, drink_ok, GETOBJ_NOFLAGS)
+    const potion = await getobj(
         `dip ${doname(obj, player)} into`,
         (o) => (o && o.oclass === POTION_CLASS) ? GETOBJ_SUGGEST : GETOBJ_EXCLUDE,
-        display,
+        0, // GETOBJ_NOFLAGS
         player
     );
     if (!potion) {
-        // C-like getobj messaging is object-specific for this prompt branch.
-        const obuf = doname(obj, player);
-        await You(`don't have anything to dip ${obuf} into.`);
         return false;
     }
 
