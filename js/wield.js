@@ -378,6 +378,12 @@ async function wield_tool(player, display, obj, _verb) {
 
 // cf. wield.c:163 — ready_weapon(wep): perform the actual wield
 async function ready_weapon(player, display, wep) {
+    // C ref: wield.c ready_weapon() — cursed weapon is welded to hand
+    if (player.weapon && player.weapon !== wep && welded(player.weapon, player)) {
+        await weldmsg(player, display);
+        return { tookTime: false };
+    }
+
     if (wep === null) {
         if (player.weapon) {
             setuwep(player, null);
