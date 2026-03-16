@@ -889,16 +889,49 @@
       "cmd": "drop wrench"
     },
     {
-      "cmd": "w",
-      "note": "loud room \u2192 dam base (86)"
+      "cmd": "e",
+      "note": "loud room(98)\u2192dam base(86)"
     },
     {
       "cmd": "s",
-      "note": "86 \u2192 cave (49)"
+      "note": "86\u2192cave area"
     },
     {
       "cmd": "w",
-      "note": "49 \u2192 round room (84)"
+      "note": "\u2192round room(84)"
+    },
+    {
+      "cmd": "n",
+      "note": "84\u2192N-S passage(85)"
+    },
+    {
+      "cmd": "s",
+      "note": "85\u2192deep ravine(37)"
+    },
+    {
+      "cmd": "s",
+      "note": "37\u2192passage(1)"
+    },
+    {
+      "cmd": "w",
+      "note": "1\u2192troll room(10)"
+    },
+    {
+      "cmd": "w",
+      "note": "10\u2192cellar(9)"
+    },
+    {
+      "cmd": "u",
+      "note": "9\u2192living room(8)"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "score"
     },
     {
       "cmd": "quit"

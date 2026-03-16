@@ -179,8 +179,17 @@ s
 s
 turn bolt with wrench
 drop wrench
-w
+e
 s
 w
+n
+s
+s
+w
+w
+u
+put treasure in case
+drop all
+score
 quit
 y
