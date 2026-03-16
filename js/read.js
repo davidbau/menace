@@ -1,7 +1,7 @@
 // read.js -- Scroll reading mechanics
 // cf. read.c — doread, seffects, scroll effects, genocide, punishment, recharging
 
-import { rn2, rn1, rnd, d } from './rng.js';
+import { rn2, rn1, rnd, d, c_d } from './rng.js';
 import { more, nhgetch, ynFunction } from './input.js';
 import {
     objectData, SCROLL_CLASS, SPBOOK_CLASS, WEAPON_CLASS, COIN_CLASS,
@@ -741,7 +741,7 @@ export async function seffect_charging(sobj, player, display, game) {
             player.pw = 0;
         } else {
             await display.putstr_message('You feel charged up!');
-            player.pw += d(sblessed ? 6 : 4, 4);
+            player.pw += c_d(sblessed ? 6 : 4, 4);
             if (player.pw > player.pwmax) {
                 player.pwmax = player.pw;
             } else {
@@ -2281,7 +2281,7 @@ export async function wand_explode(obj, chg, player, game) {
     case WAN_NOTHING: k = 4; break;
     default: k = 6; break;
     }
-    const dmg = d(n, k);
+    const dmg = c_d(n, k);
     obj.in_use = true;
     await pline("%s %s explodes!", Yname2(obj), expl);
     // losehp(Maybe_Half_Phys(dmg), "exploding wand", KILLED_BY_AN) — not fully wired

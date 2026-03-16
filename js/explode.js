@@ -3,7 +3,7 @@
 //                 scatter, splatter_burning_oil, explode_oil,
 //                 adtyp_to_expltype, mon_explodes
 
-import { rn2, rnd, d } from './rng.js';
+import { rn2, rnd, d, c_d } from './rng.js';
 import {
   isok, A_STR,
   EXPL_DARK, EXPL_NOXIOUS, EXPL_MUDDY, EXPL_WET, EXPL_MAGICAL, EXPL_FIERY, EXPL_FROSTY, EXPL_MAX,
@@ -179,7 +179,7 @@ export function scatter(sx, sy, blastforce, scflags, obj, map) {
 // cf. explode.c:959 — splatter_burning_oil(x, y, diluted_oil)
 const ZT_SPELL_O_FIRE = 11; // C: explode.c:965 local #define
 export async function splatter_burning_oil(x, y, diluted_oil) {
-  let dmg = d(diluted_oil ? 3 : 4, 4);
+  let dmg = c_d(diluted_oil ? 3 : 4, 4);
   await explode(x, y, ZT_SPELL_O_FIRE, dmg, BURNING_OIL, EXPL_FIERY);
 }
 
@@ -198,10 +198,10 @@ export async function mon_explodes(mon, mattk, map, player) {
 
   let dmg;
   if (mattk.damn) {
-    dmg = d(mattk.damn, mattk.damd);
+    dmg = c_d(mattk.damn, mattk.damd);
   } else if (mattk.damd) {
     const mlev = mon.m_lev || 0;
-    dmg = d(mlev + 1, mattk.damd);
+    dmg = c_d(mlev + 1, mattk.damd);
   } else {
     dmg = 0;
   }

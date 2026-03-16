@@ -853,9 +853,9 @@ export function corpse_chance(mon) {
                 // The d() call consumes RNG and must be matched
                 let tmp;
                 if (atk.damn)
-                    tmp = d(atk.damn, atk.damd);
+                    tmp = c_d(atk.damn, atk.damd);
                 else if (atk.damd)
-                    tmp = d((mdat.mlevel || 0) + 1, atk.damd);
+                    tmp = c_d((mdat.mlevel || 0) + 1, atk.damd);
                 // else tmp = 0 — no RNG consumed
                 // C then calls mon_explodes() which may consume more RNG,
                 // but that's a separate function not yet ported

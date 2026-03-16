@@ -32,7 +32,7 @@ import { A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, AM_MASK, AM_SHRINE, AM_CHAOTIC,
          BOLT_LIM, NATTK, Upolyd, DIED, ESCAPED, ASCENDED, DROWNING, BURNING, DISSOLVED,
          IS_AIR, IS_WATERWALL } from './const.js';
 import { roles, godForRoleAlign, isGoddess } from './player.js';
-import { rn2, rnd, rn1, rnl, rnz, d } from './rng.js';
+import { rn2, rnd, rn1, rnl, rnz, d, c_d } from './rng.js';
 import { rn2_on_display_rng } from './rng.js';
 import { pline, pline_The, verbalize, You, Your, You_feel, You_hear,
          livelog_printf } from './pline.js';
@@ -854,7 +854,7 @@ async function fix_worst_trouble(trouble, player, map) {
             await Your("surroundings change.");
         } else {
             // C: set_itimeout(&HPasses_walls, d(4,4)+4) — confer phasing
-            d(4, 4); // consume RNG for passes_walls timeout
+            c_d(4, 4); // consume RNG for passes_walls timeout
             await You_feel("much slimmer.");
         }
         break;

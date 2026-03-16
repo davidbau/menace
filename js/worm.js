@@ -332,8 +332,8 @@ export async function cutworm(worm, x, y, cuttier, map, player, game) {
     new_worm.m_lev = worm.m_lev;
 
     // Calculate lower-level mhp
-    new_worm.mhpmax = new_worm.mhp = d(new_worm.m_lev, 8);
-    worm.mhpmax = d(worm.m_lev, 8);
+    new_worm.mhpmax = new_worm.mhp = c_d(new_worm.m_lev, 8);
+    worm.mhpmax = c_d(worm.m_lev, 8);
     if (worm.mhpmax < worm.mhp)
         worm.mhp = worm.mhpmax;
 
