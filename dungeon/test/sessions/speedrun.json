@@ -1956,6 +1956,294 @@
     {
       "cmd": "score",
       "note": "check"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "light"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "on"
+    },
+    {
+      "cmd": "take torch",
+      "note": "from case for light"
+    },
+    {
+      "cmd": "take brick",
+      "note": "brick for explosion"
+    },
+    {
+      "cmd": "take matches",
+      "note": "matches"
+    },
+    {
+      "cmd": "take newspaper",
+      "note": "fuel for balloon"
+    },
+    {
+      "cmd": "d",
+      "note": "cellar"
+    },
+    {
+      "cmd": "e",
+      "note": "troll"
+    },
+    {
+      "cmd": "n",
+      "note": "E-W passage"
+    },
+    {
+      "cmd": "d",
+      "note": "ravine"
+    },
+    {
+      "cmd": "d",
+      "note": "deep down"
+    },
+    {
+      "cmd": "w",
+      "note": "west to volcano area"
+    },
+    {
+      "cmd": "n",
+      "note": "north - volcano ledge"
+    },
+    {
+      "cmd": "turn off lamp",
+      "note": "save battery, torch provides light"
+    },
+    {
+      "cmd": "throw torch",
+      "note": "throw torch into volcano (lights bottom)"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "need light again"
+    },
+    {
+      "cmd": "w",
+      "note": "ruby room"
+    },
+    {
+      "cmd": "take ruby",
+      "note": "ruby!"
+    },
+    {
+      "cmd": "w",
+      "note": "balloon area"
+    },
+    {
+      "cmd": "s",
+      "note": "south to balloon"
+    },
+    {
+      "cmd": "board basket",
+      "note": "get in balloon"
+    },
+    {
+      "cmd": "open receptacle",
+      "note": "open receptacle"
+    },
+    {
+      "cmd": "put newspaper in receptacle",
+      "note": "fuel"
+    },
+    {
+      "cmd": "light match",
+      "note": "light match"
+    },
+    {
+      "cmd": "light newspaper with match",
+      "note": "launch!"
+    },
+    {
+      "cmd": "wait",
+      "note": "ascending 1"
+    },
+    {
+      "cmd": "wait",
+      "note": "ascending 2"
+    },
+    {
+      "cmd": "land",
+      "note": "land on narrow ledge"
+    },
+    {
+      "cmd": "disembark",
+      "note": "get out quickly"
+    },
+    {
+      "cmd": "take coin",
+      "note": "coin!"
+    },
+    {
+      "cmd": "s",
+      "note": "south to book room"
+    },
+    {
+      "cmd": "take purple book",
+      "note": "purple book"
+    },
+    {
+      "cmd": "n",
+      "note": "back"
+    },
+    {
+      "cmd": "board basket",
+      "note": "back in balloon"
+    },
+    {
+      "cmd": "wait",
+      "note": "ascending"
+    },
+    {
+      "cmd": "wait",
+      "note": "ascending"
+    },
+    {
+      "cmd": "land",
+      "note": "land on wide ledge"
+    },
+    {
+      "cmd": "disembark",
+      "note": "get out"
+    },
+    {
+      "cmd": "s",
+      "note": "south to explosive room"
+    },
+    {
+      "cmd": "put brick in hole",
+      "note": "brick in hole"
+    },
+    {
+      "cmd": "take wire",
+      "note": "wire from ledge area"
+    },
+    {
+      "cmd": "put wire in brick",
+      "note": "wire in brick"
+    },
+    {
+      "cmd": "light match",
+      "note": "light match"
+    },
+    {
+      "cmd": "light wire with match",
+      "note": "fuse lit!"
+    },
+    {
+      "cmd": "n",
+      "note": "run north!"
+    },
+    {
+      "cmd": "s",
+      "note": "south - crown room"
+    },
+    {
+      "cmd": "take crown",
+      "note": "crown!"
+    },
+    {
+      "cmd": "n",
+      "note": "back north"
+    },
+    {
+      "cmd": "board basket",
+      "note": "balloon"
+    },
+    {
+      "cmd": "close receptacle",
+      "note": "descend"
+    },
+    {
+      "cmd": "wait",
+      "note": "descending"
+    },
+    {
+      "cmd": "wait",
+      "note": "descending"
+    },
+    {
+      "cmd": "wait",
+      "note": "descending"
+    },
+    {
+      "cmd": "wait",
+      "note": "descending"
+    },
+    {
+      "cmd": "wait",
+      "note": "descending"
+    },
+    {
+      "cmd": "wait",
+      "note": "descending"
+    },
+    {
+      "cmd": "disembark",
+      "note": "get out at bottom"
+    },
+    {
+      "cmd": "n",
+      "note": "north"
+    },
+    {
+      "cmd": "take torch",
+      "note": "burned-out torch"
+    },
+    {
+      "cmd": "e",
+      "note": "east"
+    },
+    {
+      "cmd": "u",
+      "note": "up"
+    },
+    {
+      "cmd": "u",
+      "note": "up"
+    },
+    {
+      "cmd": "n",
+      "note": "north"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "d",
+      "note": "slide"
+    },
+    {
+      "cmd": "u",
+      "note": "living room"
+    },
+    {
+      "cmd": "turn off lamp",
+      "note": "save battery"
+    },
+    {
+      "cmd": "open purple book",
+      "note": "find stamp"
+    },
+    {
+      "cmd": "put treasure in case",
+      "note": "deposit"
+    },
+    {
+      "cmd": "drop all",
+      "note": "clean"
+    },
+    {
+      "cmd": "score",
+      "note": "check"
     }
   ]
 }
