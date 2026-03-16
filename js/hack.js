@@ -45,7 +45,7 @@ import { place_object } from './mkobj.js';
 import { an, The } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
@@ -3810,8 +3810,9 @@ export function u_simple_floortyp(x, y, player, map) {
 }
 
 // C ref: hack.c feel_location() — feel terrain when blind
-export function feel_location(_x, _y, _map) {
-    // Display update for blind hero; stub.
+// Delegates to the full implementation in display.js
+export function feel_location(x, y, map) {
+    display_feel_location(x, y, map);
 }
 
 // C ref: hack.c feel_newsym() — update map display for a newly felt/seen location.

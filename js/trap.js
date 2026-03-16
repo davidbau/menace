@@ -31,7 +31,7 @@ import { is_mindless, mindless, touch_petrifies, resists_ston,
 import { mon_knows_traps, mon_learns_traps, mons_see_trap,
          resists_magm, defended, DEADMONSTER, is_metallivore } from './mondata.js';
 import { helpless as monHelpless, monkilled, m_in_air, setmangry, wake_nearto, mongone } from './mon.js';
-import { newsym, map_trap } from './display.js';
+import { newsym, map_trap, feel_newsym } from './display.js';
 import { sleep_monst } from './mhitm.js';
 import { make_stunned, make_blinded, make_hallucinated } from './potion.js';
 import { find_mac, which_armor } from './worn.js';
