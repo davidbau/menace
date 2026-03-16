@@ -375,10 +375,19 @@ export function prepareReplayArgs(seed, session, opts = {}) {
     // lore text).  When present, enable lore/welcome rendering in JS init so
     // both sides match.  Sessions recorded with clear_more_prompts won't have
     // lore at step 0, so JS skips it to stay compatible.
+    // Also detect when record_more_spaces auto-dismissed the lore text but the
+    // welcome --More-- is still visible at step 0.  In that case, JS must still
+    // show lore+welcome so that keys arriving while --More-- is active (e.g.
+    // Ctrl-W) are consumed by the prompt rather than routed to the game handler.
     if (chargenKeys.length === 0) {
         const step0Screen = String(session.steps?.[0]?.screen || '');
         if (/It is written in the Book of/.test(step0Screen)) {
             initOpts.showLoreAndWelcome = true;
+        } else if (/welcome to NetHack/.test(step0Screen) && /--More--/.test(step0Screen)) {
+            // Lore was auto-dismissed by record_more_spaces but the welcome
+            // --More-- is still active.  Show the welcome prompt only so JS
+            // consumes keys the same way C's xwaitforspace does.
+            initOpts.showWelcomeMore = true;
         }
     }
     // For manual-direct-live sessions, add RNG simulation so the JS startup matches

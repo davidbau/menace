@@ -576,10 +576,14 @@ function isTestMoveEvent(entry) {
 }
 
 // Strip JS caller context (` @ caller <= parent`) appended by pushRngLogEntry.
+// Also normalize oid=NNN values — object IDs are internal counters that don't
+// affect gameplay (Q-section already zeroes oid for the same reason).
 export function stripEventContext(entry) {
     if (typeof entry !== 'string') return entry;
     const at = entry.indexOf('] @');
-    return at >= 0 ? entry.slice(0, at + 1) : entry;
+    let s = at >= 0 ? entry.slice(0, at + 1) : entry;
+    s = s.replace(/\boid=\d+/g, 'oid=X');
+    return s;
 }
 
 export function getComparableEventStreams(jsRng = [], sessionRng = []) {

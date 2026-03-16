@@ -1307,6 +1307,21 @@ async function buildReplayTutorialPromptFlow(messages, enterAfterPromptCount, on
     return handler;
 }
 
+// Welcome-only --More-- prompt.  Used when record_more_spaces auto-dismissed
+// the lore text but the welcome --More-- is still active in the C session.
+// Mirrors C's xwaitforspace("\033 ") behaviour: accepts space, ESC, enter/CR.
+function buildWelcomeMorePrompt(welcomeMsg) {
+    const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13);
+    return {
+        source: 'welcome_more',
+        async onKey(ch, g) {
+            if (!isDismiss(ch)) return { handled: true, tookTime: false, moved: false, prompt: true };
+            g.pendingPrompt = null;
+            return { handled: true, tookTime: false, moved: false, prompt: true };
+        },
+    };
+}
+
 function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
     const isDismiss = (ch) => (ch === 32 || ch === 27 || ch === 10 || ch === 13 || ch === 16);
     const clearLoreOverlay = (display) => {
@@ -1876,6 +1891,29 @@ export class NetHackGame {
             const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
 
             this.pendingPrompt = buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg);
+        } else if (urlOpts.showWelcomeMore && urlOpts.character && !this.flags.tutorial) {
+            // Welcome --More-- only (lore was auto-dismissed by record_more_spaces).
+            // Build welcome message for display but only create a --More-- prompt.
+            const roleIdx = this.player.roleIndex;
+            const raceIdx = this.player.race;
+            const female = this.player.gender === FEMALE;
+            const align = this.player.alignment;
+            const greeting = greetingForRole(roleIdx);
+            const rName = roleNameForGender(roleIdx, female);
+            const raceAdj = races[raceIdx].adj;
+            const alignStr = alignName(align);
+            let genderStr = '';
+            if (roles[roleIdx].namef || roles[roleIdx].forceGender) {
+                // Gender implicit in role name or forced — omit
+            } else {
+                genderStr = female ? 'female ' : 'male ';
+            }
+            const plname = this.wizard ? 'wizard' : (this.u || this.player).name;
+            const welcomeMsg = `${greeting} ${plname}, welcome to NetHack!  You are a ${alignStr} ${genderStr}${raceAdj} ${rName}.`;
+            if (this.display && typeof this.display.putstr_message === 'function') {
+                await this.display.putstr_message(welcomeMsg);
+            }
+            this.pendingPrompt = buildWelcomeMorePrompt(welcomeMsg);
         }
 
         if (this.flags.tutorial && urlOpts.character) {
