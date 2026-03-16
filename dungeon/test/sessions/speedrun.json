@@ -30,6 +30,12 @@
       ]
     },
     {
+      "cmd": "take egg",
+      "expect": [
+        "Taken"
+      ]
+    },
+    {
       "cmd": "d",
       "expect": [
         "forest"
@@ -2138,52 +2144,66 @@
       "cmd": "disembark"
     },
     {
-      "cmd": "n",
-      "note": "balloon event \u2192 lava room"
+      "cmd": "n"
     },
     {
       "cmd": "n",
-      "note": "balloon event \u2192 lava room"
+      "note": "balloon\u2192lava room"
     },
     {
       "cmd": "w",
-      "note": "\u2192 ruby room"
+      "note": "\u2192ruby room"
     },
     {
       "cmd": "s",
-      "note": "\u2192 glacier room"
+      "note": "\u2192glacier room"
     },
     {
-      "cmd": "e",
-      "note": "\u2192 stream"
+      "cmd": "n",
+      "note": "\u2192stream view"
     },
     {
       "cmd": "take torch",
-      "note": "burned-out torch"
+      "note": "burned-out ivory torch"
     },
     {
       "cmd": "e",
-      "note": "\u2192 reservoir"
+      "note": "\u2192reservoir south"
     },
     {
       "cmd": "u",
-      "note": "\u2192 ravine"
+      "note": "\u2192deep canyon"
     },
     {
       "cmd": "s",
-      "note": "\u2192 E-W passage"
+      "note": "\u2192round room"
     },
     {
       "cmd": "w",
-      "note": "\u2192 troll room"
+      "note": "\u2192E-W passage"
     },
     {
       "cmd": "w",
-      "note": "\u2192 cellar"
+      "note": "\u2192troll room"
+    },
+    {
+      "cmd": "w",
+      "note": "\u2192cellar"
+    },
+    {
+      "cmd": "open trap door",
+      "note": "may have closed"
     },
     {
       "cmd": "u",
-      "note": "\u2192 living room!"
+      "note": "\u2192living room!"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "need light for deposits"
     },
     {
       "cmd": "open purple book"
@@ -2195,71 +2215,61 @@
       "cmd": "put stamp in case"
     },
     {
-      "cmd": "turn on lamp"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "n"
-    },
-    {
-      "cmd": "n"
-    },
-    {
-      "cmd": "w"
-    },
-    {
       "cmd": "take canary",
-      "note": "from case for winding"
+      "note": "from case"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u",
+      "note": "up to tree!"
     },
     {
       "cmd": "wind canary"
     },
     {
+      "cmd": "d",
+      "note": "bauble fell to ground below"
+    },
+    {
       "cmd": "take bauble"
     },
     {
-      "cmd": "e"
+      "cmd": "w",
+      "note": "forest\u2192north of house(3)"
     },
     {
-      "cmd": "s"
+      "cmd": "e",
+      "note": "\u2192behind house(5)"
     },
     {
-      "cmd": "s"
+      "cmd": "w",
+      "note": "\u2192kitchen(6)"
     },
     {
-      "cmd": "w"
+      "cmd": "w",
+      "note": "\u2192living room(8)"
     },
     {
-      "cmd": "take brochure"
-    },
-    {
-      "cmd": "take stamp"
-    },
-    {
-      "cmd": "s"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "w"
-    },
-    {
-      "cmd": "put treasure in case"
+      "cmd": "put treasure in case",
+      "note": "deposit bauble, canary, etc"
     },
     {
       "cmd": "drop all"
     },
     {
-      "cmd": "score"
+      "cmd": "score",
+      "note": "final!"
     }
   ]
 }
