@@ -438,12 +438,15 @@ export class DungeonGame {
       // Collective objects (valuables, everything, possessions, bunch)
       if (G.prso === VALUA || G.prso === EVERY || G.prso === POSSE || G.prso === BUNOBJ) {
         valuac(G, G.prso);
-        // After valuac, fall through to room action
-        if (!(G.echof || G.deadf) && G.here === ECHOR) {
-          await handleEchoRoom(G);
-          xendmv(G);
-          if (!lit(G, G.here)) G.prscon = 1;
-          continue;
+        // After valuac, fall through to echo room check then room action
+        while (!(G.echof || G.deadf) && G.here === ECHOR) {
+          const echoExit = await handleEchoRoom(G);
+          if (!echoExit) break;
+          if (G.prso === VALUA || G.prso === EVERY || G.prso === POSSE || G.prso === BUNOBJ) {
+            valuac(G, G.prso);
+          } else {
+            vappli(G, G.prsa);
+          }
         }
         rappli(G, G.ractio[G.here - 1]);
         xendmv(G);
@@ -464,12 +467,19 @@ export class DungeonGame {
         rmdesc(G, 0);
       }
 
-      // Echo room special handling
-      if (!(G.echof || G.deadf) && G.here === ECHOR) {
-        await handleEchoRoom(G);
-        xendmv(G);
-        if (!lit(G, G.here)) G.prscon = 1;
-        continue;
+      // Echo room special handling — Fortran GO TO 1000/300 loop
+      // When a valid exit is found in the echo room, we must process
+      // the walk (GO TO 300 in Fortran), then check echo room again.
+      while (!(G.echof || G.deadf) && G.here === ECHOR) {
+        const echoExit = await handleEchoRoom(G);
+        if (!echoExit) break; // "echo" typed or no valid exit — done
+        // Valid exit found — process the walk (Fortran label 300)
+        if (G.prso === VALUA || G.prso === EVERY || G.prso === POSSE || G.prso === BUNOBJ) {
+          valuac(G, G.prso);
+        } else {
+          vappli(G, G.prsa);
+        }
+        // Check if still in echo room (loop continues if so)
       }
 
       // Room action
@@ -539,7 +549,7 @@ async function handleEchoRoom(G) {
     G.prswon = parse(G, G.inbuf, G.inlnt, false);
     if (G.prswon && G.prsa === WALKW) {
       const fx = findxt(G, G.prso, G.here);
-      if (fx.found) return; // valid exit, return to main loop
+      if (fx.found) return true; // valid exit — caller must process the walk
     }
 
     // Echo the input

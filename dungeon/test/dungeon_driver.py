@@ -188,15 +188,20 @@ const outputs = [];
 let currentOut = [];
 let welcomeDone = false;
 await game.run(async () => {{
+  // Split output buckets at prompts ('>'), matching Fortran behavior.
+  // Echo room reads input without a prompt, so their output stays
+  // in the same bucket as the command that entered the echo room.
+  const hasPrompt = currentOut.some(l => l.trim() === '>');
   if (!welcomeDone) {{
-    // First call: output so far is the welcome text
     outputs.push([...currentOut]); // welcome as outputs[0]
     currentOut = [];
     welcomeDone = true;
-  }} else {{
+  }} else if (hasPrompt) {{
     outputs.push([...currentOut]);
     currentOut = [];
   }}
+  // If no prompt was output, this is an echo-room read —
+  // keep output in the current bucket.
   if (i >= cmds.length) {{ game.gameOver = true; return null; }}
   return cmds[i++];
 }}, (t) => {{ currentOut.push(t || ''); }}).catch(() => {{}});

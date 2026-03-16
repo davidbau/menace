@@ -349,6 +349,17 @@ function cxappl(G, ri) {
       return 0;
     }
 
+    case 15: { // C15 — Slide exit (frobzf + optional rope slide)
+      G.frobzf = true;
+      if (G.ttie === 0 || G.deadf) return 0; // no rope or dead → cellar
+      if (G.oroom[G.ttie - 1] !== G.here) return 0; // rope elsewhere → cellar
+      rspeak(G, 1014); // slippery!
+      G.cflag[CEVSLI - 1] = true;
+      G.ctick[CEVSLI - 1] = Math.max(2, Math.floor(100 / weighr(G, 0, G.winner)));
+      G.xroom1 = SLID1;
+      return G.xroom1;
+    }
+
     default:
       bug(G, 5, ri);
       return 0;

@@ -931,13 +931,276 @@
       "cmd": "drop all"
     },
     {
-      "cmd": "score"
+      "cmd": "take lamp",
+      "note": "pick up lamp"
     },
     {
-      "cmd": "quit"
+      "cmd": "turn on lamp",
+      "note": "light it"
     },
     {
-      "cmd": "y"
+      "cmd": "take bottle",
+      "note": "need for exorcism later"
+    },
+    {
+      "cmd": "d",
+      "note": "cellar(9)"
+    },
+    {
+      "cmd": "e",
+      "note": "troll room(10)"
+    },
+    {
+      "cmd": "n",
+      "note": "E-W passage(1)"
+    },
+    {
+      "cmd": "e",
+      "note": "round room(83)"
+    },
+    {
+      "cmd": "ne",
+      "note": "N-S passage(84)"
+    },
+    {
+      "cmd": "ne",
+      "note": "enters echo room(49), next cmd consumed"
+    },
+    {
+      "cmd": "echo",
+      "note": "consumed by echo handler, kills echo"
+    },
+    {
+      "cmd": "take bar",
+      "note": "take platinum bar from echo room"
+    },
+    {
+      "cmd": "u",
+      "note": "echo room\u2192damp cave(86)"
+    },
+    {
+      "cmd": "e",
+      "note": "damp cave\u2192dam(98)"
+    },
+    {
+      "cmd": "s",
+      "note": "dam\u2192deep canyon(48)"
+    },
+    {
+      "cmd": "s",
+      "note": "deep canyon\u2192round room(83)"
+    },
+    {
+      "cmd": "se",
+      "note": "round room\u2192winding passage(57)"
+    },
+    {
+      "cmd": "e",
+      "note": "winding passage\u2192mirror room(51)"
+    },
+    {
+      "cmd": "touch mirror",
+      "note": "transported to other mirror room"
+    },
+    {
+      "cmd": "e",
+      "note": "mirror room\u2192small cave"
+    },
+    {
+      "cmd": "d",
+      "note": "\u2192ancient room with trident"
+    },
+    {
+      "cmd": "take trident",
+      "note": "crystal trident"
+    },
+    {
+      "cmd": "se",
+      "note": "\u2192pump area"
+    },
+    {
+      "cmd": "take pump",
+      "note": "take air pump"
+    },
+    {
+      "cmd": "n",
+      "note": "back up"
+    },
+    {
+      "cmd": "u",
+      "note": "up"
+    },
+    {
+      "cmd": "n",
+      "note": "north"
+    },
+    {
+      "cmd": "w",
+      "note": "west"
+    },
+    {
+      "cmd": "w",
+      "note": "west - back toward living room"
+    },
+    {
+      "cmd": "d",
+      "note": "down slide to cellar"
+    },
+    {
+      "cmd": "u",
+      "note": "cellar to living room"
+    },
+    {
+      "cmd": "put treasure in case",
+      "note": "deposit trident and bar"
+    },
+    {
+      "cmd": "drop pump",
+      "note": "drop pump for later"
+    },
+    {
+      "cmd": "take sword",
+      "note": "elvish sword"
+    },
+    {
+      "cmd": "take knife",
+      "note": "nasty knife"
+    },
+    {
+      "cmd": "d",
+      "note": "cellar"
+    },
+    {
+      "cmd": "e",
+      "note": "troll room"
+    },
+    {
+      "cmd": "s",
+      "note": "11"
+    },
+    {
+      "cmd": "s",
+      "note": "12"
+    },
+    {
+      "cmd": "e",
+      "note": "13"
+    },
+    {
+      "cmd": "u",
+      "note": "16"
+    },
+    {
+      "cmd": "sw",
+      "note": "18"
+    },
+    {
+      "cmd": "e",
+      "note": "19"
+    },
+    {
+      "cmd": "s",
+      "note": "30"
+    },
+    {
+      "cmd": "ne",
+      "note": "cyclops 101"
+    },
+    {
+      "cmd": "u",
+      "note": "treasure 103"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight 1"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight 2"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight 3"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight 4"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight 5"
+    },
+    {
+      "cmd": "kill thief with sword",
+      "note": "fight 6 - should die"
+    },
+    {
+      "cmd": "take all except coffin",
+      "note": "take treasures"
+    },
+    {
+      "cmd": "d",
+      "note": "cyclops room"
+    },
+    {
+      "cmd": "n",
+      "note": "strange passage"
+    },
+    {
+      "cmd": "e",
+      "note": "living room"
+    },
+    {
+      "cmd": "put treasure in case",
+      "note": "deposit"
+    },
+    {
+      "cmd": "drop all",
+      "note": "clean up"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "need light"
+    },
+    {
+      "cmd": "w",
+      "note": "strange passage"
+    },
+    {
+      "cmd": "s",
+      "note": "cyclops room"
+    },
+    {
+      "cmd": "u",
+      "note": "treasure room"
+    },
+    {
+      "cmd": "take coffin",
+      "note": "gold coffin"
+    },
+    {
+      "cmd": "d",
+      "note": "cyclops room"
+    },
+    {
+      "cmd": "n",
+      "note": "strange passage"
+    },
+    {
+      "cmd": "e",
+      "note": "living room"
+    },
+    {
+      "cmd": "put coffin in case",
+      "note": "deposit coffin"
+    },
+    {
+      "cmd": "drop all",
+      "note": "clean up"
+    },
+    {
+      "cmd": "score",
+      "note": "check score"
     }
   ]
 }
