@@ -2268,61 +2268,8 @@
       "cmd": "drop all"
     },
     {
-      "cmd": "take lamp",
-      "note": "light"
-    },
-    {
       "cmd": "score",
-      "note": "check before endgame"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "wait"
-    },
-    {
-      "cmd": "score",
-      "note": "after waiting for endgame"
+      "note": "final!"
     }
   ]
 }
