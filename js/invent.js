@@ -570,9 +570,22 @@ async function renderOverlayMenuPickAny(display, linesFactory, allowedSelectionC
             continue;
         }
         if (allowedSelections.has(c)) {
-            if (selected.has(c)) selected.delete(c);
-            else selected.add(c);
-            render();
+            // C ref: wintty.c process_menu_window — item letters only select
+            // items visible on the current page. If the item is on a different
+            // page, the keypress is silently rejected.
+            let onCurrentPage = false;
+            if (pages.length <= 1) {
+                onCurrentPage = true;
+            } else {
+                for (const line of currentLines) {
+                    if (lineInvlet(line) === c) { onCurrentPage = true; break; }
+                }
+            }
+            if (onCurrentPage) {
+                if (selected.has(c)) selected.delete(c);
+                else selected.add(c);
+                render();
+            }
         }
     }
 }
@@ -2435,20 +2448,18 @@ export async function display_pickinv(lets, xtra_choice, query, allowxtra, want_
         );
         if (result === null) return '';
         if (result.includes('_') || result.includes(String.fromCharCode(wizIdentifyAccel))) {
-            await identify_pack(0, p, false, false);  // wizard identify: no exercise
+            await identify_pack(0, p, false, true);  // C ref: identify_pack(0, FALSE) uses credit_hero=TRUE
             return '';
         }
         if (result.length > 0) {
             for (const invlet of result) {
                 const target = unid.find((obj) => String(obj?.invlet || '') === invlet);
                 if (target && not_fully_identified(target)) {
-                    // C ref: wiz_identify sets per-object flags only, without
-                    // globally discovering the type (no makeknown/discoverObject).
-                    // C uses override_ID for display-only identification.
-                    target.known = true;
-                    target.bknown = true;
-                    target.rknown = true;
-                    target.dknown = true;
+                    // C ref: invent.c:3398 — identify(otmp) calls
+                    // fully_identify_obj → makeknown(otyp) = discover_object
+                    // with credit_hero=TRUE, which fires exercise(A_WIS, TRUE)
+                    // when a type is newly discovered.
+                    fully_identify_obj(target, true);
                 }
             }
             update_inventory(p);
