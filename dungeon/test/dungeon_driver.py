@@ -79,16 +79,30 @@ def parse_output(stdout, stderr, commands):
     # Parse SURVEIL lines from stderr
     surveil_lines = [l for l in stderr.split('\n') if l.startswith('SURVEIL:')]
 
-    # Count RNG calls between SURVEIL lines
+    # Collect RNG calls, ENTER/EXIT events, grouped by SURVEIL markers
     stderr_lines = stderr.split('\n')
-    rng_counts = []
-    count = 0
+    rng_per_move = []    # list of lists of {seq, val, n, result}
+    trace_per_move = []  # list of lists of "ENTER X" / "EXIT X" strings
+    current_rng = []
+    current_trace = []
     for line in stderr_lines:
-        if line.strip().startswith('RNG #'):
-            count += 1
+        stripped = line.strip()
+        if stripped.startswith('RNG #'):
+            m = re.match(r'RNG #\s*(\d+)\s*:\s*val=\s*([^ ]+)\s*n=\s*(\d+)\s*result=\s*(\d+)', stripped)
+            if m:
+                current_rng.append({
+                    'seq': int(m.group(1)),
+                    'val': float(m.group(2)),
+                    'n': int(m.group(3)),
+                    'result': int(m.group(4)),
+                })
+        elif stripped.startswith('ENTER ') or stripped.startswith('EXIT '):
+            current_trace.append(stripped)
         elif line.startswith('SURVEIL:'):
-            rng_counts.append(count)
-            count = 0
+            rng_per_move.append(current_rng)
+            trace_per_move.append(current_trace)
+            current_rng = []
+            current_trace = []
 
     # Build moves
     welcome = chunks[0] if chunks else []
@@ -110,14 +124,16 @@ def parse_output(stdout, stderr, commands):
                     except ValueError:
                         surveil[key] = val
 
-        rng = rng_counts[i] if i < len(rng_counts) else 0
+        rng_calls = rng_per_move[i] if i < len(rng_per_move) else []
+        trace = trace_per_move[i] if i < len(trace_per_move) else []
 
         moves.append({
             'move': i + 1,
             'command': cmd,
             'output': output,
             'surveil': surveil,
-            'rng_calls': rng,
+            'rng_calls': rng_calls,
+            'trace': trace,
         })
 
     return welcome, moves
