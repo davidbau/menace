@@ -38,6 +38,7 @@ import {
     LUCKSTONE, LOADSTONE, TOUCHSTONE,
     LAST_REAL_GEM,
     EGG, FIGURINE, SCALE_MAIL,
+    GLOB_OF_GRAY_OOZE, GLOB_OF_BLACK_PUDDING, MAXOCLASSES,
 } from './objects.js';
 import {
     mons, G_UNIQ,
@@ -1831,7 +1832,8 @@ function rnd_otyp_by_namedesc(name, oclass, xtra_prob) {
     if (oclass) {
         [lo, hi] = classBounds(oclass);
     } else {
-        lo = 1;
+        // C ref: objnam.c:3475 — lo = MAXOCLASSES (skip generic class placeholders)
+        lo = MAXOCLASSES;
         hi = NUM_OBJECTS - 1;
     }
     if (lo < 0 || hi < lo) return STRANGE_OBJECT;
@@ -1848,7 +1850,12 @@ function rnd_otyp_by_namedesc(name, oclass, xtra_prob) {
         const ofInDesc = (check_of && desc) ? strstri(desc, ' of ') : null;
 
         let matched = wishymatch(q, zn, true);
-        if (!matched && ofInName) {
+        // C ref: objnam.c:3492-3496 — partial " of " matching excludes
+        // BELL_OF_OPENING and GLOBs to avoid false matches
+        if (!matched && check_of
+            && i !== BELL_OF_OPENING
+            && (i < GLOB_OF_GRAY_OOZE || i > GLOB_OF_BLACK_PUDDING)
+            && ofInName) {
             const cut = zn.toLowerCase().indexOf(' of ');
             if (cut >= 0) matched = wishymatch(q, zn.slice(cut + 4), false);
         }

@@ -775,9 +775,18 @@ export function show_map_spot(x, y, cnf, map) {
             // C ref: restore the previously-displayed trap/object glyph.
             show_glyph(x, y, oldglyph);
             if (map.flags?.hero_memory) lev.glyph = oldglyph;
-        } else if (hadMemTrap || hadMemObj) {
+        } else if (hadMemTrap) {
+            // C ref: detect.c:1406-1415 — during mapping, traps take precedence
+            // over objects ("opposite to how normal vision behaves").
+            // map_location() checks objects first, so call map_trap() directly.
+            const t2 = map.trapAt ? map.trapAt(x, y) : null;
+            if (t2) {
+                map_trap(t2, 1);
+            } else {
+                map_location(x, y, 1, map);
+            }
+        } else if (hadMemObj) {
             // Fallback: loc.glyph may not be maintained for all cells in JS.
-            // Use map_location to re-render objects/traps/terrain without the monster.
             map_location(x, y, 1, map);
         }
     }

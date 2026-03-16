@@ -1147,6 +1147,10 @@ export async function bhitm(mon, otmp, map, player) {
         dmg = Math.floor((dmg + 1) / 2);
       }
       mon.mhp -= dmg;
+      // C ref: zap.c:6118-6125 — C's resist() applies damage and checks death
+      if (mon.mhp <= 0) {
+        await killed(mon, map, player);
+      }
     } else {
       await miss(zap_type_text, mon);
     }
@@ -1180,7 +1184,10 @@ export async function bhitm(mon, otmp, map, player) {
         dmg = Math.floor((dmg + 1) / 2);
       }
       mon.mhp -= dmg;
-      if (!resisted && mon.mhp > 0) {
+      // C ref: zap.c:6118-6125 — C's resist() applies damage and checks death
+      if (mon.mhp <= 0) {
+        await killed(mon, map, player);
+      } else if (!resisted) {
         await monflee(mon, 0, false, true);
       }
     }
@@ -1239,6 +1246,10 @@ export async function bhitm(mon, otmp, map, player) {
         pdmg = Math.floor((pdmg + 1) / 2);
       }
       mon.mhp -= pdmg;
+      // C ref: zap.c:6118-6125 — C's resist() applies damage and checks death
+      if (mon.mhp <= 0) {
+        await killed(mon, map, player);
+      }
     }
     break;
   }
@@ -1263,11 +1274,14 @@ export async function bhitm(mon, otmp, map, player) {
         dmg = Math.floor((dmg + 1) / 2);
       }
       mon.mhp -= dmg;
-      if (!resisted_drain && mon.mhp > 0) {
+      // C ref: zap.c:6118-6125 — C's resist() applies damage and checks death
+      if (mon.mhp <= 0) {
+        await killed(mon, map, player);
+      } else if (!resisted_drain) {
         mon.mhp -= dmg;
         mon.mhpmax -= dmg;
         if (mon.mhp <= 0 || mon.mhpmax <= 0 || mon.m_lev < 1) {
-          // monster killed by drain
+          await killed(mon, map, player);
         } else {
           mon.m_lev--;
         }
