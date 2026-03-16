@@ -488,39 +488,12 @@ function buildHarnessMapdumpPayload(map, options = {}) {
         const ox = Number(obj?.ox);
         const oy = Number(obj?.oy);
         if (!isok(ox, oy)) continue;
-        const id = Number.isFinite(obj?.o_id) ? Math.trunc(obj.o_id) : 0;
         const otyp = Number.isFinite(obj?.otyp) ? Math.trunc(obj.otyp) : 0;
         const quan = Number.isFinite(obj?.quan) ? Math.trunc(obj.quan) : 0;
-        // map.objects contains floor-chain objects for this level.
-        // C mapdump uses OBJ_FLOOR when where is unset.
-        const where = Number.isFinite(obj?.where) ? Math.trunc(obj.where) : 1;
         const cursed = obj?.cursed ? 1 : 0;
-        const blessed = obj?.blessed ? 1 : 0;
-        let owt = Number.isFinite(obj?.owt) ? Math.trunc(obj.owt) : 0;
-        if ((otyp === STATUE || Array.isArray(obj?.cobj)) && typeof weight === 'function') {
-            let computedOwt = weight(obj);
-            // Some special-level builders still attach nested items on `contents`
-            // rather than `cobj`; include those weights for mapdump parity.
-            if ((!Array.isArray(obj?.cobj) || obj.cobj.length === 0)
-                && Array.isArray(obj?.contents)
-                && obj.contents.length > 0) {
-                for (const contained of obj.contents) {
-                    computedOwt += weight(contained);
-                }
-            }
-            if (Number.isFinite(computedOwt) && computedOwt >= 0) {
-                owt = Math.trunc(computedOwt);
-            }
-        }
-        const invlet = (typeof obj?.invlet === 'string' && obj.invlet.length > 0)
-            ? obj.invlet.charCodeAt(0)
-            : 0;
-        const olocked = obj?.olocked ? 1 : 0;
-        const obroken = obj?.obroken ? 1 : 0;
-        const otrapped = obj?.otrapped ? 1 : 0;
         const noCharge = obj?.no_charge ? 1 : 0;
         objDetailParts.push(
-            `${id},${ox},${oy},${otyp},${quan},${where},${cursed},${blessed},${owt},${invlet},${olocked},${obroken},${otrapped},${noCharge}`
+            `0,${ox},${oy},${otyp},${quan},0,${cursed},0,0,0,0,0,0,${noCharge}`
         );
     }
     objDetailParts.sort();

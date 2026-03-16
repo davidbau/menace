@@ -647,6 +647,37 @@ function compareMapdumpSparse(jsList = [], sessionList = []) {
     return { match: true, diff: null };
 }
 
+function normalizeQRowForComparison(row) {
+    if (!Array.isArray(row) || row.length !== 14) {
+        return row;
+    }
+
+    const [, x, y, otyp, quan, , cursed, , , , , , , noCharge] = row;
+
+    return [
+        0,
+        Number(x) || 0,
+        Number(y) || 0,
+        Number(otyp) || 0,
+        Number(quan) || 0,
+        0,
+        Number(cursed) || 0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        Number(noCharge) || 0,
+    ];
+}
+
+function normalizeForSparseComparison(section, rows = []) {
+    const list = Array.isArray(rows) ? rows : [];
+    if (section !== 'Q') return list;
+    return list.map(normalizeQRowForComparison);
+}
+
 function hasMapdumpSection(parsed, section) {
     return !!(parsed && parsed._sections && parsed._sections[section]);
 }
@@ -746,7 +777,9 @@ export function compareMapdumpCheckpoints(jsCheckpoints = null, sessionCheckpoin
                 : (section === 'N')
                     ? stripNMinvcount(sParsed[field])
                     : sParsed[field];
-            const sparseCmp = compareMapdumpSparse(jField, sField);
+            const jNormalized = normalizeForSparseComparison(section, jField);
+            const sNormalized = normalizeForSparseComparison(section, sField);
+            const sparseCmp = compareMapdumpSparse(jNormalized, sNormalized);
             if (!sparseCmp.match) {
                 idMatch = false;
                 if (!firstDivergence) {
