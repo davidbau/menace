@@ -1054,7 +1054,7 @@ async function handleExtendedCommand(game) {
             return { moved: false, tookTime: !!((await doinvoke(player, game)) & ECMD_TIME) };
         case 'kick':
             queueRepeatExtcmd((g) => handleKick(g.player, g.map, g.display, g));
-            return await handleKick(player, map, display, game);
+            return await handleKick(player, game.map, display, game);
         case 'twoweapon':
             queueRepeatExtcmd((g) => handleTwoWeapon(g.player, g.display, g));
             return await handleTwoWeapon(player, display, game);
