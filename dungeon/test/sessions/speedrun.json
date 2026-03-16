@@ -1757,6 +1757,205 @@
     {
       "cmd": "score",
       "note": "check"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "light"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "on"
+    },
+    {
+      "cmd": "w",
+      "note": "strange passage"
+    },
+    {
+      "cmd": "s",
+      "note": "cyclops room"
+    },
+    {
+      "cmd": "u",
+      "note": "treasure room"
+    },
+    {
+      "cmd": "e",
+      "note": "puzzle anteroom"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "take card"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "w",
+      "note": "treasure room"
+    },
+    {
+      "cmd": "d",
+      "note": "cyclops room"
+    },
+    {
+      "cmd": "n",
+      "note": "strange passage"
+    },
+    {
+      "cmd": "e",
+      "note": "living room"
+    },
+    {
+      "cmd": "put card in case",
+      "note": "deposit card"
+    },
+    {
+      "cmd": "drop all",
+      "note": "clean"
+    },
+    {
+      "cmd": "score",
+      "note": "check"
     }
   ]
 }
