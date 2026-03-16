@@ -20,7 +20,7 @@ turn on lamp
 take all
 d
 w
-drop all
+drop all but rope, lamp, egg and knife
 d
 e
 kill troll with knife
@@ -60,9 +60,34 @@ d
 e
 n
 e
+n
+w
+n
+s
+n
+e
+n
+w
+n
+e
+n
+w
+n
+e
+n
+s
+n
+e
+n
+e
+n
+e
+n
+n
+w
+n
 se
-se
-answer well
+answer "well"
 e
 take necklace
 e
@@ -79,13 +104,13 @@ take tin
 w
 eat blue cake
 nw
-tell robot go east
+tell robot "go east"
 e
-tell robot push triangular button
-tell robot go south
+tell robot "push triangular button"
+tell robot "go south"
 s
 get sphere
-tell robot lift cage
+tell robot "lift cage"
 get sphere
 n
 w
@@ -104,11 +129,7 @@ w
 w
 w
 u
-put necklace in case
-put violin in case
-put tin in case
-put sphere in case
-put torch in case
+put treasure in case
 drop all
 take torch
 d
@@ -126,7 +147,7 @@ walk through south wall
 walk through north wall
 take bills
 walk through north wall
-drop all
+drop all except torch
 w
 w
 take all
@@ -136,22 +157,19 @@ s
 n
 w
 u
-put painting in case
-put bills in case
-put portrait in case
-put torch in case
-take torch
-take mat
+put treasure in case
+take torch and mat
 d
 e
 n
 e
-nw
+se
 e
+n
 n
 take all
 read matchbook
-send for brochure
+send for free brochure
 e
 take all
 push yellow button
@@ -191,7 +209,7 @@ s
 w
 w
 u
-put sphere in case
+put blue sphere in case
 drop all
 take torch
 d
@@ -211,8 +229,7 @@ w
 w
 d
 u
-put trunk in case
-put trident in case
+put trunk and trident in the case
 d
 e
 n
@@ -263,10 +280,7 @@ n
 e
 w
 w
-put emerald in case
-put statue in case
-put gold in case
-put bar in case
+put all in case
 e
 e
 s
@@ -279,8 +293,7 @@ w
 w
 put stamp in case
 drop all
-take torch
-take nasty knife
+take torch and nasty knife
 w
 s
 u
@@ -294,30 +307,22 @@ put coffin in case
 w
 s
 u
-take chalice
-take canary
+take all
 d
 n
 e
 e
 e
 n
-n
-u
 wind canary
 d
-take bauble
 w
 e
 w
 w
-put chalice in case
-put egg in case
-put bauble in case
-put canary in case
+put treasure in case
 drop all
-take torch
-take matchbook
+take torch and matchbook
 d
 e
 n
@@ -337,8 +342,7 @@ ring bell
 light match
 light candles with match
 read book
-drop book
-drop candles
+drop book and candles
 e
 e
 w
@@ -352,11 +356,7 @@ w
 u
 put grail in case
 drop all
-take torch
-take lamp
-take sack
-take rope
-take screwdriver
+take torch, lamp, sack, rope and screwdriver
 d
 e
 n
@@ -375,8 +375,7 @@ take figurine
 e
 s
 ne
-put torch in basket
-put screwdriver in basket
+put torch and screwdriver in basket
 turn on lamp
 n
 w
@@ -393,6 +392,10 @@ d
 ne
 take coal
 s
+d
+s
+drop all
+take lamp, timber and coal
 n
 u
 u
@@ -433,9 +436,7 @@ e
 s
 turn off lamp
 drop all
-take torch
-take rope
-take timber
+take torch and rope and timber
 w
 s
 drop timber
@@ -459,11 +460,7 @@ s
 d
 d
 u
-put figurine in case
-put diamond in case
-put bracelet in case
-put sphere in case
-put torch in case
+put treasure in case
 drop all
 take torch
 w
@@ -480,11 +477,7 @@ n
 e
 put card in case
 drop all
-take torch
-take lamp
-take guidebook
-take brick
-take matchbook
+take torch, lamp, guidebook, brick and matchbook
 d
 e
 n
@@ -509,7 +502,6 @@ wait
 land
 disembark
 tie rope to hook
-take coin
 s
 open purple book
 take stamp
@@ -542,18 +534,11 @@ n
 w
 s
 n
-take torch
-e
-s
 s
 w
 w
 u
-put coin in case
-put ruby in case
-put torch in case
-put crown in case
-put stamp in case
+put treasure in case
 d
 e
 n
@@ -578,6 +563,7 @@ push button
 n
 take sword
 n
+go in
 lift short pole
 push red panel
 push red panel
@@ -593,14 +579,6 @@ push red panel
 push pine panel
 n
 knock on door
-answer skeleton
-answer temple
-answer flask
-answer rusty knife
-answer forest
-answer touch
-answer none
-answer 30003
 n
 n
 e
@@ -608,11 +586,11 @@ n
 n
 turn dial to four
 push button
-tell master stay
+tell master "stay"
 s
 open cell door
 s
-tell master turn dial to six
-tell master push button
+tell master "turn dial to six"
+tell master "push button"
 open bronze door
 n
