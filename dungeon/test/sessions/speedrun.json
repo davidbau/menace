@@ -30,12 +30,6 @@
       ]
     },
     {
-      "cmd": "take egg",
-      "expect": [
-        "Taken"
-      ]
-    },
-    {
       "cmd": "d",
       "expect": [
         "forest"
@@ -2144,34 +2138,52 @@
       "cmd": "disembark"
     },
     {
-      "cmd": "n"
+      "cmd": "n",
+      "note": "balloon event \u2192 lava room"
     },
     {
-      "cmd": "e"
+      "cmd": "n",
+      "note": "balloon event \u2192 lava room"
     },
     {
-      "cmd": "u"
+      "cmd": "w",
+      "note": "\u2192 ruby room"
     },
     {
-      "cmd": "u"
+      "cmd": "s",
+      "note": "\u2192 glacier room"
     },
     {
-      "cmd": "n"
+      "cmd": "e",
+      "note": "\u2192 stream"
     },
     {
-      "cmd": "w"
+      "cmd": "take torch",
+      "note": "burned-out torch"
     },
     {
-      "cmd": "w"
+      "cmd": "e",
+      "note": "\u2192 reservoir"
     },
     {
-      "cmd": "d"
+      "cmd": "u",
+      "note": "\u2192 ravine"
     },
     {
-      "cmd": "u"
+      "cmd": "s",
+      "note": "\u2192 E-W passage"
     },
     {
-      "cmd": "turn off lamp"
+      "cmd": "w",
+      "note": "\u2192 troll room"
+    },
+    {
+      "cmd": "w",
+      "note": "\u2192 cellar"
+    },
+    {
+      "cmd": "u",
+      "note": "\u2192 living room!"
     },
     {
       "cmd": "open purple book"
@@ -2181,15 +2193,6 @@
     },
     {
       "cmd": "put stamp in case"
-    },
-    {
-      "cmd": "take egg"
-    },
-    {
-      "cmd": "take canary from egg"
-    },
-    {
-      "cmd": "put egg in case"
     },
     {
       "cmd": "turn on lamp"
@@ -2208,6 +2211,10 @@
     },
     {
       "cmd": "w"
+    },
+    {
+      "cmd": "take canary",
+      "note": "from case for winding"
     },
     {
       "cmd": "wind canary"
