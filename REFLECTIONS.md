@@ -1,13 +1,14 @@
 # Does Computer Science Still Exist?
 
-As I write this, [Hack](https://mazesofmenace.net/hack/)—the 1982 game from my
-neighborhood—has just been fully ported to JavaScript by an AI agent. It took about
-four hours on a single prompt from me: "OK, execute this plan." I checked in once to
-ask why it was taking so long, and it replied that thirteen of twenty-three new sessions
-were already passing parity. By the time I came back, all 202 sessions were done.
+As I write this, [Hack](https://mazesofmenace.net/hack/), the 1982 game from my
+childhood, has just been fully ported to JavaScript by AI agents. I handed
+the agent a plan and told it to execute. I checked in once to ask why it was
+taking so long; it replied that thirteen of twenty-three sessions were already
+passing parity. A few complications brought me back a few more times over the
+following week, until test coverage was near 100% and all 202 tests passed.
 
-It was doing real work: debugging, reasoning, writing code to fix real bugs.
-It was not instant. But it worked almost entirely on its own.
+It was doing real work: debugging, reasoning, fixing genuine bugs.
+Not instant. But almost entirely on its own.
 
 I grew up in Wayland, the next town over from Sudbury, Massachusetts,
 where a group of kids at Lincoln-Sudbury Regional High School wrote this
@@ -37,15 +38,15 @@ remaking the world. Each step felt like a natural next thing. It is only
 now, looking back, that I notice how far the thread has carried me from
 where it started.
 
-Our long journey in computer science has been thrown into relief for me as
-I think about a little project I have been doing. I asked an AI coding
+This project has sharpened my sense of our long journey in computer science. I asked an AI coding
 agent to rebuild [Rogue](https://mazesofmenace.net/rogue/), the game I
 never saw as a child. The original 1980 game, 8,400 lines of C. The agent
 did it in 85 minutes, with about three decisions from me. Then I pointed
 it at [Hack](https://mazesofmenace.net/hack/): the game from my
-neighborhood, 6,200 lines. The code is not as well-structured for testing,
-so it took the agent more effort to get right. About four hours, almost
-entirely autonomous.
+neighborhood, 6,200 lines. The core port took about eight hours of agent time,
+reaching initial parity by midnight. But unlike Rogue, Hack had no wizard mode
+for testing, and bugs in deep dungeon generation required return visits. Full
+coverage took about a week of mostly autonomous sessions.
 
 And separately, on a server in my office, a swarm of agents has been
 grinding through NetHack for over a month.
@@ -90,8 +91,13 @@ Then replay the sessions until the JS output matches the C output exactly.
 No human-written code. The agent does the porting, the testing, the
 debugging.
 
-Rogue: 85 minutes. Hack: about four hours, almost entirely autonomous. I felt
-like I was watching something dissolve. The work of porting old C
+Rogue: 85 minutes for the port, then about six more hours of autonomous
+follow-up sessions to push test coverage to near 100%. Hack: about eight hours
+for the core port, then another fifteen hours of follow-up sessions across the
+week to reach near-complete coverage, all driven by a handful of steering
+prompts.
+
+I felt like I was watching something dissolve. The work of porting old C
 to modern JavaScript, understanding the control flow, handling the edge
 cases: this is *my* kind of work. This is the work I spent decades
 learning to do. And here it was, happening faster than I could follow,
@@ -125,10 +131,11 @@ monsters and hundreds of objects, states, and places in the dungeon mean
 that the jump from 8,000 to 420,000 lines does not produce a proportional
 increase in complexity. It produces a qualitative shift.
 
-A single agent ported Rogue with minimal guidance in 85 minutes. Hack
-took a few hours, with almost no guidance at all. For NetHack I have had
+A single agent ported Rogue with minimal guidance in 85 minutes. Hack took
+about eight hours of focused agent time to reach initial parity, then a week
+of follow-up sessions to close coverage gaps. For NetHack I have had
 a swarm of agents running on a server for over a month, both Claude and
-Codex, and I have been spending hours every day managing them.
+Codex, and I have been spending substantial effort managing them.
 
 Early on I tried the same hands-off approach that worked for Rogue. The
 agents would make progress for a while, then get stuck on a bug and spend
@@ -221,8 +228,7 @@ test, harder to grade. And it raises the uncomfortable question of how many
 of the things we currently teach are really about the skin rather than the
 animal. It also raises the question of whether there will be a need for
 fewer computer scientists, or maybe more. The answers are not clear yet.
-But I think the question is the
-right one.
+But I think the question is the right one.
 
 ## Two viewpoints on the future
 
