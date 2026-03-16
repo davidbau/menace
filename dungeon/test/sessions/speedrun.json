@@ -239,6 +239,54 @@
     },
     {
       "cmd": "e",
+      "note": "81\u2192troll(10)"
+    },
+    {
+      "cmd": "n",
+      "note": "10\u2192E-W(1)"
+    },
+    {
+      "cmd": "d",
+      "note": "1\u2192ravine(37)"
+    },
+    {
+      "cmd": "w",
+      "note": "37\u2192crawl(38)"
+    },
+    {
+      "cmd": "e",
+      "note": "38\u2192dome(79)"
+    },
+    {
+      "cmd": "untie rope",
+      "note": "untie from railing"
+    },
+    {
+      "cmd": "take rope",
+      "note": "rope for balloon!"
+    },
+    {
+      "cmd": "e",
+      "note": "79\u2192crawl(38)"
+    },
+    {
+      "cmd": "w",
+      "note": "38\u2192ravine(37)"
+    },
+    {
+      "cmd": "s",
+      "note": "37\u2192E-W(1)"
+    },
+    {
+      "cmd": "w",
+      "note": "1\u2192troll(10)"
+    },
+    {
+      "cmd": "e",
+      "note": "10\u219281"
+    },
+    {
+      "cmd": "e",
       "expect": []
     },
     {
@@ -363,126 +411,31 @@
     },
     {
       "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 1 -> grail room (95)"
+      "note": "carousel visit 1 \u2192 grail room (95)"
     },
     {
       "cmd": "w",
-      "expect": [],
       "note": "back to carousel"
     },
     {
       "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 2 -> room 84"
+      "note": "carousel visit 2 \u2192 N-S passage (84)"
     },
     {
       "cmd": "s",
-      "expect": [],
       "note": "back to carousel"
     },
     {
       "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 3 -> passage (1)"
-    },
-    {
-      "cmd": "e",
-      "expect": [],
-      "note": "back to carousel"
-    },
-    {
-      "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 4 -> maze (11)"
-    },
-    {
-      "cmd": "w",
-      "expect": []
-    },
-    {
-      "cmd": "n",
-      "expect": []
-    },
-    {
-      "cmd": "e",
-      "expect": [],
-      "note": "back to carousel"
-    },
-    {
-      "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 5 -> maze (11)"
-    },
-    {
-      "cmd": "w",
-      "expect": []
-    },
-    {
-      "cmd": "n",
-      "expect": []
-    },
-    {
-      "cmd": "e",
-      "expect": [],
-      "note": "back to carousel"
-    },
-    {
-      "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 6 -> room 84"
+      "note": "carousel visit 3 \u2192 deep canyon (48)"
     },
     {
       "cmd": "s",
-      "expect": [],
       "note": "back to carousel"
     },
     {
       "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 7 -> passage (1)"
-    },
-    {
-      "cmd": "e",
-      "expect": [],
-      "note": "back to carousel"
-    },
-    {
-      "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 8 -> passage (1)"
-    },
-    {
-      "cmd": "e",
-      "expect": [],
-      "note": "back to carousel"
-    },
-    {
-      "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 9 -> room 57"
-    },
-    {
-      "cmd": "e",
-      "expect": []
-    },
-    {
-      "cmd": "n",
-      "expect": []
-    },
-    {
-      "cmd": "n",
-      "expect": []
-    },
-    {
-      "cmd": "w",
-      "expect": [],
-      "note": "back to carousel via 57->51->55->95"
-    },
-    {
-      "cmd": "n",
-      "expect": [],
-      "note": "carousel visit 10 -> room 90"
+      "note": "carousel visit 4 \u2192 engravings cave (90)!"
     },
     {
       "cmd": "se",
@@ -654,6 +607,10 @@
     {
       "cmd": "open box",
       "expect": []
+    },
+    {
+      "cmd": "drop rope",
+      "note": "too heavy, will pick up later"
     },
     {
       "cmd": "take violin",
@@ -1059,6 +1016,18 @@
       "note": "drop pump for later"
     },
     {
+      "cmd": "look",
+      "note": "check surroundings"
+    },
+    {
+      "cmd": "i",
+      "note": "check inventory"
+    },
+    {
+      "cmd": "diagnose",
+      "note": "check health before thief fight"
+    },
+    {
       "cmd": "take sword",
       "note": "elvish sword"
     },
@@ -1129,10 +1098,6 @@
     {
       "cmd": "kill thief with sword",
       "note": "fight 5"
-    },
-    {
-      "cmd": "kill thief with sword",
-      "note": "fight 6 - should die"
     },
     {
       "cmd": "take all except coffin",
