@@ -6,10 +6,13 @@
 import { SHOPBASE, ROOMOFFSET, COLNO, ROWNO, DOOR, CORR, A_CHA, A_WIS, isok,
          COST_CONTENTS, COST_SINGLEOBJ, OBJ_ONBILL, OBJ_CONTAINED,
          OBJ_FLOOR, OBJ_INVENT, OBJ_MINVENT,
-         ESHK, MAXULEV } from './const.js';
+         ESHK, MAXULEV,
+         FIRE_RES, SLEEP_RES, COLD_RES, DISINT_RES, SHOCK_RES,
+         POISON_RES, ACID_RES, STONE_RES,
+         TELEPORT, TELEPORT_CONTROL, TELEPAT } from './const.js';
 // C: #define NOTANGRY(mon) ((mon)->mpeaceful)  #define ANGRY(mon) (!NOTANGRY(mon))
 function ANGRY(mon) { return !mon.mpeaceful; }
-import { PM_TOURIST } from './monsters.js';
+import { mons, PM_TOURIST, G_GONE } from './monsters.js';
 import { Role_if } from './role.js';
 import { objectData, WEAPON_CLASS, ARMOR_CLASS, WAND_CLASS, POTION_CLASS, TOOL_CLASS,
          COIN_CLASS, GEM_CLASS, FOOD_CLASS, SCROLL_CLASS, SPBOOK_CLASS,
@@ -43,12 +46,12 @@ import { pline, You, Your, You_hear, You_cant, pline_The, There,
 import { s_suffix, strchr, plur, sgn } from './hacklib.js';
 import { helpless as monHelpless, angry_guards } from './mon.js';
 import { newsym, canspotmon, canseemon } from './display.js';
-import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER } from './mondata.js';
+import { y_monnam, mhe, mhis, mhim, ismnum, DEADMONSTER, unique_corpstat } from './mondata.js';
 import { game as _gstate } from './gstate.js';
 import { maybe_reset_pick } from './lock.js';
 import { getpos_async } from './getpos.js';
 import { o_unleash } from './apply.js';
-import { food_disappears } from './eat.js';
+import { food_disappears, intrinsic_possible } from './eat.js';
 import { book_disappears } from './spell.js';
 import { makemon } from './makemon.js';
 import { money_cnt } from './hack.js';
