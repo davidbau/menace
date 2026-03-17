@@ -883,6 +883,15 @@ export async function handleInventory(player, display, game) {
                     if (typeof display.clearRow === 'function') display.clearRow(i + 2);
                     await display.putstr(0, i + 2, stackActions[i]);
                 }
+                // C ref: tty clears any inventory overflow at STATUS_ROW_1/2
+                // when showing the "Do what with X?" prompt. renderMap redraws
+                // rows 1-21 but NOT the status rows (22-23), which may still
+                // hold lingering inventory items. Only clear those rows.
+                if (typeof display.clearRow === 'function'
+                    && Number.isInteger(STATUS_ROW_1) && Number.isInteger(STATUS_ROW_2)) {
+                    display.clearRow(STATUS_ROW_1);
+                    display.clearRow(STATUS_ROW_2);
+                }
             }
             const actionKeys = new Set(rawActions.map((line) => String(line || '').charAt(0)));
             while (true) {
