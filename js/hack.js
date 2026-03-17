@@ -60,7 +60,7 @@ import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap, domagicportal } from './teleport.js';
-import { trapeffect_bear_trap_you, dotrap } from './trap.js';
+import { trapeffect_bear_trap_you, trapeffect_web_you, dotrap } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -1415,10 +1415,14 @@ export async function domove_core(dir, player, map, display, game) {
             // C ref: trap.c fall_through() schedules deferred level change with
             // UTOTYPE_FALLING so goto_level applies fall-damage semantics.
             schedule_goto(player, destDepth, 0x02, null, null);
-        } else if (trap.ttyp === ROCKTRAP || trap.ttyp === WEB) {
-            // C ref: trap.c dotrap() — delegate to full trap handler for WEB and
-            // ROCKTRAP. Pass FORCETRAP to skip the escape gate since
-            // applySteppedTrap already consumed the rn2(5) escape roll above.
+        } else if (trap.ttyp === WEB) {
+            // C ref: trap.c dotrap() — applySteppedTrap already consumed the
+            // rn2(5) escape roll above, so call trapeffect_web_you directly
+            // with trflags=0 (not FORCETRAP) so the "stumble into" message path
+            // is used instead of "are caught by".
+            await trapeffect_web_you(trap, 0, player, game, map);
+        } else if (trap.ttyp === ROCKTRAP) {
+            // C ref: trap.c dotrap() — delegate to full trap handler for ROCKTRAP.
             await dotrap(trap, FORCETRAP, player, game, map);
         }
         return trap;
