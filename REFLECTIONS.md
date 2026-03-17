@@ -1,11 +1,12 @@
 # Does Computer Science Still Exist?
 
 As I write this, [Hack](https://mazesofmenace.net/hack/), the 1982 game from my
-childhood, has just been fully ported to JavaScript by AI agents. I handed
-the agent a plan and told it to execute. I checked in once to ask why it was
-taking so long; it replied that thirteen of twenty-three sessions were already
-passing parity. A few complications brought me back a few more times over the
-following week, until test coverage was near 100% and all 202 tests passed.
+childhood, has just been fully ported to JavaScript by an AI agent. I handed
+the agent the old PDP code and a plan and told it to go. I checked in once to
+ask why it was taking so long. It replied: it was working, and that thirteen of
+twenty-three test sessions were already passing parity. It continued its coding
+process without interruption all night, and eventually expanded its work to 202
+passing tests, achieving near 100% coverage with verified parity to the original.
 
 It was doing real work: debugging, reasoning, fixing genuine bugs.
 Not instant. But almost entirely on its own.
@@ -93,9 +94,8 @@ debugging.
 
 Rogue: 85 minutes for the port, then about six more hours of autonomous
 follow-up sessions to push test coverage to near 100%. Hack: about eight hours
-for the core port, then another fifteen hours of follow-up sessions across the
-week to reach near-complete coverage, all driven by a handful of steering
-prompts.
+for the core port, then an overnight session to reach 202 passing tests and
+near-complete coverage, all without interruption.
 
 I felt like I was watching something dissolve. The work of porting old C
 to modern JavaScript, understanding the control flow, handling the edge
@@ -132,8 +132,8 @@ that the jump from 8,000 to 420,000 lines does not produce a proportional
 increase in complexity. It produces a qualitative shift.
 
 A single agent ported Rogue with minimal guidance in 85 minutes. Hack took
-about eight hours of focused agent time to reach initial parity, then a week
-of follow-up sessions to close coverage gaps. For NetHack I have had
+about eight hours of focused agent time to reach initial parity, then an
+overnight session to close coverage gaps and reach 202 passing tests. For NetHack I have had
 a swarm of agents running on a server for over a month, both Claude and
 Codex, and I have been spending substantial effort managing them.
 
