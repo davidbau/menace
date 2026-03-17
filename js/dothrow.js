@@ -203,11 +203,14 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     if (!dir) {
         replacePromptMessage();
         // C ref: getdir() calls help_dir() for cmdassist when direction is invalid.
+        // Space/ESC/CR/LF = abandon silently (C's getdir() skips help_dir for these).
         // dothrow/dofire do NOT print "Never mind." after — they silently abandon.
-        if (game?.flags?.cmdassist !== false) {
-            await show_invalid_direction_cmdassist_help(display);
-        } else if (!game?.player?.wizard) {
-            await display.putstr_message('What a strange direction!');
+        if (dirCh !== 27 && dirCh !== 32 && dirCh !== 10 && dirCh !== 13) {
+            if (game?.flags?.cmdassist !== false) {
+                await show_invalid_direction_cmdassist_help(display);
+            } else if (!game?.player?.wizard) {
+                await display.putstr_message('What a strange direction!');
+            }
         }
         return { moved: false, tookTime: false };
     }
