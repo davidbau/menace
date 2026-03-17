@@ -1,7 +1,5 @@
 {
-  "source": "dungeon.hints.txt walkthrough",
   "seed": 31,
-  "notes": "Seed 31 speedrun following hints file. Troll 3r, carousel SE 1 visit.",
   "steps": [
     {
       "cmd": "take mat"
@@ -193,12 +191,10 @@
       "cmd": "e"
     },
     {
-      "cmd": "se",
-      "note": "carousel \u2192 engravings cave"
+      "cmd": "se"
     },
     {
-      "cmd": "se",
-      "note": "to riddle room"
+      "cmd": "se"
     },
     {
       "cmd": "answer \"well\""
@@ -474,87 +470,6 @@
       "cmd": "w"
     },
     {
-      "cmd": "n"
-    },
-    {
-      "cmd": "w"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "d"
-    },
-    {
-      "cmd": "w"
-    },
-    {
-      "cmd": "put mat under door"
-    },
-    {
-      "cmd": "open lid"
-    },
-    {
-      "cmd": "put screwdriver in keyhole"
-    },
-    {
-      "cmd": "take all"
-    },
-    {
-      "cmd": "take key"
-    },
-    {
-      "cmd": "unlock door with key"
-    },
-    {
-      "cmd": "open door"
-    },
-    {
-      "cmd": "n"
-    },
-    {
-      "cmd": "take sphere"
-    },
-    {
-      "cmd": "s"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "d"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "n"
-    },
-    {
-      "cmd": "n"
-    },
-    {
-      "cmd": "w"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "untie rope"
-    },
-    {
-      "cmd": "take rope"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "w"
-    },
-    {
-      "cmd": "s"
-    },
-    {
       "cmd": "w"
     },
     {
@@ -564,7 +479,256 @@
       "cmd": "u"
     },
     {
-      "cmd": "put blue sphere in case"
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take trunk"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take pump"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take trident"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put trunk and trident in case"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "echo"
+    },
+    {
+      "cmd": "take bar"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take shovel"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "pump up plastic"
+    },
+    {
+      "cmd": "put all in boat"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "launch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "take buoy"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "open buoy"
+    },
+    {
+      "cmd": "take emerald"
+    },
+    {
+      "cmd": "put buoy in boat"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "take statue"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "wave stick"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take gold"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put all in case"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "open mailbox"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put stamp in case"
     },
     {
       "cmd": "drop all"
@@ -572,5 +736,7 @@
     {
       "cmd": "score"
     }
-  ]
+  ],
+  "notes": "Seed 31 - following hints walkthrough exactly",
+  "source": "dungeon.hints.txt"
 }
