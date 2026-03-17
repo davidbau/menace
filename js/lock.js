@@ -1074,6 +1074,13 @@ export async function handleClose(player, map, display, game) {
     if (!dir && (dirCh === 10 || dirCh === 13)) dir = DIRECTION_KEYS.j;
     if (!dir) {
         if (typeof display.clearRow === 'function') display.clearRow(0);
+        // C ref: getdir() calls help_dir() for cmdassist when direction is invalid.
+        // doclose does NOT print "Never mind." after — it silently abandons.
+        if (game?.flags?.cmdassist !== false) {
+            await show_invalid_direction_cmdassist_help(display);
+        } else if (!game?.player?.wizard) {
+            await display.putstr_message('What a strange direction!');
+        }
         return { moved: false, tookTime: false };
     }
     // C ref: getdir() sets u.dx/u.dy as side effect

@@ -83,6 +83,7 @@ import { SHOPBASE, OBJ_MINVENT, MM_NOMSG,
          HOLE, TRAPDOOR } from './const.js';
 import { is_pit, is_hole } from './const.js';
 import { Doname2 } from './objnam.js';
+import { show_invalid_direction_cmdassist_help } from './pickup.js';
 
 // ============================================================================
 // C macro equivalents -- weapon classification helpers
@@ -201,6 +202,13 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     }
     if (!dir) {
         replacePromptMessage();
+        // C ref: getdir() calls help_dir() for cmdassist when direction is invalid.
+        // dothrow/dofire do NOT print "Never mind." after — they silently abandon.
+        if (game?.flags?.cmdassist !== false) {
+            await show_invalid_direction_cmdassist_help(display);
+        } else if (!game?.player?.wizard) {
+            await display.putstr_message('What a strange direction!');
+        }
         return { moved: false, tookTime: false };
     }
     player.dx = dir[0];

@@ -127,16 +127,19 @@ export async function show_invalid_direction_cmdassist_help(display) {
         display.putstr(0, moreRow, '--More--');
         if (display.setCursor) display.setCursor(8, moreRow);
         // C ref: cmdassist help is shown via display_nhwindow(..., TRUE),
-        // which uses tty_more()-style dismissal semantics rather than
-        // "any key continues" prompt behavior.
+        // which uses tty_more()-style dismissal semantics (space, CR, LF, ESC, ctrl-P).
         while (true) {
             const ch = await nhgetch();
             if (ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16) {
                 break;
             }
         }
-        // After dismiss, C's pline("Never mind.") path triggers flush_screen
-        // → docrt which clears the help text. Redraw here to match.
+        // After dismiss, clear the message row and repaint the game map.
+        // docrt() repaints map cells but not row 0 (message row), so clear
+        // row 0 explicitly to remove the cmdassist header line.
+        if (display.clearRow) display.clearRow(0);
+        display.topMessage = null;
+        display.messageNeedsMore = false;
         await docrt();
         return;
     }
