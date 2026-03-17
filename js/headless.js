@@ -625,6 +625,10 @@ export class HeadlessDisplay {
         // the previous one.  Set noConcatenateMessages=true to match this
         // behavior (used during session replay comparison).
         this.noConcatenateMessages = false;
+        // C ref: gt.toplines — shared buffer tracking row-0 content including
+        // getlin/getobj prompts. Persists across key reads (unlike messageNeedsMore
+        // which is cleared by nhgetch_raw). Used for overflow length checks.
+        this.toplines = '';
         this._lastMapState = null;
         this._mapBaseCells = new Map();
         this._tempOverlay = new Map();
@@ -664,6 +668,7 @@ export class HeadlessDisplay {
             this.colors[row][c] = CLR_GRAY;
             this.attrs[row][c] = 0;
         }
+        if (row === 0) this.toplines = '';
     }
 
     clearScreen() {
@@ -810,8 +815,16 @@ export class HeadlessDisplay {
         // C reserves space for " --More--" (9 chars) when checking if messages
         // can be concatenated.  When the combined message plus --More-- would
         // exceed the line width, C shows --More-- and blocks on input first.
-        if (!this.noConcatenateMessages && this.topMessage && this.messageNeedsMore) {
-            const combined = this.topMessage + '  ' + msg;
+        // C uses gt.toplines (shared buffer) for the length check, which includes
+        // getlin/getobj prompt text even after nhgetch clears toplin state.
+        // When messageNeedsMore is false but toplines has prompt content, use
+        // toplines for the overflow length check.
+        const toplinesRef = (this.topMessage && this.messageNeedsMore)
+            ? this.topMessage
+            : (this.toplines || '');
+        if (!this.noConcatenateMessages && toplinesRef.length > 0
+            && (this.messageNeedsMore || this.toplines.length > 0)) {
+            const combined = toplinesRef + '  ' + msg;
             // C ref: win/tty/topl.c update_topl() uses strict '<' for fit check.
             if (combined.length + 9 < this.cols) {
                 this.clearRow(0);
