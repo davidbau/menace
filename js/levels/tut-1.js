@@ -16,7 +16,7 @@ export async function generate() {
        const keyOverrides = {
           movewest: 'h', movesouth: 'j', movenorth: 'k', moveeast: 'l',
           movesouthwest: 'b', movenortheast: 'u', movesoutheast: 'n', movenorthwest: 'y',
-          kick: '^D', close: 'c', glance: ':', pickup: ',', wear: 'W', wield: 'w',
+          kick: '^D', close: 'c', glance: ';', pickup: ',', wear: 'W', wield: 'w',
           search: 's', untrap: 'M-u', takeoff: 'T', read: 'r', drop: 'd', throw: 't',
           fire: 'f', quiver: 'Q', run: 'G', travel: '_', loot: 'M-l', tip: 'M-t',
           zap: 'z', wait: '.', eat: 'e', twoweapon: 'x', swap: 'X', puton: 'P',

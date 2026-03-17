@@ -42,7 +42,7 @@ import { gethungry } from './eat.js';
 import { describeGroundObjectForPlayer, maybeHandleShopEntryMessage, u_left_shop, inhishop, costly_spot } from './shk.js';
 import { observeObject } from './o_init.js';
 import { place_object } from './mkobj.js';
-import { an, The } from './objnam.js';
+import { an, The, vtense } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
 import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location } from './display.js';
@@ -55,7 +55,7 @@ import { Invocation_lev, find_level, deltrap } from './dungeon.js';
 import { tmp_at, nh_delay_output, nh_delay_output_nowait } from './animation.js';
 import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
-import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
+import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, There, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
@@ -190,7 +190,32 @@ export async function postMoveFloorCheck(player, map, display, game, opts = {}) 
         await read_engr_at(map, player.x, player.y, player, game);
     }
 
-    if (!pickedUp && objs.length > 0) {
+    if (!pickedUp && objs.length === 0) {
+        // C ref: pickup.c:701-708 + pickup.c:353-426 (describe_decor).
+        // When mention_decor option is on (set by tutorial via OPTIONS=mention_decor),
+        // C calls describe_decor() on empty tiles after movement.
+        // describe_decor() shows special features but suppresses "open door"/"doorway".
+        // It also uses iflags.prev_decor to skip showing the same terrain type twice.
+        if (!is_lava(player.x, player.y, map)
+            && !(is_pool(player.x, player.y, map) && !player.underwater)
+            && (map?.flags?.mention_decor || game?.flags?.mention_decor)) {
+            const loc = map.at ? map.at(player.x, player.y) : null;
+            const ltyp = loc ? loc.typ : STONE;
+            const prevDecor = Number.isInteger(game._prevDecor) ? game._prevDecor : STONE;
+            // C ref: describe_decor — suppress "ordinary" doors (open door, doorway)
+            const dfeature = dfeature_at(player.x, player.y, map, {
+                depth: player.dungeonLevel || (map.uz ? map.uz.dlevel : undefined),
+                dnum: (player.uz ? player.uz.dnum : undefined) ?? (map.uz ? map.uz.dnum : undefined) ?? map._genDnum
+            });
+            const filteredFeature = (dfeature === 'open door' || dfeature === 'doorway') ? null : dfeature;
+            // C ref: skip feature if same terrain type as last time (unless furniture)
+            const terrainChanged = (ltyp !== prevDecor || IS_FURNITURE(ltyp));
+            if (filteredFeature && terrainChanged) {
+                await pline(`There ${vtense(filteredFeature, 'are')} ${an(filteredFeature)} here.`);
+            }
+            game._prevDecor = ltyp;
+        }
+    } else if (!pickedUp && objs.length > 0) {
         const blind = !!player?.blind;
         const verb = blind ? 'feel' : 'see';
 
@@ -1019,7 +1044,9 @@ export async function domove_core(dir, player, map, display, game) {
             && !player.fumbling);
 
         if (!canAutoOpen) {
-            if (nx === player.x || ny === player.y) {
+            // C ref: hack.c test_move() — when running, stop silently without message.
+            // "That door is closed." is only shown for non-running orthogonal movement.
+            if (!ctx.run && (nx === player.x || ny === player.y)) {
                 if (player.blind || player.stunned || acurr(player, A_DEX) < 10 || player.fumbling) {
                     await display.putstr_message("Ouch!  You bump into a door.");
                     await exercise(player, A_DEX, false);
