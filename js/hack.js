@@ -3748,7 +3748,9 @@ export async function trapmove(player, x, y, display, map = null) {
         if (!player.utrap) {
             if (display) await display.putstr_message('You disentangle yourself.');
         } else {
-            if (display) await display.putstr_message('You are stuck to the web.');
+            // C ref: hack.c trapmove() — uses Norep so message only prints once
+            // (the first failed escape attempt), not on every subsequent attempt.
+            await Norep('You are stuck to the web.');
         }
         return false;
     }
