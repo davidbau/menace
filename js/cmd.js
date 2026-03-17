@@ -318,11 +318,23 @@ export async function rhack(ch, game) {
 
     // Open door
     if (c === 'o') {
+        // C ref: lock.c doopen() checks iflags.menu_requested
+        if (game?.menuRequested) {
+            game.menuRequested = false;
+            await pline("The open command does not accept 'm' prefix.");
+            return { moved: false, tookTime: false };
+        }
         return await handleOpen(player, map, display, game);
     }
 
     // Close door
     if (c === 'c') {
+        // C ref: lock.c doclose() checks iflags.menu_requested
+        if (game?.menuRequested) {
+            game.menuRequested = false;
+            await pline("The close command does not accept 'm' prefix.");
+            return { moved: false, tookTime: false };
+        }
         return await handleClose(player, map, display, game);
     }
 
