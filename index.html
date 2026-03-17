@@ -839,10 +839,9 @@
                 <button class="hm-item" id="hm-save-quit"><span class="hm-check"></span>Save &amp; quit</button>
                 <button class="hm-item" id="hm-new-game"><span class="hm-check"></span>New game</button>
                 <div class="hm-divider"></div>
-                <button class="hm-item" id="hm-del-bones"><span class="hm-check"></span>Delete bones</button>
-                <button class="hm-item" id="hm-reset-opts"><span class="hm-check"></span>Reset options</button>
                 <button class="hm-item hm-dev" id="hm-download-save" style="display:none"><span class="hm-check"></span>Download save</button>
                 <button class="hm-item hm-dev" id="hm-download-keylog" style="display:none"><span class="hm-check"></span>Download keylog</button>
+                <button class="hm-item hm-dev" id="hm-clear-storage" style="display:none"><span class="hm-check"></span>Clear localStorage</button>
                 <div class="hm-divider"></div>
                 <button class="hm-item" id="hm-nethack" disabled><span class="hm-check">&#x2713;</span>Play NetHack</button>
                 <button class="hm-item" id="hm-hack"><span class="hm-check"></span>Play Hack (1982)</button>
@@ -1358,6 +1357,7 @@
             var dlKeylog = document.getElementById('hm-download-keylog');
             dlKeylog.style.display = (dev && inGame) ? '' : 'none';
             dlKeylog.disabled = !inGame;
+            document.getElementById('hm-clear-storage').style.display = dev ? '' : 'none';
 
             // Checkmark toggles
             var isDark = document.body.classList.contains('dark-mode');
@@ -1370,19 +1370,6 @@
             var keyref = document.getElementById('keyref');
             var keyrefVisible = keyref && !keyref.classList.contains('hidden');
             document.querySelector('#hm-keyref .hm-check').textContent = keyrefVisible ? '✓' : '';
-
-            // Grayed-out state for data-dependent items
-            var hasOptions = false;
-            try { hasOptions = !!localStorage.getItem('menace-options'); } catch(e) {}
-            document.getElementById('hm-reset-opts').disabled = !hasOptions;
-
-            var hasBones = false;
-            try {
-                for (var i = 0; i < localStorage.length; i++) {
-                    if (localStorage.key(i).startsWith('menace-bones-')) { hasBones = true; break; }
-                }
-            } catch(e) {}
-            document.getElementById('hm-del-bones').disabled = !hasBones;
 
             // Backdrop captures outside clicks to dismiss
             if (!menuBackdrop) {
@@ -1463,30 +1450,20 @@
             closeMenu();
         });
 
-        document.getElementById('hm-reset-opts').addEventListener('click', function() {
-            if (this.disabled) return;
-            try { localStorage.removeItem('menace-options'); } catch(e) {}
-            // Remove legacy keys now superseded by menace-options
-            try { localStorage.removeItem('menace-theme'); } catch(e) {}
-            try { localStorage.removeItem('menace-panels-hidden'); } catch(e) {}
+        document.getElementById('hm-clear-storage').addEventListener('click', async function() {
             closeMenu();
+            var ok = await showConfirm('Clear all mazesofmenace localStorage? This removes saves, options, bones, and keylogs.');
+            if (!ok) return;
+            try {
+                var keys = [];
+                for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+                keys.forEach(function(k) { if (k && k.startsWith('menace-')) localStorage.removeItem(k); });
+            } catch(e) {}
         });
 
         // Game navigation
         document.getElementById('hm-hack').addEventListener('click', function() { window.location.href = 'hack/'; });
         document.getElementById('hm-rogue').addEventListener('click', function() { window.location.href = 'rogue/'; });
-
-        document.getElementById('hm-del-bones').addEventListener('click', function() {
-            if (this.disabled) return;
-            try {
-                var keys = [];
-                for (var i = 0; i < localStorage.length; i++) {
-                    if (localStorage.key(i).startsWith('menace-bones-')) keys.push(localStorage.key(i));
-                }
-                keys.forEach(function(k) { localStorage.removeItem(k); });
-            } catch(e) {}
-            closeMenu();
-        });
 
         document.getElementById('hm-download-keylog').addEventListener('click', function() {
             if (this.disabled) return;
