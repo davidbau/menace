@@ -1718,6 +1718,15 @@ export async function chest_trap(obj, bodypart, disarm, game = null, playerArg =
   obj.tknown = 0;
   obj.otrapped = 0;
   await You(disarm ? "set it off!" : "trigger a trap!");
+  // C ref: trap.c:6219 — display_nhwindow(WIN_MESSAGE, FALSE) forces
+  // message flush with --More-- if there's pending text on the message line.
+  // This creates a step boundary before the chest_trap RNG calls.
+  const _display = game?.display;
+  if (_display?.messageNeedsMore && _display?._nhgetch) {
+    _display.renderMoreMarker?.();
+    const { more: _more } = await import('./input.js');
+    await _more(_display, { site: 'chest_trap.display_nhwindow', clearAfter: true });
+  }
 
   if (luck > -13 && rn2(13 + luck) > 7) {
     let msg = null;
