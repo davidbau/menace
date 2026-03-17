@@ -46,17 +46,20 @@ import {
     P_ISRESTRICTED, P_UNSKILLED, P_BASIC, P_SKILLED, P_EXPERT, P_MASTER,
     P_GRAND_MASTER, NO_WEAPON_WANTED, NEED_WEAPON, NEED_RANGED_WEAPON,
     NEED_HTH_WEAPON, NEED_PICK_AXE, NEED_AXE, NEED_PICK_OR_AXE,
-    BOLT_LIM, AKLYS_LIM,
+    BOLT_LIM, AKLYS_LIM, HAND,
 } from './const.js';
 import { which_armor } from './worn.js';
 import { spec_abon, artifact_light } from './artifact.js';
-import { dist2 } from './hacklib.js';
+import { dist2, s_suffix } from './hacklib.js';
 import { couldsee } from './vision.js';
 import { game as _gstate } from './gstate.js';
 import { pline } from './pline.js';
 import { Monnam } from './mondata.js';
-import { doname } from './objnam.js';
+import { doname, Tobjnam, is_plural } from './objnam.js';
 import { canseemon } from './display.js';
+import { mwelded } from './wield.js';
+import { mbodypart } from './polyself.js';
+import { mon_nam } from './do_name.js';
 
 // Hero skill state (C: P_SKILL/P_MAX_SKILL/P_ADVANCE).
 let skillSystemActive = false;
@@ -683,11 +686,25 @@ export async function mon_wield_item(mon) {
         if (mw_tmp) setmnotwielded(mon, mw_tmp);
         mon.weapon = obj;
         mon.weapon_check = NEED_WEAPON;
-        obj.owornmask = (obj.owornmask || 0) | W_WEP;
-        // C ref: weapon.c:892 — pline("%s wields %s%c", Monnam, doname, exclaim?'!':'.')
+        // C ref: weapon.c:892-929 — wield message, weld check, set owornmask
         if (canseemon(mon)) {
             await pline('%s wields %s%s', Monnam(mon), doname(obj), exclaim ? '!' : '.');
+            // C ref: weapon.c:906-916 — check if newly wielded weapon welds.
+            // Temporarily set W_WEP for the mwelded test, then clear it.
+            obj.owornmask = (obj.owornmask || 0) | W_WEP;
+            const newlyWelded = mwelded(obj);
+            obj.owornmask = (obj.owornmask || 0) & ~W_WEP;
+            if (newlyWelded) {
+                const monHand = mbodypart(mon, HAND);
+                await pline('%s %s to %s %s!',
+                    Tobjnam(obj, 'weld'),
+                    is_plural(obj) ? 'themselves' : 'itself',
+                    s_suffix(mon_nam(mon)), monHand);
+                obj.bknown = 1;
+            }
         }
+        // C ref: weapon.c:929 — obj->owornmask = W_WEP (set for good)
+        obj.owornmask = W_WEP;
         return 1;
     }
     mon.weapon_check = NEED_WEAPON;
