@@ -720,6 +720,9 @@ export async function getlin(prompt, display) {
             disp.clearRow(0);
             const row0Text = promptLine.slice(0, wrapWidth);
             await disp.putstr(0, 0, row0Text, CLR_GRAY);
+            // C ref: gt.toplines tracks getlin prompt text so subsequent
+            // pline calls can detect overflow against it.
+            if (typeof disp.toplines === 'string') disp.toplines = row0Text;
             // C ref: tty terminal auto-wraps text past column 80 to row 1.
             if (promptLine.length > wrapWidth || overflowCursor > 0) {
                 const overflow = promptLine.length > wrapWidth
