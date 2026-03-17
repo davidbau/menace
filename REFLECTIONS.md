@@ -284,19 +284,7 @@ NetHack hard for AI agents.
 
 ## Interesting times
 
-We are also exploring this question from another direction in my lab.
-We recently deployed six autonomous AI agents into a live environment with
-real people, real email accounts, and real tools, and let twenty researchers
-interact with them for two weeks, some helpfully and some adversarially. The
-answer is the same: stunning capability and stubborn limits, often in the
-same system in the same hour. An agent that resists fourteen consecutive
-prompt injection attacks but trusts anyone who changes their Discord
-display name. The [Agents of Chaos](https://agentsofchaos.baulab.info)
-study is worth a look if you are interested in what autonomous AI actually
-looks like up close.
-
-Both experiments point the same way: while the multiplier is real, the
-hard problems do not go away.
+The multiplier is real, but the hard problems do not go away.
 
 My grandfather was born in 1911 in Shanghai and died in 1995 in Washington,
 DC. He witnessed the creation of the automobile and the jumbo jet. He was a
@@ -338,7 +326,5 @@ is becoming. But, from what I can see: computer science is far from over.
 
 *The [Mazes of Menace](https://mazesofmenace.net/) project is at
 mazesofmenace.net and [on GitHub](https://github.com/davidbau/menace).
-The [Agents of Chaos](https://agentsofchaos.baulab.info) study is at
-agentsofchaos.baulab.info.
 A previous post on [vibe coding](https://davidbau.com/archives/2025/12/16/vibe_coding.html)
 describes earlier lessons from the same methodology.*
