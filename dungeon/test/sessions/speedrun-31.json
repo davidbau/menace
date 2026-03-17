@@ -1,0 +1,339 @@
+{
+  "source": "dungeon.hints.txt walkthrough",
+  "seed": 31,
+  "notes": "Seed 31 speedrun following hints file. Troll 3r, carousel SE 1 visit.",
+  "steps": [
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take egg"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "open window"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "move rug"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "drop all but rope, lamp, egg and knife"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "kill troll with knife"
+    },
+    {
+      "cmd": "kill troll with knife"
+    },
+    {
+      "cmd": "kill troll with knife"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "tie rope to railing"
+    },
+    {
+      "cmd": "climb down"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take coins"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ODYSSEUS"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "give egg to thief"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "open case"
+    },
+    {
+      "cmd": "put coins in case"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "take bottle"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "se",
+      "note": "carousel \u2192 engravings cave"
+    },
+    {
+      "cmd": "se",
+      "note": "to riddle room"
+    },
+    {
+      "cmd": "answer \"well\""
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take necklace"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "get inside bucket"
+    },
+    {
+      "cmd": "open bottle"
+    },
+    {
+      "cmd": "pour water"
+    },
+    {
+      "cmd": "get out of bucket"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "eat eatme cake"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "throw red cake"
+    },
+    {
+      "cmd": "take tin"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "eat blue cake"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "tell robot \"go east\""
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "tell robot \"push triangular button\""
+    },
+    {
+      "cmd": "tell robot \"go south\""
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "tell robot \"lift cage\""
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "fill bottle with water"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "open box"
+    },
+    {
+      "cmd": "take violin"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "score"
+    }
+  ]
+}
