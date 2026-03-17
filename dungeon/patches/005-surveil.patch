@@ -8,7 +8,7 @@
  	IF(.NOT.LIT(HERE)) PRSCON=1		! if not lit, restart.
  	GO TO 100
  C
-@@ -327,5 +328,47 @@
+@@ -327,5 +328,49 @@
  	IMPLICIT INTEGER (A-Z)
  C
  	PROTCT=.TRUE.
@@ -41,7 +41,8 @@
 +	4 CTICK(CEVLNT), SWDSTA, CAROFF,
 +	5 RWSCOR, ASTREN(PLAYER),
 +	6 PINV, DEADF,
-+	7 OROOM(ROPE), DOMEF, TTIE, OFLAG1(ROPE)
++	7 OROOM(ROPE), DOMEF, TTIE, OFLAG1(ROPE),
++	8 OROOM(BELL), OROOM(BOOK), OROOM(CANDL)
 +100	FORMAT('SURVEIL:',
 +	1 ' mv=',I4,' here=',I4,
 +	2 ' prsa=',I4,' prso=',I4,' prsi=',I4,
@@ -53,6 +54,7 @@
 +	8 ' score=',I4,' pstr=',I4,
 +	9 ' pinv=',I3,' dead=',L1,
 +	9 ' roperm=',I4,' domef=',L1,
-+	9 ' ttie=',I4,' ropef1=',I8)
++	9 ' ttie=',I4,' ropef1=',I8,
++	9 ' bellrm=',I4,' bookrm=',I4,' cndlrm=',I4)
  	RETURN
  	END

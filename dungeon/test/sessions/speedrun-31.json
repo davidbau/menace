@@ -890,6 +890,10 @@
       "cmd": "ring bell"
     },
     {
+      "cmd": "take candles",
+      "note": "blown out by bell"
+    },
+    {
       "cmd": "light match"
     },
     {
