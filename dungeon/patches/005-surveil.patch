@@ -43,7 +43,7 @@
 +	6 PINV, DEADF,
 +	7 OROOM(ROPE), DOMEF, TTIE, OFLAG1(ROPE),
 +	8 OROOM(BELL), OROOM(BOOK), OROOM(CANDL),
-+	9 OROOM(43), OROOM(STAMP)
++	9 OROOM(43), OROOM(STAMP), OROOM(37)
 +100	FORMAT('SURVEIL:',
 +	1 ' mv=',I4,' here=',I4,
 +	2 ' prsa=',I4,' prso=',I4,' prsi=',I4,
@@ -57,6 +57,6 @@
 +	9 ' roperm=',I4,' domef=',L1,
 +	9 ' ttie=',I4,' ropef1=',I8,
 +	9 ' bellrm=',I4,' bookrm=',I4,' cndlrm=',I4,
-+	9 ' grailrm=',I4,' stamprm=',I4)
++	9 ' grailrm=',I4,' stamprm=',I4,' gobletrm=',I4)
  	RETURN
  	END
