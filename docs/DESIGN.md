@@ -57,23 +57,30 @@ a key arrives. This is the single most consequential structural fact for the JS 
 ### SYNCLOCK Execution Contract (Current Architecture)
 
 To preserve C-faithful single-thread command ordering in an async JS runtime, the
-port uses SYNCLOCK guardrails:
+port uses SYNCLOCK guardrails implemented in `gstate.js`:
 
-1. Command execution tokens:
-   `run_command()` opens/closes a command execution token (`exec_guard.js`).
-2. Typed suspension classes only:
-   gameplay waits are categorized as `input`, `more`, or `anim` via `suspend.js`.
-3. Boundary ownership stack:
-   input boundaries are explicit owners (`prompt`, `more`, etc.) via
-   `withInputBoundary()/clearInputBoundary()/peekInputBoundary()` in `allmain.js`.
-4. Message `--More--` ownership:
-   display/headless set pending state and register owner=`more` boundaries;
-   command loop consumes dismissal keys through boundary ownership.
+1. **Command execution tokens** (`beginCommandExec`/`endCommandExec` in `gstate.js`):
+   `run_command()` in `allmain.js` opens/closes a token around each player command.
+   Nested calls are detected and reported via `synclock.guard` diagnostic events.
+
+2. **Origin await tracking** (`beginOriginAwait`/`endOriginAwait` in `gstate.js`):
+   Every legitimate async suspension point registers a typed origin. The canonical
+   types are:
+   - `'input'` — waiting for a keystroke (`nhgetch_raw()` in `input.js`)
+   - `'display_sync'` — a `setTimeout(0)` yield after rendering (`origin_awaits.js`)
+   - `'import'` / `'fetch'` / `'load'` — module/data loading (`origin_awaits.js`)
+   - `'anim'` — animation delay (`animation.js`)
+   Nested origins are flagged as `nested-origin-await` violations.
+
+3. **Strictness modes** (via `WEBHACK_STRICT_SINGLE_THREAD` env var):
+   - `off` (default) — silent
+   - `warn` — emits stderr warnings and `synclock.guard` diagnostic events
+   - `strict` — also throws, halting execution on violations
 
 Practical effect:
-- no raw gameplay `await nhgetch()` sites;
-- no direct `display.morePrompt(nhgetch)` callbacks in gameplay modules;
-- boundary violations are observable through diagnostics events.
+- all gameplay `await` sites go through `nhgetch_raw()` or a named origin wrapper;
+- violations are observable through `synclock.guard` diagnostic events;
+- `exec_guard.js` and `suspend.js` no longer exist; the contract lives in `gstate.js`.
 
 ### Major C subsystems
 

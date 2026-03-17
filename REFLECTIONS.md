@@ -94,8 +94,9 @@ debugging.
 
 Rogue: 85 minutes for the port, then about six more hours of autonomous
 follow-up sessions to push test coverage to near 100%. Hack: about eight hours
-for the core port, then an overnight session to reach 202 passing tests and
-near-complete coverage, all without interruption.
+for the core port, then another fifteen hours of follow-up sessions across the
+week to reach near-complete coverage, all driven by a handful of steering
+prompts.
 
 I felt like I was watching something dissolve. The work of porting old C
 to modern JavaScript, understanding the control flow, handling the edge
@@ -132,8 +133,8 @@ that the jump from 8,000 to 420,000 lines does not produce a proportional
 increase in complexity. It produces a qualitative shift.
 
 A single agent ported Rogue with minimal guidance in 85 minutes. Hack took
-about eight hours of focused agent time to reach initial parity, then an
-overnight session to close coverage gaps and reach 202 passing tests. For NetHack I have had
+about eight hours of focused agent time to reach initial parity, then a week
+of follow-up sessions to close coverage gaps. For NetHack I have had
 a swarm of agents running on a server for over a month, both Claude and
 Codex, and I have been spending substantial effort managing them.
 
