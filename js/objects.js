@@ -9303,5 +9303,5 @@ export const mkobjprobs = [
 // C ref: objects.c:32 — objects_globals_init()
 // JS object/descriptor tables are generated and loaded at module initialization.
 export function objects_globals_init() {
-    return;
+    initObjectData();
 }
