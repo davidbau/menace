@@ -1445,14 +1445,15 @@ export async function breakmsg(obj, in_view) {
         // fall through
     case POT_WATER: // eslint-disable-line no-fallthrough
         if (!in_view) await pline('You hear something shatter!');
-        else await pline(`The ${xname(obj)} shatters${to_pieces}!`);
+        // C ref: dothrow.c:2637 pline("%s shatter%s%s!", Doname2(obj), quan==1?"s":"", to_pieces)
+        else await pline(`${Doname2(obj, _gstate?.player)} shatter${obj.quan === 1 ? 's' : ''}${to_pieces}!`);
         break;
     case EGG: case MELON: await pline("Splat!"); break;
     case CREAM_PIE: if (in_view) await pline("What a mess!"); break;
     case ACID_VENOM: case BLINDING_VENOM: await pline("Splash!"); break;
     default:
         if (!in_view) await pline('You hear something shatter!');
-        else await pline(`The ${xname(obj)} shatters${to_pieces}!`);
+        else await pline(`${Doname2(obj, _gstate?.player)} shatter${obj.quan === 1 ? 's' : ''}${to_pieces}!`);
         break;
     }
 }
