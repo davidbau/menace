@@ -1147,7 +1147,8 @@ export async function handleUpstairs(player, map, display, game) {
     }
 
     if (player.dungeonLevel <= 1) {
-        const ans = await ynFunction('Escape the dungeon?', 'yn', 'n'.charCodeAt(0), display);
+        // C ref: do.c:1333 — y_n("Beware, there will be no return!  Still climb?")
+        const ans = await ynFunction('Beware, there will be no return!  Still climb?', 'yn', 'n'.charCodeAt(0), display);
         if (String.fromCharCode(ans) === 'y') {
             game.gameOver = true;
             game.gameOverReason = 'escaped';
