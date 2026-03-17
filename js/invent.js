@@ -6,7 +6,7 @@ import { create_nhwindow, destroy_nhwindow, display_nhwindow, getWinMessage, put
 import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE, W_ART, W_ARMOR, W_ACCESSORY, W_SADDLE, W_WEAPONS, W_TOOL } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
-         STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
+         ROOM, STAIRS, LADDER, FOUNTAIN, THRONE, SINK, GRAVE, ALTAR, TREE,
          IS_DOOR, D_NODOOR, D_BROKEN, D_ISOPEN, D_CLOSED, D_LOCKED,
          BUC_BLESSED, BUC_UNCURSED, BUC_CURSED, BUC_UNKNOWN,
          GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_INACCESS,
@@ -696,6 +696,11 @@ export async function handleInventory(player, display, game) {
                 || selected === player.cloak
             );
             const stackCanShoot = ammoAndLauncher(selected, player.weapon);
+            // C ref: engrave menu uses surface(u.ux, u.uy) for "floor"/"stairs"/etc.
+            const _map = game?.map || game?.lev;
+            const _loc = _map?.at?.(player.x, player.y);
+            const _surfName = (_loc?.typ === STAIRS || _loc?.typ === LADDER)
+                ? 'stairs' : (_loc?.typ === ROOM ? 'floor' : 'ground');
             let menuOffx = 34;
             const displayCols = Number.isInteger(display.cols) ? display.cols : COLNO;
             if (typeof display.setCell === 'function'
@@ -782,7 +787,7 @@ export async function handleInventory(player, display, game) {
                         "- - Wield '-' to un-wield this weapon",
                         `c - Name this specific ${noun}`,
                         'd - Drop this item',
-                        'E - Engrave on the floor with this item',
+                        `E - Engrave on the ${_surfName} with this item`,
                         'i - Adjust inventory by assigning new letter',
                         "Q - Quiver this item for easy throwing with 'f'ire",
                         't - Throw this item',
@@ -803,7 +808,7 @@ export async function handleInventory(player, display, game) {
                             'a - Break this wand',
                             `c - Name this specific ${noun}`,
                             'd - Drop this item',
-                            'E - Engrave on the floor with this item',
+                            `E - Engrave on the ${_surfName} with this item`,
                             'i - Adjust inventory by assigning new letter',
                             't - Throw this item',
                             'w - Wield this item in your hands',
