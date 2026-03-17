@@ -30,7 +30,7 @@ const ttyDisplay = {
 
 const TOPLINE_EMPTY     = 0;
 const TOPLINE_NON_EMPTY = 1;
-// const TOPLINE_NEED_MORE = 2;  // reserved for future use
+const TOPLINE_NEED_MORE = 2;  // C ref: ttyDisplay->toplin states
 
 function isDismissKey(ch) {
     return ch === 32 || ch === 10 || ch === 13 || ch === 27 || ch === 16;
@@ -107,9 +107,24 @@ export function set_nhwindow_popup_options(win, popupOpts) {
 export async function display_nhwindow(win, blocking) {
     const w = wins[win];
     if (!w) return;
-    if (w.type === NHW_MESSAGE && blocking && ttyDisplay.toplin === TOPLINE_NON_EMPTY) {
-        await more(_display, { site: 'windows.display_nhwindow.message', forceVisual: true });
+    // C ref: tty_display_nhwindow(NHW_MESSAGE, blocking):
+    //   if (toplin == TOPLINE_NEED_MORE) { more(); clear(window); }
+    //   else toplin = TOPLINE_EMPTY;
+    // C calls more() when toplin==NEED_MORE regardless of 'blocking' param.
+    // For NON_EMPTY, only trigger more() when blocking is requested.
+    // Also check headless display's messageNeedsMore for the putstr_message path.
+    if (w.type === NHW_MESSAGE) {
+        const needsMore = ttyDisplay.toplin === TOPLINE_NEED_MORE
+            || _display?.messageNeedsMore;
+        const nonEmpty = ttyDisplay.toplin === TOPLINE_NON_EMPTY;
+        if (needsMore || (blocking && nonEmpty)) {
+            await more(_display, { site: 'windows.display_nhwindow.message', forceVisual: true });
+        }
         ttyDisplay.toplin = TOPLINE_EMPTY;
+        if (_display) {
+            _display.messageNeedsMore = false;
+            _display.topMessage = null;
+        }
     }
     // C ref: tty_display_nhwindow NHW_MENU/NHW_TEXT — render text popup
     // When a NHW_MENU or NHW_TEXT window has putstr data (w.data) and no menu
