@@ -401,7 +401,8 @@ export async function adjattrib(player, ndx, incr, msgflg) {
         return false;
 
     if ((ndx === A_INT || ndx === A_WIS) && player.helmet && player.helmet.otyp === DUNCE_CAP) {
-        if (msgflg === 0)
+        // C ref: msgflg == FALSE (0) means show message; JS callers may pass boolean false
+        if (!msgflg)
             await Your("cap constricts briefly, then relaxes again.");
         return false;
     }
@@ -438,7 +439,8 @@ export async function adjattrib(player, ndx, incr, msgflg) {
     }
 
     if (acurr(player, ndx) === old_acurr) {
-        if (msgflg === 0) {
+        // C ref: msgflg == FALSE (0) means show message; JS callers may pass boolean false
+        if (!msgflg) {
             if (ABASE(player, ndx) === old_abase && AMAX(player, ndx) === old_amax) {
                 await pline("You're %s as %s as you can get.",
                       abonflg ? "currently" : "already", attrstr);
