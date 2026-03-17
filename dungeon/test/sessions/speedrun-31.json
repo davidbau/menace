@@ -497,9 +497,6 @@
       "cmd": "n"
     },
     {
-      "cmd": "w"
-    },
-    {
       "cmd": "n"
     },
     {
@@ -734,9 +731,222 @@
       "cmd": "drop all"
     },
     {
+      "cmd": "take knife"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "take coffin"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "put coffin in case"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "wind canary"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "take bauble"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch and matchbook"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take grail"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take bell"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "ring bell"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light candles with match"
+    },
+    {
+      "cmd": "read book"
+    },
+    {
+      "cmd": "drop book and candles"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put grail in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
       "cmd": "score"
     }
   ],
-  "notes": "Seed 31 - following hints walkthrough exactly",
+  "notes": "Seed 31 - hints walkthrough with deposits",
   "source": "dungeon.hints.txt"
 }
