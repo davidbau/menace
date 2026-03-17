@@ -80,6 +80,9 @@
       "cmd": "kill troll with sword"
     },
     {
+      "cmd": "drop all but lamp, sword and egg"
+    },
+    {
       "cmd": "s"
     },
     {
