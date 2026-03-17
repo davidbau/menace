@@ -2,7 +2,7 @@
 // cf. invent.c — ddoinv, display_inventory, display_pickinv, compactify, getobj, askchain
 
 import { nhgetch, getlin, more } from './input.js';
-import { create_nhwindow, destroy_nhwindow, display_nhwindow, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
+import { create_nhwindow, destroy_nhwindow, display_nhwindow, getWinMessage, putstr as win_putstr, start_menu, add_menu, end_menu, select_menu } from './windows.js';
 import { NHW_MENU, OBJ_INVENT, PICK_ANY, MENU_BEHAVE_STANDARD, ATR_NONE, W_ART, W_ARMOR, W_ACCESSORY, W_SADDLE, W_WEAPONS, W_TOOL } from './const.js';
 import { COLNO, STATUS_ROW_1, STATUS_ROW_2, A_STR, A_CON, A_WIS,
          UNENCUMBERED, OVERLOADED,
@@ -2053,13 +2053,16 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         // Try to find inventory item by letter
         const item = inv.find(o => o.invlet === c);
         if (!item) {
-            // C ref: invent.c:2304 — invalid invlet error with --More-- block.
-            // In C, pline("You don't have that object.") shows the error on the
-            // topline with --More--, blocking until the player presses a key.
-            // After dismiss, the prompt is re-shown.
+            // C ref: invent.c:2304 — pline("You don't have that object.")
+            // C's pline concatenates with the getobj prompt (toplin=NEED_MORE).
+            // If overflow → more() blocks. If fits → concatenated with --More-- indicator.
+            // Either way, the player must press a key to continue.
+            await pline("You don't have that object.");
+            // C ref: display_nhwindow(WIN_MESSAGE, FALSE) — force --More-- dismiss
+            // even when the concatenated message fit on one line.
+            const _winMsg = getWinMessage();
+            if (_winMsg != null) await display_nhwindow(_winMsg, false);
             clearPrompt();
-            await display.putstr_message("You don't have that object.--More--");
-            await more(display, { clearAfter: true, forceVisual: false });
             await display.putstr_message(prompt);
             continue;
         }
