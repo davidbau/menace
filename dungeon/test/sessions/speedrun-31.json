@@ -333,6 +333,243 @@
       "cmd": "drop all"
     },
     {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take painting"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take portrait"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "walk through south wall"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "take bills"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "drop all except torch"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "take torch and mat"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "read matchbook"
+    },
+    {
+      "cmd": "send for free brochure"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "push yellow button"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "turn bolt with wrench"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put mat under door"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put screwdriver in keyhole"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "take key"
+    },
+    {
+      "cmd": "unlock door with key"
+    },
+    {
+      "cmd": "open door"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "untie rope"
+    },
+    {
+      "cmd": "take rope"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put blue sphere in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
       "cmd": "score"
     }
   ]
