@@ -291,7 +291,22 @@ export async function do_look(game, mode = 0, click_cc = null) {
                 if (ans < 0 || cc.x < 0 || cc.y < 0) break;
             }
             const desc = do_screen_description({ map, player }, cc);
-            if (desc.found) await display.putstr_message(desc.text);
+            if (desc.found) {
+                // C ref: pager.c:1588 — for the ':' look-here command, C's
+                // checkfile produces "can be many things (description)" when
+                // the symbol matches multiple defsyms. The space character
+                // (unexplored/stone) always matches multiple things.
+                const lookHere = (ans === 3);
+                const isAmbiguousSym = (desc.kind === 'terrain'
+                    && (desc.firstmatch === 'unexplored area'
+                        || desc.firstmatch === 'stone'));
+                if (lookHere && isAmbiguousSym) {
+                    await display.putstr_message(
+                        `         can be many things (${desc.firstmatch})`);
+                } else {
+                    await display.putstr_message(desc.text);
+                }
+            }
             else await display.putstr_message("I've never heard of such things.");
         } else if (sym !== null) {
             await do_look_symbol(display, sym);
