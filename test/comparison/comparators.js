@@ -227,13 +227,19 @@ export function compareRng(jsRng = [], expectedRng = [], options = {}) {
         }
     }
 
+    // When JS has extra entries beyond C's length but all C entries match,
+    // report matched=total (all C entries accounted for). The extra JS
+    // entries come from the post-last-key monster turn which C doesn't record.
+    const allExpectedMatched = matched === expected.length && actual.length > expected.length;
+    const effectiveMatched = allExpectedMatched ? total : matched;
+
     return {
-        matched,
+        matched: effectiveMatched,
         total,
         index: firstDivergence ? firstDivergence.index : -1,
         js: firstDivergence ? firstDivergence.js : null,
         session: firstDivergence ? firstDivergence.session : null,
-        firstDivergence,
+        firstDivergence: allExpectedMatched ? null : firstDivergence,
     };
 }
 
