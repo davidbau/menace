@@ -172,7 +172,21 @@ def build_command(session_path, data, force_record_more_spaces=False):
         return _build_interface(seed, output, regen, data)
     elif mode == 'option_test':
         return _build_option_test(output, regen)
-    elif mode == 'keylog' or mode == 'manual-direct-live':
+    elif mode == 'manual-direct-live':
+        # Live-recorded sessions always replay from the keylog file so that
+        # startup/chargen keys are replayed faithfully.  Fall back to step-based
+        # replay only if the keylog file cannot be found.
+        cmd, description = _build_keylog(session_path, output, regen, data)
+        if cmd is not None:
+            return cmd, description
+        return _build_from_steps(
+            seed,
+            output,
+            data,
+            options,
+            force_record_more_spaces=force_record_more_spaces,
+        )
+    elif mode == 'keylog':
         cmd, description = _build_from_steps(
             seed,
             output,
