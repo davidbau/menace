@@ -609,13 +609,13 @@ export class Shell {
 async function runLoginLoop(display, getch, lifecycle) {
     while (true) {
         display.clearScreen();
+        display.putstr(0, 0, 'Welcome to Menace', CLR_WHITE);
         display.flush();
 
-        // Read a raw line, optionally with echo suppressed
-        const loginRow = display.rows - 1;
-        async function readRaw(prompt, echo) {
-            display.putstr(0, loginRow, prompt, CLR_WHITE);
-            display.setCursor(prompt.length, loginRow);
+        // Read a raw line on the given row, optionally with echo suppressed
+        async function readRaw(row, prompt, echo) {
+            display.putstr(0, row, prompt, CLR_WHITE);
+            display.setCursor(prompt.length, row);
             display.flush();
             let line = '';
             while (true) {
@@ -625,16 +625,16 @@ async function runLoginLoop(display, getch, lifecycle) {
                     if (line.length > 0) {
                         line = line.slice(0, -1);
                         if (echo) {
-                            display.putstr(prompt.length, loginRow, line + ' ', CLR_WHITE);
-                            display.setCursor(prompt.length + line.length, loginRow);
+                            display.putstr(prompt.length, row, line + ' ', CLR_WHITE);
+                            display.setCursor(prompt.length + line.length, row);
                             display.flush();
                         }
                     }
                 } else if (ch >= 32 && ch < 127) {
                     line += String.fromCharCode(ch);
                     if (echo) {
-                        display.putstr(prompt.length, loginRow, line, CLR_WHITE);
-                        display.setCursor(prompt.length + line.length, loginRow);
+                        display.putstr(prompt.length, row, line, CLR_WHITE);
+                        display.setCursor(prompt.length + line.length, row);
                         display.flush();
                     }
                 }
@@ -642,10 +642,8 @@ async function runLoginLoop(display, getch, lifecycle) {
             return line;
         }
 
-        const username = await readRaw('pdp11 login: ', true);
-        display.clearScreen();
-        display.flush();
-        const password = await readRaw('Password: ', false);
+        const username = await readRaw(1, 'login: ', true);
+        const password = await readRaw(2, 'Password: ', false);
 
         if (username === 'rodney' && password === 'yendor') {
             // Successful login — run a clean shell; loop back on exit
@@ -668,10 +666,9 @@ async function runLoginLoop(display, getch, lifecycle) {
             // Shell exited normally — loop back to login prompt
         } else {
             // Wrong credentials
-            display.clearScreen();
-            display.putstr(0, display.rows - 1, 'Login incorrect', CLR_WHITE);
+            display.putstr(0, 3, 'Login incorrect', CLR_WHITE);
             display.flush();
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 2000));
         }
     }
 }
