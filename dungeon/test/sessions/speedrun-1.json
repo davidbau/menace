@@ -1,0 +1,1807 @@
+{
+  "seed": 1,
+  "steps": [
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take egg"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "open window"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "take sword"
+    },
+    {
+      "cmd": "move rug"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "look"
+    },
+    {
+      "cmd": "look"
+    },
+    {
+      "cmd": "kill troll with sword"
+    },
+    {
+      "cmd": "kill troll with sword"
+    },
+    {
+      "cmd": "kill troll with sword"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take coins"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ODYSSEUS"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "give egg to thief"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "open case"
+    },
+    {
+      "cmd": "put coins in case"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "drop all but rope, lamp, and egg"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "tie rope to railing"
+    },
+    {
+      "cmd": "climb down"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put torch in case"
+    },
+    {
+      "cmd": "take bottle"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "answer \"well\""
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take necklace"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "get inside bucket"
+    },
+    {
+      "cmd": "open bottle"
+    },
+    {
+      "cmd": "pour water"
+    },
+    {
+      "cmd": "get out of bucket"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "eat eatme cake"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "throw red cake"
+    },
+    {
+      "cmd": "take tin"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "eat blue cake"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "tell robot \"go east\""
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "tell robot \"push triangular button\""
+    },
+    {
+      "cmd": "tell robot \"go south\""
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "tell robot \"lift cage\""
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "fill bottle with water"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "open box"
+    },
+    {
+      "cmd": "take violin"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take painting"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take portrait"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "walk through south wall"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "take bills"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "drop all except torch"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "take torch and mat"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "read matchbook"
+    },
+    {
+      "cmd": "send for free brochure"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "push yellow button"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "turn bolt with wrench"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, mat and screwdriver"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put mat under door"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put screwdriver in keyhole"
+    },
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "take key"
+    },
+    {
+      "cmd": "unlock door with key"
+    },
+    {
+      "cmd": "open door"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put blue sphere in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take trunk"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take pump"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take trident"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put trunk and trident in case"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "echo"
+    },
+    {
+      "cmd": "take bar"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take shovel"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "pump up plastic"
+    },
+    {
+      "cmd": "put all in boat"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "launch"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "take buoy"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "open buoy"
+    },
+    {
+      "cmd": "take emerald"
+    },
+    {
+      "cmd": "put buoy in boat"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "take statue"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "wave stick"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take gold"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put all in case"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "open mailbox"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put stamp in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take knife"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "take coffin"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "put coffin in case"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "wind canary"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "take bauble"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch and matchbook"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take grail"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "take bell"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "ring bell"
+    },
+    {
+      "cmd": "take candles"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light candles with match"
+    },
+    {
+      "cmd": "read book"
+    },
+    {
+      "cmd": "drop book and candles"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put grail in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, lamp, sack and screwdriver"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "touch mirror"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "open sack"
+    },
+    {
+      "cmd": "take garlic"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take figurine"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "put torch and screwdriver in basket"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "take bracelet"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "take coal"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take lamp, timber and coal"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "put coal in basket"
+    },
+    {
+      "cmd": "drop timber"
+    },
+    {
+      "cmd": "lower basket"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put coal in machine"
+    },
+    {
+      "cmd": "close lid"
+    },
+    {
+      "cmd": "turn switch with screwdriver"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "take diamond"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "put all in basket"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch and rope and timber"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "drop timber"
+    },
+    {
+      "cmd": "tie rope to timber"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "read paper"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "take card"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "put card in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, lamp, guidebook, brick and matchbook"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "d"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take wire"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "throw torch"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "take ruby"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "open receptacle"
+    },
+    {
+      "cmd": "put guidebook in receptacle"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light guidebook with match"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "take coin"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "open purple book"
+    },
+    {
+      "cmd": "take stamp"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "untie rope from hook"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "put brick in hole"
+    },
+    {
+      "cmd": "put wire in brick"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light wire with match"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "take crown"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "untie rope from hook"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "close receptacle"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "u"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "score"
+    }
+  ],
+  "notes": "Seed 1 complete speedrun attempt",
+  "source": "dungeon.hints.txt"
+}
