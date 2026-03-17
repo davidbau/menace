@@ -841,6 +841,9 @@ export async function handleInventory(player, display, game) {
                         ...(selected.oclass === POTION_CLASS
                             ? ['q - Quaff (drink) this potion']
                             : []),
+                        ...(selected.oclass === SCROLL_CLASS
+                            ? ['r - Read this scroll to activate its magic']
+                            : []),
                         't - Throw this item',
                         'w - Wield this item in your hands',
                         '/ - Look up information about this',
