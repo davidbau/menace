@@ -94,9 +94,8 @@ debugging.
 
 Rogue: 85 minutes for the port, then about six more hours of autonomous
 follow-up sessions to push test coverage to near 100%. Hack: about eight hours
-for the core port, then another fifteen hours of follow-up sessions across the
-week to reach near-complete coverage, all driven by a handful of steering
-prompts.
+for the core port, then another fifteen hours of follow-up sessions to reach
+near-complete coverage, all driven by a handful of steering prompts.
 
 I feel like I am watching my profession dissolve. The work of porting old C
 to modern JavaScript, understanding the control flow, handling the edge
