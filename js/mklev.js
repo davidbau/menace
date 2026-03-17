@@ -466,7 +466,17 @@ export function topologize(map, croom, do_ordinary = false) {
     }
     const nsubrooms = Number.isInteger(croom.nsubrooms) ? croom.nsubrooms : 0;
     for (let i = 0; i < nsubrooms; i++) {
-        topologize(map, croom.sbrooms?.[i], croom.rtype !== OROOM);
+        const sub = croom.sbrooms?.[i];
+        // C ref: subrooms marked irregular due to nested sub-subrooms need
+        // temporary clearing so topologize assigns their roomno correctly.
+        if (sub?._needsRetopologize && sub?.irregular) {
+            sub.irregular = false;
+            topologize(map, sub, croom.rtype !== OROOM);
+            sub.irregular = true;
+            delete sub._needsRetopologize;
+        } else {
+            topologize(map, sub, croom.rtype !== OROOM);
+        }
     }
 }
 
