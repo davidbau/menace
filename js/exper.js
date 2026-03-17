@@ -10,7 +10,7 @@ import { mons, PM_ACID_BLOB,
          AT_BUTT, AT_WEAP, AT_MAGC,
          AD_PHYS, AD_BLND, AD_DRLI, AD_STON, AD_SLIM, AD_WRAP,
          S_EEL } from './monsters.js';
-import { Role_if } from './role.js';
+import { Role_if, Goodbye } from './role.js';
 import { find_mac } from './worn.js';
 import { extra_nasty } from './mondata.js';
 
@@ -74,6 +74,11 @@ export function newpw(player) {
         en = enermod(rn1(enrnd, enfix), player.roleMnum);
     }
     if (en <= 0) en = 1;
+    // C ref: exper.c:68-70 — remember increment for future level drain
+    if (player.ulevel < MAXULEV) {
+        if (!player.ueninc) player.ueninc = [];
+        player.ueninc[player.ulevel] = en;
+    }
     return en;
 }
 
@@ -123,6 +128,11 @@ export function newhp(player) {
         hp += conplus;
     }
     if (hp <= 0) hp = 1;
+    // C ref: attrib.c:1127-1128 — remember increment for future level drain
+    if (player.ulevel < MAXULEV) {
+        if (!player.uhpinc) player.uhpinc = [];
+        player.uhpinc[player.ulevel] = hp;
+    }
     return hp;
 }
 
@@ -134,25 +144,23 @@ export async function losexp(player, display, drainer) {
         // Can't lose a level below 1; C would kill the hero
         return;
     }
-    // C: HP loss = u.uhpinc[u.ulevel] (stored increment, NO RNG consumed)
-    const uhpinc = player.uhpinc || [];
-    const hpLoss = uhpinc[player.ulevel] || 0;
+    // C ref: exper.c:223 pline("%s level %d.", Goodbye(), u.ulevel) — before decrement
+    if (display) {
+        await display.putstr_message(`${Goodbye(player.roleIndex)} level ${player.ulevel}.`);
+    }
+    // C ref: exper.c:227 u.ulevel -= 1 — decrement FIRST, then read uhpinc/ueninc
+    player.ulevel--;
+    // C: HP loss = u.uhpinc[u.ulevel] (read at NEW level after decrement, NO RNG)
+    const hpLoss = (player.uhpinc || [])[player.ulevel] || 0;
     player.uhpmax = Math.max(1, player.uhpmax - hpLoss);
     player.uhp = Math.min(player.uhp, player.uhpmax);
-
-    // C: PW loss = u.ueninc[u.ulevel] (stored increment, NO RNG consumed)
-    const ueninc = player.ueninc || [];
-    const pwLoss = ueninc[player.ulevel] || 0;
+    // C: PW loss = u.ueninc[u.ulevel] (read at NEW level after decrement, NO RNG)
+    const pwLoss = (player.ueninc || [])[player.ulevel] || 0;
     player.pwmax = Math.max(0, player.pwmax - pwLoss);
     player.pw = Math.min(player.pw, player.pwmax);
-
-    player.ulevel--;
     player.exp = newuexp(player.ulevel);
     // C ref: exper.c losexp() sets context.botl = 1
     player._botl = true;
-    if (display) {
-        await display.putstr_message(`You feel your life force draining away.`);
-    }
 }
 
 // cf. exper.c:299 — newexplevel(): check if player should gain a level
