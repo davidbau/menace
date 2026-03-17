@@ -794,6 +794,8 @@ export function dosdoor(map, x, y, aroom, type, depth) {
         } else {
             loc.flags = shdoor ? D_ISOPEN : D_NODOOR;
         }
+        // C ref: mklev.c:644-645 — rogue levels use D_NODOOR, preventing mimic-trap creation
+        if (map.flags && map.flags.is_rogue_lev) loc.flags = D_NODOOR;
         if (loc.flags & D_TRAPPED) {
             if (depth >= 9 && !rn2(5)) {
                 loc.flags = D_NODOOR;
