@@ -838,7 +838,7 @@
             <div id="hamburger-menu">
                 <button class="hm-item" id="hm-save-quit"><span class="hm-check"></span>Save &amp; quit</button>
                 <button class="hm-item" id="hm-new-game"><span class="hm-check"></span>New game</button>
-                <div class="hm-divider"></div>
+                <div class="hm-divider" id="hm-dev-divider" style="display:none"></div>
                 <button class="hm-item hm-dev" id="hm-download-save" style="display:none"><span class="hm-check"></span>Download save</button>
                 <button class="hm-item hm-dev" id="hm-download-keylog" style="display:none"><span class="hm-check"></span>Download keylog</button>
                 <button class="hm-item hm-dev" id="hm-clear-storage" style="display:none"><span class="hm-check"></span>Clear localStorage</button>
@@ -1358,6 +1358,7 @@
             dlKeylog.style.display = (dev && inGame) ? '' : 'none';
             dlKeylog.disabled = !inGame;
             document.getElementById('hm-clear-storage').style.display = dev ? '' : 'none';
+            document.getElementById('hm-dev-divider').style.display = dev ? '' : 'none';
 
             // Checkmark toggles
             var isDark = document.body.classList.contains('dark-mode');
