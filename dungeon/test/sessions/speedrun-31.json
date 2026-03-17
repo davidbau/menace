@@ -938,7 +938,7 @@
       "cmd": "u"
     },
     {
-      "cmd": "put grail in case"
+      "cmd": "put treasure in case"
     },
     {
       "cmd": "drop all"
@@ -960,9 +960,6 @@
     },
     {
       "cmd": "e"
-    },
-    {
-      "cmd": "take grail"
     },
     {
       "cmd": "u"
@@ -1732,40 +1729,55 @@
       "cmd": "disembark"
     },
     {
-      "cmd": "n"
+      "cmd": "n",
+      "note": "balloon event"
     },
     {
-      "cmd": "w"
+      "cmd": "w",
+      "note": "\u2192ruby room"
     },
     {
-      "cmd": "w"
+      "cmd": "s",
+      "note": "\u2192glacier"
     },
     {
-      "cmd": "s"
+      "cmd": "n",
+      "note": "\u2192stream"
     },
     {
-      "cmd": "n"
+      "cmd": "take torch",
+      "note": "burned-out torch"
     },
     {
-      "cmd": "take torch"
+      "cmd": "e",
+      "note": "\u2192reservoir"
     },
     {
-      "cmd": "e"
+      "cmd": "u",
+      "note": "\u2192ravine"
     },
     {
-      "cmd": "s"
+      "cmd": "s",
+      "note": "\u2192E-W passage"
     },
     {
-      "cmd": "s"
+      "cmd": "w",
+      "note": "\u2192troll"
     },
     {
-      "cmd": "w"
+      "cmd": "w",
+      "note": "\u2192cellar"
     },
     {
-      "cmd": "w"
+      "cmd": "w",
+      "note": "troll\u2192cellar"
     },
     {
-      "cmd": "u"
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "u",
+      "note": "\u2192living room!"
     },
     {
       "cmd": "put treasure in case"
