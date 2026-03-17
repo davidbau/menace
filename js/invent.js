@@ -860,8 +860,7 @@ export async function handleInventory(player, display, game) {
                         'w - Wield this item in your hands',
                         '/ - Look up information about this',
                         '(end)',
-                    ]))))));
-
+                    ])))));
             const promptText = `Do what with the ${noun}?`;
             const maxAction = rawActions.reduce((m, line) => Math.max(m, line.length), promptText.length);
             menuOffx = Math.max(10, displayCols - maxAction - 2);
