@@ -8,7 +8,7 @@ twenty-three test sessions were already passing parity. It continued its coding
 process without interruption all night, and eventually expanded its work to 202
 passing tests, achieving near 100% coverage with verified parity to the original.
 
-It was doing real work: debugging, reasoning, fixing genuine bugs.
+While I slept it was doing real work: debugging, reasoning, fixing genuine bugs.
 Not instant. But almost entirely on its own.
 
 I grew up in Wayland, the next town over from Sudbury, Massachusetts,
@@ -35,7 +35,7 @@ then [BASIC](https://en.wikipedia.org/wiki/BASIC), then
 [C](https://en.wikipedia.org/wiki/C_%28programming_language%29), then graduate
 school, then a career in software, then a pivot to research, and now I run
 a lab that studies the internal mechanisms of the AI systems that are
-remaking the world. Each step felt like a natural next thing. It is only
+remaking the world. Each step has felt like a natural next thing. It is only
 now, looking back, that I notice how far the thread has carried me from
 where it started.
 
@@ -45,7 +45,7 @@ never saw as a child. The original 1980 game, 8,400 lines of C. The agent
 did it in 85 minutes, with about three decisions from me. Then I pointed
 it at [Hack](https://mazesofmenace.net/hack/): the game from my
 neighborhood, 6,200 lines. The core port took about eight hours of agent time,
-reaching initial parity by midnight. But unlike Rogue, Hack had no wizard mode
+reaching initial parity by midnight. But unlike Rogue, Hack has no wizard mode
 for testing, and bugs in deep dungeon generation required return visits. Full
 coverage took about a week of mostly autonomous sessions.
 
@@ -85,7 +85,7 @@ architecture of JS. Despite all this, the aim is to produce, with pure
 LLM-generated code and no explicit human coding, well-written browser
 versions that behave exactly the same as the old C versions.
 
-The methodology for the small games was simple and satisfying. Build a
+The methodology for the small games is simple and satisfying. Build a
 reference harness around the original C code. Record gameplay sessions:
 every screen, every random number, every event. Port the code to JavaScript.
 Then replay the sessions until the JS output matches the C output exactly.
@@ -98,15 +98,15 @@ for the core port, then another fifteen hours of follow-up sessions across the
 week to reach near-complete coverage, all driven by a handful of steering
 prompts.
 
-I felt like I was watching something dissolve. The work of porting old C
+I feel like I am watching my profession dissolve. The work of porting old C
 to modern JavaScript, understanding the control flow, handling the edge
-cases: this is *my* kind of work. This is the work I spent decades
-learning to do. And here it was, happening faster than I could follow,
+cases: this is *my* kind of work. This is the work I have spent decades
+learning to do. And here it is, happening faster than I can follow,
 directed by a few sentences of guidance from me.
 
 It would be easy to stop here and write the obvious essay. "AI is coming for
 programming. The end of an era." Clive Thompson's
-[reporting in today's New York Times](https://www.nytimes.com/2026/03/12/magazine/ai-coding-programming-jobs-claude-chatgpt.html)
+[reporting in this week's New York Times](https://www.nytimes.com/2026/03/12/magazine/ai-coding-programming-jobs-claude-chatgpt.html)
 is a good version of that essay: he talked to seventy developers and
 found that most of them barely write code anymore. He is not wrong about
 what he saw. But the piece treats coding as one thing, and the
@@ -165,7 +165,7 @@ visible. The human's job is to anticipate which variables matter and
 surface them before the agent needs them. If you work in my area of
 research, this will sound familiar. It is the same intellectual move as
 mechanistic interpretability: exposing internal causal structure to make
-reasoning tractable. I found myself doing interpretability on a C program.
+reasoning tractable. I find myself doing interpretability on a C program.
 
 ## Goodhart's Law
 
@@ -174,7 +174,7 @@ Hack, I had high test coverage numbers: 93%, 97%. The projects looked done.
 Then a friend's email made me look more carefully, and I discovered that many
 of those tests were a figleaf. They exercised code but validated against
 themselves, locking in whatever the JavaScript happened to do, rather than
-checking it against the C ground truth. The hidden variable was "what is
+checking it against the C ground truth. The hidden variable is "what is
 this test actually checking?" Even the easy projects were less done than
 they appeared.
 
@@ -214,12 +214,12 @@ across agents. Knowing when a metric is a figleaf. Recognizing where the
 real complexity lives in a system, and routing attention there instead of
 everywhere else.
 
-These are the conceptual skills that were always underneath programming.
+These are the conceptual skills that have always been underneath programming.
 They are the hard part that the mechanical craft obscured. The reality is
-that CS was never really about writing code. Underneath coding is critical
+that CS has never really been about writing code. Underneath coding is critical
 thinking about algorithms, engineering principles, analytical methods. It
-is the science of managing complexity, and code was just the medium we
-managed it in. In the era of AI code generation, the field does not
+is the science of managing complexity, and code is just the medium we
+manage it in. In the era of AI code generation, the field does not
 disappear. It sheds
 its skin. The animal is the same.
 
@@ -289,7 +289,7 @@ We are also exploring this question from another direction in my lab.
 We recently deployed six autonomous AI agents into a live environment with
 real people, real email accounts, and real tools, and let twenty researchers
 interact with them for two weeks, some helpfully and some adversarially. The
-answer was the same: stunning capability and stubborn limits, often in the
+answer is the same: stunning capability and stubborn limits, often in the
 same system in the same hour. An agent that resists fourteen consecutive
 prompt injection attacks but trusts anyone who changes their Discord
 display name. The [Agents of Chaos](https://agentsofchaos.baulab.info)
@@ -321,7 +321,7 @@ good, until the problem gets big enough to be real.
 That is what I want my students to understand. Not that the machines are
 coming for their jobs: the machines are already here, and the jobs are
 already different. What I want them to understand is that the hard part
-was always the hard part. Complexity does not yield to speed. Judgment
+has always been the hard part. Complexity does not yield to speed. Judgment
 does not automate. The work of deciding what matters, of seeing what is
 hidden, of knowing when your own metrics are lying to you: this is the
 work that remains, and it is the work worth learning.
