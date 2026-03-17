@@ -5,7 +5,7 @@
 //   shell: the Shell instance (for output, fs access, state changes)
 // Returns: void (output via shell.print/println), or a special action object.
 
-import { USERNAME, HOMEDIR, getSessionStart } from './filesystem.js';
+import { USERNAME, HOMEDIR, getSessionStart, checkPassword, setPassword } from './filesystem.js';
 import {
     loadMailState, saveMailState, seedInboxIfNeeded, deliverPending,
     getMessages, getMessage, saveMessage, deleteSavedMessage,
@@ -118,7 +118,7 @@ export function getBuiltinCommands() {
         zork: launchDungeon,
         exit: doExit,
         logout: doExit,
-        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger, mail,
+        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger, mail, passwd,
     };
 }
 
@@ -505,6 +505,41 @@ async function rmdir(args, shell) {
 
 async function chmod(_args, shell) {
     shell.println('chmod: Operation not permitted');
+}
+
+async function passwd(_args, shell) {
+    // Read a password line with no echo
+    async function readHidden(prompt) {
+        let line = '';
+        while (true) {
+            shell.printPrompt(prompt);
+            if (typeof shell.display.setCursor === 'function') {
+                const row = Math.min(shell.scrollBuffer.length, shell.display.rows - 1);
+                shell.display.setCursor(prompt.length, row);
+            }
+            if (typeof shell.display.flush === 'function') shell.display.flush();
+            const ch = await shell.getch();
+            if (ch === 13 || ch === 10) { shell.clearPromptLine(); return line; }
+            if (ch === 3) { shell.clearPromptLine(); return null; }
+            if (ch === 8 || ch === 127) { if (line.length > 0) line = line.slice(0, -1); }
+            else if (ch >= 32 && ch < 127) line += String.fromCharCode(ch);
+        }
+    }
+
+    const current = await readHidden('Current password: ');
+    if (current === null) return;
+    if (!await checkPassword(current)) {
+        shell.println('passwd: Authentication failure');
+        return;
+    }
+    const newPw = await readHidden('New password: ');
+    if (newPw === null) return;
+    if (newPw.length < 1) { shell.println('passwd: Password unchanged'); return; }
+    const confirm = await readHidden('Retype new password: ');
+    if (confirm === null) return;
+    if (newPw !== confirm) { shell.println('passwd: Passwords do not match'); return; }
+    await setPassword(newPw);
+    shell.println('passwd: password updated successfully');
 }
 
 async function su(_args, shell) {

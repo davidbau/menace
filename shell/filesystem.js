@@ -8,6 +8,36 @@ import { loadScores } from '../js/topten.js';
 export const USERNAME = 'rodney';
 export const HOMEDIR = `/home/${USERNAME}`;
 
+// ---- Password management (SHA-256, stored in localStorage) ----
+const SHADOW_LS_KEY = 'menace-shadow';
+const DEFAULT_PASSWORD = 'yendor';
+
+export async function hashPassword(pw) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function checkPassword(pw) {
+    let stored = null;
+    try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SHADOW_LS_KEY) : null;
+        if (raw) stored = (JSON.parse(raw) || {})[USERNAME] || null;
+    } catch (e) { /* ignore */ }
+    const hash = await hashPassword(pw);
+    if (stored) return hash === stored;
+    return pw === DEFAULT_PASSWORD;
+}
+
+export async function setPassword(newPw) {
+    let shadow = {};
+    try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(SHADOW_LS_KEY) : null;
+        if (raw) shadow = JSON.parse(raw) || {};
+    } catch (e) { /* ignore */ }
+    shadow[USERNAME] = await hashPassword(newPw);
+    try { localStorage.setItem(SHADOW_LS_KEY, JSON.stringify(shadow)); } catch (e) { /* ignore */ }
+}
+
 // Read-only directory tree. Each node is either:
 //   { type: 'dir', children: { name: node, ... } }
 //   { type: 'file', content: string, readonly: true, owner, group, date, size }
@@ -298,6 +328,7 @@ function buildTree() {
                 type: 'dir', children: {
                     motd:   { type: 'file', content: MOTD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     passwd: { type: 'file', content: PASSWD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                    shadow: { type: 'file', content: null, readonly: true, owner: 'root', group: 'shadow', date: 'Mar 12  2026' },
                 }
             },
             usr: {

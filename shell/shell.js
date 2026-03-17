@@ -1,7 +1,7 @@
 // shell.js -- Main shell loop: prompt, parse, dispatch.
 // Simulates a 1980s Unix login shell using the existing Display class.
 
-import { VirtualFS, USERNAME, HOMEDIR, loginBanner, initDefaultVfsFiles } from './filesystem.js';
+import { VirtualFS, USERNAME, HOMEDIR, loginBanner, initDefaultVfsFiles, checkPassword } from './filesystem.js';
 import { getBuiltinCommands } from './commands.js';
 import { ViEditor } from './vi.js';
 import {
@@ -643,9 +643,9 @@ async function runLoginLoop(display, getch, lifecycle) {
         }
 
         const username = await readRaw(1, 'login: ', true);
-        const password = await readRaw(2, 'Password: ', false);
+        const password = await readRaw(2, 'password: ', false);
 
-        if (username === 'rodney' && password === 'yendor') {
+        if (username === USERNAME && await checkPassword(password)) {
             // Successful login — run a clean shell; loop back on exit
             const shell = new Shell(display, getch);
             const result = await shell.run({});
