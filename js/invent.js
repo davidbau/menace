@@ -816,6 +816,18 @@ export async function handleInventory(player, display, game) {
                             '/ - Look up information about this',
                             '(end)',
                         ]
+                        : (selected.oclass === WEAPON_CLASS
+                        ? [
+                            `c - Name this specific ${noun}`,
+                            'd - Drop this item',
+                            `E - Write on the ${_surfName} with this item`,
+                            'i - Adjust inventory by assigning new letter',
+                            "Q - Quiver this item for easy throwing with 'f'ire",
+                            't - Throw this item',
+                            'w - Wield this item as your weapon',
+                            '/ - Look up information about this',
+                            '(end)',
+                        ]
                     : [
                         ...(selected.otyp === MAGIC_MARKER
                             ? ['a - Write on something with this marker']
@@ -848,7 +860,7 @@ export async function handleInventory(player, display, game) {
                         'w - Wield this item in your hands',
                         '/ - Look up information about this',
                         '(end)',
-                    ]))));
+                    ]))))));
 
             const promptText = `Do what with the ${noun}?`;
             const maxAction = rawActions.reduce((m, line) => Math.max(m, line.length), promptText.length);
