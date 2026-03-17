@@ -495,7 +495,10 @@ export async function dosit(player, map, display) {
     } else if (lays_eggs(playerType)) {
         return await lay_an_egg(player, map, display);
     } else {
-        await pline("Having fun sitting on the floor?");
+        // C ref: sit.c:558 — uses surface(u.ux, u.uy) for "floor"/"ground"/etc.
+        // Inline the common cases to avoid surface()'s IS_AIR dependency issue.
+        const surfName = (typ === ROOM) ? "floor" : "ground";
+        await pline("Having fun sitting on the %s?", surfName);
     }
     return 1; // ECMD_TIME
 }

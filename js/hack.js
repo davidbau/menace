@@ -57,6 +57,7 @@ import { DISP_ALL, DISP_END } from './const.js';
 import { getpos_async } from './getpos.js';
 import { pline, urgent_pline, Norep, You, You_feel, You_cant, You_hear, set_msg_xy } from './pline.js';
 import { look_here, dfeature_at, sobj_at } from './invent.js';
+import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap, domagicportal } from './teleport.js';
 import { trapeffect_bear_trap_you, dotrap } from './trap.js';
@@ -3901,6 +3902,12 @@ export async function getdir(prompt, display) {
             u.dx = result.dx;
             u.dy = result.dy;
             u.dz = result.dz;
+        }
+    } else if (ch !== 27 && ch !== 32 && ch !== 10 && ch !== 13) {
+        // C ref: cmd.c:4207-4222 — getdir() shows cmdassist help on invalid key
+        const game = _gstate?.game || _gstate;
+        if (game?.flags?.cmdassist !== false && display) {
+            await show_invalid_direction_cmdassist_help(display);
         }
     }
     return result;
