@@ -174,7 +174,30 @@ is broken. Specifically:
 - Single-step tools: warn about isolation for a reason
 - Freshly written diagnostic code is MORE suspect than tested production code
 
-## PROVEN: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
+## CRITICAL: JS replay skips ~70% of moveloop_turnend calls (March 18, ~20:30 UTC)
+
+Diagnostic via `^exerper[moves=N]` + stderr logging confirmed:
+- JS processes only **298 turns** for seed031 (exerper called 298 times)
+- C processes **1114 turns** (gethungry called 1114 times)
+- C has **1040 timed steps** after level gen
+- JS processes only 29% of timed steps through moveloop_turnend
+
+This is NOT a 1-turn gap — it's a ~70% gap. The earlier finding of "JS=139, C=140"
+was a local observation near the divergence point. Globally, JS has 298 turns while
+C has 1114.
+
+**Root cause hypothesis**: The replay's `drainUntilInput` in replay_core.js has a
+race condition with `_gameLoopStep`. When `_gameLoopStep` completes (including
+`finalizeTimedCommand`), the while loop starts a NEW `_gameLoopStep` → `nhgetch`
+before `drainUntilInput` detects the completion. This causes `pendingCommand` to be
+set for an already-completed gameLoopStep. The next key resumes the "phantom pending"
+command instead of starting a fresh `_gameLoopStep`, skipping `run_command` →
+`finalizeTimedCommand` → `moveloop_core`.
+
+**Impact**: This affects ALL "manual-direct-live" sessions (seed031/032/033). The
+"gameplay" format sessions use a different replay path and aren't affected.
+
+## PREVIOUS: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
 
 Using `^exerper` diagnostic injected into the RNG log (which IS captured by the
 replay), confirmed that JS's `moves` values near the divergence are 137, 138, 139.
