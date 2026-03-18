@@ -1,0 +1,248 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-18T15:19:48.566Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "enter",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "take sack",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "take lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "take sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "take newspaper",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "turn on lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now on."
+      ]
+    },
+    {
+      "move": 11,
+      "input": "read newspaper",
+      "parse": {},
+      "state": {},
+      "output": [
+        " \t\t US NEWS & DUNGEON REPORT",
+        " 01-Oct-94\t\t\t\t\tLate Dungeon Edition",
+        "  ",
+        " \t\t--- LATE NEWS FLASH!! ---",
+        "  ",
+        " Lots and lots and lots and LOTS of bugs have been fixed.",
+        "  ",
+        " Aspiring adventurers should make avail themselves of every opportunity",
+        " to broaden their intellectual horizons and increase their perspicacity.",
+        "  ",
+        " Fatal events have somewhat more convoluted results than previously.",
+        "  ",
+        " \t\t--- BACKGROUND INFORMATION ---",
+        "  ",
+        " If you encounter problems, please report them by Internet mail to",
+        " dsmaint@pa.dec.com.",
+        "  ",
+        " PHONE CALLS AND IN-PERSON VISITS WILL BE RUDELY REJECTED!"
+      ]
+    },
+    {
+      "move": 12,
+      "input": "examine sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I see nothing special about the sword."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "examine lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I see nothing special about the lamp."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "examine sack",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I see nothing special about the brown sack."
+      ]
+    },
+    {
+      "move": 15,
+      "input": "move rug",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dark and damp cellar with a narrow passageway leading",
+        " east, and a crawlway to the south.  To the west is the bottom of",
+        " a steep metal ramp which is unclimbable.",
+        " Above you is an open trap door.",
+        " The door crashes shut, and you hear someone barring it.",
+        " Your sword is glowing with a faint blue glow."
+      ]
+    },
+    {
+      "move": 18,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small room with passages off in all directions.  Bloodstains",
+        " and deep scratches (perhaps made by an axe) mar the walls.",
+        " A nasty-looking troll, brandishing a bloody axe, blocks all passages",
+        " out of the room.",
+        " Your sword has begun to glow very brightly."
+      ]
+    },
+    {
+      "move": 19,
+      "input": "throw sword at troll",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The troll, who is remarkably coordinated, catches the sword",
+        " and not having the most discriminating tastes, gleefully eats it."
+      ]
+    },
+    {
+      "move": 20,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+  35 [total of 616 points], in   20 moves.",
+        " This gives you the rank of Amateur Adventurer.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

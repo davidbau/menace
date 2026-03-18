@@ -1,0 +1,28 @@
+open mailbox
+take leaflet
+take mat
+go north
+go east
+open window
+enter
+take sack
+take bottle
+go west
+take lamp
+take sword
+turn on lamp
+open trophy case
+put leaflet in trophy case
+put mat in trophy case
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+quit
+y

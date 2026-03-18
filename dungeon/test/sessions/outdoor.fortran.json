@@ -1,0 +1,297 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-18T18:35:01.697Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  One",
+        " particularly large tree with some low branches stands here."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  One",
+        " particularly large tree with some low branches stands here."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are about ten feet above the ground nestled among some large",
+        " branches.  The nearest branch above you is beyond your reach.",
+        " On the branch is a small birds nest.",
+        " In the bird's nest is a large egg encrusted with precious jewels,",
+        " apparently scavenged somewhere by a childless songbird.  The egg is",
+        " covered with fine gold inlay and ornamented in lapis lazuli and",
+        " mother-of-pearl.  Unlike most eggs, this one is hinged and has a",
+        " delicate looking clasp holding it closed.  The egg appears extremely",
+        " fragile."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are about ten feet above the ground nestled among some large",
+        " branches.  The nearest branch above you is beyond your reach.",
+        " On the branch is a small birds nest.",
+        " In the bird's nest is a large egg encrusted with precious jewels,",
+        " apparently scavenged somewhere by a childless songbird.  The egg is",
+        " covered with fine gold inlay and ornamented in lapis lazuli and",
+        " mother-of-pearl.  Unlike most eggs, this one is hinged and has a",
+        " delicate looking clasp holding it closed.  The egg appears extremely",
+        " fragile."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "take egg",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest"
+      ]
+    },
+    {
+      "move": 8,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a clearing, with a forest surrounding you on the west",
+        " and south.",
+        " There is a pile of leaves on the ground."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a clearing, with a forest surrounding you on the west",
+        " and south.",
+        " There is a pile of leaves on the ground."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest"
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a clearing, with a forest surrounding you on the west",
+        " and south.",
+        " There is a pile of leaves on the ground."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest",
+        " You hear in the distance the chirping of a song bird."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a clearing, with a forest surrounding you on the west",
+        " and south.",
+        " There is a pile of leaves on the ground."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Clearing",
+        " There is a pile of leaves on the ground."
+      ]
+    },
+    {
+      "move": 15,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  To the",
+        " east, there appears to be sunlight."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large forest, with trees obstructing all views except",
+        " to the east, where a small clearing may be seen through the trees."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are at the top of the great canyon on its south wall. From here",
+        " there is a marvelous view of the canyon and parts of the Frigid River",
+        " upstream.  Across the canyon, the walls of the White Cliffs still",
+        " appear to loom far above.  Following the canyon upstream (north and",
+        " northwest), Aragain Falls may be seen, complete with rainbow.",
+        " Fortunately, my vision is better than average, and I can discern the",
+        " top of Flood Control Dam #3 far to the distant north.  To the",
+        " west and south can be seen an immense forest, stretching for miles",
+        " around.  It is possible to climb down into the canyon from here."
+      ]
+    },
+    {
+      "move": 18,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are at the top of the great canyon on its south wall. From here",
+        " there is a marvelous view of the canyon and parts of the Frigid River",
+        " upstream.  Across the canyon, the walls of the White Cliffs still",
+        " appear to loom far above.  Following the canyon upstream (north and",
+        " northwest), Aragain Falls may be seen, complete with rainbow.",
+        " Fortunately, my vision is better than average, and I can discern the",
+        " top of Flood Control Dam #3 far to the distant north.  To the",
+        " west and south can be seen an immense forest, stretching for miles",
+        " around.  It is possible to climb down into the canyon from here."
+      ]
+    },
+    {
+      "move": 19,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a forest, with trees in all directions around you."
+      ]
+    },
+    {
+      "move": 20,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a forest, with trees in all directions around you."
+      ]
+    },
+    {
+      "move": 21,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest"
+      ]
+    },
+    {
+      "move": 22,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You can't go that way."
+      ]
+    },
+    {
+      "move": 23,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  To the",
+        " east, there appears to be sunlight."
+      ]
+    },
+    {
+      "move": 24,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  To the",
+        " east, there appears to be sunlight."
+      ]
+    },
+    {
+      "move": 25,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+   5 [total of 616 points], in   25 moves.",
+        " This gives you the rank of Beginner.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

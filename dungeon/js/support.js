@@ -567,7 +567,7 @@ function bytesToString(bytes) {
  * G.textRecords is a record-number -> {r, link, d} map loaded from
  * dungeon-text.json at initialization.
  */
-function readMessageRecords(G, absRecordNumber) {
+export function readMessageRecords(G, absRecordNumber) {
   const records = G.textRecords;
   if (!records) return [];
 

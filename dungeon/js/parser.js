@@ -14,6 +14,7 @@ import {
   SDIR, SIND, SSTD, SFLIP, SDRIV, SVMASK,
   GLOBAL, PLAYER,
   rspeak, rspsub, rspsb2, bug, lit, qhere, fwim, ghere, nblen, oappli,
+  readMessageRecords,
 } from './support.js';
 import { take } from './verbs.js';
 
@@ -1584,10 +1585,16 @@ function synmch(G) {
         G.oprep2 = prep2;
         G.oobj2 = obj2;
         G.bunsub = 0;
-        // Print "verb prep what?" — Fortran: LCWORD + LCPRP1 + "what?"
-        const vb = lcify(findVerbString(act), 2);
-        const prep = lcify(findPrepString(G._dobj & VPMASK), 1);
-        G.output(` ${vb}${prep ? ' ' + prep : ''} what?`);
+        // Fortran 3750/3880: " Verb prep1 what?" or " Verb prep1 what prep2 the OBJ2?"
+        const vb = lcify(findVerbString(drive), 2);
+        const p1 = prepStr(G, G._dobj);
+        if (obj2 > 0) {
+          const p2 = prepStr(G, G._iobj);
+          const desc = readObjDesc(G, obj2);
+          G.output(` ${vb}${p1}what${p2}the ${desc}?`);
+        } else {
+          G.output(` ${vb}${p1}what?`);
+        }
         G.telflg = true;
         return false;
       }
@@ -1611,9 +1618,16 @@ function synmch(G) {
         G.oprep2 = 0;
         G.oobj2 = 0;
         G.bunsub = 0;
-        const vb = lcify(findVerbString(act), 2);
-        const prep = lcify(findPrepString(G._iobj & VPMASK), 1);
-        G.output(` ${vb}${prep ? ' ' + prep : ''} what?`);
+        // Fortran 3750/4660: " Verb prep1 what?" or " Verb prep1 the OBJ1 prep2 what?"
+        const vb = lcify(findVerbString(drive), 2);
+        const p1 = prepStr(G, G._dobj);
+        if (obj1 > 0) {
+          const p2 = prepStr(G, G._iobj);
+          const desc = readObjDesc(G, obj1);
+          G.output(` ${vb}${p1}the ${desc}${p2}what?`);
+        } else {
+          G.output(` ${vb}${p1}what?`);
+        }
         G.telflg = true;
         return false;
       }
@@ -1679,7 +1693,25 @@ function takeit(G, obj, sflag) {
   return false;
 }
 
-// Find verb string for a given syntax index (for error messages)
+// Read the first line of an object's description text (for "what?" messages).
+// Mirrors Fortran: X=IABS(ODESC2(OBJ)); READ(DBCH,REC=X); CALL TXCRYP(X,STR).
+function readObjDesc(G, obj) {
+  const rec = Math.abs(G.odesc2[obj - 1]);
+  const lines = readMessageRecords(G, rec);
+  return lines.length > 0 ? lines[0] : '';
+}
+
+// Build the formatted "what?" message used by the parser when an object slot
+// cannot be filled.  Mirrors the Fortran FORMAT strings 3750/3880/4660:
+//   SDIR, no iobj:  " Verb prep1 what?"
+//   SDIR, with iobj: " Verb prep1 what prep2 the OBJ2?"
+//   SIND, no dobj:  " Verb prep1 what?"
+//   SIND, with dobj: " Verb prep1 the OBJ1 prep2 what?"
+function prepStr(G, prepBits) {
+  const p = lcify(findPrepString(prepBits & VPMASK), 1);
+  return p ? ' ' + p + ' ' : ' ';
+}
+
 // Fortran LCIFY(string, start) — lowercase from position `start`.
 // start=1: all lowercase. start=2: capitalize first letter, rest lowercase.
 function lcify(str, start) {
@@ -1690,18 +1722,20 @@ function lcify(str, start) {
 }
 
 // Fortran FINDVB — find verb word for a syntax index.
+// Mirrors Fortran: iterates VWORD; synonyms (*) don't advance j but ARE checked.
+// Returns the first matching entry (synonym preferred over primary, star stripped).
 function findVerbString(syntaxIdx) {
   let j = 0;
   for (let k = 0; k < VWORD.length; k++) {
     if (VWORD[k] === '') continue;
-    if (VWORD[k].charAt(0) === '*') continue;
     const newj = j + VVOC[j] + 1;
     if (j + 1 <= syntaxIdx && syntaxIdx < newj + 1) {
       let str = VWORD[k];
       if (str.charAt(0) === '*') str = str.substring(1);
       return str;
     }
-    j = newj;
+    // Only primary words (no *) advance j to the next syntax block.
+    if (VWORD[k].charAt(0) !== '*') j = newj;
   }
   return '';
 }

@@ -1,0 +1,14 @@
+go north
+go east
+open window
+enter
+take sack
+go west
+take lamp
+take sword
+turn on lamp
+open sack
+take lunch
+burn lunch
+quit
+y

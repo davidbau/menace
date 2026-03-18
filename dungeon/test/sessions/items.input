@@ -1,0 +1,21 @@
+go north
+go east
+open window
+enter
+take sack
+go west
+take lamp
+take sword
+take newspaper
+turn on lamp
+read newspaper
+examine sword
+examine lamp
+examine sack
+move rug
+open trap door
+go down
+go east
+throw sword at troll
+quit
+y

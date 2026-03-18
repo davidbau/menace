@@ -1,0 +1,22 @@
+go north
+go east
+open window
+enter
+take bottle
+take sack
+open sack
+look in sack
+take garlic from sack
+eat garlic
+go west
+take lamp
+turn on lamp
+look in bottle
+take water from bottle
+drink water
+look in bottle
+pour water in bottle
+look in bottle
+inventory
+quit
+y

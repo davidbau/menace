@@ -1,0 +1,16 @@
+go north
+go east
+open window
+enter
+go west
+take all
+drop all
+go east
+take knife
+go west
+inventory
+examine lamp
+examine sword
+examine knife
+quit
+y

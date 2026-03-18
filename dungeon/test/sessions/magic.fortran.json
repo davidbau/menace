@@ -1,0 +1,222 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-18T15:12:15.290Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "enter",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "take lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "turn on lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now on."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "move rug",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dark and damp cellar with a narrow passageway leading",
+        " east, and a crawlway to the south.  To the west is the bottom of",
+        " a steep metal ramp which is unclimbable.",
+        " Above you is an open trap door.",
+        " The door crashes shut, and you hear someone barring it."
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small room with passages off in all directions.  Bloodstains",
+        " and deep scratches (perhaps made by an axe) mar the walls.",
+        " A nasty-looking troll, brandishing a bloody axe, blocks all passages",
+        " out of the room."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The troll fends you off with a menacing gesture."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The troll fends you off with a menacing gesture."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "xyzzy",
+      "parse": {},
+      "state": {},
+      "output": [
+        " A hollow voice says, \"Cretin.\""
+      ]
+    },
+    {
+      "move": 15,
+      "input": "plugh",
+      "parse": {},
+      "state": {},
+      "output": [
+        " A hollow voice says, \"Cretin.\"",
+        " The axe sweeps past you as you jump aside."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "diagnose",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are in perfect health.",
+        " You can be killed by a serious wound.",
+        " The flat of the troll's axe hits you delicately on the head, knocking",
+        " you out.",
+        " Conquering his fears, the troll puts you to death.",
+        " It appears that the last blow was too much for you.  I'm afraid",
+        " that you are dead.",
+        " As you take your last breath, you feel relieved of your burdens.  The",
+        " feeling passes as you find yourself before the gates of Hell, where",
+        " the spirits jeer at you and deny you entry.  Your senses are disturbed.",
+        " The objects in the dungeon appear indistinct, bleached of color, even",
+        " unreal."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "score",
+      "parse": {},
+      "state": {},
+      "output": [
+        " How can you think of your score in your condition?"
+      ]
+    },
+    {
+      "move": 18,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+  25 [total of 616 points], in   18 moves.",
+        " This gives you the rank of Beginner.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}
