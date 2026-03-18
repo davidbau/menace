@@ -1501,7 +1501,10 @@ export async function dokick(player, map, display, game) {
     }
 
     if (no_kick) {
-        return { moved: false, tookTime: false };
+        // C ref: tty_clearmsg() fires more() after a tookTime=false command
+        // that left a topline message (toplin==1).  All no_kick paths that
+        // generated a pline need this boundary to display --More-- in JS.
+        return { moved: false, tookTime: false, needsMoreBoundary: true };
     }
 
     // Get direction
