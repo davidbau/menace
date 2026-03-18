@@ -23,7 +23,7 @@ import { COLNO, ROWNO, IS_DOOR, IS_POOL, IS_LAVA, IS_OBSTRUCTED, IS_TREE, ACCESS
          SHOPBASE, ROOMOFFSET, TEMPLE, isok,
          ALLOW_MDISP, ALLOW_TRAPS, ALLOW_U, ALLOW_M, ALLOW_TM, ALLOW_ALL,
          NOTONL, OPENDOOR, UNLOCKDOOR, BUSTDOOR, ALLOW_ROCK, ALLOW_WALL,
-         ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC,
+         ALLOW_DIG, ALLOW_BARS, ALLOW_SANCT, ALLOW_SSM, NOGARLIC, TELEP_TRAP,
          XKILL_GIVEMSG, XKILL_NOMSG, XKILL_NOCORPSE, XKILL_NOCONDUCT,
          M_POISONGAS_OK, M_POISONGAS_MINOR, M_POISONGAS_BAD,
          W_AMUL, W_ARMG, W_ARM, W_ARMC, W_ARMH, W_ARMS, W_ARMF, W_ARMU, W_WEP,
@@ -85,6 +85,7 @@ import { PIT, SPIKED_PIT, HOLE, M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_
          ACH_MEDU, I_SPECIAL, NO_WEAPON_WANTED } from './const.js';
 import { S_poisoncloud } from './symbols.js';
 import { m_harmless_trap, m_at } from './trap.js';
+import { hastrack } from './track.js';
 import { dist2, distmin } from './hacklib.js';
 import { in_rooms, may_dig, may_passwall } from './hack.js';
 import { monmoveTrace, monmoveStepLabel } from './monmove.js';
@@ -752,10 +753,20 @@ export function mfndpos(mon, map, player, flag) {
                     continue;
             }
 
-            // C ref: mon.c:2342-2352 — trap check
+            // C ref: mon.c:2336-2352 — trap check
             const trap = map.trapAt(nx, ny);
             if (trap) {
-                if (!m_harmless_trap(mon, trap, map)) {
+                // C ref: mon.c:2337-2342 — invalid trap type check (TRAPNUM=26)
+                if (trap.ttyp >= 26 || trap.ttyp === 0) {
+                    continue;
+                }
+                // C ref: mon.c:2343-2345 — fixed-dest teleport trap the hero has used
+                if (trap.ttyp === TELEP_TRAP
+                    && isok(trap.teledest?.x, trap.teledest?.y)
+                    && hastrack(trap.teledest.x, trap.teledest.y)) {
+                    posInfo |= ALLOW_TRAPS;
+                } else if (!m_harmless_trap(mon, trap, map)) {
+                    // C ref: mon.c:2346-2352 — harmful trap avoidance
                     if (!(flag & ALLOW_TRAPS)) {
                         if (mon_knows_traps(mon, trap.ttyp))
                             continue;
