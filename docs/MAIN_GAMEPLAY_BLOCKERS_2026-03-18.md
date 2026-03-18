@@ -246,6 +246,33 @@ Update after current worktree XP fix:
       - key ownership around the prompt bundle
       - split/throw/landing visibility timing before monster turns
 
+Update after direct raw-key localization:
+
+- the failing normalized `seed031` bundle maps to a concrete replay-key sequence:
+  - previous key: `f`
+  - failing key: `j`
+  - next key: space to dismiss the resulting `--More--`
+- the current JS raw bundle is now pinned down:
+  - key `f` opens `In what direction?`
+  - key `j` consumes `rnd(2)=2` via `next_ident()` stack split in
+    `promptDirectionAndThrowItem()`
+  - JS then animates a dart southward and places it on the floor at `14,8`
+- the corresponding C session screen for the same `j` bundle is not a floor
+  placement:
+  - `The dart hits the gnome lord.  The kitten misses the gnome.--More--`
+  - the following space key acknowledges that message
+- high-confidence implication:
+  - this is not just a generic message-boundary problem
+  - at the moment JS resolves the `f`/`j` throw, it does not see the monster on
+    the southward path that C does
+  - the extra floor dart is the downstream symptom of missing/incorrect monster
+    state on the throw path, not the primary root by itself
+- practical next move:
+  - localize where the nearby gnome/gnome-lord state diverges before the `f`/`j`
+    bundle
+  - inspect the pre-throw monster roster and recent monster-removal/state
+    transitions rather than patching `throwit()` in isolation
+
 Conclusion:
 
 - `seed031` is now localized to an upstream throw-command seam whose first
