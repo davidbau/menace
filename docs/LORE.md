@@ -13356,3 +13356,41 @@ Validation:
   - this did not materially move `seed032_manual_direct` or
     `seed033_manual_direct`, so the remaining manual-direct cluster is not one
     shared `m`-prefix bug.
+
+# 2026-03-18: hero-kill XP must use `experience()` before `newexplevel()`
+
+- Symptom:
+  - after the `m.` wait fix, `seed031_manual_direct` next diverged at the kill
+    / level-up seam:
+    - JS resumed monster-turn work after the kill
+    - C immediately rolled `rnd(8)=8 @ newhp(attrib.c:1098)` for level gain
+- Cause:
+  - `js/uhitm.js` `handleMonsterKilled()` still used a simplified XP formula:
+    - `((m_lev + 1) * (m_lev + 1))`
+  - C `xkilled()` awards XP through:
+    - `experience(mon, nk)`
+    - `more_experienced(tmp, 0)`
+    - `newexplevel()`
+  - that under-awarded some kills in JS and skipped immediate level gain.
+- Fix:
+  - switch `handleMonsterKilled()` to the faithful `experience()` /
+    `more_experienced()` path before `newexplevel()`
+  - keep `player.exp` mirrored from `player.uexp` after the faithful award
+  - added unit regression:
+    - `test/unit/uhitm_kill_xp_parity.test.js`
+    - a killer-bee kill now levels a level-1 hero immediately, which the old
+      simplified formula would not do
+- Evidence:
+  - `node --test test/unit/uhitm_kill_xp_parity.test.js`
+    - PASS
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+    - improved from:
+      - first RNG divergence at step `375`
+      - first event divergence at step `373`
+    - to:
+      - first RNG divergence at step `407`
+      - first event divergence at step `406`
+- Non-conclusion:
+  - this did not materially move `seed032_manual_direct`
+  - the next `seed031` seam is later pet object-choice / `dog_goal_obj`
+    behavior, not another level-up bug.

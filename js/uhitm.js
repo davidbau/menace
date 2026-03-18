@@ -64,7 +64,8 @@ import {
     poly_when_stoned, DEADMONSTER,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
-import { newexplevel } from './exper.js';
+import { experience, more_experienced, newexplevel } from './exper.js';
+import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
 import { mondead, mondied, monkilled, wakeup } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
@@ -2151,11 +2152,12 @@ export async function handleMonsterKilled(player, monster, display, map) {
     }
     adjalign(player, monster.malign || 0);
 
-    // C ref: mon.c cleanup section — award XP after xkilled drop/corpse logic.
-    // Keep legacy player.exp mirrored so status/insight views stay consistent.
-    const exp = ((monster.m_lev || 0) + 1) * ((monster.m_lev || 0) + 1);
-    player.uexp = (Number(player.uexp) || Number(player.exp) || 0) + exp;
-    player.urexp = (Number(player.urexp) || 0) + (4 * exp);
+    // C ref: mon.c cleanup section — award XP via experience() /
+    // more_experienced(), then check for level gain immediately.
+    const mndx = monster.mndx ?? 0;
+    const game = _gstate;
+    const exp = experience(monster, game?.mvitals?.[mndx]?.died || 0);
+    more_experienced(exp, 0, game, player);
     player.exp = player.uexp;
     player.score += exp;
     await newexplevel(player, display);

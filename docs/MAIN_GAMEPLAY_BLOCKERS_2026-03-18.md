@@ -138,10 +138,10 @@ These remain major blockers and are unrelated to the quest patch.
 Representative anchors:
 
 - `seed031_manual_direct.session.json`
-  - first RNG divergence now at step `375`
-  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
-  - C: `rnd(8)=8 @ newhp(attrib.c:1098)`
-  - remaining root is later pet/monster-turn drift, not the old wait/no-op seam
+  - first RNG divergence now at step `407`
+  - JS: `rnd(2)=2 @ promptDirectionAndThrowItem(dothrow.js:245)`
+  - C: `rn2(5)=1 @ distfleeck(monmove.c:539)`
+  - remaining root is now later pet object-choice / `dog_goal_obj` drift
 - `seed032_manual_direct.session.json`
   - first RNG divergence at step `91`
   - dog movement path
@@ -215,6 +215,34 @@ Conclusion:
 - it was not the shared root cause for `seed032` / `seed033`
 - the next `seed031` seam is substantially later and now looks like a
   distinct pet/monster-turn ordering issue
+
+Update after current worktree XP fix:
+
+- `seed031_manual_direct`
+  - another faithful improvement landed in `js/uhitm.js`:
+    - hero kills were still using a simplified XP formula
+      `((m_lev + 1) ^ 2)` inside `handleMonsterKilled()`
+    - C `xkilled()` instead uses:
+      - `experience(mon, nk)`
+      - `more_experienced(tmp, 0)`
+      - `newexplevel()`
+    - fix:
+      - switch `handleMonsterKilled()` to the faithful `experience()` /
+        `more_experienced()` path before `newexplevel()`
+  - validated effect:
+    - first RNG divergence moved later from step `375` to step `407`
+    - first event divergence moved later from step `373` to step `406`
+  - new first-drift shape:
+    - JS: later ranged-command / pet-goal seam
+    - C: pet `distfleeck()` / `dog_goal_obj` neighborhood
+- `seed032_manual_direct`
+  - no measurable change from the kill-XP fix
+
+Conclusion:
+
+- the post-kill level-up seam in `seed031` was another real C-faithfulness bug
+- it also was not the shared root cause for `seed032`
+- `seed031` is now blocked by a later pet object-choice seam after the level-up
 
 ### 2. `seed301_archeologist_selfplay200_gameplay`
 
