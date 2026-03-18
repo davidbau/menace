@@ -4,12 +4,12 @@
 > Each conclusion must cite the specific evidence that established it.
 > Self-assess calibration: am I raising alarms that are warranted?
 
-## Session Status (March 18, 2026 — 431/436 passing)
+## Session Status (March 18, 2026 — 432/436 passing)
 
 | Session | Status | Root Cause Category |
 |---------|--------|-------------------|
 | hi10_seed1090 | FIXED (session 24) | Trailing RNG tolerance + getobj prompt wrapping |
-| t11_s755 | FAILING | Monster position divergence (screen-only) |
+| t11_s755 | FIXED (session 24) | sp_lev.js appear_as/mimic fix + mfndpos parity fixes |
 | seed031 | FAILING | Turn counter 1 behind C → exercise timing → cascade |
 | seed032 | FAILING | Same class as seed031 |
 | seed033 | FAILING | Same class as seed031 |
