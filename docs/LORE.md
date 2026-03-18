@@ -13252,3 +13252,41 @@ Validation:
   - `pnd_s1200_w_potionmix2_gp` is now passing all channels in
     `session_test_runner`,
   - `hi19_seed503_w_mindblast_gp` remains green.
+
+### `t11_s755` green: `#sit` `--More--` ownership plus faithful monster auto-wear
+
+- `t11_s755_w_covmax9_gp` had reached full RNG/event parity and full mapdump
+  parity, but still failed on a step-1787/1788 screen-only redistribution:
+  JS advanced from `Having fun sitting on the floor?--More--` into later
+  monster-turn output one consumed key too early.
+- First root cause:
+  - `#sit` was finalizing the timed turn before the visible `--More--` page
+    was actually dismissed.
+  - Fix in `js/cmd.js` and `js/allmain.js`:
+    - mark `#sit` with `deferTimedTurnUntilMore`
+    - defer end-of-turn finalization until the owned `--More--` dismiss key
+      runs
+  - This moved the first mismatch later from step `1787` to `1788`.
+- Second root cause:
+  - JS monster `I_SPECIAL` auto-wear path in `js/mon.js` was a simplified local
+    equip branch rather than the C `m_dowear()` path.
+  - `js/worn.js` also lacked the visible C wear semantics:
+    - monster `puts on ...` message
+    - wear delay via `mfrozen` / `mcanmove`
+    - `distant_name(..., doname)` article-correct armor naming
+  - Fix:
+    - route live monster gear turns through real `m_dowear(mon, false)`
+    - make runtime wear visible and time-consuming like C
+    - keep creation-time auto-equip synchronous so `makemon()` stays
+      single-threaded and faithful
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`
+    - PASS
+  - guardrails:
+    - `seed329_rogue_wizard_gameplay` PASS
+    - `hi15_seed42_barb_minetn5_shop-pay_gp` PASS
+- Takeaway:
+  - the remaining `t11_s755` drift was not a replay-core queueing problem
+  - it was a real pair of C-faithfulness bugs:
+    - command/message boundary ownership for `#sit`
+    - monster auto-wear behavior

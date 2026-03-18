@@ -29,9 +29,10 @@ import { S_MUMMY, S_CENTAUR,
        } from './monsters.js';
 import { mons } from './monsters.js';
 import { newsym, canseemon } from './display.js';
-import { You_hear } from './pline.js';
+import { You_hear, pline_mon } from './pline.js';
 import { placeFloorObject } from './invent.js';
-import { Has_contents } from './objnam.js';
+import { Has_contents, distant_name, doname } from './objnam.js';
+import { Monnam } from './do_name.js';
 import { game as gstateGame } from './gstate.js';
 
 // armcat → wornmask mapping
@@ -525,32 +526,40 @@ export function m_dowear(mon, creation) {
                           && mon.mndx !== PM_SKELETON)))
         return;
 
-    m_dowear_type(mon, W_AMUL, creation, false);
     const can_wear_armor = !cantweararm(ptr);
+    if (creation) {
+        m_dowear_sequence(mon, ptr, can_wear_armor, creation, m_dowear_type_sync);
+        return;
+    }
+    return m_dowear_sequence(mon, ptr, can_wear_armor, creation, m_dowear_type);
+}
+
+async function m_dowear_sequence(mon, ptr, can_wear_armor, creation, dowearType) {
+    await dowearType(mon, W_AMUL, creation, false);
     // Can't put on shirt if already wearing suit
     if (can_wear_armor && !(mon.misc_worn_check & W_ARM))
-        m_dowear_type(mon, W_ARMU, creation, false);
+        await dowearType(mon, W_ARMU, creation, false);
     // C ref: can_wear_armor || WrappingAllowed(mon->data)
     if (can_wear_armor || is_humanoid(ptr))
-        m_dowear_type(mon, W_ARMC, creation, false);
-    m_dowear_type(mon, W_ARMH, creation, false);
+        await dowearType(mon, W_ARMC, creation, false);
+    await dowearType(mon, W_ARMH, creation, false);
     // Skip shield if wielding two-handed weapon
     const mwep = mon.weapon;
     if (!mwep || !(objectData[mwep.otyp]?.big))
-        m_dowear_type(mon, W_ARMS, creation, false);
-    m_dowear_type(mon, W_ARMG, creation, false);
+        await dowearType(mon, W_ARMS, creation, false);
+    await dowearType(mon, W_ARMG, creation, false);
     if (!slithy(ptr) && ptr.mlet !== S_CENTAUR)
-        m_dowear_type(mon, W_ARMF, creation, false);
+        await dowearType(mon, W_ARMF, creation, false);
     if (can_wear_armor)
-        m_dowear_type(mon, W_ARM, creation, false);
+        await dowearType(mon, W_ARM, creation, false);
     else
-        m_dowear_type(mon, W_ARM, creation, true); // RACE_EXCEPTION
+        await dowearType(mon, W_ARM, creation, true); // RACE_EXCEPTION
 }
 
 // ============================================================================
 // m_dowear_type — cf. worn.c:789
 // ============================================================================
-function m_dowear_type(mon, flag, creation, racialexception) {
+async function m_dowear_type(mon, flag, creation, racialexception) {
     if (mon.mfrozen) return;
 
     const old = which_armor(mon, flag);
@@ -616,6 +625,30 @@ function m_dowear_type(mon, flag, creation, racialexception) {
 
     if (!best || best === old) return;
 
+    let m_delay = 0;
+    const sawmon = !creation && canseemon(mon);
+    if ((flag === W_ARM || flag === W_ARMU) && (mon.misc_worn_check & W_ARMC)) {
+        m_delay += 2;
+    }
+    if (old) {
+        m_delay += Number(objectData[old.otyp]?.oc_delay || 0);
+    }
+
+    if (!creation && sawmon) {
+        let oldArm = '';
+        let removeClause = '';
+        if (old) {
+            oldArm = await distant_name(old, doname);
+            removeClause = ` removes ${oldArm} and`;
+        }
+        let newArm = await distant_name(best, doname);
+        if (oldArm && newArm.toLowerCase() === oldArm.toLowerCase()) {
+            if (/^a /i.test(newArm)) newArm = newArm.replace(/^a /i, 'another ');
+            else if (/^an /i.test(newArm)) newArm = newArm.replace(/^an /i, 'another ');
+        }
+        await pline_mon(mon, '%s%s puts on %s.', Monnam(mon), removeClause, newArm);
+    }
+
     // Equip the item
     if (old) {
         update_mon_extrinsics(mon, old, false, creation);
@@ -626,6 +659,83 @@ function m_dowear_type(mon, flag, creation, racialexception) {
     best.owornmask = (best.owornmask || 0) | flag;
     // autocurse: dunce cap / helm of opposite alignment
     // (simplified: C checks oc_oprop for autocurse but we skip that)
+    update_mon_extrinsics(mon, best, true, creation);
+    if (!creation) {
+        m_delay += Number(objectData[best.otyp]?.oc_delay || 0);
+        mon.mfrozen = m_delay;
+        if (mon.mfrozen) mon.mcanmove = 0;
+    }
+}
+
+function m_dowear_type_sync(mon, flag, creation, racialexception) {
+    if (mon.mfrozen) return;
+
+    const old = which_armor(mon, flag);
+    if (old && old.cursed) return;
+    if (old && flag === W_AMUL) {
+        const odn = objectData[old.otyp]?.oc_name;
+        if (odn !== 'amulet of guarding') return;
+    }
+    let best = old;
+
+    for (const obj of (mon.minvent || [])) {
+        const od = objectData[obj.otyp];
+        if (!od) continue;
+
+        if (flag === W_AMUL) {
+            if (od.oc_class !== AMULET_CLASS) continue;
+            if (od.oc_name !== 'amulet of life saving'
+                && od.oc_name !== 'amulet of reflection'
+                && od.oc_name !== 'amulet of guarding') continue;
+            if (!best || od.oc_name !== 'amulet of guarding') {
+                best = obj;
+                if (od.oc_name !== 'amulet of guarding') break;
+            }
+            continue;
+        }
+
+        if (od.oc_class !== ARMOR_CLASS) continue;
+        const armcat = od.oc_subtyp;
+
+        switch (flag) {
+        case W_ARMU: if (armcat !== ARM_SHIRT) continue; break;
+        case W_ARMC:
+            if (armcat !== ARM_CLOAK) continue;
+            if (((mon.data || mon.type)?.msize || 0) > MZ_HUMAN && obj.otyp !== MUMMY_WRAPPING)
+                continue;
+            break;
+        case W_ARMH:
+            if (armcat !== ARM_HELM) continue;
+            if (has_horns(mon.data || mon.type) && (od.oc_material || 0) > LEATHER)
+                continue;
+            break;
+        case W_ARMS: if (armcat !== ARM_SHIELD) continue; break;
+        case W_ARMG: if (armcat !== ARM_GLOVES) continue; break;
+        case W_ARMF: if (armcat !== ARM_BOOTS) continue; break;
+        case W_ARM:
+            if (armcat !== ARM_SUIT) continue;
+            if (racialexception && racial_exception(mon, obj) < 1)
+                continue;
+            break;
+        default: continue;
+        }
+
+        if (obj.owornmask) continue;
+        if (best && (arm_bonus(best) + extra_pref(mon, best)
+                     >= arm_bonus(obj) + extra_pref(mon, obj)))
+            continue;
+        best = obj;
+    }
+
+    if (!best || best === old) return;
+
+    if (old) {
+        update_mon_extrinsics(mon, old, false, creation);
+        old.owornmask = (old.owornmask || 0) & ~flag;
+        mon.misc_worn_check &= ~flag;
+    }
+    mon.misc_worn_check |= flag;
+    best.owornmask = (best.owornmask || 0) | flag;
     update_mon_extrinsics(mon, best, true, creation);
 }
 

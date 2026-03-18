@@ -773,6 +773,47 @@ export async function run_command(game, ch, opts = {}) {
     // Clear advanceRunTurn
     game.advanceRunTurn = null;
 
+    if (result
+        && result.tookTime
+        && !skipTurnEnd
+        && result.deferTimedTurnUntilMore
+        && hasVisibleMorePrompt(game.display)) {
+        const deferredTimedResult = result;
+        game.pendingPrompt = {
+            type: 'timed_turn_more_ack',
+            onKey: async (chCode, nextGame) => {
+                if (chCode !== 32 && chCode !== 10 && chCode !== 13
+                    && chCode !== 27 && chCode !== 16) {
+                    return {
+                        handled: true,
+                        moved: false,
+                        tookTime: false,
+                        prompt: true,
+                        terminalScreenOwned: true,
+                    };
+                }
+                dismissOwnedMoreBoundary(nextGame?.display);
+                nextGame.pendingPrompt = null;
+                await finalizeTimedCommand(nextGame, deferredTimedResult, coreOpts);
+                postRender(nextGame, deferredTimedResult);
+                return {
+                    handled: true,
+                    moved: false,
+                    tookTime: false,
+                    prompt: true,
+                    terminalScreenOwned: true,
+                };
+            },
+        };
+        const promptDeferredResult = {
+            ...result,
+            tookTime: false,
+            prompt: true,
+        };
+        postRender(game, promptDeferredResult);
+        return promptDeferredResult;
+    }
+
     // Post-rhack processing: moveloop_core, occupation, multi-repeat
     if (result && result.tookTime && !skipTurnEnd) {
         await finalizeTimedCommand(game, result, coreOpts);
@@ -992,6 +1033,28 @@ async function finalizeTimedCommand(game, result, coreOpts) {
         if (++safety > 5000) break;
     }
     await _drainOccupation(game, coreOpts);
+}
+
+function dismissOwnedMoreBoundary(display) {
+    if (!display) return;
+    if (typeof display.clearRow === 'function') {
+        display.clearRow(0);
+        if (display._topMessageRow1 !== undefined) {
+            display.clearRow(1);
+            display._topMessageRow1 = undefined;
+        }
+    }
+    if (Object.hasOwn(display, 'messageNeedsMore')) display.messageNeedsMore = false;
+    if (Object.hasOwn(display, 'moreMarkerActive')) display.moreMarkerActive = false;
+    if (Object.hasOwn(display, 'topMessage')) display.topMessage = null;
+}
+
+function hasVisibleMorePrompt(display) {
+    if (!display) return false;
+    if (display.moreMarkerActive) return true;
+    if (typeof display.getScreenLines !== 'function') return false;
+    const lines = display.getScreenLines() || [];
+    return (lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--');
 }
 
 function postRender(game, result) {

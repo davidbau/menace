@@ -5,7 +5,7 @@ coverage sessions.
 
 ## Status
 
-Authoritative run:
+Older baseline run before the fixes below:
 
 `node test/comparison/session_test_runner.js --type=gameplay --session-timeout-ms=120000`
 
@@ -15,8 +15,26 @@ Result on commit `e69217ff` after the quest-monster patch:
 - Passed: `421`
 - Failed: `13`
 
-The main comparison sessions are still not green. Do not treat session
-generation as the active priority until these blockers are reduced.
+Current authoritative failures view after the `t11_s755` / `#sit` batch:
+
+`./scripts/run-and-report.sh --failures`
+
+Current result on worktree based on commit `7993a31a` plus the validated fixes
+below:
+
+- Gameplay sessions: `436`
+- Passed: `432`
+- Failed: `4`
+
+Current remaining failures:
+
+- `seed031_manual_direct`
+- `seed032_manual_direct`
+- `seed033_manual_direct`
+- `seed301_archeologist_selfplay200_gameplay`
+
+The main comparison sessions are still not green, but the blocker set is now
+narrow and entirely concentrated in the early manual/direct movement cluster.
 
 ## Landed In This Batch
 
@@ -65,64 +83,55 @@ Important outcome:
 - Therefore the `t11_s755` checkpoint mismatch is **later than level
   generation and later than basic level save/restore**.
 
+Validated parity fix batch:
+
+- `js/allmain.js`
+  - added a narrow deferred-timed-turn `more()` owner for commands that must
+    stop on a visible message page before consuming the end-of-turn monster
+    work
+- `js/cmd.js`
+  - `#sit` now marks the specific case where timed-turn finalization must wait
+    until the current `--More--` page is actually dismissed
+- `js/mon.js`
+  - replaced the unfaithful `I_SPECIAL` simplified auto-equip branch with the
+    real `m_dowear(mon, false)` path
+- `js/worn.js`
+  - restored C-style monster auto-wear semantics during live turns:
+    - visible `pline_mon("%s puts on ...")` message ordering
+    - proper wear delay via `mfrozen`/`mcanmove`
+    - C-style naming through `distant_name(..., doname)`
+  - kept monster-creation auto-equip synchronous so `makemon()` stays faithful
+    to the single-threaded C flow
+- `js/makemon.js`
+  - creation-time monster auto-equip now stays on the synchronous path
+
+Validation:
+
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`
+  - PASS
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed329_rogue_wizard_gameplay.session.json`
+  - PASS
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/shops-economy/hi15_seed42_barb_minetn5_shop-pay_gp.session.json`
+  - PASS
+
+Outcome:
+
+- `t11_s755_w_covmax9_gp.session.json` is now fully green on gameplay parity.
+- The fix was not comparator/replay masking; it was:
+  - one real `#sit` message-boundary ownership bug
+  - one real monster auto-wear faithfulness bug
+- Follow-up guardrail discovery:
+  - the first version of the `#sit` deferral gate was too broad and regressed
+    plain stair sits by treating any pending top-line text as an owned
+    `--More--` prompt
+  - narrowing the gate to an actually visible `--More--` marker restored:
+    - `t01_s005_v_sit1_gp`
+    - `t01_s650_w_sit_gp`
+    - `t01_s651_w_sit2_gp`
+
 ## Current High-Signal Blockers
 
-### 1. `theme25_seed1328_wiz_quaff-utility_gameplay.session.json`
-
-Current state:
-
-- RNG: full match
-- Events: full match
-- Cursor: full match
-- Failure is screen/color only
-
-First divergence:
-
-- step `72`
-- JS:
-  - `You feel wise!  You feel self-knowledgeable...--More--`
-- C:
-  - `You're already as smart as you can get.  You feel wise!--More--`
-
-Conclusion:
-
-- This does **not** look like a gameplay-state or RNG bug.
-- It also does **not** look like an attribute-init bug; at the divergence
-  point the hero INT is already capped at `18`.
-- The likely issue is top-line/message ownership:
-  - JS is advancing the `--More--` boundary too early and showing the next
-    message page (`You feel self-knowledgeable...`) on the same visible page
-    where C is still showing the previous page.
-- Focus area:
-  - `js/display.js`
-  - `js/windows.js`
-  - `js/input.js`
-  - especially `putstr_message()`, `display_nhwindow(WIN_MESSAGE, ...)`,
-    and `more()`
-
-Constraint:
-
-- No `aftermore`-style queueing, continuation tokens, replay-core synthetic
-  compensation, or comparator masking. The fix must preserve the single-threaded
-  C model of message/input ownership.
-
-### 2. `hi10_seed1090_wiz_potion-deep_gameplay.session.json`
-
-Current state:
-
-- Still fails after the quest patch
-- First RNG divergence:
-  - index `2401`
-  - C: `rn2(12)=10 @ mcalcmove(mon.c:1146)`
-  - step `506`
-- Visible mismatch near the dip prompt is downstream noise, not the root cause
-
-Conclusion:
-
-- Not addressed by quest monster logic
-- Treat as a later monster-movement/event ordering issue
-
-### 3. Manual regressions: `seed031`, `seed032`, `seed033`
+### 1. Manual regressions: `seed031`, `seed032`, `seed033`
 
 These remain major blockers and are unrelated to the quest patch.
 
@@ -145,15 +154,17 @@ Conclusion:
 - These are not close to green and should be worked as independent regressions,
   not folded into the topline-message investigation.
 
-## Additional Checks Performed
+### 2. `seed301_archeologist_selfplay200_gameplay`
 
-I spot-checked covmax failures to see whether the quest patch helped them:
+Current state from the failures view:
 
-- `t11_s742_w_covmax1_gp.session.json`
-- `t11_s752_w_covmax6_gp.session.json`
+- first RNG divergence: `step 10`
+- first event divergence: `step 7`
+- first screen divergence: `step 10`
+- label from PES report:
+  - `kick_door vs kick_door`
 
-Both still fail in unrelated RNG paths. The quest patch did not move those
-first divergences.
+This remains the only non-manual-direct session left in the current fail set.
 
 ## Recommended Coordination
 
@@ -161,11 +172,8 @@ Work in this order:
 
 1. Treat the current fail set as the authoritative target, not the older
    13-session snapshot in this document.
-2. For `t11_s755`, continue after the point where special-level generation and
-   `saveLev/restLev` have already been ruled out; the remaining seams are:
-   - later runtime mimic reveal/state clearing
-   - live monster-position drift with RNG/events conserved
-3. Continue dedicated work on `seed031` / `seed032` / `seed033`.
+2. Continue dedicated work on `seed031` / `seed032` / `seed033`.
+3. Then isolate `seed301_archeologist_selfplay200_gameplay`.
 
 Do not start new session-capture work until the main comparison sessions are
 materially healthier.
@@ -263,12 +271,17 @@ Do not re-open:
 - `Concurrent nhgetch()` as the primary `t11_s755` explanation
 - simple rerecord-delay-only fixes for the step-1787 boundary
 
-Next target inside `t11_s755`:
+Final `t11_s755` conclusions:
 
-- inspect replay boundary ownership between:
-  - resumed `pendingCommand` capture in `js/replay_core.js`
-  - `more()`/message ownership
-  - animation flush visibility in `js/animation.js` / `js/headless.js`
-- the goal is to assign the resumed monster-turn chunk to the same consumed key
-  that C uses, without replay-core queueing, continuation-token logic, or
-  comparator masking
+- The step-1787/1788 redistribution was real, but it was not a replay-core
+  queueing problem.
+- The first part was command-boundary ownership: `#sit` must leave the visible
+  `Having fun sitting on the floor?--More--` page on screen before monster-turn
+  finalization resumes.
+- The second part was faithful monster equipment behavior:
+  - monsters taking an `I_SPECIAL` gear turn must route through the real
+    `m_dowear()` path
+  - visible wear turns need the C `puts on` message and wear delay
+  - object naming must use `doname`, not `xname`, inside that message
+- After those fixes, the whole session passed without any replay-core or
+  comparator special-casing.

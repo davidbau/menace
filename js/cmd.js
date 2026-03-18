@@ -943,7 +943,14 @@ async function handleExtendedCommand(game) {
         }
         case 'sit':
             queueRepeatExtcmd((g) => dosit(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!t })));
-            return { moved: false, tookTime: !!(await dosit(player, game.map, display)) };
+            {
+                const tookTimeSit = !!(await dosit(player, game.map, display));
+                return {
+                    moved: false,
+                    tookTime: tookTimeSit,
+                    deferTimedTurnUntilMore: tookTimeSit && !!display?.messageNeedsMore,
+                };
+            }
         case 'ride':
             queueRepeatExtcmd((g) => doride(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!(t & ECMD_TIME) })));
             return { moved: false, tookTime: !!((await doride(player, game.map, display)) & ECMD_TIME) };

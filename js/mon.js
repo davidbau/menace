@@ -41,7 +41,7 @@ import { AMULET_OF_LIFE_SAVING, CORPSE, FIGURINE, STATUE, objectData,
          LEATHER_ARMOR, LEATHER_CLOAK, SADDLE,
          SCR_BLANK_PAPER,
          GLOB_OF_BLACK_PUDDING } from './objects.js';
-import { which_armor, mon_adjust_speed } from './worn.js';
+import { which_armor, mon_adjust_speed, m_dowear } from './worn.js';
 import { nonliving, resists_ston, resists_fire, resists_poison,
          is_flyer, is_floater,
          likes_lava, cant_drown, can_teleport, control_teleport, telepathic,
@@ -2183,23 +2183,7 @@ export async function movemon(map, player, display, fov, game = null, { dochug, 
                 if (mon.mpeaceful || mon.mtame || dist2(mon.mx, mon.my, mux, muy) > 9) {
                     mon.misc_worn_check = (mon.misc_worn_check & ~I_SPECIAL) >>> 0;
                     const oldworn = mon.misc_worn_check;
-                    // Simplified m_dowear(FALSE): try to equip one unequipped wearable item.
-                    // Intentionally excludes weapon wielding; C m_dowear doesn't wield here.
-                    // Sub-type to wornmask mapping for armor (ARM_SUIT=0..ARM_SHIRT=6).
-                    const armorSubMask = [W_ARM, W_ARMS, W_ARMH, W_ARMG, W_ARMF, W_ARMC, W_ARMU];
-                    for (const obj of (mon.minvent || [])) {
-                        if (obj.owornmask) continue; // already worn/wielded
-                        const ocls = obj.oclass ?? obj.oc_class;
-                        if (ocls === ARMOR_CLASS) {
-                            const sub = obj.sub ?? 0;
-                            const bit = (sub >= 0 && sub < armorSubMask.length) ? armorSubMask[sub] : 0;
-                            if (bit && !(mon.misc_worn_check & bit)) {
-                                obj.owornmask = bit;
-                                mon.misc_worn_check = (mon.misc_worn_check | bit) >>> 0;
-                                break;
-                            }
-                        }
-                    }
+                    await m_dowear(mon, false);
                     if (mon.misc_worn_check !== oldworn || !mon.mcanmove) {
                         continue; // spent this turn equipping
                     }
