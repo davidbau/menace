@@ -13,12 +13,13 @@ import { homedir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2).filter(a => !a.startsWith('--'));
-const sessionFile = args[0] || join(__dirname, 'sessions', 'speedrun-1.json');
+const sessionFile = args[0] || join(__dirname, 'sessions', 'speedrun-1-literate.json');
 const outputFile = args[1] || join(homedir(), 'dungeon-speedrun.html');
 
 const data = JSON.parse(readFileSync(sessionFile, 'utf8'));
 const steps = data.steps;
 const cmds = steps.map(s => s.cmd);
+const displays = steps.map(s => s.display || s.cmd);
 const seed = data.seed || 42;
 
 // Run via JS engine to get accurate per-step output
@@ -77,15 +78,8 @@ for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
     const out = stepOutputs[i] || [];
 
-    if (step.echoRoom) {
-        // Echo Room: display "echo" as a user command (white, >) then ECHO as game output.
-        // The user typed "echo" once; the room echoes it back as "ECHO" in the output.
-        body += `<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">${esc(step.cmd)}</span></div>\n`;
-        body += renderOutput(out);
-    } else {
-        body += `<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">${esc(step.cmd)}</span></div>\n`;
-        body += renderOutput(out);
-    }
+    body += `<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">${esc(displays[i])}</span></div>\n`;
+    body += renderOutput(out);
 }
 
 const html = `<!DOCTYPE html>

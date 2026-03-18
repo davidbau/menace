@@ -1,0 +1,2211 @@
+{
+  "seed": 1,
+  "steps": [
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "u",
+      "display": "climb tree"
+    },
+    {
+      "cmd": "take egg"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "e",
+      "display": "run east"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "open window"
+    },
+    {
+      "cmd": "w",
+      "display": "run west"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "take sword"
+    },
+    {
+      "cmd": "move rug"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "look"
+    },
+    {
+      "cmd": "kill troll with sword"
+    },
+    {
+      "cmd": "drop all but lamp, sword and egg"
+    },
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "take bottle"
+    },
+    {
+      "cmd": "inventory"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "take coins"
+    },
+    {
+      "cmd": "sw",
+      "display": "go southwest"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "ODYSSEUS"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "give egg to thief"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "inventory"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "open case"
+    },
+    {
+      "cmd": "put coins in case"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "drop all but rope, lamp, mat and bottle"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "tie rope to railing"
+    },
+    {
+      "cmd": "climb down"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put torch in case"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "answer \"well\""
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "take necklace"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "get inside bucket"
+    },
+    {
+      "cmd": "open bottle"
+    },
+    {
+      "cmd": "pour water"
+    },
+    {
+      "cmd": "get out of bucket"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "eat eatme cake"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "throw red cake"
+    },
+    {
+      "cmd": "take tin"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "eat blue cake"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "tell robot \"go east\""
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "tell robot \"push triangular button\""
+    },
+    {
+      "cmd": "tell robot \"go south\""
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "tell robot \"lift cage\""
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "fill bottle with water"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "open box"
+    },
+    {
+      "cmd": "take violin"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "take painting"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "take portrait"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "walk through south wall"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "take bills"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "drop all except torch"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "take torch and mat"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "read matchbook"
+    },
+    {
+      "cmd": "send for free brochure"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "push yellow button"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "turn bolt with wrench"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, mat and screwdriver"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "put mat under door"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put screwdriver in keyhole"
+    },
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "take key"
+    },
+    {
+      "cmd": "take screwdriver"
+    },
+    {
+      "cmd": "unlock door with key"
+    },
+    {
+      "cmd": "open door"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put blue sphere in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "open sack"
+    },
+    {
+      "cmd": "take garlic"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "take trunk"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "take pump"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "take trident"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "d",
+      "display": "lower yourself down"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put trunk and trident in case"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "echo"
+    },
+    {
+      "cmd": "take bar"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "take shovel"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "pump up plastic"
+    },
+    {
+      "cmd": "put all in boat"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "launch"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "take buoy"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "open buoy"
+    },
+    {
+      "cmd": "take emerald"
+    },
+    {
+      "cmd": "put buoy in boat"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "drop shovel"
+    },
+    {
+      "cmd": "take statue"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "wave stick"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "take gold"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "e",
+      "display": "run east"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "put platinum bar, pot of gold, statue and large emerald in case"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "open mailbox"
+    },
+    {
+      "cmd": "take brochure"
+    },
+    {
+      "cmd": "n",
+      "display": "run north"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "drop all but lamp"
+    },
+    {
+      "cmd": "take knife"
+    },
+    {
+      "cmd": "take garlic"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "take coffin"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "put coffin in case"
+    },
+    {
+      "cmd": "put brochure in case"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "untie rope"
+    },
+    {
+      "cmd": "take rope"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "n",
+      "display": "run north"
+    },
+    {
+      "cmd": "u",
+      "display": "climb tree"
+    },
+    {
+      "cmd": "wind canary"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "take bauble"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all but rope"
+    },
+    {
+      "cmd": "take torch and matchbook"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "take grail"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "take bell"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "ring bell"
+    },
+    {
+      "cmd": "take candles"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light candles with match"
+    },
+    {
+      "cmd": "read book"
+    },
+    {
+      "cmd": "drop book and candles"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put grail in case"
+    },
+    {
+      "cmd": "drop matchbook"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "take garlic"
+    },
+    {
+      "cmd": "take screwdriver"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "touch mirror"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "take jade figurine"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "put torch and screwdriver in basket"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "d",
+      "display": "descend the spiral staircase"
+    },
+    {
+      "cmd": "take bracelet"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "e",
+      "display": "walk east"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "take coal"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "drop all but rope"
+    },
+    {
+      "cmd": "take lamp, timber and coal"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "put coal in basket"
+    },
+    {
+      "cmd": "drop rope"
+    },
+    {
+      "cmd": "drop timber"
+    },
+    {
+      "cmd": "lower basket"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "drop lamp"
+    },
+    {
+      "cmd": "sw",
+      "display": "go southwest"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put coal in machine"
+    },
+    {
+      "cmd": "close lid"
+    },
+    {
+      "cmd": "turn switch with screwdriver"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "take diamond"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "put all in basket"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "drop garlic, jade and bracelet"
+    },
+    {
+      "cmd": "raise basket"
+    },
+    {
+      "cmd": "take torch, timber and rope"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "drop all but rope, torch and timber"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "drop timber"
+    },
+    {
+      "cmd": "tie rope to timber"
+    },
+    {
+      "cmd": "d",
+      "display": "lower yourself down"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "d",
+      "display": "lower yourself down"
+    },
+    {
+      "cmd": "d",
+      "display": "climb down"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "read paper"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "sw",
+      "display": "go southwest"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "take card"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "sw",
+      "display": "go southwest"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "se",
+      "display": "go southeast"
+    },
+    {
+      "cmd": "ne",
+      "display": "go northeast"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "sw",
+      "display": "go southwest"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "nw",
+      "display": "go northwest"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "put card in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, lamp, guidebook, brick and matchbook"
+    },
+    {
+      "cmd": "d",
+      "display": "descend through the trap door"
+    },
+    {
+      "cmd": "e",
+      "display": "proceed east"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "d",
+      "display": "go down"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "take wire"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "throw torch"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "take ruby"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "open receptacle"
+    },
+    {
+      "cmd": "put guidebook in receptacle"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light guidebook with match"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "take coin"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "open purple book"
+    },
+    {
+      "cmd": "take stamp"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "untie rope from hook"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "s",
+      "display": "go south"
+    },
+    {
+      "cmd": "put brick in hole"
+    },
+    {
+      "cmd": "put wire in brick"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light wire with match"
+    },
+    {
+      "cmd": "n",
+      "display": "walk north"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "take crown"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "untie rope from hook"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "close receptacle"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "n",
+      "display": "go north"
+    },
+    {
+      "cmd": "w",
+      "display": "walk west"
+    },
+    {
+      "cmd": "s",
+      "display": "proceed south"
+    },
+    {
+      "cmd": "n",
+      "display": "proceed north"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "e",
+      "display": "go east"
+    },
+    {
+      "cmd": "u",
+      "display": "go up"
+    },
+    {
+      "cmd": "s",
+      "display": "walk south"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "proceed west"
+    },
+    {
+      "cmd": "w",
+      "display": "go west"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "u",
+      "display": "climb up to the living room"
+    },
+    {
+      "cmd": "examine brochure"
+    },
+    {
+      "cmd": "examine coin"
+    },
+    {
+      "cmd": "examine matchbook"
+    },
+    {
+      "cmd": "examine newspaper"
+    },
+    {
+      "cmd": "examine stamp"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "score"
+    }
+  ]
+}
