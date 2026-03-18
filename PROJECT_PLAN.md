@@ -29,6 +29,14 @@ This is only possible because:
 
 This is not "I accept all diffs and hope for the best." This is **disciplined agentic engineering**: strict test gates, human-directed strategy, evidence-driven work, and frequent commits with clear regression checks.
 
+Execution-model guardrail:
+- NetHack C is single-threaded, and Royal Jelly must stay faithful to that.
+- There must be one active owner of input at a time.
+- Command execution, monster turns, and message/prompt acknowledgements must
+  follow the same ordering as C.
+- We do not introduce queue/continuation/parallel scheduling systems to "fix"
+  timing bugs; we repair the core JS sequencing until it matches C.
+
 ## Purpose
 
 Create **Royal Jelly,** an HTML/JavaScript port of C NetHack 3.7.0 that is 100% faithful to original gameplay and character-based display, while adding a small set of usability enhancements outside the 24×80 game screen. The codename refers to this project — the vibe-coded JS port — not to the official 3.7.0 release itself, which has no codename.

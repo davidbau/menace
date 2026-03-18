@@ -92,11 +92,20 @@ Use this for session parity failures where gameplay diverges between C and JS:
 
 ## Guardrails (Non-Negotiable)
 - Do not add comparator exceptions/masking to hide mismatches.
+- Preserve the C execution model:
+  - single-threaded gameplay flow,
+  - one active input owner at a time,
+  - no gameplay reentrancy,
+  - no queue/continuation tricks that reorder command vs monster work.
 - Do not add replay compensation logic in `js/replay_core.js`:
   - no synthetic queueing
   - no deferred/auto key injection
   - no auto-dismiss for prompts
   - no timing compensation that changes semantic input stream
+- Do not solve timing bugs by inventing non-C scheduling mechanisms:
+  - no deferred continuation tokens
+  - no parallel prompt/input owners
+  - no "resume later" machinery that changes who owns the next key
 - Do not "fix" parity by modifying session expectations to match JS output.
 - Fix behavior in core JS game logic to match C.
 - Do not overfit to one seed: before committing, validate the fix on at least

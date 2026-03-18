@@ -60,6 +60,11 @@ evidence don't count.**
 3. `docs/COVERAGE.md` is the authoritative execution guide for the current Phase 3 coverage campaign.
 4. Test harness outputs are evidence for divergences, not a place to hide or special-case them.
 5. For gameplay parity sign-off, session replay results are authoritative over unit tests.
+6. The execution model is the C execution model:
+   - single-threaded,
+   - one active owner of input at a time,
+   - no gameplay reentrancy,
+   - no synthetic queues/continuations to reorder command vs monster work.
 
 ## Current-Phase Resources
 Read these first for active work:
@@ -231,6 +236,12 @@ Not allowed:
 1. Comparator exceptions that hide true behavior differences
 2. Replay behavior that injects synthetic decisions not in session keys
 3. Any workaround that makes failing gameplay look passing
+4. Any queueing/continuation/parallel ownership scheme that changes the
+   single-threaded C ordering of:
+   - prompt/input ownership,
+   - command execution,
+   - monster turns,
+   - message acknowledgement boundaries
 
 ## Issue Dependencies and Hygiene
 Use explicit dependency links in every scoped issue:
@@ -305,6 +316,10 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
 5. Skill guardrails are mandatory when applicable, including:
    - no comparator masking/exceptions to hide divergences
    - no `js/replay_core.js` compensating behavior (no synthetic queueing/injection/auto-dismiss/timing compensation)
+   - no unfaithful single-threaded-model violations:
+     - no deferred continuation tokens to resume gameplay later
+     - no parallel input owners
+     - no command/monster reordering via queue machinery
 
 ## Priority Docs (Read Order)
 1. Always start with:
