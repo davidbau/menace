@@ -747,6 +747,7 @@ function valuac(G, v) {
   }
 
   // Count possessions
+  // Fortran uses I1 for singular (no padding) and I2 for plural (2-char field, space-pads 1-digit numbers)
   if (G.prsa === COUNTW && G.prso === POSSE) {
     let k = 0;
     for (let j = 0; j < G.olnt; j++) {
@@ -755,13 +756,14 @@ function valuac(G, v) {
     if (k === 1) {
       G.output(` You have ${k} possession.`);
     } else {
-      G.output(` You have ${k} possessions.`);
+      G.output(` You have ${String(k).padStart(2)} possessions.`);
     }
     G.telflg = true;
     return;
   }
 
   // Count valuables
+  // Fortran uses I1 for singular (no padding) and I2 for plural (2-char field, space-pads 1-digit numbers)
   if (G.prsa === COUNTW && G.prso === VALUA) {
     let k = 0;
     let l = 0;
@@ -772,14 +774,14 @@ function valuac(G, v) {
     if (k === 1) {
       G.output(` You have ${k} valuable.`);
     } else {
-      G.output(` You have ${k} valuables.`);
+      G.output(` You have ${String(k).padStart(2)} valuables.`);
     }
     G.telflg = true;
     if (G.here !== LROOM) return;
     if (l === 1) {
       G.output(` Your adventure has netted ${l} treasure.`);
     } else {
-      G.output(` Your adventure has netted ${l} treasures.`);
+      G.output(` Your adventure has netted ${String(l).padStart(2)} treasures.`);
     }
     return;
   }

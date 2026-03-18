@@ -287,4 +287,8 @@ describe('Fortran parity sessions (per-step, seed=42)', () => {
     it('gallery session matches Fortran byte-for-byte', () => checkSession('gallery'));
     it('cave-area session matches Fortran byte-for-byte', () => checkSession('cave-area'));
     it('thief-encounter session matches Fortran byte-for-byte', () => checkSession('thief-encounter'));
+    it('verbs-misc session matches Fortran byte-for-byte', () => checkSession('verbs-misc'));
+    it('grue-dark session matches Fortran byte-for-byte', () => checkSession('grue-dark'));
+    it('egg-canary session matches Fortran byte-for-byte', () => checkSession('egg-canary'));
+    it('well-bucket session matches Fortran byte-for-byte', () => checkSession('well-bucket'));
 });

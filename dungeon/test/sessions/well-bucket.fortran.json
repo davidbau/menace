@@ -1,0 +1,325 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-18T19:52:10.315Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "enter",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "take lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "take sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "move rug",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "turn on lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now on."
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dark and damp cellar with a narrow passageway leading",
+        " east, and a crawlway to the south.  To the west is the bottom of",
+        " a steep metal ramp which is unclimbable.",
+        " Above you is an open trap door.",
+        " The door crashes shut, and you hear someone barring it.",
+        " Your sword is glowing with a faint blue glow."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small room with passages off in all directions.  Bloodstains",
+        " and deep scratches (perhaps made by an axe) mar the walls.",
+        " A nasty-looking troll, brandishing a bloody axe, blocks all passages",
+        " out of the room.",
+        " Your sword has begun to glow very brightly."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "kill troll with sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The troll takes a final blow and slumps to the floor dead.",
+        " Almost as soon as the troll breathes his last, a cloud of",
+        " sinister black smoke envelops him, and when the fog lifts, the",
+        " carcass has disappeared.",
+        " Your sword is no longer glowing."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a narrow east-west passageway.  There is a narrow stairway",
+        " leading down at the north end of the room."
+      ]
+    },
+    {
+      "move": 15,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a circular room with passages off in eight directions.",
+        " Your compass needle spins wildly, and you cannot get your bearings."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Unfortunately, it is impossible to tell directions in here.",
+        " You have entered a cave with passages leading north and southeast.",
+        " There are old engravings on the walls here."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "go se",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a room which is bare on all sides.  There is an exit down.",
+        " To the east is a great door made of stone.  Above the door, the",
+        " following words are written: \"No man shall enter this room without",
+        " solving this riddle--",
+        "  ",
+        " \tWhat is tall as a house,",
+        " \tRound as a cup,",
+        " \tAnd all the king's horses can't draw it up?\".",
+        "  ",
+        " (Reply via 'ANSWER \"answer\"'.)"
+      ]
+    },
+    {
+      "move": 18,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your way is blocked by an invisible force."
+      ]
+    },
+    {
+      "move": 19,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Engravings Cave",
+        " There are old engravings on the walls here."
+      ]
+    },
+    {
+      "move": 20,
+      "input": "go se",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Riddle Room"
+      ]
+    },
+    {
+      "move": 21,
+      "input": "answer \"well\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is a clap of thunder, and the east door opens."
+      ]
+    },
+    {
+      "move": 22,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a former broom closet.  The exits are to the east and west.",
+        " There is a pearl necklace here with hundreds of large pearls."
+      ]
+    },
+    {
+      "move": 23,
+      "input": "take necklace",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 24,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a damp circular room, whose walls are made of brick and",
+        " mortar.  The roof of this room is not visible, but there appear to be",
+        " some etchings on the walls.  There is a passageway to the west.",
+        " There is a wooden bucket here, three feet in diameter and three feet",
+        " high."
+      ]
+    },
+    {
+      "move": 25,
+      "input": "get inside bucket",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are now in the wooden bucket."
+      ]
+    },
+    {
+      "move": 26,
+      "input": "burn bucket",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Burn the wooden bucket with what?"
+      ]
+    },
+    {
+      "move": 27,
+      "input": "get out of bucket",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are on your own feet again."
+      ]
+    },
+    {
+      "move": 28,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+  49 [total of 616 points], in   28 moves.",
+        " This gives you the rank of Amateur Adventurer.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-18T19:52:10.302Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "enter",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "take lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "take sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "turn on lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now on."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Kitchen",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Behind House"
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  One",
+        " particularly large tree with some low branches stands here."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are about ten feet above the ground nestled among some large",
+        " branches.  The nearest branch above you is beyond your reach.",
+        " On the branch is a small birds nest.",
+        " In the bird's nest is a large egg encrusted with precious jewels,",
+        " apparently scavenged somewhere by a childless songbird.  The egg is",
+        " covered with fine gold inlay and ornamented in lapis lazuli and",
+        " mother-of-pearl.  Unlike most eggs, this one is hinged and has a",
+        " delicate looking clasp holding it closed.  The egg appears extremely",
+        " fragile."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "take egg",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 15,
+      "input": "open egg",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is no obvious way to open the egg."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "open egg with hands",
+      "parse": {},
+      "state": {},
+      "output": [
+        " I doubt you could do that without damaging it."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "open egg with sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The egg is now open, but the clumsiness of your attempt has",
+        " seriously diminished its esthetic appeal.",
+        " There is a golden clockwork canary nestled in the egg.  It seems to",
+        " have recently had a bad experience.  The mountings for its jewel-like",
+        " eyes are empty, and its silver beak is crumpled.  Through a cracked",
+        " crystal window below its left wing you can see the remains of",
+        " intricate machinery.  It is not clear what result winding it would",
+        " have, as the mainspring appears sprung."
+      ]
+    },
+    {
+      "move": 18,
+      "input": "wind canary",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is an unpleasant grinding noise from inside the canary."
+      ]
+    },
+    {
+      "move": 19,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest"
+      ]
+    },
+    {
+      "move": 20,
+      "input": "take canary",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 21,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a clearing, with a forest surrounding you on the west",
+        " and south.",
+        " There is a pile of leaves on the ground."
+      ]
+    },
+    {
+      "move": 22,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest"
+      ]
+    },
+    {
+      "move": 23,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+  15 [total of 616 points], in   23 moves.",
+        " This gives you the rank of Beginner.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

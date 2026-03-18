@@ -1,0 +1,183 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-18T19:52:10.302Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "open mailbox",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Opening the mailbox reveals:",
+        "   A leaflet."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "enter",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "move rug",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " It is pitch black.  You are likely to be eaten by a grue."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Oh, no!  You walked into the slavering fangs of a lurking grue.",
+        " As you take your last breath, you feel relieved of your burdens.  The",
+        " feeling passes as you find yourself before the gates of Hell, where",
+        " the spirits jeer at you and deny you entry.  Your senses are disturbed.",
+        " The objects in the dungeon appear indistinct, bleached of color, even",
+        " unreal."
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is a wall there."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is a wall there."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is a wall there."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a tiny cave with entrances west and north, and a dark,",
+        " forbidding staircase leading down."
+      ]
+    },
+    {
+      "move": 15,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+  25 [total of 616 points], in   15 moves.",
+        " This gives you the rank of Beginner.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

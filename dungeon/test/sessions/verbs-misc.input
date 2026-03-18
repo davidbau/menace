@@ -1,0 +1,25 @@
+open mailbox
+take leaflet
+go north
+go east
+open window
+enter
+take bottle
+go west
+take lamp
+take sword
+turn on lamp
+open bottle
+drink water
+count possessions
+count valuables
+put leaflet in sword
+open trophy case
+put leaflet in trophy case
+put sword in trophy case
+put lamp in trophy case
+drop all
+drop possessions
+put possessions in trophy case
+quit
+y
