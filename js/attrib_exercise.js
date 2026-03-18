@@ -13,6 +13,7 @@ import { You } from './pline.js';
 import { races } from './player.js';
 
 import { near_capacity } from './hack.js';
+import { encumber_msg } from './pickup.js';
 
 const DEFAULT_NEXT_CHECK = 600;
 const ATTR_COUNT = 6;
@@ -55,7 +56,7 @@ function ATTRMAX(player, i) {
 }
 
 // C ref: attrib.c:486 — exercise(i, inc_or_dec)
-export function exercise(player, attr, increase) {
+export async function exercise(player, attr, increase) {
     // C ref: attrib.c:489-490 — A_INT and A_CHA can't be exercised; no RNG consumed.
     if (attr === A_INT || attr === A_CHA) return;
     if (!player) return;
@@ -72,6 +73,10 @@ export function exercise(player, attr, increase) {
         }
     } else {
         player.aexercise[attr] = cur - rn2(2);
+    }
+    // C ref: attrib.c:513-514 — encumber_msg after STR/CON exercise
+    if (attr === A_STR || attr === A_CON) {
+        await encumber_msg(player);
     }
 }
 

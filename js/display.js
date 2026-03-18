@@ -823,7 +823,7 @@ span.nh-cursor {
                     if (loc && loc.seenv) {
                         // C-like memory: remembered object glyph overlays
                         // remembered terrain when out of sight.
-                        if (loc.mem_obj) {
+                        if (loc.mem_obj && !loc.mem_magic_trap) {
                             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                                 ? loc.mem_obj_color
                                 : CLR_BLACK;
@@ -2587,7 +2587,7 @@ export function newsym(x, y, ctxOrMap = null) {
             putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
             return;
         }
-        if (loc.mem_obj) {
+        if (loc.mem_obj && !loc.mem_magic_trap) {
             const rememberedObjColor = Number.isInteger(loc.mem_obj_color)
                 ? loc.mem_obj_color : 0;
             putMapCell(display, loc, map, col, row, loc.mem_obj, rememberedObjColor);
@@ -2596,6 +2596,10 @@ export function newsym(x, y, ctxOrMap = null) {
         if (loc.mem_trap) {
             const memTrapColor = Number.isInteger(loc.mem_trap_color)
                 ? loc.mem_trap_color : 0;
+            // C: when cell goes out of FOV after magic mapping, show trap. Clear mem_magic_trap
+            // so when the cell re-enters FOV (a true visibility change), game state is re-evaluated
+            // fresh (matching C newsym behavior for visibility-changed cells).
+            loc.mem_magic_trap = false;
             putMapCell(display, loc, map, col, row, loc.mem_trap, memTrapColor);
             return;
         }
@@ -2622,7 +2626,7 @@ export function newsym(x, y, ctxOrMap = null) {
     const visEngr = map.engravingAt(x, y);
     if (visEngr) visEngr.erevealed = true;
 
-    // Monster
+    // Monster (checked before mem_magic_trap — visible monsters always override the stored glyph)
     const mon = map.monsterAt(x, y);
     if (monsterShownOnMap(mon, player, map)) {
         // C ref: display.c:1008-1014 — trapped monster reveals physical traps
@@ -2655,6 +2659,8 @@ export function newsym(x, y, ctxOrMap = null) {
         }
         const hallu = !!(player?.Hallucination || player?.hallucinating);
         const glyph = monsterMapGlyph(mon, hallu);
+        // Monster overrides any magic-mapped trap display (level.glyph equivalent).
+        loc.mem_magic_trap = false;
         putMapCell(display, loc, map, col, row, glyph.ch, glyph.color);
         mon.meverseen = 1;
         return;
@@ -2665,6 +2671,18 @@ export function newsym(x, y, ctxOrMap = null) {
     }
     if (loc.mem_invis) {
         putMapCell(display, loc, map, col, row, 'I', CLR_GRAY);
+        return;
+    }
+
+    // C ref: detect.c show_map_spot() magic-maps a trap over an object.
+    // C's docrt() uses stored level.glyph without re-evaluating game state for cells whose
+    // visibility hasn't changed since show_map_spot ran. JS replicates via loc.displayGlyph:
+    // show trap instead of re-evaluating (which would show the object instead).
+    // mem_magic_trap is cleared when the cell goes out-of-FOV (then coming back in will
+    // re-evaluate from game state, matching C's behavior for visibility-changed cells).
+    if (loc.mem_magic_trap && loc.displayGlyph?.ch) {
+        putMapCell(display, loc, map, col, row, loc.displayGlyph.ch,
+            Number.isInteger(loc.displayGlyph.color) ? loc.displayGlyph.color : CLR_GRAY);
         return;
     }
 

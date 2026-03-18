@@ -22,7 +22,7 @@
 
 import { rn2 } from './rng.js';
 import { pline, verbalize } from './pline.js';
-import { exercise } from './attrib.js';
+import { exercise } from './attrib_exercise.js';
 import { adjalign } from './attrib.js';
 import { schedule_goto } from './do.js';
 import { nomul } from './hack.js';

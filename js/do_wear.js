@@ -2511,8 +2511,8 @@ async function handleTakeOff(player, display, game = null) {
             }
             item = wornAll.find((a) => a.invlet === c);
             if (!item) {
-                // C ref: select_off() — item in inventory but not worn → "not wearing that"
-                // Only "don't have that object" for truly invalid invlets.
+                // C ref: do_wear.c dotakeoff() — getobj returns NULL on invalid selection;
+                // C prints the error and RETURNS (does not loop). User presses T again to retry.
                 const inInventory = (player.inventory || []).find((o) => o.invlet === c);
                 const msg = inInventory
                     ? "You are not wearing that."
@@ -2520,10 +2520,7 @@ async function handleTakeOff(player, display, game = null) {
                 resetTopline(display);
                 await display.putstr_message(msg);
                 updateLastPlineMessage(msg);
-                await more(display, { forceVisual: true });
-                resetTopline(display);
-                await display.putstr_message(takeOffPrompt);
-                continue;
+                return { moved: false, tookTime: false };
             }
             break;
         }
@@ -2580,8 +2577,8 @@ async function handleRemove(player, display, game = null) {
             }
             item = wornAll.find((a) => a.invlet === c);
             if (!item) {
-                // C ref: select_off() — item in inventory but not worn → "not wearing that"
-                // Only "don't have that object" for truly invalid invlets.
+                // C ref: do_wear.c doremring() — getobj returns NULL on invalid selection;
+                // C prints the error and RETURNS (does not loop). User presses R again to retry.
                 const inInventory = (player.inventory || []).find((o) => o.invlet === c);
                 const msg = inInventory
                     ? "You are not wearing that."
@@ -2589,10 +2586,7 @@ async function handleRemove(player, display, game = null) {
                 resetTopline(display);
                 await display.putstr_message(msg);
                 updateLastPlineMessage(msg);
-                await more(display, { forceVisual: true });
-                resetTopline(display);
-                await display.putstr_message(removePrompt);
-                continue;
+                return { moved: false, tookTime: false };
             }
             break;
         }

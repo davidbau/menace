@@ -38,7 +38,7 @@ import { wipe_engr_at } from './engrave.js';
 import { dosearch0 } from './detect.js';
 import { maybe_finished_meal, gethungry } from './eat.js';
 import { exerchk } from './attrib_exercise.js';
-import { exercise } from './attrib.js';
+import { exercise } from './attrib_exercise.js';
 import { rhack } from './cmd.js';
 import { FOV, get_vision_full_recalc, cansee as cansee_core } from './vision.js';
 import { monsterNearby, nomul, unmul, near_capacity, domove, lookaround, end_running, dotravel_target, runmode_delay_output } from './hack.js';

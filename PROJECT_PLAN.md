@@ -173,6 +173,10 @@ Per-file refactoring issues ([#32–#138](https://github.com/davidbau/menace/iss
 track structural alignment. Code-coverage tooling and targeted sessions for
 uncovered paths are now the primary execution focus in Phase 3.
 
+**Immediate priority:** Fix the 6 failing main sessions (seed031/032/033,
+seed301, hi10_seed1090, t11_s755). Once all main sessions are green, restore
+pending sessions from commit `a5b898c35` and resume coverage expansion.
+
 ### Phase 5: Self-Play Agent (parallel track, ongoing)
 
 The self-play agent runs alongside parity work: generating gameplay traces for

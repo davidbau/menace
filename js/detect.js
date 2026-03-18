@@ -766,6 +766,16 @@ export function show_map_spot(x, y, cnf, map) {
         const trap = map.trapAt ? map.trapAt(x, y) : null;
         if (trap && trap.tseen) {
             map_trap(trap, 1);
+            // C ref: detect.c:1407-1409 — magic mapping shows trap > object (inverse of normal vision).
+            // newsym() already set mem_obj above; map_trap cleared it. Mark mem_magic_trap so both
+            // Display and HeadlessDisplay respect this override without re-evaluating game state.
+            // loc.glyph (set by map_trap's show_glyph → cacheMapCell → putMapCell) persists across
+            // step boundaries so HeadlessDisplay uses it on cache miss instead of calling newsym().
+            lev.mem_magic_trap = true;
+            // Store the trap glyph in a separate field (NOT loc.glyph which holds integer glyph codes).
+            // HeadlessDisplay uses displayGlyph on cache miss when mem_magic_trap is set,
+            // avoiding newsym() re-evaluation that would show the object instead of the trap.
+            lev.displayGlyph = { ch: lev.mem_trap, color: lev.mem_trap_color };
         } else {
             const engr = map.engravingAt ? map.engravingAt(x, y) : null;
             if (engr && !cnf) {
