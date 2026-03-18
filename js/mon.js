@@ -703,30 +703,34 @@ export function mfndpos(mon, map, player, flag) {
                 }
             }
 
-            // C ref: mon.c:2316+ — garlic avoidance for undead
-            if (flag & NOGARLIC) {
+            // C ref: mon.c:2312-2315 — garlic avoidance for undead
+            // C checks checkobj (OBJ_AT) first, then always marks info with
+            // NOGARLIC if garlic present. Only skips position if flag & NOGARLIC.
+            {
+                const objs = map.objectsAt?.(nx, ny) || [];
                 let hasGarlic = false;
-                for (const obj of map.objects) {
-                    if (obj.buried) continue;
-                    if (obj.ox === nx && obj.oy === ny && obj.otyp === CLOVE_OF_GARLIC) {
-                        hasGarlic = true;
-                        break;
-                    }
+                for (const obj of objs) {
+                    if (obj.otyp === CLOVE_OF_GARLIC) { hasGarlic = true; break; }
                 }
-                if (hasGarlic) continue;
+                if (hasGarlic) {
+                    if (flag & NOGARLIC) continue;
+                    posInfo |= NOGARLIC;
+                }
             }
 
-            // C ref: mon.c:2315-2323 — boulder check (ALLOW_ROCK)
-            if (!(flag & ALLOW_ROCK)) {
+            // C ref: mon.c:2317-2320 — boulder check (ALLOW_ROCK)
+            // C always marks info with ALLOW_ROCK if boulder present.
+            // Only skips position if !(flag & ALLOW_ROCK).
+            {
+                const objs = map.objectsAt?.(nx, ny) || [];
                 let hasBoulder = false;
-                for (const obj of map.objects) {
-                    if (obj.buried) continue;
-                    if (obj.ox === nx && obj.oy === ny && obj.otyp === BOULDER) {
-                        hasBoulder = true;
-                        break;
-                    }
+                for (const obj of objs) {
+                    if (obj.otyp === BOULDER) { hasBoulder = true; break; }
                 }
-                if (hasBoulder) continue;
+                if (hasBoulder) {
+                    if (!(flag & ALLOW_ROCK)) continue;
+                    posInfo |= ALLOW_ROCK;
+                }
             }
 
             // C ref: mon.c:2325-2331 — NOTONL: check monlineu
