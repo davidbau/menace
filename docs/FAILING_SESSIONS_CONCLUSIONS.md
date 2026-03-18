@@ -201,15 +201,25 @@ object count. C could have MORE than 10 floor objects.
 - C's `fobj` including objects that JS's `map.objects` doesn't track (e.g., stacked
   objects, objects in containers on the floor, etc.)
 
+## MAJOR PROGRESS: Divergence moved from index 10145 to 17893 (23:15 UTC)
+
+The sp_lev.js appear_as/mimic fix (other agent) + mfndpos fixes (this session)
+pushed seed031's first divergence from norm index 10145 (step ~152) to **17893
+(step 407)**. The matching prefix nearly DOUBLED. The earlier analysis about turn
+146 and floor objects was based on STALE data from before these fixes.
+
+New divergence: JS=`rnd(2)=2 @ promptDirectionAndThrowItem` vs
+C=`rn2(5)=1 @ distfleeck`. JS is in the throw command while C is in monster
+movement. This is a completely different bug from the turn-146 issue.
+
 ## NEXT STEPS
 
-1. **Get C's actual floor object count at turn 146**: Can't use `^place/^remove`
-   from the JS trace. Need to either:
-   - Add floor object count to C's harness output
-   - Count objects indirectly from C's dogfood/obj_resists call patterns
-   - Use mapdump checkpoints to compare object lists
+1. **Investigate new divergence at step 407**: The throw command in JS consumes
+   different RNG than C's monster movement at the same point. This suggests
+   JS's fire/throw command path differs from C's, or the step attribution
+   puts different code at the same flat position.
 
-2. **Identify the specific extra objects**: Once we know what C has that JS doesn't,
-   we can find the code path that creates/places them.
+2. **Re-run spawn comparison**: The per-turn spawn values may now match through
+   a much later turn before diverging.
 
 3. **t11_s755 is FIXED** (432/436 passing).
