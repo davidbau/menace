@@ -697,7 +697,9 @@
       "cmd": "ne"
     },
     {
-      "cmd": "echo"
+      "cmd": "echo",
+      "boundaryAdjust": -1,
+      "note": "Echo Room reads 'echo' as part of the preceding ne move — no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1"
     },
     {
       "cmd": "take bar"
@@ -1859,9 +1861,7 @@
       "cmd": "open trap door"
     },
     {
-      "cmd": "u",
-      "boundaryAdjust": -1,
-      "note": "open trap door reads 'u' as disambiguation — produces no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1"
+      "cmd": "u"
     },
     {
       "cmd": "examine brochure",
