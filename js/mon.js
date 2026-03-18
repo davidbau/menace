@@ -572,6 +572,12 @@ export function mfndpos(mon, map, player, flag) {
         }
     }
 
+    // C ref: mon.c:2244-2245 — monseeu = (mon->mcansee && (!Invis || perceives(mdat)))
+    // Computed once before the position loop, not per-candidate.
+    const heroInvis = !!(player.invisible || player.perminvis);
+    const monseeu = (mon.mcansee !== 0 && mon.mcansee !== false)
+        && (!heroInvis || perceives(mdat));
+
     let nexttry = 0; // C ref: eel retry loop
     for (;;) {
     for (let nx = Math.max(1, omx - 1); nx <= maxx; nx++) {
@@ -643,8 +649,21 @@ export function mfndpos(mon, map, player, flag) {
 
             // === Inside the "acceptable terrain" block ===
 
-            // C ref: mon.c:2267-2269 — onscary + ALLOW_SSM check
-            if (onscary(map, nx, ny) && !(flag & ALLOW_SSM)) continue;
+            // C ref: mon.c:2248-2265 — onscary with displacement adjustment.
+            // Displacement also displaces Elbereth/scare monster as long as
+            // the monster can see you.
+            {
+                let scaryX = nx, scaryY = ny;
+                if (player.displaced && monseeu
+                    && mon.mux === nx && mon.muy === ny) {
+                    scaryX = player.x;
+                    scaryY = player.y;
+                }
+                if (onscary(map, scaryX, scaryY)) {
+                    if (!(flag & ALLOW_SSM)) continue;
+                    posInfo |= ALLOW_SSM;
+                }
+            }
 
             // C ref: mon.c:2270-2315 — hero/apparent-target handling.
             // If square is actual hero OR current apparent hero target, treat it
@@ -735,12 +754,7 @@ export function mfndpos(mon, map, player, flag) {
             }
 
             // C ref: mon.c:2325-2331 — NOTONL: check monlineu
-            // C ref: mon.c mfndpos() monseeu = (mon->mcansee && (!Invis || perceives(mdat))).
-            // This intentionally does not require clear LOS to current hero square.
-            const heroInvis = !!(player?.Invis || player?.invisible);
-            const monSeeHero = (mon.mcansee !== 0 && mon.mcansee !== false)
-                && (!heroInvis || perceives(mdat));
-            if (monSeeHero && monlineu(mon, player, nx, ny)) {
+            if (monseeu && monlineu(mon, player, nx, ny)) {
                 if (flag & NOTONL) continue;
                 posInfo |= NOTONL;
             }
