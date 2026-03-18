@@ -180,30 +180,36 @@ calls at turn 140 fire correctly in both.
 **The real divergence is between turn 146 and 147** — one specific turn where
 monster movement or turn-end processing consumes different RNG calls.
 
-## ROOT CAUSE FOUND: JS has fewer floor objects than C (March 18, ~22:30 UTC)
+## ROOT CAUSE FOUND: C has more floor objects than JS in pet's range (~22:30-23:00 UTC)
 
-At turn 146, the pet (M37 at 49,17) scans objects in range [44..54]×[12..20]:
-- **C has 7 objects** → 7 dogfood → obj_resists → rn2(100) calls
-- **JS has 1 object** → 1 dogfood → obj_resists → rn2(100) call
+At turn 146, both JS and C have 10 floor objects (confirmed by JS diagnostic and C
+place/remove tracking). **But only 1 is in the pet's range [44..54]×[12..20] in JS.**
 
-The 6 missing floor objects cause 6 fewer rn2(100) calls, shifting the RNG by
-6 positions. This produces different spawn check values at turn 147 (JS=51, C=40),
-cascading into full divergence.
+C's dog_goal loop produces **7 dogfood → obj_resists calls** for this turn. JS produces
+**1**. The 6 extra C calls mean C's `fobj` has objects in the pet's range that JS's
+`map.objects` doesn't.
 
-**The 6 missing objects are from monster inventory drops.** When monsters die in C,
-their inventory + treasure drops go to the floor (joining fobj). JS's xkilled/treasure
-code either:
-- Doesn't drop all items from monster inventory
-- Drops them but doesn't add them to map.objects
-- Drops them at different positions (outside the pet's range)
+**CORRECTION (23:00 UTC)**: My initial "C has 10 floor objects" count was based on
+counting JS `^place/^remove` events in what I THOUGHT was C's trace. But C's trace
+doesn't have `^place` events — those are JS-only. So I don't actually know C's floor
+object count. C could have MORE than 10 floor objects.
+
+**The 6 extra objects in C's fobj could be from:**
+- Objects created by C code paths that JS doesn't implement (e.g., monster death
+  processing that creates extra items)
+- Objects at positions in C that differ from JS (same objects, different locations)
+- C's `fobj` including objects that JS's `map.objects` doesn't track (e.g., stacked
+  objects, objects in containers on the floor, etc.)
 
 ## NEXT STEPS
 
-1. **Compare xkilled treasure-drop code**: Check JS's mon.js xkilled path for
-   missing inventory drops. C's mon.c:3580-3607 handles "illogical but traditional"
-   treasure drops. JS has this at mon.js:1060. Compare faithfully.
+1. **Get C's actual floor object count at turn 146**: Can't use `^place/^remove`
+   from the JS trace. Need to either:
+   - Add floor object count to C's harness output
+   - Count objects indirectly from C's dogfood/obj_resists call patterns
+   - Use mapdump checkpoints to compare object lists
 
-2. **Verify map.objects maintenance**: Check if JS's place_object/remove_object
-   correctly maintains map.objects when objects are created/dropped/picked up.
+2. **Identify the specific extra objects**: Once we know what C has that JS doesn't,
+   we can find the code path that creates/places them.
 
-3. **t11_s755 is now FIXED** (432/436).
+3. **t11_s755 is FIXED** (432/436 passing).
