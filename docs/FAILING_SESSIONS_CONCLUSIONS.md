@@ -2,6 +2,7 @@
 
 > Track what is PROVEN vs HYPOTHESIZED to avoid going in circles.
 > Each conclusion must cite the specific evidence that established it.
+> Self-assess calibration: am I raising alarms that are warranted?
 
 ## Session Status (March 18, 2026 — 431/436 passing)
 
@@ -9,10 +10,34 @@
 |---------|--------|-------------------|
 | hi10_seed1090 | FIXED (session 24) | Trailing RNG tolerance + getobj prompt wrapping |
 | t11_s755 | FAILING | Monster position divergence (screen-only) |
-| seed031 | FAILING | Monster movement code path differences |
-| seed032 | FAILING | Monster movement code path differences |
-| seed033 | FAILING | Monster movement code path differences |
-| seed301_archeologist | FAILING | Monster movement + level gen cascade |
+| seed031 | FAILING | Turn counter 1 behind C → exercise timing → cascade |
+| seed032 | FAILING | Same class as seed031 |
+| seed033 | FAILING | Same class as seed031 |
+| seed301_archeologist | FAILING | RNG diverges at step 7, same class |
+
+---
+
+## SELF-ASSESSMENT: Am I miscalibrated?
+
+**Yes, partially.** The "70% of turns missing" alarm was misleading. Here's what happened:
+
+1. Diagnostic showed JS has 298 exerper calls, C has 1114 gethungry calls
+2. I concluded JS "skips 70% of turns" — a MASSIVE systematic problem
+3. But this comparison is apples-to-oranges:
+   - The first 298 JS turns produce ~10,145 matching RNG entries
+   - After those 298 turns, the RNG diverges at index 10,145
+   - After divergence, JS and C are playing DIFFERENT GAMES (different map, monsters, positions)
+   - JS continues processing keys, but the game state differs, so commands that C treats
+     as timed (successful moves) are untimed in JS (hitting walls, bumping into things
+     at different positions)
+   - C's remaining 816 turns are from the POST-DIVERGENCE portion where game states differ
+
+**The real issue is the FIRST divergence** at normalized index 10,145 — NOT a systematic
+70% failure rate. The 70% gap is a CONSEQUENCE of the initial divergence cascading.
+
+**Lesson**: When comparing totals across an entire session, remember that post-divergence
+data is noise. Only the pre-divergence portion reveals root causes. I spent significant
+time investigating the "70% gap" when the actual bug is a single 1-turn counter offset.
 
 ---
 
@@ -20,242 +45,123 @@
 
 ### 1. Level generation for depth 1 is CORRECT
 - **Evidence**: seed031's first 10,145 normalized RNG calls match exactly.
-  Level 1 generation consumes ~6,390 RNG entries, all within the matching prefix.
-- **Implication**: The `create_room`, `rnd_rect`, `mineralize` shifts shown in the
-  shift analysis are from LATER level generation (when player descends), not from
-  the initial level. They are a CONSEQUENCE of earlier RNG drift, not a cause.
+  Level 1 generation consumes ~6,390 entries, all within the matching prefix.
 - **Date verified**: March 18, 2026 (session 24)
 
-### 2. The exerchk moves counter is NOT off-by-one
-- **Evidence**: Changing `turnCount + 1` to `turnCount` in the exerchk call
-  regressed 170 sessions (431 → 261). The `+1` is correct for JS's counting.
-- **Implication**: Do not attempt to fix the exerchk moves argument again.
+### 2. The exerchk moves counter (`turnCount + 1`) is correct for most sessions
+- **Evidence**: Changing it regressed 170 sessions (431 → 261).
 - **Date verified**: March 18, 2026 (session 24)
 
-### 3. The game loop ordering (player-first vs monsters-first) is NOT the cause
-- **Evidence**: Both JS and C produce identical flat RNG sequences for the first
-  10,145 calls. If ordering differed, calls would be at different positions from
-  the start. The full deferral approach (moving moveloop_core to start of next
-  cycle) regressed 430 → 157 sessions.
-- **Implication**: Do not attempt game loop reordering again. The current
-  `[player acts] → [moveloop_core]` ordering matches C's effective flat sequence.
+### 3. The game loop ordering matches C's effective flat RNG sequence
+- **Evidence**: 10,145 matching entries prove identical ordering. Deferral attempt
+  regressed 430 → 157 sessions.
 - **Date verified**: March 18, 2026 (session 24)
 
-### 4. Monster movement code paths diverge after ~10K matching RNG calls
-- **Evidence**: The shift-aware RNG comparator shows:
-  - seed031: 4,024 JS-extra dochug calls, 48,892 C-extra calls (obj_resists,
-    distfleeck, dog_move, m_move, mcalcmove, etc.)
-  - seed032: First divergence at index 5333 (dochug vs dog_move)
-  - seed033: First divergence at index 3392 (moveloop_core vs exercise)
-  - t11_s755: 35 JS-extra dochug, 35 C-extra (m_move, distfleeck, m_throw)
-- **Implication**: The divergence comes from monster movement code that consumes
-  different numbers of RNG calls. Once the flat RNG shifts, everything downstream
-  diverges (exercise timing, level gen for deeper levels, etc.).
-- **Date verified**: March 18, 2026 (session 24)
+### 4. JS's turn counter is 1 behind C at the divergence point in seed031
+- **Evidence**: `^exerper` diagnostic showed JS moves = 137, 138, 139 near the
+  divergence. C's exercise fires with svm.moves = 140 (140 % 5 = 0).
+  JS moves = 139, C moves = 140 at the same game point.
+- **This is the proximate cause of the seed031 divergence.**
+- **Date verified**: March 18, 2026 ~20:00 UTC
 
-### 5. t11_s755 has 100% RNG match but screen-only divergence
+### 5. The 1-turn gap is NOT from speed bonuses
+- **Evidence**: seed031 has 0 u_calc_moveamt rn2(3) calls — no Very_fast.
+  The umovement force removal had no effect on seed031.
+- **Date verified**: March 18, 2026 ~20:15 UTC
+
+### 6. seed325 (passing) has exact turn count match (182/182)
+- **Evidence**: `^exerper` diagnostic on passing session confirms JS and C
+  process identical numbers of turns. The diagnostic methodology works.
+- **Date verified**: March 18, 2026 ~20:30 UTC
+
+### 7. t11_s755 is screen-only (100% RNG, 100% events)
 - **Evidence**: 26,517/26,517 RNG match. 7,287/7,287 events match.
-  Only 3 screen mismatches (steps 1787-1789) showing Gnome at col 22 vs 23.
-  The 35+35 shifts are balanced (net zero) — same total calls, different attribution.
-- **Implication**: The Gnome position difference comes from a non-RNG decision
-  in monster movement (mfndpos candidate ordering or m_move position selection
-  with same RNG values but different candidate lists).
+  Gnome at col 22 vs 23 at step 1787. Non-RNG mfndpos candidate difference.
 - **Date verified**: March 18, 2026 (session 24)
 
-### 6. seed301_archeologist diverges at step 7 (pet AI)
-- **Evidence**: First event divergence shows `dog_goal_obj` with `rn2_8=7` (JS)
-  vs `rn2_8=4` (C) at step 7. The RNG state is already different at this point.
-  Shift analysis shows 5K C-extra level gen calls + 3K monster AI calls.
-- **Implication**: seed301's RNG diverges very early, probably from level 1's
-  monster placement or initial monster movement. This is the same class of
-  issue as seed031 but manifests earlier.
-- **Date verified**: March 18, 2026 (session 24)
-
----
-
-## HYPOTHESES (unverified)
-
-### H1: JS reaches distfleeck for monsters that C doesn't
-- **Reasoning**: 4,024 JS-extra dochug(rn2(5)) calls means JS processes more
-  monsters through distfleeck. This could be because:
-  (a) JS has more monsters alive (different monster death/removal),
-  (b) JS doesn't have an early return that C has (covetous/tactics, conflict),
-  (c) JS's monster iteration order differs (different monsters processed per turn).
-- **Status**: NOT YET VERIFIED. Need to identify specific monster at first shift.
-
-### H2: C makes obj_resists calls that JS doesn't
-- **Reasoning**: 7,847 C-extra obj_resists(zap.c) calls in seed031. This function
-  is called when objects are exposed to effects (fire, cold, etc.). JS may be
-  missing obj_resists calls in monster zap/attack processing.
-- **Status**: NOT YET VERIFIED. Need to check if JS's zap/attack code calls
-  obj_resists in the same places as C.
-
-### H3: C's dog_move makes more RNG calls than JS's
-- **Reasoning**: 5,411 C-extra dog_move calls in seed031. JS's dogmove.js may
-  be missing code paths that C's dogmove.c has (object evaluation, food seeking,
-  etc.).
-- **Status**: NOT YET VERIFIED. Need line-by-line dogmove comparison.
-
-### H4: mfndpos candidate filtering causes t11_s755 Gnome position
-- **Reasoning**: mfndpos returns same count but different candidates. The iteration
-  order is the same (column-major), so filtering conditions must differ.
-- **Status**: PARTIALLY VERIFIED. Several mfndpos filtering differences were found
-  and fixed (garlic/boulder marking, trap logic, onscary displacement, ALLOW_MDISP,
-  mm_aggression). None fixed t11_s755 because the Gnome isn't near those features.
-  The remaining difference must be in a more common condition.
+### 8. The replay processes all keys correctly
+- **Evidence**: `pendingCommand=false, inputQueue=0` at replay end.
+  All 1351 keys consumed. `run_command` called 613 times.
+  The `drainUntilInput` fix regressed seed328 → the existing replay
+  infrastructure is NOT the problem.
+- **Date verified**: March 18, 2026 ~21:00 UTC
 
 ---
 
 ## DISPROVEN HYPOTHESES
 
 ### D1: Game loop ordering causes the divergence
-- **Disproven by**: First 10,145 calls matching exactly. If ordering differed,
-  divergence would appear from the first timed command.
+- **Disproven by**: 10,145 matching entries prove identical ordering.
 - **Date disproven**: March 18, 2026 ~17:00 UTC
 
 ### D2: Level generation code is wrong for depth 1
-- **Disproven by**: Level 1 RNG (6,390 entries) is within the matching prefix.
+- **Disproven by**: Level 1 RNG is within the matching prefix.
 - **Date disproven**: March 18, 2026 ~17:00 UTC
 
-### D3: exerchk moves counter is off by one
+### D3: exerchk moves counter is globally off by one
 - **Disproven by**: Changing it regresses 170 sessions.
 - **Date disproven**: March 18, 2026 ~17:00 UTC
 
+### D4: nh_timeout missing peffect_healing
+- **Disproven by**: The d(4,4) in the trace is from player quaffing, not timeout.
+  JS already uses c_d correctly.
+- **Date disproven**: March 18, 2026 ~19:00 UTC
+
+### D5: drainUntilInput race condition causes 70% turn gap
+- **Disproven by**: Replay finishes with inputQueue=0, pendingCommand=false.
+  Fix attempt regressed seed328. The 70% gap is a post-divergence artifact,
+  not a systematic replay infrastructure failure.
+- **Date disproven**: March 18, 2026 ~21:00 UTC
+
+### D6: 70% of turns systematically skipped
+- **Disproven by**: The 298 vs 1114 comparison is misleading. The 298 matching
+  turns produce ~10,145 matching RNG entries. After that, game states diverge
+  and subsequent commands produce different results. It's a CONSEQUENCE of the
+  initial 1-turn gap, not a separate systematic problem.
+- **Date disproven**: March 18, 2026 ~21:30 UTC (self-assessment)
+
 ---
+
+## REMAINING ROOT CAUSE: The 1-turn gap
+
+The actual bug for seed031/032/033 is:
+- JS's turn counter is 1 behind C's at the divergence point
+- This causes `exerper` to fire at different turns (`moves % 5`)
+- The exercise RNG calls shift the flat sequence
+- Everything downstream cascades
+
+**Where does the 1-turn gap come from?**
+- NOT from speed bonuses (seed031 has none)
+- NOT from the moves counter formula (turnCount+1 matches 431 sessions)
+- NOT from the replay infrastructure (all keys processed correctly)
+- MUST be from a specific game turn where C increments svm.moves
+  but JS doesn't increment turnCount
+
+**Most likely sources (unverified)**:
+1. An occupation (multi < 0) where C processes an extra turn that JS doesn't
+2. A specific command that takes time in C but not in JS
+3. Initial svm.moves value (starts at 1 in C, but JS's turnCount+1 should match)
 
 ## FIXES APPLIED (session 24)
 
-1. Exercise unification (attrib_exercise.js with encumber_msg) — no session impact
+1. Exercise unification (attrib_exercise.js with encumber_msg) — correct parity
 2. Symmetric trailing RNG tolerance — fixed hi10 RNG
-3. Getobj prompt character-boundary wrapping — fixed hi10 screen → hi10 PASSES
-4. mfndpos garlic/boulder info marking — correct parity, no session impact
+3. Getobj prompt character-boundary wrapping — **fixed hi10 → 431/436**
+4. mfndpos garlic/boulder info marking — correct parity
 5. mfndpos trap logic (fixed_tele_trap, else-if, invalid trap) — correct parity
 6. mfndpos onscary displacement + ALLOW_SSM + monseeu — correct parity
 7. mfndpos ALLOW_MDISP + mm_aggression integration — correct parity
-8. rnl composite entry filter — comparison accuracy improvement
+8. rnl composite entry filter — comparison accuracy
+9. umovement force removal — correct parity (neutral for seed031)
 
-## DISPROVEN: nh_timeout missing peffect_healing (disproven March 18, 2026 ~19:00 UTC)
+## NEXT STEPS
 
-Initially hypothesized that C's nh_timeout calls peffect_healing but JS doesn't.
-**DISPROVEN**: The `d(4,4)=6 @ peffect_healing` in the C trace is from the player
-QUAFFING a healing potion (step 166, key="n" = select potion "n" to drink), NOT
-from nh_timeout. JS's peffect_healing already uses `c_d(4,4)` which matches C's
-composite logging. Both produce the same RNG consumption.
+1. **Find the specific turn where the 1-turn gap appears in seed031**: Add
+   `^exerper[moves=N]` diagnostic and compare the FULL JS sequence (2,3,4,...,299)
+   against C's gethungry-derived sequence. The gap is a single missing or extra
+   increment. This is a needle-in-a-haystack search in ~298 turns.
 
-The peffect_healing call happens to appear at the START of C's step 166 because
-the potion selection is the first action in that step. It's a normal gameplay
-action, not a timeout effect.
-
-## NEW FINDING: Exercise works but fails at ONE specific turn (March 18, ~19:30 UTC)
-
-The single-step replay tool shows JS=(end) for step 166, but this is misleading —
-single-step isolation doesn't reproduce the full game state. The FULL replay
-DOES produce matching RNG for exercise (the first 10145 entries match, including
-exercise calls at earlier turns).
-
-**Conclusion**: JS's exercise/exerchk/exerper work correctly for most turns. At ONE
-specific turn (around turn 80 = C step 166), C calls exercise but JS doesn't.
-This is NOT a "never called" bug — it's a per-turn condition difference.
-
-**Most likely cause**: `exerper` checks `moves % 5 == 0` and `moves % 10 == 0`.
-If at this specific turn, C's `svm.moves` is a multiple of 5 but JS's equivalent
-isn't (or vice versa), the exercise calls fire in one but not the other. However,
-changing the moves argument regresses 170 sessions, so the moves value IS correct
-in aggregate. The difference must be from a SINGLE turn where the counter diverges
-due to an earlier timing difference.
-
-## Debugging Principle
-
-When adding instrumentation and getting unexpected results (e.g., "0 calls"),
-consider whether the instrumentation itself is wrong before concluding the code
-is broken. Specifically:
-- Module isolation: test runners may use different module instances
-- RNG log lifecycle: enableRngLog/disableRngLog scoping
-- Single-step tools: warn about isolation for a reason
-- Freshly written diagnostic code is MORE suspect than tested production code
-
-## CRITICAL: JS replay skips ~70% of moveloop_turnend calls (March 18, ~20:30 UTC)
-
-Diagnostic via `^exerper[moves=N]` + stderr logging confirmed:
-- JS processes only **298 turns** for seed031 (exerper called 298 times)
-- C processes **1114 turns** (gethungry called 1114 times)
-- C has **1040 timed steps** after level gen
-- JS processes only 29% of timed steps through moveloop_turnend
-
-This is NOT a 1-turn gap — it's a ~70% gap. The earlier finding of "JS=139, C=140"
-was a local observation near the divergence point. Globally, JS has 298 turns while
-C has 1114.
-
-**Root cause hypothesis**: The replay's `drainUntilInput` in replay_core.js has a
-race condition with `_gameLoopStep`. When `_gameLoopStep` completes (including
-`finalizeTimedCommand`), the while loop starts a NEW `_gameLoopStep` → `nhgetch`
-before `drainUntilInput` detects the completion. This causes `pendingCommand` to be
-set for an already-completed gameLoopStep. The next key resumes the "phantom pending"
-command instead of starting a fresh `_gameLoopStep`, skipping `run_command` →
-`finalizeTimedCommand` → `moveloop_core`.
-
-**Verified**: seed325 (passing, "gameplay" format) produces 182 JS exerper calls
-matching C's 182 gethungry calls EXACTLY. So the diagnostic IS working correctly.
-The 298 vs 1114 gap for seed031 is real.
-
-**Impact**: This affects seed031/032/033 ("manual-direct-live" format). Both formats
-use the same `replaySession` → `_gameLoopStep` path, but the manual-direct sessions
-have ~1366 keys including chargen, while gameplay sessions have ~423 keys.
-
-**Fix attempt**: Modifying `drainUntilInput` to check completion before isWaitingInput
-regressed seed328. The fix was too aggressive — it changed behavior for sessions
-that were already working. A more targeted fix is needed.
-
-**Debugging principle**: When a fix regresses a passing test, the fix is more suspect
-than the existing code. The existing `drainUntilInput` works correctly for 431 sessions.
-The fix must be narrowly targeted to only affect the broken behavior.
-
-**Further analysis (March 18, ~21:00 UTC)**:
-- `run_command` is called 613 times for 1351 keys (738 keys consumed by prompts)
-- `moveloop_core` called 284 times (46% of run_command calls are timed)
-- `moveloop_turnend` called 298 times (some multi-turn iterations)
-- This IS the correct number of game turns — 298 turns, each producing ~35 RNG entries = ~10430, close to the 10145 matching prefix.
-- C has 1114 gethungry calls = 1114 actual turns. JS has 298. The 816 missing turns are real.
-- **Root cause is NOT drainUntilInput** — confirmed: replay finishes cleanly with
-  `pendingCommand=false, inputQueue=0, steps=1352`. All 1351 keys are processed.
-- JS returns `tookTime=false` for 756 commands that C treats as timed. This is a
-  **game logic issue** in rhack/domove — JS's command handlers return tookTime=false
-  for movements/actions that should take time.
-- For a passing session (seed325), JS and C produce identical turn counts (182/182).
-  The issue is specific to seed031's gameplay — it likely involves a specific
-  command type (movement, search, door interaction) where JS's tookTime differs.
-
-## PREVIOUS: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
-
-Using `^exerper` diagnostic injected into the RNG log (which IS captured by the
-replay), confirmed that JS's `moves` values near the divergence are 137, 138, 139.
-None are multiples of 5, so exerper doesn't call exercise.
-
-C's exercise calls fire at this turn, meaning C's `svm.moves` is 140 (140 % 5 = 0).
-
-**JS moves = 139, C moves = 140** at the same game point. JS is 1 turn behind.
-
-This is NOT the `turnCount + 1` offset (that was confirmed correct for most sessions).
-This is a SINGLE missed turn increment somewhere in the first 139 turns. One turn
-was processed without incrementing the counter, or one counter increment happened
-without processing a turn.
-
-## NEXT STEPS (prioritized)
-
-1. **Find where the turn count diverges**: JS has 138 turns, C has 139, at the same
-   game point. One turn was skipped in JS. Most likely cause: when `u_calc_moveamt`
-   gives double speed (Very_fast rn2(3)), `umovement = 24` after turnend. Next
-   `moveloop_core` enters with `umovement = 24`, subtracts 12 → 12. The inner
-   `movemon` loop breaks when `umovement >= NORMAL_SPEED`. Then the outer
-   condition `umovement < NORMAL_SPEED` is false (12 >= 12), so `moveloop_turnend`
-   is SKIPPED — no turnCount increment, no gethungry, no exerchk. BUT C might
-   still process the turn-end in this case. Need to verify C's behavior when
-   `u.umovement >= NORMAL_SPEED` after the inner loop.
-   Check if C's nh_timeout calls other potion effects too (peffect_healing,
-   peffect_extra_healing, etc.). Implement the same in JS.
-
-2. **Check obj_resists calls**: Does JS's zap/attack code call obj_resists in the
-   same places as C? The 7,847 missing calls suggest a systematic gap.
-
-3. **Compare dogmove.js vs dogmove.c**: Line-by-line comparison to find missing
-   RNG-consuming code paths in pet AI.
+2. **Fix t11_s755 Gnome position**: This is completely independent of the turn
+   counter issue. It's a non-RNG mfndpos difference. May require detailed
+   comparison of mfndpos candidate lists at the specific turn where the Gnome
+   first diverges.
