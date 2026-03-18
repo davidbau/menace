@@ -191,9 +191,15 @@ without processing a turn.
 
 ## NEXT STEPS (prioritized)
 
-1. **Find where the turn count diverges**: Add `^exerper[moves=N]` diagnostic at
-   every turn and compare JS's sequence (1,2,3,...) with C's to find where the
-   gap appears. The gap is 1, so it's a single missing increment.
+1. **Find where the turn count diverges**: JS has 138 turns, C has 139, at the same
+   game point. One turn was skipped in JS. Most likely cause: when `u_calc_moveamt`
+   gives double speed (Very_fast rn2(3)), `umovement = 24` after turnend. Next
+   `moveloop_core` enters with `umovement = 24`, subtracts 12 → 12. The inner
+   `movemon` loop breaks when `umovement >= NORMAL_SPEED`. Then the outer
+   condition `umovement < NORMAL_SPEED` is false (12 >= 12), so `moveloop_turnend`
+   is SKIPPED — no turnCount increment, no gethungry, no exerchk. BUT C might
+   still process the turn-end in this case. Need to verify C's behavior when
+   `u.umovement >= NORMAL_SPEED` after the inner loop.
    Check if C's nh_timeout calls other potion effects too (peffect_healing,
    peffect_extra_healing, etc.). Implement the same in JS.
 
