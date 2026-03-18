@@ -30,8 +30,8 @@ function shouldKeepEntry(entry, { eventsOnly = false } = {}) {
     }
     const noPrefix = entry.replace(/^\d+\s+/, '');
     if (!noPrefix) return false;
-    if (noPrefix[0] === '>' || noPrefix[0] === '<' || noPrefix[0] === '^') return false;
-    if (noPrefix.startsWith('rne(') || noPrefix.startsWith('rnz(') || noPrefix.startsWith('d(')) return false;
+    if (noPrefix[0] === '>' || noPrefix[0] === '<' || noPrefix[0] === '^' || noPrefix[0] === '~') return false;
+    if (noPrefix.startsWith('rne(') || noPrefix.startsWith('rnz(') || noPrefix.startsWith('rnl(') || noPrefix.startsWith('d(')) return false;
     return true;
 }
 
