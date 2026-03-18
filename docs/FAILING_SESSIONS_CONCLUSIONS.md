@@ -194,8 +194,21 @@ set for an already-completed gameLoopStep. The next key resumes the "phantom pen
 command instead of starting a fresh `_gameLoopStep`, skipping `run_command` →
 `finalizeTimedCommand` → `moveloop_core`.
 
-**Impact**: This affects ALL "manual-direct-live" sessions (seed031/032/033). The
-"gameplay" format sessions use a different replay path and aren't affected.
+**Verified**: seed325 (passing, "gameplay" format) produces 182 JS exerper calls
+matching C's 182 gethungry calls EXACTLY. So the diagnostic IS working correctly.
+The 298 vs 1114 gap for seed031 is real.
+
+**Impact**: This affects seed031/032/033 ("manual-direct-live" format). Both formats
+use the same `replaySession` → `_gameLoopStep` path, but the manual-direct sessions
+have ~1366 keys including chargen, while gameplay sessions have ~423 keys.
+
+**Fix attempt**: Modifying `drainUntilInput` to check completion before isWaitingInput
+regressed seed328. The fix was too aggressive — it changed behavior for sessions
+that were already working. A more targeted fix is needed.
+
+**Debugging principle**: When a fix regresses a passing test, the fix is more suspect
+than the existing code. The existing `drainUntilInput` works correctly for 431 sessions.
+The fix must be narrowly targeted to only affect the broken behavior.
 
 ## PREVIOUS: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
 
