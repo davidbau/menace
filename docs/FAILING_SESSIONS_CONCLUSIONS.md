@@ -154,14 +154,31 @@ The actual bug for seed031/032/033 is:
 8. rnl composite entry filter — comparison accuracy
 9. umovement force removal — correct parity (neutral for seed031)
 
+## LATE-BREAKING INSIGHT: Matching RNG values don't mean matching function calls (21:45 UTC)
+
+The flat RNG comparison matches on VALUES (e.g., `rn2(20)=6`), not function names.
+In the first 10,145 "matching" entries, there are 228 `rn2(20)=X` entries but only
+144 are gethungry in C. The other 84 are from other functions.
+
+**If JS has 138 gethungry calls (turns) while C has 144, the flat comparison can still
+match** because the shifted function calls happen to produce the same rn2 values.
+This means the 1-turn gap (or multi-turn gap) could have existed from the very
+beginning of gameplay, and the 10,145 matching entries are coincidental value
+matches between shifted sequences.
+
+**Implication**: The "first 10,145 entries match perfectly" doesn't prove the game
+states are identical. It only proves the RNG values are the same. The functions
+consuming those values could be completely different.
+
 ## NEXT STEPS
 
-1. **Find the specific turn where the 1-turn gap appears in seed031**: Add
-   `^exerper[moves=N]` diagnostic and compare the FULL JS sequence (2,3,4,...,299)
-   against C's gethungry-derived sequence. The gap is a single missing or extra
-   increment. This is a needle-in-a-haystack search in ~298 turns.
+1. **Compare function-level RNG traces, not just values**: Use the shift-aware
+   comparator or compare raw entries (with source tags) instead of normalized
+   values. This will reveal where the functions first diverge, even if values match.
 
-2. **Fix t11_s755 Gnome position**: This is completely independent of the turn
-   counter issue. It's a non-RNG mfndpos difference. May require detailed
-   comparison of mfndpos candidate lists at the specific turn where the Gnome
-   first diverges.
+2. **Count gethungry calls in JS and C separately**: Already know C has 144 in
+   the "matching" prefix. Need to count JS's gethungry calls independently.
+   If JS has fewer, the gap is confirmed and the shift started earlier than
+   index 10145.
+
+3. **Fix t11_s755 Gnome position**: Independent of the seed031 issue.
