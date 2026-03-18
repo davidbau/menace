@@ -134,11 +134,31 @@
 7. mfndpos ALLOW_MDISP + mm_aggression integration — correct parity
 8. rnl composite entry filter — comparison accuracy improvement
 
+## NEW FINDING: nh_timeout missing peffect_healing (March 18, 2026)
+
+C's nh_timeout processes potion effects during turn-end, calling
+`peffect_healing(potion.c:1118)` which calls `d(4,4)` (consuming 4 rn2 calls).
+JS's nh_timeout does NOT call peffect_healing.
+
+**Evidence**: C raw[16113] = `d(4,4)=6 @ peffect_healing(potion.c:1118)` appears
+between gethungry and exerchk during turn-end. JS has no corresponding call.
+The `d(4,4)` is filtered from the normalized comparison as a composite entry,
+but it still consumes 4 rn2 calls from the global RNG. This shifts C's RNG state
+forward by 4 calls relative to JS, causing the exercise calls at the divergence
+point to use different RNG values.
+
+**Status**: HYPOTHESIS — needs verification. If this is the cause, adding
+peffect_healing to JS's nh_timeout should push the divergence point later.
+
+**Why it was masked**: The `d()` composite filter removes d(4,4) from the
+normalized comparison, making it invisible to the flat RNG matcher. But the
+underlying rn2() calls still consume from the global RNG.
+
 ## NEXT STEPS (prioritized)
 
-1. **Identify the first monster movement shift** in seed031: which specific monster,
-   at which turn, has JS reaching distfleeck when C doesn't (or vice versa)?
-   This requires comparing JS and C event logs side-by-side at the first shift point.
+1. **Add peffect_healing to JS nh_timeout**: This is the most concrete fix.
+   Check if C's nh_timeout calls other potion effects too (peffect_healing,
+   peffect_extra_healing, etc.). Implement the same in JS.
 
 2. **Check obj_resists calls**: Does JS's zap/attack code call obj_resists in the
    same places as C? The 7,847 missing calls suggest a systematic gap.
