@@ -16,7 +16,8 @@ function isMidlogEntry(entry) {
 
 function isCompositeEntry(entry) {
     return typeof entry === 'string'
-        && (entry.startsWith('rne(') || entry.startsWith('rnz(') || entry.startsWith('d('));
+        && (entry.startsWith('rne(') || entry.startsWith('rnz(')
+            || entry.startsWith('rnl(') || entry.startsWith('d('));
 }
 
 function normalizeRngEntries(entries, {
