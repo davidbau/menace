@@ -305,6 +305,13 @@ Update after inspecting the current `.comparison.json` artifact directly:
     a point where C is still in the single-threaded monster-turn stream
   - this is now best framed as a turn/input ownership seam that manifests as an
     extra thrown dart on the floor
+  - additional corroboration from C source:
+    - C `dothrow.c` uses `tmp_at(DISP_FLASH, ...)` for thrown projectiles
+    - the raw C artifact at the seam is `^tmp_at_start[mode=-1,...]`
+      (`DISP_BEAM`), not `DISP_FLASH`
+    - so that C-side `tmp_at` sequence is not the player's thrown dart
+      animation, which makes the ownership/handoff explanation stronger than a
+      throw-only explanation
 
 Practical next move:
 
