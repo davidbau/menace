@@ -26,7 +26,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          isok, WEB, IS_OBSTRUCTED, IS_STWALL, A_STR,
          IRONBARS, STAIRS, LADDER, W_NONDIGGABLE,
          INVIS, DISPLACED,
-         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR } from './const.js';
+         MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR, PIT, SPIKED_PIT } from './const.js';
 import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
 import { NORMAL_SPEED } from './const.js';
@@ -61,7 +61,7 @@ import { can_teleport, noeyes, perceives, nohands,
          can_track, likes_gold,
          is_vampshifter, DEADMONSTER, noattacks, M_AP_TYPE, m_canseeu,
          locomotion, mhis } from './mondata.js';
-import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
+import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M1_CONCEAL, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
 import { create_gas_cloud, visible_region_at } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
@@ -1798,6 +1798,29 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         }
         if (mon.mtrapped) {
             return MMOVE_NOTHING;
+        }
+    }
+
+    // C ref: monmove.c:1744-1749 — hides_under monsters stay hidden
+    // hides_under(ptr) = M1_CONCEAL flag; requires an object suitable for hiding.
+    // OBJ_AT check comes before rn2(10) — RNG only consumed when hiding is possible.
+    {
+        const _mdat = mon.data || mon.type || {};
+        if ((_mdat.mflags1 || 0) & M1_CONCEAL) {
+            const posObjs = map.objectsAt?.(mon.mx, mon.my) || [];
+            // C ref: can_hide_under_obj() — must be OBJ_FLOOR, no non-pit traps,
+            // and enough material (not just a few coins).
+            const canHide = posObjs.some(obj => {
+                if (!obj || obj.where !== OBJ_FLOOR) return false;
+                const trap = map.trapAt?.(obj.ox, obj.oy);
+                if (trap && trap.ttyp !== PIT && trap.ttyp !== SPIKED_PIT) return false;
+                // Skip small coin-only piles (need >= 10 coins or non-coin objects)
+                if (obj.oclass === COIN_CLASS && (obj.quan || 0) < 10) return false;
+                return true;
+            });
+            if (canHide && rn2(10)) {
+                return MMOVE_NOTHING; // stay hidden under object
+            }
         }
     }
 
