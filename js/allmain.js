@@ -620,13 +620,10 @@ export async function run_command(game, ch, opts = {}) {
 
     const chCode = typeof ch === 'number' ? ch
         : (typeof ch === 'string' && ch.length > 0) ? ch.charCodeAt(0) : 0;
-    // C invariant: moveloop() only returns to command input when the hero can
-    // act again (u.umovement >= NORMAL_SPEED). Keep command boundaries aligned
-    // across entrypoints even if a prior async path left umovement short.
-    const cmdPlayer = game?.u || game?.player || null;
-    if (cmdPlayer && Number.isFinite(cmdPlayer.umovement) && cmdPlayer.umovement < NORMAL_SPEED) {
-        cmdPlayer.umovement = NORMAL_SPEED;
-    }
+    // C ref: moveloop() only returns to command input when the hero can act
+    // again (u.umovement >= NORMAL_SPEED). Do NOT force umovement here — let it
+    // carry from the previous moveloop_core call, matching C's behavior where
+    // umovement accumulates across iterations (can be 0 between turns).
     game?.emitDiagnosticEvent?.('command.start', {
         key: chCode,
         boundary: inputSnap(game),
