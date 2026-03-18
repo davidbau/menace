@@ -2045,7 +2045,45 @@ export async function getobj(word, obj_ok, flags = 0, player = null) {
         display.messageNeedsMore = false;
     };
 
-    await display.putstr_message(prompt);
+    // C ref: invent.c:1935 — getobj uses yn_function() which renders the prompt
+    // directly on the topline via tty_putstr, truncated at screen width.
+    // Use putstr() instead of putstr_message() to avoid word-wrapping long prompts.
+    if (display.messageNeedsMore) {
+        const { more } = await import('./display.js');
+        await more(display, { forceVisual: true });
+    }
+    // C ref: invent.c:1935 — getobj uses yn_function(qbuf, NULL, '\0') which
+    // renders via custompline → tty_putstr. Long prompts wrap at the screen
+    // edge (character boundary), not at word boundaries like putstr_message.
+    // Render directly via putstr to match C's wrapping behavior.
+    if (display.messageNeedsMore) {
+        const { more } = await import('./display.js');
+        await more(display, { forceVisual: true });
+    }
+    display.clearRow(0);
+    if (typeof display.clearRow === 'function' && display._topMessageRow1 !== undefined) {
+        display.clearRow(1);
+        display._topMessageRow1 = undefined;
+    }
+    display.messageNeedsMore = false;
+    display.topMessage = null;
+    const promptCols = display.cols || 80;
+    if (prompt.length >= promptCols) {
+        // C ref: update_topl wraps at CO-1 (79 for 80-col screen).
+        const wrapAt = promptCols - 1;
+        await display.putstr(0, 0, prompt.substring(0, wrapAt), 7);
+        const row1 = prompt.substring(wrapAt);
+        await display.putstr(0, 1, row1, 7);
+        display._topMessageRow1 = row1;
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.min(row1.length, promptCols - 1), 1);
+        }
+    } else {
+        await display.putstr(0, 0, prompt, 7);
+        if (typeof display.setCursor === 'function') {
+            display.setCursor(Math.min(prompt.length, promptCols - 1), 0);
+        }
+    }
 
     while (true) {
         const ch = await nhgetch();
