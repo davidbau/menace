@@ -273,6 +273,50 @@ Update after direct raw-key localization:
   - inspect the pre-throw monster roster and recent monster-removal/state
     transitions rather than patching `throwit()` in isolation
 
+Update after inspecting the current `.comparison.json` artifact directly:
+
+- the most reliable evidence is now the artifact raw window, not the earlier
+  ad hoc raw replay probes
+- current authoritative RNG window around first divergence:
+  - JS and C still match through:
+    - pet `dog_goal_*`
+    - pet move from `16,5 -> 15,5`
+    - shopkeeper `distfleeck()`
+    - `mcalcmove`
+    - end-of-turn `rn2(70)`, `rn2(200)`, `rn2(20)`, `rn2(76)`
+  - immediately after that matched tail:
+    - JS consumes `rnd(2)=2 @ promptDirectionAndThrowItem(dothrow.js:245)`
+    - C continues with monster-turn work (`^tmp_at_start[mode=-1,glyph=4081]`,
+      then another pet `movemon_turn`)
+- current authoritative JS raw event sequence at the seam:
+  - `rnd(2)=2 @ promptDirectionAndThrowItem(...)`
+  - `^tmp_at_step[14,6,3472]`
+  - `^tmp_at_step[14,7,3472]`
+  - `^tmp_at_step[14,8,3472]`
+  - `rn2(100)=76 @ breaktest(...)`
+  - `^place[24,14,8]`
+  - only after that does the pet re-enter `dog_goal()` and notice
+    `oid=153@14,8`
+- implication:
+  - `oid=153@14,8` is a real JS state mutation, not just a later pet-scan
+    artifact
+  - but the likely root is still earlier than `dog_goal()` and earlier than
+    dart-landing semantics in isolation: JS is accepting the `#fire` bundle at
+    a point where C is still in the single-threaded monster-turn stream
+  - this is now best framed as a turn/input ownership seam that manifests as an
+    extra thrown dart on the floor
+
+Practical next move:
+
+- inspect the handoff from timed monster work back to command input around:
+  - `advanceTimedTurn()` / `finalizeTimedCommand()` in `js/allmain.js`
+  - `rhack()` / `handleFire()` in `js/cmd.js` and `js/dothrow.js`
+- do not patch `dog_goal()` or `throwit()` first
+- if a code fix is attempted, validate it first against:
+  - the raw RNG window around `rnd(2)=2 @ promptDirectionAndThrowItem(...)`
+  - the raw event sequence containing `^place[24,14,8]`
+  - then rerun full `seed031_manual_direct`
+
 Conclusion:
 
 - `seed031` is now localized to an upstream throw-command seam whose first
