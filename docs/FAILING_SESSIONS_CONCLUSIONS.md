@@ -216,8 +216,14 @@ The fix must be narrowly targeted to only affect the broken behavior.
 - `moveloop_turnend` called 298 times (some multi-turn iterations)
 - This IS the correct number of game turns — 298 turns, each producing ~35 RNG entries = ~10430, close to the 10145 matching prefix.
 - C has 1114 gethungry calls = 1114 actual turns. JS has 298. The 816 missing turns are real.
-- **Root cause is NOT drainUntilInput** — it's that JS processes fewer game turns per session. Either JS treats many timed commands as untimed, or JS's game loop processes commands differently from C's.
-- For a passing session (seed325), JS and C produce identical turn counts (182/182). So the issue is specific to manual-direct-live sessions or to seed031's specific gameplay.
+- **Root cause is NOT drainUntilInput** — confirmed: replay finishes cleanly with
+  `pendingCommand=false, inputQueue=0, steps=1352`. All 1351 keys are processed.
+- JS returns `tookTime=false` for 756 commands that C treats as timed. This is a
+  **game logic issue** in rhack/domove — JS's command handlers return tookTime=false
+  for movements/actions that should take time.
+- For a passing session (seed325), JS and C produce identical turn counts (182/182).
+  The issue is specific to seed031's gameplay — it likely involves a specific
+  command type (movement, search, door interaction) where JS's tookTime differs.
 
 ## PREVIOUS: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
 
