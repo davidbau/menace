@@ -931,14 +931,13 @@ export function score(G, flg) {
 
   const as = G.ascore[G.winner - 1];
 
+  // Fortran format: header printed with $-no-newline, then '+',I4,' [total of',I4,' points], in',I5,' moves.'
+  // The '+' is Fortran carriage control that appears literally in stdout output, joining both parts on one line.
+  const movesWord = G.moves === 1 ? 'move' : 'moves';
+
   if (G.endgmf) {
-    if (flg) {
-      G.output(' Your score in the endgame would be');
-    } else {
-      G.output(' Your score in the endgame is');
-    }
-    const movesWord = G.moves === 1 ? 'move' : 'moves';
-    G.output(` ${G.egscor} [total of ${G.egmxsc} points], in ${G.moves} ${movesWord}.`);
+    const header = flg ? ' Your score in the endgame would be' : ' Your score in the endgame is';
+    G.output(`${header}+${String(G.egscor).padStart(4)} [total of${String(G.egmxsc).padStart(4)} points], in${String(G.moves).padStart(5)} ${movesWord}.`);
     let i;
     for (i = 0; i < 5; i++) {
       if ((G.egscor * 20 / G.egmxsc) >= erank[i]) break;
@@ -948,13 +947,8 @@ export function score(G, flg) {
     return;
   }
 
-  if (flg) {
-    G.output(' Your score would be');
-  } else {
-    G.output(' Your score is');
-  }
-  const movesWord = G.moves === 1 ? 'move' : 'moves';
-  G.output(` ${as} [total of ${G.mxscor} points], in ${G.moves} ${movesWord}.`);
+  const header = flg ? ' Your score would be' : ' Your score is';
+  G.output(`${header}+${String(as).padStart(4)} [total of${String(G.mxscor).padStart(4)} points], in${String(G.moves).padStart(5)} ${movesWord}.`);
 
   if (as < 0) {
     rspeak(G, 886);
@@ -1499,7 +1493,8 @@ export function opncls(G, obj, so, sc) {
 export async function yesno(G, q, y, n) {
   while (true) {
     rspeak(G, q);
-    const ans = await G.input();
+    // Use rawInput so the answer is consumed silently (no step boundary in recorder).
+    const ans = await (G.rawInput || G.input)();
     if (!ans || ans.length === 0) {
       rspeak(G, 6);
       continue;

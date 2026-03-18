@@ -2,9 +2,11 @@
 // Generate a retro terminal HTML transcript from a speedrun session JSON.
 // Usage: node make-transcript-html.mjs [session.json] [output.html]
 //   Defaults: sessions/speedrun-1.json → ~/dungeon-speedrun.html
+//
+// Uses the JS game engine for accurate per-step output (no Fortran boundary issues).
+// Echo Room steps (echoRoom: true) display as:  "> echo"  followed by game output.
 
 import { readFileSync, writeFileSync } from 'fs';
-import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { homedir } from 'os';
@@ -19,60 +21,70 @@ const steps = data.steps;
 const cmds = steps.map(s => s.cmd);
 const seed = data.seed || 42;
 
-// Run Fortran dungeon with the session commands
-const result = spawnSync('./dungeon', [], {
-    cwd: join(__dirname, '..', 'fortran-src'),
-    input: cmds.join('\n') + '\n',
-    encoding: 'utf8',
-    timeout: 120000,
-    env: { ...process.env, DUNGEON_SEED: String(seed) },
-    stdio: ['pipe', 'pipe', 'ignore'],
-});
+// Run via JS engine to get accurate per-step output
+const { DungeonGame } = await import(join(__dirname, '..', 'js', 'game.js'));
+const gameData = JSON.parse(readFileSync(join(__dirname, '..', 'js', 'dungeon-data.json')));
+const text = JSON.parse(readFileSync(join(__dirname, '..', 'js', 'dungeon-text.json')));
 
-// Split stdout into per-command chunks by " > " prompts
-// ASCII art borders (like the stamp) also start with " > " but end with "<" — skip those.
-const chunks = [];
-let current = [];
-for (const line of result.stdout.split('\n')) {
-    if ((line.startsWith(' > ') || line === ' >') && !line.trimEnd().endsWith('<')) {
-        chunks.push(current);
-        current = [];
-        const after = line.substring(3).trimEnd();
-        if (after) current.push(' ' + after);
-    } else {
-        current.push(line);
-    }
-}
-if (current.length) chunks.push(current);
+const game = new DungeonGame();
+game.init(gameData, text);
+game._rngSeed = seed;
 
-console.log(`chunks: ${chunks.length}, steps: ${steps.length}`);
+let cmdIdx = 0;
+let currentOutput = [];
+const stepOutputs = []; // stepOutputs[i] = lines output by command i
 
-// Apply boundaryAdjust to map each step to the correct output chunk
-const pairs = [];
-pairs.push({ cmd: null, output: chunks[0].join('\n') });
+await game.run(async () => {
+    if (cmdIdx > 0) stepOutputs.push([...currentOutput]);
+    currentOutput = [];
+    if (cmdIdx >= cmds.length) { game.gameOver = true; return null; }
+    return cmds[cmdIdx++];
+}, (line) => {
+    currentOutput.push(line || '');
+}).catch(() => {});
+if (currentOutput.length) stepOutputs.push([...currentOutput]);
 
-let boundaryOffset = 0;
-for (let i = 0; i < steps.length; i++) {
-    const step = steps[i];
-    if (step.boundaryAdjust) boundaryOffset += step.boundaryAdjust;
-    const chunk = chunks[i + 1 + boundaryOffset] || [];
-    pairs.push({ cmd: step.cmd, output: chunk.join('\n') });
-}
+console.log(`steps: ${steps.length}, outputs collected: ${stepOutputs.length}`);
+
+// Build intro output (everything before step 1 — the welcome text)
+// The JS game emits the welcome in cmdIdx==0 output, which is stepOutputs[0] minus the first step
+// Actually, the welcome is emitted before any command; stepOutputs[0] is step 1's output.
+// To get intro, run an extra "look" or just use what the game outputs at start.
+// The game emits intro when run() initializes; that output lands in the pre-first-call buffer.
+// We capture it separately by re-running with a sentinel.
+const game2 = new DungeonGame();
+game2.init(gameData, text);
+game2._rngSeed = seed;
+const introLines = [];
+await game2.run(async () => { game2.gameOver = true; return null; },
+    (line) => introLines.push(line || '')).catch(() => {});
 
 // Render HTML
 function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function renderOutput(lines) {
+    const text = lines.map(l => l.trimEnd()).filter(l => l !== '>').join('\n').trimEnd();
+    if (!text) return '';
+    return `<div class="output">${esc(text)}</div>\n`;
+}
+
 let body = '';
-for (const pair of pairs) {
-    if (pair.cmd === null) {
-        body += `<div class="output">${esc(pair.output)}</div>\n`;
+body += renderOutput(introLines);
+
+for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    const out = stepOutputs[i] || [];
+
+    if (step.echoRoom) {
+        // Echo Room: display "echo" as a user command (white, >) then ECHO as game output.
+        // The user typed "echo" once; the room echoes it back as "ECHO" in the output.
+        body += `<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">${esc(step.cmd)}</span></div>\n`;
+        body += renderOutput(out);
     } else {
-        body += `<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">${esc(pair.cmd)}</span></div>\n`;
-        if (pair.output.trim()) {
-            body += `<div class="output">${esc(pair.output)}</div>\n`;
-        }
+        body += `<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">${esc(step.cmd)}</span></div>\n`;
+        body += renderOutput(out);
     }
 }
 

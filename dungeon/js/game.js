@@ -7,14 +7,14 @@
 import {
   PLAYER, BUNMAX,
   MMAX, RMAX, XXMAX, OMAX, R2MAX, CMAX, VMAX, AMAX, FMAX, SMAX,
-  WALKW, WALKIW, FOOW, TELLW,
+  WALKW, WALKIW, FOOW, TELLW, QUITW,
   VALUA, EVERY, POSSE, BUNOBJ,
   ECHOR, MRB, SCRDBT, THIEF, BALLO,
   XMIN,
   rspeak, rspsub, rmdesc, lit, findxt,
   clockd, thiefd, fightd, swordd,
   objact, vappli, aappli, rappli, oappli,
-  score, valuac, newsta,
+  score, valuac, newsta, yesno,
   _registerVerbsModule,
   _registerObjectsModule,
   _registerRoomsModule,
@@ -356,6 +356,10 @@ export class DungeonGame {
     const G = this;
     G.input = input;
     G.output = output;
+    // rawInput reads the next line without triggering a step boundary in the recorder.
+    // Callers that record sessions can pass options.rawInput as an untracked reader.
+    // Defaults to G.input so yesno still works when rawInput isn't provided.
+    G.rawInput = options.rawInput || input;
 
     // Initialize RNG — use fixed seed if set, otherwise date/time like Fortran
     if (G._rngSeed !== undefined) {
@@ -449,6 +453,18 @@ export class DungeonGame {
           }
         }
         rappli(G, G.ractio[G.here - 1]);
+        xendmv(G);
+        if (!lit(G, G.here)) G.prscon = 1;
+        continue;
+      }
+
+      // QUITW needs async yesno — handle before synchronous vappli
+      if (G.prsa === QUITW) {
+        score(G, true);
+        if (await yesno(G, 343, 10, 0)) {
+          G.gameOver = true;
+          break;
+        }
         xendmv(G);
         if (!lit(G, G.here)) G.prscon = 1;
         continue;

@@ -192,88 +192,84 @@ describe('Light mechanics', () => {
 });
 
 // ========================================================================
-// Replay Tests: Compare JS output vs Fortran golden files
+// Parity Tests: Per-step byte-level comparison against Fortran reference
+// All sessions recorded with DUNGEON_SEED=42; JS run with seed=42.
 // ========================================================================
-describe('Replay sessions', () => {
-    function loadSession(name) {
-        const inputPath = new URL(`sessions/${name}.input`, import.meta.url);
-        const goldenPath = new URL(`golden_${name}.txt`, import.meta.url);
-        const inputLines = readFileSync(inputPath, 'utf8').trim().split('\n');
-        const goldenOutput = readFileSync(goldenPath, 'utf8');
-        return { inputLines, goldenOutput };
+
+// Normalize output lines: trim trailing whitespace, drop bare ">" prompts and
+// trailing empty strings (the Fortran recorder may emit a trailing '' on quit).
+function normalizeOutput(lines) {
+    const result = (lines || []).map(s => s.trimEnd()).filter(s => s !== '>');
+    while (result.length > 0 && result[result.length - 1] === '') result.pop();
+    return result;
+}
+
+// Run a session with a fixed seed and per-step output capture.
+async function runParitySession(inputLines, seed = 42) {
+    const data = JSON.parse(readFileSync(new URL('../js/dungeon-data.json', import.meta.url)));
+    const textRecords = JSON.parse(readFileSync(new URL('../js/dungeon-text.json', import.meta.url)));
+    const game = new DungeonGame();
+    game.init(data, textRecords);
+    game._rngSeed = seed;
+
+    const steps = [];
+    let inputIdx = 0;
+    let stepInputIdx = 0;
+    let currentOutput = [];
+    let moveAtInput = 0;
+
+    const rawInput = async () => {
+        if (inputIdx >= inputLines.length) { game.gameOver = true; return null; }
+        return inputLines[inputIdx++];
+    };
+
+    const input = async () => {
+        if (moveAtInput > 0) {
+            steps.push({ move: moveAtInput, input: inputLines[stepInputIdx] || '', output: [...currentOutput] });
+        }
+        currentOutput = [];
+        if (inputIdx >= inputLines.length) { game.gameOver = true; return null; }
+        moveAtInput = game.moves + 1;
+        stepInputIdx = inputIdx;
+        return inputLines[inputIdx++];
+    };
+
+    const output = (s) => currentOutput.push(s);
+
+    try { await game.run(input, output, { rawInput }); } catch (e) {}
+
+    if (moveAtInput > 0 && inputIdx > 0) {
+        steps.push({ move: moveAtInput, input: inputLines[stepInputIdx] || '', output: [...currentOutput] });
     }
 
-    it('opening moves match Fortran reference', async () => {
-        const { inputLines, goldenOutput } = loadSession('opening');
-        const { outputLines } = await runSession(inputLines);
-        const jsOutput = outputLines.join('\n');
+    return steps;
+}
 
-        // Check key phrases from the golden output appear in JS output
-        const keyPhrases = [
-            'open field west of a white house',
-            'mailbox',
-            'leaflet',
-            'kitchen',
-            'living room',
-            'trophy case',
-            'sword',
-            'lamp',
-            'pitch black',
-            'grue',
-        ];
+describe('Fortran parity sessions (per-step, seed=42)', () => {
+    async function checkSession(name) {
+        const fortranPath = new URL(`sessions/${name}.fortran.json`, import.meta.url);
+        const inputPath = new URL(`sessions/${name}.input`, import.meta.url);
+        const fortranSession = JSON.parse(readFileSync(fortranPath));
+        const inputLines = readFileSync(inputPath, 'utf8').trim().split('\n');
 
-        for (const phrase of keyPhrases) {
-            assert.ok(
-                jsOutput.toLowerCase().includes(phrase.toLowerCase()),
-                `JS output should contain "${phrase}"`
-            );
+        const fortranSteps = fortranSession.steps.filter(s => (s.input || '') !== '');
+        const jsSteps = await runParitySession(inputLines, 42);
+
+        assert.equal(jsSteps.length, fortranSteps.length,
+            `${name}: step count mismatch (js=${jsSteps.length} fortran=${fortranSteps.length})`);
+
+        for (let i = 0; i < fortranSteps.length; i++) {
+            const fs = fortranSteps[i];
+            const js = jsSteps[i];
+            const fortranOut = normalizeOutput(fs.output);
+            const jsOut = normalizeOutput(js.output);
+            assert.deepEqual(jsOut, fortranOut,
+                `${name} step ${i + 1} ("${fs.input}"): output mismatch`);
         }
-    });
+    }
 
-    it('dark room session matches Fortran reference', async () => {
-        const { inputLines, goldenOutput } = loadSession('dark');
-        const { outputLines } = await runSession(inputLines);
-        const jsOutput = outputLines.join('\n');
-
-        assert.ok(jsOutput.includes('lamp'), 'Should mention lamp');
-        assert.ok(
-            jsOutput.toLowerCase().includes('dark') || jsOutput.toLowerCase().includes('grue'),
-            'Should have darkness when lamp is off'
-        );
-    });
-
-    it('troll session matches Fortran reference', async () => {
-        const { inputLines, goldenOutput } = loadSession('troll');
-        const { outputLines } = await runSession(inputLines);
-        const jsOutput = outputLines.join('\n');
-
-        const keyPhrases = [
-            'window', 'kitchen', 'living room', 'lamp',
-            'sword', 'rug', 'trap door', 'cellar',
-            'troll', 'axe',
-        ];
-        for (const phrase of keyPhrases) {
-            assert.ok(
-                jsOutput.toLowerCase().includes(phrase.toLowerCase()),
-                `JS output should contain "${phrase}"`
-            );
-        }
-    });
-
-    it('window-entry session matches Fortran reference', async () => {
-        const { inputLines, goldenOutput } = loadSession('window-entry');
-        const { outputLines } = await runSession(inputLines);
-        const jsOutput = outputLines.join('\n');
-
-        const keyPhrases = [
-            'white house', 'north side', 'behind',
-            'window', 'south side', 'kitchen',
-        ];
-        for (const phrase of keyPhrases) {
-            assert.ok(
-                jsOutput.toLowerCase().includes(phrase.toLowerCase()),
-                `JS output should contain "${phrase}"`
-            );
-        }
-    });
+    it('opening session matches Fortran byte-for-byte', () => checkSession('opening'));
+    it('dark session matches Fortran byte-for-byte', () => checkSession('dark'));
+    it('troll session matches Fortran byte-for-byte', () => checkSession('troll'));
+    it('window-entry session matches Fortran byte-for-byte', () => checkSession('window-entry'));
 });

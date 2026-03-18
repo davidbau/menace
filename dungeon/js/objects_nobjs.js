@@ -66,7 +66,7 @@ import {
   YLWAL, RDWAL, PINDR, RBEAM, ODOOR, QDOOR, LDOOR, CDOOR,
   NUM1, NUM8, WARNI, CSLIT, GCARD, STLDR, HBELL, PLEAK,
   BROCH, STAMP, PDOOR, PLID1, PLID2, PKH1, PKH2, PKEY,
-  PALAN, MAT, PAL3,
+  PALAN, MAT, PAL3, LABEL,
 
   // Pseudo/global objects
   OPLAY, HANDS, AVIAT, GBROCH, GWATE, MASTER, WNORT,
@@ -460,7 +460,8 @@ function n_puzzle_walls(G, odo2, odi2) {
 
     const j = G.cpwl[walli + 1];
     const nxt = G.cphere + j;
-    const wl = G.cpvec[nxt];
+    // nxt is 1-based (Fortran-style); G.cpvec is 0-based, so use nxt-1 for array access
+    const wl = G.cpvec[nxt - 1];
     // wl: -3=immovable, -2=ladder, -1=wall, 0=clear, 1=movable
     // mapped to switch cases: wl+4 => 1,2,3,4,5
     if (wl === 0) {
@@ -470,13 +471,13 @@ function n_puzzle_walls(G, odo2, odi2) {
     }
     if (wl === -3 || wl === -2 || wl === -1) {
       // movable wall types (-3, -2, -1)
-      if (G.cpvec[nxt + j] === 0) {
+      if (G.cpvec[nxt + j - 1] === 0) {
         // room to move
         let i = 878;
         if (G.cpushf) i = 879;
         G.cpushf = true;
-        G.cpvec[nxt + j] = wl;
-        G.cpvec[nxt] = 0;
+        G.cpvec[nxt + j - 1] = wl;
+        G.cpvec[nxt - 1] = 0;
         cpgoto(G, nxt);
         cpinfo(G, i, nxt);
         princr(G, true, G.here);
@@ -2235,12 +2236,13 @@ function oc_crypt(G) {
 // ---------------------------------------------------------------
 
 function oc_global_ladder(G) {
-  if (G.cpvec[G.cphere + 1] !== -2 && G.cpvec[G.cphere - 1] !== -3) {
+  // cphere is 1-based; cpvec is 0-based. Fortran CPVEC(CPHERE+1) = G.cpvec[G.cphere]
+  if (G.cpvec[G.cphere] !== -2 && G.cpvec[G.cphere - 2] !== -3) {
     rspeak(G, 865); // no ladder here
     return true;
   }
   if (G.prsa === CLMBW || G.prsa === CLMBUW) {
-    if (G.cphere === 10 && G.cpvec[G.cphere + 1] === -2) {
+    if (G.cphere === 10 && G.cpvec[G.cphere] === -2) {
       moveto(G, CPANT, G.winner);
       rmdesc(G, 3);
       return true;

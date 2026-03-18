@@ -1033,7 +1033,7 @@ function palantir_room_tail(G) {
   if (G.prso === 0) return;
   if (G.prsa === TAKEW && qempty(G, G.here - PRM + PKH1) &&
       (G.prso === SCREW || G.prso === STICK || G.prso === PKEY || G.prso === KEYS)) {
-    if (!G.ptoucf) {
+    if (G.ptoucf) {
       let lidObj = G.here - PRM + PLID1;
       if (qopen(G, lidObj)) rspeak(G, 1043);
       G.oflag2[lidObj - 1] &= ~OPENBT;
@@ -1145,15 +1145,16 @@ export function cpinfo(G, rmk, st) {
   const dgmoft = [-9, -8, -7, -1, 1, 7, 8, 9];
   const pict = ['SS', 'SS', 'SS', '  ', 'MM'];
 
+  // st is 1-based (Fortran-style cphere); G.cpvec is 0-based. Fortran CPVEC(ST+J) = G.cpvec[st + j - 1]
   rspeak(G, rmk);
   const dgm = new Array(8);
   for (let i = 0; i < 8; i++) {
     const j = dgmoft[i];
-    dgm[i] = pict[G.cpvec[st + j] + 3]; // +3 because pict is 0-indexed and cpvec values go from -3 to 1
+    dgm[i] = pict[G.cpvec[st + j - 1] + 3]; // +3 because pict is 0-indexed and cpvec values go from -3 to 1
     if (Math.abs(j) !== 1 && Math.abs(j) !== 8) {
       const k = j < 0 ? -8 : 8;
       const l = j - k;
-      if (G.cpvec[st + k] !== 0 && G.cpvec[st + l] !== 0) dgm[i] = '??';
+      if (G.cpvec[st + k - 1] !== 0 && G.cpvec[st + l - 1] !== 0) dgm[i] = '??';
     }
   }
 
@@ -1166,8 +1167,8 @@ export function cpinfo(G, rmk, st) {
   let ii = 872;
   if (G.cpoutf) ii = 873;
   if (st === 52) rspeak(G, ii); // at door
-  if (G.cpvec[st + 1] === -2) rspeak(G, 874); // east ladder
-  if (G.cpvec[st - 1] === -3) rspeak(G, 875); // west ladder
+  if (G.cpvec[st] === -2) rspeak(G, 874); // east ladder (Fortran CPVEC(ST+1) = cpvec[st])
+  if (G.cpvec[st - 2] === -3) rspeak(G, 875); // west ladder (Fortran CPVEC(ST-1) = cpvec[st-2])
 }
 
 export default rappli;

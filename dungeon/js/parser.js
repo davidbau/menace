@@ -15,6 +15,7 @@ import {
   GLOBAL, PLAYER,
   rspeak, rspsub, rspsb2, bug, lit, qhere, fwim, ghere, nblen, oappli,
 } from './support.js';
+import { take } from './verbs.js';
 
 // ---------------------------------------------------------------
 // Vocabulary data — embedded directly from parser.f DATA statements
@@ -861,15 +862,22 @@ function sparse(G, lbuf, llnt, vbflag) {
     if (word === 'AND') {
       // AND handling
       if (adj !== 0) {
-        // Dangling adjective — treat as object
+        // Dangling adjective — treat as object (Fortran: GO TO 4100/4500/400)
+        // Fortran GO TO 400 skips adjective check and goes to object lookup only.
         i--;
         const resolvedWord = AWORD[adjptr];
         adj = 0;
         const objResult = findObjWord(G, resolvedWord);
         if (objResult) {
-          const obj = getobjFromResult(G, objResult.j, adj, 0);
+          const obj = getobj(G, objResult.j, adj, 0);
           if (obj > 0) {
-            assignObj(obj);
+            // Fortran label 6100: if prep===9 (of) and same object as lobj, treat as qualifier
+            if (prep === 9 && (lobj === obj || lobj === G.ocan[obj - 1])) {
+              prep = 0;
+              lobj = obj;
+            } else {
+              assignObj(obj);
+            }
           }
         }
         continue;
@@ -1621,9 +1629,54 @@ function synmch(G) {
     G.prsa = G._vflag & SVMASK;
     G.prso = o1;
     G.prsi = o2;
-    // TODO: takeit for prso/prsi
+    if (!takeit(G, G.prso, G._dobj)) return false;
+    if (!takeit(G, G.prsi, G._iobj)) return false;
     return true;
   }
+}
+
+// TAKEIT — Parser-based auto-take of object (Fortran TAKEIT function)
+// Attempts to take OBJ if verb flags (sflag) require VRBIT+VTBIT.
+// Returns true if parsing should continue, false if it should fail.
+function takeit(G, obj, sflag) {
+  // Null, star-objects, or dead: always win
+  if (obj === 0 || obj > G.strbit || G.deadf) return true;
+
+  const odo2 = G.odesc2[obj - 1];
+  const container = G.ocan[obj - 1];
+
+  // If in a container and VFBIT requires reachability, check container is open
+  if (container !== 0 && (sflag & VFBIT) !== 0) {
+    if ((G.oflag2[container - 1] & OPENBT) === 0) {
+      rspsub(G, 566, odo2); // can't reach
+      return false;
+    }
+  }
+
+  if ((sflag & VRBIT) !== 0 && (sflag & VTBIT) !== 0) {
+    // Object should be in room and auto-take if found there
+    if (schlst(G, 0, 0, G.here, 0, 0, obj) <= 0) return true; // not in room, ok
+    // Object is in room
+    if ((G.oflag1[obj - 1] & TAKEBT) !== 0) {
+      // Takeable — auto-take it
+      if (!lit(G, G.here)) { rspeak(G, 579); return false; }
+      const sva = G.prsa, svo = G.prso, svi = G.prsi;
+      G.prsa = TAKEW; G.prso = obj; G.prsi = 0;
+      const ok = take(G, true);
+      G.prsa = sva; G.prso = svo; G.prsi = svi;
+      return ok;
+    }
+    if ((sflag & VCBIT) === 0) return true; // no care, win
+    rspsub(G, 445, odo2); // can't take
+    return false;
+  }
+
+  if ((sflag & VCBIT) === 0) return true; // no care, win
+  // Object should be held — if it's in the room instead, complain
+  if (schlst(G, 0, 0, G.here, 0, 0, obj) <= 0) return true;
+  const i = G.winner === PLAYER ? 665 : 1082;
+  rspsub(G, i, odo2); // doesn't have it
+  return false;
 }
 
 // Find verb string for a given syntax index (for error messages)

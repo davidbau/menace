@@ -41,6 +41,7 @@ const session = {
 };
 
 let inputIdx = 0;
+let stepInputIdx = 0;  // index of the line returned by the last tracked input() call
 let currentOutput = [];
 let moveAtInput = 0;
 
@@ -49,7 +50,7 @@ const input = async () => {
     if (moveAtInput > 0) {
         session.steps.push({
             move: moveAtInput,
-            input: inputLines[inputIdx - 1] || '',
+            input: inputLines[stepInputIdx] || '',
             parse: {
                 prsa: game.prsa,
                 prso: game.prso,
@@ -74,6 +75,14 @@ const input = async () => {
     }
 
     moveAtInput = game.moves + 1;
+    stepInputIdx = inputIdx;
+    return inputLines[inputIdx++];
+};
+
+// rawInput reads the next line silently — no step boundary recorded.
+// Used by yesno() and other internal reads that the Fortran handles without a " > " prompt.
+const rawInput = async () => {
+    if (inputIdx >= inputLines.length) { game.gameOver = true; return null; }
     return inputLines[inputIdx++];
 };
 
@@ -82,7 +91,7 @@ const output = (s) => {
 };
 
 try {
-    await game.run(input, output);
+    await game.run(input, output, { rawInput });
 } catch (e) {
     // Game may throw/exit
 }
@@ -91,7 +100,7 @@ try {
 if (moveAtInput > 0 && inputIdx > 0) {
     session.steps.push({
         move: moveAtInput,
-        input: inputLines[inputIdx - 1] || '',
+        input: inputLines[stepInputIdx] || '',
         parse: {
             prsa: game.prsa,
             prso: game.prso,

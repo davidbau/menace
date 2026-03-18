@@ -83,7 +83,7 @@
     },
     {
       "cmd": "inventory",
-      "note": "PRNG fix #3 of 3: with take mat+bottle+inventory (3 steps here) plus inventory before wait (1 step), fixes thief PRNG (no egg theft at ODYSSEUS) + carousel\u2192rm90 + no coin theft"
+      "note": "PRNG fix #3 of 3: with take mat+bottle+inventory (3 steps here) plus inventory before wait (1 step), fixes thief PRNG (no egg theft at ODYSSEUS) + carousel→rm90 + no coin theft"
     },
     {
       "cmd": "s"
@@ -699,7 +699,8 @@
     {
       "cmd": "echo",
       "boundaryAdjust": -1,
-      "note": "Echo Room reads 'echo' as part of the preceding ne move — no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1"
+      "note": "Echo Room reads 'echo' as part of the preceding ne move — no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1",
+      "echoRoom": true
     },
     {
       "cmd": "take bar"

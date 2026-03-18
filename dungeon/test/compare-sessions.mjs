@@ -17,18 +17,32 @@ if (!file1 || !file2) {
 const s1 = JSON.parse(readFileSync(file1, 'utf8'));
 const s2 = JSON.parse(readFileSync(file2, 'utf8'));
 
-console.log(`Comparing ${s1.source} (${s1.steps.length} steps) vs ${s2.source} (${s2.steps.length} steps)`);
+// The Fortran recorder includes a step with empty input for the welcome text;
+// skip it so both sessions start at the first actual command.
+const steps1 = s1.steps.filter(s => (s.input || '') !== '');
+const steps2 = s2.steps.filter(s => (s.input || '') !== '');
+
+function normalizeOutput(lines) {
+    // Trim trailing whitespace, drop bare ">" prompt lines the JS recorder emits
+    // and trailing empty strings (the Fortran recorder may emit a trailing '' on quit).
+    const result = (lines || []).map(s => s.trimEnd()).filter(s => s !== '>');
+    while (result.length > 0 && result[result.length - 1] === '') result.pop();
+    return result;
+}
+
+console.log(`Comparing ${s1.source} (${steps1.length} steps) vs ${s2.source} (${steps2.length} steps)`);
 console.log('');
 
-const maxSteps = Math.max(s1.steps.length, s2.steps.length);
+const maxSteps = Math.max(steps1.length, steps2.length);
 let divergences = 0;
 
 for (let i = 0; i < maxSteps; i++) {
-    const step1 = s1.steps[i];
-    const step2 = s2.steps[i];
+    const step1 = steps1[i];
+    const step2 = steps2[i];
 
     if (!step1 || !step2) {
         console.log(`Step ${i + 1}: *** MISSING in ${!step1 ? s1.source : s2.source} ***`);
+        console.log(`  ${step1 ? s1.source : s2.source}: "${(step1 || step2).input}"`);
         divergences++;
         continue;
     }
@@ -44,8 +58,8 @@ for (let i = 0; i < maxSteps; i++) {
     }
 
     // Compare output
-    const out1 = (step1.output || []).map(s => s.trimEnd());
-    const out2 = (step2.output || []).map(s => s.trimEnd());
+    const out1 = normalizeOutput(step1.output);
+    const out2 = normalizeOutput(step2.output);
 
     let outputMatch = true;
     const maxLines = Math.max(out1.length, out2.length);
