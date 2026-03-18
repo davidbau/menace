@@ -219,6 +219,42 @@ Conclusion:
 Update after current worktree XP fix:
 
 - `seed031_manual_direct`
+  - re-anchored on commit `9acf1008` after pulling the latest notes
+  - the old local `dogmove` floor-object filter experiment was ruled out and
+    abandoned:
+    - restricting scans to `where===OBJ_FLOOR` did not move the session
+    - do not keep chasing that branch
+  - current authoritative first divergences remain:
+    - RNG: step `407`
+      - JS: `rnd(2)=2 @ promptDirectionAndThrowItem(dothrow.js:245)`
+      - C: `rn2(5)=1 @ distfleeck(monmove.c:539)`
+    - event: step `406`
+      - JS: `^dog_goal_obj[M37 oid=153@14,8 food=4 skip=apc]`
+      - C: `^dog_goal_obj[M37 oid=91@12,7 food=6 skip=inf]`
+  - new high-confidence conclusion:
+    - the `dog_goal_obj` mismatch is downstream, not the primary root
+    - on the bad JS command bundle, a newly split/thrown dart is being placed
+      on the floor at `14,8` before pet scanning, and the pet then sees it as
+      an apport candidate
+    - comparison artifacts for the same failing bundle do not show the C pet
+      scanning a corresponding object at `14,8` before `distfleeck`
+  - practical guidance:
+    - do not patch `dog_goal()` ordering in isolation as the next move
+    - the next investigation point is the upstream `#fire` / throw-command
+      bundle feeding this state:
+      - `js/dothrow.js`
+      - key ownership around the prompt bundle
+      - split/throw/landing visibility timing before monster turns
+
+Conclusion:
+
+- `seed031` is now localized to an upstream throw-command seam whose first
+  visible symptom is the pet scanning an extra floor dart.
+- The next debugging pass should start at the command bundle around
+  `promptDirectionAndThrowItem()` / `throwit()`, not with another
+  `dog_goal()`-only patch.
+
+- `seed031_manual_direct`
   - another faithful improvement landed in `js/uhitm.js`:
     - hero kills were still using a simplified XP formula
       `((m_lev + 1) ^ 2)` inside `handleMonsterKilled()`
