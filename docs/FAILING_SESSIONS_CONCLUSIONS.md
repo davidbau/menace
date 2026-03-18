@@ -24,13 +24,13 @@
 - **Implication**: The `create_room`, `rnd_rect`, `mineralize` shifts shown in the
   shift analysis are from LATER level generation (when player descends), not from
   the initial level. They are a CONSEQUENCE of earlier RNG drift, not a cause.
-- **Date verified**: March 18, 2026
+- **Date verified**: March 18, 2026 (session 24)
 
 ### 2. The exerchk moves counter is NOT off-by-one
 - **Evidence**: Changing `turnCount + 1` to `turnCount` in the exerchk call
   regressed 170 sessions (431 → 261). The `+1` is correct for JS's counting.
 - **Implication**: Do not attempt to fix the exerchk moves argument again.
-- **Date verified**: March 18, 2026
+- **Date verified**: March 18, 2026 (session 24)
 
 ### 3. The game loop ordering (player-first vs monsters-first) is NOT the cause
 - **Evidence**: Both JS and C produce identical flat RNG sequences for the first
@@ -39,7 +39,7 @@
   cycle) regressed 430 → 157 sessions.
 - **Implication**: Do not attempt game loop reordering again. The current
   `[player acts] → [moveloop_core]` ordering matches C's effective flat sequence.
-- **Date verified**: March 18, 2026
+- **Date verified**: March 18, 2026 (session 24)
 
 ### 4. Monster movement code paths diverge after ~10K matching RNG calls
 - **Evidence**: The shift-aware RNG comparator shows:
@@ -51,7 +51,7 @@
 - **Implication**: The divergence comes from monster movement code that consumes
   different numbers of RNG calls. Once the flat RNG shifts, everything downstream
   diverges (exercise timing, level gen for deeper levels, etc.).
-- **Date verified**: March 18, 2026
+- **Date verified**: March 18, 2026 (session 24)
 
 ### 5. t11_s755 has 100% RNG match but screen-only divergence
 - **Evidence**: 26,517/26,517 RNG match. 7,287/7,287 events match.
@@ -60,7 +60,7 @@
 - **Implication**: The Gnome position difference comes from a non-RNG decision
   in monster movement (mfndpos candidate ordering or m_move position selection
   with same RNG values but different candidate lists).
-- **Date verified**: March 18, 2026
+- **Date verified**: March 18, 2026 (session 24)
 
 ### 6. seed301_archeologist diverges at step 7 (pet AI)
 - **Evidence**: First event divergence shows `dog_goal_obj` with `rn2_8=7` (JS)
@@ -69,7 +69,7 @@
 - **Implication**: seed301's RNG diverges very early, probably from level 1's
   monster placement or initial monster movement. This is the same class of
   issue as seed031 but manifests earlier.
-- **Date verified**: March 18, 2026
+- **Date verified**: March 18, 2026 (session 24)
 
 ---
 
@@ -111,15 +111,15 @@
 ### D1: Game loop ordering causes the divergence
 - **Disproven by**: First 10,145 calls matching exactly. If ordering differed,
   divergence would appear from the first timed command.
-- **Date disproven**: March 18, 2026
+- **Date disproven**: March 18, 2026 ~17:00 UTC
 
 ### D2: Level generation code is wrong for depth 1
 - **Disproven by**: Level 1 RNG (6,390 entries) is within the matching prefix.
-- **Date disproven**: March 18, 2026
+- **Date disproven**: March 18, 2026 ~17:00 UTC
 
 ### D3: exerchk moves counter is off by one
 - **Disproven by**: Changing it regresses 170 sessions.
-- **Date disproven**: March 18, 2026
+- **Date disproven**: March 18, 2026 ~17:00 UTC
 
 ---
 
@@ -134,25 +134,17 @@
 7. mfndpos ALLOW_MDISP + mm_aggression integration — correct parity
 8. rnl composite entry filter — comparison accuracy improvement
 
-## NEW FINDING: nh_timeout missing peffect_healing (March 18, 2026)
+## DISPROVEN: nh_timeout missing peffect_healing (disproven March 18, 2026 ~19:00 UTC)
 
-C's nh_timeout processes potion effects during turn-end, calling
-`peffect_healing(potion.c:1118)` which calls `d(4,4)` (consuming 4 rn2 calls).
-JS's nh_timeout does NOT call peffect_healing.
+Initially hypothesized that C's nh_timeout calls peffect_healing but JS doesn't.
+**DISPROVEN**: The `d(4,4)=6 @ peffect_healing` in the C trace is from the player
+QUAFFING a healing potion (step 166, key="n" = select potion "n" to drink), NOT
+from nh_timeout. JS's peffect_healing already uses `c_d(4,4)` which matches C's
+composite logging. Both produce the same RNG consumption.
 
-**Evidence**: C raw[16113] = `d(4,4)=6 @ peffect_healing(potion.c:1118)` appears
-between gethungry and exerchk during turn-end. JS has no corresponding call.
-The `d(4,4)` is filtered from the normalized comparison as a composite entry,
-but it still consumes 4 rn2 calls from the global RNG. This shifts C's RNG state
-forward by 4 calls relative to JS, causing the exercise calls at the divergence
-point to use different RNG values.
-
-**Status**: HYPOTHESIS — needs verification. If this is the cause, adding
-peffect_healing to JS's nh_timeout should push the divergence point later.
-
-**Why it was masked**: The `d()` composite filter removes d(4,4) from the
-normalized comparison, making it invisible to the flat RNG matcher. But the
-underlying rn2() calls still consume from the global RNG.
+The peffect_healing call happens to appear at the START of C's step 166 because
+the potion selection is the first action in that step. It's a normal gameplay
+action, not a timeout effect.
 
 ## NEXT STEPS (prioritized)
 
