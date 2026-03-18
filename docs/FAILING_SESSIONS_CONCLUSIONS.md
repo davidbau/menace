@@ -174,12 +174,26 @@ is broken. Specifically:
 - Single-step tools: warn about isolation for a reason
 - Freshly written diagnostic code is MORE suspect than tested production code
 
+## PROVEN: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
+
+Using `^exerper` diagnostic injected into the RNG log (which IS captured by the
+replay), confirmed that JS's `moves` values near the divergence are 137, 138, 139.
+None are multiples of 5, so exerper doesn't call exercise.
+
+C's exercise calls fire at this turn, meaning C's `svm.moves` is 140 (140 % 5 = 0).
+
+**JS moves = 139, C moves = 140** at the same game point. JS is 1 turn behind.
+
+This is NOT the `turnCount + 1` offset (that was confirmed correct for most sessions).
+This is a SINGLE missed turn increment somewhere in the first 139 turns. One turn
+was processed without incrementing the counter, or one counter increment happened
+without processing a turn.
+
 ## NEXT STEPS (prioritized)
 
-1. **Find the specific turn where exercise diverges**: Need to count exercise RNG
-   calls in the full JS replay and compare with C's 28 exercise calls before
-   the divergence. Use the comparison artifact's per-step JS RNG (may need to
-   enhance the artifact to include raw JS entries).
+1. **Find where the turn count diverges**: Add `^exerper[moves=N]` diagnostic at
+   every turn and compare JS's sequence (1,2,3,...) with C's to find where the
+   gap appears. The gap is 1, so it's a single missing increment.
    Check if C's nh_timeout calls other potion effects too (peffect_healing,
    peffect_extra_healing, etc.). Implement the same in JS.
 
