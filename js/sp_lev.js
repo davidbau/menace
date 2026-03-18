@@ -16,7 +16,8 @@
 import { GameMap } from './game.js';
 import { FILL_NORMAL, DUNGEON_ALIGN_BY_DNUM, STRAT_WAITFORU, MM_NOTAIL, NO_INVENT, CUSTOM_INVENT, DEFAULT_INVENT,
          LR_DOWNSTAIR, LR_UPSTAIR, LR_PORTAL, LR_BRANCH,
-         LR_TELE, LR_UPTELE, LR_DOWNTELE } from './const.js';
+         LR_TELE, LR_UPTELE, LR_DOWNTELE,
+         M_AP_OBJECT, M_AP_FURNITURE, M_AP_MONSTER } from './const.js';
 import { rn2, rnd, rn1, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, mkcorpstat, set_corpsenm, weight, place_object } from './mkobj.js';
 import { game as _gstate } from './gstate.js';
@@ -96,6 +97,7 @@ import {
     litstate_rnd,
 } from './mkmap.js';
 import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
+import { defsyms } from './symbols.js';
 
 const ROOM_TYPE_MAP = {
     'ordinary': 0,
@@ -6298,6 +6300,25 @@ async function createScriptMonster(deferred) {
         throw new Error('Unknown appear_as type');
     };
 
+    const resolveAppearAsRuntimeState = (parsedAppearAs) => {
+        if (!parsedAppearAs) return null;
+        const value = String(parsedAppearAs.value || '').trim().toLowerCase();
+        if (!value) return null;
+        if (parsedAppearAs.type === 'obj') {
+            const otyp = objectNameToType(value);
+            return (otyp >= 0) ? { m_ap_type: M_AP_OBJECT, mappearance: otyp } : null;
+        }
+        if (parsedAppearAs.type === 'mon') {
+            const mndx = monsterNameToIndex(value);
+            return (mndx >= 0) ? { m_ap_type: M_AP_MONSTER, mappearance: mndx } : null;
+        }
+        if (parsedAppearAs.type === 'ter') {
+            const defsymIndex = defsyms.findIndex((sym) => String(sym?.desc || '').toLowerCase() === value);
+            return (defsymIndex >= 0) ? { m_ap_type: M_AP_FURNITURE, mappearance: defsymIndex } : null;
+        }
+        return null;
+    };
+
     if (opts_or_class === undefined) {
         if (!levelState.monsters) {
             levelState.monsters = [];
@@ -6513,6 +6534,11 @@ async function createScriptMonster(deferred) {
                 mtmp.appear_as = `${parsedAppearAs.type}:${parsedAppearAs.value}`;
                 mtmp.appear_as_type = parsedAppearAs.type;
                 mtmp.appear_as_value = parsedAppearAs.value;
+                const runtimeAppearance = resolveAppearAsRuntimeState(parsedAppearAs);
+                if (runtimeAppearance) {
+                    mtmp.m_ap_type = runtimeAppearance.m_ap_type;
+                    mtmp.mappearance = runtimeAppearance.mappearance;
+                }
             }
             if ((hasInvent & DEFAULT_INVENT) === 0) {
                 mtmp.minvent = [];
@@ -6536,6 +6562,8 @@ async function createScriptMonster(deferred) {
         return;
     }
 
+    const queuedAppearAs = parseAppearAsLikeC(opts?.appear_as);
+    const queuedRuntimeAppearance = resolveAppearAsRuntimeState(queuedAppearAs);
     levelState.monsters.push({
         id: monsterId,
         x: coordX,
@@ -6544,7 +6572,12 @@ async function createScriptMonster(deferred) {
         waiting: opts?.waiting || false,
         peaceful: opts?.peaceful,
         asleep: opts?.asleep,
-        align: opts?.align
+        align: opts?.align,
+        appear_as: queuedAppearAs ? `${queuedAppearAs.type}:${queuedAppearAs.value}` : undefined,
+        appear_as_type: queuedAppearAs?.type,
+        appear_as_value: queuedAppearAs?.value,
+        m_ap_type: queuedRuntimeAppearance?.m_ap_type,
+        mappearance: queuedRuntimeAppearance?.mappearance,
     });
     if (traceMon) {
         const traceEnd = getRngCallCount();

@@ -5,7 +5,7 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    des, resetLevelState, getLevelState, withFinalizeContext,
+    des, resetLevelState, getLevelState, withFinalizeContext, withSpecialLevelDepth,
     mapfrag_fromstr, mapfrag_canmatch, mapfrag_error, mapfrag_match,
     check_mapchr, get_table_mapchr_opt, get_table_mapchr, l_selection_filter_mapchar,
     get_table_boolean, get_table_boolean_opt, get_table_int, get_table_int_opt,
@@ -14,6 +14,7 @@ import {
     l_selection_and, l_selection_or, l_selection_xor, l_selection_sub, l_selection_numpoints
 } from '../../js/sp_lev.js';
 import { place_lregion } from '../../js/mkmaze.js';
+import { initLevelGeneration } from '../../js/dungeon.js';
 import {
     STONE, ROOM, CORR, DOOR, HWALL, VWALL, STAIRS, LAVAPOOL, PIT, MAGIC_PORTAL, CROSSWALL, GRAVE,
     WATER, AIR,
@@ -21,6 +22,7 @@ import {
     LR_DOWNSTAIR, LR_UPSTAIR, LR_TELE,
 } from '../../js/const.js';
 import { BOULDER, DAGGER, GOLD_PIECE } from '../../js/objects.js';
+import { generate as generateMinend1 } from '../../js/levels/minend-1.js';
 
 // Alias for stairs
 const STAIRS_UP = STAIRS;
@@ -179,6 +181,32 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.locations[10][5].horizontal, 0);
         assert.equal(map.locations[10][5].roomno, 0);
         assert.equal(map.locations[10][5].edge, 0);
+    });
+
+    it('special-level appear_as monster directives populate mimic runtime state', async () => {
+        initRng(42);
+        initLevelGeneration();
+        resetLevelState();
+
+        const map = await withSpecialLevelDepth(7, async () =>
+            await withFinalizeContext({
+                dnum: 1,
+                dlevel: 7,
+                dunlev: 7,
+                dunlevs: 8,
+                specialName: 'minend-1',
+                isBranchLevel: false,
+            }, async () => await generateMinend1())
+        );
+
+        const mimics = map.monsters.filter((mon) => mon.mndx === 64);
+        assert.ok(mimics.length >= 3, 'expected most scripted mimics to be placed');
+        for (const mimic of mimics) {
+            assert.equal(mimic.m_ap_type, 2, 'special-level mimic should be disguised as an object');
+            assert.ok(Number.isInteger(mimic.mappearance) && mimic.mappearance > 0, 'special-level mimic should keep its scripted object appearance');
+            assert.equal(mimic.appear_as_type, 'obj');
+            assert.ok(typeof mimic.appear_as_value === 'string' && mimic.appear_as_value.length > 0);
+        }
     });
 
     it('des.altar places ALTAR terrain and alignment metadata', () => {

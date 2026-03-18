@@ -39,6 +39,32 @@ Core parity fix implemented:
 This patch is C-faithful, but it was neutral with respect to the current
 13-session failure set.
 
+Validated follow-up correctness fix:
+
+- `js/sp_lev.js`
+  - scripted `appear_as` on special-level monsters now populates runtime
+    mimic fields:
+    - `m_ap_type`
+    - `mappearance`
+  - covers `obj:`, `mon:`, and `ter:` forms
+  - also preserves the same state on the queued non-immediate path
+- `test/unit/sp_lev.test.js`
+  - added a regression test proving `minend-1` scripted mimics keep object
+    disguise runtime state during special-level generation
+
+Validation:
+
+- `node --test test/unit/sp_lev.test.js` passes
+
+Important outcome:
+
+- This fix is correct, but it was **neutral** for
+  `t11_s755_w_covmax9_gp.session.json`.
+- Isolated reproduction proves `minend-1` generation itself produces mimics
+  with the correct object disguise state, and `saveLev/restLev` preserves it.
+- Therefore the `t11_s755` checkpoint mismatch is **later than level
+  generation and later than basic level save/restore**.
+
 ## Current High-Signal Blockers
 
 ### 1. `theme25_seed1328_wiz_quaff-utility_gameplay.session.json`
@@ -133,8 +159,12 @@ first divergences.
 
 Work in this order:
 
-1. Fix the `theme25` topline `--More--` boundary in core display/input logic.
-2. Triage `hi10` as the next main-suite gameplay blocker.
+1. Treat the current fail set as the authoritative target, not the older
+   13-session snapshot in this document.
+2. For `t11_s755`, continue after the point where special-level generation and
+   `saveLev/restLev` have already been ruled out; the remaining seams are:
+   - later runtime mimic reveal/state clearing
+   - live monster-position drift with RNG/events conserved
 3. Continue dedicated work on `seed031` / `seed032` / `seed033`.
 
 Do not start new session-capture work until the main comparison sessions are
