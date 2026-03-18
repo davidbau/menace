@@ -78,6 +78,29 @@ test('counted rest bypasses wait safety and starts waiting occupation', async ()
     assert.equal(game.multi, 2);
 });
 
+test('m prefix forces exactly one wait command', async () => {
+    const game = createGame({ multi: 0, hostileAdjacent: true });
+
+    const prefix = await rhack('m'.charCodeAt(0), game);
+    assert.deepEqual(prefix, { moved: false, tookTime: false });
+    assert.equal(game.menuRequested, true);
+
+    const forcedWait = await rhack('.'.charCodeAt(0), game);
+    assert.deepEqual(forcedWait, { moved: false, tookTime: true });
+    assert.equal(game.menuRequested, false);
+    assert.equal(
+        game.messages.find((m) => m.includes('Are you waiting to get hit?')),
+        undefined
+    );
+
+    const plainWait = await rhack('.'.charCodeAt(0), game);
+    assert.deepEqual(plainWait, { moved: false, tookTime: false });
+    assert.equal(
+        game.messages.at(-1),
+        "Are you waiting to get hit?  Use 'm' prefix to force a no-op (to rest)."
+    );
+});
+
 test('search safety blocks search when hostile adjacent and no count', async () => {
     const game = createGame({ multi: 0, hostileAdjacent: true });
     const result = await rhack('s'.charCodeAt(0), game);

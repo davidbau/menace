@@ -13320,3 +13320,39 @@ Validation:
   - this did not materially affect `seed032_manual_direct` or
     `seed033_manual_direct`, so the manual-direct cluster still needs separate
     monster-turn investigation after the early loot UI seam.
+
+# 2026-03-18: `m` prefix on wait/search must be consumed by that one command
+
+- Symptom:
+  - after the mixed-class loot fix, `seed031_manual_direct` still diverged at
+    step `175` in a wait/no-op seam with nearby hostile monsters.
+  - C and JS disagreed about when a forced `m.` consumed time, which then
+    shifted later pet movement and `distfleeck()` ordering.
+- Cause:
+  - JS modeled the `m` prefix as persistent `context.nopick` state and left it
+    live after `.` / `s`.
+  - In C, `iflags.menu_requested` is a one-command prefix. `donull()` and
+    `dosearch0()` inspect it for that command, but parse dispatch consumes it
+    rather than letting it leak into the next command.
+- Fix:
+  - in `js/cmd.js`, snapshot `m`-prefix state when dispatching `.` / `s`,
+    then clear it before executing the command.
+  - in `js/hack.js`, let `performWaitSearch()` accept that one-command
+    `menuRequested` snapshot instead of reading live `context.nopick`.
+  - added `test/unit/wait_search_safety.test.js` regression:
+    - `m.` forces exactly one wait
+    - the following plain `.` warns again
+- Evidence:
+  - `node --test test/unit/wait_search_safety.test.js`
+    - PASS
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+    - improved from:
+      - first RNG divergence at step `175`
+      - first event divergence at step `175`
+    - to:
+      - first RNG divergence at step `375`
+      - first event divergence at step `373`
+- Non-conclusion:
+  - this did not materially move `seed032_manual_direct` or
+    `seed033_manual_direct`, so the remaining manual-direct cluster is not one
+    shared `m`-prefix bug.

@@ -138,15 +138,15 @@ These remain major blockers and are unrelated to the quest patch.
 Representative anchors:
 
 - `seed031_manual_direct.session.json`
-  - first RNG divergence at step `152`
-  - JS: `rn2(8)=0 @ impaired_movement(...)`
-  - C: `rn2(19)=11 @ exercise(attrib.c:506)`
-  - earlier visible mismatch already appears in inventory category labeling
+  - first RNG divergence now at step `375`
+  - JS: `rn2(5)=0 @ dochug(monmove.js:847)`
+  - C: `rnd(8)=8 @ newhp(attrib.c:1098)`
+  - remaining root is later pet/monster-turn drift, not the old wait/no-op seam
 - `seed032_manual_direct.session.json`
   - first RNG divergence at step `91`
   - dog movement path
 - `seed033_manual_direct.session.json`
-  - first RNG divergence at step `197`
+  - first RNG divergence at step `184`
   - JS trap/turn flow versus C exercise path
 
 Conclusion:
@@ -184,6 +184,37 @@ Conclusion:
   `seed031/032/033` cluster
 - after this fix, `seed031` is still primarily blocked by later monster-turn
   divergence (`distfleeck`/pet movement neighborhood), not by the early loot UI
+
+Update after `142b03cfc` + current worktree:
+
+- `seed031_manual_direct`
+  - another faithful improvement landed in `js/cmd.js` / `js/hack.js` for
+    `m.` / `m s` handling:
+    - JS had been leaving the `m` prefix live after a wait/search command
+    - C treats `iflags.menu_requested` as a one-command prefix for `donull()`
+      / `dosearch0()`
+    - fix:
+      - snapshot `m` prefix state for the current wait/search command
+      - clear it before execution
+      - use the snapshot only to bypass `cmd_safety_prevention()` for that one
+        command
+  - validated effect:
+    - first RNG divergence moved later from step `175` to step `375`
+    - first event divergence moved later from step `175` to step `373`
+  - remaining first-drift shape:
+    - JS: later pet/monster-turn path in `dochug()` / `distfleeck()`
+    - C: `newhp(exercise)` / dog-move neighborhood
+- `seed032_manual_direct`
+  - no measurable change from the wait-prefix consumption fix
+- `seed033_manual_direct`
+  - no measurable change from the wait-prefix consumption fix
+
+Conclusion:
+
+- the wait/no-op seam in `seed031` was a real C-faithfulness bug
+- it was not the shared root cause for `seed032` / `seed033`
+- the next `seed031` seam is substantially later and now looks like a
+  distinct pet/monster-turn ordering issue
 
 ### 2. `seed301_archeologist_selfplay200_gameplay`
 

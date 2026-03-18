@@ -2231,9 +2231,10 @@ export async function dotravel_target(game) {
 
 // Wait/search safety warning and execution helpers for rhack()
 // C ref: do.c cmd_safety_prevention()
-export async function performWaitSearch(cmd, game, map, player, fov, display) {
+export async function performWaitSearch(cmd, game, map, player, fov, display, opts = {}) {
+    const forceWait = !!opts.menuRequested;
     if (game && game.flags && game.flags.safe_wait
-        && !ensure_context(game).nopick && !(game.multi > 0) && !game.occupation) {
+        && !forceWait && !(game.multi > 0) && !game.occupation) {
         if (monsterNearby(map, player, fov)) {
             await safetyWarning(cmd, game, display);
             return { moved: false, tookTime: false };

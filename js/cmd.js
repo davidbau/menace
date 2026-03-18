@@ -275,6 +275,10 @@ export async function rhack(ch, game) {
     // Period/space = wait/search
     // C ref: cmd.c — space maps to donull only when rest_on_space is enabled.
     if (c === '.' || c === 's' || (c === ' ' && game?.flags?.rest_on_space)) {
+        // C ref: do.c donull()/dosearch0() see iflags.menu_requested for this
+        // command, but the 'm' prefix is consumed once parse dispatches it.
+        const waitMenuRequested = getMenuRequested();
+        if (waitMenuRequested) setMenuRequested(false);
         // C ref: cmd.c set_occupation(..., gm.multi) is established before the
         // command executes when a count prefix is active.
         let armedOccupation = false;
@@ -291,7 +295,9 @@ export async function rhack(ch, game) {
             armedOccupation = true;
         }
 
-        const result = await performWaitSearch(c, game, map, player, fov, display);
+        const result = await performWaitSearch(c, game, map, player, fov, display, {
+            menuRequested: waitMenuRequested,
+        });
         // If the command didn't take time (for example, safety-prevented),
         // don't leave a pre-armed occupation behind.
         if (armedOccupation && !result.tookTime) {
