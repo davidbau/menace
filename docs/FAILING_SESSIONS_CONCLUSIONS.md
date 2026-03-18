@@ -224,22 +224,16 @@ movement. This is a completely different bug from the turn-146 issue.
 
 3. **t11_s755 is FIXED** (432/436 passing).
 
-## NEW FINDING: rnl() RNG logging asymmetry (23:30 UTC)
+## DISPROVEN: rnl() RNG logging asymmetry (23:45 UTC)
 
-JS's `rnl(x)` calls `RND(x)` (no log) then `rn2(37+|luck|)` (logged). C's `rnl(x)`
-calls `RND(x)` which IS `rn2(x)` in C's harness (logged) then `rn2(37+|luck|)` (logged).
+Initially thought C's rnl logs `rn2(x)` for the initial roll (2 entries) while JS
+only logs the luck gate (1 entry). **DISPROVEN by reading C's patched rnd.c**:
+C's rnl also calls `RND(x)` (no log) for the initial roll, same as JS.
+Both produce 1 rn2 entry (the luck gate) + 1 composite rnl entry.
 
-Result: C produces 2 log entries per rnl call, JS produces 1. This creates a 1-entry
-offset for every rnl call. seed301's divergence at index 2831 is exactly this: JS has
-`rn2(19) @ exercise` (from kick_door) while C has `rn2(38) @ kick_door` (the rnl luck
-gate) — JS is 1 entry behind because JS didn't log the initial `RND(35)`.
+The RND→rn2 change regressed 44 sessions because it ADDED an extra log entry
+that C doesn't have. The revert was correct.
 
-**Fix attempted**: Changing `RND(x)` to `rn2(x)` in rnl regressed 44 sessions (432→388)
-because existing sessions were recorded matching JS's current (RND-based) behavior.
-
-**Correct fix**: Either (a) re-record all sessions with the rn2-based rnl, or
-(b) keep the current behavior and accept that seed301 will diverge at rnl calls.
-The rnl issue affects ALL sessions with luck-modified rolls — but most sessions
-don't have rnl calls early enough to cause visible divergence.
-
-**This is the root cause for seed301.** Not fixable without session re-recording.
+seed301's divergence at `rn2(19) vs rn2(38)` is NOT from rnl logging — it's from
+a 1-call offset caused by something else before the kick_door call. Same class
+of accumulated code path difference as seed031.
