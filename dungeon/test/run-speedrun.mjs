@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const flags = args.filter(a => a.startsWith('--'));
 const positional = args.filter(a => !a.startsWith('--'));
-const speedrunFile = positional[0] || join(__dirname, 'sessions', 'speedrun.json');
+const speedrunFile = positional[0] || join(__dirname, 'sessions', 'speedrun-13.json');
 const speedrun = JSON.parse(readFileSync(speedrunFile, 'utf8'));
 const steps = speedrun.steps;
 const seed = speedrun.seed || 42;
