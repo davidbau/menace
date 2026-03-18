@@ -73,6 +73,15 @@ import { IS_STWALL, IS_DOOR, IS_TREE, IS_WATERWALL,
          D_CLOSED, D_LOCKED, D_ISOPEN } from './const.js';
 
 
+function hasVisibleMorePrompt(display) {
+    if (!display) return false;
+    if (display.moreMarkerActive) return true;
+    if (typeof display.getScreenLines !== 'function') return false;
+    const lines = display.getScreenLines() || [];
+    return (lines[0] || '').includes('--More--') || (lines[1] || '').includes('--More--');
+}
+
+
 
 
 // Process a command from the player
@@ -250,7 +259,7 @@ export async function rhack(ch, game) {
         return do_run(RUN_KEYS[c], player, map, display, fov, game, 'shiftRun');
     }
 
-    function clearTopline() {
+function clearTopline() {
         if (!display) return;
         if (typeof display.clearRow === 'function') display.clearRow(0);
         if ('topMessage' in display) display.topMessage = '';
@@ -951,10 +960,16 @@ async function handleExtendedCommand(game) {
             queueRepeatExtcmd((g) => dosit(g.player, g.map, g.display).then(t => ({ moved: false, tookTime: !!t })));
             {
                 const tookTimeSit = !!(await dosit(player, game.map, display));
+                if (tookTimeSit && hasVisibleMorePrompt()) {
+                    await more(display, {
+                        game,
+                        site: 'cmd.sit.more',
+                        forceVisual: true,
+                    });
+                }
                 return {
                     moved: false,
                     tookTime: tookTimeSit,
-                    deferTimedTurnUntilMore: tookTimeSit && !!display?.messageNeedsMore,
                 };
             }
         case 'ride':

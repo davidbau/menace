@@ -13394,3 +13394,25 @@ Validation:
   - this did not materially move `seed032_manual_direct`
   - the next `seed031` seam is later pet object-choice / `dog_goal_obj`
     behavior, not another level-up bug.
+
+# 2026-03-18: remove deferred `#sit` continuation; keep `--More--` inline
+
+- Symptom:
+  - JS still had a continuation-style path in `js/allmain.js`:
+    - `result.deferTimedTurnUntilMore`
+    - `pendingPrompt.type = "timed_turn_more_ack"`
+  - That kept `#sit` green, but it violated the intended execution model:
+    one active input owner at a time, with no synthetic continuation tokens.
+- Fix:
+  - remove the generic continuation path from `js/allmain.js`
+  - make `#sit` own its `--More--` acknowledgement synchronously in `js/cmd.js`
+    before timed-turn finalization resumes
+- Evidence:
+  - `t01_s005_v_sit1_gp.session.json` PASS
+  - `t01_s650_w_sit_gp.session.json` PASS
+  - `t01_s651_w_sit2_gp.session.json` PASS
+  - `t11_s755_w_covmax9_gp.session.json` PASS
+- Non-conclusion:
+  - this cleanup did not move `seed031_manual_direct`
+  - the remaining `seed031` drift is still the later command-vs-monster seam,
+    not the old `#sit` continuation path

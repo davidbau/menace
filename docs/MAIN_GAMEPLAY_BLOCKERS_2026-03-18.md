@@ -489,3 +489,46 @@ Final `t11_s755` conclusions:
   - object naming must use `doname`, not `xname`, inside that message
 - After those fixes, the whole session passed without any replay-core or
   comparator special-casing.
+
+# 2026-03-18: remove `timed_turn_more_ack` continuation path
+
+Summary:
+- The repo policy now explicitly requires the single-threaded C execution model:
+  - one active input owner at a time
+  - no deferred continuation tokens to resume gameplay later
+- JS still had one remaining continuation-style path in `js/allmain.js`:
+  - `result.deferTimedTurnUntilMore`
+  - `pendingPrompt.type = "timed_turn_more_ack"`
+- That path was introduced to keep `#sit` green, but it encoded a non-C control
+  handoff model.
+
+What changed:
+- Removed the generic `timed_turn_more_ack` pending-prompt path from
+  `js/allmain.js`.
+- Moved the `#sit` `--More--` acknowledgement back into the owning command in
+  `js/cmd.js`:
+  - if `dosit()` leaves a visible `--More--`, the command now consumes it
+    synchronously via `more(...)`
+  - only after that does normal timed-turn finalization proceed
+
+Why this is more faithful:
+- In C, the command owns that acknowledgement inline; control does not pass back
+  to a synthetic continuation prompt which later resumes the timed turn.
+- This keeps one active input owner at a time and removes one more piece of
+  aftermore-like queueing from core gameplay flow.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s005_v_sit1_gp.session.json`
+  - PASS
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s650_w_sit_gp.session.json`
+  - PASS
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/furniture-thrones-fountains/t01_s651_w_sit2_gp.session.json`
+  - PASS
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/coverage/covmax-round7/t11_s755_w_covmax9_gp.session.json`
+  - PASS
+
+Current conclusion:
+- This cleanup is architecturally correct and validated.
+- It does not materially move `seed031_manual_direct`; the live `seed031` seam
+  remains the later command-vs-monster ownership problem around the `f` / `j`
+  bundle and the downstream extra dart at `14,8`.
