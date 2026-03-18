@@ -45,7 +45,7 @@ import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
@@ -681,6 +681,10 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     player.displacedPetThisTurn = true;
     await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
 
+    // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() (stale FOV).
+    if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
+        see_nearby_objects();
+    }
     // C ref: player moved — recompute FOV immediately (see domove_core comment).
     if (game.fov) {
         mark_vision_dirty();
@@ -1183,6 +1187,13 @@ export async function domove_core(dir, player, map, display, game) {
         // Clear force-fight prefix after successful movement.
         clear_forcefight_prefix(game, ctx);
         await maybeHandleShopEntryMessage(game, oldX, oldY);
+
+        // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() — uses stale
+        // FOV (old player position). This matches C where see_nearby_objects runs inside
+        // u_on_newpos at hack.c:2915, and vision_recalc() is called later at hack.c:2953.
+        if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
+            see_nearby_objects();
+        }
 
         // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
         if (game.fov) {

@@ -702,7 +702,11 @@ async function dog_invent(mon, edog, udist, map, turnCount, display, player, fov
                             fov?.canSee ? fov.canSee(mon.mx, mon.my) : couldsee(map, player, mon.mx, mon.my)
                         );
                         if (canSeePet) {
-                            observeObject(picked);
+                            // C ref: objnam.c distant_name() only calls observe_object when
+                            // cansee(ox,oy) && distu(ox,oy) <= neardist (neardist=6 for r=2).
+                            // distu(ox,oy) = dist2(ox,oy,u.ux,u.uy) where ox,oy = mon position.
+                            const isNearby = dist2(mon.mx, mon.my, player.x, player.y) <= 6;
+                            if (isNearby) observeObject(picked);
                             // C ref: dogmove.c:454 — Monnam(mtmp) uses ARTICLE_THE
                             const monLabel = Monnam(mon);
                             await display.putstr_message(`${monLabel} picks up ${doname(picked, null)}.`);
