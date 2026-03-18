@@ -347,10 +347,15 @@ function describe_readable_engraving(map, x, y, player) {
         }
         break;
     case 'engrave':
-    case 'headstone':
         if (!blind || can_reach_floor(player, map)) {
             sensed = true;
             typeMsg = 'Something is engraved here on the floor.';
+        }
+        break;
+    case 'headstone':
+        if (!blind || can_reach_floor(player, map)) {
+            sensed = true;
+            typeMsg = 'Something is engraved here on the headstone.';
         }
         break;
     case 'burn':

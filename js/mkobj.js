@@ -1228,11 +1228,24 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         else base = od.oc_descr || od.oc_name;
         break;
     case TOOL_CLASS:
-        // C ref: objnam.c xname() — lenses get "pair of ".
+        // C ref: objnam.c xname() — lenses get "pair of "; figurines include monster type.
         if (obj.otyp === LENSES) {
             base = `pair of ${dknown
                 ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))
                 : (od.oc_descr || od.oc_name)}`;
+        } else if (obj.otyp === FIGURINE) {
+            // C ref: objnam.c:709-713 — append " of a/an monsterName" when corpsenm is set.
+            const figIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : -1;
+            const figMon = (figIdx >= 0 && mons[figIdx]) ? mons[figIdx] : null;
+            const figName = figMon
+                ? String(pmname(figMon, figMon.mflags2 & M2_FEMALE ? Mgender.FEMALE
+                    : figMon.mflags2 & M2_MALE ? Mgender.MALE : Mgender.NEUTRAL) || figMon.mname || '').trim()
+                : '';
+            if (figName) {
+                base = `figurine of ${just_an(figName)} ${figName}`;
+            } else {
+                base = od.oc_name;
+            }
         } else {
             base = dknown
                 ? (nameKnown ? od.oc_name : (od.oc_descr || od.oc_name))

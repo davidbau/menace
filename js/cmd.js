@@ -624,7 +624,9 @@ export async function rhack(ch, game) {
     // Extended command (#)
     // C ref: cmd.c doextcmd()
     if (c === '#') {
-        return await handleExtendedCommand(game);
+        const extResult = await handleExtendedCommand(game);
+        game._extcmdPrecedingMsgLen = 0;
+        return extResult;
     }
 
     // Travel command (_)
