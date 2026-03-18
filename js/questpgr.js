@@ -36,6 +36,22 @@ import { is_quest_artifact } from './objdata.js';
 import { rn2 } from './rng.js';
 import { align_gname } from './pray.js';
 import { game as _gstate } from './gstate.js';
+import { NON_PM } from './const.js';
+import { mkclass } from './makemon.js';
+import {
+  G_GENOD,
+  PM_ARCHEOLOGIST, PM_BARBARIAN, PM_CAVE_DWELLER, PM_HEALER, PM_KNIGHT,
+  PM_MONK, PM_CLERIC, PM_RANGER, PM_ROGUE, PM_SAMURAI, PM_TOURIST,
+  PM_VALKYRIE, PM_WIZARD,
+  PM_HUMAN_MUMMY, PM_OGRE, PM_TROLL, PM_BUGBEAR, PM_HILL_GIANT,
+  PM_GIANT_RAT, PM_SNAKE, PM_QUASIT, PM_OCHRE_JELLY, PM_EARTH_ELEMENTAL,
+  PM_XORN, PM_HUMAN_ZOMBIE, PM_WRAITH, PM_FOREST_CENTAUR, PM_SCORPION,
+  PM_LEPRECHAUN, PM_GUARDIAN_NAGA, PM_WOLF, PM_STALKER, PM_GIANT_SPIDER,
+  PM_FIRE_ANT, PM_FIRE_GIANT, PM_VAMPIRE_BAT,
+  S_SNAKE, S_MUMMY, S_OGRE, S_TROLL, S_HUMANOID, S_GIANT, S_RODENT,
+  S_YETI, S_IMP, S_JELLY, S_ELEMENTAL, S_XORN, S_ZOMBIE, S_WRAITH,
+  S_CENTAUR, S_SPIDER, S_NYMPH, S_NAGA, S_DOG, S_ANT, S_BAT,
+} from './monsters.js';
 
 // Minimal common-section pager data needed for faithful runtime message
 // selection in currently exercised gameplay paths. Source: dat/quest.lua.
@@ -86,6 +102,53 @@ const COMMON_QUEST_TEXT = Object.freeze({
     "\"I should fart in thy direction, but it might improve thy smell!\"",
   ]),
 });
+
+const QUEST_ENEMY_DATA = Object.freeze({
+  [PM_ARCHEOLOGIST]: Object.freeze({
+    enemy1num: NON_PM, enemy2num: PM_HUMAN_MUMMY, enemy1sym: S_SNAKE, enemy2sym: S_MUMMY,
+  }),
+  [PM_BARBARIAN]: Object.freeze({
+    enemy1num: PM_OGRE, enemy2num: PM_TROLL, enemy1sym: S_OGRE, enemy2sym: S_TROLL,
+  }),
+  [PM_CAVE_DWELLER]: Object.freeze({
+    enemy1num: PM_BUGBEAR, enemy2num: PM_HILL_GIANT, enemy1sym: S_HUMANOID, enemy2sym: S_GIANT,
+  }),
+  [PM_HEALER]: Object.freeze({
+    enemy1num: PM_GIANT_RAT, enemy2num: PM_SNAKE, enemy1sym: S_RODENT, enemy2sym: S_YETI,
+  }),
+  [PM_KNIGHT]: Object.freeze({
+    enemy1num: PM_QUASIT, enemy2num: PM_OCHRE_JELLY, enemy1sym: S_IMP, enemy2sym: S_JELLY,
+  }),
+  [PM_MONK]: Object.freeze({
+    enemy1num: PM_EARTH_ELEMENTAL, enemy2num: PM_XORN, enemy1sym: S_ELEMENTAL, enemy2sym: S_XORN,
+  }),
+  [PM_CLERIC]: Object.freeze({
+    enemy1num: PM_HUMAN_ZOMBIE, enemy2num: PM_WRAITH, enemy1sym: S_ZOMBIE, enemy2sym: S_WRAITH,
+  }),
+  [PM_RANGER]: Object.freeze({
+    enemy1num: PM_FOREST_CENTAUR, enemy2num: PM_SCORPION, enemy1sym: S_CENTAUR, enemy2sym: S_SPIDER,
+  }),
+  [PM_ROGUE]: Object.freeze({
+    enemy1num: PM_LEPRECHAUN, enemy2num: PM_GUARDIAN_NAGA, enemy1sym: S_NYMPH, enemy2sym: S_NAGA,
+  }),
+  [PM_SAMURAI]: Object.freeze({
+    enemy1num: PM_WOLF, enemy2num: PM_STALKER, enemy1sym: S_DOG, enemy2sym: S_ELEMENTAL,
+  }),
+  [PM_TOURIST]: Object.freeze({
+    enemy1num: PM_GIANT_SPIDER, enemy2num: PM_FOREST_CENTAUR, enemy1sym: S_SPIDER, enemy2sym: S_CENTAUR,
+  }),
+  [PM_VALKYRIE]: Object.freeze({
+    enemy1num: PM_FIRE_ANT, enemy2num: PM_FIRE_GIANT, enemy1sym: S_ANT, enemy2sym: S_GIANT,
+  }),
+  [PM_WIZARD]: Object.freeze({
+    enemy1num: PM_VAMPIRE_BAT, enemy2num: PM_XORN, enemy1sym: S_BAT, enemy2sym: S_WRAITH,
+  }),
+});
+
+function getQuestEnemyData() {
+  const roleMnum = Number.isInteger(_gstate?.player?.roleMnum) ? _gstate.player.roleMnum : NON_PM;
+  return QUEST_ENEMY_DATA[roleMnum] || null;
+}
 
 function get_common_pager_message(msgid) {
   const entry = COMMON_QUEST_TEXT[msgid];
@@ -211,7 +274,18 @@ function convert_common_pager_line(line) {
 // 4/5 chance: picks enemy1num or mkclass(enemy1sym);
 // 1/5 chance: picks enemy2num or mkclass(enemy2sym).
 // Used by mklev to place appropriate enemies on quest levels.
-// TODO: questpgr.c:636 — qt_montype(): random quest level enemy type
+export function qt_montype() {
+  const questEnemy = getQuestEnemyData();
+  if (!questEnemy) return NON_PM;
+
+  const primary = rn2(5) !== 0;
+  const qpm = primary ? questEnemy.enemy1num : questEnemy.enemy2num;
+  const qsym = primary ? questEnemy.enemy1sym : questEnemy.enemy2sym;
+  if (qpm !== NON_PM && rn2(5) !== 0 && !(_gstate?.mvitals?.[qpm]?.mvflags & G_GENOD)) {
+    return qpm;
+  }
+  return mkclass(qsym, 0);
+}
 
 // cf. questpgr.c:654 — deliver_splev_message(): display special-level arrival text
 // Delivers lev_message via deliver_by_pline(); frees lev_message.

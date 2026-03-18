@@ -97,8 +97,11 @@ import { PIT, SPIKED_PIT, LOW_PM,
     M_AP_NOTHING, M_AP_MONSTER,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
-import { In_sokoban, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty } from './dungeon.js';
+import {
+    In_sokoban, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty
+} from './dungeon.js';
 import { newemin } from './minion.js';
+import { qt_montype } from './questpgr.js';
 
 // ========================================================================
 // Monster flags needed for m_initweap/m_initinv checks
@@ -247,6 +250,22 @@ function getRndmonTraceCtx() {
     if (!a) return '?';
     const b = toTag(lines[4]);
     return b ? `${a} <= ${b}` : a;
+}
+
+function _currentMonsterGenerationLevel() {
+    const map = _gstate?.map;
+    const player = _gstate?.player;
+    // Generation-time branch/depth context is authoritative for monster selection
+    // and must match mklev/makemon callsite behavior.
+    if (Number.isInteger(map?._genDnum) && Number.isInteger(map?._genDlevel)) {
+        return { dnum: map._genDnum, dlevel: map._genDlevel };
+    }
+    // At non-generation call sites, fall back to current map/player level.
+    const explicit = map?.uz || player?.uz;
+    if (explicit && Number.isInteger(explicit.dnum) && Number.isInteger(explicit.dlevel)) {
+        return explicit;
+    }
+    return null;
 }
 
 // C ref: makemon.c:34 is_home_elemental()
@@ -417,7 +436,11 @@ export function rndmonst_adj(minadj, maxadj, depth) {
     const minmlev = monmin_difficulty(zlevel) + minadj;
     const maxmlev = monmax_difficulty(zlevel, ulevel) + maxadj;
 
-    // Quest check: not in quest → skip rn2(7)
+    const genLevel = _currentMonsterGenerationLevel();
+    if (In_quest(genLevel || {}) && rn2(7)) {
+        const questMonster = qt_montype();
+        if (questMonster >= 0) return questMonster;
+    }
 
     let totalweight = 0;
     let selected_mndx = -1; // NON_PM
