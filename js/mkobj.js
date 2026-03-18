@@ -1283,17 +1283,9 @@ function xname_for_doname(obj, dknown = true, known = true, bknown = false) {
         break;
     case FOOD_CLASS:
         if (obj.otyp === CORPSE) {
-            // C ref: objnam.c xname() -- unidentified corpses are generic.
-            if (!dknown) {
-                base = 'corpse';
-            } else {
-                const corpseIdx = Number.isInteger(obj.corpsenm) ? obj.corpsenm : obj.corpsem;
-                if (Number.isInteger(corpseIdx) && mons[corpseIdx]) {
-                    base = `${mons[corpseIdx].mname} corpse`;
-                } else {
-                    base = 'corpse';
-                }
-            }
+            // C ref: objnam.c xname() FOOD_CLASS just uses actualn (= oc_name = "corpse").
+            // xname() never includes the monster type; only doname() adds it via corpse_xname().
+            base = 'corpse';
         } else if (obj.otyp === TIN && known) {
             // C ref: eat.c tin_details() — show content when obj->known is set
             if (obj.spe === 1) {

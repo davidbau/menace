@@ -18,7 +18,7 @@ import {
 } from './const.js';
 
 import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF,
-    glyph_is_invisible, glyph_is_trap, GLYPH_CMAP_MAIN_OFF,
+    glyph_is_invisible, glyph_is_trap, glyph_is_generic_object, GLYPH_CMAP_MAIN_OFF,
 } from './symbols.js';
 import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
@@ -2241,8 +2241,11 @@ export function see_nearby_objects() {
       if (!cs) continue;
       if (du > neardist) continue;
       observe_object(topObj);
-      // Force redisplay so the specific object name is shown instead of generic
-      newsym_force(ix, iy);
+      // C ref: display.c:1591-1592 — only force redisplay if current glyph is a generic object
+      // (unidentified object class symbol). If it's a trap or terrain, don't override it.
+      if (glyph_is_generic_object(glyph_at(ix, iy))) {
+        newsym_force(ix, iy);
+      }
     }
   }
 }
