@@ -1860,38 +1860,53 @@
     },
     {
       "cmd": "u",
-      "note": "open trap door reads 'u' as disambiguation (go up through door) — this step is consumed silently, -1 boundary offset"
+      "boundaryAdjust": -1,
+      "note": "open trap door reads 'u' as disambiguation — produces no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1"
     },
     {
       "cmd": "examine brochure",
-      "note": "MIT Tech parody: chunk is off-by-one due to silent u, no expect — checking coin art chunk instead of brochure"
+      "expect": [
+        "MIT Tech"
+      ],
+      "note": "MIT Tech parody: Ambition, Uglification, Derision, Reeling and Writhing (Lewis Carroll)"
     },
     {
       "cmd": "examine coin",
-      "note": "Gold Zorkmid coin: chunk is off-by-one, no expect"
+      "expect": [
+        "Lord Dimwit Flathead",
+        "Zorkmid"
+      ],
+      "note": "Gold Zorkmid coin: Ten Thousand Zorkmids, Lord Dimwit Flathead Beloved of Zorkers, 722 G.U.E."
     },
     {
       "cmd": "examine matchbook",
-      "note": "matchbook BKD: chunk is off-by-one, no expect"
+      "expect": [
+        "BKD"
+      ],
+      "note": "matchbook: MIT Tech paper shuffling ad, Close cover before striking BKD"
     },
     {
       "cmd": "examine newspaper",
-      "note": "US NEWS & DUNGEON REPORT: chunk is off-by-one, no expect"
+      "expect": [
+        "dungeon report"
+      ],
+      "note": "US NEWS & DUNGEON REPORT: lots of bugs fixed, dsmaint@pa.dec.com"
     },
     {
       "cmd": "examine stamp",
-      "note": "G.U.E. Postage stamp: chunk is off-by-one, no expect"
+      "note": "G.U.E. Postage stamp: Lord Dimwit Flathead portrait, 3 Zorkmids (ASCII art border lines filtered)"
     },
     {
       "cmd": "put treasure in case",
+      "boundaryAdjust": 1,
       "expect": [
         "616 [total of 616 points]"
       ],
-      "note": "final deposit: -1 from silent u + +1 from put's extra endgame boundary = correct alignment here"
+      "note": "final deposit triggers endgame with extra ' > ruby:' boundary; boundaryAdjust=+1 cancels the earlier -1 to land on 616 announcement"
     },
     {
       "cmd": "score",
-      "note": "final score (already shown in put treasure in case step)"
+      "note": "final score verification"
     }
   ],
   "notes": "Seed 1 complete speedrun attempt",

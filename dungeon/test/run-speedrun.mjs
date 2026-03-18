@@ -55,11 +55,12 @@ if (useFortran) {
     if (current.length) chunks.push(current);
 
     // chunks[0] = welcome text (before first prompt)
-    // chunks[i+1] = output after step i
-    let passed = 0, failed = 0;
+    // chunks[i+1] = output after step i (adjusted by boundaryOffset for silent commands)
+    let passed = 0, failed = 0, boundaryOffset = 0;
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
-        const output = (chunks[i + 1] || []).join('\n');
+        if (step.boundaryAdjust) boundaryOffset += step.boundaryAdjust;
+        const output = (chunks[i + 1 + boundaryOffset] || []).join('\n');
         const outputLower = output.toLowerCase();
 
         let ok = true;
