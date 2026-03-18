@@ -237,3 +237,26 @@ that C doesn't have. The revert was correct.
 seed301's divergence at `rn2(19) vs rn2(38)` is NOT from rnl logging — it's from
 a 1-call offset caused by something else before the kick_door call. Same class
 of accumulated code path difference as seed031.
+
+## CONSISTENT PATTERN across all 4 failures (March 19, 00:00 UTC)
+
+All 4 failing sessions show the SAME divergence mechanism:
+- Spawn values match for N turns (seed031: 366, seed032: 103, seed033: varies, seed301: varies)
+- At turn N+1, C's pet AI (`dog_goal`) evaluates MORE objects via `dogfood → obj_resists`
+  than JS does (typically 3-8 extra rn2(100) calls)
+- The extra calls shift C's RNG, causing subsequent spawn values to diverge
+- Once spawns diverge, everything cascades
+
+**The extra objects in C's pet range are floor objects that exist in C's `fobj` but
+not in JS's `map.objects` at the same positions.** Both sides have similar total
+floor object counts (~10-28), but the objects are at different positions.
+
+**Root cause**: Objects accumulate position differences over gameplay turns. Each
+monster death drops inventory at the monster's position. If a monster is at a slightly
+different position in JS vs C (from earlier mfndpos/m_move differences), its dropped
+items end up at different floor positions. Over 100+ turns, these position differences
+accumulate, eventually placing different numbers of objects in the pet's search range.
+
+**Fix strategy**: Continue improving monster movement parity (mfndpos, m_move, dochug).
+Each improvement pushes the divergence later. Eventually, enough parity improvements
+will eliminate the accumulated position differences entirely.
