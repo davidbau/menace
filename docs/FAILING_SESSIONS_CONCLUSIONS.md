@@ -180,11 +180,30 @@ calls at turn 140 fire correctly in both.
 **The real divergence is between turn 146 and 147** — one specific turn where
 monster movement or turn-end processing consumes different RNG calls.
 
+## ROOT CAUSE FOUND: JS has fewer floor objects than C (March 18, ~22:30 UTC)
+
+At turn 146, the pet (M37 at 49,17) scans objects in range [44..54]×[12..20]:
+- **C has 7 objects** → 7 dogfood → obj_resists → rn2(100) calls
+- **JS has 1 object** → 1 dogfood → obj_resists → rn2(100) call
+
+The 6 missing floor objects cause 6 fewer rn2(100) calls, shifting the RNG by
+6 positions. This produces different spawn check values at turn 147 (JS=51, C=40),
+cascading into full divergence.
+
+**The 6 missing objects are from monster inventory drops.** When monsters die in C,
+their inventory + treasure drops go to the floor (joining fobj). JS's xkilled/treasure
+code either:
+- Doesn't drop all items from monster inventory
+- Drops them but doesn't add them to map.objects
+- Drops them at different positions (outside the pet's range)
+
 ## NEXT STEPS
 
-1. **Compare RNG entries between turn 146 and 147 spawn checks**: The divergence
-   is in the monster movement, gethungry, exerchk, or other turn-end processing
-   for turn 146. Look at the raw C entries between spawn(57) and spawn(40),
-   and compare with JS entries between spawn(57) and spawn(51).
+1. **Compare xkilled treasure-drop code**: Check JS's mon.js xkilled path for
+   missing inventory drops. C's mon.c:3580-3607 handles "illogical but traditional"
+   treasure drops. JS has this at mon.js:1060. Compare faithfully.
 
-2. **t11_s755 is now FIXED** (432/436).
+2. **Verify map.objects maintenance**: Check if JS's place_object/remove_object
+   correctly maintains map.objects when objects are created/dropped/picked up.
+
+3. **t11_s755 is now FIXED** (432/436).
