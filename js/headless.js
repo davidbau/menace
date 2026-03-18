@@ -616,6 +616,7 @@ export class HeadlessDisplay {
         this.messages = []; // Message history
         this.flags = { msg_window: false, DECgraphics: false, lit_corridor: false, color: true }; // Default flags
         this.messageNeedsMore = false; // For message concatenation
+        this.messageConcatFit = false; // true when toplin==2 (concat-fit, no --More-- needed)
         this.moreMarkerActive = false;
         this.messageCursorCol = 0;
         this.messageCursorRow = 0;
@@ -843,6 +844,10 @@ export class HeadlessDisplay {
                     ? this._lastMapState.gameMap._replayStepIndex
                     : null;
                 this.messageNeedsMore = true;
+                // C ref: topl_puts() sets toplin=2 for concat-fit (no --More--
+                // needed).  Mark this so renderAndAutosave doesn't render the
+                // --More-- marker — only toplin=1 (single/fresh message) needs it.
+                this.messageConcatFit = true;
                 this.messageCursorCol = Math.min(combined.length, this.cols - 1);
                 this.messageCursorRow = 0;
                 this.setCursor(this.messageCursorCol, 0);
@@ -923,6 +928,9 @@ export class HeadlessDisplay {
                 this._topMessageEncumbrance = _msgPlayer?.encumbrance ?? null;
             }
             this.messageNeedsMore = true;
+            // C ref: topl_puts() sets toplin=1 for a fresh single message.
+            // renderAndAutosave uses this to know --More-- must be rendered.
+            this.messageConcatFit = false;
             this.messageCursorCol = Math.min(msg.length, this.cols - 1);
             this.messageCursorRow = 0;
             if (freshAfterMore && typeof this.renderStatus === 'function') {
@@ -997,6 +1005,7 @@ export class HeadlessDisplay {
             ? this._lastMapState.gameMap._replayStepIndex
             : null;
         this.messageNeedsMore = true;
+        this.messageConcatFit = false; // long/wrapped single message: toplin==1
         this.messageCursorCol = Math.min(firstLine.length, this.cols - 1);
         this.messageCursorRow = 0;
         if (freshAfterMore && typeof this.renderStatus === 'function') {

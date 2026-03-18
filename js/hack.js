@@ -45,7 +45,7 @@ import { place_object } from './mkobj.js';
 import { an, The, vtense } from './objnam.js';
 import { hliquid, m_monnam } from './do_name.js';
 import { dosearch0 } from './detect.js';
-import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location } from './display.js';
+import { newsym, mark_vision_dirty, vision_recalc, canSpotMonsterForMap, canSeeMonsterForMap, canspotmon, feel_location as display_feel_location, see_nearby_objects } from './display.js';
 import { couldsee, recalc_block_point } from './vision.js';
 import { helpless, monnear, onscary, wake_nearby } from './mon.js';
 import { monflee, closed_door } from './monmove.js';
@@ -60,7 +60,7 @@ import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap, domagicportal } from './teleport.js';
-import { trapeffect_bear_trap_you, dotrap } from './trap.js';
+import { trapeffect_bear_trap_you, trapeffect_web_you, dotrap } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -681,6 +681,10 @@ export async function domove_swap_with_pet(mon, nx, ny, dir, player, map, displa
     player.displacedPetThisTurn = true;
     await maybeHandleShopEntryMessage(game, oldPlayerX, oldPlayerY);
 
+    // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() (stale FOV).
+    if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
+        see_nearby_objects();
+    }
     // C ref: player moved — recompute FOV immediately (see domove_core comment).
     if (game.fov) {
         mark_vision_dirty();
@@ -1184,6 +1188,13 @@ export async function domove_core(dir, player, map, display, game) {
         clear_forcefight_prefix(game, ctx);
         await maybeHandleShopEntryMessage(game, oldX, oldY);
 
+        // C ref: u_on_newpos() calls see_nearby_objects() BEFORE vision_recalc() — uses stale
+        // FOV (old player position). This matches C where see_nearby_objects runs inside
+        // u_on_newpos at hack.c:2915, and vision_recalc() is called later at hack.c:2953.
+        if (!(player.Blind || player.blind) && !(player.Hallucination || player.hallucinating) && !player.uswallow) {
+            see_nearby_objects();
+        }
+
         // C ref: player moved — recompute FOV immediately so newsym sees correct visibility.
         if (game.fov) {
             mark_vision_dirty();
@@ -1415,10 +1426,14 @@ export async function domove_core(dir, player, map, display, game) {
             // C ref: trap.c fall_through() schedules deferred level change with
             // UTOTYPE_FALLING so goto_level applies fall-damage semantics.
             schedule_goto(player, destDepth, 0x02, null, null);
-        } else if (trap.ttyp === ROCKTRAP || trap.ttyp === WEB) {
-            // C ref: trap.c dotrap() — delegate to full trap handler for WEB and
-            // ROCKTRAP. Pass FORCETRAP to skip the escape gate since
-            // applySteppedTrap already consumed the rn2(5) escape roll above.
+        } else if (trap.ttyp === WEB) {
+            // C ref: trap.c dotrap() — applySteppedTrap already consumed the
+            // rn2(5) escape roll above, so call trapeffect_web_you directly
+            // with trflags=0 (not FORCETRAP) so the "stumble into" message path
+            // is used instead of "are caught by".
+            await trapeffect_web_you(trap, 0, player, game, map);
+        } else if (trap.ttyp === ROCKTRAP) {
+            // C ref: trap.c dotrap() — delegate to full trap handler for ROCKTRAP.
             await dotrap(trap, FORCETRAP, player, game, map);
         }
         return trap;
@@ -3744,7 +3759,9 @@ export async function trapmove(player, x, y, display, map = null) {
         if (!player.utrap) {
             if (display) await display.putstr_message('You disentangle yourself.');
         } else {
-            if (display) await display.putstr_message('You are stuck to the web.');
+            // C ref: hack.c trapmove() — uses Norep so message only prints once
+            // (the first failed escape attempt), not on every subsequent attempt.
+            await Norep('You are stuck to the web.');
         }
         return false;
     }

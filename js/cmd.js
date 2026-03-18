@@ -39,7 +39,7 @@ import {
     handlePrevMessages, handleHelp, handleWhatdoes, handleHistory,
     handleViewMapPrompt, dolook, dowhatis, doquickwhatis,
 } from './pager.js';
-import { handleKick } from './kick.js';
+import { dokick } from './dokick.js';
 import { handleZap } from './zap.js';
 import { handleSave } from './storage.js';
 import { handleForce, handleOpen, handleClose, reset_pick } from './lock.js';
@@ -318,11 +318,23 @@ export async function rhack(ch, game) {
 
     // Open door
     if (c === 'o') {
+        // C ref: lock.c doopen() checks iflags.menu_requested
+        if (game?.menuRequested) {
+            game.menuRequested = false;
+            await pline("The open command does not accept 'm' prefix.");
+            return { moved: false, tookTime: false };
+        }
         return await handleOpen(player, map, display, game);
     }
 
     // Close door
     if (c === 'c') {
+        // C ref: lock.c doclose() checks iflags.menu_requested
+        if (game?.menuRequested) {
+            game.menuRequested = false;
+            await pline("The close command does not accept 'm' prefix.");
+            return { moved: false, tookTime: false };
+        }
         return await handleClose(player, map, display, game);
     }
 
@@ -556,7 +568,7 @@ export async function rhack(ch, game) {
 
     // Kick (Ctrl+D)
     if (ch === 4) {
-        return await handleKick(player, map, display, game);
+        return await dokick(player, map, display, game);
     }
 
     // Previous messages (Ctrl+P)
@@ -612,7 +624,9 @@ export async function rhack(ch, game) {
     // Extended command (#)
     // C ref: cmd.c doextcmd()
     if (c === '#') {
-        return await handleExtendedCommand(game);
+        const extResult = await handleExtendedCommand(game);
+        game._extcmdPrecedingMsgLen = 0;
+        return extResult;
     }
 
     // Travel command (_)
@@ -793,7 +807,9 @@ async function handleExtendedCommand(game) {
     const rawCmd = input.trim();
     // C ref: get_ext_cmd() accepts a unique prefix and resolves it to the full
     // command name. "#l\n" → "loot", "#lo\n" → "loot", etc.
-    const completedRaw = displayCompletedExtcmd(rawCmd, game);
+    // Use resolveExtcmd (not displayCompletedExtcmd) so that no-autocomplete
+    // commands like kick/twoweapon still execute when typed as abbreviations.
+    const completedRaw = resolveExtcmd(rawCmd, game);
     const cmd = completedRaw.toLowerCase();
     const queueRepeatExtcmd = async (fn) => {
         if (game?.inDoAgain || typeof fn !== 'function') return;
@@ -1053,8 +1069,8 @@ async function handleExtendedCommand(game) {
         case 'invoke':
             return { moved: false, tookTime: !!((await doinvoke(player, game)) & ECMD_TIME) };
         case 'kick':
-            queueRepeatExtcmd((g) => handleKick(g.player, g.map, g.display, g));
-            return await handleKick(player, game.map, display, game);
+            queueRepeatExtcmd((g) => dokick(g.player, g.map, g.display, g));
+            return await dokick(player, game.map, display, game);
         case 'twoweapon':
             queueRepeatExtcmd((g) => handleTwoWeapon(g.player, g.display, g));
             return await handleTwoWeapon(player, display, game);
@@ -1086,6 +1102,11 @@ function knownExtendedCommands(game) {
     return cmds;
 }
 
+// C ref: cmd.c extcmdlist[] AUTOCOMPLETE flag — some commands are excluded
+// from live autocomplete display. C echoes typed characters verbatim for
+// these commands even when the prefix is unique.
+const NO_DISPLAY_AUTOCOMPLETE = new Set(['kick', 'twoweapon']);
+
 function displayCompletedExtcmd(typed, game) {
     const raw = String(typed || '');
     const lowered = raw.toLowerCase();
@@ -1094,6 +1115,31 @@ function displayCompletedExtcmd(typed, game) {
     if (lowered === 'e') return 'enhance';
     // C shows literal one-letter progress for some extcmds while typing.
     // Keep these literal so typed echo matches C.
+    if (lowered === 'd' || lowered === 's' || lowered === 'c' || lowered === 'ch' || lowered === 'p') return raw;
+    const cmds = knownExtendedCommands(game);
+    const exact = cmds.find((c) => c === lowered);
+    if (exact) return raw;
+    const matches = cmds.filter((c) => c.startsWith(lowered));
+    if (matches.length === 1) {
+        // Don't show autocomplete for commands that lack the AUTOCOMPLETE flag in C.
+        if (NO_DISPLAY_AUTOCOMPLETE.has(matches[0])) return raw;
+        return matches[0];
+    }
+    return raw;
+}
+
+// Resolve a typed extcmd prefix to a command name (used after Enter).
+// Unlike displayCompletedExtcmd, this resolves unique prefixes even for
+// no-autocomplete commands (kick, twoweapon), so "#tw\n" still executes
+// twoweapon. The same ambiguity guards apply as in displayCompletedExtcmd
+// (d/s/c/ch/p prefixes are still ambiguous in C and won't resolve).
+function resolveExtcmd(typed, game) {
+    const raw = String(typed || '');
+    const lowered = raw.toLowerCase();
+    if (!lowered) return raw;
+    if (lowered === 'e') return 'enhance';
+    // Same ambiguity guards as displayCompletedExtcmd — these prefixes have
+    // multiple matches in C's 180-command list and must not resolve uniquely.
     if (lowered === 'd' || lowered === 's' || lowered === 'c' || lowered === 'ch' || lowered === 'p') return raw;
     const cmds = knownExtendedCommands(game);
     const exact = cmds.find((c) => c === lowered);

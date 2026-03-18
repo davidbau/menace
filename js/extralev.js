@@ -250,8 +250,10 @@ export function makeroguerooms(depth = 15) {
         }
     }
 
-    const startY = rn2(3);
+    // C ref: extralev.c:239 miniwalk(rn2(3), rn2(3))
+    // C evaluates left-to-right: first arg = x = rn2(3), second arg = y = rn2(3).
     const startX = rn2(3);
+    const startY = rn2(3);
     miniwalk(rooms, startX, startY);
 
     for (let y = 0; y < 3; y++) {

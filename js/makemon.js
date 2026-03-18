@@ -2559,10 +2559,11 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
             }
             set_msg_xy(mon.mx, mon.my);
             if (mmflags & MM_ASYNC) {
-                // Caller will await via makemon_appear(); Norep starts executing
+                // Caller will await via makemon_appear(); pline starts executing
                 // synchronously (putstr_message updates display immediately) and
                 // the promise is stored for the caller to await.
-                mon._appearPromise = Norep('%s%s %s%s%s',
+                // C ref: makemon.c uses pline() not norep() — always show message.
+                mon._appearPromise = pline('%s%s %s%s%s',
                     what,
                     exclaim ? ' suddenly' : '',
                     vtense(what, 'appear'),

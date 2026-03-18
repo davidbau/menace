@@ -18,12 +18,12 @@ import {
 } from './const.js';
 
 import { def_monsyms, def_oc_syms, S_sw_tl, S_sw_br, NUM_ZAP, GLYPH_ZAP_OFF, GLYPH_SWALLOW_OFF,
-    glyph_is_invisible, glyph_is_trap, GLYPH_CMAP_MAIN_OFF,
+    glyph_is_invisible, glyph_is_trap, glyph_is_generic_object, GLYPH_CMAP_MAIN_OFF,
 } from './symbols.js';
 import { M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
 import { monsterMapGlyph, objectMapGlyph } from './display_rng.js';
 import { tempGlyphToCell } from './temp_glyph.js';
-import { isObjectNameKnown, isObjectEncountered, discoveryTypeName } from './o_init.js';
+import { isObjectNameKnown, isObjectEncountered, discoveryTypeName, observe_object } from './o_init.js';
 import {
     wallIsVisible,
     trapGlyph,
@@ -51,6 +51,7 @@ import { rn2 } from './rng.js';
 import { set_wall_state as dungeonSetWallState, xy_set_wall_state as dungeonXySetWallState } from './dungeon.js';
 import { more } from './input.js';
 import { game as _gstate } from './gstate.js';
+import { distu } from './hacklib.js';
 import {
     debugRepaint,
     logRepaint,
@@ -2212,6 +2213,43 @@ export function see_objects() {
   update_inventory();
 }
 
+// C ref: display.c:1565 see_nearby_objects()
+// Mark the top floor object at each visible nearby cell as dknown=true.
+// Called from u_on_newpos() when the player moves (dungeon.js:u_on_newpos).
+// Matches C's logic: iterate r=2 range, cansee + distu <= neardist, observe_object.
+export function see_nearby_objects() {
+  const ctx = _gstate;
+  const map = ctx?.map;
+  const player = ctx?.player;
+  if (!map?.objects || !player) return;
+  const x = player.x, y = player.y;
+  // C ref: r = max(xray_range, 2); neardist = r*r + r*(r-1)
+  const r = (player.xray_range > 2) ? player.xray_range : 2;
+  const neardist = r * r * 2 - r;
+  const fov = ctx?.fov || null;
+  for (let iy = y - r; iy <= y + r; ++iy) {
+    for (let ix = x - r; ix <= x + r; ++ix) {
+      if (!isok(ix, iy)) continue;
+      // Find the topmost (last placed) object at this position — matches C's vobj_at
+      let topObj = null;
+      for (const obj of map.objects) {
+        if (obj.ox === ix && obj.oy === iy) topObj = obj;
+      }
+      if (!topObj || topObj.dknown) continue;
+      const cs = cansee(map, player, fov, ix, iy);
+      const du = distu(player, ix, iy);
+      if (!cs) continue;
+      if (du > neardist) continue;
+      observe_object(topObj);
+      // C relies on vision_recalc's seenv-angle change triggering newsym() for newly-dknown
+      // objects (display.c:1591: only call newsym_force if already showing a generic obj glyph).
+      // JS vision_recalc only calls newsym on visibility CHANGE (not seenv-angle change), so
+      // we must always call newsym_force here to update the display when dknown is set.
+      newsym_force(ix, iy);
+    }
+  }
+}
+
 // Autotranslated from display.c:1599
 export function see_traps() {
   const map = _gstate?.map;
@@ -2262,11 +2300,32 @@ export async function cls(ctxOrMap = null) {
   const ctx = _resolveDisplayCtx(ctxOrMap);
   const display = ctx?.display;
   if (!display) return;
+  // C ref: cls() calls display_nhwindow(WIN_MESSAGE, FALSE) first.
+  // In tty, when toplin==TOPLINE_NEED_MORE, this fires more() (shows --More--) then clears row 0.
+  // When toplin is not NEED_MORE, it just resets toplin to TOPLINE_EMPTY without clearing row 0.
+  if (display.messageNeedsMore) {
+    if (display._nhgetch) {
+      if (typeof display.renderMoreMarker === 'function') display.renderMoreMarker();
+      await more(display, {
+        site: 'display.cls.message-flush',
+        clearAfter: true,
+        readKey: display._nhgetch,
+      });
+    } else {
+      // No nhgetch available; just reset message state (clear anyway for safety).
+      if (typeof display.clearRow === 'function') display.clearRow(MESSAGE_ROW);
+      display.messageNeedsMore = false;
+      display.topMessage = null;
+    }
+  }
+  // C ref: cls() calls clear_nhwindow(WIN_MAP) which clears only the MAP area,
+  // NOT the message row (row 0) or status rows. C also calls clear_glyph_buffer().
+  const mapEnd = STATUS_ROW_1; // rows MAP_ROW_START through STATUS_ROW_1-1
   if (typeof display.clearRow === 'function') {
-    for (let r = 0; r < display.rows; r++) display.clearRow(r);
+    for (let r = MAP_ROW_START; r < mapEnd; r++) display.clearRow(r);
     return;
   }
-  for (let r = 0; r < (display.rows || TERMINAL_ROWS); r++) {
+  for (let r = MAP_ROW_START; r < mapEnd; r++) {
     for (let c = 0; c < (display.cols || TERMINAL_COLS); c++) {
       display.setCell?.(c, r, ' ', CLR_GRAY);
     }

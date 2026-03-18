@@ -816,6 +816,18 @@ export async function handleInventory(player, display, game) {
                             '/ - Look up information about this',
                             '(end)',
                         ]
+                        : (selected.oclass === WEAPON_CLASS
+                        ? [
+                            `c - Name this specific ${noun}`,
+                            'd - Drop this item',
+                            `E - Write on the ${_surfName} with this item`,
+                            'i - Adjust inventory by assigning new letter',
+                            "Q - Quiver this item for easy throwing with 'f'ire",
+                            't - Throw this item',
+                            'w - Wield this item as your weapon',
+                            '/ - Look up information about this',
+                            '(end)',
+                        ]
                     : [
                         ...(selected.otyp === MAGIC_MARKER
                             ? ['a - Write on something with this marker']
@@ -841,12 +853,14 @@ export async function handleInventory(player, display, game) {
                         ...(selected.oclass === POTION_CLASS
                             ? ['q - Quaff (drink) this potion']
                             : []),
+                        ...(selected.oclass === SCROLL_CLASS
+                            ? ['r - Read this scroll to activate its magic']
+                            : []),
                         't - Throw this item',
                         'w - Wield this item in your hands',
                         '/ - Look up information about this',
                         '(end)',
-                    ]))));
-
+                    ])))));
             const promptText = `Do what with the ${noun}?`;
             const maxAction = rawActions.reduce((m, line) => Math.max(m, line.length), promptText.length);
             menuOffx = Math.max(10, displayCols - maxAction - 2);
@@ -879,6 +893,15 @@ export async function handleInventory(player, display, game) {
                 for (let i = 0; i < stackActions.length; i++) {
                     if (typeof display.clearRow === 'function') display.clearRow(i + 2);
                     await display.putstr(0, i + 2, stackActions[i]);
+                }
+                // C ref: tty clears any inventory overflow at STATUS_ROW_1/2
+                // when showing the "Do what with X?" prompt. renderMap redraws
+                // rows 1-21 but NOT the status rows (22-23), which may still
+                // hold lingering inventory items. Only clear those rows.
+                if (typeof display.clearRow === 'function'
+                    && Number.isInteger(STATUS_ROW_1) && Number.isInteger(STATUS_ROW_2)) {
+                    display.clearRow(STATUS_ROW_1);
+                    display.clearRow(STATUS_ROW_2);
                 }
             }
             const actionKeys = new Set(rawActions.map((line) => String(line || '').charAt(0)));

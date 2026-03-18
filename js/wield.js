@@ -8,13 +8,15 @@ import { objectData, WEAPON_CLASS, TOOL_CLASS, GEM_CLASS, ARMOR_CLASS,
 import { doname, weight, splitobj, xname } from './mkobj.js';
 import { rn2, rnd } from './rng.js';
 import { exercise } from './attrib_exercise.js';
-import { W_WEP, W_SWAPWEP, W_QUIVER, W_ARMOR, A_DEX } from './const.js';
+import { W_WEP, W_SWAPWEP, W_QUIVER, W_ARMOR, A_DEX, GETOBJ_SUGGEST } from './const.js';
 import { is_plural, otense } from './objnam.js';
 import { Shk_Your } from './shk.js';
-import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, compactInvletPromptChars } from './invent.js';
+import { renderOverlayMenuUntilDismiss, buildInventoryOverlayLines, compactInvletPromptChars, prinv } from './invent.js';
 import { addinv_nomerge } from './invent.js';
 import { acurr } from './attrib.js';
 import { ammo_and_launcher } from './dothrow.js';
+import { Role_if, roleNameForGender } from './role.js';
+import { PM_BARBARIAN, PM_RANGER, PM_ROGUE, PM_SAMURAI, PM_TOURIST, PM_VALKYRIE } from './monsters.js';
 
 // ============================================================
 // 1. Slot setters
@@ -156,9 +158,21 @@ export async function untwoweapon(player, display) {
 }
 
 // cf. wield.c:756 — can_twoweapon(): check if hero can dual-wield
-// Simplified: role check not implemented (would need urole.roledata)
 async function can_twoweapon(player, display) {
     if (!player) return false;
+    // C ref: wield.c — role check comes first (before weapon check).
+    // Only Barbarians, Rangers, Rogues, Samurai, Tourists, Valkyries can.
+    const roleCanTwoweapon = Role_if(player, PM_BARBARIAN) || Role_if(player, PM_RANGER)
+        || Role_if(player, PM_ROGUE) || Role_if(player, PM_SAMURAI)
+        || Role_if(player, PM_TOURIST) || Role_if(player, PM_VALKYRIE);
+    if (!roleCanTwoweapon) {
+        if (display) {
+            const female = !!(player.female);
+            const rname = roleNameForGender(player.roleIndex, female);
+            await display.putstr_message(`${rname}s aren't able to use two weapons at once.`);
+        }
+        return false;
+    }
     if (!player.weapon || !player.swapWeapon) {
         if (display) await display.putstr_message('Your hands are empty.');
         return false;
@@ -668,13 +682,11 @@ async function handleSwapWeapon(player, display) {
 async function handleQuiver(player, display) {
     const inventory = Array.isArray(player.inventory) ? player.inventory : [];
 
-    // C ref: wield.c ready_ok() — suggest ammo, missiles, gems; downplay launchers
-    const quiverEligible = inventory.filter((obj) => {
-        const verdict = ready_ok(obj, player);
-        return verdict === 1 || verdict === 2;
-    });
+    // C ref: wield.c ready_ok() — only GETOBJ_SUGGEST items appear in the prompt brackets;
+    // GETOBJ_DOWNPLAY items are selectable by letter but not listed in [x y z or ?*].
+    const quiverSuggested = inventory.filter((obj) => ready_ok(obj, player) === GETOBJ_SUGGEST);
 
-    const letters = compactInvletPromptChars(quiverEligible.map((item) => item.invlet).join(''));
+    const letters = compactInvletPromptChars(quiverSuggested.map((item) => item.invlet).join(''));
     const prompt = letters.length > 0
         ? `What do you want to ready? [- ${letters} or ?*] `
         : 'What do you want to ready? [- or ?*] ';
@@ -726,8 +738,9 @@ async function handleQuiver(player, display) {
         }
 
         replacePromptMessage(display);
+        // C ref: wield.c:651-652 — setuqwep BEFORE prinv so "(at the ready)" appears in name
         setuqwep(player, item);
-        await display.putstr_message(`${doname(item, player)} ready to be thrown.`);
+        await prinv(null, item, 0, player);
         return { moved: false, tookTime: false };
     }
 }

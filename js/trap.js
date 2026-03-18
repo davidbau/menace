@@ -684,7 +684,7 @@ async function trapeffect_level_telep_mon(mon, trap, trflags, map, player, fov) 
     return await mlevel_tele_trap(mon, trap, forcetrap, in_sight, map, player);
 }
 
-function trapeffect_web_mon(mon, trap, map) {
+async function trapeffect_web_mon(mon, trap, map) {
     const mptr = mons[mon.mndx] || {};
     let tear_web = false;
 
@@ -729,6 +729,11 @@ function trapeffect_web_mon(mon, trap, map) {
     if (!tear_web) {
         mon.mtrapped = 1;
         seetrap(trap);
+        // C ref: trap.c — if (cansee(mtmp->mx, mtmp->my)) pline("%s is caught in %s spider web!"...)
+        if (cansee(mon.mx, mon.my)) {
+            await pline_mon(mon, '%s is caught in %s spider web.',
+                Monnam(mon), a_your[trap.madeby_u ? 1 : 0]);
+        }
     }
 
     if (tear_web) {
@@ -1036,7 +1041,7 @@ async function trapeffect_selector_mon(mon, trap, trflags, map, player, display,
     case MAGIC_PORTAL:
         return await trapeffect_magic_portal_mon(mon, trap, trflags, map, player);
     case WEB:
-        return trapeffect_web_mon(mon, trap, map);
+        return await trapeffect_web_mon(mon, trap, map);
     case STATUE_TRAP:
         return trapeffect_statue_trap_mon();
     case MAGIC_TRAP:
@@ -2570,7 +2575,7 @@ async function trapeffect_level_telep_you(trap, trflags, player, game, map) {
 }
 
 // C ref: trap.c:2084 trapeffect_web — player branch
-async function trapeffect_web_you(trap, trflags, player, game, map) {
+export async function trapeffect_web_you(trap, trflags, player, game, map) {
     const webmsgok = (trflags & NOWEBMSG) === 0;
     const forcetrap = ((trflags & FORCETRAP) !== 0 || (trflags & FAILEDUNTRAP) !== 0);
     const viasitting = (trflags & VIASITTING) !== 0;

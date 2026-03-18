@@ -842,7 +842,7 @@ export async function peffect_hallucination(player, otmp, display) {
     if ((otmp.blessed && !rn2(3)) || (!otmp.cursed && !rn2(6))) {
         await You("perceive yourself...");
         // C: display_nhwindow(WIN_MESSAGE, FALSE); enlightenment(MAGICENLIGHTENMENT, ENL_GAMEINPROGRESS);
-        await do_enlightenment_effect(player, display);
+        await do_enlightenment_effect(player, display, gstateGame);
         await Your("awareness re-normalizes.");
         await exercise(player, A_WIS, true);
     }
@@ -1194,7 +1194,7 @@ export async function peffect_enlightenment(player, otmp, display) {
             await adjattrib(player, A_INT, 1, false);
             await adjattrib(player, A_WIS, 1, false);
         }
-        await do_enlightenment_effect(player, display);
+        await do_enlightenment_effect(player, display, gstateGame);
     }
 }
 

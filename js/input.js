@@ -8,7 +8,7 @@ import {
     CQ_CANNED, CQ_REPEAT,
 } from './const.js';
 import { envFlag } from './runtime_env.js';
-import { waitForMoreDismissKey } from './more_keys.js';
+import { waitForMoreDismissKey, isMoreDismissKey } from './more_keys.js';
 import { game as activeGame, beginOriginAwait, endOriginAwait } from './gstate.js';
 import {
     debugRepaint,
@@ -471,6 +471,10 @@ function popQueuedInputKey(inDoAgain = false) {
 function hasActiveMoreBoundary(display) {
     if (!display) return false;
     if (display.moreMarkerActive) return true;
+    // C ref: tty_clearmsg() calls more() when a no-time command left toplin==1.
+    // JS tracks this via messageNeedsMoreBoundary, set in renderAndAutosave
+    // when !tookTime && messageNeedsMore.
+    if (display.messageNeedsMoreBoundary) return true;
     if (typeof display.getScreenLines !== 'function') return false;
     const lines = display.getScreenLines() || [];
     const row0 = lines[0] || '';
@@ -490,6 +494,7 @@ function nhgetch_raw() {
             if (display) {
                 display.messageNeedsMore = false;
                 display.moreMarkerActive = false;
+                display.messageNeedsMoreBoundary = false;
             }
             return ch;
         })
@@ -589,8 +594,10 @@ export async function nhgetch(opts = {}) {
         };
         // Use the canonical --More-- path so acknowledgement advances
         // topline/message state exactly once per boundary key.
+        // C ref: tty_clearmsg() renders --More-- visually when it fires more().
+        // forceVisual=true whenever the boundary was triggered (canned or untimed).
         await more(display, {
-            forceVisual: hasQueuedCannedBoundary,
+            forceVisual: hasQueuedCannedBoundary || !!display?.messageNeedsMoreBoundary,
             clearAfter: true,
             readKey: readBoundaryKey,
         });
@@ -653,7 +660,13 @@ export async function more(display, {
     }
 
     const ch = await waitForMoreDismissKey(readMoreKey);
-    if (clearAfter) {
+    // C ref: win/tty/topl.c xwaitforspace() — space/ESC/enter dismiss --More-- and
+    // clear the message line.  Other keys (e.g. movement keys pressed while --More--
+    // is showing) are consumed but the --More-- boundary fires AGAIN on the next key,
+    // matching C's xwaitforspace loop behavior where each nhgetch inside the loop is
+    // a separate recorded step.
+    const isImmediateClearKey = isMoreDismissKey(ch);
+    if (clearAfter && isImmediateClearKey) {
         if (typeof display.clearRow === 'function') {
             display.clearRow(0);
             if (display._topMessageRow1 !== undefined) {
@@ -665,6 +678,8 @@ export async function more(display, {
         if ('moreMarkerActive' in display) display.moreMarkerActive = false;
         if ('topMessage' in display) display.topMessage = null;
     }
+    // Non-dismiss key: leave messageNeedsMore/moreMarkerActive as-is so the
+    // boundary fires again on the next key.
     return ch;
 }
 

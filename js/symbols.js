@@ -725,7 +725,7 @@ export const MAXECHARS = S_expl_br - S_vbeam + 1;
 // AUTO-IMPORT-END: SYMBOLS
 
 import { MAXEXPCHARS, WARNCOUNT, SYM_OFF_P, MAXOTHER, MAXTCHARS, PRIMARYSET, ROGUESET, def_warnsyms } from './const.js';
-import { NUM_OBJECTS, MAXOCLASSES } from './objects.js';
+import { NUM_OBJECTS, MAXOCLASSES, FIRST_OBJECT } from './objects.js';
 import { NUMMONS } from './monsters.js';
 
 // ===== display.h constants (owned by symbols.js) =====
@@ -847,6 +847,13 @@ export function glyph_is_explosion(g) { return g >= GLYPH_EXPLODE_OFF && g < GLY
 export function glyph_is_warning(g) { return g >= GLYPH_WARNING_OFF && g < GLYPH_STATUE_OFF; }
 export function glyph_is_statue(g) { return g >= GLYPH_STATUE_OFF && g < GLYPH_PILETOP_OFF; }
 export function glyph_is_piletop(g) { return g >= GLYPH_PILETOP_OFF && g < GLYPH_UNEXPLORED_OFF; }
+// C ref: include/display.h glyph_is_generic_object — glyph is an unidentified object class symbol
+// (not a specific named object). FIRST_OBJECT is the first real named obj; indices before it are
+// generic class glyphs (e.g. "a potion", "a scroll" without specific identity).
+export function glyph_is_generic_object(g) {
+    return (g > GLYPH_OBJ_OFF && g < GLYPH_OBJ_OFF + FIRST_OBJECT - 1)
+        || (g > GLYPH_OBJ_PILETOP_OFF && g < GLYPH_OBJ_PILETOP_OFF + FIRST_OBJECT - 1);
+}
 // C ref: glyph_is_trap checks cmap_b range AND trap defsym range
 export function glyph_is_trap(g) {
     if (!glyph_is_cmap_b(g)) return false;

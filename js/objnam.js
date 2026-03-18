@@ -1824,6 +1824,8 @@ function rnd_otyp_by_namedesc(name, oclass, xtra_prob) {
     if (!name || !name.trim()) return STRANGE_OBJECT;
     const q = name.trim();
     const check_of = !strstri(q, ' of ');
+    const minglob = GLOB_OF_GRAY_OOZE;
+    const maxglob = GLOB_OF_BLACK_PUDDING;
     const validobjs = [];
     let maxprob = 0;
 
@@ -1841,6 +1843,8 @@ function rnd_otyp_by_namedesc(name, oclass, xtra_prob) {
     for (let i = lo; i <= hi; i++) {
         const od = objectData[i];
         if (!od || !od.oc_name) continue;
+        if (i === BELL_OF_OPENING) continue;
+        if (i >= minglob && i <= maxglob) continue;
         if (oclass && od.oc_class !== oclass) continue;
 
         const zn = od.oc_name;

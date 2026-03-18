@@ -668,9 +668,19 @@ export async function run_command(game, ch, opts = {}) {
     const _isExtCmdPrefix = (chCode === '#'.charCodeAt(0));
     const _suppressFreshRunstep = _isCountDigit || _isExtCmdPrefix;
     if (!_isCountDigit && game.display && game.display.topMessage) {
+        // C ref: save topMessage length before clearing — needed by the extended
+        // command handler to detect if a new message would have overflowed the
+        // concat check (triggering --More-- in C's tty).
+        if (_isExtCmdPrefix) {
+            game._extcmdPrecedingMsgLen = (game.display.topMessage || '').length;
+        } else {
+            game._extcmdPrecedingMsgLen = 0;
+        }
         game.display.clearRow(0);
         game.display.topMessage = null;
         game.display.messageNeedsMore = false;
+    } else if (_isExtCmdPrefix) {
+        game._extcmdPrecedingMsgLen = 0;
     }
 
     if (game?._tempNoConcatMessages
@@ -2586,6 +2596,13 @@ export class NetHackGame {
             return;
         }
         if (!forceRender && !terminalScreenOwned && this.display?.messageNeedsMore) {
+            // C ref: tty_clearmsg() shows --More-- at command boundary when the
+            // previous command took no time but left a topline message pending.
+            // Only commands that explicitly set needsMoreBoundary trigger this,
+            // since most tookTime=false commands should not show --More--.
+            if (commandResult?.needsMoreBoundary && this.display.messageNeedsMore) {
+                this.display.messageNeedsMoreBoundary = true;
+            }
             flush_screen(1);
             return;
         }
