@@ -170,15 +170,21 @@ matches between shifted sequences.
 states are identical. It only proves the RNG values are the same. The functions
 consuming those values could be completely different.
 
+## CORRECTION: Spawn comparison shows turns 1-146 match exactly (22:15 UTC)
+
+Per-turn spawn check values match EXACTLY for turns 1-146. First divergence
+at turn 147 (JS spawn=51, C spawn=40). This DISPROVES the "1-turn gap at
+turn 140" hypothesis — JS and C are in sync through turn 146. The exercise
+calls at turn 140 fire correctly in both.
+
+**The real divergence is between turn 146 and 147** — one specific turn where
+monster movement or turn-end processing consumes different RNG calls.
+
 ## NEXT STEPS
 
-1. **Compare function-level RNG traces, not just values**: Use the shift-aware
-   comparator or compare raw entries (with source tags) instead of normalized
-   values. This will reveal where the functions first diverge, even if values match.
+1. **Compare RNG entries between turn 146 and 147 spawn checks**: The divergence
+   is in the monster movement, gethungry, exerchk, or other turn-end processing
+   for turn 146. Look at the raw C entries between spawn(57) and spawn(40),
+   and compare with JS entries between spawn(57) and spawn(51).
 
-2. **Count gethungry calls in JS and C separately**: Already know C has 144 in
-   the "matching" prefix. Need to count JS's gethungry calls independently.
-   If JS has fewer, the gap is confirmed and the shift started earlier than
-   index 10145.
-
-3. **Fix t11_s755 Gnome position**: Independent of the seed031 issue.
+2. **t11_s755 is now FIXED** (432/436).
