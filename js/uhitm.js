@@ -1709,7 +1709,7 @@ export async function missum(mdef, uattk, wouldhavehit) {
     if (wouldhavehit) {
         await display.putstr_message('Your armor is rather cumbersome...');
     }
-    await display.putstr_message(`You miss ${y_monnam(mdef)}.`);
+    await display.putstr_message(`You miss ${mon_nam(mdef)}.`);
 }
 
 // Internal version of missum used by known_hitum
@@ -2134,8 +2134,10 @@ export async function handleMonsterKilled(player, monster, display, map) {
             const corpse = mkcorpstat(CORPSE, monster.mndx || 0, true,
                 map ? monster.mx : 0, map ? monster.my : 0, map);
             corpse.age = Math.max((player?.turns || 0) + 1, 1);
-            if (map) newsym(monster.mx, monster.my);
         }
+        // C ref: mon.c:3638 — "monster is gone, corpse or other object might now be visible"
+        // Called ONCE after both treasure drop and corpse creation, regardless of which occurred.
+        if (map) newsym(monster.mx, monster.my);
     }
 
     // C ref: mon.c:3724 — malign was already adjusted for alignment and randomization
@@ -2258,7 +2260,7 @@ export async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_wa
             // C ref: uhitm.c:6000-6025 (floating eye passive gaze)
             if (tmp > 127) tmp = 127;
             if (!playerHasProp(player, FREE_ACTION) && tmp > 0) {
-                if (display) await display.putstr_message(`You are frozen by ${s_suffix(y_monnam(mon))} gaze!`);
+                if (display) await display.putstr_message(`You are frozen by ${s_suffix(mon_nam(mon))} gaze!`);
                 // C: nomul((ACURR(A_WIS) > 12 || rn2(4)) ? -tmp : -127);
                 // and gn.nomovemsg = 0 (do not preserve prior message text).
                 const duration = (acurr(player, A_WIS) > 12 || rn2(4)) ? tmp : 127;
@@ -2335,7 +2337,7 @@ export async function do_attack_core(player, monster, display, map, game = null)
     if (!mhit) {
         // cf. uhitm.c:608 — known_hitum miss path → missum()
         if (bashPrefix) await display.putstr_message(bashPrefix);
-        await display.putstr_message(`You miss ${y_monnam(monster)}.`);
+        await display.putstr_message(`You miss ${mon_nam(monster)}.`);
         // cf. uhitm.c:788 passive() after miss
         await passive(monster, player.weapon || null, false, true, AT_WEAP, false, {
             player, display, map, game,

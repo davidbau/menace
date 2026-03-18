@@ -2241,11 +2241,11 @@ export function see_nearby_objects() {
       if (!cs) continue;
       if (du > neardist) continue;
       observe_object(topObj);
-      // C ref: display.c:1591-1592 — only force redisplay if current glyph is a generic object
-      // (unidentified object class symbol). If it's a trap or terrain, don't override it.
-      if (glyph_is_generic_object(glyph_at(ix, iy))) {
-        newsym_force(ix, iy);
-      }
+      // C relies on vision_recalc's seenv-angle change triggering newsym() for newly-dknown
+      // objects (display.c:1591: only call newsym_force if already showing a generic obj glyph).
+      // JS vision_recalc only calls newsym on visibility CHANGE (not seenv-angle change), so
+      // we must always call newsym_force here to update the display when dknown is set.
+      newsym_force(ix, iy);
     }
   }
 }
