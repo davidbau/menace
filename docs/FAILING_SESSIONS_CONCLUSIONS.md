@@ -210,6 +210,15 @@ that were already working. A more targeted fix is needed.
 than the existing code. The existing `drainUntilInput` works correctly for 431 sessions.
 The fix must be narrowly targeted to only affect the broken behavior.
 
+**Further analysis (March 18, ~21:00 UTC)**:
+- `run_command` is called 613 times for 1351 keys (738 keys consumed by prompts)
+- `moveloop_core` called 284 times (46% of run_command calls are timed)
+- `moveloop_turnend` called 298 times (some multi-turn iterations)
+- This IS the correct number of game turns — 298 turns, each producing ~35 RNG entries = ~10430, close to the 10145 matching prefix.
+- C has 1114 gethungry calls = 1114 actual turns. JS has 298. The 816 missing turns are real.
+- **Root cause is NOT drainUntilInput** — it's that JS processes fewer game turns per session. Either JS treats many timed commands as untimed, or JS's game loop processes commands differently from C's.
+- For a passing session (seed325), JS and C produce identical turn counts (182/182). So the issue is specific to manual-direct-live sessions or to seed031's specific gameplay.
+
 ## PREVIOUS: JS turn counter is 1 behind C at divergence (March 18, ~20:00 UTC)
 
 Using `^exerper` diagnostic injected into the RNG log (which IS captured by the
