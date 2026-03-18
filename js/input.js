@@ -653,7 +653,11 @@ export async function more(display, {
     }
 
     const ch = await waitForMoreDismissKey(readMoreKey);
-    if (clearAfter) {
+    // C ref: win/tty/topl.c — space/enter/escape clears the message line
+    // immediately after --More-- dismissal; other keys (e.g. movement keys)
+    // leave the message visible until the next game action refreshes row 0.
+    const isImmediateClearKey = (ch === 32 || ch === 27 || ch === 13 || ch === 10);
+    if (clearAfter && isImmediateClearKey) {
         if (typeof display.clearRow === 'function') {
             display.clearRow(0);
             if (display._topMessageRow1 !== undefined) {
@@ -664,6 +668,10 @@ export async function more(display, {
         if ('messageNeedsMore' in display) display.messageNeedsMore = false;
         if ('moreMarkerActive' in display) display.moreMarkerActive = false;
         if ('topMessage' in display) display.topMessage = null;
+    } else if (!isImmediateClearKey) {
+        // Non-space dismiss: message persists but mark as no longer needing --More--
+        if ('messageNeedsMore' in display) display.messageNeedsMore = false;
+        if ('moreMarkerActive' in display) display.moreMarkerActive = false;
     }
     return ch;
 }

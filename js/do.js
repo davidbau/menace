@@ -1923,13 +1923,10 @@ export async function legs_in_no_shape(for_what, by_steed, player) {
 // side: LEFT_SIDE or RIGHT_SIDE or BOTH_SIDES
 // timex: duration of the condition
 export function set_wounded_legs(side, timex, player) {
-
     if (!player.woundedLegs) {
-        // First time getting wounded legs: reduce DEX
-        if (player.atempDex !== undefined)
-            player.atempDex--;
-        else if (player.attributes)
-            player.attributes[A_DEX] = (player.attributes[A_DEX] || 0) - 1;
+        // First time getting wounded legs: reduce DEX temp (C: ATEMP(A_DEX) -= 1)
+        if (!player.atemp || player.atemp.length < 6) player.atemp = new Array(6).fill(0);
+        player.atemp[A_DEX] = (player.atemp[A_DEX] || 0) - 1;
     }
 
     if (!player.woundedLegs || (player.hWoundedLegs || 0) < timex)
@@ -1943,19 +1940,17 @@ export function set_wounded_legs(side, timex, player) {
     }
     player.eWoundedLegs = (player.eWoundedLegs || 0) | side;
     player.woundedLegs = true;
+    player._botl = true;
 }
 
 // cf. do.c heal_legs() — heal wounded legs.
 // how: 0 = ordinary, 1 = dismounting steed, 2 = limbs turn to stone
 export async function heal_legs(how, player) {
-
     if (player.woundedLegs) {
-        // Restore DEX
-        if (player.atempDex !== undefined && player.atempDex < 0)
-            player.atempDex++;
-        else if (player.attributes) {
-            player.attributes[A_DEX] = (player.attributes[A_DEX] || 0) + 1;
-        }
+        // Restore DEX temp (C: ATEMP(A_DEX) += 1 to restore)
+        if (!player.atemp || player.atemp.length < 6) player.atemp = new Array(6).fill(0);
+        if ((player.atemp[A_DEX] || 0) < 0)
+            player.atemp[A_DEX] = (player.atemp[A_DEX] || 0) + 1;
 
         if (!player.usteed && how !== 2) {
             const wl = (player.eWoundedLegs || 0) & BOTH_SIDES;

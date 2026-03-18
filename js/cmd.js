@@ -39,7 +39,7 @@ import {
     handlePrevMessages, handleHelp, handleWhatdoes, handleHistory,
     handleViewMapPrompt, dolook, dowhatis, doquickwhatis,
 } from './pager.js';
-import { handleKick } from './kick.js';
+import { dokick } from './dokick.js';
 import { handleZap } from './zap.js';
 import { handleSave } from './storage.js';
 import { handleForce, handleOpen, handleClose, reset_pick } from './lock.js';
@@ -568,7 +568,7 @@ export async function rhack(ch, game) {
 
     // Kick (Ctrl+D)
     if (ch === 4) {
-        return await handleKick(player, map, display, game);
+        return await dokick(player, map, display, game);
     }
 
     // Previous messages (Ctrl+P)
@@ -1067,8 +1067,8 @@ async function handleExtendedCommand(game) {
         case 'invoke':
             return { moved: false, tookTime: !!((await doinvoke(player, game)) & ECMD_TIME) };
         case 'kick':
-            queueRepeatExtcmd((g) => handleKick(g.player, g.map, g.display, g));
-            return await handleKick(player, game.map, display, game);
+            queueRepeatExtcmd((g) => dokick(g.player, g.map, g.display, g));
+            return await dokick(player, game.map, display, game);
         case 'twoweapon':
             queueRepeatExtcmd((g) => handleTwoWeapon(g.player, g.display, g));
             return await handleTwoWeapon(player, display, game);

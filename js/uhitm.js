@@ -2081,7 +2081,7 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
 // cf. mon.c xkilled() — monster death handling.
 // Co-located here with its primary caller hmon().
 // TODO: future mon.js codematch should migrate this to mon.js.
-async function handleMonsterKilled(player, monster, display, map) {
+export async function handleMonsterKilled(player, monster, display, map) {
     // cf. uhitm.c -> mon.c mondead() -> killed() -> xkilled()
     const mdat = monster.data || monster.type || {};
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
@@ -2166,7 +2166,7 @@ function playerHasProp(player, prop) {
     return !!(player && typeof player.hasProp === 'function' && player.hasProp(prop));
 }
 
-async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed = false, ctx = {}) {
+export async function passive(mon, weapon, mhit, malive, aatyp = AT_WEAP, wep_was_destroyed = false, ctx = {}) {
     const player = ctx.player || null;
     const display = ctx.display || null;
     const game = ctx.game || null;
