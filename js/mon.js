@@ -681,31 +681,23 @@ export function mfndpos(mon, map, player, flag) {
                 // C ref: mon.c:2286-2304 — monster at position
                 const monAtPos = monsterAtWithSegments(map, nx, ny);
                 if (monAtPos) {
-                    let allowMAttack = false;
-                    if (flag & ALLOW_M) {
-                        // C ref: ALLOW_M from caller permits attacking occupied
-                        // squares; defender tame still requires ALLOW_TM.
-                        allowMAttack = true;
-                        if (monAtPos.tame && !(flag & ALLOW_TM)) {
-                            allowMAttack = false;
-                        }
-                    } else {
-                        // Hostile/peaceful: check mm_aggression-derived flags.
-                        const mmflag = mm_aggression(mon, monAtPos, map);
-                        if (mmflag.allowM) {
-                            allowMAttack = true;
-                            if (monAtPos.tame && !mmflag.allowTM) {
-                                allowMAttack = false;
-                            }
-                        }
-                    }
-                    if (allowMAttack) {
+                    // C ref: mon.c:2284 — mmflag = flag | mm_aggression(mon, mtmp2)
+                    // Always OR caller's flag with mm_aggression result.
+                    const aggr = mm_aggression(mon, monAtPos, map);
+                    const mmAllowM = !!(flag & ALLOW_M) || aggr.allowM;
+                    const mmAllowTM = !!(flag & ALLOW_TM) || aggr.allowTM;
+                    if (mmAllowM) {
                         posInfo |= ALLOW_M;
-                        if (monAtPos.tame) posInfo |= ALLOW_TM;
-                    } else if (mm_displacement(mon, monAtPos)) {
-                        posInfo |= ALLOW_MDISP;
+                        if (monAtPos.tame) {
+                            if (!mmAllowTM) continue;
+                            posInfo |= ALLOW_TM;
+                        }
                     } else {
-                        continue;
+                        // C ref: mon.c:2294 — clear ALLOW_MDISP before checking
+                        // displacement; it depends upon the specific defender.
+                        flag &= ~ALLOW_MDISP;
+                        if (!mm_displacement(mon, monAtPos)) continue;
+                        posInfo |= ALLOW_MDISP;
                     }
                 }
 
