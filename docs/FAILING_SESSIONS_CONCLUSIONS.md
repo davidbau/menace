@@ -146,9 +146,40 @@ The peffect_healing call happens to appear at the START of C's step 166 because
 the potion selection is the first action in that step. It's a normal gameplay
 action, not a timeout effect.
 
+## NEW FINDING: Exercise works but fails at ONE specific turn (March 18, ~19:30 UTC)
+
+The single-step replay tool shows JS=(end) for step 166, but this is misleading —
+single-step isolation doesn't reproduce the full game state. The FULL replay
+DOES produce matching RNG for exercise (the first 10145 entries match, including
+exercise calls at earlier turns).
+
+**Conclusion**: JS's exercise/exerchk/exerper work correctly for most turns. At ONE
+specific turn (around turn 80 = C step 166), C calls exercise but JS doesn't.
+This is NOT a "never called" bug — it's a per-turn condition difference.
+
+**Most likely cause**: `exerper` checks `moves % 5 == 0` and `moves % 10 == 0`.
+If at this specific turn, C's `svm.moves` is a multiple of 5 but JS's equivalent
+isn't (or vice versa), the exercise calls fire in one but not the other. However,
+changing the moves argument regresses 170 sessions, so the moves value IS correct
+in aggregate. The difference must be from a SINGLE turn where the counter diverges
+due to an earlier timing difference.
+
+## Debugging Principle
+
+When adding instrumentation and getting unexpected results (e.g., "0 calls"),
+consider whether the instrumentation itself is wrong before concluding the code
+is broken. Specifically:
+- Module isolation: test runners may use different module instances
+- RNG log lifecycle: enableRngLog/disableRngLog scoping
+- Single-step tools: warn about isolation for a reason
+- Freshly written diagnostic code is MORE suspect than tested production code
+
 ## NEXT STEPS (prioritized)
 
-1. **Add peffect_healing to JS nh_timeout**: This is the most concrete fix.
+1. **Find the specific turn where exercise diverges**: Need to count exercise RNG
+   calls in the full JS replay and compare with C's 28 exercise calls before
+   the divergence. Use the comparison artifact's per-step JS RNG (may need to
+   enhance the artifact to include raw JS entries).
    Check if C's nh_timeout calls other potion effects too (peffect_healing,
    peffect_extra_healing, etc.). Implement the same in JS.
 
