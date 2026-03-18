@@ -169,3 +169,106 @@ Work in this order:
 
 Do not start new session-capture work until the main comparison sessions are
 materially healthier.
+
+## New Findings: `t11_s755` Ordinary-Level Mimic And `more()` Boundary
+
+Additional localization completed after the special-level `appear_as` fix:
+
+- Authoritative session on current worktree:
+  - RNG: full green
+  - Events: full green
+  - mapdump checkpoints: now full green
+  - remaining failure:
+    - screen step `1787`
+    - cursor step `1349`
+
+Corrected conclusions:
+
+1. The old `minend-1` theory was wrong.
+   - C snapshot at the failing arrival/checkpoint shows:
+     - `dnum=0`
+     - `dlevel=7` on arrival
+   - This is an ordinary Dungeons of Doom level, not a Mines special level.
+   - The earlier `minend-1` probe was a side investigation and should not be
+     treated as the root path for this session.
+
+2. There was a real ordinary-mimic state bug in `js/makemon.js`.
+   - `set_mimic_sym()` returned string placeholders (`'object'`,
+     `'furniture'`) instead of numeric C-style state.
+   - `makemon()` stored that directly into `mon.m_ap_type`, leaving ordinary
+     mimics with:
+     - nonnumeric `m_ap_type`
+     - missing `mappearance`
+   - This exactly matched the original `t11_s755` checkpoint mismatch where
+     JS had `ap_type=0/mappearance=0` and C had object-disguised mimics.
+
+3. That ordinary-mimic state bug is now fixed and validated.
+   - `set_mimic_sym()` now returns numeric runtime state:
+     - `m_ap_type`
+     - `mappearance`
+   - `makemon()` stores both fields on ordinary mimics.
+   - Added unit regression:
+     - `test/unit/makemon.test.js`
+     - ordinary mimics created via `makemon()` now get numeric object disguise
+       state immediately
+   - Validation:
+     - `node --test test/unit/makemon.test.js` passes
+     - `t11_s755` mapdump improved from `4/5` to `5/5` with RNG/events still
+       fully green
+
+4. The remaining `t11_s755` failure is a one-step command-boundary
+   redistribution of monster-turn state.
+   - Step summary around the failure:
+     - step `1787`: RNG `js/c = 50/17` (`+33`)
+     - step `1788`: RNG `js/c = 7/33` (`-26`)
+     - step `1789`: RNG `js/c = 0/7` (`-7`)
+     - cumulative returns to zero by step `1789`
+   - Event counts remain fully conserved.
+   - Repaint trace around the bad boundary shows:
+     - JS does hit `more()` on `Having fun sitting on the floor?`
+     - then later in the same resumed flow it flushes animation/message state
+       for `The gnome lord shoots 2 crossbow bolts!`
+   - `WEBHACK_REPAINT_DEBUG=1` evidence:
+     - `headless.more.dismiss` fires at step `1786` on
+       `Having fun sitting on the floor?`
+     - `headless.flush` then appears at step `1787` with top line
+       `The gnome lord shoots 2 crossbow bolts!`
+   - `dbgmapdump` evidence:
+     - at step `1787`, JS monster positions are one movement ahead of C
+     - by step `1788`, the monster positions realign with C
+   - Concrete examples from the aligned step-1787 dump comparison:
+     - JS has monsters at `23,7`, `24,12`, `51,13`, `69,9`, `15,14`
+     - C still has those same monsters at `24,7`, `25,13`, `52,12`, `69,8`,
+       `14,13`
+   - Interpretation:
+     - this is not persistent gameplay drift
+     - it is not a special-level bug anymore
+     - it is not the `Concurrent nhgetch()` path
+     - it is a step-boundary ownership problem where one resumed chunk of
+       monster-turn work is being attributed to the wrong consumed key
+
+5. Ruled out during this batch:
+   - `js/headless.js` `Concurrent nhgetch()` skip path:
+     - env-gated tracing showed it is not firing in `t11_s755`
+   - simple C rerecord delay fix:
+     - temporary rerecord with `regen.key_delays_s={"1788":0.15,"1789":0.15}`
+       did not fix the screen mismatch and introduced unrelated event drift
+   - therefore this is not solved by a simple capture-timing annotation alone
+
+Do not re-open:
+
+- revisit/cached-level `hide_monst()` theories for this session
+- special-level `minend-*` generator theories for this session
+- ordinary mimic runtime-state loss: that part is fixed
+- `Concurrent nhgetch()` as the primary `t11_s755` explanation
+- simple rerecord-delay-only fixes for the step-1787 boundary
+
+Next target inside `t11_s755`:
+
+- inspect replay boundary ownership between:
+  - resumed `pendingCommand` capture in `js/replay_core.js`
+  - `more()`/message ownership
+  - animation flush visibility in `js/animation.js` / `js/headless.js`
+- the goal is to assign the resumed monster-turn chunk to the same consumed key
+  that C uses, without replay-core queueing, continuation-token logic, or
+  comparator masking

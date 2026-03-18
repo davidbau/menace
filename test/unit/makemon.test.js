@@ -4,7 +4,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
-import { ACCESSIBLE, MM_ASLEEP, NO_MM_FLAGS, MM_NOGRP } from '../../js/const.js';
+import { ACCESSIBLE, MM_ASLEEP, NO_MM_FLAGS, MM_NOGRP, ROOMOFFSET, M_AP_OBJECT } from '../../js/const.js';
 import {
     makemon, rndmonnum, withMakemonPlayerOverride, mbirth_limit,
     init_mongen_order, check_mongen_order, dump_mongen,
@@ -12,6 +12,7 @@ import {
 } from '../../js/makemon.js';
 import { A_CHAOTIC } from '../../js/const.js';
 import { mons, PM_NAZGUL, PM_ERINYS, PM_LEPRECHAUN, PM_LITTLE_DOG, G_UNIQ, S_LICH, S_ZOMBIE } from '../../js/monsters.js';
+import { FLINT } from '../../js/objects.js';
 import { initLevelGeneration, makelevel, wallification } from '../../js/dungeon.js';
 
 /** Find an unoccupied accessible tile in a room. */
@@ -134,6 +135,21 @@ describe('Monster creation (C-faithful)', () => {
         const mon = makemon(PM_LEPRECHAUN, 11, 10, NO_MM_FLAGS, 1, map);
         assert.equal(mon.msleeping, 1);
         assert.equal(mon.sleeping, true);
+    });
+
+    it('ordinary mimics get numeric appearance state during makemon', () => {
+        const map = {
+            monsters: [],
+            rooms: [{ rtype: 0 }],
+            at: () => ({ typ: 100, roomno: ROOMOFFSET }),
+            floorObjectAt: () => ({ otyp: FLINT }),
+            trapAt() { return null; },
+            monsterAt() { return null; },
+            addMonster(m) { this.monsters.unshift(m); },
+        };
+        const mon = makemon(64, 10, 10, NO_MM_FLAGS, 7, map);
+        assert.equal(mon.m_ap_type, M_AP_OBJECT);
+        assert.equal(mon.mappearance, FLINT);
     });
 });
 

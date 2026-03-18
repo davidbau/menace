@@ -7,7 +7,9 @@ import { envFlag, getEnv } from './runtime_env.js';
 import { golemhp } from './polyself.js';
 import { rn2, rnd, rn1, d, c_d, getRngCallCount, pushRngLogEntry } from './rng.js';
 import { mksobj, mkobj, next_ident, weight, place_object, set_corpsenm } from './mkobj.js';
-import { def_monsyms } from './symbols.js';
+import { def_monsyms, S_vcdoor, S_hcdoor,
+         S_upstair, S_dnstair, S_altar, S_grave, S_throne, S_sink,
+         S_fountain } from './symbols.js';
 import { m_dowear, mon_break_armor } from './worn.js';
 import { m_at } from './trap.js';
 import {
@@ -69,6 +71,7 @@ import {
     AMULET_OF_LIFE_SAVING, AMULET_OF_YENDOR,
     CANDELABRUM_OF_INVOCATION, BELL_OF_OPENING, SPE_BOOK_OF_THE_DEAD,
     CORPSE, LARGE_BOX, LUCKSTONE, MAXOCLASSES, objectData,
+    SLIME_MOLD, LUMP_OF_ROYAL_JELLY,
 } from './objects.js';
 import { place_monster } from './steed.js';
 import { roles, races, initialAlignmentRecordForRole } from './player.js';
@@ -94,7 +97,7 @@ import { get_wormno, initworm, place_worm_tail_randomly } from './worm.js';
 import { new_light_source } from './light.js';
 import { PIT, SPIKED_PIT, LOW_PM,
     EPRI, EMIN, EDOG, ESHK, MGIVENNAME, has_mgivenname, has_emin, has_edog,
-    M_AP_NOTHING, M_AP_MONSTER,
+    M_AP_NOTHING, M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
@@ -1868,19 +1871,32 @@ function set_mimic_sym(mndx, x, y, map, depth) {
     // - mimic existing floor object (OBJ_AT)
     // - mimic door/wall/secret-corridor as furniture
     // Neither branch consumes RNG.
-    if (typeof map?.floorObjectAt === 'function' && map.floorObjectAt(x, y)) {
-        return 'object';
+    const floorObj = typeof map?.floorObjectAt === 'function' ? map.floorObjectAt(x, y) : null;
+    if (floorObj) {
+        return { m_ap_type: M_AP_OBJECT, mappearance: floorObj.otyp };
     }
     if (Number.isInteger(typ)
         && (IS_DOOR(typ) || IS_WALL(typ) || typ === SDOOR || typ === SCORR)) {
-        return 'furniture';
+        const leftTyp = (x > 0 && map?.at) ? map.at(x - 1, y)?.typ : null;
+        const horizontalDoor =
+            leftTyp === 1 /* HWALL */
+            || leftTyp === 3 /* TLCORNER */
+            || leftTyp === 11 /* TRWALL */
+            || leftTyp === 5 /* BLCORNER */
+            || leftTyp === 9 /* TDWALL */
+            || leftTyp === 7 /* CROSSWALL */
+            || leftTyp === 8 /* TUWALL */;
+        return {
+            m_ap_type: M_AP_FURNITURE,
+            mappearance: horizontalDoor ? S_hcdoor : S_vcdoor
+        };
     }
     // C ref: makemon.c set_mimic_sym() maze-level branch.
     // Excludes Mine Town and Sokoban; this path consumes rn2(2).
     const inMineTown = !!(map?.flags?.has_town);
     const inSokoban = Number.isInteger(map?._genDnum) && map._genDnum === 2;
     if (map?.flags?.is_maze_lev && !inMineTown && !inSokoban && rn2(2)) {
-        return 'object';
+        return { m_ap_type: M_AP_OBJECT, mappearance: STATUE };
     }
 
     // Look up room type at (x, y) from map
@@ -1897,22 +1913,22 @@ function set_mimic_sym(mndx, x, y, map, depth) {
 
     // C ref: set_mimic_sym() branch for out-of-room non-trap tiles.
     if (roomno < 0 && !(typeof map?.trapAt === 'function' && map.trapAt(x, y))) {
-        return 'object';
+        return { m_ap_type: M_AP_OBJECT, mappearance: BOULDER };
     }
     // C ref: zoo/vault mimics become gold pieces (no RNG).
     if (rt === ZOO || rt === VAULT) {
-        return 'object';
+        return { m_ap_type: M_AP_OBJECT, mappearance: GOLD_PIECE };
     }
     // C ref: Delphi alternates statue/fountain with rn2(2).
     if (rt === DELPHI) {
         if (rn2(2)) {
-            return 'object';
+            return { m_ap_type: M_AP_OBJECT, mappearance: STATUE };
         }
-        return 'furniture';
+        return { m_ap_type: M_AP_FURNITURE, mappearance: S_fountain };
     }
     // C ref: Temple mimics become altars (no RNG).
     if (rt === TEMPLE) {
-        return 'furniture';
+        return { m_ap_type: M_AP_FURNITURE, mappearance: S_altar };
     }
 
     // Determine s_sym and possibly set appear directly
@@ -1931,8 +1947,8 @@ function set_mimic_sym(mndx, x, y, map, depth) {
                 appear = -s_sym;
             } else if (rt === SHOPBASE + 10 && s_sym > MAXOCLASSES) {
                 // FODDERSHOP: health food store with VEGETARIAN_CLASS
-                rn2(2); // C: rn2(2) ? LUMP_OF_ROYAL_JELLY : SLIME_MOLD
-                return 'object'; // M_AP_OBJECT; no post-fixup RNG for these items
+                const appearance = rn2(2) ? LUMP_OF_ROYAL_JELLY : SLIME_MOLD;
+                return { m_ap_type: M_AP_OBJECT, mappearance: appearance };
             } else {
                 if (s_sym === 0 || s_sym >= MAXOCLASSES) // RANDOM_CLASS or VEGETARIAN
                     s_sym = mimic_syms[rn2(15) + 2]; // syms[rn2(SIZE(syms)-2)+2]
@@ -1948,9 +1964,11 @@ function set_mimic_sym(mndx, x, y, map, depth) {
     if (appear === undefined) {
         if (s_sym === MAXOCLASSES) {
             // Furniture appearance: rn2(8) from furnsyms
-            rn2(8);
-            // No further RNG — furniture doesn't trigger corpsenm fixup
-            return 'furniture'; // M_AP_FURNITURE
+            const furnsyms = [
+                S_upstair, S_upstair, S_dnstair, S_dnstair,
+                S_altar, S_grave, S_throne, S_sink
+            ];
+            return { m_ap_type: M_AP_FURNITURE, mappearance: furnsyms[rn2(8)] };
         } else if (s_sym === S_MIMIC_DEF) {
             appear = STRANGE_OBJECT;
         } else if (s_sym === COIN_CLASS) {
@@ -1977,7 +1995,7 @@ function set_mimic_sym(mndx, x, y, map, depth) {
         }
         // For EGG with non-hatchable or TIN with nocorpse: mndx = NON_PM (no extra RNG)
     }
-    return 'object'; // M_AP_OBJECT (default for non-furniture appearances)
+    return { m_ap_type: M_AP_OBJECT, mappearance: appear };
 }
 
 // makemon -- main monster creation
@@ -2336,10 +2354,10 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     const monPeaceful = peace_minded(ptr);
 
     // C ref: makemon.c:1299-1310 — post-placement switch on mlet
-    let mimicApType = null;
+    let mimicAppearance = null;
     let startsUndetected = false;
     if (ptr.mlet === S_MIMIC) {
-        mimicApType = set_mimic_sym(mndx, x, y, map, depth);
+        mimicAppearance = set_mimic_sym(mndx, x, y, map, depth);
     } else if ((ptr.mlet === S_SPIDER || ptr.mlet === S_SNAKE) && map) {
         // C ref: in_mklev && x && y → mkobj_at(RANDOM_CLASS, x, y, TRUE)
         // mkobj_at creates a random object, places it at (x,y), then hideunder (no RNG)
@@ -2486,8 +2504,9 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     }
 
     // C ref: makemon.c:2506 — mimics get appearance type from set_mimic_sym()
-    if (mimicApType) {
-        mon.m_ap_type = mimicApType;
+    if (mimicAppearance) {
+        mon.m_ap_type = mimicAppearance.m_ap_type;
+        mon.mappearance = mimicAppearance.mappearance;
     }
 
     // Add to map if provided
