@@ -11,11 +11,14 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const speedrun = JSON.parse(readFileSync(join(__dirname, 'sessions', 'speedrun.json'), 'utf8'));
+const args = process.argv.slice(2);
+const flags = args.filter(a => a.startsWith('--'));
+const positional = args.filter(a => !a.startsWith('--'));
+const speedrunFile = positional[0] || join(__dirname, 'sessions', 'speedrun.json');
+const speedrun = JSON.parse(readFileSync(speedrunFile, 'utf8'));
 const steps = speedrun.steps;
 const seed = speedrun.seed || 42;
 
-const flags = process.argv.slice(2).filter(a => a.startsWith('--'));
 const useFortran = flags.includes('--fortran');
 const stopOnError = flags.includes('--stop-on-error');
 
@@ -36,10 +39,11 @@ if (useFortran) {
 
     const rawOutput = result.stdout || '';
     // Split output into per-step chunks by prompt " > "
+    // ASCII art borders (like the stamp) also start with " > " but end with "<" — skip those.
     const chunks = [];
     let current = [];
     for (const line of rawOutput.split('\n')) {
-        if (line.startsWith(' > ') || line === ' >') {
+        if ((line.startsWith(' > ') || line === ' >') && !line.trimEnd().endsWith('<')) {
             chunks.push(current);
             current = [];
             const after = line.substring(3).trimEnd();

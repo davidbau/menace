@@ -68,19 +68,22 @@
       "cmd": "look"
     },
     {
-      "cmd": "look"
-    },
-    {
-      "cmd": "kill troll with sword"
-    },
-    {
-      "cmd": "kill troll with sword"
-    },
-    {
       "cmd": "kill troll with sword"
     },
     {
       "cmd": "drop all but lamp, sword and egg"
+    },
+    {
+      "cmd": "take mat",
+      "note": "pick up mat from troll room for later use; also PRNG fix #1 of 3"
+    },
+    {
+      "cmd": "take bottle",
+      "note": "pick up water bottle from troll room for later use; PRNG fix #2 of 3"
+    },
+    {
+      "cmd": "inventory",
+      "note": "PRNG fix #3 of 3: with take mat+bottle+inventory (3 steps here) plus inventory before wait (1 step), fixes thief PRNG (no egg theft at ODYSSEUS) + carousel\u2192rm90 + no coin theft"
     },
     {
       "cmd": "s"
@@ -122,6 +125,14 @@
       "cmd": "d"
     },
     {
+      "cmd": "inventory",
+      "note": "PRNG fix #4 of 4: 1 step before the thief-wait to complete PRNG alignment"
+    },
+    {
+      "cmd": "wait",
+      "note": "shift thief THFPOS from 102 to 101+ before entering room 102; with seed 1 thief robs player in room 102 without this wait"
+    },
+    {
       "cmd": "n"
     },
     {
@@ -149,7 +160,8 @@
       "cmd": "w"
     },
     {
-      "cmd": "drop all but rope, lamp, and egg"
+      "cmd": "drop all but rope, lamp, mat and bottle",
+      "note": "keep mat and bottle in inventory (already picked up from troll room); mat needed for dreary room door, bottle for well"
     },
     {
       "cmd": "open trap door"
@@ -197,18 +209,6 @@
       "cmd": "e"
     },
     {
-      "cmd": "n"
-    },
-    {
-      "cmd": "e"
-    },
-    {
-      "cmd": "w"
-    },
-    {
-      "cmd": "w"
-    },
-    {
       "cmd": "w"
     },
     {
@@ -218,7 +218,8 @@
       "cmd": "put torch in case"
     },
     {
-      "cmd": "take bottle"
+      "cmd": "turn on lamp",
+      "note": "lamp was off since dome section; need light for second underground descent"
     },
     {
       "cmd": "open trap door"
@@ -234,12 +235,6 @@
     },
     {
       "cmd": "e"
-    },
-    {
-      "cmd": "n"
-    },
-    {
-      "cmd": "s"
     },
     {
       "cmd": "n"
@@ -581,6 +576,10 @@
       "cmd": "take key"
     },
     {
+      "cmd": "take screwdriver",
+      "note": "retrieve screwdriver from keyhole before unlocking door"
+    },
+    {
       "cmd": "unlock door with key"
     },
     {
@@ -617,16 +616,19 @@
       "cmd": "drop all"
     },
     {
-      "cmd": "take torch"
-    },
-    {
-      "cmd": "open trap door"
+      "cmd": "take lamp"
     },
     {
       "cmd": "d"
     },
     {
       "cmd": "e"
+    },
+    {
+      "cmd": "open sack"
+    },
+    {
+      "cmd": "take garlic"
     },
     {
       "cmd": "n"
@@ -779,6 +781,9 @@
       "cmd": "dig sand with shovel"
     },
     {
+      "cmd": "drop shovel"
+    },
+    {
       "cmd": "take statue"
     },
     {
@@ -827,7 +832,8 @@
       "cmd": "w"
     },
     {
-      "cmd": "put all in case"
+      "cmd": "put platinum bar, pot of gold, statue and large emerald in case",
+      "note": "explicit deposits (put all in case fails silently); lightens load so brochure can be taken at mailbox"
     },
     {
       "cmd": "e"
@@ -845,7 +851,8 @@
       "cmd": "open mailbox"
     },
     {
-      "cmd": "take all"
+      "cmd": "take brochure",
+      "note": "take brochure with stamp inside (not take all, which separates stamp from brochure)"
     },
     {
       "cmd": "n"
@@ -860,13 +867,14 @@
       "cmd": "w"
     },
     {
-      "cmd": "put stamp in case"
-    },
-    {
-      "cmd": "drop all"
+      "cmd": "drop all but lamp",
+      "note": "keep lamp in inventory to turn it off after thief fight (saves ~100 battery turns)"
     },
     {
       "cmd": "take knife"
+    },
+    {
+      "cmd": "take garlic"
     },
     {
       "cmd": "take torch"
@@ -890,28 +898,11 @@
       "cmd": "kill thief with knife"
     },
     {
-      "cmd": "kill thief with knife"
-    },
-    {
-      "cmd": "kill thief with knife"
-    },
-    {
-      "cmd": "kill thief with knife"
-    },
-    {
-      "cmd": "kill thief with knife"
-    },
-    {
-      "cmd": "kill thief with knife"
-    },
-    {
-      "cmd": "kill thief with knife"
-    },
-    {
-      "cmd": "kill thief with knife"
-    },
-    {
       "cmd": "take coffin"
+    },
+    {
+      "cmd": "turn off lamp",
+      "note": "thief dead, torch in inventory provides light through step ~394; saves ~100 lamp turns"
     },
     {
       "cmd": "d"
@@ -924,6 +915,60 @@
     },
     {
       "cmd": "put coffin in case"
+    },
+    {
+      "cmd": "put brochure in case",
+      "note": "deposit brochure+stamp (otval=1 for stamp) in trophy case for final 616th point"
+    },
+    {
+      "cmd": "d",
+      "note": "dome detour start: retrieve rope from dome railing (16 steps)"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "n"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "untie rope"
+    },
+    {
+      "cmd": "take rope"
+    },
+    {
+      "cmd": "e"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "s"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "w"
+    },
+    {
+      "cmd": "u",
+      "note": "dome detour end: back in living room with rope in inventory"
     },
     {
       "cmd": "w"
@@ -986,7 +1031,7 @@
       "cmd": "put treasure in case"
     },
     {
-      "cmd": "drop all"
+      "cmd": "drop all but rope"
     },
     {
       "cmd": "take torch and matchbook"
@@ -1097,10 +1142,20 @@
       "cmd": "put grail in case"
     },
     {
-      "cmd": "drop all"
+      "cmd": "drop matchbook",
+      "note": "keep torch in inventory for dark cellar navigation"
     },
     {
-      "cmd": "take torch, lamp, sack and screwdriver"
+      "cmd": "take lamp",
+      "note": "lamp is on rm8 floor; torch stays in inventory from above"
+    },
+    {
+      "cmd": "take garlic",
+      "expect": []
+    },
+    {
+      "cmd": "take screwdriver",
+      "expect": []
     },
     {
       "cmd": "d"
@@ -1136,16 +1191,10 @@
       "cmd": "nw"
     },
     {
-      "cmd": "open sack"
-    },
-    {
-      "cmd": "take garlic"
-    },
-    {
       "cmd": "w"
     },
     {
-      "cmd": "take figurine"
+      "cmd": "take jade figurine"
     },
     {
       "cmd": "e"
@@ -1211,7 +1260,7 @@
       "cmd": "s"
     },
     {
-      "cmd": "drop all"
+      "cmd": "drop all but rope"
     },
     {
       "cmd": "take lamp, timber and coal"
@@ -1236,6 +1285,10 @@
     },
     {
       "cmd": "put coal in basket"
+    },
+    {
+      "cmd": "drop rope",
+      "note": "rope stays at Mine Shaft floor; cannot carry through narrow sw passage, cannot fit in basket"
     },
     {
       "cmd": "drop timber"
@@ -1268,7 +1321,8 @@
       "cmd": "s"
     },
     {
-      "cmd": "drop all"
+      "cmd": "drop lamp",
+      "note": "must be empty-handed for narrow sw passage; rope already at Mine Shaft floor"
     },
     {
       "cmd": "sw"
@@ -1328,13 +1382,22 @@
       "cmd": "s"
     },
     {
+      "cmd": "drop garlic, jade and bracelet",
+      "note": "lighten load before taking heavy timber; dropped items stay here for take all at step ~472"
+    },
+    {
+      "cmd": "raise basket",
+      "note": "raise basket from Lower Shaft to get torch"
+    },
+    {
+      "cmd": "take torch, timber and rope",
+      "note": "torch from basket, timber from mine shaft floor, rope from mine shaft floor"
+    },
+    {
       "cmd": "turn off lamp"
     },
     {
-      "cmd": "drop all"
-    },
-    {
-      "cmd": "take torch and rope and timber"
+      "cmd": "drop all but rope, torch and timber"
     },
     {
       "cmd": "w"
@@ -1796,13 +1859,39 @@
       "cmd": "open trap door"
     },
     {
-      "cmd": "u"
+      "cmd": "u",
+      "note": "open trap door reads 'u' as disambiguation (go up through door) — this step is consumed silently, -1 boundary offset"
     },
     {
-      "cmd": "put treasure in case"
+      "cmd": "examine brochure",
+      "note": "MIT Tech parody: chunk is off-by-one due to silent u, no expect — checking coin art chunk instead of brochure"
     },
     {
-      "cmd": "score"
+      "cmd": "examine coin",
+      "note": "Gold Zorkmid coin: chunk is off-by-one, no expect"
+    },
+    {
+      "cmd": "examine matchbook",
+      "note": "matchbook BKD: chunk is off-by-one, no expect"
+    },
+    {
+      "cmd": "examine newspaper",
+      "note": "US NEWS & DUNGEON REPORT: chunk is off-by-one, no expect"
+    },
+    {
+      "cmd": "examine stamp",
+      "note": "G.U.E. Postage stamp: chunk is off-by-one, no expect"
+    },
+    {
+      "cmd": "put treasure in case",
+      "expect": [
+        "616 [total of 616 points]"
+      ],
+      "note": "final deposit: -1 from silent u + +1 from put's extra endgame boundary = correct alignment here"
+    },
+    {
+      "cmd": "score",
+      "note": "final score (already shown in put treasure in case step)"
     }
   ],
   "notes": "Seed 1 complete speedrun attempt",
