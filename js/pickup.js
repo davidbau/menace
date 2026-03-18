@@ -1524,6 +1524,25 @@ function cContainerOrder(items) {
     return [...(items || [])].reverse();
 }
 
+function buildContainerDisplayRows(items, letters, selected, player) {
+    const rows = [];
+    let lastHeader = null;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        observeObject(item);
+        const sym = CLASS_SYMBOLS[item?.oclass];
+        const header = classSymbolLabel(sym);
+        if (header !== lastHeader) {
+            rows.push({ type: 'header', text: header });
+            lastHeader = header;
+        }
+        const mark = selected.has(letters[i]) ? '+' : '-';
+        rows.push({ type: 'item', text: `${letters[i]} ${mark} ${doname(item, player)}` });
+    }
+    rows.push({ type: 'end', text: '(end)' });
+    return rows;
+}
+
 async function announceLootedItems(display, player, items, verb) {
     for (const item of (items || [])) {
         await display.putstr_message(`You ${verb} ${doname(item, player)}.`);
@@ -1717,27 +1736,37 @@ async function containerMenu(game, container) {
         while (true) {
             const cur = getContainerContents(container);
             if (!cur.length) break;
-            const visible = cur.filter((o) => {
+            const baseVisible = cur.filter((o) => {
                 if (allowedClasses === null) return true;
                 return allowedClasses.has(CLASS_SYMBOLS[o?.oclass]);
             });
+            const visibleClasses = new Set(baseVisible.map((o) => CLASS_SYMBOLS[o?.oclass]));
+            const visible = visibleClasses.size > 1
+                ? cContainerOrder(cur).filter((o) => {
+                    if (allowedClasses === null) return true;
+                    return allowedClasses.has(CLASS_SYMBOLS[o?.oclass]);
+                })
+                : baseVisible;
             if (!visible.length) break;
             const available = letters.slice(0, visible.length);
             const menuPad = centeredPad('Take out what?', 41);
+            const displayRows = buildContainerDisplayRows(visible, available, selected, player);
             // C ref: clear menu area but preserve map cells on the left.
             // Previous class menu may extend left of menuPad; use tracked minimum.
             clearMenuOptionRows(lowestMenuPad);
             await putMenuPrompt('Take out what?', menuPad);
-            if (typeof display?.putstr === 'function') display.putstr(menuPad, 2, 'Comestibles', 7, 1);
-            else drawMenuOptionLine(menuPad, 2, 'Comestibles');
-            for (let i = 0; i < visible.length; i++) {
-                const mark = selected.has(available[i]) ? '+' : '-';
-                drawMenuOptionLine(menuPad, 3 + i, `${available[i]} ${mark} ${doname(visible[i], player)}`);
+            for (let i = 0; i < displayRows.length; i++) {
+                const row = displayRows[i];
+                if (row.type === 'header' && typeof display?.putstr === 'function') {
+                    display.putstr(menuPad, 2 + i, row.text, 7, 1);
+                } else {
+                    drawMenuOptionLine(menuPad, 2 + i, row.text);
+                }
             }
-            drawMenuOptionLine(menuPad, 3 + visible.length, '(end)');
             if (typeof display?.setCursor === 'function') {
+                const endRow = 1 + displayRows.length;
                 const endCol = Math.min((display?.cols || 80) - 1, menuPad + '(end)'.length + 1);
-                display.setCursor(endCol, 3 + visible.length);
+                display.setCursor(endCol, endRow);
             }
             const tch = await nhgetch();
             if (tch === 27) break;
@@ -1766,8 +1795,6 @@ async function containerMenu(game, container) {
             const selectKey = available[tidx];
             if (selected.has(selectKey)) selected.delete(selectKey);
             else selected.add(selectKey);
-            const indicator = selected.has(selectKey) ? '+' : '-';
-            drawMenuOptionLine(menuPad, 3 + tidx, `${available[tidx]} ${indicator} ${doname(visible[tidx], player)}`);
         }
         if (typeof display?.clearRow === 'function') display.clearRow(0);
         clearMenuOptionRows(lowestMenuPad);  // clear menu area, preserve map cells left

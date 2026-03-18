@@ -154,6 +154,37 @@ Conclusion:
 - These are not close to green and should be worked as independent regressions,
   not folded into the topline-message investigation.
 
+Update after `cb87b897`:
+
+- `seed031_manual_direct`
+  - faithful improvement landed in `js/pickup.js` for the mixed-class
+    container loot menu:
+    - item page now follows container-chain order rather than raw array order
+    - class headers are rendered per contiguous item class instead of using a
+      fake hardcoded `Comestibles` header
+    - loot menu display now calls `observeObject()` before naming items, which
+      matches C `loot_classify()`/`query_objlist()` behavior
+  - validated effect:
+    - first RNG divergence moved later from step `147` to step `175`
+    - first event divergence moved later from step `147` to step `175`
+    - early loot-screen mismatch narrowed from wrong header/content grouping to
+      residual screen-area clearing on the right side of the menu block
+- `seed032_manual_direct`
+  - no measurable change from the loot-menu fix
+- `seed033_manual_direct`
+  - no measurable change from the loot-menu fix
+- canary validation:
+  - `seed504_extcmd_loot` remains fully green after narrowing the ordering
+    change to mixed-class loot pages only
+
+Conclusion:
+
+- the mixed-class container loot screen was a real `seed031` bug and a real
+  parity improvement, but it is not the shared root cause for the
+  `seed031/032/033` cluster
+- after this fix, `seed031` is still primarily blocked by later monster-turn
+  divergence (`distfleeck`/pet movement neighborhood), not by the early loot UI
+
 ### 2. `seed301_archeologist_selfplay200_gameplay`
 
 Current state from the failures view:

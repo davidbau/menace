@@ -13290,3 +13290,33 @@ Validation:
   - it was a real pair of C-faithfulness bugs:
     - command/message boundary ownership for `#sit`
     - monster auto-wear behavior
+# 2026-03-18: Mixed-class container loot menu must follow container-chain order
+
+- Symptom:
+  - `seed031_manual_direct` first screen divergence on the first `Take out
+    what?` page showed JS rendering a flat menu under a hardcoded
+    `Comestibles` header while C rendered grouped class headers
+    (`Spellbooks`, then `Potions`).
+- Cause:
+  - `js/pickup.js` custom `containerMenu()` / `doTakeOut()` path bypassed the
+    C-style `menu_loot()` behavior and painted a simplified flat list.
+  - It also used raw JS array order for visible container contents instead of
+    C container-chain order.
+  - It named items before `observeObject()`, so unidentified-but-seen items
+    were less specific than C.
+- Fix:
+  - render grouped loot rows by contiguous object class
+  - iterate visible loot items via `cContainerOrder(cur)`
+  - call `observeObject(item)` before menu naming
+- Evidence:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+  - improved from:
+    - RNG divergence at step `147`
+    - event divergence at step `147`
+  - to:
+    - RNG divergence at step `175`
+    - event divergence at step `175`
+- Non-conclusion:
+  - this did not materially affect `seed032_manual_direct` or
+    `seed033_manual_direct`, so the manual-direct cluster still needs separate
+    monster-turn investigation after the early loot UI seam.
