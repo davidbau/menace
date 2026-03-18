@@ -2084,8 +2084,12 @@ async function hitMonsterWithPotion(player, monster, display, weapon) {
 export async function handleMonsterKilled(player, monster, display, map) {
     // cf. uhitm.c -> mon.c mondead() -> killed() -> xkilled()
     const mdat = monster.data || monster.type || {};
+    // C ref: uhitm.c — tame pets use "poor" adjective in kill message
     const killVerb = nonliving(mdat) ? 'destroy' : 'kill';
-    await display.putstr_message(`You ${killVerb} the ${x_monnam(monster)}!`);
+    const killName = monster.mtame
+        ? `the poor ${x_monnam(monster)}`
+        : `the ${x_monnam(monster)}`;
+    await display.putstr_message(`You ${killVerb} ${killName}!`);
     mondead(monster, map, player);
 
     // C ref: mon.c LEVEL_SPECIFIC_NOCORPSE() + xkilled() gate.
