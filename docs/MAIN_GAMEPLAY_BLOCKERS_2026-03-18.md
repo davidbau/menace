@@ -1365,3 +1365,48 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - `t04_s706_w_minetn1_gp`
   - `t08_s984_w_camera_gp`
 - Disproved theory: a broader special-level alignment override in `align_shift()` was wrong; exact C `init_level()` alignment handling did not support it. Do not revive that heuristic.
+
+## 2026-03-19: live current-level identity restored; do not compensate in `align_shift()`
+
+- Exact C invariant:
+  - live gameplay always has authoritative current level coordinates in `u.uz`
+  - code such as `align_shift()`, `level_difficulty()`, and special-level checks
+    consult that live state rather than guessing from stale branch/depth caches
+- JS bug:
+  - at a live `t11_s744_w_covmax2_gp` `rndmonst_adj()` call, all of these were
+    missing at once:
+    - `player.uz`
+    - `map.uz`
+    - `map._genDnum/_genDlevel`
+  - that let `align_shift()` fall back to stale cached branch alignment and
+    created the late Oracle monster-generation regression
+- Faithful fix:
+  - [`js/player.js`](/share/u/davidbau/git/mazesofmenace/game/js/player.js)
+    now initializes `player.uz`
+  - [`js/allmain.js`](/share/u/davidbau/git/mazesofmenace/game/js/allmain.js)
+    stamps initial live-map identity onto `map.uz`, `_genDnum/_genDlevel`, and
+    `player.uz`
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/game/js/do.js)
+    stamps identity on both the departing cached map and the arriving live map
+    during `changeLevel()`
+  - [`js/storage.js`](/share/u/davidbau/git/mazesofmenace/game/js/storage.js)
+    now preserves `uz` and generation coordinates across save/restore
+  - [`js/special_levels.js`](/share/u/davidbau/git/mazesofmenace/game/js/special_levels.js)
+    + [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js)
+    now carry explicit special-level alignment metadata instead of name
+    heuristics
+  - [`js/makemon.js`](/share/u/davidbau/git/mazesofmenace/game/js/makemon.js)
+    refreshes `_dungeonAlign` from the actual live level once per move count,
+    mirroring the C `align_shift()` cache shape
+- Validated effect:
+  - `t11_s744_w_covmax2_gp`: PASS again
+  - `t04_s705_w_minefill_gp`: PASS
+  - `seed321_archeologist_wizard_gameplay`: PASS
+  - `seed031_manual_direct`: unchanged at
+    - event step `479`
+    - RNG step `488`
+- Operational rule:
+  - when level-sensitive gameplay code sees no authoritative current level
+    coordinates, treat that as a state bug
+  - do not add new `align_shift()` or branch-alignment heuristics to compensate
+    for missing `u.uz`-equivalent state

@@ -101,7 +101,7 @@ import { PIT, SPIKED_PIT, LOW_PM,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
-    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty
+    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_align, level_difficulty
 } from './dungeon.js';
 import { newemin } from './minion.js';
 import { qt_montype } from './questpgr.js';
@@ -437,17 +437,31 @@ export function uncommon(mndx) {
 // without RNG consumption. A broader special-level override was tried and
 // disproved by the exact C init_level() alignment code.
 function align_shift(ptr) {
-    switch (_gstate?._dungeonAlign ?? A_NONE) {
-    default:
-    case A_NONE:
-        return 0;
-    case A_LAWFUL:
+    if (!_gstate?._inMklev) {
+        const liveMoves = Number.isInteger(_gstate?.moves) ? _gstate.moves : 0;
+        if (_gstate?._alignShiftMoves !== liveMoves) {
+            const levelRef = (Number.isInteger(_gstate?.lev?._genDnum) && Number.isInteger(_gstate?.lev?._genDlevel))
+                ? _gstate.lev
+                : (Number.isInteger(_gstate?.map?._genDnum) && Number.isInteger(_gstate?.map?._genDlevel))
+                    ? _gstate.map
+                    : (_gstate?.player?.uz || _gstate?.u?.uz || null);
+            _gstate._dungeonAlign = level_align(
+                levelRef
+            );
+            _gstate._alignShiftMoves = liveMoves;
+        }
+    }
+    const currentAlign = _gstate?._dungeonAlign ?? A_NONE;
+    if (currentAlign === A_LAWFUL) {
         return Math.trunc(((ptr.maligntyp || 0) + 20) / (2 * ALIGNWEIGHT));
-    case A_NEUTRAL:
+    }
+    if (currentAlign === A_NEUTRAL) {
         return Math.trunc((20 - Math.abs(ptr.maligntyp || 0)) / ALIGNWEIGHT);
-    case A_CHAOTIC:
+    }
+    if (currentAlign === A_CHAOTIC) {
         return Math.trunc((20 - (ptr.maligntyp || 0)) / (2 * ALIGNWEIGHT));
     }
+    return 0;
 }
 
 // C ref: makemon.c temperature_shift() — no temperature at standard depths
@@ -512,7 +526,10 @@ export function rndmonst_adj(minadj, maxadj, depth) {
         }
         // Not Inhell, so skip G_NOHELL check
 
-        let weight = (ptr.geno & G_FREQ) + align_shift(ptr) + temperature_shift(ptr);
+        const freq = (ptr.geno & G_FREQ);
+        const ashift = align_shift(ptr);
+        const tshift = temperature_shift(ptr);
+        let weight = freq + ashift + tshift;
         if (weight < 0 || weight > 127) weight = 0;
 
         if (weight > 0) {
@@ -524,6 +541,9 @@ export function rndmonst_adj(minadj, maxadj, depth) {
                     `step=${ownerStep}`,
                     `mndx=${mndx}`,
                     `name=${ptr.mname}`,
+                    `freq=${freq}`,
+                    `ashift=${ashift}`,
+                    `tshift=${tshift}`,
                     `weight=${weight}`,
                     `total=${totalweight}`,
                     `roll=${roll}`,

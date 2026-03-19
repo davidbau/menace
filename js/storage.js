@@ -256,6 +256,9 @@ export function saveLev(map) {
         objects: saveObjChn(map.objects),
         traps: saveTrapChn(map.traps),
         isBones: map.isBones || false,
+        uz: map.uz ? { ...map.uz } : null,
+        _genDnum: Number.isInteger(map._genDnum) ? map._genDnum : null,
+        _genDlevel: Number.isInteger(map._genDlevel) ? map._genDlevel : null,
     };
 }
 
@@ -296,6 +299,9 @@ export function restLev(data) {
     map.traps = restTrapChn(data.traps);
     // Bones flag
     if (data.isBones) map.isBones = true;
+    if (data.uz) map.uz = { ...data.uz };
+    if (Number.isInteger(data._genDnum)) map._genDnum = data._genDnum;
+    if (Number.isInteger(data._genDlevel)) map._genDlevel = data._genDlevel;
     return map;
 }
 
@@ -347,6 +353,7 @@ export function saveYou(player) {
         ac: player.ac, level: player.ulevel, exp: player.exp, score: player.score,
         attributes: [...player.attributes],
         dungeonLevel: player.dungeonLevel, maxDungeonLevel: player.maxDungeonLevel,
+        uz: player.uz ? { ...player.uz } : null,
         gold: player.gold, hunger: player.hunger, nutrition: player.nutrition,
         movement: player.movement, speed: player.speed, moved: player.moved,
         luck: player.luck, moreluck: player.moreluck,
@@ -373,6 +380,7 @@ export function restYou(data) {
         if (data[f] !== undefined) p[f] = data[f];
     }
     if (data.attributes) p.attributes = [...data.attributes];
+    if (data.uz) p.uz = { ...data.uz };
     // Restore uprops if present (new format)
     if (data.uprops && typeof data.uprops === 'object') {
         p.uprops = {};

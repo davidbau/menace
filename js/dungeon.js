@@ -692,11 +692,7 @@ export function level_align(levOrMap) {
     const { dnum } = _coerceLevelArg(levOrMap);
     const special = getRuntimeSpecialLevelMeta(levOrMap);
     if (special) {
-        const name = String(Array.isArray(special.name) ? special.name[0] : special.name || '').toLowerCase();
-        if (name.startsWith('oracle')) return A_NEUTRAL;
-        if (name.startsWith('medusa')) return A_CHAOTIC;
-        if (name.startsWith('tut-')) return A_LAWFUL;
-        return A_NONE;
+        return Number.isInteger(special.align) ? special.align : A_NONE;
     }
     return DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE;
 }

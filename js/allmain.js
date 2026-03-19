@@ -1500,6 +1500,7 @@ export class NetHackGame {
         this._inMklev = false; // C ref: gi.in_mklev
         this._levelDepth = 1; // depth being generated (C: implicit from mklev args)
         this._dungeonAlign = 0; // A_NONE — dungeon branch alignment for makemon
+        this._alignShiftMoves = 0; // C ref: makemon.c static oldmoves cache for align_shift()
         this.wizard = false;
         this.seerTurn = 0;
         this.occupation = null;
@@ -1942,6 +1943,19 @@ export class NetHackGame {
             captureSpecialLevelCheckpoints: urlOpts.captureSpecialLevelCheckpoints === true,
         });
         this.map = map;
+        if (this.map) {
+            const startDnum = Number.isInteger(this.map._genDnum)
+                ? this.map._genDnum
+                : (Number.isInteger(this.dnum) ? this.dnum : 0);
+            const startDepth = Number.isInteger(this.map._genDlevel)
+                ? this.map._genDlevel
+                : startDlevel;
+            this.map.uz = { dnum: startDnum, dlevel: startDepth };
+            if (!Number.isInteger(this.map._genDnum)) this.map._genDnum = startDnum;
+            if (!Number.isInteger(this.map._genDlevel)) this.map._genDlevel = startDepth;
+            this.player.uz = { dnum: startDnum, dlevel: startDepth };
+            this.dnum = startDnum;
+        }
         this.levels[startDlevel] = map;
         this.player.wizard = this.wizard;
         this.seerTurn = initResult.seerTurn;

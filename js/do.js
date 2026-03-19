@@ -1694,6 +1694,15 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     const fromX = (game.u || game.player)?.x;
     const fromY = (game.u || game.player)?.y;
     const currentMap = (game.lev || game.map);
+    const stampLevelIdentity = (map, dnum, dlevel) => {
+        if (!map || !Number.isInteger(dnum) || !Number.isInteger(dlevel)) return;
+        map.uz = { dnum, dlevel };
+        if (!Number.isInteger(map._genDnum)) map._genDnum = dnum;
+        if (!Number.isInteger(map._genDlevel)) map._genDlevel = dlevel;
+    };
+    if (currentMap && Number.isInteger(currentDnum) && Number.isInteger(previousDepth)) {
+        stampLevelIdentity(currentMap, currentDnum, previousDepth);
+    }
     if (currentMap && Number.isInteger(previousDepth) && depth !== previousDepth) {
         // C ref: do.c keepdogs(FALSE) emits visibility-gated "still eating"
         // or "still trapped" messages before level transition.
@@ -1746,9 +1755,14 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     if (Number.isInteger((game.lev || game.map)?._genDnum)) {
         game.dnum = (game.lev || game.map)._genDnum;
     }
+    const activeDnum = Number.isInteger(game.dnum)
+        ? game.dnum
+        : (Number.isInteger(targetDnum) ? targetDnum : currentDnum);
+    stampLevelIdentity((game.lev || game.map), activeDnum, depth);
     setCurrentLevelStairs(game.lev || game.map);
 
     (game.u || game.player).dungeonLevel = depth;
+    (game.u || game.player).uz = { dnum: activeDnum, dlevel: depth };
     (game.u || game.player).inTutorial = !!(game.lev || game.map)?.flags?.is_tutorial;
 
     // C ref: dungeon.c u_on_rndspot() / stairs.c u_on_upstairs()

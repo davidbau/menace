@@ -45,6 +45,30 @@ For the full narratives of how these lessons were discovered, see the
     immediately.
 - `xkilled()` needs the real `mvitals[mndx].died` count and must await
   `newexplevel()` to keep post-kill experience and level-up side effects aligned.
+
+## 2026-03-19 - live level identity is a state invariant, not an `align_shift()` heuristic
+
+- C gameplay code always has authoritative current level coordinates in `u.uz`.
+- If live JS gameplay reaches level-sensitive code with all of these missing:
+  - `player.uz`
+  - `map.uz`
+  - `map._genDnum/_genDlevel`
+  then the bug is missing live state, not an alignment formula gap.
+- This mattered in late `t11_s744` monster generation:
+  - the tempting patch was to broaden `align_shift()` special-level overrides
+  - exact C reading disproved that
+  - owner tracing showed the real failure was that JS had no live current-level
+    identity at the failing call
+- Correct fix shape:
+  - initialize `player.uz`
+  - stamp live map identity at first level creation and on every `changeLevel()`
+  - preserve map/player level identity across save/restore
+  - store explicit special-level alignment metadata rather than recovering it
+    from ad hoc name heuristics
+- Practical rule:
+  - if a runtime gameplay call cannot answer “what level am I on?” from live
+    state, repair the state plumbing first
+  - do not compensate with new branch/depth heuristics in downstream consumers
   timed-turn distribution.
 - Current limitation:
   - raw step drilldown is trustworthy for RNG artifacts,

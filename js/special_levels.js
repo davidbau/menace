@@ -15,6 +15,9 @@ import {
     GEHENNOM,
     VLADS_TOWER,
     TUTORIAL,
+    A_NONE,
+    A_NEUTRAL,
+    A_CHAOTIC,
 } from './const.js';
 
 // Import special level generators
@@ -215,14 +218,19 @@ const variantCache = new Map();
  * @param {Function|Array<Function>} generator - Level generator function or array of variant generators
  * @param {string|Array<string>} name - Level name(s) for debugging
  */
-function setSpecialLevel(dnum, dlevel, generator, name) {
+function setSpecialLevel(dnum, dlevel, generator, name, opts = {}) {
     const key = `${dnum}:${dlevel}`;
+    const meta = {
+        dnum,
+        dlevel,
+        align: Number.isInteger(opts.align) ? opts.align : A_NONE,
+    };
     if (Array.isArray(generator)) {
         const wrappedGenerators = generator.map((gen) => () => gen());
-        specialLevels.set(key, { generator: wrappedGenerators, name, dnum, dlevel });
+        specialLevels.set(key, { generator: wrappedGenerators, name, ...meta });
     } else {
         const wrapped = () => generator();
-        specialLevels.set(key, { generator: wrapped, name, dnum, dlevel });
+        specialLevels.set(key, { generator: wrapped, name, ...meta });
     }
 }
 
@@ -340,7 +348,7 @@ setSpecialLevel(TUTORIAL, 1, generateTut1, 'tut-1');
 setSpecialLevel(TUTORIAL, 2, generateTut2, 'tut-2');
 
 // Oracle level (typically depth 5-7 in Dungeons of Doom)
-setSpecialLevel(DUNGEONS_OF_DOOM, 5, generateOracle, 'oracle');
+setSpecialLevel(DUNGEONS_OF_DOOM, 5, generateOracle, 'oracle', { align: A_NEUTRAL });
 
 // Big room level (13 variants; depth varies by dungeon generation)
 setSpecialLevel(DUNGEONS_OF_DOOM, 10, [
@@ -385,7 +393,7 @@ setSpecialLevel(DUNGEONS_OF_DOOM, 20, [
     generateMedusa2,
     generateMedusa3,
     generateMedusa4
-], ['medusa-1', 'medusa-2', 'medusa-3', 'medusa-4']);
+], ['medusa-1', 'medusa-2', 'medusa-3', 'medusa-4'], { align: A_CHAOTIC });
 
 // Fort Ludios (Knox's Fort) - bonus level accessed via magic portal
 setSpecialLevel(KNOX, 1, generateKnox, 'knox');
