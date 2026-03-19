@@ -260,13 +260,20 @@ same RNG values (verified by flat comparison passing).
 - JS's headless display has no buffering — `newsym()` immediately writes to the
   display grid. So JS shows the door, C doesn't.
 
-**Fix approach (complex, not yet implemented):**
-- Would require implementing curses-like display buffering in the headless display,
-  or tracking "flushed" vs "unflushed" display state.
-- Simpler approach (snapshot save/restore) was tried but was too aggressive — it
-  removed corridor terrain that C's intermediate flushes DO show.
-- The `moves % 7` condition is C-specific and fragile to match exactly.
-- Alternatively: accept this as a known screen-only difference for running steps
+**The `+` is written via three separate code paths** (all verified by tracing):
+1. `putMapCell` ← `newsym` ← `vision_recalc` in `do_run` loop (line 1572)
+2. `HeadlessDisplay.renderMap` ← `display_sync` ← `advanceTimedTurn` ← `advanceRunTurn`
+3. `HeadlessDisplay.renderMap` ← `docrt()` ← `postRender`/`renderAndAutosave` after run
+
+**Fix approaches tried and results:**
+- Suppressing putMapCell during running: removes `+` but ALSO removes corridor
+  terrain that C DOES show (seed031's `#└───┘` at step 39 disappears).
+- Suppressing display_sync during running: prevents path 2 but path 1 still writes.
+- Suppressing docrt after running: prevents path 3 but paths 1 and 2 still write.
+- All three combined: fixes seed032's `+` but breaks seed031's corridor display.
+- The core problem: C's RUN_LEAP mode flushes every 7th step (showing SOME terrain)
+  while JS either shows everything or nothing. Matching requires curses-like buffering.
+- Accept as known screen-only difference for running steps
   and focus on the RNG/event parity for seed031/033/301.
 
 ## NEXT STEPS
