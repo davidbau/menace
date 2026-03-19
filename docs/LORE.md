@@ -14027,4 +14027,9 @@ Validation:
     a code path during `makelevel` that sets it differently from `level_align()`?
   - Regressed: seed033, seed321, seed328, t11_s744 (439→436 passing).
   - The old heuristic was wrong per C's data structures, but matched C's behavior
-    for these specific sessions. The root cause needs deeper investigation.
+    for these specific sessions.
+  - Oracle/medusa alignment restored from dungeon.lua via RUNTIME_SPECIAL_LEVEL_CANON
+    (df75e5085). seed321/seed328/t11_s744 still fail — divergence at deep levels
+    (Dlvl:21/25) with rn2(3) vs rn2(5) in rndmonst_adj. These levels have no
+    special alignment, suggesting the regression cascades from an earlier generation
+    difference. Needs investigation by alignment change author.
