@@ -13854,3 +13854,45 @@ Validation:
     - `seed331_tourist_wizard_gameplay` stayed full RNG/event green
     - `theme34_seed2238_tou_explore_gameplay` stayed full green
   - `seed031_manual_direct` stayed unchanged, so do not treat this as the live step-479/488 fix; it is a separate exact-C correction
+
+- 2026-03-19: Event-step ownership must be mapped from the comparable event
+  stream, not from raw `^...` counts.
+  - `compareEvents()` filters ignorable events before reporting its divergence
+    index.
+  - Raw step mapping that counts every `^...` event can misreport the first bad
+    step even when the normalized event index is right.
+  - Durable fix:
+    - [`test/comparison/comparator_policy.js`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/comparator_policy.js)
+      now maps event divergence steps through `getComparableEventStreams(...)`
+    - [`test/comparison/comparison_artifacts.js`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/comparison_artifacts.js)
+      now preserves `rawIndexMap` and `stepEnds` for comparable-event artifacts
+  - Regression test:
+    - [`test/unit/event_step_mapping.test.js`](/share/u/davidbau/git/mazesofmenace/game/test/unit/event_step_mapping.test.js)
+  - Practical effect:
+    - `seed031_manual_direct`'s stale event-step `479` report was a tooling
+      artifact; the authoritative first event and first RNG divergences are both
+      at step `488`.
+
+- 2026-03-19: `seed031_manual_direct` step `488` is currently an XP/level-state
+  seam upstream of the visible pet-choice drift.
+  - Exact live JS owner trace at step `488`:
+    - `[HMON_TRACE] xp-before ... ulevel=2 uexp=27 exp=27 expGain=7`
+    - `[EXP_TRACE] more_experienced ... delta=7 uexp=27->34`
+    - `[EXP_TRACE] newexplevel-check ... threshold=40`
+  - Exact C raw trace at the same step:
+    - `rnd(8)=8 @ newhp(attrib.c:1098)`
+    - `rnd(2)=2 @ newhp(attrib.c:1100)`
+    - `rn2(4)=2 @ newpw(exper.c:64)`
+    - then pet `distfleeck()`
+  - Conclusion:
+    - the visible `dog_move_choice` / `distfleeck brave` mismatch is
+      downstream
+    - C has already leveled the hero before the pet turn
+    - JS has not
+  - Current JS XP ledger before step `488`:
+    - kill awards via `handleMonsterKilled()` at steps `75, 83, 112, 193, 294,
+      352, 375, 403`
+    - tourist `changeLevel()` awards at moves `252` and `420`
+    - thrown gnome kill via `xkilled()` at step `488`
+  - Do not patch pet AI from this symptom; first explain the missing pre-pet
+    XP/level state.

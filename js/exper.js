@@ -13,6 +13,41 @@ import { mons, PM_ACID_BLOB,
 import { Role_if, Goodbye } from './role.js';
 import { find_mac } from './worn.js';
 import { extra_nasty } from './mondata.js';
+import { game as _gstate } from './gstate.js';
+import { envFlag, getEnv } from './runtime_env.js';
+
+function expTraceEnabled(game = null) {
+    if (!envFlag('WEBHACK_EXP_TRACE')) return false;
+    const map = game?.map || game?.lev || _gstate?.map || _gstate?.lev || null;
+    const idx = map?._replayStepIndex;
+    const fromRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_FROM', ''), 10);
+    const toRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_TO', ''), 10);
+    if (Number.isInteger(idx)) {
+        const step = idx + 1;
+        if (Number.isInteger(fromRaw) && step < fromRaw) return false;
+        if (Number.isInteger(toRaw) && step > toRaw) return false;
+    }
+    return true;
+}
+
+function expTraceCaller() {
+    const stack = new Error().stack || '';
+    const lines = stack.split('\n').slice(2);
+    for (const line of lines) {
+        if (!line.includes('expTrace') && !line.includes('/js/exper.js:')) {
+            return line.trim().replace(/^at\s+/, '');
+        }
+    }
+    return '?';
+}
+
+function expTrace(game, kind, ...args) {
+    if (!expTraceEnabled(game)) return;
+    const map = game?.map || game?.lev || _gstate?.map || _gstate?.lev || null;
+    const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
+    const moves = Number.isInteger(_gstate?.moves) ? _gstate.moves : '?';
+    console.log('[EXP_TRACE]', kind, `step=${step}`, `moves=${moves}`, `caller=${expTraceCaller()}`, ...args);
+}
 
 // cf. exper.c:14 — newuexp(): experience points threshold for given level
 export function newuexp(lev) {
@@ -166,7 +201,14 @@ export async function losexp(player, display, drainer) {
 // cf. exper.c:299 — newexplevel(): check if player should gain a level
 // Autotranslated from exper.c:299
 export async function newexplevel(player, display = null) {
-  if (player.ulevel < MAXULEV && (Number(player.uexp) || Number(player.exp) || 0) >= newuexp(player.ulevel)) {
+  const currentExp = (Number(player.uexp) || Number(player.exp) || 0);
+  const threshold = newuexp(player.ulevel);
+  expTrace(display?.game || null, 'newexplevel-check',
+      `ulevel=${player.ulevel ?? '?'}`,
+      `uexp=${player.uexp ?? '?'}`,
+      `exp=${player.exp ?? '?'}`,
+      `threshold=${threshold}`);
+  if (player.ulevel < MAXULEV && currentExp >= threshold) {
     await pluslvl(player, display, true);
   }
 }
@@ -321,6 +363,13 @@ export function more_experienced(exper, rexp, game, player) {
   }
   if (newrexp !== oldrexp) { player.urexp = newrexp; }
   if (player.urexp >= (Role_if(player, PM_WIZARD) ? 1000 : 2000)) g.flags.beginner = false;
+  expTrace(g, 'more_experienced',
+      `delta=${exper}`,
+      `scoreDelta=${rexpincr}`,
+      `uexp=${oldexp}->${player.uexp}`,
+      `urexp=${oldrexp}->${player.urexp}`,
+      `ulevel=${player.ulevel ?? '?'}`,
+      `next=${newuexp(Number(player.ulevel) || 0)}`);
 }
 
 // C helper: new level on sufficient XP (formerly in combat.js shim).

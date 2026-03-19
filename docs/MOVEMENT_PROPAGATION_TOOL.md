@@ -35,6 +35,7 @@ What it does:
   - `WEBHACK_DOGMOVE_TRACE=1`
   - `WEBHACK_RNDMON_OWNER_TRACE=1`
   - `WEBHACK_HMON_TRACE=1`
+  - `WEBHACK_EXP_TRACE=1`
   - and passes `--mon-id` / `--mndx` through to the owner traces when set
 - groups the JS replay back into gameplay steps
 - prints, for each selected gameplay step:
@@ -46,6 +47,7 @@ What it does:
     - `[DOGMOVE_TRACE]`
     - `[RNDMON_OWNER]`
     - `[HMON_TRACE]`
+    - `[EXP_TRACE]`
   - the corresponding C raw key range for that same comparison-step bundle
   - the JS raw keys consumed for that same comparison-step bundle
 - can also print a side-by-side raw replay window:
@@ -139,9 +141,10 @@ Useful flags:
     when the live seam passes through post-move digging logic
 - `--owner-trace`
   - include owner-local state traces for the selected step window:
-    - `DOGMOVE_TRACE`
-    - `RNDMON_OWNER`
-    - `HMON_TRACE`
+    - `[DOGMOVE_TRACE]`
+    - `[RNDMON_OWNER]`
+    - `[HMON_TRACE]`
+    - `[EXP_TRACE]`
   - this is the high-signal mode when the first visible divergence is downstream
     of pet choice, random-monster selection, or thrown-hit kill ownership
 - `--raw-from <N> --raw-to <M>`
@@ -170,13 +173,23 @@ Notes:
   - `--mon-id` / `--mndx` to narrow to one actor
   - or `--grep` to narrow to one owner subphase
 - current owner-trace coverage:
-  - `DOGMOVE_TRACE`
+  - `[DOGMOVE_TRACE]`
     - candidate ordering, candidate skips, `uncursedcnt`, and final pick
-  - `RNDMON_OWNER`
+  - `[RNDMON_OWNER]`
     - difficulty/alignment context plus per-candidate inclusion, exclusion, and
       reservoir-selection rolls
-  - `HMON_TRACE`
+  - `[HMON_TRACE]`
     - thrown-hit damage path, poison/death ownership, and final kill owner
+  - `[EXP_TRACE]`
+    - `more_experienced()` and `newexplevel()` ownership with caller, move
+      count, and threshold state
+
+Artifact note:
+
+- event-step ownership now uses the same comparable-event filtering as
+  `compareEvents()`
+- this avoids stale first-event step reports when raw `^...` counts include
+  ignorable events such as repaint-only entries
 
 Companion tools:
 

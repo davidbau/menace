@@ -64,7 +64,7 @@ import {
     poly_when_stoned, DEADMONSTER, resists_blnd,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
-import { experience, more_experienced, newexplevel } from './exper.js';
+import { experience, more_experienced, newexplevel, newuexp } from './exper.js';
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { applyMonflee } from './mhitu.js';
@@ -129,6 +129,19 @@ function hmonTrace(map, mon, kind, ...args) {
     if (!hmonTraceEnabled(map, mon)) return;
     const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
     console.log('[HMON_TRACE]', kind, `step=${step}`, `id=${mon?.m_id ?? '?'}`, `mndx=${mon?.mndx ?? '?'}`, ...args);
+}
+
+function hmonTracePlayerState(map, mon, kind, player, expGain = null) {
+    if (!hmonTraceEnabled(map, mon) || !player) return;
+    const nextThreshold = newuexp(Number(player.ulevel) || 0);
+    const parts = [
+        `ulevel=${player.ulevel ?? '?'}`,
+        `uexp=${player.uexp ?? '?'}`,
+        `exp=${player.exp ?? '?'}`,
+        `next=${nextThreshold}`,
+    ];
+    if (expGain != null) parts.push(`expGain=${expGain}`);
+    hmonTrace(map, mon, kind, ...parts);
 }
 
 async function abuse_dog_like_c(mon, display = null) {
@@ -834,15 +847,23 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
             mon.mhp = 0;
         }
         if (!hmd.already_killed) {
+            const mndx = mon?.mndx ?? 0;
+            const expGain = player ? experience(mon, _gstate?.mvitals?.[mndx]?.died || 0) : null;
+            hmonTracePlayerState(map, mon, 'xp-before', player, expGain);
             hmonTrace(map, mon, 'death-owner', 'kind=xkilled-nomsg');
             await xkilled(mon, XKILL_NOMSG, map, player);
+            hmonTracePlayerState(map, mon, 'xp-after', player, expGain);
             hmd.already_killed = true;
         }
         hmd.destroyed = true;
     }
     if (hmd.destroyed && !hmd.already_killed) {
+        const mndx = mon?.mndx ?? 0;
+        const expGain = player ? experience(mon, _gstate?.mvitals?.[mndx]?.died || 0) : null;
+        hmonTracePlayerState(map, mon, 'xp-before', player, expGain);
         hmonTrace(map, mon, 'death-owner', 'kind=killed');
         await killed(mon, map, player);
+        hmonTracePlayerState(map, mon, 'xp-after', player, expGain);
         hmd.already_killed = true;
     }
 
@@ -2231,6 +2252,11 @@ export async function handleMonsterKilled(player, monster, display, map) {
     const mndx = monster.mndx ?? 0;
     const game = _gstate;
     const exp = experience(monster, game?.mvitals?.[mndx]?.died || 0);
+    hmonTrace(game?.map || game?.lev || null, monster, 'kill-award',
+        `exp=${exp}`,
+        `mlev=${monster.m_lev ?? '?'}`,
+        `ac=${find_mac(monster)}`,
+        `mvitalsDied=${game?.mvitals?.[mndx]?.died ?? '?'}`);
     more_experienced(exp, 0, game, player);
     player.exp = player.uexp;
     player.score += exp;

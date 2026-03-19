@@ -1430,3 +1430,36 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
 - Operational rule:
   - do not award gameplay XP by writing `player.uexp` directly when C routes
     through `more_experienced()` / `newexplevel()`
+
+## 2026-03-19: `seed031` first event step was misattributed; live seam is step 488 XP/level state
+
+- Tooling bug:
+  - event divergence step mapping was counting raw `^...` events
+  - `compareEvents()` actually compares filtered comparable-event streams
+  - result: `seed031_manual_direct`'s first event divergence was being reported
+    as step `479` even though the actual comparable-event owner was later
+- Durable fix:
+  - [`test/comparison/comparator_policy.js`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/comparator_policy.js)
+    now maps event divergence steps through `getComparableEventStreams(...)`
+  - [`test/comparison/comparison_artifacts.js`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/comparison_artifacts.js)
+    now preserves step/raw mapping for comparable-event artifacts
+  - regression test:
+    - [`test/unit/event_step_mapping.test.js`](/share/u/davidbau/git/mazesofmenace/game/test/unit/event_step_mapping.test.js)
+- Authoritative `seed031` frontier after the fix:
+  - first event divergence: step `488`
+  - first RNG divergence: step `488`
+- Exact local evidence at step `488`:
+  - JS owner trace:
+    - `[HMON_TRACE] xp-before ... ulevel=2 uexp=27 exp=27 expGain=7`
+    - `[EXP_TRACE] more_experienced ... delta=7 uexp=27->34`
+    - `[EXP_TRACE] newexplevel-check ... threshold=40`
+  - C raw trace:
+    - `rnd(8)=8 @ newhp(attrib.c:1098)`
+    - `rnd(2)=2 @ newhp(attrib.c:1100)`
+    - `rn2(4)=2 @ newpw(exper.c:64)`
+    - then `rn2(5)=0 @ distfleeck(monmove.c:539)`
+- Conclusion:
+  - the visible pet-choice drift (`brave=1` vs `brave=0`) is downstream
+  - the real live blocker is missing pre-pet XP/level state on the JS side
+  - next work should compare the exact pre-step-488 XP sources/level-up owner
+    against C, not patch `dog_move()` heuristically

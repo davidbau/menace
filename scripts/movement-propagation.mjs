@@ -35,7 +35,7 @@ function usage() {
     console.log('  --mon-id <N>        Filter entries to a specific monster id');
     console.log('  --mndx <N>          Filter entries to a specific monster species index');
     console.log('  --monmove-trace     Include [MONMOVE_TRACE]/[MONMOVE_PHASE3] lines');
-    console.log('  --owner-trace       Include [DOGMOVE_TRACE]/[RNDMON_OWNER]/[HMON_TRACE] lines');
+    console.log('  --owner-trace       Include [DOGMOVE_TRACE]/[RNDMON_OWNER]/[HMON_TRACE]/[EXP_TRACE] lines');
     console.log('');
     console.log('Examples:');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed032_manual_direct.session.json --step-from 89 --step-to 91');
@@ -266,6 +266,7 @@ async function main() {
         WEBHACK_DOGMOVE_TRACE: process.env.WEBHACK_DOGMOVE_TRACE,
         WEBHACK_RNDMON_OWNER_TRACE: process.env.WEBHACK_RNDMON_OWNER_TRACE,
         WEBHACK_HMON_TRACE: process.env.WEBHACK_HMON_TRACE,
+        WEBHACK_EXP_TRACE: process.env.WEBHACK_EXP_TRACE,
         WEBHACK_TRACE_MON_ID: process.env.WEBHACK_TRACE_MON_ID,
         WEBHACK_TRACE_MNDX: process.env.WEBHACK_TRACE_MNDX,
     };
@@ -282,6 +283,7 @@ async function main() {
         process.env.WEBHACK_DOGMOVE_TRACE = '1';
         process.env.WEBHACK_RNDMON_OWNER_TRACE = '1';
         process.env.WEBHACK_HMON_TRACE = '1';
+        process.env.WEBHACK_EXP_TRACE = '1';
     }
     if (monId != null) process.env.WEBHACK_TRACE_MON_ID = String(monId);
     if (mndx != null) process.env.WEBHACK_TRACE_MNDX = String(mndx);
@@ -300,7 +302,7 @@ async function main() {
             monmoveTraceLines.push(text);
             return;
         }
-        if (text.startsWith('[DOGMOVE_TRACE]') || text.startsWith('[RNDMON_OWNER]') || text.startsWith('[HMON_TRACE]')) {
+        if (text.startsWith('[DOGMOVE_TRACE]') || text.startsWith('[RNDMON_OWNER]') || text.startsWith('[HMON_TRACE]') || text.startsWith('[EXP_TRACE]')) {
             ownerTraceLines.push(text);
             return;
         }
@@ -367,7 +369,7 @@ async function main() {
         const step = traceStep(line);
         if (!Number.isInteger(step)) continue;
         const list = ownerTraceByStep.get(step) || [];
-        list.push(line.replace(/^\[(DOGMOVE_TRACE|RNDMON_OWNER|HMON_TRACE)\]\s*/, ''));
+        list.push(line);
         ownerTraceByStep.set(step, list);
     }
 

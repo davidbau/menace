@@ -8,6 +8,7 @@ import {
     compareScreenAnsi,
     ansiLineToCells,
     compareEvents,
+    getComparableEventStreams,
 } from './comparators.js';
 import { getSessionScreenAnsiLines, stripAnsiSequences } from './session_loader.js';
 import { decodeDecSpecialChar, decodeSOSILine } from './symset_normalization.js';
@@ -299,12 +300,24 @@ function approximateStepForRngIndex(session, normalizedIndex) {
     return session.steps.length || 'n/a';
 }
 
-function stepForEventIndex(session, eventIndex) {
-    const isEvent = (e) => typeof e === 'string' && e.startsWith('^');
+function stepForComparableEventIndex(session, comparableSessionEvents, eventIndex) {
+    const wanted = Array.isArray(comparableSessionEvents) ? comparableSessionEvents : [];
+    let cursor = 0;
     let cumulative = 0;
-    cumulative += (session.startup?.rng || []).filter(isEvent).length;
+    const countMatches = (entries) => {
+        let matched = 0;
+        for (const entry of (entries || [])) {
+            if (cursor < wanted.length && entry === wanted[cursor]) {
+                cursor++;
+                matched++;
+            }
+        }
+        return matched;
+    };
+
+    cumulative += countMatches(session.startup?.rng || []);
     for (let i = 0; i < session.steps.length; i++) {
-        cumulative += (session.steps[i].rng || []).filter(isEvent).length;
+        cumulative += countMatches(session.steps[i].rng || []);
         if (eventIndex < cumulative) return i + 1;
     }
     // Divergence index is past all session steps — report as last step
@@ -757,8 +770,9 @@ export function createGameplayComparatorPolicy(session, options = {}) {
         compareEvents(allJsRng, allSessionRng) {
             const cmp = compareEvents(allJsRng, allSessionRng);
             if (cmp.firstDivergence) {
-                cmp.firstDivergence.step = stepForEventIndex(
-                    session, cmp.firstDivergence.index
+                const comparable = getComparableEventStreams(allJsRng, allSessionRng);
+                cmp.firstDivergence.step = stepForComparableEventIndex(
+                    session, comparable.session, cmp.firstDivergence.index
                 );
             }
             return cmp;

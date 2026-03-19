@@ -79,6 +79,7 @@ node scripts/movement-propagation.mjs <session.json> \
   - `[DOGMOVE_TRACE]`
   - `[RNDMON_OWNER]`
   - `[HMON_TRACE]`
+  - `[EXP_TRACE]`
 - C raw key range and JS raw keys for that same comparison-step bundle
 
 Manual-direct rule:
@@ -232,8 +233,13 @@ node scripts/movement-propagation.mjs \
   and filter by `--mon-id` or `--mndx` before adding ad hoc console logging.
 - If the live seam is inside `dog_move()`, `hmon()`, or `rndmonst_adj()`, prefer
   `--owner-trace` before adding new one-off logs.
+- If the visible seam is a downstream pet/combat symptom but C appears to do a
+  level-up first, use `--owner-trace` with `[EXP_TRACE]` and `[HMON_TRACE]`
+  before changing AI logic.
 - Use `--owner-trace --mndx <PM>` for species-wide pet/monster scans and
   `--owner-trace --mon-id <ID>` when the exact runtime monster id is stable.
+- Owner-trace output preserves its trace family prefix; rely on that when
+  multiple owners emit in the same step.
 - Ordinary-monster `mfndpos` detail is available through
   `WEBHACK_MFNDPOS_TRACE=1`, which the tool enables automatically when
   `--monmove-trace`, `--mon-id`, or `--mndx` is used.

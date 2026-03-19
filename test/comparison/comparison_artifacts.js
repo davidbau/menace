@@ -49,14 +49,34 @@ function flattenRawRngFromSessionLike(sessionLike) {
     return { startup, stepRng, raw: [...startup, ...stepRng.flat()] };
 }
 
-function buildComparableEventChannel(entries = []) {
-    const filtered = Array.isArray(entries) ? entries : [];
-    return {
-        raw: filtered,
-        normalized: filtered.map((entry) => stripEventContext(entry)),
-        rawIndexMap: filtered.map((_entry, idx) => idx),
-        stepEnds: [],
+function buildComparableEventChannel(sessionLike, comparableEntries = []) {
+    const wanted = Array.isArray(comparableEntries) ? comparableEntries : [];
+    const { startup, stepRng, raw } = flattenRawRngFromSessionLike(sessionLike);
+    const normalized = [];
+    const rawIndexMap = [];
+    const stepEnds = [0];
+    let rawIndex = 0;
+    let cursor = 0;
+
+    const scan = (entries) => {
+        for (const entry of entries) {
+            if (cursor < wanted.length && entry === wanted[cursor]) {
+                normalized.push(stripEventContext(entry));
+                rawIndexMap.push(rawIndex);
+                cursor++;
+            }
+            rawIndex++;
+        }
     };
+
+    scan(startup);
+    stepEnds[0] = normalized.length;
+    for (const entries of stepRng) {
+        scan(entries);
+        stepEnds.push(normalized.length);
+    }
+
+    return { raw, normalized, rawIndexMap, stepEnds };
 }
 
 function normalizeChannel(sessionLike, { eventsOnly = false } = {}) {
@@ -244,8 +264,8 @@ export function buildComparisonArtifact(session, replay, cmp, result) {
     const jsRaw = flattenRawRngFromSessionLike(replay).raw;
     const cRaw = flattenRawRngFromSessionLike(session).raw;
     const { js: jsComparableEvents, session: cComparableEvents } = getComparableEventStreams(jsRaw, cRaw);
-    const jsEvents = buildComparableEventChannel(jsComparableEvents);
-    const cEvents = buildComparableEventChannel(cComparableEvents);
+    const jsEvents = buildComparableEventChannel(replay, jsComparableEvents);
+    const cEvents = buildComparableEventChannel(session, cComparableEvents);
 
     const artifact = {
         format: FORMAT_VERSION,
