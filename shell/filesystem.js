@@ -57,6 +57,47 @@ function lsRemove(key) {
     catch (e) { /* ignore */ }
 }
 
+// /etc/shadow -- DES crypt(3) style hashes, root-readable only.
+// Passwords (plaintext, for reference only -- not checked by login):
+//   root:xyzzy  rodney:yendor  izchak:shopkeep  crowther:mammoth
+//   toy:permdie  arnold:curses  fenlason:linsudbry  brouwer:partgeom
+//   lebling:thethief  blank:zorkI  walz:sysadmin  harvey:turtledove
+//   wichman:rooms  stephenson:devteam  woodland:backtrack  thome:chameleon
+//   payne:jove  kelly:clubnotes  jsirota:packets  msirota:setuid
+//   fraize:baudrate  abbott:permadeath  brown:forking  ruddy:vt100
+//   corley:autoincr  texeira:inodes
+const SHADOW = `root:Gu3MxQfNpW7aE:4442:0:99999:7:::
+daemon:*:4383:0:99999:7:::
+operator:*:4383:0:99999:7:::
+${USERNAME}:ab9KmTvQxPcLj:4442:0:99999:7:::
+izchak:zK1bNpWrHqYsM:4442:0:99999:7:::
+crowther:Mm7cLtRvQwXnP:4442:0:99999:7:::
+toy:Pd3fHnVkZqJmR:4442:0:99999:7:::
+arnold:Cr8sLpMkQzXwT:4442:0:99999:7:::
+fenlason:Ls5jQtBmKxNvP:4442:0:99999:7:::
+brouwer:Pg4hMrFnJkQxW:4442:0:99999:7:::
+lebling:Th6kNpRvWzXqJ:4442:0:99999:7:::
+blank:Zk9mLqPtRxWvN:4442:0:99999:7:::
+walz:Sy7nQrMkXpJvT:4442:0:99999:7:::
+harvey:Tu2mPkRnQxJvW:4442:0:99999:7:::
+wichman:Ro3nKpTmQxLvJ:4442:0:99999:7:::
+stephenson:Dt5kMpQnRxWvL:4442:0:99999:7:::
+woodland:Bk4nRpTmQxMvJ:4442:0:99999:7:::
+thome:Ch7mNpQrKxWvL:4442:0:99999:7:::
+payne:Jv6kMpNrQxWtL:4442:0:99999:7:::
+kelly:Cl8nKpRmQxJvT:4442:0:99999:7:::
+jsirota:Pk9mQnRtKxWvL:4442:0:99999:7:::
+msirota:St3kNpQrMxJvW:4442:0:99999:7:::
+fraize:Bd2mKpQnRxTvL:4442:0:99999:7:::
+abbott:Pm5nQkRtKxWvJ:4442:0:99999:7:::
+brown:Fo7mNpQrKxWvT:4442:0:99999:7:::
+ruddy:Vt4nKpRmQxJvL:4442:0:99999:7:::
+corley:Ai6mNpQrKxWvT:4442:0:99999:7:::
+texeira:In9kMpQnRxWvL:4442:0:99999:7:::
+wizard:*:4442:0:99999:7:::
+gridbug:!:4442:::::::
+`.trim();
+
 const MOTD = `                      Welcome to the dungeon!
 
   Several games live in /usr/games.
@@ -368,7 +409,7 @@ function buildTree() {
                 type: 'dir', children: {
                     motd:   { type: 'file', content: MOTD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     passwd: { type: 'file', content: PASSWD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
-                    shadow: { type: 'file', content: null, readonly: true, owner: 'root', group: 'shadow', date: 'Mar 12  2026', perms: '-rw-r-----' },
+                    shadow: { type: 'file', content: SHADOW, readonly: true, owner: 'root', group: 'shadow', date: 'Mar 12  2026', perms: '-rw-r-----', restricted: true },
                 }
             },
             usr: {
