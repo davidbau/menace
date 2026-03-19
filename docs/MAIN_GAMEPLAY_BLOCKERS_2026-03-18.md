@@ -956,3 +956,29 @@ Current conclusion:
   - C is still in `place_lregion(...)`
 - next work should stay on this later step-467 arrival/levregion boundary, not
   reopen the older minefill alignment theory
+
+## 2026-03-19: tele levregion destination bookkeeping fixed separately; neutral for `seed031`
+
+Validated code fix:
+- `js/mkmaze.js`
+  - `place_lregion(LR_TELE/LR_UPTELE/LR_DOWNTELE)` now records both the exact
+    chosen point and the original source bounds
+- `js/do.js`
+  - `getTeleportRegion()` now prefers preserved source bounds when available
+- `js/sp_lev.js`
+  - checkpoint normalization preserves the extra destination metadata
+- `test/unit/sp_lev.test.js`
+  - regression coverage added for teleport destination bookkeeping
+
+Validation:
+- `node --test test/unit/sp_lev.test.js`
+- `test/comparison/sessions/coverage/apply-tools/t08_s984_w_camera_gp.session.json`
+- `test/comparison/sessions/coverage/shops-economy/hi15_seed42_barb_minetn5_shop-pay_gp.session.json`
+
+Result on the live blocker:
+- neutral for `seed031_manual_direct`
+
+Conclusion:
+- keep this as a separate correctness fix
+- do not treat it as the cause of the current integrated minefill step-467
+  drift

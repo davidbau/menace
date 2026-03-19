@@ -13635,3 +13635,22 @@ Validation:
 - New frontier after this batch:
   - later `changeLevel()` / `mon_arrive()` ownership
   - first RNG divergence now in `dog.js mon_arrive(...)`
+
+## 2026-03-19: `place_lregion(LR_TELE*)` should preserve both exact point and source bounds
+
+- JS `put_lregion_here()` for `LR_TELE/LR_UPTELE/LR_DOWNTELE` was only
+  clearing blockers; it did not record the chosen destination on
+  `updest/dndest`.
+- The corrected path now stores:
+  - the exact chosen arrival point in `lx/ly/hx/hy`
+  - the original source-region bounds in `rlx/rly/rhx/rhy`
+  - the exclusion bounds in `nlx/nly/nhx/nhy`
+- `getTeleportRegion()` prefers the preserved source bounds when present, so
+  later random arrival still uses the full region instead of collapsing to the
+  chosen point.
+- Validation:
+  - `node --test test/unit/sp_lev.test.js`
+  - `t08_s984_w_camera_gp`
+  - `hi15_seed42_barb_minetn5_shop-pay_gp`
+- This was neutral for the current `seed031` blocker. It is a separate
+  correctness fix, not the root cause of the integrated minefill drift.

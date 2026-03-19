@@ -803,6 +803,23 @@ describe('sp_lev.js - des.* API', () => {
         assert.equal(map.monsters.length, 0, 'monster should be removed when no legal relocation exists');
     });
 
+    it('place_lregion teleport stores chosen arrival point and original region bounds', () => {
+        resetLevelState();
+        des.level_init({ style: 'solidfill', fg: '.' });
+        const map = getLevelState().map;
+
+        place_lregion(map, 10, 10, 12, 12, 20, 20, 22, 22, LR_TELE);
+
+        assert.ok(map.updest, 'teleport region should populate updest');
+        assert.ok(map.dndest, 'teleport region should populate dndest');
+        assert.equal(map.updest.lx, map.updest.hx, 'chosen updest should be a single point');
+        assert.equal(map.updest.ly, map.updest.hy, 'chosen updest should be a single point');
+        assert.equal(map.updest.rlx, 10, 'updest should preserve source region lower x bound');
+        assert.equal(map.updest.rhy, 12, 'updest should preserve source region upper y bound');
+        assert.equal(map.dndest.nlx, 20, 'dndest should preserve exclusion lower x bound');
+        assert.equal(map.dndest.nhy, 22, 'dndest should preserve exclusion upper y bound');
+    });
+
     it('fixup_special LR_PORTAL resolves named destination level', async () => {
         resetLevelState();
         des.level_init({ style: 'solidfill', fg: '.' });
