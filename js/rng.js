@@ -11,6 +11,11 @@ let dispCtx = null; // DISP ISAAC64 context (C rn2_on_display_rng)
 const CORE = 0;
 const DISP = 1;
 
+// C ref: rnl() accesses the global Luck macro. In JS, we use a lazy accessor
+// to avoid circular imports (rng.js is imported very early in the module graph).
+let _rnlPlayerAccessor = null;
+export function setRnlPlayerAccessor(fn) { _rnlPlayerAccessor = fn; }
+
 // --- PRNG call logging ---
 // When enabled, every rn2/rnd/rnl/d call is logged in the same format
 // as the C PRNG logger (003-prng-logging patch).  Enable with enableRngLog(),
@@ -457,10 +462,23 @@ export function rn1(x, y) {
 
 // rnl(x) - luck-adjusted random, good luck approaches 0
 // C ref: rnd.c:109-151
-export function rnl(x, luck = 0) {
+// C's rnl() uses the global Luck macro (u.uluck + u.moreluck). When called
+// without an explicit luck argument, auto-read from the global game state
+// so callers don't need to pass it (matching C's implicit global access).
+export function rnl(x, luck) {
     enterRng();
     if (x <= 0) { exitRng(); return 0; }
-    let adjustment = luck;
+    // Auto-detect luck from global game state if not explicitly provided.
+    // C ref: youprop.h — #define Luck (u.uluck + u.moreluck)
+    let adjustment;
+    if (luck !== undefined) {
+        adjustment = luck;
+    } else {
+        const player = _rnlPlayerAccessor?.();
+        adjustment = player
+            ? ((player.uluck ?? player.luck ?? 0) + (player.moreluck ?? 0))
+            : 0;
+    }
     if (x <= 15) {
         adjustment = Math.floor((Math.abs(adjustment) + 1) / 3) * Math.sign(adjustment);
     }

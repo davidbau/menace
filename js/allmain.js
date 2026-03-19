@@ -26,7 +26,7 @@ import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
 import { were_change } from './were.js';
 import { allocateMonsterMovement, mcalcmove } from './mon.js';
 import { rn2, rnd, rn1, initRng, getRngState, setRngState, getRngCallCount, setRngCallCount,
-         enableRngLog, getRngLog as readRngLog, pushRngLogEntry } from './rng.js';
+         enableRngLog, getRngLog as readRngLog, pushRngLogEntry, setRnlPlayerAccessor } from './rng.js';
 import { A_STR, A_DEX, A_CON, A_INT, A_WIS, ROOMOFFSET, SHOPBASE,
          COLNO, ROWNO, A_NONE, A_LAWFUL, A_NEUTRAL, A_CHAOTIC, NORMAL_SPEED,
          FEMALE, MALE, TERMINAL_COLS, MAXULEV,
@@ -1474,6 +1474,9 @@ function buildStartupLorePromptFlow(loreLines, loreOffx, welcomeMsg) {
 export class NetHackGame {
     constructor(deps = {}) {
         setGame(this); // Mirror C's global game state — modules read gstate.game
+        // C ref: rnl() accesses the global Luck macro. Set up the lazy player
+        // accessor so rnl() can auto-detect luck without explicit arguments.
+        setRnlPlayerAccessor(() => this.u || this.player);
         this.deps = deps;
         this.lifecycle = deps.lifecycle || {};
         this.hooks = deps.hooks || {};

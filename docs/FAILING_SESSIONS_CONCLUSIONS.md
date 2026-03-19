@@ -239,35 +239,47 @@ finding was a tag-name search error.
 
 seed032's RNG channel now passes (rng:3 instead of rng:4). The remaining seed032
 failure is screen-only: at step 18, JS shows `+` (closed door, brown) at row 12 col 8,
-while C shows empty space. This is a remembered terrain difference — the door glyph
-persists in JS's display memory but not in C's, likely from FOV updates during the
-run at step 17 ("L" = run east).
+while C shows empty space.
 
-**ROOT CAUSE FOUND** (March 19 ~02:00 UTC): JS's run at step 18 (key="L", run east)
-takes MUCH longer than C's. JS consumes 196 RNG calls during the run while C consumes
-only 17. JS runs ~20 steps east while C runs ~2 steps. The extended run reveals cells
-(including a closed door at (8,11)) that C never sees. The `+` is from JS seeing a
-door during the extended run that C's shorter run doesn't reach.
+**ROOT CAUSE FOUND** (March 19 ~08:00 UTC — CORRECTED): Both JS and C end the "L"
+(run east, shiftRun mode=1) at the SAME position — game (9,10). They consume the
+same total RNG calls. The first 91 filtered RNG entries match perfectly. JS processes
+7 game turns during the run while C processes 4-5, but the extra turns produce the
+same RNG values (verified by flat comparison passing).
 
-**Fix target**: `lookaround` or run-stopping conditions in `do_run` (hack.js). JS
-continues running where C stops. This is likely from `lookaround` returning different
-results (different adjacent-monster checks, different doorway detection, etc.).
+**The screen divergence is a DISPLAY BUFFERING issue, not a game state difference:**
+- C uses RUN_LEAP mode (`flags.runmode`). During running, `runmode_delay_output()`
+  flushes the tty display only when `svm.moves % 7 == 0` (every 7th game turn).
+  The flush calls `delay_output()` → `tty_display_nhwindow(WIN_MAP, FALSE)` →
+  `wrefresh(mapwin)`.
+- After the run stops, C does NOT call `display_nhwindow`/`wrefresh`/`docrt()`.
+  The captured screen (at nhgetch) shows only what was flushed during the run.
+- Terrain discovered at the final position (like the closed door at (9,11)) is
+  updated in curses' internal buffer via `newsym()` from `vision_recalc()`, but
+  this buffer is NEVER flushed to the terminal. The tmux capture doesn't see it.
+- JS's headless display has no buffering — `newsym()` immediately writes to the
+  display grid. So JS shows the door, C doesn't.
+
+**Fix approach (complex, not yet implemented):**
+- Would require implementing curses-like display buffering in the headless display,
+  or tracking "flushed" vs "unflushed" display state.
+- Simpler approach (snapshot save/restore) was tried but was too aggressive — it
+  removed corridor terrain that C's intermediate flushes DO show.
+- The `moves % 7` condition is C-specific and fragile to match exactly.
+- Alternatively: accept this as a known screen-only difference for running steps
+  and focus on the RNG/event parity for seed031/033/301.
 
 ## NEXT STEPS
 
-1. **Fix seed032 screen divergence at step 18**: Investigate FOV/memory handling
-   during running. The door at (8, 11) or nearby position is briefly visible during
-   the run path and remembered differently in JS vs C.
+1. **seed031/033**: RNG diverges at step 407/184 respectively. Same class as
+   the consistent pet AI pattern — accumulated game state differences from
+   monster movement parity gaps.
 
-2. **Investigate new seed031 divergence at step 407**: The throw command in JS consumes
-   different RNG than C's monster movement at the same point. This suggests
-   JS's fire/throw command path differs from C's, or the step attribution
-   puts different code at the same flat position.
+2. **seed301_archeologist**: RNG diverges at step 10. Level generation differences
+   (create_room/rnd_rect/mineralize) shift the RNG from level creation onward.
 
-2. **Re-run spawn comparison**: The per-turn spawn values may now match through
-   a much later turn before diverging.
-
-3. **t11_s755 is FIXED** (432/436 passing).
+3. **seed032**: Screen-only divergence from display buffering. Low priority compared
+   to RNG divergences in the other 3 sessions.
 
 ## DISPROVEN: rnl() RNG logging asymmetry (23:45 UTC)
 
