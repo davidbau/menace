@@ -1312,7 +1312,12 @@ export async function thitmonst(mon, obj, player, map, game) {
             tmp += weapon_hit_bonus(obj);
         }
         if (tmp >= dieroll) {
-            const dmg = dmgval(obj, mon);
+            // C ref: uhitm.c hmon_hitmon_weapon_ranged() — thrown (non-wielded)
+            // objects do rnd(2) damage, NOT dmgval(). dmgval() is only used for
+            // wielded weapon hits (HMON_APPLIED). Shades take 0 damage from
+            // non-silver thrown objects.
+            const isShade = mon.data?.mname === 'shade' || mon.mndx === 309; // PM_SHADE
+            const dmg = isShade ? 0 : rnd(2);
             await applyThrownDamage(dmg);
             await exercise(player, A_DEX, true);
             if (should_mulch_missile(obj, false)) return 1;
