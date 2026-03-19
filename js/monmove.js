@@ -32,6 +32,7 @@ import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './co
 import { NORMAL_SPEED } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, mdamageu, ranged_attk_available } from './mhitu.js';
+import { m_has_launcher_and_ammo } from './mthrowu.js';
 import { makemon, makemon_appear } from './makemon.js';
 import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          WEAPON_CLASS, ARMOR_CLASS, GEM_CLASS,
@@ -2514,13 +2515,19 @@ export function m_balks_at_approaching(oldappr, mon, player) {
     if (mon_is_peaceful(mon) || mon_is_tame(mon)) return oldappr;
 
     const edist = dist2(mon.mx, mon.my, player.x, player.y);
-    if (edist >= 25) return oldappr; // too far to care
+    // C ref: monmove.c:1195 — peaceful, far away (5*5=25), or can't see hero
+    if (edist >= 25) return oldappr;
 
-    // Has ranged attack capability and is low on HP — avoid
-    const hasRanged = (mdat.mattk || []).some(a =>
-        a && (a.aatyp === AT_BREA || a.aatyp === AT_SPIT));
+    // C ref: monmove.c:1199-1200 — has launcher+ammo → retreat
+    if (m_has_launcher_and_ammo(mon)) return -1;
+
+    // C ref: monmove.c:1203-1205 — polearm in range → retreat
+    // INCOMPLETE: is_pole() check not yet implemented (requires P_POLEARMS/P_LANCE skill check)
+
+    // C ref: monmove.c:1218-1221 — ranged attack with low HP or unused spec
+    const hasRanged = ranged_attk_available(mon);
     if (hasRanged && ((mon.mhp || 0) < Math.floor(((mon.mhpmax || 1) + 1) / 3) || !mon.mspec_used))
-        return -1; // retreat
+        return -1;
 
     return oldappr;
 }
