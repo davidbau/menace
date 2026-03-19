@@ -632,27 +632,6 @@ export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, 
                 map.removeMonster(mon);
             }
         }
-        const src = opts?.sourceRegion || {};
-        const dest = {
-            lx: x,
-            ly: y,
-            hx: x,
-            hy: y,
-            nlx,
-            nly,
-            nhx,
-            nhy,
-            rlx: Number.isFinite(src.lx) ? src.lx : x,
-            rly: Number.isFinite(src.ly) ? src.ly : y,
-            rhx: Number.isFinite(src.hx) ? src.hx : x,
-            rhy: Number.isFinite(src.hy) ? src.hy : y,
-        };
-        if (rtype === LR_TELE || rtype === LR_UPTELE) {
-            map.updest = dest;
-        }
-        if (rtype === LR_TELE || rtype === LR_DOWNTELE) {
-            map.dndest = dest;
-        }
         break;
     }
     case LR_PORTAL:
@@ -683,7 +662,6 @@ export function put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, 
 
 // C ref: mkmaze.c place_lregion()
 export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, opts = {}) {
-    const sourceRegion = { lx, ly, hx, hy };
     if (!lx) {
         if (rtype === LR_BRANCH) {
             // C ref: mkmaze.c place_lregion():
@@ -709,12 +687,12 @@ export function place_lregion(map, lx, ly, hx, hy, nlx, nly, nhx, nhy, rtype, op
     for (let trycnt = 0; trycnt < 200; trycnt++) {
         const x = rn1((hx - lx) + 1, lx);
         const y = rn1((hy - ly) + 1, ly);
-        if (put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, { ...opts, sourceRegion })) return;
+        if (put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, oneshot, opts)) return;
     }
 
     for (let x = lx; x <= hx; x++) {
         for (let y = ly; y <= hy; y++) {
-            if (put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, true, { ...opts, sourceRegion })) return;
+            if (put_lregion_here(map, x, y, nlx, nly, nhx, nhy, rtype, true, opts)) return;
         }
     }
     console.warn(`Couldn't place lregion type ${rtype}!`);

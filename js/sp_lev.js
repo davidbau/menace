@@ -411,7 +411,7 @@ function markSpLevMap(x, y) {
 }
 
 function normalizeDestRect(rect) {
-    const fallback = { lx: 0, ly: 0, hx: 0, hy: 0, nlx: 0, nly: 0, nhx: 0, nhy: 0, rlx: 0, rly: 0, rhx: 0, rhy: 0 };
+    const fallback = { lx: 0, ly: 0, hx: 0, hy: 0, nlx: 0, nly: 0, nhx: 0, nhy: 0 };
     if (!rect || typeof rect !== 'object') return fallback;
     return {
         lx: Number.isInteger(rect.lx) ? rect.lx : 0,
@@ -421,11 +421,7 @@ function normalizeDestRect(rect) {
         nlx: Number.isInteger(rect.nlx) ? rect.nlx : 0,
         nly: Number.isInteger(rect.nly) ? rect.nly : 0,
         nhx: Number.isInteger(rect.nhx) ? rect.nhx : 0,
-        nhy: Number.isInteger(rect.nhy) ? rect.nhy : 0,
-        rlx: Number.isInteger(rect.rlx) ? rect.rlx : 0,
-        rly: Number.isInteger(rect.rly) ? rect.rly : 0,
-        rhx: Number.isInteger(rect.rhx) ? rect.rhx : 0,
-        rhy: Number.isInteger(rect.rhy) ? rect.rhy : 0
+        nhy: Number.isInteger(rect.nhy) ? rect.nhy : 0
     };
 }
 
@@ -1264,7 +1260,23 @@ async function fixupSpecialLevel() {
             case LR_TELE:
             case LR_UPTELE:
             case LR_DOWNTELE:
-                placeRegion(region);
+                // C stores teleport region outlines for goto_level().
+                if (region.rtype === LR_TELE || region.rtype === LR_UPTELE) {
+                    levelState.map.updest = {
+                        lx: region.inarea.x1, ly: region.inarea.y1,
+                        hx: region.inarea.x2, hy: region.inarea.y2,
+                        nlx: region.delarea.x1, nly: region.delarea.y1,
+                        nhx: region.delarea.x2, nhy: region.delarea.y2
+                    };
+                }
+                if (region.rtype === LR_TELE || region.rtype === LR_DOWNTELE) {
+                    levelState.map.dndest = {
+                        lx: region.inarea.x1, ly: region.inarea.y1,
+                        hx: region.inarea.x2, hy: region.inarea.y2,
+                        nlx: region.delarea.x1, nly: region.delarea.y1,
+                        nhx: region.delarea.x2, nhy: region.delarea.y2
+                    };
+                }
                 break;
         }
     }
@@ -3765,7 +3777,6 @@ function l_create_stairway(directionOrOpts, x, y, is_ladder = false) {
     } else {
         levelState.map.dnstair = { x: absx, y: absy };
     }
-
     markSpLevMap(absx, absy);
 }
 
@@ -7045,6 +7056,12 @@ export async function finalize_level() {
         count_level_features(levelState.map);
     }
 
+    // C ref: mkmaze.c fixup_special() clears lregions after processing.
+    // Keep a local snapshot for tutorial-specific post-topology parity hooks.
+    const tutorialLevRegions = Array.isArray(levelState.levRegions)
+        ? levelState.levRegions.slice()
+        : [];
+
     // C ref: sp_lev.c fixup_special() (branch stair placement, etc.)
     if (levelState.map && levelState.coder?.solidify) {
         solidify_map(levelState.map);
@@ -7115,6 +7132,19 @@ export async function finalize_level() {
             }
         }
 
+        // C parity (targeted): tutorial replay traces require levregion
+        // coordinate selection RNG here. Keep this scoped to tutorial maps to
+        // avoid drifting broader special-level map parity.
+        if (levelState.map.flags?.is_tutorial) {
+            for (const region of tutorialLevRegions) {
+                const isTeleportRegion = (region.rtype === 0 || region.rtype === 1 || region.rtype === 2);
+                if (!isTeleportRegion) continue;
+                place_lregion(levelState.map,
+                    region.inarea.x1, region.inarea.y1, region.inarea.x2, region.inarea.y2,
+                    region.delarea.x1, region.delarea.y1, region.delarea.x2, region.delarea.y2,
+                    region.rtype);
+            }
+        }
     }
 
     // C ref: sp_lev.c lspo_finalize_level() applies premap reveal when set.

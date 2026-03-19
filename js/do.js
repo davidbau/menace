@@ -1420,10 +1420,6 @@ function normalizeRegion(region) {
         nly: Number.isFinite(region?.nly) ? region.nly : 0,
         nhx: Number.isFinite(region?.nhx) ? region.nhx : 0,
         nhy: Number.isFinite(region?.nhy) ? region.nhy : 0,
-        rlx: Number.isFinite(region?.rlx) ? region.rlx : 0,
-        rly: Number.isFinite(region?.rly) ? region.rly : 0,
-        rhx: Number.isFinite(region?.rhx) ? region.rhx : 0,
-        rhy: Number.isFinite(region?.rhy) ? region.rhy : 0,
     };
 }
 
@@ -1440,14 +1436,7 @@ function getTeleportRegion(map, opts = {}) {
             nlx: 0, nly: 0, nhx: 0, nhy: 0,
         });
     }
-    const region = normalizeRegion(up ? map?.updest : map?.dndest);
-    if (region.rlx || region.rly || region.rhx || region.rhy) {
-        region.lx = region.rlx;
-        region.ly = region.rly;
-        region.hx = region.rhx;
-        region.hy = region.rhy;
-    }
-    return region;
+    return normalizeRegion(up ? map?.updest : map?.dndest);
 }
 
 // C ref: dungeon.c u_on_rndspot() -> mkmaze.c place_lregion().
