@@ -1805,6 +1805,14 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
     if (String(special.name || '').toLowerCase().startsWith('minetn')) {
         runtimeEntry.town = true;
     }
+    // Copy alignment from RUNTIME_SPECIAL_LEVEL_CANON if available
+    const canonList = RUNTIME_SPECIAL_LEVEL_CANON.get(actualDnum);
+    if (canonList) {
+        const canonEntry = canonList.find(c => c.canonDlevel === where.dlevel);
+        if (canonEntry && Number.isInteger(canonEntry.align)) {
+            runtimeEntry.align = canonEntry.align;
+        }
+    }
     _runtimeSpecialLevelMap.set(`${actualDnum}:${actualDlevel}`, runtimeEntry);
     if (!specialMap.flags) specialMap.flags = {};
     specialMap.flags.is_tutorial = (actualDnum === TUTORIAL);
@@ -4323,6 +4331,7 @@ export function init_dungeon_dungeons({
                         dlevel: canonEntry.canonDlevel,
                     };
                     if (canonEntry.town) entry.town = true;
+                    if (Number.isInteger(canonEntry.align)) entry.align = canonEntry.align;
                     _runtimeSpecialLevelMap.set(`${jsDnum}:${actualDlevel}`, entry);
                 }
             }
