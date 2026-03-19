@@ -29,7 +29,7 @@ function stepAnsiLines(step) {
 
 function resolveGameplayComparableLines(plainLines, ansiLines, session) {
     const ansi = Array.isArray(ansiLines) ? ansiLines : [];
-    const decgraphics = session?.meta?.options?.symset === 'DECgraphics';
+    const decgraphics = (session?.meta?.options?.symset ?? session?.options?.symset) === 'DECgraphics';
     if (ansi.length > 0) {
         return ansi.map((line) => ansiCellsToPlainLine(line));
     }
