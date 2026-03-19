@@ -101,6 +101,7 @@ import { always_hostile, monsndx, is_vampshifter, is_vampire, engulfing_u, m_can
 import { record_achievement } from './insight.js';
 import { pmname, Mgender, x_monnam } from './do_name.js';
 import { place_monster } from './steed.js';
+import { Role_if } from './role.js';
 
 // C macro: ismnum(mndx) — valid monster index check
 // ismnum imported from mondata.js
@@ -2705,6 +2706,54 @@ export function replmon(mtmp, mtmp2, game, player) {
   dealloc_monst(mtmp);
 }
 
+// C ref: mon.c see_monster_closeup(mtmp, photo)
+export async function see_monster_closeup(mtmp, photo = false, game = null, player = null) {
+  const g = game || _gstate;
+  const you = player || g?.u || g?.player;
+  if (!mtmp || !g || !you) return;
+  if (you.Hallucination || (you.Blind && !you.Blind_telepat)) return;
+
+  let mndx = monsndx(mtmp.data);
+  if (M_AP_TYPE(mtmp) === M_AP_MONSTER && !sensemon(mtmp)) mndx = mtmp.mappearance;
+  if (mndx === PM_LONG_WORM && g.notonhead) mndx = PM_LONG_WORM_TAIL;
+
+  const mvital = g.mvitals?.[mndx];
+  if (!mvital) return;
+  if (!mvital.seen_close) {
+    mvital.seen_close = true;
+    if (g.svc?.context?.lifelist) {
+      g.svc.context.lifelist.total_seen_upclose =
+        (g.svc.context.lifelist.total_seen_upclose || 0) + 1;
+    }
+  }
+
+  if (!photo || mtmp.minvis || mtmp.mundetected
+      || ![M_AP_NOTHING, M_AP_MONSTER].includes(M_AP_TYPE(mtmp))) {
+    return;
+  }
+  if (M_AP_TYPE(mtmp) === M_AP_MONSTER) mndx = mtmp.mappearance;
+
+  const photoVital = g.mvitals?.[mndx];
+  if (!photoVital || photoVital.photographed) return;
+  photoVital.photographed = true;
+  if (g.svc?.context?.lifelist) {
+    g.svc.context.lifelist.total_photographed =
+      (g.svc.context.lifelist.total_photographed || 0) + 1;
+  }
+
+  const startingPetMid = g.svc?.context?.startingpet_mid;
+  const startingPetTyp = g.svc?.context?.startingpet_typ;
+  if (!Role_if(you, PM_TOURIST)
+      || (mtmp.m_id === startingPetMid && mndx === startingPetTyp)
+      || mndx !== monsndx(mtmp.data)) {
+    return;
+  }
+
+  const exp = experience(mtmp, 0);
+  more_experienced(exp, 0, g, you);
+  await newexplevel(you, null);
+}
+
 // Autotranslated from mon.c:6021
 export async function see_nearby_monsters(game, player) {
   let mtmp, mndx, x, y;
@@ -2726,7 +2775,7 @@ export async function see_nearby_monsters(game, player) {
         if (!game.bhitpos) game.bhitpos = { x: 0, y: 0 };
         game.bhitpos.x = x; game.bhitpos.y = y;
         game.notonhead = (x !== mtmp.mx || y !== mtmp.my);
-        see_monster_closeup(mtmp, false);
+        await see_monster_closeup(mtmp, false, game, player);
       }
     }
   }

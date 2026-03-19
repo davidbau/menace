@@ -1488,7 +1488,7 @@ export class NetHackGame {
         // C ref: allmain.c new_game() — svm.mvitals[i].mvflags = mons[i].geno & G_NOCORPSE
         // (other fields: born/died start at 0 via C global zero-initialization)
         this.mvitals = Array.from({ length: NUMMONS }, (_, i) => ({
-            born: 0, died: 0, mvflags: (mons[i]?.geno ?? 0) & G_NOCORPSE, seen_close: false,
+            born: 0, died: 0, mvflags: (mons[i]?.geno ?? 0) & G_NOCORPSE, seen_close: false, photographed: false,
         }));
         this.flags = null; // set in init()
         this.levels = {};

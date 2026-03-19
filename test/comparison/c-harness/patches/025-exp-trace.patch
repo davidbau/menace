@@ -1,0 +1,145 @@
+diff --git a/include/extern.h b/include/extern.h
+--- a/include/extern.h
++++ b/include/extern.h
+@@ -2739,6 +2739,7 @@ extern void event_log(const char *, ...) PRINTF_F(1, 2);
+ extern void repaint_log(const char *, ...) PRINTF_F(1, 2);
+ extern void repaint_debug_log(const char *, ...) PRINTF_F(1, 2);
+ extern void repaint_debug_set_scope(const char *);
++extern void exp_log(const char *, ...) PRINTF_F(1, 2);
+ extern void repaint_debug_clear_scope(void);
+ extern const char *repaint_debug_get_scope(void);
+ 
+diff --git a/src/rnd.c b/src/rnd.c
+--- a/src/rnd.c
++++ b/src/rnd.c
+@@ -35,6 +35,7 @@ static int rng_caller_line = 0;
+ static const char *rng_caller_func = NULL;
+ static boolean repaint_trace_enabled = FALSE;
+ static boolean repaint_debug_enabled = FALSE;
++static boolean exp_trace_enabled = FALSE;
+ static FILE *repaint_debug_file = (FILE *) 0;
+ static const char *repaint_debug_scope = (const char *) 0;
+ static boolean rng_log_disp = FALSE;
+@@ -45,6 +46,7 @@ rng_log_init(void)
+     const char *repaint = getenv("NETHACK_REPAINT_TRACE");
+     const char *repaint_debug = getenv("NETHACK_REPAINT_DEBUG");
+     const char *repaint_debug_path = getenv("NETHACK_REPAINT_DEBUG_LOG");
++    const char *exp_trace = getenv("NETHACK_EXP_TRACE");
+     const char *disp = getenv("NETHACK_RNGLOG_DISP");
+     if (logpath && *logpath) {
+         rng_logfile = fopen(logpath, "w");
+@@ -55,6 +57,7 @@ rng_log_init(void)
+     }
+     repaint_trace_enabled = (repaint && *repaint && *repaint != '0') ? TRUE : FALSE;
+     repaint_debug_enabled = (repaint_debug && *repaint_debug && *repaint_debug != '0') ? TRUE : FALSE;
++    exp_trace_enabled = (exp_trace && *exp_trace && *exp_trace != '0') ? TRUE : FALSE;
+     if (repaint_debug_path && *repaint_debug_path) {
+         repaint_debug_file = fopen(repaint_debug_path, "a");
+         if (repaint_debug_file)
+@@ -220,6 +223,19 @@ repaint_debug_log(const char *fmt, ...)
+     fputs("]\n", out);
+ }
+ 
++void
++exp_log(const char *fmt, ...)
++{
++    va_list ap;
++    if (!rng_logfile || !exp_trace_enabled)
++        return;
++    fputs("^exp[", rng_logfile);
++    va_start(ap, fmt);
++    vfprintf(rng_logfile, fmt, ap);
++    va_end(ap);
++    fputs("]\n", rng_logfile);
++}
++
+ void
+ repaint_debug_set_scope(const char *scope)
+ {
+diff --git a/src/exper.c b/src/exper.c
+--- a/src/exper.c
++++ b/src/exper.c
+@@ -198,6 +198,8 @@ more_experienced(int exper, int rexp)
+             disp.botl = TRUE;
+ #endif
+     }
++    exp_log("more move=%ld delta=%d rexp=%d old=%ld new=%ld oldscore=%ld newscore=%ld level=%d",
++            svm.moves, exper, rexp, oldexp, newexp, oldrexp, newrexp,
++            u.ulevel);
+     if (u.urexp >= (Role_if(PM_WIZARD) ? 1000 : 2000))
+         flags.beginner = FALSE;
+ }
+@@ -299,8 +301,15 @@ losexp(
+ void
+ newexplevel(void)
+ {
+-    if (u.ulevel < MAXULEV && u.uexp >= newuexp(u.ulevel))
++    long threshold = newuexp(u.ulevel);
++
++    exp_log("newlevel-check move=%ld level=%d exp=%ld threshold=%ld",
++            svm.moves, u.ulevel, u.uexp, threshold);
++    if (u.ulevel < MAXULEV && u.uexp >= threshold) {
++        exp_log("newlevel-pluslvl move=%ld level=%d exp=%ld threshold=%ld",
++                svm.moves, u.ulevel, u.uexp, threshold);
+         pluslvl(TRUE);
++    }
+ }
+ 
+ void
+diff --git a/src/do.c b/src/do.c
+--- a/src/do.c
++++ b/src/do.c
+@@ -1949,6 +1949,9 @@ goto_level(
+         livelog_printf(major ? LL_ACHIEVE : LL_DEBUG, "entered %s", dloc);
+ 
+         if (Role_if(PM_TOURIST)) {
++            exp_log("owner=goto_level move=%ld level_difficulty=%d depth=%d oldexp=%ld level=%d",
++                    svm.moves, level_difficulty(), depth(newlevel), u.uexp,
++                    u.ulevel);
+             more_experienced(level_difficulty(), 0);
+             newexplevel();
+         }
+diff --git a/src/hack.c b/src/hack.c
+--- a/src/hack.c
++++ b/src/hack.c
+@@ -2198,6 +2198,9 @@ maybe_finish_meal(boolean done_stopping)
+                 if (!u.uconduct.killer++)
+                     livelog_printf(LL_CONDUCT, "killed for the first time");
+                 mndx = monsndx(mtmp->data);
++                exp_log("owner=hack.mintrap move=%ld mndx=%d nk=%d level=%d exp=%ld",
++                        svm.moves, mndx, (int) svm.mvitals[mndx].died,
++                        u.ulevel, u.uexp);
+                 tmp = experience(mtmp, (int) svm.mvitals[mndx].died);
+                 more_experienced(tmp, 0);
+                 newexplevel(); /* will decide if you go up */
+diff --git a/src/mon.c b/src/mon.c
+--- a/src/mon.c
++++ b/src/mon.c
+@@ -5970,7 +5970,7 @@ see_monster_closeup(struct monst *mtmp, boolean photo)
+ {
+-    int mndx;
++    int mndx, tmp;
+
+@@ -3672,6 +3672,8 @@ killed(struct monst *mtmp)
+ 
+     /* give experience points */
+     tmp = experience(mtmp, (int) svm.mvitals[mndx].died);
++    exp_log("owner=xkilled move=%ld mndx=%d nk=%d level=%d exp=%ld gain=%d",
++            svm.moves, mndx, (int) svm.mvitals[mndx].died, u.ulevel,
++            u.uexp, tmp);
+     more_experienced(tmp, 0);
+     newexplevel(); /* will decide if you go up */
+ 
+@@ -6015,7 +6017,10 @@ mon_to_camera(struct monst *mtmp, boolean photo)
+                 /* monsndx() check covers worm tail and also disguised
+                    Wizard of Yendor; experienced() won't yield a reasonable
+                    value for those */
+                 && mndx == monsndx(mtmp->data)) {
+-                more_experienced(experience(mtmp, 0), 0);
++                tmp = experience(mtmp, 0);
++                exp_log("owner=photo move=%ld mndx=%d level=%d exp=%ld gain=%d",
++                        svm.moves, mndx, u.ulevel, u.uexp, tmp);
++                more_experienced(tmp, 0);
+                 newexplevel();
+             }
+         }

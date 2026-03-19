@@ -119,6 +119,7 @@ import { pick_lock } from './lock.js';
 import { objdescr_is } from './o_init.js';
 import { flash_hits_mon } from './uhitm.js';
 import { transient_light_cleanup } from './light.js';
+import { see_monster_closeup } from './mon.js';
 
 // -- Inline helpers --
 
@@ -174,6 +175,9 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
             const mon = map.monsterAt?.(x, y);
             if (mon && !mon.dead) {
                 flash_hits_mon(mon, _obj, map, player);
+                if (_obj?.otyp === EXPENSIVE_CAMERA) {
+                    await see_monster_closeup(mon, true, _gstate, player);
+                }
                 break;
             }
             const loc = map.at(x, y);

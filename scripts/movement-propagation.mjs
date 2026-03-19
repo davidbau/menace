@@ -117,7 +117,7 @@ function traceStep(line) {
 
 function defaultMovementFilter(entry) {
     const text = String(entry || '');
-    return /(^\^runstep\[|^\^movemon_turn\[|^\^mcalcmove\[|^\^distfleeck\[|^\^dog_|>runmode_delay_output|<runmode_delay_output|^\^tmp_at_|^\^place\[|dog_move|dochug|mfndpos|domove_|lookaround|test_move|promptDirectionAndThrowItem)/.test(text);
+    return /(^\^runstep\[|^\^movemon_turn\[|^\^mcalcmove\[|^\^distfleeck\[|^\^dog_|^\^exp\[|>runmode_delay_output|<runmode_delay_output|^\^tmp_at_|^\^place\[|dog_move|dochug|mfndpos|domove_|lookaround|test_move|promptDirectionAndThrowItem)/.test(text);
 }
 
 function filterEntries(entries, grep, allRng = false) {

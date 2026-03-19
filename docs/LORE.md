@@ -13896,3 +13896,37 @@ Validation:
     - thrown gnome kill via `xkilled()` at step `488`
   - Do not patch pet AI from this symptom; first explain the missing pre-pet
     XP/level state.
+
+- 2026-03-19: camera/photo parity for Tourist XP must follow exact C
+  `apply.c -> do_blinding_ray() -> see_monster_closeup(mtmp, TRUE)` ownership.
+  - Exact C data from new harness `^exp[...]` traces on a temporary rerecord of
+    `seed031_manual_direct`:
+    - `owner=photo move=433 mndx=165 level=2 exp=27 gain=7`
+    - `owner=xkilled move=434 mndx=165 level=2 exp=34 gain=7`
+    - `newlevel-pluslvl move=434 ...`
+  - JS bug:
+    - camera flash only called `flash_hits_mon(...)`
+    - it never ran the photo-side `see_monster_closeup(..., true)` path
+    - so JS missed the pre-kill Tourist XP and entered the pet turn one level
+      behind C
+  - Faithful fix:
+    - add `mvitals[mndx].photographed`
+    - port `see_monster_closeup(mtmp, photo)` into JS
+    - call it from camera flash when `obj.otyp == EXPENSIVE_CAMERA`
+    - award XP with `experience(mtmp, 0)`, `more_experienced(...)`,
+      `newexplevel(...)`
+  - Validation:
+    - `seed031_manual_direct`
+      - old step-488 pet seam removed
+      - new first RNG divergence: step `492`
+      - new first event divergence: step `493`
+    - `t08_s984_w_camera_gp`: PASS
+    - `seed331_tourist_wizard_gameplay`: PASS
+  - Supporting harness/tooling:
+    - add C owner-local XP trace patch:
+      `test/comparison/c-harness/patches/025-exp-trace.patch`
+    - forward `NETHACK_EXP_TRACE` through both:
+      - `test/comparison/c-harness/run_session.py`
+      - `test/comparison/c-harness/keylog_to_session.py`
+    - preserve owner-family prefixes in `movement-propagation` output; do not
+      strip `[EXP_TRACE]`

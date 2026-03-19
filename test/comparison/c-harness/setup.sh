@@ -178,11 +178,13 @@ require_marker "src/mklev.c" 'event_log("mapdump[%s]", dump_id);' "mapdump trigg
 require_marker "src/hack.c" 'event_log("test_move[mode=%d from=%d,%d dir=%d,%d to=%d,%d rv=%d]",' "test_move event"
 require_marker "src/allmain.c" 'event_log("runstep[path=%s keyarg=%d cmd=%d cc=%d moves=%ld multi=%d run=%d mv=%d move=%d occ=%d umoved=%d ux=%d uy=%d]",' "runstep event"
 require_marker "src/rnd.c" 'repaint_log(const char *fmt, ...)' "repaint trace logger"
+require_marker "src/rnd.c" 'exp_log(const char *fmt, ...)' "exp trace logger"
 require_marker "src/display.c" 'repaint_log("flush hp=%d cursor=%d botl=%d botlx=%d time=%d",' "flush repaint trace"
 require_marker "src/botl.c" 'repaint_log("bot hp=%d botl=%d botlx=%d time=%d",' "bot repaint trace"
 require_marker "win/tty/topl.c" 'repaint_log("more hp=%d topl=%d row=%d col=%d",' "tty more repaint trace"
 require_marker "win/tty/topl.c" 'repaint_log("yn hp=%d topl=%d def=%d query=%s",' "tty yn repaint trace"
 require_marker "win/tty/wintty.c" 'repaint_log("mark hp=%d topl=%d inread=%d inmore=%d",' "tty mark_synch repaint trace"
+require_marker "src/exper.c" 'exp_log("newlevel-check move=%ld level=%d exp=%ld threshold=%ld",' "newexplevel exp trace"
 echo "[OK] Critical instrumentation hooks present"
 echo ""
 

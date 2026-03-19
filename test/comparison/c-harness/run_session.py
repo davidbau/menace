@@ -207,6 +207,11 @@ def repaint_trace_env():
     v = os.environ.get('NETHACK_REPAINT_TRACE', '')
     return f'NETHACK_REPAINT_TRACE={v} ' if v else ''
 
+def exp_trace_env():
+    """Pass NETHACK_EXP_TRACE through to the C binary if set."""
+    v = os.environ.get('NETHACK_EXP_TRACE', '')
+    return f'NETHACK_EXP_TRACE={v} ' if v else ''
+
 def repaint_debug_env(log_path=None):
     """Pass repaint debug settings through to the C binary if enabled."""
     v = os.environ.get('NETHACK_REPAINT_DEBUG', '')
@@ -1175,6 +1180,7 @@ def run_wizload_session(seed, output_json, level_name, move_str='', verbose=Fals
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
+            f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{dumpsnap_env()}'
             f'{rnglog_disp_env()}'
@@ -1437,6 +1443,7 @@ def run_chargen_session(seed, output_json, selections, tutorial_response='n', ve
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
+            f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
@@ -1729,6 +1736,7 @@ def run_interface_session(seed, output_json, keys, verbose=False, auto_clear_mor
             f'{diag_events_env()}'
             f'{no_delay_env()}'
             f'{repaint_trace_env()}'
+            f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
@@ -2113,6 +2121,7 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
             f'{test_move_event_env()}'
             f'{runstep_event_env()}'
             f'{repaint_trace_env()}'
+            f'{exp_trace_env()}'
             f'{repaint_debug_env(repaint_debug_file)}'
             f'{rnglog_disp_env()}'
             f'NETHACK_SEED={seed} '
@@ -2202,7 +2211,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
         test_move_ev = os.environ.get('NETHACK_EVENT_TEST_MOVE')
         runstep_ev = os.environ.get('NETHACK_EVENT_RUNSTEP')
         repaint_ev = os.environ.get('NETHACK_REPAINT_TRACE')
-        if test_move_ev or runstep_ev or repaint_ev:
+        exp_ev = os.environ.get('NETHACK_EXP_TRACE')
+        if test_move_ev or runstep_ev or repaint_ev or exp_ev:
             session_env = {}
             if test_move_ev:
                 session_env['NETHACK_EVENT_TEST_MOVE'] = test_move_ev
@@ -2210,6 +2220,8 @@ def run_session(seed, output_json, move_str, raw_moves=False, record_more_spaces
                 session_env['NETHACK_EVENT_RUNSTEP'] = runstep_ev
             if repaint_ev:
                 session_env['NETHACK_REPAINT_TRACE'] = repaint_ev
+            if exp_ev:
+                session_env['NETHACK_EXP_TRACE'] = exp_ev
             session_data['regen']['env'] = session_env
         if record_more_spaces:
             session_data['regen']['record_more_spaces'] = True

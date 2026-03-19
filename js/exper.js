@@ -201,6 +201,7 @@ export async function losexp(player, display, drainer) {
 // cf. exper.c:299 — newexplevel(): check if player should gain a level
 // Autotranslated from exper.c:299
 export async function newexplevel(player, display = null) {
+  display = display || _gstate?.display || null;
   const currentExp = (Number(player.uexp) || Number(player.exp) || 0);
   const threshold = newuexp(player.ulevel);
   expTrace(display?.game || null, 'newexplevel-check',
@@ -215,6 +216,7 @@ export async function newexplevel(player, display = null) {
 
 // cf. exper.c:306 — pluslvl(): gain an experience level
 export async function pluslvl(player, display, incr) {
+    display = display || _gstate?.display || null;
     if (!incr) {
         if (display) await display.putstr_message('You feel more experienced.');
     }
@@ -249,7 +251,9 @@ export async function pluslvl(player, display, incr) {
         }
         player.ulevel++;
         const back = (player.ulevelmax != null && player.ulevelmax >= player.ulevel) ? 'back ' : '';
-        await display.putstr_message(`Welcome ${back}to experience level ${player.ulevel}.`);
+        if (display) {
+            await display.putstr_message(`Welcome ${back}to experience level ${player.ulevel}.`);
+        }
         if (player.ulevelmax == null || player.ulevelmax < player.ulevel) {
             player.ulevelmax = player.ulevel;
         }

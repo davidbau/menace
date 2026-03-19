@@ -63,6 +63,12 @@ parse_rng_lines = _session.parse_rng_lines
 quit_game = _session.quit_game
 compact_session_json = _session.compact_session_json
 fixed_datetime_env = _session.fixed_datetime_env
+diag_events_env = _session.diag_events_env
+no_delay_env = _session.no_delay_env
+test_move_event_env = _session.test_move_event_env
+runstep_event_env = _session.runstep_event_env
+repaint_trace_env = _session.repaint_trace_env
+exp_trace_env = _session.exp_trace_env
 capture_cursor = _session.capture_cursor
 collect_mapdump_checkpoints = _session.collect_mapdump_checkpoints
 
@@ -359,8 +365,13 @@ def run_from_keylog(
 
     fixed_datetime = datetime_hint or _session.harness_fixed_datetime()
     datetime_env = f'NETHACK_FIXED_DATETIME={fixed_datetime} ' if fixed_datetime else ''
-    rnglog_disp = os.environ.get('NETHACK_RNGLOG_DISP', '')
-    rnglog_disp_env = f'NETHACK_RNGLOG_DISP={rnglog_disp} ' if rnglog_disp else ''
+    diag_env = diag_events_env()
+    no_delay = no_delay_env()
+    test_move_env = test_move_event_env()
+    runstep_env = runstep_event_env()
+    repaint_env = repaint_trace_env()
+    exp_env = exp_trace_env()
+    rnglog_disp_env = f'NETHACK_RNGLOG_DISP={os.environ.get("NETHACK_RNGLOG_DISP", "")} ' if os.environ.get('NETHACK_RNGLOG_DISP', '') else ''
 
     name_flag = "-u '' " if interactive else f'-u {character["name"]} '
     wiz_flag = '-D' if wizard_enabled else ''
@@ -368,6 +379,12 @@ def run_from_keylog(
         cmd = (
             f'NETHACKDIR={INSTALL_DIR} '
             f'{datetime_env}'
+            f'{diag_env}'
+            f'{no_delay}'
+            f'{test_move_env}'
+            f'{runstep_env}'
+            f'{repaint_env}'
+            f'{exp_env}'
             f'{rnglog_disp_env}'
             f'NETHACK_SEED={seed} '
             f'NETHACK_RNGLOG={rng_log_file} '
@@ -442,6 +459,19 @@ def run_from_keylog(
         }
         if regen:
             session_data['regen'] = regen
+            session_env = {}
+            for key in (
+                'NETHACK_EVENT_TEST_MOVE',
+                'NETHACK_EVENT_RUNSTEP',
+                'NETHACK_REPAINT_TRACE',
+                'NETHACK_EXP_TRACE',
+            ):
+                value = os.environ.get(key)
+                if value:
+                    session_env[key] = value
+            if session_env:
+                session_data['regen'] = dict(session_data['regen'])
+                session_data['regen']['env'] = session_env
 
         prev_rng_count = startup_rng_count
         prev_depth_recorded = None  # Record depth only when it changes

@@ -1463,3 +1463,29 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - the real live blocker is missing pre-pet XP/level state on the JS side
   - next work should compare the exact pre-step-488 XP sources/level-up owner
     against C, not patch `dog_move()` heuristically
+
+- 2026-03-19: `seed031_manual_direct` step `488` was resolved by matching C's
+  camera/photo XP owner, not by changing pet AI.
+  - Exact C harness trace (new `^exp[...]` owner-local instrumentation) shows:
+    - `owner=photo move=433 mndx=165 level=2 exp=27 gain=7`
+    - then `owner=xkilled move=434 ... old=34 new=41`
+    - then `newlevel-pluslvl move=434 ...`
+  - JS previously only awarded the `xkilled()` XP, so it entered the pet turn
+    at `uexp=34`/level 2 instead of `uexp=41`/level 3.
+  - Faithful fix:
+    - port `see_monster_closeup(mtmp, TRUE)` photo semantics into JS
+    - camera flash now awards first-photo Tourist XP through
+      `experience(mtmp, 0)`, `more_experienced(...)`, `newexplevel(...)`
+    - gate repeated awards with `mvitals[mndx].photographed`
+  - Validation:
+    - `seed031_manual_direct`
+      - old step-488 pet seam is gone
+      - new first RNG divergence: step `492`
+      - new first event divergence: step `493`
+    - `t08_s984_w_camera_gp`: PASS
+    - `seed331_tourist_wizard_gameplay`: PASS
+  - Tooling/harness support that made this possible:
+    - new C `^exp[...]` trace patch:
+      [`test/comparison/c-harness/patches/025-exp-trace.patch`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/c-harness/patches/025-exp-trace.patch)
+    - `keylog_to_session.py` now forwards `NETHACK_EXP_TRACE`, so
+      `manual-direct-live` rerecords can carry C owner-local XP traces
