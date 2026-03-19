@@ -956,6 +956,46 @@ async function advanceTimedTurn(game, coreOpts) {
     await display_sync();
 }
 
+// C ref: allmain.c moveloop_core() `gm.multi < 0` branch.
+// Run exactly one negative-multi continuation tick; callers decide whether to
+// loop or return to a higher-level owner.
+async function runNegativeMultiStep(game, coreOpts) {
+    if (!(game?.multi < 0) || game?.playerDied) return false;
+    await advanceTimedTurn(game, coreOpts);
+    return true;
+}
+
+// C ref: allmain.c occupation branch. Run exactly one occupation callback and
+// its immediate post-callback checks; callers decide whether to loop.
+async function runOccupationStep(game) {
+    if (!game?.occupation) return { ran: false, prompt: false };
+
+    const occ = game.occupation;
+    const cont = await occ.fn(game);
+    const finishedOcc = !cont ? occ : null;
+
+    if (cont === 'prompt') {
+        // Occupation has paused on an in-band prompt and will resume or
+        // abort when that prompt consumes subsequent input.
+    } else if (!cont) {
+        // C ref: natural occupation completion clears silently.
+        game.occupation = null;
+        game.pendingPrompt = null;
+    }
+
+    // C ref: allmain.c:610-614 — monster_nearby() check after one occupation
+    // callback and before moveloop returns.
+    if (game.occupation && monsterNearby(
+            (game.lev || game.map), (game.u || game.player), game.fov)) {
+        await stop_occupation(game);
+    }
+
+    if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
+        finishedOcc.onFinishAfterTurn(game);
+    }
+    return { ran: true, prompt: cont === 'prompt' };
+}
+
 async function finalizeTimedCommand(game, result, coreOpts) {
     if (!(result && result.tookTime)) return;
     await advanceTimedTurn(game, coreOpts);
@@ -964,7 +1004,7 @@ async function finalizeTimedCommand(game, result, coreOpts) {
     }
     let safety = 0;
     while (game.multi < 0 && !(game?.playerDied)) {
-        await advanceTimedTurn(game, coreOpts);
+        await runNegativeMultiStep(game, coreOpts);
         if (++safety > 5000) break;
     }
     await _drainOccupation(game, coreOpts);
@@ -1037,37 +1077,13 @@ export async function execute_repeat_command(game, opts = {}) {
 // interrupted by an adjacent hostile monster.
 async function _drainOccupation(game, coreOpts) {
     while (game.occupation) {
-        const occ = game.occupation;
-        const cont = await occ.fn(game);
-        const finishedOcc = !cont ? occ : null;
-
-        if (cont === 'prompt') {
-            // Occupation has paused on an in-band prompt and will resume or
-            // abort when that prompt consumes subsequent input.
-        } else if (!cont) {
-            // C ref: natural occupation completion clears silently.
-            game.occupation = null;
-            game.pendingPrompt = null;
-        }
-
-        // C ref: allmain.c:510 — monster_nearby() check BEFORE movemon.
-        // After timed_occupation executes the occupation fn, C checks if a
-        // hostile monster is now adjacent. If so, stop_occupation() is
-        // called BEFORE monster turns, producing messages like
-        // "You stop searching." before "The fox bites!"
-        if (game.occupation && monsterNearby(
-                (game.lev || game.map), (game.u || game.player), game.fov)) {
-            await stop_occupation(game);
-        }
+        const step = await runOccupationStep(game);
+        if (!step.ran) break;
 
         // Occupation step took time — process monster moves + turn-end
         await moveloop_core(game, coreOpts);
         await display_sync();
-
-        if (finishedOcc && typeof finishedOcc.onFinishAfterTurn === 'function') {
-            finishedOcc.onFinishAfterTurn(game);
-        }
-        if (cont === 'prompt') break;
+        if (step.prompt) break;
     }
 }
 
