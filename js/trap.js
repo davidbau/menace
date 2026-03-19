@@ -78,7 +78,7 @@ import { scatter } from './explode.js';
 import { fall_asleep } from './timeout.js';
 import { thitu } from './mthrowu.js';
 import { exercise } from './attrib_exercise.js';
-import { poisoned, acurr, change_luck, adjalign } from './attrib.js';
+import { poisoned, acurr, change_luck, adjalign, Luck } from './attrib.js';
 import { sgn } from './hacklib.js';
 import { xytod } from './cmd.js';
 import { wake_nearby } from './mon.js';
@@ -1273,8 +1273,8 @@ export function water_damage(obj, ostr, force) {
             obj.greased = false;
         }
         return ER_GREASED;
-    } else if (!force && rn2(20) < 5) {
-        // C ref: (Luck + 5) > rn2(20) — simplified without Luck
+    } else if (!force && (Luck(_gstate?.player || _gstate?.u) + 5) > rn2(20)) {
+        // C ref: (Luck + 5) > rn2(20)
         return ER_NOTHING;
     } else if (obj.oclass === SCROLL_CLASS) {
         // Scrolls get blanked
@@ -1719,7 +1719,7 @@ export async function disarm_shooting_trap(ttmp, otyp) {
 // Note: this is the trap resolution entry used by lock-picking and untrapping.
 export async function chest_trap(obj, bodypart, disarm, game = null, playerArg = null) {
   const player = playerArg || game?.player || game?.u || {};
-  const luck = (player.uluck ?? player.luck ?? 0);
+  const luck = Luck(player);
 
   obj.tknown = 0;
   obj.otrapped = 0;
