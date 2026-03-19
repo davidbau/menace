@@ -16,6 +16,7 @@ import {
     prepareReplayArgs,
     getSessionGameplaySteps,
     applyManualDirectChargenView,
+    getGameplayRawStepBase,
 } from '../js/replay_compare.js';
 import { replaySession } from '../js/replay_core.js';
 
@@ -155,6 +156,19 @@ function findRawMismatch(cRawSteps, jsRawSteps, rawFrom = 1) {
     return null;
 }
 
+function buildGameplayRawRanges(cGameplaySteps, rawBase) {
+    const ranges = [];
+    let cursor = rawBase;
+    for (const step of cGameplaySteps) {
+        const len = (typeof step?.key === 'string' && step.key.length > 0) ? step.key.length : 0;
+        const from = cursor;
+        const to = len > 0 ? (cursor + len - 1) : (cursor - 1);
+        ranges.push({ from, to, len });
+        cursor += len;
+    }
+    return ranges;
+}
+
 async function main() {
     const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng } = parseArgs(process.argv);
     const absPath = resolve(sessionPath);
@@ -170,6 +184,8 @@ async function main() {
 
     const cGameplaySteps = getSessionGameplaySteps(sessionForCmp);
     const replayArgs = prepareReplayArgs(normalized.meta.seed, normalized.raw, {});
+    const cRawBase = getGameplayRawStepBase(normalized.raw);
+    const cRawRanges = buildGameplayRawRanges(cGameplaySteps, cRawBase);
 
     const prevEnv = {
         WEBHACK_EVENT_RUNSTEP: process.env.WEBHACK_EVENT_RUNSTEP,
@@ -235,8 +251,14 @@ async function main() {
         const cEntries = filterEntries(cStep.rng || [], grep, allRng);
         const jsEntries = filterEntries(jsStep.rng || [], grep, allRng);
         const runEntries = filterEntries(runTraceByStep.get(step) || [], grep, true);
+        const cRawRange = cRawRanges[step - 1] || { from: null, to: null };
+        const cRawKeys = (cRawRange.from != null && cRawRange.to >= cRawRange.from)
+            ? (normalized.raw.steps || []).slice(cRawRange.from - 1, cRawRange.to).map((s) => s?.key ?? null)
+            : [];
         const turn = Number.isInteger(cStep.turn) ? cStep.turn : '?';
-        console.log(`=== Step ${step} key=${JSON.stringify(cStep.key ?? null)} turn=${turn} rawKeys=${JSON.stringify(jsStep.rawKeys)} ===`);
+        console.log(
+            `=== Step ${step} key=${JSON.stringify(cStep.key ?? null)} turn=${turn} cRaw=${cRawRange.from == null ? '[]' : `[${cRawRange.from}..${cRawRange.to}]`} cRawKeys=${JSON.stringify(cRawKeys)} jsRawKeys=${JSON.stringify(jsStep.rawKeys)} ===`
+        );
         console.log('C step entries:');
         if (cEntries.length === 0) console.log('  (none)');
         else for (const entry of cEntries) console.log(`  ${entry}`);

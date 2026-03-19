@@ -247,6 +247,32 @@ Conclusion:
 - the live `seed031` root is earlier than the later throw/camera symptoms
 - it is now best framed as a hidden raw command-bundle drift in the pre-stairs
   movement sequence, not as a pet-AI-local or camera-local bug
+
+Update after `c2de70382` tool hardening:
+
+- `movement-propagation` step-window mode now prints:
+  - the C raw key range for the same comparison-step bundle
+  - the JS raw keys consumed for that same bundle
+- this is the required discipline for manual-direct debugging:
+  - compare the same input owner on both sides
+  - do not compare arbitrary equal raw offsets after drift
+
+Current anchored `seed031` fact at the live authoritative seam:
+
+- comparison step `407`
+  - key: `h`
+  - C raw bundle: `[422..422]`, key `h`
+  - JS raw bundle: key `h`
+- so the live step-407 divergence is **not** caused by the wrong input key
+  being consumed for that comparison step
+- the bug at that seam is different work being attributed to the same key:
+  - C stays in monster-turn / pet-turn work
+  - JS later reaches `promptDirectionAndThrowItem(...)` on the same step path
+
+Conclusion:
+
+- the active step-407 theory should now be framed as same-key ownership drift,
+  not key-offset drift
     - C: `newhp(exercise)` / dog-move neighborhood
 - `seed032_manual_direct`
   - no measurable change from the wait-prefix consumption fix

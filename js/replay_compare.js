@@ -273,6 +273,16 @@ function getManualDirectChargenBoundary(rawSession) {
     return getManualDirectChargenInfo(rawSession)?.boundary ?? -1;
 }
 
+export function getGameplayRawStepBase(session) {
+    if (!session?.steps?.length) return 1;
+    if (session.regen?.mode === 'manual-direct-live') {
+        const boundary = getManualDirectChargenBoundary(session);
+        if (boundary >= 0) return boundary + 2;
+    }
+    if (session.steps[0]?.key === null) return 2;
+    return 1;
+}
+
 export function getSessionGameplaySteps(session) {
     if (!session?.steps) return [];
     if (session.steps.length > 0 && session.steps[0].key === null) {

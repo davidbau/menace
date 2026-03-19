@@ -26,6 +26,8 @@ What it does:
   - movement-related C step entries from the recorded session
   - movement-related JS step entries from replay RNG/event output
   - JS `[RUN_TRACE]` lines for that same step window
+  - the corresponding C raw key range for that same comparison-step bundle
+  - the JS raw keys consumed for that same comparison-step bundle
 - can also print a side-by-side raw replay window:
   - C raw key + top line from the recorded fixture
   - JS raw key + top line from live replay
@@ -42,6 +44,8 @@ Manual-direct sessions:
   raw command stream matters:
   - the transformed gameplay view stays authoritative for parity sign-off
   - the raw window explains which hidden command bundle is actually drifting
+  - do not compare arbitrary equal raw offsets after drift; raw-window output
+    must be interpreted relative to a known comparison-step bundle
 
 This is useful when debugging:
 
@@ -84,6 +88,9 @@ Useful flags:
 Notes:
 
 - this tool is diagnostic only; it does not change replay semantics
+- default step-window mode is the safe mode:
+  - it stays anchored on the authoritative comparison-step window
+  - it also shows the C raw key range and JS raw keys for that same input bundle
 - it is intentionally JS-focused:
   - the C side comes from the recorded session entries already stored in the
     fixture

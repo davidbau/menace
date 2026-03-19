@@ -52,11 +52,16 @@ node scripts/movement-propagation.mjs <session.json> \
 - C movement-related step entries
 - JS movement-related step entries
 - JS `[RUN_TRACE]` lines
+- C raw key range and JS raw keys for that same comparison-step bundle
 
 Manual-direct rule:
 - trust the tool's step numbering, not the raw session JSON step array
 - the tool uses the same comparison view as `session_test_runner`, so manual-
   direct chargen/setup steps are already folded out of the gameplay window
+- compare the same input owner on both sides:
+  - use the comparison-step window first
+  - then use the printed C raw range and JS raw keys for that same bundle
+  - do not compare arbitrary equal raw offsets after the streams have drifted
 
 4. Ask the concrete ownership question:
 - Is JS ending the command too early?
@@ -136,6 +141,8 @@ node scripts/movement-propagation.mjs \
   run-ownership bug; switch to a different tool.
 - If the raw window shows JS already consuming later keys, stop blaming the
   later visible symptom. Fix the earliest raw bundle that shifted.
+- Prefer the default step-window output for proof, because it is bundle-anchored.
+  Use raw-window mode only as a microscope around that already-anchored seam.
 
 ## Guardrails
 
