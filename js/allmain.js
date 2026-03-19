@@ -716,38 +716,10 @@ export async function run_command(game, ch, opts = {}) {
     }
     game.cmdKey = chCode;
 
-    // Process one timed turn of world updates after a command consumed time.
-    const advanceTimedTurn = async () => {
-        await moveloop_core(game, coreOpts);
-        // C ref: allmain.c:459-474 — "once-per-player-input" section.
-        const player = game.u || game.player;
-        find_ac(player);
-        const ctx = game.context || {};
-        const canUpdateVision = !ctx.mv || player?.blind;
-        if (canUpdateVision) {
-            if (player?.Hallucination) {
-                see_monsters(game.map);
-                see_objects();
-                see_traps();
-                if (player?.uswallow) {
-                    swallowed(0);
-                }
-            } else if (
-                player?.Blind_telepat
-                || player?.warning
-                || player?.warnOfMon
-                || any_visible_region(game.map)
-            ) {
-                see_monsters(game.map);
-            }
-        }
-        await display_sync();
-    };
-
     // Set advanceRunTurn for running mode (G/g commands process monster
     // turns between each movement step rather than batching all movement).
     game.advanceRunTurn = async () => {
-        await advanceTimedTurn();
+        await advanceTimedTurn(game, coreOpts);
     };
 
     // C ref: allmain.c:517 — u.umoved = FALSE; reset before each command
@@ -778,7 +750,6 @@ export async function run_command(game, ch, opts = {}) {
         await finalizeTimedCommand(game, result, coreOpts);
         await repeatLoop(game, {
             coreOpts,
-            advanceTimedTurn,
             bumpHeroSeqN,
             showRepeatInterruptMore,
         });
@@ -794,7 +765,6 @@ export async function run_command(game, ch, opts = {}) {
 
 async function repeatLoop(game, {
     coreOpts,
-    advanceTimedTurn,
     bumpHeroSeqN,
     showRepeatInterruptMore,
 }) {
@@ -839,7 +809,7 @@ async function repeatLoop(game, {
                 end_running(true, game);
             }
             game.advanceRunTurn = async () => {
-                await advanceTimedTurn();
+                await advanceTimedTurn(game, coreOpts);
             };
             const moveResult = await domove([0, 0], _p, _map, _display, game);
             game.advanceRunTurn = null;
@@ -847,7 +817,7 @@ async function repeatLoop(game, {
                 // C ref: allmain.c moveloop — when travel ends via path
                 // exhaustion, run one more monster turn before exiting.
                 if (savedRun === 8) {
-                    await advanceTimedTurn();
+                    await advanceTimedTurn(game, coreOpts);
                 }
                 break;
             }
@@ -855,20 +825,20 @@ async function repeatLoop(game, {
                 break;
             }
             bumpHeroSeqN();
-            await advanceTimedTurn();
+            await advanceTimedTurn(game, coreOpts);
             await _drainOccupation(game, coreOpts);
         } else {
             emitRunstep(game, game?.cmdKey | 0, 'repeat_cmd', game?.cmdKey | 0);
             game.multi--;
             game.advanceRunTurn = async () => {
-                await advanceTimedTurn();
+                await advanceTimedTurn(game, coreOpts);
             };
             const repeated = await rhack(game.cmdKey, game);
             game.advanceRunTurn = null;
 
             if (!repeated || !repeated.tookTime) break;
             bumpHeroSeqN();
-            await advanceTimedTurn();
+            await advanceTimedTurn(game, coreOpts);
             if (typeof repeated.onAfterTurn === 'function') {
                 await repeated.onAfterTurn(game);
             }
@@ -955,40 +925,46 @@ async function promptStep(game, chCode, {
     };
 }
 
+// C ref: allmain.c moveloop_core() lines 296-545 (monster turn) + 547-588 (pre-input).
+// Extracted from finalizeTimedCommand for Gate 1 of the game loop reorder.
+// This is the unit of work that C runs once per moveloop_core iteration when
+// context.move is true: monster movement, turn-end processing, and pre-input
+// vision/display sync.
+async function advanceTimedTurn(game, coreOpts) {
+    await moveloop_core(game, coreOpts);
+    const player = game.u || game.player;
+    find_ac(player);
+    const ctx = game.context || {};
+    const canUpdateVision = !ctx.mv || player?.blind;
+    if (canUpdateVision) {
+        if (player?.Hallucination) {
+            see_monsters(game.map);
+            see_objects();
+            see_traps();
+            if (player?.uswallow) {
+                swallowed(0);
+            }
+        } else if (
+            player?.Blind_telepat
+            || player?.warning
+            || player?.warnOfMon
+            || any_visible_region(game.map)
+        ) {
+            see_monsters(game.map);
+        }
+    }
+    await display_sync();
+}
+
 async function finalizeTimedCommand(game, result, coreOpts) {
     if (!(result && result.tookTime)) return;
-    const advanceTimedTurn = async () => {
-        await moveloop_core(game, coreOpts);
-        const player = game.u || game.player;
-        find_ac(player);
-        const ctx = game.context || {};
-        const canUpdateVision = !ctx.mv || player?.blind;
-        if (canUpdateVision) {
-            if (player?.Hallucination) {
-                see_monsters(game.map);
-                see_objects();
-                see_traps();
-                if (player?.uswallow) {
-                    swallowed(0);
-                }
-            } else if (
-                player?.Blind_telepat
-                || player?.warning
-                || player?.warnOfMon
-                || any_visible_region(game.map)
-            ) {
-                see_monsters(game.map);
-            }
-        }
-        await display_sync();
-    };
-    await advanceTimedTurn();
+    await advanceTimedTurn(game, coreOpts);
     if (typeof result.onAfterTurn === 'function') {
         await result.onAfterTurn(game);
     }
     let safety = 0;
     while (game.multi < 0 && !(game?.playerDied)) {
-        await advanceTimedTurn();
+        await advanceTimedTurn(game, coreOpts);
         if (++safety > 5000) break;
     }
     await _drainOccupation(game, coreOpts);
