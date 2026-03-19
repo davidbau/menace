@@ -78,6 +78,25 @@ import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
 import { in_rooms, may_dig, losehp, Maybe_Half_Phys } from './hack.js';
+import { getEnv } from './runtime_env.js';
+
+function digTraceEnabled() {
+    return getEnv('WEBHACK_MONMOVE_TRACE') === '1';
+}
+
+function digTrace(...args) {
+    if (!digTraceEnabled()) return;
+    console.log('[MONMOVE_TRACE]', ...args);
+}
+
+function digTracePrefix(map, mtmp) {
+    return [
+        `step=${Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?'}`,
+        `id=${mtmp?.m_id ?? '?'}`,
+        `mndx=${mtmp?.mndx ?? '?'}`,
+        `pos=(${mtmp?.mx ?? '?'},${mtmp?.my ?? '?'})`,
+    ];
+}
 import { cvt_sdoor_to_door } from './detect.js';
 import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
@@ -201,12 +220,21 @@ export async function mdig_tunnel(mtmp, map, player) {
     const here = map.at(mtmp.mx, mtmp.my);
     if (!here) return false;
 
+    digTrace('mdig_tunnel-enter',
+        ...digTracePrefix(map, mtmp),
+        `typ=${here.typ ?? -1}`,
+        `flags=0x${Number(here.flags ?? 0).toString(16)}`,
+        `wall=0x${Number(here.wall_info ?? 0).toString(16)}`);
+
     const pile = rnd(12); // C: int pile = rnd(12);
     // C: cvt_sdoor_to_door — normalize secret door flags before digging branch.
     if (here.typ === SDOOR) cvt_sdoor_to_door(here, map);
 
     // Eats away door if present & closed or locked
     if (closed_door(mtmp.mx, mtmp.my, map)) {
+        digTrace('mdig_tunnel-branch',
+            ...digTracePrefix(map, mtmp),
+            'branch=door');
         // C: if (*in_rooms(mtmp->mx, mtmp->my, SHOPBASE)) add_damage(...)
         // Shop damage tracking not yet wired
 
@@ -232,6 +260,9 @@ export async function mdig_tunnel(mtmp, map, player) {
         }
         return false;
     } else if (here.typ === SCORR) {
+        digTrace('mdig_tunnel-branch',
+            ...digTracePrefix(map, mtmp),
+            'branch=scorr');
         here.typ = CORR;
         here.flags = 0;
         unblock_point(mtmp.mx, mtmp.my);
@@ -239,6 +270,9 @@ export async function mdig_tunnel(mtmp, map, player) {
         await draft_message(false, player);
         return false;
     } else if (!IS_OBSTRUCTED(here.typ) && !IS_TREE(here.typ)) {
+        digTrace('mdig_tunnel-branch',
+            ...digTracePrefix(map, mtmp),
+            'branch=noop');
         // No dig — nothing to tunnel through
         return false;
     }
@@ -251,6 +285,9 @@ export async function mdig_tunnel(mtmp, map, player) {
     }
 
     if (IS_WALL(here.typ)) {
+        digTrace('mdig_tunnel-branch',
+            ...digTracePrefix(map, mtmp),
+            'branch=wall');
         // C: if (flags.verbose && !rn2(5)) You_hear("crashing rock.");
         if (!rn2(5)) {
             await You_hear('crashing rock.');
@@ -269,12 +306,18 @@ export async function mdig_tunnel(mtmp, map, player) {
             here.flags = D_NODOOR;
         }
     } else if (IS_TREE(here.typ)) {
+        digTrace('mdig_tunnel-branch',
+            ...digTracePrefix(map, mtmp),
+            'branch=tree');
         here.typ = ROOM;
         here.flags = 0;
         if (pile && pile < 5) {
             rnd_treefruit_at(map, mtmp.mx, mtmp.my);
         }
     } else {
+        digTrace('mdig_tunnel-branch',
+            ...digTracePrefix(map, mtmp),
+            'branch=rock');
         // Stone/SCORR — create corridor, maybe drop rock/boulder
         here.typ = CORR;
         here.flags = 0;

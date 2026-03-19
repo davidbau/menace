@@ -96,6 +96,9 @@ Useful flags:
 - `--monmove-trace`
   - include JS `MONMOVE_TRACE` / `MONMOVE_PHASE3` lines and ordinary-monster
     `^mfndpos[...]` detail events
+  - this also surfaces `mdig_tunnel-enter` / `mdig_tunnel-branch` lines with
+    `id`, `mndx`, and `pos`, so `--mon-id` / `--mndx` filtering still works
+    when the live seam passes through post-move digging logic
 - `--raw-from <N> --raw-to <M>`
   - print a raw C-vs-JS replay window, useful when a manual-direct session has
     hidden raw command bundles inside one gameplay step

@@ -162,6 +162,10 @@ node scripts/movement-propagation.mjs \
 - Ordinary-monster `mfndpos` detail is available through
   `WEBHACK_MFNDPOS_TRACE=1`, which the tool enables automatically when
   `--monmove-trace`, `--mon-id`, or `--mndx` is used.
+- When the seam might pass through post-move digging, rely on the same filtered
+  trace output rather than a separate ad hoc log:
+  - `mdig_tunnel-enter` / `mdig_tunnel-branch` now include `id`, `mndx`, and
+    `pos`, so species- or monster-focused filtering still works.
 - If the raw window shows JS already consuming later keys, stop blaming the
   later visible symptom. Fix the earliest raw bundle that shifted.
 - Prefer the default step-window output for proof, because it is bundle-anchored.

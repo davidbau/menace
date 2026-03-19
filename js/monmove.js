@@ -950,7 +950,22 @@ async function run_dochug_postmove_pipeline_current_js(
                     return MMOVE_DONE;
                 }
             }
-            if ((allowflags & ALLOW_DIG) && may_dig(mon.mx, mon.my, map)) {
+            if (allowflags & ALLOW_DIG) {
+                const hereTyp = here?.typ ?? -1;
+                const hereFlags = Number(here?.flags ?? 0);
+                const mayDigHere = may_dig(mon.mx, mon.my, map);
+                monmoveTrace('postmove-dig-check',
+                    `step=${monmoveStepLabel(map)}`,
+                    `id=${mon.m_id ?? '?'}`,
+                    `mndx=${mon.mndx ?? '?'}`,
+                    `pos=(${mon.mx},${mon.my})`,
+                    `typ=${hereTyp}`,
+                    `flags=0x${hereFlags.toString(16)}`,
+                    `allowDig=1`,
+                    `mayDig=${mayDigHere ? 1 : 0}`);
+                if (!mayDigHere) {
+                    return MMOVE_MOVED;
+                }
                 const monsterDied = await mdig_tunnel(mon, map, player);
                 if (monsterDied || mon.dead) return MMOVE_DIED;
             }
