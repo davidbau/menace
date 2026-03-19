@@ -66,7 +66,8 @@ import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
 import { makemon, makemon_appear, set_malign } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, change_luck, Luck } from './attrib.js';
-import { A_STR, A_DEX, XKILL_NOMSG } from './const.js';
+import { hmon } from './uhitm.js';
+import { A_STR, A_DEX, XKILL_NOMSG, HMON_THROWN } from './const.js';
 import {
     tmp_at, tmp_at_end_async, nh_delay_output,
 } from './animation.js';
@@ -1312,20 +1313,14 @@ export async function thitmonst(mon, obj, player, map, game) {
             tmp += weapon_hit_bonus(obj);
         }
         if (tmp >= dieroll) {
-            // C ref: uhitm.c hmon_hitmon dispatch for HMON_THROWN:
-            // - is_ammo(obj) thrown without matching launcher → weapon_ranged → rnd(2)
-            // - non-ammo weapons/weptools → weapon_melee → dmgval()
-            // Ammo includes rocks, arrows, etc. Weapons include daggers, swords.
-            const thrownAmmoNoLauncher = is_ammo(obj) && !ammo_and_launcher(obj, uwep);
-            let dmg;
-            if (thrownAmmoNoLauncher) {
-                const isShade = mon.data?.mname === 'shade' || mon.mndx === 309;
-                dmg = isShade ? 0 : rnd(2);
-            } else {
-                dmg = dmgval(obj, mon);
-            }
-            await applyThrownDamage(dmg);
+            // C ref: dothrow.c:2205 — thitmonst calls hmon(mon, obj, hmode, dieroll)
+            // for the full damage→death pipeline, NOT inline damage + xkilled.
+            // hmon handles dispatch to weapon_ranged (rnd(2) for ammo) or
+            // weapon_melee (dmgval for weapons), plus death processing via
+            // mondied/mondead (NOT xkilled), exercise, and weapon destruction.
+            const monAlive = await hmon(player, mon, obj, HMON_THROWN, dieroll, game?.display || null, map);
             await exercise(player, A_DEX, true);
+            if (!game?.thrownobj) return 1; // obj destroyed by hmon
             if (should_mulch_missile(obj, false)) return 1;
         } else {
             await tmiss(obj, mon, true, player, map);
