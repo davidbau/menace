@@ -577,9 +577,16 @@ function buildCompactMapdumpFromCSnapshot(capture, sectionSet) {
 
 function mapdumpSignature(parsed) {
     const hero = parsed?.hero || [];
-    const monCount = Array.isArray(parsed?.monsters) ? parsed.monsters.length : 0;
-    const objCount = Array.isArray(parsed?.objects) ? parsed.objects.length : 0;
-    const trapCount = Array.isArray(parsed?.traps) ? parsed.traps.length : 0;
+    // Check both M (monsters) and N (monsterDetails) sections
+    const monCount = Array.isArray(parsed?.monsters) && parsed.monsters.length > 0
+        ? parsed.monsters.length
+        : (Array.isArray(parsed?.monsterDetails) ? parsed.monsterDetails.length : 0);
+    const objCount = Array.isArray(parsed?.objects) && parsed.objects.length > 0
+        ? parsed.objects.length
+        : (Array.isArray(parsed?.objectDetails) ? parsed.objectDetails.length : 0);
+    const trapCount = Array.isArray(parsed?.traps) && parsed.traps.length > 0
+        ? parsed.traps.length
+        : (Array.isArray(parsed?.trapDetails) ? parsed.trapDetails.length : 0);
     const engrCount = Array.isArray(parsed?.engravings) ? parsed.engravings.length : 0;
     return `u=(${hero[0] ?? '?'},${hero[1] ?? '?'}) hp=${hero[2] ?? '?'} mons=${monCount} objs=${objCount} traps=${trapCount} engr=${engrCount}`;
 }
@@ -935,14 +942,13 @@ async function main() {
     }
 
     if (args.cSide) {
-        const keysJsonPath = join(outDir, 'replay_keys.json');
-        writeFileSync(keysJsonPath, `${JSON.stringify(replayArgs.keys)}\n`, 'utf8');
         for (const c of captures) {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
-            // capture_step_snapshot.py expects a 1-based gameplay step count:
-            // "replay N keys, then capture boundary". rawStep is 0-based.
-            const cRequestedStep = c.rawStep + 1;
-            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime, keysJsonPath);
+            // capture_step_snapshot.py uses extract_keys (raw session keys
+            // including startup/chargen). Session step N (1-indexed) corresponds
+            // to extract_keys index N-1 (0-indexed). Pass step_index = N-1.
+            const cRequestedStep = c.sessionStep - 1;
+            runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
             c.cSnapshotPath = outJson;
             c.cRequestedStep = cRequestedStep;

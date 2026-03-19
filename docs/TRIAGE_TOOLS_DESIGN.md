@@ -174,6 +174,46 @@ backward for known command-starting keys and can be wrong when keys have
 dual meanings (e.g., 'd' = drop command OR inventory letter). It should
 be treated as advisory context, not authoritative command identification.
 
+## Tool 4: `dbgmapdump` (C/JS state comparison)
+
+**Purpose:** Capture full game state snapshots at specific steps on both the JS
+and C sides, and compare them directly. Reveals hidden state divergences
+(monster HP, object properties, player stats) that RNG traces alone cannot show.
+
+**Usage:**
+```bash
+# JS-only: capture monster details + hero stats at specific steps
+node test/comparison/dbgmapdump.js <session.json> --steps 240,255,261 --sections N,U
+
+# JS + C comparison (requires nethack-c binary)
+node test/comparison/dbgmapdump.js <session.json> --steps 240,255,261 --sections N,U --c-side
+
+# Find first divergence automatically
+node test/comparison/dbgmapdump.js <session.json> --first-divergence --sections N,U --c-side
+```
+
+**Sections:**
+| Section | Content |
+|---------|---------|
+| N | Monster details: id, position, mndx, HP, maxHP, tame, peaceful, etc. |
+| M | Monster positions (compact) |
+| U | Hero: position, HP, energy, multi, utrap, moves, conf/stun/blind/hallu |
+| O | Floor objects (position, otyp, quantity) |
+| Q | Object details (cursed, no_charge, etc.) |
+| T | Terrain grid (typ values) |
+| C | Context snapshot (run, travel, multi, etc.) |
+| G | Global flags snapshot |
+
+**C-side capture:** Uses `capture_step_snapshot.py` which launches C nethack
+with `NETHACK_DUMPSNAP_INPUT_EVERY=1` and waits for the `auto_inp_N`
+checkpoint. No commands are injected. See `skills/c-checkpoint-infrastructure/SKILL.md`
+for the full C checkpoint infrastructure documentation.
+
+**Common issue:** C-side captures may report `phase-mismatch` when the
+`auto_inp` sequence counter doesn't align. In that case, check the actual
+mapdump files in `tmp/dbgmapdump/<session>/c/` — the data may still be
+present under a different phase tag.
+
 ## Complete triage workflow
 
 ```bash
@@ -189,9 +229,57 @@ node scripts/step-boundary-context.mjs <session.json> --step N
 # 3b. If accumulated monster AI divergence: drill into specific monsters
 node scripts/movement-propagation.mjs <session.json> --step-from N --step-to M --mon-id K
 
+# 3c. If hidden state divergence suspected: compare JS vs C game state
+node test/comparison/dbgmapdump.js <session.json> --steps N-1,N,N+1 --sections N,U --c-side
+
 # 4. For display-only divergences: trace the cell write path
 node scripts/cell-trace.mjs <session.json> --row R --col C --step N
 ```
+
+## Tool Catalog: Triage & Debugging
+
+The triage tools form a layered investigation pipeline. Each tool answers a
+different question and hands off to the next when deeper investigation is needed.
+
+| Layer | Tool | Question It Answers | When to Use |
+|-------|------|---------------------|-------------|
+| **1. Where** | `step-count-diff` | Which step first diverges? | Always start here |
+| **2. Why** | `step-boundary-context` | What game state causes the divergence? | After step-count-diff finds a mismatch |
+| **3a. Hidden state** | `dbgmapdump` | What are the actual JS/C monster HP, objects, stats? | When RNG matches but outcomes differ |
+| **3b. Monster AI** | `movement-propagation` | How do monster movement decisions differ? | For pet/monster movement divergences |
+| **3c. Display** | `cell-trace` | Which code path wrote a specific display cell? | For screen-only divergences |
+| **4. RNG micro** | `rng_step_diff` | What are the exact RNG values at a step? | For value-level comparison |
+
+### Tool relationships
+
+```
+step-count-diff  ──→  step-boundary-context  ──→  (fix boundary shift)
+      │                        │
+      │                        ├──→  dbgmapdump     (hidden state: HP, objects)
+      │                        ├──→  movement-prop   (monster AI decisions)
+      │                        └──→  cell-trace      (display write paths)
+      │
+      └──→  rng_step_diff      (raw RNG microscope)
+```
+
+### Supporting tools
+
+| Tool | Purpose |
+|------|---------|
+| `scripts/pes-report.mjs` | Instant replay of last PES results (no rerun needed) |
+| `scripts/run-and-report.sh` | Full session suite + PES table |
+| `test/comparison/rng_step_diff.js` | Per-step RNG value comparison |
+| `test/comparison/dbgmapdump.js` | JS/C state snapshot comparison |
+| `scripts/triage-lib.mjs` | Shared library (entry filtering, annotations, prompt detection) |
+
+### Shared infrastructure
+
+All triage tools share:
+- `prepareReplayArgs` / `replaySession` for JS replay
+- `getSessionGameplaySteps` for C session data
+- `isComparable` filter for RNG entries (matching the test comparator)
+- `triage-lib.mjs`: entry normalization, annotations, command span detection
+- 1-indexed step numbering (matching test comparator output)
 
 ## Non-goals
 

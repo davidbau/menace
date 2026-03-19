@@ -59,6 +59,46 @@ def extract_keys(session):
     return keys
 
 
+def extract_gameplay_keys(session):
+    """Extract only gameplay keys, skipping chargen/startup/lore keys.
+
+    When replaying with preset chargen (.nethackrc), chargen keys from the
+    original recording don't apply. wait_for_game_ready handles startup
+    prompts (--More--, tutorial, etc.) instead. This returns only the keys
+    from actual gameplay commands.
+
+    Heuristic: gameplay starts at the first step where turn >= 1 AND
+    the step has RNG entries that are NOT from startup patterns
+    (moveloop_preamble, bones, shuffle). Practically this is the first
+    step after all lore --More-- prompts are dismissed.
+    """
+    raw_steps = session.get("steps") or []
+    keys = []
+    gameplay_started = False
+    for i, step in enumerate(raw_steps):
+        if i == 0 and (step.get("key") is None or step.get("action") == "startup"):
+            continue
+        key = step.get("key")
+        if not isinstance(key, str):
+            continue
+        turn = step.get("turn")
+        if not gameplay_started:
+            # Skip until we find a real gameplay command (turn >= 2, or
+            # turn == 1 with non-startup RNG patterns).
+            if turn is not None and turn >= 2:
+                gameplay_started = True
+            elif turn is not None and turn >= 1:
+                rng = step.get("rng") or []
+                # Check if RNG entries look like gameplay (not startup)
+                rng_text = " ".join(str(e) for e in rng[:5])
+                if len(rng) > 0 and "moveloop_preamble" not in rng_text and "bones" not in rng_text and "shuffle" not in rng_text:
+                    gameplay_started = True
+            if not gameplay_started:
+                continue
+        keys.append(key)
+    return keys
+
+
 def build_character(session):
     opts = session.get("options") or {}
     char = dict(CHARACTER)
@@ -255,13 +295,26 @@ def checkpoint_phase_for_runstep_index(rng_lines, target_runstep_index):
     return best
 
 
+def session_uses_tutorial(session):
+    """Detect if the session entered the tutorial level."""
+    for step in (session.get("steps") or []):
+        screen = step.get("screenAnsi") or step.get("screen") or ""
+        if "Tutorial:" in screen:
+            return True
+    return False
+
+
 def run_capture(session_path, step_index, output_path, phase_tag=None, keys_override=None):
     session = load_session(session_path)
+    chargen_in_keys = keys_override is None
     keys = keys_override if keys_override is not None else extract_keys(session)
     seed = int(session.get("seed", 1))
     char = build_character(session)
 
-    setup_home(char)
+    # When using raw session keys, those keys include chargen input
+    # (name entry, role selection, etc.). Don't preset chargen in .nethackrc
+    # or the startup flow won't match the recording.
+    setup_home(char, chargen_in_keys=chargen_in_keys)
 
     tmpdir = tempfile.mkdtemp(prefix="webhack-step-snapshot-")
     rng_log_file = os.path.join(tmpdir, "rnglog.txt")
@@ -302,16 +355,36 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         )
         time.sleep(1.0)
 
-        wait_for_game_ready(session_name, rng_log_file)
-        time.sleep(0.02)
-        # When replaying explicit keys from dbgmapdump (--keys-json), those keys
-        # are gameplay-only and expect startup lore/prompt boundaries to be
-        # already dismissed. Clear startup --More-- only in that mode.
         if keys_override is not None:
+            # keys_override contains gameplay-only keys — need startup handling.
+            wait_for_game_ready(session_name, rng_log_file)
+            time.sleep(0.02)
             clear_more_prompts(session_name)
             time.sleep(0.02)
+        else:
+            # Using raw session keys (extract_keys) — they include ALL keys
+            # from the recording (chargen, lore, tutorial, gameplay).
+            # Do NOT use wait_for_game_ready: it would inject extra keys that
+            # double-consume prompts the session keys already handle.
+            # Just wait for the C binary to be ready to accept input.
+            for _wait in range(50):
+                if os.path.exists(rng_log_file):
+                    break
+                time.sleep(0.1)
+            time.sleep(0.5)  # Extra settle for binary initialization
 
-        checkpoints_before, _ = read_checkpoint_entries(checkpoint_file, 0)
+        # Wait for the startup_complete sentinel checkpoint to ensure all
+        # startup nhgetch calls are accounted for in the baseline.
+        for _sentinel_wait in range(100):
+            checkpoints_before, _ = read_checkpoint_entries(checkpoint_file, 0)
+            if any(str((cp or {}).get("phase", "")).startswith("startup_complete")
+                   for cp in checkpoints_before):
+                break
+            time.sleep(0.1)
+        else:
+            # Sentinel not found — binary may not support it. Use what we have.
+            time.sleep(0.5)
+            checkpoints_before, _ = read_checkpoint_entries(checkpoint_file, 0)
         baseline_count = len(checkpoints_before)
         baseline_auto_step = max_auto_index(checkpoints_before, _AUTO_STEP_RE)
         baseline_auto_inp = max_auto_index(checkpoints_before, _AUTO_INP_RE)
@@ -353,16 +426,10 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
                 matched_checkpoint = fallback_cp
             else:
                 matched_checkpoint = None
-        if matched_checkpoint is None:
-            # Fallback for C builds that do not emit auto_inp_* checkpoints:
-            # trigger one explicit no-time wizard checkpoint at this boundary.
-            emit_manual_dumpsnap_checkpoint(session_name, tag)
-            manual_cp, checkpoint_count = wait_for_checkpoint_phase_prefix(
-                checkpoint_file, tag, baseline_count, timeout_s=8.0
-            )
-            if manual_cp is not None:
-                matched_checkpoint = manual_cp
-                checkpoints, _ = read_checkpoint_entries(checkpoint_file, 0)
+        # Do NOT fall back to injecting #dumpsnap commands — that pollutes
+        # game state (UI prompts, step boundaries, potential RNG consumption).
+        # If the automatic env-variable checkpoint didn't fire at the right
+        # phase, report the mismatch rather than masking it.
         chosen_checkpoint = matched_checkpoint if matched_checkpoint is not None else (checkpoints[-1] if checkpoints else None)
         if matched_checkpoint:
             tag = str(matched_checkpoint.get("phase") or tag)
