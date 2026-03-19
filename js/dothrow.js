@@ -42,7 +42,7 @@ import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          PIERCE,
        } from './objects.js';
 import { compactInvletPromptChars, renderOverlayMenuUntilDismiss, buildInventoryOverlayLines } from './invent.js';
-import { doname, next_ident, xname, is_crackable } from './mkobj.js';
+import { doname, next_ident, xname, is_crackable, weight } from './mkobj.js';
 import { x_monnam, is_unicorn, nohands, notake, breathless, haseyes } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { uwepgone, uswapwepgone, uqwepgone, handleSwapWeapon, setuqwep } from './wield.js';
@@ -242,7 +242,9 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
     let thrownItem = item;
     if ((item.quan || 1) > 1) {
         item.quan = (item.quan || 1) - 1;
+        item.owt = weight(item); // C ref: splitobj recalculates weight for remaining stack
         thrownItem = { ...item, quan: 1, o_id: next_ident() };
+        thrownItem.owt = weight(thrownItem); // C ref: splitobj recalculates weight for split item
     } else {
         player.removeFromInventory(item);
         if (player.weapon === item) uwepgone(player);
