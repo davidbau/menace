@@ -1055,39 +1055,50 @@ export async function xkilled(mon, xkill_flags, map, player) {
 
     if (nocorpse) return;
 
-    // C ref: mon.c:3580-3607 — "illogical but traditional" treasure drop
+    // C ref: mon.c:3573-3574 — LEVEL_SPECIFIC_NOCORPSE
+    // Suppress treasure/corpse on Rogue level, levels with deathdrops=false
+    // (e.g. tutorial), or undead on graveyard levels.
     const mdat = mon?.data || mon?.type || {};
     const mndx = mon.mndx ?? 0;
     const game = _gstate;
-    if (map && !rn2(6)
-        && !(game?.mvitals?.[mndx]?.mvflags & G_NOCORPSE)
-        && (x !== (player?.x || 0) || y !== (player?.y || 0))
-        && mdat.mlet !== S_KOP
-        && !mon.mcloned) {
-        const otmp = mkobj(RANDOM_CLASS, true);
-        if (otmp) {
-            const otyp = otmp.otyp;
-            if (otmp.oclass === FOOD_CLASS && !(mdat.mflags2 & M2_COLLECT)
-                && !otmp.oartifact) {
-                delobj(otmp);
-            } else if ((mdat.msize || 0) < MZ_HUMAN && otyp !== FIGURINE
-                && (otmp.owt > 30 || objectData[otyp]?.oc_big)) {
-                delobj(otmp);
-            } else {
-                place_object(otmp, x, y, map);
-                stackobj(otmp, map);
+    const levelFlags = map?.flags || {};
+    const levelSpecificNocorpse =
+        levelFlags.is_rogue_level
+        || (levelFlags.deathdrops === false)
+        || (levelFlags.graveyard && is_undead(mdat) && rn2(3));
+    if (!levelSpecificNocorpse) {
+        if (map && !rn2(6)
+            && !(game?.mvitals?.[mndx]?.mvflags & G_NOCORPSE)
+            && (x !== (player?.x || 0) || y !== (player?.y || 0))
+            && mdat.mlet !== S_KOP
+            && !mon.mcloned) {
+            const otmp = mkobj(RANDOM_CLASS, true);
+            if (otmp) {
+                const otyp = otmp.otyp;
+                if (otmp.oclass === FOOD_CLASS && !(mdat.mflags2 & M2_COLLECT)
+                    && !otmp.oartifact) {
+                    delobj(otmp);
+                } else if ((mdat.msize || 0) < MZ_HUMAN && otyp !== FIGURINE
+                    && (otmp.owt > 30 || objectData[otyp]?.oc_big)) {
+                    delobj(otmp);
+                } else {
+                    place_object(otmp, x, y, map);
+                    stackobj(otmp, map);
+                }
+            }
+        }
+
+        // Corpse
+        if (map && !nocorpse && corpse_chance(mon)) {
+            const loc = map.at(x, y);
+            if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
+                make_corpse(mon, 0, map);
+                newsym(x, y);
             }
         }
     }
-
-    // Corpse
-    if (map && !nocorpse && corpse_chance(mon)) {
-        const loc = map.at(x, y);
-        if (loc && (ACCESSIBLE(loc.typ) || IS_POOL(loc.typ))) {
-            make_corpse(mon, 0, map);
-            newsym(x, y);
-        }
-    }
+    // C ref: mon.c:3641 — monster is gone, corpse or other object might now be visible
+    newsym(x, y);
 
     // C ref: mon.c:3638-3668 — cleanup: punish bad behavior, give experience
     if (player) {
