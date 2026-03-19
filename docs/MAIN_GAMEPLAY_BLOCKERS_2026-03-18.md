@@ -746,3 +746,90 @@ Current conclusion:
   - JS missing later C monster-turn work:
     - C first unmatched event:
       `^movemon_turn[116@52,7 mv=12->0]`
+
+# 2026-03-19: `seed031` branch/fill-level path restored; latent chain-inventory debt flushed out
+
+Summary:
+- `seed031_manual_direct` had been blocked before the real level-generation seam.
+- The useful correction was to make level generation branch-aware when callers
+  already know the target `(dnum, dlevel)`:
+  - `js/allmain.js`
+  - `js/u_init.js`
+  - now pass absolute depth via `dungeonDepth({ dnum, dlevel })` into `mklev()`
+- Then `js/dungeon.js` was extended to honor branch-wide generation metadata:
+  - `protofile`
+  - `lvlfill`
+- This restored the C-style branch/fill path for Mines / Vlad's Tower instead of
+  falling through to generic procedural generation.
+
+What that exposed:
+- Once the fill-level path became live again, JS immediately hit a series of
+  latent bugs where monster inventory was still treated as a JS array instead of
+  a C-style `nobj` chain.
+- Those were real core-code placeholders, not comparator issues.
+
+Fixes landed in this batch:
+- `js/mkobj.js`
+  - import missing `merged()` so `add_to_minv()` / `add_to_container()` work on
+    the real object-chain path
+- `js/invent.js`
+  - add shared helpers:
+    - `objChainItems(head)`
+    - `removeObjFromChain(head, target)`
+  - make monster/container inventory display and `addToMonsterInventory()`
+    representation-safe for both arrays and linked chains
+- `js/muse.js`
+  - move monster-item-use logic onto `objChainItems()`
+  - make `m_useup()` chain-safe
+- `js/worn.js`
+  - make `extract_from_minvent()` chain-safe
+- `js/weapon.js`
+  - make monster weapon selection / inventory scans chain-safe
+- `js/monmove.js`
+  - make key/load/search heuristics chain-safe
+- `js/mon.js`
+  - make monster-load computation chain-safe
+- `js/mondata.js`
+  - make saddle / amulet follower checks chain-safe
+
+Additional faithful ownership fix:
+- `js/do.js`
+  - removed `waitForStairMessageAck()` from stair traversal
+- Why:
+  - C owns level generation on the `>` / `<` command itself
+  - JS had been consuming an extra `--More--` acknowledgement before calling
+    `changeLevel()`, which shifted new-level generation onto the following space
+    key
+- Evidence:
+  - after removal, `seed031` step `467` now matches C ownership better:
+    - `>` owns the `^place[...]` burst on both sides
+    - the following space no longer owns the level-generation work in JS
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+  - no longer crashes in monster inventory / weapon / movement code
+  - current first event divergence: step `463`
+    - JS: `^makemon[165@31,8]`
+    - C:  `^makemon[165@71,5]`
+  - current first RNG divergence: step `467`
+    - JS: `rn2(100)=81 @ sp_amask_to_amask(...)`
+    - C:  `rn2(3)=1 @ induced_align(dungeon.c:2006)`
+  - matched RNG prefix improved versus the pre-stair-fix branch-state run:
+    - `21405 -> 21438`
+- stability checks:
+  - `seed032_manual_direct` unchanged at its current step-150 event blocker
+  - `t08_s984_w_camera_gp` still PASS
+
+Current conclusion:
+- This batch is a real forward step because it restores the intended branch
+  generation path and clears a coherent class of latent C-vs-JS representation
+  bugs that had been masking the real blocker.
+- The live `seed031` blocker is now inside fill-level special generation, not in
+  the old downstream throw/pet seam.
+- The current high-signal frontier is:
+  - minefill generation is active on both sides
+  - `>` now owns the level-generation work correctly
+  - JS still diverges during scripted monster creation / alignment selection:
+    - `sp_amask_to_amask()` / `induced_align()`
+- Next work should focus on why JS is consuming the `rn2(100)` alignment gate in
+  a place where C reaches the unconditional `rn2(3)` fallback.

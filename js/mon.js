@@ -57,8 +57,7 @@ import { next_ident } from './mkobj.js';
 import { is_metallic, is_organic, obj_resists, hasPoisonTrapBit } from './objdata.js';
 import { newsym, canSpotMonsterForMap, canspotmon, sensemon, canseemon } from './display.js';
 import { mpickobj, mdrop_obj } from './steal.js';
-import { delobj } from './invent.js';
-import { stackobj } from './invent.js';
+import { delobj, stackobj, objChainItems } from './invent.js';
 import { water_damage_chain, fire_damage_chain } from './trap.js';
 import { rloc, tele_restrict, enexto } from './teleport.js';
 import { in_your_sanctuary, inhistemple, p_coaligned } from './priest.js';
@@ -431,9 +430,8 @@ function cant_squeeze_thru_mon(mon) {
     const size = ptr.msize || 0;
     const canMorph = !!(f1 & (M1_AMORPHOUS | M1_UNSOLID | M1_SLITHY));
     if (size > MZ_MEDIUM && !canMorph) return true;
-    const load = Array.isArray(mon.minvent)
-        ? mon.minvent.reduce((a, o) => a + (o?.owt || 0), 0)
-        : 0;
+    const load = objChainItems(mon.minvent || null)
+        .reduce((a, o) => a + (o?.owt || 0), 0);
     return load > 600;
 }
 

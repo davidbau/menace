@@ -3076,18 +3076,19 @@ export function worn_wield_only(obj) {
 
 // C ref: invent.c display_minventory() — display monster inventory
 export function display_minventory(mon) {
-    if (!mon || !mon.minvent || !mon.minvent.length) {
+    const items = objChainItems(mon?.minvent || null);
+    if (items.length === 0) {
         return null;
     }
-    // Simplified: return formatted lines
-    return mon.minvent.map(obj => doname(obj));
+    return items.map(obj => doname(obj));
 }
 
 // C ref: invent.c display_cinventory() — display container inventory
 export function display_cinventory(obj) {
-    if (!obj.cobj || !obj.cobj.length) return null;
+    const items = objChainItems(obj?.cobj || null);
+    if (items.length === 0) return null;
     obj.cknown = true;
-    return obj.cobj.map(o => doname(o));
+    return items.map(o => doname(o));
 }
 
 // C ref: invent.c only_here() — filter objects at current location
@@ -3120,6 +3121,43 @@ export function perm_invent_toggled() {}
 // ============================================================
 // Helpers
 // ============================================================
+
+// Iterate an object chain regardless of whether the current representation
+// is a JS array or a C-style nobj linked list.
+export function objChainItems(head) {
+    if (!head) return [];
+    if (Array.isArray(head)) return head.filter(Boolean);
+    const items = [];
+    const seen = new Set();
+    for (let obj = head; obj && typeof obj === 'object' && !seen.has(obj); obj = obj.nobj || null) {
+        items.push(obj);
+        seen.add(obj);
+    }
+    return items;
+}
+
+// Remove one object from an array- or nobj-backed chain and return the new head.
+export function removeObjFromChain(head, target) {
+    if (!head || !target) return head || null;
+    if (Array.isArray(head)) {
+        const idx = head.indexOf(target);
+        if (idx >= 0) head.splice(idx, 1);
+        return head;
+    }
+    let prev = null;
+    const seen = new Set();
+    for (let obj = head; obj && typeof obj === 'object' && !seen.has(obj); obj = obj.nobj || null) {
+        if (obj === target) {
+            if (prev) prev.nobj = obj.nobj || null;
+            else head = obj.nobj || null;
+            obj.nobj = null;
+            break;
+        }
+        seen.add(obj);
+        prev = obj;
+    }
+    return head;
+}
 
 // Helper: safely un-wear an object
 function setnotworn(obj, player) {
@@ -3257,17 +3295,21 @@ export function canMergeMonsterInventoryObj(dst, src) {
 
 export function addToMonsterInventory(mon, obj) {
     if (!mon || !obj) return null;
-    if (!Array.isArray(mon.minvent)) mon.minvent = [];
     const quan = Number(obj.quan || 1);
     if (quan <= 0) return null;
     obj.quan = quan;
-    for (const invObj of mon.minvent) {
+    for (const invObj of objChainItems(mon.minvent || null)) {
         if (!canMergeMonsterInventoryObj(invObj, obj)) continue;
         invObj.quan = Number(invObj.quan || 0) + quan;
         invObj.owt = weight(invObj);
         return invObj;
     }
-    mon.minvent.push(obj);
+    if (Array.isArray(mon.minvent)) {
+        mon.minvent.push(obj);
+    } else {
+        obj.nobj = mon.minvent || null;
+        mon.minvent = obj;
+    }
     return obj;
 }
 

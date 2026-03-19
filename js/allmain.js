@@ -46,7 +46,7 @@ import { see_monsters, see_objects, see_traps, swallowed, vision_recalc, mark_vi
 import { do_light_sources } from './light.js';
 import { Player, roles, races, formatLoreText, godForRoleAlign, isGoddess,
          rankOf, greetingForRole, roleNameForGender, alignName } from './player.js';
-import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance } from './dungeon.js';
+import { mklev, setGameSeed, isBranchLevelToDnum, at_dgn_entrance, depth as dungeonDepth } from './dungeon.js';
 import { getArrivalPosition, changeLevel as changeLevelCore, deferred_goto, maybe_lvltport_feedback } from './do.js';
 import { loadSave, deleteSave, loadAutosave, scheduleAutosave, deleteAutosave,
          loadFlags, saveFlags, deserializeRng,
@@ -2110,7 +2110,7 @@ export class NetHackGame {
             ? opts.targetDnum
             : this.dnum;
         const makeLevel = Number.isInteger(targetDnum)
-            ? async (d) => await mklev(d, targetDnum, d, {
+            ? async (d) => await mklev(dungeonDepth({ dnum: targetDnum, dlevel: d }), targetDnum, d, {
                 dungeonAlignOverride: this.dungeonAlignOverride,
                 heroHasAmulet,
             })

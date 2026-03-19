@@ -29,6 +29,7 @@ import { acurr } from './attrib.js';
 import { game as _gstate } from './gstate.js';
 import { def_monsyms } from './symbols.js';
 import { title_to_mon } from './botl.js';
+import { objChainItems } from './invent.js';
 
 // NATTK imported from const.js
 
@@ -308,7 +309,7 @@ export function monsdat(mon) {
 // misc_worn_check & W_SADDLE).
 export function hasSaddle(mon) {
     if ((mon?.misc_worn_check || 0) & W_SADDLE) return true;
-    return (mon?.minvent || []).some(o => o && (o.owornmask & W_SADDLE));
+    return objChainItems(mon?.minvent || null).some(o => o && (o.owornmask & W_SADDLE));
 }
 
 // C ref: do_name.c x_monnam() — returns the base display name for a
@@ -848,7 +849,7 @@ export function levl_follower(mon, player) {
     if (player && mon === player.usteed) return true;
     // C: if (mtmp->iswiz && mon_has_amulet(mtmp)) return FALSE
     // mon_has_amulet: monster inventory contains the Amulet of Yendor
-    if (mon.iswiz && (mon.minvent || []).some(o => o?.otyp === AMULET_OF_YENDOR)) return false;
+    if (mon.iswiz && objChainItems(mon.minvent || null).some(o => o?.otyp === AMULET_OF_YENDOR)) return false;
     // C: if (mtmp->mtame || mtmp->iswiz || is_fshk(mtmp)) return TRUE
     // is_fshk: isshk && eshk->following
     if (mon.tame || mon.iswiz || (mon.isshk && mon.following)) return true;

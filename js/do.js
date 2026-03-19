@@ -1055,17 +1055,6 @@ export async function doddrop(player, map, display) {
 // 4. Stair commands
 // ============================================================
 
-async function waitForStairMessageAck(display, player = null) {
-    // C ref: do.c goto_level() message path.
-    // Only block when a --More-- boundary is actually pending.
-    // This avoids forcing an extra input read for short, non-overflow messages.
-    if (display?.messageNeedsMore) {
-        await more(display, { site: 'do.stair-ack', forceVisual: true });
-    }
-    void player;
-    return;
-}
-
 // cf. do.c u_stuck_cannot_go() — check if engulfed/grabbed preventing movement
 export async function u_stuck_cannot_go(updn, player) {
     if (player.ustuck) {
@@ -1103,7 +1092,6 @@ export async function handleDownstairs(player, map, display, game) {
 
     // C ref: do.c goto_level() ordinary descent message when verbose.
     await display.putstr_message('You descend the stairs.');
-    await waitForStairMessageAck(display, player);
 
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum
@@ -1166,7 +1154,6 @@ export async function handleUpstairs(player, map, display, game) {
 
     // C ref: do.c goto_level() ordinary ascent message when verbose.
     await display.putstr_message('You climb up the stairs.');
-    await waitForStairMessageAck(display, player);
 
     const currentDnum = Number.isInteger(game?.dnum)
         ? game.dnum

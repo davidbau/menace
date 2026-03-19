@@ -13516,3 +13516,46 @@ Validation:
 - Conclusion:
   - the step-91 `seed032` failure was a genuine run-state initialization bug,
     not a pet-AI-local bug and not a replay-boundary artifact
+
+## 2026-03-19 - restoring branch/fill-level generation flushed out latent monster-inventory placeholders
+
+- Making `mklev()` branch-aware again exposed a whole class of dormant bugs:
+  several monster subsystems still assumed `mon.minvent` was always a JS array.
+- On the more faithful path, monster inventory can be a C-style `nobj` chain,
+  and the old assumptions caused hard crashes in:
+  - `muse.js`
+  - `weapon.js`
+  - `monmove.js`
+  - `worn.js`
+  - related monster-data / load helpers
+- Fix pattern:
+  - add shared chain-safe helpers in `invent.js`
+    - `objChainItems(head)`
+    - `removeObjFromChain(head, target)`
+  - move affected code to those helpers rather than reintroducing array-only
+    assumptions
+- Practical lesson:
+  - when a parity fix revives a dormant C-faithful path, expect linked-list
+    object chains to surface in monster code
+  - do not patch just the first crashing loop; search adjacent `.some()`,
+    `.find()`, `.reduce()`, `for ... of`, and splice/indexOf assumptions on
+    `minvent` / `cobj`
+
+## 2026-03-19 - stair traversal must not acknowledge `--More--` before `goto_level`
+
+- JS had a helper in `do.js` which explicitly consumed a pending stair message
+  boundary before calling `changeLevel()`.
+- That was unfaithful.
+- C owns the level transition on the `>` / `<` command itself; the visible
+  staircase message does not hand control to a separate acknowledgement owner
+  before level generation proceeds.
+- Evidence from `seed031_manual_direct`:
+  - before the fix, JS shifted the `^place[...]` burst from the `>` step onto
+    the following space key
+  - after removing the extra stair ack, `>` owns the level-generation burst on
+    both sides
+- Practical rule:
+  - do not introduce command-specific pre-`goto_level` `more()` acknowledgements
+    for stairs/ladders
+  - if a staircase message overflows, the same single-threaded command still
+    owns the transition work

@@ -43,7 +43,7 @@ import { FOOD_CLASS, COIN_CLASS, BOULDER, ROCK, ROCK_CLASS,
          VENOM_CLASS, CORPSE, objectData } from './objects.js';
 import { next_ident, weight, doname, splitobj, xname, bill_dummy_object } from './mkobj.js';
 import { an, vtense, makeplural } from './objnam.js';
-import { delobj, g_at, sobj_at, carrying } from './invent.js';
+import { delobj, g_at, sobj_at, carrying, objChainItems } from './invent.js';
 import { grow_up } from './makemon.js';
 import { stairway_find_dir } from './stairs.js';
 import { can_carry, cursed_object_at } from './dogmove.js';
@@ -173,14 +173,13 @@ function mon_is_stunned(mon) {
 // leppie_avoidance — C ref: monmove.c:1142
 // ========================================================================
 function hasGold(inv) {
-    return Array.isArray(inv)
-        && inv.some(o => o && o.oclass === COIN_CLASS && (o.quan ?? 1) > 0);
+    return objChainItems(inv || null)
+        .some(o => o && o.oclass === COIN_CLASS && (o.quan ?? 1) > 0);
 }
 
 function goldQuantity(inv) {
-    if (!Array.isArray(inv)) return 0;
     let total = 0;
-    for (const obj of inv) {
+    for (const obj of objChainItems(inv || null)) {
         if (!obj || obj.oclass !== COIN_CLASS) continue;
         total += Number(obj.quan || 0);
     }
@@ -391,7 +390,7 @@ export function mon_regen(mon, digest_meal, moves) {
 // C ref: monmove.c:97 — check whether a monster carries a locking/unlocking tool
 // forUnlocking=true: credit card also counts (C: for_unlocking)
 export function monhaskey(mon, forUnlocking) {
-    const inv = mon?.minvent || [];
+    const inv = objChainItems(mon?.minvent || null);
     if (forUnlocking && inv.some(o => o?.otyp === CREDIT_CARD)) return true;
     return inv.some(o => o?.otyp === SKELETON_KEY || o?.otyp === LOCK_PICK);
 }
@@ -569,7 +568,7 @@ function max_mon_load_for_search(mon) {
 function curr_mon_load_for_search(mon) {
     let load = 0;
     const throwsRocks = !!((mon?.data || mon?.type)?.mflags2 & M2_ROCKTHROW);
-    for (const obj of mon?.minvent || []) {
+    for (const obj of objChainItems(mon?.minvent || null)) {
         if (obj?.otyp === BOULDER && throwsRocks) continue;
         load += Number(obj?.owt || 0);
     }
@@ -2827,7 +2826,7 @@ export async function soko_allow_web(mon, map) {
 export function stuff_prevents_passage(mtmp, player) {
     const chain = (mtmp === player || mtmp?.isHero)
         ? (player?.inventory || [])
-        : (mtmp.minvent || []);
+        : objChainItems(mtmp?.minvent || null);
     for (const obj of chain) {
         const typ = obj.otyp;
         // Large coin piles

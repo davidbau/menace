@@ -72,7 +72,7 @@ import { onscary, healmon, mongone, monkilled, xkilled,
 import { monflee } from './monmove.js';
 import { makemon, makemon_appear, grow_up, rndmonst } from './makemon.js';
 import { inhishop } from './shk.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, objChainItems, removeObjFromChain } from './invent.js';
 import { linedUpToPlayer, m_throw_timed } from './mthrowu.js';
 import {
     buzz, ZT_WAND, ZT_BREATH,
@@ -294,7 +294,7 @@ function mon_offmap(mon) { return !isok(mon.mx, mon.my); }
 export function MON_WEP(mon) {
     if (mon.weapon) return mon.weapon;
     if (!mon.minvent) return null;
-    for (const obj of mon.minvent) {
+    for (const obj of objChainItems(mon.minvent || null)) {
         if (obj.owornmask && (obj.owornmask & W_WEP)) return obj;
     }
     return null;
@@ -328,15 +328,14 @@ function POTION_OCCUPANT_CHANCE(n) { return ((n) >= 5 ? 1 : (n) >= 4 ? 2 : 4); }
 // m_useup — monster uses up an item from inventory
 function m_useup(mon, obj) {
     if (!mon || !obj) return;
-    const inv = mon.minvent || [];
-    const idx = inv.indexOf(obj);
-    if (idx < 0) return;
+    const inv = objChainItems(mon.minvent || null);
+    if (!inv.includes(obj)) return;
     const qty = Number.isInteger(obj.quan) ? obj.quan : 1;
     if (qty > 1) {
         obj.quan = qty - 1;
         return;
     }
-    inv.splice(idx, 1);
+    mon.minvent = removeObjFromChain(mon.minvent || null, obj);
     if (mon.weapon === obj) mon.weapon = null;
 }
 
@@ -429,7 +428,7 @@ export function mcould_eat_tin(mon) {
     if (is_animal(mdat)) return false;
     const mwep = MON_WEP(mon);
     const welded_wep = mwep && mwelded(mwep);
-    for (const obj of (mon.minvent || [])) {
+    for (const obj of objChainItems(mon.minvent || null)) {
         if (welded_wep && obj !== mwep) continue;
         if (obj.otyp === TIN_OPENER) return true;
         const od = objectData[obj.otyp];
@@ -718,7 +717,7 @@ export async function find_defensive(mon, tryescape, map, player) {
     if (mon.mconf || mon.mstun || !mon_can_see(mon)) {
         obj = null;
         if (!nohands(mdat)) {
-            for (const o of (mon.minvent || [])) {
+            for (const o of objChainItems(mon.minvent || null)) {
                 if (o.otyp === UNICORN_HORN && !o.cursed) { obj = o; break; }
             }
         }
@@ -732,7 +731,7 @@ export async function find_defensive(mon, tryescape, map, player) {
     // Lizard corpse/tin for confusion/stun
     if (mon.mconf || mon.mstun) {
         let liztin = null;
-        for (const o of (mon.minvent || [])) {
+        for (const o of objChainItems(mon.minvent || null)) {
             if (o.otyp === CORPSE && o.corpsenm === PM_LIZARD) {
                 m.defensive = o;
                 m.has_defense = MUSE_LIZARD_CORPSE;
@@ -760,7 +759,7 @@ export async function find_defensive(mon, tryescape, map, player) {
         && touch_petrifies(mons[uwep.corpsenm] || {})
         && !poly_when_stoned(mdat) && !resists_ston(mon)
         && linedUpToPlayer(mon, map, player)) {
-        for (const o of (mon.minvent || [])) {
+        for (const o of objChainItems(mon.minvent || null)) {
             if (o.otyp === WAN_UNDEAD_TURNING && o.spe > 0) {
                 m.defensive = o;
                 m.has_defense = MUSE_DEF_WAN_UNDEAD_TURNING;
@@ -866,7 +865,7 @@ export async function find_defensive(mon, tryescape, map, player) {
         t = null;
 
     // Inventory scan for defensive items
-    for (const obj2 of (mon.minvent || [])) {
+    for (const obj2 of objChainItems(mon.minvent || null)) {
         // Don't always use same selection pattern
         if (m.has_defense && !rn2(3)) break;
 
@@ -1405,7 +1404,7 @@ export async function find_offensive(mtmp, map, player) {
         || monnear(mtmp, mtmp.mux ?? player.x, mtmp.muy ?? player.y));
     const mtmp_helmet = which_armor(mtmp, W_ARMH);
 
-    for (const obj of (mtmp.minvent || [])) {
+    for (const obj of objChainItems(mtmp.minvent || null)) {
         if (!reflection_skip) {
             if (m.has_offense === MUSE_OFF_WAN_DEATH) continue;
             if (obj.otyp === WAN_DEATH && obj.spe > 0) {
@@ -1888,7 +1887,7 @@ export async function find_misc(mon, map, player) {
     if (nohands(mdat)) return false;
 
     // Inventory scan for misc items
-    for (const obj of (mon.minvent || [])) {
+    for (const obj of objChainItems(mon.minvent || null)) {
         if (obj.otyp === POT_GAIN_LEVEL
             && (!obj.cursed || (!mon.isgd && !mon.isshk && !mon.ispriest))) {
             m.misc = obj;
@@ -2449,7 +2448,7 @@ export async function munslime(mon, by_you, map, player) {
 
     // Check inventory for fire items
     if (!is_animal(mptr) && !mindless(mptr)) {
-        for (const obj of (mon.minvent || [])) {
+        for (const obj of objChainItems(mon.minvent || null)) {
             if (cures_sliming(mon, obj)) {
                 return await muse_unslime(mon, obj, null, by_you, map, player);
             }

@@ -30,7 +30,7 @@ import { S_MUMMY, S_CENTAUR,
 import { mons } from './monsters.js';
 import { newsym, canseemon } from './display.js';
 import { You_hear, pline_mon } from './pline.js';
-import { placeFloorObject } from './invent.js';
+import { placeFloorObject, removeObjFromChain } from './invent.js';
 import { Has_contents, distant_name, doname } from './objnam.js';
 import { Monnam } from './do_name.js';
 import { game as gstateGame } from './gstate.js';
@@ -774,8 +774,7 @@ export function extract_from_minvent(mon, obj, do_extrinsics, silently) {
     const unwornmask = obj.owornmask || 0;
 
     // Remove from inventory
-    const idx = Array.isArray(mon.minvent) ? mon.minvent.indexOf(obj) : -1;
-    if (idx >= 0) mon.minvent.splice(idx, 1);
+    mon.minvent = removeObjFromChain(mon.minvent || null, obj);
 
     obj.owornmask = 0;
 

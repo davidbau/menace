@@ -58,6 +58,7 @@ import { Monnam } from './mondata.js';
 import { doname, Tobjnam, is_plural } from './objnam.js';
 import { canseemon } from './display.js';
 import { mwelded } from './wield.js';
+import { objChainItems } from './invent.js';
 import { mbodypart } from './polyself.js';
 import { mon_nam } from './do_name.js';
 
@@ -351,7 +352,7 @@ export function weapon_type(obj) {
 // ============================================================================
 // Find one item of given type in monster inventory.
 export function oselect(mtmp, type) {
-    for (const otmp of (mtmp.minvent || [])) {
+    for (const otmp of objChainItems(mtmp.minvent || null)) {
         if (otmp.otyp !== type) continue;
         // Never select non-cockatrice corpses/eggs
         if ((type === CORPSE || type === EGG)) {
@@ -459,7 +460,7 @@ export function select_rwep(mtmp) {
         // Gem-slinging: right before darts
         if (rwep[i] === DART && likes_gems(mtmp.data || mtmp.type || {})
             && m_carrying(mtmp, SLING)) {
-            for (const invObj of (mtmp.minvent || [])) {
+            for (const invObj of objChainItems(mtmp.minvent || null)) {
                 if (invObj.oclass === GEM_CLASS
                     && (invObj.otyp !== LOADSTONE || !invObj.cursed)) {
                     return { weapon: invObj, propellor: m_carrying(mtmp, SLING) };
@@ -496,7 +497,7 @@ export function select_rwep(mtmp) {
                     && !(otmp === mwep && mwep.cursed))
                     return { weapon: otmp, propellor };
             } else {
-                for (const invObj of (mtmp.minvent || [])) {
+                for (const invObj of objChainItems(mtmp.minvent || null)) {
                     if (invObj.otyp === LOADSTONE && !invObj.cursed)
                         return { weapon: invObj, propellor };
                 }
@@ -604,7 +605,7 @@ export function possibly_unwield(mon, _polyspot) {
 
     // Check if weapon is still in inventory
     let found = false;
-    for (const obj of (mon.minvent || [])) {
+    for (const obj of objChainItems(mon.minvent || null)) {
         if (obj === mw_tmp) { found = true; break; }
     }
     if (!found) {

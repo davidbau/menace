@@ -23,7 +23,7 @@ import { hack_artifacts } from './artifact.js';
 import { skill_init_from_inventory } from './weapon.js';
 import { skill_based_spellbook_id } from './spell.js';
 import { withMakemonPlayerOverride } from './makemon.js';
-import { initLevelGeneration, mklev } from './dungeon.js';
+import { initLevelGeneration, mklev, depth as dungeonDepth } from './dungeon.js';
 import { setCheckpointCaptureEnabled, clearLevelCheckpoints } from './sp_lev.js';
 import { getArrivalPosition } from './do.js';
 import { mksobj, mkobj, weight, setStartupInventoryMode, Is_container } from './mkobj.js';
@@ -1314,7 +1314,7 @@ export async function initFirstLevel(player, roleIndex, wizard, opts = {}) {
         player.uenmax = player.uen;
     }
     const map = (opts.startDnum != null)
-        ? await mklev(startDlevel, opts.startDnum, startDlevel,
+        ? await mklev(dungeonDepth({ dnum: opts.startDnum, dlevel: startDlevel }), opts.startDnum, startDlevel,
             {
                 dungeonAlignOverride: opts.dungeonAlignOverride,
                 heroHasAmulet: !!player?.uhave?.amulet,

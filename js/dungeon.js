@@ -238,6 +238,8 @@ let _medusaDepth = 20; // actual placed medusa dlevel in DoD (updated at runtime
 // Runtime mapping from actual placed special-level locations to canonical
 // special-level registry coordinates used by getSpecialLevel().
 let _runtimeSpecialLevelMap = new Map();
+// C ref: dungeon.c svd.dungeons[*].proto / fill_lvl bookkeeping.
+let _dungeonGenerationByDnum = new Map();
 // C ref: dungeon.c svd.dungeons[*].num_dunlevs/ledger_start bookkeeping.
 let _dungeonLevelCounts = new Map();
 // C ref: decl.h gi.in_mklev — true only while makelevel() runs.
@@ -272,6 +274,7 @@ export function clearBranchTopology() {
     _oracleLevel = { dnum: DUNGEONS_OF_DOOM, dlevel: 5 };
     _medusaDepth = 20;
     _runtimeSpecialLevelMap = new Map();
+    _dungeonGenerationByDnum = new Map();
     _dungeonLedgerStartByDnum = new Map([[DUNGEONS_OF_DOOM, 0]]);
     _dungeonLevelCounts = new Map();
     _questLocaDlevel = 2;
@@ -4224,6 +4227,10 @@ export function init_dungeon_dungeons({
             parentRolls.set(jsDnum, parentRoll);
             dungeonLayouts.set(jsDnum, { numLevels, parentRoll, placed });
             _dungeonLedgerStartByDnum.set(jsDnum, ledgerStart);
+            _dungeonGenerationByDnum.set(jsDnum, {
+                protofile: typeof dgn.protofile === 'string' ? dgn.protofile : '',
+                lvlfill: typeof dgn.lvlfill === 'string' ? dgn.lvlfill : '',
+            });
             if (jsDnum === DUNGEONS_OF_DOOM) {
                 const oracleDlevel = Number.isInteger(placed[1]) && placed[1] > 0 ? placed[1] : 5;
                 _oracleLevel = { dnum: DUNGEONS_OF_DOOM, dlevel: oracleDlevel };
@@ -4298,6 +4305,7 @@ export function init_dungeons(roleIndex, wizard = true) {
         { // 1: Gehennom
             base: 20, range: 5, chance: 100, hasParent: true,
             parentBranchNum: 1, // rn2(1) — chain=castle in DofD, base=0, range=0
+            lvlfill: 'hellfill',
             levels: [
                 [1, 0, -1, 100],   // valley
                 [-1, 0, -1, 100],  // sanctum
@@ -4315,6 +4323,7 @@ export function init_dungeons(roleIndex, wizard = true) {
         { // 2: Gnomish Mines
             base: 8, range: 2, chance: 100, hasParent: true,
             parentBranchNum: 3, // rn2(3) — base=2, range=3 in DofD
+            lvlfill: 'minefill',
             levels: [
                 [3, 2, -1, 100],   // minetn
                 [-1, 0, -1, 100],  // minend
@@ -4349,6 +4358,7 @@ export function init_dungeons(roleIndex, wizard = true) {
         { // 6: Vlad's Tower
             base: 3, range: 0, chance: 100, hasParent: true,
             parentBranchNum: 5, // rn2(5) — base=9, range=5 in Gehennom
+            protofile: 'tower',
             levels: [
                 [1, 0, -1, 100],   // tower1
                 [2, 0, -1, 100],   // tower2
@@ -4391,6 +4401,7 @@ export function init_dungeons(roleIndex, wizard = true) {
     ];
     _dungeonLedgerStartByDnum = new Map();
     _runtimeSpecialLevelMap = new Map();
+    _dungeonGenerationByDnum = new Map();
     init_dungeon_dungeons({
         wizard,
         dungeonDefs: DUNGEON_DEFS,
@@ -4966,6 +4977,25 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             }
             // If special level generation fails, fall through to procedural
             if (DEBUG) console.warn(`Special level ${special.name} generation failed, using procedural`);
+    }
+
+    const branchGen = _dungeonGenerationByDnum.get(
+        Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM
+    ) || null;
+    if (branchGen?.protofile) {
+        const branchProtoMap = await load_special_by_protofile(branchGen.protofile, dnum, dlevel, depth);
+        if (branchProtoMap) {
+            branchProtoMap._heroHasAmulet = heroHasAmulet;
+            return finishGeneratedMap(branchProtoMap);
+        }
+    } else if (branchGen?.lvlfill) {
+        const fillMap = new GameMap();
+        fillMap.clear();
+        fillMap._heroHasAmulet = heroHasAmulet;
+        fillMap._genDnum = Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM;
+        fillMap._genDlevel = Number.isInteger(dlevel) ? dlevel : depth;
+        await makemaz(fillMap, branchGen.lvlfill, dnum, dlevel, depth);
+        return finishGeneratedMap(fillMap);
     }
 
     const map = new GameMap();
