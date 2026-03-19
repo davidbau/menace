@@ -4391,39 +4391,46 @@ Line mode vs. character mode:
   // fenlason -- root only
   // -----------------------------------------------------------------------
   fenlason: {
-    'free_software_notes': `\
-Notes on software distribution
+    'distribution_notes': `\
+How to distribute Hack
 Jay Fenlason
 
-Hack is free.  Not free like "we're not charging right now"
-but free like "you can have the source and do what you want."
-This is not an accident; it's a position.
+Hack exists.  It works.  People outside this school are already
+playing it -- Scott got it to Stanford, someone there posted about it,
+and now I'm getting mail from people I've never heard of asking for
+copies.
 
-The argument I keep having: "but what if someone sells it?"
-My answer: so what?  If they improve it and I get those
-improvements back, we all win.  If they don't improve it,
-they've just sold a thing I gave away, which is mildly annoying
-but not actually a problem for me.
+The question is how to handle this going forward.
 
-The argument I find more interesting: tools should be free
-because control over tools is control over people.
-If the compiler is proprietary, the people who need it are
-dependent on the people who own it.  That's a power relationship
-I don't want to be in.
+Option 1: tape-by-mail.  Someone asks, I send a tape.
+  Problem: doesn't scale.  I don't have time to make tapes for
+  everyone who asks.  And the source gets out of date fast.
 
-Harvey agrees with this.  He's been talking about curriculum
-design and how depending on vendor-locked tools shapes what
-gets taught.  We came at the same question from different angles.
+Option 2: post to USENET.  One post, everyone can get it.
+  comp.sources.games or similar.  This seems right.
+  The issue is that once it's out there it's out there.
+  People will modify it.  That might be fine.  Probably fine.
 
-I've been in touch with some people at MIT who are thinking about
-this more systematically.  There may be something happening there.
-Stallman keeps writing about it.  I read his manifesto drafts.
-He is not wrong, even where he's wrong about the details.
+What I actually want: people to use it, enjoy it, maybe fix bugs,
+and tell me what they changed.  I don't want to be the gatekeeper
+for every modification.  If Kenny wants to improve the level
+generator for a fork, he should be able to.  I'd want to see
+what he did and maybe pull it back in.
 
-If I get time after Hack settles, I want to write a proper tar
-replacement.  The existing one has limitations that are starting
-to bite.  Free tools to replace the ones we use.  That seems
-like useful work.
+The thing I'm unsure about: what happens if someone takes it,
+charges money for it, and doesn't share the changes?
+I don't like that scenario.  It's not that I want the money --
+I don't need money from this.  It's that the changes would be
+lost.  The improvements wouldn't come back.
+
+I don't know if there's a legal mechanism for requiring that.
+There might not be.  Copyright law isn't written for this situation.
+Someone at MIT is apparently thinking about this problem.
+I read something he circulated.  Interesting ideas, not fully
+baked yet.
+
+For now: post to USENET with a note saying "share freely,
+send me changes if you make any."  Honor system.  Probably good enough.
 `,
 
     'hack_notes': `\
