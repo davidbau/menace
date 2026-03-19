@@ -181,3 +181,81 @@ Before another code attempt, define one explicit invariant for the branch:
 - **A single replay key step may own multiple C-faithful no-input iterations.**
 
 Any restructure that violates that invariant will regress parity even if the individual helper logic looks more C-like.
+
+## Gate 2 Attempt 3: Respect `context.move` For Negative-`multi`
+
+### Exact C Finding
+
+The remaining wizard-life-save branch regression turned out to have a concrete
+owner bit in C, not a generic replay artifact.
+
+In C [`end.c`]( /share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/src/end.c ):
+
+1. `savelife()` sets:
+   - `gn.nomovemsg = "You survived that attempt on your life.";`
+   - `svc.context.move = 0;`
+   - `gm.multi = -1;`
+2. So after life-saving, C explicitly leaves `multi < 0` but also says
+   "do not run moveloop work now."
+
+The branch's internal continuation loop in [`js/allmain.js`]( /share/u/davidbau/git/mazesofmenace/game/js/allmain.js )
+was using `multi < 0` alone to decide whether to run `runNegativeMultiStep()`.
+That was too broad.
+
+### Exact Branch Regression This Explained
+
+Session:
+
+- [`theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/round8-scrolls-potions/theme35_seed2320_wiz_artifact-combat2_gameplay.session.json )
+
+Passing `a84` trace at step `20`:
+
+- `resume=done`
+- `ack=1`
+- `msgMore=1`
+- fresh key ownership resumes at step `21`
+
+Broken `d2` trace before the fix:
+
+- step `20` stayed pending in `waitForMoreDismissKey(...)`
+- a visible `--More--` was materialized too early
+- by step `21`, the branch was still consuming boundary behavior instead of
+  letting the fresh key proceed
+
+The underlying reason was:
+
+- JS ran the negative-`multi` continuation immediately
+- that reached the `unmul()`/`nomovemsg` path
+- that path materialized a command-boundary `--More--`
+- C had prevented that continuation by clearing `context.move`
+
+### Implemented Rule
+
+Gate the branch's internal negative-`multi` continuation on `context.move`,
+not just on `multi < 0`.
+
+Concretely, `_gameLoopStep()` now treats negative-`multi` as a continuation
+only when:
+
+- `this.context?.move`
+- `this.multi < 0`
+- `!this.playerDied`
+
+### Validation
+
+This exact-C-driven guard produced a real branch improvement:
+
+- [`theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/round8-scrolls-potions/theme35_seed2320_wiz_artifact-combat2_gameplay.session.json ): PASS
+- [`theme15_seed986_wiz_artifact-wish_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json ): PASS
+- [`seed031_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed031_manual_direct.session.json ): unchanged live frontier
+- [`t08_s984_w_camera_gp.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/apply-tools/t08_s984_w_camera_gp.session.json ): PASS
+- [`theme33_seed2102_wiz_eat-various_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/theme33_seed2102_wiz_eat-various_gameplay.session.json ): PASS
+- `node --test test/unit/command_eat_occupation_timing.test.js`: PASS
+
+### What This Means
+
+The branch now has one more exact C ownership rule encoded:
+
+- `multi < 0` is not by itself sufficient to justify a no-input continuation
+- the continuation is only valid when the C-side turn owner (`context.move`)
+  is still active

@@ -2542,7 +2542,7 @@ export class NetHackGame {
                 return;
             }
 
-            const hasTimedContinuation = (this.multi < 0 && !(this?.playerDied))
+            const hasTimedContinuation = (this.context?.move && this.multi < 0 && !(this?.playerDied))
                 || (this.multi >= 0 && this.occupation);
 
             // C-faithful boundary ownership: if the previous iteration left a
@@ -2557,7 +2557,7 @@ export class NetHackGame {
                 continue;
             }
 
-            if (this.multi < 0 && !(this?.playerDied)) {
+            if (this.context?.move && this.multi < 0 && !(this?.playerDied)) {
                 await runNegativeMultiStep(this, {});
                 this.renderAndAutosave({ autosave: true });
                 continue;
@@ -2589,7 +2589,8 @@ export class NetHackGame {
             const commandResult = await this.runOneCommandCycle(firstCh);
             if (!commandResult) return;
             this.renderAndAutosave({ commandResult, autosave: true });
-            if (!(this.multi < 0 && !(this?.playerDied)) && !(this.multi >= 0 && this.occupation)) {
+            if (!(this.context?.move && this.multi < 0 && !(this?.playerDied))
+                && !(this.multi >= 0 && this.occupation)) {
                 return;
             }
         }
