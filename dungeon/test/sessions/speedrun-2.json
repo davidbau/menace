@@ -148,9 +148,9 @@
       "cmd": "ODYSSEUS"
     },
     {
-      "cmd": "look",
+      "cmd": "stare",
       "extra": true,
-      "note": "PRNG fix: look before go up (entering thief lair) to align PRNG state for seed=2; prevents thief from killing player on entry"
+      "note": "PRNG fix: one stare at the now-empty Cyclops Room before climbing up to the thief's lair"
     },
     {
       "cmd": "go up"
@@ -279,34 +279,34 @@
       "cmd": "proceed north"
     },
     {
-      "cmd": "look",
+      "cmd": "gaze",
       "extra": true,
-      "note": "Carousel PRNG fix 1/6: extra look in E-W Passage to align Carousel exit for seed=2"
+      "note": "Carousel PRNG fix 1/6: killing time in the E-W passage, waiting for the carousel to land right"
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Carousel PRNG fix 2/6: the passage looks the same in both directions"
     },
     {
       "cmd": "look",
       "extra": true,
-      "note": "Carousel PRNG fix 2/6"
+      "note": "Carousel PRNG fix 3/6: yep, still a passage"
+    },
+    {
+      "cmd": "gaze",
+      "extra": true,
+      "note": "Carousel PRNG fix 4/6: the dungeon hums with ancient magic (or maybe just bad luck)"
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Carousel PRNG fix 5/6: almost there"
     },
     {
       "cmd": "look",
       "extra": true,
-      "note": "Carousel PRNG fix 3/6"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Carousel PRNG fix 4/6"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Carousel PRNG fix 5/6"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Carousel PRNG fix 6/6: after these 6 looks, Carousel exits to the engravings cave (correct path to well)"
+      "note": "Carousel PRNG fix 6/6: Carousel will now exit to the engravings cave (correct path to well)"
     },
     {
       "cmd": "run east"
@@ -403,9 +403,9 @@
       "cmd": "run west"
     },
     {
-      "cmd": "look",
+      "cmd": "gaze",
       "extra": true,
-      "note": "Low Room PRNG fix: extra look in Low Room to align random exit for seed=2 (se exits to Tea Room→Top of Well→bucket)"
+      "note": "Low Room PRNG fix: one gaze to align random exit — with this, SE leads to Tea Room→Top of Well→bucket"
     },
     {
       "cmd": "se"
@@ -877,9 +877,9 @@
       "cmd": "go down"
     },
     {
-      "cmd": "look",
+      "cmd": "stare",
       "extra": true,
-      "note": "Thief movement PRNG fix: extra look shifts thief scanning position so rope (room 79) is not stolen; thief now deposits rope in Mine Shaft area instead of room 70"
+      "note": "Thief movement PRNG fix: staring at the river keeps the thief away from the rope — without this, he'd steal it"
     },
     {
       "cmd": "go down"
@@ -1035,69 +1035,69 @@
       "cmd": "run south"
     },
     {
-      "cmd": "look",
+      "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 1/13: seed=2 with 1 movement-PRNG-fix look requires 13 fight looks for thief to die in 2 hits"
+      "note": "Thief fight PRNG fix 1/13: The Cyclops Room is quiet now. The cyclops fled. Somewhere above, the thief waits."
+    },
+    {
+      "cmd": "score",
+      "extra": true,
+      "note": "Thief fight PRNG fix 2/13: 359 points. The thief holds the rest."
+    },
+    {
+      "cmd": "gaze",
+      "extra": true,
+      "note": "Thief fight PRNG fix 3/13: Bones crunch underfoot as you pace the room."
     },
     {
       "cmd": "look",
       "extra": true,
-      "note": "Thief fight PRNG fix 2/13:"
+      "note": "Thief fight PRNG fix 4/13: You check your knife — cold and sharp."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 5/13: The passage up is dark. The thief doesn't know you're coming."
+    },
+    {
+      "cmd": "gaze",
+      "extra": true,
+      "note": "Thief fight PRNG fix 6/13: Or does he?"
+    },
+    {
+      "cmd": "score",
+      "extra": true,
+      "note": "Thief fight PRNG fix 7/13: Still 359. The thief is up there counting his stolen loot."
     },
     {
       "cmd": "look",
       "extra": true,
-      "note": "Thief fight PRNG fix 3/13:"
+      "note": "Thief fight PRNG fix 8/13: You hear something shift above."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 9/13: Maybe not."
+    },
+    {
+      "cmd": "gaze",
+      "extra": true,
+      "note": "Thief fight PRNG fix 10/13: You grip the knife tighter."
     },
     {
       "cmd": "look",
       "extra": true,
-      "note": "Thief fight PRNG fix 4/13:"
+      "note": "Thief fight PRNG fix 11/13: One chance. Two strikes."
     },
     {
-      "cmd": "look",
+      "cmd": "score",
       "extra": true,
-      "note": "Thief fight PRNG fix 5/13:"
+      "note": "Thief fight PRNG fix 12/13: One last check: 359. The thief will bring us to 616."
     },
     {
-      "cmd": "look",
+      "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 6/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 7/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 8/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 9/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 10/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 11/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 12/13:"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 13/13:"
+      "note": "Thief fight PRNG fix 13/13: Now. (thief will die in exactly 2 hits)"
     },
     {
       "cmd": "go up"
@@ -1113,6 +1113,11 @@
       "cmd": "kill thief with knife",
       "expectFail": true,
       "note": "thief already dead after 2nd hit; 3rd attempt fails harmlessly"
+    },
+    {
+      "cmd": "score",
+      "extra": true,
+      "note": "the thief's loot is ours — check the running tally"
     },
     {
       "cmd": "take coffin"
@@ -1356,7 +1361,13 @@
       "cmd": "go east"
     },
     {
-      "cmd": "walk east"
+      "cmd": "walk east",
+      "note": "entering Tomb of the Unknown Implementer"
+    },
+    {
+      "cmd": "examine tomb",
+      "extra": true,
+      "note": "\"Here lie the implementers, whose heads were placed on poles by the Keeper of the Dungeon for amazing untastefulness.\""
     },
     {
       "cmd": "run west"
@@ -1971,6 +1982,11 @@
     },
     {
       "cmd": "go west"
+    },
+    {
+      "cmd": "read paper",
+      "extra": true,
+      "note": "the green paper in the Lava Room is the Frobozz Magic Robot Company manual — 'Hello, master! I am a late-model robot...' (found it AFTER already using the robot)"
     },
     {
       "cmd": "walk south"
