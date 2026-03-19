@@ -140,6 +140,33 @@ reducing the manual investigation from hours to minutes.
 **Tool 3 is third priority.** It's specific to display divergences (seed032),
 which are architectural issues that the other tools can't address.
 
+## Related tool: `movement-propagation`
+
+`scripts/movement-propagation.mjs` (by another engineer) provides deep per-step
+C vs JS monster movement comparison. It enables `WEBHACK_MONMOVE_TRACE` and
+`WEBHACK_MFNDPOS_TRACE` instrumentation, groups JS replay into gameplay steps,
+and shows movement-focused entries side by side. Supports `--mon-id`, `--mndx`,
+`--grep`, `--monmove-trace` for targeted drilldowns. See `docs/MOVEMENT_PROPAGATION_TOOL.md`.
+
+## Complete triage workflow
+
+```bash
+# 1. Find WHERE: first step with mismatched entry counts
+node scripts/step-count-diff.mjs <session.json>
+
+# 2. Understand WHY: game state context at the mismatch step
+node scripts/step-boundary-context.mjs <session.json> --step N
+
+# 3a. If boundary shift: trace message/prompt state to find the extra --More--
+#     or pendingPrompt causing the shift. Fix in JS game code.
+
+# 3b. If accumulated monster AI divergence: drill into specific monsters
+node scripts/movement-propagation.mjs <session.json> --step-from N --step-to M --mon-id K
+
+# 4. For display-only divergences: trace the cell write path
+node scripts/cell-trace.mjs <session.json> --row R --col C --step N
+```
+
 ## Non-goals
 
 - These tools don't replace the test comparator — they complement it
