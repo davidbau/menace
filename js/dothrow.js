@@ -1270,7 +1270,7 @@ export async function thitmonst(mon, obj, player, map, game) {
             const dmg = dmgval(obj, mon);
             if (mon.mhp !== undefined) mon.mhp -= dmg;
             await exercise(player, A_DEX, true);
-            if (should_mulch_missile(obj, false, player.luck || 0)) return 1;
+            if (should_mulch_missile(obj, false)) return 1;
         } else {
             await tmiss(obj, mon, true, player, map);
         }

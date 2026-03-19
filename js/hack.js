@@ -1091,8 +1091,7 @@ export async function domove_core(dir, player, map, display, game) {
         const dex = acurr(player, A_DEX);
         const con = acurr(player, A_CON);
         const threshold = Math.floor((str + dex + con) / 3);
-        const luck = (player.uluck ?? player.luck) || 0;
-        if (rnl(20, luck) < threshold) {
+        if (rnl(20) < threshold) {
             loc.flags = (loc.flags & ~D_CLOSED) | D_ISOPEN;
             // C ref: doopen_indir (lock.c) — update vision and display
             recalc_block_point(nx, ny);

@@ -1245,7 +1245,7 @@ export async function dig(map, player) {
             return 0;
         } else if (ttmp && ttmp.ttyp === BEAR_TRAP && player.utrap) {
             // C: rnl(7) > (Fumbling ? 1 : 4) — hit self or destroy trap
-            const rnlval = rnl(7, player.luck || 0);
+            const rnlval = rnl(7);
             if (rnlval > (player.fumbling ? 1 : 4)) {
                 // Hit self in foot
                 // dmgval + dbon + losehp

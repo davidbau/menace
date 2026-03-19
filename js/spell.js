@@ -1455,7 +1455,7 @@ export async function losespells(player) {
         if (i > nzap) nzap = i;
     }
     // Good luck might ameliorate
-    if (nzap > 1 && !rnl(7, player.luck || 0)) {
+    if (nzap > 1 && !rnl(7)) {
         nzap = rnd(nzap);
     }
 

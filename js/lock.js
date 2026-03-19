@@ -1000,8 +1000,7 @@ export async function doopen_indir(player, map, display, game, dx, dy) {
     const str = acurrstr(player);
     const dex = acurr(player, A_DEX);
     const con = acurr(player, A_CON);
-    const luck = (player.uluck ?? player.luck) || 0;
-    if (rnl(20, luck) < Math.floor((str + dex + con) / 3)) {
+    if (rnl(20) < Math.floor((str + dex + con) / 3)) {
         await display.putstr_message("The door opens.");
         if (loc.flags & D_TRAPPED) {
             await display.putstr_message("You set off a trap!");
