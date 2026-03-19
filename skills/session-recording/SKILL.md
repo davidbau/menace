@@ -175,6 +175,35 @@ node test/comparison/session_test_runner.js --verbose <session-path>
 - **Cause**: run_session.py waits for "Dlvl:" status line but More blocks
 - **Fix**: Use `--record-more-spaces` flag, or manually press Space in tmux
 
+### Validating a re-recorded session
+
+Re-recording can silently produce a degraded session if startup alignment
+drifts or the C binary changed. **Always compare before and after:**
+
+1. **Dungeon levels visited**: Extract the set of `Dlvl:` / `Tutorial:` values
+   from bot lines in the old and new session. The new session must visit the
+   same set of levels (or more). If levels are lost, the replay diverged.
+
+2. **Key gameplay events**: Check that distinctive messages from the old session
+   still appear in the new one:
+   - Kill messages: `"You kill the ..."`, `"You destroy the ..."`
+   - Combat: `"You hit the ..."`, `"The ... bites!"`
+   - Items: `"You find ..."`, `"You pick up ..."`
+   - Level changes: `"You descend the staircase."`
+
+3. **Step count**: The new session should have the same number of steps
+   (or very close). A large difference indicates misaligned replay.
+
+4. **RNG call count**: Compare total RNG calls. A significant difference
+   signals that the game took a different path.
+
+If ANY of these checks fail, do NOT replace the old session. Investigate
+the cause — common issues are:
+- Binary version mismatch (rebuild with `setup.sh`)
+- Startup key alignment (chargen keys consumed differently)
+- Leftover save/bones files (should be auto-cleaned, but verify)
+- Timing-dependent --More-- prompts (increase `key_delay_s`)
+
 ### When to re-record vs. add a comparator mask
 - **Rule**: Always try re-recording first. Comparator masks (`comparators.js`)
   should only be added for known JS-vs-C differences that are intentional.
