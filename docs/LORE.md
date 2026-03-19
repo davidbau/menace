@@ -14013,11 +14013,18 @@ Validation:
       JS `rnd(2)` vs C `rnd(3)`
 
 - 2026-03-19: Oracle mapgen alignment removal (`af5b8ce1e`) regressed 3 sessions.
-  - C's `align_shift()` reads `lev->flags.align` for special levels (sp_lev.c:3123).
-    When Lua doesn't specify `align`, C defaults to `AM_SPLEV_RANDOM` (not `AM_NONE`).
-  - The old JS heuristic (`oracle→A_NEUTRAL`, `tut→A_LAWFUL`, `medusa→A_CHAOTIC`)
-    happened to match C for some seeds because C's random alignment picked those values.
-  - The fix removed these heuristics and set `A_NONE`, which is wrong — should be
-    `AM_SPLEV_RANDOM` (random alignment selection matching C's `get_table_align`).
+  - The divergence is in `_dungeonAlign` during `makelevel()` for special levels.
+    JS sets `_dungeonAlign` at dungeon.js:5018 during special level generation.
+    The old code had heuristics (`oracle→A_NEUTRAL`, `tut→A_LAWFUL`, etc.); the
+    new code uses `DUNGEON_ALIGN_BY_DNUM[dnum]` which gives `A_NONE` for tutorial.
+  - C's `align_shift()` at makemon.c:1619 reads `lev->flags.align` for special
+    levels. For tutorial, `lev->flags.align = 0` (AM_NONE) from dungeon.c:588-591
+    because neither the level nor the dungeon specifies alignment in Lua.
+  - The divergence manifests as different args to `rn2` inside `rndmonst_adj`
+    during level generation (JS: `rn2(3)`, C: `rn2(5)` at index 2382).
+  - This suggests `_dungeonAlign` during generation is read from a DIFFERENT source
+    than `lev->flags.align`. Investigation needed: does `_dungeonAlign` flow through
+    a code path during `makelevel` that sets it differently from `level_align()`?
   - Regressed: seed033, seed321, seed328, t11_s744 (439→436 passing).
-  - Fix needed: implement `AM_SPLEV_RANDOM` in JS `align_shift` / `_dungeonAlign`.
+  - The old heuristic was wrong per C's data structures, but matched C's behavior
+    for these specific sessions. The root cause needs deeper investigation.
