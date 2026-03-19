@@ -1887,7 +1887,7 @@ export function do_osshock(obj, map, player) {
   const quan = obj.quan || 1;
   if (gp_poly_zapped < 0) {
     for (let i = quan; i > 0; i--) {
-      const luck = (player && player.luck) || 0;
+      const luck = ((player?.uluck ?? player?.luck ?? 0) + (player?.moreluck ?? 0));
       if (!rn2(luck + 45)) {
         gp_poly_zapped = objectData[obj.otyp]?.oc_material ?? 0;
         break;
