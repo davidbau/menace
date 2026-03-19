@@ -1410,3 +1410,23 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
     coordinates, treat that as a state bug
   - do not add new `align_shift()` or branch-alignment heuristics to compensate
     for missing `u.uz`-equivalent state
+
+## 2026-03-19: tourist level-entry XP must use `more_experienced(level_difficulty())`
+
+- Exact C owner:
+  - `do.c goto_level()` awards tourist first-entry XP via:
+    - `more_experienced(level_difficulty(), 0);`
+    - `newexplevel();`
+- JS bug:
+  - [`js/do.js`](/share/u/davidbau/git/mazesofmenace/game/js/do.js) was doing a
+    direct `player.uexp += dungeonDepth(...)` write plus manual threshold logic
+- Faithful fix:
+  - use `more_experienced(level_difficulty(null, game), 0, game, player)`
+  - then `await newexplevel(player, game?.display)`
+- Validation:
+  - `seed331_tourist_wizard_gameplay`: still full RNG/event green
+  - `theme34_seed2238_tou_explore_gameplay`: still full green
+  - `seed031_manual_direct`: unchanged
+- Operational rule:
+  - do not award gameplay XP by writing `player.uexp` directly when C routes
+    through `more_experienced()` / `newexplevel()`

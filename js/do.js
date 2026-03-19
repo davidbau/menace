@@ -8,8 +8,7 @@ import { COLNO, ROWNO, STAIRS,
          I_SPECIAL, TIMEOUT, WOUNDED_LEGS, is_pit, is_hole,
          W_ARMOR, W_ACCESSORY, W_SADDLE, LOST_DROPPED, STRAT_WAITFORU } from './const.js';
 import { rn1, rn2, rnd, c_d } from './rng.js';
-import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair } from './dungeon.js';
-import { depth as dungeonDepth } from './dungeon.js';
+import { deltrap, enexto, mklev, assign_level, resolveBranchDestinationForStair, depth as dungeonDepth, level_difficulty } from './dungeon.js';
 import { mon_arrive } from './dog.js';
 import { initrack } from './monmove.js';
 import { COIN_CLASS, RING_CLASS, POTION_CLASS,
@@ -50,7 +49,7 @@ import { revive } from './zap.js';
 import { cansee } from './vision.js';
 import { canseemon } from './display.js';
 import { movebubbles } from './mkmaze.js';
-import { newuexp, pluslvl } from './exper.js';
+import { more_experienced, newexplevel } from './exper.js';
 import { setCurrentLevelStairs, stairway_at } from './stairs.js';
 import { float_down, t_at } from './trap.js';
 import { check_special_room, move_update, losehp, near_capacity } from './hack.js';
@@ -1808,25 +1807,13 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
         await movebubbles((game.lev || game.map));
     }
 
-    // C ref: do.c goto_level() — tourists gain depth-based XP on each
-    // first entry to a new level, which can immediately trigger level-up.
+    // C ref: do.c goto_level() — tourists gain level_difficulty()-based XP
+    // on first entry to a new level, via the normal experience helpers.
     if (Number.isInteger(previousDepth) && depth !== previousDepth) {
         const player = (game.u || game.player);
         if (player?.roleMnum === PM_TOURIST) {
-            const lev = {
-                dnum: Number.isInteger(game.dnum) ? game.dnum : 0,
-                dlevel: Number.isInteger(player.dungeonLevel) ? player.dungeonLevel : 1,
-            };
-            const exper = dungeonDepth(lev);
-            player.uexp = (Number(player.uexp) || 0) + exper;
-            player.urexp = (Number(player.urexp) || 0) + (4 * exper);
-            if ((Number(player.urexp) || 0) >= 2000 && game?.flags) {
-                game.flags.beginner = false;
-            }
-            if ((Number(player.ulevel) || 0) < 30
-                && (Number(player.uexp) || 0) >= newuexp(Number(player.ulevel) || 0)) {
-                await pluslvl(player, game?.display, true);
-            }
+            more_experienced(level_difficulty(null, game), 0, game, player);
+            await newexplevel(player, game?.display);
         }
     }
 

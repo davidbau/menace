@@ -13846,3 +13846,11 @@ Validation:
 
 - 2026-03-19: `js/mkobj.js` runtime `rndmonnum()` / corpse placeholder difficulty must be sourced from level coordinates (`u.uz` equivalent), not `player.dungeonLevel`. In JS, `changeLevel()` stores branch-local depth in `player.dungeonLevel`, so runtime `_getLevelDepth()` should prefer `map._genDnum/_genDlevel`, then `map.uz`, then `player.uz`, and pass that through `level_difficulty(...)`. This improved `seed031` and held guardrails (`seed321`, `seed328`, `t11_s744`, Mines sessions, camera session).
 - 2026-03-19: Do not add a blanket special-level alignment override to `align_shift()` as a fix for minefill/protofile sessions. Exact C `init_level()` / `induced_align()` behavior did not support that theory, and it regressed multiple sessions.
+- 2026-03-19: Tourist level-entry XP in `goto_level()` / `changeLevel()` must follow exact C ownership:
+  - C: `more_experienced(level_difficulty(), 0); newexplevel();`
+  - JS old bug: direct `player.uexp += dungeonDepth(...)` plus manual threshold handling
+  - faithful fix: route through `more_experienced(level_difficulty(null, game), 0, game, player)` and `newexplevel(...)`
+  - validated on tourist sessions:
+    - `seed331_tourist_wizard_gameplay` stayed full RNG/event green
+    - `theme34_seed2238_tou_explore_gameplay` stayed full green
+  - `seed031_manual_direct` stayed unchanged, so do not treat this as the live step-479/488 fix; it is a separate exact-C correction
