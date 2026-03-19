@@ -1802,28 +1802,8 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         }
     }
 
-    // C ref: monmove.c:1744-1749 — hides_under monsters stay hidden
-    // hides_under(ptr) = M1_CONCEAL flag; requires an object suitable for hiding.
-    // OBJ_AT check comes before rn2(10) — RNG only consumed when hiding is possible.
-    {
-        const _mdat = mon.data || mon.type || {};
-        if ((_mdat.mflags1 || 0) & M1_CONCEAL) {
-            const posObjs = map.objectsAt?.(mon.mx, mon.my) || [];
-            // C ref: can_hide_under_obj() — must be OBJ_FLOOR, no non-pit traps,
-            // and enough material (not just a few coins).
-            const canHide = posObjs.some(obj => {
-                if (!obj || obj.where !== OBJ_FLOOR) return false;
-                const trap = map.trapAt?.(obj.ox, obj.oy);
-                if (trap && trap.ttyp !== PIT && trap.ttyp !== SPIKED_PIT) return false;
-                // Skip small coin-only piles (need >= 10 coins or non-coin objects)
-                if (obj.oclass === COIN_CLASS && (obj.quan || 0) < 10) return false;
-                return true;
-            });
-            if (canHide && rn2(10)) {
-                return MMOVE_NOTHING; // stay hidden under object
-            }
-        }
-    }
+    // hides_under check moved to after shopkeeper/priest checks (line ~1937)
+    // to match C's m_move ordering where hides_under is after ptr assignment.
 
     if (mon.isshk) {
         // C ref: shk.c shk_move() — shopkeepers choose movement via move_special(),
@@ -2093,6 +2073,13 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         }
         return false;
     };
+    if (cnt === 0 && !is_unicorn(ptr)) {
+        // C ref: monmove.c:1926-1928 — try defensive item when no moves available
+        if (await find_defensive(mon, true, map, player)
+            && await use_defensive(mon, map, player))
+            return MMOVE_DONE;
+        return MMOVE_NOMOVES;
+    }
     if (cnt === 0) {
         if (tryUnicornFallbackTeleport()) return MMOVE_MOVED;
         return MMOVE_NOMOVES;
