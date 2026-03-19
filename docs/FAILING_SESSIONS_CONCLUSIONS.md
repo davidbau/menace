@@ -243,8 +243,15 @@ while C shows empty space. This is a remembered terrain difference — the door 
 persists in JS's display memory but not in C's, likely from FOV updates during the
 run at step 17 ("L" = run east).
 
-Root cause: running/rush display parity — JS remembers seeing a door during the run
-that C doesn't, or C clears the memory differently when the cell leaves FOV.
+**ROOT CAUSE FOUND** (March 19 ~02:00 UTC): JS's run at step 18 (key="L", run east)
+takes MUCH longer than C's. JS consumes 196 RNG calls during the run while C consumes
+only 17. JS runs ~20 steps east while C runs ~2 steps. The extended run reveals cells
+(including a closed door at (8,11)) that C never sees. The `+` is from JS seeing a
+door during the extended run that C's shorter run doesn't reach.
+
+**Fix target**: `lookaround` or run-stopping conditions in `do_run` (hack.js). JS
+continues running where C stops. This is likely from `lookaround` returning different
+results (different adjacent-monster checks, different doorway detection, etc.).
 
 ## NEXT STEPS
 
