@@ -13559,3 +13559,27 @@ Validation:
     for stairs/ladders
   - if a staircase message overflows, the same single-threaded command still
     owns the transition work
+
+## 2026-03-19: `Is_stronghold()` must not consume RNG via special-level variant selection
+
+- `seed031_manual_direct` exposed a real RNG leak during integrated minefill
+  generation.
+- The leak was not stale level context. Trace showed `makemon()` had the correct
+  generation context while creating the failing gnomes:
+  - `inMklev=true`
+  - `mapGen=1:3`
+  - `levelRef=1:3`
+- The real bug was in `js/dungeon.js`:
+  - `Is_stronghold()` called `getSpecialLevel(...)`
+  - `getSpecialLevel(...)` can consume RNG when the target special level has
+    variants
+  - branch predicates must not do that
+- Fix:
+  - add `getSpecialLevelMeta(dnum, dlevel)` in `js/special_levels.js`
+  - switch `Is_stronghold()` to metadata-only lookup
+- This moved `seed031_manual_direct` forward:
+  - RNG matched `21416 -> 21582`
+  - events matched `10130 -> 10131`
+- Guardrails stayed green:
+  - `t04_s705_w_minefill_gp`
+  - `hi15_seed42_barb_minetn5_shop-pay_gp`

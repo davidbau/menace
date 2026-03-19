@@ -833,3 +833,58 @@ Current conclusion:
     - `sp_amask_to_amask()` / `induced_align()`
 - Next work should focus on why JS is consuming the `rn2(100)` alignment gate in
   a place where C reaches the unconditional `rn2(3)` fallback.
+
+## 2026-03-19: `seed031` `Is_stronghold()` RNG leak localized and fixed
+
+Validated code fix:
+- `js/special_levels.js`
+  - added `getSpecialLevelMeta(dnum, dlevel)` for metadata-only special-level
+    lookup that does not consume RNG by selecting a variant
+- `js/dungeon.js`
+  - `Is_stronghold()` now uses `getSpecialLevelMeta()` instead of
+    `getSpecialLevel()`
+- `js/makemon.js`
+  - branch-sensitive monster-generation level helper now prefers generation
+    metadata and no longer blindly trusts `map.uz`
+  - gnome candle gate now matches C:
+    - `rn2((In_mines(&u.uz) && gi.in_mklev) ? 20 : 60)`
+
+What this proved:
+- The earlier `rnd(7)` under `Is_stronghold(...)` in `seed031` was a real RNG
+  leak from a predicate path, not a stale-level-context bug.
+- `runtimeSpecialLevelFor()` itself is clean; the leak came from calling
+  `getSpecialLevel()` inside `Is_stronghold()`, which can choose a level
+  variant and consume RNG.
+- In the live `seed031` descent bundle, `makemon()` is using the correct
+  generation context:
+  - `inMklev=true`
+  - `mapGen=1:3`
+  - `levelRef=1:3`
+  - so the remaining mismatch is no longer about which level is being queried.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+  - improved:
+    - RNG matched `21416 -> 21582`
+    - events matched `10130 -> 10131`
+  - new first RNG divergence:
+    - step `467`
+    - JS: `rn2(2)=0 @ createMonster(...)`
+    - C:  `rn2(2)=1 @ makemon(makemon.c:1281)`
+  - new first event divergence:
+    - step `464`
+    - JS: `^pickup[166@48,9,83]`
+    - C:  `^makemon[166@48,9]`
+- guardrails stayed green:
+  - `test/comparison/sessions/t04_s705_w_minefill_gp.session.json`
+  - `test/comparison/sessions/coverage/shops-economy/hi15_seed42_barb_minetn5_shop-pay_gp.session.json`
+
+Current frontier after this fix:
+- `seed031` is still inside the integrated minefill `>` bundle.
+- The next live seam is later in monster creation, after the predicate leak is
+  gone:
+  - JS now first diverges on a later `rn2(2)` in `createMonster(...)`
+  - event side shows JS giving the next generated gnome-lord an item where C
+    still only logs `^makemon[...]`
+- Next work should stay on step `467` and compare the next generated
+  `create_monster()` call after the no-RNG `Is_stronghold()` fix.

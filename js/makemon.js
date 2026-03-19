@@ -101,7 +101,7 @@ import { PIT, SPIKED_PIT, LOW_PM,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
-    In_sokoban, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty
+    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty
 } from './dungeon.js';
 import { newemin } from './minion.js';
 import { qt_montype } from './questpgr.js';
@@ -255,18 +255,25 @@ function getRndmonTraceCtx() {
     return b ? `${a} <= ${b}` : a;
 }
 
-function _currentMonsterGenerationLevel() {
-    const map = _gstate?.map;
+function _currentMonsterGenerationLevel(mapArg = null) {
     const player = _gstate?.player;
+    const candidates = [mapArg, _gstate?.map];
     // Generation-time branch/depth context is authoritative for monster selection
     // and must match mklev/makemon callsite behavior.
-    if (Number.isInteger(map?._genDnum) && Number.isInteger(map?._genDlevel)) {
-        return { dnum: map._genDnum, dlevel: map._genDlevel };
+    for (const map of candidates) {
+        if (Number.isInteger(map?._genDnum) && Number.isInteger(map?._genDlevel)) {
+            return { dnum: map._genDnum, dlevel: map._genDlevel };
+        }
     }
     // At non-generation call sites, fall back to current map/player level.
-    const explicit = map?.uz || player?.uz;
-    if (explicit && Number.isInteger(explicit.dnum) && Number.isInteger(explicit.dlevel)) {
-        return explicit;
+    for (const map of candidates) {
+        const explicit = map?.uz;
+        if (explicit && Number.isInteger(explicit.dnum) && Number.isInteger(explicit.dlevel)) {
+            return explicit;
+        }
+    }
+    if (player?.uz && Number.isInteger(player.uz.dnum) && Number.isInteger(player.uz.dlevel)) {
+        return player.uz;
     }
     return null;
 }
@@ -1462,8 +1469,9 @@ function m_initinv(mon, mndx, depth, m_lev, map) {
 
     case S_GNOME:
         // C ref: makemon.c:811 — gnome candle
-        // Not in mines at depth 1, so rn2(60)
-        if (!rn2(60)) {
+        const genLev = _currentMonsterGenerationLevel(map) || map || null;
+        const candleRoll = (genLev && _getInMklev() && In_mines(genLev)) ? 20 : 60;
+        if (!rn2(candleRoll)) {
             mongets(mon,rn2(4) ? TALLOW_CANDLE : WAX_CANDLE);
         }
         break;
@@ -2468,7 +2476,7 @@ export function makemon(ptr_or_null, x, y, mmflags, depth, map) {
     mon.mpeaceful = mon.peaceful;
 
     // C ref: makemon.c:1283-1291 — initial trap knowledge by branch/special role.
-    const levelRef = map?.uz || map || null;
+    const levelRef = _currentMonsterGenerationLevel(map) || map || null;
     const inSokoban = In_sokoban(levelRef);
     const inStronghold = Is_stronghold(levelRef);
     if (!mindless(ptr)) {

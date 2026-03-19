@@ -92,6 +92,7 @@ import {
 } from './objects.js';
 import {
     getSpecialLevel,
+    getSpecialLevelMeta,
     findSpecialLevelByProto,
     initQuestLevels,
 } from './special_levels.js';
@@ -820,8 +821,9 @@ export function Is_stronghold(lev) {
     }
     const mapped = runtimeSpecialLevelFor(dnum, dlevel);
     if (!mapped) return false;
-    const special = getSpecialLevel(mapped.dnum, mapped.dlevel);
-    return String(special?.name || '').toLowerCase() === 'castle';
+    const special = getSpecialLevelMeta(mapped.dnum, mapped.dlevel);
+    const name = Array.isArray(special?.name) ? special.name[0] : special?.name;
+    return String(name || '').toLowerCase() === 'castle';
 }
 
 export function Is_earthlevel(lev) {

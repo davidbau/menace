@@ -267,6 +267,14 @@ export function getSpecialLevel(dnum, dlevel) {
     return entry;
 }
 
+// Metadata-only lookup for branch/predicate checks. This must not consume RNG
+// by selecting a variant.
+export function getSpecialLevelMeta(dnum, dlevel) {
+    initializeSpecialLevels();
+    const key = `${dnum}:${dlevel}`;
+    return specialLevels.get(key) || null;
+}
+
 /**
  * Reset variant cache (called when starting a new game)
  */
