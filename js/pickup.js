@@ -1347,25 +1347,14 @@ async function handlePickup(player, map, display, game = null) {
             const combinedFits = !encMsg
                 || ((pickupMsg.length + 2 + encMsg.length + 9) < Number(displayCtx?.cols || 80));
 
-            if (encMsg && !combinedFits && gameCtx) {
-                await pline("%s", pickupMsg);
-                await more(displayCtx, { game: gameCtx, site: 'pickup.encumber.split.more' });
-                player._oldcap = newcapVal;
-                player.encumbrance = newcapVal;
-                gameCtx.pendingPrompt = {
-                    type: 'pickup_encumber_more',
-                    onKey: async (_chCode, nextGameCtx) => {
-                        nextGameCtx.pendingPrompt = null;
-                        if (typeof displayCtx.clearRow === 'function') displayCtx.clearRow(0);
-                        if ('messageNeedsMore' in displayCtx) displayCtx.messageNeedsMore = false;
-                        await displayCtx.putstr_message(encMsg);
-                        return { handled: true, moved: false, tookTime: false };
-                    },
-                };
-            } else {
-                await pline("%s", pickupMsg);
-                await encumber_msg(player);
-            }
+            // C ref: pickup() calls pline(pickupMsg) then encumber_msg() in
+            // sequence. C's pline internally triggers --More-- via flush_screen
+            // when toplin==1 (previous message pending). Both messages and their
+            // More prompts are handled within a single nhgetch boundary. JS must
+            // NOT split these into separate pendingPrompt steps — that creates
+            // extra step boundaries that consume keys C doesn't consume.
+            await pline("%s", pickupMsg);
+            await encumber_msg(player);
             const deferred = deferTimedPickupUntilMore(pickedObj, inventoryObj, gameCtx, displayCtx);
             return deferred || { moved: false, tookTime: true };
         };
