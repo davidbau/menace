@@ -14011,3 +14011,13 @@ Validation:
   - Remaining frontier:
     - a later Oracle `mineralize()` gem-count seam remains:
       JS `rnd(2)` vs C `rnd(3)`
+
+- 2026-03-19: Oracle mapgen alignment removal (`af5b8ce1e`) regressed 3 sessions.
+  - C's `align_shift()` reads `lev->flags.align` for special levels (sp_lev.c:3123).
+    When Lua doesn't specify `align`, C defaults to `AM_SPLEV_RANDOM` (not `AM_NONE`).
+  - The old JS heuristic (`oracle→A_NEUTRAL`, `tut→A_LAWFUL`, `medusa→A_CHAOTIC`)
+    happened to match C for some seeds because C's random alignment picked those values.
+  - The fix removed these heuristics and set `A_NONE`, which is wrong — should be
+    `AM_SPLEV_RANDOM` (random alignment selection matching C's `get_table_align`).
+  - Regressed: seed033, seed321, seed328, t11_s744 (439→436 passing).
+  - Fix needed: implement `AM_SPLEV_RANDOM` in JS `align_shift` / `_dungeonAlign`.
