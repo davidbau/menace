@@ -26,7 +26,15 @@ async function main() {
     const args = process.argv.slice(2);
     const sessionPath = args.find(a => !a.startsWith('--'));
     if (!sessionPath) {
-        console.error('Usage: node scripts/step-count-diff.mjs <session-path> [--from N] [--to M] [--context K] [--find-entry REGEX]');
+        console.error('Usage: node scripts/step-count-diff.mjs <session-path> [options]');
+        console.error('');
+        console.error('Options:');
+        console.error('  --from N          Start at step N (1-indexed, default: 1)');
+        console.error('  --to M            End at step M');
+        console.error('  --context K       Show K steps of context around mismatches (default: 3)');
+        console.error('  --values          Also scan for first per-entry value mismatch (slower)');
+        console.error('  --find-entry RE   Search for a specific RNG pattern across steps');
+        console.error('');
         console.error(STEP_INDEX_HELP);
         process.exit(1);
     }
@@ -35,6 +43,7 @@ async function main() {
     const toArg = args.indexOf('--to');
     const ctxArg = args.indexOf('--context');
     const findEntryArg = args.indexOf('--find-entry');
+    const valuesFlag = args.includes('--values');
     const fromStep = fromArg >= 0 ? Number(args[fromArg + 1]) : 1;    // 1-indexed
     const toStep = toArg >= 0 ? Number(args[toArg + 1]) : Infinity;
     const contextWindow = ctxArg >= 0 ? Number(args[ctxArg + 1]) : 3;
@@ -76,7 +85,8 @@ async function main() {
             });
         }
 
-        if (firstValueMismatch < 0) {
+        // --values: scan for per-entry value mismatches even when counts match
+        if (firstValueMismatch < 0 && (valuesFlag || jsF.length !== cF.length)) {
             const minLen = Math.min(jsF.length, cF.length);
             for (let j = 0; j < minLen; j++) {
                 if (normalize(jsF[j]) !== normalize(cF[j])) {

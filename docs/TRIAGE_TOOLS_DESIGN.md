@@ -148,13 +148,39 @@ C vs JS monster movement comparison. It enables `WEBHACK_MONMOVE_TRACE` and
 and shows movement-focused entries side by side. Supports `--mon-id`, `--mndx`,
 `--grep`, `--monmove-trace` for targeted drilldowns. See `docs/MOVEMENT_PROPAGATION_TOOL.md`.
 
+## Improvements (added after initial deployment)
+
+### `--values` flag (step-count-diff)
+Scans for the first per-entry VALUE mismatch even when counts match.
+Without this flag, only count mismatches are reported. With `--values`,
+the tool catches cases where the test comparator reports a divergence
+step that has matching counts but different entry values.
+
+### Entry summaries for matched steps (step-boundary-context)
+When JS and C have the same count, shows a summary of WHAT both sides
+contain (e.g., "both: 2× monster move alloc, spawn check, hunger check").
+Previously only mismatched steps showed their entries.
+
+### Command span detection (step-boundary-context, triage-lib)
+Shows which multi-key command a step belongs to, e.g.:
+```
+Step 242 key="t" ~[throw: start from step 242]
+Step 243 key="*" ~[throw: continuation from step 242]
+Step 244 key="d" ~[throw: invlet/selection from step 242]
+Step 245 key="k" ~[throw: invlet/selection from step 242]
+```
+The `~` prefix indicates this is a heuristic guess. The detection scans
+backward for known command-starting keys and can be wrong when keys have
+dual meanings (e.g., 'd' = drop command OR inventory letter). It should
+be treated as advisory context, not authoritative command identification.
+
 ## Complete triage workflow
 
 ```bash
-# 1. Find WHERE: first step with mismatched entry counts
-node scripts/step-count-diff.mjs <session.json>
+# 1. Find WHERE: first step with mismatched entry counts (+ value scan)
+node scripts/step-count-diff.mjs <session.json> --values
 
-# 2. Understand WHY: game state context at the mismatch step
+# 2. Understand WHY: game state + command context at the mismatch step
 node scripts/step-boundary-context.mjs <session.json> --step N
 
 # 3a. If boundary shift: trace message/prompt state to find the extra --More--

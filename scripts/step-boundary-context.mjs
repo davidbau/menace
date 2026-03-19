@@ -20,7 +20,8 @@ import { prepareReplayArgs, getSessionGameplaySteps } from '../js/replay_compare
 import { createRequire } from 'module';
 import {
     isComparable, normalize, toArrayIndex, toReplayIndex,
-    summarizeEntries, describeTurnEnd, describeKey, STEP_INDEX_HELP
+    summarizeEntries, describeTurnEnd, describeKey,
+    detectCommandSpan, formatCommandSpan, STEP_INDEX_HELP
 } from './triage-lib.mjs';
 
 const require = createRequire(import.meta.url);
@@ -100,7 +101,11 @@ async function main() {
         const countsDiffer = jsF.length !== cF.length;
         const marker = isTarget ? '>>>' : (countsDiffer ? ' ! ' : '   ');
 
-        console.log(`${marker} Step ${step1} key=${JSON.stringify(key)} (${describeKey(key)})`);
+        // Command span detection
+        const span = detectCommandSpan(gameplaySteps, toArrayIndex(step1), capturedStates);
+        const spanStr = formatCommandSpan(span);
+
+        console.log(`${marker} Step ${step1} key=${JSON.stringify(key)} (${describeKey(key)}) ${spanStr}`);
         console.log(`    JS: ${jsF.length} filtered (${jsRng.length} raw)  |  C: ${cF.length} filtered (${cRng.length} raw)`);
 
         // Annotate turn-end pattern
@@ -108,6 +113,12 @@ async function main() {
         const turnEndJS = describeTurnEnd(jsRng);
         if (turnEndC) console.log(`    C pattern: ${turnEndC}`);
         if (turnEndJS && turnEndJS !== turnEndC) console.log(`    JS pattern: ${turnEndJS}`);
+
+        // For matched steps, show what both sides have (summary only)
+        if (!countsDiffer && jsF.length > 0) {
+            const summary = summarizeEntries(cF);
+            console.log(`    both: ${summary}`);
+        }
 
         if (state) {
             console.log(`    pos=${state.pos} dlevel=${state.dlevel} running=${state.running}`);
