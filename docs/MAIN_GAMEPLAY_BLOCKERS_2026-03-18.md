@@ -316,6 +316,50 @@ Update after current worktree XP fix:
       - key ownership around the prompt bundle
       - split/throw/landing visibility timing before monster turns
 
+Update after fixing the `#apply ?` bundle in `seed031`:
+
+- the old `seed031` blocker was not a camera-effect-local bug and not a
+  monster-turn ownership bug in isolation
+- the real root in that bundle was `js/apply.js` prompt ownership:
+  - C `a ? k b` means:
+    - open `#apply`
+    - show an inventory menu
+    - select `k - an expensive camera`
+    - choose direction `b`
+  - JS was incorrectly implementing `?` as repeated one-line inventory pages
+    behind `--More--`
+  - that caused the later `k` / `b` keys to be consumed as list dismissals
+    instead of `select camera` then `choose direction`
+- the fix was:
+  - use the shared overlay-menu selection flow for `#apply ?`
+  - wire the camera branch to consume time and emit the flash `tmp_at` path
+- validated effect:
+  - `seed031_manual_direct`
+    - first RNG divergence moved from step `407` to step `466`
+    - first event divergence moved from step `406` to step `463`
+  - targeted controls stayed green:
+    - `t08_s984_w_camera_gp`
+    - `t08_s977_w_applykey_gp`
+    - `theme25_seed1320_wiz_apply-stethoscope_gameplay`
+
+Current `seed031` frontier after that fix:
+
+- the next first divergence is no longer in the `#apply` camera bundle
+- it is now later, around descent / level change:
+  - event: step `463`
+    - JS: `^makemon[322@48,5]`
+    - C: `^makemon[165@71,5]`
+  - RNG: step `466`
+    - JS: `rn2(5)=2 @ mklev(dungeon.js:5206)`
+    - C: `rn2(3)=2 @ random src=nhlib.lua:8 parent=shuffle(nhlib.lua:19)`
+
+Conclusion:
+
+- the former `seed031` `a ? k b` blocker is resolved enough to stop treating
+  it as the active frontier
+- the next work should move to the later `changeLevel()` / level-generation
+  ownership path
+
 Update after correcting the manual-direct step-view workflow:
 
 - the older `seed031` note that framed the live seam as a concrete `f` / `j`

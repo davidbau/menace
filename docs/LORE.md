@@ -79,6 +79,19 @@ Wizard of Yendor while the Riders watch — dramatic, but unproductive.
 
 ## Recent Findings (2026-03-13)
 
+- `#apply ?` must behave like a real selectable inventory menu, not a chain of
+  one-line `--More--` pages. In `seed031`, JS was showing the apply `?` list as
+  repeated single-item pages, so later keys were consumed as menu dismissals
+  instead of `select camera` then `choose direction`. Replacing that path with
+  the shared overlay-menu selection flow fixed the old `seed031` blocker and
+  moved the first divergence from the camera bundle out to a later
+  `changeLevel()` seam.
+- The camera path in `apply.js` must own the turn and emit its flash beam from
+  the `#apply` command bundle. Wiring `EXPENSIVE_CAMERA` through
+  `use_camera()`/`do_blinding_ray()` in the direction branch preserved green
+  camera/apply coverage sessions and matched the C-owned `tmp_at` flash path
+  closely enough to unblock `seed031`.
+
 - C `mhitu.c:mdamageu()` is not equivalent to `hack.c:losehp()`. In
   particular, `mdamageu()` does not run `maybe_wail()`. For `t11_s744`, routing
   ordinary monster melee through JS `losehp()` was the reason JS appended

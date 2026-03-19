@@ -106,16 +106,19 @@ import { dry_a_towel } from './weapon.js';
 import { dowrite } from './write.js';
 import { is_wet_towel, gloves_simple_name, makeplural, thesimpleoname, yname } from './objnam.js';
 import { shk_your } from './shk.js';
-import { useupall, update_inventory, sobj_at, compactInvletPromptChars } from './invent.js';
+import { useupall, update_inventory, sobj_at, compactInvletPromptChars,
+         buildInventoryOverlayLines, renderOverlayMenuUntilDismiss } from './invent.js';
 import { cansee } from './vision.js';
 import { cmap_to_glyph } from './display.js';
-import { S_goodpos } from './symbols.js';
+import { S_flashbeam, S_goodpos } from './symbols.js';
 import { t_at, m_at } from './trap.js';
 import { walk_path } from './dothrow.js';
 import { closed_door } from './monmove.js';
 import { dig_typ } from './dig.js';
 import { pick_lock } from './lock.js';
 import { objdescr_is } from './o_init.js';
+import { flash_hits_mon } from './uhitm.js';
+import { transient_light_cleanup } from './light.js';
 
 // -- Inline helpers --
 
@@ -156,7 +159,9 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
         await pline(nothing_happens);
         return;
     }
-    tmp_at(DISP_BEAM, { ch: '*', color: 14 });
+    _obj.ox = player.x;
+    _obj.oy = player.y;
+    tmp_at(DISP_BEAM, cmap_to_glyph(S_flashbeam));
     try {
         let x = player.x;
         let y = player.y;
@@ -166,19 +171,30 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
             if (!isok(x, y)) break;
             tmp_at(x, y);
             await nh_delay_output();
+            const mon = map.monsterAt?.(x, y);
+            if (mon && !mon.dead) {
+                flash_hits_mon(mon, _obj);
+                break;
+            }
             const loc = map.at(x, y);
             if (!loc || IS_OBSTRUCTED(loc.typ)) break;
         }
     } finally {
         tmp_at(DISP_END, 0);
+        transient_light_cleanup();
     }
 }
 
 // cf. apply.c:79 -- STUB: depends on getdir, bhit, zapyourself
-export async function use_camera(obj) {
+export async function use_camera(obj, player = null, map = null) {
     if (obj.spe <= 0) { await pline(nothing_happens); return; }
     obj.spe--;
-    await pline("You take a picture.");
+    if (!player || !map) return;
+    if (!(player.dx || player.dy)) {
+        await pline(nothing_happens);
+        return;
+    }
+    await do_blinding_ray(obj, player, map);
 }
 
 // cf. apply.c:112 -- STUB: depends on freehand, Glib, makeplural
@@ -1163,6 +1179,13 @@ export async function handleApply(player, map, display, game) {
                 await use_mirror(selected, player);
                 return { moved: false, tookTime: true };
             }
+            if (selected.otyp === EXPENSIVE_CAMERA) {
+                player.dx = dir[0];
+                player.dy = dir[1];
+                player.dz = 0;
+                await use_camera(selected, player, map);
+                return { moved: false, tookTime: true };
+            }
             return { moved: false, tookTime: false };
         }
 
@@ -1235,15 +1258,21 @@ export async function handleApply(player, map, display, game) {
                 await showApplyPrompt();
                 continue;
             }
-            for (const item of showList) {
-                replacePromptMessage();
-                await display.putstr_message(
-                    `${item.invlet} - ${doname(item, player)}.`);
-                await more(display, { game,
-                    site: 'apply.inventory-list.morePrompt',
-                });
-            }
+            const showSet = new Set(showList);
+            replacePromptMessage();
+            const menuLines = buildInventoryOverlayLines(player, (item) => showSet.has(item));
+            const menuSelection = await renderOverlayMenuUntilDismiss(
+                display,
+                menuLines,
+                showList.map((item) => String(item.invlet)).join('')
+            );
             await showApplyPrompt();
+            if (menuSelection) {
+                const selectedFromMenu = inventory.find((obj) => obj.invlet === menuSelection);
+                if (selectedFromMenu) {
+                    return await resolveApplySelection(selectedFromMenu);
+                }
+            }
             continue;
         }
 
