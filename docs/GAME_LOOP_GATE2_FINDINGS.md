@@ -121,6 +121,30 @@ is only safe if the outer layer preserves the same keyed-step ownership.
 
 Current JS does not.
 
+More precisely, current replay ownership lives at the promise boundary in
+[`js/replay_core.js`](/share/u/davidbau/git/mazesofmenace/game/js/replay_core.js):
+
+1. replay pushes one key
+2. replay starts exactly one `_gameLoopStep()` promise
+3. replay drains that promise until it blocks waiting for input
+
+So a single key step can still own multiple no-input iterations, but only if
+those iterations stay inside one `_gameLoopStep()` lifetime. Returning from
+`_gameLoopStep()` hands ownership back to replay and ends the keyed step.
+
+This is why the naive refactor regressed:
+
+- the one-step helpers themselves were not the problem
+- returning after each continuation iteration was the problem
+
+That also means there is a viable next implementation target:
+
+- keep the one-step helpers
+- but move continuation ownership into an internal loop inside
+  `_gameLoopStep()` or an equivalent wrapper above `runOneCommandCycle()`
+- do not expose continuation iterations as separate top-level `_gameLoopStep()`
+  returns
+
 ## Practical Implication
 
 Do not land Gate 2 as:
