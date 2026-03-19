@@ -13583,3 +13583,55 @@ Validation:
 - Guardrails stayed green:
   - `t04_s705_w_minefill_gp`
   - `hi15_seed42_barb_minetn5_shop-pay_gp`
+
+## 2026-03-19: `depth()` must use dungeon `depth_start`, not ledger numbering
+
+- JS had collapsed two different C concepts:
+  - `depth()` = gameplay depth below the surface
+  - `ledger_no()` = global level/savefile numbering
+- In `js/dungeon.js`, `depth()` was incorrectly using ledger starts.
+- After `init_dungeons()`, that produced absurd values such as:
+  - Mines 1 -> `50`
+  - Mines 3 -> `52`
+  - Sokoban 1 -> `63`
+- That leaked directly into gameplay logic:
+  - `adj_lev()`
+  - `newmonhp()`
+  - `mkclass()` difficulty gating
+  - branch-sensitive generation code
+- `seed031_manual_direct` exposed it clearly:
+  - scripted minefill gnomes were being created with inflated level context
+  - diagnostic `WEBHACK_MAKEMON_TRACE=1` showed:
+    - `mndx=166 "gnome lord" base=3 depth=50 adj=4`
+- Fix:
+  - keep ledger bookkeeping in `_dungeonLedgerStartByDnum`
+  - add `_dungeonDepthStartByDnum`
+  - compute child `depth_start` from branch topology using the C formula
+  - make `depth()` use `depth_start + dlevel - 1`
+  - restore `ledger_no()` to use ledger numbering instead of `depth()`
+- After the fix, the same sanity check became:
+  - Mines 1 -> `4`
+  - Mines 3 -> `6`
+  - Sokoban 1 -> `2`
+
+## 2026-03-19: special-level random alignment can still depend on live dungeon context
+
+- In the live `seed031` minefill seam, JS still had old-map ownership while
+  special-level generation was running:
+  - `mapGen=0:2`
+  - `liveUz=none`
+- For `sp_amask_to_amask('random')`, forcing `finalizeContext.dnum` caused JS to
+  take the 80%-coaligned `rn2(100)` gate where C reached the plain `rn2(3)`
+  fallback.
+- Practical rule:
+  - for this special-level generation seam, alignment lookup must prefer the
+    live current dungeon context when it exists, then fall back to the finalize
+    context
+- Combined with the `depth_start` fix, this moved `seed031_manual_direct`
+  substantially later:
+  - RNG matched `21582 -> 21809`
+  - events matched `10131 -> 10152`
+  - the old `sp_amask_to_amask()` first divergence is gone
+- New frontier after this batch:
+  - later `changeLevel()` / `mon_arrive()` ownership
+  - first RNG divergence now in `dog.js mon_arrive(...)`

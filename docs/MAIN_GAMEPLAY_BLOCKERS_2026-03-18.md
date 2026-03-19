@@ -888,3 +888,71 @@ Current frontier after this fix:
     still only logs `^makemon[...]`
 - Next work should stay on step `467` and compare the next generated
   `create_monster()` call after the no-RNG `Is_stronghold()` fix.
+
+## 2026-03-19: `seed031` minefill depth/alignment context fixed again; frontier moved later
+
+Validated code fixes:
+- `js/dungeon.js`
+  - separate C `depth()` from `ledger_no()`
+  - add branch-derived `_dungeonDepthStartByDnum`
+  - compute child dungeon `depth_start` from branch topology using the C
+    `init_dungeon_set_depth()` formula
+  - restore `ledger_no()` to use ledger numbering, not gameplay depth
+- `js/sp_lev.js`
+  - for random special-level alignment, prefer the live current dungeon context
+    before falling back to `finalizeContext.dnum`
+- `js/makemon.js`
+  - add `WEBHACK_MAKEMON_TRACE=1` diagnostic logging for `adj_lev()/newmonhp()`
+    inputs during parity investigation
+
+What this proved:
+- JS had a real structural bug in dungeon bookkeeping:
+  - `depth()` was using ledger starts
+  - that made branch levels absurdly deep for gameplay logic
+  - sanity check before fix:
+    - Mines 1 -> `50`
+    - Mines 3 -> `52`
+    - Sokoban 1 -> `63`
+  - sanity check after fix:
+    - Mines 1 -> `4`
+    - Mines 3 -> `6`
+    - Sokoban 1 -> `2`
+- The old `seed031` seam at
+  - JS: `rn2(100)=81 @ sp_amask_to_amask(...)`
+  - C:  `rn2(3)=1 @ induced_align(...)`
+  was real but downstream of that broken context.
+- `WEBHACK_MAKEMON_TRACE=1` was useful here because it made the bad generation
+  inputs obvious:
+  - before the depth fix:
+    - `mndx=166 "gnome lord" base=3 depth=50 adj=4`
+  - after the depth fix:
+    - `mndx=166 "gnome lord" base=3 depth=3 adj=3`
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+  - improved:
+    - RNG matched `21582 -> 21809`
+    - events matched `10131 -> 10152`
+  - new first RNG divergence:
+    - step `467`
+    - JS: `rn2(8)=2 @ mon_arrive(dog.js:463) <= changeLevel(do.js:1668)`
+    - C:  `rn2(79)=72 @ place_lregion(mkmaze.c:396)`
+  - new first event divergence:
+    - step `464`
+    - JS: `^movemon_turn[32@29,10 mv=12->0]`
+    - C:  `^movemon_turn[32@72,5 mv=12->0]`
+- guardrails stayed green:
+  - `test/comparison/sessions/t04_s705_w_minefill_gp.session.json`
+  - `test/comparison/sessions/coverage/shops-economy/hi15_seed42_barb_minetn5_shop-pay_gp.session.json`
+- nearby failing session stayed stable at its existing blocker:
+  - `seed032_manual_direct` unchanged on step-150 event drift
+
+Current conclusion:
+- the old `sp_amask_to_amask()/induced_align()` frontier in `seed031` is now
+  superseded
+- the remaining live seam is later, after generation, in
+  `changeLevel()`/arrival ownership:
+  - JS reaches `mon_arrive(...)`
+  - C is still in `place_lregion(...)`
+- next work should stay on this later step-467 arrival/levregion boundary, not
+  reopen the older minefill alignment theory

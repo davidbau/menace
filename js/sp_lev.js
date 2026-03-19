@@ -99,6 +99,16 @@ import {
 import { getEnv, getEnvObject, envFlag } from './runtime_env.js';
 import { defsyms } from './symbols.js';
 
+function currentAlignmentDnum(ctx = null) {
+    const liveUz = _gstate?.player?.uz || _gstate?.map?.uz || null;
+    if (Number.isFinite(liveUz?.dnum)) return liveUz.dnum;
+    if (Number.isFinite(_gstate?.map?._genDnum)) return _gstate.map._genDnum;
+    if (Number.isFinite(_gstate?.lev?._genDnum)) return _gstate.lev._genDnum;
+    if (Number.isFinite(_gstate?.dnum)) return _gstate.dnum;
+    if (Number.isFinite(ctx?.dnum)) return ctx.dnum;
+    return undefined;
+}
+
 const ROOM_TYPE_MAP = {
     'ordinary': 0,
     'themed': 1,
@@ -5732,7 +5742,7 @@ export function create_altar(opts) {
 
     const inducedAlignForCurrentLevel = () => {
         const ctx = levelState.finalizeContext || {};
-        const dnum = Number.isFinite(ctx.dnum) ? ctx.dnum : undefined;
+        const dnum = currentAlignmentDnum(ctx);
         const dungeonAlign = (dnum !== undefined) ? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE) : A_NONE;
         const specialName = typeof ctx.specialName === 'string' ? ctx.specialName : '';
         let specialAlign = A_NONE;
@@ -6226,7 +6236,7 @@ export function sp_amask_to_amask(amask = 'random') {
     if (raw === 'noncoaligned') return Align2amask(noncoalignment(originalAlign));
     const ctx = levelState.finalizeContext || {};
     const specialName = typeof ctx.specialName === 'string' ? ctx.specialName : '';
-    const dnum = Number.isFinite(ctx.dnum) ? ctx.dnum : undefined;
+    const dnum = currentAlignmentDnum(ctx);
     const dungeonAlign = (dnum !== undefined) ? (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE) : A_NONE;
     let specialAlign = A_NONE;
     if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;

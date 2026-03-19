@@ -277,6 +277,7 @@ export function clearBranchTopology() {
     _runtimeSpecialLevelMap = new Map();
     _dungeonGenerationByDnum = new Map();
     _dungeonLedgerStartByDnum = new Map([[DUNGEONS_OF_DOOM, 0]]);
+    _dungeonDepthStartByDnum = new Map([[DUNGEONS_OF_DOOM, 1]]);
     _dungeonLevelCounts = new Map();
     _questLocaDlevel = 2;
 }
@@ -292,6 +293,7 @@ import { getnow } from './calendar.js';
 // C ref: shknam.c uses ubirthday (seconds since epoch) rather than game seed.
 let _gameUbirthday = 0;
 let _dungeonLedgerStartByDnum = new Map([[DUNGEONS_OF_DOOM, 0]]);
+let _dungeonDepthStartByDnum = new Map([[DUNGEONS_OF_DOOM, 1]]);
 const _dungeonEntryLevelByDnum = new Map([
     [DUNGEONS_OF_DOOM, 1],
     [GNOMISH_MINES, 1],
@@ -706,10 +708,16 @@ export function dunlevs_in_dungeon(dnum) {
 export function depth(lev) {
     const dnum = Number.isInteger(lev?.dnum) ? lev.dnum : DUNGEONS_OF_DOOM;
     const dlevel = dunlev(lev);
-    return getLedgerNoForLevel(dnum, dlevel);
+    const depthStart = _dungeonDepthStartByDnum.get(dnum);
+    if (Number.isInteger(depthStart)) {
+        return depthStart + dlevel - 1;
+    }
+    return Math.max(1, dlevel);
 }
 export function ledger_no(lev) {
-    return depth(lev);
+    const dnum = Number.isInteger(lev?.dnum) ? lev.dnum : DUNGEONS_OF_DOOM;
+    const dlevel = dunlev(lev);
+    return getLedgerNoForLevel(dnum, dlevel);
 }
 export function maxledgerno() {
     let max = 0;
@@ -4179,6 +4187,27 @@ function buildBranchTopology(dungeonLayouts, parentRolls) {
     return branches;
 }
 
+function computeDungeonDepthStarts(branches) {
+    const depthStarts = new Map([[DUNGEONS_OF_DOOM, 1]]);
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (const br of branches) {
+            const parentDnum = br?.end1?.dnum;
+            const childDnum = br?.end2?.dnum;
+            const parentDepthStart = depthStarts.get(parentDnum);
+            if (!Number.isInteger(parentDepthStart) || depthStarts.has(childDnum)) continue;
+            const parentDepth = parentDepthStart + (Number(br?.end1?.dlevel) || 1) - 1;
+            const childEntry = _dungeonEntryLevelByDnum.get(childDnum) || 1;
+            const stairDelta = (br?.type === BR_PORTAL) ? 0 : (br?.end1_up ? -1 : 1);
+            depthStarts.set(childDnum, parentDepth + stairDelta - (childEntry - 1));
+            changed = true;
+        }
+    }
+    if (!depthStarts.has(TUTORIAL)) depthStarts.set(TUTORIAL, 1);
+    return depthStarts;
+}
+
 // C ref: dungeon.c init_dungeon_branches()
 export function init_dungeon_branches(dungeonLayouts, parentRolls) {
     return buildBranchTopology(dungeonLayouts, parentRolls);
@@ -4418,6 +4447,7 @@ export function init_dungeons(roleIndex, wizard = true) {
         if (!layout || !Number.isInteger(layout.numLevels)) continue;
         _dungeonLevelCounts.set(jsDnum, layout.numLevels);
     }
+    _dungeonDepthStartByDnum = computeDungeonDepthStarts(_branchTopology);
     // C ref: dungeon.c kludge for floating Knox entrance:
     // set end1.dnum to n_dgns so Ludios source stays unset until mk_knox_portal().
     const knoxBranch = dungeon_branch("Fort Ludios");

@@ -346,6 +346,10 @@ function getMakemonUlevel() {
     return 1;
 }
 
+function makemonTraceEnabled() {
+    return envFlag('WEBHACK_MAKEMON_TRACE');
+}
+
 // C ref: makemon.c peace_minded(struct permonst *ptr)
 function peace_minded(ptr, playerCtx = _getMakemonPlayerCtx()) {
     const mal = ptr.maligntyp || 0;
@@ -789,6 +793,27 @@ export function newmonhp(mndx, depth = 1) {
 
     // C ref: if mhpmax == basehp, add 1
     if (hp === basehp) hp++;
+
+    if (makemonTraceEnabled()) {
+        const playerCtx = _getMakemonPlayerCtx();
+        const liveUz = _gstate?.player?.uz || _gstate?.map?.uz || null;
+        const mapGen = _gstate?.map
+            ? `${Number(_gstate.map._genDnum) || 0}:${Number(_gstate.map._genDlevel) || 0}`
+            : 'none';
+        const liveLevel = liveUz
+            ? `${Number(liveUz.dnum) || 0}:${Number(liveUz.dlevel) || 0}`
+            : 'none';
+        // Diagnostic only: captures the exact adj_lev/newmonhp inputs that
+        // commonly drive first RNG drift during level generation.
+        // eslint-disable-next-line no-console
+        console.log(
+            `[MAKEMON_TRACE] newmonhp mndx=${mndx} name=${JSON.stringify(ptr?.mname || '')}`
+            + ` base=${Number(ptr?.mlevel) || 0} depth=${Number(depth) || 0}`
+            + ` ulevel=${Number(playerCtx?.ulevel) || 0} adj=${Number(m_lev) || 0}`
+            + ` hp=${Number(hp) || 0} inMklev=${_getInMklev() ? 1 : 0}`
+            + ` liveUz=${liveLevel} mapGen=${mapGen}`
+        );
+    }
 
     return { hp, m_lev };
 }

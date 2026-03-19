@@ -76,8 +76,19 @@ Use this for session parity failures where gameplay diverges between C and JS:
    - Inspect with:
      - `diff -u step00NN_raw*.mapdump step00MM_raw*.mapdump`
      - `rg -n '^(U|A|M|N|K|J)' <mapdump-file>`
-   - Use this when screen/RNG evidence is insufficient and you need direct
-     monster/object/trap/hero state at exact replay steps.
+  - Use this when screen/RNG evidence is insufficient and you need direct
+    monster/object/trap/hero state at exact replay steps.
+  - For monster-generation / `adj_lev()` / `newmonhp()` seams, enable:
+    - `WEBHACK_MAKEMON_TRACE=1 node test/comparison/session_test_runner.js --verbose <session-path>`
+    - This logs the exact `newmonhp()` inputs:
+      - monster index/name
+      - base monster level
+      - passed depth
+      - current `u.ulevel`
+      - computed adjusted level
+      - `in_mklev` flag
+      - live/generation dungeon context
+    - Use it when branch-depth or special-level context is suspected to be wrong.
 6. Confirm expected behavior in C source:
    - Use `nethack-c/patched/src/` — this is the primary reference. It is
      `nethack-c/upstream/` plus all instrumentation patches (RNG logging,
