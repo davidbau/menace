@@ -13981,3 +13981,33 @@ Validation:
       - first event divergence moved `step 498 -> 526`
     - `t08_s984_w_camera_gp`: PASS
     - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
+
+- 2026-03-19: do not inject name-based special-level alignment into
+  generation-time `align_shift()` context.
+  - Exact C evidence:
+    - Oracle depth-5 map sessions were diverging in `rndmonst_adj()`:
+      JS `rn2(7)` vs C `rn2(2)`
+    - owner traces showed JS was applying positive `ashift` on Oracle
+      generation, while the C fixture’s first weighted roll proved no such
+      override was active there
+  - JS bug:
+    - [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js)
+      forced `_dungeonAlign` by special name during special-level generation
+      (`oracle`, `medusa`, `tut-*`)
+    - that heuristic widened the Oracle monster pool during map generation
+  - Faithful fix:
+    - remove the name-based special-level alignment override from
+      `makelevel()`
+    - keep generation-time alignment on the normal C-style dungeon/default
+      path unless an explicit override is provided by the caller
+  - Validation:
+    - `seed16_map.session.json`
+      - grids improved `4/5 -> 5/5`
+      - RNG improved `10714/13212 -> 12836/12908`
+      - `rndmonst_adj()` `rn2(7)` Oracle seam eliminated
+    - `seed16_maps_c.session.json`
+      - grids improved `4/5 -> 5/5`
+      - RNG improved `10714/13212 -> 12836/12908`
+  - Remaining frontier:
+    - a later Oracle `mineralize()` gem-count seam remains:
+      JS `rnd(2)` vs C `rnd(3)`

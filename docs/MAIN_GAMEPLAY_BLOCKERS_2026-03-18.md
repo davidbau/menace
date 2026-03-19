@@ -1553,3 +1553,33 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - first event divergence: step `526`
     - JS: `^dog_goal_start[...] minvent=0 ...`
     - C: `^dog_goal_start[...] minvent=1 ...`
+
+## 2026-03-19: `seed16` map failures were partly a special-level alignment heuristic
+
+- Exact C-vs-JS evidence on Oracle depth 5:
+  - JS first weighted monster-selection roll:
+    - `rn2(7)=6 @ rndmonnum_adj(...)`
+  - C first weighted monster-selection roll:
+    - `rn2(2)=0 @ rndmonst_adj(...)`
+- Owner trace showed the cause:
+  - JS was adding positive `align_shift()` weights during Oracle generation
+  - C’s Oracle map fixture was not
+- Faithful fix:
+  - remove the name-based `_dungeonAlign` override in
+    [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js)
+    special-level generation
+  - keep generation-time alignment on the C-style dungeon/default path
+- Validation:
+  - [`test/comparison/maps/seed16_map.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/maps/seed16_map.session.json)
+    - grids: `4/5 -> 5/5`
+    - RNG: `10714/13212 -> 12836/12908`
+  - [`test/comparison/maps/seed16_maps_c.session.json`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/maps/seed16_maps_c.session.json)
+    - grids: `4/5 -> 5/5`
+    - RNG: `10714/13212 -> 12836/12908`
+- Current remaining map frontier:
+  - both `seed16` map sessions still fail later at Oracle finalization:
+    - JS: `rnd(2)=1 @ Module.finalize_level(...)`
+    - C: `rnd(3)=3 @ mineralize(mklev.c:1528)`
+- Do not revive the removed heuristic:
+  - the Oracle improvement came from deleting the special-name alignment guess,
+    not from refining it
