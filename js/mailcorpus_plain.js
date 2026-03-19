@@ -36,15 +36,15 @@ offer expires at end of month.
     daysAgo: 11,
     body: `rodney,
 
-your home directory is at 94% of your 10MB quota.  if you go over
+your home directory is at 94% of your 1000KB quota.  if you go over
 the limit i will have to suspend write access to your account until
 you clean up.
 
 largest files in /home/rodney:
-  3.2M  core
-  1.8M  nethack.save
-  1.1M  .hack_sessions/
-  890K  old_source_trees/hack-0.2/
+  380K  core
+  182K  nethack.save
+   94K  .hack_sessions/
+   68K  old_source_trees/hack-0.2/
 
 the core file is almost certainly from that crash last tuesday.  please
 remove it.  i don't want to hear "but i might need it later" -- you
@@ -2742,11 +2742,11 @@ i'll put a proper fix in this weekend.
 
 your current usage:
 
-  used: ${'>'}8MB of 10MB
+  used: ${'>'}940KB of 1000KB
 
 the core files are the main problem.  please delete:
-  /home/rodney/core (3.2MB)
-  /home/rodney/core.1 (2.1MB)
+  /home/rodney/core (380KB)
+  /home/rodney/core.1 (214KB)
 
 after that you should be fine.  if you need more quota, make
 a case for it.  "i need more space" is not a case.  "i need
