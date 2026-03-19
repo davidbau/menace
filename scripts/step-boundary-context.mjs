@@ -9,6 +9,8 @@
 // Usage:
 //   node scripts/step-boundary-context.mjs <session-path> --step N [--window K]
 //
+// Steps are 1-indexed to match the test comparator output (step=N in test failures).
+//
 // Examples:
 //   node scripts/step-boundary-context.mjs test/comparison/sessions/seed033_manual_direct.session.json --step 192
 //   node scripts/step-boundary-context.mjs test/comparison/sessions/seed033_manual_direct.session.json --step 208
@@ -16,33 +18,12 @@
 import { replaySession } from '../js/replay_core.js';
 import { prepareReplayArgs, getSessionGameplaySteps } from '../js/replay_compare.js';
 import { createRequire } from 'module';
+import {
+    isComparable, normalize, toArrayIndex, toReplayIndex,
+    summarizeEntries, describeTurnEnd, describeKey, STEP_INDEX_HELP
+} from './triage-lib.mjs';
 
 const require = createRequire(import.meta.url);
-
-function isComparable(e) {
-    if (typeof e !== 'string') return false;
-    if (e[0] === '^' || e[0] === '>' || e[0] === '<' || e[0] === '~') return false;
-    if (e.startsWith('d(') || e.startsWith('rne(') || e.startsWith('rnz(') || e.startsWith('rnl(')) return false;
-    return true;
-}
-
-function normalize(e) {
-    return e.replace(/ @.*$/, '');
-}
-
-function describeKey(key) {
-    if (key === ' ') return 'space';
-    if (key === '\n') return 'enter';
-    if (key === '\x1b') return 'ESC';
-    if (key === ',') return 'pickup';
-    if (key === '.') return 'wait';
-    if (key === 's') return 'search';
-    const viDirs = { h: 'west', j: 'south', k: 'north', l: 'east',
-                     y: 'NW', u: 'NE', b: 'SW', n: 'SE' };
-    if (viDirs[key]) return `move ${viDirs[key]}`;
-    if (key >= 'A' && key <= 'Z') return `shift-${key.toLowerCase()}`;
-    return key;
-}
 
 async function main() {
     const args = process.argv.slice(2);
@@ -52,8 +33,9 @@ async function main() {
     const targetStep = stepIdx >= 0 ? Number(args[stepIdx + 1]) : null;
     const windowSize = windowIdx >= 0 ? Number(args[windowIdx + 1]) : 3;
 
-    if (!sessionPath || targetStep === null || !Number.isInteger(targetStep)) {
+    if (!sessionPath || targetStep === null || !Number.isInteger(targetStep) || targetStep < 1) {
         console.error('Usage: node scripts/step-boundary-context.mjs <session-path> --step N [--window K]');
+        console.error(`  ${STEP_INDEX_HELP}`);
         process.exit(1);
     }
 
@@ -61,27 +43,29 @@ async function main() {
     const replayArgs = prepareReplayArgs(session.seed, session, { captureScreens: true });
     const gameplaySteps = getSessionGameplaySteps(session);
 
-    if (targetStep >= gameplaySteps.length) {
-        console.error(`Step ${targetStep} out of range (session has ${gameplaySteps.length} gameplay steps)`);
+    if (toArrayIndex(targetStep) >= gameplaySteps.length) {
+        console.error(`Step ${targetStep} out of range (session has ${gameplaySteps.length} gameplay steps, 1-indexed)`);
         process.exit(1);
     }
 
-    // Capture game state at each step in the window
+    // Capture game state at each step in the window (using 0-indexed for onKey callback)
     const capturedStates = {};
-    const fromStep = Math.max(0, targetStep - windowSize);
-    const toStep = Math.min(gameplaySteps.length - 1, targetStep + windowSize);
+    const fromStep = Math.max(1, targetStep - windowSize);
+    const toStep = Math.min(gameplaySteps.length, targetStep + windowSize);
 
     console.log(`Replaying ${sessionPath.split('/').pop()} (capturing steps ${fromStep}-${toStep})...`);
     const result = await replaySession(replayArgs.seed, {
         ...replayArgs.opts,
         captureScreens: true,
         onKey({ index, game, step }) {
-            if (index >= fromStep && index <= toStep) {
+            // index is 0-based from the replay; convert to 1-indexed step
+            const step1 = index + 1;
+            if (step1 >= fromStep && step1 <= toStep) {
                 const p = game.u || game.player;
                 const display = game.display;
                 const ctx = game.context || game.svc?.context || {};
                 const screenLines = step.screen?.split('\n') || [];
-                capturedStates[index] = {
+                capturedStates[step1] = {
                     pos: p ? `(${p.x},${p.y})` : '?',
                     dlevel: p?.dungeonLevel || (game.lev || game.map)?.uz?.dlevel || '?',
                     pendingPrompt: game.pendingPrompt
@@ -102,22 +86,28 @@ async function main() {
 
     // Display results
     console.log(`\n${'='.repeat(70)}`);
-    console.log(`Step boundary context for step ${targetStep}`);
+    console.log(`Step boundary context for step ${targetStep} (1-indexed)`);
     console.log(`${'='.repeat(70)}\n`);
 
-    for (let i = fromStep; i <= toStep; i++) {
-        const jsRng = (result.steps[i + 1]?.rng || []);
-        const cRng = (gameplaySteps[i]?.rng || []);
+    for (let step1 = fromStep; step1 <= toStep; step1++) {
+        const jsRng = (result.steps[toReplayIndex(step1)]?.rng || []);
+        const cRng = (gameplaySteps[toArrayIndex(step1)]?.rng || []);
         const jsF = jsRng.filter(isComparable);
         const cF = cRng.filter(isComparable);
-        const key = gameplaySteps[i]?.key;
-        const state = capturedStates[i];
-        const isTarget = i === targetStep;
+        const key = gameplaySteps[toArrayIndex(step1)]?.key;
+        const state = capturedStates[step1];
+        const isTarget = step1 === targetStep;
         const countsDiffer = jsF.length !== cF.length;
         const marker = isTarget ? '>>>' : (countsDiffer ? ' ! ' : '   ');
 
-        console.log(`${marker} Step ${i} key=${JSON.stringify(key)} (${describeKey(key)})`);
+        console.log(`${marker} Step ${step1} key=${JSON.stringify(key)} (${describeKey(key)})`);
         console.log(`    JS: ${jsF.length} filtered (${jsRng.length} raw)  |  C: ${cF.length} filtered (${cRng.length} raw)`);
+
+        // Annotate turn-end pattern
+        const turnEndC = describeTurnEnd(cRng);
+        const turnEndJS = describeTurnEnd(jsRng);
+        if (turnEndC) console.log(`    C pattern: ${turnEndC}`);
+        if (turnEndJS && turnEndJS !== turnEndC) console.log(`    JS pattern: ${turnEndJS}`);
 
         if (state) {
             console.log(`    pos=${state.pos} dlevel=${state.dlevel} running=${state.running}`);
@@ -142,16 +132,16 @@ async function main() {
         }
 
         if (countsDiffer) {
-            // Show the "extra" entries
+            // Show the "extra" entries with annotations
             if (cF.length > jsF.length) {
-                console.log(`    C-EXTRA entries (${cF.length - jsF.length}):`);
                 const extra = cRng.filter(isComparable).slice(jsF.length);
+                console.log(`    C-EXTRA entries (${cF.length - jsF.length}): ${summarizeEntries(extra)}`);
                 for (const e of extra.slice(0, 5)) {
                     console.log(`      ${e}`);
                 }
             } else if (jsF.length > cF.length) {
-                console.log(`    JS-EXTRA entries (${jsF.length - cF.length}):`);
                 const extra = jsRng.filter(isComparable).slice(cF.length);
+                console.log(`    JS-EXTRA entries (${jsF.length - cF.length}): ${summarizeEntries(extra)}`);
                 for (const e of extra.slice(0, 5)) {
                     console.log(`      ${e}`);
                 }
@@ -161,8 +151,8 @@ async function main() {
             if (cF.length > jsF.length) {
                 // C has extra — look for them in JS at adjacent steps
                 const cExtra = cRng.filter(isComparable).slice(0, 3);
-                for (let adj = i + 1; adj <= Math.min(i + 4, toStep); adj++) {
-                    const adjJsRng = (result.steps[adj + 1]?.rng || []).filter(isComparable);
+                for (let adj = step1 + 1; adj <= Math.min(step1 + 4, toStep); adj++) {
+                    const adjJsRng = (result.steps[toReplayIndex(adj)]?.rng || []).filter(isComparable);
                     if (adjJsRng.length > 0 && cExtra.length > 0
                         && normalize(adjJsRng[0]) === normalize(cExtra[0])) {
                         console.log(`    → SHIFT: C's entries appear in JS at step ${adj}`);
@@ -171,8 +161,8 @@ async function main() {
                 }
             } else {
                 const jsExtra = jsRng.filter(isComparable).slice(0, 3);
-                for (let adj = i + 1; adj <= Math.min(i + 4, toStep); adj++) {
-                    const adjCRng = (gameplaySteps[adj]?.rng || []).filter(isComparable);
+                for (let adj = step1 + 1; adj <= Math.min(step1 + 4, toStep); adj++) {
+                    const adjCRng = (gameplaySteps[toArrayIndex(adj)]?.rng || []).filter(isComparable);
                     if (adjCRng.length > 0 && jsExtra.length > 0
                         && normalize(adjCRng[0]) === normalize(jsExtra[0])) {
                         console.log(`    → SHIFT: JS's entries appear in C at step ${adj}`);
@@ -198,8 +188,8 @@ async function main() {
     }
 
     // Summary diagnosis
-    const targetJsRng = (result.steps[targetStep + 1]?.rng || []);
-    const targetCRng = (gameplaySteps[targetStep]?.rng || []);
+    const targetJsRng = (result.steps[toReplayIndex(targetStep)]?.rng || []);
+    const targetCRng = (gameplaySteps[toArrayIndex(targetStep)]?.rng || []);
     const targetJsF = targetJsRng.filter(isComparable);
     const targetCF = targetCRng.filter(isComparable);
     const targetState = capturedStates[targetStep];
@@ -217,12 +207,12 @@ async function main() {
     } else if (targetCF.length > targetJsF.length && targetJsF.length === 0) {
         if (targetState?.pendingPrompt) {
             console.log(`  JS has a pendingPrompt (${targetState.pendingPrompt}) at step ${targetStep}.`);
-            console.log(`  The key "${gameplaySteps[targetStep]?.key}" was consumed by the prompt`);
+            console.log(`  The key "${gameplaySteps[toArrayIndex(targetStep)]?.key}" was consumed by the prompt`);
             console.log(`  instead of reaching the game command handler.`);
-            console.log(`  C processes the key as a game command (${describeKey(gameplaySteps[targetStep]?.key)}).`);
+            console.log(`  C processes the key as a game command (${describeKey(gameplaySteps[toArrayIndex(targetStep)]?.key)}).`);
         } else if (targetState?.messageNeedsMore) {
             console.log(`  JS has messageNeedsMore=true at step ${targetStep}.`);
-            console.log(`  The key "${gameplaySteps[targetStep]?.key}" was consumed by --More-- dismiss.`);
+            console.log(`  The key "${gameplaySteps[toArrayIndex(targetStep)]?.key}" was consumed by --More-- dismiss.`);
             console.log(`  C processes the key as a game command.`);
             if (targetState.topMessage) {
                 console.log(`  Message: "${targetState.topMessage.slice(0, 60)}"`);

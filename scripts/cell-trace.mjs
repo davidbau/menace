@@ -8,9 +8,11 @@
 // Usage:
 //   node scripts/cell-trace.mjs <session-path> --row R --col C [--step N] [--char CH]
 //
+// Steps are 1-indexed to match the test comparator and other triage tools.
+//
 // Examples:
 //   node scripts/cell-trace.mjs test/comparison/sessions/seed032_manual_direct.session.json --row 12 --col 8
-//   node scripts/cell-trace.mjs test/comparison/sessions/seed032_manual_direct.session.json --row 12 --col 8 --step 17
+//   node scripts/cell-trace.mjs test/comparison/sessions/seed032_manual_direct.session.json --row 12 --col 8 --step 18
 //   node scripts/cell-trace.mjs test/comparison/sessions/seed032_manual_direct.session.json --row 12 --col 8 --char +
 
 import { replaySession } from '../js/replay_core.js';
@@ -59,9 +61,10 @@ async function main() {
                     if (row === targetRow && col === targetCol) {
                         const prevCh = display.grid[row]?.[col] || ' ';
                         const prevColor = display.colors[row]?.[col];
-                        const step = (game.lev || game.map)?._replayStepIndex;
+                        const step0 = (game.lev || game.map)?._replayStepIndex;
+                        const step = step0 != null ? step0 + 1 : null; // 1-indexed for display
 
-                        // Filter by step if specified
+                        // Filter by step if specified (targetStep is 1-indexed)
                         if (targetStep !== null && step !== targetStep) {
                             return origSetCell(col, row, ch, color, attr);
                         }
