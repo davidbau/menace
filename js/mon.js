@@ -883,10 +883,15 @@ export function corpse_chance(mon) {
         }
     }
 
-    // C ref: mon.c:3233 — LEVEL_SPECIFIC_NOCORPSE
-    // (Not relevant in early game — skip)
+    // C ref: mon.c:3241-3242 — LEVEL_SPECIFIC_NOCORPSE
+    const map = _gstate?.lev ?? _gstate?.map;
+    const levelFlags = map?.flags || {};
+    if (levelFlags.is_rogue_level
+        || (levelFlags.deathdrops === false)
+        || (levelFlags.graveyard && is_undead(mdat) && rn2(3)))
+        return false;
 
-    // C ref: mon.c:3235-3238 — big monsters, lizards, golems, players, riders,
+    // C ref: mon.c:3244-3246 — big monsters, lizards, golems, players, riders,
     // shopkeepers ALWAYS leave corpses (no RNG consumed)
     const bigmonst = (mdat.msize || 0) >= MZ_LARGE;
     if (((bigmonst || mon.mndx === PM_LIZARD) && !mon.mcloned)
