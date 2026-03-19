@@ -13930,3 +13930,29 @@ Validation:
       - `test/comparison/c-harness/keylog_to_session.py`
     - preserve owner-family prefixes in `movement-propagation` output; do not
       strip `[EXP_TRACE]`
+
+- 2026-03-19: `seed031_manual_direct` step `492`/`495` meal seam was partly a
+  resumed-corpse state mismatch in JS `handleEat()`.
+  - Exact C rule from `eat.c`:
+    - `touchfood(otmp)` initializes/retains `oeaten`
+    - `victual.reqtime = rounddiv(reqtime * otmp->oeaten, basenutrit)`
+    - `victual.nmod` is derived from remaining `oeaten`, not full nutrition
+    - `bite()` updates partial consumption via `consume_oeaten(...)`
+  - JS bug:
+    - `handleEat()` was recomputing corpse `reqtime` from the full corpse each
+      time and deriving `nmod` from full nutrition
+    - it also bypassed the existing `bite()` partial-consumption path
+  - Faithful fix:
+    - call `touchfood()` before corpse timing math
+    - scale resumed corpse `reqtime` with `rounddiv(...)`
+    - derive `nmod` from remaining `oeaten`
+    - keep `victual.usedtime/reqtime` authoritative and route bite-progress
+      through `bite()` / `consume_oeaten(...)`
+  - Validation:
+    - `seed031_manual_direct`
+      - RNG matched `23469 -> 23723`
+      - events matched `10988 -> 11130`
+      - first RNG divergence moved `step 492 -> 495`
+      - first event divergence moved `step 493 -> 498`
+    - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
+    - `command_eat_occupation_timing.test.js`: PASS

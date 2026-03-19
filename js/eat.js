@@ -53,6 +53,7 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
          STARVING, KILLED_BY, KILLED_BY_AN,
          BY_COOKIE, LL_CONDUCT, ECMD_TIME } from './const.js';
 import { game as _gstate } from './gstate.js';
+import { sa_victual } from './decl.js';
 import { applyMonflee } from './mhitu.js';
 import { obj_resists } from './objdata.js';
 import { costly_spot } from './shk.js';
@@ -60,7 +61,7 @@ import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlay
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
-import { nomul, end_running, near_capacity } from './hack.js';
+import { nomul, end_running, near_capacity, rounddiv } from './hack.js';
 import { incr_itimeout, make_stoned } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
@@ -1970,6 +1971,7 @@ async function handleEat(player, display, game) {
         }
 
         const od = objectData[eatenItem.otyp];
+        eatenItem = touchfood(eatenItem, player);
         const cnum = Number.isInteger(eatenItem.corpsenm) ? eatenItem.corpsenm : -1;
         const isCorpse = eatenItem.otyp === CORPSE && cnum >= 0 && cnum < mons.length;
         let corpseOutcome = null;
@@ -1979,17 +1981,23 @@ async function handleEat(player, display, game) {
             corpseOutcome = await eatcorpse(player, eatenItem);
         }
         // cf. eat.c eatcorpse() overrides reqtime to 3 + (corpse weight >> 6).
-        const reqtime = isCorpse
+        let reqtime = isCorpse
             ? Math.max(1, Number(corpseOutcome?.reqtime ?? (3 + ((mons[cnum].cwt || 0) >> 6))))
             : Math.max(1, (od ? od.oc_delay : 1));
         const baseNutr = isCorpse
             ? (mons[cnum].cnutrit || (od ? od.oc_nutrition : 200))
             : (od ? od.oc_nutrition : 200);
+        if (isCorpse) {
+            reqtime = (baseNutr === 0)
+                ? 0
+                : rounddiv(reqtime * (eatenItem.oeaten || 0), baseNutr);
+        }
         // cf. eat.c bite() nmod calculation — nutrition distributed per bite.
         // nmod < 0 means add -nmod each turn; nmod > 0 means add 1 some turns
-        const nmod = (reqtime === 0 || baseNutr === 0) ? 0
-            : (baseNutr >= reqtime) ? -Math.floor(baseNutr / reqtime)
-            : reqtime % baseNutr;
+        const remainingNutr = isCorpse ? (eatenItem.oeaten || 0) : baseNutr;
+        const nmod = (reqtime === 0 || remainingNutr === 0) ? 0
+            : (remainingNutr >= reqtime) ? -Math.floor(remainingNutr / reqtime)
+            : reqtime % remainingNutr;
         const eatState = { usedtime: 0, reqtime };
         // Initialize victual context for C-faithful lesshungry/newuhs paths
         if (game && game.svc && game.svc.context) {
@@ -1997,18 +2005,19 @@ async function handleEat(player, display, game) {
             game.svc.context.victual.eating = 1;
             game.svc.context.victual.fullwarn = 0;
             game.svc.context.victual.piece = eatenItem;
+            game.svc.context.victual.usedtime = 0;
+            game.svc.context.victual.reqtime = reqtime;
             game.svc.context.victual.canchoke = (player.uhs === SATIATED);
             game.svc.context.victual.nmod = nmod;
         }
-        // cf. eat.c bite() — apply incremental nutrition (partial)
+        // Keep victual state authoritative so interrupted meals resume with
+        // the same partial-consumption semantics as C's bite()/eatfood().
         async function doBite() {
-            if (nmod < 0) {
-                await lesshungry(player, -nmod);
-                player.nutrition += (-nmod);
-            } else if (nmod > 0 && (eatState.usedtime % nmod)) {
-                await lesshungry(player, 1);
-                player.nutrition += 1;
+            if (game?.svc?.context?.victual) {
+                game.svc.context.victual.usedtime = eatState.usedtime;
+                game.svc.context.victual.reqtime = reqtime;
             }
+            await bite(game, player);
         }
 
         // First bite (turn 1) — mirrors C start_eating() + bite()
@@ -2323,11 +2332,11 @@ export async function bite(game, player) {
   gf.force_save_hs = true;
   if (game.svc.context.victual.nmod < 0) {
     await lesshungry(player, adj_victual_nutrition(player, game.svc.context.victual.nmod));
-    await consume_oeaten(game.svc.context.victual.piece, game.svc.context.victual.nmod);
+    await consume_oeaten(game.svc.context.victual.piece, game.svc.context.victual.nmod, game);
   }
   else if (game.svc.context.victual.nmod > 0 && (game.svc.context.victual.usedtime % game.svc.context.victual.nmod)) {
     await lesshungry(player, 1);
-    await consume_oeaten(game.svc.context.victual.piece, -1);
+    await consume_oeaten(game.svc.context.victual.piece, -1, game);
   }
   gf.force_save_hs = false;
   recalc_wt();

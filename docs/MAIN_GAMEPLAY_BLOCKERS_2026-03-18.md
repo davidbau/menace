@@ -1489,3 +1489,35 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
       [`test/comparison/c-harness/patches/025-exp-trace.patch`](/share/u/davidbau/git/mazesofmenace/game/test/comparison/c-harness/patches/025-exp-trace.patch)
     - `keylog_to_session.py` now forwards `NETHACK_EXP_TRACE`, so
       `manual-direct-live` rerecords can carry C owner-local XP traces
+
+## 2026-03-19: `seed031` now reaches step 495; resumed-corpse timing was part of the blocker
+
+- Exact C source match:
+  - `doeat()` calls `touchfood()`, then rescales remaining corpse time with
+    `rounddiv(reqtime * otmp->oeaten, basenutrit)`
+  - `victual.nmod` is based on remaining `oeaten`
+  - `bite()` advances partial consumption through `consume_oeaten(...)`
+- JS bug in [`js/eat.js`](/share/u/davidbau/git/mazesofmenace/game/js/eat.js):
+  - `handleEat()` treated resumed corpses like fresh full corpses
+  - it derived timing from full corpse nutrition and bypassed the C-shaped
+    `bite()` partial-consumption path
+- Faithful fix:
+  - `touchfood()` before corpse timing math
+  - rescale corpse `reqtime` with `rounddiv(...)`
+  - derive `nmod` from remaining `oeaten`
+  - sync `victual.usedtime/reqtime` and use `bite()` for bite-progress
+- Validation:
+  - `seed031_manual_direct`
+    - RNG matched `23469 -> 23723`
+    - events matched `10988 -> 11130`
+    - first RNG divergence moved `492 -> 495`
+    - first event divergence moved `493 -> 498`
+  - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
+  - `command_eat_occupation_timing.test.js`: PASS
+- Current frontier after this fix:
+  - first RNG divergence: step `495`
+    - JS: `rn2(4)=2 @ do_blinding_ray(...)`
+    - C: `rn2(5)=2 @ u_maybe_impaired(...)`
+  - first event divergence: step `498`
+    - JS: `^distfleeck[32@63,8 ... brave=1 ...]`
+    - C: `^distfleeck[32@63,8 ... brave=0 ...]`
