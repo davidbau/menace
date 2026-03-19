@@ -33,16 +33,18 @@ async function main() {
     const args = process.argv.slice(2);
     const sessionPath = args.find(a => !a.startsWith('--'));
     if (!sessionPath) {
-        console.error('Usage: node scripts/step-count-diff.mjs <session-path> [--from N] [--to M] [--context K]');
+        console.error('Usage: node scripts/step-count-diff.mjs <session-path> [--from N] [--to M] [--context K] [--find-entry REGEX]');
         process.exit(1);
     }
 
     const fromArg = args.find(a => a.startsWith('--from'));
     const toArg = args.find(a => a.startsWith('--to'));
     const ctxArg = args.find(a => a.startsWith('--context'));
+    const findEntryArg = args.indexOf('--find-entry');
     const fromStep = fromArg ? Number(args[args.indexOf(fromArg) + 1]) : 0;
     const toStep = toArg ? Number(args[args.indexOf(toArg) + 1]) : Infinity;
     const contextWindow = ctxArg ? Number(args[args.indexOf(ctxArg) + 1]) : 3;
+    const findEntryPattern = findEntryArg >= 0 ? new RegExp(args[findEntryArg + 1]) : null;
 
     const session = require(sessionPath.startsWith('/') ? sessionPath : `${process.cwd()}/${sessionPath}`);
     const replayArgs = prepareReplayArgs(session.seed, session, { captureScreens: false });
@@ -174,6 +176,25 @@ async function main() {
     }
 
     console.log(`\nTotal count mismatches: ${countMismatches.length} steps`);
+
+    // --find-entry: search for a specific RNG pattern across steps in both JS and C
+    if (findEntryPattern) {
+        console.log(`\n--- Searching for /${findEntryPattern.source}/ ---`);
+        const searchFrom = Math.max(0, (firstCountMismatch >= 0 ? firstCountMismatch - 2 : fromStep));
+        const searchTo = Math.min(maxStep, searchFrom + 20);
+        for (let i = searchFrom; i <= searchTo; i++) {
+            const jsRng = (result.steps[i + 1]?.rng || []);
+            const cRng = (gameplaySteps[i]?.rng || []);
+            const jsMatches = jsRng.filter(e => typeof e === 'string' && findEntryPattern.test(e));
+            const cMatches = cRng.filter(e => typeof e === 'string' && findEntryPattern.test(e));
+            if (jsMatches.length > 0 || cMatches.length > 0) {
+                const key = gameplaySteps[i]?.key;
+                console.log(`  Step ${i} key=${JSON.stringify(key)}:`);
+                for (const e of cMatches) console.log(`    C:  ${e}`);
+                for (const e of jsMatches) console.log(`    JS: ${e}`);
+            }
+        }
+    }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
