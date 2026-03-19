@@ -428,11 +428,16 @@ export function mon_allowflags(mon, player, map = null) {
     } else {
         flag |= ALLOW_U;
     }
+    // C ref: mon.c:2067-2068 — Conflict makes all monsters willing to attack hero
+    // INCOMPLETE: Conflict artifact not tracked yet; add ALLOW_U when it is
+    // if (Conflict && !resist_conflict(mon)) flag |= ALLOW_U;
 
     // C ref: mon.c:2061-2065 — passes_walls
     if (f1 & M1_WALLWALK) {
         flag |= ALLOW_ROCK | ALLOW_WALL;
     }
+
+    // C ref: mon.c:2054-2059 — tunneling (ALLOW_DIG) handled below at line ~516
 
     // C ref: mon.c:2066-2069 — throws_rocks or m_can_break_boulder
     if (throws_rocks(ptr) || m_can_break_boulder(mon)) {
@@ -456,8 +461,11 @@ export function mon_allowflags(mon, player, map = null) {
         flag |= BUSTDOOR;
     }
 
-    // C ref: mon.c:2082-2084 — passes_bars
-    if (passes_bars(ptr)) {
+    // C ref: mon.c:2085-2090 — passes_bars (restrict engulfer/holder carrying hero)
+    if (passes_bars(ptr)
+        && (mon !== player?.ustuck
+            || (player?.data?.mflags1 & M1_UNSOLID)
+            || ((player?.data?.msize || 0) === MZ_TINY))) {
         flag |= ALLOW_BARS;
     }
 
@@ -477,8 +485,8 @@ export function mon_allowflags(mon, player, map = null) {
         flag |= ALLOW_SSM;
     }
 
-    // C ref: mon.c:2098-2102 — undead (non-ghost) avoid garlic
-    if (is_undead(ptr) && (ptr.mlet !== S_GHOST)) {
+    // C ref: mon.c:2102-2104 — undead (non-ghost) or vampshifter avoid garlic
+    if ((is_undead(ptr) && ptr.mlet !== S_GHOST) || is_vampshifter(mon)) {
         flag |= NOGARLIC;
     }
 
