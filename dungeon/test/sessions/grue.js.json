@@ -1,0 +1,354 @@
+{
+  "format": "zork-parity-v1",
+  "source": "js",
+  "timestamp": "2026-03-19T13:57:30.431Z",
+  "steps": [
+    {
+      "move": 1,
+      "input": "open mailbox",
+      "parse": {
+        "prsa": 125,
+        "prso": 53,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 2,
+        "winner": 1,
+        "moves": 1,
+        "score": 0
+      },
+      "output": [
+        " Opening the mailbox reveals:",
+        "   A leaflet.",
+        ">"
+      ]
+    },
+    {
+      "move": 2,
+      "input": "take leaflet",
+      "parse": {
+        "prsa": 132,
+        "prso": 52,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 2,
+        "winner": 1,
+        "moves": 2,
+        "score": 0
+      },
+      "output": [
+        " Taken.",
+        ">"
+      ]
+    },
+    {
+      "move": 3,
+      "input": "go north",
+      "parse": {
+        "prsa": 142,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 3,
+        "winner": 1,
+        "moves": 3,
+        "score": 0
+      },
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred.",
+        ">"
+      ]
+    },
+    {
+      "move": 4,
+      "input": "go east",
+      "parse": {
+        "prsa": 8,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 5,
+        "winner": 1,
+        "moves": 4,
+        "score": 0
+      },
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar.",
+        ">"
+      ]
+    },
+    {
+      "move": 5,
+      "input": "open window",
+      "parse": {
+        "prsa": 125,
+        "prso": 63,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 5,
+        "winner": 1,
+        "moves": 5,
+        "score": 0
+      },
+      "output": [
+        " With great effort, you open the window far enough to allow entry.",
+        ">"
+      ]
+    },
+    {
+      "move": 6,
+      "input": "enter",
+      "parse": {
+        "prsa": 8,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 6,
+        "winner": 1,
+        "moves": 6,
+        "score": 10
+      },
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water.",
+        ">"
+      ]
+    },
+    {
+      "move": 7,
+      "input": "go west",
+      "parse": {
+        "prsa": 8,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 8,
+        "winner": 1,
+        "moves": 7,
+        "score": 10
+      },
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here.",
+        ">"
+      ]
+    },
+    {
+      "move": 8,
+      "input": "move rug",
+      "parse": {
+        "prsa": 122,
+        "prso": 17,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 8,
+        "winner": 1,
+        "moves": 8,
+        "score": 10
+      },
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears.",
+        ">"
+      ]
+    },
+    {
+      "move": 9,
+      "input": "open trap door",
+      "parse": {
+        "prsa": 125,
+        "prso": 66,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 8,
+        "winner": 1,
+        "moves": 9,
+        "score": 10
+      },
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness.",
+        ">"
+      ]
+    },
+    {
+      "move": 10,
+      "input": "go down",
+      "parse": {
+        "prsa": 142,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 9,
+        "winner": 1,
+        "moves": 10,
+        "score": 35
+      },
+      "output": [
+        " It is pitch black.  You are likely to be eaten by a grue.",
+        ">"
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go east",
+      "parse": {
+        "prsa": 142,
+        "prso": 3072,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 93,
+        "winner": 1,
+        "moves": 11,
+        "score": 25
+      },
+      "output": [
+        " Oh, no!  You walked into the slavering fangs of a lurking grue.",
+        " As you take your last breath, you feel relieved of your burdens.  The",
+        " feeling passes as you find yourself before the gates of Hell, where",
+        " the spirits jeer at you and deny you entry.  Your senses are disturbed.",
+        " The objects in the dungeon appear indistinct, bleached of color, even",
+        " unreal.",
+        ">"
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go south",
+      "parse": {
+        "prsa": 142,
+        "prso": 5120,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 93,
+        "winner": 1,
+        "moves": 12,
+        "score": 25
+      },
+      "output": [
+        " There is a wall there.",
+        ">"
+      ]
+    },
+    {
+      "move": 13,
+      "input": "go north",
+      "parse": {
+        "prsa": 142,
+        "prso": 1024,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 93,
+        "winner": 1,
+        "moves": 13,
+        "score": 25
+      },
+      "output": [
+        " There is a wall there.",
+        ">"
+      ]
+    },
+    {
+      "move": 14,
+      "input": "go west",
+      "parse": {
+        "prsa": 142,
+        "prso": 7168,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 93,
+        "winner": 1,
+        "moves": 14,
+        "score": 25
+      },
+      "output": [
+        " There is a wall there.",
+        ">"
+      ]
+    },
+    {
+      "move": 15,
+      "input": "go up",
+      "parse": {
+        "prsa": 8,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 53,
+        "winner": 1,
+        "moves": 15,
+        "score": 25
+      },
+      "output": [
+        " This is a tiny cave with entrances west and north, and a dark,",
+        " forbidding staircase leading down.",
+        ">"
+      ]
+    },
+    {
+      "move": 16,
+      "input": "quit",
+      "parse": {
+        "prsa": 84,
+        "prso": 0,
+        "prsi": 0,
+        "prswon": true
+      },
+      "state": {
+        "here": 53,
+        "winner": 1,
+        "moves": 16,
+        "score": 25
+      },
+      "output": [
+        " Your score would be+  25 [total of 616 points], in   16 moves.",
+        " This gives you the rank of Beginner.",
+        " Do you wish to leave the game?",
+        " Ok."
+      ]
+    }
+  ]
+}

@@ -174,12 +174,12 @@
       "cmd": "go down"
     },
     {
-      "cmd": "inventory",
-      "note": "PRNG fix #4 of 5: first inventory before thief-wait"
+      "cmd": "diagnose",
+      "note": "PRNG fix #4 of 5: health check before thief territory (any idle command works; diagnose, score, inventory all consume the same PRNG calls)"
     },
     {
-      "cmd": "inventory",
-      "note": "PRNG fix #5 of 5: second inventory before thief-wait (needed for seed=2 due to extra troll attacks and extra action steps)"
+      "cmd": "score",
+      "note": "PRNG fix #5 of 5: check score before thief-wait (needed for seed=2 due to extra troll attacks and extra action steps)"
     },
     {
       "cmd": "wait",
@@ -1191,7 +1191,7 @@
       "note": "Examine white crystal sphere (in case)"
     },
     {
-      "cmd": "what is bills",
+      "cmd": "look at bills",
       "note": "Examine stack of zorkmid bills (in case)"
     },
     {
@@ -1798,6 +1798,11 @@
       "cmd": "take card"
     },
     {
+      "cmd": "examine card",
+      "note": "FROBOZZ MAGIC SECURITY SYSTEMS Door Pass for the Royal Zork Puzzle Museum, approved by Will Weng, expires 792 G.U.E.",
+      "extra": true
+    },
+    {
       "cmd": "push south wall"
     },
     {
@@ -2071,7 +2076,7 @@
       "cmd": "take crown"
     },
     {
-      "cmd": "what is crown",
+      "cmd": "look at crown",
       "note": "Examine crown of Lord Dimwit Flathead"
     },
     {
@@ -2186,6 +2191,6 @@
       ]
     }
   ],
-  "notes": "Seed 2 complete speedrun attempt (literate route with extra examinations for PRNG alignment)",
+  "notes": "Seed 2 complete speedrun attempt (literate route with extra examinations for PRNG alignment); 616/616 in 682 moves",
   "source": "dungeon.hints.txt"
 }
