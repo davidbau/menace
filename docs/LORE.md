@@ -13748,3 +13748,30 @@ Validation:
     - `mblinded = (tmp < 3) ? 0 : rnd(1 + 50 / tmp)`
   - this can improve a local command bundle even when the overall first
     divergence simply moves to a newly exposed upstream/downstream seam
+
+### Runtime special-level identity matters for `align_shift()` on protofile branch fillers
+
+- `seed031_manual_direct` exposed a subtle runtime special-level gap on
+  `minefill`.
+- JS was generating the level from a protofile, but runtime alignment-sensitive
+  code still treated the live level as an ordinary branch level because the
+  actual `(dnum,dlevel)` was not registered in the runtime special-level map.
+- C `makemon.c align_shift()` uses:
+  - special-level align when `Is_special(&u.uz)` is true
+  - otherwise dungeon branch align
+- For `minefill`, that means C uses special-level `AM_NONE`, not the Mines'
+  lawful branch align.
+- Durable fix:
+  - register protofile-loaded special levels in the runtime special-level map at
+    their actual live coordinates
+  - resolve runtime alignment from the current level (`level_align(...)`), not a
+    cached `_dungeonAlign` value from generation time
+- Validation:
+  - `seed031_manual_direct` improved RNG prefix `23265 -> 23269`
+  - events stayed at the same frontier (`10840`)
+  - `t04_s705_w_minefill_gp` and `t04_s706_w_minetn1_gp` stayed green
+- Important non-fix:
+  - a companion `mkobj.js` depth-source patch (`depth(&u.uz)` instead of player
+    cache) looked promising but caused an earlier event regression in the pet
+    stream
+  - keep that separate until the event regression is explained

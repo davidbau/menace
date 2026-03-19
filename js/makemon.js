@@ -101,7 +101,7 @@ import { PIT, SPIKED_PIT, LOW_PM,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
-    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty
+    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_align, level_difficulty
 } from './dungeon.js';
 import { newemin } from './minion.js';
 import { qt_montype } from './questpgr.js';
@@ -228,7 +228,6 @@ function _getMakemonPlayerCtx() {
     });
 }
 
-// dungeonAlign now stored on gstate.game._dungeonAlign (set by dungeon.js makelevel)
 // _getInMklev() now reads from gstate.game._inMklev (unified with dungeon.js/mkobj.js).
 function _getInMklev() { return !!_gstate?._inMklev; }
 
@@ -421,7 +420,8 @@ export function uncommon(mndx) {
 
 // C ref: makemon.c align_shift()
 function align_shift(ptr) {
-    switch (_gstate?._dungeonAlign ?? A_NONE) {
+    const levelRef = _gstate?.lev || _gstate?.map || _gstate?.u?.uz;
+    switch (level_align(levelRef)) {
     default:
     case A_NONE:
         return 0;

@@ -674,6 +674,33 @@ function runtimeSpecialLevelFor(dnum, dlevel) {
     return _runtimeSpecialLevelMap.get(key) || null;
 }
 
+export function getRuntimeSpecialLevelMeta(levOrMap) {
+    const { dnum, dlevel } = _coerceLevelArg(levOrMap);
+    const mapped = runtimeSpecialLevelFor(dnum, dlevel);
+    if (!mapped) return null;
+    const special = getSpecialLevelMeta(mapped.dnum, mapped.dlevel);
+    if (!special) return null;
+    return {
+        ...special,
+        runtimeDnum: dnum,
+        runtimeDlevel: dlevel,
+        town: !!mapped.town,
+    };
+}
+
+export function level_align(levOrMap) {
+    const { dnum } = _coerceLevelArg(levOrMap);
+    const special = getRuntimeSpecialLevelMeta(levOrMap);
+    if (special) {
+        const name = String(Array.isArray(special.name) ? special.name[0] : special.name || '').toLowerCase();
+        if (name.startsWith('oracle')) return A_NEUTRAL;
+        if (name.startsWith('medusa')) return A_CHAOTIC;
+        if (name.startsWith('tut-')) return A_LAWFUL;
+        return A_NONE;
+    }
+    return DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE;
+}
+
 function resolveUbirthday(seed) {
     const parsed = getnow();
     if (Number.isFinite(parsed) && parsed > 0) return parsed;
@@ -1775,6 +1802,14 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
     if (!specialMap) return null;
     specialMap._genDnum = actualDnum;
     specialMap._genDlevel = actualDlevel;
+    const runtimeEntry = {
+        dnum: where.dnum,
+        dlevel: where.dlevel,
+    };
+    if (String(special.name || '').toLowerCase().startsWith('minetn')) {
+        runtimeEntry.town = true;
+    }
+    _runtimeSpecialLevelMap.set(`${actualDnum}:${actualDlevel}`, runtimeEntry);
     if (!specialMap.flags) specialMap.flags = {};
     specialMap.flags.is_tutorial = (actualDnum === TUTORIAL);
     if (specialName === 'rogue') {

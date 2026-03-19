@@ -1220,3 +1220,46 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - localize the remaining post-kill step-479/488 seam so the pet move choice
     and later monster-turn RNG realign without relying on the `thitmonst()`
     shortcut as the final architecture
+
+## 2026-03-19: `seed031` runtime special-level identity fix for protofile branch fillers
+
+- Validated fixes in this batch:
+  - `js/dungeon.js`
+    - protofile-loaded special levels now register runtime special-level identity
+      at their actual `(dnum,dlevel)` coordinates
+    - added `getRuntimeSpecialLevelMeta()` and `level_align()` so runtime code
+      can ask the C-faithful question:
+      - "is the current live level a special level, and if so what align does it use?"
+  - `js/makemon.js`
+    - `align_shift()` now derives level alignment from the current runtime level
+      rather than the stale `_dungeonAlign` cache
+- What this fixed:
+  - branch-filler special levels such as `minefill` were invisible to runtime
+    `Is_special`-style logic
+  - on `seed031`, that made corpse placeholder monster selection use branch
+    alignment weighting on a special level where C uses `AM_NONE`
+- Validation:
+  - `seed031_manual_direct`
+    - improved:
+      - RNG matched `23265 -> 23269`
+      - events preserved at `10840`
+    - first RNG divergence moved from:
+      - JS: `rn2(5)=1 @ rndmonnum_adj(...)`
+      - to: `rn2(3)=1 @ rndmonnum_adj(...)`
+    - first event divergence stayed at the existing pet-choice seam:
+      - `^dog_move_choice[32@66,6 ...]`
+  - guardrails stayed green:
+    - `t04_s705_w_minefill_gp`
+    - `t04_s706_w_minetn1_gp`
+- Important negative result:
+  - a separate `js/mkobj.js` depth-source patch was tested in the same area
+  - that moved the RNG seam farther, but regressed the first event earlier to:
+    - `^distfleeck[32@66,6 ... brave=0]`
+  - do not reintroduce that mixed patch without fixing the pet-side regression
+- Current frontier after the clean fix:
+  - event: step `479`
+    - JS: `^dog_move_choice[32@66,6 pick=65,6 chi=1 do_eat=0 cnt=6 appr=1]`
+    - C:  `^dog_move_choice[32@66,6 pick=67,7 chi=5 do_eat=0 cnt=6 appr=1]`
+  - RNG: step `488`
+    - JS: `rn2(3)=1 @ rndmonnum_adj(...)`
+    - C:  `rn2(2)=0 @ rndmonst_adj(makemon.c:1714)`
