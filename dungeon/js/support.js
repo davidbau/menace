@@ -635,7 +635,11 @@ export function rspsb2(G, a, b, c) {
   let currentSub = sub1Text;
   let nextSub = sub2Text;
 
+  let firstLine = true;
   for (let line of lines) {
+    // Skip leading blank line — Fortran merges it with the ' > ' prompt (Fortran parity)
+    if (firstLine && line === '') { firstLine = false; continue; }
+    firstLine = false;
     // Perform substitutions
     while (currentSub && line.includes('#')) {
       const idx = line.indexOf('#');

@@ -1,0 +1,17 @@
+open mailbox
+take leaflet
+go north
+go east
+open window
+enter
+go west
+move rug
+open trap door
+go down
+go east
+go south
+go north
+go west
+go up
+quit
+y

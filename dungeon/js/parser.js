@@ -551,14 +551,15 @@ const VVOC = [
 /**
  * Read and prepare an input line. Converts to upper case.
  * In Fortran this reads from the terminal; here we delegate to G.input().
+ * Pass useRaw=true to use G.rawInput instead (no session step boundary).
  * Returns { inbuf, inlnt } or null if empty.
  */
-export async function rdline(G, who) {
+export async function rdline(G, who, useRaw = false) {
   while (true) {
     if (who === 1) {
       G.output('>');
     }
-    const raw = await G.input();
+    const raw = await (useRaw ? G.rawInput() : G.input());
     if (raw == null) return null;
     const line = raw.trimEnd();
     if (line.length === 0) continue;

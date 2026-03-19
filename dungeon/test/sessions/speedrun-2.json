@@ -145,12 +145,24 @@
       "cmd": "go ne"
     },
     {
-      "cmd": "ODYSSEUS"
+      "cmd": "kill cyclops with sword",
+      "note": "The cyclops ignores all injuries to his body with a shrug. He seems somewhat agitated."
     },
     {
-      "cmd": "stare",
-      "extra": true,
-      "note": "PRNG fix: one stare at the now-empty Cyclops Room before climbing up to the thief's lair"
+      "cmd": "slay cyclops with sword",
+      "note": "The cyclops appears to be getting more agitated."
+    },
+    {
+      "cmd": "attack cyclops with sword",
+      "note": "The cyclops is moving about the room, looking for something"
+    },
+    {
+      "cmd": "stab cyclops with sword",
+      "note": "The cyclops was looking for salt and pepper. He was using you for the condiment. Fortunately, we are saved from this gumorous fate by your defeating him."
+    },
+    {
+      "cmd": "ODYSSEUS",
+      "note": "The cyclops, hearing the name of his father's deadly nemesis, flees the room by knocking down the wall on the north side of the room."
     },
     {
       "cmd": "go up"
@@ -279,34 +291,14 @@
       "cmd": "proceed north"
     },
     {
-      "cmd": "gaze",
+      "cmd": "stare",
       "extra": true,
-      "note": "Carousel PRNG fix 1/6: killing time in the E-W passage, waiting for the carousel to land right"
+      "note": "Carousel PRNG fix 1/2: killing time in the E-W passage, waiting for the carousel to land right"
     },
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Carousel PRNG fix 2/6: the passage looks the same in both directions"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Carousel PRNG fix 3/6: yep, still a passage"
-    },
-    {
-      "cmd": "gaze",
-      "extra": true,
-      "note": "Carousel PRNG fix 4/6: the dungeon hums with ancient magic (or maybe just bad luck)"
-    },
-    {
-      "cmd": "stare",
-      "extra": true,
-      "note": "Carousel PRNG fix 5/6: almost there"
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Carousel PRNG fix 6/6: Carousel will now exit to the engravings cave (correct path to well)"
+      "note": "Carousel PRNG fix 2/2: Carousel will now exit to the engravings cave (correct path to well)"
     },
     {
       "cmd": "run east"
@@ -403,9 +395,14 @@
       "cmd": "run west"
     },
     {
-      "cmd": "gaze",
+      "cmd": "stare",
       "extra": true,
-      "note": "Low Room PRNG fix: one gaze to align random exit — with this, SE leads to Tea Room→Top of Well→bucket"
+      "note": "Low Room PRNG fix 1/2: staring down the passage to align the random exit"
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Low Room PRNG fix 2/2: SE will now lead to Tea Room→Top of Well→bucket"
     },
     {
       "cmd": "walk se"
@@ -443,6 +440,11 @@
     {
       "cmd": "examine violin",
       "extra": true
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Gallery PRNG fix: one stare at the dusty instruments to align rope-theft timing before dome descent"
     },
     {
       "cmd": "go west"
@@ -1037,67 +1039,52 @@
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 1/13: The Cyclops Room is quiet now. The cyclops fled. Somewhere above, the thief waits."
-    },
-    {
-      "cmd": "score",
-      "extra": true,
-      "note": "Thief fight PRNG fix 2/13: 359 points. The thief holds the rest."
-    },
-    {
-      "cmd": "gaze",
-      "extra": true,
-      "note": "Thief fight PRNG fix 3/13: Bones crunch underfoot as you pace the room."
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 4/13: You check your knife — cold and sharp."
+      "note": "Thief fight PRNG fix 1/10: The Cyclops Room is quiet now. The cyclops fled. Somewhere above, the thief waits."
     },
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 5/13: The passage up is dark. The thief doesn't know you're coming."
-    },
-    {
-      "cmd": "gaze",
-      "extra": true,
-      "note": "Thief fight PRNG fix 6/13: Or does he?"
-    },
-    {
-      "cmd": "score",
-      "extra": true,
-      "note": "Thief fight PRNG fix 7/13: Still 359. The thief is up there counting his stolen loot."
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 8/13: You hear something shift above."
+      "note": "Thief fight PRNG fix 2/10: You hear footsteps — or maybe just the dungeon settling."
     },
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 9/13: Maybe not."
-    },
-    {
-      "cmd": "gaze",
-      "extra": true,
-      "note": "Thief fight PRNG fix 10/13: You grip the knife tighter."
-    },
-    {
-      "cmd": "look",
-      "extra": true,
-      "note": "Thief fight PRNG fix 11/13: One chance. Two strikes."
-    },
-    {
-      "cmd": "score",
-      "extra": true,
-      "note": "Thief fight PRNG fix 12/13: One last check: 359. The thief will bring us to 616."
+      "note": "Thief fight PRNG fix 3/10: The thief has no idea what is coming for him."
     },
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 13/13: Now. (thief will die in exactly 2 hits)"
+      "note": "Thief fight PRNG fix 4/10: You grip the knife. One breath."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 5/10: The torch flickers. Nothing moves."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 6/10: Above, a creak. The thief shifts his weight."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 7/10: All that stolen treasure. Time to take it back."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 8/10: Your knife catches the torchlight."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 9/10: Almost time."
+    },
+    {
+      "cmd": "stare",
+      "extra": true,
+      "note": "Thief fight PRNG fix 10/10: Now. (thief will die in exactly 3 hits: stun, disarm, jugular)"
     },
     {
       "cmd": "go up"
@@ -1107,12 +1094,11 @@
     },
     {
       "cmd": "slay thief with knife",
-      "note": "seed=2 with 5 PRNG fix looks: thief dies on 2nd hit"
+      "note": "seed=2: slay disarms the thief (2nd hit), leaving him defenseless"
     },
     {
       "cmd": "attack thief with knife",
-      "expectFail": true,
-      "note": "thief already dead after 2nd hit; 3rd attempt fails harmlessly"
+      "note": "seed=2 with 10 PRNG fix stares: thief dies on 3rd hit (attack stuns, slay disarms, attack kills jugular)"
     },
     {
       "cmd": "score",

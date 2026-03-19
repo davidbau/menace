@@ -1,0 +1,683 @@
+take mat
+open mailbox
+take leaflet
+read leaflet
+walk north
+run north
+climb tree
+take egg
+examine egg
+go down
+proceed east
+go south
+walk north
+run east
+open window
+go west
+take all
+proceed west
+take lamp
+take sword
+examine sword
+move rug
+open trap door
+turn on lamp
+go down
+run east
+look
+attack troll with sword
+slay troll with sword
+dispatch troll with sword
+drop all but lamp, sword and egg
+take mat
+take bottle
+inventory
+walk south
+walk south
+run east
+go up
+take coins
+examine coins
+go sw
+proceed east
+go south
+go ne
+kill cyclops with sword
+slay cyclops with sword
+attack cyclops with sword
+stab cyclops with sword
+ODYSSEUS
+go up
+give egg to thief
+go down
+inventory
+inventory
+wait
+walk north
+run east
+open case
+put coins in case
+go east
+go up
+take all
+go down
+proceed west
+drop all but rope, lamp, mat and bottle
+open trap door
+go down
+run east
+walk north
+walk north
+run west
+go nw
+proceed east
+go east
+tie rope to railing
+go down
+turn off lamp
+take torch
+examine torch
+go down
+walk east
+run west
+go up
+put torch in case
+turn on lamp
+open trap door
+go down
+go east
+proceed north
+stare
+stare
+run east
+walk north
+go se
+answer "well"
+walk east
+take necklace
+examine necklace
+run east
+get inside bucket
+open bottle
+pour water
+get out of bucket
+proceed east
+take all
+eat eatme cake
+go east
+throw red cake
+take tin
+walk west
+eat blue cake
+walk nw
+tell robot "go east"
+run east
+tell robot "push triangular button"
+tell robot "go south"
+go south
+get sphere
+tell robot "lift cage"
+get sphere
+proceed north
+run west
+stare
+stare
+walk se
+walk west
+board
+fill bottle with water
+disembark
+walk west
+run west
+go down
+proceed north
+open box
+take violin
+examine violin
+stare
+go west
+walk west
+run west
+go up
+put treasure in case
+drop all
+take torch
+go down
+go south
+proceed south
+take painting
+examine painting
+run west
+go nw
+walk west
+walk south
+take portrait
+examine portrait
+run north
+walk through north wall
+walk through south wall
+walk through north wall
+take bills
+walk through north wall
+drop all except torch
+proceed west
+go west
+take all
+walk through north wall
+walk south
+run south
+go north
+proceed west
+go up
+put treasure in case
+take torch and mat
+go down
+run east
+walk north
+walk east
+walk nw
+run east
+proceed north
+take all
+read matchbook
+send for free brochure
+go east
+take all
+push yellow button
+walk west
+run south
+turn bolt with wrench
+go south
+proceed south
+run west
+walk west
+walk west
+go up
+put treasure in case
+drop all
+take torch, mat and screwdriver
+open trap door
+go down
+run east
+proceed north
+go north
+walk west
+run east
+go down
+go west
+put mat under door
+open lid
+put screwdriver in keyhole
+take mat
+take key
+take screwdriver
+unlock door with key
+open door
+proceed north
+take sphere
+run south
+walk east
+go down
+walk east
+run west
+go up
+put blue sphere in case
+examine blue sphere
+drop all
+take lamp
+go down
+proceed east
+go north
+open sack
+take garlic
+walk north
+go down
+run north
+take trunk
+go north
+take pump
+proceed north
+take trident
+examine trident
+go up
+run north
+walk west
+walk west
+go down
+go up
+put trunk and trident in case
+go down
+run east
+proceed north
+go east
+walk ne
+go ne
+hello
+is anyone there
+testing one two three
+xyzzy
+echo
+take bar
+examine bar
+walk east
+run east
+take shovel
+go nw
+go south
+go up
+proceed east
+go down
+pump up plastic
+put all in boat
+board
+launch
+go down
+go down
+stare
+go down
+take all
+take buoy
+run west
+open buoy
+take emerald
+examine emerald
+put buoy in boat
+disembark
+dig sand with shovel
+dig sand with shovel
+dig sand with shovel
+dig sand with shovel
+drop shovel
+take statue
+examine statue
+walk south
+walk south
+wave stick
+run east
+proceed east
+take gold
+go se
+go up
+go up
+go south
+walk west
+run north
+go east
+proceed west
+run west
+put platinum bar, pot of gold, statue and large emerald in case
+walk east
+walk east
+run south
+proceed west
+open mailbox
+take brochure
+examine brochure
+go north
+walk east
+run west
+go west
+drop all but lamp
+take knife
+take garlic
+take torch
+proceed west
+run south
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+stare
+go up
+attack thief with knife
+slay thief with knife
+attack thief with knife
+score
+take coffin
+examine coffin
+turn off lamp
+go down
+walk north
+walk east
+put coffin in case
+put brochure in case
+go down
+run east
+proceed north
+go north
+walk west
+walk nw
+run east
+go east
+untie rope
+take rope
+proceed east
+run west
+walk south
+walk west
+run west
+go up
+describe tin
+look at white sphere
+what is bills
+look at trunk
+look at gold
+proceed west
+go south
+go up
+take all
+examine canary
+go down
+walk north
+run east
+go east
+proceed east
+run north
+walk north
+go up
+wind canary
+go down
+take bauble
+examine bauble
+walk west
+run east
+proceed west
+go west
+put treasure in case
+drop all but rope
+take torch and matchbook
+go down
+walk east
+run north
+go east
+proceed east
+take grail
+examine grail
+go up
+take bell
+run east
+take all
+walk west
+walk west
+run east
+proceed south
+go down
+ring bell
+take candles
+light match
+light candles with match
+read book
+drop book and candles
+go east
+walk east
+examine tomb
+run west
+go west
+go up
+proceed north
+run north
+walk north
+walk west
+run west
+proceed west
+go west
+go up
+put grail in case
+drop matchbook
+take lamp
+take garlic
+take screwdriver
+go down
+walk east
+run north
+go east
+walk se
+proceed east
+touch mirror
+run west
+walk west
+walk north
+go nw
+run west
+take jade figurine
+examine jade figurine
+proceed east
+go south
+walk ne
+put torch and screwdriver in basket
+turn on lamp
+walk north
+run west
+go down
+take bracelet
+examine bracelet
+go up
+go east
+go ne
+proceed north
+walk ne
+walk nw
+go down
+go down
+go ne
+take coal
+run south
+walk south
+drop all but rope
+take lamp, timber and coal
+walk north
+go up
+go up
+run east
+proceed east
+go south
+put coal in basket
+drop rope
+drop timber
+lower basket
+walk north
+walk ne
+run north
+go ne
+go nw
+go down
+go down
+go south
+drop lamp
+walk sw
+take all
+proceed east
+open lid
+put coal in machine
+close lid
+turn switch with screwdriver
+open lid
+take diamond
+examine diamond
+walk nw
+put all in basket
+walk ne
+take all
+run north
+go up
+go up
+walk east
+walk east
+run south
+drop garlic, jade and bracelet
+raise basket
+take torch, timber and rope
+turn off lamp
+drop all but rope, torch and timber
+proceed west
+go south
+drop timber
+tie rope to timber
+go down
+go down
+go down
+walk east
+run south
+take sphere
+describe sphere
+go north
+proceed west
+go up
+go up
+go up
+run north
+go ne
+take all
+walk west
+walk south
+go down
+go down
+go up
+put treasure in case
+drop all
+take torch
+run west
+proceed south
+go up
+go east
+read paper
+go down
+push east wall
+walk south
+go sw
+push south wall
+run east
+go east
+push south wall
+proceed north
+run north
+walk east
+push south wall
+take card
+push south wall
+walk east
+walk ne
+push west wall
+push west wall
+push west wall
+push west wall
+go ne
+walk ne
+run north
+push east wall
+walk sw
+proceed south
+go se
+go ne
+go north
+push west wall
+go nw
+push south wall
+push south wall
+walk west
+walk nw
+go nw
+push south wall
+walk se
+go se
+walk se
+walk ne
+push west wall
+push west wall
+go sw
+push north wall
+push north wall
+push north wall
+walk nw
+go up
+run west
+go down
+go north
+proceed east
+put card in case
+drop all
+take torch, lamp, guidebook, brick and matchbook
+go down
+run east
+walk north
+go down
+go down
+walk west
+take wire
+run north
+throw torch
+turn on lamp
+proceed west
+take ruby
+look at ruby
+go west
+read paper
+walk south
+board
+open receptacle
+put guidebook in receptacle
+light match
+light guidebook with match
+wait
+wait
+land
+disembark
+tie rope to hook
+take coin
+run south
+open purple book
+take stamp
+go north
+untie rope from hook
+board
+wait
+wait
+wait
+land
+disembark
+tie rope to hook
+proceed south
+put brick in hole
+put wire in brick
+light match
+light wire with match
+run north
+walk south
+take crown
+what is crown
+walk north
+untie rope from hook
+board
+close receptacle
+wait
+wait
+wait
+wait
+disembark
+run north
+proceed west
+go south
+walk north
+take torch
+run east
+go up
+go south
+proceed west
+run west
+walk west
+open trap door
+go up
+examine brochure
+examine coin
+examine matchbook
+examine newspaper
+examine stamp
+put treasure in case
+score
+quit
+y

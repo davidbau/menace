@@ -38,12 +38,9 @@ export function oappli(G, ri, arg) {
     const waslit = lit(G, G.here);
 
     const result = oappli_complex(G, dispatchIdx, arg);
-
-    // After complex handler: check for light source change
-    if (result && waslit && !lit(G, G.here)) {
-        rspeak(G, 406);
-    }
-
+    // Note: complex handlers handle their own lit-change messages internally
+    // (via result === 'checklit' in oappli_complex, or _checklit wrappers).
+    // No outer lit check needed here.
     return result;
 }
 

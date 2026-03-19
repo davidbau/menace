@@ -92,10 +92,13 @@ const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dungeon Speedrun Transcript</title>
+<title>Winning Dungeon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&display=swap">
 <style>
-body { background: #0a0e0a; color: #33cc33; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.4; padding: 20px 40px; max-width: 800px; margin: 0 auto; }
-h1 { color: #66ff66; font-size: 18px; text-align: center; border-bottom: 1px solid #33cc33; padding-bottom: 10px; }
+/* 76-char game lines × ~8.4px/char = ~638px; center that in the viewport */
+body { background: #0a0e0a; color: #55ee55; font-family: 'Fira Mono', 'DejaVu Sans Mono', 'Roboto Mono', monospace; font-size: 14px; line-height: 1.4; margin: 0 auto; max-width: 660px; padding: 20px 20px; }
+h1 { color: #88ff88; font-size: 18px; text-align: center; border-bottom: 1px solid #55ee55; padding-bottom: 10px; }
 .output { white-space: pre-wrap; margin: 0 0 2px 0; }
 .prompt { margin: 8px 0 2px 0; }
 .gt { color: #ffffff; }
@@ -103,7 +106,7 @@ h1 { color: #66ff66; font-size: 18px; text-align: center; border-bottom: 1px sol
 </style>
 </head>
 <body>
-<h1>Dungeon Speedrun &mdash; 616/616 Points, Seed ${seed}</h1>
+<h1>Winning Dungeon &mdash; 616/616 Points, Seed ${seed}</h1>
 ${body}
 </body>
 </html>`;

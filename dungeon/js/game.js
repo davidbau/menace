@@ -537,7 +537,7 @@ function xvehic(G, n) {
 
 async function handleEchoRoom(G) {
   while (true) {
-    const result = await rdline(G, 0);
+    const result = await rdline(G, 0); // echo room: each input is a real turn (Fortran parity)
     if (result === null) return;
     G.moves++;
 
