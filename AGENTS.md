@@ -141,7 +141,12 @@ needs special handling.
    - no broad refactors unrelated to the active divergence
    - no compatibility shims unless required for immediate correctness
    - remove temporary debug scaffolding before commit unless explicitly retained for observability
-8. Treat generated version files as expected collateral, not unexpected changes:
+8. **Area Parity Sweep**: When fixing a parity gap, sweep the entire surrounding
+   area for all similar gaps. Fix the class of problem, not just the instance.
+   A single discovered bug is evidence of a pattern — audit the whole function,
+   file, or related code for all instances before moving on. See
+   `skills/area-parity-sweep/SKILL.md` for the full process.
+9. Treat generated version files as expected collateral, not unexpected changes:
    - `_data/version.yml` and `js/version.js` may update during hooks or normal commit flow
    - keep the newest generated values
    - include them with the active commit when they change; do not stop work just because these two files updated
@@ -311,6 +316,7 @@ Set `RNG_LOG_TAGS=0` to disable caller tags when you need lower-overhead runs.
 2. Current repo skills:
    - `skills/parity-rng-triage/SKILL.md`
    - `skills/topline-async-boundary/SKILL.md`
+   - `skills/area-parity-sweep/SKILL.md`
 3. `AGENTS.md` remains the source of truth for non-negotiable policy.
 4. If skill loading is unavailable in a client, follow the workflow and guardrails from the referenced `SKILL.md` manually.
 5. Skill guardrails are mandatory when applicable, including:
