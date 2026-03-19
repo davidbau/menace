@@ -1180,3 +1180,43 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
     produce a net later first-divergence prefix
   - the patch removes a known placeholder path and exposes a different earlier
     live seam rather than masking one
+
+## 2026-03-19: `seed031` thrown-kill corpse freshness and post-kill ownership batch
+
+- Validated fixes in this batch:
+  - `js/mkobj.js`
+    - `newobj()` now seeds `age` from current move count instead of hardcoding `1`
+  - `js/dothrow.js`
+    - thrown multishot count is now computed before stack splitting
+    - thrown-kill handling no longer treats the missile as gone just because the target died
+  - `js/mon.js`
+    - `xkilled()` now awaits `newexplevel()`
+    - `mondead()` now increments `mvitals[mndx].died`
+  - `js/makemon.js`
+    - makemon player context falls back to `_gstate.u`
+- Guardrails validated:
+  - `node --test test/unit/mkobj.test.js`
+  - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
+  - `t08_s984_w_camera_gp`: PASS
+  - `t04_s705_w_minefill_gp`: PASS
+- `seed031_manual_direct` results after this batch:
+  - events matched `10804 -> 10840`
+  - first event divergence moved later within step `479`
+    - old live seam: pet corpse classification / wrong `dog_goal_obj` target scan
+    - new live seam:
+      - JS: `^dog_move_choice[32@66,6 pick=65,6 chi=1 do_eat=0 cnt=6 appr=1]`
+      - C:  `^dog_move_choice[32@66,6 pick=67,7 chi=5 do_eat=0 cnt=6 appr=1]`
+  - first RNG divergence still at step `488`
+    - JS: `rn2(5)=1 @ rndmonnum_adj(...) <= rndmonnum(...)`
+    - C:  `rn2(2)=0 @ rndmonst_adj(makemon.c:1714)`
+- Most important conclusion:
+  - C `dothrow.c thitmonst()` does not directly own `xkilled()`
+  - JS still lacks a faithful `hmon()`-style thrown-hit owner
+  - the safe local rule is:
+    - JS may perform kill resolution inside `thitmonst()` as an interim compromise
+    - but it must not mark the thrown object as gone just because the target died
+    - the later missile mulch/landing branch still owns object disposition
+- Next target:
+  - localize the remaining post-kill step-479/488 seam so the pet move choice
+    and later monster-turn RNG realign without relying on the `thitmonst()`
+    shortcut as the final architecture

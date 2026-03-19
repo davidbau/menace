@@ -4,6 +4,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { initRng } from '../../js/rng.js';
+import { game, setGame } from '../../js/gstate.js';
 import { ACCESSIBLE } from '../../js/const.js';
 import { mksobj, mkobj } from '../../js/mkobj.js';
 import { objectData, NUM_OBJECTS, RANDOM_CLASS,
@@ -27,6 +28,21 @@ describe('Object creation (C-faithful)', () => {
         assert.equal(obj.name, 'dagger');
         assert.equal(obj.oclass, WEAPON_CLASS);
         assert.ok(obj.owt > 0, 'Object should have weight');
+    });
+
+    it('new objects inherit the current move count as age', () => {
+        initRng(42);
+        const oldGame = game;
+        try {
+            setGame({ moves: 434 });
+            const otyp = objectData.findIndex(o => o.name === 'corpse');
+            assert.ok(otyp >= 0, 'corpse should exist in objectData');
+
+            const obj = mksobj(otyp, true, false);
+            assert.equal(obj.age, 434);
+        } finally {
+            setGame(oldGame);
+        }
     });
 
     it('mksobj sets display properties', () => {

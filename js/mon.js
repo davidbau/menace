@@ -1114,7 +1114,7 @@ export async function xkilled(mon, xkill_flags, map, player) {
         const game = _gstate;
         const tmp = experience(mon, game?.mvitals?.[mndx]?.died || 0);
         more_experienced(tmp, 0, game, player);
-        // newexplevel is async but non-RNG; skip for now
+        await newexplevel(player);
 
         // Alignment adjustments for special monsters
         const msound = mdat.msound ?? 0;
@@ -2751,6 +2751,12 @@ export function unstuck(mon, player) {
 
 // C ref: mon.c mondead() → m_detach() → mon_leaving_level() → unstuck()
 export function mondead(mon, map, player) {
+    const game = _gstate;
+    const mndx = mon.mndx ?? 0;
+    if (game?.mvitals?.[mndx]) {
+        const died = Number(game.mvitals[mndx].died || 0);
+        game.mvitals[mndx].died = Math.min(255, died + 1);
+    }
     mon.dead = true;
     pushRngLogEntry(`^die[${mon.mndx || 0}@${mon.mx},${mon.my}]`);
     const deathLoc = map?.at?.(mon.mx, mon.my);

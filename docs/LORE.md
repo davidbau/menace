@@ -28,6 +28,23 @@ For the full narratives of how these lessons were discovered, see the
   - escalate to full raw only after filtered raw.
 - This exposes bugs that normalized output can hide, especially intra-step
   ordering drift around `--More--`, `yn`, direction prompts, travel, and
+
+## 2026-03-19 - object age and thrown-kill ownership
+
+- `mkobj.newobj()` must seed `obj.age` from the current move count, not a
+  hardcoded `1`.
+  - This directly affects corpse freshness and pet food classification.
+- For thrown stacks, C computes multishot before any `splitobj()` /
+  `next_ident()` call.
+  - If JS splits first, `next_ident()` drifts before the real multishot RNG.
+- Thrown-kill ownership has a subtle but important rule:
+  - C `thitmonst()` does not directly own `xkilled()`
+  - the missile can still mulch or land after the kill
+  - so a JS shortcut that resolves the kill inside `thitmonst()` must not also
+    treat the missile as gone, or later floor-object ordering drifts
+    immediately.
+- `xkilled()` needs the real `mvitals[mndx].died` count and must await
+  `newexplevel()` to keep post-kill experience and level-up side effects aligned.
   timed-turn distribution.
 - Current limitation:
   - raw step drilldown is trustworthy for RNG artifacts,

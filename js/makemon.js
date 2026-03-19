@@ -203,7 +203,7 @@ let _makemonPlayerOverride = null;
 
 function _getMakemonPlayerCtx() {
     if (_makemonPlayerOverride) return _makemonPlayerOverride;
-    const player = _gstate?.player;
+    const player = _gstate?.player || _gstate?.u;
     if (!player) {
         return normalizePlayerContext({
             roleIndex: Number.isInteger(_gstate?._makemonRoleIndex)

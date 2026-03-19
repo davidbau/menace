@@ -491,7 +491,7 @@ function newobj(otyp) {
         ox: 0, oy: 0,
         where: OBJ_FREE,
         lamplit: false,
-        age: 1,
+        age: Math.max(_getMoves(), 1),
         tknown: false,
         known: false,
         dknown: false,

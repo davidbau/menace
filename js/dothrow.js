@@ -50,7 +50,7 @@ import { placeFloorObject, delobj } from './invent.js';
 import { pline } from './pline.js';
 import { sgn, distmin, distu } from './hacklib.js';
 import { Monnam, a_monnam, mon_nam } from './do_name.js';
-import { wakeup, setmangry } from './mon.js';
+import { wakeup, setmangry, xkilled } from './mon.js';
 import { MZ_MEDIUM, MZ_HUGE, PM_HOMUNCULUS, PM_IMP, mons,
          PM_WIZARD, PM_CAVE_DWELLER, PM_HEALER, PM_TOURIST,
          PM_MONK, PM_RANGER, PM_ROGUE, PM_SAMURAI } from './monsters.js';
@@ -66,7 +66,7 @@ import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
 import { makemon, makemon_appear, set_malign } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, change_luck, Luck } from './attrib.js';
-import { A_STR, A_DEX } from './const.js';
+import { A_STR, A_DEX, XKILL_NOMSG } from './const.js';
 import {
     tmp_at, tmp_at_end_async, nh_delay_output,
 } from './animation.js';
@@ -233,26 +233,38 @@ export async function promptDirectionAndThrowItem(player, map, display, item, { 
         await display.putstr_message('You cannot throw something you are wearing.');
         return { moved: false, tookTime: false };
     }
-    // C ref: dothrow.c dothrow() — split item from stack, remove from inventory,
-    // then delegate to throwit() for trajectory + hit resolution.
+    // C ref: dothrow.c dothrow()/throw_obj() — multishot count is determined
+    // before stack splitting, then each shot removes a single item.
     let wep_mask = 0;
     if (player.weapon === item) wep_mask |= W_WEP;
     if (player.swapWeapon === item) wep_mask |= W_SWAPWEP;
     if (player.quiver === item) wep_mask |= W_QUIVER;
-    let thrownItem = item;
-    if ((item.quan || 1) > 1) {
-        item.quan = (item.quan || 1) - 1;
-        item.owt = weight(item); // C ref: splitobj recalculates weight for remaining stack
-        thrownItem = { ...item, quan: 1, o_id: next_ident() };
-        thrownItem.owt = weight(thrownItem); // C ref: splitobj recalculates weight for split item
-    } else {
-        player.removeFromInventory(item);
-        if (player.weapon === item) uwepgone(player);
-        if (player.swapWeapon === item) uswapwepgone(player);
-        if (player.quiver === item) uqwepgone(player);
+    const multishot = throw_obj(player, item, 0);
+    player._m_shot = {
+        n: multishot,
+        i: 0,
+        o: item.otyp,
+        s: multishot > 1 ? 's' : null,
+    };
+    for (let i = 1; i <= multishot; i++) {
+        player._m_shot.i = i;
+        let thrownItem = item;
+        if ((item.quan || 1) > 1) {
+            item.quan = (item.quan || 1) - 1;
+            item.owt = weight(item); // C ref: splitobj recalculates weight for remaining stack
+            thrownItem = { ...item, quan: 1, o_id: next_ident() };
+            thrownItem.owt = weight(thrownItem); // C ref: splitobj recalculates weight for split item
+        } else {
+            player.removeFromInventory(item);
+            if (player.weapon === item) uwepgone(player);
+            if (player.swapWeapon === item) uswapwepgone(player);
+            if (player.quiver === item) uqwepgone(player);
+        }
+        thrownItem._thrownByPlayer = true;
+        await throwit(thrownItem, wep_mask, false, null, player, map, game);
+        if (game && !game.thrownobj) break;
     }
-    thrownItem._thrownByPlayer = true;
-    await throwit(thrownItem, wep_mask, false, null, player, map, game);
+    player._m_shot = null;
     return { moved: false, tookTime: true };
 }
 
@@ -1263,6 +1275,15 @@ export async function thitmonst(mon, obj, player, map, game) {
     if (disttmp < -4) disttmp = -4;
     tmp += disttmp;
 
+    const applyThrownDamage = async (damage) => {
+        if (mon.mhp !== undefined) mon.mhp -= damage;
+        if ((mon.mhp ?? 1) < 1) {
+            await xkilled(mon, XKILL_NOMSG, map, player);
+            return true;
+        }
+        return false;
+    };
+
     if (player.gloves && uwep && (objectData[uwep.otyp]?.oc_subtyp ?? 0) === P_BOW) tmp -= 2;
 
     tmp += omon_adj(mon, obj, true);
@@ -1292,7 +1313,7 @@ export async function thitmonst(mon, obj, player, map, game) {
         }
         if (tmp >= dieroll) {
             const dmg = dmgval(obj, mon);
-            if (mon.mhp !== undefined) mon.mhp -= dmg;
+            await applyThrownDamage(dmg);
             await exercise(player, A_DEX, true);
             if (should_mulch_missile(obj, false)) return 1;
         } else {
@@ -1303,19 +1324,19 @@ export async function thitmonst(mon, obj, player, map, game) {
         if (tmp >= dieroll) {
             await exercise(player, A_DEX, true);
             const dmg = dmgval(obj, mon);
-            if (mon.mhp !== undefined) mon.mhp -= dmg;
+            await applyThrownDamage(dmg);
         } else { await tmiss(obj, mon, true, player, map); }
     } else if (otyp === BOULDER) {
         await exercise(player, A_STR, true);
         if (tmp >= dieroll) {
             await exercise(player, A_DEX, true);
             const dmg = dmgval(obj, mon);
-            if (mon.mhp !== undefined) mon.mhp -= dmg;
+            await applyThrownDamage(dmg);
         } else { await tmiss(obj, mon, true, player, map); }
     } else if ((otyp === EGG || otyp === CREAM_PIE || otyp === BLINDING_VENOM || otyp === ACID_VENOM)
                && (dex > rnd(25))) {
         const dmg = dmgval(obj, mon);
-        if (mon.mhp !== undefined) mon.mhp -= dmg;
+        await applyThrownDamage(dmg);
         return 1;
     } else if (obj.oclass === POTION_CLASS && (dex > rnd(25))) {
         await potionhit(mon, obj, 1, player, map); // POTHIT_HERO_THROW=1
