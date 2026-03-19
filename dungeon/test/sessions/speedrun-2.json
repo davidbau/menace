@@ -1,0 +1,2133 @@
+{
+  "seed": 2,
+  "steps": [
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "open mailbox",
+      "extra": true
+    },
+    {
+      "cmd": "take leaflet",
+      "extra": true
+    },
+    {
+      "cmd": "read leaflet",
+      "extra": true
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "climb tree"
+    },
+    {
+      "cmd": "take egg"
+    },
+    {
+      "cmd": "examine egg",
+      "extra": true
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "open window"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "take sword"
+    },
+    {
+      "cmd": "examine sword",
+      "extra": true
+    },
+    {
+      "cmd": "move rug"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "look"
+    },
+    {
+      "cmd": "kill troll with sword"
+    },
+    {
+      "cmd": "kill troll with sword",
+      "note": "seed=2: second attack batters troll into unconsciousness"
+    },
+    {
+      "cmd": "kill troll with sword",
+      "note": "seed=2: third attack kills unconscious troll"
+    },
+    {
+      "cmd": "drop all but lamp, sword and egg"
+    },
+    {
+      "cmd": "take mat",
+      "note": "pick up mat from troll room for later use; also PRNG fix #1 of 3"
+    },
+    {
+      "cmd": "take bottle",
+      "note": "pick up water bottle from troll room for later use; PRNG fix #2 of 3"
+    },
+    {
+      "cmd": "inventory",
+      "note": "PRNG fix #3 of 3: with take mat+bottle+inventory (3 steps here) plus inventory before wait (1 step), fixes thief PRNG (no egg theft at ODYSSEUS) + carousel→rm90 + no coin theft"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "take coins"
+    },
+    {
+      "cmd": "examine coins",
+      "extra": true
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ODYSSEUS"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "PRNG fix: look before go up (entering thief lair) to align PRNG state for seed=2; prevents thief from killing player on entry"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "give egg to thief"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "inventory",
+      "note": "PRNG fix #4 of 5: first inventory before thief-wait"
+    },
+    {
+      "cmd": "inventory",
+      "note": "PRNG fix #5 of 5: second inventory before thief-wait (needed for seed=2 due to extra troll attacks and extra action steps)"
+    },
+    {
+      "cmd": "wait",
+      "note": "shift thief THFPOS from 102 to 101+ before entering room 102; with seed 1 thief robs player in room 102 without this wait"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "open case"
+    },
+    {
+      "cmd": "put coins in case"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "drop all but rope, lamp, mat and bottle",
+      "note": "keep mat and bottle in inventory (already picked up from troll room); mat needed for dreary room door, bottle for well"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "tie rope to railing"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "examine torch",
+      "extra": true
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put torch in case"
+    },
+    {
+      "cmd": "turn on lamp",
+      "note": "lamp was off since dome section; need light for second underground descent"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Carousel PRNG fix 1/6: extra look in E-W Passage to align Carousel exit for seed=2"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Carousel PRNG fix 2/6"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Carousel PRNG fix 3/6"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Carousel PRNG fix 4/6"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Carousel PRNG fix 5/6"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Carousel PRNG fix 6/6: after these 6 looks, Carousel exits to the engravings cave (correct path to well)"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "answer \"well\""
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "take necklace"
+    },
+    {
+      "cmd": "examine necklace",
+      "extra": true
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "get inside bucket"
+    },
+    {
+      "cmd": "open bottle"
+    },
+    {
+      "cmd": "pour water"
+    },
+    {
+      "cmd": "get out of bucket"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "eat eatme cake"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "throw red cake"
+    },
+    {
+      "cmd": "take tin"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "eat blue cake"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "tell robot \"go east\""
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "tell robot \"push triangular button\""
+    },
+    {
+      "cmd": "tell robot \"go south\""
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "tell robot \"lift cage\""
+    },
+    {
+      "cmd": "get sphere"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Low Room PRNG fix: extra look in Low Room to align random exit for seed=2 (se exits to Tea Room→Top of Well→bucket)"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "fill bottle with water"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "open box"
+    },
+    {
+      "cmd": "take violin"
+    },
+    {
+      "cmd": "examine violin",
+      "extra": true
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "proceed south"
+    },
+    {
+      "cmd": "take painting"
+    },
+    {
+      "cmd": "examine painting",
+      "extra": true
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "take portrait"
+    },
+    {
+      "cmd": "examine portrait",
+      "extra": true
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "walk through south wall"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "take bills"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "drop all except torch"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "walk through north wall"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "take torch and mat"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "read matchbook"
+    },
+    {
+      "cmd": "send for free brochure"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "push yellow button"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "turn bolt with wrench"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "proceed south"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, mat and screwdriver"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "put mat under door"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put screwdriver in keyhole"
+    },
+    {
+      "cmd": "take mat"
+    },
+    {
+      "cmd": "take key"
+    },
+    {
+      "cmd": "take screwdriver",
+      "note": "retrieve screwdriver from keyhole before unlocking door"
+    },
+    {
+      "cmd": "unlock door with key"
+    },
+    {
+      "cmd": "open door"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put blue sphere in case"
+    },
+    {
+      "cmd": "examine blue sphere",
+      "extra": true
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take lamp"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go north",
+      "note": "sack moved to E-W Passage by thief in seed=2; go north first to reach E-W Passage"
+    },
+    {
+      "cmd": "open sack"
+    },
+    {
+      "cmd": "take garlic"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "take trunk"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "take pump"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "take trident"
+    },
+    {
+      "cmd": "examine trident",
+      "extra": true
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put trunk and trident in case"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "echo",
+      "boundaryAdjust": -1,
+      "note": "Echo Room reads 'echo' as part of the preceding ne move — no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1",
+      "echoRoom": true
+    },
+    {
+      "cmd": "take bar"
+    },
+    {
+      "cmd": "examine bar",
+      "extra": true
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "take shovel"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "pump up plastic"
+    },
+    {
+      "cmd": "put all in boat"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "launch"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief movement PRNG fix: extra look shifts thief scanning position so rope (room 79) is not stolen; thief now deposits rope in Mine Shaft area instead of room 70"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "take buoy"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "open buoy"
+    },
+    {
+      "cmd": "take emerald"
+    },
+    {
+      "cmd": "examine emerald",
+      "extra": true
+    },
+    {
+      "cmd": "put buoy in boat"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "dig sand with shovel"
+    },
+    {
+      "cmd": "drop shovel"
+    },
+    {
+      "cmd": "take statue"
+    },
+    {
+      "cmd": "examine statue",
+      "extra": true
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "wave stick"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "take gold"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "put platinum bar, pot of gold, statue and large emerald in case",
+      "note": "explicit deposits (put all in case fails silently); lightens load so brochure can be taken at mailbox"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "open mailbox"
+    },
+    {
+      "cmd": "take brochure",
+      "note": "take brochure with stamp inside (not take all, which separates stamp from brochure)"
+    },
+    {
+      "cmd": "examine brochure",
+      "extra": true
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "drop all but lamp",
+      "note": "keep lamp in inventory to turn it off after thief fight (saves ~100 battery turns)"
+    },
+    {
+      "cmd": "take knife"
+    },
+    {
+      "cmd": "take garlic"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 1/13: seed=2 with 1 movement-PRNG-fix look requires 13 fight looks for thief to die in 2 hits"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 2/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 3/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 4/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 5/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 6/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 7/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 8/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 9/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 10/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 11/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 12/13:"
+    },
+    {
+      "cmd": "look",
+      "extra": true,
+      "note": "Thief fight PRNG fix 13/13:"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "kill thief with knife"
+    },
+    {
+      "cmd": "kill thief with knife",
+      "note": "seed=2 with 5 PRNG fix looks: thief dies on 2nd hit"
+    },
+    {
+      "cmd": "kill thief with knife",
+      "expectFail": true,
+      "note": "thief already dead after 2nd hit; 3rd attempt fails harmlessly"
+    },
+    {
+      "cmd": "take coffin"
+    },
+    {
+      "cmd": "examine coffin",
+      "extra": true
+    },
+    {
+      "cmd": "turn off lamp",
+      "note": "thief dead, torch in inventory provides light through step ~394; saves ~100 lamp turns"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "put coffin in case"
+    },
+    {
+      "cmd": "put brochure in case",
+      "note": "deposit brochure+stamp (otval=1 for stamp) in trophy case for final 616th point"
+    },
+    {
+      "cmd": "go down",
+      "note": "dome detour start: retrieve rope from dome railing (16 steps)"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "untie rope"
+    },
+    {
+      "cmd": "take rope"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go up",
+      "note": "dome detour end: back in living room with rope in inventory"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "wind canary"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "take bauble"
+    },
+    {
+      "cmd": "examine bauble",
+      "extra": true
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all but rope"
+    },
+    {
+      "cmd": "take torch and matchbook"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "take grail"
+    },
+    {
+      "cmd": "examine grail",
+      "extra": true
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "take bell"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed south"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "ring bell"
+    },
+    {
+      "cmd": "take candles"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light candles with match"
+    },
+    {
+      "cmd": "read book"
+    },
+    {
+      "cmd": "drop book and candles"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put grail in case"
+    },
+    {
+      "cmd": "drop matchbook",
+      "note": "keep torch in inventory for dark cellar navigation"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "lamp is on rm8 floor; torch stays in inventory from above"
+    },
+    {
+      "cmd": "take garlic",
+      "expect": []
+    },
+    {
+      "cmd": "take screwdriver",
+      "expect": []
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "touch mirror"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "take jade figurine"
+    },
+    {
+      "cmd": "examine jade figurine",
+      "extra": true
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "put torch and screwdriver in basket"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "take bracelet"
+    },
+    {
+      "cmd": "examine bracelet",
+      "extra": true
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "take coal"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "drop all but rope"
+    },
+    {
+      "cmd": "take lamp, timber and coal"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "put coal in basket"
+    },
+    {
+      "cmd": "drop rope",
+      "note": "rope stays at Mine Shaft floor; cannot carry through narrow sw passage, cannot fit in basket"
+    },
+    {
+      "cmd": "drop timber"
+    },
+    {
+      "cmd": "lower basket"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "drop lamp",
+      "note": "must be empty-handed for narrow sw passage; rope already at Mine Shaft floor"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "put coal in machine"
+    },
+    {
+      "cmd": "close lid"
+    },
+    {
+      "cmd": "turn switch with screwdriver"
+    },
+    {
+      "cmd": "open lid"
+    },
+    {
+      "cmd": "take diamond"
+    },
+    {
+      "cmd": "examine diamond",
+      "extra": true
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "put all in basket"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "drop garlic, jade and bracelet",
+      "note": "lighten load before taking heavy timber; dropped items stay here for take all at step ~472"
+    },
+    {
+      "cmd": "raise basket",
+      "note": "raise basket from Lower Shaft to get torch"
+    },
+    {
+      "cmd": "take torch, timber and rope",
+      "note": "torch from basket, timber from mine shaft floor, rope from mine shaft floor"
+    },
+    {
+      "cmd": "turn off lamp"
+    },
+    {
+      "cmd": "drop all but rope, torch and timber"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "drop timber"
+    },
+    {
+      "cmd": "tie rope to timber"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "take sphere"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "take all"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "put treasure in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "proceed south"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "read paper"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "go east"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "proceed north"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "take card"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "walk east"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "push east wall"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "proceed south"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "push south wall"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "se"
+    },
+    {
+      "cmd": "ne"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "sw"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "push north wall"
+    },
+    {
+      "cmd": "nw"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "proceed east"
+    },
+    {
+      "cmd": "put card in case"
+    },
+    {
+      "cmd": "drop all"
+    },
+    {
+      "cmd": "take torch, lamp, guidebook, brick and matchbook"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go down"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "take wire"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "throw torch"
+    },
+    {
+      "cmd": "turn on lamp"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "take ruby"
+    },
+    {
+      "cmd": "go west"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "open receptacle"
+    },
+    {
+      "cmd": "put guidebook in receptacle"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light guidebook with match"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "take coin"
+    },
+    {
+      "cmd": "run south"
+    },
+    {
+      "cmd": "open purple book"
+    },
+    {
+      "cmd": "take stamp"
+    },
+    {
+      "cmd": "go north"
+    },
+    {
+      "cmd": "untie rope from hook"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "land"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "tie rope to hook"
+    },
+    {
+      "cmd": "proceed south"
+    },
+    {
+      "cmd": "put brick in hole"
+    },
+    {
+      "cmd": "put wire in brick"
+    },
+    {
+      "cmd": "light match"
+    },
+    {
+      "cmd": "light wire with match"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "walk south"
+    },
+    {
+      "cmd": "take crown"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "untie rope from hook"
+    },
+    {
+      "cmd": "board"
+    },
+    {
+      "cmd": "close receptacle"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "disembark"
+    },
+    {
+      "cmd": "run north"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "walk north"
+    },
+    {
+      "cmd": "take torch"
+    },
+    {
+      "cmd": "run east"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "go south"
+    },
+    {
+      "cmd": "proceed west"
+    },
+    {
+      "cmd": "run west"
+    },
+    {
+      "cmd": "walk west"
+    },
+    {
+      "cmd": "open trap door"
+    },
+    {
+      "cmd": "go up"
+    },
+    {
+      "cmd": "examine brochure",
+      "expect": [
+        "MIT Tech"
+      ],
+      "note": "MIT Tech parody: Ambition, Uglification, Derision, Reeling and Writhing (Lewis Carroll)"
+    },
+    {
+      "cmd": "examine coin",
+      "expect": [
+        "Lord Dimwit Flathead",
+        "Zorkmid"
+      ],
+      "note": "Gold Zorkmid coin: Ten Thousand Zorkmids, Lord Dimwit Flathead Beloved of Zorkers, 722 G.U.E."
+    },
+    {
+      "cmd": "examine matchbook",
+      "expect": [
+        "BKD"
+      ],
+      "note": "matchbook: MIT Tech paper shuffling ad, Close cover before striking BKD"
+    },
+    {
+      "cmd": "examine newspaper",
+      "expect": [
+        "dungeon report"
+      ],
+      "note": "US NEWS & DUNGEON REPORT: lots of bugs fixed, dsmaint@pa.dec.com"
+    },
+    {
+      "cmd": "examine stamp",
+      "note": "G.U.E. Postage stamp: Lord Dimwit Flathead portrait, 3 Zorkmids (ASCII art border lines filtered)"
+    },
+    {
+      "cmd": "put treasure in case",
+      "boundaryAdjust": 1,
+      "note": "final deposit triggers endgame with extra ' > ruby:' boundary; boundaryAdjust=+1 cancels the earlier -1 to land on 616 announcement; score appears on \"score\" command output, not here"
+    },
+    {
+      "cmd": "score",
+      "note": "final score verification; final score verification: 616/616 points",
+      "expect": [
+        "616 [total of 616 points]"
+      ]
+    }
+  ],
+  "notes": "Seed 2 complete speedrun attempt (literate route with extra examinations for PRNG alignment)",
+  "source": "dungeon.hints.txt"
+}
