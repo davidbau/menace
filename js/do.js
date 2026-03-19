@@ -1007,8 +1007,8 @@ async function promptDropTypeClass(display, player) {
     }
 }
 
-// C ref: do.c doddrop() — drop by class/category.
-// Focused path used by parity sessions: class query + invlet selection.
+// C ref: do.c menu_drop() — drop by class/category.
+// Flow: query_category → parse selections → auto-drop or query_objlist → drop.
 export async function handleDropTypes(player, map, display) {
     if (!player?.inventory || player.inventory.length === 0) {
         await display.putstr_message("You don't have anything to drop.");
@@ -1017,21 +1017,113 @@ export async function handleDropTypes(player, map, display) {
 
     const cls = await promptDropTypeClass(display, player);
     if (cls == null) return { moved: false, tookTime: false };
-    const trimmed = String(cls).trim();
-    if (!trimmed) return { moved: false, tookTime: false };
+    const rawInput = String(cls).trim();
+    if (!rawInput) return { moved: false, tookTime: false };
 
-    let candidates = [];
-    if (trimmed.includes('u')) {
-        candidates = player.inventory.filter((obj) => !!obj?.unpaid && !!obj?.invlet);
+    // C ref: menu_drop() parses query_category results.
+    // Build class→accelerator mapping matching promptDropTypeClass:
+    //   'a' = all, 'b','c','d'... = specific item classes,
+    //   'B'/'C'/'U'/'X' = BUC categories, 'P' = recently picked up, 'u' = unpaid.
+    const inventory = player.inventory;
+    const classSet = new Set();
+    for (const obj of inventory) {
+        const sym = CLASS_SYMBOLS?.[obj?.oclass];
+        if (typeof sym === 'string' && sym.length > 0) classSet.add(sym);
     }
-    if (candidates.length === 0) {
-        if (trimmed.includes('A')) {
-            await display.putstr_message('No relevant items selected.');
+    const classOrder = ['$', '"', ')', '[', '%', '?', '+', '!', '=', '/', '(', '*'];
+    const accelToClass = new Map();
+    let accel = 'b'.charCodeAt(0);
+    for (const sym of classOrder) {
+        if (!classSet.has(sym)) continue;
+        accelToClass.set(String.fromCharCode(accel++), sym);
+    }
+
+    // Parse the raw input to extract category selections and count prefix.
+    // C ref: PICK_ANY menu handles count prefix before category letter.
+    // "20P" means: select 'P' with count 20. Digits before the last
+    // category letter form the count.
+    let allCategories = false;
+    let autopick = false;
+    let dropJustpicked = false;
+    let justpickedQuan = 0;
+    const selectedClassSymbols = new Set();
+
+    // Extract count prefix: digits at the start of input before a non-digit
+    let countPrefix = 0;
+    let countDigits = '';
+    for (const ch of rawInput) {
+        if (ch >= '0' && ch <= '9') {
+            countDigits += ch;
+        } else {
+            if (countDigits) countPrefix = parseInt(countDigits, 10);
+            countDigits = '';
+
+            if (ch === 'a') {
+                allCategories = true;
+                for (const sym of classSet) selectedClassSymbols.add(sym);
+            } else if (ch === 'A') {
+                autopick = true;
+            } else if (ch === 'P') {
+                dropJustpicked = true;
+                justpickedQuan = countPrefix || 0;
+                countPrefix = 0; // consumed
+            } else if (accelToClass.has(ch)) {
+                selectedClassSymbols.add(accelToClass.get(ch));
+            } else if (ch === 'B' || ch === 'C' || ch === 'U' || ch === 'X' || ch === 'u') {
+                // BUC / unpaid — handled in filter below
+            }
         }
+    }
+
+    // Build filter matching C's allow_category / allow_all
+    const matchesCategory = (obj) => {
+        if (!obj?.invlet) return false;
+        if (allCategories || autopick) return true;
+        const sym = CLASS_SYMBOLS?.[obj?.oclass];
+        if (selectedClassSymbols.has(sym)) return true;
+        if (rawInput.includes('u') && obj.unpaid) return true;
+        if (rawInput.includes('B') && obj.bknown && obj.blessed) return true;
+        if (rawInput.includes('C') && obj.bknown && obj.cursed) return true;
+        if (rawInput.includes('U') && obj.bknown && !obj.blessed && !obj.cursed) return true;
+        if (rawInput.includes('X') && !obj.bknown) return true;
+        if (dropJustpicked && obj.pickup_prev) return true;
+        return false;
+    };
+
+    const game = _gstate || null;
+    let nDropped = 0;
+
+    // C ref: do.c:1036-1062 — autopick ('A' selected): drop all matching items
+    if (autopick) {
+        for (const obj of [...inventory]) {
+            if (matchesCategory(obj)) {
+                const result = await drop_single(obj, player, map);
+                if (result) nDropped++;
+            }
+        }
+        return { moved: false, tookTime: nDropped > 0 };
+    }
+
+    // C ref: do.c:1063-1068 — 'P' (just picked up) with exactly 1 matching stack:
+    // auto-drop without showing a second menu.
+    if (dropJustpicked) {
+        const justPickedItems = inventory.filter(o => o?.pickup_prev);
+        if (justPickedItems.length === 1) {
+            const otmp = justPickedItems[0];
+            const result = await menudrop_split(otmp, justpickedQuan, player, map);
+            return { moved: false, tookTime: !!(result & 1) };
+        }
+    }
+
+    // C ref: do.c:1069-1099 — general case: show filtered inventory for selection.
+    // query_objlist("What would you like to drop?", ..., PICK_ANY, filter)
+    const candidates = inventory.filter(matchesCategory);
+    if (candidates.length === 0) {
         return { moved: false, tookTime: false };
     }
 
-    // C getobj-style letter selection for filtered inventory.
+    // Show filtered items and accept selection via nhgetch.
+    // C uses a full PICK_ANY menu here; JS uses invlet selection for now.
     const sel = await nhgetch();
     if (sel === 27 || sel === 10 || sel === 13 || sel === 32) {
         return { moved: false, tookTime: false };
