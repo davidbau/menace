@@ -6042,14 +6042,28 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\bhack\b/i,
+        topic: 'hack',
         responses: [
           'yeah hack is done. 1.0. its out there\nstop finding bugs i cant fix them all',
           'hack works fine on the pdp\nif it crashes tell me what you were doing',
           'i wrote most of it in two weeks\nkelly thinks thats fast. its not that fast',
         ],
+        followUps: [
+          'yeah its still running\nno major bugs this week at least',
+          'the source is out there if you want to look at it',
+        ],
+        beat: {
+          question: 'you playing it right now',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'nice\nhow deep are you' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'you should\nits on the pdp' },
+            { response: 'ok' },
+          ],
+        },
       },
       {
         re: /\b(bug|crash|broken|segfault)\b/i,
+        topic: 'debug',
         responses: [
           'what were you doing when it crashed\nbe specific',
           'send me a save file\nactually no saves are broken too\njust describe it',
@@ -6080,14 +6094,20 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(permadeath|die|death|dead|killed)\b/i,
+        topic: 'permadeath',
         responses: [
           'thats the point\nyou die you start over\nno saves mid-dungeon',
           'i know you hate it\nbut without permadeath theres no tension\nask crowther',
           'rogue had it first\nwe kept it\nend of discussion',
         ],
+        followUps: [
+          'the point is you start over knowing more than you did',
+          'every death teaches you something if you pay attention',
+        ],
       },
       {
         re: /\b(map|mapping|mapped)\b/i,
+        topic: 'map',
         responses: [
           'draw the map yourself\nthat IS the game\nif you dont map you die\nits that simple',
           'the dungeon changes every game\nso your map from last time is worthless\nstart fresh every time',
@@ -6096,10 +6116,15 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(level|dungeon|floor|dlvl)\b/i,
+        topic: 'dungeon',
         responses: [
           'deeper is harder\neveryone knows this\ngo slow',
           'the dungeon goes down\nyou go down\nyou keep going down\nuntil youre dead or you get the amulet',
           'each level is new geometry\nyou have to learn it fast\nor something eats you',
+        ],
+        followUps: [
+          'seriously just go slow and map everything',
+          'the dungeon is fair\nit gives you the information\nyou just have to read it',
         ],
       },
       {
@@ -6127,10 +6152,15 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(cave|caving|underground|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'dungeon is a cave right\nreal rule: always know two ways out\nnot one. two\nif one collapses you have the other',
           'i think about the dungeon like a real cave\nyou go in, you map, you dont go deeper than you can get back from\nbasic survival',
           'crowther knows actual caves\nask him\nbut the advice is the same underground is underground',
+        ],
+        followUps: [
+          'seriously, two exits minimum\nalways',
+          'never go deeper than you can get back out from\nthats the whole rule',
         ],
       },
     ],
@@ -6239,15 +6269,29 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\b(cave|caving|spelunk|underground|grotto)\b/i,
+        topic: 'cave',
         responses: [
           'you map as you go. no exceptions.\ni have a survey notebook for every trip since 1968\nthe dungeon is no different',
           'real rule underground: you move forward only when you know the way back\nnot think you know. know.\nmark it.',
           'caves do not forgive inattention\nneither does the dungeon\nthey are the same environment',
           'first thing you do in any passage: look back\nremember what the entrance looks like from the inside\nyou will need that on the way out',
         ],
+        followUps: [
+          'the cave does not care about your intentions\nonly your preparation',
+          'mammoth cave has passages mapped for a hundred years\nand still passages no one has entered\nhumility underground',
+        ],
+        beat: {
+          question: 'you ever been in a real cave',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'good\nthen you know\nthe dungeon is the same environment\njust with monsters instead of breakdown' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'find a local grotto club\nthey will take you in\ncaving changes how you see the dungeon' },
+            { response: 'ok\nwell the dungeon is close enough\nif you treat it seriously' },
+          ],
+        },
       },
       {
         re: /\b(adventure|game|colossal)\b/i,
+        topic: 'adventure',
         responses: [
           'i wrote it for my kids originally\nwanted to share the caves without the mud\nit got away from me',
           'the cave in the game is mammoth cave\ni surveyed it for years\nthe geography is real\nsome of it',
@@ -6256,10 +6300,15 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(map|survey|mapping|surveying)\b/i,
+        topic: 'map',
         responses: [
           'surveying is not optional underground\nyou think you will remember\nyou will not\nmap everything',
           'i use a compass, a tape, and a notebook\nthose are the three tools\neverything else is secondary',
           'the dungeon levels are mapped the same way\ncompass bearing, distance, feature notes\ndo not trust your memory',
+        ],
+        followUps: [
+          'the map is not the cave\nbut it is how the cave lives in your head',
+          'three tools: compass, tape, notebook\nthat is all surveying is',
         ],
       },
       {
@@ -6288,6 +6337,7 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(dungeon|level|floor|nethack|hack)\b/i,
+        topic: 'dungeon',
         responses: [
           'the dungeon is a cave system\ntreat it like one\nmap, move carefully, always know the exit',
           'every dungeon level is a new cave room\nmap the exits first\nthen explore the interior',
@@ -6333,6 +6383,7 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\blogo\b/i,
+        topic: 'logo',
         responses: [
           'Logo is built on the idea that children can be mathematicians\nnot consumers of mathematics\nbut actual creators of mathematical structure\nthe turtle is just the entry point',
           'the turtle in Logo is a formal object\nit has state: position and heading\ncommands change that state\nthis is exactly how you think about any computational object',
@@ -6349,11 +6400,21 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(programming|learn|teach|code|coding)\b/i,
+        topic: 'programming',
         responses: [
           'learning to program is learning to externalize your thinking\nyou already know how to make decisions and repeat actions\nprogramming makes that explicit and testable',
           'the mistake is teaching syntax first\nsyntax is notation\nwhat matters is the concept: state, control flow, abstraction\nonce you have the concept the syntax is easy',
           'i always start with: what do you want the computer to do\nthen: how would you tell a very literal-minded person to do it\nthat is programming',
         ],
+        beat: {
+          question: 'what are you trying to build',
+          replies: [
+            { re: /\bgame\b/i, response: 'games are excellent for teaching state machines\nthe player has state. the world has state. events change state.\nthat structure is universal' },
+            { re: /\beditor\b/i, response: 'an editor is a good project\nthe hard part is the data structure for the buffer\nthink about it before you start' },
+            { re: /\bnothing\b|\bnot sure\b|\bnot yet\b/i, response: 'find a problem you actually have\nthen solve it\nthe best programs come from real needs' },
+            { response: 'interesting\nstart with the smallest version that would be useful\nnot the full thing\njust the core' },
+          ],
+        },
       },
       {
         re: /\b(computer|computers|machine)\b/i,
@@ -6364,10 +6425,15 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(hard|stuck|confused|don\'t understand|dont understand)\b/i,
+        topic: 'learning',
         responses: [
           'if you are stuck, go back to the last thing you understood\nthat is always the right move\nnot forward into more confusion, but back to solid ground\nthen build from there',
           'confusion means the model in your head does not match what the computer is doing\nfigure out which part of your model is wrong\nthat is the actual work',
           'i find it helps to write down what you think the program does, step by step\nthen run it and see where the trace diverges from your description\nthat tells you exactly where the misunderstanding is',
+        ],
+        followUps: [
+          'go back to the last known good point\nthen forward again more carefully',
+          'write down your model first\nthen compare it to what the machine does',
         ],
       },
       {
@@ -6380,10 +6446,15 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'i think about caving the way i think about any new system\nfirst: understand the constraints\nhow deep, how long, what are the exits\nthen: move within those constraints carefully',
           'the dungeon in nethack is a risk-management problem\nyou have resources: hp, food, scrolls\nand hazards: monsters, traps, darkness\nthe question is always: do my resources exceed the expected hazard\nif not, go back up',
           'exploring unknown terrain is the same whether it is a cave or a dungeon or a new codebase\nidentify known safe points\nmove from one to the next\nnever commit to a move you cannot reverse',
+        ],
+        followUps: [
+          'the principle is always: know your resources before you commit to depth',
+          'every unexplored area is a risk\nonly take it when your expected return exceeds the expected cost',
         ],
       },
       {
@@ -6418,11 +6489,20 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\b(jove|editor)\b/i,
+        topic: 'jove',
         responses: [
           'jove is usable now\ngap buffer, no lisp, half the memory of emacs\nit fits in 64k with room to spare',
           'the key insight was: you do not need to interpret lisp to edit text\nemacs does that\nbut most of what emacs does is just edit text\nso i cut the lisp',
           'i use jove for everything now\nit starts faster, feels faster\nthe one thing emacs has that i miss is the macro system\nbut i\'m working on it',
         ],
+        beat: {
+          question: 'have you tried jove yet',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'good\nwhat do you think' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'it is on the system\njust type jove\nit is mostly emacs keybindings\nyou will figure it out' },
+            { response: 'it is worth trying\nfaster than emacs on this hardware' },
+          ],
+        },
       },
       {
         re: /\bemacs\b/i,
@@ -6449,14 +6529,24 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(distribution|distribute|ship|release)\b/i,
+        topic: 'distribution',
         responses: [
           'distribution is the unsolved problem\nwe can write good software\nbut getting it to people who need it is still tapes and arpanet and hope',
           'someday distribution will be trivial\nand the bottleneck will shift entirely to: is the software any good\ni think that will be better',
           'the arpanet changes this\nonce every university is connected, distribution is email\nbut we are not there yet for most software',
         ],
+        beat: {
+          question: 'you think network distribution actually happens in the next ten years',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b|\bsure\b/i, response: 'i think so too\narpa is already there for researchers\nthe question is whether it extends to everyone else' },
+            { re: /\bno\b|\bnot\b|\bnah\b|\bdoubt\b/i, response: 'maybe\nthe phone companies are an obstacle\nbut the economics are pushing toward it' },
+            { response: 'hard to say\nbut the direction is clear\neven if the timeline is not' },
+          ],
+        },
       },
       {
         re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'mapping the dungeon is the same problem as version control\nyou are at a known state\nyou explore forward\nyou need to be able to get back to the known state\nmap it',
           'i think about cave navigation the same way i think about buffer navigation\nmark your position before you move somewhere uncertain\nthen you can always jump back',
@@ -6496,11 +6586,20 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(jay|fenlason)\b/i,
+        topic: 'jay',
         responses: [
           'he is in the terminal room probably\nor sleeping\none of those two',
           'jay is busy. what do you need.',
           'my brother is not great at answering messages\nbut he does eventually\ngive him a day',
         ],
+        beat: {
+          question: 'have you talked to him lately',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'ok\nhow did that go' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'terminal room, after dinner\nor just leave mail\nhe reads it eventually' },
+            { response: 'check the terminal room\nthat is where he is if he is not in class' },
+          ],
+        },
       },
       {
         re: /\b(club|meeting|notes|minutes)\b/i,
@@ -6528,10 +6627,15 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'underground: three rules\none. tell someone where you are going and when you will be back\ntwo. bring more light than you think you need\nthree. if the route looks wrong, it is wrong\ngo back',
           'i went caving once with the geology club\nit is systematic work\nyou map every passage, you mark every junction\nyou do not get creative about it',
           'the dungeon is the same as any confined space\nprepare before you enter\nhave a clear exit strategy\ndo not get separated from your light source',
+        ],
+        followUps: [
+          'three rules, every time\ntell someone, extra light, go back when in doubt',
+          'systematic. every junction, every passage.\nyou do not improvise underground.',
         ],
       },
     ],
@@ -6560,11 +6664,24 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\b(network|arpa|arpanet|internet)\b/i,
+        topic: 'network',
         responses: [
           'the arpanet is the most interesting infrastructure problem running right now\npacket switching changes the cost model completely\ncircuit switching charges by time and distance\npackets charge by volume\nthose are different worlds',
           'arpa connectivity is the real question\nonce you are on arpanet the distribution problem is basically solved\nbut most schools are not on it yet',
           'i keep thinking about the routing problem\nhow does a packet know where to go\nright now it mostly does not\nit gets handed around until someone knows\nthat does not scale',
         ],
+        followUps: [
+          'the routing problem is the unsolved one\naddressing is easy\nrouting is hard',
+          'every node in the network should have to know as little as possible\nthat is the design principle',
+        ],
+        beat: {
+          question: 'you think the routing problem gets solved in the next decade',
+          replies: [
+            { re: /\byes\b|\byeah\b|\byep\b|\bprobably\b/i, response: 'i think so too\nthe research is pointing in the right direction\nbut it will take a while to get deployed everywhere' },
+            { re: /\bno\b|\bnot\b|\bnah\b|\bdoubt\b/i, response: 'maybe you are right\ntelecoms are not incentivized to make routing efficient\nthey want to charge by circuit' },
+            { response: 'hard to know\nbut the arpanet is proof it works at some scale\nthe question is whether it extends' },
+          ],
+        },
       },
       {
         re: /\b(distribution|distribute|share|sneakernet)\b/i,
@@ -6591,6 +6708,7 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'cave navigation is a routing problem\nyou are a packet\nthe cave is the network\nbad routing means you do not return\nmap the topology before you commit to a path',
           'the rule i use underground is: never go deeper than you can safely retreat\nthis is also the rule for systems work\nnever get into a state you cannot back out of',
@@ -6629,6 +6747,7 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\bchameleon\b/i,
+        topic: 'chameleon',
         responses: [
           'the chameleon is my best work\nit randomly looks like another monster\nso you never know what you\'re fighting until it\'s too late\nthe paranoia is the point',
           'i got the chameleon idea from caving actually\nreal caves have features that look like passages but aren\'t\npassages that look like walls\nthe environment deceives you\nchameleon is that',
@@ -6644,6 +6763,7 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(monster|creature|enemy|mob)\b/i,
+        topic: 'monsters',
         responses: [
           'the best monsters have one interesting rule\nnot ten rules\none rule that creates interesting decisions\ngnomes steal gold. zombies track you. that\'s enough.',
           'i think a lot about monster balance\nif a monster is always lethal, players avoid it\nif it\'s never lethal, players ignore it\nthe sweet spot is: dangerous if you make a mistake',
@@ -6659,6 +6779,7 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'the chameleon idea literally came from caving\nreal cave features deceive you\na passage that looks open is a squeeze\na wall that looks solid has a gap\nthe environment is not honest\nthe chameleon captures that',
           'underground there are natural hazards that look like environment\nnot like hazards\na slippery floor looks like a floor\nan unstable ceiling looks like ceiling\nthe cave does not label its dangers\nneither does the dungeon',
@@ -6704,6 +6825,7 @@ export const TALK_CORPUS = {
     patterns: [
       {
         re: /\b(maze|level|map|generate|procedural)\b/i,
+        topic: 'maze',
         responses: [
           'the recursive backtracker gives good maze variety\nyou start at a random cell, carve a passage, recurse\nuntil you hit a dead end, then backtrack\nwhat you get looks organic, not grid-like',
           'the level generator uses a 3x3 region grid\neach region gets one room\ncorridors connect adjacent rooms\nthis guarantees the level is connected\nno isolated rooms',
@@ -6735,6 +6857,7 @@ export const TALK_CORPUS = {
       },
       {
         re: /\b(cave|caving|underground|spelunk)\b/i,
+        topic: 'cave',
         responses: [
           'maze algorithms and real cave navigation are the same problem\nyou are in a graph with unknown topology\nthe algorithm to explore it: mark visited nodes, do not re-enter them, backtrack on dead ends\nthis is also how you survive a cave',
           'the rule i use in real underground spaces is the same rule the recursive backtracker uses\nalways maintain a route back to the start\nnever cut that route\nif you lose the route back you are in trouble',
