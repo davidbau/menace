@@ -13416,3 +13416,25 @@ Validation:
   - this cleanup did not move `seed031_manual_direct`
   - the remaining `seed031` drift is still the later command-vs-monster seam,
     not the old `#sit` continuation path
+## 2026-03-19 - Movement propagation replay tool
+
+- Added `scripts/movement-propagation.mjs` plus
+  `docs/MOVEMENT_PROPAGATION_TOOL.md`.
+- Purpose:
+  - inspect movement-ownership propagation over a gameplay-step window without
+    changing core code
+  - especially useful for `run/rush`, `ctx.run`, `ctx.mv`, `multi`, stored
+    `dx/dy`, and `lookaround()` stop/turn decisions
+- It replays JS with:
+  - `WEBHACK_EVENT_RUNSTEP=1`
+  - `WEBHACK_RUN_TRACE=1`
+- Then it groups replay output back into gameplay steps and prints:
+  - movement-related C step entries from the fixture
+  - movement-related JS step entries from replay
+  - JS `[RUN_TRACE]` lines for the same step window
+- Validation:
+  - `seed032` steps `89..91` clearly show the live mismatch:
+    - step `91` is still an inline JS multi-step `shiftRun` bundle
+    - C step `91` remains the later pet-distance / `dog_invent_decision` seam
+  - `seed031` steps `404..407` show no analogous run-trace activity, helping
+    separate that throw/pet seam from the run-ownership investigation

@@ -36,6 +36,18 @@ Current remaining failures:
 The main comparison sessions are still not green, but the blocker set is now
 narrow and entirely concentrated in the early manual/direct movement cluster.
 
+Useful new diagnostic:
+
+- `node scripts/movement-propagation.mjs <session> --step-from <N> --step-to <M>`
+  - replays JS with `^runstep[...]` plus `[RUN_TRACE]`
+  - groups the replay back into gameplay steps
+  - prints the selected step window with:
+    - C movement-related step entries
+    - JS movement-related step entries
+    - JS run-trace lines
+  - use this first when the question is how `run/mv/dx/dy/multi` ownership
+    propagates across a step window
+
 ## Landed In This Batch
 
 Core parity fix implemented:
