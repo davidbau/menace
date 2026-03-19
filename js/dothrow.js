@@ -20,11 +20,12 @@
 
 import { ACCESSIBLE, isok, xdir, ydir, W_WEP, W_QUIVER, W_SWAPWEP,
          ERODE_CRACK, EF_DESTROY, EF_VERBOSE, ER_DESTROYED,
-         DIRECTION_KEYS } from './const.js';
+         DIRECTION_KEYS, IRONBARS } from './const.js';
 import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
+import { hits_bars } from './mthrowu.js';
 import { more, nhgetch } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
@@ -1125,12 +1126,25 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     let animationClosed = false;
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
     try {
+        let point_blank = true; // C: first cell is point-blank (no rn2(5) for iron bars)
         for (let i = 0; i < range; i++) {
             const nx = bx + dx, ny = by + dy;
             if (!isok(nx, ny)) break;
             const loc = typeof map.at === 'function' ? map.at(nx, ny) : null;
             if (!loc || !ZAP_POS(loc.typ)) break;
             bx = nx; by = ny;
+
+            // C ref: zap.c:3888-3901 — iron bars check for thrown/kicked weapons.
+            // Must come BEFORE the monster check, matching C's bhit order.
+            if (loc.typ === IRONBARS) {
+                const always_hit = point_blank ? 0 : !rn2(5);
+                if (await hits_bars(obj, bx - dx, by - dy, bx, by, always_hit, 1, map, player, game)) {
+                    bx -= dx; by -= dy;
+                    break;
+                }
+            }
+            point_blank = false;
+
             // C ref: zap.c bhit() ALWAYS stops at the first monster for
             // THROWN_WEAPON. thitmonst is called after the loop.
             const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
