@@ -1071,3 +1071,48 @@ Current conclusion:
 - `seed031` remains blocked in the same branch-entry bundle, but the next live
   seam is later minefill finalization (`finalize_level` / `mineralize`) rather
   than misidentified branch coordinates
+
+## 2026-03-19: `seed031` mineralize gem-count depth bug fixed; frontier moved to step 480
+
+Validated core fix in `js/dungeon.js`:
+
+- JS `mineralize()` was using absolute depth for both:
+  - probability scaling
+  - gem-count quantity via `rnd(2 + depth/3)`
+- C uses two different depth notions:
+  - `goldprob`: `depth(&u.uz)` (absolute depth)
+  - gem count at `mklev.c:1529`: `rnd(2 + dunlev(&u.uz) / 3)` (branch-local level)
+- On the live `seed031` branch-entry Mines filler level this mattered:
+  - JS had `depth=5`, `dlevel=1`, so it called `rnd(3)`
+  - C called `rnd(2)`
+- Fix:
+  - preserve absolute depth for probability scaling
+  - use `map._genDlevel` (`dunlev`) for gem-count quantity
+
+Validation:
+
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+  - improved:
+    - RNG matched `22472 -> 23197`
+    - events matched `10188 -> 10800`
+  - old step-467 minefill finalization seam is gone
+  - new first RNG divergence:
+    - step `480`
+    - JS: `rn2(16)=6 @ dochug(monmove.js:847)`
+    - C:  `rn2(12)=6 @ m_move(monmove.c:1979)`
+  - new first event divergence:
+    - step `477`
+    - JS: `^distfleeck[166@63,10 ...]`
+    - C:  `^distfleeck[166@63,8 ...]`
+
+Guardrails:
+
+- `t04_s705_w_minefill_gp`: PASS
+- `t04_s706_w_minetn1_gp`: PASS
+
+Current conclusion:
+
+- the remaining `seed031` blocker is no longer in branch-entry level
+  generation/finalization
+- the live seam has moved later to post-entry monster movement (`distfleeck` /
+  `m_move` / `mfndpos`)

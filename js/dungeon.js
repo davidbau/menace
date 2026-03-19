@@ -4704,6 +4704,9 @@ export function mineralize(map, depth, opts = null) {
     let eligible_count = 0;
     let rng_calls = 0;
     const startRng = DEBUG ? getRngCallCount() : 0;
+    const branchDlevel = Number.isInteger(map?._genDlevel) && map._genDlevel > 0
+        ? map._genDlevel
+        : 1;
 
     // C ref: mklev.c:1454-1457 — Place kelp in water (except plane of water)
     // Skip for wizard tower (not in endgame)
@@ -4834,7 +4837,8 @@ export function mineralize(map, depth, opts = null) {
             // Try to place gems
             rng_calls++;
             if (rn2(1000) < gemprob) {
-                const cnt = rnd(2 + Math.floor(depth / 3));
+                // C ref: mklev.c mineralize() uses dunlev(&u.uz) here, not depth(&u.uz).
+                const cnt = rnd(2 + Math.floor(branchDlevel / 3));
                 for (let i = 0; i < cnt; i++) {
                     const otmp = mkobj(GEM_CLASS, false);
                     if (otmp) {

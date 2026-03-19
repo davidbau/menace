@@ -13660,5 +13660,29 @@ Validation:
     - matched events `10152 -> 10188`
     - bogus `minefill dlevel=3` fixup symptom disappeared
   - guardrails remained green:
+  - `t04_s705_w_minefill_gp`
+  - `t04_s706_w_minetn1_gp`
+
+### `mineralize()` gem count uses branch-local `dunlev`, not absolute depth
+
+- `seed031_manual_direct` exposed a remaining branch-entry Mines filler bug
+  after the proto-coordinate leak was fixed.
+- JS `mineralize()` was using absolute depth for gem-count quantity:
+  - `rnd(2 + depth / 3)`
+- C uses branch-local level at `mklev.c:1529`:
+  - `rnd(2 + dunlev(&u.uz) / 3)`
+- On the live Mines entry filler level in `seed031`:
+  - absolute depth was `5`
+  - branch-local `dlevel` was `1`
+  - JS called `rnd(3)` where C called `rnd(2)`
+- Fix in `js/dungeon.js`:
+  - keep absolute depth for `goldprob`/`gemprob`
+  - use `map._genDlevel` for the gem-count `rnd(...)` quantity
+- Validation:
+  - `seed031_manual_direct` improved again:
+    - matched RNG `22472 -> 23197`
+    - matched events `10188 -> 10800`
+    - old step-467 minefill-finalization seam disappeared
+  - guardrails stayed green:
     - `t04_s705_w_minefill_gp`
     - `t04_s706_w_minetn1_gp`
