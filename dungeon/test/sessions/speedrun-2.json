@@ -88,14 +88,14 @@
       "cmd": "look"
     },
     {
-      "cmd": "kill troll with sword"
+      "cmd": "attack troll with sword"
     },
     {
-      "cmd": "kill troll with sword",
+      "cmd": "slay troll with sword",
       "note": "seed=2: second attack batters troll into unconsciousness"
     },
     {
-      "cmd": "kill troll with sword",
+      "cmd": "dispatch troll with sword",
       "note": "seed=2: third attack kills unconscious troll"
     },
     {
@@ -133,7 +133,7 @@
       "extra": true
     },
     {
-      "cmd": "sw"
+      "cmd": "go sw"
     },
     {
       "cmd": "proceed east"
@@ -142,7 +142,7 @@
       "cmd": "go south"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
       "cmd": "ODYSSEUS"
@@ -223,7 +223,7 @@
       "cmd": "run west"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "proceed east"
@@ -315,7 +315,7 @@
       "cmd": "walk north"
     },
     {
-      "cmd": "se"
+      "cmd": "go se"
     },
     {
       "cmd": "answer \"well\""
@@ -370,7 +370,7 @@
       "cmd": "eat blue cake"
     },
     {
-      "cmd": "nw"
+      "cmd": "walk nw"
     },
     {
       "cmd": "tell robot \"go east\""
@@ -408,7 +408,7 @@
       "note": "Low Room PRNG fix: one gaze to align random exit — with this, SE leads to Tea Room→Top of Well→bucket"
     },
     {
-      "cmd": "se"
+      "cmd": "walk se"
     },
     {
       "cmd": "walk west"
@@ -485,7 +485,7 @@
       "cmd": "run west"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "walk west"
@@ -567,7 +567,7 @@
       "cmd": "walk east"
     },
     {
-      "cmd": "nw"
+      "cmd": "walk nw"
     },
     {
       "cmd": "run east"
@@ -796,10 +796,10 @@
       "cmd": "go east"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
       "cmd": "hello",
@@ -844,7 +844,7 @@
       "cmd": "take shovel"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "go south"
@@ -950,7 +950,7 @@
       "cmd": "take gold"
     },
     {
-      "cmd": "se"
+      "cmd": "go se"
     },
     {
       "cmd": "go up"
@@ -1103,14 +1103,14 @@
       "cmd": "go up"
     },
     {
-      "cmd": "kill thief with knife"
+      "cmd": "attack thief with knife"
     },
     {
-      "cmd": "kill thief with knife",
+      "cmd": "slay thief with knife",
       "note": "seed=2 with 5 PRNG fix looks: thief dies on 2nd hit"
     },
     {
-      "cmd": "kill thief with knife",
+      "cmd": "attack thief with knife",
       "expectFail": true,
       "note": "thief already dead after 2nd hit; 3rd attempt fails harmlessly"
     },
@@ -1163,7 +1163,7 @@
       "cmd": "walk west"
     },
     {
-      "cmd": "nw"
+      "cmd": "walk nw"
     },
     {
       "cmd": "run east"
@@ -1434,7 +1434,7 @@
       "cmd": "go east"
     },
     {
-      "cmd": "se"
+      "cmd": "walk se"
     },
     {
       "cmd": "proceed east"
@@ -1452,7 +1452,7 @@
       "cmd": "walk north"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "run west"
@@ -1471,7 +1471,7 @@
       "cmd": "go south"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
       "cmd": "put torch and screwdriver in basket"
@@ -1502,25 +1502,25 @@
       "cmd": "go east"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
       "cmd": "proceed north"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
-      "cmd": "nw"
-    },
-    {
-      "cmd": "go down"
+      "cmd": "walk nw"
     },
     {
       "cmd": "go down"
     },
     {
-      "cmd": "ne"
+      "cmd": "go down"
+    },
+    {
+      "cmd": "go ne"
     },
     {
       "cmd": "take coal"
@@ -1572,16 +1572,16 @@
       "cmd": "walk north"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
       "cmd": "run north"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "go down"
@@ -1597,7 +1597,7 @@
       "note": "must be empty-handed for narrow sw passage; rope already at Mine Shaft floor"
     },
     {
-      "cmd": "sw"
+      "cmd": "walk sw"
     },
     {
       "cmd": "take all"
@@ -1628,13 +1628,13 @@
       "extra": true
     },
     {
-      "cmd": "nw"
+      "cmd": "walk nw"
     },
     {
       "cmd": "put all in basket"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
       "cmd": "take all"
@@ -1728,7 +1728,7 @@
       "cmd": "run north"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
       "cmd": "take all"
@@ -1782,7 +1782,7 @@
       "cmd": "walk south"
     },
     {
-      "cmd": "sw"
+      "cmd": "go sw"
     },
     {
       "cmd": "push south wall"
@@ -1818,7 +1818,7 @@
       "cmd": "walk east"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
       "cmd": "push west wall"
@@ -1833,10 +1833,10 @@
       "cmd": "push west wall"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
-      "cmd": "ne"
+      "cmd": "walk ne"
     },
     {
       "cmd": "run north"
@@ -1845,16 +1845,16 @@
       "cmd": "push east wall"
     },
     {
-      "cmd": "sw"
+      "cmd": "walk sw"
     },
     {
       "cmd": "proceed south"
     },
     {
-      "cmd": "se"
+      "cmd": "go se"
     },
     {
-      "cmd": "ne"
+      "cmd": "go ne"
     },
     {
       "cmd": "go north"
@@ -1863,7 +1863,7 @@
       "cmd": "push west wall"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "push south wall"
@@ -1875,34 +1875,34 @@
       "cmd": "walk west"
     },
     {
-      "cmd": "nw"
+      "cmd": "walk nw"
     },
     {
-      "cmd": "nw"
+      "cmd": "go nw"
     },
     {
       "cmd": "push south wall"
     },
     {
-      "cmd": "se"
+      "cmd": "walk se"
     },
     {
-      "cmd": "se"
+      "cmd": "go se"
     },
     {
-      "cmd": "se"
+      "cmd": "walk se"
     },
     {
-      "cmd": "ne"
-    },
-    {
-      "cmd": "push west wall"
+      "cmd": "walk ne"
     },
     {
       "cmd": "push west wall"
     },
     {
-      "cmd": "sw"
+      "cmd": "push west wall"
+    },
+    {
+      "cmd": "go sw"
     },
     {
       "cmd": "push north wall"
@@ -1914,7 +1914,7 @@
       "cmd": "push north wall"
     },
     {
-      "cmd": "nw"
+      "cmd": "walk nw"
     },
     {
       "cmd": "go up"
