@@ -25,12 +25,16 @@ function usage() {
     console.log('Options:');
     console.log('  --step-from <N>     First gameplay step to show (default: 1)');
     console.log('  --step-to <N>       Last gameplay step to show (default: step-from)');
+    console.log('  --raw-from <N>      First raw replay step to show (side-by-side C vs JS)');
+    console.log('  --raw-to <N>        Last raw replay step to show (default: raw-from)');
+    console.log('  --raw-find-mismatch Find the first raw key mismatch at/after raw-from');
     console.log('  --grep <REGEX>      Extra filter for printed entries');
     console.log('  --all-rng           Print all RNG/event entries, not just movement-focused ones');
     console.log('');
     console.log('Examples:');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed032_manual_direct.session.json --step-from 89 --step-to 91');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed031_manual_direct.session.json --step-from 404 --step-to 407 --grep dog_goal');
+    console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed031_manual_direct.session.json --raw-from 478 --raw-to 500');
 }
 
 function parseArgs(argv) {
@@ -42,6 +46,9 @@ function parseArgs(argv) {
     const sessionPath = args[0];
     let stepFrom = 1;
     let stepTo = null;
+    let rawFrom = null;
+    let rawTo = null;
+    let rawFindMismatch = false;
     let grep = null;
     let allRng = false;
     for (let i = 1; i < args.length; i++) {
@@ -50,6 +57,12 @@ function parseArgs(argv) {
             stepFrom = Number.parseInt(args[++i], 10);
         } else if (a === '--step-to') {
             stepTo = Number.parseInt(args[++i], 10);
+        } else if (a === '--raw-from') {
+            rawFrom = Number.parseInt(args[++i], 10);
+        } else if (a === '--raw-to') {
+            rawTo = Number.parseInt(args[++i], 10);
+        } else if (a === '--raw-find-mismatch') {
+            rawFindMismatch = true;
         } else if (a === '--grep') {
             grep = new RegExp(args[++i], 'i');
         } else if (a === '--all-rng') {
@@ -64,7 +77,15 @@ function parseArgs(argv) {
     if (!Number.isInteger(stepTo) || stepTo < stepFrom) {
         stepTo = stepFrom;
     }
-    return { sessionPath, stepFrom, stepTo, grep, allRng };
+    if (rawFrom != null && (!Number.isInteger(rawFrom) || rawFrom < 1)) {
+        throw new Error(`Invalid --raw-from: ${rawFrom}`);
+    }
+    if (rawTo != null && (!Number.isInteger(rawTo) || rawTo < 1)) {
+        throw new Error(`Invalid --raw-to: ${rawTo}`);
+    }
+    if (rawFrom == null && rawTo != null) rawFrom = rawTo;
+    if (rawFrom != null && (rawTo == null || rawTo < rawFrom)) rawTo = rawFrom;
+    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng };
 }
 
 function traceStep(line) {
@@ -103,8 +124,39 @@ function groupGameplaySteps(jsReplay, stepBoundaries) {
     return grouped;
 }
 
+function topLine(screen) {
+    if (Array.isArray(screen)) return String(screen[0] || '').trimEnd();
+    return String(screen || '').split('\n')[0].trimEnd();
+}
+
+function printRawWindow(cRawSteps, jsRawSteps, rawFrom, rawTo) {
+    console.log('');
+    console.log(`raw steps: ${rawFrom}..${rawTo}`);
+    console.log('');
+    for (let i = rawFrom; i <= rawTo; i++) {
+        const cStep = cRawSteps[i - 1] || {};
+        const jsStep = jsRawSteps[i - 1] || {};
+        console.log(
+            `${String(i).padStart(4, ' ')} C key=${JSON.stringify(cStep.key ?? null).padEnd(6)} top=${JSON.stringify(topLine(cStep.screen)).slice(0, 120)}`
+        );
+        console.log(
+            `     J key=${JSON.stringify(jsStep.key ?? null).padEnd(6)} top=${JSON.stringify(topLine(jsStep.screen)).slice(0, 120)}`
+        );
+    }
+}
+
+function findRawMismatch(cRawSteps, jsRawSteps, rawFrom = 1) {
+    const limit = Math.min(cRawSteps.length, jsRawSteps.length);
+    for (let i = rawFrom; i <= limit; i++) {
+        const cKey = JSON.stringify(cRawSteps[i - 1]?.key ?? null);
+        const jsKey = JSON.stringify(jsRawSteps[i - 1]?.key ?? null);
+        if (cKey !== jsKey) return i;
+    }
+    return null;
+}
+
 async function main() {
-    const { sessionPath, stepFrom, stepTo, grep, allRng } = parseArgs(process.argv);
+    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng } = parseArgs(process.argv);
     const absPath = resolve(sessionPath);
     const raw = JSON.parse(readFileSync(absPath, 'utf8'));
     const normalized = normalizeSession(raw, {
@@ -167,6 +219,14 @@ async function main() {
         console.log('view: manual-direct comparison view (chargen folded into startup)');
     }
     console.log(`steps: ${stepFrom}..${stepTo}`);
+
+    if (rawFindMismatch) {
+        const mismatch = findRawMismatch(normalized.raw.steps || [], jsReplay.steps || [], rawFrom || 1);
+        console.log(`first raw key mismatch at/after ${rawFrom || 1}: ${mismatch ?? 'none'}`);
+    }
+    if (rawFrom != null) {
+        printRawWindow(normalized.raw.steps || [], jsReplay.steps || [], rawFrom, rawTo);
+    }
     console.log('');
 
     for (let step = stepFrom; step <= stepTo; step++) {

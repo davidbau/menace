@@ -198,6 +198,35 @@ We had a hardcoded C-capture artifact in `cmd.js` for `v` (version):
 - line 1: literal `20:21:19.--More--`
 
 That timestamp-like tail is not gameplay state and should not be embedded in JS.
+
+### Manual-direct parity work needs both transformed-step and raw-window views
+
+For manual-direct sessions, the transformed gameplay view is still the
+authoritative parity view because chargen/setup is folded into startup. But
+that view can hide the actual owning raw command bundle when several raw keys
+collapse into one gameplay step.
+
+Practical rule:
+1. use the transformed gameplay view to identify the first authoritative parity
+   step,
+2. then use a raw-window view to see which hidden raw command bundle drifted
+   first,
+3. fix the earliest raw owner, not the later visible symptom.
+
+Tooling:
+1. `scripts/movement-propagation.mjs` now supports:
+   - `--raw-from <N> --raw-to <M>`
+   - `--raw-find-mismatch`
+2. this prints side-by-side C raw key/topline and JS raw key/topline from live
+   replay.
+
+Concrete `seed031` example:
+1. the transformed gameplay view points to a late throw/camera symptom,
+2. but the raw window shows the earlier real drift:
+   - raw `463`: C `u`, JS `l`
+   - raw `468`: C still on pre-stairs movement, JS already at `>`
+3. that means the true owner is the earlier pre-stairs movement bundle, not the
+   later throw or camera code.
 Fix:
 1. Keep the existing nonblocking `--More--` boundary behavior for parity.
 2. Replace hardcoded line 0 with `VERSION_STRING` (Royal Jelly branding +

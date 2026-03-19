@@ -27,6 +27,12 @@ continuation problem rather than a simple local logic bug.
 node scripts/movement-propagation.mjs <session.json> --step-from <N> --step-to <M>
 ```
 
+Raw-window mode:
+
+```bash
+node scripts/movement-propagation.mjs <session.json> --raw-from <N> --raw-to <M> --raw-find-mismatch
+```
+
 ## Core Workflow
 
 1. Reproduce the failing session and identify the first bad gameplay step.
@@ -57,6 +63,24 @@ Manual-direct rule:
 - Is JS continuing one step too long?
 - Is JS computing the wrong next direction at a corner?
 - Is later monster-turn work being attributed to the wrong key?
+
+5. If the transformed gameplay view is hiding the owning bundle, switch to
+raw-window mode.
+
+```bash
+node scripts/movement-propagation.mjs <session.json> \
+  --raw-from <R1> --raw-to <R2> --raw-find-mismatch
+```
+
+Read that output as:
+- C raw key + top line
+- JS raw key + top line
+- earliest raw key mismatch in the chosen window
+
+Use this when:
+- manual-direct sessions hide multiple raw keys inside one gameplay step
+- the normalized first divergence points to a late symptom
+- you need to know which hidden command bundle actually drifted first
 
 5. Only after the movement bundle is localized, inspect the specific code path:
 - `js/hack.js`
@@ -90,6 +114,14 @@ node scripts/movement-propagation.mjs <session.json> \
   --all-rng
 ```
 
+Raw hidden-bundle check:
+
+```bash
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --raw-from 458 --raw-to 470 --raw-find-mismatch
+```
+
 ## Interpretation Rules
 
 - If C and JS match through most of a step and then JS stops early, prioritize
@@ -102,6 +134,8 @@ node scripts/movement-propagation.mjs <session.json> \
   as ownership/attribution before changing local gameplay logic.
 - If there is no run-trace activity in the target window, this is probably not a
   run-ownership bug; switch to a different tool.
+- If the raw window shows JS already consuming later keys, stop blaming the
+  later visible symptom. Fix the earliest raw bundle that shifted.
 
 ## Guardrails
 

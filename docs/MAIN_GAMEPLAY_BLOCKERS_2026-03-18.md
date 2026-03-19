@@ -218,6 +218,35 @@ Update after `142b03cfc` + current worktree:
     - first event divergence moved later from step `175` to step `373`
   - remaining first-drift shape:
     - JS: later pet/monster-turn path in `dochug()` / `distfleeck()`
+
+Update after `3325b7ac6` tooling follow-up:
+
+- `scripts/movement-propagation.mjs` now has a raw-window mode:
+  - `--raw-from <N> --raw-to <M> --raw-find-mismatch`
+  - prints side-by-side C raw key/topline versus JS raw key/topline
+  - this is specifically useful for manual-direct sessions where the
+    authoritative transformed gameplay view hides the owning raw bundle
+- current `seed031_manual_direct` conclusion from that raw-window view:
+  - the late `f/j` throw bundle is not the earliest owner
+  - the later camera placeholder is also not the earliest owner
+  - the earliest currently localized raw drift in the live region is:
+    - raw step `463`
+    - C key `u`
+    - JS key `l`
+  - by raw step `468`, C is still on the `u`/`l` pre-stairs movement bundle
+    while JS has already reached `>`
+  - by raw `478..490`, JS is already through the downstairs combat/loot bundle
+    while C is still in:
+    - repeated `l`
+    - stair descent `>`
+    - post-descent `--More--`
+    - immediate gnome fight / dart pickup
+
+Conclusion:
+
+- the live `seed031` root is earlier than the later throw/camera symptoms
+- it is now best framed as a hidden raw command-bundle drift in the pre-stairs
+  movement sequence, not as a pet-AI-local or camera-local bug
     - C: `newhp(exercise)` / dog-move neighborhood
 - `seed032_manual_direct`
   - no measurable change from the wait-prefix consumption fix
