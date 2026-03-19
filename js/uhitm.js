@@ -50,7 +50,7 @@ import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_d
 import { near_capacity, overexertion } from './hack.js';
 import { will_hurtle, mhurtle } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
-import { s_suffix } from './hacklib.js';
+import { s_suffix, dist2 } from './hacklib.js';
 import {
     nonliving, x_monnam, y_monnam, is_undead, is_demon,
     magic_negation, attacktype,
@@ -61,13 +61,13 @@ import {
     noncorporeal, amorphous, unsolid, haseyes, dmgtype, is_orc, is_were,
     carnivorous, herbivorous, is_metallivore,
     is_rider, slimeproof, completelyrusts, completelyrots,
-    poly_when_stoned, DEADMONSTER,
+    poly_when_stoned, DEADMONSTER, resists_blnd,
 } from './mondata.js';
 import { obj_resists } from './objdata.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead, mondied, monkilled, wakeup } from './mon.js';
+import { mondead, mondied, monkilled, wakeup, setmangry } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
@@ -1935,9 +1935,11 @@ export function nohandglow(mon, player) {
 //   Flash of light hits a monster (camera, wand of light, etc).
 //   Returns 1 if flash had a noticeable effect, 0 otherwise.
 //   Wakes sleeping monsters, blinds non-resistant ones, damages gremlins.
-export function flash_hits_mon(mtmp, otmp) {
+export function flash_hits_mon(mtmp, otmp, map = null, player = null) {
     const ptr = mtmp.data || mtmp.type || {};
     let res = 0;
+    const mx = Number(mtmp.mx || 0);
+    const my = Number(mtmp.my || 0);
 
     // Wake mimics — simplified, no M_AP_TYPE tracking
     if (mtmp.msleeping && haseyes(ptr)) {
@@ -1945,24 +1947,24 @@ export function flash_hits_mon(mtmp, otmp) {
         mtmp.sleeping = false;
         res = 1;
     } else if (ptr.mlet !== S_LIGHT) {
-        // Blind non-resistant monsters
-        // C: if (!resists_blnd(mtmp)) — simplified check
-        const isBlindRes = ptr.mlet === S_LIGHT; // already checked above
-        if (!isBlindRes) {
-            // C: distance-based blinding
+        if (!resists_blnd(mtmp)) {
+            const srcx = Number.isInteger(otmp?.ox) ? otmp.ox : mx;
+            const srcy = Number.isInteger(otmp?.oy) ? otmp.oy : my;
+            const tmp = dist2(srcx, srcy, mx, my);
             if ((mtmp.mndx ?? -1) === PM_GREMLIN) {
-                // Rule #1: Keep them out of the light
                 const amt = otmp ? rnd(4) : rnd(Math.min(mtmp.mhp || 4, 4));
                 light_hits_gremlin(mtmp, amt);
             }
-            if (mtmp.mhp > 0) {
-                mtmp.mcansee = 0;
-                mtmp.mblinded = rnd(50);
-                // C: monflee chance
-                if (rn2(4)) {
+            if (!DEADMONSTER(mtmp)) {
+                if (map && player) {
+                    setmangry(mtmp, true, map, player);
+                }
+                if (tmp < 9 && !mtmp.isshk && rn2(4)) {
                     const fleetime = rn2(4) ? rnd(100) : 0;
                     applyMonflee(mtmp, fleetime, false);
                 }
+                mtmp.mcansee = 0;
+                mtmp.mblinded = (tmp < 3) ? 0 : rnd(1 + Math.floor(50 / tmp));
             }
             res = 1;
         }

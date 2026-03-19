@@ -1158,3 +1158,25 @@ Current conclusion:
   - current visible mismatch:
     - C:  `^distfleeck[44@38,10 ... brave=0 ...]`
     - JS: `^distfleeck[44@38,10 ... brave=1 ...]`
+Update after camera flash parity investigation on `seed031_manual_direct`:
+
+- `apply.js` / `uhitm.js` camera flash path had a real C-faithfulness bug:
+  - JS `flash_hits_mon()` was still a simplified placeholder
+  - it consumed non-C RNG (`rnd(50)`, extra `rn2(4)`, `rnd(100)`) before the
+    post-camera monster stream
+- localized evidence at the authoritative `a ? k b` bundle:
+  - C before monster turns:
+    - `^tmp_at_start[mode=-1,glyph=4081]`
+    - `rn2(4)=0 @ flash_hits_mon(...)`
+  - old JS before monster turns:
+    - `^tmp_at_start[mode=-1,glyph=4006]`
+    - `rnd(50)`, extra `rn2(4)`, `rnd(100)`
+- the camera fix now makes the step-484 bundle materially align on the
+  C-visible sequence:
+  - `rn2(4)=0` at camera flash time
+  - matching downstream dog/monster movement RNG through that bundle
+- important interpretation:
+  - this is a real correctness improvement even though `seed031` does not yet
+    produce a net later first-divergence prefix
+  - the patch removes a known placeholder path and exposes a different earlier
+    live seam rather than masking one

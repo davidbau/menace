@@ -13719,3 +13719,15 @@ Validation:
 - JS now emits ordinary-monster `^mfndpos[...]` detail events parallel to the
   existing pet-side `dog_move` visibility. This is the highest-signal way to
   compare candidate sets before patching `dochug()` / `m_move()` / `mfndpos()`.
+- `flash_hits_mon()` / camera parity:
+  - if a session shows camera-use RNG before monster turns, check
+    [`js/uhitm.js`](/share/u/davidbau/git/mazesofmenace/game/js/uhitm.js)
+    before blaming downstream `dochug()` drift
+  - the old JS placeholder consumed non-C RNG (`rnd(50)`, extra `rn2(4)`,
+    `rnd(100)`) and missed the C distance-based blindness/flee logic
+  - the faithful path is:
+    - `rn2(4)` flee gate when `tmp < 9 && !isshk`
+    - optional `rn2(4) ? rnd(100) : 0` flee duration
+    - `mblinded = (tmp < 3) ? 0 : rnd(1 + 50 / tmp)`
+  - this can improve a local command bundle even when the overall first
+    divergence simply moves to a newly exposed upstream/downstream seam

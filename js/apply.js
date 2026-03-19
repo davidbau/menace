@@ -173,7 +173,7 @@ export async function do_blinding_ray(_obj, player = null, map = null) {
             await nh_delay_output();
             const mon = map.monsterAt?.(x, y);
             if (mon && !mon.dead) {
-                flash_hits_mon(mon, _obj);
+                flash_hits_mon(mon, _obj, map, player);
                 break;
             }
             const loc = map.at(x, y);
