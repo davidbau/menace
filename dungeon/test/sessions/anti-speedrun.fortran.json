@@ -1,0 +1,826 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "timestamp": "2026-03-19T21:52:15.891Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "walk north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "run east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "take lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 7,
+      "input": "take sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "move rug",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "turn on lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now on."
+      ]
+    },
+    {
+      "move": 11,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dark and damp cellar with a narrow passageway leading",
+        " east, and a crawlway to the south.  To the west is the bottom of",
+        " a steep metal ramp which is unclimbable.",
+        " Above you is an open trap door.",
+        " The door crashes shut, and you hear someone barring it.",
+        " Your sword is glowing with a faint blue glow."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small room with passages off in all directions.  Bloodstains",
+        " and deep scratches (perhaps made by an axe) mar the walls.",
+        " A nasty-looking troll, brandishing a bloody axe, blocks all passages",
+        " out of the room.",
+        " Your sword has begun to glow very brightly."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "attack troll with sword",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The troll takes a final blow and slumps to the floor dead.",
+        " Almost as soon as the troll breathes his last, a cloud of",
+        " sinister black smoke envelops him, and when the fog lifts, the",
+        " carcass has disappeared.",
+        " Your sword is no longer glowing."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Cellar"
+      ]
+    },
+    {
+      "move": 15,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are on the west edge of a chasm, the bottom of which cannot be",
+        " seen.  The east side is sheer rock, providing no exits.  A narrow",
+        " passage goes west.  The path you are on continues to the north and south."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is an art gallery.  Most of the paintings which were here",
+        " have been stolen by vandals with exceptional taste.  The vandals",
+        " left through the north, south, or west exits.",
+        " Fortunately, there is still one chance for you to be a vandal, for on",
+        " the far wall is a work of unparalleled beauty."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the large entrance hall of the Bank of Zork, the largest",
+        " banking institution of the Great Underground Empire.  A partial",
+        " account of its history is in \"The Lives of the Twelve Flatheads\" with",
+        " the chapter on J. Pierpont Flathead.  A more detailed history (albeit",
+        " less objective) may be found in Flathead's outrageous autobiography",
+        " \"I'm Rich and You Aren't - So There!\".",
+        "    Most of the furniture has been ravaged by passing scavengers.  All",
+        " that remains are two signs at the northwest and northeast corners of",
+        " the room, which say",
+        "  ",
+        " \t<-- WEST VIEWING ROOM\t\tEAST VIEWING ROOM -->"
+      ]
+    },
+    {
+      "move": 18,
+      "input": "go nw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small square room, which was used by a bank officer",
+        " whose job it was to retrieve safety deposit boxes for the customer.",
+        " On the north side of the room is a sign which reads \"Viewing Room\".",
+        " On the west side of the room, above an open door, is a sign reading",
+        "  ",
+        " \t\t    BANK PERSONNEL ONLY"
+      ]
+    },
+    {
+      "move": 19,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large rectangular room.  The east and west walls here",
+        " were used for storing safety deposit boxes.  As might be expected,",
+        " all have been carefully removed by evil persons.  To the east, west,",
+        " and south of the room are large doorways.  The northern \"wall\"",
+        " of the room is a shimmering curtain of light.  In the center of the",
+        " room is a large stone cube, about 10 feet on a side.  Engraved on",
+        " the side of the cube is some lettering."
+      ]
+    },
+    {
+      "move": 20,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This room was the office of the Chairman of the Bank of Zork.",
+        " Like the other rooms here, it has been extensively vandalized.",
+        " The lone exit is to the north.",
+        " A portrait of J. Pierpont Flathead hangs on the wall."
+      ]
+    },
+    {
+      "move": 21,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Safety Depository"
+      ]
+    },
+    {
+      "move": 22,
+      "input": "walk through north wall",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You feel somewhat disoriented as you pass through...",
+        " This is a small bare room with no distinguishing features.  There",
+        " are no exits from this room."
+      ]
+    },
+    {
+      "move": 23,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 24,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 25,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " An epicene Gnome of Zurich, wearing a three-piece suit and carrying a",
+        " safety deposit box, materializes in the room.  \"You seem to have",
+        " forgotten to deposit your valuables,\" he says, tapping the lid of the",
+        " box impatiently.  \"We don't usually allow customers to use the boxes",
+        " here, but we can make this ONE exception, I suppose...\"  He looks",
+        " askance at you over his wire-rimmed bifocals."
+      ]
+    },
+    {
+      "move": 26,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 27,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 28,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " The gnome looks impatient: \"I may have another customer waiting;",
+        " you'll just have to fend for yourself, I'm afraid.\"  He disappears,",
+        " leaving you alone in the bare room."
+      ]
+    },
+    {
+      "move": 29,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 30,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 31,
+      "input": "walk through south wall",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You feel somewhat disoriented as you pass through...",
+        " This is a large rectangular room.  The east and west walls here",
+        " were used for storing safety deposit boxes.  As might be expected,",
+        " all have been carefully removed by evil persons.  To the east, west,",
+        " and south of the room are large doorways.  The northern \"wall\"",
+        " of the room is a shimmering curtain of light.  In the center of the",
+        " room is a large stone cube, about 10 feet on a side.  Engraved on",
+        " the side of the cube is some lettering."
+      ]
+    },
+    {
+      "move": 32,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small square room, which was used by a bank officer",
+        " whose job it was to retrieve safety deposit boxes for the customer.",
+        " On the north side of the room is a sign which reads \"Viewing Room\".",
+        " On the east side of the room, above an open door, is a sign reading",
+        "  ",
+        " \t\t    BANK PERSONNEL ONLY"
+      ]
+    },
+    {
+      "move": 33,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Bank Entrance"
+      ]
+    },
+    {
+      "move": 34,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the large entrance hall of the Bank of Zork, the largest",
+        " banking institution of the Great Underground Empire.  A partial",
+        " account of its history is in \"The Lives of the Twelve Flatheads\" with",
+        " the chapter on J. Pierpont Flathead.  A more detailed history (albeit",
+        " less objective) may be found in Flathead's outrageous autobiography",
+        " \"I'm Rich and You Aren't - So There!\".",
+        "    Most of the furniture has been ravaged by passing scavengers.  All",
+        " that remains are two signs at the northwest and northeast corners of",
+        " the room, which say",
+        "  ",
+        " \t<-- WEST VIEWING ROOM\t\tEAST VIEWING ROOM -->"
+      ]
+    },
+    {
+      "move": 35,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Gallery"
+      ]
+    },
+    {
+      "move": 36,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " West of Chasm"
+      ]
+    },
+    {
+      "move": 37,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a north-south crawlway; a passage also goes to the east.",
+        " There is a hole above, but it provides no opportunities for climbing."
+      ]
+    },
+    {
+      "move": 38,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Troll Room"
+      ]
+    },
+    {
+      "move": 39,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a narrow east-west passageway.  There is a narrow stairway",
+        " leading down at the north end of the room."
+      ]
+    },
+    {
+      "move": 40,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a narrow east-west passageway.  There is a narrow stairway",
+        " leading down at the north end of the room."
+      ]
+    },
+    {
+      "move": 41,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a circular room with passages off in eight directions.",
+        " Your compass needle spins wildly, and you cannot get your bearings."
+      ]
+    },
+    {
+      "move": 42,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Unfortunately, it is impossible to tell directions in here.",
+        " You are standing in a small circular room with a pedestal.  A set of",
+        " stairs leads up, and passages leave to the east and west.",
+        " There is an extremely valuable (perhaps original) grail here."
+      ]
+    },
+    {
+      "move": 43,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the west end of a large temple.  On the south wall is an",
+        " ancient inscription, probably a prayer in a long-forgotten language.",
+        " The north wall is solid granite.  The entrance at the west end of the",
+        " room is through huge marble pillars.",
+        " Lying in the corner of the room is a small brass bell."
+      ]
+    },
+    {
+      "move": 44,
+      "input": "take bell",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 45,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Grail Room",
+        " There is an extremely valuable (perhaps original) grail here."
+      ]
+    },
+    {
+      "move": 46,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a narrow crawlway.  The crawlway leads from north to south.",
+        " However, the south passage divides to the south and southwest."
+      ]
+    },
+    {
+      "move": 47,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a tiny cave with entrances west and north, and a dark,",
+        " forbidding staircase leading down."
+      ]
+    },
+    {
+      "move": 48,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are outside a large gateway, on which is inscribed:",
+        "  ",
+        " \t\"Abandon every hope, all ye who enter here.\"",
+        "  ",
+        " The gate is open.  Through it you can see a desolation, with a pile of",
+        " mangled corpses in one corner.  Thousands of voices, lamenting some",
+        " hideous fate, can be heard.",
+        " The way through the gate is barred by evil spirits, who jeer at your",
+        " attempts to pass."
+      ]
+    },
+    {
+      "move": 49,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are outside a large gateway, on which is inscribed:",
+        "  ",
+        " \t\"Abandon every hope, all ye who enter here.\"",
+        "  ",
+        " The gate is open.  Through it you can see a desolation, with a pile of",
+        " mangled corpses in one corner.  Thousands of voices, lamenting some",
+        " hideous fate, can be heard.",
+        " The way through the gate is barred by evil spirits, who jeer at your",
+        " attempts to pass."
+      ]
+    },
+    {
+      "move": 50,
+      "input": "ring bell",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Ding, dong.",
+        " The bell suddenly becomes red hot and falls to the ground.  The",
+        " wraiths, as if paralyzed, stop their jeering and slowly turn to",
+        " face you.  On their ashen faces, the expression of a long-forgotten",
+        " terror takes shape."
+      ]
+    },
+    {
+      "move": 51,
+      "input": "look",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are outside a large gateway, on which is inscribed:",
+        "  ",
+        " \t\"Abandon every hope, all ye who enter here.\"",
+        "  ",
+        " The gate is open.  Through it you can see a desolation, with a pile of",
+        " mangled corpses in one corner.  Thousands of voices, lamenting some",
+        " hideous fate, can be heard.",
+        " The way through the gate is barred by evil spirits, who jeer at your",
+        " attempts to pass.",
+        " On the ground is a red hot bell."
+      ]
+    },
+    {
+      "move": 52,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " The tension of this ceremony is broken, and the wraiths, amused but",
+        " shaken at your clumsy attempt, resume their hideous jeering."
+      ]
+    },
+    {
+      "move": 53,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 54,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 55,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 56,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " The bell appears to have cooled down."
+      ]
+    },
+    {
+      "move": 57,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 58,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 59,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 60,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 61,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 62,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a tiny cave with entrances west and north, and a dark,",
+        " forbidding staircase leading down."
+      ]
+    },
+    {
+      "move": 63,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Narrow Crawlway"
+      ]
+    },
+    {
+      "move": 64,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are standing in a small circular room with a pedestal.  A set of",
+        " stairs leads up, and passages leave to the east and west.",
+        " There is an extremely valuable (perhaps original) grail here."
+      ]
+    },
+    {
+      "move": 65,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Temple"
+      ]
+    },
+    {
+      "move": 66,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the east end of a large temple.  In front of you is what",
+        " appears to be an altar.",
+        " On the alter is a large black book, open to page 569.",
+        " On the two ends of the altar are burning candles."
+      ]
+    },
+    {
+      "move": 67,
+      "input": "pray",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a forest, with trees in all directions around you."
+      ]
+    },
+    {
+      "move": 68,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 69,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 70,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 71,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 72,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 73,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+  40 [total of 616 points], in   73 moves.",
+        " This gives you the rank of Amateur Adventurer.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

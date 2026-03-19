@@ -251,9 +251,10 @@ describe('Fortran parity sessions (per-step, seed=42)', () => {
         const inputPath = new URL(`sessions/${name}.input`, import.meta.url);
         const fortranSession = JSON.parse(readFileSync(fortranPath));
         const inputLines = readFileSync(inputPath, 'utf8').trim().split('\n');
+        const seed = fortranSession.seed !== undefined ? fortranSession.seed : 42;
 
         const fortranSteps = fortranSession.steps.filter(s => (s.input || '') !== '');
-        const jsSteps = await runParitySession(inputLines, 42);
+        const jsSteps = await runParitySession(inputLines, seed);
 
         assert.equal(jsSteps.length, fortranSteps.length,
             `${name}: step count mismatch (js=${jsSteps.length} fortran=${fortranSteps.length})`);
@@ -292,4 +293,6 @@ describe('Fortran parity sessions (per-step, seed=42)', () => {
     it('grue session matches Fortran byte-for-byte', () => checkSession('grue'));
     it('egg-canary session matches Fortran byte-for-byte', () => checkSession('egg-canary'));
     it('well-bucket session matches Fortran byte-for-byte', () => checkSession('well-bucket'));
+    it('speedrun-2 session matches Fortran byte-for-byte', () => checkSession('speedrun-2'));
+    it('anti-speedrun session matches Fortran byte-for-byte', () => checkSession('anti-speedrun'));
 });
