@@ -2109,6 +2109,8 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         const ny = positions[i].y;
 
         if (m_avoid_kicked_loc(mon, nx, ny, player)) continue;
+        // C ref: monmove.c:1955 — avoid Sokoban push locations
+        if (m_avoid_soko_push_loc(mon, nx, ny, map, player)) continue;
 
         if (positions[i].allowMDisp && !positions[i].allowM && !betterWithDisplacing) continue;
 
