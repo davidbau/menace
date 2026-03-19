@@ -183,7 +183,7 @@ function computeBonesChildren() {
             const name = `bones.D${String(depth).padStart(4, '0')}`;
             result[name] = {
                 type: 'file', lsKey: key, removable: true,
-                owner: 'root', group: 'wheel',
+                owner: USERNAME, group: 'games',
                 _ts: when, size,
             };
         }
@@ -328,18 +328,18 @@ function buildTree() {
                 type: 'dir', children: {
                     motd:   { type: 'file', content: MOTD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
                     passwd: { type: 'file', content: PASSWD, readonly: true, owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
-                    shadow: { type: 'file', content: null, readonly: true, owner: 'root', group: 'shadow', date: 'Mar 12  2026' },
+                    shadow: { type: 'file', content: null, readonly: true, owner: 'root', group: 'shadow', date: 'Mar 12  2026', perms: '-rw-r-----' },
                 }
             },
             usr: {
                 type: 'dir', children: {
                     games: {
                         type: 'dir', children: {
-                            rogue:   { type: 'exec', game: 'rogue',   owner: 'root', group: 'wheel', date: 'Jun 15  1980', size: 61440 },
-                            dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'wheel', date: 'Apr  1  1980', size: 204800 },
-                            zork:    { type: 'symlink', target: 'dungeon', game: 'dungeon', owner: 'root', group: 'wheel', date: 'Apr  1  1980' },
-                            hack:    { type: 'exec', game: 'hack',    owner: 'root', group: 'wheel', date: 'Dec  8  1984', size: 155648 },
-                            nethack: { type: 'exec', game: 'nethack', owner: 'root', group: 'wheel', date: 'Mar  1  2026', size: 2097152 },
+                            rogue:   { type: 'exec', game: 'rogue',   owner: 'root', group: 'games', date: 'Jun 15  1980', size: 61440,  perms: '-rwxr-sr-x' },
+                            dungeon: { type: 'exec', game: 'dungeon', owner: 'root', group: 'games', date: 'Apr  1  1980', size: 204800, perms: '-rwxr-sr-x' },
+                            zork:    { type: 'symlink', target: 'dungeon', game: 'dungeon', owner: 'root', group: 'games', date: 'Apr  1  1980' },
+                            hack:    { type: 'exec', game: 'hack',    owner: 'root', group: 'games', date: 'Dec  8  1984', size: 155648, perms: '-rwxr-sr-x' },
+                            nethack: { type: 'exec', game: 'nethack', owner: 'root', group: 'games', date: 'Mar  1  2026', size: 2097152, perms: '-rwxr-sr-x' },
                             lib: {
                                 type: 'dir', children: {
                                     hackdir: {
@@ -355,7 +355,7 @@ function buildTree() {
                                         type: 'dir', children: {
                                             'record':  { type: 'file', compute: formatRecord,
                                                 removable: true, removeKey: 'menace-topten',
-                                                owner: 'root', group: 'wheel', date: 'Mar 12  2026' },
+                                                owner: 'root', group: 'games', date: 'Mar 12  2026', perms: '-rw-rw-r--' },
                                             'perm':    { type: 'file', content:
 '0:0:2026/03/01:nethack:3.7.0:run\n' +
 '0:0:2026/02/28:nethack:3.7.0:run\n' +
@@ -401,7 +401,7 @@ function buildTree() {
                 type: 'dir', children: {
                     mail: {
                         type: 'dir', children: {
-                            [USERNAME]: { type: 'file', content: '', readonly: true, owner: USERNAME, group: 'mail', date: 'Mar 14  2026', size: 0 },
+                            [USERNAME]: { type: 'file', content: '', readonly: true, owner: USERNAME, group: 'mail', date: 'Mar 14  2026', size: 0, perms: '-rw-------' },
                         }
                     },
                     spool: {
@@ -411,21 +411,21 @@ function buildTree() {
                     },
                 }
             },
-            tmp: { type: 'dir', children: {} },
+            tmp: { type: 'dir', children: {}, perms: 'drwxrwxrwt' },
             bin: {
                 type: 'dir', children: {
-                    sh:    { type: 'file', content: '#!/bin/sh\n# Bourne shell', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 65536 },
-                    cat:   { type: 'file', content: '#!/bin/sh\n# concatenate files', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 24576 },
-                    ls:    { type: 'file', content: '#!/bin/sh\n# list directory', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 32768 },
-                    more:  { type: 'file', content: '#!/bin/sh\n# page through files', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 28672 },
-                    vi:    { type: 'file', content: '#!/bin/sh\n# visual editor', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 245760 },
-                    echo:  { type: 'file', content: '#!/bin/sh\n# echo arguments', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 12288 },
-                    pwd:   { type: 'file', content: '#!/bin/sh\n# print working directory', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192 },
-                    date:  { type: 'file', content: '#!/bin/sh\n# print date', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384 },
-                    who:   { type: 'file', content: '#!/bin/sh\n# who is logged in', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 20480 },
-                    clear: { type: 'file', content: '#!/bin/sh\n# clear screen', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192 },
-                    help:  { type: 'file', content: '#!/bin/sh\n# display help', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 12288 },
-                    man:   { type: 'file', content: '#!/bin/sh\n# manual pages', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384 },
+                    sh:    { type: 'file', content: '#!/bin/sh\n# Bourne shell', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 65536,  perms: '-rwxr-xr-x' },
+                    cat:   { type: 'file', content: '#!/bin/sh\n# concatenate files', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 24576,  perms: '-rwxr-xr-x' },
+                    ls:    { type: 'file', content: '#!/bin/sh\n# list directory', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 32768,  perms: '-rwxr-xr-x' },
+                    more:  { type: 'file', content: '#!/bin/sh\n# page through files', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 28672,  perms: '-rwxr-xr-x' },
+                    vi:    { type: 'file', content: '#!/bin/sh\n# visual editor', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 245760, perms: '-rwxr-xr-x' },
+                    echo:  { type: 'file', content: '#!/bin/sh\n# echo arguments', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 12288,  perms: '-rwxr-xr-x' },
+                    pwd:   { type: 'file', content: '#!/bin/sh\n# print working directory', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192,   perms: '-rwxr-xr-x' },
+                    date:  { type: 'file', content: '#!/bin/sh\n# print date', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384,  perms: '-rwxr-xr-x' },
+                    who:   { type: 'file', content: '#!/bin/sh\n# who is logged in', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 20480,  perms: '-rwxr-xr-x' },
+                    clear: { type: 'file', content: '#!/bin/sh\n# clear screen', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 8192,   perms: '-rwxr-xr-x' },
+                    help:  { type: 'file', content: '#!/bin/sh\n# display help', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 12288,  perms: '-rwxr-xr-x' },
+                    man:   { type: 'file', content: '#!/bin/sh\n# manual pages', readonly: true, owner: 'root', group: 'wheel', date: 'Jan  1  1979', size: 16384,  perms: '-rwxr-xr-x' },
                 }
             },
         }
@@ -704,7 +704,9 @@ export class VirtualFS {
         const isExec = child.type === 'exec' || child.type === 'symlink';
         const isSymlink = child.type === 'symlink';
         const userOwned = child.vfsPath !== undefined || child.lsKey !== undefined;
-        const perms = isDir ? 'drwxr-xr-x' : isSymlink ? 'lrwxrwxrwx' : isExec ? '-rwxr-xr-x' : '-rw-r--r--';
+        let perms = isDir ? 'drwxr-xr-x' : isSymlink ? 'lrwxrwxrwx' : isExec ? '-rwxr-xr-x' : '-rw-r--r--';
+        if (child.perms) perms = child.perms;
+        else if (isDir && child.restricted) perms = 'drwx------';
         const size = isSymlink ? (child.target || '').length : this.getSize(child);
         const owner = child.owner || (userOwned ? USERNAME : 'root');
         const group = child.group || (userOwned ? USERNAME : 'wheel');
