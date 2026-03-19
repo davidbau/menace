@@ -4811,10 +4811,10 @@ Nobody else is going to do it.
   },
 
   // -----------------------------------------------------------------------
-  // sirota_j -- world-readable (Josh Sirota, LS class, systems / networking)
+  // jsirota -- world-readable (Josh Sirota, LS class, systems / networking)
   // racing_notes is owner-private
   // -----------------------------------------------------------------------
-  sirota_j: {
+  jsirota: {
     'systems_notes': `\
 Distributed systems questions
 Josh Sirota
@@ -5063,9 +5063,9 @@ Things that are not obvious from the man page:
   },
 
   // -----------------------------------------------------------------------
-  // sirota_m -- root only  (Mark Sirota, LS class, security / access)
+  // msirota -- root only  (Mark Sirota, LS class, security / access)
   // -----------------------------------------------------------------------
-  sirota_m: {
+  msirota: {
     'security_notes': `\
 Unix authentication notes
 Mark Sirota

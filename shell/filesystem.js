@@ -98,8 +98,8 @@ woodland:x:1013:1013:Kenny Woodland:/home/woodland:/bin/sh
 thome:x:1014:1014:Mike Thome:/home/thome:/bin/sh
 payne:x:1015:1015:Jonathan Payne:/home/payne:/bin/sh
 kelly:x:1016:1016:Kelly Fenlason:/home/kelly:/bin/sh
-sirota_j:x:1018:1018:Josh Sirota:/home/sirota_j:/bin/sh
-sirota_m:x:1019:1019:Mark Sirota:/home/sirota_m:/bin/sh
+jsirota:x:1018:1018:Josh Sirota:/home/jsirota:/bin/sh
+msirota:x:1019:1019:Mark Sirota:/home/msirota:/bin/sh
 fraize:x:1020:1020:Scott Fraize:/home/fraize:/bin/sh
 abbott:x:1021:1021:Mike Abbott:/home/abbott:/bin/sh
 brown:x:1022:1022:Robert Brown:/home/brown:/bin/sh
@@ -343,7 +343,7 @@ const HOME_FILE_RESTRICTED = {
     crowther: new Set(['adventure']),
     toy:      new Set(['todo']),
     kelly:    new Set(['diary']),
-    sirota_j: new Set(['racing_notes']),
+    jsirota: new Set(['racing_notes']),
 };
 
 // Build static file nodes for a user's home dir from HOME_FILES corpus.
@@ -435,7 +435,7 @@ function buildTree() {
                     thome:    { type: 'dir', children: {}, owner: 'thome',    group: 'thome',    computeChildren: () => homeFilesFor('thome') },
                     payne:    { type: 'dir', children: {}, owner: 'payne',    group: 'payne',    computeChildren: () => homeFilesFor('payne') },
                     kelly:    { type: 'dir', children: {}, owner: 'kelly',    group: 'kelly',    computeChildren: () => homeFilesFor('kelly') },
-                    sirota_j: { type: 'dir', children: {}, owner: 'sirota_j', group: 'sirota_j', computeChildren: () => homeFilesFor('sirota_j') },
+                    jsirota: { type: 'dir', children: {}, owner: 'jsirota', group: 'jsirota', computeChildren: () => homeFilesFor('jsirota') },
                     abbott:   { type: 'dir', children: {}, owner: 'abbott',   group: 'abbott',   computeChildren: () => homeFilesFor('abbott') },
                     corley:   { type: 'dir', children: {}, owner: 'corley',   group: 'corley',   computeChildren: () => homeFilesFor('corley') },
                     // Root-only home dirs
@@ -446,7 +446,7 @@ function buildTree() {
                     blank:    { type: 'dir', children: {}, owner: 'blank',    group: 'blank',    restricted: true, computeChildren: () => homeFilesFor('blank') },
                     walz:     { type: 'dir', children: {}, owner: 'walz',     group: 'walz',     restricted: true, computeChildren: () => homeFilesFor('walz') },
                     harvey:   { type: 'dir', children: {}, owner: 'harvey',   group: 'harvey',   restricted: true, computeChildren: () => homeFilesFor('harvey') },
-                    sirota_m: { type: 'dir', children: {}, owner: 'sirota_m', group: 'sirota_m', restricted: true, computeChildren: () => homeFilesFor('sirota_m') },
+                    msirota: { type: 'dir', children: {}, owner: 'msirota', group: 'msirota', restricted: true, computeChildren: () => homeFilesFor('msirota') },
                     fraize:   { type: 'dir', children: {}, owner: 'fraize',   group: 'fraize',   restricted: true, computeChildren: () => homeFilesFor('fraize') },
                     brown:    { type: 'dir', children: {}, owner: 'brown',    group: 'brown',    restricted: true, computeChildren: () => homeFilesFor('brown') },
                     ruddy:    { type: 'dir', children: {}, owner: 'ruddy',    group: 'ruddy',    restricted: true, computeChildren: () => homeFilesFor('ruddy') },
