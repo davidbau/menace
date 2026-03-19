@@ -35,6 +35,7 @@ function usage() {
     console.log('  --mon-id <N>        Filter entries to a specific monster id');
     console.log('  --mndx <N>          Filter entries to a specific monster species index');
     console.log('  --monmove-trace     Include [MONMOVE_TRACE]/[MONMOVE_PHASE3] lines');
+    console.log('  --owner-trace       Include [DOGMOVE_TRACE]/[RNDMON_OWNER]/[HMON_TRACE] lines');
     console.log('');
     console.log('Examples:');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed032_manual_direct.session.json --step-from 89 --step-to 91');
@@ -61,6 +62,7 @@ function parseArgs(argv) {
     let monId = null;
     let mndx = null;
     let monmoveTrace = false;
+    let ownerTrace = false;
     for (let i = 1; i < args.length; i++) {
         const a = args[i];
         if (a === '--step-from') {
@@ -85,6 +87,8 @@ function parseArgs(argv) {
             mndx = Number.parseInt(args[++i], 10);
         } else if (a === '--monmove-trace') {
             monmoveTrace = true;
+        } else if (a === '--owner-trace') {
+            ownerTrace = true;
         } else {
             throw new Error(`Unknown arg: ${a}`);
         }
@@ -103,7 +107,7 @@ function parseArgs(argv) {
     }
     if (rawFrom == null && rawTo != null) rawFrom = rawTo;
     if (rawFrom != null && (rawTo == null || rawTo < rawFrom)) rawTo = rawFrom;
-    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, eventFind, allRng, monId, mndx, monmoveTrace };
+    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, eventFind, allRng, monId, mndx, monmoveTrace, ownerTrace };
 }
 
 function traceStep(line) {
@@ -234,7 +238,7 @@ function findMatchingSteps(cGameplaySteps, jsGroupedSteps, pattern) {
 }
 
 async function main() {
-    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, eventFind, allRng, monId, mndx, monmoveTrace } = parseArgs(process.argv);
+    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, eventFind, allRng, monId, mndx, monmoveTrace, ownerTrace } = parseArgs(process.argv);
     const absPath = resolve(sessionPath);
     const raw = JSON.parse(readFileSync(absPath, 'utf8'));
     const normalized = normalizeSession(raw, {
@@ -259,6 +263,11 @@ async function main() {
         WEBHACK_MONMOVE_TRACE: process.env.WEBHACK_MONMOVE_TRACE,
         WEBHACK_MONMOVE_PHASE3_TRACE: process.env.WEBHACK_MONMOVE_PHASE3_TRACE,
         WEBHACK_MFNDPOS_TRACE: process.env.WEBHACK_MFNDPOS_TRACE,
+        WEBHACK_DOGMOVE_TRACE: process.env.WEBHACK_DOGMOVE_TRACE,
+        WEBHACK_RNDMON_OWNER_TRACE: process.env.WEBHACK_RNDMON_OWNER_TRACE,
+        WEBHACK_HMON_TRACE: process.env.WEBHACK_HMON_TRACE,
+        WEBHACK_TRACE_MON_ID: process.env.WEBHACK_TRACE_MON_ID,
+        WEBHACK_TRACE_MNDX: process.env.WEBHACK_TRACE_MNDX,
     };
     process.env.WEBHACK_EVENT_RUNSTEP = '1';
     process.env.WEBHACK_RUN_TRACE = '1';
@@ -269,9 +278,17 @@ async function main() {
         process.env.WEBHACK_MONMOVE_PHASE3_TRACE = '1';
         process.env.WEBHACK_MFNDPOS_TRACE = '1';
     }
+    if (ownerTrace) {
+        process.env.WEBHACK_DOGMOVE_TRACE = '1';
+        process.env.WEBHACK_RNDMON_OWNER_TRACE = '1';
+        process.env.WEBHACK_HMON_TRACE = '1';
+    }
+    if (monId != null) process.env.WEBHACK_TRACE_MON_ID = String(monId);
+    if (mndx != null) process.env.WEBHACK_TRACE_MNDX = String(mndx);
 
     const runTraceLines = [];
     const monmoveTraceLines = [];
+    const ownerTraceLines = [];
     const origConsoleLog = console.log;
     console.log = (...args) => {
         const text = args.map((v) => String(v)).join(' ');
@@ -281,6 +298,10 @@ async function main() {
         }
         if (text.startsWith('[MONMOVE_TRACE]') || text.startsWith('[MONMOVE_PHASE3]')) {
             monmoveTraceLines.push(text);
+            return;
+        }
+        if (text.startsWith('[DOGMOVE_TRACE]') || text.startsWith('[RNDMON_OWNER]') || text.startsWith('[HMON_TRACE]')) {
+            ownerTraceLines.push(text);
             return;
         }
         origConsoleLog(...args);
@@ -341,6 +362,14 @@ async function main() {
         list.push(line.replace(/^\[(MONMOVE_TRACE|MONMOVE_PHASE3)\]\s*/, ''));
         monmoveTraceByStep.set(step, list);
     }
+    const ownerTraceByStep = new Map();
+    for (const line of ownerTraceLines) {
+        const step = traceStep(line);
+        if (!Number.isInteger(step)) continue;
+        const list = ownerTraceByStep.get(step) || [];
+        list.push(line.replace(/^\[(DOGMOVE_TRACE|RNDMON_OWNER|HMON_TRACE)\]\s*/, ''));
+        ownerTraceByStep.set(step, list);
+    }
 
     console.log(`session: ${absPath}`);
     if (sessionForCmp !== normalized) {
@@ -366,6 +395,7 @@ async function main() {
             .filter((entry) => entryMatchesMonster(entry, monId, mndx));
         const runEntries = filterEntries(runTraceByStep.get(step) || [], grep, true);
         const monmoveEntries = filterTraceEntries(monmoveTraceByStep.get(step) || [], grep, monId, mndx);
+        const ownerEntries = filterTraceEntries(ownerTraceByStep.get(step) || [], grep, monId, mndx);
         const cRawRange = cRawRanges[step - 1] || { from: null, to: null };
         const cRawKeys = (cRawRange.from != null && cRawRange.to >= cRawRange.from)
             ? (normalized.raw.steps || []).slice(cRawRange.from - 1, cRawRange.to).map((s) => s?.key ?? null)
@@ -386,6 +416,9 @@ async function main() {
         console.log('JS MONMOVE_TRACE:');
         if (monmoveEntries.length === 0) console.log('  (none)');
         else for (const entry of monmoveEntries) console.log(`  ${entry}`);
+        console.log('JS OWNER_TRACE:');
+        if (ownerEntries.length === 0) console.log('  (none)');
+        else for (const entry of ownerEntries) console.log(`  ${entry}`);
         if (step < stepTo) console.log('');
     }
 }

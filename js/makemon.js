@@ -240,6 +240,19 @@ function shouldTraceRndmon() {
     return _rndmonTraceInvocation >= start && _rndmonTraceInvocation < (start + count);
 }
 
+function shouldTraceRndmonOwner() {
+    if (!envFlag('WEBHACK_RNDMON_OWNER_TRACE')) return false;
+    const idx = _gstate?.map?._replayStepIndex;
+    const fromRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_FROM', ''), 10);
+    const toRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_TO', ''), 10);
+    if (Number.isInteger(idx)) {
+        const step = idx + 1;
+        if (Number.isInteger(fromRaw) && step < fromRaw) return false;
+        if (Number.isInteger(toRaw) && step > toRaw) return false;
+    }
+    return true;
+}
+
 function getRndmonTraceCtx() {
     const stack = new Error().stack || '';
     const lines = stack.split('\n');
@@ -446,8 +459,10 @@ function temperature_shift(ptr) {
 // C ref: makemon.c rndmonst_adj()
 export function rndmonst_adj(minadj, maxadj, depth) {
     const trace = shouldTraceRndmon();
+    const ownerTrace = shouldTraceRndmonOwner();
     const traceIdx = _rndmonTraceInvocation++;
     const traceCtx = trace ? getRndmonTraceCtx() : '?';
+    const ownerStep = Number.isInteger(_gstate?.map?._replayStepIndex) ? _gstate.map._replayStepIndex + 1 : '?';
     const ulevel = getMakemonUlevel();
     // C ref: level_difficulty() returns depth(&u.uz) for main dungeon
     const zlevel = depth;
@@ -466,16 +481,36 @@ export function rndmonst_adj(minadj, maxadj, depth) {
     if (trace) {
         console.log(`[RNDMON] begin #${traceIdx} call=${getRngCallCount()} minadj=${minadj} maxadj=${maxadj} depth=${depth} diff=${minmlev}-${maxmlev} ctx=${traceCtx}`);
     }
+    if (ownerTrace) {
+        console.log('[RNDMON_OWNER]',
+            `step=${ownerStep}`,
+            `call=${getRngCallCount()}`,
+            `minadj=${minadj}`,
+            `maxadj=${maxadj}`,
+            `depth=${depth}`,
+            `ulevel=${ulevel}`,
+            `diff=${minmlev}-${maxmlev}`,
+            `align=${_gstate?._dungeonAlign ?? A_NONE}`,
+            `ctx=${traceCtx}`);
+    }
 
     for (let mndx = LOW_PM; mndx < SPECIAL_PM; mndx++) {
         const ptr = mons[mndx];
 
         // Difficulty filter
-        if (ptr.difficulty < minmlev || montoostrong(mndx, maxmlev))
+        if (ptr.difficulty < minmlev) {
+            if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=weak', `diff=${ptr.difficulty}`);
             continue;
+        }
+        if (montoostrong(mndx, maxmlev)) {
+            if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=strong', `diff=${ptr.difficulty}`);
+            continue;
+        }
         // upper/elemlevel: not applicable at standard depths
-        if (uncommon(mndx))
+        if (uncommon(mndx)) {
+            if (ownerTrace) console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=uncommon');
             continue;
+        }
         // Not Inhell, so skip G_NOHELL check
 
         let weight = (ptr.geno & G_FREQ) + align_shift(ptr) + temperature_shift(ptr);
@@ -485,17 +520,33 @@ export function rndmonst_adj(minadj, maxadj, depth) {
             totalweight += weight;
 
             const roll = rn2(totalweight);
+            if (ownerTrace) {
+                console.log('[RNDMON_OWNER]',
+                    `step=${ownerStep}`,
+                    `mndx=${mndx}`,
+                    `name=${ptr.mname}`,
+                    `weight=${weight}`,
+                    `total=${totalweight}`,
+                    `roll=${roll}`,
+                    `pick=${roll < weight ? 1 : 0}`);
+            }
             if (trace) {
                 console.log(`[RNDMON] #${traceIdx} mndx=${mndx} name=${ptr.mname} w=${weight} total=${totalweight} roll=${roll} pick=${roll < weight ? 1 : 0} ctx=${traceCtx}`);
             }
             if (roll < weight)
                 selected_mndx = mndx;
+        } else if (ownerTrace) {
+            console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `mndx=${mndx}`, `name=${ptr.mname}`, 'skip=weight0');
         }
     }
 
     if (trace) {
         const selectedName = selected_mndx >= 0 ? (mons[selected_mndx]?.mname || `#${selected_mndx}`) : 'NON_PM';
         console.log(`[RNDMON] end #${traceIdx} totalweight=${totalweight} selected=${selected_mndx} ${selectedName} ctx=${traceCtx}`);
+    }
+    if (ownerTrace) {
+        const selectedName = selected_mndx >= 0 ? (mons[selected_mndx]?.mname || `#${selected_mndx}`) : 'NON_PM';
+        console.log('[RNDMON_OWNER]', `step=${ownerStep}`, `end selected=${selected_mndx}`, `name=${selectedName}`, `total=${totalweight}`);
     }
 
     if (selected_mndx < 0 || uncommon(selected_mndx))

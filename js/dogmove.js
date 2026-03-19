@@ -10,7 +10,7 @@ import { COLNO, ROWNO, IS_ROOM, IS_DOOR, IS_POOL, IS_LAVA,
          M_AP_FURNITURE, M_AP_OBJECT, M_AP_MONSTER } from './const.js';
 import { S_sink, defsyms } from './symbols.js';
 import { rn2, rnd, pushRngLogEntry } from './rng.js';
-import { getEnv } from './runtime_env.js';
+import { envFlag, getEnv } from './runtime_env.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED } from './const.js';
 import { mattacku } from './mhitu.js';
 import { CORPSE, BALL_CLASS, CHAIN_CLASS, ROCK_CLASS, FOOD_CLASS,
@@ -66,6 +66,33 @@ const DOG_WEAK   = 500;
 const DOG_STARVE = 750;
 
 const NON_PM = -1;
+
+function dogmoveOwnerTraceEnabled(map, mon) {
+    if (!envFlag('WEBHACK_DOGMOVE_TRACE')) return false;
+    const idx = map?._replayStepIndex;
+    const fromRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_FROM', ''), 10);
+    const toRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_TO', ''), 10);
+    const monId = Number.parseInt(getEnv('WEBHACK_TRACE_MON_ID', ''), 10);
+    const mndx = Number.parseInt(getEnv('WEBHACK_TRACE_MNDX', ''), 10);
+    if (Number.isInteger(idx)) {
+        const step = idx + 1;
+        if (Number.isInteger(fromRaw) && step < fromRaw) return false;
+        if (Number.isInteger(toRaw) && step > toRaw) return false;
+    }
+    if (Number.isInteger(monId) && Number(mon?.m_id) !== monId) return false;
+    if (Number.isInteger(mndx) && Number(mon?.mndx) !== mndx) return false;
+    return true;
+}
+
+function dogmoveOwnerTrace(map, mon, kind, ...args) {
+    if (!dogmoveOwnerTraceEnabled(map, mon)) return;
+    console.log('[DOGMOVE_TRACE]',
+        kind,
+        `step=${monmoveStepLabel(map)}`,
+        `id=${mon?.m_id ?? '?'}`,
+        `mndx=${mon?.mndx ?? '?'}`,
+        ...args);
+}
 
 // C ref: dogmove.c:1422 — quickmimic choices table
 const qm = [
@@ -1241,6 +1268,13 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     emitMfndposTrace('dog_move_mfndpos_detail', mon, positions, allowflags, map);
     pushRngLogEntry(`^dog_move_entry[${mon.mndx}@${omx},${omy} goal=${gx},${gy} appr=${appr}]`);
     pushRngLogEntry(`^dog_move_mfndpos[cnt=${cnt} flags=0x${(allowflags >>> 0).toString(16)}]`);
+    dogmoveOwnerTrace(map, mon, 'begin',
+        `from=${omx},${omy}`,
+        `goal=${gx},${gy}`,
+        `appr=${appr}`,
+        `udist=${udist}`,
+        `whappr=${whappr}`,
+        `cnt=${cnt}`);
     monmoveTrace('dog_move-begin',
         `step=${(Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?')}`,
         `id=${mon.m_id ?? '?'}`,
@@ -1269,6 +1303,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         if (cursed_object_at(map, nx, ny)) continue;
         uncursedcnt++;
     }
+    dogmoveOwnerTrace(map, mon, 'uncursed-count', `uncursed=${uncursedcnt}`);
 
     // C ref: dogmove.c:1073-1074 — check if displacement is beneficial
     const better_with_displacing = should_displace(mon, positions, gx, gy);
@@ -1281,15 +1316,27 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     const distmin_pu = Math.max(Math.abs(omx - player.x), Math.abs(omy - player.y));
     for (let i = 0; i < cnt; i++) {
         const nx = positions[i].x, ny = positions[i].y;
+        dogmoveOwnerTrace(map, mon, 'candidate',
+            `idx=${i}`,
+            `pos=${nx},${ny}`,
+            `info=0x${Number(positions[i].info || 0).toString(16)}`,
+            `allowM=${positions[i].allowM ? 1 : 0}`,
+            `allowMDisp=${positions[i].allowMDisp ? 1 : 0}`,
+            `allowTraps=${positions[i].allowTraps ? 1 : 0}`,
+            `allowU=${positions[i].allowU ? 1 : 0}`);
         // C ref: dogmove.c:1086-1088 — if leashed, we drag the pet along.
         if (mon.mleashed && dist2(nx, ny, player.x, player.y) > 4) {
+            dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=leash');
             continue;
         }
 
         // C ref: dogmove.c:1090-1092 — guardian angel stays within 16 squares
         if (!edogRaw) {
             const nd = dist2(nx, ny, player.x, player.y);
-            if (nd > 16 && nd >= udist) continue;
+            if (nd > 16 && nd >= udist) {
+                dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=guardian-range', `nd=${nd}`);
+                continue;
+            }
         }
 
         // C ref: dogmove.c:1088-1166 — pet melee against adjacent monster.
@@ -1359,6 +1406,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                         skipTarget = true;
                     }
                     if (skipTarget) {
+                        dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=special-target');
                         monmoveTrace('dog_move-skip-attack',
                             `step=${(Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?')}`,
                             `id=${mon.m_id ?? '?'}`,
@@ -1373,6 +1421,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 
                 // C ref: dogmove.c:1141 — only attack once per move
                 if (after) {
+                    dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=after-attack');
                     monmoveTrace('dog_move-skip-attack',
                         `step=${(Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?')}`,
                         `id=${mon.m_id ?? '?'}`,
@@ -1419,9 +1468,11 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
 
         // C ref: monmove.c m_avoid_kicked_loc() via dogmove.c:1177
         if (m_avoid_kicked_loc(mon, nx, ny, player)) {
+            dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=kicked-loc');
             continue;
         }
         if (m_avoid_soko_push_loc(mon, nx, ny, map, player)) {
+            dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=soko-push');
             continue;
         }
 
@@ -1436,6 +1487,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                     // (sound message omitted — no Deaf check yet)
                 } else {
                     if (trap.tseen && rn2(40)) {
+                        dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=known-trap');
                         continue;
                     }
                 }
@@ -1463,6 +1515,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
                         eatObj = obj;
                         foundFood = true;
                         cursemsg[i] = false; // C ref: not reluctant
+                        dogmoveOwnerTrace(map, mon, 'candidate-food', `idx=${i}`, `pos=${nx},${ny}`, `obj=${obj.o_id ?? '?'}`, `food=${otyp}`);
                         break;
                     }
                 }
@@ -1473,6 +1526,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         // Cursed avoidance
         // C ref: dogmove.c:1230-1232
         if (cursemsg[i] && !mon.mleashed && uncursedcnt > 0 && rn2(13 * uncursedcnt)) {
+            dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=cursed');
             continue;
         }
 
@@ -1486,6 +1540,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             for (let j = 0; j < MTSZ && j < k - 1; j++) {
                 if (nx === mon.mtrack[j].x && ny === mon.mtrack[j].y) {
                     if (rn2(MTSZ * (k - j))) {
+                        dogmoveOwnerTrace(map, mon, 'candidate-skip', `idx=${i}`, 'reason=backtrack', `track=${j}`);
                         skipThis = true;
                         break;
                     }
@@ -1503,6 +1558,13 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
         // C ref: dogmove.c:1247-1257
         const ndist = dist2(nx, ny, gx, gy);
         const j = (ndist - nidist) * appr;
+        dogmoveOwnerTrace(map, mon, 'candidate-eval',
+            `idx=${i}`,
+            `pos=${nx},${ny}`,
+            `ndist=${ndist}`,
+            `nidist=${nidist}`,
+            `j=${j}`,
+            `next_chcnt=${chcnt + 1}`);
         if ((j === 0 && !rn2(++chcnt)) || j < 0
             || (j > 0 && !whappr
                 && ((omx === nix && omy === niy && !rn2(3)) || !rn2(12)))) {
@@ -1511,6 +1573,12 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
             nidist = ndist;
             if (j < 0) chcnt = 0;
             chi = i;
+            dogmoveOwnerTrace(map, mon, 'candidate-pick',
+                `idx=${i}`,
+                `pos=${nix},${niy}`,
+                `ndist=${nidist}`,
+                `j=${j}`,
+                `chcnt=${chcnt}`);
         }
     }
 
@@ -1530,6 +1598,12 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     // Move the dog
     // C ref: dogmove.c:1274-1348 — newdogpos label
     pushRngLogEntry(`^dog_move_choice[${mon.mndx}@${omx},${omy} pick=${nix},${niy} chi=${chi} do_eat=${do_eat ? 1 : 0} cnt=${cnt} appr=${appr}]`);
+    dogmoveOwnerTrace(map, mon, 'choice',
+        `pick=${nix},${niy}`,
+        `chi=${chi}`,
+        `do_eat=${do_eat ? 1 : 0}`,
+        `cnt=${cnt}`,
+        `appr=${appr}`);
     if (nix !== omx || niy !== omy) {
         pushRngLogEntry(`^dog_move_exit[${mon.mndx}@${omx},${omy}->${nix},${niy} chi=${chi} do_eat=${do_eat ? 1 : 0}]`);
         monmoveTrace('dog_move-pick',

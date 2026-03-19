@@ -66,6 +66,7 @@ import {
 import { obj_resists } from './objdata.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { game as _gstate } from './gstate.js';
+import { envFlag, getEnv } from './runtime_env.js';
 import { applyMonflee } from './mhitu.js';
 import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
@@ -105,6 +106,29 @@ function miscMeleeObjectBaseDamage(obj) {
     let dmg = rnd(sides);
     if (dmg > 6) dmg = 6;
     return dmg;
+}
+
+function hmonTraceEnabled(map, mon) {
+    if (!envFlag('WEBHACK_HMON_TRACE')) return false;
+    const idx = map?._replayStepIndex;
+    const fromRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_FROM', ''), 10);
+    const toRaw = Number.parseInt(getEnv('WEBHACK_TRACE_STEP_TO', ''), 10);
+    const monId = Number.parseInt(getEnv('WEBHACK_TRACE_MON_ID', ''), 10);
+    const mndx = Number.parseInt(getEnv('WEBHACK_TRACE_MNDX', ''), 10);
+    if (Number.isInteger(idx)) {
+        const step = idx + 1;
+        if (Number.isInteger(fromRaw) && step < fromRaw) return false;
+        if (Number.isInteger(toRaw) && step > toRaw) return false;
+    }
+    if (Number.isInteger(monId) && Number(mon?.m_id) !== monId) return false;
+    if (Number.isInteger(mndx) && Number(mon?.mndx) !== mndx) return false;
+    return true;
+}
+
+function hmonTrace(map, mon, kind, ...args) {
+    if (!hmonTraceEnabled(map, mon)) return;
+    const step = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
+    console.log('[HMON_TRACE]', kind, `step=${step}`, `id=${mon?.m_id ?? '?'}`, `mndx=${mon?.mndx ?? '?'}`, ...args);
 }
 
 async function abuse_dog_like_c(mon, display = null) {
@@ -727,19 +751,35 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
         retval: false,
         saved_oname: '',
     };
+    hmonTrace(map, mon, 'begin',
+        `thrown=${thrown}`,
+        `dieroll=${dieroll}`,
+        `obj=${obj?.otyp ?? -1}`,
+        `launcher=${player?.weapon?.otyp ?? -1}`,
+        `mhp=${mon?.mhp ?? '?'}`);
 
     // Phase 1: compute base damage
     await hmon_hitmon_do_hit(hmd, mon, obj, player, display);
+    hmonTrace(map, mon, 'after-do-hit',
+        `dmg=${hmd.dmg}`,
+        `use_skill=${hmd.use_weapon_skill ? 1 : 0}`,
+        `get_bonus=${hmd.get_dmg_bonus ? 1 : 0}`,
+        `poison=${hmd.ispoisoned ? 1 : 0}`);
     if (hmd.doreturn) return hmd.retval;
 
     // Phase 2: add bonuses
     if (hmd.dmg > 0) {
         hmon_hitmon_dmg_recalc(hmd, obj, player);
+        hmonTrace(map, mon, 'after-dmg-recalc', `dmg=${hmd.dmg}`);
     }
 
     // Phase 3: poison
     if (hmd.ispoisoned && obj) {
         hmon_hitmon_poison(hmd, mon, obj);
+        hmonTrace(map, mon, 'after-poison',
+            `dmg=${hmd.dmg}`,
+            `poiskilled=${hmd.poiskilled ? 1 : 0}`,
+            `needpoismsg=${hmd.needpoismsg ? 1 : 0}`);
     }
 
     // Phase 4: minimum damage / shade handling
@@ -764,11 +804,16 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
             hmd.dmg += bonus;
         }
         mon.mhp -= hmd.dmg;
+        hmonTrace(map, mon, 'after-apply-dmg', `dmg=${hmd.dmg}`, `mhp=${mon.mhp}`);
     }
     if (mon.mhp > (mon.mhpmax || mon.mhp))
         mon.mhp = mon.mhpmax || mon.mhp;
 
     if (mon.mhp <= 0) hmd.destroyed = true;
+    hmonTrace(map, mon, 'post-destroy-check',
+        `destroyed=${hmd.destroyed ? 1 : 0}`,
+        `already_killed=${hmd.already_killed ? 1 : 0}`,
+        `mhp=${mon.mhp}`);
 
     // Phase 7: pet handling
     await hmon_hitmon_pet(hmd, mon, obj, display);
@@ -789,12 +834,14 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
             mon.mhp = 0;
         }
         if (!hmd.already_killed) {
+            hmonTrace(map, mon, 'death-owner', 'kind=xkilled-nomsg');
             await xkilled(mon, XKILL_NOMSG, map, player);
             hmd.already_killed = true;
         }
         hmd.destroyed = true;
     }
     if (hmd.destroyed && !hmd.already_killed) {
+        hmonTrace(map, mon, 'death-owner', 'kind=killed');
         await killed(mon, map, player);
         hmd.already_killed = true;
     }
@@ -811,6 +858,10 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
         }
     }
 
+    hmonTrace(map, mon, 'end',
+        `destroyed=${hmd.destroyed ? 1 : 0}`,
+        `already_killed=${hmd.already_killed ? 1 : 0}`,
+        `retval=${hmd.destroyed ? 0 : 1}`);
     return hmd.destroyed ? false : true;
 }
 

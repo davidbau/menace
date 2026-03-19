@@ -1309,3 +1309,41 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - RNG: step `488`
     - JS: `rn2(3)=1 @ rndmonnum_adj(...)`
     - C:  `rn2(2)=0 @ rndmonst_adj(makemon.c:1714)`
+
+## 2026-03-19: owner-local tracing added for exact failing bundles
+
+- New diagnostic coverage added in core JS owners:
+  - `js/dogmove.js`
+    - `WEBHACK_DOGMOVE_TRACE=1`
+    - emits `[DOGMOVE_TRACE]` with:
+      - candidate ordering
+      - candidate skips
+      - `uncursedcnt`
+      - final `choice`
+  - `js/makemon.js`
+    - `WEBHACK_RNDMON_OWNER_TRACE=1`
+    - emits `[RNDMON_OWNER]` with:
+      - min/max adjustment context
+      - level/align context
+      - per-candidate skip/weight/roll info
+      - final selected monster
+  - `js/uhitm.js`
+    - `WEBHACK_HMON_TRACE=1`
+    - emits `[HMON_TRACE]` with:
+      - damage path checkpoints
+      - poison/death ownership
+      - final kill owner
+- `scripts/movement-propagation.mjs`
+  - new `--owner-trace` flag enables and groups those traces by authoritative
+    comparison step
+  - supports `--mon-id`, `--mndx`, and `--grep` for narrow owner-focused views
+- Validated useful on live `seed031` seams:
+  - step `479`:
+    - `DOGMOVE_TRACE` exposes the kitten candidate loop at `66,6` directly
+  - step `488`:
+    - `HMON_TRACE` confirms thrown-hit death ownership in `hmon()`
+    - `RNDMON_OWNER` shows the exact `rndmonst_adj()` candidate inclusion and
+      final reservoir pick
+- Operational rule for future work:
+  - before adding ad hoc logging in `dog_move()`, `hmon()`, or `rndmonst_adj()`,
+    use `movement-propagation --owner-trace` first

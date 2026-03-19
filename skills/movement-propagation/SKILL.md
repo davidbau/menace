@@ -47,6 +47,14 @@ node scripts/movement-propagation.mjs <session.json> \
   --mon-id <ID> --mndx <PM> --monmove-trace
 ```
 
+Owner-local trace mode:
+
+```bash
+node scripts/movement-propagation.mjs <session.json> \
+  --step-from <N> --step-to <M> \
+  --owner-trace --mon-id <ID> --mndx <PM>
+```
+
 ## Core Workflow
 
 1. Reproduce the failing session and identify the first bad gameplay step.
@@ -67,6 +75,10 @@ node scripts/movement-propagation.mjs <session.json> \
 - JS movement-related step entries
 - JS `[RUN_TRACE]` lines
 - JS `[MONMOVE_TRACE]` / `[MONMOVE_PHASE3]` lines when enabled
+- JS owner-local trace lines when enabled:
+  - `[DOGMOVE_TRACE]`
+  - `[RNDMON_OWNER]`
+  - `[HMON_TRACE]`
 - C raw key range and JS raw keys for that same comparison-step bundle
 
 Manual-direct rule:
@@ -112,6 +124,20 @@ Use this when:
 - `session_test_runner` exposes a new event family but the owning step is unclear
 - you need to re-anchor on the authoritative comparison-step bundle before using raw windows
 - you want a fast C-vs-JS scan without replaying large ad hoc grep pipelines
+
+7. If the owner is known but the local state is not, turn on owner-local traces.
+
+```bash
+node scripts/movement-propagation.mjs <session.json> \
+  --step-from <N> --step-to <N> \
+  --owner-trace --grep 'candidate|choice|death-owner|weight=|selected='
+```
+
+Use this when:
+- the first visible divergence is inside pet choice, thrown-hit kill handling,
+  or random-monster selection
+- the step owner is already known and you need the exact local state used by JS
+- you want a reusable trace before adding any new ad hoc console logging
 
 5. Only after the movement bundle is localized, inspect the specific code path:
 - `js/hack.js`
@@ -170,6 +196,26 @@ node scripts/movement-propagation.mjs \
   --event-find '^die\\['
 ```
 
+Inspect the live `seed031` dog-choice seam:
+
+```bash
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --step-from 479 --step-to 479 \
+  --owner-trace --mndx 32 \
+  --grep 'candidate|choice|uncursed'
+```
+
+Inspect the live `seed031` thrown-hit / corpse-placeholder seam:
+
+```bash
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --step-from 488 --step-to 488 \
+  --owner-trace \
+  --grep 'death-owner|weight=|skip=|selected='
+```
+
 ## Interpretation Rules
 
 - If C and JS match through most of a step and then JS stops early, prioritize
@@ -184,6 +230,10 @@ node scripts/movement-propagation.mjs \
   run-ownership bug; switch to a different tool.
 - If the live seam is inside ordinary monster movement, enable `--monmove-trace`
   and filter by `--mon-id` or `--mndx` before adding ad hoc console logging.
+- If the live seam is inside `dog_move()`, `hmon()`, or `rndmonst_adj()`, prefer
+  `--owner-trace` before adding new one-off logs.
+- Use `--owner-trace --mndx <PM>` for species-wide pet/monster scans and
+  `--owner-trace --mon-id <ID>` when the exact runtime monster id is stable.
 - Ordinary-monster `mfndpos` detail is available through
   `WEBHACK_MFNDPOS_TRACE=1`, which the tool enables automatically when
   `--monmove-trace`, `--mon-id`, or `--mndx` is used.

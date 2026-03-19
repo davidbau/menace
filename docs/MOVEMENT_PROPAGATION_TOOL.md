@@ -31,12 +31,21 @@ What it does:
   - `WEBHACK_MONMOVE_TRACE=1`
   - `WEBHACK_MONMOVE_PHASE3_TRACE=1`
   - `WEBHACK_MFNDPOS_TRACE=1`
+- when `--owner-trace` is used, it also enables:
+  - `WEBHACK_DOGMOVE_TRACE=1`
+  - `WEBHACK_RNDMON_OWNER_TRACE=1`
+  - `WEBHACK_HMON_TRACE=1`
+  - and passes `--mon-id` / `--mndx` through to the owner traces when set
 - groups the JS replay back into gameplay steps
 - prints, for each selected gameplay step:
   - movement-related C step entries from the recorded session
   - movement-related JS step entries from replay RNG/event output
   - JS `[RUN_TRACE]` lines for that same step window
   - optional JS `[MONMOVE_TRACE]` / `[MONMOVE_PHASE3]` lines for that same step
+  - optional JS owner-local state lines for that same step:
+    - `[DOGMOVE_TRACE]`
+    - `[RNDMON_OWNER]`
+    - `[HMON_TRACE]`
   - the corresponding C raw key range for that same comparison-step bundle
   - the JS raw keys consumed for that same comparison-step bundle
 - can also print a side-by-side raw replay window:
@@ -94,6 +103,18 @@ node scripts/movement-propagation.mjs \
   test/comparison/sessions/seed031_manual_direct.session.json \
   --step-from 484 --step-to 484 \
   --mndx 44 --mon-id 196 --monmove-trace
+
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --step-from 479 --step-to 479 \
+  --owner-trace --mndx 32 \
+  --grep 'candidate|choice|uncursed'
+
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --step-from 488 --step-to 488 \
+  --owner-trace \
+  --grep 'death-owner|weight=|skip=|selected='
 ```
 
 Useful flags:
@@ -116,6 +137,13 @@ Useful flags:
   - this also surfaces `mdig_tunnel-enter` / `mdig_tunnel-branch` lines with
     `id`, `mndx`, and `pos`, so `--mon-id` / `--mndx` filtering still works
     when the live seam passes through post-move digging logic
+- `--owner-trace`
+  - include owner-local state traces for the selected step window:
+    - `DOGMOVE_TRACE`
+    - `RNDMON_OWNER`
+    - `HMON_TRACE`
+  - this is the high-signal mode when the first visible divergence is downstream
+    of pet choice, random-monster selection, or thrown-hit kill ownership
 - `--raw-from <N> --raw-to <M>`
   - print a raw C-vs-JS replay window, useful when a manual-direct session has
     hidden raw command bundles inside one gameplay step
@@ -138,6 +166,17 @@ Notes:
   this is the quickest way to see whether JS is consuming later keys too early
 - when a new seam is identified by event family rather than step-local motion,
   use `--event-find` first, then a narrow step window around the returned step
+- owner traces are best used with a single step and either:
+  - `--mon-id` / `--mndx` to narrow to one actor
+  - or `--grep` to narrow to one owner subphase
+- current owner-trace coverage:
+  - `DOGMOVE_TRACE`
+    - candidate ordering, candidate skips, `uncursedcnt`, and final pick
+  - `RNDMON_OWNER`
+    - difficulty/alignment context plus per-candidate inclusion, exclusion, and
+      reservoir-selection rolls
+  - `HMON_TRACE`
+    - thrown-hit damage path, poison/death ownership, and final kill owner
 
 Companion tools:
 
