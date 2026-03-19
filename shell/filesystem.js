@@ -322,12 +322,25 @@ function computeHomeDirChildren() {
     return result;
 }
 
+// Files within world-readable home dirs that are owner-private (0600).
+// These appear in ls -l but return Permission denied on cat unless root.
+const HOME_FILE_RESTRICTED = {
+    izchak:   new Set(['complaints']),
+    crowther: new Set(['adventure']),
+    toy:      new Set(['todo']),
+};
+
 // Build static file nodes for a user's home dir from HOME_FILES corpus.
 function homeFilesFor(username) {
     const files = (HOME_FILES && HOME_FILES[username]) || {};
+    const restricted = HOME_FILE_RESTRICTED[username] || new Set();
     const result = {};
     for (const [name, content] of Object.entries(files)) {
-        result[name] = { type: 'file', content, readonly: true, owner: username, group: username };
+        const isPrivate = restricted.has(name);
+        result[name] = {
+            type: 'file', content, readonly: true, owner: username, group: username,
+            ...(isPrivate ? { restricted: true, perms: '-rw-------' } : {}),
+        };
     }
     return result;
 }
@@ -515,12 +528,19 @@ export class VirtualFS {
         return Object.keys(ch).filter(name => this._nodeExists(ch[name]));
     }
 
+    // True if path exists but is restricted from the current user
+    isRestricted(path) {
+        const node = this.getNode(path);
+        return !!(node && node.restricted && !this.isRoot);
+    }
+
     // Read file content
     cat(path) {
         const node = this.getNode(path);
         if (!node) return null;
         if (node.type === 'dir') return null; // Is a directory
         if (node.type === 'exec') return null; // executables are not readable
+        if (node.restricted && !this.isRoot) return null; // permission denied
         if (node.compute) return node.compute();
         if (node.vfsPath !== undefined) {
             return vfsReadFile(node.vfsPath) || '';

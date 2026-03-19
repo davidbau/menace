@@ -185,6 +185,8 @@ async function cat(args, shell) {
         if (content === null) {
             if (shell.fs.isDir(path)) {
                 shell.println(`cat: ${path}: Is a directory`);
+            } else if (shell.fs.isRestricted(path)) {
+                shell.println(`cat: ${path}: Permission denied`);
             } else {
                 shell.println(`cat: ${path}: No such file or directory`);
             }
@@ -207,6 +209,8 @@ async function more(args, shell) {
         if (content === null) {
             if (shell.fs.isDir(path)) {
                 shell.println(`more: ${path}: Is a directory`);
+            } else if (shell.fs.isRestricted(path)) {
+                shell.println(`more: ${path}: Permission denied`);
             } else {
                 shell.println(`more: ${path}: No such file or directory`);
             }
