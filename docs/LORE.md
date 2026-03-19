@@ -14012,6 +14012,19 @@ Validation:
     - a later Oracle `mineralize()` gem-count seam remains:
       JS `rnd(2)` vs C `rnd(3)`
 
+- 2026-03-19: Area sweeps completed in this session:
+  - **confdir**: dig.js, lock.js (handleOpen, handleClose, pick_lock) — all direction
+    prompts now call confdir() matching C's getdir() impairment path.
+  - **LEVEL_SPECIFIC_NOCORPSE**: mon.js xkilled() + corpse_chance() — tutorial/rogue
+    deathdrops suppression now matches C.
+  - **bhit features**: dothrow.js projectile loop — iron bars, web trap, rock skipping,
+    shade/mimic pass-through, sink stop, closed door stop.
+  - **Luck usage**: verified correct across fountain.js, makemon.js, pray.js, sit.js.
+    All use player.luck (=uluck) where C uses u.uluck, and Luck(player) where C uses Luck.
+  - **exercise() gaps**: uhitm.js has 9/19 C exercise calls (10 missing in uncommon paths:
+    egg splat, boomerang catch, demon summoning, monster defense). dothrow.js has 5/7
+    (missing: boomerang catch, toss_up). Low impact for current sessions.
+
 - 2026-03-19: Oracle mapgen alignment removal (`af5b8ce1e`) regressed 3 sessions.
   - The divergence is in `_dungeonAlign` during `makelevel()` for special levels.
     JS sets `_dungeonAlign` at dungeon.js:5018 during special level generation.
