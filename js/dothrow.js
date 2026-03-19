@@ -1088,6 +1088,21 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     }
     if (obj.otyp === BOULDER) range = 20;
 
+    // C ref: zap.c:3844-3846 — skiprange for thrown rocks.
+    // Consumes 1-2 rnd() calls + 1 rn2(3) for allow_skip.
+    // These must be consumed to keep RNG parity even though JS's inline
+    // projectile loop doesn't use the skip-range behavior.
+    let skiprange_start = 0, skiprange_end = 0;
+    let allow_skip = false;
+    if (obj.otyp === ROCK) {
+        const tr = Math.floor(range / 4);
+        const tmp = range - ((tr > 0) ? rnd(tr) : 0);
+        skiprange_start = tmp;
+        skiprange_end = tmp - (Math.floor(tmp / 4) * rnd(3));
+        if (skiprange_end >= tmp) skiprange_end = tmp - 1;
+        allow_skip = !rn2(3);
+    }
+
     let hitMon = null;
     const dx = player.dx || 0, dy = player.dy || 0;
     let bx = player.x, by = player.y;
