@@ -1347,3 +1347,21 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
 - Operational rule for future work:
   - before adding ad hoc logging in `dog_move()`, `hmon()`, or `rndmonst_adj()`,
     use `movement-propagation --owner-trace` first
+
+## 2026-03-19: mkobj runtime depth source in seed031
+
+- Exact C check: `level_difficulty()` in `nethack-c/patched/src/dungeon.c` derives runtime monster/object difficulty from `u.uz`, not from any branch-local counter.
+- Exact C check: `rndmonnum()` / `rndmonnum_adj()` in `nethack-c/patched/src/mkobj.c` delegate to `rndmonst_adj()` with that runtime difficulty context.
+- JS bug: [`js/mkobj.js`](/share/u/davidbau/git/mazesofmenace/game/js/mkobj.js) was deriving runtime depth from `player.dungeonLevel`, but `changeLevel()` stores branch-local depth there.
+- Faithful fix: runtime `_getLevelDepth()` now prefers the current level coordinates (`map._genDnum/_genDlevel`, then `map.uz`, then `player.uz`) and computes difficulty via `level_difficulty(...)`.
+- Validated effect:
+  - `seed031_manual_direct`: RNG `23265 -> 23272`
+  - first event divergence moved from the later pet-choice symptom back to earlier `distfleeck()` state at step `479`
+- Guardrails that stayed green:
+  - `seed321_archeologist_wizard_gameplay`
+  - `seed328_ranger_wizard_gameplay`
+  - `t11_s744_w_covmax2_gp`
+  - `t04_s705_w_minefill_gp`
+  - `t04_s706_w_minetn1_gp`
+  - `t08_s984_w_camera_gp`
+- Disproved theory: a broader special-level alignment override in `align_shift()` was wrong; exact C `init_level()` alignment handling did not support it. Do not revive that heuristic.

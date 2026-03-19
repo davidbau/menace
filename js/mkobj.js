@@ -163,13 +163,19 @@ function _getLevelDepth() {
     if (_gstate?._inMklev) {
         return _gstate._levelDepth ?? 1;
     }
-    // At runtime, read the player's current dungeon depth.
-    // C ref: level_difficulty() calls depth(&u.uz) which returns the
-    // ledger number.  player.dungeonLevel is the JS equivalent (set by
-    // changeLevel to the ledger depth).
+    // At runtime, derive difficulty from the current level coordinates.
+    // player.dungeonLevel is branch-local in JS; C uses level_difficulty(),
+    // which is based on u.uz/map.uz rather than a branch-local counter.
+    const map = _gstate?.lev ?? _gstate?.map;
+    if (Number.isInteger(map?._genDnum) && Number.isInteger(map?._genDlevel)) {
+        return level_difficulty({ dnum: map._genDnum, dlevel: map._genDlevel }, _gstate);
+    }
+    if (map?.uz && Number.isInteger(map.uz.dnum) && Number.isInteger(map.uz.dlevel)) {
+        return level_difficulty(map.uz, _gstate);
+    }
     const player = _gstate?.u ?? _gstate?.player;
-    if (player?.dungeonLevel > 0) {
-        return player.dungeonLevel;
+    if (player?.uz && Number.isInteger(player.uz.dnum) && Number.isInteger(player.uz.dlevel)) {
+        return level_difficulty(player.uz, _gstate);
     }
     // Fallback during early init or when player isn't placed yet.
     return _gstate?._levelDepth ?? 1;

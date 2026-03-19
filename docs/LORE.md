@@ -13819,3 +13819,6 @@ Validation:
 - Regression test:
   - `test/unit/uhitm_weapon_dispatch.test.js`
   - thrown ammo with a matching launcher must take the melee damage branch
+
+- 2026-03-19: `js/mkobj.js` runtime `rndmonnum()` / corpse placeholder difficulty must be sourced from level coordinates (`u.uz` equivalent), not `player.dungeonLevel`. In JS, `changeLevel()` stores branch-local depth in `player.dungeonLevel`, so runtime `_getLevelDepth()` should prefer `map._genDnum/_genDlevel`, then `map.uz`, then `player.uz`, and pass that through `level_difficulty(...)`. This improved `seed031` and held guardrails (`seed321`, `seed328`, `t11_s744`, Mines sessions, camera session).
+- 2026-03-19: Do not add a blanket special-level alignment override to `align_shift()` as a fix for minefill/protofile sessions. Exact C `init_level()` / `induced_align()` behavior did not support that theory, and it regressed multiple sessions.

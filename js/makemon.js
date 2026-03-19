@@ -434,9 +434,8 @@ export function uncommon(mndx) {
 // C ref: makemon.c align_shift()
 // Note: C's align_shift uses induced_align(80) which consumes RNG and is
 // cached in a static variable. The JS version reads _dungeonAlign directly
-// without RNG consumption. Using level_align() here was tried but regressed
-// 3 sessions (seed321, seed328, t11_s744) because it returns non-A_NONE
-// for levels where the old _dungeonAlign was A_NONE.
+// without RNG consumption. A broader special-level override was tried and
+// disproved by the exact C init_level() alignment code.
 function align_shift(ptr) {
     switch (_gstate?._dungeonAlign ?? A_NONE) {
     default:
