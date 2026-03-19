@@ -14032,4 +14032,13 @@ Validation:
     (df75e5085). seed321/seed328/t11_s744 still fail — divergence at deep levels
     (Dlvl:21/25) with rn2(3) vs rn2(5) in rndmonst_adj. These levels have no
     special alignment, suggesting the regression cascades from an earlier generation
-    difference. Needs investigation by alignment change author.
+    difference.
+  - **Root cause identified**: `RUNTIME_SPECIAL_LEVEL_CANON` uses CANONICAL dlevel
+    positions (oracle=5, medusa=20), but C's `init_dungeons` places specials at
+    ACTUAL positions (oracle=base5+rn range5 → 5-10). At runtime, JS's
+    `runtimeSpecialLevelFor(dnum, dlevel)` fails to find the special level because
+    the actual dlevel doesn't match the canonical dlevel. C's `Is_special(&u.uz)`
+    always finds it because it uses the actual `s_level` record. The old heuristics
+    masked this by setting alignment based on level NAME during generation. Fix:
+    track actual special level positions from `init_dungeons` and use them for
+    runtime alignment lookups.
