@@ -5011,14 +5011,12 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     if (special && !isRogueLevel) {
             const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
             const useDlevel = Number.isInteger(specialDlevel) ? specialDlevel : dlevel;
-            // C ref: align_shift() uses current special-level alignment when present.
-            // Mirror special-level alignment for known deterministic specials.
             const specialName = typeof special.name === 'string' ? special.name : '';
-            let specialAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
-            if (specialName.startsWith('oracle')) specialAlign = A_NEUTRAL;
-            else if (specialName.startsWith('medusa')) specialAlign = A_CHAOTIC;
-            else if (specialName.startsWith('tut-')) specialAlign = A_LAWFUL;
-            if (_gstate) _gstate._dungeonAlign = specialAlign;
+            // Keep generation-time alignment on the C-style dungeon/default path.
+            // Do not inject name-based special-level alignment heuristics here.
+            if (_gstate) {
+                _gstate._dungeonAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
+            }
 
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${useDnum}, ${useDlevel})`);
             // Reset special-level Lua/des state for each special level generation.
