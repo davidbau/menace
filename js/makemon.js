@@ -101,7 +101,7 @@ import { PIT, SPIKED_PIT, LOW_PM,
     nothing_happens, nothing_seems_to_happen,
     STRAT_WAITFORU, STRAT_CLOSE, STRAT_APPEARMSG } from './const.js';
 import {
-    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_align, level_difficulty
+    In_sokoban, In_mines, In_quest, Is_stronghold, Is_earthlevel, Is_waterlevel, Is_firelevel, Is_airlevel, level_difficulty
 } from './dungeon.js';
 import { newemin } from './minion.js';
 import { qt_montype } from './questpgr.js';
@@ -419,9 +419,13 @@ export function uncommon(mndx) {
 // ALIGNWEIGHT imported from const.js
 
 // C ref: makemon.c align_shift()
+// Note: C's align_shift uses induced_align(80) which consumes RNG and is
+// cached in a static variable. The JS version reads _dungeonAlign directly
+// without RNG consumption. Using level_align() here was tried but regressed
+// 3 sessions (seed321, seed328, t11_s744) because it returns non-A_NONE
+// for levels where the old _dungeonAlign was A_NONE.
 function align_shift(ptr) {
-    const levelRef = _gstate?.lev || _gstate?.map || _gstate?.u?.uz;
-    switch (level_align(levelRef)) {
+    switch (_gstate?._dungeonAlign ?? A_NONE) {
     default:
     case A_NONE:
         return 0;
