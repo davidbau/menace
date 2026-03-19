@@ -627,9 +627,9 @@ export function consumeHarnessMapdumpPayloads() {
 const RUNTIME_SPECIAL_LEVEL_CANON = new Map([
     [DUNGEONS_OF_DOOM, [
         { index: 0, canonDlevel: 15 }, // rogue
-        { index: 1, canonDlevel: 5 },  // oracle
+        { index: 1, canonDlevel: 5, align: A_NEUTRAL },  // oracle (dungeon.lua: alignment="neutral")
         { index: 2, canonDlevel: 10 }, // bigrm
-        { index: 3, canonDlevel: 20 }, // medusa
+        { index: 3, canonDlevel: 20, align: A_CHAOTIC },  // medusa (dungeon.lua: alignment="chaotic")
         { index: 4, canonDlevel: 17 }, // castle
     ]],
     [GEHENNOM, [
@@ -5012,10 +5012,16 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
             const useDlevel = Number.isInteger(specialDlevel) ? specialDlevel : dlevel;
             const specialName = typeof special.name === 'string' ? special.name : '';
-            // Keep generation-time alignment on the C-style dungeon/default path.
-            // Do not inject name-based special-level alignment heuristics here.
+            // C ref: dungeon.c:588-591 + makemon.c:1619 — during special level
+            // generation, align_shift reads lev->flags.align. For levels with
+            // explicit alignment in dungeon.lua (oracle=neutral, medusa=chaotic),
+            // this overrides the dungeon alignment. Read from RUNTIME_SPECIAL_LEVEL_CANON.
             if (_gstate) {
-                _gstate._dungeonAlign = forcedAlign ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
+                const specialMeta = runtimeSpecialLevelFor(useDnum, useDlevel);
+                const levelAlign = specialMeta && Number.isInteger(specialMeta.align)
+                    ? specialMeta.align : undefined;
+                _gstate._dungeonAlign = forcedAlign ?? levelAlign
+                    ?? (DUNGEON_ALIGN_BY_DNUM[useDnum] ?? A_NONE);
             }
 
             if (DEBUG) console.log(`Generating special level: ${special.name} at (${useDnum}, ${useDlevel})`);
