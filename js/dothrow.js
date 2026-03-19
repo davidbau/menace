@@ -65,7 +65,7 @@ import { mpickobj } from './steal.js';
 import { newsym, flush_screen, canSeeMonsterForMap } from './display.js';
 import { makemon, makemon_appear, set_malign } from './makemon.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr, change_luck } from './attrib.js';
+import { acurr, change_luck, Luck } from './attrib.js';
 import { A_STR, A_DEX } from './const.js';
 import {
     tmp_at, tmp_at_end_async, nh_delay_output,
@@ -1228,7 +1228,7 @@ export async function thitmonst(mon, obj, player, map, game) {
     const uwep = player.weapon;
     const otyp = obj.otyp;
     const data = mon.data || (mons ? mons[mon.mndx] : null) || {};
-    let tmp = -1 + (player.luck || 0) + find_mac(mon) + (player.uhitinc || 0) + (player.ulevel || 1);
+    let tmp = -1 + Luck(player) + find_mac(mon) + (player.uhitinc || 0) + (player.ulevel || 1);
     const dex = acurr(player, A_DEX);
     if (dex < 4) tmp -= 3;
     else if (dex < 6) tmp -= 2;

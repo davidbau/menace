@@ -2550,7 +2550,7 @@ export async function altar_wrath(x, y, player, map) {
               align_gname(altaralign, player),
               "?) whispers");
         await verbalize("Thou shalt pay, infidel!");
-        const luck = player.luck || 0;
+        const luck = Luck(player);
         if (luck > -5 && rn2(luck + 6)) {
             player.luck = luck + (rn2(20) ? -1 : -2);
         }

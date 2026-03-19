@@ -27,7 +27,7 @@ import {
 import { A_STR, A_INT, A_WIS, A_DEX, A_CON, SDOOR, COLNO, ROWNO, MM_EDOG, MM_ADJACENTOK, CONFUSION, STUNNED, GETOBJ_PROMPT, GETOBJ_ALLOWCNT, GETOBJ_EXCLUDE, GETOBJ_SUGGEST, GETOBJ_DOWNPLAY, GETOBJ_EXCLUDE_SELECTABLE, isok, IS_OBSTRUCTED, IS_AIR, W_BALL, W_CHAIN, ACCESSIBLE, FIRE_RES, W_ARMH } from './const.js';
 import { doname, bcsign, blessorcurse, uncurse, mksobj, mkobj, weight, place_object } from './mkobj.js';
 import { exercise } from './attrib_exercise.js';
-import { acurr } from './attrib.js';
+import { acurr, Luck } from './attrib.js';
 import { discoverObject, isObjectNameKnown } from './o_init.js';
 import { s_suffix, distu, upwords } from './hacklib.js';
 import { make_confused, make_stunned } from './potion.js';
@@ -720,7 +720,7 @@ async function seffect_identify(sobj, player, display) {
     if (sblessed || (!scursed && !rn2(5))) {
         cval = rn2(5);
         // cval==0 means identify ALL
-        if (cval === 1 && sblessed && (player.luck || 0) > 0) {
+        if (cval === 1 && sblessed && Luck(player) > 0) {
             ++cval;
         }
     }

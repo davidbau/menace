@@ -17,7 +17,7 @@ import { COIN_CLASS, SADDLE, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib } from './attrib.js';
+import { adjattrib, Luck } from './attrib.js';
 import { is_pool, is_lava, is_ice } from './dbridge.js';
 import { PM_TRAPPER, S_DRAGON } from './monsters.js';
 import { is_prince, slithy, is_hider, lays_eggs, likes_lava,
@@ -261,11 +261,11 @@ async function throne_sit_effect(player, map, display) {
             await pline("A voice echoes:");
             await verbalize(
                  "A curse upon thee for sitting upon this most holy throne!");
-            if ((player.luck || 0) > 0) {
+            if (Luck(player) > 0) {
                 // RNG parity: rn1(100, 250) = rn2(100) + 250 for blind duration
                 const blindDur = rn1(100, 250);
                 // TODO: make_blinded(BlindedTimeout + blindDur, TRUE)
-                if ((player.luck || 0) > 1) {
+                if (Luck(player) > 1) {
                     const lossamt = rnd(2);
                     // TODO: change_luck(-lossamt)
                 } else {
@@ -277,7 +277,7 @@ async function throne_sit_effect(player, map, display) {
             break;
         case 10:
             // magic mapping or see_invis
-            if ((player.luck || 0) < 0 || player.hasProp(SEE_INVIS)) {
+            if (Luck(player) < 0 || player.hasProp(SEE_INVIS)) {
                 if (map.flags && map.flags.nommap) {
                     await pline("A terrible drone fills your head!");
                     // RNG parity: rnd(30) for confusion
@@ -301,7 +301,7 @@ async function throne_sit_effect(player, map, display) {
             break;
         case 11:
             // teleport or aggravate
-            if ((player.luck || 0) < 0) {
+            if (Luck(player) < 0) {
                 await You_feel("threatened.");
                 aggravate(map, player);
             } else {

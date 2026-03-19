@@ -83,7 +83,7 @@ import { expels } from './mhitu.js';
 import { hard_helmet } from './do_wear.js';
 import { You_hear } from './pline.js';
 import { abon } from './weapon.js';
-import { acurr } from './attrib.js';
+import { acurr, Luck } from './attrib.js';
 import { A_STR, A_DEX, A_WIS, AM_SANCTUM, MM_NOMSG } from './const.js';
 import { exercise } from './attrib_exercise.js';
 import { bimanual } from './pray.js';
@@ -1873,7 +1873,7 @@ export function escape_tomb(map, player) {
     //        && (Teleport_control || rn2(3) < Luck+2))
     const can_tele = !!(player.teleportation || player.can_teleport);
     if (can_tele) {
-        const luck = player.luck || 0;
+        const luck = Luck(player);
         if (player.teleport_control || rn2(3) < luck + 2) {
             // "You attempt a teleport spell."
             // dotele(FALSE) — calls unearth_you()

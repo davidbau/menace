@@ -25,6 +25,7 @@ import { IS_OBSTRUCTED, IS_DOOR, D_CLOSED, D_LOCKED, POOL,
 import { xname } from './objnam.js';
 import { HEAVY_IRON_BALL, IRON_CHAIN } from './objects.js';
 import { exercise } from './attrib_exercise.js';
+import { Luck } from './attrib.js';
 import { maybe_unhide_at } from './mon.js';
 import { obj_extract_self } from './mkobj.js';
 import { t_at } from './trap.js';
@@ -660,7 +661,7 @@ export async function drag_ball(x, y, allow_drag, player, map, game) {
             const victim = map.monsterAt ? map.monsterAt(uchain.ox, uchain.oy) : null;
             if (victim) {
                 const dieroll = rnd(20);
-                let tmp = -2 + (player.luck || 0) + (typeof victim.findMac === 'function' ? victim.findMac() : 10);
+                let tmp = -2 + Luck(player) + (typeof victim.findMac === 'function' ? victim.findMac() : 10);
                 // omon_adj not wired; skip for now
                 // tmp += omon_adj(victim, uball, true);
 
