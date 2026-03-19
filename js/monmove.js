@@ -63,7 +63,7 @@ import { can_teleport, noeyes, perceives, nohands,
          is_vampshifter, DEADMONSTER, noattacks, M_AP_TYPE, m_canseeu,
          locomotion, mhis } from './mondata.js';
 import { PM_GRID_BUG, PM_SHOPKEEPER, PM_MINOTAUR, mons, PM_LEPRECHAUN, PM_GREMLIN, PM_STALKER, PM_TENGU, PM_XORN, PM_RUST_MONSTER, PM_GELATINOUS_CUBE, PM_DISPLACER_BEAST, PM_WHITE_UNICORN, PM_GRAY_UNICORN, PM_BLACK_UNICORN, PM_SHRIEKER, PM_PURPLE_WORM, PM_MEDUSA, PM_ERINYS, PM_HEZROU, PM_VROCK, PM_STEAM_VORTEX, PM_FOG_CLOUD, PM_GIANT_SPIDER, PM_QUEEN_BEE, AT_WEAP, AT_BREA, AT_SPIT, AT_MAGC, AD_SPEL, AD_CLRC, AD_RUST, AD_CORR, S_MIMIC, S_GHOST, S_BAT, S_LIGHT, S_EEL, S_DOG, S_NYMPH, S_LEPRECHAUN, S_HUMAN, M1_WALLWALK, M1_AMORPHOUS, M1_UNSOLID, M1_CONCEAL, M2_COLLECT, M2_STRONG, M2_ROCKTHROW, M2_GREEDY, M2_JEWELS, M2_MAGIC, MZ_TINY, MZ_HUMAN, M2_WANDER, MS_LEADER, MS_SHRIEK, MS_CUSS } from './monsters.js';
-import { create_gas_cloud, visible_region_at } from './region.js';
+import { create_gas_cloud, visible_region_at, m_in_out_region } from './region.js';
 import { dog_move, could_reach_item } from './dogmove.js';
 import { initrack, settrack, gettrack } from './track.js';
 import { pointInShop, monsterInShop } from './shknam.js';
@@ -2189,9 +2189,24 @@ export async function m_move(mon, map, player, display = null, fov = null) {
     }
 
     if (nix !== omx || niy !== omy) {
+        // C ref: monmove.c:1986 — itsstuck: monster can't move if stuck to hero
+        if (!(nix === player.x && niy === player.y) && itsstuck(mon, player)) {
+            return MMOVE_DONE;
+        }
         // C ref: monmove.c:2026 — m_digweapon_check: if tunneling monster needs to wield
         // its pick before digging, it wields it and returns MMOVE_DONE (no movement this turn).
         if ((allowflags & ALLOW_DIG) && await m_digweapon_check(mon, nix, niy, map, player, display, fov)) {
+            return MMOVE_DONE;
+        }
+
+        // C ref: monmove.c:2037 — m_in_out_region: prevent leaving/entering regions
+        if (!(await m_in_out_region(mon, nix, niy, map, player))) {
+            return MMOVE_DONE;
+        }
+
+        // C ref: monmove.c:2039-2042 — ALLOW_ROCK: break boulder if able
+        if (chosenIdx >= 0 && (positions[chosenIdx]?.info & ALLOW_ROCK) && m_can_break_boulder(mon)) {
+            await m_break_boulder(mon, nix, niy, player);
             return MMOVE_DONE;
         }
 
