@@ -1061,7 +1061,9 @@ async function main() {
     console.log(`runstep mode=${args.runstepMode} enabled=${enableRunstep ? 'yes' : 'no'} c_has_runstep=${cHasRunstep ? 'yes' : 'no'}`);
     if (args.cSide) {
         console.log(`Captured ${captures.length} C snapshot mapdump(s) -> ${cDir}`);
-        if (recordedNethackC && currentNethackC && recordedNethackC !== currentNethackC) {
+        if (!recordedNethackC) {
+            console.log(`WARNING: session has no recorded_with metadata. C-side captures may not match the recording binary.`);
+        } else if (currentNethackC && recordedNethackC !== currentNethackC) {
             console.log(`WARNING: session recorded_with.nethack_c=${recordedNethackC} differs from local nethack-c=${currentNethackC}; c-side diffs may reflect C-version skew.`);
         }
         for (const c of captures) {

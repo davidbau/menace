@@ -129,6 +129,26 @@ NETHACK_RNGLOG=/tmp/rnglog.txt \
 Then parse `/tmp/checkpoints.jsonl` — one JSON object per line, `phase` field
 identifies which trigger point fired.
 
+## Binary Version Requirement
+
+C-side captures require the installed binary to match the binary that
+**recorded** the session. If the binary has changed (different patches,
+compiler, or source version), the C game will produce different RNG
+sequences, causing the replay to diverge from the recording. Symptoms:
+- Hero at wrong position
+- Wrong HP/stats
+- Different monster set
+- rngCallCount mismatch
+
+Check `recorded_with.nethack_c` in the session JSON to verify compatibility.
+Sessions without this field (older format) may not be reproducible with
+the current binary.
+
+To rebuild the C binary with all patches:
+```bash
+bash test/comparison/c-harness/setup.sh
+```
+
 ## Troubleshooting
 
 ### Phase mismatch errors
