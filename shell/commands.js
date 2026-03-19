@@ -13,8 +13,9 @@ import {
     scheduleReply, pickAndDeliverCorpusMessage, isDaemonDue, resetDaemonTimer,
 } from '../js/mail.js';
 import {
-    SEED_MESSAGES, CORPUS, REPLY_RULES, SOCIAL_ROUTING, SOCIAL_TEMPLATES,
+    SEED_MESSAGES, CORPUS, REPLY_RULES, SOCIAL_ROUTING, SOCIAL_TEMPLATES, TALK_CORPUS,
 } from '../js/mailcorpus.js';
+import { TalkSession } from './talk.js';
 
 // Currently active sessions. Rodney is always index 0.
 // who() shows a deterministic subset; finger() shows "On since" for these users.
@@ -29,6 +30,14 @@ const USER_SESSIONS = [
     { user: 'arnold',   tty: '09', minAgo: 203 },
     { user: 'brouwer',  tty: '10', minAgo: 95 },
     { user: 'harvey',   tty: '11', minAgo: 445 },
+    { user: 'payne',    tty: '12', minAgo: 73  },
+    { user: 'thome',    tty: '13', minAgo: 187 },
+    { user: 'woodland', tty: '14', minAgo: 341 },
+    { user: 'kelly',    tty: '15', minAgo: 52  },
+    { user: 'jsirota',  tty: '16', minAgo: 228 },
+    { user: 'abbott',   tty: '17', minAgo: 415 },
+    { user: 'corley',   tty: '18', minAgo: 156 },
+    { user: 'wichman',  tty: '19', minAgo: 289 },
 ];
 
 // Returns true if a non-Rodney session user is "currently logged in"
@@ -105,6 +114,45 @@ const FINGER_DB = {
     wizard:   { name: 'The Wizard of Yendor',   mail: 'No mail.' },
     gridbug:  { name: 'Grid Bug',               office: '/tmp', mail: 'No mail.',
                  plan: 'ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP ZAP' },
+    wichman:  { name: 'Glenn Wichman',
+                 mail: 'No mail.',
+                 plan: 'Working on the rogue room algorithm. 3x3 region grid, one room per region.\nCorridors connect adjacent regions. Guarantees connectivity.' },
+    woodland: { name: 'Kenny Woodland',
+                 mail: 'No mail.',
+                 plan: 'Maze generator running. Recursive backtracker gives real variety.\nBug in level 12 southeast corner: unreachable room. Working on it.' },
+    thome:    { name: 'Mike Thome',
+                 mail: 'No mail.',
+                 plan: 'Monster list: chameleon (done), mimic (someday), nymph (someday).\nJay likes the chameleon. I think the mimic will be better.' },
+    payne:    { name: 'Jonathan Payne',
+                 mail: 'No mail.',
+                 plan: 'JOVE is usable. Gap buffer, no Lisp, half the memory of emacs.\nThinking about what editors could be if memory was not the constraint.' },
+    kelly:    { name: 'Kelly Fenlason',
+                 mail: 'No mail.',
+                 plan: 'Meeting notes are up to date.\nIf nobody else is going to write them, I will.' },
+    jsirota:  { name: 'Josh Sirota',
+                 mail: 'No mail.',
+                 plan: 'Three open questions I cannot stop thinking about:\n1. Why does every computer have its own file system?\n2. Routing. Why does the phone network not work like ARPA?\n3. The software distribution problem.' },
+    abbott:   { name: 'Mike Abbott',
+                 mail: 'No mail.',
+                 plan: 'Verdict: Hack is better. Rogue is more immediate.\nThey are not competing. Different moods.' },
+    corley:   { name: 'Dave Corley',
+                 mail: 'No mail.',
+                 plan: 'PDP-11 assembly: every instruction, every addressing mode.\nOrthogonal. Actually elegant.\nThe man pages are underrated. Actually read them.' },
+    msirota:  { name: 'Mark Sirota',
+                 mail: 'No mail.',
+                 plan: 'Setuid is dangerous when the binary takes user input.\nMinimal privilege. The games are setgid games, not setuid root.\nThat is the right call.' },
+    fraize:   { name: 'Scott Fraize',
+                 mail: 'No mail.',
+                 plan: 'Acoustic coupler working at 300 baud.\nAt 300 baud, full Hack source takes 22 minutes.\nWriting a checksum/resume protocol for failed transfers.' },
+    brown:    { name: 'Robert Brown',
+                 mail: 'No mail.',
+                 plan: 'Shell project: fork/exec works. Pipes not yet.\nTokenizer does not handle quoted strings. Jay pointed this out.\nFixing it.' },
+    ruddy:    { name: 'Kevin Ruddy',
+                 mail: 'No mail.',
+                 plan: 'Best terminal for games: VT100 #2. Brightest screen.\nWorst: ADM-3A by the door. Leftmost 3 columns sometimes miss cursor moves.\nWalz knows. It is on the list.' },
+    texeira:  { name: 'Mike Texeira',
+                 mail: 'No mail.',
+                 plan: 'Reading the V7 kernel source.\nEach process has a proc struct and a u area.\nThe whole thing is about thirty thousand lines of C. You can read it all.' },
 };
 
 export function getBuiltinCommands() {
@@ -118,7 +166,7 @@ export function getBuiltinCommands() {
         zork: launchDungeon,
         exit: doExit,
         logout: doExit,
-        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger, mail, passwd,
+        rm, cp, mv, mkdir, rmdir, chmod, su, emacs, nano, finger, mail, passwd, talk,
     };
 }
 
@@ -365,6 +413,7 @@ async function help(_args, shell) {
         ['vi',       'text editor'],
         ['finger',   'show user info'],
         ['mail',     'read and send mail'],
+        ['talk',     'real-time chat with another user'],
         ['help',     'display this help'],
         ['exit',     'exit shell'],
         ['nethack',  'launch NetHack'],
@@ -599,6 +648,45 @@ async function vi(args, shell) {
         return;
     }
     return { action: 'vi', file: args[0] };
+}
+
+// -------------------------------------------------------------------------
+// talk(1) -- BSD-style split-screen real-time chat
+// -------------------------------------------------------------------------
+
+async function talk(args, shell) {
+    if (args.length === 0) {
+        shell.println('usage: talk user');
+        return;
+    }
+    const target = args[0].toLowerCase().replace(/@.*/, ''); // strip @hostname
+
+    // Wizard is always logged in for talk
+    const alwaysOn = new Set(['wizard', 'oracle']);
+
+    // Check if user has a talk corpus
+    const character = TALK_CORPUS && TALK_CORPUS[target];
+    if (!character) {
+        shell.println(`talk: ${target}: no talk protocol`);
+        return;
+    }
+
+    // Check if logged in (wizard/oracle always are)
+    if (!alwaysOn.has(target)) {
+        const sessionIdx = USER_SESSIONS.findIndex(s => s.user === target);
+        if (sessionIdx < 0 || !isCurrentlyLoggedIn(sessionIdx)) {
+            shell.println(`[${target} is not logged on]`);
+            return;
+        }
+    }
+
+    // Run talk session
+    const session = new TalkSession(shell.display, shell.getch, target, character);
+    await session.run();
+
+    // Restore shell display
+    shell.display.clearScreen();
+    shell._renderScrollBuffer();
 }
 
 // -------------------------------------------------------------------------

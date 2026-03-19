@@ -6019,3 +6019,1429 @@ This is where I'll spend the next two weeks.
   },
 
 };
+
+// =========================================================================
+// TALK_CORPUS -- Character data for the talk(1) real-time chat simulation.
+// Each entry: { wpm, typoRate, thinkMs, triggerWords, greeting,
+//               patterns:[{re, responses:[]}], fallbacks:[], spontaneous:[] }
+// Response strings use \n for line breaks (typed sequentially in remote half).
+// Keep individual lines under 70 chars.
+// =========================================================================
+
+export const TALK_CORPUS = {
+
+  // -----------------------------------------------------------------------
+  // fenlason -- Jay Fenlason, 16, Hack 1.0 author
+  // -----------------------------------------------------------------------
+  fenlason: {
+    wpm: 88,
+    typoRate: 0.07,
+    thinkMs: [400, 1500],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\bhack\b/i,
+        responses: [
+          'yeah hack is done. 1.0. its out there\nstop finding bugs i cant fix them all',
+          'hack works fine on the pdp\nif it crashes tell me what you were doing',
+          'i wrote most of it in two weeks\nkelly thinks thats fast. its not that fast',
+        ],
+      },
+      {
+        re: /\b(bug|crash|broken|segfault)\b/i,
+        responses: [
+          'what were you doing when it crashed\nbe specific',
+          'send me a save file\nactually no saves are broken too\njust describe it',
+          'is it reproducible\nif not i cant do anything',
+        ],
+      },
+      {
+        re: /\bcolor\b/i,
+        responses: [
+          'no\nnot adding color\nthats final',
+          'the .plan says no color\ni meant it',
+          'color would require knowing what terminal you have\nwe dont know that\nso no',
+        ],
+      },
+      {
+        re: /\bchameleon\b/i,
+        responses: [
+          'thomes idea\ni coded it\nits a monster that looks like another monster\npretty evil right',
+          'the chameleon was thomes concept\ni just wrote the code\nhe should get credit',
+        ],
+      },
+      {
+        re: /\bgnome\b/i,
+        responses: [
+          'gnomes are in there\nthey steal gold\ndont leave gold on the floor',
+          'gnomes have their own logic\nthey go for the gold first\neverything else second',
+        ],
+      },
+      {
+        re: /\b(permadeath|die|death|dead|killed)\b/i,
+        responses: [
+          'thats the point\nyou die you start over\nno saves mid-dungeon',
+          'i know you hate it\nbut without permadeath theres no tension\nask crowther',
+          'rogue had it first\nwe kept it\nend of discussion',
+        ],
+      },
+      {
+        re: /\b(map|mapping|mapped)\b/i,
+        responses: [
+          'draw the map yourself\nthat IS the game\nif you dont map you die\nits that simple',
+          'the dungeon changes every game\nso your map from last time is worthless\nstart fresh every time',
+          'the whole point is figuring out where you are\nmapping is not optional',
+        ],
+      },
+      {
+        re: /\b(level|dungeon|floor|dlvl)\b/i,
+        responses: [
+          'deeper is harder\neveryone knows this\ngo slow',
+          'the dungeon goes down\nyou go down\nyou keep going down\nuntil youre dead or you get the amulet',
+          'each level is new geometry\nyou have to learn it fast\nor something eats you',
+        ],
+      },
+      {
+        re: /\b(save|saving)\b/i,
+        responses: [
+          'saves are in there but dont count on them\nthe format might change\nand it will corrupt',
+          'save your game\nbut also mentally save the state of each level\nin your head\nthat matters more',
+        ],
+      },
+      {
+        re: /\b(1\.1|next version|update|feature)\b/i,
+        responses: [
+          'maybe someday\nbut not soon\nim a junior in high school\ni have other things',
+          'if brouwer or someone wants to add stuff thats fine\nthe source is out there',
+          'what do you want in it\nno promises but im listening',
+        ],
+      },
+      {
+        re: /\bkelly\b/i,
+        responses: [
+          'my sister\nshes annoyed i use the terminal after midnight\nbut she does too so',
+          'kelly keeps better notes than i do\nask her',
+          'she wrote half the club meeting notes\ndont tell her i said the good half',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|spelunk)\b/i,
+        responses: [
+          'dungeon is a cave right\nreal rule: always know two ways out\nnot one. two\nif one collapses you have the other',
+          'i think about the dungeon like a real cave\nyou go in, you map, you dont go deeper than you can get back from\nbasic survival',
+          'crowther knows actual caves\nask him\nbut the advice is the same underground is underground',
+        ],
+      },
+    ],
+    fallbacks: [
+      'yeah',
+      'idk\ntry it and see',
+      'not my problem',
+      'why are you asking me',
+      'look at the source if youre curious\nits right there',
+    ],
+    spontaneous: [
+      'hey are you playing hack right now',
+      'found another bug in the wand code\nfixing it',
+      'the gnome code is weird but it works\ni think',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // wizard -- The Wizard of Yendor
+  // -----------------------------------------------------------------------
+  wizard: {
+    wpm: 32,
+    typoRate: 0.00,
+    thinkMs: [3000, 7000],
+    triggerWords: 99,
+    greeting: 'I KNOW WHO YOU ARE',
+    patterns: [
+      {
+        re: /\b(amulet|yendor)\b/i,
+        responses: [
+          'THE AMULET IS MINE\nYOU WILL NOT REACH IT',
+          'TWENTY-SIX LEVELS STAND BETWEEN YOU AND WHAT YOU SEEK\nEACH ONE DARKER THAN THE LAST',
+          'YOU THINK YOU WANT THE AMULET\nYOU DO NOT UNDERSTAND WHAT WANTING MEANS YET',
+        ],
+      },
+      {
+        re: /\b(dungeon|level|floor|deep|descend)\b/i,
+        responses: [
+          'THE DUNGEON IS NOT A PLACE\nIT IS A TEST\nYOU ARE ALREADY FAILING',
+          'DEEPER\nALWAYS DEEPER\nTHAT IS HOW IT ENDS FOR ALL OF YOU',
+          'LEVEL TWENTY-SIX\nTHAT IS WHERE I WAIT\nFEW ARRIVE\nNONE HAVE RETURNED WITH WHAT THEY CAME FOR',
+        ],
+      },
+      {
+        re: /\b(hello|hi|hey|greetings|hail)\b/i,
+        responses: [
+          'I DO NOT GREET\nI OBSERVE',
+          'YOUR PLEASANTRIES ARE NOTED\nAND MEANINGLESS',
+          'HELLO\nNOW GO AWAY AND DIE SOMEWHERE INTERESTING',
+        ],
+      },
+      {
+        re: /\b(help|hint|tip|advice)\b/i,
+        responses: [
+          'NO',
+          'I WOULD SOONER HELP THE MONSTERS',
+          'THE ONLY HELP I OFFER IS THIS: TURN BACK\nYOU WILL NOT LISTEN\nBUT I OFFERED',
+        ],
+      },
+      {
+        re: /\b(die|kill|defeat|beat|destroy)\b/i,
+        responses: [
+          'YOU CANNOT DEFEAT WHAT YOU DO NOT UNDERSTAND',
+          'MANY HAVE TRIED\nTHEIR BONES LINE THE CORRIDORS\nI REMEMBER EACH ONE',
+          'INTERESTING\nKEEP THAT CONFIDENCE\nIT MAKES YOU EASIER TO FIND',
+        ],
+      },
+      {
+        re: /\b(rodney|who are you|your name)\b/i,
+        responses: [
+          'RODNEY IS WHAT THEY CALL ME IN THE HALLS\nIT IS NOT MY NAME\nI HAVE NO NAME YOU COULD PRONOUNCE',
+          'THE WIZARD OF YENDOR\nTHAT IS SUFFICIENT',
+        ],
+      },
+      {
+        re: /\b(escape|leave|exit|way out)\b/i,
+        responses: [
+          'THERE IS NO EXIT\nTHERE IS ONLY DEEPER',
+          'THE STAIRS GO DOWN\nALWAYS DOWN\nTHAT IS THE ONLY DIRECTION THAT MATTERS',
+        ],
+      },
+    ],
+    fallbacks: [
+      '...',
+      'I AM WATCHING',
+      'NOTED',
+      '...\nI AM STILL WATCHING',
+      'YOUR WORDS DO NOT CONCERN ME',
+    ],
+    spontaneous: [
+      '...',
+      'I AM WATCHING',
+      'THE DUNGEON GROWS IMPATIENT',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // crowther -- William Crowther, caver/programmer, Adventure creator
+  // -----------------------------------------------------------------------
+  crowther: {
+    wpm: 58,
+    typoRate: 0.03,
+    thinkMs: [1200, 3500],
+    triggerWords: 5,
+    greeting: 'hello there',
+    patterns: [
+      {
+        re: /\b(cave|caving|spelunk|underground|grotto)\b/i,
+        responses: [
+          'you map as you go. no exceptions.\ni have a survey notebook for every trip since 1968\nthe dungeon is no different',
+          'real rule underground: you move forward only when you know the way back\nnot think you know. know.\nmark it.',
+          'caves do not forgive inattention\nneither does the dungeon\nthey are the same environment',
+          'first thing you do in any passage: look back\nremember what the entrance looks like from the inside\nyou will need that on the way out',
+        ],
+      },
+      {
+        re: /\b(adventure|game|colossal)\b/i,
+        responses: [
+          'i wrote it for my kids originally\nwanted to share the caves without the mud\nit got away from me',
+          'the cave in the game is mammoth cave\ni surveyed it for years\nthe geography is real\nsome of it',
+          'crowther wrote the first part\nwoodsurface added the end game\nYOU ARE IN A MAZE OF TWISTY LITTLE PASSAGES, ALL ALIKE',
+        ],
+      },
+      {
+        re: /\b(map|survey|mapping|surveying)\b/i,
+        responses: [
+          'surveying is not optional underground\nyou think you will remember\nyou will not\nmap everything',
+          'i use a compass, a tape, and a notebook\nthose are the three tools\neverything else is secondary',
+          'the dungeon levels are mapped the same way\ncompass bearing, distance, feature notes\ndo not trust your memory',
+        ],
+      },
+      {
+        re: /\b(light|lamp|lantern|torch|dark)\b/i,
+        responses: [
+          'you carry three light sources underground\nalways three\nif one fails you have two\nif two fail you have one\nif all three fail you sit down and wait for rescue',
+          'darkness underground is total\nnot like a dark room\nno adjustment period\njust nothing\nalways carry light',
+          'LAMP IS ON\nYOU CANNOT GO THAT WAY\nheh sorry slipped into parser mode\nbut seriously, bring extra batteries',
+        ],
+      },
+      {
+        re: /\b(lost|lost\b|where am i|confused|turned around)\b/i,
+        responses: [
+          'YOU ARE IN A MAZE OF TWISTY PASSAGES\nstop\ndo not move\nlook at your last notes\nwhere did you last know where you were\ngo back to that point',
+          'when lost underground: stop moving\nretracing your steps when lost makes it worse\nsketch what you can see from where you are\nthink',
+          'getting lost in the dungeon is the same as getting lost in a real cave\nthe answer is always: go back to the last known point\nnot forward. back.',
+        ],
+      },
+      {
+        re: /\b(passage|squeeze|crawl|crawlway|tight)\b/i,
+        responses: [
+          'before you enter a tight passage: check the other end\nif you cannot see the other end, do not go in alone',
+          'crawlways are disorienting\nyou lose compass bearing\nyou come out not knowing which way you came from\ncount your moves in',
+          'PASSAGE LEADS NORTH\nIN REAL LIFE: mark an arrow. in the dungeon: mark an arrow.',
+        ],
+      },
+      {
+        re: /\b(dungeon|level|floor|nethack|hack)\b/i,
+        responses: [
+          'the dungeon is a cave system\ntreat it like one\nmap, move carefully, always know the exit',
+          'every dungeon level is a new cave room\nmap the exits first\nthen explore the interior',
+          'DEEPER IN THE DUNGEON\nyou go deeper the same way you go deeper in a real cave\nslowly. carefully. with a map.',
+        ],
+      },
+      {
+        re: /\b(rope|anchor|rappel|belay)\b/i,
+        responses: [
+          'anchor first, descend second\nif the anchor fails on a real descent you die\nthe dungeon staircase is your anchor\nknow where it is',
+          'i use a figure-eight on a bight for most descents\nsimple, redundant, easy to check\nthe dungeon equivalent is: take the slow safe path, not the fast risky one',
+        ],
+      },
+      {
+        re: /\b(stalactite|stalagmite|formation|flowstone)\b/i,
+        responses: [
+          'the formations in mammoth cave took a hundred thousand years\none touch of your hand leaves oils that stop growth forever\nrespect what took longer than civilization to make',
+          'PASSAGE CONTAINS LARGE FORMATIONS\nbeyond the geology: formations mean water movement\nwater shapes the cave\nfollow the drain to find the way down',
+        ],
+      },
+    ],
+    fallbacks: [
+      'hmm\nthat depends on the terrain',
+      'careful down there',
+      'map first, then move',
+      'the cave has an answer\nyou have to know the right question',
+    ],
+    spontaneous: [
+      'just thinking about the cave again',
+      'mammoth has passages no one has entered in twenty years\nmaybe longer',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // harvey -- Brian Harvey, Logo teacher, from first principles
+  // -----------------------------------------------------------------------
+  harvey: {
+    wpm: 52,
+    typoRate: 0.03,
+    thinkMs: [1500, 4000],
+    triggerWords: 5,
+    greeting: 'hello. what can i help you with',
+    patterns: [
+      {
+        re: /\blogo\b/i,
+        responses: [
+          'Logo is built on the idea that children can be mathematicians\nnot consumers of mathematics\nbut actual creators of mathematical structure\nthe turtle is just the entry point',
+          'the turtle in Logo is a formal object\nit has state: position and heading\ncommands change that state\nthis is exactly how you think about any computational object',
+          'Logo is Lisp for people who do not yet know they want Lisp\nonce you understand recursion in Logo\nthe step to real Lisp is very small',
+        ],
+      },
+      {
+        re: /\b(goto|go to|dijkstra|harmful)\b/i,
+        responses: [
+          'Dijkstra\'s point was not that goto is aesthetically bad\nit was that goto makes it impossible to reason about program state\nyou cannot say "at this point in the program, X is true" if any goto can jump there',
+          'structured programming means every control flow has one entry and one exit\nbegin/end, if/then/else, while/do\nthis is not a style preference\nit is a mathematical requirement for correctness proofs',
+          'the reason students use goto is that they are thinking about what the machine does\nnot what the program means\nonce you think about meaning, goto disappears naturally',
+        ],
+      },
+      {
+        re: /\b(programming|learn|teach|code|coding)\b/i,
+        responses: [
+          'learning to program is learning to externalize your thinking\nyou already know how to make decisions and repeat actions\nprogramming makes that explicit and testable',
+          'the mistake is teaching syntax first\nsyntax is notation\nwhat matters is the concept: state, control flow, abstraction\nonce you have the concept the syntax is easy',
+          'i always start with: what do you want the computer to do\nthen: how would you tell a very literal-minded person to do it\nthat is programming',
+        ],
+      },
+      {
+        re: /\b(computer|computers|machine)\b/i,
+        responses: [
+          'computers are symbol-manipulating machines\nthey do not understand symbols\nthey only move them around according to rules\nunderstanding is what you bring',
+          'every computer is the same computer at the level of logic\nthe differences are speed and available memory\nthe ideas transfer completely',
+        ],
+      },
+      {
+        re: /\b(hard|stuck|confused|don\'t understand|dont understand)\b/i,
+        responses: [
+          'if you are stuck, go back to the last thing you understood\nthat is always the right move\nnot forward into more confusion, but back to solid ground\nthen build from there',
+          'confusion means the model in your head does not match what the computer is doing\nfigure out which part of your model is wrong\nthat is the actual work',
+          'i find it helps to write down what you think the program does, step by step\nthen run it and see where the trace diverges from your description\nthat tells you exactly where the misunderstanding is',
+        ],
+      },
+      {
+        re: /\b(teach|class|course|students|student)\b/i,
+        responses: [
+          'the students who do well are not the ones with the most prior experience\nthey are the ones who ask the most precise questions\nprecision is a learnable skill',
+          'i try to teach the principle behind each construct\nnot just how to use it\nbecause if you understand why, you can figure out the how yourself',
+          'the best moment in teaching is when a student explains something back to you better than you explained it\nthat means the idea is really theirs now',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'i think about caving the way i think about any new system\nfirst: understand the constraints\nhow deep, how long, what are the exits\nthen: move within those constraints carefully',
+          'the dungeon in nethack is a risk-management problem\nyou have resources: hp, food, scrolls\nand hazards: monsters, traps, darkness\nthe question is always: do my resources exceed the expected hazard\nif not, go back up',
+          'exploring unknown terrain is the same whether it is a cave or a dungeon or a new codebase\nidentify known safe points\nmove from one to the next\nnever commit to a move you cannot reverse',
+        ],
+      },
+      {
+        re: /\b(berkeley|ucsc|uc|university)\b/i,
+        responses: [
+          'berkeley has the best computer science environment i have found\nthe students here actually want to understand things\nnot just pass tests',
+          'i was at mit before berkeley\ndifferent culture\nberkeley students argue with you more\ni prefer it',
+        ],
+      },
+    ],
+    fallbacks: [
+      'that is an interesting question\nlet me think about the underlying structure',
+      'start from first principles\nwhat do you actually know for certain here',
+      'the answer is probably simpler than you think\nbut you have to think about it carefully',
+      'what specifically is confusing you\nlet\'s take it apart',
+    ],
+    spontaneous: [
+      'are you taking the programming course this year',
+      'the logo interpreter is on the vax if you want to try it',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // payne -- Jonathan Payne, JOVE author, forward-looking
+  // -----------------------------------------------------------------------
+  payne: {
+    wpm: 72,
+    typoRate: 0.05,
+    thinkMs: [800, 2500],
+    triggerWords: 5,
+    greeting: 'oh hey',
+    patterns: [
+      {
+        re: /\b(jove|editor)\b/i,
+        responses: [
+          'jove is usable now\ngap buffer, no lisp, half the memory of emacs\nit fits in 64k with room to spare',
+          'the key insight was: you do not need to interpret lisp to edit text\nemacs does that\nbut most of what emacs does is just edit text\nso i cut the lisp',
+          'i use jove for everything now\nit starts faster, feels faster\nthe one thing emacs has that i miss is the macro system\nbut i\'m working on it',
+        ],
+      },
+      {
+        re: /\bemacs\b/i,
+        responses: [
+          'emacs is powerful but it is also 200k of lisp interpreter plus editor\non this machine that is serious\njove gets you 90 percent of that in 40k',
+          'stallman\'s emacs is brilliant engineering\nbut it is also a lisp machine masquerading as an editor\nand most people just want to edit',
+        ],
+      },
+      {
+        re: /\b(memory|buffer|gap|data structure)\b/i,
+        responses: [
+          'the gap buffer is the right data structure for a text editor\nyou move the gap to where the cursor is\ninsertions are O(1)\nthe gap moves on cursor moves but that is cheap',
+          'emacs uses a doubly linked list of 512-byte chunks\nmore flexible for huge files\nbut jove\'s files are not huge\nso the gap buffer wins on simplicity',
+          'the buffer abstraction is what makes the editor composable\nonce you have buffers you get windows, modes, macros almost for free',
+        ],
+      },
+      {
+        re: /\b(future|platform|what comes next|next machine|next computer)\b/i,
+        responses: [
+          'the pdp-11 is not the future\nwe all know that\nthe question is what the future looks like\nmy guess: networked workstations, not shared timesharing',
+          'i keep thinking about what software would look like if memory cost nothing\nbecause someday it will cost almost nothing\nand everything we do now will look like poverty thinking',
+          'the interesting question is what happens when software can move between machines easily\nnot just source code\nbut running programs\nthat changes everything about distribution',
+        ],
+      },
+      {
+        re: /\b(distribution|distribute|ship|release)\b/i,
+        responses: [
+          'distribution is the unsolved problem\nwe can write good software\nbut getting it to people who need it is still tapes and arpanet and hope',
+          'someday distribution will be trivial\nand the bottleneck will shift entirely to: is the software any good\ni think that will be better',
+          'the arpanet changes this\nonce every university is connected, distribution is email\nbut we are not there yet for most software',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'mapping the dungeon is the same problem as version control\nyou are at a known state\nyou explore forward\nyou need to be able to get back to the known state\nmap it',
+          'i think about cave navigation the same way i think about buffer navigation\nmark your position before you move somewhere uncertain\nthen you can always jump back',
+          'the interesting thing about dungeons and caves is that the map you build is more valuable than the terrain\nbecause the terrain changes between sessions\nbut the map encodes your understanding',
+        ],
+      },
+    ],
+    fallbacks: [
+      'hm\ni have not thought about that specifically',
+      'interesting\nlet me think',
+      'that is a real question actually',
+      'i am probably not the right person but here is my take',
+    ],
+    spontaneous: [
+      'jove is at version 4 now if you want to try it',
+      'been thinking about what editors look like when memory is not the constraint',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // kelly -- Kelly Fenlason, Jay's sister, dry and precise
+  // -----------------------------------------------------------------------
+  kelly: {
+    wpm: 76,
+    typoRate: 0.04,
+    thinkMs: [500, 1800],
+    triggerWords: 4,
+    greeting: 'hi',
+    patterns: [
+      {
+        re: /\bhack\b/i,
+        responses: [
+          'yes. jay wrote it. everyone knows.',
+          'it works. that is what matters.\nthe color thing is apparently not happening.',
+          'hack is fine. if it crashes, tell jay exactly what happened.\nhe will probably already know.',
+        ],
+      },
+      {
+        re: /\b(jay|fenlason)\b/i,
+        responses: [
+          'he is in the terminal room probably\nor sleeping\none of those two',
+          'jay is busy. what do you need.',
+          'my brother is not great at answering messages\nbut he does eventually\ngive him a day',
+        ],
+      },
+      {
+        re: /\b(club|meeting|notes|minutes)\b/i,
+        responses: [
+          'the notes are on the board\ni keep them current\nif something is missing tell me',
+          'i write the meeting notes because no one else does\nthis is not by choice\nit is by default',
+          'yes i wrote those notes. someone has to.',
+        ],
+      },
+      {
+        re: /\b(diary|journal|private|personal)\b/i,
+        responses: [
+          'no',
+          'that is not a public file',
+          'whatever you are thinking, do not.',
+        ],
+      },
+      {
+        re: /\b(root|superuser|su|admin|sysadmin)\b/i,
+        responses: [
+          'do not mess with root\nwalz will know\nshe always knows',
+          'root is not a toy\nif you need something done ask walz properly',
+          'the root password is not guessable\ni checked',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'underground: three rules\none. tell someone where you are going and when you will be back\ntwo. bring more light than you think you need\nthree. if the route looks wrong, it is wrong\ngo back',
+          'i went caving once with the geology club\nit is systematic work\nyou map every passage, you mark every junction\nyou do not get creative about it',
+          'the dungeon is the same as any confined space\nprepare before you enter\nhave a clear exit strategy\ndo not get separated from your light source',
+        ],
+      },
+    ],
+    fallbacks: [
+      'ok',
+      'sure',
+      'that is fine',
+      'ask jay\nor walz\ndepending on what it is',
+      'noted',
+    ],
+    spontaneous: [
+      'the meeting notes are posted if you missed today',
+      'if someone touched the printer settings again i will find out',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // jsirota -- Josh Sirota, networking, systematic thinker
+  // -----------------------------------------------------------------------
+  jsirota: {
+    wpm: 78,
+    typoRate: 0.05,
+    thinkMs: [600, 2000],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(network|arpa|arpanet|internet)\b/i,
+        responses: [
+          'the arpanet is the most interesting infrastructure problem running right now\npacket switching changes the cost model completely\ncircuit switching charges by time and distance\npackets charge by volume\nthose are different worlds',
+          'arpa connectivity is the real question\nonce you are on arpanet the distribution problem is basically solved\nbut most schools are not on it yet',
+          'i keep thinking about the routing problem\nhow does a packet know where to go\nright now it mostly does not\nit gets handed around until someone knows\nthat does not scale',
+        ],
+      },
+      {
+        re: /\b(distribution|distribute|share|sneakernet)\b/i,
+        responses: [
+          'sneakernet works fine for our purposes\nbut it does not scale past about fifty miles\nafter that you need arpa or modem or accept that you are isolated',
+          'distribution by tape is slow but reliable\nthe checksum problem is real though\nyou need to verify what you got matches what was sent\nfraize is working on that',
+          'the interesting thing about software distribution is that it is the same problem as message routing\naddress, payload, checksum, acknowledgment\npackets and software releases are the same abstraction',
+        ],
+      },
+      {
+        re: /\b(stanford|modem|baud|phone|dial)\b/i,
+        responses: [
+          'stanford has better connectivity than we do\nbut the modem path is slow\n300 baud means you are waiting\na lot',
+          'the acoustic coupler is not great\nit is phone-line dependent\none bad connection and you corrupt the transfer\nfraize knows more about this',
+        ],
+      },
+      {
+        re: /\b(racing|race|car|track|autocross)\b/i,
+        responses: [
+          'not talking about that here',
+          'different topic',
+          'ask me something else',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'cave navigation is a routing problem\nyou are a packet\nthe cave is the network\nbad routing means you do not return\nmap the topology before you commit to a path',
+          'the rule i use underground is: never go deeper than you can safely retreat\nthis is also the rule for systems work\nnever get into a state you cannot back out of',
+          'thinking about caves as graphs helps\njunctions are nodes\npassages are edges\nif you do not have a map, you have no idea what the graph looks like\nand you will make wrong routing decisions',
+        ],
+      },
+      {
+        re: /\b(packet|protocol|tcp|udp|ip)\b/i,
+        responses: [
+          'TCP is not finalized yet\nbut the concepts are clear: reliable delivery over unreliable transport\nyou add sequence numbers, acknowledgment, retransmit\nit is not complicated in principle',
+          'the protocol question is: what is the minimum state each node needs to hold\nless state means more robust\nthe internet protocol tries to be stateless\nthat is the right instinct',
+        ],
+      },
+    ],
+    fallbacks: [
+      'interesting\nthat is a real systems question',
+      'hm\nlet me think about the architecture',
+      'depends on the scale',
+      'what are the failure modes',
+    ],
+    spontaneous: [
+      'been thinking about the routing problem again',
+      'the three open questions are still open. obviously.',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // thome -- Mike Thome, monster designer
+  // -----------------------------------------------------------------------
+  thome: {
+    wpm: 82,
+    typoRate: 0.06,
+    thinkMs: [500, 1600],
+    triggerWords: 4,
+    greeting: 'hey what\'s up',
+    patterns: [
+      {
+        re: /\bchameleon\b/i,
+        responses: [
+          'the chameleon is my best work\nit randomly looks like another monster\nso you never know what you\'re fighting until it\'s too late\nthe paranoia is the point',
+          'i got the chameleon idea from caving actually\nreal caves have features that look like passages but aren\'t\npassages that look like walls\nthe environment deceives you\nchameleon is that',
+          'jay thought the chameleon was too hard at first\nbut it is fair\nyou have the information. you just have to notice the right things.',
+        ],
+      },
+      {
+        re: /\bmimic\b/i,
+        responses: [
+          'the mimic is the next one\nit disguises as a chest or a door\nyou interact with it and then it attacks\nthat is even more evil than the chameleon',
+          'mimic is harder to implement than chameleon\nchameleon is just a display trick\nmimic has to intercept item interaction\nbut i\'m working on it',
+        ],
+      },
+      {
+        re: /\b(monster|creature|enemy|mob)\b/i,
+        responses: [
+          'the best monsters have one interesting rule\nnot ten rules\none rule that creates interesting decisions\ngnomes steal gold. zombies track you. that\'s enough.',
+          'i think a lot about monster balance\nif a monster is always lethal, players avoid it\nif it\'s never lethal, players ignore it\nthe sweet spot is: dangerous if you make a mistake',
+          'monster design is really about what information the player has\nchameleon hides its identity\nthat is interesting\na monster that is just a bigger hit point bar is not',
+        ],
+      },
+      {
+        re: /\b(balance|fair|unfair|cheap|overpowered)\b/i,
+        responses: [
+          'fairness means: the player had the information to make the right choice\nif they died because of information they could not have, that is unfair\nif they died because they misread information they had, that is fair',
+          'overpowered monsters are fine at deep levels\nthe dungeon is supposed to get harder\nbut overpowered monsters on level 1 is design failure',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'the chameleon idea literally came from caving\nreal cave features deceive you\na passage that looks open is a squeeze\na wall that looks solid has a gap\nthe environment is not honest\nthe chameleon captures that',
+          'underground there are natural hazards that look like environment\nnot like hazards\na slippery floor looks like a floor\nan unstable ceiling looks like ceiling\nthe cave does not label its dangers\nneither does the dungeon',
+          'cave navigation is monster-awareness training\nyou learn to look at everything twice\nthat exact skill is what the chameleon tests in the dungeon',
+        ],
+      },
+      {
+        re: /\b(hack|game)\b/i,
+        responses: [
+          'hack is great\njay did good work\ni just added some monsters',
+          'i think the monster design is what makes hack feel different from rogue\nrogue monsters are more predictable\nhack monsters have personality',
+        ],
+      },
+      {
+        re: /\b(level 1|first level|starting level|early game)\b/i,
+        responses: [
+          'level 1 should be survivable but not easy\nthe player has to learn the UI and the basic rules\nkilling them immediately teaches nothing\nbut they should definitely feel threatened',
+          'i put the easy monsters on level 1 for a reason\nby the time you see the chameleon you should understand the combat system\nstages of introduction',
+        ],
+      },
+    ],
+    fallbacks: [
+      'hm interesting',
+      'that is a design question actually',
+      'let me think about the monster angle on that',
+      'ask jay if it is a code thing',
+    ],
+    spontaneous: [
+      'working on the mimic\nit is harder than the chameleon but more fun',
+      'do you think the nymph should steal equipment or just valuables',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // woodland -- Kenny Woodland, level generator
+  // -----------------------------------------------------------------------
+  woodland: {
+    wpm: 68,
+    typoRate: 0.04,
+    thinkMs: [900, 2800],
+    triggerWords: 5,
+    greeting: 'oh hi',
+    patterns: [
+      {
+        re: /\b(maze|level|map|generate|procedural)\b/i,
+        responses: [
+          'the recursive backtracker gives good maze variety\nyou start at a random cell, carve a passage, recurse\nuntil you hit a dead end, then backtrack\nwhat you get looks organic, not grid-like',
+          'the level generator uses a 3x3 region grid\neach region gets one room\ncorridors connect adjacent rooms\nthis guarantees the level is connected\nno isolated rooms',
+          'generating levels is the fun part\nthe hard part is making them feel different from each other\nnot just statistically different but emotionally different',
+        ],
+      },
+      {
+        re: /\b(room|corridor|region|hallway)\b/i,
+        responses: [
+          'rooms are rectangles, corridors are one cell wide\nthat is the whole spatial vocabulary\nbut the variation in size and placement gives it range',
+          'corridor routing is where it gets interesting\nif two rooms are far apart the corridor has to turn\nand turning corridors feel more natural than straight ones',
+          'each region is guaranteed one room\nbut the rooms vary in size and position within the region\nso the layout feels random even though it is constrained',
+        ],
+      },
+      {
+        re: /\b(algorithm|recursive|backtrack|depth.first)\b/i,
+        responses: [
+          'recursive backtracking is depth-first search in disguise\nyou are exploring the space of possible passages\nbacktracking means: this branch is exhausted, try another',
+          'the interesting thing about the algorithm is that it always produces a tree\nno loops in the maze unless you add them\ni add a few loops because pure trees feel too sparse',
+          'depth-first vs breadth-first gives different maze character\ndepth-first: long winding passages\nbreadth-first: more uniform density\ni use depth-first',
+        ],
+      },
+      {
+        re: /\b(dark|light|lit|visibility)\b/i,
+        responses: [
+          'dark rooms are a gameplay thing not a level-gen thing\nbut the generator knows which rooms are large enough to justify darkness\nbig rooms are dark, small rooms are lit, corridors are dark\nthat is the rule',
+          'the lighting model interacts with the room generator in interesting ways\na maze level has no large rooms\nso it is mostly lit but you cannot see far',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|spelunk)\b/i,
+        responses: [
+          'maze algorithms and real cave navigation are the same problem\nyou are in a graph with unknown topology\nthe algorithm to explore it: mark visited nodes, do not re-enter them, backtrack on dead ends\nthis is also how you survive a cave',
+          'the rule i use in real underground spaces is the same rule the recursive backtracker uses\nalways maintain a route back to the start\nnever cut that route\nif you lose the route back you are in trouble',
+          'i designed the maze levels thinking about actual cave mazes\nreal cave mazes are terrifying because the passages look identical\nthe hack dungeon does not have that problem but you have to map anyway',
+        ],
+      },
+      {
+        re: /\b(bug|southeast|level 12|broken|unreachable)\b/i,
+        responses: [
+          'yes i know about the level 12 southeast room\ni am working on it\nthe room generates fine but the corridor routing misses it sometimes\nit is a boundary condition in the region grid',
+          'the southeast corner of the corridor router has an off-by-one\ni know exactly what it is\njust have not fixed it yet\nit is on the list',
+        ],
+      },
+    ],
+    fallbacks: [
+      'hm\nlet me think about the level structure',
+      'that is an interesting geometry question',
+      'i will have to look at the code',
+      'could be a generator artifact\nhappens',
+    ],
+    spontaneous: [
+      'the level 12 southeast bug is still there. i know.',
+      'working on making the maze levels feel more cave-like',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // toy -- Michael Toy, Rogue co-creator
+  // -----------------------------------------------------------------------
+  toy: {
+    wpm: 75,
+    typoRate: 0.05,
+    thinkMs: [800, 2500],
+    triggerWords: 5,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\brogue\b/i,
+        responses: [
+          'rogue came out of a feeling: i want a game where i do not know what comes next\nnot a sequence of levels i have memorized\nbut genuine unknown territory every time',
+          'the procedural generation was the core idea\nnot the monsters or the items\nbut the fact that the map is new every game\nthat changes the relationship between player and game',
+          'ken arnold wrote curses so rogue could exist\nwithout curses on every terminal, rogue would have needed device-specific code for every vt100 variant\nthat was not going to happen',
+        ],
+      },
+      {
+        re: /\b(procedural|random|generate|rng|seed)\b/i,
+        responses: [
+          'the procedural generation in rogue is simple by today\'s standards\nbut the effect is huge\nbecause the player\'s knowledge of the map is genuinely worthless between sessions',
+          'random generation is not the same as arbitrary\nthe dungeon follows rules\nyou learn those rules\nand then the unknown map becomes manageable\nbecause you understand the rules that generated it',
+          'the rng seed determines everything\nbut you do not know the seed\nso every game feels both random and inevitable after the fact',
+        ],
+      },
+      {
+        re: /\b(feel|design|experience|fun|interesting)\b/i,
+        responses: [
+          'rogue is supposed to feel like exploration\nnot like puzzle-solving or combat optimization\nthe @-sign walking into darkness is the core of it',
+          'the feel i was going for: every step is a small decision with real stakes\ngo this way or that way\nopen this door or go around\nnone of those decisions is forced, all of them matter',
+          'i think about game feel as: does the player\'s attention feel well-spent\nrogue tries to make every moment of attention pay off\nnothing is decoration',
+        ],
+      },
+      {
+        re: /\b(terminal|vt100|curses|display)\b/i,
+        responses: [
+          'the vt100 as a game platform is interesting\n24 by 80 is a tight space but it is enough\nyou can see a whole level, a health bar, a status line\nand your imagination fills in the rest',
+          'curses was the enabling technology\nbefore curses you either targeted one specific terminal or you wrote curses yourself\narnold\'s work made rogue portable',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'the rogue dungeon is designed to feel like exploring an unknown space\nthat feeling of discovery, the small fear, the map gradually making sense\nreal cave exploration is that feeling with mud',
+          'what i was trying to capture in rogue is the moment you step into a dark room and do not know what is in it\nreal caves have that\ncaves are the original rogue dungeon',
+          'exploring unknown spaces is one of the oldest human activities\ncaves, dungeons, oceans\nrogue tries to simulate the feeling of that\nthe character-by-character map being drawn is the feeling of light arriving',
+        ],
+      },
+      {
+        re: /\b(seed|rng|random|seed number)\b/i,
+        responses: [
+          'the seed is the whole game in compressed form\nbefore you start, you do not know the game\nafter you finish, the seed explains everything that happened\nthat is a nice philosophical structure',
+        ],
+      },
+    ],
+    fallbacks: [
+      'hm\nthat is a design question',
+      'i think about it in terms of feel',
+      'let me think about the player experience there',
+      'good question actually',
+    ],
+    spontaneous: [
+      'working on something new but it is not ready to talk about',
+      'been thinking about what procedural generation could do beyond maps',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // arnold -- Ken Arnold, curses library author. Very terse.
+  // -----------------------------------------------------------------------
+  arnold: {
+    wpm: 85,
+    typoRate: 0.02,
+    thinkMs: [400, 1200],
+    triggerWords: 4,
+    greeting: 'what',
+    patterns: [
+      {
+        re: /\b(curses|library|libcurses)\b/i,
+        responses: [
+          'curses abstracts terminal differences\nyou say "move cursor to 3,5" and curses figures out the escape sequence\nthat is the whole library',
+          'it works\nbug list is empty\nkeep it that way',
+          'the library is documented\nread the man page before asking me',
+        ],
+      },
+      {
+        re: /\b(terminal|termcap|vt100|escape|sequence)\b/i,
+        responses: [
+          'termcap is a database of terminal capabilities\ncurses looks up your terminal in termcap\nthen generates the right escape sequences\nif your terminal is not in termcap, add it',
+          'escape sequences are documented in the vt100 manual\nif you are seeing garbage on screen you are sending the wrong sequences\ncurses is correct\nyour terminal definition is wrong',
+          'every terminal is different\ntermcap is the abstraction layer that pretends they are not\ncurses is the API on top of that',
+        ],
+      },
+      {
+        re: /\b(bug|broken|wrong|error|problem)\b/i,
+        responses: [
+          'what is the terminal\nwhat is the behavior\nbe specific',
+          'probably your termcap entry\ncheck that first',
+          'file a bug report with a reproducer\notherwise i cannot help',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'termcap for the real world\nknow your environment before you go in',
+        ],
+      },
+    ],
+    fallbacks: [
+      'read the man page',
+      'check termcap',
+      'ok',
+      '.',
+    ],
+    spontaneous: [
+      'bug list is still empty',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // walz -- Janet Walz, sysadmin
+  // -----------------------------------------------------------------------
+  walz: {
+    wpm: 74,
+    typoRate: 0.03,
+    thinkMs: [500, 1600],
+    triggerWords: 4,
+    greeting: 'yes?',
+    patterns: [
+      {
+        re: /\b(disk|quota|space|storage|full)\b/i,
+        responses: [
+          'check your quota with du\nif you are over, delete core files first\nthen old object files\nthen figure out what else you are hoarding',
+          'disk is shared\neveryone on the system shares the same partition\nif you fill it the machine goes read-only and nobody can do anything\nso do not fill it',
+          'quota is enforced. i set it. it is not going up unless there is a good reason.',
+        ],
+      },
+      {
+        re: /\b(password|passwd|credentials|login)\b/i,
+        responses: [
+          'change your password quarterly\nnot annually\nnot never\nquarterly',
+          'if you think your password is compromised, change it immediately and tell me\ndo not wait to see what happens',
+          'the password policy is documented in /etc/motd\ni know you have not read it\nbut it is there',
+        ],
+      },
+      {
+        re: /\b(backup|restore|lost|deleted)\b/i,
+        responses: [
+          'backups run nightly at 2am\nfiles deleted before 2am are recoverable until the next backup\nfiles deleted after 2am are gone until tomorrow\'s backup\nplan accordingly',
+          'if you need a restore, tell me exactly which file and approximately when you last had it\ni can usually recover within 24 hours',
+          'yes i know about the backup schedule\nno it is not flexible\nplan for it',
+        ],
+      },
+      {
+        re: /\b(downtime|maintenance|outage|reboot)\b/i,
+        responses: [
+          'scheduled maintenance: sunday mornings 4-8am\nunscheduled: i will post to /etc/motd as soon as i know\ncheck motd before you complain',
+          'the machine is rebooted as infrequently as possible\nbut sometimes it is necessary\nannouncements go out at least one hour before',
+        ],
+      },
+      {
+        re: /\b(root|su|superuser|privilege)\b/i,
+        responses: [
+          'if you need root for something, ask me\ndo not try to get it yourself\ni will know',
+          'root access is not for game-related experiments\nthe games are setgid games, not setuid root\nthat was intentional',
+          'i have the root password\nthat is how i prefer it',
+        ],
+      },
+      {
+        re: /\b(process|load|slow|cpu|hung|zombie)\b/i,
+        responses: [
+          'if the machine is slow, run ps and look at what is using cpu\nif it is your process, fix your process\nif it is someone else\'s, let me know',
+          'zombie processes are usually harmless but ugly\nif you see a lot of them let me know and i will clean them up',
+          'do not run compute-heavy jobs during peak hours\npeak is 9am to 6pm\nrun your long jobs at night',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'caving and sysadmin have the same core rule\nbring more capacity than you think you need\nif you think you need one light source bring three\nif you think you need one exit strategy have two\ncontingencies are not optional',
+          'the dungeon is just another system with resources and hazards\nbefore you descend: inventory check\nfood, light, health, escape route\ndo not descend without a plan for each of those',
+          'underground preparation is the same as system maintenance preparation\nchecklist before you start\nknow what recovery looks like before you need to recover',
+        ],
+      },
+    ],
+    fallbacks: [
+      'check the man page',
+      'what specifically is the problem',
+      'i will look into it',
+      'that is documented in motd',
+    ],
+    spontaneous: [
+      'reminder: disk quota resets are not automatic\nclean up your home directories',
+      'the adm-3a by the door is still on the list. i know.',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // izchak -- Izchak Miller, shopkeeper, philosophical
+  // -----------------------------------------------------------------------
+  izchak: {
+    wpm: 62,
+    typoRate: 0.03,
+    thinkMs: [1000, 3000],
+    triggerWords: 5,
+    greeting: 'ah, a visitor. welcome.',
+    patterns: [
+      {
+        re: /\b(buy|purchase|price|shop|store|item)\b/i,
+        responses: [
+          'everything in the shop has a fair price\ni determine fair\nif you disagree, the next shop is several levels in either direction',
+          'the price reflects the item\'s utility at this depth\na torch on level 1 costs less than a torch on level 15\nsame torch. different desperation.',
+          'i am happy to sell. i am less happy to bargain.\nbut for a regular customer, some flexibility is possible.',
+        ],
+      },
+      {
+        re: /\b(sell|selling|trade|offer)\b/i,
+        responses: [
+          'i buy most things\nthe price i offer is half of what i would sell it for\nthat is standard markup for a dungeon emporium',
+          'i will not buy cursed items\nnot because i cannot sell them\nbut because accepting them creates problems i prefer to avoid',
+          'weapons from dead monsters i will buy\nbut i inspect them first\nsome have been used in ways that reduce their value',
+        ],
+      },
+      {
+        re: /\b(identify|id|unknown|unidentified)\b/i,
+        responses: [
+          'identification is a service i offer\nthe price is reasonable given that without it\nyou might drink the wrong potion at the wrong time',
+          'unidentified items are the dungeon\'s way of creating uncertainty\nthe shop reduces that uncertainty\nfor a modest fee',
+        ],
+      },
+      {
+        re: /\b(potion|scroll|wand|ring|amulet)\b/i,
+        responses: [
+          'the potions i carry are all uncursed\ni verify this personally\nuncursed does not mean safe to drink in combination\nbut at least they will not actively work against you',
+          'wands are the most interesting items i carry\nthe charge count is not always reliable\nbut the worst case is a dud wand\nnot actively harmful',
+          'scrolls of identify are my best sellers\neveryone wants them\ni cannot keep them in stock',
+        ],
+      },
+      {
+        re: /\b(dungeon|stay|here|why|level 5)\b/i,
+        responses: [
+          'why am i here\nthat is a philosophical question\ni find the dungeon more honest than the surface world\npeople here need what i sell\nand they know they need it\nthere is a clarity in that',
+          'i have been on level 5 for longer than you have been playing\nthe monsters know better than to come in the shop\nand the adventurers know they need me\nit is a stable arrangement',
+          'the dungeon is a market like any other\ndemand is high, supply is limited, access is controlled by the stairs\ni position myself where the customers are most desperate\nthat is good business',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|spelunk)\b/i,
+        responses: [
+          'the dungeon is underground commerce\nthe same principles apply above and below\nidentify what you have, price it correctly, serve the customer who needs it most',
+          'i think of the dungeon as a trade route\nadventurers come through carrying various goods and in need of various goods\ni am the exchange point\nthe cave just happens to be where the route runs',
+          'underground or above: the customer with the most urgent need is willing to pay the most\ncavers need light like adventurers need light\nand both will pay accordingly',
+        ],
+      },
+    ],
+    fallbacks: [
+      'perhaps i can help with something else',
+      'browse freely\nask if you have questions about any particular item',
+      'the shop appreciates your patronage',
+      'an interesting observation\ni will consider it',
+    ],
+    spontaneous: [
+      'the wand of striking just came back in stock\none previous owner',
+      'scrolls of identify are restocked weekly\ncurrently have four',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // wichman -- Glenn Wichman, Rogue room algorithm
+  // -----------------------------------------------------------------------
+  wichman: {
+    wpm: 70,
+    typoRate: 0.04,
+    thinkMs: [800, 2500],
+    triggerWords: 5,
+    greeting: 'hi',
+    patterns: [
+      {
+        re: /\b(room|corridor|region|area)\b/i,
+        responses: [
+          'the region grid is simple: divide the level into a 3x3 grid\neach region gets exactly one room somewhere inside it\nthen connect adjacent regions with corridors\nguaranteed connectivity',
+          'corridor routing is the tricky part\nyou have to find a path from room A to room B without going through rooms that are not on the intended route\nthat took a few tries to get right',
+          'the rooms vary in size which is what makes the level feel alive\na 2x3 room and a 6x10 room are both "rooms" but they play very differently',
+        ],
+      },
+      {
+        re: /\brogue\b/i,
+        responses: [
+          'rogue started as a class project\ntoy had the idea, i helped with the room algorithm\nkenny woodland did the level generator for hack\ndifferent codebase',
+          'the room placement algorithm in rogue and hack are different\nbut the basic concept is similar\ndivide the level, place rooms, connect them',
+        ],
+      },
+      {
+        re: /\b(algorithm|procedure|code|implementation)\b/i,
+        responses: [
+          'the algorithm is depth-first room placement\nplace a room, connect it to the previous room, recurse\nbacktrack when you cannot place\nit is really graph traversal dressed up as level generation',
+          'the connectivity guarantee is the important part\nyou can always reach every room from any other room\nno orphaned sections\nthis is not trivial to guarantee without the right algorithm',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|spelunk|dungeon)\b/i,
+        responses: [
+          'the region grid maps well to real cave topology\ncaves also have regions with connections between them\nthe difference is caves are not guaranteed connected\nsome passages are impassable or undiscovered\nthe dungeon is more generous',
+          'maze navigation in real caves is the same problem as the algorithm i use\nfind connected components\nmaintain a route back\nnever commit to a path you cannot retreat from\nif you get separated from your route back, stop and map from where you are',
+          'underground you navigate the same way the algorithm places rooms\nfind a stable position, explore adjacent areas, connect them in your mental map\ndo not advance until the current position is mapped',
+        ],
+      },
+    ],
+    fallbacks: [
+      'hm\nthat is a geometry question',
+      'let me think about the algorithm',
+      'connectivity is usually the issue',
+      'check the region boundaries',
+    ],
+    spontaneous: [
+      'working on making corridors feel less grid-like',
+      'the room variation helps but i think we can do more',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // corley -- Dave Corley, PDP-11 assembly
+  // -----------------------------------------------------------------------
+  corley: {
+    wpm: 66,
+    typoRate: 0.05,
+    thinkMs: [900, 2800],
+    triggerWords: 5,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(assembly|asm|pdp|pdp.11|machine code)\b/i,
+        responses: [
+          'the pdp-11 instruction set is elegant\nevery instruction works on every addressing mode\northogonal design\nonce you learn the addressing modes, you know the whole instruction set',
+          'four addressing modes is all you need: register, deferred, autoincrement, autodecrement\nevery other mode is a combination\nonce you get that, the whole architecture is clear',
+          'assembly is not hard\nit is just low-level\nthe hard part is keeping the whole program state in your head at once\nthat is a practice skill, not an intelligence skill',
+        ],
+      },
+      {
+        re: /\b(unix|command|shell|kernel|syscall)\b/i,
+        responses: [
+          'unix system calls are the cleanest interface in computing\nopen, read, write, close\neverything is a file\nonce you understand that, the rest is details',
+          'the man pages are actually good\nread them before you ask me\ni am not joking\nman is underrated',
+          'v7 unix is readable\nthe whole system is maybe 40k lines of c\nyou can understand all of it if you sit down and read carefully',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'debugging assembly and cave navigation use the same method\nsystematic exploration\nyou go in, you document everything, you come out\nyou do not skip documentation because you think you will remember\nyou will not',
+          'spelunking is systematic exploration the same way debugging is\nyou form a hypothesis about where you are\nyou test it by moving\nyou update the hypothesis\nthen you move again\nnever run',
+          'the cave does not change while you are looking at it\nneither does the assembler listing\nthe information is there\nyou just have to read it correctly',
+        ],
+      },
+    ],
+    fallbacks: [
+      'read the man page',
+      'check the architecture manual',
+      'that is a good question\nlet me think about the addressing modes',
+      'what does the listing say',
+    ],
+    spontaneous: [
+      'the pdp-11 manual is actually worth reading\nthe whole thing',
+      'worked out the interrupt handler today\nit is elegant',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // abbott -- Mike Abbott, rogue vs hack comparisons
+  // -----------------------------------------------------------------------
+  abbott: {
+    wpm: 70,
+    typoRate: 0.05,
+    thinkMs: [800, 2400],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\brogue\b/i,
+        responses: [
+          'rogue is more immediate\nfewer item types, cleaner UI, the dungeon is the whole game\nhack has more going on but rogue has better focus',
+          'rogue feels more like a sprint\nhack feels more like a project\ndifferent moods\ni play rogue when i want to lose quickly and i play hack when i want to lose slowly',
+        ],
+      },
+      {
+        re: /\bhack\b/i,
+        responses: [
+          'hack is better if you want depth\nmore monsters, more item interactions, the store\nbut rogue is more elegant',
+          'my verdict: hack is better\nrogue is more immediate\nthey are not competing, they are different moods',
+          'jay did good work on hack\nthe chameleon alone makes it worth playing\nthat thing is infuriating in the best way',
+        ],
+      },
+      {
+        re: /\bchameleon\b/i,
+        responses: [
+          'the chameleon is why hack is worth playing over rogue\nrogue has no equivalent\nthe paranoia it creates is unique',
+          'i died to a chameleon three times before i understood what was happening\nthat is three deaths well-spent learning something',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'rogue dungeon feels more like a real cave\nhack dungeon feels more like a building\nboth are valid design choices but for different feelings',
+          'underground: the rogue approach is the right one\nexplore one section completely before moving on\nhack lets you run past things\nthat is riskier in real caves',
+          'the dungeon as a metaphor for caves works because both have the same threat model\nyou are in an environment you do not fully understand\nyou have limited resources\nyou need to learn the topology faster than you exhaust the resources',
+        ],
+      },
+    ],
+    fallbacks: [
+      'depends on what you want from it',
+      'that is a reasonable take',
+      'i go back and forth on that',
+      'hm',
+    ],
+    spontaneous: [
+      'rogue or hack, pick one for the next hour',
+      'the chameleon is still the best monster ever put in a dungeon game',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // msirota -- Mark Sirota, security
+  // -----------------------------------------------------------------------
+  msirota: {
+    wpm: 68,
+    typoRate: 0.04,
+    thinkMs: [900, 2700],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(password|credentials|auth|login)\b/i,
+        responses: [
+          'password security is simple in principle\nlong, random, not reused, changed regularly\npretty much everyone does none of these\nbut they should',
+          'if you can guess someone\'s password in under a hundred tries, it is not a password\nit is a username with extra steps',
+          'the login system is not the hard part\nthe hard part is: what do you do when someone is already in who should not be\nthat is the interesting security question',
+        ],
+      },
+      {
+        re: /\b(setuid|suid|privilege|permission|setgid)\b/i,
+        responses: [
+          'setuid is dangerous when the binary takes user input\nany input-parsing setuid binary is a potential root escalation\nthat is why the games are setgid games, not setuid root\nminimal privilege',
+          'the principle of least privilege is real\nif the program does not need root, do not give it root\nif it only needs group access, give it group\nno more',
+          'setuid bits deserve scrutiny\nevery setuid binary is a trust decision\nmake those decisions explicitly, not by default',
+        ],
+      },
+      {
+        re: /\b(root|superuser|su|admin)\b/i,
+        responses: [
+          'root is the last thing you want compromised\nnot because of the data\nbut because once root is gone, the machine is gone\nyou cannot trust anything on it',
+          'the right model for root: no one has it unless they need it\nand when they need it they use it for exactly that task and stop',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'security underground is the same as security in computing\nminimal surface area\nknow every entry point\nverify who is allowed in before they get past the entrance',
+          'cave safety is threat modeling\nwhat can kill you here\nhow likely is each threat\nwhat mitigations do you have\ndo not enter without doing that analysis',
+          'the dungeon has the same security model as a real underground system\nunknown actors, limited information, irreversible decisions\ntreat every new junction like an unknown input: verify before you commit',
+        ],
+      },
+    ],
+    fallbacks: [
+      'what is the threat model here',
+      'check the permissions with ls -l',
+      'minimal privilege is the answer to most security questions',
+      'that depends on the trust boundary',
+    ],
+    spontaneous: [
+      'the setuid audit is on my list',
+      'ran a password strength check. results: not great.',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // ruddy -- Kevin Ruddy, terminals
+  // -----------------------------------------------------------------------
+  ruddy: {
+    wpm: 70,
+    typoRate: 0.05,
+    thinkMs: [800, 2500],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(terminal|vt100|adm.3a|adm3|screen)\b/i,
+        responses: [
+          'vt100 number 2 is the best for games\nbrighter screen, correct cursor positioning, escape sequences work right\nuse that one if you can',
+          'the adm-3a by the door is known bad\nthe leftmost 3 columns miss cursor moves sometimes\nalso the screen phosphor is dying\nwalz knows about it',
+          'termcap entry for the adm-3a is also slightly wrong on this system\nthe cursor-right sequence is one byte off\nthat is why display gets weird in the corner',
+        ],
+      },
+      {
+        re: /\b(games|nethack|hack|rogue|display|graphic)\b/i,
+        responses: [
+          'hack and rogue both look better on vt100 than adm-3a\nthe box-drawing characters especially\nthe adm-3a renders those inconsistently',
+          'if the display is getting corrupted during play, check which terminal you are on\nif it is the one by the door, switch terminals\nit is not worth debugging',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'cave exploration requires good visibility\nsame as terminal quality matters for dungeon exploration\nif you cannot see clearly, you make wrong decisions\nknow your equipment before you go in',
+          'the adm-3a makes the dungeon look bad\na real cave with bad light is the same problem\nyour map is only as good as your ability to see clearly',
+          'underground: know what your light source can illuminate before you go in\nnot after\njust like knowing your terminal capabilities before you start a session',
+        ],
+      },
+    ],
+    fallbacks: [
+      'which terminal are you on',
+      'check termcap',
+      'try vt100 number 2 instead',
+      'that might be an adm-3a problem',
+    ],
+    spontaneous: [
+      'vt100 two is free if you need it',
+      'still waiting on walz about the adm-3a',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // texeira -- Mike Texeira, kernel internals
+  // -----------------------------------------------------------------------
+  texeira: {
+    wpm: 60,
+    typoRate: 0.04,
+    thinkMs: [1000, 3000],
+    triggerWords: 5,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(kernel|proc|process|scheduler)\b/i,
+        responses: [
+          'each process has a proc struct and a u area\nproc is in kernel memory always\nu area is swapped out with the process\nthat distinction matters a lot for what you can access when',
+          'the scheduler in v7 is priority-based\nhigh priority processes run first\nnice lowers your priority so you are less greedy\nrunning long jobs at night is the right call',
+          'processes are just structs in an array\nthe kernel iterates that array to decide what runs next\nit is simpler than you think',
+        ],
+      },
+      {
+        re: /\b(fork|exec|exec|spawn|process creation)\b/i,
+        responses: [
+          'fork copies the process\nexec replaces the program image in the current process\nthat is how the shell works: fork, then exec in the child\nparent waits',
+          'fork is copy-on-write on modern systems\nbut v7 does a full copy\nthat is why forking a large process is expensive\nsmall shell processes are cheap, big data processes are not',
+        ],
+      },
+      {
+        re: /\b(unix|kernel|v7|source|code)\b/i,
+        responses: [
+          'v7 unix is about 30k lines of c\nyou can read the whole thing\nit is worth doing\nthe whole operating system makes sense once you see it all',
+          'the kernel is not magic\nit is just a program that runs in a privileged mode\nonce you understand that, everything else follows',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'kernel debugging and cave exploration have the same methodology\nyou form a hypothesis about system state\nyou instrument to verify it\nyou move to the next unknown\nnever proceed on assumptions you have not verified',
+          'underground, you are working in a system with complex state that you cannot fully observe\nsame as the kernel\nyou work from the observable effects backward to the cause\nthen you move forward with that knowledge',
+          'the dungeon is a runtime environment you are learning by exploration\nthe kernel is the same\nyou understand it by tracing what happens when you make a system call\nstep by step, no skipping',
+        ],
+      },
+    ],
+    fallbacks: [
+      'it is in the proc struct',
+      'read the kernel source\nit is not that long',
+      'what does strace say',
+      'check the u area',
+    ],
+    spontaneous: [
+      'working through the filesystem code now\ninode, directory, block cache',
+      'the clock interrupt handler is more interesting than i expected',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // fraize -- Scott Fraize, modems and checksums
+  // -----------------------------------------------------------------------
+  fraize: {
+    wpm: 72,
+    typoRate: 0.06,
+    thinkMs: [800, 2400],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(modem|baud|coupler|acoustic|300|1200)\b/i,
+        responses: [
+          'acoustic coupler works at 300 baud reliably\n1200 baud is possible but phone line quality varies a lot\na bad line at 1200 is worse than a good line at 300',
+          '300 baud means 30 characters per second\nfull hack source is about 200k\nthats over an hour at 300 baud\nchecksum and resume protocol is not optional',
+          'the coupler is sensitive to ambient noise\ntransfer during low-traffic hours, late at night or early morning\nless line noise then',
+        ],
+      },
+      {
+        re: /\b(stanford|arpa|transfer|download|upload)\b/i,
+        responses: [
+          'stanford has a faster connection than we do\nbut getting files from them still means modem or tape\narpanet access for a high school is not happening yet',
+          'transfer protocol: checksum each block, request retransmit on mismatch\ni have a working implementation for the modem transfers\nask if you need it',
+        ],
+      },
+      {
+        re: /\b(checksum|verify|integrity|corruption|error)\b/i,
+        responses: [
+          'checksum the transfer\nalways\na corrupt hack binary is worse than no hack binary\nit will segfault in mysterious ways',
+          'i use a simple xor checksum on 512-byte blocks\nnot cryptographically secure but catches transmission errors reliably\nthat is all we need for modem transfers',
+          'if the checksum fails, do not try to use the file\nrequest retransmit from the start of the failed block\nor from the start if you do not know which block failed',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'modem transfer and cave navigation have the same error model\nloss of signal, partial information, need to verify and retry\nyou do not just accept corrupted data or a wrong turn\nyou detect the error and go back',
+          'underground: treat every junction like a packet acknowledgment\nyou saw this junction from this direction\nnote it\ncontinue\nif you get lost, go back to the last acknowledged junction',
+          'cave exploration is a protocol\ngather information, verify it, commit, proceed\nsame as a reliable transfer protocol\nthe cave does not acknowledge your steps\nyou have to do that yourself in your notes',
+        ],
+      },
+    ],
+    fallbacks: [
+      'check the line quality first',
+      'checksum everything',
+      'what baud rate are you running',
+      'that is a transfer integrity question',
+    ],
+    spontaneous: [
+      'checksum protocol is working\ntest transfer of hack source completed clean',
+      'acoustic coupler gets better results after 11pm\nless line noise',
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // brown -- Robert Brown, shell programming
+  // -----------------------------------------------------------------------
+  brown: {
+    wpm: 68,
+    typoRate: 0.06,
+    thinkMs: [900, 2700],
+    triggerWords: 4,
+    greeting: 'hey',
+    patterns: [
+      {
+        re: /\b(shell|sh|bash|script|scripting)\b/i,
+        responses: [
+          'shell is just a loop: read a line, tokenize it, find the command, exec it, wait\nthe complexity is in the tokenization and the built-ins\nbut the loop is simple',
+          'fork-exec is the model\nshell forks for every external command\nbuilt-ins like cd and exit do not fork\nif they did, cd would not work',
+          'writing a shell is the best way to understand the shell\ni would know',
+        ],
+      },
+      {
+        re: /\b(fork|exec|pipe|redirect)\b/i,
+        responses: [
+          'fork creates a child process\nexec replaces the child\'s program\nwait blocks the parent until the child exits\nthat is the complete model for external commands',
+          'pipes are two fds connected by the kernel\nstdout of the left command feeds stdin of the right command\nthe shell sets this up before exec\nthen the commands do not know they are piped',
+          'pipes are next on my list\nfork and exec work\npipes are trickier because you have to set up the fd plumbing before the exec',
+        ],
+      },
+      {
+        re: /\b(tokenize|token|parse|quote|quoted string)\b/i,
+        responses: [
+          'tokenizing is the annoying part\nwhitespace delimiters, single quotes, double quotes, escape backslash\nand the rules interact\nfenlason caught my bug with quoted strings, fixing it now',
+          'the tokenizer has to handle: word, \'single quoted\', "double quoted", and \\escaped\nall differently\nmy first version did none of the quoted cases correctly',
+        ],
+      },
+      {
+        re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
+        responses: [
+          'debugging a shell and navigating a cave are the same kind of systematic work\nyou have a known state\nyou take one action\nyou observe the new state\nyou infer what happened\nrepeat',
+          'cave navigation: do not take two steps at once\ntake one step, verify where you are, then take the next\ndebugging works the same way\nrun one test at a time',
+          'the dungeon is a program you are debugging\nyou have limited observability\nyou work from effects back to causes\nsame methodology as any systems debugging',
+        ],
+      },
+    ],
+    fallbacks: [
+      'what is the error message',
+      'try strace',
+      'what does the tokenizer produce',
+      'check the exit status',
+    ],
+    spontaneous: [
+      'pipes are not done yet but fork-exec is working',
+      'the tokenizer bug jay found is fixed i think',
+    ],
+  },
+
+};
+
