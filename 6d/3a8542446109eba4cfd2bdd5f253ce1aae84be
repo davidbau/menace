@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-19T15:49:22.395Z",
+  "timestamp": "2026-03-19T15:52:14.268Z",
   "commit": "6d3a8542",
   "goldenBranch": null,
   "results": [
@@ -91,7 +91,7 @@
           1
         ]
       },
-      "duration": 3095
+      "duration": 3817
     },
     {
       "session": "hi02_seed1010_wiz_trap-encounter_gameplay.session.json",
@@ -202,7 +202,7 @@
           1
         ]
       },
-      "duration": 8964
+      "duration": 11767
     },
     {
       "session": "hi04_seed1030_wiz_fountain-altar_gameplay.session.json",
@@ -292,7 +292,7 @@
           1
         ]
       },
-      "duration": 3955
+      "duration": 5148
     },
     {
       "session": "hi06_s1050_w_dig-deep_gp.session.json",
@@ -352,7 +352,7 @@
         "matched": 175,
         "total": 175
       },
-      "duration": 4638
+      "duration": 5497
     },
     {
       "session": "hi07_seed1060_wiz_artifact-use_gameplay.session.json",
@@ -412,7 +412,7 @@
         "matched": 26,
         "total": 26
       },
-      "duration": 3511
+      "duration": 9979
     },
     {
       "session": "hi08_seed1070_wiz_polyself_gameplay.session.json",
@@ -472,7 +472,7 @@
         "matched": 182,
         "total": 182
       },
-      "duration": 5867
+      "duration": 7575
     },
     {
       "session": "hi09_seed1080_wiz_insight-deep_gameplay.session.json",
@@ -562,67 +562,28 @@
           1
         ]
       },
-      "duration": 4015
+      "duration": 4612
     },
     {
       "session": "hi10_seed1090_wiz_potion-deep_gameplay.session.json",
       "type": "gameplay",
       "seed": 1090,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 2409,
-          "total": 2409
-        },
-        "screens": {
-          "matched": 511,
-          "total": 511
-        },
-        "colors": {
-          "matched": 12264,
-          "total": 12264
-        },
-        "screenWindow": {
-          "matched": 511,
-          "total": 511,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 12264,
-          "total": 12264,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 85,
-          "total": 85
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 511,
-          "total": 511
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=511 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
+      "timeoutDiagnostics": {
+        "step": 511,
+        "key": " ",
+        "topline": "Unknown command ' '.",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 85,
-        "total": 85
-      },
-      "duration": 15842
+      "duration": 20000
     },
     {
       "session": "hi11_seed1100_wiz_zap-deep_gameplay.session.json",
@@ -682,7 +643,7 @@
         "matched": 586,
         "total": 586
       },
-      "duration": 11586
+      "duration": 8219
     },
     {
       "session": "hi12_seed1110_wiz_monster-attack_gameplay.session.json",
@@ -742,7 +703,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 7530
+      "duration": 4585
     },
     {
       "session": "hi13_seed1001_wiz_shop-read-zap_gp.session.json",
@@ -832,7 +793,7 @@
           1
         ]
       },
-      "duration": 7882
+      "duration": 8662
     },
     {
       "session": "hi14_seed1003_wiz_artifact-use_gp.session.json",
@@ -892,7 +853,7 @@
         "matched": 250,
         "total": 250
       },
-      "duration": 9139
+      "duration": 7252
     },
     {
       "session": "hi15_seed42_barb_minetn5_shop-pay_gp.session.json",
@@ -978,7 +939,7 @@
           1
         ]
       },
-      "duration": 2740
+      "duration": 3597
     },
     {
       "session": "hi16_seed1200_wiz_knox_gp.session.json",
@@ -1034,7 +995,7 @@
         "matched": 1999,
         "total": 1999
       },
-      "duration": 3828
+      "duration": 4036
     },
     {
       "session": "hi17_seed700_w_vault-guard_gp.session.json",
@@ -1094,7 +1055,7 @@
         "matched": 1493,
         "total": 1493
       },
-      "duration": 5998
+      "duration": 11563
     },
     {
       "session": "hi18_seed503_w_polyweb_gp.session.json",
@@ -1154,7 +1115,7 @@
         "matched": 30,
         "total": 30
       },
-      "duration": 4149
+      "duration": 3226
     },
     {
       "session": "hi19_seed503_w_mindblast_gp.session.json",
@@ -1214,7 +1175,7 @@
         "matched": 45,
         "total": 45
       },
-      "duration": 3729
+      "duration": 3445
     },
     {
       "session": "interface_chargen.session.json",
@@ -1231,7 +1192,7 @@
           "total": 0
         }
       },
-      "duration": 789
+      "duration": 726
     },
     {
       "session": "interface_discoveries.session.json",
@@ -1256,7 +1217,7 @@
           "total": 0
         }
       },
-      "duration": 1210
+      "duration": 1102
     },
     {
       "session": "interface_nameprompt.session.json",
@@ -1281,7 +1242,7 @@
           "total": 0
         }
       },
-      "duration": 1131
+      "duration": 1184
     },
     {
       "session": "interface_options.session.json",
@@ -1306,7 +1267,7 @@
           "total": 0
         }
       },
-      "duration": 1160
+      "duration": 1134
     },
     {
       "session": "interface_startup.session.json",
@@ -1327,67 +1288,28 @@
           "total": 0
         }
       },
-      "duration": 70
+      "duration": 73
     },
     {
       "session": "pnd_s1200_w_potionmix2_gp.session.json",
       "type": "gameplay",
       "seed": 1200,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 2565,
-          "total": 2565
-        },
-        "screens": {
-          "matched": 818,
-          "total": 818
-        },
-        "colors": {
-          "matched": 19632,
-          "total": 19632
-        },
-        "screenWindow": {
-          "matched": 818,
-          "total": 818,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 19632,
-          "total": 19632,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 121,
-          "total": 121
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 818,
-          "total": 818
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=818 key=\" \" pendingPrompt=false multi=0 topline=\"Call a smoky potion:    qu    qv    qw    qx    Pg  Rg  ry     rz     rA     rB\")",
+      "timeoutDiagnostics": {
+        "step": 818,
+        "key": " ",
+        "topline": "Call a smoky potion:    qu    qv    qw    qx    Pg  Rg  ry     rz     rA     rB",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 121,
-        "total": 121
-      },
-      "duration": 17931
+      "duration": 20000
     },
     {
       "session": "pnd_s1200_w_potprayspell_gp.session.json",
@@ -1421,9 +1343,9 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=306 key=\"j\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=252 key=\"j\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 306,
+        "step": 252,
         "key": "j",
         "topline": "",
         "pendingPrompt": false,
@@ -1463,11 +1385,11 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=682 key=\"k\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=541 key=\"q\" pendingPrompt=false multi=0 topline=\"You don't have anything to drink.\")",
       "timeoutDiagnostics": {
-        "step": 682,
-        "key": "k",
-        "topline": "",
+        "step": 541,
+        "key": "q",
+        "topline": "You don't have anything to drink.",
         "pendingPrompt": false,
         "multi": 0
       },
@@ -1488,7 +1410,7 @@
           "total": 0
         }
       },
-      "duration": 0
+      "duration": 1
     },
     {
       "session": "seed1_special_castle.session.json",
@@ -1675,7 +1597,7 @@
           "total": 0
         }
       },
-      "duration": 0
+      "duration": 1
     },
     {
       "session": "seed1_special_tutorial.session.json",
@@ -1761,7 +1683,7 @@
         }
       },
       "role": "archeologist",
-      "duration": 712
+      "duration": 862
     },
     {
       "session": "seed100_chargen_barbarian.session.json",
@@ -1779,7 +1701,7 @@
         }
       },
       "role": "barbarian",
-      "duration": 784
+      "duration": 940
     },
     {
       "session": "seed100_chargen_caveman.session.json",
@@ -1797,7 +1719,7 @@
         }
       },
       "role": "caveman",
-      "duration": 966
+      "duration": 1096
     },
     {
       "session": "seed100_chargen_healer.session.json",
@@ -1815,7 +1737,7 @@
         }
       },
       "role": "healer",
-      "duration": 875
+      "duration": 937
     },
     {
       "session": "seed100_chargen_knight.session.json",
@@ -1833,7 +1755,7 @@
         }
       },
       "role": "knight",
-      "duration": 982
+      "duration": 873
     },
     {
       "session": "seed100_chargen_monk.session.json",
@@ -1851,7 +1773,7 @@
         }
       },
       "role": "monk",
-      "duration": 810
+      "duration": 803
     },
     {
       "session": "seed100_chargen_priest.session.json",
@@ -1869,7 +1791,7 @@
         }
       },
       "role": "priest",
-      "duration": 745
+      "duration": 1011
     },
     {
       "session": "seed100_chargen_ranger.session.json",
@@ -1887,7 +1809,7 @@
         }
       },
       "role": "ranger",
-      "duration": 942
+      "duration": 951
     },
     {
       "session": "seed100_chargen_rogue.session.json",
@@ -1905,7 +1827,7 @@
         }
       },
       "role": "rogue",
-      "duration": 637
+      "duration": 732
     },
     {
       "session": "seed100_chargen_samurai.session.json",
@@ -1923,7 +1845,7 @@
         }
       },
       "role": "samurai",
-      "duration": 628
+      "duration": 686
     },
     {
       "session": "seed100_chargen_tourist.session.json",
@@ -1941,7 +1863,7 @@
         }
       },
       "role": "tourist",
-      "duration": 587
+      "duration": 727
     },
     {
       "session": "seed100_chargen_valkyrie.session.json",
@@ -1959,7 +1881,7 @@
         }
       },
       "role": "valkyrie",
-      "duration": 683
+      "duration": 765
     },
     {
       "session": "seed100_chargen_wizard.session.json",
@@ -1977,7 +1899,7 @@
         }
       },
       "role": "wizard",
-      "duration": 977
+      "duration": 965
     },
     {
       "session": "seed100_multidigit_gameplay.session.json",
@@ -2037,7 +1959,7 @@
         "matched": 103,
         "total": 103
       },
-      "duration": 2107
+      "duration": 2109
     },
     {
       "session": "seed100_special_bigroom.session.json",
@@ -2330,7 +2252,7 @@
           "total": 0
         }
       },
-      "duration": 3560
+      "duration": 6037
     },
     {
       "session": "seed119_maps_c.session.json",
@@ -2351,7 +2273,7 @@
           "total": 0
         }
       },
-      "duration": 3417
+      "duration": 6422
     },
     {
       "session": "seed16_map.session.json",
@@ -2401,7 +2323,7 @@
         "js": 0,
         "session": 3
       },
-      "duration": 3289
+      "duration": 4609
     },
     {
       "session": "seed16_maps_c.session.json",
@@ -2451,7 +2373,7 @@
         "js": 0,
         "session": 3
       },
-      "duration": 2888
+      "duration": 4902
     },
     {
       "session": "seed163_map.session.json",
@@ -2472,7 +2394,7 @@
           "total": 0
         }
       },
-      "duration": 3017
+      "duration": 4668
     },
     {
       "session": "seed163_maps_c.session.json",
@@ -2493,7 +2415,7 @@
           "total": 0
         }
       },
-      "duration": 2843
+      "duration": 5022
     },
     {
       "session": "seed200_special_sokoban.session.json",
@@ -2604,67 +2526,28 @@
         "matched": 12,
         "total": 12
       },
-      "duration": 1004
+      "duration": 2312
     },
     {
       "session": "seed302_barbarian_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 302,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 8206,
-          "total": 8206
-        },
-        "screens": {
-          "matched": 210,
-          "total": 210
-        },
-        "colors": {
-          "matched": 5040,
-          "total": 5040
-        },
-        "screenWindow": {
-          "matched": 210,
-          "total": 210,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 5040,
-          "total": 5040,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 2320,
-          "total": 2320
-        },
-        "mapdump": {
-          "matched": 2,
-          "total": 2
-        },
-        "cursor": {
-          "matched": 210,
-          "total": 210
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=210 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 210,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 2320,
-        "total": 2320
-      },
-      "duration": 14348
+      "duration": 20000
     },
     {
       "session": "seed302_verbose_off.session.json",
@@ -2720,67 +2603,28 @@
         "matched": 7,
         "total": 7
       },
-      "duration": 925
+      "duration": 1867
     },
     {
       "session": "seed303_caveman_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 303,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 6309,
-          "total": 6309
-        },
-        "screens": {
-          "matched": 205,
-          "total": 205
-        },
-        "colors": {
-          "matched": 4920,
-          "total": 4920
-        },
-        "screenWindow": {
-          "matched": 205,
-          "total": 205,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 4920,
-          "total": 4920,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 3768,
-          "total": 3768
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 205,
-          "total": 205
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=205 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 205,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 3768,
-        "total": 3768
-      },
-      "duration": 12446
+      "duration": 20000
     },
     {
       "session": "seed303_DECgraphics_off.session.json",
@@ -2814,7 +2658,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 669
+      "duration": 1309
     },
     {
       "session": "seed304_DECgraphics_on.session.json",
@@ -2848,7 +2692,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 746
+      "duration": 1326
     },
     {
       "session": "seed304_healer_selfplay200_gameplay.session.json",
@@ -2908,67 +2752,28 @@
         "matched": 2376,
         "total": 2376
       },
-      "duration": 12109
+      "duration": 16038
     },
     {
       "session": "seed305_knight_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 305,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 8204,
-          "total": 8204
-        },
-        "screens": {
-          "matched": 212,
-          "total": 212
-        },
-        "colors": {
-          "matched": 5064,
-          "total": 5064
-        },
-        "screenWindow": {
-          "matched": 212,
-          "total": 212,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 5064,
-          "total": 5064,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 3017,
-          "total": 3017
-        },
-        "mapdump": {
-          "matched": 2,
-          "total": 2
-        },
-        "cursor": {
-          "matched": 211,
-          "total": 211
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=212 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 212,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 3017,
-        "total": 3017
-      },
-      "duration": 13773
+      "duration": 20000
     },
     {
       "session": "seed305_time_on.session.json",
@@ -3002,7 +2807,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 942
+      "duration": 2023
     },
     {
       "session": "seed306_map.session.json",
@@ -3023,7 +2828,7 @@
           "total": 0
         }
       },
-      "duration": 2534
+      "duration": 4256
     },
     {
       "session": "seed306_maps_c.session.json",
@@ -3044,67 +2849,28 @@
           "total": 0
         }
       },
-      "duration": 2547
+      "duration": 4034
     },
     {
       "session": "seed306_monk_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 306,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 6901,
-          "total": 6901
-        },
-        "screens": {
-          "matched": 212,
-          "total": 212
-        },
-        "colors": {
-          "matched": 5088,
-          "total": 5088
-        },
-        "screenWindow": {
-          "matched": 212,
-          "total": 212,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 5088,
-          "total": 5088,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 3911,
-          "total": 3911
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 212,
-          "total": 212
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=212 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 212,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 3911,
-        "total": 3911
-      },
-      "duration": 16319
+      "duration": 20000
     },
     {
       "session": "seed306_time_off.session.json",
@@ -3138,247 +2904,91 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 829
+      "duration": 1600
     },
     {
       "session": "seed307_priest_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 307,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 7808,
-          "total": 7808
-        },
-        "screens": {
-          "matched": 214,
-          "total": 214
-        },
-        "colors": {
-          "matched": 5136,
-          "total": 5136
-        },
-        "screenWindow": {
-          "matched": 214,
-          "total": 214,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 5136,
-          "total": 5136,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 4720,
-          "total": 4720
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 214,
-          "total": 214
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=214 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 214,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 4720,
-        "total": 4720
-      },
-      "duration": 11850
+      "duration": 20000
     },
     {
       "session": "seed308_ranger_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 308,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 7075,
-          "total": 7075
-        },
-        "screens": {
-          "matched": 217,
-          "total": 217
-        },
-        "colors": {
-          "matched": 5208,
-          "total": 5208
-        },
-        "screenWindow": {
-          "matched": 217,
-          "total": 217,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 5208,
-          "total": 5208,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 3552,
-          "total": 3552
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 217,
-          "total": 217
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=217 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 217,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 3552,
-        "total": 3552
-      },
-      "duration": 14673
+      "duration": 20000
     },
     {
       "session": "seed309_rogue_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 309,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 8249,
-          "total": 8249
-        },
-        "screens": {
-          "matched": 209,
-          "total": 209
-        },
-        "colors": {
-          "matched": 4992,
-          "total": 4992
-        },
-        "screenWindow": {
-          "matched": 209,
-          "total": 209,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 4992,
-          "total": 4992,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 2868,
-          "total": 2868
-        },
-        "mapdump": {
-          "matched": 2,
-          "total": 2
-        },
-        "cursor": {
-          "matched": 208,
-          "total": 208
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=209 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 209,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 2868,
-        "total": 2868
-      },
-      "duration": 16227
+      "duration": 20000
     },
     {
       "session": "seed310_samurai_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 310,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 5224,
-          "total": 5224
-        },
-        "screens": {
-          "matched": 210,
-          "total": 210
-        },
-        "colors": {
-          "matched": 5040,
-          "total": 5040
-        },
-        "screenWindow": {
-          "matched": 210,
-          "total": 210,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 5040,
-          "total": 5040,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 2562,
-          "total": 2562
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 210,
-          "total": 210
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=210 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 210,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 2562,
-        "total": 2562
-      },
-      "duration": 11921
+      "duration": 20000
     },
     {
       "session": "seed311_tourist_selfplay200_gameplay.session.json",
@@ -3426,41 +3036,62 @@
       "session": "seed313_wizard_selfplay200_gameplay.session.json",
       "type": "gameplay",
       "seed": 313,
+      "passed": false,
+      "metrics": {
+        "repaint": {
+          "matched": 0,
+          "total": 0
+        }
+      },
+      "error": "Session timed out after 20000ms (last step=212 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 212,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
+      },
+      "duration": 20000
+    },
+    {
+      "session": "seed321_archeologist_wizard_gameplay.session.json",
+      "type": "gameplay",
+      "seed": 321,
       "passed": true,
       "metrics": {
         "rngCalls": {
-          "matched": 9247,
-          "total": 9247
+          "matched": 8907,
+          "total": 8907
         },
         "screens": {
-          "matched": 212,
-          "total": 212
+          "matched": 400,
+          "total": 400
         },
         "colors": {
-          "matched": 5064,
-          "total": 5064
+          "matched": 9600,
+          "total": 9600
         },
         "screenWindow": {
-          "matched": 212,
-          "total": 212,
+          "matched": 400,
+          "total": 400,
           "earlyOnlyCount": 0
         },
         "colorWindow": {
-          "matched": 5064,
-          "total": 5064,
+          "matched": 9600,
+          "total": 9600,
           "earlyOnlyCount": 0
         },
         "events": {
-          "matched": 3141,
-          "total": 3141
+          "matched": 797,
+          "total": 797
         },
         "mapdump": {
           "matched": 2,
           "total": 2
         },
         "cursor": {
-          "matched": 209,
-          "total": 211
+          "matched": 398,
+          "total": 400
         },
         "repaint": {
           "matched": 0,
@@ -3477,20 +3108,20 @@
         }
       },
       "events": {
-        "matched": 3141,
-        "total": 3141
+        "matched": 797,
+        "total": 797
       },
       "firstDivergences": {
         "cursor": {
           "channel": "cursor",
-          "step": 9,
+          "step": 200,
           "expected": [
-            27,
+            35,
             22,
             1
           ],
           "actual": [
-            26,
+            34,
             22,
             1
           ]
@@ -3498,40 +3129,19 @@
       },
       "firstDivergence": {
         "channel": "cursor",
-        "step": 9,
+        "step": 200,
         "expected": [
-          27,
+          35,
           22,
           1
         ],
         "actual": [
-          26,
+          34,
           22,
           1
         ]
       },
-      "duration": 15405
-    },
-    {
-      "session": "seed321_archeologist_wizard_gameplay.session.json",
-      "type": "gameplay",
-      "seed": 321,
-      "passed": false,
-      "metrics": {
-        "repaint": {
-          "matched": 0,
-          "total": 0
-        }
-      },
-      "error": "Session timed out after 20000ms (last step=400 key=\"\\u001b\" pendingPrompt=false multi=0)",
-      "timeoutDiagnostics": {
-        "step": 400,
-        "key": "\u001b",
-        "topline": "",
-        "pendingPrompt": false,
-        "multi": 0
-      },
-      "duration": 20000
+      "duration": 15208
     },
     {
       "session": "seed322_barbarian_wizard_gameplay.session.json",
@@ -3544,9 +3154,9 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=515 key=\"s\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=472 key=\"s\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 515,
+        "step": 472,
         "key": "s",
         "topline": "",
         "pendingPrompt": false,
@@ -3565,10 +3175,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=413 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=383 key=\"s\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 413,
-        "key": "\u001b",
+        "step": 383,
+        "key": "s",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3586,9 +3196,9 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=427 key=\"F\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=396 key=\"F\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 427,
+        "step": 396,
         "key": "F",
         "topline": "",
         "pendingPrompt": false,
@@ -3607,10 +3217,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=422 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=387 key=\"k\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 422,
-        "key": "\u001b",
+        "step": 387,
+        "key": "k",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3675,7 +3285,7 @@
         "matched": 1283,
         "total": 1283
       },
-      "duration": 16070
+      "duration": 18115
     },
     {
       "session": "seed327_priest_wizard_gameplay.session.json",
@@ -3688,10 +3298,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=429 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=393 key=\"h\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 429,
-        "key": "\u001b",
+        "step": 393,
+        "key": "h",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3730,10 +3340,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=423 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=397 key=\"k\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 423,
-        "key": "\u001b",
+        "step": 397,
+        "key": "k",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3751,10 +3361,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=422 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=413 key=\"h\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 422,
-        "key": "\u001b",
+        "step": 413,
+        "key": "h",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3776,97 +3386,28 @@
           "total": 0
         }
       },
-      "duration": 1033
+      "duration": 1860
     },
     {
       "session": "seed331_tourist_wizard_gameplay.session.json",
       "type": "gameplay",
       "seed": 331,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 18493,
-          "total": 18493
-        },
-        "screens": {
-          "matched": 389,
-          "total": 389
-        },
-        "colors": {
-          "matched": 9312,
-          "total": 9312
-        },
-        "screenWindow": {
-          "matched": 389,
-          "total": 389,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 9312,
-          "total": 9312,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 3615,
-          "total": 3615
-        },
-        "mapdump": {
-          "matched": 2,
-          "total": 2
-        },
-        "cursor": {
-          "matched": 386,
-          "total": 388
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=389 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "timeoutDiagnostics": {
+        "step": 389,
+        "key": "\u001b",
+        "topline": "",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 3615,
-        "total": 3615
-      },
-      "firstDivergences": {
-        "cursor": {
-          "channel": "cursor",
-          "step": 388,
-          "expected": [
-            51,
-            0,
-            1
-          ],
-          "actual": [
-            53,
-            18,
-            1
-          ]
-        }
-      },
-      "firstDivergence": {
-        "channel": "cursor",
-        "step": 388,
-        "expected": [
-          51,
-          0,
-          1
-        ],
-        "actual": [
-          53,
-          18,
-          1
-        ]
-      },
-      "duration": 18075
+      "duration": 20000
     },
     {
       "session": "seed332_valkyrie_wizard_gameplay.session.json",
@@ -3879,10 +3420,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=410 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=378 key=\"l\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 410,
-        "key": "\u001b",
+        "step": 378,
+        "key": "l",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3900,10 +3441,10 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=446 key=\"\\u001b\" pendingPrompt=false multi=0)",
+      "error": "Session timed out after 20000ms (last step=442 key=\"j\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 446,
-        "key": "\u001b",
+        "step": 442,
+        "key": "j",
         "topline": "",
         "pendingPrompt": false,
         "multi": 0
@@ -3964,7 +3505,7 @@
         "matched": 475,
         "total": 475
       },
-      "duration": 2475
+      "duration": 4121
     },
     {
       "session": "seed42_chargen_archeologist_dwarf.session.json",
@@ -3983,7 +3524,7 @@
       },
       "role": "archeologist_dwarf",
       "variant": "dwarf",
-      "duration": 906
+      "duration": 1173
     },
     {
       "session": "seed42_chargen_archeologist_gnome.session.json",
@@ -4002,7 +3543,7 @@
       },
       "role": "archeologist_gnome",
       "variant": "gnome",
-      "duration": 830
+      "duration": 1058
     },
     {
       "session": "seed42_chargen_archeologist_lawful.session.json",
@@ -4021,7 +3562,7 @@
       },
       "role": "archeologist_lawful",
       "variant": "lawful",
-      "duration": 967
+      "duration": 1012
     },
     {
       "session": "seed42_chargen_archeologist.session.json",
@@ -4039,7 +3580,7 @@
         }
       },
       "role": "archeologist",
-      "duration": 882
+      "duration": 957
     },
     {
       "session": "seed42_chargen_barbarian_chaotic.session.json",
@@ -4058,7 +3599,7 @@
       },
       "role": "barbarian_chaotic",
       "variant": "chaotic",
-      "duration": 607
+      "duration": 617
     },
     {
       "session": "seed42_chargen_barbarian_orc.session.json",
@@ -4077,7 +3618,7 @@
       },
       "role": "barbarian_orc",
       "variant": "orc",
-      "duration": 941
+      "duration": 1396
     },
     {
       "session": "seed42_chargen_barbarian.session.json",
@@ -4095,7 +3636,7 @@
         }
       },
       "role": "barbarian",
-      "duration": 611
+      "duration": 900
     },
     {
       "session": "seed42_chargen_caveman_dwarf.session.json",
@@ -4114,7 +3655,7 @@
       },
       "role": "caveman_dwarf",
       "variant": "dwarf",
-      "duration": 1010
+      "duration": 991
     },
     {
       "session": "seed42_chargen_caveman_gnome.session.json",
@@ -4133,7 +3674,7 @@
       },
       "role": "caveman_gnome",
       "variant": "gnome",
-      "duration": 932
+      "duration": 946
     },
     {
       "session": "seed42_chargen_caveman_lawful.session.json",
@@ -4152,7 +3693,7 @@
       },
       "role": "caveman_lawful",
       "variant": "lawful",
-      "duration": 784
+      "duration": 767
     },
     {
       "session": "seed42_chargen_caveman.session.json",
@@ -4170,7 +3711,7 @@
         }
       },
       "role": "caveman",
-      "duration": 692
+      "duration": 818
     },
     {
       "session": "seed42_chargen_healer_gnome.session.json",
@@ -4189,7 +3730,7 @@
       },
       "role": "healer_gnome",
       "variant": "gnome",
-      "duration": 733
+      "duration": 828
     },
     {
       "session": "seed42_chargen_healer.session.json",
@@ -4207,7 +3748,7 @@
         }
       },
       "role": "healer",
-      "duration": 955
+      "duration": 961
     },
     {
       "session": "seed42_chargen_knight.session.json",
@@ -4225,7 +3766,7 @@
         }
       },
       "role": "knight",
-      "duration": 900
+      "duration": 873
     },
     {
       "session": "seed42_chargen_monk_chaotic.session.json",
@@ -4244,7 +3785,7 @@
       },
       "role": "monk_chaotic",
       "variant": "chaotic",
-      "duration": 1064
+      "duration": 911
     },
     {
       "session": "seed42_chargen_monk_lawful.session.json",
@@ -4263,7 +3804,7 @@
       },
       "role": "monk_lawful",
       "variant": "lawful",
-      "duration": 1158
+      "duration": 1085
     },
     {
       "session": "seed42_chargen_monk.session.json",
@@ -4281,7 +3822,7 @@
         }
       },
       "role": "monk",
-      "duration": 995
+      "duration": 1031
     },
     {
       "session": "seed42_chargen_priest_chaotic.session.json",
@@ -4300,7 +3841,7 @@
       },
       "role": "priest_chaotic",
       "variant": "chaotic",
-      "duration": 835
+      "duration": 962
     },
     {
       "session": "seed42_chargen_priest_elf.session.json",
@@ -4319,7 +3860,7 @@
       },
       "role": "priest_elf",
       "variant": "elf",
-      "duration": 855
+      "duration": 1201
     },
     {
       "session": "seed42_chargen_priest_lawful.session.json",
@@ -4338,7 +3879,7 @@
       },
       "role": "priest_lawful",
       "variant": "lawful",
-      "duration": 951
+      "duration": 903
     },
     {
       "session": "seed42_chargen_priest.session.json",
@@ -4356,7 +3897,7 @@
         }
       },
       "role": "priest",
-      "duration": 899
+      "duration": 917
     },
     {
       "session": "seed42_chargen_ranger_chaotic.session.json",
@@ -4375,7 +3916,7 @@
       },
       "role": "ranger_chaotic",
       "variant": "chaotic",
-      "duration": 657
+      "duration": 608
     },
     {
       "session": "seed42_chargen_ranger_elf.session.json",
@@ -4394,7 +3935,7 @@
       },
       "role": "ranger_elf",
       "variant": "elf",
-      "duration": 953
+      "duration": 1026
     },
     {
       "session": "seed42_chargen_ranger_gnome.session.json",
@@ -4413,7 +3954,7 @@
       },
       "role": "ranger_gnome",
       "variant": "gnome",
-      "duration": 1038
+      "duration": 925
     },
     {
       "session": "seed42_chargen_ranger_orc.session.json",
@@ -4432,7 +3973,7 @@
       },
       "role": "ranger_orc",
       "variant": "orc",
-      "duration": 906
+      "duration": 961
     },
     {
       "session": "seed42_chargen_ranger.session.json",
@@ -4450,7 +3991,7 @@
         }
       },
       "role": "ranger",
-      "duration": 687
+      "duration": 754
     },
     {
       "session": "seed42_chargen_rogue_orc.session.json",
@@ -4469,7 +4010,7 @@
       },
       "role": "rogue_orc",
       "variant": "orc",
-      "duration": 920
+      "duration": 1119
     },
     {
       "session": "seed42_chargen_rogue.session.json",
@@ -4487,7 +4028,7 @@
         }
       },
       "role": "rogue",
-      "duration": 905
+      "duration": 941
     },
     {
       "session": "seed42_chargen_samurai.session.json",
@@ -4505,7 +4046,7 @@
         }
       },
       "role": "samurai",
-      "duration": 1053
+      "duration": 1243
     },
     {
       "session": "seed42_chargen_tourist.session.json",
@@ -4523,7 +4064,7 @@
         }
       },
       "role": "tourist",
-      "duration": 871
+      "duration": 1034
     },
     {
       "session": "seed42_chargen_valkyrie_dwarf.session.json",
@@ -4542,7 +4083,7 @@
       },
       "role": "valkyrie_dwarf",
       "variant": "dwarf",
-      "duration": 867
+      "duration": 1390
     },
     {
       "session": "seed42_chargen_valkyrie_lawful.session.json",
@@ -4561,7 +4102,7 @@
       },
       "role": "valkyrie_lawful",
       "variant": "lawful",
-      "duration": 883
+      "duration": 1466
     },
     {
       "session": "seed42_chargen_valkyrie.session.json",
@@ -4579,7 +4120,7 @@
         }
       },
       "role": "valkyrie",
-      "duration": 867
+      "duration": 1343
     },
     {
       "session": "seed42_chargen_wizard_chaotic.session.json",
@@ -4598,7 +4139,7 @@
       },
       "role": "wizard_chaotic",
       "variant": "chaotic",
-      "duration": 808
+      "duration": 913
     },
     {
       "session": "seed42_chargen_wizard_elf.session.json",
@@ -4617,7 +4158,7 @@
       },
       "role": "wizard_elf",
       "variant": "elf",
-      "duration": 818
+      "duration": 1071
     },
     {
       "session": "seed42_chargen_wizard_gnome.session.json",
@@ -4636,7 +4177,7 @@
       },
       "role": "wizard_gnome",
       "variant": "gnome",
-      "duration": 830
+      "duration": 942
     },
     {
       "session": "seed42_chargen_wizard_orc.session.json",
@@ -4655,7 +4196,7 @@
       },
       "role": "wizard_orc",
       "variant": "orc",
-      "duration": 822
+      "duration": 914
     },
     {
       "session": "seed42_chargen_wizard.session.json",
@@ -4673,7 +4214,7 @@
         }
       },
       "role": "wizard",
-      "duration": 937
+      "duration": 859
     },
     {
       "session": "seed42_gameplay.session.json",
@@ -4733,7 +4274,7 @@
         "matched": 195,
         "total": 195
       },
-      "duration": 3514
+      "duration": 2766
     },
     {
       "session": "seed42_inventory_wizard_pickup_gameplay.session.json",
@@ -4793,7 +4334,7 @@
         "matched": 3,
         "total": 3
       },
-      "duration": 1195
+      "duration": 1502
     },
     {
       "session": "seed42_items_gameplay.session.json",
@@ -4853,7 +4394,7 @@
         "matched": 349,
         "total": 349
       },
-      "duration": 3161
+      "duration": 3162
     },
     {
       "session": "seed42_special_bigroom.session.json",
@@ -5185,7 +4726,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 1705
+      "duration": 2270
     },
     {
       "session": "seed501_extcmd_chat.session.json",
@@ -5245,7 +4786,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 2090
+      "duration": 3052
     },
     {
       "session": "seed502_extcmd_offer.session.json",
@@ -5305,7 +4846,7 @@
         "matched": 4,
         "total": 4
       },
-      "duration": 1104
+      "duration": 1253
     },
     {
       "session": "seed503_extcmd_monster.session.json",
@@ -5365,7 +4906,7 @@
         "matched": 30,
         "total": 30
       },
-      "duration": 1997
+      "duration": 5732
     },
     {
       "session": "seed504_extcmd_loot.session.json",
@@ -5425,7 +4966,7 @@
         "matched": 59,
         "total": 59
       },
-      "duration": 6023
+      "duration": 3538
     },
     {
       "session": "seed72_map.session.json",
@@ -5446,7 +4987,7 @@
           "total": 0
         }
       },
-      "duration": 4018
+      "duration": 6923
     },
     {
       "session": "seed72_maps_c.session.json",
@@ -5467,7 +5008,7 @@
           "total": 0
         }
       },
-      "duration": 4048
+      "duration": 6353
     },
     {
       "session": "t01_s005_v_fdip2_gp.session.json",
@@ -5527,7 +5068,7 @@
         "matched": 506,
         "total": 506
       },
-      "duration": 5725
+      "duration": 5342
     },
     {
       "session": "t01_s005_v_fdrink2r_gp.session.json",
@@ -5587,7 +5128,7 @@
         "matched": 495,
         "total": 495
       },
-      "duration": 5200
+      "duration": 4105
     },
     {
       "session": "t01_s005_v_fdrink3_gp.session.json",
@@ -5647,7 +5188,7 @@
         "matched": 479,
         "total": 479
       },
-      "duration": 5493
+      "duration": 4358
     },
     {
       "session": "t01_s005_v_fgush3_gp.session.json",
@@ -5707,7 +5248,7 @@
         "matched": 506,
         "total": 506
       },
-      "duration": 4377
+      "duration": 5762
     },
     {
       "session": "t01_s005_v_frealdip1_gp.session.json",
@@ -5767,7 +5308,7 @@
         "matched": 447,
         "total": 447
       },
-      "duration": 4790
+      "duration": 5185
     },
     {
       "session": "t01_s005_v_sit1_gp.session.json",
@@ -5827,7 +5368,7 @@
         "matched": 80,
         "total": 80
       },
-      "duration": 1895
+      "duration": 2148
     },
     {
       "session": "t01_s650_w_sit_gp.session.json",
@@ -5887,7 +5428,7 @@
         "matched": 376,
         "total": 376
       },
-      "duration": 4769
+      "duration": 5835
     },
     {
       "session": "t01_s651_w_sit2_gp.session.json",
@@ -5947,7 +5488,7 @@
         "matched": 98,
         "total": 98
       },
-      "duration": 2415
+      "duration": 5721
     },
     {
       "session": "t01_s940_v_sinkmix2_gp.session.json",
@@ -6007,7 +5548,7 @@
         "matched": 1471,
         "total": 1471
       },
-      "duration": 6601
+      "duration": 13122
     },
     {
       "session": "t02_s005_v_invsrch_gp.session.json",
@@ -6067,7 +5608,7 @@
         "matched": 48,
         "total": 48
       },
-      "duration": 1735
+      "duration": 1910
     },
     {
       "session": "t02_s701_b_lockbox_gp.session.json",
@@ -6127,7 +5668,7 @@
         "matched": 61,
         "total": 61
       },
-      "duration": 3335
+      "duration": 3261
     },
     {
       "session": "t02_s704_w_force2_gp.session.json",
@@ -6187,7 +5728,7 @@
         "matched": 47,
         "total": 47
       },
-      "duration": 2076
+      "duration": 2478
     },
     {
       "session": "t02_s704_w_forceblade2_gp.session.json",
@@ -6247,7 +5788,7 @@
         "matched": 77,
         "total": 77
       },
-      "duration": 2659
+      "duration": 2870
     },
     {
       "session": "t02_s704_w_forceblunt_gp.session.json",
@@ -6307,7 +5848,7 @@
         "matched": 385,
         "total": 385
       },
-      "duration": 5905
+      "duration": 4581
     },
     {
       "session": "t02_s704_w_forcebox_gp.session.json",
@@ -6367,7 +5908,7 @@
         "matched": 166,
         "total": 166
       },
-      "duration": 2507
+      "duration": 3199
     },
     {
       "session": "t02_s704_w_lockbox_gp.session.json",
@@ -6427,7 +5968,7 @@
         "matched": 50,
         "total": 50
       },
-      "duration": 2158
+      "duration": 3152
     },
     {
       "session": "t02_s714_w_cardbox_gp.session.json",
@@ -6487,7 +6028,7 @@
         "matched": 57,
         "total": 57
       },
-      "duration": 2065
+      "duration": 3015
     },
     {
       "session": "t02_s960_w_search_gp.session.json",
@@ -6547,7 +6088,7 @@
         "matched": 105,
         "total": 105
       },
-      "duration": 1806
+      "duration": 1694
     },
     {
       "session": "t02_s969_w_look_gp.session.json",
@@ -6607,7 +6148,7 @@
         "matched": 11,
         "total": 11
       },
-      "duration": 1967
+      "duration": 2096
     },
     {
       "session": "t02_s991_w_moves_gp.session.json",
@@ -6667,7 +6208,7 @@
         "matched": 324,
         "total": 324
       },
-      "duration": 3753
+      "duration": 2763
     },
     {
       "session": "t02_s993_w_cardcombo_gp.session.json",
@@ -6727,7 +6268,7 @@
         "matched": 147,
         "total": 147
       },
-      "duration": 4885
+      "duration": 1927
     },
     {
       "session": "t02_s993_w_carddoorlock_gp.session.json",
@@ -6787,7 +6328,7 @@
         "matched": 52,
         "total": 52
       },
-      "duration": 2082
+      "duration": 2443
     },
     {
       "session": "t02_s993_w_lockpick_gp.session.json",
@@ -6877,7 +6418,7 @@
           1
         ]
       },
-      "duration": 2059
+      "duration": 2079
     },
     {
       "session": "t02_s993_w_skelkey_gp.session.json",
@@ -6967,7 +6508,7 @@
           1
         ]
       },
-      "duration": 2139
+      "duration": 2237
     },
     {
       "session": "t02_s993_w_walk_gp.session.json",
@@ -7027,7 +6568,7 @@
         "matched": 148,
         "total": 148
       },
-      "duration": 3668
+      "duration": 3166
     },
     {
       "session": "t02_s993_wiz_close_gp.session.json",
@@ -7087,7 +6628,7 @@
         "matched": 23,
         "total": 23
       },
-      "duration": 1845
+      "duration": 2006
     },
     {
       "session": "t03_s725_w_ride1_rs_gp.session.json",
@@ -7147,7 +6688,7 @@
         "matched": 84,
         "total": 84
       },
-      "duration": 2706
+      "duration": 2892
     },
     {
       "session": "t03_s962_w_droppk3_gp.session.json",
@@ -7237,7 +6778,7 @@
           1
         ]
       },
-      "duration": 1882
+      "duration": 3414
     },
     {
       "session": "t03_s963_w_droppick_gp.session.json",
@@ -7297,7 +6838,7 @@
         "matched": 124,
         "total": 124
       },
-      "duration": 2338
+      "duration": 2279
     },
     {
       "session": "t03_s963_w_weararm_gp.session.json",
@@ -7357,7 +6898,7 @@
         "matched": 124,
         "total": 124
       },
-      "duration": 4810
+      "duration": 6407
     },
     {
       "session": "t03_s964_w_wield_gp.session.json",
@@ -7417,7 +6958,7 @@
         "matched": 75,
         "total": 75
       },
-      "duration": 2685
+      "duration": 3328
     },
     {
       "session": "t03_s964_w_wldwpn_gp.session.json",
@@ -7477,7 +7018,7 @@
         "matched": 141,
         "total": 141
       },
-      "duration": 6907
+      "duration": 4148
     },
     {
       "session": "t03_s967_w_acchk_gp.session.json",
@@ -7537,7 +7078,7 @@
         "matched": 53,
         "total": 53
       },
-      "duration": 4428
+      "duration": 3721
     },
     {
       "session": "t03_s968_w_putonrm_gp.session.json",
@@ -7597,7 +7138,7 @@
         "matched": 133,
         "total": 133
       },
-      "duration": 9637
+      "duration": 6797
     },
     {
       "session": "t03_s968_w_wearoff_gp.session.json",
@@ -7657,7 +7198,7 @@
         "matched": 77,
         "total": 77
       },
-      "duration": 3476
+      "duration": 3696
     },
     {
       "session": "t03_s979_w_amulet_gp.session.json",
@@ -7717,7 +7258,7 @@
         "matched": 4,
         "total": 4
       },
-      "duration": 2279
+      "duration": 2477
     },
     {
       "session": "t03_s981_w_droppk2_gp.session.json",
@@ -7777,7 +7318,7 @@
         "matched": 168,
         "total": 168
       },
-      "duration": 3530
+      "duration": 6292
     },
     {
       "session": "t03_s991_w_wearoff2_gp.session.json",
@@ -7837,7 +7378,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 3916
+      "duration": 4559
     },
     {
       "session": "t04_s701_w_digedges_gp.session.json",
@@ -7927,7 +7468,7 @@
           1
         ]
       },
-      "duration": 4248
+      "duration": 2804
     },
     {
       "session": "t04_s701_w_digext2_gp.session.json",
@@ -8017,7 +7558,7 @@
           1
         ]
       },
-      "duration": 4721
+      "duration": 6926
     },
     {
       "session": "t04_s703_w_wizbury_gp.session.json",
@@ -8077,7 +7618,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 1503
+      "duration": 1567
     },
     {
       "session": "t04_s705_w_minefill_gp.session.json",
@@ -8133,7 +7674,7 @@
         "matched": 45,
         "total": 45
       },
-      "duration": 1554
+      "duration": 3054
     },
     {
       "session": "t04_s706_w_minetn1_gp.session.json",
@@ -8189,7 +7730,7 @@
         "matched": 64,
         "total": 64
       },
-      "duration": 1501
+      "duration": 1861
     },
     {
       "session": "t04_s969_w_eatfood_gp.session.json",
@@ -8249,7 +7790,7 @@
         "matched": 83,
         "total": 83
       },
-      "duration": 2999
+      "duration": 2811
     },
     {
       "session": "t04_s993_w_eatground_gp.session.json",
@@ -8339,7 +7880,7 @@
           1
         ]
       },
-      "duration": 2417
+      "duration": 2184
     },
     {
       "session": "t05_s690_w_read1_gp.session.json",
@@ -8425,7 +7966,7 @@
           1
         ]
       },
-      "duration": 2779
+      "duration": 6243
     },
     {
       "session": "t05_s692_w_cast_gp.session.json",
@@ -8485,7 +8026,7 @@
         "matched": 207,
         "total": 207
       },
-      "duration": 3477
+      "duration": 2575
     },
     {
       "session": "t05_s693_w_castc_gp.session.json",
@@ -8545,7 +8086,7 @@
         "matched": 102,
         "total": 102
       },
-      "duration": 2609
+      "duration": 2709
     },
     {
       "session": "t05_s695_w_castb_gp.session.json",
@@ -8605,7 +8146,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 1263
+      "duration": 1165
     },
     {
       "session": "t05_s695_w_readb_gp.session.json",
@@ -8665,7 +8206,7 @@
         "matched": 31,
         "total": 31
       },
-      "duration": 14191
+      "duration": 5061
     },
     {
       "session": "t05_s696_w_reada_gp.session.json",
@@ -8725,7 +8266,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 1350
+      "duration": 1279
     },
     {
       "session": "t05_s698_w_spsort_gp.session.json",
@@ -8815,7 +8356,7 @@
           1
         ]
       },
-      "duration": 1495
+      "duration": 1747
     },
     {
       "session": "t05_s699_w_spsortz_gp.session.json",
@@ -8905,7 +8446,7 @@
           1
         ]
       },
-      "duration": 1402
+      "duration": 1787
     },
     {
       "session": "t05_s700_w_spsortesc_gp.session.json",
@@ -8995,7 +8536,7 @@
           1
         ]
       },
-      "duration": 1508
+      "duration": 1628
     },
     {
       "session": "t05_s701_w_spsortsp_gp.session.json",
@@ -9085,7 +8626,7 @@
           1
         ]
       },
-      "duration": 1173
+      "duration": 1236
     },
     {
       "session": "t05_s702_w_spsortbad_gp.session.json",
@@ -9175,7 +8716,7 @@
           1
         ]
       },
-      "duration": 1641
+      "duration": 1354
     },
     {
       "session": "t05_s703_w_spsorth_gp.session.json",
@@ -9265,7 +8806,7 @@
           1
         ]
       },
-      "duration": 1260
+      "duration": 1345
     },
     {
       "session": "t05_s704_w_spsortenter_gp.session.json",
@@ -9355,7 +8896,7 @@
           1
         ]
       },
-      "duration": 1429
+      "duration": 1599
     },
     {
       "session": "t05_s705_w_spsortc_gp.session.json",
@@ -9445,7 +8986,7 @@
           1
         ]
       },
-      "duration": 1261
+      "duration": 1197
     },
     {
       "session": "t05_s706_w_spsortd_gp.session.json",
@@ -9535,7 +9076,7 @@
           1
         ]
       },
-      "duration": 1604
+      "duration": 1629
     },
     {
       "session": "t05_s708_w_spsortf_gp.session.json",
@@ -9625,7 +9166,7 @@
           1
         ]
       },
-      "duration": 1370
+      "duration": 1416
     },
     {
       "session": "t05_s709_w_spsortg_gp.session.json",
@@ -9715,7 +9256,7 @@
           1
         ]
       },
-      "duration": 1603
+      "duration": 1761
     },
     {
       "session": "t05_s710_w_spsortb_gp.session.json",
@@ -9805,7 +9346,7 @@
           1
         ]
       },
-      "duration": 1463
+      "duration": 1963
     },
     {
       "session": "t05_s711_w_spsorte_gp.session.json",
@@ -9895,7 +9436,7 @@
           1
         ]
       },
-      "duration": 1450
+      "duration": 1323
     },
     {
       "session": "t05_s712_v_nospell_gp.session.json",
@@ -9955,7 +9496,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 958
+      "duration": 1170
     },
     {
       "session": "t05_s713_w_spsortB_gp.session.json",
@@ -10045,7 +9586,7 @@
           1
         ]
       },
-      "duration": 1713
+      "duration": 1964
     },
     {
       "session": "t05_s960_w_readscr_gp.session.json",
@@ -10105,7 +9646,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 3694
+      "duration": 9254
     },
     {
       "session": "t05_s962_w_castsp_gp.session.json",
@@ -10165,7 +9706,7 @@
         "matched": 112,
         "total": 112
       },
-      "duration": 8559
+      "duration": 2346
     },
     {
       "session": "t05_s967_w_readdet_gp.session.json",
@@ -10225,7 +9766,7 @@
         "matched": 12,
         "total": 12
       },
-      "duration": 3132
+      "duration": 3674
     },
     {
       "session": "t05_s970_w_readblsd_gp.session.json",
@@ -10285,7 +9826,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 10845
+      "duration": 3855
     },
     {
       "session": "t05_s971_w_castfb_gp.session.json",
@@ -10345,7 +9886,7 @@
         "matched": 63,
         "total": 63
       },
-      "duration": 2080
+      "duration": 2153
     },
     {
       "session": "t05_s973_w_enhance_gp.session.json",
@@ -10405,7 +9946,7 @@
         "matched": 53,
         "total": 53
       },
-      "duration": 1985
+      "duration": 2312
     },
     {
       "session": "t05_s979_w_readscr2_gp.session.json",
@@ -10465,7 +10006,7 @@
         "matched": 4,
         "total": 4
       },
-      "duration": 3747
+      "duration": 4805
     },
     {
       "session": "t05_s988_w_rdamnes_gp.session.json",
@@ -10525,7 +10066,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 1649
+      "duration": 1624
     },
     {
       "session": "t05_s989_w_readscr3_gp.session.json",
@@ -10585,7 +10126,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 1984
+      "duration": 6809
     },
     {
       "session": "t05_s992_w_readvar_gp.session.json",
@@ -10645,7 +10186,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 6823
+      "duration": 3342
     },
     {
       "session": "t06_s620_w_qheal_gp.session.json",
@@ -10705,7 +10246,7 @@
         "matched": 388,
         "total": 388
       },
-      "duration": 4095
+      "duration": 5215
     },
     {
       "session": "t06_s621_w_qstat_gp.session.json",
@@ -10765,7 +10306,7 @@
         "matched": 546,
         "total": 546
       },
-      "duration": 7555
+      "duration": 9105
     },
     {
       "session": "t06_s622_w_qabil_gp.session.json",
@@ -10825,67 +10366,28 @@
         "matched": 48,
         "total": 48
       },
-      "duration": 4631
+      "duration": 5738
     },
     {
       "session": "t06_s623_w_qmisc_gp.session.json",
       "type": "gameplay",
       "seed": 623,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 2584,
-          "total": 2584
-        },
-        "screens": {
-          "matched": 256,
-          "total": 256
-        },
-        "colors": {
-          "matched": 6144,
-          "total": 6144
-        },
-        "screenWindow": {
-          "matched": 256,
-          "total": 256,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 6144,
-          "total": 6144,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 60,
-          "total": 60
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 256,
-          "total": 256
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=256 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
+      "timeoutDiagnostics": {
+        "step": 256,
+        "key": " ",
+        "topline": "Unknown command ' '.",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 60,
-        "total": 60
-      },
-      "duration": 14970
+      "duration": 20000
     },
     {
       "session": "t06_s624_w_qstat2_gp.session.json",
@@ -10945,7 +10447,7 @@
         "matched": 33,
         "total": 33
       },
-      "duration": 8515
+      "duration": 8450
     },
     {
       "session": "t06_s625_w_qener_gp.session.json",
@@ -11005,7 +10507,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 2750
+      "duration": 2835
     },
     {
       "session": "t06_s631_w_zutil_gp.session.json",
@@ -11065,7 +10567,7 @@
         "matched": 63,
         "total": 63
       },
-      "duration": 11260
+      "duration": 8770
     },
     {
       "session": "t06_s960_w_qinvis_gp.session.json",
@@ -11125,7 +10627,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 1405
+      "duration": 2883
     },
     {
       "session": "t06_s962_w_qacid_gp.session.json",
@@ -11185,7 +10687,7 @@
         "matched": 11,
         "total": 11
       },
-      "duration": 1486
+      "duration": 1838
     },
     {
       "session": "t06_s962_w_qspeed_gp.session.json",
@@ -11245,7 +10747,7 @@
         "matched": 123,
         "total": 123
       },
-      "duration": 2634
+      "duration": 2615
     },
     {
       "session": "t06_s964_w_qoil_gp.session.json",
@@ -11305,7 +10807,7 @@
         "matched": 11,
         "total": 11
       },
-      "duration": 2537
+      "duration": 2046
     },
     {
       "session": "t06_s964_w_qspflt_gp.session.json",
@@ -11365,7 +10867,7 @@
         "matched": 75,
         "total": 75
       },
-      "duration": 7182
+      "duration": 4198
     },
     {
       "session": "t06_s967_w_qconfus_gp.session.json",
@@ -11425,7 +10927,7 @@
         "matched": 12,
         "total": 12
       },
-      "duration": 2062
+      "duration": 2116
     },
     {
       "session": "t06_s967_w_qheal2_gp.session.json",
@@ -11485,7 +10987,7 @@
         "matched": 65,
         "total": 65
       },
-      "duration": 2548
+      "duration": 2673
     },
     {
       "session": "t06_s969_w_zprobe_gp.session.json",
@@ -11545,7 +11047,7 @@
         "matched": 17,
         "total": 17
       },
-      "duration": 1932
+      "duration": 2934
     },
     {
       "session": "t06_s970_w_zaplight_gp.session.json",
@@ -11605,7 +11107,7 @@
         "matched": 95,
         "total": 95
       },
-      "duration": 2198
+      "duration": 3246
     },
     {
       "session": "t06_s970_w_zinvis_gp.session.json",
@@ -11665,7 +11167,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 2664
+      "duration": 2574
     },
     {
       "session": "t06_s977_w_qobjdet_gp.session.json",
@@ -11725,7 +11227,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 1303
+      "duration": 2486
     },
     {
       "session": "t06_s977_w_zapndr_gp.session.json",
@@ -11785,7 +11287,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 6444
+      "duration": 6940
     },
     {
       "session": "t06_s977_w_zslow_gp.session.json",
@@ -11845,7 +11347,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 2800
+      "duration": 2435
     },
     {
       "session": "t06_s978_w_qbevs_gp.session.json",
@@ -11905,7 +11407,7 @@
         "matched": 35,
         "total": 35
       },
-      "duration": 2903
+      "duration": 3563
     },
     {
       "session": "t06_s978_w_qmondet_gp.session.json",
@@ -11965,7 +11467,7 @@
         "matched": 4,
         "total": 4
       },
-      "duration": 3194
+      "duration": 3135
     },
     {
       "session": "t06_s978_w_zspeed_gp.session.json",
@@ -12025,7 +11527,7 @@
         "matched": 7,
         "total": 7
       },
-      "duration": 2028
+      "duration": 1932
     },
     {
       "session": "t06_s979_w_qsick_gp.session.json",
@@ -12085,7 +11587,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 4783
+      "duration": 3506
     },
     {
       "session": "t06_s981_w_qpoly_gp.session.json",
@@ -12145,7 +11647,7 @@
         "matched": 12,
         "total": 12
       },
-      "duration": 2807
+      "duration": 2953
     },
     {
       "session": "t06_s981_w_zapcold_gp.session.json",
@@ -12205,7 +11707,7 @@
         "matched": 19,
         "total": 19
       },
-      "duration": 1915
+      "duration": 2342
     },
     {
       "session": "t06_s986_w_qcurse_gp.session.json",
@@ -12265,7 +11767,7 @@
         "matched": 23,
         "total": 23
       },
-      "duration": 9227
+      "duration": 1787
     },
     {
       "session": "t06_s986_w_qgainlv_gp.session.json",
@@ -12325,7 +11827,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 2523
+      "duration": 2454
     },
     {
       "session": "t06_s986_w_zapndr2_gp.session.json",
@@ -12385,7 +11887,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 6394
+      "duration": 8318
     },
     {
       "session": "t06_s988_w_qenlight_gp.session.json",
@@ -12445,7 +11947,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 2866
+      "duration": 3495
     },
     {
       "session": "t06_s988_w_qgains_gp.session.json",
@@ -12505,7 +12007,7 @@
         "matched": 30,
         "total": 30
       },
-      "duration": 11021
+      "duration": 7721
     },
     {
       "session": "t06_s989_w_qgainab_gp.session.json",
@@ -12565,7 +12067,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 2089
+      "duration": 3757
     },
     {
       "session": "t06_s989_w_qmdet_gp.session.json",
@@ -12625,7 +12127,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 2532
+      "duration": 3228
     },
     {
       "session": "t06_s989_w_zaputil2_gp.session.json",
@@ -12685,7 +12187,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 2460
+      "duration": 2841
     },
     {
       "session": "t06_s991_w_qodet_gp.session.json",
@@ -12745,7 +12247,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 2240
+      "duration": 2246
     },
     {
       "session": "t06_s991_w_zappoly_gp.session.json",
@@ -12805,7 +12307,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 2266
+      "duration": 2254
     },
     {
       "session": "t06_s992_w_qheal3_gp.session.json",
@@ -12865,7 +12367,7 @@
         "matched": 64,
         "total": 64
       },
-      "duration": 12589
+      "duration": 10504
     },
     {
       "session": "t06_s992_w_zaptele_gp.session.json",
@@ -12925,7 +12427,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 1901
+      "duration": 2062
     },
     {
       "session": "t06_s993_w_zapself_gp.session.json",
@@ -12985,7 +12487,7 @@
         "matched": 35,
         "total": 35
       },
-      "duration": 2980
+      "duration": 3102
     },
     {
       "session": "t07_s640_w_pray1_gp.session.json",
@@ -13045,7 +12547,7 @@
         "matched": 359,
         "total": 359
       },
-      "duration": 6610
+      "duration": 3514
     },
     {
       "session": "t07_s641_w_prayt_gp.session.json",
@@ -13105,7 +12607,7 @@
         "matched": 46,
         "total": 46
       },
-      "duration": 3510
+      "duration": 3860
     },
     {
       "session": "t07_s642_w_turn_gp.session.json",
@@ -13165,7 +12667,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 4732
+      "duration": 1995
     },
     {
       "session": "t07_s965_w_pray2_gp.session.json",
@@ -13225,7 +12727,7 @@
         "matched": 186,
         "total": 186
       },
-      "duration": 2103
+      "duration": 2151
     },
     {
       "session": "t08_s700_w_apply_gp.session.json",
@@ -13315,7 +12817,7 @@
           1
         ]
       },
-      "duration": 5228
+      "duration": 2569
     },
     {
       "session": "t08_s701_w_apply2_gp.session.json",
@@ -13375,7 +12877,7 @@
         "matched": 35,
         "total": 35
       },
-      "duration": 1788
+      "duration": 1953
     },
     {
       "session": "t08_s972_w_dig_gp.session.json",
@@ -13435,7 +12937,7 @@
         "matched": 43,
         "total": 43
       },
-      "duration": 2288
+      "duration": 2998
     },
     {
       "session": "t08_s977_w_applykey_gp.session.json",
@@ -13495,7 +12997,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 1598
+      "duration": 1477
     },
     {
       "session": "t08_s981_w_mirror_gp.session.json",
@@ -13555,7 +13057,7 @@
         "matched": 19,
         "total": 19
       },
-      "duration": 1739
+      "duration": 2016
     },
     {
       "session": "t08_s984_w_apply2_gp.session.json",
@@ -13615,7 +13117,7 @@
         "matched": 38,
         "total": 38
       },
-      "duration": 3152
+      "duration": 3790
     },
     {
       "session": "t08_s984_w_camera_gp.session.json",
@@ -13675,7 +13177,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 2577
+      "duration": 2476
     },
     {
       "session": "t08_s993_w_uhorn_gp.session.json",
@@ -13735,7 +13237,7 @@
         "matched": 4,
         "total": 4
       },
-      "duration": 1891
+      "duration": 2196
     },
     {
       "session": "t09_s632_w_zap-rays_gp.session.json",
@@ -13795,7 +13297,7 @@
         "matched": 213,
         "total": 213
       },
-      "duration": 6277
+      "duration": 6497
     },
     {
       "session": "t11_s744_w_covmax2_gp.session.json",
@@ -13829,11 +13331,11 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=1719 key=\"e\" pendingPrompt=false multi=0 topline=\"That is a silly thing to zap.\")",
+      "error": "Session timed out after 20000ms (last step=1580 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
       "timeoutDiagnostics": {
-        "step": 1719,
-        "key": "e",
-        "topline": "That is a silly thing to zap.",
+        "step": 1580,
+        "key": " ",
+        "topline": "Unknown command ' '.",
         "pendingPrompt": false,
         "multi": 0
       },
@@ -13850,11 +13352,11 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=1383 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
+      "error": "Session timed out after 20000ms (last step=1245 key=\"e\" pendingPrompt=false multi=0 topline=\"That is a silly thing to zap.\")",
       "timeoutDiagnostics": {
-        "step": 1383,
-        "key": " ",
-        "topline": "Unknown command ' '.",
+        "step": 1245,
+        "key": "e",
+        "topline": "That is a silly thing to zap.",
         "pendingPrompt": false,
         "multi": 0
       },
@@ -13871,11 +13373,11 @@
           "total": 0
         }
       },
-      "error": "Session timed out after 20000ms (last step=1720 key=\"4\" pendingPrompt=false multi=0 topline=\"To what level do you want to teleport? 4\")",
+      "error": "Session timed out after 20000ms (last step=1593 key=\"l\" pendingPrompt=false multi=0)",
       "timeoutDiagnostics": {
-        "step": 1720,
-        "key": "4",
-        "topline": "To what level do you want to teleport? 4",
+        "step": 1593,
+        "key": "l",
+        "topline": "",
         "pendingPrompt": false,
         "multi": 0
       },
@@ -13897,7 +13399,7 @@
         }
       },
       "role": "roleloop",
-      "duration": 806
+      "duration": 723
     },
     {
       "session": "t12_s763_chargen_multiloop.session.json",
@@ -13915,7 +13417,7 @@
         }
       },
       "role": "multiloop",
-      "duration": 785
+      "duration": 1007
     },
     {
       "session": "t12_s764_chargen_orderloop2.session.json",
@@ -13933,7 +13435,7 @@
         }
       },
       "role": "orderloop2",
-      "duration": 992
+      "duration": 1022
     },
     {
       "session": "t22_s1250_w_digtrapmix_gp.session.json",
@@ -13993,7 +13495,7 @@
         "matched": 650,
         "total": 650
       },
-      "duration": 18156
+      "duration": 11601
     },
     {
       "session": "theme02_seed660_wiz_explore-basic_gameplay.session.json",
@@ -14053,7 +13555,7 @@
         "matched": 561,
         "total": 561
       },
-      "duration": 4697
+      "duration": 6774
     },
     {
       "session": "theme03_seed670_wiz_inventory-mgmt_gameplay.session.json",
@@ -14143,7 +13645,7 @@
           1
         ]
       },
-      "duration": 2004
+      "duration": 2145
     },
     {
       "session": "theme04_seed680_wiz_eat-food_gameplay.session.json",
@@ -14233,7 +13735,7 @@
           1
         ]
       },
-      "duration": 3423
+      "duration": 2818
     },
     {
       "session": "theme06_seed630_wiz_zap-rays_gameplay.session.json",
@@ -14293,7 +13795,7 @@
         "matched": 171,
         "total": 171
       },
-      "duration": 5230
+      "duration": 16125
     },
     {
       "session": "theme08_seed700_wiz_apply-tools_gameplay.session.json",
@@ -14383,7 +13885,7 @@
           1
         ]
       },
-      "duration": 2104
+      "duration": 2804
     },
     {
       "session": "theme09_seed710_wiz_engrave_gameplay.session.json",
@@ -14443,7 +13945,7 @@
         "matched": 43,
         "total": 43
       },
-      "duration": 2403
+      "duration": 3237
     },
     {
       "session": "theme10_seed720_wiz_simple-cmds_gameplay.session.json",
@@ -14533,7 +14035,7 @@
           1
         ]
       },
-      "duration": 5499
+      "duration": 7122
     },
     {
       "session": "theme11_seed730_wiz_simple-combat_gameplay.session.json",
@@ -14593,7 +14095,7 @@
         "matched": 216,
         "total": 216
       },
-      "duration": 2659
+      "duration": 2214
     },
     {
       "session": "theme12_seed750_wiz_explore-pray_gameplay.session.json",
@@ -14653,7 +14155,7 @@
         "matched": 342,
         "total": 342
       },
-      "duration": 4747
+      "duration": 4473
     },
     {
       "session": "theme12_seed760_wiz_explore_gameplay.session.json",
@@ -14713,7 +14215,7 @@
         "matched": 1295,
         "total": 1295
       },
-      "duration": 10563
+      "duration": 10964
     },
     {
       "session": "theme12_seed770_wiz_explore_gameplay.session.json",
@@ -14773,7 +14275,7 @@
         "matched": 846,
         "total": 846
       },
-      "duration": 11142
+      "duration": 9731
     },
     {
       "session": "theme12_seed780_wiz_explore_gameplay.session.json",
@@ -14833,7 +14335,7 @@
         "matched": 1438,
         "total": 1438
       },
-      "duration": 11352
+      "duration": 12776
     },
     {
       "session": "theme12_seed790_wiz_explore_gameplay.session.json",
@@ -14893,7 +14395,7 @@
         "matched": 1217,
         "total": 1217
       },
-      "duration": 10368
+      "duration": 11906
     },
     {
       "session": "theme12_seed840_wiz_explore_gameplay.session.json",
@@ -14953,7 +14455,7 @@
         "matched": 1322,
         "total": 1322
       },
-      "duration": 11060
+      "duration": 13669
     },
     {
       "session": "theme12_seed850_wiz_explore_gameplay.session.json",
@@ -15013,7 +14515,7 @@
         "matched": 1459,
         "total": 1459
       },
-      "duration": 8364
+      "duration": 9141
     },
     {
       "session": "theme12_seed860_wiz_explore_gameplay.session.json",
@@ -15073,7 +14575,7 @@
         "matched": 1026,
         "total": 1026
       },
-      "duration": 11015
+      "duration": 14629
     },
     {
       "session": "theme12_seed880_wiz_explore_gameplay.session.json",
@@ -15133,7 +14635,7 @@
         "matched": 980,
         "total": 980
       },
-      "duration": 8256
+      "duration": 14448
     },
     {
       "session": "theme12_seed890_wiz_explore_gameplay.session.json",
@@ -15223,7 +14725,7 @@
           1
         ]
       },
-      "duration": 9773
+      "duration": 9955
     },
     {
       "session": "theme12_seed900_wiz_explore_gameplay.session.json",
@@ -15283,7 +14785,7 @@
         "matched": 802,
         "total": 802
       },
-      "duration": 12045
+      "duration": 12545
     },
     {
       "session": "theme12_seed910_wiz_explore_gameplay.session.json",
@@ -15343,7 +14845,7 @@
         "matched": 959,
         "total": 959
       },
-      "duration": 12499
+      "duration": 12263
     },
     {
       "session": "theme12_seed911_wiz_explore_gameplay.session.json",
@@ -15403,7 +14905,7 @@
         "matched": 895,
         "total": 895
       },
-      "duration": 9702
+      "duration": 10289
     },
     {
       "session": "theme12_seed912_wiz_explore_gameplay.session.json",
@@ -15463,7 +14965,7 @@
         "matched": 1341,
         "total": 1341
       },
-      "duration": 9181
+      "duration": 11552
     },
     {
       "session": "theme12_seed913_wiz_explore_gameplay.session.json",
@@ -15523,7 +15025,7 @@
         "matched": 1168,
         "total": 1168
       },
-      "duration": 10526
+      "duration": 14136
     },
     {
       "session": "theme12_seed916_wiz_explore_gameplay.session.json",
@@ -15583,7 +15085,7 @@
         "matched": 1126,
         "total": 1126
       },
-      "duration": 9881
+      "duration": 10470
     },
     {
       "session": "theme12_seed917_wiz_explore_gameplay.session.json",
@@ -15643,7 +15145,7 @@
         "matched": 1287,
         "total": 1287
       },
-      "duration": 11035
+      "duration": 12672
     },
     {
       "session": "theme12_seed920_wiz_explore_gameplay.session.json",
@@ -15703,7 +15205,7 @@
         "matched": 1184,
         "total": 1184
       },
-      "duration": 8775
+      "duration": 9456
     },
     {
       "session": "theme12_seed923_wiz_explore_gameplay.session.json",
@@ -15763,7 +15265,7 @@
         "matched": 1758,
         "total": 1758
       },
-      "duration": 8020
+      "duration": 10012
     },
     {
       "session": "theme12_seed927_wiz_explore_gameplay.session.json",
@@ -15823,7 +15325,7 @@
         "matched": 1345,
         "total": 1345
       },
-      "duration": 9022
+      "duration": 9883
     },
     {
       "session": "theme12_seed929_wiz_explore_gameplay.session.json",
@@ -15883,7 +15385,7 @@
         "matched": 965,
         "total": 965
       },
-      "duration": 9675
+      "duration": 12790
     },
     {
       "session": "theme12_seed930_wiz_explore_gameplay.session.json",
@@ -15943,7 +15445,7 @@
         "matched": 1031,
         "total": 1031
       },
-      "duration": 6286
+      "duration": 10054
     },
     {
       "session": "theme12_seed932_wiz_explore_gameplay.session.json",
@@ -16033,7 +15535,7 @@
           1
         ]
       },
-      "duration": 8040
+      "duration": 8866
     },
     {
       "session": "theme12_seed933_wiz_explore_gameplay.session.json",
@@ -16093,7 +15595,7 @@
         "matched": 1408,
         "total": 1408
       },
-      "duration": 12156
+      "duration": 8208
     },
     {
       "session": "theme12_seed934_wiz_explore_gameplay.session.json",
@@ -16153,7 +15655,7 @@
         "matched": 621,
         "total": 621
       },
-      "duration": 8667
+      "duration": 6587
     },
     {
       "session": "theme12_seed937_wiz_explore_gameplay.session.json",
@@ -16213,7 +15715,7 @@
         "matched": 1008,
         "total": 1008
       },
-      "duration": 7231
+      "duration": 9892
     },
     {
       "session": "theme12_seed938_wiz_explore_gameplay.session.json",
@@ -16273,7 +15775,7 @@
         "matched": 956,
         "total": 956
       },
-      "duration": 9112
+      "duration": 9636
     },
     {
       "session": "theme12_seed939_wiz_explore_gameplay.session.json",
@@ -16333,7 +15835,7 @@
         "matched": 1576,
         "total": 1576
       },
-      "duration": 7018
+      "duration": 8431
     },
     {
       "session": "theme12_seed940_wiz_explore_gameplay.session.json",
@@ -16393,7 +15895,7 @@
         "matched": 1324,
         "total": 1324
       },
-      "duration": 12642
+      "duration": 10963
     },
     {
       "session": "theme12_seed943_wiz_explore_gameplay.session.json",
@@ -16453,7 +15955,7 @@
         "matched": 1348,
         "total": 1348
       },
-      "duration": 7092
+      "duration": 7634
     },
     {
       "session": "theme12_seed944_wiz_explore_gameplay.session.json",
@@ -16513,7 +16015,7 @@
         "matched": 2107,
         "total": 2107
       },
-      "duration": 6852
+      "duration": 8498
     },
     {
       "session": "theme12_seed947_wiz_explore_gameplay.session.json",
@@ -16573,7 +16075,7 @@
         "matched": 2093,
         "total": 2093
       },
-      "duration": 9167
+      "duration": 10841
     },
     {
       "session": "theme12_seed950_wiz_explore_gameplay.session.json",
@@ -16633,7 +16135,7 @@
         "matched": 1372,
         "total": 1372
       },
-      "duration": 8845
+      "duration": 9172
     },
     {
       "session": "theme13_seed960_wiz_read-enchant-weapon_gameplay.session.json",
@@ -16693,7 +16195,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 3906
+      "duration": 3141
     },
     {
       "session": "theme13_seed962_wiz_read-enchant-armor_gameplay.session.json",
@@ -16753,7 +16255,7 @@
         "matched": 11,
         "total": 11
       },
-      "duration": 7215
+      "duration": 3448
     },
     {
       "session": "theme13_seed963_wiz_read-teleport_gameplay.session.json",
@@ -16813,7 +16315,7 @@
         "matched": 47,
         "total": 47
       },
-      "duration": 5773
+      "duration": 2504
     },
     {
       "session": "theme13_seed964_wiz_read-create-monster_gameplay.session.json",
@@ -16873,7 +16375,7 @@
         "matched": 15,
         "total": 15
       },
-      "duration": 8455
+      "duration": 4580
     },
     {
       "session": "theme13_seed967_wiz_read-fire_gameplay.session.json",
@@ -16933,7 +16435,7 @@
         "matched": 12,
         "total": 12
       },
-      "duration": 3219
+      "duration": 5666
     },
     {
       "session": "theme13_seed968_wiz_read-earth_gameplay.session.json",
@@ -16993,7 +16495,7 @@
         "matched": 10,
         "total": 10
       },
-      "duration": 2764
+      "duration": 2345
     },
     {
       "session": "theme13_seed969_wiz_read-charging_gameplay.session.json",
@@ -17053,7 +16555,7 @@
         "matched": 17,
         "total": 17
       },
-      "duration": 5755
+      "duration": 2555
     },
     {
       "session": "theme13_seed970_wiz_read-identify-mapping_gameplay.session.json",
@@ -17113,7 +16615,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 3115
+      "duration": 4418
     },
     {
       "session": "theme13_seed977_wiz_read-remove-curse_gameplay.session.json",
@@ -17173,7 +16675,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 4581
+      "duration": 4645
     },
     {
       "session": "theme14_seed978_wiz_dig-pickaxe-down_gameplay.session.json",
@@ -17233,7 +16735,7 @@
         "matched": 196,
         "total": 196
       },
-      "duration": 2897
+      "duration": 4333
     },
     {
       "session": "theme14_seed979_wiz_dig-pickaxe-wall_gameplay.session.json",
@@ -17293,7 +16795,7 @@
         "matched": 26,
         "total": 26
       },
-      "duration": 4564
+      "duration": 5207
     },
     {
       "session": "theme14_seed981_wiz_dig-wand_gameplay.session.json",
@@ -17353,7 +16855,7 @@
         "matched": 19,
         "total": 19
       },
-      "duration": 4868
+      "duration": 4750
     },
     {
       "session": "theme15_seed986_wiz_artifact-wish_gameplay.session.json",
@@ -17413,7 +16915,7 @@
         "matched": 67,
         "total": 67
       },
-      "duration": 5780
+      "duration": 5059
     },
     {
       "session": "theme15_seed988_wiz_artifact-invoke_gameplay.session.json",
@@ -17473,7 +16975,7 @@
         "matched": 107,
         "total": 107
       },
-      "duration": 5708
+      "duration": 3830
     },
     {
       "session": "theme15_seed989_wiz_artifact-combat_gameplay.session.json",
@@ -17533,7 +17035,7 @@
         "matched": 37,
         "total": 37
       },
-      "duration": 4222
+      "duration": 5496
     },
     {
       "session": "theme16_seed991_wiz_trap-fall_gameplay.session.json",
@@ -17593,7 +17095,7 @@
         "matched": 561,
         "total": 561
       },
-      "duration": 7500
+      "duration": 8707
     },
     {
       "session": "theme16_seed992_wiz_trap-beartrap_gameplay.session.json",
@@ -17653,7 +17155,7 @@
         "matched": 147,
         "total": 147
       },
-      "duration": 4803
+      "duration": 5257
     },
     {
       "session": "theme16_seed993_wiz_trap-teleport_gameplay.session.json",
@@ -17713,7 +17215,7 @@
         "matched": 323,
         "total": 323
       },
-      "duration": 4718
+      "duration": 5502
     },
     {
       "session": "theme17_seed1200_wiz_zap-fire-cold_gameplay.session.json",
@@ -17773,7 +17275,7 @@
         "matched": 56,
         "total": 56
       },
-      "duration": 3074
+      "duration": 9709
     },
     {
       "session": "theme17_seed1201_wiz_zap-lightning-death_gameplay.session.json",
@@ -17833,7 +17335,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 4038
+      "duration": 5638
     },
     {
       "session": "theme17_seed1202_wiz_zap-utility_gameplay.session.json",
@@ -17893,7 +17395,7 @@
         "matched": 31,
         "total": 31
       },
-      "duration": 12286
+      "duration": 9117
     },
     {
       "session": "theme17_seed1203_wiz_zap-striking-digging_gameplay.session.json",
@@ -17953,7 +17455,7 @@
         "matched": 76,
         "total": 76
       },
-      "duration": 4094
+      "duration": 4796
     },
     {
       "session": "theme18_seed1210_wiz_ball-punishment_gameplay.session.json",
@@ -18013,7 +17515,7 @@
         "matched": 144,
         "total": 144
       },
-      "duration": 5190
+      "duration": 5232
     },
     {
       "session": "theme18_seed1211_wiz_ball-stairs_gameplay.session.json",
@@ -18073,7 +17575,7 @@
         "matched": 212,
         "total": 212
       },
-      "duration": 8454
+      "duration": 3886
     },
     {
       "session": "theme19_seed1220_wiz_pray-basic_gameplay.session.json",
@@ -18133,7 +17635,7 @@
         "matched": 221,
         "total": 221
       },
-      "duration": 3206
+      "duration": 3315
     },
     {
       "session": "theme19_seed1221_wiz_pray-sacrifice_gameplay.session.json",
@@ -18193,7 +17695,7 @@
         "matched": 171,
         "total": 171
       },
-      "duration": 4717
+      "duration": 3136
     },
     {
       "session": "theme20_seed1230_wiz_fountain-quaff_gameplay.session.json",
@@ -18283,7 +17785,7 @@
           1
         ]
       },
-      "duration": 4367
+      "duration": 6648
     },
     {
       "session": "theme20_seed1231_wiz_fountain-dip_gameplay.session.json",
@@ -18343,7 +17845,7 @@
         "matched": 104,
         "total": 104
       },
-      "duration": 3608
+      "duration": 4172
     },
     {
       "session": "theme21_seed1240_wiz_shk-enter-buy_gameplay.session.json",
@@ -18403,7 +17905,7 @@
         "matched": 731,
         "total": 731
       },
-      "duration": 10613
+      "duration": 16042
     },
     {
       "session": "theme22_1500_wizmusic_gp.session.json",
@@ -18493,7 +17995,7 @@
           1
         ]
       },
-      "duration": 12223
+      "duration": 10808
     },
     {
       "session": "theme23_seed1301_wiz_scroll-light_gameplay.session.json",
@@ -18553,7 +18055,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 2772
+      "duration": 7542
     },
     {
       "session": "theme23_seed1302_wiz_scroll-confuse_gameplay.session.json",
@@ -18613,7 +18115,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 4395
+      "duration": 3243
     },
     {
       "session": "theme23_seed1303_wiz_scroll-scare_gameplay.session.json",
@@ -18673,7 +18175,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 2769
+      "duration": 5097
     },
     {
       "session": "theme23_seed1304_wiz_scroll-punishment_gameplay.session.json",
@@ -18733,7 +18235,7 @@
         "matched": 45,
         "total": 45
       },
-      "duration": 3193
+      "duration": 6118
     },
     {
       "session": "theme23_seed1305_wiz_scroll-taming_gameplay.session.json",
@@ -18793,7 +18295,7 @@
         "matched": 11,
         "total": 11
       },
-      "duration": 5969
+      "duration": 4822
     },
     {
       "session": "theme23_seed1306_wiz_scroll-gold-detect_gameplay.session.json",
@@ -18853,7 +18355,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 4261
+      "duration": 3273
     },
     {
       "session": "theme23_seed1307_wiz_scroll-food-detect_gameplay.session.json",
@@ -18913,7 +18415,7 @@
         "matched": 6,
         "total": 6
       },
-      "duration": 1969
+      "duration": 2879
     },
     {
       "session": "theme23_seed1308_wiz_scroll-amnesia_gameplay.session.json",
@@ -18973,7 +18475,7 @@
         "matched": 185,
         "total": 185
       },
-      "duration": 4432
+      "duration": 5095
     },
     {
       "session": "theme23_seed1309_wiz_scroll-destroy-armor_gameplay.session.json",
@@ -19033,7 +18535,7 @@
         "matched": 57,
         "total": 57
       },
-      "duration": 5536
+      "duration": 3360
     },
     {
       "session": "theme24_seed1310_wiz_explode-fire_gameplay.session.json",
@@ -19123,7 +18625,7 @@
           1
         ]
       },
-      "duration": 3656
+      "duration": 4971
     },
     {
       "session": "theme24_seed1311_wiz_explode-cold_gameplay.session.json",
@@ -19183,7 +18685,7 @@
         "matched": 97,
         "total": 97
       },
-      "duration": 8356
+      "duration": 7234
     },
     {
       "session": "theme24_seed1312_wiz_kick_gameplay.session.json",
@@ -19273,7 +18775,7 @@
           1
         ]
       },
-      "duration": 8615
+      "duration": 5284
     },
     {
       "session": "theme24_seed1313_wiz_sit_gameplay.session.json",
@@ -19333,7 +18835,7 @@
         "matched": 230,
         "total": 230
       },
-      "duration": 3479
+      "duration": 3069
     },
     {
       "session": "theme24_seed1314_wiz_music_gameplay.session.json",
@@ -19393,7 +18895,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 2573
+      "duration": 7483
     },
     {
       "session": "theme25_seed1320_wiz_apply-stethoscope_gameplay.session.json",
@@ -19453,7 +18955,7 @@
         "matched": 12,
         "total": 12
       },
-      "duration": 3999
+      "duration": 4051
     },
     {
       "session": "theme25_seed1321_wiz_apply-mirror_gameplay.session.json",
@@ -19513,7 +19015,7 @@
         "matched": 25,
         "total": 25
       },
-      "duration": 2743
+      "duration": 2779
     },
     {
       "session": "theme25_seed1322_wiz_apply-candle_gameplay.session.json",
@@ -19573,7 +19075,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 1834
+      "duration": 3769
     },
     {
       "session": "theme25_seed1323_wiz_apply-whistle_gameplay.session.json",
@@ -19633,7 +19135,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 2888
+      "duration": 3082
     },
     {
       "session": "theme25_seed1325_wiz_eat-various_gameplay.session.json",
@@ -19693,7 +19195,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 4333
+      "duration": 4932
     },
     {
       "session": "theme25_seed1327_wiz_quaff-healing_gameplay.session.json",
@@ -19753,7 +19255,7 @@
         "matched": 29,
         "total": 29
       },
-      "duration": 4309
+      "duration": 3673
     },
     {
       "session": "theme25_seed1328_wiz_quaff-utility_gameplay.session.json",
@@ -19843,7 +19345,7 @@
           1
         ]
       },
-      "duration": 8630
+      "duration": 3673
     },
     {
       "session": "theme25_seed1329_wiz_dip-potion_gameplay.session.json",
@@ -19903,7 +19405,7 @@
         "matched": 37,
         "total": 37
       },
-      "duration": 4488
+      "duration": 4812
     },
     {
       "session": "theme26_seed1401_wiz_fountain-drink_gameplay.session.json",
@@ -19993,7 +19495,7 @@
           1
         ]
       },
-      "duration": 6826
+      "duration": 7855
     },
     {
       "session": "theme26_seed1402_wiz_fountain-dip_gameplay.session.json",
@@ -20083,7 +19585,7 @@
           1
         ]
       },
-      "duration": 8732
+      "duration": 5205
     },
     {
       "session": "theme26_seed1403_wiz_sink-drink_gameplay.session.json",
@@ -20173,7 +19675,7 @@
           1
         ]
       },
-      "duration": 6689
+      "duration": 6411
     },
     {
       "session": "theme26_seed1410_wiz_pray-basic_gameplay.session.json",
@@ -20233,7 +19735,7 @@
         "matched": 70,
         "total": 70
       },
-      "duration": 3906
+      "duration": 2373
     },
     {
       "session": "theme26_seed1411_wiz_pray-altar_gameplay.session.json",
@@ -20293,7 +19795,7 @@
         "matched": 222,
         "total": 222
       },
-      "duration": 4515
+      "duration": 8676
     },
     {
       "session": "theme26_seed1412_wiz_sacrifice_gameplay.session.json",
@@ -20353,7 +19855,7 @@
         "matched": 183,
         "total": 183
       },
-      "duration": 7049
+      "duration": 3589
     },
     {
       "session": "theme26_seed1413_wiz_turn-undead_gameplay.session.json",
@@ -20413,7 +19915,7 @@
         "matched": 16,
         "total": 16
       },
-      "duration": 3779
+      "duration": 10300
     },
     {
       "session": "theme26_seed1420_wiz_dig-pickaxe_gameplay.session.json",
@@ -20473,7 +19975,7 @@
         "matched": 887,
         "total": 887
       },
-      "duration": 8764
+      "duration": 6522
     },
     {
       "session": "theme26_seed1421_wiz_dig-wand_gameplay.session.json",
@@ -20533,7 +20035,7 @@
         "matched": 196,
         "total": 196
       },
-      "duration": 6278
+      "duration": 5644
     },
     {
       "session": "theme26_seed1430_wiz_trap-trigger_gameplay.session.json",
@@ -20593,7 +20095,7 @@
         "matched": 397,
         "total": 397
       },
-      "duration": 5453
+      "duration": 9412
     },
     {
       "session": "theme26_seed1431_wiz_trap-set_gameplay.session.json",
@@ -20653,7 +20155,7 @@
         "matched": 269,
         "total": 269
       },
-      "duration": 5936
+      "duration": 8310
     },
     {
       "session": "theme27_seed1501_wiz_zap-fire_gameplay.session.json",
@@ -20713,7 +20215,7 @@
         "matched": 146,
         "total": 146
       },
-      "duration": 3511
+      "duration": 4011
     },
     {
       "session": "theme27_seed1502_wiz_zap-lightning_gameplay.session.json",
@@ -20773,7 +20275,7 @@
         "matched": 118,
         "total": 118
       },
-      "duration": 7029
+      "duration": 7396
     },
     {
       "session": "theme27_seed1503_wiz_zap-sleep_gameplay.session.json",
@@ -20833,7 +20335,7 @@
         "matched": 75,
         "total": 75
       },
-      "duration": 5980
+      "duration": 5800
     },
     {
       "session": "theme27_seed1504_wiz_zap-death_gameplay.session.json",
@@ -20923,7 +20425,7 @@
           1
         ]
       },
-      "duration": 4567
+      "duration": 11336
     },
     {
       "session": "theme27_seed1510_wiz_mhitu-melee_gameplay.session.json",
@@ -20983,7 +20485,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 4520
+      "duration": 5764
     },
     {
       "session": "theme27_seed1511_wiz_mhitu-special_gameplay.session.json",
@@ -21073,7 +20575,7 @@
           1
         ]
       },
-      "duration": 3775
+      "duration": 4452
     },
     {
       "session": "theme27_seed1520_wiz_eat-corpses_gameplay.session.json",
@@ -21133,7 +20635,7 @@
         "matched": 145,
         "total": 145
       },
-      "duration": 5596
+      "duration": 3915
     },
     {
       "session": "theme27_seed1530_wiz_potion-throw_gameplay.session.json",
@@ -21193,7 +20695,7 @@
         "matched": 79,
         "total": 79
       },
-      "duration": 7275
+      "duration": 3529
     },
     {
       "session": "theme27_seed1531_wiz_potion-dip-weapons_gameplay.session.json",
@@ -21253,7 +20755,7 @@
         "matched": 36,
         "total": 36
       },
-      "duration": 5634
+      "duration": 2938
     },
     {
       "session": "theme27_seed1540_wiz_wear-armor_gameplay.session.json",
@@ -21313,7 +20815,7 @@
         "matched": 10,
         "total": 10
       },
-      "duration": 11406
+      "duration": 8097
     },
     {
       "session": "theme27_seed1541_wiz_wear-cursed_gameplay.session.json",
@@ -21403,7 +20905,7 @@
           1
         ]
       },
-      "duration": 8530
+      "duration": 3695
     },
     {
       "session": "theme27_seed1550_wiz_pickup-various_gameplay.session.json",
@@ -21463,7 +20965,7 @@
         "matched": 431,
         "total": 431
       },
-      "duration": 3288
+      "duration": 4159
     },
     {
       "session": "theme27_seed1560_wiz_invent-ops_gameplay.session.json",
@@ -21553,7 +21055,7 @@
           1
         ]
       },
-      "duration": 2815
+      "duration": 3002
     },
     {
       "session": "theme28_seed1601_wiz_zap-updown_gameplay.session.json",
@@ -21643,7 +21145,7 @@
           1
         ]
       },
-      "duration": 4886
+      "duration": 5969
     },
     {
       "session": "theme28_seed1602_wiz_zap-teleport_gameplay.session.json",
@@ -21703,7 +21205,7 @@
         "matched": 17,
         "total": 17
       },
-      "duration": 5158
+      "duration": 3044
     },
     {
       "session": "theme28_seed1603_wiz_zap-cancellation_gameplay.session.json",
@@ -21763,7 +21265,7 @@
         "matched": 11,
         "total": 11
       },
-      "duration": 2672
+      "duration": 2993
     },
     {
       "session": "theme28_seed1604_wiz_zap-invisible_gameplay.session.json",
@@ -21823,7 +21325,7 @@
         "matched": 48,
         "total": 48
       },
-      "duration": 2585
+      "duration": 7061
     },
     {
       "session": "theme28_seed1605_wiz_zap-slow-speed_gameplay.session.json",
@@ -21883,7 +21385,7 @@
         "matched": 237,
         "total": 237
       },
-      "duration": 7577
+      "duration": 3528
     },
     {
       "session": "theme28_seed1606_wiz_zap-undead-turning_gameplay.session.json",
@@ -21943,7 +21445,7 @@
         "matched": 54,
         "total": 54
       },
-      "duration": 3897
+      "duration": 6572
     },
     {
       "session": "theme28_seed1607_wiz_zap-drain-life_gameplay.session.json",
@@ -22003,7 +21505,7 @@
         "matched": 23,
         "total": 23
       },
-      "duration": 3659
+      "duration": 1978
     },
     {
       "session": "theme28_seed1608_wiz_zap-light_gameplay.session.json",
@@ -22063,7 +21565,7 @@
         "matched": 28,
         "total": 28
       },
-      "duration": 2988
+      "duration": 3096
     },
     {
       "session": "theme28_seed1610_wiz_lock-unlock_gameplay.session.json",
@@ -22123,7 +21625,7 @@
         "matched": 124,
         "total": 124
       },
-      "duration": 6452
+      "duration": 5667
     },
     {
       "session": "theme28_seed1620_wiz_cast-spells_gameplay.session.json",
@@ -22183,7 +21685,7 @@
         "matched": 38,
         "total": 38
       },
-      "duration": 3673
+      "duration": 2456
     },
     {
       "session": "theme28_seed1621_wiz_zap-create-monster_gameplay.session.json",
@@ -22243,7 +21745,7 @@
         "matched": 285,
         "total": 285
       },
-      "duration": 4094
+      "duration": 4944
     },
     {
       "session": "theme28_seed1622_wiz_zap-nothing_gameplay.session.json",
@@ -22303,7 +21805,7 @@
         "matched": 67,
         "total": 67
       },
-      "duration": 5269
+      "duration": 2749
     },
     {
       "session": "theme29_seed1701_wiz_ring-effects_gameplay.session.json",
@@ -22393,7 +21895,7 @@
           1
         ]
       },
-      "duration": 4747
+      "duration": 5658
     },
     {
       "session": "theme29_seed1702_wiz_ring-stats_gameplay.session.json",
@@ -22483,7 +21985,7 @@
           1
         ]
       },
-      "duration": 9597
+      "duration": 11546
     },
     {
       "session": "theme29_seed1720_wiz_scroll-identify_gameplay.session.json",
@@ -22543,7 +22045,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 3777
+      "duration": 2673
     },
     {
       "session": "theme29_seed1721_wiz_scroll-teleport_gameplay.session.json",
@@ -22603,7 +22105,7 @@
         "matched": 122,
         "total": 122
       },
-      "duration": 7931
+      "duration": 6599
     },
     {
       "session": "theme29_seed1722_wiz_scroll-enchant_gameplay.session.json",
@@ -22663,7 +22165,7 @@
         "matched": 9,
         "total": 9
       },
-      "duration": 11678
+      "duration": 2874
     },
     {
       "session": "theme29_seed1723_wiz_scroll-create-monster_gameplay.session.json",
@@ -22723,7 +22225,7 @@
         "matched": 221,
         "total": 221
       },
-      "duration": 10195
+      "duration": 9182
     },
     {
       "session": "theme29_seed1724_wiz_scroll-earth_gameplay.session.json",
@@ -22783,7 +22285,7 @@
         "matched": 114,
         "total": 114
       },
-      "duration": 3156
+      "duration": 4374
     },
     {
       "session": "theme29_seed1725_wiz_scroll-misc_gameplay.session.json",
@@ -22843,7 +22345,7 @@
         "matched": 78,
         "total": 78
       },
-      "duration": 3863
+      "duration": 4351
     },
     {
       "session": "theme29_seed1730_wiz_pet-feeding_gameplay.session.json",
@@ -22903,7 +22405,7 @@
         "matched": 390,
         "total": 390
       },
-      "duration": 3273
+      "duration": 3589
     },
     {
       "session": "theme29_seed1740_wiz_wield-special_gameplay.session.json",
@@ -22963,7 +22465,7 @@
         "matched": 148,
         "total": 148
       },
-      "duration": 4823
+      "duration": 5449
     },
     {
       "session": "theme29_seed1750_wiz_extended-cmds_gameplay.session.json",
@@ -23023,7 +22525,7 @@
         "matched": 76,
         "total": 76
       },
-      "duration": 2476
+      "duration": 3188
     },
     {
       "session": "theme30_seed1801_wiz_descend-explore_gameplay.session.json",
@@ -23083,127 +22585,49 @@
         "matched": 2099,
         "total": 2099
       },
-      "duration": 8121
+      "duration": 16599
     },
     {
       "session": "theme30_seed1802_wiz_descend-explore_gameplay.session.json",
       "type": "gameplay",
       "seed": 1802,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 5488,
-          "total": 5488
-        },
-        "screens": {
-          "matched": 154,
-          "total": 154
-        },
-        "colors": {
-          "matched": 3696,
-          "total": 3696
-        },
-        "screenWindow": {
-          "matched": 154,
-          "total": 154,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 3696,
-          "total": 3696,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 1842,
-          "total": 1842
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 154,
-          "total": 154
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=154 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
+      "timeoutDiagnostics": {
+        "step": 154,
+        "key": " ",
+        "topline": "Unknown command ' '.",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 1842,
-        "total": 1842
-      },
-      "duration": 9776
+      "duration": 20000
     },
     {
       "session": "theme30_seed1804_wiz_descend-explore_gameplay.session.json",
       "type": "gameplay",
       "seed": 1804,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 3600,
-          "total": 3600
-        },
-        "screens": {
-          "matched": 158,
-          "total": 158
-        },
-        "colors": {
-          "matched": 3792,
-          "total": 3792
-        },
-        "screenWindow": {
-          "matched": 158,
-          "total": 158,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 3792,
-          "total": 3792,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 577,
-          "total": 577
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 158,
-          "total": 158
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=158 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
+      "timeoutDiagnostics": {
+        "step": 158,
+        "key": " ",
+        "topline": "Unknown command ' '.",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 577,
-        "total": 577
-      },
-      "duration": 16366
+      "duration": 20000
     },
     {
       "session": "theme30_seed1805_wiz_descend-explore_gameplay.session.json",
@@ -23263,7 +22687,7 @@
         "matched": 2777,
         "total": 2777
       },
-      "duration": 13648
+      "duration": 11629
     },
     {
       "session": "theme30_seed1810_wiz_rush-down_gameplay.session.json",
@@ -23323,7 +22747,7 @@
         "matched": 1420,
         "total": 1420
       },
-      "duration": 10065
+      "duration": 12111
     },
     {
       "session": "theme30_seed1820_val_explore_gameplay.session.json",
@@ -23383,7 +22807,7 @@
         "matched": 790,
         "total": 790
       },
-      "duration": 15927
+      "duration": 14385
     },
     {
       "session": "theme31_seed1901_wiz_trap-explore_gameplay.session.json",
@@ -23443,7 +22867,7 @@
         "matched": 404,
         "total": 404
       },
-      "duration": 10288
+      "duration": 12881
     },
     {
       "session": "theme31_seed1902_wiz_trap-explore2_gameplay.session.json",
@@ -23503,7 +22927,7 @@
         "matched": 1242,
         "total": 1242
       },
-      "duration": 8031
+      "duration": 8868
     },
     {
       "session": "theme31_seed1904_wiz_trap-explore_gameplay.session.json",
@@ -23563,7 +22987,7 @@
         "matched": 1037,
         "total": 1037
       },
-      "duration": 9365
+      "duration": 9983
     },
     {
       "session": "theme31_seed1905_wiz_trap-explore_gameplay.session.json",
@@ -23623,7 +23047,7 @@
         "matched": 1214,
         "total": 1214
       },
-      "duration": 12015
+      "duration": 8646
     },
     {
       "session": "theme31_seed1920_wiz_dig-pickaxe_gameplay.session.json",
@@ -23683,7 +23107,7 @@
         "matched": 470,
         "total": 470
       },
-      "duration": 6987
+      "duration": 5448
     },
     {
       "session": "theme31_seed1922_wiz_dig-pickaxe_gameplay.session.json",
@@ -23743,7 +23167,7 @@
         "matched": 113,
         "total": 113
       },
-      "duration": 3726
+      "duration": 4595
     },
     {
       "session": "theme31_seed1923_wiz_dig-pickaxe_gameplay.session.json",
@@ -23803,7 +23227,7 @@
         "matched": 84,
         "total": 84
       },
-      "duration": 4449
+      "duration": 4033
     },
     {
       "session": "theme31_seed1930_wiz_polyself_gameplay.session.json",
@@ -23863,7 +23287,7 @@
         "matched": 376,
         "total": 376
       },
-      "duration": 7630
+      "duration": 9062
     },
     {
       "session": "theme31_seed1931_wiz_polyself-forms_gameplay.session.json",
@@ -23923,7 +23347,7 @@
         "matched": 7,
         "total": 7
       },
-      "duration": 9572
+      "duration": 7185
     },
     {
       "session": "theme31_seed1932_wiz_polyself_gameplay.session.json",
@@ -23983,7 +23407,7 @@
         "matched": 1856,
         "total": 1856
       },
-      "duration": 6584
+      "duration": 12594
     },
     {
       "session": "theme31_seed1933_wiz_polyself_gameplay.session.json",
@@ -24043,7 +23467,7 @@
         "matched": 916,
         "total": 916
       },
-      "duration": 12566
+      "duration": 9318
     },
     {
       "session": "theme31_seed1941_wiz_shop-steal_gameplay.session.json",
@@ -24103,7 +23527,7 @@
         "matched": 119,
         "total": 119
       },
-      "duration": 8156
+      "duration": 3596
     },
     {
       "session": "theme31_seed1950_wiz_maze-levels_gameplay.session.json",
@@ -24163,7 +23587,7 @@
         "matched": 508,
         "total": 508
       },
-      "duration": 10342
+      "duration": 12091
     },
     {
       "session": "theme31_seed1951_wiz_maze-levels_gameplay.session.json",
@@ -24223,7 +23647,7 @@
         "matched": 801,
         "total": 801
       },
-      "duration": 9946
+      "duration": 7265
     },
     {
       "session": "theme31_seed1952_wiz_maze-levels_gameplay.session.json",
@@ -24283,7 +23707,7 @@
         "matched": 241,
         "total": 241
       },
-      "duration": 6246
+      "duration": 6845
     },
     {
       "session": "theme31_seed1953_wiz_maze-levels_gameplay.session.json",
@@ -24343,7 +23767,7 @@
         "matched": 806,
         "total": 806
       },
-      "duration": 10737
+      "duration": 14451
     },
     {
       "session": "theme31_seed1954_wiz_maze-levels_gameplay.session.json",
@@ -24403,7 +23827,7 @@
         "matched": 539,
         "total": 539
       },
-      "duration": 11041
+      "duration": 13710
     },
     {
       "session": "theme31_seed1955_wiz_maze-levels_gameplay.session.json",
@@ -24463,7 +23887,7 @@
         "matched": 751,
         "total": 751
       },
-      "duration": 7320
+      "duration": 14792
     },
     {
       "session": "theme33_seed2102_wiz_eat-various_gameplay.session.json",
@@ -24523,7 +23947,7 @@
         "matched": 359,
         "total": 359
       },
-      "duration": 6187
+      "duration": 9213
     },
     {
       "session": "theme33_seed2110_wiz_apply-items_gameplay.session.json",
@@ -24583,7 +24007,7 @@
         "matched": 40,
         "total": 40
       },
-      "duration": 3653
+      "duration": 2469
     },
     {
       "session": "theme33_seed2111_wiz_apply-items_gameplay.session.json",
@@ -24643,7 +24067,7 @@
         "matched": 99,
         "total": 99
       },
-      "duration": 3926
+      "duration": 3207
     },
     {
       "session": "theme33_seed2131_wiz_quaff-potions_gameplay.session.json",
@@ -24703,7 +24127,7 @@
         "matched": 27,
         "total": 27
       },
-      "duration": 4853
+      "duration": 10592
     },
     {
       "session": "theme33_seed2140_wiz_wear-armor_gameplay.session.json",
@@ -24793,7 +24217,7 @@
           1
         ]
       },
-      "duration": 4664
+      "duration": 4117
     },
     {
       "session": "theme33_seed2141_wiz_wear-armor_gameplay.session.json",
@@ -24883,7 +24307,7 @@
           1
         ]
       },
-      "duration": 9452
+      "duration": 11963
     },
     {
       "session": "theme34_seed2210_wiz_cast-spells2_gameplay.session.json",
@@ -24943,7 +24367,7 @@
         "matched": 49,
         "total": 49
       },
-      "duration": 9173
+      "duration": 10708
     },
     {
       "session": "theme34_seed2220_val_explore_gameplay.session.json",
@@ -25003,7 +24427,7 @@
         "matched": 231,
         "total": 231
       },
-      "duration": 5113
+      "duration": 3457
     },
     {
       "session": "theme34_seed2221_sam_explore_gameplay.session.json",
@@ -25063,7 +24487,7 @@
         "matched": 218,
         "total": 218
       },
-      "duration": 9394
+      "duration": 3181
     },
     {
       "session": "theme34_seed2230_arc_explore_gameplay.session.json",
@@ -25123,7 +24547,7 @@
         "matched": 222,
         "total": 222
       },
-      "duration": 8047
+      "duration": 7484
     },
     {
       "session": "theme34_seed2231_bar_explore_gameplay.session.json",
@@ -25183,7 +24607,7 @@
         "matched": 217,
         "total": 217
       },
-      "duration": 8652
+      "duration": 3053
     },
     {
       "session": "theme34_seed2232_cav_explore_gameplay.session.json",
@@ -25243,7 +24667,7 @@
         "matched": 235,
         "total": 235
       },
-      "duration": 5672
+      "duration": 4285
     },
     {
       "session": "theme34_seed2233_hea_explore_gameplay.session.json",
@@ -25303,7 +24727,7 @@
         "matched": 351,
         "total": 351
       },
-      "duration": 5924
+      "duration": 9982
     },
     {
       "session": "theme34_seed2234_kni_explore_gameplay.session.json",
@@ -25363,7 +24787,7 @@
         "matched": 496,
         "total": 496
       },
-      "duration": 4492
+      "duration": 8145
     },
     {
       "session": "theme34_seed2235_mon_explore_gameplay.session.json",
@@ -25423,7 +24847,7 @@
         "matched": 118,
         "total": 118
       },
-      "duration": 7040
+      "duration": 6434
     },
     {
       "session": "theme34_seed2236_ran_explore_gameplay.session.json",
@@ -25513,7 +24937,7 @@
           1
         ]
       },
-      "duration": 3355
+      "duration": 2577
     },
     {
       "session": "theme34_seed2238_tou_explore_gameplay.session.json",
@@ -25573,7 +24997,7 @@
         "matched": 290,
         "total": 290
       },
-      "duration": 5525
+      "duration": 5533
     },
     {
       "session": "theme34_seed2240_rog_explore_gameplay.session.json",
@@ -25633,7 +25057,7 @@
         "matched": 423,
         "total": 423
       },
-      "duration": 6883
+      "duration": 7149
     },
     {
       "session": "theme34_seed2241_rog_explore_gameplay.session.json",
@@ -25693,7 +25117,7 @@
         "matched": 444,
         "total": 444
       },
-      "duration": 5506
+      "duration": 8844
     },
     {
       "session": "theme34_seed2242_rog_explore_gameplay.session.json",
@@ -25753,7 +25177,7 @@
         "matched": 418,
         "total": 418
       },
-      "duration": 8485
+      "duration": 3982
     },
     {
       "session": "theme34_seed2250_elfran_explore_gameplay.session.json",
@@ -25813,7 +25237,7 @@
         "matched": 408,
         "total": 408
       },
-      "duration": 5519
+      "duration": 7325
     },
     {
       "session": "theme34_seed2252_gnomhea_explore_gameplay.session.json",
@@ -25873,7 +25297,7 @@
         "matched": 309,
         "total": 309
       },
-      "duration": 6319
+      "duration": 5870
     },
     {
       "session": "theme34_seed2253_orcbar_explore_gameplay.session.json",
@@ -25933,7 +25357,7 @@
         "matched": 345,
         "total": 345
       },
-      "duration": 3920
+      "duration": 7779
     },
     {
       "session": "theme34_seed2254_elfwiz_explore_gameplay.session.json",
@@ -25993,7 +25417,7 @@
         "matched": 108,
         "total": 108
       },
-      "duration": 6056
+      "duration": 6813
     },
     {
       "session": "theme34_seed2260_dwarfval_explore_gameplay.session.json",
@@ -26053,7 +25477,7 @@
         "matched": 486,
         "total": 486
       },
-      "duration": 4900
+      "duration": 5559
     },
     {
       "session": "theme34_seed2261_dwarfval_explore_gameplay.session.json",
@@ -26113,7 +25537,7 @@
         "matched": 627,
         "total": 627
       },
-      "duration": 5169
+      "duration": 6888
     },
     {
       "session": "theme34_seed2262_dwarfval_explore_gameplay.session.json",
@@ -26173,7 +25597,7 @@
         "matched": 210,
         "total": 210
       },
-      "duration": 7256
+      "duration": 9228
     },
     {
       "session": "theme34_seed2281_pri_explore_gameplay.session.json",
@@ -26233,7 +25657,7 @@
         "matched": 497,
         "total": 497
       },
-      "duration": 3996
+      "duration": 5563
     },
     {
       "session": "theme35_seed2301_wiz_read-scrolls2_gameplay.session.json",
@@ -26293,7 +25717,7 @@
         "matched": 5,
         "total": 5
       },
-      "duration": 5645
+      "duration": 4277
     },
     {
       "session": "theme35_seed2302_wiz_read-scrolls2_gameplay.session.json",
@@ -26353,7 +25777,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 6184
+      "duration": 3949
     },
     {
       "session": "theme35_seed2310_wiz_quaff-healing_gameplay.session.json",
@@ -26413,7 +25837,7 @@
         "matched": 10,
         "total": 10
       },
-      "duration": 10102
+      "duration": 10626
     },
     {
       "session": "theme35_seed2311_wiz_quaff-healing_gameplay.session.json",
@@ -26473,7 +25897,7 @@
         "matched": 7,
         "total": 7
       },
-      "duration": 12753
+      "duration": 10424
     },
     {
       "session": "theme35_seed2320_wiz_artifact-combat2_gameplay.session.json",
@@ -26533,7 +25957,7 @@
         "matched": 154,
         "total": 154
       },
-      "duration": 7441
+      "duration": 6506
     },
     {
       "session": "theme35_seed2321_wiz_artifact-combat2_gameplay.session.json",
@@ -26593,7 +26017,7 @@
         "matched": 118,
         "total": 118
       },
-      "duration": 7001
+      "duration": 3333
     },
     {
       "session": "theme36_seed2401_wiz_mixed-deep_gameplay.session.json",
@@ -26653,7 +26077,7 @@
         "matched": 239,
         "total": 239
       },
-      "duration": 6633
+      "duration": 8040
     },
     {
       "session": "theme36_seed2402_wiz_aggressive-mix_gameplay.session.json",
@@ -26713,7 +26137,7 @@
         "matched": 229,
         "total": 229
       },
-      "duration": 6636
+      "duration": 9992
     },
     {
       "session": "theme36_seed2402_wiz_mixed-deep_gameplay.session.json",
@@ -26773,7 +26197,7 @@
         "matched": 264,
         "total": 264
       },
-      "duration": 9680
+      "duration": 10977
     },
     {
       "session": "theme36_seed2403_wiz_aggressive-mix_gameplay.session.json",
@@ -26833,7 +26257,7 @@
         "matched": 142,
         "total": 142
       },
-      "duration": 9009
+      "duration": 9269
     },
     {
       "session": "theme36_seed2403_wiz_mixed-deep_gameplay.session.json",
@@ -26893,7 +26317,7 @@
         "matched": 290,
         "total": 290
       },
-      "duration": 6732
+      "duration": 14012
     },
     {
       "session": "theme36_seed2410_wiz_explore-long_gameplay.session.json",
@@ -26983,7 +26407,7 @@
           1
         ]
       },
-      "duration": 14571
+      "duration": 11320
     },
     {
       "session": "theme36_seed2410_wiz_long-explore_gameplay.session.json",
@@ -27043,7 +26467,7 @@
         "matched": 844,
         "total": 844
       },
-      "duration": 14789
+      "duration": 10880
     },
     {
       "session": "theme36_seed2411_wiz_explore-long_gameplay.session.json",
@@ -27103,67 +26527,28 @@
         "matched": 1129,
         "total": 1129
       },
-      "duration": 13805
+      "duration": 16040
     },
     {
       "session": "theme36_seed2411_wiz_long-explore_gameplay.session.json",
       "type": "gameplay",
       "seed": 2411,
-      "passed": true,
+      "passed": false,
       "metrics": {
-        "rngCalls": {
-          "matched": 4444,
-          "total": 4444
-        },
-        "screens": {
-          "matched": 150,
-          "total": 150
-        },
-        "colors": {
-          "matched": 3600,
-          "total": 3600
-        },
-        "screenWindow": {
-          "matched": 150,
-          "total": 150,
-          "earlyOnlyCount": 0
-        },
-        "colorWindow": {
-          "matched": 3600,
-          "total": 3600,
-          "earlyOnlyCount": 0
-        },
-        "events": {
-          "matched": 1046,
-          "total": 1046
-        },
-        "mapdump": {
-          "matched": 1,
-          "total": 1
-        },
-        "cursor": {
-          "matched": 150,
-          "total": 150
-        },
         "repaint": {
           "matched": 0,
           "total": 0
         }
       },
-      "synclockDiagnostics": {
-        "total": 0,
-        "counts": {
-          "boundary.more.owner-missing": 0,
-          "boundary.more.fallback-no-owner": 0,
-          "boundary.more.fallback-synced": 0,
-          "boundary.more.clear-missing": 0
-        }
+      "error": "Session timed out after 20000ms (last step=150 key=\" \" pendingPrompt=false multi=0 topline=\"Unknown command ' '.\")",
+      "timeoutDiagnostics": {
+        "step": 150,
+        "key": " ",
+        "topline": "Unknown command ' '.",
+        "pendingPrompt": false,
+        "multi": 0
       },
-      "events": {
-        "matched": 1046,
-        "total": 1046
-      },
-      "duration": 16864
+      "duration": 20000
     },
     {
       "session": "theme36_seed2412_wiz_explore-long_gameplay.session.json",
@@ -27253,7 +26638,7 @@
           1
         ]
       },
-      "duration": 13627
+      "duration": 15859
     },
     {
       "session": "theme36_seed2412_wiz_long-explore_gameplay.session.json",
@@ -27313,7 +26698,7 @@
         "matched": 1086,
         "total": 1086
       },
-      "duration": 14749
+      "duration": 8990
     },
     {
       "session": "theme37_seed2501_wiz_shop-explore_gameplay.session.json",
@@ -27373,7 +26758,7 @@
         "matched": 654,
         "total": 654
       },
-      "duration": 11628
+      "duration": 15857
     },
     {
       "session": "theme37_seed2501_wiz_zap-rays_gameplay.session.json",
@@ -27433,7 +26818,7 @@
         "matched": 16,
         "total": 16
       },
-      "duration": 11654
+      "duration": 14800
     },
     {
       "session": "theme37_seed2502_wiz_shop-explore_gameplay.session.json",
@@ -27493,7 +26878,7 @@
         "matched": 258,
         "total": 258
       },
-      "duration": 6406
+      "duration": 6795
     },
     {
       "session": "theme37_seed2502_wiz_zap-rays_gameplay.session.json",
@@ -27553,7 +26938,7 @@
         "matched": 17,
         "total": 17
       },
-      "duration": 4219
+      "duration": 14809
     },
     {
       "session": "theme37_seed2503_wiz_zap-rays_gameplay.session.json",
@@ -27613,7 +26998,7 @@
         "matched": 132,
         "total": 132
       },
-      "duration": 12005
+      "duration": 5894
     },
     {
       "session": "theme37_seed2510_wiz_pray-sacrifice_gameplay.session.json",
@@ -27673,7 +27058,7 @@
         "matched": 1285,
         "total": 1285
       },
-      "duration": 9341
+      "duration": 11415
     },
     {
       "session": "theme37_seed2511_wiz_wear-remove_gameplay.session.json",
@@ -27733,7 +27118,7 @@
         "matched": 46,
         "total": 46
       },
-      "duration": 3592
+      "duration": 4373
     },
     {
       "session": "theme37_seed2520_wiz_monster-attacks_gameplay.session.json",
@@ -27793,7 +27178,7 @@
         "matched": 51,
         "total": 51
       },
-      "duration": 4200
+      "duration": 5028
     },
     {
       "session": "theme37_seed2520_wiz_pray-deep_gameplay.session.json",
@@ -27853,7 +27238,7 @@
         "matched": 386,
         "total": 386
       },
-      "duration": 4991
+      "duration": 5876
     },
     {
       "session": "theme37_seed2521_wiz_monster-attacks_gameplay.session.json",
@@ -27913,7 +27298,7 @@
         "matched": 59,
         "total": 59
       },
-      "duration": 5643
+      "duration": 3583
     },
     {
       "session": "theme37_seed2521_wiz_pray-deep_gameplay.session.json",
@@ -27973,7 +27358,7 @@
         "matched": 295,
         "total": 295
       },
-      "duration": 5781
+      "duration": 4619
     },
     {
       "session": "theme38_seed2602_wiz_monster-var_gameplay.session.json",
@@ -28033,7 +27418,7 @@
         "matched": 254,
         "total": 254
       },
-      "duration": 5748
+      "duration": 7239
     },
     {
       "session": "theme38_seed2610_wiz_wear-cursed2_gameplay.session.json",
@@ -28093,7 +27478,7 @@
         "matched": 8,
         "total": 8
       },
-      "duration": 5615
+      "duration": 4006
     },
     {
       "session": "theme38_seed2611_wiz_wear-cursed2_gameplay.session.json",
@@ -28153,7 +27538,7 @@
         "matched": 2,
         "total": 2
       },
-      "duration": 3154
+      "duration": 9386
     },
     {
       "session": "theme38_seed2620_wiz_pickup-drop_gameplay.session.json",
@@ -28213,7 +27598,7 @@
         "matched": 115,
         "total": 115
       },
-      "duration": 3329
+      "duration": 6505
     },
     {
       "session": "theme38_seed2621_wiz_pickup-drop_gameplay.session.json",
@@ -28273,7 +27658,7 @@
         "matched": 103,
         "total": 103
       },
-      "duration": 3822
+      "duration": 4032
     },
     {
       "session": "theme39_seed2701_wiz_pray-altar_gameplay.session.json",
@@ -28333,7 +27718,7 @@
         "matched": 320,
         "total": 320
       },
-      "duration": 9563
+      "duration": 10469
     },
     {
       "session": "theme39_seed2702_wiz_pray-altar_gameplay.session.json",
@@ -28393,7 +27778,7 @@
         "matched": 704,
         "total": 704
       },
-      "duration": 8513
+      "duration": 13577
     },
     {
       "session": "theme39_seed2710_wiz_zap-self_gameplay.session.json",
@@ -28453,7 +27838,7 @@
         "matched": 83,
         "total": 83
       },
-      "duration": 5611
+      "duration": 3987
     },
     {
       "session": "theme39_seed2711_wiz_zap-self_gameplay.session.json",
@@ -28513,7 +27898,7 @@
         "matched": 153,
         "total": 153
       },
-      "duration": 9244
+      "duration": 3616
     },
     {
       "session": "theme39_seed2721_wiz_cast-variety_gameplay.session.json",
@@ -28573,7 +27958,7 @@
         "matched": 25,
         "total": 25
       },
-      "duration": 4416
+      "duration": 12741
     },
     {
       "session": "theme40_seed2810_dwarfval_deep_gameplay.session.json",
@@ -28633,7 +28018,7 @@
         "matched": 1004,
         "total": 1004
       },
-      "duration": 12117
+      "duration": 8960
     },
     {
       "session": "theme40_seed2810_elfran_deep_gameplay.session.json",
@@ -28693,7 +28078,7 @@
         "matched": 1016,
         "total": 1016
       },
-      "duration": 12986
+      "duration": 15168
     },
     {
       "session": "theme40_seed2811_elfran_deep_gameplay.session.json",
@@ -28753,7 +28138,7 @@
         "matched": 1360,
         "total": 1360
       },
-      "duration": 11332
+      "duration": 14067
     },
     {
       "session": "theme41_seed2910_wiz_trap-var_gameplay.session.json",
@@ -28813,7 +28198,7 @@
         "matched": 1115,
         "total": 1115
       },
-      "duration": 9232
+      "duration": 13545
     },
     {
       "session": "theme41_seed2911_wiz_trap-var_gameplay.session.json",
@@ -28873,7 +28258,7 @@
         "matched": 716,
         "total": 716
       },
-      "duration": 11517
+      "duration": 14231
     },
     {
       "session": "theme41_seed2920_wiz_zap-var_gameplay.session.json",
@@ -28933,7 +28318,7 @@
         "matched": 78,
         "total": 78
       },
-      "duration": 12119
+      "duration": 13683
     },
     {
       "session": "theme42_seed3001_wiz_consume-var_gameplay.session.json",
@@ -28993,7 +28378,7 @@
         "matched": 13,
         "total": 13
       },
-      "duration": 10785
+      "duration": 12114
     },
     {
       "session": "theme42_seed3002_wiz_consume-var_gameplay.session.json",
@@ -29053,7 +28438,7 @@
         "matched": 7,
         "total": 7
       },
-      "duration": 12902
+      "duration": 14927
     },
     {
       "session": "theme42_seed3010_wiz_tool-use_gameplay.session.json",
@@ -29113,7 +28498,7 @@
         "matched": 422,
         "total": 422
       },
-      "duration": 8923
+      "duration": 6451
     },
     {
       "session": "theme42_seed3011_wiz_tool-use_gameplay.session.json",
@@ -29173,7 +28558,7 @@
         "matched": 410,
         "total": 410
       },
-      "duration": 8662
+      "duration": 11712
     },
     {
       "session": "theme43_seed3101_wiz_descend-exp_gameplay.session.json",
@@ -29233,7 +28618,7 @@
         "matched": 355,
         "total": 355
       },
-      "duration": 4670
+      "duration": 5600
     },
     {
       "session": "theme43_seed3102_wiz_descend-exp_gameplay.session.json",
@@ -29293,7 +28678,7 @@
         "matched": 1269,
         "total": 1269
       },
-      "duration": 11626
+      "duration": 10094
     },
     {
       "session": "theme43_seed3103_wiz_descend-exp_gameplay.session.json",
@@ -29353,7 +28738,7 @@
         "matched": 928,
         "total": 928
       },
-      "duration": 7575
+      "duration": 7334
     },
     {
       "session": "theme43_seed3120_monkc_exp_gameplay.session.json",
@@ -29413,25 +28798,25 @@
         "matched": 525,
         "total": 525
       },
-      "duration": 5949
+      "duration": 9526
     }
   ],
   "summary": {
     "total": 562,
-    "passed": 537,
-    "failed": 25,
+    "passed": 522,
+    "failed": 40,
     "gameplayParity": {
       "sessions": 436,
-      "rngComparable": 413,
-      "eventsComparable": 413,
+      "rngComparable": 398,
+      "eventsComparable": 398,
       "animationComparable": 0,
-      "screenWindowComparable": 413,
-      "colorWindowComparable": 413,
-      "cursorComparable": 413,
-      "rngFull": 413,
-      "eventsFull": 413,
+      "screenWindowComparable": 398,
+      "colorWindowComparable": 398,
+      "cursorComparable": 398,
+      "rngFull": 398,
+      "eventsFull": 398,
       "animationFull": 0,
-      "cursorFull": 357,
+      "cursorFull": 343,
       "rngFullButEventsNot": 0,
       "eventsFullButRngNot": 0,
       "rerecordCandidates": 0,
