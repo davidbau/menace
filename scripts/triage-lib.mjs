@@ -122,82 +122,69 @@ export function describeKey(key) {
 }
 
 // ─── Command span detection ──────────────────────────────────────────────
-// Identifies multi-key command flows by looking at the JS game state
-// captured at each step. When a step has 0 RNG entries and a specific
-// display/prompt state, it's likely mid-command (menu, prompt, overlay).
+// Identifies multi-key command flows by examining the JS game state
+// captured at each step. Uses the topline prompt text and display state
+// (which are authoritative — JS shows the same prompts C does) rather
+// than heuristic key-pattern scanning.
 //
-// Returns a description like "throw: direction prompt" or "drop-menu: class selection"
-// or null if the step is a standalone command.
+// Requires capturedStates from step-boundary-context's onKey callback.
+// Without captured state, returns null (no guess).
 
-// Known command-starting keys and their expected prompt patterns
-const COMMAND_PROMPTS = [
-    { startKey: 't', prompt: /What do you want to throw/i, name: 'throw' },
-    { startKey: 'f', prompt: /fire|In what direction/i, name: 'fire' },
-    { startKey: 'D', prompt: /Drop what type/i, name: 'drop-menu' },
-    { startKey: 'd', prompt: /What do you want to drop/i, name: 'drop' },
-    { startKey: 'z', prompt: /What do you want to zap/i, name: 'zap' },
-    { startKey: 'Z', prompt: /What do you want to cast/i, name: 'cast' },
-    { startKey: 'r', prompt: /What do you want to read/i, name: 'read' },
-    { startKey: 'q', prompt: /What do you want to drink/i, name: 'quaff' },
-    { startKey: 'e', prompt: /What do you want to eat/i, name: 'eat' },
-    { startKey: 'w', prompt: /What do you want to wield/i, name: 'wield' },
-    { startKey: 'W', prompt: /What do you want to wear/i, name: 'wear' },
-    { startKey: 'P', prompt: /What do you want to put on/i, name: 'put-on' },
-    { startKey: 'T', prompt: /What do you want to take off/i, name: 'take-off' },
-    { startKey: 'a', prompt: /What do you want to use/i, name: 'apply' },
-    { startKey: ',', prompt: null, name: 'pickup' },
+const PROMPT_COMMANDS = [
+    { pattern: /What do you want to throw\b/i, name: 'throw' },
+    { pattern: /In what direction\b/i, name: 'direction' },
+    { pattern: /Drop what type of items\b/i, name: 'drop-menu' },
+    { pattern: /What do you want to drop\b/i, name: 'drop' },
+    { pattern: /What do you want to zap\b/i, name: 'zap' },
+    { pattern: /What do you want to cast\b/i, name: 'cast' },
+    { pattern: /What do you want to read\b/i, name: 'read' },
+    { pattern: /What do you want to drink\b/i, name: 'quaff' },
+    { pattern: /What do you want to eat\b/i, name: 'eat' },
+    { pattern: /What do you want to wield\b/i, name: 'wield' },
+    { pattern: /What do you want to wear\b/i, name: 'wear' },
+    { pattern: /What do you want to put on\b/i, name: 'put-on' },
+    { pattern: /What do you want to take off\b/i, name: 'take-off' },
+    { pattern: /What do you want to use or apply\b/i, name: 'apply' },
+    { pattern: /What would you like to drop\b/i, name: 'drop-select' },
+    { pattern: /\(end\)/i, name: 'menu-overlay' },
 ];
 
-// Detect what command span a step belongs to by scanning backwards.
+// Detect what command a step belongs to from captured JS game state.
 // gameplaySteps: 0-indexed array from getSessionGameplaySteps
 // stepIdx: 0-indexed position in gameplaySteps
-// capturedStates: map from 1-indexed step → { topMessage, ... } (optional)
+// capturedStates: map/object from 1-indexed step → { topMessage, msgRow0, pendingPrompt, ... }
 export function detectCommandSpan(gameplaySteps, stepIdx, capturedStates = null) {
-    const step1 = stepIdx + 1; // 1-indexed
-    const thisStep = gameplaySteps[stepIdx];
-    if (!thisStep) return null;
-
-    // Check captured JS state for prompt context
+    if (!capturedStates) return null;
+    const step1 = stepIdx + 1;
     const state = capturedStates?.get?.(step1) || capturedStates?.[step1];
-    const topMsg = state?.topMessage || state?.msgRow0 || '';
+    if (!state) return null;
 
-    // First check if we're already INSIDE a command span (scan backwards).
-    // If so, this step is a continuation, even if its key matches a command name.
-    // This prevents 'd' (invlet selection within throw overlay) from being
-    // misidentified as a new drop command.
-    for (let back = 1; back <= 8 && stepIdx - back >= 0; back++) {
-        const prevStep = gameplaySteps[stepIdx - back];
-        if (!prevStep) continue;
-        const prevRng = prevStep.rng || [];
-        const prevComparable = prevRng.filter(isComparable);
-        // If a prior step had RNG entries, the command completed — we're past it
-        if (prevComparable.length > 0 && back > 1) break;
-        for (const cmd of COMMAND_PROMPTS) {
-            if (prevStep.key === cmd.startKey) {
-                let role = 'continuation';
-                if (thisStep.key === '\n' || thisStep.key === ' ') role = 'confirm/dismiss';
-                else if (/^[0-9]$/.test(thisStep.key)) role = 'count-digit';
-                else if (/^[a-zA-Z]$/.test(thisStep.key)) role = 'invlet/selection';
-                return { command: cmd.name, role, startStep: stepIdx - back + 1 };
-            }
+    // Check pendingPrompt first — most specific signal
+    if (state.pendingPrompt) {
+        return { command: state.pendingPrompt, role: 'pending-prompt' };
+    }
+
+    // Check topline message and screen row0 against known prompt patterns
+    const topMsg = state.topMessage || '';
+    const row0 = state.msgRow0 || '';
+    const checkText = topMsg || row0;
+
+    for (const { pattern, name } of PROMPT_COMMANDS) {
+        if (pattern.test(checkText)) {
+            return { command: name, role: 'prompt-active' };
         }
     }
 
-    // Check if THIS step starts a command (only if not already inside a span)
-    for (const cmd of COMMAND_PROMPTS) {
-        if (thisStep.key === cmd.startKey) {
-            return { command: cmd.name, role: 'start', startStep: step1 };
-        }
+    // Check messageNeedsMore — mid-message-dismiss
+    if (state.messageNeedsMore && topMsg) {
+        return { command: 'more-dismiss', role: `msg: ${topMsg.slice(0, 40)}` };
     }
 
     return null;
 }
 
 // Format a command span for display.
-// Prefixed with '~' to indicate this is a heuristic guess, not authoritative.
-// The detection scans backward for known command-starting keys and can be wrong
-// when keys have dual meanings (e.g., 'd' = drop command OR invlet letter).
 export function formatCommandSpan(span) {
     if (!span) return '';
-    return `~[${span.command}: ${span.role}${span.startStep ? ` from step ${span.startStep}` : ''}]`;
+    return `[${span.command}: ${span.role}]`;
 }
