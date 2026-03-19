@@ -339,6 +339,10 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         key_steps_clause = (
             f"NETHACK_DUMPSNAP_KEY_STEPS={key_steps_env} " if key_steps_env else ""
         )
+        # For interactive chargen, pass empty name so the game prompts for it.
+        # Match keylog_to_session.py: -u '' for interactive, -u Name for preset.
+        name_arg = "''" if chargen_in_keys else char["name"]
+        wiz_flag = " -D" if (session.get("options") or {}).get("wizard", True) else ""
         cmd = (
             f"NETHACKDIR={INSTALL_DIR} "
             f"{fixed_datetime_env()}"
@@ -355,7 +359,8 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
             f"NETHACK_DUMPSNAP_INPUT_EVERY=1 "
             f"HOME={RESULTS_DIR} "
             f"TERM=xterm-256color "
-            f"{NETHACK_BINARY} -u {char['name']} -D; "
+            f"{NETHACK_BINARY} -u {name_arg}"
+            f"{wiz_flag}; "
             f"sleep 999"
         )
         subprocess.run(

@@ -716,7 +716,7 @@ function runCStepCapture(sessionPath, stepIndex, outJson, fixedDatetime = null, 
     });
     if (res.status !== 0) {
         const msg = (res.stderr || res.stdout || '').trim();
-        throw new Error(`C snapshot failed at raw step ${rawStep}: ${msg}`);
+        throw new Error(`C snapshot failed at step index ${stepIndex}: ${msg}`);
     }
 }
 
