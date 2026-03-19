@@ -45,6 +45,7 @@ import { pmname, Mgender } from './do_name.js';
 import { dist2, distmin, monnear, mfndpos, mon_allowflags,
          m_avoid_kicked_loc, m_avoid_soko_push_loc,
          monmoveTrace, monmoveStepLabel,
+         emitMfndposTrace,
          canSpotMonsterForMap,
          mondead, mpickobj, mdrop_obj,
          mon_track_add,
@@ -1237,6 +1238,7 @@ export async function dog_move(mon, map, player, display, fov, after = false, ga
     const allowflags = mon_allowflags(mon, player, map);
     const positions = mfndpos(mon, map, player, allowflags);
     const cnt = positions.length;
+    emitMfndposTrace('dog_move_mfndpos_detail', mon, positions, allowflags, map);
     pushRngLogEntry(`^dog_move_entry[${mon.mndx}@${omx},${omy} goal=${gx},${gy} appr=${appr}]`);
     pushRngLogEntry(`^dog_move_mfndpos[cnt=${cnt} flags=0x${(allowflags >>> 0).toString(16)}]`);
     monmoveTrace('dog_move-begin',

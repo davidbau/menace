@@ -13699,3 +13699,23 @@ Validation:
   - guardrails stayed green:
     - `t04_s705_w_minefill_gp`
     - `t04_s706_w_minetn1_gp`
+
+### Use focused `mfndpos` / `MONMOVE_TRACE` instrumentation for ordinary monster seams
+
+- For manual-direct monster-turn drift, raw offset comparison is not reliable
+  once input ownership has separated.
+- The durable workflow is:
+  - anchor on the authoritative gameplay step from `session_test_runner`
+  - inspect the same input-owned bundle with
+    `scripts/movement-propagation.mjs`
+  - for ordinary monster movement seams, enable:
+    - `--monmove-trace`
+    - `--mon-id <id>`
+    - `--mndx <pm>`
+- Tooling now enables:
+  - `WEBHACK_MONMOVE_TRACE=1`
+  - `WEBHACK_MONMOVE_PHASE3_TRACE=1`
+  - `WEBHACK_MFNDPOS_TRACE=1`
+- JS now emits ordinary-monster `^mfndpos[...]` detail events parallel to the
+  existing pet-side `dog_move` visibility. This is the highest-signal way to
+  compare candidate sets before patching `dochug()` / `m_move()` / `mfndpos()`.

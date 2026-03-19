@@ -31,6 +31,9 @@ function usage() {
     console.log('  --raw-find-mismatch Find the first raw key mismatch at/after raw-from');
     console.log('  --grep <REGEX>      Extra filter for printed entries');
     console.log('  --all-rng           Print all RNG/event entries, not just movement-focused ones');
+    console.log('  --mon-id <N>        Filter entries to a specific monster id');
+    console.log('  --mndx <N>          Filter entries to a specific monster species index');
+    console.log('  --monmove-trace     Include [MONMOVE_TRACE]/[MONMOVE_PHASE3] lines');
     console.log('');
     console.log('Examples:');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed032_manual_direct.session.json --step-from 89 --step-to 91');
@@ -52,6 +55,9 @@ function parseArgs(argv) {
     let rawFindMismatch = false;
     let grep = null;
     let allRng = false;
+    let monId = null;
+    let mndx = null;
+    let monmoveTrace = false;
     for (let i = 1; i < args.length; i++) {
         const a = args[i];
         if (a === '--step-from') {
@@ -68,6 +74,12 @@ function parseArgs(argv) {
             grep = new RegExp(args[++i], 'i');
         } else if (a === '--all-rng') {
             allRng = true;
+        } else if (a === '--mon-id') {
+            monId = Number.parseInt(args[++i], 10);
+        } else if (a === '--mndx') {
+            mndx = Number.parseInt(args[++i], 10);
+        } else if (a === '--monmove-trace') {
+            monmoveTrace = true;
         } else {
             throw new Error(`Unknown arg: ${a}`);
         }
@@ -86,7 +98,7 @@ function parseArgs(argv) {
     }
     if (rawFrom == null && rawTo != null) rawFrom = rawTo;
     if (rawFrom != null && (rawTo == null || rawTo < rawFrom)) rawTo = rawFrom;
-    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng };
+    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng, monId, mndx, monmoveTrace };
 }
 
 function traceStep(line) {
@@ -104,6 +116,36 @@ function filterEntries(entries, grep, allRng = false) {
     for (const entry of entries || []) {
         const text = String(entry || '');
         if (!allRng && !defaultMovementFilter(text)) continue;
+        if (grep && !grep.test(text)) continue;
+        out.push(text);
+    }
+    return out;
+}
+
+function entryMatchesMonster(entry, monId, mndx) {
+    const text = String(entry || '');
+    if (monId != null && !new RegExp(`(?:\\bid=${monId}\\b|\\[${monId}@|M${monId}\\b)`).test(text)) {
+        return false;
+    }
+    if (mndx != null && !new RegExp(`(?:\\bmndx=${mndx}\\b|\\[${mndx}@)`).test(text)) {
+        return false;
+    }
+    return true;
+}
+
+function entryMatchesSessionMonster(entry, mndx) {
+    const text = String(entry || '');
+    if (mndx != null && !new RegExp(`(?:\\bmndx=${mndx}\\b|\\[${mndx}@)`).test(text)) {
+        return false;
+    }
+    return true;
+}
+
+function filterTraceEntries(entries, grep, monId, mndx) {
+    const out = [];
+    for (const entry of entries || []) {
+        const text = String(entry || '');
+        if ((monId != null || mndx != null) && !entryMatchesMonster(text, monId, mndx)) continue;
         if (grep && !grep.test(text)) continue;
         out.push(text);
     }
@@ -170,7 +212,7 @@ function buildGameplayRawRanges(cGameplaySteps, rawBase) {
 }
 
 async function main() {
-    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng } = parseArgs(process.argv);
+    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng, monId, mndx, monmoveTrace } = parseArgs(process.argv);
     const absPath = resolve(sessionPath);
     const raw = JSON.parse(readFileSync(absPath, 'utf8'));
     const normalized = normalizeSession(raw, {
@@ -192,18 +234,31 @@ async function main() {
         WEBHACK_RUN_TRACE: process.env.WEBHACK_RUN_TRACE,
         WEBHACK_TRACE_STEP_FROM: process.env.WEBHACK_TRACE_STEP_FROM,
         WEBHACK_TRACE_STEP_TO: process.env.WEBHACK_TRACE_STEP_TO,
+        WEBHACK_MONMOVE_TRACE: process.env.WEBHACK_MONMOVE_TRACE,
+        WEBHACK_MONMOVE_PHASE3_TRACE: process.env.WEBHACK_MONMOVE_PHASE3_TRACE,
+        WEBHACK_MFNDPOS_TRACE: process.env.WEBHACK_MFNDPOS_TRACE,
     };
     process.env.WEBHACK_EVENT_RUNSTEP = '1';
     process.env.WEBHACK_RUN_TRACE = '1';
     process.env.WEBHACK_TRACE_STEP_FROM = String(stepFrom);
     process.env.WEBHACK_TRACE_STEP_TO = String(stepTo);
+    if (monmoveTrace || monId != null || mndx != null) {
+        process.env.WEBHACK_MONMOVE_TRACE = '1';
+        process.env.WEBHACK_MONMOVE_PHASE3_TRACE = '1';
+        process.env.WEBHACK_MFNDPOS_TRACE = '1';
+    }
 
     const runTraceLines = [];
+    const monmoveTraceLines = [];
     const origConsoleLog = console.log;
     console.log = (...args) => {
         const text = args.map((v) => String(v)).join(' ');
         if (text.startsWith('[RUN_TRACE]')) {
             runTraceLines.push(text);
+            return;
+        }
+        if (text.startsWith('[MONMOVE_TRACE]') || text.startsWith('[MONMOVE_PHASE3]')) {
+            monmoveTraceLines.push(text);
             return;
         }
         origConsoleLog(...args);
@@ -229,6 +284,14 @@ async function main() {
         list.push(line.replace(/^\[RUN_TRACE\]\s*/, ''));
         runTraceByStep.set(step, list);
     }
+    const monmoveTraceByStep = new Map();
+    for (const line of monmoveTraceLines) {
+        const step = traceStep(line);
+        if (!Number.isInteger(step)) continue;
+        const list = monmoveTraceByStep.get(step) || [];
+        list.push(line.replace(/^\[(MONMOVE_TRACE|MONMOVE_PHASE3)\]\s*/, ''));
+        monmoveTraceByStep.set(step, list);
+    }
 
     console.log(`session: ${absPath}`);
     if (sessionForCmp !== normalized) {
@@ -248,9 +311,12 @@ async function main() {
     for (let step = stepFrom; step <= stepTo; step++) {
         const cStep = cGameplaySteps[step - 1] || {};
         const jsStep = jsGrouped[step - 1] || { rng: [], rawKeys: [] };
-        const cEntries = filterEntries(cStep.rng || [], grep, allRng);
-        const jsEntries = filterEntries(jsStep.rng || [], grep, allRng);
+        const cEntries = filterEntries(cStep.rng || [], grep, allRng)
+            .filter((entry) => entryMatchesSessionMonster(entry, mndx));
+        const jsEntries = filterEntries(jsStep.rng || [], grep, allRng)
+            .filter((entry) => entryMatchesMonster(entry, monId, mndx));
         const runEntries = filterEntries(runTraceByStep.get(step) || [], grep, true);
+        const monmoveEntries = filterTraceEntries(monmoveTraceByStep.get(step) || [], grep, monId, mndx);
         const cRawRange = cRawRanges[step - 1] || { from: null, to: null };
         const cRawKeys = (cRawRange.from != null && cRawRange.to >= cRawRange.from)
             ? (normalized.raw.steps || []).slice(cRawRange.from - 1, cRawRange.to).map((s) => s?.key ?? null)
@@ -268,6 +334,9 @@ async function main() {
         console.log('JS RUN_TRACE:');
         if (runEntries.length === 0) console.log('  (none)');
         else for (const entry of runEntries) console.log(`  ${entry}`);
+        console.log('JS MONMOVE_TRACE:');
+        if (monmoveEntries.length === 0) console.log('  (none)');
+        else for (const entry of monmoveEntries) console.log(`  ${entry}`);
         if (step < stepTo) console.log('');
     }
 }

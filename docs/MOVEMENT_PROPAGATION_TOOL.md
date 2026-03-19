@@ -21,11 +21,16 @@ What it does:
 - enables:
   - `WEBHACK_EVENT_RUNSTEP=1`
   - `WEBHACK_RUN_TRACE=1`
+- when `--monmove-trace`, `--mon-id`, or `--mndx` is used, it also enables:
+  - `WEBHACK_MONMOVE_TRACE=1`
+  - `WEBHACK_MONMOVE_PHASE3_TRACE=1`
+  - `WEBHACK_MFNDPOS_TRACE=1`
 - groups the JS replay back into gameplay steps
 - prints, for each selected gameplay step:
   - movement-related C step entries from the recorded session
   - movement-related JS step entries from replay RNG/event output
   - JS `[RUN_TRACE]` lines for that same step window
+  - optional JS `[MONMOVE_TRACE]` / `[MONMOVE_PHASE3]` lines for that same step
   - the corresponding C raw key range for that same comparison-step bundle
   - the JS raw keys consumed for that same comparison-step bundle
 - can also print a side-by-side raw replay window:
@@ -70,6 +75,11 @@ node scripts/movement-propagation.mjs \
 node scripts/movement-propagation.mjs \
   test/comparison/sessions/seed031_manual_direct.session.json \
   --raw-from 458 --raw-to 470 --raw-find-mismatch
+
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --step-from 484 --step-to 484 \
+  --mndx 44 --mon-id 196 --monmove-trace
 ```
 
 Useful flags:
@@ -79,6 +89,13 @@ Useful flags:
     `runstep`, `domove`, or `lookaround`
 - `--all-rng`
   - print all step RNG/event entries instead of the movement-focused subset
+- `--mon-id <N>`
+  - restrict printed step entries and monmove traces to a specific monster id
+- `--mndx <N>`
+  - restrict printed step entries and monmove traces to a specific monster species index
+- `--monmove-trace`
+  - include JS `MONMOVE_TRACE` / `MONMOVE_PHASE3` lines and ordinary-monster
+    `^mfndpos[...]` detail events
 - `--raw-from <N> --raw-to <M>`
   - print a raw C-vs-JS replay window, useful when a manual-direct session has
     hidden raw command bundles inside one gameplay step

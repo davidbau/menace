@@ -50,6 +50,12 @@ Useful new diagnostic:
   - for `manual-direct-live`, it now uses the same comparison view as
     `session_test_runner`, so gameplay step numbering matches the authoritative
     parity view instead of the raw fixture step array
+  - when you also pass `--monmove-trace`, `--mon-id`, or `--mndx`, it enables:
+    - ordinary-monster `^mfndpos[...]` detail events
+    - `[MONMOVE_TRACE]`
+    - `[MONMOVE_PHASE3]`
+  - use that focused mode first for ordinary `dochug` / `m_move` /
+    `distfleeck` / `mfndpos` seams before adding ad hoc logging
 
 ## Landed In This Batch
 

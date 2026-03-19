@@ -2036,6 +2036,7 @@ export async function m_move(mon, map, player, display = null, fov = null) {
     const allowflags = mon_allowflags(mon, player, map);
     const positions = mfndpos(mon, map, player, allowflags);
     const cnt = positions.length;
+    emitMfndposTrace('mfndpos', mon, positions, allowflags, map);
     const replayStep = Number.isInteger(map?._replayStepIndex) ? map._replayStepIndex + 1 : '?';
     const posSummary = positions.map((p) => `(${p.x},${p.y})`).join(' ');
     const trackSummary = Array.isArray(mon.mtrack)
@@ -2751,6 +2752,10 @@ function monmoveTraceEnabled() {
     return envFlag('WEBHACK_MONMOVE_TRACE');
 }
 
+function mfndposTraceEnabled() {
+    return envFlag('WEBHACK_MFNDPOS_TRACE');
+}
+
 export function monmoveTrace(...args) {
     if (!monmoveTraceEnabled()) return;
     console.log('[MONMOVE_TRACE]', ...args);
@@ -2768,6 +2773,25 @@ export function monmovePhase3Trace(...args) {
 export function monmoveStepLabel(map) {
     const idx = map?._replayStepIndex;
     return Number.isInteger(idx) ? String(idx + 1) : '?';
+}
+
+export function emitMfndposTrace(kind, mon, positions, allowflags, map) {
+    if (!mfndposTraceEnabled()) return;
+    const payload = positions.map((p) =>
+        `${p.x},${p.y},0x${Number(p.info || 0).toString(16)}`
+    ).join(' ');
+    pushRngLogEntry(
+        `^${kind}[id=${mon?.m_id ?? '?'} mndx=${mon?.mndx ?? '?'} cnt=${positions.length} flags=0x${(allowflags >>> 0).toString(16)} poss=${payload}]`
+    );
+    monmoveTrace(
+        kind,
+        `step=${monmoveStepLabel(map)}`,
+        `id=${mon?.m_id ?? '?'}`,
+        `mndx=${mon?.mndx ?? '?'}`,
+        `cnt=${positions.length}`,
+        `flags=0x${(allowflags >>> 0).toString(16)}`,
+        `poss=${payload || '-'}`,
+    );
 }
 
 // Autotranslated from monmove.c:2172

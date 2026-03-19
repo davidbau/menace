@@ -33,6 +33,14 @@ Raw-window mode:
 node scripts/movement-propagation.mjs <session.json> --raw-from <N> --raw-to <M> --raw-find-mismatch
 ```
 
+Monster-focused trace mode:
+
+```bash
+node scripts/movement-propagation.mjs <session.json> \
+  --step-from <N> --step-to <M> \
+  --mon-id <ID> --mndx <PM> --monmove-trace
+```
+
 ## Core Workflow
 
 1. Reproduce the failing session and identify the first bad gameplay step.
@@ -52,6 +60,7 @@ node scripts/movement-propagation.mjs <session.json> \
 - C movement-related step entries
 - JS movement-related step entries
 - JS `[RUN_TRACE]` lines
+- JS `[MONMOVE_TRACE]` / `[MONMOVE_PHASE3]` lines when enabled
 - C raw key range and JS raw keys for that same comparison-step bundle
 
 Manual-direct rule:
@@ -119,6 +128,15 @@ node scripts/movement-propagation.mjs <session.json> \
   --all-rng
 ```
 
+Inspect one monster's movement bundle directly:
+
+```bash
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --step-from 484 --step-to 484 \
+  --mon-id 196 --mndx 44 --monmove-trace
+```
+
 Raw hidden-bundle check:
 
 ```bash
@@ -139,6 +157,11 @@ node scripts/movement-propagation.mjs \
   as ownership/attribution before changing local gameplay logic.
 - If there is no run-trace activity in the target window, this is probably not a
   run-ownership bug; switch to a different tool.
+- If the live seam is inside ordinary monster movement, enable `--monmove-trace`
+  and filter by `--mon-id` or `--mndx` before adding ad hoc console logging.
+- Ordinary-monster `mfndpos` detail is available through
+  `WEBHACK_MFNDPOS_TRACE=1`, which the tool enables automatically when
+  `--monmove-trace`, `--mon-id`, or `--mndx` is used.
 - If the raw window shows JS already consuming later keys, stop blaming the
   later visible symptom. Fix the earliest raw bundle that shifted.
 - Prefer the default step-window output for proof, because it is bundle-anchored.
