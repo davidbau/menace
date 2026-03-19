@@ -33,6 +33,12 @@ Raw-window mode:
 node scripts/movement-propagation.mjs <session.json> --raw-from <N> --raw-to <M> --raw-find-mismatch
 ```
 
+Event search mode:
+
+```bash
+node scripts/movement-propagation.mjs <session.json> --event-find '<REGEX>'
+```
+
 Monster-focused trace mode:
 
 ```bash
@@ -96,6 +102,17 @@ Use this when:
 - the normalized first divergence points to a late symptom
 - you need to know which hidden command bundle actually drifted first
 
+6. If you know the visible family but not the owning step yet, search by event.
+
+```bash
+node scripts/movement-propagation.mjs <session.json> --event-find '^die\\['
+```
+
+Use this when:
+- `session_test_runner` exposes a new event family but the owning step is unclear
+- you need to re-anchor on the authoritative comparison-step bundle before using raw windows
+- you want a fast C-vs-JS scan without replaying large ad hoc grep pipelines
+
 5. Only after the movement bundle is localized, inspect the specific code path:
 - `js/hack.js`
 - `js/allmain.js`
@@ -145,6 +162,14 @@ node scripts/movement-propagation.mjs \
   --raw-from 458 --raw-to 470 --raw-find-mismatch
 ```
 
+Find the owning step for a newly exposed event:
+
+```bash
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
+  --event-find '^die\\['
+```
+
 ## Interpretation Rules
 
 - If C and JS match through most of a step and then JS stops early, prioritize
@@ -170,6 +195,8 @@ node scripts/movement-propagation.mjs \
   later visible symptom. Fix the earliest raw bundle that shifted.
 - Prefer the default step-window output for proof, because it is bundle-anchored.
   Use raw-window mode only as a microscope around that already-anchored seam.
+- Prefer `--event-find` over ad hoc raw-offset searching when the new clue is
+  an event family (`^die`, `^mattacku`, `^tmp_at_start`, `^dog_goal_obj`).
 
 ## Guardrails
 
@@ -186,3 +213,12 @@ node scripts/movement-propagation.mjs \
 - `docs/MOVEMENT_PROPAGATION_TOOL.md`
 - `skills/parity-rng-triage/SKILL.md`
 - `docs/MAIN_GAMEPLAY_BLOCKERS_2026-03-18.md`
+
+## Companion Tools
+
+- `scripts/step-count-diff.mjs`
+  - best when you suspect conserved work has shifted across adjacent steps
+- `scripts/step-boundary-context.mjs`
+  - best when prompt/message/running ownership may explain the shift
+- `scripts/cell-trace.mjs`
+  - best for remaining screen/cursor seams after gameplay ownership is aligned

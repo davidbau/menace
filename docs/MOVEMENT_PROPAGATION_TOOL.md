@@ -15,6 +15,12 @@ Raw-window mode:
 node scripts/movement-propagation.mjs <session.json> --raw-from <N> --raw-to <M> --raw-find-mismatch
 ```
 
+Event search mode:
+
+```bash
+node scripts/movement-propagation.mjs <session.json> --event-find '<REGEX>'
+```
+
 What it does:
 
 - replays the JS side of a gameplay session
@@ -37,6 +43,10 @@ What it does:
   - C raw key + top line from the recorded fixture
   - JS raw key + top line from live replay
   - optional first raw key mismatch at or after a chosen index
+- can search the authoritative comparison-step view for a specific event family:
+  - matching C entries
+  - matching JS entries
+  - the owning gameplay step and key
 
 Manual-direct sessions:
 
@@ -78,6 +88,10 @@ node scripts/movement-propagation.mjs \
 
 node scripts/movement-propagation.mjs \
   test/comparison/sessions/seed031_manual_direct.session.json \
+  --event-find '^die\\['
+
+node scripts/movement-propagation.mjs \
+  test/comparison/sessions/seed031_manual_direct.session.json \
   --step-from 484 --step-to 484 \
   --mndx 44 --mon-id 196 --monmove-trace
 ```
@@ -89,6 +103,9 @@ Useful flags:
     `runstep`, `domove`, or `lookaround`
 - `--all-rng`
   - print all step RNG/event entries instead of the movement-focused subset
+- `--event-find <REGEX>`
+  - search the comparison-step view for matching C/JS entries
+  - useful when a newly exposed seam is known by event family but not yet by owner
 - `--mon-id <N>`
   - restrict printed step entries and monmove traces to a specific monster id
 - `--mndx <N>`
@@ -119,3 +136,14 @@ Notes:
   most useful on 1-5 gameplay steps
 - for raw-window work, start with 10-20 raw steps around the suspected seam;
   this is the quickest way to see whether JS is consuming later keys too early
+- when a new seam is identified by event family rather than step-local motion,
+  use `--event-find` first, then a narrow step window around the returned step
+
+Companion tools:
+
+- `node scripts/step-count-diff.mjs <session> --find-entry '<REGEX>'`
+  - quick count-shift scan plus targeted event-family search
+- `node scripts/step-boundary-context.mjs <session> --step <N>`
+  - shows prompt/message/running state when ownership across a step boundary is suspected
+- `node scripts/cell-trace.mjs <session> --row <R> --col <C>`
+  - traces display-cell writers once gameplay state is aligned and the remaining seam is visual

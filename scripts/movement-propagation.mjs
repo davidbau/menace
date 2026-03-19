@@ -30,6 +30,7 @@ function usage() {
     console.log('  --raw-to <N>        Last raw replay step to show (default: raw-from)');
     console.log('  --raw-find-mismatch Find the first raw key mismatch at/after raw-from');
     console.log('  --grep <REGEX>      Extra filter for printed entries');
+    console.log('  --event-find <REGEX> Find steps containing matching C/JS entries');
     console.log('  --all-rng           Print all RNG/event entries, not just movement-focused ones');
     console.log('  --mon-id <N>        Filter entries to a specific monster id');
     console.log('  --mndx <N>          Filter entries to a specific monster species index');
@@ -38,6 +39,7 @@ function usage() {
     console.log('Examples:');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed032_manual_direct.session.json --step-from 89 --step-to 91');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed031_manual_direct.session.json --step-from 404 --step-to 407 --grep dog_goal');
+    console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed031_manual_direct.session.json --event-find "^die\\["');
     console.log('  node scripts/movement-propagation.mjs test/comparison/sessions/seed031_manual_direct.session.json --raw-from 478 --raw-to 500');
 }
 
@@ -54,6 +56,7 @@ function parseArgs(argv) {
     let rawTo = null;
     let rawFindMismatch = false;
     let grep = null;
+    let eventFind = null;
     let allRng = false;
     let monId = null;
     let mndx = null;
@@ -72,6 +75,8 @@ function parseArgs(argv) {
             rawFindMismatch = true;
         } else if (a === '--grep') {
             grep = new RegExp(args[++i], 'i');
+        } else if (a === '--event-find') {
+            eventFind = new RegExp(args[++i], 'i');
         } else if (a === '--all-rng') {
             allRng = true;
         } else if (a === '--mon-id') {
@@ -98,7 +103,7 @@ function parseArgs(argv) {
     }
     if (rawFrom == null && rawTo != null) rawFrom = rawTo;
     if (rawFrom != null && (rawTo == null || rawTo < rawFrom)) rawTo = rawFrom;
-    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng, monId, mndx, monmoveTrace };
+    return { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, eventFind, allRng, monId, mndx, monmoveTrace };
 }
 
 function traceStep(line) {
@@ -211,8 +216,25 @@ function buildGameplayRawRanges(cGameplaySteps, rawBase) {
     return ranges;
 }
 
+function findMatchingSteps(cGameplaySteps, jsGroupedSteps, pattern) {
+    const hits = [];
+    const limit = Math.min(cGameplaySteps.length, jsGroupedSteps.length);
+    for (let i = 0; i < limit; i++) {
+        const cEntries = (cGameplaySteps[i]?.rng || []).filter((e) => pattern.test(String(e || '')));
+        const jsEntries = (jsGroupedSteps[i]?.rng || []).filter((e) => pattern.test(String(e || '')));
+        if (cEntries.length === 0 && jsEntries.length === 0) continue;
+        hits.push({
+            step: i + 1,
+            key: cGameplaySteps[i]?.key ?? null,
+            cEntries,
+            jsEntries,
+        });
+    }
+    return hits;
+}
+
 async function main() {
-    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, allRng, monId, mndx, monmoveTrace } = parseArgs(process.argv);
+    const { sessionPath, stepFrom, stepTo, rawFrom, rawTo, rawFindMismatch, grep, eventFind, allRng, monId, mndx, monmoveTrace } = parseArgs(process.argv);
     const absPath = resolve(sessionPath);
     const raw = JSON.parse(readFileSync(absPath, 'utf8'));
     const normalized = normalizeSession(raw, {
@@ -276,6 +298,33 @@ async function main() {
     }
 
     const jsGrouped = groupGameplaySteps(jsReplay, replayArgs.stepBoundaries);
+
+    if (eventFind) {
+        const hits = findMatchingSteps(cGameplaySteps, jsGrouped, eventFind);
+        console.log(`session: ${absPath}`);
+        if (normalized.meta.mode === 'manual-direct-live') {
+            console.log('view: manual-direct comparison view (chargen folded into startup)');
+        }
+        console.log(`event-find: /${eventFind.source}/${eventFind.flags}`);
+        console.log('');
+        if (hits.length === 0) {
+            console.log('(no matching steps)');
+            return;
+        }
+        for (const hit of hits) {
+            console.log(`=== Step ${hit.step} key=${JSON.stringify(hit.key)} ===`);
+            if (hit.cEntries.length > 0) {
+                console.log('C matches:');
+                for (const entry of hit.cEntries) console.log(`  ${entry}`);
+            }
+            if (hit.jsEntries.length > 0) {
+                console.log('JS matches:');
+                for (const entry of hit.jsEntries) console.log(`  ${entry}`);
+            }
+            console.log('');
+        }
+        return;
+    }
     const runTraceByStep = new Map();
     for (const line of runTraceLines) {
         const step = traceStep(line);
