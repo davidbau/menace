@@ -186,10 +186,107 @@ current binary. Validate with the session-recording skill checklist.
 3. After re-recording, per-step comparisons should also match
 4. The total RNG call count for every session should be unchanged
 
+## Self-Critique: Issues the Plan Must Address
+
+### 1. Multi-key prompts (CRITICAL)
+
+Many commands span multiple nhgetch calls: throw (item + direction), zap
+(wand + direction), drop (class + item), eat (item), etc. In C, ALL
+sub-prompt keys are consumed WITHIN one `moveloop_core` iteration:
+
+```
+moveloop_core → rhack → do_throw → getobj → nhgetch(BLOCKS for item)
+                                  → getdir → nhgetch(BLOCKS for direction)
+                                  → throwit
+              → return
+```
+
+Monsters run once (before `rhack`). All sub-prompts happen during the SAME
+iteration. But in JS, `nhgetch` is async — each sub-prompt key triggers a
+SEPARATE `_gameLoopStep` call. If `_gameLoopStep` runs monsters at the top,
+they'd run between sub-prompt keys (e.g., between item selection and
+direction), which C never does.
+
+**Required solution**: `context.move` must be `false` during sub-prompts.
+When a command enters a prompt phase (e.g., "What do you want to throw?"),
+`context.move` should be cleared so the next `_gameLoopStep` skips Phase B.
+Only when the full command completes should `context.move` be set based on
+`tookTime`. The current `promptStep` mechanism already prevents
+`finalizeTimedCommand` from running during sub-prompts — the restructure
+must preserve this guard.
+
+### 2. Running/travel auto-movement
+
+C handles running via `context.mv + multi > 0` in Phase E. Each running
+step dispatches `domove()` and returns, letting the outer loop run monsters.
+JS currently handles running via `advanceRunTurn` which loops WITHIN
+`run_command`. This needs restructuring to match C's per-iteration model.
+
+The plan mentions this in Step 4 but doesn't detail the `advanceRunTurn`
+removal. Running must dispatch one `domove()` per `_gameLoopStep` call.
+
+### 3. Occupation handling granularity
+
+C runs ONE occupation step per `moveloop_core` iteration (line 604).
+JS's `_drainOccupation` loops occupation steps. This must change to
+one-step-per-iteration to match C.
+
+### 4. context.move lifecycle
+
+C sets `context.move = 1` at line 589 (Phase C) BEFORE dispatching. Then:
+- Timed commands leave it as 1
+- Untimed commands set it to 0 (varies by command)
+- The NEXT iteration uses the value to decide whether monsters run
+
+JS needs the same lifecycle. Currently `result.tookTime` is the signal.
+The restructure should set `context.move = result.tookTime` after the
+command finishes, or match C's pattern of setting it to 1 before dispatch
+and having untimed commands clear it.
+
+### 5. replay_core.js must also change
+
+`replay_core.js` drives the game loop for session testing. It uses
+`drainUntilInput` to process all RNG calls per step. The restructured
+loop must work correctly with replay_core's step-boundary logic, or
+replay_core needs matching changes.
+
+### 6. The first iteration problem
+
+At game start, `context.move` is false (no previous command). The first
+`_gameLoopStep` call should skip Phase B and go directly to input. This
+matches C (moveloop_preamble sets things up, first `moveloop_core`
+iteration has `context.move = 0`). Verify this is correct.
+
+### 7. postRender and screen capture timing
+
+Currently `postRender` runs at the end of `run_command`. In the new
+structure it runs in Phase G. But screen capture (`renderAndAutosave`)
+happens in the CALLER after `_gameLoopStep` returns. The screen should
+show: `[monsters from previous] + [player action]` — matching C's screen
+at the `nhgetch` boundary. Verify this produces correct step-screens.
+
+### 8. Re-recording scope
+
+ALL sessions (120+) need re-recording. With `rerecord.py --all --parallel 8`
+this takes ~30 minutes. Each re-recorded session must be validated per the
+session-recording skill checklist. This is mechanical but large.
+
+### 9. Incremental testing strategy
+
+The plan should be executed incrementally:
+- Step 1 alone (extract `processTurnEnd`) should not change behavior
+- Step 2+3 together change step boundaries — test rngFull before re-recording
+- Steps 4+5 (multi/occupation) can be deferred if they don't affect the
+  3 failing sessions, reducing blast radius
+- Step 6 (re-record) only after rngFull validation passes
+
 ## Risk
 
-HIGH — this restructures the core game loop. But:
+HIGH — this restructures the core game loop. Mitigations:
 - The flat RNG stream is unchanged (same calls in same order)
 - The logic is unchanged (same code, just called from different position)
 - Each step is independently testable
 - We have re-recording infrastructure to update all sessions
+- Incremental execution reduces blast radius
+- Multi-key prompt handling is the biggest risk — must be tested with
+  throw/zap/drop/eat sessions specifically
