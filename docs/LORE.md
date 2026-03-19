@@ -528,6 +528,19 @@ even when flee timing doesn't change. Missing this creates hidden-state drift:
 later `m_move` backtrack checks (`rn2(4 * (cnt - j))`) consume a different
 number of RNG calls even while visible screens still match.
 
+### `m_balks_at_approaching()` must use `mux/muy` and `m_canseeu()`
+
+C `m_balks_at_approaching()` is not based on the hero's real coordinates. It
+uses the monster's current apparent target (`mux/muy`) and leaves `appr`
+unchanged when `!m_canseeu(mtmp)`. JS code that uses `player.x/player.y` or
+omits the `m_canseeu()` early return will spuriously flip ranged monsters to
+retreat (`appr=-1`) while they are still chasing in C.
+
+Practical rule: for ranged-retreat heuristics, match C exactly:
+- compute `edist` from `mx/my` to `mux/muy`
+- return `oldappr` when the monster cannot currently see the hero
+- only then consider launcher/polearm/ranged-attack retreat rules
+
 ---
 
 ## C-to-JS Translation Patterns

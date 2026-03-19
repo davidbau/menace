@@ -1116,3 +1116,39 @@ Current conclusion:
   generation/finalization
 - the live seam has moved later to post-entry monster movement (`distfleeck` /
   `m_move` / `mfndpos`)
+
+## 2026-03-19: `m_balks_at_approaching()` must respect `m_canseeu()` and `mux/muy`
+
+- `seed031_manual_direct` had a real post-entry monster movement bug in the
+  gnome-line bundle after the branch-entry Mines fixes.
+- The failing gnome lord was entering `m_move()` with `appr=-1` on the JS side
+  even though:
+  - `turn-start ... flee=0`
+  - `distfleeck ... flee=0`
+- Direct JS trace showed the flip happened before item-search, inside
+  `m_balks_at_approaching()`.
+- Root cause:
+  - JS `m_balks_at_approaching()` was using the hero's real coordinates rather
+    than `mux/muy`
+  - and it lacked the C early return on `!m_canseeu(mtmp)`
+- C behavior (`monmove.c:1198-1217`) is:
+  - compute `edist` against `mux/muy`
+  - leave `appr` unchanged when the monster cannot currently see the hero
+- Fix:
+  - [`js/monmove.js`](/share/u/davidbau/git/mazesofmenace/game/js/monmove.js)
+    now uses `mux/muy` for `edist` and returns early when `!m_canseeu(mon)`
+- Validation:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+    - improved:
+      - RNG matched `23197 -> 23297`
+      - events matched `10800 -> 10804`
+    - old frontier removed:
+      - no more gnome-lord retreat drift at step `479/480`
+  - guardrails stayed green:
+    - `test/comparison/sessions/t04_s705_w_minefill_gp.session.json`
+    - `test/comparison/sessions/coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`
+- New live frontier:
+  - later slow-monster post-move `distfleeck()` seam around step `484`
+  - current visible mismatch:
+    - C:  `^distfleeck[44@38,10 ... brave=0 ...]`
+    - JS: `^distfleeck[44@38,10 ... brave=1 ...]`

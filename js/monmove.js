@@ -2534,9 +2534,12 @@ export function m_balks_at_approaching(oldappr, mon, player) {
     const mdat = mon.data || mon.type || {};
     if (mon_is_peaceful(mon) || mon_is_tame(mon)) return oldappr;
 
-    const edist = dist2(mon.mx, mon.my, player.x, player.y);
-    // C ref: monmove.c:1195 — peaceful, far away (5*5=25), or can't see hero
-    if (edist >= 25) return oldappr;
+    const ux = Number.isInteger(mon.mux) ? mon.mux : player.x;
+    const uy = Number.isInteger(mon.muy) ? mon.muy : player.y;
+    const edist = dist2(mon.mx, mon.my, ux, uy);
+    // C ref: monmove.c:1208-1209 — leave appr unchanged when peaceful, far,
+    // or the monster cannot currently see the hero.
+    if (edist >= 25 || !m_canseeu(mon)) return oldappr;
 
     // C ref: monmove.c:1199-1200 — has launcher+ammo → retreat
     if (m_has_launcher_and_ammo(mon)) return -1;
