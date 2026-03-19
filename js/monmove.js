@@ -2103,6 +2103,10 @@ export async function m_move(mon, map, player, display = null, fov = null) {
     let chcnt = 0;
     let chosenIdx = -1;
     let mmoved = false;
+    // C ref: monmove.c:1877 — preferred range for appr==-2 (throw-and-return weapons).
+    // Currently always 0 since autoreturn_weapon is not implemented.
+    const preferredRangeMin = 0;
+    const preferredRangeMax = 0;
     const jcnt = Math.min(MTSZ, cnt - 1);
     if (!mon_is_peaceful(mon)
         && map?.flags?.shortsighted
@@ -2157,9 +2161,14 @@ export async function m_move(mon, map, player, display = null, fov = null) {
         // Important: for appr==0, rn2(++chcnt) is evaluated even when this is
         // the first candidate; the fallback "mmoved==MMOVE_NOTHING" check is
         // the final OR term in C.
+        // C ref: monmove.c:1965-1973 — position selection conditions.
+        // appr == -2 is for throw-and-return weapons (maintain preferred range).
         if ((appr === 1 && nearer)
             || (appr === -1 && !nearer)
             || appr0Pick
+            || (appr === -2
+                && ((ndist <= preferredRangeMin && !nearer)
+                    || (ndist >= preferredRangeMax && nearer)))
             || !mmoved) {
             nix = nx;
             niy = ny;
