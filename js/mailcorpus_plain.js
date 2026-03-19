@@ -624,6 +624,206 @@ anything seems wrong with your files.
   walz`
   },
 
+  {
+    from: 'walz',
+    subject: 'proposal: item blessing/cursing for nethack',
+    body: `rodney,
+
+i've been thinking about the magical item system and i think we're
+missing a layer that would make the game much more interesting.
+
+current state: items are what they are.  a potion of healing heals.
+a scroll of enchant weapon enchants.  no surprises once you know the
+item.
+
+proposal: blessed/uncursed/cursed status on every item.
+  - blessed: enhanced effect
+  - uncursed: normal effect
+  - cursed: effect inverted, reduced, or just bad
+
+examples:
+  blessed potion of healing:  full heal + temporary max-hp boost
+  cursed potion of healing:   drains max hp instead of restoring it
+  blessed scroll of enchant:  +2 instead of +1
+  cursed scroll of enchant:   -1 (the weapon degrades)
+
+the player wouldn't know the status until they use the item or
+identify it.  this adds a layer of risk to everything.
+"do i drink this now or wait until i can identify it?"
+
+it also creates a use for holy water (bless items) and a reason
+to fear cursed items beyond just the item's base effect.
+
+thoughts?  i can prototype the data structure if the concept is sound.
+
+  walz`
+  },
+  {
+    from: 'walz',
+    subject: 'Re: potion mixing -- initial thoughts',
+    body: `rodney,
+
+following up on our conversation at the terminal last tuesday.
+
+the core idea: if you have two potions and pour one into the other,
+you get a third potion whose identity depends on the combination.
+not every pair has a defined result -- most would produce a "muddy
+potion" (unknown, probably bad).  a few specific pairs would have
+known good results.
+
+useful combinations i've been thinking about:
+  healing + gain level  ->  extra healing (or full heal?)
+  confusion + paralysis ->  sleeping draught (new item type)
+  water + any blessed   ->  diluted version (weaker but still works)
+  water + holy water    ->  more holy water (blessed water breeds)
+  two of the same       ->  double-strength version?
+
+the tricky part is implementation.  you'd need a "pour" verb,
+a mixing table, and new item variants for the results.
+
+the blessing/cursing system i proposed last week interacts with this:
+  blessed + cursed = ?  (neutralize?  explode?  both seem fun)
+
+i don't know if this is too complex for the current scope.
+but the player behavior it would create is interesting:
+hoard potions, experiment carefully, occasionally make a terrible mistake.
+
+  walz`
+  },
+  {
+    from: 'walz',
+    subject: 'wand recharging -- design question',
+    body: `rodney,
+
+side question on the magical item system:
+
+currently wands have charges that deplete.  when they're empty,
+they're useless.  the player throws them away or uses them as
+weapons (low damage, unsatisfying).
+
+what if wands could be recharged?  options i see:
+
+1. scroll of recharging.  straightforward.  too easy?
+   maybe the scroll adds 1-3 charges, randomly.  could still fail.
+
+2. wand + wand.  zap one wand at another to transfer charges.
+   destructive to the source wand.  interesting tradeoff.
+
+3. fountain interaction.  some fountains recharge wands.
+   most fountains do other things (curses, water moccasins, etc.).
+   unpredictable.  feels right for nethack.
+
+option 3 seems most consistent with the game's personality:
+"there might be a way to do this, but you won't know until you try,
+and trying has risks."
+
+also: i looked at the wand-of-wishing question from the mailing list.
+if we add it, it probably needs to be the rarest item in the game.
+one per run, if that.  and wishes should have limits --
+no wishing for another wand of wishing.
+
+  walz`
+  },
+  {
+    from: 'walz',
+    subject: 'potion identification -- naming conventions',
+    body: `rodney,
+
+small thing but it matters for the potion mixing work:
+
+right now potions are identified by appearance (bubbly, smoky, etc.)
+until the player figures out what they are.  the names are good.
+i want to make sure any new potions from mixing have names that fit.
+
+existing appearance names (from the source):
+  ruby, bubbly, smoky, cloudy, effervescent, fizzy, dark, milky,
+  murky, gooey, slimy, transparent, brilliant blue, clear, orange,
+  yellow, black, magenta, white, cyan, pink, purple-red, golden
+
+proposed names for mixed results:
+  muddy (failed mix -- opaque brown, warning color)
+  swirling (two potions not fully combined -- unstable)
+  steaming (exothermic mix -- could be dangerous to hold)
+  crystalline (successful beneficial mix -- obviously special)
+
+i like "steaming" because it signals danger before the player drinks.
+that's fair warning without making it too safe.
+
+the murky potion is currently something specific -- check that
+"muddy" doesn't collide.
+
+  walz`
+  },
+  {
+    from: 'walz',
+    subject: 'item property ideas -- rings and amulets',
+    body: `rodney,
+
+continuing the magical item thread.  rings and amulets next.
+
+rings in rogue are already interesting (searching, protection, etc.).
+nethack could expand the concept with more active effects.
+
+ring ideas:
+  ring of slow digestion   -- you don't get hungry as fast
+  ring of regeneration     -- slow HP recovery over time (like trolls)
+  ring of conflict         -- nearby monsters fight each other
+  ring of free action      -- immune to paralysis and slow
+  ring of levitation       -- you float, can cross water, can't go down stairs
+  ring of polymorph control -- if you're polymorphed, you choose the form
+
+the conflict ring is the one i'm most excited about.  you walk into
+a room full of monsters and they all start fighting each other.
+the catch: they might fight YOU too, and you're outnumbered.
+also: shopkeepers would try to kick you out if you wore it.
+
+amulet of ESP (know monster positions through walls) seems obvious.
+amulet of life saving (survive one death) is powerful but interesting.
+you'd ration it carefully.  wear it or save it?
+
+the yendor amulet should remain unique.  it's the goal item.
+diluting it with a category of amulets would change the feel.
+
+  walz`
+  },
+  {
+    from: 'walz',
+    subject: 'Re: artifact weapons -- uniqueness mechanic',
+    body: `rodney,
+
+the mailing list thread about artifact weapons got me thinking.
+
+basic idea: a small number of named weapons with unique properties.
+not randomly generated -- specific items that always have the same
+name and the same abilities.  excalibur, the sword of fire, etc.
+
+arguments for:
+  - gives experienced players something to aim for specifically
+  - lore hooks: players read about them, know what to look for
+  - the uniqueness makes finding one feel significant
+
+arguments against:
+  - undermines the random generation philosophy
+  - players who know the game will beeline for them
+  - balancing named items is harder than balancing item classes
+
+middle ground i keep coming back to:
+  - artifacts exist but their locations are random (not fixed)
+  - only one of each can exist per game (if you find excalibur, no other
+    excalibur exists on this run)
+  - finding one via a wish counts against the artifact pool
+
+this preserves randomness while making specific items special.
+
+the "sacrifice on high altar" method of obtaining them might also work.
+makes the player go out of their way.  fits the dungeon logic.
+
+i don't know if the current code supports unique item tracking.
+probably needs a flag in the item struct.
+
+  walz`
+  },
+
   // ----- toy (~10) -----
 
   {
@@ -2774,6 +2974,69 @@ check the tapes.  recovery is possible but slow -- plan for
           },
         ],
       },
+      {
+        keywords: ['potion', 'mixing', 'combine', 'blessed', 'cursed', 'item', 'artifact', 'ring', 'wand', 'scroll'],
+        responses: [
+          {
+            subject: "Re: item design",
+            body: `rodney,
+
+good question on the item mechanics.
+
+my current thinking: the blessed/cursed layer should be added
+to everything simultaneously, not item-by-item.  if it's only
+on some items the player can't build consistent mental models.
+"does cursing apply to rings?  to wands?  to armor?"
+the answer should be yes, always.
+
+the specific effect of the curse is what varies.  a cursed ring
+of slow digestion could speed up digestion instead.  a cursed
+wand of light could put out light instead.  the inversion is
+the mechanic; the specific behavior is per-item.
+
+  walz`
+          },
+          {
+            subject: "Re: potion mixing",
+            body: `rodney,
+
+on potion mixing: i think the implementation is simpler than
+it looks if you use a lookup table keyed by (type_a, type_b).
+
+most entries in the table are "muddy potion" (failed mix).
+the good combinations are sparse -- maybe 8-12 specific pairs
+out of hundreds of possible combinations.
+
+the player has to experiment to find the good pairs.
+this is exactly the kind of emergent knowledge that makes
+nethack interesting: veterans know things beginners don't,
+but the knowledge was earned by dying a lot first.
+
+  walz`
+          },
+          {
+            subject: "Re: wand/ring proposal",
+            body: `rodney,
+
+the ring of conflict idea is the strongest one on the list.
+the interaction surface is huge -- hostile to shopkeepers,
+causes chaos in large rooms, could be countered by something
+(ring of peace? amulet of calm?).
+
+be careful about power creep on the wand side.  wands are
+already the strongest item class.  wand of wishing especially
+needs careful constraints.
+
+my rule of thumb for magical items: the most powerful items
+should have the most dangerous failure modes.
+wand of death that misfires and hits you.
+ring of polymorph control that randomly activates.
+that way the player always has a choice to make.
+
+  walz`
+          },
+        ],
+      },
     ],
     genericResponses: [
       {
@@ -3728,6 +3991,42 @@ Note: the terminal cursor is jumping on the inventory screen again.
 Lost two entries to display corruption.  Mailed Walz.  Waiting.
 `,
 
+    'shopkeeper_notes': `\
+On being a shopkeeper in a dungeon
+Izchak Miller
+
+The philosophical problem: you are a rational economic actor in an
+environment where the customers routinely die, where the merchandise
+can kill you, and where the walls are occasionally passable.
+Standard retail assumptions do not apply.
+
+Adaptations I have made:
+
+1. All transactions are immediate.  No credit.  The customer who
+   owes me money will be dead before I can collect.  I learned this
+   early.  I do not feel bad about it anymore.
+
+2. I price to the information asymmetry.  The customer does not know
+   what the items do.  I do.  This is a service I provide: knowledge.
+   When I say "this is a potion of healing, uncursed," I am charging
+   for certainty.  The alternative is guessing.  Guessing costs more.
+
+3. I do not carry wands of death.  The liability is unacceptable.
+   A customer who misuses a wand of striking breaks some things.
+   A customer who misuses a wand of death kills things.  Possibly me.
+   The margin is not worth it.
+
+4. Pets are a problem.  The customer's cat is not a paying customer.
+   The cat does not understand this distinction.  Several items have
+   been knocked off shelves.  I am considering a policy.
+
+On the future of the shop:
+The dungeon keeps generating new levels.  There is no level 100;
+the game simply produces more.  Theoretically I could open a branch
+on level 8.  I know someone down there.  The logistics would be
+complicated.  More dragons at that depth.  Thinking about it.
+`,
+
     'complaints': `\
 INCIDENT LOG -- General Store, Dlvl 4
 Running record of notable incidents.  For my reference only.
@@ -3807,6 +4106,39 @@ XYZZY chamber when it's quiet.  That's how I found the passage.
 Followed the sound.
 `,
 
+    'parser_notes': `\
+On natural language parsing for games
+W. Crowther
+
+The adventure program uses two-word commands: verb + noun.
+GO NORTH.  GET LAMP.  KILL DRAGON.
+
+This works because the player's intent is constrained.
+They can only do a few things.  The parser doesn't need to
+understand language -- it needs to understand game actions.
+
+The two-word limit is not a compromise; it is an insight.
+Richer language does not produce richer play, it produces
+parser errors.  "PUT THE LAMP ON THE TABLE CAREFULLY" fails.
+"PUT LAMP TABLE" might work.  The player learns quickly.
+
+Don Woods asked about multi-word input.  I said yes, he could
+add it.  He did.  Some of his extensions work.  Some produce
+the frustrating "I don't understand that" message that the
+two-word parser largely avoided.
+
+The principle I keep coming back to: the parser is a contract
+with the player.  You tell them what the contract is, implicitly,
+by what you accept.  If you accept "PUT LAMP" you have made a
+promise about "PUT LAMP TABLE."  If you accept "TAKE" you have
+promised "TAKE ALL."  Every accepted command creates an
+expectation.  Keep the contract narrow and you can keep it.
+
+I don't know if I'd design it differently now.  Two words was
+probably right for what I was building.  For something richer
+you'd need a different theory of the interface.
+`,
+
     'adventure': `\
 Notes on the cave game
 W. Crowther, early 1975
@@ -3874,6 +4206,40 @@ That's an unsatisfying explanation, but honest.
 
 Glenn Wichman gets half the credit.  He wrote the first room
 generator.  The bones of the level layouts are his.
+`,
+
+    'permadeath_essay': `\
+Why permadeath is correct
+Michael Toy
+
+I keep having to defend this so I'm writing it down.
+
+The argument against permadeath: "You lose all your progress.
+That's frustrating.  Let people save and reload."
+
+The argument for: saving and reloading removes the stakes.
+Without stakes the game is a series of puzzles with no cost
+for failure.  You try things until they work.  The dungeon
+becomes a jigsaw puzzle with infinite attempts.
+
+Rogue with saves is a different game.  Not worse, just different.
+The game I want is one where the run matters.
+
+The insight: death in a save-enabled game is a minor setback.
+Death in Rogue is the end.  The emotional impact is completely
+different.  You play differently when losing means really losing.
+You take risks you wouldn't otherwise take because you have to --
+the hunger timer runs, the food doesn't last.  You play carefully
+because every mistake is permanent.  Both at once.  That tension
+is what I'm after.
+
+The secondary insight: permadeath makes every run different.
+Not just because the dungeon is random -- because you are
+different.  You bring the knowledge from previous deaths.
+The character dies; the player learns.  This is the game.
+
+Ken agrees with me on this.  Glenn is on the fence.
+I don't think you can be on the fence.  It's a design commitment.
 `,
 
     'todo': `\
@@ -3948,6 +4314,46 @@ Combining them is unreliable; don't depend on it in production.
 Rodney's terminal is one of the bad ones.  I've checked.
 `,
 
+    'termlib_notes': `\
+Terminal capability abstraction
+Ken Arnold
+
+The problem with terminal-specific code: every terminal is different.
+VT100, ADM-3A, Concept, Hazeltine -- each has its own escape sequences.
+If you hard-code VT100 sequences, your program breaks on everything else.
+
+The solution is an abstraction layer.  A database of terminal capabilities
+keyed by terminal type (from $TERM).  The program asks "how do I move
+the cursor to row 5, column 10 on this terminal" and the library
+looks it up and emits the right sequence.
+
+This is what termcap does.  This is what I built curses on top of.
+The key insight: the program never emits escape sequences directly.
+It calls library functions, and the library handles the translation.
+
+Capability names I use constantly:
+  cm -- cursor movement (parameterized: row and column)
+  cl -- clear screen
+  ce -- clear to end of line
+  so/se -- standout on/off (reverse video)
+  ti/te -- terminal init/exit (save/restore state)
+  ks/ke -- keypad on/off
+
+The parameterized capabilities (cm especially) are the tricky ones.
+The format is not uniform across terminals.  Some use printf-style,
+some use a stack-based mini-language.  Termcap strings have their
+own little encoding.  I've spent time I will not recover on this.
+
+The implication for portable software: use curses, not raw terminal
+sequences.  If you write to /dev/tty directly you are writing
+VT100-only code whether you know it or not.  Curses abstracts that.
+It is not a perfect abstraction.  But it is much better than nothing.
+
+Future direction I keep thinking about: a proper compiled terminal
+database rather than the current text-based termcap.  Faster startup,
+less parsing.  Someone should build it.
+`,
+
     'vt100': `\
 VT100 terminal reference notes
 K. Arnold
@@ -3985,6 +4391,41 @@ Line mode vs. character mode:
   // fenlason -- root only
   // -----------------------------------------------------------------------
   fenlason: {
+    'free_software_notes': `\
+Notes on software distribution
+Jay Fenlason
+
+Hack is free.  Not free like "we're not charging right now"
+but free like "you can have the source and do what you want."
+This is not an accident; it's a position.
+
+The argument I keep having: "but what if someone sells it?"
+My answer: so what?  If they improve it and I get those
+improvements back, we all win.  If they don't improve it,
+they've just sold a thing I gave away, which is mildly annoying
+but not actually a problem for me.
+
+The argument I find more interesting: tools should be free
+because control over tools is control over people.
+If the compiler is proprietary, the people who need it are
+dependent on the people who own it.  That's a power relationship
+I don't want to be in.
+
+Harvey agrees with this.  He's been talking about curriculum
+design and how depending on vendor-locked tools shapes what
+gets taught.  We came at the same question from different angles.
+
+I've been in touch with some people at MIT who are thinking about
+this more systematically.  There may be something happening there.
+Stallman keeps writing about it.  I read his manifesto drafts.
+He is not wrong, even where he's wrong about the details.
+
+If I get time after Hack settles, I want to write a proper tar
+replacement.  The existing one has limitations that are starting
+to bite.  Free tools to replace the ones we use.  That seems
+like useful work.
+`,
+
     'hack_notes': `\
 Hack development notes
 Jay Fenlason
@@ -4031,6 +4472,41 @@ Note on the source tree:
   // lebling -- root only
   // -----------------------------------------------------------------------
   lebling: {
+    'parser_design': `\
+Parser design for interactive fiction
+Dave Lebling
+
+The core problem: the player types English, the parser must act on it.
+English is ambiguous.  "GET SWORD" -- which sword?  "ATTACK TROLL" --
+with what?  The parser needs resolution strategies.
+
+Our approach in Zork:
+1. Use the object in scope that makes most sense.  "GET SWORD" picks
+   the nearest, most recently mentioned sword.  This is usually right.
+2. Ask for clarification only when the ambiguity matters.
+   "Which sword -- the rusty one or the elvish one?" as a fallback.
+3. Pronouns.  "GET IT" after "I see a lamp" should mean the lamp.
+   We track the last referenced noun.  This works often enough.
+
+The verb vocabulary problem: players try everything.
+PUSH, PULL, TURN, SPIN, ROTATE, TWIST -- these might all mean the
+same thing, or they might not.  The parser has to decide.
+Our solution: synonyms keyed to canonical verbs.  TWIST = TURN.
+YANK = PULL.  You can't cover everything, but you can cover the common
+case and give reasonable error messages for the rest.
+
+The error message is part of the design.  "You can't do that" is
+bad.  "The troll is unimpressed by your attempt to talk to him" is
+better.  The game world is communicating even when it refuses.
+
+The thing I'd do differently: more first-person narration.
+"You are in a twisting passage" is fine.  "The air here smells of
+water from somewhere ahead" is better.  The second kind of writing
+builds a world.  We didn't write enough of it in Zork I.
+Zork II is better.  The Wizard of Frobozz is a character, not
+just an obstacle.  I think we learned something there.
+`,
+
     'narrative_notes': `\
 Design notes -- interactive fiction
 Dave Lebling, Infocom
@@ -4076,6 +4552,47 @@ I should write this up properly sometime.
   // blank -- root only
   // -----------------------------------------------------------------------
   blank: {
+    'zmachine_notes': `\
+Z-machine architecture notes
+Marc Blank
+
+Why the Z-machine?
+
+When we wrote Zork at MIT we ran it on the DEC-20.  60KB of memory
+for the game state, running on a machine with real horsepower.
+Porting it to microcomputers meant rewriting it from scratch.  A
+TRS-80 or Apple II has 48-64KB total.  The DEC-20 binary was larger
+than the entire address space.
+
+The Z-machine solves this by compiling to a bytecode that is
+interpreted at runtime.  The game is not native machine code;
+it is data.  The interpreter is a small native program.
+The game file can be as large as the virtual address space of
+the Z-machine, which we define to be large enough.
+
+Design goals:
+1. Small interpreter footprint (under 16KB).  The game file gets
+   the rest of memory.
+2. Fast bytecode execution.  The game must be responsive.
+3. Portable.  One interpreter per platform, all game files work.
+4. Self-describing.  The game file knows what version it is.
+
+Version 1 targeted 8-bit micros: TRS-80, Apple II, CP/M machines.
+Version 3 added extended memory, sound, and status lines.
+The versioning is deliberate: we can improve the format without
+breaking old interpreters.
+
+The text compression is the part I'm proudest of.  English text
+at 5 characters per word averages to about 2 bytes per word with
+our encoding.  The game file for Zork I is under 100KB.
+Without compression it would be 200KB.  That is the difference
+between fitting on a single floppy and not.
+
+What I would build next: streaming from disk.  Right now the
+whole game fits in RAM.  If it didn't we could support much
+larger games.  The interpreter would need a cache.  Doable.
+`,
+
     'product_notes': `\
 Product planning notes -- Infocom
 Marc Blank
@@ -4157,6 +4674,56 @@ Recent incidents:
   issue, not hardware.  His inventory screen is running a refresh
   loop with no dirty-checking.  Mailed Arnold.  This is a curses
   problem, not a system problem.  Removing from my queue.
+`,
+
+    'item_design_notes': `\
+Magical item system notes
+J. Walz
+(notes from discussions with rodney and fenlason)
+
+The item design problem is fundamentally a combinatorics problem.
+Every item interacts with every other item.  Add N items and you
+get O(N^2) interactions to specify.  Most of them are "nothing
+happens" but some have to be interesting.
+
+My framework for thinking about it:
+
+Layer 1: Base identity.  What the item is.
+  potion of healing, scroll of enchant weapon, wand of striking, etc.
+
+Layer 2: Blessed/uncursed/cursed status.  Modifier on the base.
+  This multiplies the interaction space by 3 but the rule is
+  consistent: blessed = enhanced, cursed = inverted or harmful.
+  Consistent rules are better than case-by-case exceptions.
+
+Layer 3: Combination effects.  When items interact.
+  This is where it gets expensive.  Mixing two potions requires
+  specifying behavior for O(n^2) pairs.  Most are "muddy potion."
+  The interesting pairs should be discoverable but not obvious.
+
+The mixing table I've been drafting:
+  healing + healing         = extra healing (trivial, just double)
+  healing + gain level      = full HP restore + temp level buff
+  confusion + paralysis     = sleep (new state, different from both)
+  confusion + confusion     = extra confusion (duration only)
+  levitation + speed        = interesting -- fast floating?
+  water + blessed anything  = diluted version (weaker but safe)
+  see invisible + blind     = very interesting: see while blind?
+  gain level + gain ability = probably too powerful, reconsider
+
+The "see while blind" case is the one I'm most interested in.
+Thematically it's right: magical sight that doesn't use your eyes.
+Mechanically it would need a new vision flag.  Not hard to add.
+
+Potion color/appearance names for new mixed results:
+  swirling: mix in progress (intermediate state, unstable)
+  steaming: exothermic reaction (dangerous to hold too long)
+  crystalline: clearly positive result (reward for good mixing)
+  muddy: failed mix (the common case)
+
+The implementation I'd suggest: add potion_mix[][] table to an
+include file.  Keep it separate from the main item code so it
+can be edited independently.  Fenlason concurs.
 `,
 
     'ir_notes': `\
@@ -4350,6 +4917,48 @@ The key difference from BASIC: Logo has no line numbers.
 This is not an accident.  Seymour Papert thought about this.
 `,
 
+    'scheme_notes': `\
+Why Scheme
+Brian Harvey
+
+Scheme is Lisp with a cleaned-up syntax and proper tail calls.
+For teaching it has advantages over Logo and advantages over BASIC.
+
+Over Logo:
+  - No turtle required.  You can introduce Scheme without any
+    graphics.  The abstractions stand on their own.
+  - The evaluation model is explicit.  (+ 1 2) evaluates to 3.
+    The parens are the syntax for function application.
+    Students see this and can generalize it.
+  - Closures.  Logo has procedures; Scheme has first-class functions
+    that close over their environment.  This is important later.
+
+Over BASIC:
+  - No line numbers.  I keep saying this.  It matters.
+  - Recursion instead of iteration as the primary abstraction.
+    Iteration is a special case.  When you start with recursion
+    you understand why loops exist.
+  - Data and programs have the same syntax.  A list of numbers
+    and a program expression are both lists.  Students who
+    internalize this can reason about code as data.
+    This is where metaprogramming and macros come from.
+    This is where Lisp's strange power comes from.
+
+The argument against Scheme for introductory CS:
+"Employers want FORTRAN/COBOL/Pascal, not Lisp."
+True.  Also true that employers want workers who can learn.
+Teaching the right ideas in the wrong language is better
+than teaching the wrong ideas in the right language.
+
+I'm planning a curriculum sequence: Logo in middle school
+(concrete, turtle graphics, fun), Scheme in high school
+(abstract, formal, powerful).  The two connect -- Logo is
+Lisp with English syntax.  The transition should be natural.
+
+Draft outline for a Scheme textbook exists.  Three chapters done.
+Working title: "Simply Scheme."  Needs a better title.
+`,
+
     'cs_ed': `\
 What we are actually teaching
 Brian Harvey
@@ -4478,6 +5087,47 @@ Things I would do differently:
 
 The room generator is the part of Rogue I'm proudest of.
 Most players never think about it.  That means it's working.
+`,
+
+    'game_design_future': `\
+Thoughts on game design going forward
+Glenn Wichman
+
+What would I do differently in a sequel to Rogue?
+
+1. More varied level types.
+   Every level in Rogue is the same kind: rooms and corridors.
+   You could have levels that are mostly open, or mostly maze,
+   or flooded (you can only move through water), or ruined
+   (walls don't form complete rooms).  The current generator
+   can't do this -- it's designed for one level type only.
+   A generation pipeline with pluggable level templates would
+   be better architecture.
+
+2. Factions.
+   Monsters don't care about each other.  A dragon and a kobold
+   in the same corridor ignore each other until you show up.
+   If monsters had affiliations -- some hostile to others --
+   you could use that.  Lead a dragon toward the kobolds.
+   Use the monster-on-monster damage.  More tactical options.
+
+3. The time axis.
+   Everything in Rogue is turn-based, which is right.
+   But what if the dungeon had events that happened on a timer?
+   "The ghost of a previous adventurer appears on turn 100."
+   "The orcs from level 3 patrol this level every 50 turns."
+   This would make the dungeon feel like a place with history.
+
+4. Why I won't do it.
+   Graphics.  The future of games is graphics.
+   What I just described above can be done with text characters
+   on a 24x80 terminal.  It's powerful.  But the market is moving
+   toward bitmap displays and I'm interested in graphics research.
+   If I'm working on games they'll be graphical.
+
+Hack already does some of this better than Rogue.  Jay's team
+is doing good work.  The text-mode dungeon game will keep
+evolving without me.  That seems fine.
 `,
 
     'grad_notes': `\
@@ -4694,6 +5344,44 @@ Key decisions:
 Status: usable.  I'm writing this file in JOVE.  That's the test.
 `,
 
+    'jove_distribution': `\
+Notes on releasing JOVE
+Jonathan Payne
+
+JOVE works.  I use it daily.  The question is what to do with it.
+
+Options:
+1. Keep it for myself.  No maintenance burden.  Nobody else's
+   bugs to fix.  This is the comfortable choice.
+2. Give it to the school -- install it as the default editor
+   for everyone.  More testing.  Some bug reports.
+3. Release it publicly on USENET or the net.
+
+I keep coming back to option 3.  The reason: every serious
+programmer I know uses either vi or emacs.  Vi is small but
+its editing model requires learning a different language
+(normal mode, insert mode, command mode).  Emacs is powerful
+but enormous.  JOVE is the thing in the middle.
+
+The question is whether the middle is a real market or just
+the thing I think I want because I built it.
+
+The key limitation: JOVE is not extensible.  Emacs gets its
+power from the Lisp layer.  If you want something JOVE doesn't
+do, you're stuck.  If you want something Emacs doesn't do,
+you write a function.  I cut the Lisp layer to keep it small.
+This was the right call for this machine.  It might not scale.
+
+Longer-term question I can't stop thinking about:
+What if the editor was also a platform for other things?
+Not just editing text -- but coordinating with tools, managing
+state, interacting with running processes.  Emacs already
+does some of this (M-x compile, M-x gdb).  The editor as
+an environment, not just a text buffer.
+
+That's a different kind of software.  Probably not for now.
+`,
+
     'hack_ideas': `\
 Hack ideas
 J. Payne
@@ -4843,6 +5531,43 @@ they seem important and I don't want to forget them.
 
 Note from Scott: "you keep asking questions that companies are
 trying to solve."  Yeah.  That's kind of the point.
+`,
+
+    'distribution_problem': `\
+The software distribution problem
+Josh Sirota
+
+Currently, to get software from one machine to another you:
+  1. Find a tape and hope it's the right format.
+  2. Or use a modem at 300 baud and wait.
+  3. Or physically carry a disk.
+
+None of these scale.  Option 3 is called "sneakernet."
+The joke is that the bandwidth of a station wagon full of
+tapes is higher than most networks.  The joke is true.
+It is also evidence that the actual problem is not bandwidth --
+it is protocol and discovery.
+
+The ARPA network already solves the transport layer.
+Packets route around failure.  FTP moves files.  SMTP moves mail.
+The missing piece is discovery: how do you know the file exists,
+where it is, and whether it's current?
+
+What I want: a system where software is published to a named
+location, and any machine that wants it can subscribe to updates.
+Author pushes; subscribers pull.  No sneakernet.  No FTP by hand.
+The client checks for new versions automatically.
+
+The hard part isn't the protocol.  It's the trust model.
+If the author pushes an update, do I apply it automatically?
+What if the update is bad?  What if the author's account
+was compromised?  You need signatures.  You need version
+pinning.  You need rollback.
+
+This is a real systems problem, not just networking.
+I'm going to think about it more when I get to college.
+Maybe at the time I'll have access to machines where this
+actually matters.
 `,
 
     'stanford_log': `\
