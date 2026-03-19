@@ -3,6 +3,7 @@
 
 import { vfsReadFile, vfsWriteFile, vfsDeleteFile, vfsListFiles, loadSaveMeta, loadAutosaveMeta } from '../js/storage.js';
 import { loadScores } from '../js/topten.js';
+import { HOME_FILES } from '../js/mailcorpus.js';
 
 // The logged-in user
 export const USERNAME = 'rodney';
@@ -321,6 +322,16 @@ function computeHomeDirChildren() {
     return result;
 }
 
+// Build static file nodes for a user's home dir from HOME_FILES corpus.
+function homeFilesFor(username) {
+    const files = (HOME_FILES && HOME_FILES[username]) || {};
+    const result = {};
+    for (const [name, content] of Object.entries(files)) {
+        result[name] = { type: 'file', content, readonly: true, owner: username, group: username };
+    }
+    return result;
+}
+
 function buildTree() {
     return {
         type: 'dir', children: {
@@ -385,16 +396,18 @@ function buildTree() {
                         },
                         computeChildren: computeHomeDirChildren,
                     },
-                    izchak:   { type: 'dir', children: {}, restricted: true },
-                    crowther: { type: 'dir', children: {}, restricted: true },
-                    toy:      { type: 'dir', children: {}, restricted: true },
-                    arnold:   { type: 'dir', children: {}, restricted: true },
-                    fenlason: { type: 'dir', children: {}, restricted: true },
-                    brouwer:  { type: 'dir', children: {}, restricted: true },
-                    lebling:  { type: 'dir', children: {}, restricted: true },
-                    blank:    { type: 'dir', children: {}, restricted: true },
-                    walz:     { type: 'dir', children: {}, restricted: true },
-                    harvey:   { type: 'dir', children: {}, restricted: true },
+                    // World-readable home dirs
+                    izchak:   { type: 'dir', children: {}, owner: 'izchak',   group: 'izchak',   computeChildren: () => homeFilesFor('izchak') },
+                    crowther: { type: 'dir', children: {}, owner: 'crowther', group: 'crowther', computeChildren: () => homeFilesFor('crowther') },
+                    toy:      { type: 'dir', children: {}, owner: 'toy',      group: 'toy',      computeChildren: () => homeFilesFor('toy') },
+                    arnold:   { type: 'dir', children: {}, owner: 'arnold',   group: 'arnold',   computeChildren: () => homeFilesFor('arnold') },
+                    // Root-only home dirs
+                    fenlason: { type: 'dir', children: {}, owner: 'fenlason', group: 'fenlason', restricted: true, computeChildren: () => homeFilesFor('fenlason') },
+                    brouwer:  { type: 'dir', children: {}, owner: 'brouwer',  group: 'brouwer',  restricted: true, computeChildren: () => homeFilesFor('brouwer') },
+                    lebling:  { type: 'dir', children: {}, owner: 'lebling',  group: 'lebling',  restricted: true, computeChildren: () => homeFilesFor('lebling') },
+                    blank:    { type: 'dir', children: {}, owner: 'blank',    group: 'blank',    restricted: true, computeChildren: () => homeFilesFor('blank') },
+                    walz:     { type: 'dir', children: {}, owner: 'walz',     group: 'walz',     restricted: true, computeChildren: () => homeFilesFor('walz') },
+                    harvey:   { type: 'dir', children: {}, owner: 'harvey',   group: 'harvey',   restricted: true, computeChildren: () => homeFilesFor('harvey') },
                 }
             },
             var: {
@@ -436,6 +449,7 @@ export class VirtualFS {
     constructor() {
         this.tree = buildTree();
         this.cwd = HOMEDIR;
+        this.isRoot = false;
     }
 
     // Resolve a path string to an absolute path
@@ -496,7 +510,7 @@ export class VirtualFS {
         const node = this.getNode(path || '.');
         if (!node) return null;
         if (node.type !== 'dir') return null;
-        if (node.restricted) return 'PERMISSION_DENIED';
+        if (node.restricted && !this.isRoot) return 'PERMISSION_DENIED';
         const ch = this._children(node);
         return Object.keys(ch).filter(name => this._nodeExists(ch[name]));
     }
@@ -657,7 +671,7 @@ export class VirtualFS {
         const node = this._lookup(abs);
         if (!node) return `cd: ${path}: No such file or directory`;
         if (node.type !== 'dir') return `cd: ${path}: Not a directory`;
-        if (node.restricted) return `cd: ${path}: Permission denied`;
+        if (node.restricted && !this.isRoot) return `cd: ${path}: Permission denied`;
         this.cwd = abs;
         return null;
     }
@@ -682,7 +696,7 @@ export class VirtualFS {
         const absPath = this.resolve(path || '.');
         const node = this._lookup(absPath);
         if (!node) return null;
-        if (node.restricted) return 'PERMISSION_DENIED';
+        if (node.restricted && !this.isRoot) return 'PERMISSION_DENIED';
 
         if (node.type !== 'dir') {
             // Single file listing

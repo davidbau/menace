@@ -542,8 +542,41 @@ async function passwd(_args, shell) {
     shell.println('passwd: password updated successfully');
 }
 
-async function su(_args, shell) {
-    shell.println('su: who do you think you are?');
+async function su(args, shell) {
+    const target = args[0] || 'root';
+    if (target !== 'root') {
+        shell.println(`su: ${target}: Permission denied`);
+        return;
+    }
+    if (shell.isRoot) {
+        shell.println('su: you are already root');
+        return;
+    }
+    async function readHidden(prompt) {
+        let line = '';
+        while (true) {
+            shell.printPrompt(prompt);
+            if (typeof shell.display.setCursor === 'function') {
+                const row = Math.min(shell.scrollBuffer.length, shell.display.rows - 1);
+                shell.display.setCursor(prompt.length, row);
+            }
+            if (typeof shell.display.flush === 'function') shell.display.flush();
+            const ch = await shell.getch();
+            if (ch === 13 || ch === 10) { shell.clearPromptLine(); return line; }
+            if (ch === 3) { shell.clearPromptLine(); return null; }
+            if (ch === 8 || ch === 127) { if (line.length > 0) line = line.slice(0, -1); }
+            else if (ch >= 32 && ch < 127) line += String.fromCharCode(ch);
+        }
+    }
+    const pw = await readHidden('Password: ');
+    if (pw === null) return;
+    shell.println('');
+    if (pw === 'xyzzy') {
+        shell.isRoot = true;
+        shell.fs.isRoot = true;
+    } else {
+        shell.println('su: Authentication failure');
+    }
 }
 
 async function emacs(_args, shell) {

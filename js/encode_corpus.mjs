@@ -21,6 +21,7 @@ ctx.CORPUS = CORPUS;
 ctx.REPLY_RULES = REPLY_RULES;
 ctx.SOCIAL_ROUTING = SOCIAL_ROUTING;
 ctx.SOCIAL_TEMPLATES = SOCIAL_TEMPLATES;
+ctx.HOME_FILES = HOME_FILES;
 `;
 vm.runInNewContext(fullSrc, { ctx });
 
@@ -45,6 +46,7 @@ export const CORPUS = _x.CORPUS;
 export const REPLY_RULES = _x.REPLY_RULES;
 export const SOCIAL_ROUTING = _x.SOCIAL_ROUTING;
 export const SOCIAL_TEMPLATES = _x.SOCIAL_TEMPLATES;
+export const HOME_FILES = _x.HOME_FILES;
 `;
 
 fs.writeFileSync(path.join(__dir, 'mailcorpus.js'), out);

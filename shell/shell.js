@@ -27,6 +27,7 @@ export class Shell {
         this.historyIdx = -1;
         this.running = true;
         this.result = null; // set when shell should return an action
+        this.isRoot = false;
     }
 
     // Entry point: takes over the display, returns when shell exits.
@@ -99,7 +100,9 @@ export class Shell {
         const cwd = this.fs.cwd;
         const display = cwd === HOMEDIR ? '~' :
                         cwd.startsWith(HOMEDIR + '/') ? '~' + cwd.slice(HOMEDIR.length) : cwd;
-        return `${USERNAME}@pdp11:${display}$ `;
+        const user = this.isRoot ? 'root' : USERNAME;
+        const sigil = this.isRoot ? '#' : '$';
+        return `${user}@pdp11:${display}${sigil} `;
     }
 
     // Read a line of input character by character, supporting editing and history.
