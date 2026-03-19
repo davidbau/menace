@@ -259,3 +259,55 @@ The branch now has one more exact C ownership rule encoded:
 - `multi < 0` is not by itself sufficient to justify a no-input continuation
 - the continuation is only valid when the C-side turn owner (`context.move`)
   is still active
+
+## Merge-Credibility Check Against `main`
+
+After landing the `context.move` gate, I compared branch tip:
+
+- `b9ebfa742`
+
+against current `main` / `origin/main`:
+
+- `af5b8ce1e`
+
+using the async-sensitive session set:
+
+1. [`seed031_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed031_manual_direct.session.json )
+2. [`theme15_seed986_wiz_artifact-wish_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json )
+3. [`theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/round8-scrolls-potions/theme35_seed2320_wiz_artifact-combat2_gameplay.session.json )
+4. [`t08_s984_w_camera_gp.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/apply-tools/t08_s984_w_camera_gp.session.json )
+5. [`theme33_seed2102_wiz_eat-various_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/theme33_seed2102_wiz_eat-various_gameplay.session.json )
+
+Results:
+
+- `seed031`
+  - main: first RNG step `525`, first event step `526`
+  - branch: first RNG step `525`, first event step `526`
+- `theme15`
+  - main: PASS
+  - branch: PASS
+- `theme35`
+  - main: PASS
+  - branch: PASS
+- `t08`
+  - main: PASS
+  - branch: PASS
+- `theme33`
+  - main: PASS
+  - branch: PASS
+
+There are also no pass/fail deltas at all between the full test-result notes
+for:
+
+- `b9ebfa742`
+- `af5b8ce1e`
+
+So the branch is now back to baseline parity cost rather than carrying any
+extra regression burden.
+
+This does **not** prove the whole game-loop reorder is finished.
+It does prove that the currently landed subset is credible in two important
+ways:
+
+1. it encodes exact C-backed owner rules,
+2. it no longer makes parity worse than `main` on the async-sensitive set.
