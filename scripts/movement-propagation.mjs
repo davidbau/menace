@@ -12,7 +12,11 @@ import { readFileSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 
 import { normalizeSession } from '../test/comparison/session_loader.js';
-import { prepareReplayArgs, getSessionGameplaySteps } from '../js/replay_compare.js';
+import {
+    prepareReplayArgs,
+    getSessionGameplaySteps,
+    applyManualDirectChargenView,
+} from '../js/replay_compare.js';
 import { replaySession } from '../js/replay_core.js';
 
 function usage() {
@@ -110,8 +114,9 @@ async function main() {
     if (normalized.meta.type !== 'gameplay') {
         throw new Error(`Only gameplay sessions are supported (got type=${normalized.meta.type}).`);
     }
+    const sessionForCmp = applyManualDirectChargenView(normalized);
 
-    const cGameplaySteps = getSessionGameplaySteps(normalized.raw);
+    const cGameplaySteps = getSessionGameplaySteps(sessionForCmp);
     const replayArgs = prepareReplayArgs(normalized.meta.seed, normalized.raw, {});
 
     const prevEnv = {
@@ -158,6 +163,9 @@ async function main() {
     }
 
     console.log(`session: ${absPath}`);
+    if (sessionForCmp !== normalized) {
+        console.log('view: manual-direct comparison view (chargen folded into startup)');
+    }
     console.log(`steps: ${stepFrom}..${stepTo}`);
     console.log('');
 

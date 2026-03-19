@@ -21,6 +21,14 @@ What it does:
   - movement-related JS step entries from replay RNG/event output
   - JS `[RUN_TRACE]` lines for that same step window
 
+Manual-direct sessions:
+
+- the tool uses the same comparison view as `session_test_runner`
+- for `manual-direct-live`, chargen/setup is folded into startup via
+  `applyManualDirectChargenView()`
+- gameplay step numbers therefore match the authoritative parity view rather
+  than the raw fixture step array
+
 This is useful when debugging:
 
 - `run` / `rush` ownership

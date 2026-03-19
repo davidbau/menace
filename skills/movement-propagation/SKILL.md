@@ -47,6 +47,11 @@ node scripts/movement-propagation.mjs <session.json> \
 - JS movement-related step entries
 - JS `[RUN_TRACE]` lines
 
+Manual-direct rule:
+- trust the tool's step numbering, not the raw session JSON step array
+- the tool uses the same comparison view as `session_test_runner`, so manual-
+  direct chargen/setup steps are already folded out of the gameplay window
+
 4. Ask the concrete ownership question:
 - Is JS ending the command too early?
 - Is JS continuing one step too long?

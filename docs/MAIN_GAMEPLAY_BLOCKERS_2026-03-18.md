@@ -47,6 +47,9 @@ Useful new diagnostic:
     - JS run-trace lines
   - use this first when the question is how `run/mv/dx/dy/multi` ownership
     propagates across a step window
+  - for `manual-direct-live`, it now uses the same comparison view as
+    `session_test_runner`, so gameplay step numbering matches the authoritative
+    parity view instead of the raw fixture step array
 
 ## Landed In This Batch
 
@@ -258,32 +261,14 @@ Update after current worktree XP fix:
       - key ownership around the prompt bundle
       - split/throw/landing visibility timing before monster turns
 
-Update after direct raw-key localization:
+Update after correcting the manual-direct step-view workflow:
 
-- the failing normalized `seed031` bundle maps to a concrete replay-key sequence:
-  - previous key: `f`
-  - failing key: `j`
-  - next key: space to dismiss the resulting `--More--`
-- the current JS raw bundle is now pinned down:
-  - key `f` opens `In what direction?`
-  - key `j` consumes `rnd(2)=2` via `next_ident()` stack split in
-    `promptDirectionAndThrowItem()`
-  - JS then animates a dart southward and places it on the floor at `14,8`
-- the corresponding C session screen for the same `j` bundle is not a floor
-  placement:
-  - `The dart hits the gnome lord.  The kitten misses the gnome.--More--`
-  - the following space key acknowledges that message
-- high-confidence implication:
-  - this is not just a generic message-boundary problem
-  - at the moment JS resolves the `f`/`j` throw, it does not see the monster on
-    the southward path that C does
-  - the extra floor dart is the downstream symptom of missing/incorrect monster
-    state on the throw path, not the primary root by itself
-- practical next move:
-  - localize where the nearby gnome/gnome-lord state diverges before the `f`/`j`
-    bundle
-  - inspect the pre-throw monster roster and recent monster-removal/state
-    transitions rather than patching `throwit()` in isolation
+- the older `seed031` note that framed the live seam as a concrete `f` / `j`
+  bundle is stale
+- the authoritative source is the fresh `.comparison.json` artifact produced by
+  `session_test_runner`, not ad hoc raw-step replay probes
+- keep using the transformed comparison view for `manual-direct-live` sessions;
+  raw fixture step numbering is not reliable enough for blocker localization
 
 Update after inspecting the current `.comparison.json` artifact directly:
 
@@ -300,11 +285,18 @@ Update after inspecting the current `.comparison.json` artifact directly:
     - JS consumes `rnd(2)=2 @ promptDirectionAndThrowItem(dothrow.js:245)`
     - C continues with monster-turn work (`^tmp_at_start[mode=-1,glyph=4081]`,
       then another pet `movemon_turn`)
+- the critical geometric fact from the artifact:
+  - the C `DISP_BEAM` path is `13,6 -> 12,7 -> 11,8`
+  - that path originates from the hero square at `14,5`
+  - so the missing C-side `tmp_at` sequence is a hero-originating beam /
+    projection tail, not a remote monster projectile
 - current authoritative JS raw event sequence at the seam:
   - `rnd(2)=2 @ promptDirectionAndThrowItem(...)`
+  - `^tmp_at_start[mode=-4,glyph=3472]`
   - `^tmp_at_step[14,6,3472]`
   - `^tmp_at_step[14,7,3472]`
   - `^tmp_at_step[14,8,3472]`
+  - `^tmp_at_end[flags=0]`
   - `rn2(100)=76 @ breaktest(...)`
   - `^place[24,14,8]`
   - only after that does the pet re-enter `dog_goal()` and notice
@@ -324,6 +316,9 @@ Update after inspecting the current `.comparison.json` artifact directly:
     - so that C-side `tmp_at` sequence is not the player's thrown dart
       animation, which makes the ownership/handoff explanation stronger than a
       throw-only explanation
+  - the fresh artifact still reports the first RNG divergence at step `407`,
+    but do not over-interpret the displayed step key; the comparison payload
+    itself is the reliable source
 
 Practical next move:
 
