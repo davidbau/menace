@@ -770,6 +770,7 @@ export async function handleDrop(player, map, display) {
             await showToplineErrorWithMore("You don't have that object.", 'do.drop-invalid-invlet');
             continue;
         }
+        let dropCount = 0; // 0 = drop all
         if (countMode && countDigits.length > 0) {
             const requestedCount = parseInt(countDigits, 10);
             const stackCount = Number(item.quan || 1);
@@ -782,6 +783,12 @@ export async function handleDrop(player, map, display) {
                 );
                 continue;
             }
+            dropCount = requestedCount;
+        }
+        // C ref: do.c menudrop_split() — split stack if partial count.
+        if (dropCount > 0 && dropCount < (item.quan || 1)) {
+            const result = await menudrop_split(item, dropCount, player, map);
+            return { moved: false, tookTime: !!(result & 1) };
         }
         return await dropSelectedItem(item, player, map, display);
     }
