@@ -67,10 +67,10 @@ def extract_gameplay_keys(session):
     prompts (--More--, tutorial, etc.) instead. This returns only the keys
     from actual gameplay commands.
 
-    Heuristic: gameplay starts at the first step where turn >= 1 AND
-    the step has RNG entries that are NOT from startup patterns
-    (moveloop_preamble, bones, shuffle). Practically this is the first
-    step after all lore --More-- prompts are dismissed.
+    Heuristic: gameplay starts at the first step that has RNG entries
+    with non-startup patterns. Steps with zero RNG or only startup
+    patterns (moveloop_preamble, bones, shuffle) are skipped.
+    Sessions without 'turn' fields also use this RNG-based detection.
     """
     raw_steps = session.get("steps") or []
     keys = []
@@ -81,20 +81,21 @@ def extract_gameplay_keys(session):
         key = step.get("key")
         if not isinstance(key, str):
             continue
-        turn = step.get("turn")
         if not gameplay_started:
-            # Skip until we find a real gameplay command (turn >= 2, or
-            # turn == 1 with non-startup RNG patterns).
-            if turn is not None and turn >= 2:
-                gameplay_started = True
-            elif turn is not None and turn >= 1:
-                rng = step.get("rng") or []
-                # Check if RNG entries look like gameplay (not startup)
-                rng_text = " ".join(str(e) for e in rng[:5])
-                if len(rng) > 0 and "moveloop_preamble" not in rng_text and "bones" not in rng_text and "shuffle" not in rng_text:
-                    gameplay_started = True
-            if not gameplay_started:
+            rng = step.get("rng") or []
+            turn = step.get("turn")
+            # For sessions with turn field: skip turn=0 steps entirely
+            if turn is not None and turn == 0:
                 continue
+            # For all sessions: skip steps with zero RNG entries
+            # (these are lore --More-- dismissals or prompt navigation)
+            if len(rng) == 0:
+                continue
+            # Skip steps whose RNG is all startup patterns
+            rng_text = " ".join(str(e) for e in rng[:5])
+            if "moveloop_preamble" in rng_text or "bones" in rng_text or "shuffle" in rng_text:
+                continue
+            gameplay_started = True
         keys.append(key)
     return keys
 
@@ -306,7 +307,15 @@ def session_uses_tutorial(session):
 
 def run_capture(session_path, step_index, output_path, phase_tag=None, keys_override=None):
     session = load_session(session_path)
-    chargen_in_keys = keys_override is None
+    # If session has null chargen options (name=null etc.), the recording
+    # had interactive chargen and the session keys include chargen input.
+    # Otherwise, chargen was preset and should be in .nethackrc.
+    opts = session.get("options") or {}
+    has_preset_chargen = isinstance(opts.get("name"), str) and opts["name"]
+    chargen_in_keys = keys_override is None and not has_preset_chargen
+    # Always use extract_keys — it returns all keys from step 1 onward.
+    # For preset chargen sessions, all keys ARE gameplay (recording started
+    # after startup). For interactive chargen, keys include chargen input.
     keys = keys_override if keys_override is not None else extract_keys(session)
     seed = int(session.get("seed", 1))
     char = build_character(session)
@@ -355,23 +364,23 @@ def run_capture(session_path, step_index, output_path, phase_tag=None, keys_over
         )
         time.sleep(1.0)
 
-        if keys_override is not None:
-            # keys_override contains gameplay-only keys — need startup handling.
-            wait_for_game_ready(session_name, rng_log_file)
-            time.sleep(0.02)
-            clear_more_prompts(session_name)
-            time.sleep(0.02)
-        else:
-            # Using raw session keys (extract_keys) — they include ALL keys
-            # from the recording (chargen, lore, tutorial, gameplay).
+        if chargen_in_keys:
+            # Session had interactive chargen — raw keys include chargen input.
             # Do NOT use wait_for_game_ready: it would inject extra keys that
             # double-consume prompts the session keys already handle.
-            # Just wait for the C binary to be ready to accept input.
             for _wait in range(50):
                 if os.path.exists(rng_log_file):
                     break
                 time.sleep(0.1)
-            time.sleep(0.5)  # Extra settle for binary initialization
+            time.sleep(0.5)
+        else:
+            # Chargen preset in .nethackrc (or using keys_override).
+            # Use wait_for_game_ready to dismiss startup prompts.
+            tutorial = session_uses_tutorial(session) if keys_override is None else False
+            wait_for_game_ready(session_name, rng_log_file, tutorial_enabled=tutorial)
+            time.sleep(0.02)
+            clear_more_prompts(session_name)
+            time.sleep(0.02)
 
         # Wait for the startup_complete sentinel checkpoint to ensure all
         # startup nhgetch calls are accounted for in the baseline.

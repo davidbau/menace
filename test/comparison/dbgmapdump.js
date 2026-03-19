@@ -701,11 +701,11 @@ function firstScreenDiff(actualLines, expectedLines) {
     return null;
 }
 
-function runCStepCapture(sessionPath, rawStep, outJson, fixedDatetime = null, keysJsonPath = null) {
+function runCStepCapture(sessionPath, stepIndex, outJson, fixedDatetime = null, keysJsonPath = null) {
     const script = resolve('test/comparison/c-harness/capture_step_snapshot.py');
     const env = { ...process.env };
     if (fixedDatetime) env.NETHACK_FIXED_DATETIME = fixedDatetime;
-    const args = [script, sessionPath, String(rawStep - 1), outJson];
+    const args = [script, sessionPath, String(stepIndex), outJson];
     if (keysJsonPath) {
         args.push('--keys-json', keysJsonPath);
     }
@@ -944,9 +944,8 @@ async function main() {
     if (args.cSide) {
         for (const c of captures) {
             const outJson = join(cDir, `step${String(c.sessionStep).padStart(4, '0')}.snapshot.json`);
-            // capture_step_snapshot.py uses extract_keys (raw session keys
-            // including startup/chargen). Session step N (1-indexed) corresponds
-            // to extract_keys index N-1 (0-indexed). Pass step_index = N-1.
+            // capture_step_snapshot.py uses extract_keys which returns all keys
+            // from step 1 onward. step_index is 0-based: session step N = keys[N-1].
             const cRequestedStep = c.sessionStep - 1;
             runCStepCapture(sessionPath, cRequestedStep, outJson, fixedDatetime);
             const capture = JSON.parse(readFileSync(outJson, 'utf8'));
