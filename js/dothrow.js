@@ -20,12 +20,16 @@
 
 import { ACCESSIBLE, isok, xdir, ydir, W_WEP, W_QUIVER, W_SWAPWEP,
          ERODE_CRACK, EF_DESTROY, EF_VERBOSE, ER_DESTROYED,
-         DIRECTION_KEYS, IRONBARS } from './const.js';
+         DIRECTION_KEYS, IRONBARS, WEB, IS_SINK, IS_POOL,
+         M_AP_OBJECT } from './const.js';
 import { IS_SOFT, ZAP_POS,
          RACE_ELF, RACE_ORC } from './const.js';
 import { S_boomleft, S_boomright, defsyms } from './symbols.js';
 import { rn2, rnd, rnl } from './rng.js';
 import { hits_bars } from './mthrowu.js';
+import { shade_miss } from './uhitm.js';
+import { closed_door } from './monmove.js';
+import { is_swimmer } from './mondata.js';
 import { more, nhgetch } from './input.js';
 import { objectData, WEAPON_CLASS, COIN_CLASS, GEM_CLASS, TOOL_CLASS,
          ARMOR_CLASS, POTION_CLASS, SCROLL_CLASS, VENOM_CLASS,
@@ -1127,16 +1131,22 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
     tmp_at(tethered_weapon ? DISP_TETHER : DISP_FLASH, projGlyph);
     try {
         let point_blank = true; // C: first cell is point-blank (no rn2(5) for iron bars)
+        let in_skip = false;
+        let skipcount = 0;
         for (let i = 0; i < range; i++) {
             const nx = bx + dx, ny = by + dy;
             if (!isok(nx, ny)) break;
             const loc = typeof map.at === 'function' ? map.at(nx, ny) : null;
-            if (!loc || !ZAP_POS(loc.typ)) break;
+            if (!loc) break;
             bx = nx; by = ny;
+            const typ = loc.typ;
+
+            // C ref: zap.c:3882-3886 — WATER/LAVAWALL stops items
+            // (handled by ZAP_POS check below for most cases)
 
             // C ref: zap.c:3888-3901 — iron bars check for thrown/kicked weapons.
             // Must come BEFORE the monster check, matching C's bhit order.
-            if (loc.typ === IRONBARS) {
+            if (typ === IRONBARS) {
                 const always_hit = point_blank ? 0 : !rn2(5);
                 if (await hits_bars(obj, bx - dx, by - dy, bx, by, always_hit, 1, map, player, game)) {
                     bx -= dx; by -= dy;
@@ -1145,21 +1155,71 @@ export async function throwit(obj, wep_mask, twoweap, oldslot, player, map, game
             }
             point_blank = false;
 
-            // C ref: zap.c bhit() ALWAYS stops at the first monster for
-            // THROWN_WEAPON. thitmonst is called after the loop.
-            const mon = map.monsterAt ? map.monsterAt(bx, by) : null;
-            if (mon) {
-                // C ref: bhit() ends animation and ALWAYS stops at the monster
-                // position for THROWN_WEAPON. throwit_mon_hit then calls thitmonst.
+            // C ref: zap.c:3914-3927 — web trap catches thrown objects
+            let mtmp = map.monsterAt ? map.monsterAt(bx, by) : null;
+            const ttmp = t_at(bx, by, map);
+            if (!mtmp && ttmp && ttmp.ttyp === WEB && !rn2(3)) {
+                // Projectile stuck in web
+                if (!player?.blind) {
+                    const objName = obj.oname || objectData[obj.otyp]?.oc_name || 'object';
+                    await pline("The %s gets stuck in a web!", objName);
+                    ttmp.tseen = true;
+                    newsym(bx, by);
+                }
+                break;
+            }
+
+            // C ref: zap.c:3934-3958 — skipping rocks over water
+            if (skiprange_start && ((range - i) === skiprange_start) && allow_skip) {
+                if (IS_POOL(typ) && !mtmp) {
+                    in_skip = true;
+                    skipcount++;
+                } else if (skiprange_start > skiprange_end + 1) {
+                    --skiprange_start;
+                }
+            }
+            if (in_skip) {
+                if ((range - i) <= skiprange_end) {
+                    in_skip = false;
+                } else if (mtmp) {
+                    // C ref: M_IN_WATER — skip over water monsters
+                    const mdat = mtmp.data || mtmp.type || {};
+                    if (IS_POOL(typ) && is_swimmer(mdat)) {
+                        mtmp = null;
+                    }
+                }
+            }
+
+            // C ref: zap.c:3960-3980 — shade/mimic pass-through
+            if (mtmp) {
+                if (shade_miss(player, mtmp, obj, true, true)
+                    || ((mtmp.m_ap_type || 0) === M_AP_OBJECT)) {
+                    mtmp = null; // projectile passes through
+                }
+            }
+
+            // C ref: zap.c:3982-4017 — monster hit
+            if (mtmp) {
                 if (!tethered_weapon) {
                     tmp_at(DISP_END, 0);
                     animationClosed = true;
                 }
-                hitMon = mon;
+                hitMon = mtmp;
                 break;
             }
+
+            // C ref: zap.c:4064-4068 — wall/door stop
+            if (!ZAP_POS(typ) || closed_door(bx, by, map)) {
+                bx -= dx; by -= dy;
+                break;
+            }
+
+            // C ref: zap.c:4075-4076 — animation step
             tmp_at(bx, by);
             await nh_delay_output();
+
+            // C ref: zap.c:4080-4081 — sink stops physical objects
+            if (IS_SINK(typ)) break;
         }
     } finally {
         if (!animationClosed) tmp_at(DISP_END, 0);
