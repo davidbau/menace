@@ -802,6 +802,26 @@
       "cmd": "ne"
     },
     {
+      "cmd": "hello",
+      "echoRoom": true,
+      "note": "Echo room warm-up: hello"
+    },
+    {
+      "cmd": "is anyone there",
+      "echoRoom": true,
+      "note": "Echo room: knock knock"
+    },
+    {
+      "cmd": "testing one two three",
+      "echoRoom": true,
+      "note": "Echo room: mic test"
+    },
+    {
+      "cmd": "xyzzy",
+      "echoRoom": true,
+      "note": "Echo room: magic word"
+    },
+    {
       "cmd": "echo",
       "boundaryAdjust": -1,
       "note": "Echo Room reads 'echo' as part of the preceding ne move — no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1",
