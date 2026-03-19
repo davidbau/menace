@@ -92,7 +92,9 @@ lebling:x:1007:1007:Dave Lebling:/home/lebling:/bin/sh
 blank:x:1008:1008:Marc Blank:/home/blank:/bin/sh
 walz:x:1009:1009:Janet Walz:/home/walz:/bin/sh
 harvey:x:1010:1010:Brian Harvey:/home/harvey:/bin/sh
-wizard:x:1011:1011:The Wizard of Yendor:/dev/null:/sbin/nologin
+wichman:x:1011:1011:Glenn Wichman:/home/wichman:/bin/sh
+stephenson:x:1012:1012:Mike Stephenson:/home/stephenson:/bin/sh
+wizard:x:1013:1013:The Wizard of Yendor:/dev/null:/sbin/nologin
 gridbug:x:404:404:Grid Bug:/tmp:/bin/false
 `.replace(/Strstrstrstr /g, '');
 
@@ -414,7 +416,9 @@ function buildTree() {
                     crowther: { type: 'dir', children: {}, owner: 'crowther', group: 'crowther', computeChildren: () => homeFilesFor('crowther') },
                     toy:      { type: 'dir', children: {}, owner: 'toy',      group: 'toy',      computeChildren: () => homeFilesFor('toy') },
                     arnold:   { type: 'dir', children: {}, owner: 'arnold',   group: 'arnold',   computeChildren: () => homeFilesFor('arnold') },
+                    wichman:  { type: 'dir', children: {}, owner: 'wichman',  group: 'wichman',  computeChildren: () => homeFilesFor('wichman') },
                     // Root-only home dirs
+                    stephenson: { type: 'dir', children: {}, owner: 'stephenson', group: 'stephenson', restricted: true, computeChildren: () => homeFilesFor('stephenson') },
                     fenlason: { type: 'dir', children: {}, owner: 'fenlason', group: 'fenlason', restricted: true, computeChildren: () => homeFilesFor('fenlason') },
                     brouwer:  { type: 'dir', children: {}, owner: 'brouwer',  group: 'brouwer',  restricted: true, computeChildren: () => homeFilesFor('brouwer') },
                     lebling:  { type: 'dir', children: {}, owner: 'lebling',  group: 'lebling',  restricted: true, computeChildren: () => homeFilesFor('lebling') },
