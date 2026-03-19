@@ -301,9 +301,15 @@ export async function handleThrow(player, map, display, game) {
         }
         if (c === '?' || c === '*') {
             replacePromptMessage();
+            // C ref: getobj("throw") with '*' shows ALL inventory, not just
+            // the suggested items. Any invlet is a valid selection.
+            const overlayItems = (c === '*')
+                ? invSorted
+                : promptItems;
+            const allInvLetters = invSorted.map(o => String(o.invlet)).join('');
             const invLines = [];
             let currentHeader = null;
-            for (const itm of promptItems) {
+            for (const itm of overlayItems) {
                 let header = 'Other';
                 if (itm.oclass === WEAPON_CLASS) header = 'Weapons';
                 else if (itm.oclass === COIN_CLASS) header = 'Coins';
@@ -323,7 +329,8 @@ export async function handleThrow(player, map, display, game) {
                 invLines.push(`${itm.invlet} - ${invName}`);
             }
             invLines.push('(end)');
-            const selection = await renderOverlayMenuUntilDismiss(display, invLines, throwLetters);
+            // C ref: getobj overlay accepts ANY invlet, not just suggested items.
+            const selection = await renderOverlayMenuUntilDismiss(display, invLines, allInvLetters);
             replacePromptMessage();
             await display.putstr_message(throwPrompt);
             if (!selection) continue;
