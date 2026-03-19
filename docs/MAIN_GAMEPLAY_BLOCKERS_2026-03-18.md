@@ -358,6 +358,61 @@ Conclusion:
 - it also was not the shared root cause for `seed032`
 - `seed031` is now blocked by a later pet object-choice seam after the level-up
 
+Update after `seed032` run-ownership experiment:
+
+- C-side conclusion remains firm:
+  - ordinary run/rush ownership really does belong in the single-threaded
+    `moveloop_core()` path, not in an inline JS loop inside `do_run()`
+  - evidence:
+    - `cmd.c set_move_cmd(...)`
+    - `rhack()` DOMOVE_RUSH branch in `cmd.c`
+    - `repeat_mv` branch in `allmain.c`
+- however, a direct JS switch to that model regressed badly and was reverted
+  immediately:
+  - making `do_run()` seed `ctx.mv` + `multi` and perform only one `domove()`
+    caused:
+    - an initial timeout around step `167`
+    - then, after a partial repair, an early regression at step `19`
+  - both code changes were reverted from the worktree after validation
+- highest-signal reason the experiment failed:
+  - current JS `repeatLoop()` movement branch is still effectively
+    travel-shaped
+  - it assumes repeated movement can re-enter `domove([0,0])`
+  - that is valid for travel because `domove_core()` recalculates from
+    `travel1` / `findtravelpath()`
+  - it is not valid for ordinary run/rush, where C relies on stored `u.dx/u.dy`
+    plus `lookaround()`-driven direction updates
+- concrete reproduction from the failed experiment:
+  - step `168` produced:
+    - first move to `(7,8)`
+    - then repeated `domove_target from=7,8 to=7,8`
+  - this confirmed that JS `repeat_mv` currently lacks the ordinary-run notion
+    of "next direction comes from the stored movement vector"
+- practical coordination rule:
+  - do not retry this by only changing `do_run()`
+  - the next faithful attempt must treat these as one bundle:
+    - command-side seeding of repeated movement state
+    - `repeat_mv` using stored `dx/dy` for ordinary run/rush
+    - `lookaround()` becoming the owner of direction updates / stop decisions
+      for ordinary run, not just a travel-adjacent precheck
+- current authoritative state after the revert:
+  - `seed032_manual_direct` is back to the pre-experiment baseline:
+    - first RNG divergence: step `91`
+    - first event divergence: step `91`
+    - JS event:
+      `^dog_invent_decision[32@56,17 ud=72 act=0 otyp=-1 carry=0 rv=0]`
+    - C event:
+      `^dog_invent_decision[32@56,17 ud=65 act=0 otyp=-1 carry=0 rv=0]`
+
+Conclusion:
+
+- the architectural hypothesis was good:
+  - ordinary run ownership belongs in the C `moveloop` model
+- but JS is not ready for that switch yet because `repeat_mv` and ordinary-run
+  direction ownership are still incomplete
+- for now, keep using the existing inline `do_run()` behavior while localizing
+  the missing C state handoff more precisely
+
 ### 2. `seed301_archeologist_selfplay200_gameplay`
 
 Current state from the failures view:
