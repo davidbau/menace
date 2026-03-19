@@ -28,6 +28,26 @@ RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 INSTALL_DIR = os.path.join(PROJECT_ROOT, 'nethack-c', 'install', 'games', 'lib', 'nethackdir')
 NETHACK_BINARY = os.path.join(INSTALL_DIR, 'nethack')
 
+
+def _get_git_hash(path):
+    """Return the short git commit hash for the given directory, or 'unknown'."""
+    try:
+        result = subprocess.run(
+            ['git', '-C', path, 'rev-parse', '--short', 'HEAD'],
+            capture_output=True, text=True, timeout=5
+        )
+        return result.stdout.strip() if result.returncode == 0 else 'unknown'
+    except Exception:
+        return 'unknown'
+
+
+def get_recorded_with():
+    """Return dict of git hashes for menace project and upstream nethack-c."""
+    return {
+        'menace': _get_git_hash(PROJECT_ROOT),
+        'nethack_c': _get_git_hash(os.path.join(PROJECT_ROOT, 'nethack-c', 'upstream')),
+    }
+
 _spec = importlib.util.spec_from_file_location('run_session', os.path.join(SCRIPT_DIR, 'run_session.py'))
 _session = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_session)
@@ -399,6 +419,7 @@ def run_from_keylog(
             'version': 3,
             'seed': seed,
             'source': 'c',
+            'recorded_with': get_recorded_with(),
             'type': 'gameplay',
             'options': {
                 'name': None if interactive else character['name'],
