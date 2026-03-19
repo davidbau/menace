@@ -13438,3 +13438,39 @@ Validation:
     - C step `91` remains the later pet-distance / `dog_invent_decision` seam
   - `seed031` steps `404..407` show no analogous run-trace activity, helping
     separate that throw/pet seam from the run-ownership investigation
+
+## 2026-03-19 - `seed032` run-corner fix: reset `last_str_turn` for ordinary run/rush
+
+- Symptom:
+  - `seed032_manual_direct` first diverged at step `91` inside an uppercase
+    `K` run bundle.
+  - JS terminated the run after reaching `(51,10)`, then failed early on the
+    next attempted continuation.
+  - C kept the same command alive and continued later movement / monster-turn
+    work in the same gameplay step.
+- Cause:
+  - C `cmd.c rhack()` resets `u.last_str_turn = 0` on first entry to
+    `DOMOVE_RUSH`.
+  - JS only reset `last_str_turn` for travel, not for ordinary run/rush.
+  - That left stale turn-memory available to bias the run-corner continuation
+    logic in `lookaround()`.
+- Fix:
+  - `js/hack.js`
+    - `do_run()` now resets `player.last_str_turn = 0` before ordinary
+      run/rush processing begins
+- Evidence:
+  - `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed032_manual_direct.session.json`
+    - before:
+      - first RNG divergence at step `91`
+      - first event divergence at step `91`
+    - after:
+      - RNG fully matched (`29881/29881`)
+      - first event divergence moved to step `150`
+  - stability:
+    - `seed031_manual_direct` unchanged
+    - `seed033_manual_direct` unchanged
+    - `seed301_archeologist_selfplay200_gameplay` unchanged
+    - `t11_s755_w_covmax9_gp` still passes
+- Conclusion:
+  - the step-91 `seed032` failure was a genuine run-state initialization bug,
+    not a pet-AI-local bug and not a replay-boundary artifact

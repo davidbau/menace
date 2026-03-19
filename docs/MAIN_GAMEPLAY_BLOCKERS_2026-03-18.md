@@ -599,3 +599,56 @@ Current conclusion:
 - It does not materially move `seed031_manual_direct`; the live `seed031` seam
   remains the later command-vs-monster ownership problem around the `f` / `j`
   bundle and the downstream extra dart at `14,8`.
+
+# 2026-03-19: `seed032` run-corner fix via `last_str_turn` reset
+
+Summary:
+- `seed032_manual_direct` had been failing first at step `91` inside an
+  uppercase-direction run bundle (`K`).
+- Movement-propagation evidence showed:
+  - JS and C stayed aligned through most of the step-91 monster-turn stream
+  - JS then terminated the `K` command early after reaching `(51,10)`
+  - C kept the same run command alive and continued feeding later movement /
+    monster-turn cycles in the same gameplay step
+- This was not a pet-AI-local bug.
+
+Faithful C anchor:
+- In `cmd.c`, when `DOMOVE_RUSH` first enters the command path, C resets:
+  - `u.last_str_turn = 0;`
+- JS was only resetting `last_str_turn` for travel, not for ordinary run/rush.
+
+Fix:
+- `js/hack.js`
+  - `do_run()` now resets `player.last_str_turn = 0` before ordinary run/rush
+    processing begins
+
+Why this is correct:
+- This is not a heuristic. It matches the C `rhack()` / `DOMOVE_RUSH`
+  first-entry behavior for both:
+  - uppercase direction run commands
+  - rush/run-prefix movement commands
+- It stays inside the single-threaded C model: no queueing, no replay
+  compensation, no ownership tricks.
+
+Validation:
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed032_manual_direct.session.json`
+  - improved from:
+    - first RNG divergence at step `91`
+    - first event divergence at step `91`
+  - to:
+    - RNG fully green (`29881/29881`)
+    - first event divergence now at step `150`
+- stability checks:
+  - `seed031_manual_direct` unchanged at its later throw/pet seam
+  - `seed033_manual_direct` unchanged
+  - `seed301_archeologist_selfplay200_gameplay` unchanged
+  - `t11_s755_w_covmax9_gp` still PASS
+
+Current conclusion:
+- the old `seed032` step-91 run-corner failure was a real C-faithfulness bug in
+  run state initialization
+- the remaining `seed032` blocker is later and event-only:
+  - first event divergence now at step `150`
+  - JS missing later C monster-turn work:
+    - C first unmatched event:
+      `^movemon_turn[116@52,7 mv=12->0]`
