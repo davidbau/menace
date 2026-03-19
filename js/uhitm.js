@@ -48,7 +48,7 @@ import {
 import { mkobj, mkcorpstat, next_ident, xname } from './mkobj.js';
 import { hitval as weapon_hitval, dmgval, abon, dbon, weapon_hit_bonus, weapon_dam_bonus } from './weapon.js';
 import { near_capacity, overexertion } from './hack.js';
-import { will_hurtle, mhurtle } from './dothrow.js';
+import { will_hurtle, mhurtle, ammo_and_launcher, is_ammo, is_missile } from './dothrow.js';
 import { u_wipe_engr } from './engrave.js';
 import { s_suffix, dist2 } from './hacklib.js';
 import {
@@ -67,7 +67,7 @@ import { obj_resists } from './objdata.js';
 import { experience, more_experienced, newexplevel } from './exper.js';
 import { game as _gstate } from './gstate.js';
 import { applyMonflee } from './mhitu.js';
-import { mondead, mondied, monkilled, wakeup, setmangry } from './mon.js';
+import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
 import { addToMonsterInventory } from './invent.js';
@@ -493,7 +493,7 @@ function hmon_hitmon_weapon_melee(hmd, mon, obj) {
 // cf. uhitm.c:1048 — hmon_hitmon_weapon(hmd, mon, obj):
 //   Dispatch weapon hit to ranged or melee sub-handler.
 export function hmon_hitmon_weapon(hmd, mon, obj) {
-    if (usesRangedMeleeDamage(obj)) {
+    if (usesRangedWeaponHitDamage(hmd, obj)) {
         hmon_hitmon_weapon_ranged(hmd, mon, obj);
     } else {
         hmon_hitmon_weapon_melee(hmd, mon, obj);
@@ -788,10 +788,15 @@ async function hmon_hitmon(player, mon, obj, thrown, dieroll, display, map) {
         if (!hmd.already_killed && mon.mhp > 0) {
             mon.mhp = 0;
         }
+        if (!hmd.already_killed) {
+            await xkilled(mon, XKILL_NOMSG, map, player);
+            hmd.already_killed = true;
+        }
         hmd.destroyed = true;
     }
     if (hmd.destroyed && !hmd.already_killed) {
-        // Kill handled by caller (hmon)
+        await killed(mon, map, player);
+        hmd.already_killed = true;
     }
 
     // Phase 11: confusion touch
@@ -2024,6 +2029,22 @@ function usesRangedMeleeDamage(weapon) {
     const isLauncher = sub >= 20 && sub <= 22;      // P_BOW..P_CROSSBOW
     const isAmmoOrMissile = sub <= -20 && sub >= -24; // -P_BOW..-P_SHURIKEN
     return isLauncher || isAmmoOrMissile;
+}
+
+// cf. uhitm.c hmon_hitmon_weapon() — select ranged-vs-melee damage path.
+function usesRangedWeaponHitDamage(hmd, obj) {
+    if (!obj) return false;
+    const player = hmd?.player || null;
+    const thrown = hmd?.thrown;
+    const launcher = player?.weapon || null;
+    const sub = objectData[obj.otyp]?.oc_subtyp;
+    const isLauncher = Number.isInteger(sub) && sub >= 20 && sub <= 22; // P_BOW..P_CROSSBOW
+
+    if (isLauncher) return true;
+    if (thrown !== HMON_THROWN && (is_missile(obj) || is_ammo(obj))) return true;
+    // Polearm-at-short-range remains unimplemented in JS; preserve current behavior.
+    if (is_ammo(obj) && (thrown !== HMON_THROWN || !ammo_and_launcher(obj, launcher))) return true;
+    return false;
 }
 
 // cf. uhitm.c find_roll_to_hit() — Luck component.

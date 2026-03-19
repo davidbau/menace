@@ -13775,3 +13775,47 @@ Validation:
     cache) looked promising but caused an earlier event regression in the pet
     stream
   - keep that separate until the event regression is explained
+
+### Thrown-hit parity: `hmon()` must own both damage dispatch and death resolution
+
+- `seed031_manual_direct` exposed a real regression after upstream `dothrow`
+  cleanup:
+  - JS first diverged by taking `rnd(2)` inside
+    `hmon_hitmon_weapon_ranged()`
+  - C was taking `dmgval()` (`rnd(3)` in the live trace) for the same thrown
+    hit
+- The cause was a simplified JS predicate in `hmon_hitmon_weapon()`:
+  - it treated all ammo/missiles as "ranged-melee damage"
+  - it ignored the C distinction for `HMON_THROWN`
+- C rule from `uhitm.c hmon_hitmon_weapon()`:
+  - ranged branch for:
+    - launchers,
+    - hand-struck ammo/missiles,
+    - polearms at short range while unmounted,
+    - ammo thrown without the proper launcher
+  - melee branch for:
+    - thrown missiles,
+    - thrown ammo with the matching launcher
+- A second missing C behavior was in JS `hmon()` itself:
+  - JS marked `hmd.destroyed` but returned without calling the death owner
+  - C performs death resolution before returning:
+    - `xkilled(mon, XKILL_NOMSG)` for poison kills
+    - `killed(mon)` for ordinary hero kills
+- Durable fix:
+  - make `hmon_hitmon_weapon()` branch on the C thrown predicate
+  - make `hmon()` own `killed()` / `xkilled()` before returning
+- Validation:
+  - `seed031_manual_direct`
+    - improved from the thrown-hit regression:
+      - RNG matched `23211 -> 23269`
+      - events matched `10811 -> 10840`
+    - this restored the previous live frontiers:
+      - pet `dog_move_choice` event seam
+      - later `rndmonnum_adj()` corpse-placeholder RNG seam
+  - guardrails stayed green:
+    - `t04_s705_w_minefill_gp`
+    - `t04_s706_w_minetn1_gp`
+    - `t08_s984_w_camera_gp`
+- Regression test:
+  - `test/unit/uhitm_weapon_dispatch.test.js`
+  - thrown ammo with a matching launcher must take the melee damage branch

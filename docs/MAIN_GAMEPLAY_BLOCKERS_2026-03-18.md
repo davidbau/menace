@@ -1263,3 +1263,49 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - RNG: step `488`
     - JS: `rn2(3)=1 @ rndmonnum_adj(...)`
     - C:  `rn2(2)=0 @ rndmonst_adj(makemon.c:1714)`
+
+## 2026-03-19: restore C thrown-hit `hmon()` ownership in `seed031`
+
+- Validated fixes in this batch:
+  - `js/uhitm.js`
+    - `hmon_hitmon_weapon()` now uses the C thrown-vs-melee predicate instead of
+      the simplified "all ammo/missiles are ranged" shortcut
+    - `hmon()` now owns the actual C death call:
+      - `xkilled(mon, XKILL_NOMSG)` for poison kills
+      - `killed(mon)` for ordinary hero kills
+  - `test/unit/uhitm_weapon_dispatch.test.js`
+    - regression test: thrown ammo with a matching launcher must use the melee
+      damage branch
+- What this fixed:
+  - upstream `dothrow` cleanup exposed two missing C behaviors in JS:
+    - thrown ammo with the proper launcher was still taking `rnd(2)` ranged
+      damage instead of `dmgval()`
+    - even when `hmon()` marked a monster destroyed, JS returned to
+      `thitmonst()` without performing the C death owner
+- Validation:
+  - `node --test test/unit/uhitm_weapon_dispatch.test.js`
+  - `seed031_manual_direct`
+    - improved from the current-main regression:
+      - RNG matched `23211 -> 23269`
+      - events matched `10811 -> 10840`
+    - restored the earlier frontier:
+      - event: `^dog_move_choice[32@66,6 pick=65,6 ...]` vs
+        `^dog_move_choice[32@66,6 pick=67,7 ...]`
+      - RNG: `rn2(3)=1 @ rndmonnum_adj(...)` vs
+        `rn2(2)=0 @ rndmonst_adj(...)`
+  - guardrails stayed green:
+    - `t04_s705_w_minefill_gp`
+    - `t04_s706_w_minetn1_gp`
+    - `t08_s984_w_camera_gp`
+- Most important conclusion:
+  - the right architecture is the C one:
+    - `thitmonst()` calls `hmon()`
+    - `hmon()` owns death resolution before returning
+  - do not reintroduce a `thitmonst()`-local kill shortcut for thrown hits
+- Current frontier after the fix:
+  - event: step `479`
+    - JS: `^dog_move_choice[32@66,6 pick=65,6 chi=1 do_eat=0 cnt=6 appr=1]`
+    - C:  `^dog_move_choice[32@66,6 pick=67,7 chi=5 do_eat=0 cnt=6 appr=1]`
+  - RNG: step `488`
+    - JS: `rn2(3)=1 @ rndmonnum_adj(...)`
+    - C:  `rn2(2)=0 @ rndmonst_adj(makemon.c:1714)`
