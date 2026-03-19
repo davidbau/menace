@@ -28,6 +28,17 @@ Before changing the loop, we need direct evidence that the earliest shared owner
 is a game-loop ordering mismatch rather than a local gameplay bug inside pet AI,
 attack ownership, prompt ownership, or another subsystem.
 
+**Important distinction:** seed031 and seed033 have DIFFERENT root causes:
+- **seed031 (step 411)**: Pure game loop ordering — turn-end in wrong step.
+  This plan addresses it.
+- **seed033 (step 294)**: bhit animation key consumption — C's
+  `runmode_delay_output()` inside `bhit()` (zap.c:3894) calls `nhgetch()`
+  to pace projectile animation, consuming a key and splitting the throw
+  across two steps. JS processes the entire bhit in one step. This is a
+  SEPARATE issue that needs its own fix. After fixing bhit, the game loop
+  ordering would be the NEXT divergence.
+- **seed032**: Display-only divergence (RNG passes). Not addressed here.
+
 ## C's Actual Structure
 
 C's `moveloop_core()` is one function called in a `for(;;)` loop. Each
