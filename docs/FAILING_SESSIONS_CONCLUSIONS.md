@@ -235,7 +235,24 @@ finding was a tag-name search error.
 
 ## NEXT STEPS
 
-1. **Investigate new divergence at step 407**: The throw command in JS consumes
+## PROGRESS: seed032 RNG now passes (March 19 ~01:00 UTC)
+
+seed032's RNG channel now passes (rng:3 instead of rng:4). The remaining seed032
+failure is screen-only: at step 18, JS shows `+` (closed door, brown) at row 12 col 8,
+while C shows empty space. This is a remembered terrain difference — the door glyph
+persists in JS's display memory but not in C's, likely from FOV updates during the
+run at step 17 ("L" = run east).
+
+Root cause: running/rush display parity — JS remembers seeing a door during the run
+that C doesn't, or C clears the memory differently when the cell leaves FOV.
+
+## NEXT STEPS
+
+1. **Fix seed032 screen divergence at step 18**: Investigate FOV/memory handling
+   during running. The door at (8, 11) or nearby position is briefly visible during
+   the run path and remembered differently in JS vs C.
+
+2. **Investigate new seed031 divergence at step 407**: The throw command in JS consumes
    different RNG than C's monster movement at the same point. This suggests
    JS's fire/throw command path differs from C's, or the step attribution
    puts different code at the same flat position.
