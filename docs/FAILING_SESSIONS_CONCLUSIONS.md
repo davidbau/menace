@@ -212,6 +212,27 @@ New divergence: JS=`rnd(2)=2 @ promptDirectionAndThrowItem` vs
 C=`rn2(5)=1 @ distfleeck`. JS is in the throw command while C is in monster
 movement. This is a completely different bug from the turn-146 issue.
 
+## COMPREHENSIVE SWEEP COMPLETE (March 19, 2026)
+
+Area Parity Sweep of the ENTIRE monster movement pipeline confirmed:
+- **dochug**: all 10 RNG calls match between JS and C
+- **distfleeck**: both RNG calls match
+- **dog_goal**: all 3 RNG calls match
+- **dog_move**: all 8 RNG calls match
+- **m_move**: position selection loop matches
+- **moveloop_turnend**: all RNG calls match
+- **mon_allowflags**: all flags match (after fixes)
+
+**The remaining divergences come from accumulated game state differences
+(object positions, monster positions) that develop over 100+ turns.** Each
+mfndpos or m_move parity fix can push the divergence later but can't
+eliminate it without fixing the INITIAL state difference that seeds the
+cascade.
+
+**seed301 correction**: JS DOES have gethungry (43 calls, tagged as
+moveloop_turnend:466, not as "gethungry"). The earlier "0 gethungry"
+finding was a tag-name search error.
+
 ## NEXT STEPS
 
 1. **Investigate new divergence at step 407**: The throw command in JS consumes
