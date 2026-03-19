@@ -1172,6 +1172,26 @@
       "note": "dome detour end: back in living room with rope in inventory"
     },
     {
+      "cmd": "describe tin",
+      "note": "Examine tin of spices (in case)"
+    },
+    {
+      "cmd": "look at white sphere",
+      "note": "Examine white crystal sphere (in case)"
+    },
+    {
+      "cmd": "what is bills",
+      "note": "Examine stack of zorkmid bills (in case)"
+    },
+    {
+      "cmd": "look at trunk",
+      "note": "Examine trunk with jewels (in case)"
+    },
+    {
+      "cmd": "look at gold",
+      "note": "Examine pot of gold (in case)"
+    },
+    {
       "cmd": "proceed west"
     },
     {
@@ -1182,6 +1202,10 @@
     },
     {
       "cmd": "take all"
+    },
+    {
+      "cmd": "examine canary",
+      "note": "Examine clockwork canary"
     },
     {
       "cmd": "go down"
@@ -1651,6 +1675,10 @@
       "cmd": "take sphere"
     },
     {
+      "cmd": "describe sphere",
+      "note": "Examine red crystal sphere"
+    },
+    {
       "cmd": "go north"
     },
     {
@@ -1918,6 +1946,10 @@
       "cmd": "take ruby"
     },
     {
+      "cmd": "look at ruby",
+      "note": "Examine moby ruby"
+    },
+    {
       "cmd": "go west"
     },
     {
@@ -2015,6 +2047,10 @@
     },
     {
       "cmd": "take crown"
+    },
+    {
+      "cmd": "what is crown",
+      "note": "Examine crown of Lord Dimwit Flathead"
     },
     {
       "cmd": "walk north"
