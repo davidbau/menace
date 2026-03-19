@@ -657,16 +657,31 @@ function _mailPrintHeaders(msgs, currentIdx, shell) {
     }
 }
 
-// Print a single message
-function _mailPrintMsg(msg, shell) {
-    const line = (s) => shell.println(s);
-    line(`From ${msg.from}  ${_mailFmtDate(msg.date || 0)}`);
-    line(`From: ${msg.from}`);
-    line(`To: rodney`);
-    line(`Subject: ${msg.subject || '(no subject)'}`);
-    line('');
-    for (const l of (msg.body || '').split('\n')) line(l);
-    line('');
+// Print a single message, pausing with --More-- if it exceeds the terminal
+async function _mailPrintMsg(msg, shell) {
+    const pageSize = 22;
+    let lineCount = 0;
+    const line = async (s) => {
+        shell.println(s);
+        lineCount++;
+        if (lineCount % pageSize === 0) {
+            shell.printPrompt('--More--');
+            const ch = await shell.getch();
+            shell.clearPromptLine();
+            if (ch === 'q'.charCodeAt(0) || ch === 27) throw 'quit';
+        }
+    };
+    try {
+        await line(`From ${msg.from}  ${_mailFmtDate(msg.date || 0)}`);
+        await line(`From: ${msg.from}`);
+        await line(`To: rodney`);
+        await line(`Subject: ${msg.subject || '(no subject)'}`);
+        await line('');
+        for (const l of (msg.body || '').split('\n')) await line(l);
+        await line('');
+    } catch (e) {
+        if (e !== 'quit') throw e;
+    }
 }
 
 // Select a reply for a given outgoing message using REPLY_RULES + SOCIAL_ROUTING
@@ -800,7 +815,7 @@ async function mail(args, shell) {
 
     // Mark current as read
     msgs[cur].read = true;
-    _mailPrintMsg(msgs[cur], shell);
+    await _mailPrintMsg(msgs[cur], shell);
     const msgCount = msgs.length;
 
     while (true) {
@@ -813,7 +828,7 @@ async function mail(args, shell) {
 
         if (cmd === '' || cmd === 'p') {
             // Print current message
-            _mailPrintMsg(msgs[cur], shell);
+            await _mailPrintMsg(msgs[cur], shell);
         } else if (cmd === 'n') {
             // Next message
             if (cur + 1 >= msgs.length) {
@@ -821,7 +836,7 @@ async function mail(args, shell) {
             } else {
                 cur++;
                 msgs[cur].read = true;
-                _mailPrintMsg(msgs[cur], shell);
+                await _mailPrintMsg(msgs[cur], shell);
             }
         } else if (/^\d+$/.test(cmd)) {
             // Jump to message N
@@ -831,7 +846,7 @@ async function mail(args, shell) {
             } else {
                 cur = n;
                 msgs[cur].read = true;
-                _mailPrintMsg(msgs[cur], shell);
+                await _mailPrintMsg(msgs[cur], shell);
             }
         } else if (cmd === 'h' || cmd === 'H') {
             _mailPrintHeaders(msgs, cur, shell);
@@ -847,7 +862,7 @@ async function mail(args, shell) {
                 if (next >= 0) {
                     cur = next;
                     msgs[cur].read = true;
-                    _mailPrintMsg(msgs[cur], shell);
+                    await _mailPrintMsg(msgs[cur], shell);
                 }
             }
         } else if (cmd === 'u') {
