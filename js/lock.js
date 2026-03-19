@@ -18,6 +18,7 @@ import { IS_DOOR, D_CLOSED, D_LOCKED, D_ISOPEN, D_NODOOR, D_BROKEN, D_TRAPPED,
          SHOPBASE, FINGER, OBJ_FLOOR } from './const.js';
 import { PM_ROGUE, PM_WIZARD } from './monsters.js';
 import { Role_if } from './role.js';
+import { confdir } from './hack.js';
 import { rn2, rnl } from './rng.js';
 import { nhgetch, ynFunction } from './input.js';
 import { exercise } from './attrib_exercise.js';
@@ -530,8 +531,12 @@ export async function pick_lock(game, pick, rx, ry, container) {
         if (!dir) {
             return PICKLOCK_DID_NOTHING;
         }
-        ccx = player.x + dir[0];
-        ccy = player.y + dir[1];
+        // C ref: get_adjacent_loc() → getdir() → confdir() for confused direction
+        player.dx = dir[0];
+        player.dy = dir[1];
+        confdir(false, player);
+        ccx = player.x + player.dx;
+        ccy = player.y + player.dy;
     }
 
     if (ccx === player.x && ccy === player.y) {
@@ -1037,10 +1042,11 @@ export async function handleOpen(player, map, display, game) {
             dir = [0, 0];
         }
         if (dir) {
-            // C ref: getdir() sets u.dx/u.dy as side effect
+            // C ref: getdir() sets u.dx/u.dy then calls confdir()
             player.dx = dir[0];
             player.dy = dir[1];
             player.dz = 0;
+            confdir(false, player);
             break;
         }
         // C ref: getdir() returns 0 after help_dir; no retry
@@ -1087,13 +1093,14 @@ export async function handleClose(player, map, display, game) {
         }
         return { moved: false, tookTime: false };
     }
-    // C ref: getdir() sets u.dx/u.dy as side effect
+    // C ref: getdir() sets u.dx/u.dy then calls confdir()
     player.dx = dir[0];
     player.dy = dir[1];
     player.dz = 0;
+    confdir(false, player);
 
-    const nx = player.x + dir[0];
-    const ny = player.y + dir[1];
+    const nx = player.x + player.dx;
+    const ny = player.y + player.dy;
 
     // C: self-direction check
     if (nx === player.x && ny === player.y) {

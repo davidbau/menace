@@ -77,7 +77,7 @@ import { add_damage, pay_for_damage } from './shk.js';
 import { t_at, conjoined_pits } from './trap.js';
 import { On_ladder, On_stairs } from './stairs.js';
 import { s_suffix } from './hacklib.js';
-import { in_rooms, may_dig, losehp, Maybe_Half_Phys } from './hack.js';
+import { in_rooms, may_dig, losehp, Maybe_Half_Phys, confdir } from './hack.js';
 import { getEnv } from './runtime_env.js';
 
 function digTraceEnabled() {
@@ -1065,7 +1065,10 @@ export function use_pick_axe2(obj, map, player) {
 
     if (dz === 0) {
         // Horizontal digging
-        // confdir handling would go here
+        // C ref: dig.c:1152 getdir() → confdir() for confused/stunned direction
+        confdir(false, player);
+        dx = player.dx || 0;
+        dy = player.dy || 0;
         const rx = player.x + dx;
         const ry = player.y + dy;
         if (!isok(rx, ry)) {
