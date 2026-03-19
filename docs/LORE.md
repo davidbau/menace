@@ -13635,3 +13635,30 @@ Validation:
 - New frontier after this batch:
   - later `changeLevel()` / `mon_arrive()` ownership
   - first RNG divergence now in `dog.js mon_arrive(...)`
+### `load_special_by_protofile()` must preserve actual generation coordinates
+
+- `seed031_manual_direct` exposed a real integrated Mines descent bug:
+  branch-entry `minefill` generation was selected correctly for live
+  `(dnum=1,dlevel=1)`, but `load_special_by_protofile('minefill', ...)` was
+  leaking the canonical registry coordinates from `findSpecialLevelByProto()`
+  into finalize/mineralize state.
+- Symptom before the fix:
+  - live trace showed `^lvlselect[depth=3 dnum=1 dlevel=1 ... lvlfill=minefill]`
+  - but later fixup logged `^wizfixup[name=minefill dnum=1 dlevel=3 ...]`
+  - then `mineralize()` classified the same generated map as a town-bearing
+    special via runtime metadata and skipped the minefill post-topology pass
+- Fix in `js/dungeon.js`:
+  - keep proto lookup only for choosing the generator
+  - preserve the actual requested `dnum/dlevel/depth` for:
+    - `withFinalizeContext(...)`
+    - `withSpecialLevelDepth(...)`
+    - `specialMap._genDnum/_genDlevel`
+    - tutorial/branch flags
+- Validation:
+  - `seed031_manual_direct` improved:
+    - matched RNG `21809 -> 22472`
+    - matched events `10152 -> 10188`
+    - bogus `minefill dlevel=3` fixup symptom disappeared
+  - guardrails remained green:
+    - `t04_s705_w_minefill_gp`
+    - `t04_s706_w_minetn1_gp`

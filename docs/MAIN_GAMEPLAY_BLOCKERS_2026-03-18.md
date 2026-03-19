@@ -956,3 +956,118 @@ Current conclusion:
   - C is still in `place_lregion(...)`
 - next work should stay on this later step-467 arrival/levregion boundary, not
   reopen the older minefill alignment theory
+
+## 2026-03-19: `seed031` integrated Mines seam is still unresolved; current contradiction is in level identity
+
+Validated observations:
+- authoritative current failure is still:
+  - `seed031_manual_direct`
+  - first RNG divergence at step `467`
+  - JS: `rn2(8)=2 @ mon_arrive(dog.js:463) <= changeLevel(do.js:1668)`
+  - C: `rn2(79)=72 @ place_lregion(mkmaze.c:396)`
+- `scripts/movement-propagation.mjs` confirms step `467` is the same `>` bundle
+  on both sides; this is not a wrong-key problem
+- `DEBUG_MINERALIZE=1` on `seed031` shows JS does reach `mineralize()` for the
+  new level:
+  - `mineralize depth=3 dnum=1 dlevel=3 skip=false`
+  - then immediately:
+    - `mineralize: SKIP (... special=true oracle=false mines=true town=true)`
+- `WEBHACK_WIZLOAD_FIXUP_TRACE=1` on the same session shows JS special-level
+  finalize state for that generated map as:
+  - `^wizfixup[name=minefill dnum=1 dlevel=3 isBranch=0 nroom=0 regions=0 placed=0 addedBranch=0 fallback=0 ...]`
+
+What this currently proves:
+- JS believes the generated map at `(dnum=1,dlevel=3)` is `minefill` when
+  running `fixupSpecialLevel()`
+- but `mineralize()` classifies the same coordinates as a Mines town special
+  (`special=true`, `town=true`) and skips the minefill post-topology pass
+- that contradiction is upstream of the step-467 `mon_arrive()` drift and is a
+  better live target than follower migration itself
+
+Failed local experiment (reverted, do not retry blindly):
+- I tried preserving an `_generatedSpecialName` marker onto the generated map
+  and teaching `mineralize()` to trust that actual generated-level identity
+  before coordinate-based runtime metadata
+- this regressed both established Mines guardrails and was fully reverted:
+  - `test/comparison/sessions/t04_s705_w_minefill_gp.session.json`
+  - `test/comparison/sessions/coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`
+
+Guardrail status after reverting the experiment:
+- `t04_s705_w_minefill_gp`: PASS
+- `t04_s706_w_minetn1_gp`: PASS
+- worktree restored to clean validated state before continuing
+
+Current best next target:
+- localize why integrated gameplay reaches the contradictory state
+  `fixupSpecialLevel(name=minefill)` + `mineralize(town=true)` on the same
+  generated level
+- likely owners to inspect next:
+  - runtime special-level mapping for the active role/seed
+  - the `makelevel()` special-vs-`lvlfill` selection path
+  - any divergence between branch-local generation identity and
+    coordinate-based `runtimeSpecialLevelFor(dnum,dlevel)` during integrated
+    Mines descent
+
+## 2026-03-19: `seed031` canonical-proto coordinate leak fixed; frontier moved later again
+
+Validated core fix in `js/dungeon.js`:
+
+- `load_special_by_protofile(protofile, dnum, dlevel, depth)` had been using
+  the canonical registry coordinates returned by `findSpecialLevelByProto()`
+  as the live generation/finalize coordinates.
+- That is wrong for branch filler protofiles such as Mines `lvlfill=minefill`:
+  the registry entry lives at canonical Mines `dlevel 3`, but the live branch
+  entry in `seed031` is Mines `dlevel 1`.
+- Fix:
+  - use the proto registry only to choose the generator
+  - preserve the actual requested generation coordinates for:
+    - `withFinalizeContext(...)`
+    - `withSpecialLevelDepth(...)`
+    - `specialMap._genDnum/_genDlevel`
+    - tutorial/branch classification
+
+New reusable diagnostic added:
+
+- env-gated makelevel trace:
+  - `WEBHACK_TRACE_LEVEL_SELECT=1`
+- useful output on the live `seed031` bundle:
+  - `^lvlselect[depth=3 dnum=1 dlevel=1 depthOnly=0 runtime=- town=0 special=-]`
+  - `^lvlselect_fallback[dnum=1 dlevel=1 proto=- lvlfill=minefill]`
+
+What this proved:
+
+- the integrated `seed031` descent was correctly generating a branch-entry
+  Mines filler level at `dnum=1,dlevel=1`
+- the old bad state came later, when `load_special_by_protofile('minefill', ...)`
+  leaked canonical registry coordinates into the generated map:
+  - old bad event:
+    - `^wizfixup[name=minefill dnum=1 dlevel=3 isBranch=0 ...]`
+
+Validation after the fix:
+
+- `node test/comparison/session_test_runner.js --verbose test/comparison/sessions/seed031_manual_direct.session.json`
+  - improved:
+    - RNG matched `21809 -> 22472`
+    - events matched `10152 -> 10188`
+  - new first RNG divergence:
+    - step `467`
+    - JS: `rnd(3)=2 @ Module.finalize_level(sp_lev.js:7086) <= async generate(minefill.js:64) <= dungeon.js:1772`
+    - C:  `rnd(2)=1 @ mineralize(mklev.c:1528)`
+  - new first event divergence:
+    - step `464`
+    - JS: `^movemon_turn[32@74,6 mv=12->0]`
+    - C:  `^movemon_turn[32@72,5 mv=12->0]`
+  - corrected fixup/mapdump identity:
+    - `^wizfixup[name=minefill dnum=1 dlevel=1 isBranch=1 ...]`
+    - mapdump checkpoint now `d1l1_003` instead of stale `d1l3_003`
+- canaries stayed green:
+  - `test/comparison/sessions/t04_s705_w_minefill_gp.session.json`
+  - `test/comparison/sessions/coverage/maze-mines-digging/t04_s706_w_minetn1_gp.session.json`
+
+Current conclusion:
+
+- the earlier `minefill@dlevel3` integrated descent state was a real core bug
+- it is now fixed
+- `seed031` remains blocked in the same branch-entry bundle, but the next live
+  seam is later minefill finalization (`finalize_level` / `mineralize`) rather
+  than misidentified branch coordinates

@@ -1748,17 +1748,20 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
 
     const special = getSpecialLevel(where.dnum, where.dlevel);
     if (!special || typeof special.generator !== 'function') return null;
+    const actualDnum = Number.isInteger(dnum) ? dnum : where.dnum;
+    const actualDlevel = Number.isInteger(dlevel) ? dlevel : where.dlevel;
+    const actualDepth = Number.isInteger(depth) ? depth : actualDlevel;
 
     resetLevelState();
     const specialName = typeof special.name === 'string' ? special.name : String(protofile || '');
-    const specialMap = await withSpecialLevelDepth(Number.isInteger(depth) ? depth : where.dlevel, async () =>
+    const specialMap = await withSpecialLevelDepth(actualDepth, async () =>
         await withFinalizeContext({
-            dnum: where.dnum,
-            dlevel: where.dlevel,
-            dunlev: Number.isInteger(depth) ? depth : where.dlevel,
-            dunlevs: dunlevs_in_dungeon(where.dnum),
+            dnum: actualDnum,
+            dlevel: actualDlevel,
+            dunlev: actualDepth,
+            dunlevs: dunlevs_in_dungeon(actualDnum),
             specialName,
-            isBranchLevel: isBranchLevel(where.dnum, where.dlevel),
+            isBranchLevel: isBranchLevel(actualDnum, actualDlevel),
         }, async () => {
             // C ref: nhlua.c load_lua()/nhl_init() for every special-level load.
             // Each load initializes a fresh Lua state and executes nhlib.lua,
@@ -1770,8 +1773,10 @@ export async function load_special_by_protofile(protofile, dnum, dlevel, depth) 
         })
     );
     if (!specialMap) return null;
+    specialMap._genDnum = actualDnum;
+    specialMap._genDlevel = actualDlevel;
     if (!specialMap.flags) specialMap.flags = {};
-    specialMap.flags.is_tutorial = (where.dnum === TUTORIAL);
+    specialMap.flags.is_tutorial = (actualDnum === TUTORIAL);
     if (specialName === 'rogue') {
         specialMap.flags.is_rogue_lev = true;
         specialMap.flags.roguelike = true;
@@ -4956,6 +4961,17 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             specialDlevel = depth;
         }
     }
+    if (envFlag('WEBHACK_TRACE_LEVEL_SELECT')) {
+        console.log(
+            `^lvlselect[depth=${Number.isInteger(depth) ? depth : -1} ` +
+            `dnum=${Number.isInteger(dnum) ? dnum : -1} ` +
+            `dlevel=${Number.isInteger(dlevel) ? dlevel : -1} ` +
+            `depthOnly=${depthOnlySpecialLookup ? 1 : 0} ` +
+            `runtime=${runtimeSpecial ? `${runtimeSpecial.dnum}:${runtimeSpecial.dlevel}` : '-'} ` +
+            `town=${runtimeSpecial?.town ? 1 : 0} ` +
+            `special=${typeof special?.name === 'string' ? special.name : '-'}]`
+        );
+    }
     const isRogueLevel = !!special && special.name === 'rogue';
     if (special && !isRogueLevel) {
             const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
@@ -5014,6 +5030,14 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
     const branchGen = _dungeonGenerationByDnum.get(
         Number.isInteger(dnum) ? dnum : DUNGEONS_OF_DOOM
     ) || null;
+    if (envFlag('WEBHACK_TRACE_LEVEL_SELECT')) {
+        console.log(
+            `^lvlselect_fallback[dnum=${Number.isInteger(dnum) ? dnum : -1} ` +
+            `dlevel=${Number.isInteger(dlevel) ? dlevel : -1} ` +
+            `proto=${typeof branchGen?.protofile === 'string' && branchGen.protofile ? branchGen.protofile : '-'} ` +
+            `lvlfill=${typeof branchGen?.lvlfill === 'string' && branchGen.lvlfill ? branchGen.lvlfill : '-'}]`
+        );
+    }
     if (branchGen?.protofile) {
         const branchProtoMap = await load_special_by_protofile(branchGen.protofile, dnum, dlevel, depth);
         if (branchProtoMap) {
