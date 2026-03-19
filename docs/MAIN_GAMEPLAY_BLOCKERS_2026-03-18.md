@@ -1521,3 +1521,35 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
   - first event divergence: step `498`
     - JS: `^distfleeck[32@63,8 ... brave=1 ...]`
     - C: `^distfleeck[32@63,8 ... brave=0 ...]`
+
+## 2026-03-19: `seed031` step 495 was a missing `getdir()` impairment path for apply tools
+
+- Exact C source:
+  - `apply.c use_camera()` calls `getdir()`
+  - `cmd.c getdir()` applies `confdir(FALSE)` for non-vertical directions
+  - `confdir(FALSE)` consumes `u_maybe_impaired()`:
+    - `Stunned || (Confusion && !rn2(5))`
+- JS bug:
+  - [`js/apply.js`](/share/u/davidbau/git/mazesofmenace/game/js/apply.js)
+    manually read direction input for camera/mirror/apply-direction tools and
+    dispatched directly
+  - it skipped the C confusion/impaired-direction path entirely
+- Faithful fix:
+  - after a valid non-vertical direction is selected in the shared apply
+    direction prompt path, set `player.dx/dy/dz` and call
+    `confdir(false, player)` before tool dispatch
+- Validation:
+  - `seed031_manual_direct`
+    - RNG matched `23723 -> 24414`
+    - events matched `11130 -> 11532`
+    - first RNG divergence moved `495 -> 525`
+    - first event divergence moved `498 -> 526`
+  - `t08_s984_w_camera_gp`: PASS
+  - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
+- New live frontier:
+  - first RNG divergence: step `525`
+    - JS: `rn2(8)=4 @ dochug(monmove.js:847)`
+    - C: `rn2(100)=68 @ obj_resists(zap.c:1467)`
+  - first event divergence: step `526`
+    - JS: `^dog_goal_start[...] minvent=0 ...`
+    - C: `^dog_goal_start[...] minvent=1 ...`

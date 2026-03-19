@@ -86,7 +86,7 @@ import { nolimbs, has_head, unsolid, breathless,
 import { mons, PM_LONG_WORM, MS_SILENT,
          PM_ROGUE, PM_HEALER, PM_ARCHEOLOGIST } from './monsters.js';
 import { dist2, distu, s_suffix } from './hacklib.js';
-import { u_at } from './hack.js';
+import { u_at, confdir } from './hack.js';
 import { setnotworn } from './worn.js';
 import { begin_burn, end_burn,
          kill_egg, attach_egg_hatch_timeout } from './timeout.js';
@@ -1179,14 +1179,15 @@ export async function handleApply(player, map, display, game) {
                 }
                 return { moved: false, tookTime: true };
             }
+            player.dx = dir[0];
+            player.dy = dir[1];
+            player.dz = 0;
+            confdir(false, player);
             if (selected.otyp === MIRROR) {
                 await use_mirror(selected, player);
                 return { moved: false, tookTime: true };
             }
             if (selected.otyp === EXPENSIVE_CAMERA) {
-                player.dx = dir[0];
-                player.dy = dir[1];
-                player.dz = 0;
                 await use_camera(selected, player, map);
                 return { moved: false, tookTime: true };
             }

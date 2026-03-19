@@ -13956,3 +13956,28 @@ Validation:
       - first event divergence moved `step 493 -> 498`
     - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
     - `command_eat_occupation_timing.test.js`: PASS
+
+- 2026-03-19: apply-direction tools must run the exact C `getdir()` impairment
+  path before dispatch.
+  - Exact C behavior:
+    - `apply.c use_camera()` calls `getdir()`
+    - `cmd.c getdir()` calls `confdir(FALSE)` for non-vertical directions
+    - `confdir(FALSE)` consumes `u_maybe_impaired()` (`Confusion && !rn2(5)`)
+  - JS bug:
+    - [`js/apply.js`](/share/u/davidbau/git/mazesofmenace/game/js/apply.js)
+      manually read a direction key for camera/mirror/other apply-direction
+      tools and dispatched directly
+    - it never ran the `getdir()` confusion gate, so confused direction-taking
+      tool use skipped a real C RNG/state path
+  - Faithful fix:
+    - after a valid non-vertical direction is chosen in the shared apply tool
+      direction path, set `player.dx/dy/dz` then call `confdir(false, player)`
+      before dispatch
+  - Validation:
+    - `seed031_manual_direct`
+      - RNG matched `23723 -> 24414`
+      - events matched `11130 -> 11532`
+      - first RNG divergence moved `step 495 -> 525`
+      - first event divergence moved `step 498 -> 526`
+    - `t08_s984_w_camera_gp`: PASS
+    - `theme33_seed2102_wiz_eat-various_gameplay`: PASS
