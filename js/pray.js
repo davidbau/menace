@@ -89,7 +89,7 @@ import { buried_ball_to_freedom } from './dig.js';
 import { resist } from './zap.js';
 import { unpunish, punish } from './read.js';
 import { you_unwere } from './were.js';
-import { Luck, change_luck, adjalign, adjattrib, currentAlignLim } from './attrib.js';
+import { Luck, change_luck, adjalign, adjattrib, currentAlignLim, Fixed_abil } from './attrib.js';
 import { findpriest, angry_priest } from './priest.js';
 import { display_nhwindow } from './windows.js';
 import { set_itimeout, make_sick, make_stunned, make_confused,
@@ -450,11 +450,7 @@ function Wounded_legs(player) {
     return player.woundedLegs > 0;
 }
 
-// Helper: Fixed_abil check
-function Fixed_abil(player) {
-    // C: HFixed_abil (sustain ability)
-    return false;
-}
+// Fixed_abil imported from attrib.js (was stub returning false)
 
 // Helper: Levitation check
 function Levitation(player) {
