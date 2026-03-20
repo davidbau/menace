@@ -14055,17 +14055,51 @@ Validation:
       - `theme15_seed986_wiz_artifact-wish_gameplay`
       - `theme35_seed2320_wiz_artifact-combat2_gameplay`
       - `seed1_special_tutorial.session.json`
+# 2026-03-20: mklev alignment authority split for changeLevel-driven generation
 
-- 2026-03-20: mhitm_ad_* three-path sweep COMPLETE.
-  - C's mhitm_ad_* functions have three paths: uhitm (player attacks), mhitu
-    (monster attacks player), mhitm (monster-vs-monster). Each path can have
-    different RNG consumption (rn2 gates, exercise calls, destroy_items gates).
-  - JS was using a single path for all cases, consuming wrong RNG when a monster
-    attacks the player.
-  - Fixed 16/39 functions: acid, fire, cold, elec, stun, blnd, drli, were, famn,
-    sgld, slee, drin, legs, slow, ston, wrap.
-  - Remaining 23 verified: identical RNG across all paths — no fixes needed.
-  - Key patterns: mhitu fire/cold/elec have `magr->m_lev > rn2(20)` gate before
-    destroy_items; mhitu acid has `!rn2(3)` gate + exercise; mhitu stun has
-    `!rn2(4)` gate; mhitu were has `!rn2(4)` + exercise; mhitu slee uses
-    `!rn2(5)` + rnd(10) vs mhitm's rnd(10) + rnd(10).
+- Evidence:
+  - `seed16_map` / `seed16_maps_c` regressed when runtime special-level
+    alignment metadata was fed directly into `makelevel()` monster weighting.
+  - `seed321_archeologist_wizard_gameplay` needed Medusa runtime alignment to
+    reach `align_shift()` during deferred wizard levelport generation.
+  - Broadly mutating live `player.uz` before every `mklev()` fixed those, but
+    regressed `seed031_manual_direct` because `sp_lev` `induced_align()` then
+    started seeing destination-branch alignment too early.
+- C anchor:
+  - `makemon.c:1609-1619` `align_shift()` refreshes cached special-level state
+    on move changes and keys from live `u.uz`.
+  - `teleport.c level_tele()` schedules `goto_level()` for end-of-turn
+    `deferred_goto()`, so deferred level changes naturally refresh at the next
+    move context.
+  - `sp_lev.c sp_amask_to_amask()` / `dungeon.c induced_align()` still read the
+    ordinary current-level authority path.
+- JS rule:
+  - do not pre-mutate live `player.uz` globally before `mklev()`
+  - instead, for `changeLevel()` generation only, pass a mklev-only target
+    level reference to `align_shift()` via `_mklevAlignLevelRef`
+  - keep direct startup/tutorial `mklev()` and `sp_lev` random alignment on the
+    existing current-level path unless separately proven otherwise
+- Result:
+  - `seed16_map`: PASS
+  - `seed16_maps_c`: PASS
+  - `seed321_archeologist_wizard_gameplay`: PASS
+  - `seed031_manual_direct` returns to its prior `525/526` frontier instead of
+    regressing to the bad step-467 special-level seam.
+# 2026-03-20: Floor objects must not retain wornmask bits
+
+- Symptom: `seed031_manual_direct` diverged at pet `dog_goal_start` with
+  `minvent=0` in JS versus `minvent=1` in C immediately after the pet picked up
+  a dart stack.
+- Root cause: the pet split a floor dart stack in `dog_invent()`, cloning the
+  picked item from the floor object. JS floor objects could still carry stale
+  `owornmask` bits (for example `W_QUIVER`), so the cloned inventory object was
+  treated as worn and `droppables(mon)` returned null.
+- Fix: clear `obj.owornmask` in
+  [js/mkobj.js](/share/u/davidbau/git/mazesofmenace/game/js/mkobj.js)
+  `place_object()`. This matches the C invariant that floor objects are on the
+  floor chain, not worn inventory, and closes later split/merge contamination.
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `525/526` to `562/565`
+  - `seed16_map`, `seed16_maps_c`, `seed321`, `seed328`, and `t11_s744`
+    remained green

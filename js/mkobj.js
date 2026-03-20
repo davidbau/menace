@@ -73,6 +73,13 @@ export function place_object(obj, x, y, map) {
     if (!obj || !mapRef?.objects) return obj;
     obj.ox = x;
     obj.oy = y;
+    // C refs:
+    // - mkobj.c place_object() links onto the floor object chain (fobj/level.objects)
+    // - worn.c extract_from_minvent() clears owornmask before floor placement
+    // Floor objects are never "worn"; preserving stale monster/player worn bits
+    // contaminates later split/merge paths (for example dog_invent() cloning a
+    // floor stack into pet inventory). Keep the floor invariant explicit here.
+    obj.owornmask = 0;
     // C ref: place_object() puts object on floor chain (OBJ_FLOOR).
     obj.where = OBJ_FLOOR;
     pushRngLogEntry(`^place[${obj.otyp},${obj.ox},${obj.oy}]`);
