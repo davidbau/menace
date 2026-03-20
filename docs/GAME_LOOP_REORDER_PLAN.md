@@ -1,5 +1,53 @@
 # Game Loop Reorder Plan
 
+## Review Notes — Follow-up (requested review of specific concerns)
+
+### Occupation ordering: RESOLVED — branch is correct
+
+My earlier concern was wrong. The branch ordering matches C exactly:
+
+**C moveloop_core per iteration:**
+```
+Phase B (line 296): if (context.move) → movemon()     ← monsters
+Phase C (line 559): find_ac(), vision, context.move=1
+Phase D (line 591): if (occupation) → (*occupation)()  ← one occ step
+                    return;                            ← back to loop
+```
+
+**Branch _gameLoopStep per iteration:**
+```
+advanceTimedTurn(game, {})  ← = Phase B+C (monsters + find_ac + vision)
+runOccupationStep(game)     ← = Phase D (one occupation callback)
+continue                    ← back to loop
+```
+
+Both run monsters BEFORE occupation on every iteration. The ordering
+is correct. Evidence: C lines 296→591 (hack.c), branch lines 34-37
+in _gameLoopStep.
+
+### hasPendingCommandBoundaryDismiss: acceptable for merge
+
+The function reads display state (`messageNeedsMore`, `moreMarkerActive`,
+screen line content) to determine if `more()` was left pending from a
+prior operation. This is needed because:
+
+1. C's `more()` blocks synchronously — it consumes the dismiss key
+   during the operation that produced the message, before returning.
+2. JS's `more()` is async — the display state persists across the
+   event loop boundary between `_gameLoopStep` iterations.
+3. Without this check, continuation iterations (negative multi,
+   occupation) would run WITHOUT the --More-- being dismissed,
+   which would consume the wrong key.
+
+The function is display-coupled but necessarily so — it's detecting a
+JS-specific state that doesn't exist in C (pending async --More--).
+It's used at exactly one call site and the logic is straightforward.
+
+**Recommendation:** acceptable for merge as-is. If the display system
+is later refactored to make `more()` completion more explicit (e.g., a
+game-level flag rather than display inspection), this function can be
+simplified. But it's not blocking merge.
+
 ## Review Notes (from original plan author)
 
 I reviewed the branch implementation (`a818b2930`) against the original
