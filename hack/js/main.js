@@ -86,11 +86,108 @@ function useup(obj) {
   if (prev) prev.nobj = obj.nobj;
 }
 
+// ===== Score storage for Hack =====
+
+const HACK_SCORE_KEY = 'hack-scores';
+const GAMEOVER_KEY = 'menace-gameover';
+const MAX_HACK_SCORES = 10;
+
+function getHackScores() {
+  try { return JSON.parse(localStorage.getItem(HACK_SCORE_KEY) || '[]'); } catch (e) { return []; }
+}
+
+function addHackScore(name, points, dlevel, reason, killer) {
+  const scores = getHackScores();
+  scores.push({ name, points, dlevel, reason, killer, date: new Date().toLocaleDateString() });
+  scores.sort((a, b) => b.points - a.points);
+  if (scores.length > MAX_HACK_SCORES) scores.length = MAX_HACK_SCORES;
+  try { localStorage.setItem(HACK_SCORE_KEY, JSON.stringify(scores)); } catch (e) {}
+}
+
+function hackScoreLines(scores) {
+  const lines = ['Number  Points   Name'];
+  for (let i = 0; i < scores.length && i < MAX_HACK_SCORES; i++) {
+    const s = scores[i];
+    const num    = String(i + 1).padStart(2);
+    const points = String(s.points).padStart(6);
+    let   desc;
+    if (s.reason === 'escaped') {
+      desc = 'escaped the dungeon';
+    } else if (s.reason === 'quit') {
+      desc = `quit on dungeon level ${s.dlevel}.`;
+    } else {
+      const vowels = 'aeiouAEIOU';
+      const art = vowels.includes((s.killer || '')[0]) ? 'an' : 'a';
+      desc = `was killed on dungeon level ${s.dlevel} by ${art} ${s.killer || 'unknown'}.`;
+    }
+    lines.push(`${num}    ${points}  ${s.name} ${desc}`);
+  }
+  if (scores.length === 0) lines.push('  (no scores yet)');
+  return lines;
+}
+
 // C ref: done(str) — game over (death or escape)
-// C just exits; JS throws GameOver so callers (browser or test runner) can catch it.
-// "Press any key" is handled by the caller (browser_main.js) after catching GameOver.
+// Shows the Hack end-game screen, stores lines for the shell, then throws GameOver.
 export async function done(reason) {
-  game.display.flush();
+  const uname = game.uname || 'rodney';
+  const disp  = game.display;
+  const input = game.input;
+
+  // Calculate escape experience bonus (C: done('escaped') path)
+  let urexp = game.u.urexp;
+  if (reason === 'escaped') {
+    urexp += 150;
+    for (let otmp = game.fobj; otmp; otmp = otmp.nobj) {
+      if (otmp.olet === '*') urexp += otmp.quan * 10 * (1 + Math.floor(Math.random() * 12));
+      else if (otmp.olet === '"') urexp += 5000;
+    }
+  }
+
+  // Determine killer string
+  const killerStr = game.killer || reason;
+
+  // Record score
+  addHackScore(uname, urexp, game.dlevel, reason, killerStr);
+  const scores = getHackScores();
+
+  // Build plain-text lines (matching C done() output)
+  const lines = [];
+  lines.push(`Goodbye ${uname}...`);
+  lines.push('');
+  if (reason === 'escaped') {
+    lines.push(`You escaped from the dungeon with ${urexp} points.`);
+  } else {
+    lines.push(`You ${reason} on dungeon level ${game.dlevel} with ${urexp} points.`);
+  }
+  lines.push(`and ${game.u.ugold} pieces of gold, after ${game.moves} moves.`);
+  lines.push(`You were level ${game.u.ulevel} with a maximum of ${game.u.uhpmax} hit points when you ${reason}.`);
+  lines.push('');
+  for (const sl of hackScoreLines(scores)) lines.push(sl);
+
+  // Show on screen and wait for keypress (browser only)
+  if (disp && typeof disp.clearScreen === 'function') {
+    disp.clearScreen();
+    for (let i = 0; i < lines.length; i++) {
+      disp.moveCursor(1, i + 1);
+      disp.putString(lines[i]);
+    }
+    disp.moveCursor(1, lines.length + 2);
+    disp.putString('--Press space to continue--');
+    disp.flush();
+    if (input) {
+      let ch;
+      do { ch = await input.getKey(); } while (ch !== ' ');
+    }
+  }
+
+  // Store for shell scrollback (browser only)
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const rows = lines.map(text => ({ text, color: 7 }));
+      localStorage.setItem(GAMEOVER_KEY, JSON.stringify(rows));
+    } catch (e) {}
+  }
+
   throw new GameOver(reason);
 }
 

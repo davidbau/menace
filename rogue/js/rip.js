@@ -6,7 +6,7 @@
 import { game } from './gstate.js';
 import { clear, draw, mvwaddstr } from './curses.js';
 import { wait_for } from './io.js';
-import { addScore } from './score.js';
+import { addScore, scoreLines, storeGameover } from './score.js';
 import {
   FOOD, WEAPON, ARMOR, AMULET, SCROLL, POTION, RING, STICK,
   MACE, SWORD, BOW, ARROW, DAGGER, ROCK, TWOSWORD, SLING, DART,
@@ -86,9 +86,13 @@ export async function death(monst) {
   // Year at col 28
   mvwaddstr(g.stdscr, 18, 28, String(year).padStart(2, ' '));
 
-  // C death() does not print "--Press space to continue--"; it just draws and exits.
+  // Show tombstone, wait for keypress (C calls score() which prints plain text + waits)
   draw(g.stdscr);
   addScore(g.purse, g.level, false);
+  mvwaddstr(g.stdscr, LINES - 1, 0, '--Press space to continue--');
+  draw(g.stdscr);
+  await wait_for(' ');
+  storeGameover(scoreLines());
   g.playing = false;
 }
 
@@ -189,9 +193,9 @@ export async function total_winner() {
   const goldStr = String(g.purse).padStart(5);
   mvwaddstr(g.stdscr, row, 0, `   ${goldStr}  Gold Peices`);
 
-  // C total_winner() calls refresh() then score() (fails silently in harness) then exit().
-  // No second wait_for or score display screen.
   draw(g.stdscr);
+  await wait_for(' ');
   addScore(totalWorth, g.level, true);
+  storeGameover(scoreLines());
   g.playing = false;
 }

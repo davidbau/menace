@@ -6,6 +6,7 @@ import { Display } from '../../js/display.js';
 import { Shell, runLoginLoop } from '../shell.js';
 
 const SHELL_CONTEXT_KEY = 'shell_context';
+const GAMEOVER_KEY = 'menace-gameover';
 
 // Read and immediately delete the one-shot context from localStorage.
 function readAndClearContext() {
@@ -13,6 +14,18 @@ function readAndClearContext() {
         const s = localStorage.getItem(SHELL_CONTEXT_KEY);
         if (s) {
             localStorage.removeItem(SHELL_CONTEXT_KEY);
+            return JSON.parse(s);
+        }
+    } catch (e) { /* ignore */ }
+    return null;
+}
+
+// Read and clear gameover lines stored by the game before navigating here.
+function readAndClearGameover() {
+    try {
+        const s = localStorage.getItem(GAMEOVER_KEY);
+        if (s) {
+            localStorage.removeItem(GAMEOVER_KEY);
             return JSON.parse(s);
         }
     } catch (e) { /* ignore */ }
@@ -59,12 +72,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     const display = new Display('shell-container');
     const getch   = makeGetch();
 
-    const context = readAndClearContext();
+    const context  = readAndClearContext();
+    const gameover = readAndClearGameover();
 
     if (context) {
         // Arrived from a game — run as already-logged-in rodney.
         const shell  = new Shell(display, getch);
-        const result = await shell.run({ rows: context.rows || null, app: context.app });
+        const result = await shell.run({
+            rows: context.rows || null,
+            app: context.app,
+            gameoverLines: gameover || null,
+        });
         if (result && result.action === 'launch') {
             navigateToGame(result.game);
             return;

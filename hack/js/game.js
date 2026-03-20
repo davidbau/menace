@@ -210,5 +210,8 @@ export class GameState {
 
     // lock string (used for level file naming)
     this.lock = 'alock';
+
+    // Player name (C: uname global, set by 'N' command; defaults to login name)
+    this.uname = null;
   }
 }

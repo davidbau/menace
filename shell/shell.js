@@ -41,7 +41,11 @@ export class Shell {
         if (typeof this.display.cursSet === 'function') this.display.cursSet(1);
         this.scrollBuffer = [];
 
-        if (options.rows !== undefined) {
+        if (options.gameoverLines) {
+            // Game ended and stored its final screen output — show it in scrollback
+            for (const row of options.gameoverLines) this.scrollBuffer.push(row);
+            this._addLine('', OUTPUT_COLOR);
+        } else if (options.rows !== undefined) {
             // Pre-captured rows from localStorage context (coming from another page)
             for (const row of (options.rows || [])) this.scrollBuffer.push(row);
             if (options.rows && options.rows.length > 0) {

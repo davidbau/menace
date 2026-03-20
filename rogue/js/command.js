@@ -327,6 +327,9 @@ export async function quit() {
   draw(g.cw);
   const ch = await _readchar();
   if (ch === 'y') {
+    const { addScore, scoreLines, storeGameover } = await import('./score.js');
+    addScore(g.purse, g.level, false);
+    storeGameover(scoreLines());
     g.playing = false;
   } else {
     wmove(g.cw, 0, 0);
