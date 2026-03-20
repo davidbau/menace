@@ -2228,12 +2228,36 @@ async function removeArmorOrAccessory(player, display, game, item) {
     }
 
     if (item.owornmask & W_ARMOR) {
-        // C ref: do_wear.c armor_or_accessory_off() delegates armor to
-        // armoroff(), which uses nomul(delay) + ga.afternmv rather than an
-        // occupation. Reuse the existing C-shaped helper here to avoid a
-        // second JS timing model for T/R armor removal.
-        const res = await armoroff(item, player, game);
-        return { moved: false, tookTime: !!res };
+        const sub = objectData[item.otyp]?.oc_subtyp;
+        const slot = ARMOR_SLOTS[sub];
+        const offFn = SLOT_OFF[sub];
+        const delay = Number(objectData[item.otyp]?.oc_delay || 0);
+        const takeOffNow = async () => {
+            if (offFn) await offFn(player);
+            if (item?.owornmask) setnotworn(player, item);
+            else if (slot?.prop) player[slot.prop] = null;
+            find_ac(player);
+        };
+
+        if (game && delay > 1) {
+            let remaining = Math.max(0, delay - 1);
+            game.occupation = {
+                occtxt: 'disrobing',
+                fn: () => {
+                    remaining -= 1;
+                    return remaining > 0;
+                },
+                onFinishAfterTurn: async () => {
+                    await takeOffNow();
+                    await display.putstr_message(`You finish taking off your ${armor_simple_name(item)}.`);
+                },
+            };
+            return { moved: false, tookTime: true };
+        }
+
+        await takeOffNow();
+        await off_msg(item, player);
+        return { moved: false, tookTime: true };
     }
 
     if (item === player.rightRing || item === player.leftRing) {
