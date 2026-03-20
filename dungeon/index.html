@@ -1,0 +1,3750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Winning Dungeon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&display=swap">
+<style>
+/* 76-char game lines × ~8.4px/char = ~638px; center that in the viewport */
+body { background: #0a0e0a; color: #55ee55; font-family: 'Fira Mono', 'DejaVu Sans Mono', 'Roboto Mono', monospace; font-size: 14px; line-height: 1.4; margin: 0 auto; max-width: 660px; padding: 20px 20px; }
+h1 { color: #88ff88; font-size: 18px; text-align: center; border-bottom: 1px solid #55ee55; padding-bottom: 10px; }
+.output { white-space: pre-wrap; margin: 0 0 2px 0; }
+.prompt { margin: 8px 0 2px 0; }
+.gt { color: #ffffff; }
+.cmd { color: #ffffaa; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>Winning Dungeon &mdash; 616/616 Points, Seed 2</h1>
+<div class="output"> Welcome to Dungeon.			This version created 2-Dec-15.
+ This is an open field west of a white house with a boarded front door.
+ There is a small mailbox here.
+ A rubber mat saying "Welcome to Dungeon!" lies by the door.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take mat</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open mailbox</span></div>
+<div class="output"> Opening the mailbox reveals:
+   A leaflet.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take leaflet</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">read leaflet</span></div>
+<div class="output"> 		    Welcome to Dungeon!
+
+    Dungeon is a game of adventure, danger, and low cunning.  In it
+ you will explore some of the most amazing territory ever seen by mortal
+ man.  Hardened adventurers have run screaming from the terrors contained
+ within.
+
+    In Dungeon, the intrepid explorer delves into the forgotten secrets
+ of a lost labyrinth deep in the bowels of the earth, searching for
+ vast treasures long hidden from prying eyes, treasures guarded by
+ fearsome monsters and diabolical traps!
+
+    No system should be without one!
+
+    Dungeon was created at the MIT Laboratory for Computer Science by
+ Tim Anderson, Marc Blank, Bruce Daniels, and Dave Lebling.  It was
+ inspired by the Adventure game of Crowther and Woods, and the long
+ tradition of fantasy and science fiction games.  The original version
+ was written in MDL (alias MUDDLE).  The current version was translated
+ from MDL into FORTRAN by a somewhat paranoid DEC engineer who prefers
+ to remain anonymous.
+
+    On-line information may be obtained with the commands HELP and INFO.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> You are facing the north side of a white house.  There is no door here,
+ and all the windows are barred.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> This is a dimly lit forest, with large trees all around.  One
+ particularly large tree with some low branches stands here.
+ You hear in the distance the chirping of a song bird.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">climb tree</span></div>
+<div class="output"> You are about ten feet above the ground nestled among some large
+ branches.  The nearest branch above you is beyond your reach.
+ On the branch is a small birds nest.
+ In the bird's nest is a large egg encrusted with precious jewels,
+ apparently scavenged somewhere by a childless songbird.  The egg is
+ covered with fine gold inlay and ornamented in lapis lazuli and
+ mother-of-pearl.  Unlike most eggs, this one is hinged and has a
+ delicate looking clasp holding it closed.  The egg appears extremely
+ fragile.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take egg</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine egg</span></div>
+<div class="output"> I see nothing special about the jewel-encrusted egg.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a dimly lit forest, with large trees all around.  One
+ particularly large tree with some low branches stands here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> This is a clearing, with a forest surrounding you on the west
+ and south.
+ There is a pile of leaves on the ground.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is a dimly lit forest, with large trees all around.  To the
+ east, there appears to be sunlight.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> You are facing the south side of a white house.  There is no door here,
+ and all the windows are barred.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> You are behind the white house.  In one corner of the house
+ there is a small window which is slightly ajar.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open window</span></div>
+<div class="output"> With great effort, you open the window far enough to allow entry.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> This is the kitchen of the white house.  A table seems to have been
+ used recently for the preparation of food.  A passage leads to the
+ west, and a dark staircase can be seen leading upward.  To the east
+ is a small window which is open.
+ On the table is an elongated brown sack, smelling of hot peppers.
+ A bottle is sitting on the table.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> brown sack:
+ Taken.
+ glass bottle:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a wooden door with strange gothic lettering, which appears to be
+ nailed shut.
+ In the center of the room is a large oriental rug.
+ There is a trophy case here.
+ On hooks above the mantelpiece hangs an elvish sword of great antiquity.
+ A battery-powered brass lantern is on the trophy case.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take lamp</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take sword</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine sword</span></div>
+<div class="output"> I see nothing special about the sword.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">move rug</span></div>
+<div class="output"> With a great effort, the rug is moved to one side of the room.
+ With the rug moved, the dusty cover of a closed trap door appears.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open trap door</span></div>
+<div class="output"> The door reluctantly opens to reveal a rickety staircase descending
+ into darkness.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn on lamp</span></div>
+<div class="output"> The lamp is now on.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.
+ The door crashes shut, and you hear someone barring it.
+ Your sword is glowing with a faint blue glow.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ A nasty-looking troll, brandishing a bloody axe, blocks all passages
+ out of the room.
+ Your sword has begun to glow very brightly.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look</span></div>
+<div class="output"> This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ A nasty-looking troll, brandishing a bloody axe, blocks all passages
+ out of the room.
+ The troll's axe barely misses your ear.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">attack troll with sword</span></div>
+<div class="output"> You charge, but the troll jumps nimbly aside.
+ The troll's swing almost knocks you over as you barely parry in time.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">slay troll with sword</span></div>
+<div class="output"> The troll is battered into unconsciousness.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">dispatch troll with sword</span></div>
+<div class="output"> The unconscious troll cannot defend himself: he dies.
+ Almost as soon as the troll breathes his last, a cloud of
+ sinister black smoke envelops him, and when the fog lifts, the
+ carcass has disappeared.
+ Your sword is no longer glowing.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all but lamp, sword and egg</span></div>
+<div class="output"> brown sack:
+ Dropped.
+ glass bottle:
+ Dropped.
+ leaflet:
+ Dropped.
+ welcome mat:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take mat</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take bottle</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">inventory</span></div>
+<div class="output"> You are carrying:
+   A glass bottle.
+   A sword.
+   A lamp.
+   A jewel-encrusted egg.
+   A welcome mat.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.
+ A skeleton, probably the remains of a luckless adventurer, lies here.
+ The deceased adventurer's useless lantern is here.
+ There is a set of skeleton keys here.
+ Beside the skeleton is a rusty knife.
+ An old leather bag, bulging with coins, is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take coins</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine coins</span></div>
+<div class="output"> I see nothing special about the bag of coins.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go sw</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is part of a maze of twisty little passages, all alike.
+ Your sword is glowing with a faint blue glow.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ A cyclops, who looks prepared to eat horses (much less mere
+ adventurers), blocks the staircase.  From his state of health
+ and the bloodstains on the walls, you gather that he is not very
+ friendly, though he likes people.
+ Your sword has begun to glow very brightly.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">kill cyclops with sword</span></div>
+<div class="output"> The cyclops ignores all injuries to his body with a shrug.
+ The cyclops seems somewhat agitated.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">slay cyclops with sword</span></div>
+<div class="output"> The cyclops ignores all injuries to his body with a shrug.
+ The cyclops appears to be getting more agitated.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">attack cyclops with sword</span></div>
+<div class="output"> The cyclops ignores all injuries to his body with a shrug.
+ The cyclops is moving about the room, looking for something.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stab cyclops with sword</span></div>
+<div class="output"> The cyclops ignores all injuries to his body with a shrug.
+ The cyclops was looking for salt and pepper.  I think he is gathering
+ condiments for his upcoming snack.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">ODYSSEUS</span></div>
+<div class="output"> The cyclops, hearing the name of his father's deadly nemesis, flees
+ the room by knocking down the wall on the north side of the room.
+ Your sword is no longer glowing.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is a large room, whose north wall is solid granite.  A number
+ of discarded bags, which crumble at your touch, are scattered about
+ on the floor.  There is an exit down and what appears to be a newly
+ created passage to the east.
+ There is a silver chalice, intricately engraved, here.
+ You hear a scream of anguish as you violate the robber's hideaway.
+ Using passages unknown to you, he rushes to its defense.
+ The thief slowly approaches, strikes like a snake, and leaves you
+ wounded.
+ Your sword has begun to glow very brightly.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">give egg to thief</span></div>
+<div class="output"> The thief is taken aback by your unexpected generosity but accepts
+ the jewel-encrusted egg and stops to admire its beauty.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.
+ Your sword is no longer glowing.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">diagnose</span></div>
+<div class="output"> You have a serious wound.
+ You will be cured after  57 moves.
+ You can be killed by one more light wound.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">score</span></div>
+<div class="output"> Your score is+  75 [total of 616 points], in   54 moves.
+ This gives you the rank of Novice Adventurer.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> This is a long passage.  To the south is one entrance.  On the
+ east there is an old wooden door with a large hole in it (about
+ cyclops sized).</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a cyclops-shaped hole in an old wooden door, above which is some
+ strange gothic lettering.
+ In the center of the room is a closed trap door.
+ There is a trophy case here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open case</span></div>
+<div class="output"> Opened.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put coins in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is the kitchen of the white house.  A table seems to have been
+ used recently for the preparation of food.  A passage leads to the
+ west, and a dark staircase can be seen leading upward.  To the east
+ is a small window which is open.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is the attic.  The only exit is stairs that lead down.
+ A large coil of rope is lying in the corner.
+ On a table is a nasty-looking knife.
+ There is a square brick here which feels like clay.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> rope:
+ Taken.
+ knife:
+ Taken.
+ brick:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Kitchen</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a cyclops-shaped hole in an old wooden door, above which is some
+ strange gothic lettering.
+ In the center of the room is a closed trap door.
+ There is a trophy case here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ Your collection of treasures consists of:
+   A bag of coins.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all but rope, lamp, mat and bottle</span></div>
+<div class="output"> knife:
+ Dropped.
+ sword:
+ Dropped.
+ brick:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open trap door</span></div>
+<div class="output"> The door reluctantly opens to reveal a rickety staircase descending
+ into darkness.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Troll Room
+ A brown sack is here.
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> This is a narrow east-west passageway.  There is a narrow stairway
+ leading down at the north end of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> This is a deep ravine at a crossing with an east-west crawlway.
+ Some stone steps are at the south of the ravine, and a steep
+ staircase descends.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> This is a crawlway with a three foot high ceiling.  Your footing is
+ very unsure here due to the assortment of rocks underfoot.  Passages
+ can be seen in the east, west, and northwest corners of the crawlway.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> This is a room which looks like an Egyptian tomb.  There is an
+ ascending staircase in the room as well as doors east and south.
+ The solid gold coffin used for the burial of Ramses II is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Rocky Crawl</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is the periphery of a large dome, which forms the ceiling of
+ another room below.  Protecting you from a precipitous drop is a
+ wooden railing which circles the dome.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tie rope to railing</span></div>
+<div class="output"> The rope drops over the side and comes within ten feet of the floor.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a large room with a prominent doorway leading to a down
+ staircase.  To the west is a narrow twisting tunnel, covered with
+ a thin layer of dust.  Above you is a large dome painted with scenes
+ depicting elfin hacking rites.  Up around the edge of the dome (20
+ feet up) is a wooden railing.  In the center of the room there is
+ a white marble pedestal.
+ A large piece of rope descends from the railing above, ending some
+ five feet above your head.
+ Sitting on the pedestal is a flaming torch, made of ivory.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn off lamp</span></div>
+<div class="output"> The lamp is now off.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine torch</span></div>
+<div class="output"> I see nothing special about the torch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a north-south crawlway; a passage also goes to the east.
+ There is a hole above, but it provides no opportunities for climbing.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Troll Room
+ A brown sack is here.
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a cyclops-shaped hole in an old wooden door, above which is some
+ strange gothic lettering.
+ There is a rug lying next to an open trap door.
+ There is a trophy case here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a square brick here which feels like clay.
+ Your collection of treasures consists of:
+   A bag of coins.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put torch in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn on lamp</span></div>
+<div class="output"> The lamp is now on.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open trap door</span></div>
+<div class="output"> I think you've already done that.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Troll Room
+ A brown sack is here.
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> East-West Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a narrow east-west passageway.  There is a narrow stairway
+ leading down at the north end of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a narrow east-west passageway.  There is a narrow stairway
+ leading down at the north end of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a circular room with passages off in eight directions.
+ Your compass needle spins wildly, and you cannot get your bearings.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Unfortunately, it is impossible to tell directions in here.
+ You have entered a cave with passages leading north and southeast.
+ There are old engravings on the walls here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go se</span></div>
+<div class="output"> This is a room which is bare on all sides.  There is an exit down.
+ To the east is a great door made of stone.  Above the door, the
+ following words are written: "No man shall enter this room without
+ solving this riddle--
+
+ 	What is tall as a house,
+ 	Round as a cup,
+ 	And all the king's horses can't draw it up?".
+
+ (Reply via 'ANSWER "answer"'.)</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">answer "well"</span></div>
+<div class="output"> There is a clap of thunder, and the east door opens.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> This is a former broom closet.  The exits are to the east and west.
+ There is a pearl necklace here with hundreds of large pearls.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take necklace</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine necklace</span></div>
+<div class="output"> I see nothing special about the pearl necklace.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a damp circular room, whose walls are made of brick and
+ mortar.  The roof of this room is not visible, but there appear to be
+ some etchings on the walls.  There is a passageway to the west.
+ There is a wooden bucket here, three feet in diameter and three feet
+ high.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">get inside bucket</span></div>
+<div class="output"> You are now in the wooden bucket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open bottle</span></div>
+<div class="output"> Opened.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">pour water</span></div>
+<div class="output"> There is now a puddle in the bottom of the wooden bucket.
+ The bucket rises and comes to a stop.
+ You are at the top of the well.  Well done.  There are etchings on
+ the side of the well.  There is a small crack across the floor at the
+ entrance to a room on the east, but it can be crossed easily.
+ You are in the wooden bucket.
+ The wooden bucket contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">get out of bucket</span></div>
+<div class="output"> You are on your own feet again.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> This is a small square room, in the center of which is a large
+ oblong table, no doubt set for afternoon tea.  It is clear from the
+ objects on the table that the users were indeed mad.  In the eastern
+ corner of this room is a small hole no more than four inches high.
+ There are passageways leading away to the west and the northwest.
+ There is a piece of cake where with the words "Eat-Me" on it.
+ There is a piece of cake with orange icing here.
+ There is a piece of cake with red icing here.
+ There is a piece of cake with blue (ecch) icing here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> piece of "Eat-Me" cake:
+ Taken.
+ piece of cake with orange icing:
+ Taken.
+ piece of cake with red icing:
+ Taken.
+ piece of cake with blue icing:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">eat eatme cake</span></div>
+<div class="output"> Suddenly, the room appears to have become very large.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is a large room, one half of which is depressed.  There is a
+ large leak in the ceiling through which brown colored goop is
+ falling.  The only exit from this room is to the west.
+ A stoppered glass flask with skull-and-crossbones markings is here.
+ The flask is filled with some clear liquid.
+ The leak has submerged the depressed area in a pool of sewage.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">throw red cake</span></div>
+<div class="output"> The pool of water evaporates, revealing a tin of rare spices.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take tin</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> This is an enormous room, in the center of which are four wooden
+ posts delineating a rectangular area, above which is what appears to
+ be a wooden roof.  In fact, all objects in this room appear to be
+ abnormally large.  To the east is a passageway.  There is a large
+ chasm on the west and the northwest.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">eat blue cake</span></div>
+<div class="output"> The room around you seems to be getting smaller.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> This is a room with a low ceiling which is circular in shape.
+ There are exits to the east and southeast.
+ There is a robot here.
+ There is a green piece of paper here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tell robot "go east"</span></div>
+<div class="output"> "Whirr, buzz, click!"
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a large room full of assorted heavy machinery.  The room
+ smells of burned resistors.  The room is noisy from the whirring
+ sounds of the machines.  Along one wall of the room are three buttons
+ which are, respectively, round, triangular, and square.  Naturally,
+ above the buttons are instructions written in EBCDIC.  A large sign
+ above all the buttons says in English:
+
+ 		    DANGER: HIGH VOLTAGE
+
+ There are exits to the west and the south.
+ There is a robot here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tell robot "push triangular button"</span></div>
+<div class="output"> "Whirr, buzz, click!"
+ A dull thump is heard in the distance.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tell robot "go south"</span></div>
+<div class="output"> "Whirr, buzz, click!"
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is a dingy closet adjacent to the machine room.  On one wall
+ is a small sticker which reads:
+
+ 		Protected by
+ 		  FROBOZZ
+ 	     Magic Alarm Company
+ 	      (Hello, footpad!).
+ There is a beautiful white crystal sphere here.
+ There is a robot here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">get sphere</span></div>
+<div class="output"> As you reach for the sphere, a steel cage falls from the ceiling
+ to entrap you.  To make matters worse, poisonous gas starts coming
+ into the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tell robot "lift cage"</span></div>
+<div class="output"> The cage shakes and is hurled across the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">get sphere</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> This is a large room full of assorted heavy machinery.  The room
+ smells of burned resistors.  The room is noisy from the whirring
+ sounds of the machines.  Along one wall of the room are three buttons
+ which are, respectively, round, triangular, and square.  Naturally,
+ above the buttons are instructions written in EBCDIC.  A large sign
+ above all the buttons says in English:
+
+ 		    DANGER: HIGH VOLTAGE
+
+ There are exits to the west and the south.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Low Room
+ There is a green piece of paper here.
+ As you enter, your compass starts spinning wildly.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with a low ceiling which is circular in shape.
+ There are exits to the east and southeast.
+ There is a green piece of paper here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with a low ceiling which is circular in shape.
+ There are exits to the east and southeast.
+ There is a green piece of paper here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk se</span></div>
+<div class="output"> Unfortunately, it is impossible to tell directions in here.
+ Tea Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Top of Well
+ There is a wooden bucket here, three feet in diameter and three feet
+ high.
+ The wooden bucket contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">board</span></div>
+<div class="output"> You are now in the wooden bucket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">fill bottle with water</span></div>
+<div class="output"> The bottle is now full of water.
+ The bucket descends and comes to a stop.
+ Circular Room
+ You are in the wooden bucket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">disembark</span></div>
+<div class="output"> You are on your own feet again.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Pearl Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Riddle Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Engravings Cave
+ There are old engravings on the walls here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> This is a circular room with passages off in eight directions.
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open box</span></div>
+<div class="output"> Opening the steel box reveals:
+   A fancy violin.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take violin</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine violin</span></div>
+<div class="output"> I see nothing special about the fancy violin.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a circular room with passages off in eight directions.
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a square brick here which feels like clay.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A torch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put treasure in case</span></div>
+<div class="output"> pearl necklace:
+ Done.
+ fancy violin:
+ Done.
+ white crystal sphere:
+ Done.
+ tin of spices:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all</span></div>
+<div class="output"> glass bottle:
+ Dropped.
+ lamp:
+ Dropped.
+ piece of cake with orange icing:
+ Dropped.
+ welcome mat:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> You are on the west edge of a chasm, the bottom of which cannot be
+ seen.  The east side is sheer rock, providing no exits.  A narrow
+ passage goes west.  The path you are on continues to the north and south.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed south</span></div>
+<div class="output"> This is an art gallery.  Most of the paintings which were here
+ have been stolen by vandals with exceptional taste.  The vandals
+ left through the north, south, or west exits.
+ Fortunately, there is still one chance for you to be a vandal, for on
+ the far wall is a work of unparalleled beauty.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take painting</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine painting</span></div>
+<div class="output"> I see nothing special about the painting.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> This is the large entrance hall of the Bank of Zork, the largest
+ banking institution of the Great Underground Empire.  A partial
+ account of its history is in "The Lives of the Twelve Flatheads" with
+ the chapter on J. Pierpont Flathead.  A more detailed history (albeit
+ less objective) may be found in Flathead's outrageous autobiography
+ "I'm Rich and You Aren't - So There!".
+    Most of the furniture has been ravaged by passing scavengers.  All
+ that remains are two signs at the northwest and northeast corners of
+ the room, which say
+
+ 	&lt;-- WEST VIEWING ROOM		EAST VIEWING ROOM --&gt;</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> This is a small square room, which was used by a bank officer
+ whose job it was to retrieve safety deposit boxes for the customer.
+ On the north side of the room is a sign which reads "Viewing Room".
+ On the west side of the room, above an open door, is a sign reading
+
+ 		    BANK PERSONNEL ONLY</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> This is a large rectangular room.  The east and west walls here
+ were used for storing safety deposit boxes.  As might be expected,
+ all have been carefully removed by evil persons.  To the east, west,
+ and south of the room are large doorways.  The northern "wall"
+ of the room is a shimmering curtain of light.  In the center of the
+ room is a large stone cube, about 10 feet on a side.  Engraved on
+ the side of the cube is some lettering.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> This room was the office of the Chairman of the Bank of Zork.
+ Like the other rooms here, it has been extensively vandalized.
+ The lone exit is to the north.
+ A portrait of J. Pierpont Flathead hangs on the wall.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take portrait</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine portrait</span></div>
+<div class="output">                 ||||||||||||||
+                ||   __  __   ||
+                ||   $$  $$   ||
+               \||     &gt;&gt;     ||/
+                ||  ________  ||
+                 |  -//-----  |
+                 \\_//_______//
+                ___// |  |
+               /__//  |  |
+                      |  |
+           __________//  \\__________
+          / $ /       ****       \ $ \
+         /   /         **         \   \
+        /   /|         **         |\   \
+       /   / |         **         | \   \
+      /   /  |         **         |  \   \
+      ^   ^__|______$Z$**$Z$______|__^   ^
+      \         *   $Z$**$Z$   *         /
+       \________*___$Z$**$Z$___*________/
+             |      $Z$**$Z$      |
+
+             J.  PIERPONT  FLATHEAD
+                    CHAIRMAN</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Safety Depository</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk through north wall</span></div>
+<div class="output"> You feel somewhat disoriented as you pass through...
+ This is a small bare room with no distinguishing features.  There
+ are no exits from this room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk through south wall</span></div>
+<div class="output"> You feel somewhat disoriented as you pass through...
+ Safety Depository</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk through north wall</span></div>
+<div class="output"> You feel somewhat disoriented as you pass through...
+ This is the Vault of the Bank of Zork, in which there are no doors.
+ On the floor sit 200 neatly stacked zorkmid bills.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take bills</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk through north wall</span></div>
+<div class="output"> You feel somewhat disoriented as you pass through...
+ Safety Depository</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all except torch</span></div>
+<div class="output"> painting:
+ Dropped.
+ stack of zorkmid bills:
+ Dropped.
+ portrait of J. Pierpont Flathead:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> West Teller's Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> Safety Depository
+ A masterpiece by a neglected genius is here.
+ 200 neatly stacked zorkmid bills are here.
+ A portrait of J. Pierpont Flathead is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> painting:
+ Taken.
+ stack of zorkmid bills:
+ Taken.
+ portrait of J. Pierpont Flathead:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk through north wall</span></div>
+<div class="output"> You feel somewhat disoriented as you pass through...
+ This is a room used by holders of safety deposit boxes to view
+ their contents.  On the north side of the room is a sign which says
+
+    REMAIN HERE WHILE THE BANK OFFICER RETRIEVES YOUR DEPOSIT BOX
+     WHEN YOU ARE FINISHED, LEAVE THE BOX, AND EXIT TO THE SOUTH
+      AN ADVANCED PROTECTIVE DEVICE PREVENTS ALL CUSTOMERS FROM
+       REMOVING ANY SAFETY DEPOSIT BOX FROM THIS VIEWING AREA!
+                Thank you for banking at the Zork!</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> Bank Entrance</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> Gallery</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> West of Chasm</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is a brass lantern (battery-powered) here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A pearl necklace.
+   A fancy violin.
+   A white crystal sphere.
+   A tin of spices.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put treasure in case</span></div>
+<div class="output"> torch:
+ Done.
+ painting:
+ Done.
+ stack of zorkmid bills:
+ Done.
+ portrait of J. Pierpont Flathead:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch and mat</span></div>
+<div class="output"> torch:
+ Taken.
+ welcome mat:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> You are on the south edge of a deep canyon.  Passages lead off
+ to the east, south, and northwest.  You can hear the sound of
+ flowing water below.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> You are standing on the top of Flood Control Dam #3, which was
+ quite a tourist attraction in times far distant.  There are paths
+ to the north, south, east, and down.
+ The sluice gates on the dam are closed.  Behind the dam, there can
+ be seen a wide lake.  A small stream is formed by the runoff from
+ the lake.
+ There is a control panel here.  There is a large metal bolt on the
+ panel.  Above the bolt is a small green plastic bubble.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> This room appears to have been the waiting room for groups touring
+ the dam.  There are exits here to the north and east marked
+ "Private", though the doors are open, and an exit to the south.
+ A guidebook entitled "Flood Control Dam #3" is on the reception desk.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> tour guidebook:
+ Taken.
+ matchbook:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">read matchbook</span></div>
+<div class="output"> 		[Close cover before striking BKD]
+
+ 	You too can make BIG MONEY in the exciting field of
+ 		      PAPER SHUFFLING!
+
+ Mr. TAA of Muddle, Mass. says: "Before I took this course I used
+ to be a lowly bit twiddler.  Now with what I learned at MIT Tech
+ I feel really important and can obfuscate and confuse with the best."
+
+ Mr. MARC had this to say: "Ten short days ago all I could look
+ forward to was a dead-end job as a engineer.  Now I have a promising
+ future and make really big Zorkmids."
+
+ MIT Tech can't promise these fantastic results to everyone, but when
+ you earn your MDL degree from MIT Tech your future will be brighter.
+
+ 		Send for our free brochure today!</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">send for free brochure</span></div>
+<div class="output"> Ok, but you know the postal service...</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is what appears to have been the maintenance room for Flood
+ Control Dam #3, judging by the assortment of tool chests around the
+ room.  Apparently, this room has been ransacked recently, for most of
+ the valuable equipment is gone.  On the wall in front of you is a
+ panel of buttons, which are labeled in EBCDIC.  However, they are of
+ different colors: blue, yellow, brown, and red.  The doors to this
+ room are in the west and south ends.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> tube:
+ Taken.
+ wrench:
+ Taken.
+ screwdriver:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push yellow button</span></div>
+<div class="output"> Click.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Dam Lobby</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> Dam</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn bolt with wrench</span></div>
+<div class="output"> The sluice gates open, and water pours through the dam.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Deep Canyon</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed south</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is a brass lantern (battery-powered) here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A pearl necklace.
+   A fancy violin.
+   A painting.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put treasure in case</span></div>
+<div class="output"> torch:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all</span></div>
+<div class="output"> tour guidebook:
+ Dropped.
+ matchbook:
+ Dropped.
+ tube:
+ Dropped.
+ wrench:
+ Dropped.
+ screwdriver:
+ Dropped.
+ welcome mat:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch, mat and screwdriver</span></div>
+<div class="output"> torch:
+ Taken.
+ welcome mat:
+ Taken.
+ screwdriver:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open trap door</span></div>
+<div class="output"> I think you've already done that.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Deep Ravine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Rocky Crawl</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Dome Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Torch Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> This is a tiny room, which has an exit to the east.
+ On the north side of the room is a massive wooden door, near the
+ top of which, in the center, is a window barred with iron.  A
+ formidable bolt lock is set within the door frame.  A keyhole
+ covered by a thin metal lid lies within the lock.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put mat under door</span></div>
+<div class="output"> The mat fits easily under the door.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open lid</span></div>
+<div class="output"> The lid is open.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put screwdriver in keyhole</span></div>
+<div class="output"> There is a faint noise from behind the door, and a small cloud of
+ dust arises from beneath it.
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take mat</span></div>
+<div class="output"> As the mat is moved, a rusty iron key falls from it onto the floor.
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take key</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take screwdriver</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">unlock door with key</span></div>
+<div class="output"> The door is now unlocked.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open door</span></div>
+<div class="output"> The door is now open.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> This is a small and rather dreary room, which is eerily illuminated
+ by a red glow emanating from a crack in one of the walls.  The light
+ appears to focus on a dusty wooden table in the center of the room.
+ On the south side of the room is a massive wooden door, near the
+ top of which, in the center, is a window barred with iron.  A
+ formidable bolt lock is set within the door frame.  A keyhole
+ covered by a thin metal lid lies within the lock.
+ The door is open.
+ In the center of the table sits a blue crystal sphere.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take sphere</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> Tiny Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Torch Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> North-South Crawlway</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is a brass lantern (battery-powered) here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A pearl necklace.
+   A fancy violin.
+   A painting.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put blue sphere in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine blue sphere</span></div>
+<div class="output"> I see nothing special about the blue crystal sphere.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all</span></div>
+<div class="output"> torch:
+ Dropped.
+ screwdriver:
+ Dropped.
+ rusty iron key:
+ Dropped.
+ welcome mat:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take lamp</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open sack</span></div>
+<div class="output"> Opening the brown sack reveals:
+   A clove of garlic.
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take garlic</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Deep Ravine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a long room, to the north of which was formerly a reservoir.
+ However, with the water level lowered, there is merely a wide stream
+ running through the center of the room.
+ There is a western exit, a passageway south, and a steep pathway
+ climbing up along the edge of a cliff.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> You are on what used to be a large reservoir, but which is now a
+ large mud pile.  There are "shores" to the north and south.
+ Lying half buried in the mud is an old trunk, bulging with jewels.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take trunk</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is a large cavernous room, to the south of which was formerly
+ a reservoir.  However, with the water level lowered, there is merely
+ a wide stream running through the center of the room.
+ There is a tunnel leaving the room to the north.
+ There is a small pump here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take pump</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> This is an ancient room, long under water.  There are exits here to
+ the southeast and upward.
+ On the shore lies Poseiden's own crystal trident.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take trident</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine trident</span></div>
+<div class="output"> I see nothing special about the crystal trident.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is a small cave with an entrance to the north and a stairway
+ leading down.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> This is a large square room with tall ceilings.  On the south wall
+ is an enormous mirror which fills the entire wall.  There are exits
+ on the other three sides of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> This is a cold and damp corridor where a long east-west passageway
+ intersects with a northward path.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> This is a small chamber, which appears to have been part of a
+ coal mine.  On the south wall of the chamber the letters "Granite
+ Wall" are etched into the rock.  To the east is a long passage,
+ and there is a steep metal slide twisting downward.  To the north
+ is a small opening.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a cyclops-shaped hole in an old wooden door, above which is some
+ strange gothic lettering.
+ There is a rug lying next to an open trap door.
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is an ivory torch here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A pearl necklace.
+   A fancy violin.
+   A painting.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put trunk and trident in case</span></div>
+<div class="output"> trunk with jewels:
+ Done.
+ crystal trident:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.
+ Someone carrying a large bag is casually leaning against one of the
+ walls here.  He does not speak, but it is clear from his aspect that
+ the bag will be taken only over his dead body.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.
+ Someone carrying a large bag is casually leaning against one of the
+ walls here.  He does not speak, but it is clear from his aspect that
+ the bag will be taken only over his dead body.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> This is a high north-south passage, which forks to the northeast.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> This is a large room with a ceiling which cannot be detected from
+ the ground.  There is a narrow passage from east to west and a stone
+ stairway leading upward.  The room is extremely noisy.  In fact, it
+ is difficult to hear yourself think.
+ There is a large platinum bar here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">hello</span></div>
+<div class="output"> HELLO</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">is anyone there</span></div>
+<div class="output"> IS ANYONE THERE</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">testing one two three</span></div>
+<div class="output"> TESTING ONE TWO THREE</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">xyzzy</span></div>
+<div class="output"> XYZZY</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">echo</span></div>
+<div class="output"> ECHO
+ The acoustics of the room change subtly.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take bar</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine bar</span></div>
+<div class="output"> I see nothing special about the platinum bar.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> A chasm, evidently produced by an ancient river, runs through the
+ cave here.  Passages lead off in all directions.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a small cave whose exits are on the south and northwest.
+ There is a large shovel here.
+ There is a hunk of bat guano here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take shovel</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> Ancient Chasm</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is a large room with a ceiling which cannot be detected from
+ the ground.  There is a narrow passage from east to west and a stone
+ stairway leading upward.  The room is extremely noisy.  In fact, it
+ is difficult to hear yourself think.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is a cave.  Passages exit to the south and to the east, but
+ the cave narrows to a crack to the west.  The earth is particularly
+ damp here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Dam</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is the base of Flood Control Dam #3, which looms above you and
+ to the north.   The Frigid River is flowing by here.  Across the
+ river are the White Cliffs, which seem to form a giant wall stretching
+ from north to south along the east shore of the river as it winds its
+ way downstream.
+ There is a folded pile of plastic here which has a small valve attached.
+ A sharp stick, which appears to have been broken at one end, is here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">pump up plastic</span></div>
+<div class="output"> The boat inflates and appears seaworthy.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put all in boat</span></div>
+<div class="output"> clove of garlic:
+ Done.
+ lamp:
+ Done.
+ platinum bar:
+ Done.
+ hand-held air pump:
+ Done.
+ broken sharp stick:
+ Done.
+ shovel:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">board</span></div>
+<div class="output"> You are now in the magic boat.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">launch</span></div>
+<div class="output"> You are on the Frigid River in the vicinity of the dam.  The river
+ flows quietly here.  There is a landing on the west shore.
+ You are in the magic boat.
+ The magic boat contains:
+   A clove of garlic.
+   A lamp.
+   A platinum bar.
+   A hand-held air pump.
+   A tan label.
+   A broken sharp stick.
+   A shovel.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> The river turns a corner here making it impossible to see the
+ dam.  The White Cliffs loom on the east bank, and large rocks
+ prevent landing on the west.
+ You are in the magic boat.
+ The magic boat contains:
+   A clove of garlic.
+   A lamp.
+   A platinum bar.
+   A hand-held air pump.
+   A tan label.
+   A broken sharp stick.
+   A shovel.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> The river descends here into a valley.  There is a narrow beach on
+ the east below the cliffs, and there is some shore on the west which
+ may be suitable.  In the distance a faint rumbling can be heard.
+ You are in the magic boat.
+ The magic boat contains:
+   A clove of garlic.
+   A lamp.
+   A platinum bar.
+   A hand-held air pump.
+   A tan label.
+   A broken sharp stick.
+   A shovel.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> The river descends here into a valley.  There is a narrow beach on
+ the east below the cliffs, and there is some shore on the west which
+ may be suitable.  In the distance a faint rumbling can be heard.
+ You are in the magic boat.
+ The magic boat contains:
+   A clove of garlic.
+   A lamp.
+   A platinum bar.
+   A hand-held air pump.
+   A tan label.
+   A broken sharp stick.
+   A shovel.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> The river is running faster here, and the sound ahead appears to be
+ that of rushing water.  On the west shore is a sandy beach.  A small
+ area of beach can also be seen below the cliffs.
+ You are in the magic boat.
+ There is a red buoy here (probably a warning).
+ The magic boat contains:
+   A clove of garlic.
+   A lamp.
+   A platinum bar.
+   A hand-held air pump.
+   A tan label.
+   A broken sharp stick.
+   A shovel.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> clove of garlic:
+ Taken.
+ lamp:
+ Taken.
+ platinum bar:
+ Taken.
+ hand-held air pump:
+ Taken.
+ tan label:
+ Taken.
+ broken sharp stick:
+ Taken.
+ shovel:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take buoy</span></div>
+<div class="output"> Taken.
+ Something seems funny about the feel of the buoy.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> This is a large sandy beach at the shore of the river, which is
+ flowing quickly by.  A path runs beside the river to the south here.
+ You are in the magic boat.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open buoy</span></div>
+<div class="output"> Opening the red buoy reveals:
+   A large emerald.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take emerald</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine emerald</span></div>
+<div class="output"> I see nothing special about the large emerald.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put buoy in boat</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">disembark</span></div>
+<div class="output"> You are on your own feet again.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">dig sand with shovel</span></div>
+<div class="output"> You seem to be digging a hole here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">dig sand with shovel</span></div>
+<div class="output"> The hole is getting deeper, but that's about it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">dig sand with shovel</span></div>
+<div class="output"> You are surrounded by a wall of sand on all sides.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">dig sand with shovel</span></div>
+<div class="output"> You can see a small statue in the sand.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop shovel</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take statue</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine statue</span></div>
+<div class="output"> I see nothing special about the statue.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> This is the shore of the river.  The river here seems somewhat
+ treacherous.  A path travels from north to south here, the south end
+ quickly turning around a sharp corner.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> You are at the top of Aragain Falls, an enormous waterfall with a
+ drop of about 450 feet.  The only path here is on the north end.
+ A beautiful rainbow can be seen over the falls and to the east.
+ There is a man-sized barrel here, which you might be able to enter.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wave stick</span></div>
+<div class="output"> Suddenly, the rainbow appears to become solid and, I venture,
+ walkable (I think the giveaway was the stairs and bannister).</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> You are on top of a rainbow (I bet you never thought you would walk
+ on a rainbow), with a magnificent view of the falls.  The rainbow
+ travels east-west here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> You are on a small, rocky beach on the continuation of the Frigid
+ River past the falls.  The beach is narrow due to the presence of
+ the White Cliffs.  The river canyon opens here, and sunlight shines
+ in from above.  A rainbow crosses over the falls to the west, and a
+ narrow path continues to the southeast.
+ At the end of the rainbow is a pot of gold.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take gold</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go se</span></div>
+<div class="output"> You are beneath the walls of the river canyon, which may be climbable
+ here.  There is a small stream here, which is the lesser part of the
+ runoff of Aragain Falls.  To the north is a narrow path.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> You are on a ledge about halfway up the wall of the river canyon.
+ You can see from here that the main flow from Aragain Falls twists
+ along a passage which it is impossible to enter.  Below you is the
+ canyon bottom.  Above you is more cliff, which still appears
+ climbable.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> You are at the top of the great canyon on its south wall. From here
+ there is a marvelous view of the canyon and parts of the Frigid River
+ upstream.  Across the canyon, the walls of the White Cliffs still
+ appear to loom far above.  Following the canyon upstream (north and
+ northwest), Aragain Falls may be seen, complete with rainbow.
+ Fortunately, my vision is better than average, and I can discern the
+ top of Flood Control Dam #3 far to the distant north.  To the
+ west and south can be seen an immense forest, stretching for miles
+ around.  It is possible to climb down into the canyon from here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is a large forest, with trees obstructing all views except
+ to the east, where a small clearing may be seen through the trees.
+ You hear in the distance the chirping of a song bird.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Forest</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> South of House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Behind House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Kitchen</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is an ivory torch here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A pearl necklace.
+   A crystal trident.
+   A fancy violin.
+   A trunk with jewels.
+   A painting.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put platinum bar, pot of gold, statue and large emerald in case</span></div>
+<div class="output"> platinum bar:
+ Done.
+ pot of gold:
+ Done.
+ statue:
+ Done.
+ large emerald:
+ Done.
+ There is a knocking sound from the front of the house.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Kitchen</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Behind House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> You are facing the south side of a white house.  There is no door here,
+ and all the windows are barred.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> West of House
+ There is a small mailbox here.
+ In the mailbox is a large brochure.
+ The free brochure contains:
+   A Don Woods stamp.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open mailbox</span></div>
+<div class="output"> It is already open.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take brochure</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine brochure</span></div>
+<div class="output"> The mailing label on this glossy brochure from MIT Tech reads
+
+ 		Intrepid Adventurer
+ 		c/o Local Dungeon Master
+ 		White House, GUE
+
+ From the Introduction:
+
+ The brochure describes, for the edification of the prospective
+ student, the stringent but wide-ranging curriculum of MIT Tech.
+ Required courses are offered in Ambition, Distraction, Uglification,
+ and Derision.  The Humanities are not slighted at this institution,
+ as the student may register for Reeling and Writhing, Mystery
+ (Ancient and Modern), Seaography, and Drawling (which includes
+ Stretching and Fainting in Coils).  Advanced students are expected
+ to learn Laughing and Grief.
+
+                                  William Barton Flathead, Founder
+
+ (The brochure continues in this vein for a few hundred more pages.)
+ Affixed loosely to the brochure is a small stamp.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> You are facing the north side of a white house.  There is no door here,
+ and all the windows are barred.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Behind House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Kitchen</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a cyclops-shaped hole in an old wooden door, above which is some
+ strange gothic lettering.
+ There is a rug lying next to an open trap door.
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is an ivory torch here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A fancy violin.
+   A trunk with jewels.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all but lamp</span></div>
+<div class="output"> clove of garlic:
+ Dropped.
+ hand-held air pump:
+ Dropped.
+ tan label:
+ Dropped.
+ broken sharp stick:
+ Dropped.
+ free brochure:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take knife</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take garlic</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Strange Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> Cyclops Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">stare</span></div>
+<div class="output"> This is a room with an exit on the west side, and a staircase
+ leading up.
+ The north wall, previously solid, now has a cyclops-shaped hole in it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Treasure Room
+ The solid gold coffin used for the burial of Ramses II is here.
+ There is a silver chalice, intricately engraved, here.
+ There is a jewel-encrusted egg here.
+ There is a golden clockwork canary nestled in the egg.  It has ruby
+ eyes and a silver beak.  Through a crystal window below its left
+ wing you can see intricate machinery inside.  It appears to have
+ wound down.
+ You hear a scream of anguish as you violate the robber's hideaway.
+ Using passages unknown to you, he rushes to its defense.
+ The thief gestures mysteriously, and the treasures in the room
+ suddenly vanish.
+ Raking his stiletto across your arm, the thief draws blood.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">attack thief with knife</span></div>
+<div class="output"> The quickness of your thrust knocks the thief back, stunned.
+ The thief slowly regains his feet.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">slay thief with knife</span></div>
+<div class="output"> The thief is disarmed by a subtle feint past his guard.
+ The robber, somewhat surprised by this turn of events, nimbly
+ recovers his stiletto.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">attack thief with knife</span></div>
+<div class="output"> It's the end for the thief as your knife severs his jugular.
+ Almost as soon as the thief breathes his last, a cloud of
+ sinister black smoke envelops him, and when the fog lifts, the
+ carcass has disappeared.
+ As the thief dies, the power of his magic decreases, and his
+ treasures reappear: A gold coffin.
+   A jewel-encrusted egg.
+ There is a golden clockwork canary nestled in the egg.  It has ruby
+ eyes and a silver beak.  Through a crystal window below its left
+ wing you can see intricate machinery inside.  It appears to have
+ wound down.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">score</span></div>
+<div class="output"> Your score is+ 359 [total of 616 points], in  340 moves.
+ This gives you the rank of Adventurer.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take coffin</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine coffin</span></div>
+<div class="output"> I see nothing special about the gold coffin.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn off lamp</span></div>
+<div class="output"> The lamp is now off.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cyclops Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Strange Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> This is the living room.  There is a door to the east.  To the west
+ is a cyclops-shaped hole in an old wooden door, above which is some
+ strange gothic lettering.
+ There is a rug lying next to an open trap door.
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is an elvish sword here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a large brochure here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A fancy violin.
+   A trunk with jewels.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.
+ The free brochure contains:
+   A Don Woods stamp.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put coffin in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put brochure in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Deep Ravine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> This is a crawlway with a three foot high ceiling.  Your footing is
+ very unsure here due to the assortment of rocks underfoot.  Passages
+ can be seen in the east, west, and northwest corners of the crawlway.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> Egyptian Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a crawlway with a three foot high ceiling.  Your footing is
+ very unsure here due to the assortment of rocks underfoot.  Passages
+ can be seen in the east, west, and northwest corners of the crawlway.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is the periphery of a large dome, which forms the ceiling of
+ another room below.  Protecting you from a precipitous drop is a
+ wooden railing which circles the dome.
+ Hanging down from the railing is a rope which ends about ten feet
+ from the floor below.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">untie rope</span></div>
+<div class="output"> The rope is now untied.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take rope</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Rocky Crawl</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Deep Ravine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is an elvish sword here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A fancy violin.
+   A trunk with jewels.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">describe tin</span></div>
+<div class="output"> I see nothing special about the tin of spices.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look at white sphere</span></div>
+<div class="output"> I see nothing special about the white crystal sphere.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look at bills</span></div>
+<div class="output">  _______________________________________________________________
+ | 1  0   0         GREAT UNDERGROUND EMPIRE           1  0   0  |
+ | 1 0 0 0 0                                           1 0 0 0 0 |
+ | 1 0 0 0 0                                           1 0 0 0 0 |
+ | 1  0   0                  DIMWIT                    1  0   0  |
+ |                      ||||||||||||||||                         |
+ |                      ||   __  __   ||              B30332744D |
+ |                      ||  -OO  OO-  ||                         |
+ |       IN FROBS       \||    &gt;&gt;    ||/       WE TRUST          |
+ |                       ||  ______  ||                          |
+ | B30332744D             |  ------  |                           |
+ |                        \\________//                           |
+ | 1  0   0    Series       FLATHEAD     LD Flathead   1  0   0  |
+ | 1 0 0 0 0   719GUE                     Treasurer    1 0 0 0 0 |
+ | 1 0 0 0 0                                           1 0 0 0 0 |
+ | 1  0   0        One Hundred Royal Zorkmids          1  0   0  |
+ |_______________________________________________________________|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look at trunk</span></div>
+<div class="output"> I see nothing special about the trunk with jewels.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look at gold</span></div>
+<div class="output"> I see nothing special about the pot of gold.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Strange Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Cyclops Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Treasure Room
+ There is a silver chalice, intricately engraved, here.
+ There is a jewel-encrusted egg here.
+ There is a golden clockwork canary nestled in the egg.  It has ruby
+ eyes and a silver beak.  Through a crystal window below its left
+ wing you can see intricate machinery inside.  It appears to have
+ wound down.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> chalice:
+ Taken.
+ jewel-encrusted egg:
+ Taken.
+ clockwork canary:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine canary</span></div>
+<div class="output"> I see nothing special about the clockwork canary.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cyclops Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Strange Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is an elvish sword here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A fancy violin.
+   A trunk with jewels.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is the kitchen of the white house.  A table seems to have been
+ used recently for the preparation of food.  A passage leads to the
+ west, and a dark staircase can be seen leading upward.  To the east
+ is a small window which is open.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Behind House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> North of House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Forest
+ You hear in the distance the chirping of a song bird.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Up a Tree
+ On the branch is a small birds nest.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wind canary</span></div>
+<div class="output"> The canary chirps, slightly off key, an aria from a forgotten opera.
+ From out of the greenery flies a lovely song bird.  It perches on a
+ limb just over your head and opens its beak to sing.  As it does so,
+ a beautiful brass bauble drops from its mouth, bounces off the top
+ of your head, and lands glimmering in the grass.  As the canary winds
+ down, the song bird flies away.
+ You hear in the distance the chirping of a song bird.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Forest
+ There is a beautiful brass bauble here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take bauble</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine bauble</span></div>
+<div class="output"> I see nothing special about the beautiful brass bauble.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> North of House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Behind House</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Kitchen</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is an elvish sword here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A fancy violin.
+   A trunk with jewels.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put treasure in case</span></div>
+<div class="output"> torch:
+ Done.
+ chalice:
+ Done.
+ jewel-encrusted egg:
+ Done.
+ beautiful brass bauble:
+ Done.
+ clockwork canary:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all but rope</span></div>
+<div class="output"> clove of garlic:
+ Dropped.
+ knife:
+ Dropped.
+ lamp:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch and matchbook</span></div>
+<div class="output"> torch:
+ Taken.
+ matchbook:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> You are standing in a small circular room with a pedestal.  A set of
+ stairs leads up, and passages leave to the east and west.
+ There is an extremely valuable (perhaps original) grail here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take grail</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine grail</span></div>
+<div class="output"> I see nothing special about the grail.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is the west end of a large temple.  On the south wall is an
+ ancient inscription, probably a prayer in a long-forgotten language.
+ The north wall is solid granite.  The entrance at the west end of the
+ room is through huge marble pillars.
+ Lying in the corner of the room is a small brass bell.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take bell</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is the east end of a large temple.  In front of you is what
+ appears to be an altar.
+ On the alter is a large black book, open to page 569.
+ On the two ends of the altar are burning candles.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> book:
+ Taken.
+ pair of candles:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Temple</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Grail Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a narrow crawlway.  The crawlway leads from north to south.
+ However, the south passage divides to the south and southwest.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed south</span></div>
+<div class="output"> This is a tiny cave with entrances west and north, and a dark,
+ forbidding staircase leading down.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> You are outside a large gateway, on which is inscribed:
+
+ 	"Abandon every hope, all ye who enter here."
+
+ The gate is open.  Through it you can see a desolation, with a pile of
+ mangled corpses in one corner.  Thousands of voices, lamenting some
+ hideous fate, can be heard.
+ The way through the gate is barred by evil spirits, who jeer at your
+ attempts to pass.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">ring bell</span></div>
+<div class="output"> Ding, dong.
+ The bell suddenly becomes red hot and falls to the ground.  The
+ wraiths, as if paralyzed, stop their jeering and slowly turn to
+ face you.  On their ashen faces, the expression of a long-forgotten
+ terror takes shape.
+ In your confusion, the candles drop to the ground and go out.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take candles</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">light match</span></div>
+<div class="output"> One of the matches starts to burn.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">light candles with match</span></div>
+<div class="output"> The candles are lit.
+ The flames flicker wildly and appear to dance.  The earth beneath
+ your feet trembles, and your legs nearly buckle beneath you.  The
+ spirits cower at your unearthly power.
+ The match has gone out.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">read book</span></div>
+<div class="output"> 		Commandment #12592
+ Oh ye who go about saying unto each other: "Hello sailor":
+ Dost thou know the magnitude of thy sin before the gods?
+ Yea, verily, thou shalt be ground between two stones.
+ Shall the angry gods cast thy body into the whirlpool?
+ Surely, thy eye shall be put out with a sharp stick!
+ Even unto the ends of the earth shalt thou wander and
+ unto the land of the dead shalt thou be sent at last.
+ Surely thou shalt repent of thy cunning.
+ Each word of the prayer reverberates through the hall in a deafening
+ confusion.  As the last word fades, a voice, loud and commanding,
+ speaks: "Begone, fiends!"  A heart-stopping scream fills the cavern,
+ and the spirits, sensing a greater power, flee through the walls.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop book and candles</span></div>
+<div class="output"> book:
+ Dropped.
+ pair of candles:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> You have entered the Land of the Living Dead, a large desolate room.
+ Although it is apparently uninhabited, you can hear the sounds of
+ thousands of lost souls weeping and moaning.  In the east corner are
+ stacked the remains of dozens of previous adventurers who were less
+ fortunate than yourself.  To the east is an ornate passage, apparently
+ recently constructed.  A passage exits to the west.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> This is the Tomb of the Unknown Implementer.  A hollow voice
+ says, "That's not a bug, it's a feature!"
+ In the north wall of the room is the Crypt of the Implementers.  It
+ is made of the finest marble and is apparently large enough for four
+ headless corpses.  The crypt is closed.  Above the entrance is the
+ cryptic inscription:
+
+ 		"Feel Free".
+
+ To the south is a small opening, apparently of recent origin.
+ There are four heads here, mounted securely on poles.
+ There is a large pile of empty Coke bottles here, evidently produced
+ by the implementers during their long struggle to win totally.
+ There is a gigantic pile of line-printer output here.  Although the
+ paper once contained useful information, almost nothing can be
+ distinguished now.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine tomb</span></div>
+<div class="output"> Here lie the implementers, whose heads were placed on poles by the
+ Keeper of the Dungeon for amazing untastefulness.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Land of the Living Dead</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> Entrance to Hades
+ There is a large black book here.
+ There are two candles here.
+ On the ground is a red hot bell.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is a tiny cave with entrances west and north, and a dark,
+ forbidding staircase leading down.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> Narrow Crawlway</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Grail Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> There is a wall there.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a clove of garlic here.
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is a brass lantern (battery-powered) here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A fancy violin.
+   A trunk with jewels.
+   A chalice.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A jewel-encrusted egg.
+   A beautiful brass bauble.
+   A clockwork canary.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put grail in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop matchbook</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take lamp</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take garlic</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take screwdriver</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk se</span></div>
+<div class="output"> This is a winding passage.  It seems that there is only an exit
+ on the east end, although the whirring from the round room can be
+ heard faintly to the north.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> This is a large square room with tall ceilings.  On the south wall
+ is an enormous mirror which fills the entire wall.  There are exits
+ on the other three sides of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">touch mirror</span></div>
+<div class="output"> There is a rumble from deep within the earth, and the room shakes.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Cold Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Slide Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> You are standing at the entrance of what might have been a coal
+ mine.  To the northeast and the northwest are entrances to the mine,
+ and there is another exit on the south end of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> This is a small room.  Strange squeaky sounds may be heard coming
+ from the passage at the west end.  You may also escape to the south.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> This is a small room that has only one door, to the east.
+ In the corner of the room on the ceiling is a large vampire bat who
+ is obviously deranged and holding his nose.
+ There is an exquisite jade figurine here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take jade figurine</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine jade figurine</span></div>
+<div class="output"> I see nothing special about the jade figurine.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Squeaky Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Mine Entrance</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> This is a large room, in the middle of which is a small shaft
+ descending through the floor into darkness below.  To the west and
+ the north are exits from this room.  Constructed over the top of the
+ shaft is a metal framework to which a heavy iron chain is attached.
+ At the end of the chain is a basket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put torch and screwdriver in basket</span></div>
+<div class="output"> torch:
+ Done.
+ screwdriver:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn on lamp</span></div>
+<div class="output"> The lamp is now on.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> This is a narrow tunnel with large wooden beams running across
+ the ceiling and around the walls.  A path from the south splits into
+ paths running west and northeast.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> This is a small non-descript room.  However, from the direction
+ of a small descending staircase a foul odor can be detected.  To the
+ east is a narrow path.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a small room which smells strongly of coal gas.
+ There is a sapphire-encrusted bracelet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take bracelet</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine bracelet</span></div>
+<div class="output"> I see nothing special about the sapphire bracelet.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Smelly Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Wooden Tunnel</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> This is a non-descript part of a coal mine.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> This is a non-descript part of a coal mine.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> This is a non-descript part of a coal mine.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> This is a non-descript part of a coal mine.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a very small room.  In the corner is a rickety wooden
+ ladder, leading downward.  It might be safe to descend.  There is
+ also a staircase leading upward.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a rather wide room.  On one side is the bottom of a narrow
+ wooden ladder.  To the northeast and the south are passages leaving
+ the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> Dead end.
+ There is a small heap of coal here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take coal</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> This is a rather wide room.  On one side is the bottom of a narrow
+ wooden ladder.  To the northeast and the south are passages leaving
+ the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> This is a long and narrow passage.  A wide passage comes from the
+ north and turns at the southwest corner of the room into a very
+ narrow passageway.
+ There is a wooden timber on the ground here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all but rope</span></div>
+<div class="output"> clove of garlic:
+ Dropped.
+ small pile of coal:
+ Dropped.
+ jade figurine:
+ Dropped.
+ lamp:
+ Dropped.
+ sapphire bracelet:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take lamp, timber and coal</span></div>
+<div class="output"> lamp:
+ Taken.
+ broken timber:
+ Taken.
+ small pile of coal:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Ladder Bottom</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Ladder Top</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Wooden Tunnel</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Shaft Room
+ At the end of the chain is a basket.
+ The basket contains:
+   A torch.
+   A screwdriver.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put coal in basket</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop rope</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop timber</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">lower basket</span></div>
+<div class="output"> The basket is lowered to the bottom of the shaft.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Wooden Tunnel</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Ladder Top</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Ladder Bottom</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Timber Room
+ There is a clove of garlic here.
+ There is an exquisite jade figurine here.
+ There is a sapphire-encrusted bracelet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop lamp</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk sw</span></div>
+<div class="output"> This is a small square room which is at the bottom of a long shaft
+ To the east is a passageway and to the northeast a very narrow
+ passage.  In the shaft can be seen a heavy iron chain.
+ At the end of the chain is a basket.
+ The basket contains:
+   A small pile of coal.
+   A torch.
+   A screwdriver.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> small pile of coal:
+ Taken.
+ torch:
+ Taken.
+ screwdriver:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> This is a large room which seems to be air conditioned.  In one
+ corner there is a machine (?) which is shaped somewhat like a clothes
+ dryer.  On the "panel" there is a switch which is labeled in an
+ obscure dialect of Swahili.  Fortunately, I know this dialect, and
+ the label translates to START.  The switch does not appear to be
+ manipulable by any human hand (unless the fingers are about 1/16 by
+ 1/4 inch).  On the front of the machine is a large lid, which is closed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open lid</span></div>
+<div class="output"> The lid opens.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put coal in machine</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">close lid</span></div>
+<div class="output"> The lid closes.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn switch with screwdriver</span></div>
+<div class="output"> The machine comes to life (figuratively) with a dazzling display
+ of colored lights and bizarre noises.  After a few moments, the
+ excitement fades.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open lid</span></div>
+<div class="output"> The lid opens.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take diamond</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine diamond</span></div>
+<div class="output"> I see nothing special about the huge diamond.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> Lower Shaft
+ At the end of the chain is a basket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put all in basket</span></div>
+<div class="output"> huge diamond:
+ Done.
+ torch:
+ Done.
+ screwdriver:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> Timber Room
+ There is a clove of garlic here.
+ There is an exquisite jade figurine here.
+ There is a brass lantern (battery-powered) here.
+ There is a sapphire-encrusted bracelet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> clove of garlic:
+ Taken.
+ jade figurine:
+ Taken.
+ lamp:
+ Taken.
+ sapphire bracelet:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Ladder Bottom</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Ladder Top</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is a non-descript part of a coal mine.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Coal Mine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Wooden Tunnel</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> Shaft Room
+ There is a large coil of rope here.
+ There is a wooden timber on the ground here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop garlic, jade and bracelet</span></div>
+<div class="output"> clove of garlic:
+ Dropped.
+ jade figurine:
+ Dropped.
+ sapphire bracelet:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">raise basket</span></div>
+<div class="output"> The basket is raised to the top of the shaft.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch, timber and rope</span></div>
+<div class="output"> torch:
+ Taken.
+ broken timber:
+ Taken.
+ rope:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn off lamp</span></div>
+<div class="output"> The lamp is now off.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all but rope, torch and timber</span></div>
+<div class="output"> lamp:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> Mine Entrance</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Slide Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop timber</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tie rope to timber</span></div>
+<div class="output"> The rope is fastened to a broken timber.
+ The rope dangles down the slide.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> As you descend, you realize that the rope is slippery from the
+ grime of the coal chute and that your grasp will not last long.
+ This is an uncomfortable spot within the coal chute.  The rope to
+ which you are clinging can be seen rising into the darkness above.
+ There is more rope dangling below you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is another spot within the coal chute.  Above you the rope
+ climbs into the darkness.  The end of the rope is dangling five
+ feet beneath you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> You have reached the end of your rope.  Below you is darkness as
+ the chute makes a sharp turn.  On the east here is a small ledge
+ which you might be able to stand on.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> This is a narrow ledge abutting the coal chute, in which a rope can
+ be seen passing downward.  Behind you, to the south, is a small room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> This is a small room with rough walls, and a ceiling which slopes
+ steeply from north to south.  There is coal dust covering almost
+ everything, and little bits of coal are scattered around the only
+ exit, which is a narrow passage to the north.  In one corner of the
+ room is an old coal stove which lights the room with a cherry red
+ glow.  There is a very narrow crack on the north wall.
+ On the floor sits a red crystal sphere.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take sphere</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">describe sphere</span></div>
+<div class="output"> I see nothing special about the red crystal sphere.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Slide Ledge</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> There is a wall there.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Slide</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Slide</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> This is a small chamber, which appears to have been part of a
+ coal mine.  On the south wall of the chamber the letters "Granite
+ Wall" are etched into the rock.  To the east is a long passage,
+ and there is a steep metal slide twisting downward.  To the north
+ is a small opening.
+ A broken timber is lying on the ground here.  Tied to it is a piece
+ of rope, which is dangling down the slide.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Mine Entrance</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> Shaft Room
+ There is a clove of garlic here.
+ There is an exquisite jade figurine here.
+ There is a brass lantern (battery-powered) here.
+ At the end of the chain is a basket.
+ There is a sapphire-encrusted bracelet here.
+ The basket contains:
+   A huge diamond.
+   A screwdriver.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take all</span></div>
+<div class="output"> clove of garlic:
+ Taken.
+ jade figurine:
+ Taken.
+ huge diamond:
+ Taken.
+ lamp:
+ Taken.
+ sapphire bracelet:
+ Taken.
+ screwdriver:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Mine Entrance</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> Slide Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> As you descend, you realize that the rope is slippery from the
+ grime of the coal chute and that your grasp will not last long.
+ This is an uncomfortable spot within the coal chute.  The rope to
+ which you are clinging can be seen rising into the darkness above.
+ There is more rope dangling below you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Slide
+ The rope slips from your grasp and you tumble to the cellar.
+ This is a dark and damp cellar with a narrow passageway leading
+ east, and a crawlway to the south.  To the west is the bottom of
+ a steep metal ramp which is unclimbable.
+ Above you is an open trap door.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A fancy violin.
+   A grail.
+   A trunk with jewels.
+   A chalice.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A jewel-encrusted egg.
+   A beautiful brass bauble.
+   A clockwork canary.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put treasure in case</span></div>
+<div class="output"> jade figurine:
+ Done.
+ huge diamond:
+ Done.
+ torch:
+ Done.
+ sapphire bracelet:
+ Done.
+ red crystal sphere:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all</span></div>
+<div class="output"> clove of garlic:
+ Dropped.
+ lamp:
+ Dropped.
+ screwdriver:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Strange Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed south</span></div>
+<div class="output"> Cyclops Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Treasure Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is a small square room, in the middle of which is a recently
+ created hole through which you can barely discern the floor some ten
+ feet below.  It doesn't seem likely you could climb back up.  There
+ are exits to the west and south.
+ There is a piece of paper on the ground here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is a room with an exit to the north and a metal door to the east.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Small Square Room
+ There is a piece of paper on the ground here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">schedule</span></div>
+<div class="output"> The dungeon is ALWAYS open (always room for one more).</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">read paper</span></div>
+<div class="output"> Taken.
+ The paper is rather worn; although the writing is barely legible
+ (the author probably had only a used pencil), it is a very elegant
+ copperplate.
+
+ To Whom It May Concern:
+
+    I regret to report that the rumours regarding treasure contained
+ in the chamber to which this passage leads have no basis in fact.
+ Should you nevertheless be sufficiently foolhardy to enter, it will
+ be quite impossible for you to exit.
+
+ 				Sincerely yours,
+ 				The Thief</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a small square room bounded to the north and west with
+ marble walls and to the east and south with sandstone walls.
+ It appears the thief was correct.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push east wall</span></div>
+<div class="output"> The wall slides forward and you follow it.
+ The architecture of this region is getting complex, so that further
+ descriptions will be diagrams of the immediate vicinity in a 3x3
+ grid.  The walls here are rock, but of two different types - sandstone
+ and marble.  The following notations will be used:
+ 			..  = current position (middle of grid)
+ 			MM  = marble wall
+ 			SS  = sandstone wall
+ 			??  = unknown (blocked by walls).
+       |MM MM ??|
+ West  |   .. SS|  East
+       |SS    MM|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> Your position is as follows:
+       |      SS|
+ West  |SS .. MM|  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go sw</span></div>
+<div class="output"> Your position is as follows:
+       |?? SS   |
+ West  |MM ..   |  East
+       |?? SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |MM      |
+ West  |MM ..   |  East
+       |?? SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Your position is as follows:
+       |        |
+ West  |   ..   |  East
+       |SS    SS|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> Your position is as follows:
+       |        |
+ West  |   .. SS|  East
+       |   SS ??|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |      SS|
+ West  |   ..   |  East
+       |MM SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed north</span></div>
+<div class="output"> Your position is as follows:
+       |        |
+ West  |   .. SS|  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Your position is as follows:
+       |   MM   |
+ West  |   ..   |  East
+       |      SS|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Your position is as follows:
+       |MM    SS|
+ West  |   .. MM|  East
+       |   SS ??|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |      MM|
+ West  |   .. SS|  East
+       |   SS ??|
+ The center of the floor here is noticeably depressed.
+ Nestled inside the niche is an engraved gold card.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take card</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine card</span></div>
+<div class="output">  __________________________________________________________
+ |                                                          |
+ |             FROBOZZ MAGIC SECURITY SYSTEMS               |
+ |   Door Pass                  Royal Zork Puzzle Museum    |
+ |                                                          |
+ |                    #632-988-496-XTHF                     |
+ |                                                          |
+ |                                                          |
+ |    USE OF THIS PASS BY UNAUTHORIZED PERSONS OR AFTER     |
+ |  EXPIRATION DATE WILL RESULT IN IMMEDIATE CONFISCATION   |
+ |                                                          |
+ |                                                          |
+ |                             (approved)                   |
+ |                             Will Weng                    |
+ |                              789 G.U.E.                  |
+ |                                                          |
+ |                                       Expires 792 G.U.E. |
+ |__________________________________________________________|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |      SS|
+ West  |   ..   |  East
+       |SS SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk east</span></div>
+<div class="output"> Your position is as follows:
+       |   SS   |
+ West  |   ..   |  East
+       |SS    MM|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> Your position is as follows:
+       |MM    MM|
+ West  |SS .. MM|  East
+       |      MM|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |?? MM   |
+ West  |SS ..   |  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |      MM|
+ West  |SS ..   |  East
+       |        |
+ The center of the floor here is noticeably depressed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |        |
+ West  |SS ..   |  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |        |
+ West  |SS ..   |  East
+       |SS      |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> Your position is as follows:
+       |   MM   |
+ West  |   ..   |  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> Your position is as follows:
+       |SS    SS|
+ West  |MM .. SS|  East
+       |      MM|
+ There is a ladder here, firmly attached to the east wall.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Your position is as follows:
+       |?? MM ??|
+ West  |SS .. SS|  East
+       |MM    SS|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push east wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |MM MM ??|
+ West  |   .. SS|  East
+       |   SS ??|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk sw</span></div>
+<div class="output"> Your position is as follows:
+       |SS      |
+ West  |MM .. SS|  East
+       |      MM|
+ There is a ladder here, firmly attached to the east wall.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed south</span></div>
+<div class="output"> Your position is as follows:
+       |MM    SS|
+ West  |   .. MM|  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go se</span></div>
+<div class="output"> Your position is as follows:
+       |   MM   |
+ West  |   ..   |  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go ne</span></div>
+<div class="output"> Your position is as follows:
+       |SS    MM|
+ West  |MM .. MM|  East
+       |      MM|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Your position is as follows:
+       |?? SS ??|
+ West  |SS .. MM|  East
+       |MM    MM|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |      SS|
+ West  |SS ..   |  East
+       |?? MM   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> Your position is as follows:
+       |?? MM MM|
+ West  |SS ..   |  East
+       |?? SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |SS      |
+ West  |MM ..   |  East
+       |?? SS MM|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |MM      |
+ West  |   .. MM|  East
+       |   SS ??|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Your position is as follows:
+       |   MM   |
+ West  |   ..   |  East
+       |      SS|</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> Your position is as follows:
+       |      SS|
+ West  |SS .. MM|  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go nw</span></div>
+<div class="output"> Your position is as follows:
+       |?? MM MM|
+ West  |MM ..   |  East
+       |?? SS   |
+ In the ceiling above you is a large circular opening.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push south wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |MM      |
+ West  |MM ..   |  East
+       |?? SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk se</span></div>
+<div class="output"> Your position is as follows:
+       |      MM|
+ West  |SS ..   |  East
+       |SS      |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go se</span></div>
+<div class="output"> Your position is as follows:
+       |        |
+ West  |   .. SS|  East
+       |        |
+ There is a ladder here, firmly attached to the east wall.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk se</span></div>
+<div class="output"> Your position is as follows:
+       |   SS   |
+ West  |   ..   |  East
+       |SS SS   |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk ne</span></div>
+<div class="output"> Your position is as follows:
+       |?? MM   |
+ West  |SS ..   |  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |      MM|
+ West  |SS ..   |  East
+       |        |
+ The center of the floor here is noticeably depressed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push west wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |        |
+ West  |SS ..   |  East
+       |        |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go sw</span></div>
+<div class="output"> Your position is as follows:
+       |?? SS   |
+ West  |SS ..   |  East
+       |?? MM SS|
+ There is a ladder here, firmly attached to the west wall.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push north wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |?? SS   |
+ West  |SS ..   |  East
+       |SS      |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push north wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |?? SS MM|
+ West  |SS ..   |  East
+       |SS      |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push north wall</span></div>
+<div class="output"> The wall slides forward and you follow it to this position:
+       |   SS ??|
+ West  |   .. MM|  East
+       |SS      |</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk nw</span></div>
+<div class="output"> Your position is as follows:
+       |?? MM ??|
+ West  |MM .. SS|  East
+       |MM      |
+ In the ceiling above you is a large circular opening.
+ There is a ladder here, firmly attached to the east wall.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> With the help of the ladder, you exit the puzzle.
+ Small Square Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> Treasure Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cyclops Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Strange Passage</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed east</span></div>
+<div class="output"> Living Room
+ There is a clove of garlic here.
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is a brass lantern (battery-powered) here.
+ There is a tour guidebook here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is a matchbook whose cover says "Visit Beautiful FCD #3" here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a square brick here which feels like clay.
+ There is a piece of cake with orange icing here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A jade figurine.
+   A huge diamond.
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A sapphire bracelet.
+   A fancy violin.
+   A grail.
+   A trunk with jewels.
+   A chalice.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A jewel-encrusted egg.
+   A beautiful brass bauble.
+   A clockwork canary.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+   A red crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put card in case</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop all</span></div>
+<div class="output"> torch:
+ Dropped.
+ note of warning:
+ Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch, lamp, guidebook, brick and matchbook</span></div>
+<div class="output"> torch:
+ Taken.
+ lamp:
+ Taken.
+ tour guidebook:
+ Taken.
+ brick:
+ Taken.
+ matchbook:
+ Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> Troll Room
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> Deep Ravine</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go down</span></div>
+<div class="output"> This is a long room, to the north of which was formerly a reservoir.
+ However, with the water level lowered, there is merely a wide stream
+ running through the center of the room.
+ There is a western exit, a passageway south, and a steep pathway
+ climbing up along the edge of a cliff.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> You are standing on a path beside a gently flowing stream.  The path
+ travels to the north and the east.
+ There is a coil of thin shiny wire here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take wire</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> This is a large room with giant icicles hanging from the walls
+ and ceiling.  There are passages to the north and east.
+ A mass of ice fills the western half of the room.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">throw torch</span></div>
+<div class="output"> The torch hits the glacier and explodes into a great ball of flame,
+ devouring the glacier.  The water from the melting glacier rushes
+ downstream, carrying the torch with it.  In place of the glacier,
+ there is a passageway leading west.
+ The melting glacier seems to have carried the torch away, leaving
+ you in the dark.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn on lamp</span></div>
+<div class="output"> The lamp is now on.
+ Glacier Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> This is a small chamber behind the remains of the great glacier.
+ To the south and west are small passageways.
+ On the floor lies a moby ruby.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take ruby</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look at ruby</span></div>
+<div class="output"> I see nothing special about the ruby.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> This is a small room, whose walls are formed by an old lava flow.
+ There are exits here to the west and the south.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">read paper</span></div>
+<div class="output"> I can't see any paper here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> You are at the bottom of a large dormant volcano.  High above you
+ light may be seen entering from the cone of the volcano.  The only
+ exit here is to the north.
+ There is a very large and extremely heavy wicker basket with a cloth
+ bag here.  Inside the basket is a metal receptacle of some kind.
+ Attached to the basket on the outside is a piece of wire.
+ The basket contains:
+   A receptacle.
+   A cloth bag.
+   A braided wire.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">board</span></div>
+<div class="output"> You are now in the basket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open receptacle</span></div>
+<div class="output"> Opened.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put guidebook in receptacle</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">light match</span></div>
+<div class="output"> One of the matches starts to burn.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">light guidebook with match</span></div>
+<div class="output"> The tour guidebook burns inside the receptacle.
+ The cloth bag inflates as it fills with hot air.
+ The match has gone out.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon rises slowly from the ground.
+ You are about one hundred feet above the bottom of the volcano.  The
+ top of the volcano is clearly visible here.
+ You are in the basket.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon ascends.
+ You are about two hundred feet above the volcano floor.  Looming
+ above is the rim of the volcano.  There is a small ledge on the
+ west side.
+ You are in the basket.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">land</span></div>
+<div class="output"> You are on a narrow ledge overlooking the inside of an old dormant
+ volcano.  This ledge appears to be about in the middle between the
+ floor below and the rim above.  There is an exit here to the south.
+ You are in the basket.
+ There is a small hook attached to the rock here.
+ On the floor is a gold zorkmid coin (a valuable collector's item).
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">disembark</span></div>
+<div class="output"> You are on your own feet again.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tie rope to hook</span></div>
+<div class="output"> The balloon is fastened to the hook.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take coin</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run south</span></div>
+<div class="output"> This is a room which must have been a large library, probably
+ for the royal family.  All of the shelves appear to have been gnawed
+ to pieces by unfriendly gnomes.  To the north is an exit.
+ There is a blue book here.
+ There is a green book here.
+ There is a purple book here.
+ There is a white book here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open purple book</span></div>
+<div class="output"> Opening the purple book reveals:
+   A stamp.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take stamp</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> Narrow Ledge
+ There is a very large and extremely heavy wicker basket with a cloth
+ bag here.  Inside the basket is a metal receptacle of some kind.
+ Attached to the basket on the outside is a piece of wire.
+ The basket is anchored to a small hook by the braided wire.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">untie rope from hook</span></div>
+<div class="output"> The wire falls off the hook.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">board</span></div>
+<div class="output"> You are now in the basket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon leaves the ledge.
+ Volcano near small ledge
+ You are in the basket.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.
+ The lamp appears to be getting dimmer.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon ascends.
+ You are high above the floor of the volcano.  From here the rim of
+ the volcano looks very narrow, and you are very near it.  To the
+ east is what appears to be a viewing ledge, too thin to land on.
+ You are in the basket.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon ascends.
+ You are near the rim of the volcano, which is only about fifteen feet
+ across.  To the west, there is a place to land with a wide ledge.
+ You are in the basket.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">land</span></div>
+<div class="output"> You are on a wide ledge high into the volcano.  The rim of the
+ volcano is about 200 feet above, and there is a precipitous drop
+ below to the bottom.
+ There is a small door to the south.
+ You are in the basket.
+ There is a small hook attached to the rock here.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">disembark</span></div>
+<div class="output"> You are on your own feet again.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tie rope to hook</span></div>
+<div class="output"> The balloon is fastened to the hook.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed south</span></div>
+<div class="output"> This is a dusty old room which is virtually featureless, except
+ for an exit on the north side.
+ Embedded in the far wall is a rusty old box.  It appears that
+ the box is somewhat damaged, since an oblong hole has been
+ chipped out of the front of it.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put brick in hole</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put wire in brick</span></div>
+<div class="output"> Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">light match</span></div>
+<div class="output"> One of the matches starts to burn.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">light wire with match</span></div>
+<div class="output"> The wire starts to burn.
+ The match has gone out.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Wide Ledge
+ There is a very large and extremely heavy wicker basket with a cloth
+ bag here.  Inside the basket is a metal receptacle of some kind.
+ Attached to the basket on the outside is a piece of wire.
+ The basket is anchored to a small hook by the braided wire.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.
+ There is an explosion nearby.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk south</span></div>
+<div class="output"> Dusty Room
+ The excessively gaudy crown of Lord Dimwit Flathead is here.
+ The box also contains:
+   A card.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take crown</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">look at crown</span></div>
+<div class="output"> I see nothing special about the crown.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Wide Ledge
+ There is a very large and extremely heavy wicker basket with a cloth
+ bag here.  Inside the basket is a metal receptacle of some kind.
+ Attached to the basket on the outside is a piece of wire.
+ The basket is anchored to a small hook by the braided wire.
+ The basket contains:
+   A receptacle, which contains:
+     A tour guidebook.
+   A cloth bag.
+   A braided wire.
+   A blue label.
+ You may recall your recent explosion.  Well, probably as a result of
+ that, you hear an ominous rumbling, as if one of the rooms in the
+ dungeon has collapsed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">untie rope from hook</span></div>
+<div class="output"> The wire falls off the hook.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">board</span></div>
+<div class="output"> You are now in the basket.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">close receptacle</span></div>
+<div class="output"> Closed.
+ The balloon leaves the ledge.
+ Volcano near wide ledge
+ You are in the basket.
+ The basket contains:
+   A receptacle.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon descends.
+ Volcano near viewing ledge
+ You are in the basket.
+ The basket contains:
+   A receptacle.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The ledge collapses, giving you a narrow escape.
+ The balloon descends.
+ Volcano near small ledge
+ You are in the basket.
+ The basket contains:
+   A receptacle.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The lamp appears to be getting dimmer.
+ The balloon descends.
+ Volcano Core
+ You are in the basket.
+ The basket contains:
+   A receptacle.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ The balloon has landed.
+ You are at the bottom of a large dormant volcano.  High above you
+ light may be seen entering from the cone of the volcano.  The only
+ exit here is to the north.
+ You are in the basket.
+ The basket contains:
+   A receptacle.
+   A cloth bag.
+   A braided wire.
+   A blue label.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">disembark</span></div>
+<div class="output"> You are on your own feet again.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run north</span></div>
+<div class="output"> Lava Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> This is a small chamber behind the remains of the great glacier.
+ To the south and west are small passageways.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Glacier Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk north</span></div>
+<div class="output"> Stream View
+ There is a burned out ivory torch here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take torch</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run east</span></div>
+<div class="output"> This is a long room, to the north of which was formerly a reservoir.
+ However, with the water level lowered, there is merely a wide stream
+ running through the center of the room.
+ There is a western exit, a passageway south, and a steep pathway
+ climbing up along the edge of a cliff.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Deep Canyon</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Round Room
+ There is a dented steel box here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">proceed west</span></div>
+<div class="output"> East-West Passage
+ A brown sack is here.
+ The brown sack contains:
+   A lunch.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">run west</span></div>
+<div class="output"> This is a small room with passages off in all directions.  Bloodstains
+ and deep scratches (perhaps made by an axe) mar the walls.
+ There is a small leaflet here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">walk west</span></div>
+<div class="output"> Cellar</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open trap door</span></div>
+<div class="output"> I think you've already done that.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go up</span></div>
+<div class="output"> Living Room
+ There is a clove of garlic here.
+ There is a trophy case here.
+ A clear glass bottle is here.
+ There is a nasty-looking knife lying here.
+ There is an elvish sword here.
+ There is an issue of US NEWS &amp; DUNGEON REPORT here.
+ There is an object which looks like a tube of toothpaste here.
+ There is a wrench here.
+ There is a screwdriver here.
+ There is a small pump here.
+ There is a tan label here.
+ There is a sharp broken stick here.
+ There is a piece of cake with orange icing here.
+ There is a piece of paper on the ground here.
+ There is a rusty iron key here.
+ There is a welcome mat here.
+ Your collection of treasures consists of:
+   A jade figurine.
+   A huge diamond.
+   A bag of coins.
+   A platinum bar.
+   A pearl necklace.
+   A crystal trident.
+   A gold coffin.
+   A sapphire bracelet.
+   A fancy violin.
+   A grail.
+   A trunk with jewels.
+   A chalice.
+   A painting.
+   A pot of gold.
+   A statue.
+   A large emerald.
+   A white crystal sphere.
+   A tin of spices.
+   A stack of zorkmid bills.
+   A portrait of J. Pierpont Flathead.
+   A jewel-encrusted egg.
+   A beautiful brass bauble.
+   A clockwork canary.
+   A gold card.
+   A free brochure, which contains:
+     A Don Woods stamp.
+   A blue crystal sphere.
+   A red crystal sphere.
+ The glass bottle contains:
+   A quantity of water.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine brochure</span></div>
+<div class="output"> The mailing label on this glossy brochure from MIT Tech reads
+
+ 		Intrepid Adventurer
+ 		c/o Local Dungeon Master
+ 		White House, GUE
+
+ From the Introduction:
+
+ The brochure describes, for the edification of the prospective
+ student, the stringent but wide-ranging curriculum of MIT Tech.
+ Required courses are offered in Ambition, Distraction, Uglification,
+ and Derision.  The Humanities are not slighted at this institution,
+ as the student may register for Reeling and Writhing, Mystery
+ (Ancient and Modern), Seaography, and Drawling (which includes
+ Stretching and Fainting in Coils).  Advanced students are expected
+ to learn Laughing and Grief.
+
+                                  William Barton Flathead, Founder
+
+ (The brochure continues in this vein for a few hundred more pages.)
+ Affixed loosely to the brochure is a small stamp.
+ The lamp appears to be getting dimmer.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine coin</span></div>
+<div class="output"> 	       --------------------------
+ 	      /       Gold Zorkmid        \
+ 	     /  T e n   T h o u s a n d    \
+ 	    /        Z o r k m i d s        \
+ 	   /                                 \
+ 	  /        ||||||||||||||||||         \
+ 	 /        !||||          ||||!         \
+ 	|          |||   ^^  ^^   |||           |
+ 	|          |||   OO  OO   |||           |
+ 	| In Frobs  |||    &lt;&lt;    |||  We Trust  |
+ 	|            || (______) ||             |
+ 	|             |          |              |
+ 	|             |__________|              |
+ 	 \                                     /
+ 	  \     -- Lord Dimwit Flathead --    /
+ 	   \     -- Beloved of Zorkers --    /
+ 	    \                               /
+ 	     \       * 722 G.U.E. *        /
+ 	      \                           /
+ 	       \                         /
+ 	         -----------------------</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine matchbook</span></div>
+<div class="output"> 		[Close cover before striking BKD]
+
+ 	You too can make BIG MONEY in the exciting field of
+ 		      PAPER SHUFFLING!
+
+ Mr. TAA of Muddle, Mass. says: "Before I took this course I used
+ to be a lowly bit twiddler.  Now with what I learned at MIT Tech
+ I feel really important and can obfuscate and confuse with the best."
+
+ Mr. MARC had this to say: "Ten short days ago all I could look
+ forward to was a dead-end job as a engineer.  Now I have a promising
+ future and make really big Zorkmids."
+
+ MIT Tech can't promise these fantastic results to everyone, but when
+ you earn your MDL degree from MIT Tech your future will be brighter.
+
+ 		Send for our free brochure today!</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine newspaper</span></div>
+<div class="output"> 		 US NEWS &amp; DUNGEON REPORT
+ 01-Oct-94					Late Dungeon Edition
+
+ 		--- LATE NEWS FLASH!! ---
+
+ Lots and lots and lots and LOTS of bugs have been fixed.
+
+ Aspiring adventurers should make avail themselves of every opportunity
+ to broaden their intellectual horizons and increase their perspicacity.
+
+ Fatal events have somewhat more convoluted results than previously.
+
+ 		--- BACKGROUND INFORMATION ---
+
+ If you encounter problems, please report them by Internet mail to
+ dsmaint@pa.dec.com.
+
+ PHONE CALLS AND IN-PERSON VISITS WILL BE RUDELY REJECTED!</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">examine stamp</span></div>
+<div class="output"> ---V----V----V----V----V----V----V----V---
+ |                                        |
+ |          ||||||||||        LORD        |
+ &gt;         !||||      |      DIMWIT       &lt;
+ |         ||||    ---|     FLATHEAD      |
+ |         |||C     CC \                  |
+ &gt;          ||||       _\                 &lt;
+ |           ||| (____|                   |
+ |            ||      |                   |
+ &gt;             |______|       Our         &lt;
+ |               /   \     Excessive      |
+ |              /     \      Leader       |
+ &gt;             |       |                  &lt;
+ |             |       |                  |
+ |                                        |
+ &gt;    G.U.E. POSTAGE        3 Zorkmids    &lt;
+ |                                        |
+ ---^----^----^----^----^----^----^----^---</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">put treasure in case</span></div>
+<div class="output"> ruby:
+ Done.
+ burned out ivory torch:
+ Done.
+ priceless zorkmid:
+ Done.
+ crown:
+ Done.
+ stamp:
+ Done.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">score</span></div>
+<div class="output"> Your score is+ 616 [total of 616 points], in  685 moves.
+ This gives you the rank of Cheater.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">hello sailor</span></div>
+<div class="output"> Nothing happens here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">repent</span></div>
+<div class="output"> It could very well be too late.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">frobozz</span></div>
+<div class="output"> The Frobozz Company, Ltd., created, owns, and operates this dungeon.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">yell</span></div>
+<div class="output"> Aaaarrrrrrgggggggghhhhhhhhhh!
+ The lamp is dying.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">win</span></div>
+<div class="output"> Naturally!</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">wait</span></div>
+<div class="output"> Time passes...
+ I hope you have more light than from a lamp.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">incant "ZORK CQCBBBCA"</span></div>
+<div class="output"> As the last syllable of your spell fades into silence, darkness
+ envelops you, and the earth shakes briefly.  Then all is quiet.
+ You are standing at the top of a flight of stairs that lead down to
+ a passage below.  Dim light, as from torches, can be seen in the
+ passage.  Behind you the stairs lead into untouched rock.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> You are standing near one end of a long dimly lit hall.  To the
+ south, stone stairs ascend.  To the north, the corridor is illum-
+ inated by torches set high in the wall, out of reach.  On one wall
+ is a red button.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">dungeon</span></div>
+<div class="output"> At your service!</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is a small room, with narrow passages exiting to the north and
+ south.  A narrow red beam of light crosses the room at the north end,
+ inches above the floor.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">drop lamp</span></div>
+<div class="output"> Dropped.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> Stone Room</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red button</span></div>
+<div class="output"> The button becomes depressed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is a small room, with narrow passages exiting to the north and
+ south.  A narrow red beam of light crosses the room at the north end,
+ inches above the floor.  The beam is stopped halfway across the room
+ by a lamp lying on the floor.
+ There is a brass lantern (battery-powered) here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">take lamp</span></div>
+<div class="output"> Taken.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is part of the long hallway.  The east and west walls are
+ dressed stone.  In the center of the hall is a shallow stone channel.
+ In the center of the room the channel widens into a large hole around
+ which is engraved a compass rose.
+ A passage enters from the south.
+ A large mirror fills the north side of the hallway.
+ The mirror is mounted on a panel which has been opened outward.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">in</span></div>
+<div class="output"> You are inside a rectangular box of wood whose structure is rather
+ complicated.  Four sides and the roof are filled in, and the floor
+ is open.
+    As you face the side opposite the entrance, two short sides of
+ carved and polished wood are to your left and right.  The left panel
+ is mahogany, the right pine.  The wall you face is red on its left
+ half and black on its right.  On the entrance side, the wall is white
+ opposite the red part of the wall it faces, and yellow opposite the
+ black section.  The painted walls are at least twice the length of
+ the unpainted ones.  The ceiling is painted blue.
+    In the floor is a stone channel about six inches wide and a foot
+ deep.  The channel is oriented in a north-south direction.  In the
+ exact center of the room the channel widens into a circular
+ depression perhaps two feet wide.  Incised in the stone around this
+ area is a compass rose.
+    Running from one short wall to the other at about waist height
+ is a wooden bar, carefully carved and drilled.  This bar is pierced
+ in two places.  The first hole is in the center of the bar (and thus
+ in the center of the room).  The second is at the left end of the room
+ (as you face opposite the entrance).  Through each hole runs a wooden
+ pole.
+    The pole at the left end of the bar is short, extending about a
+ foot above the bar, and ends in a hand grip.  The pole has been
+ dropped into a hole carved in the stone floor.
+    The long pole at the center of the bar extends from the ceiling
+ through the bar to the circular area in the stone channel.  The
+ bottom end of this pole has a T-bar a bit less than two feet long
+ attached to it.  On the T-bar is carved an arrow.  The arrow and
+ T-bar are pointing west.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">raise short pole</span></div>
+<div class="output"> The pole is now slightly above the floor.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red wall</span></div>
+<div class="output"> The structure rotates clockwise.
+ The arrow on the compass rose now indicates northwest.
+ The mirror quietly swings shut.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red wall</span></div>
+<div class="output"> The structure rotates clockwise.
+ The arrow on the compass rose now indicates north.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">lower short pole</span></div>
+<div class="output"> The pole is lowered into the channel.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push mahogany wall</span></div>
+<div class="output"> The structure slides north and stops over another compass rose.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push mahogany wall</span></div>
+<div class="output"> The structure slides north and stops over another compass rose.
+ Your sword has begun to glow very brightly.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push mahogany wall</span></div>
+<div class="output"> The structure slides north and stops over another compass rose.
+ Your sword is no longer glowing.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">raise short pole</span></div>
+<div class="output"> The pole is now slightly above the floor.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red wall</span></div>
+<div class="output"> The structure rotates clockwise.
+ The arrow on the compass rose now indicates northeast.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red wall</span></div>
+<div class="output"> The structure rotates clockwise.
+ The arrow on the compass rose now indicates east.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red wall</span></div>
+<div class="output"> The structure rotates clockwise.
+ The arrow on the compass rose now indicates southeast.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push red wall</span></div>
+<div class="output"> The structure rotates clockwise.
+ The arrow on the compass rose now indicates south.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push pine wall</span></div>
+<div class="output"> The pine wall swings open.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> As you leave, the door swings shut.
+ This is a north-south hallway which ends in a large wooden door.
+ The south side of the room is divided by a wooden wall into small
+ hallways to the southeast and southwest.
+ The wooden door has a barred panel in it at about head height.  The
+ panel is closed, and the door is closed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">knock on wooden door</span></div>
+<div class="output"> The knock reverberates along the hall.  For a time it seems there
+ will be no answer.  Then you hear someone unlatching the small wooden
+ panel.  Through the bars of the great door, the wrinkled face of an
+ old man appears.  He gazes down at you and intones as follows:
+    "I am the Master of the dungeon, whose task it is to insure
+ that none but the most scholarly and masterful adventurers are
+ admitted into the secret realms of the dungeon.  To ascertain whether
+ you meet the stringent requirements laid down by the Great
+ Implementers, I will ask three questions which should be easy for
+ one of your reputed excellence to answer.  You have undoubtedly
+ discovered the answers during your travels through the dungeon.
+ Should you answer each of these questions correctly within five
+ attempts, then I am obliged to acknowledge your skill and daring and
+ admit you to these regions.
+    "All answers should be in the form 'ANSWER "answer"'."
+ The booming voice asks:
+ "Beside the Temple, to which room is it possible to go from the Altar?"</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">answer "FOREST"</span></div>
+<div class="output"> The dungeon master says, "Excellent."
+ The booming voice asks:
+ "What can be done to the mirror that is useful?"</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">answer "RUB"</span></div>
+<div class="output"> The dungeon master says, "Excellent."
+ The booming voice asks:
+ "In which room is the phrase 'Hello sailor' useful?"</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">answer "NONE"</span></div>
+<div class="output"> The dungeon master says, "Excellent."
+ The dungeon master, obviously pleased, says, "You are indeed a
+ master of lore.  I am proud to be at your service."  The massive
+ wooden door swings open, and the master motions for you to enter.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is a narrow north-south corridor.  At the south end is a door
+ and at the north end is an east-west corridor.  The door is open.
+ The dungeon master is quietly leaning on his staff here.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is an east-west corridor which turns north at its eastern
+ and western ends.  The walls of the corridor are marble.  An
+ additional passage leads south at the center of the corridor.
+ The dungeon master follows you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go east</span></div>
+<div class="output"> This is a corridor with polished marble walls.  The corridor
+ widens into larger areas as it turns west at its northern and
+ southern ends.
+ The dungeon master follows you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> South Corridor
+ The dungeon master follows you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go west</span></div>
+<div class="output"> This is a corridor with polished marble walls.  The corridor
+ widens into larger areas as it turns east at its northern and
+ southern ends.
+ The dungeon master follows you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is a large east-west corridor which opens out to a northern
+ parapet at its center.  You can see flames and smoke as you peer
+ towards the parapet.  The corridor turns south at its east and west
+ ends, and due south is a massive wooden door.  In the door is a small
+ window barred with iron.  The door is closed.
+ The dungeon master follows you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> You are standing behind a stone retaining wall which rims a large
+ parapet overlooking a fiery pit.  It is difficult to see through the
+ smoke and flame which fills the pit, but it seems to be more or less
+ bottomless.  It also extends upwards out of sight.  The pit itself
+ is of roughly dressed stone and is circular in shape.  It is about
+ two hundred feet in diameter.  The flames generate considerable heat,
+ so it is rather uncomfortable standing here.
+    There is an object here which looks like a sundial.  On it are
+ an indicator arrow and (in the center) a large button.  On the face
+ of the dial are numbers "one" through "eight".  The indicator points
+ to the number "one".
+ The dungeon master follows you.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn dial to 4</span></div>
+<div class="output"> The dial now points to "four".</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">push button</span></div>
+<div class="output"> The button depresses with a slight click and pops back.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">turn dial to 1</span></div>
+<div class="output"> The dial now points to "one".</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tell master "stay"</span></div>
+<div class="output"> The dungeon master says, "I will stay."</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> North Corridor</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open cell door</span></div>
+<div class="output"> The wooden door opens.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go south</span></div>
+<div class="output"> This is a featureless prison cell.  You can see the east-west
+ corridor outside the open wooden door in front of you.
+ Behind you is a bronze door which seems to be closed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">tell master "push button"</span></div>
+<div class="output"> "If you wish," he replies.
+ The button depresses with a slight click and pops back.
+ The cell door is now closed.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">open bronze door</span></div>
+<div class="output"> The bronze door opens.
+ On the other side of the door is a narrow passage which opens out
+ into a larger area.</div>
+<div class="prompt"><span class="gt">&gt;</span> <span class="cmd">go north</span></div>
+<div class="output"> This is a room of large size, richly appointed and decorated
+ in a style that bespeaks exquisite taste.  To judge from its
+ contents, it is the ultimate storehouse of the treasures of Zork.
+    There are chests here containing precious jewels, mountains of
+ zorkmids, rare paintings, ancient statuary, and beguiling curios.
+    In one corner of the room is a bookcase boasting such volumes
+ as "The History of the Great Underground Empire", "The Lives of
+ the Twelve Flatheads", "The Wisdom of the Implementers", and
+ other informative and inspiring works.
+    On one wall is a completely annotated map of the Great Underground
+ Empire, showing points of interest and various troves of treasure,
+ and indicating the locations of several superior scenic views.
+    On the desk at the far end of the room may be found stock
+ certificates representing a controlling interest in FrobozzCo
+ International, the multinational conglomerate and parent company
+ of the Frobozz Magic Boat Co., etc.
+    As you gleefully examine your new-found riches, the Dungeon
+ Master himself materializes beside you and says, "Now that you have
+ solved all the mysteries of the dungeon, it is time for you to assume
+ your rightfully-earned place in the scheme of things.  Long have I
+ waited for one capable of releasing me from my burden!"  He taps you
+ lightly on the head with his staff, mumbling a few well-chosen spells,
+ and you feel yourself changing, growing older and more stooped.  For
+ a moment there are two identical mages staring at each other among
+ the treasures, then you watch as your counterpart dissolves into a
+ mist and disappears, a sardonic grin on his face.
+ Your score in the endgame is+ 100 [total of 100 points], in  737 moves.
+ This gives you the rank of Dungeon Master.</div>
+
+</body>
+</html>

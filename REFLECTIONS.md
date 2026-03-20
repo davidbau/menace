@@ -19,7 +19,7 @@ game called [Hack](https://mazesofmenace.net/hack/) in 1982. They had
 obsession with a Unix game called [Rogue](https://mazesofmenace.net/rogue/)
 that most of them had only heard about. I had the same computers and the
 same obsession. I never saw Rogue either, but I remember a dungeon
-exploration game called [Zork](https://en.wikipedia.org/wiki/Zork): the
+exploration game called [Zork](https://mazesofmenace.net/dungeon/): the
 white house, the mailbox, the underground empire. If you look at the Hack
 source code, there is a little bit of Zork in it. On those machines,
 you could press ctrl-C in the middle of a game and find yourself staring
