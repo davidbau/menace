@@ -10,7 +10,7 @@ import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FIRE_RES, COLD_RES, POISON_RES, SHOCK_RES, ACID_RES,
          SEE_INVIS, INVIS, TELEPORT, TELEPAT,
          FAST, STEALTH, PROTECTION, AGGRAVATE_MONSTER, CONFUSION,
-         ANTIMAGIC, HALF_SPDAM,
+         ANTIMAGIC, HALF_SPDAM, BLINDED,
          isok, W_SADDLE,
          TT_BEARTRAP, TT_PIT, TT_WEB, TT_LAVA, TT_INFLOOR, TT_BURIEDBALL,
          PIT, SPIKED_PIT } from './const.js';
@@ -18,7 +18,7 @@ import { COIN_CLASS, SADDLE, CLOAK_OF_MAGIC_RESISTANCE } from './objects.js';
 import { pline, You, Your, You_feel, You_cant, pline_The,
          verbalize } from './pline.js';
 import { exercise } from './attrib_exercise.js';
-import { adjattrib, Luck } from './attrib.js';
+import { adjattrib, Luck, change_luck } from './attrib.js';
 import { is_pool, is_lava, is_ice } from './dbridge.js';
 import { PM_TRAPPER, S_DRAGON } from './monsters.js';
 import { is_prince, slithy, is_hider, lays_eggs, likes_lava,
@@ -216,7 +216,7 @@ async function throne_sit_effect(player, map, display) {
             }
             player.uhp = player.hpmax;
             player.ucreamed = 0;
-            // TODO: make_blinded(0, TRUE) — cure blindness
+            await make_blinded(player, 0, true);
             // TODO: make_sick(0, null, FALSE, SICK_ALL) — cure sickness
             // TODO: heal_legs(0) — cure wounded legs
             break;
@@ -230,8 +230,7 @@ async function throne_sit_effect(player, map, display) {
                 const luckcheck = (player.luck || 0) + rn2(5);
                 if (luckcheck < 0) {
                     await You_feel("your luck is changing.");
-                    // TODO: change_luck(1)
-                    if (player.luck !== undefined) player.luck += 1;
+                    change_luck(1, player);
                 } else {
                     // TODO: makewish()
                     await pline("A voice echoes: \"You may wish for an object.\"");
@@ -265,12 +264,13 @@ async function throne_sit_effect(player, map, display) {
             if (Luck(player) > 0) {
                 // RNG parity: rn1(100, 250) = rn2(100) + 250 for blind duration
                 const blindDur = rn1(100, 250);
-                // TODO: make_blinded(BlindedTimeout + blindDur, TRUE)
+                const oldBlind = player.getPropTimeout?.(BLINDED) || 0;
+                await make_blinded(player, oldBlind + blindDur, true);
                 if (Luck(player) > 1) {
                     const lossamt = rnd(2);
-                    // TODO: change_luck(-lossamt)
+                    change_luck(-lossamt, player);
                 } else {
-                    // TODO: change_luck(-1)
+                    change_luck(-1, player);
                 }
             } else {
                 await rndcurse(player, map, display);
