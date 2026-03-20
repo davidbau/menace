@@ -1018,42 +1018,80 @@ export function mhitm_ad_fire(magr, mattk, mdef, mhm) {
         mhm.damage = 0;
         return;
     }
-    if (resists_fire(mdef)) {
-        mhm.damage = 0;
+    if (mdef.attributes) {
+        // mhitu path: monster attacks player with fire
+        // C ref: uhitm.c:2546-2571
+        if (resists_fire(mdef)) {
+            mhm.damage = 0;
+        }
+        // C ref: uhitm.c:2567 — magr->m_lev > rn2(20) gates destroy_items
+        if ((magr.m_lev || 0) > rn2(20)) {
+            const orig_dmg = mhm.damage;
+            destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
+        }
+    } else {
+        // uhitm + mhitm paths: player attacks or monster-vs-monster
+        // C ref: uhitm.c:2515-2540 (uhitm), uhitm.c:2572-2598 (mhitm)
+        if (resists_fire(mdef)) {
+            mhm.damage = 0;
+        }
+        const orig_dmg = mhm.damage;
+        mhm.damage += destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
     }
-    // C ref: uhitm.c:2598 — mhitm path calls destroy_items unconditionally
-    const orig_dmg = mhm.damage;
-    mhm.damage += destroy_items_rng_only(mdef, AD_FIRE, orig_dmg, null);
 }
 
 // cf. uhitm.c:2604 — cold damage handler
-// m-vs-m branch: uhitm.c:2642-2658
 export function mhitm_ad_cold(magr, mattk, mdef, mhm) {
     if (mhitm_mgc_atk_negated(magr, mdef)) {
         mhm.damage = 0;
         return;
     }
-    if (resists_cold(mdef)) {
-        mhm.damage = 0;
+    if (mdef.attributes) {
+        // mhitu path: monster attacks player with cold
+        // C ref: uhitm.c:2626-2640
+        if (resists_cold(mdef)) {
+            mhm.damage = 0;
+        }
+        // C ref: uhitm.c:2637 — magr->m_lev > rn2(20) gates destroy_items
+        if ((magr.m_lev || 0) > rn2(20)) {
+            const orig_dmg = mhm.damage;
+            destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
+        }
+    } else {
+        // uhitm + mhitm paths
+        if (resists_cold(mdef)) {
+            mhm.damage = 0;
+        }
+        const orig_dmg = mhm.damage;
+        mhm.damage += destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
     }
-    // C ref: uhitm.c:2657 — mhitm path calls destroy_items unconditionally
-    const orig_dmg = mhm.damage;
-    mhm.damage += destroy_items_rng_only(mdef, AD_COLD, orig_dmg, null);
 }
 
 // cf. uhitm.c:2662 — electric damage handler
-// m-vs-m branch: uhitm.c:2698-2716
 export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
     if (mhitm_mgc_atk_negated(magr, mdef)) {
         mhm.damage = 0;
         return;
     }
-    if (resists_elec(mdef)) {
-        mhm.damage = 0;
+    if (mdef.attributes) {
+        // mhitu path: monster attacks player with electricity
+        // C ref: uhitm.c:2685-2698
+        if (resists_elec(mdef)) {
+            mhm.damage = 0;
+        }
+        // C ref: uhitm.c:2695 — magr->m_lev > rn2(20) gates destroy_items
+        if ((magr.m_lev || 0) > rn2(20)) {
+            const orig_dmg = mhm.damage;
+            destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
+        }
+    } else {
+        // uhitm + mhitm paths
+        if (resists_elec(mdef)) {
+            mhm.damage = 0;
+        }
+        const orig_dmg = mhm.damage;
+        mhm.damage += destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
     }
-    // C ref: uhitm.c:2715 — mhitm path calls destroy_items unconditionally
-    const orig_dmg = mhm.damage;
-    mhm.damage += destroy_items_rng_only(mdef, AD_ELEC, orig_dmg, null);
 }
 
 // cf. uhitm.c:2720 — acid damage handler
