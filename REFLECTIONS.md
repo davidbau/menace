@@ -246,10 +246,10 @@ becomes of human purpose is very hard to answer.
 
 The second viewpoint sees an industrial revolution: AI is a
 technological step change, but just a big step, and not the end of all
-steps. A large set of things that used to be
-difficult are now dramatically easier, and this changes our perspective on
-what can and should be done in the world. But it does not spell the end of
-human agency. It expands the circle of possibilities.
+steps. Many things that have always been difficult are now suddenly easy,
+creating huge changes in our perspective on what can and should be done
+in the world. Yet this view does not spell the end of human agency.
+It expands the circle of possibilities.
 
 I live in the Back Bay neighborhood of Boston. It is an interesting place to
 think about industrial step changes, because the neighborhood itself would
