@@ -14411,3 +14411,37 @@ When a correct parity fix regresses a session:
     - `seed032_manual_direct`: unchanged
     - `seed033_manual_direct`: unchanged
   - `node scripts/test-unit-core.mjs`: PASS
+
+## Systematic effect-wiring sweep (March 20, 2026, session 27)
+
+**Pattern discovered**: Many game effects had their RNG consumed for stream parity
+but the actual game state effect was never applied. The RNG calls (rnd(N), rn2(N))
+were placed as stubs to keep the random number stream aligned with C, but the
+functions that USE those random numbers (losehp, make_sick, make_blinded, etc.)
+were never called.
+
+**Method**: grep for `rn[d2](\d+);.*//` across all JS files. Each match is a
+bare RNG consumption with a comment explaining what it's for. Check if the
+referenced function exists in the codebase. If it does, wire it.
+
+**Results**: 23 game effects wired across 9 files:
+- **Combat damage**: erode_armor + acid_damage in all 4 acid paths (passivemm,
+  passiveum, mhitm_ad_acid, uhitm AD_ACID)
+- **Player damage**: losehp in sit.js (6 throne/trap effects), fountain.js
+  (boiling water), artifact.js (silver/bane retouch), eat.js (acidic/rotten
+  corpse), steed.js (mount slip, dismount throw/fall)
+- **Status effects**: fall_asleep (sleep attack, exertion), flashburn (cleric
+  lightning, wand backfire), make_sick (disease attack, tainted corpse, vomit
+  cure), make_blinded (throne heal/curse), nomul (cursed booze), change_luck
+  (throne effects x3), heal_legs (throne full-heal), losexp (throne level drain)
+- **Monster AI**: breamm/spitmm/thrwmm (ranged attacks in mattackm),
+  cockatrice petrification, elf/orc bonus, polearm retreat, Medusa gazemu
+
+**RNG bug found**: diseasemu ternary -- C conditionally calls rn1() only when
+player isn't already sick (Sick ? Sick/3+1 : rn1(con, 20)). JS was always
+calling rn1(), consuming an extra RNG entry when the player is already sick.
+
+**Key principle**: bare `rn2(N);` with a comment is a TODO marker for an
+unimplemented effect. The RNG is correct but the game state diverges from C.
+These are zero-RNG-change fixes -- the stream is already aligned, only the
+effect was missing.
