@@ -135,7 +135,10 @@ The Rogue and Hack ports were done by an individual agent working largely
 autonomously over a few hours-long sessions. For NetHack I have had a swarm
 of agents running on a server for nearly two months, both Claude and Codex.
 I have been spending substantial effort managing them, and the end is not
-yet in sight.
+yet in sight. I have not written code. I have been giving advice, reviewing
+documentation, suggesting tools, triaging problems, and deciding which agent
+works on what. It is the work of an engineering manager, except that none
+of the engineers are human.
 
 Early on I tried the same hands-off approach that worked for Rogue. The
 agents would make progress for a while, then get stuck on a bug and spend
