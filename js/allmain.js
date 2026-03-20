@@ -772,6 +772,14 @@ async function repeatLoop(game, {
     // C calls domove() directly instead of rhack(). This is critical for
     // travel: dotravel_target sets multi=max(COLNO,ROWNO) and context.mv,
     // so the entire travel run executes within one command boundary.
+
+    // Gate 2: run the initial command's deferred monster turn before
+    // the first repeat, matching C's Phase B → Phase E ordering.
+    if (game.pendingDeferredTimedTurn) {
+        game.pendingDeferredTimedTurn = false;
+        await advanceTimedTurn(game, coreOpts);
+    }
+
     while (game.multi > 0) {
         if (typeof game.shouldInterruptMulti === 'function'
             && game.shouldInterruptMulti()) {
@@ -1010,16 +1018,23 @@ function hasPendingCommandBoundaryDismiss(game) {
 
 async function finalizeTimedCommand(game, result, coreOpts) {
     if (!(result && result.tookTime)) return;
-    await advanceTimedTurn(game, coreOpts);
+    // Gate 2: defer the initial command's monster turn to Phase B.
+    // For repeats, repeatLoop drains this at its entry point.
+    // For single commands, _gameLoopStep Phase B drains it.
+    game.pendingDeferredTimedTurn = true;
+    // C ref: Phase C sets context.move = 1 for timed commands.
+    // This gates the next iteration's Phase B (monsters run only
+    // after timed commands, not after untimed ones like #wish).
+    if (!game.context) game.context = {};
+    game.context.move = 1;
     if (typeof result.onAfterTurn === 'function') {
         await result.onAfterTurn(game);
     }
-    let safety = 0;
-    while (game.multi < 0 && !(game?.playerDied)) {
-        await runNegativeMultiStep(game, coreOpts);
-        if (++safety > 5000) break;
-    }
-    await _drainOccupation(game, coreOpts);
+    // multi < 0 and occupation drains remain here for now — they're part
+    // of the initial command's step boundary and need advanceTimedTurn to
+    // run first. Phase B at the top of _gameLoopStep handles that.
+    // TODO: once Phase B is validated, these drains can move to the
+    // _gameLoopStep while-loop.
 }
 
 function postRender(game, result) {
@@ -2252,7 +2267,7 @@ export class NetHackGame {
     async runPendingDeferredTimedTurn() {
         if (!this.pendingDeferredTimedTurn) return;
         this.pendingDeferredTimedTurn = false;
-        await moveloop_core(this);
+        await advanceTimedTurn(this, {});
     }
 
     // C-parity naming for internal callers.
@@ -2532,6 +2547,19 @@ export class NetHackGame {
 
     async _gameLoopStep() {
         while (true) {
+            // PHASE B: Run deferred monster turn from previous timed command.
+            // C ref: moveloop_core Phase B — if (context.move) { movemon(); ... }
+            // This ensures monsters from the PREVIOUS command run BEFORE the
+            // next command or continuation, matching C's iteration model.
+            // Note: runPendingDeferredTimedTurn in runOneCommandCycle also
+            // drains this for the normal command path. This handles the
+            // continuation paths (negative-multi, occupation) that don't go
+            // through runOneCommandCycle.
+            if (this.pendingDeferredTimedTurn) {
+                this.pendingDeferredTimedTurn = false;
+                await advanceTimedTurn(this, {});
+            }
+
             // Travel continuation
             if (this.travelPath && this.travelStep < this.travelPath.length) {
                 const result = await dotravel_target(this);
@@ -2558,14 +2586,22 @@ export class NetHackGame {
             }
 
             if (this.context?.move && this.multi < 0 && !(this?.playerDied)) {
-                await runNegativeMultiStep(this, {});
+                // Phase B already ran advanceTimedTurn (which calls moveloop_core,
+                // which handles multi < 0 internally: multi++, unmul, etc.).
+                // After Phase B, if multi is still < 0, set deferred turn for
+                // next iteration. Otherwise fall through to command/continuation.
+                this.pendingDeferredTimedTurn = true;
                 this.renderAndAutosave({ autosave: true });
                 continue;
             }
 
             if (this.multi >= 0 && this.occupation) {
-                await advanceTimedTurn(this, {});
+                // Phase B already ran advanceTimedTurn at the top of this
+                // iteration. Just run the occupation step.
                 await runOccupationStep(this);
+                // Set deferred turn so next iteration's Phase B runs monsters
+                // for this occupation step.
+                this.pendingDeferredTimedTurn = true;
                 this.renderAndAutosave({ autosave: true });
                 continue;
             }
