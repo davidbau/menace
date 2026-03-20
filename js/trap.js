@@ -2239,6 +2239,7 @@ async function trapeffect_arrow_trap_you(trap, trflags, player, game, map) {
     seetrap(trap);
     await pline('An arrow shoots out at you!');
     const otmp = t_missile(ARROW, trap);
+    otmp.dknown = true; // Player sees the arrow
     if (player.usteed && !rn2(2) && await steedintrap(trap, otmp, player, game, map)) {
         /* steed was hit — nothing more */
     } else if (await thitu(8, dmgval(otmp, player), otmp, 'arrow',
@@ -2265,6 +2266,7 @@ async function trapeffect_dart_trap_you(trap, trflags, player, game, map) {
     seetrap(trap);
     await pline('A little dart shoots out at you!');
     const otmp = t_missile(DART, trap);
+    otmp.dknown = true; // Player sees the dart
     if (!rn2(6)) otmp.opoisoned = 1;
     if (player.usteed && !rn2(2) && await steedintrap(trap, otmp, player, game, map)) {
         /* steed was hit */
