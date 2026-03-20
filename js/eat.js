@@ -61,7 +61,7 @@ import { carried, compactInvletPromptChars, useup, useupf, buildInventoryOverlay
 import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } from './pline.js';
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
-import { nomul, end_running, near_capacity, rounddiv } from './hack.js';
+import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
 import { incr_itimeout, make_stoned } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
@@ -1223,7 +1223,7 @@ async function eatcorpse(player, otmp) {
         tp++;
         await You('have a very bad case of stomach acid.');
         const dmg = rnd(15);
-        // TODO: losehp(dmg, "acidic corpse", KILLED_BY_AN)
+        await losehp(dmg, "acidic corpse", 0, player, _gstate?.display, _gstate);
     } else if (poisonous(mons[mnum]) && rn2(5)) {
         tp++;
         await pline('Ecch - that must have been poisonous!');
@@ -1239,7 +1239,7 @@ async function eatcorpse(player, otmp) {
         const prefix = player.Sick ? 'very ' : '';
         await You_feel(`${prefix}sick.`);
         const dmg = rnd(8);
-        // TODO: losehp(dmg, "cadaver", KILLED_BY_AN)
+        await losehp(dmg, "cadaver", 0, player, _gstate?.display, _gstate);
     }
 
     // C: delay is weight dependent
