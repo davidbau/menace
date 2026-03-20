@@ -119,6 +119,21 @@ all `game.svc.context` direct access — use `game.context` everywhere.
 **Approach**: for each pair, determine which matches C, keep it, import from
 the canonical location.
 
+**Completed (March 20)**:
+- `Fixed_abil`: pray.js stub → import from attrib.js ✓
+- `count_unpaid`: pickup.js (non-recursive) → import from invent.js ✓
+- `currency`: dokick.js (identical copy) → import from invent.js ✓
+- `check_unpaid`: spell.js (dead code) → removed ✓
+- `x_monnam`: 7 files migrated from mondata.js shim → do_name.js canonical ✓
+
+**Blocked on canspotmon/gstate**:
+- `y_monnam`, `Monnam`: mon.js/shk.js/weapon.js still import from mondata.js
+  shim. The do_name.js canonical version checks `canspotmon()` which requires
+  gstate context. During monster processing, gstate may not be configured,
+  causing `canspotmon` to return false and names to produce "it" instead of
+  the actual monster name. Regression: seed328 "it dive" → "the jellyfish dive".
+  Fix: ensure gstate is always configured during monster processing, THEN migrate.
+
 ### 2e. Remove CamelCase alias re-exports
 
 **Problem**: 72+ bidirectional alias pairs via `setAliasPair`. Both the
