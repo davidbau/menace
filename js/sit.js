@@ -4,6 +4,7 @@
 import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { losehp } from './hack.js';
 import { heal_legs } from './do.js';
+import { losexp } from './exper.js';
 import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FOUNTAIN, ICE, DRAWBRIDGE_DOWN,
          A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
@@ -29,7 +30,7 @@ import { Monnam, mon_nam } from './do_name.js';
 import { xname, the } from './objnam.js';
 import { spec_ability } from './artifact.js';
 import { ART_MAGICBANE, SPFX_INTEL } from './artifacts.js';
-import { make_confused, make_blinded, make_glib } from './potion.js';
+import { make_confused, make_blinded, make_glib, make_sick } from './potion.js';
 import { makemon_appear } from './makemon.js';
 import { courtmon } from './mkroom.js';
 import { level_difficulty } from './dungeon.js';
@@ -84,8 +85,7 @@ async function special_throne_effect(effect, player, map, display) {
     case 5:
         // permanent level drain
         await pline("Sitting on the throne was a terrible experience.");
-        // TODO: losexp("a bad experience sitting on a throne") — level drain
-        // TODO: Drain_resistance check
+        await losexp(player, _gstate?.display, "a bad experience sitting on a throne");
         break;
     case 6:
     {
@@ -218,7 +218,7 @@ async function throne_sit_effect(player, map, display) {
             player.uhp = player.hpmax;
             player.ucreamed = 0;
             await make_blinded(player, 0, true);
-            // TODO: make_sick(0, null, FALSE, SICK_ALL) — cure sickness
+            await make_sick(player, 0, null, false);
             await heal_legs(0, player);
             break;
         case 5:
