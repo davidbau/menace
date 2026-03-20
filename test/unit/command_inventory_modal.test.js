@@ -9,7 +9,10 @@ import {
     COIN_CLASS, GOLD_PIECE, TOOL_CLASS, STETHOSCOPE, WEAPON_CLASS, SCALPEL,
     SPBOOK_CLASS, OIL_LAMP, ARMOR_CLASS, SMALL_SHIELD, SPE_HEALING, FLINT, SLING,
     POTION_CLASS, POT_HEALING,
+    objectData,
 } from '../../js/objects.js';
+import { setGame } from '../../js/gstate.js';
+import { discoverObject } from '../../js/o_init.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -58,16 +61,16 @@ function makeGame() {
         },
     };
 
-    return {
-        game: {
-            player,
-            map,
-            display,
-            fov: null,
-            flags: { verbose: true },
-            menuRequested: false,
-        },
+    const game = {
+        player,
+        map,
+        display,
+        fov: null,
+        flags: { verbose: true },
+        menuRequested: false,
     };
+    setGame(game);
+    return { game };
 }
 
 function addInventoryItems(player, count, oclass = WEAPON_CLASS) {
@@ -337,7 +340,7 @@ describe('inventory modal dismissal', () => {
 
         assert.equal(result.tookTime, false);
         assert.ok(writes.some((w) => w.row === 0 && String(w.str || '').includes('Do what with the scalpel?')));
-        assert.ok(writes.some((w) => String(w.str || '').includes('w - Wield this item in your hands')));
+        assert.ok(writes.some((w) => String(w.str || '').includes('w - Wield this item as your weapon')));
     });
 
     it('closes inventory on enter', async () => {
@@ -411,6 +414,7 @@ describe('inventory modal dismissal', () => {
 
     it('uses spellbook wording in inventory action prompt', async () => {
         const { game } = makeGame();
+        discoverObject(SPE_HEALING, true, false);
         game.player.inventory = [{
             oclass: SPBOOK_CLASS,
             otyp: SPE_HEALING,
@@ -520,6 +524,7 @@ describe('inventory modal dismissal', () => {
 
     it('shows light and rub actions for oil lamps', async () => {
         const { game } = makeGame();
+        discoverObject(OIL_LAMP, true, false);
         game.player.inventory = [{
             oclass: TOOL_CLASS,
             otyp: OIL_LAMP,

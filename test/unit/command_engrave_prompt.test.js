@@ -7,6 +7,7 @@ import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { WAND_CLASS } from '../../js/objects.js';
 import { ROOM } from '../../js/const.js';
+import { setGame } from '../../js/gstate.js';
 
 describe('engrave prompt', () => {
 
@@ -38,7 +39,9 @@ function makeGame() {
         },
         clearRow() {},
     };
-    return { player, map, display, fov: null, flags: { verbose: false } };
+    const game = { player, map, display, fov: null, flags: { verbose: false } };
+    setGame(game);
+    return game;
 }
 
 test('engrave prompt stays open on invalid keys and cancels on enter', async () => {

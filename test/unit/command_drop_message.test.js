@@ -7,6 +7,7 @@ import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { LONG_SWORD, SMALL_SHIELD } from '../../js/objects.js';
 import { mksobj } from '../../js/mkobj.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -35,13 +36,15 @@ function makeGame() {
         clearRow() {},
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
         fov: null,
         flags: { verbose: false },
     };
+    setGame(game);
+    return game;
 }
 
 describe('drop message formatting', () => {

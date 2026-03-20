@@ -9,9 +9,12 @@ const JS_DIR = path.resolve(process.cwd(), 'js');
 // designated leaf/data modules.
 const ALLOWED_CAPS_EXPORT_FILES = new Set([
     'artifacts.js',
+    'bogusmon_data.js',
     'const.js',
     'engrave_data.js',
     'epitaph_data.js',
+    'mailcorpus.js',
+    'mailcorpus_plain.js',
     'monsters.js',
     'objects.js',
     'rumor_data.js',

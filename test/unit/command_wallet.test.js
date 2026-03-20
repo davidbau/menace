@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -19,13 +20,15 @@ function makeGame() {
         },
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
         fov: null,
         flags: { verbose: false },
     };
+    setGame(game);
+    return game;
 }
 
 describe('wallet command', () => {

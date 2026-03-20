@@ -5,6 +5,7 @@ import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeGame(verbose = true) {
     const map = new GameMap();
@@ -22,17 +23,16 @@ function makeGame(verbose = true) {
         },
     };
 
-    return {
-        game: {
-            player,
-            map,
-            display,
-            fov: null,
-            flags: { verbose, cmdassist: false },
-            menuRequested: false,
-        },
-        messages,
+    const game = {
+        player,
+        map,
+        display,
+        fov: null,
+        flags: { verbose, cmdassist: false },
+        menuRequested: false,
     };
+    setGame(game);
+    return { game, messages };
 }
 
 describe('direction prompt cancel flow', () => {
@@ -49,12 +49,14 @@ describe('direction prompt cancel flow', () => {
 
         assert.equal(result.tookTime, false);
         assert.equal(messages[0], 'In what direction? ');
-        assert.equal(messages.at(-1), 'What a strange direction!  Never mind.');
+        assert.ok(messages.some(m => m.includes('What a strange direction!')));
+        assert.equal(messages.at(-1), 'Never mind.');
     });
 
-    // C ref: doopen() routes through get_adjacent_loc() and emits "Never mind.",
-    // while doclose() uses getdir() directly and just clears the prompt.
-    it('close command invalid direction clears prompt without a cancel message', async () => {
+    // C ref: doclose() uses getdir() directly. Invalid direction shows
+    // "What a strange direction!" when cmdassist is off and not wizard.
+    // doclose does NOT print "Never mind." (unlike doopen).
+    it('close command invalid direction shows strange-direction message', async () => {
         const { game, messages } = makeGame();
         pushInput('t'.charCodeAt(0));
 
@@ -62,8 +64,7 @@ describe('direction prompt cancel flow', () => {
 
         assert.equal(result.tookTime, false);
         assert.equal(messages[0], 'In what direction? ');
-        assert.equal(messages.at(-1), 'In what direction? ');
-        assert.equal(game.display.topMessage, null);
+        assert.ok(messages.some(m => m.includes('What a strange direction!')));
     });
 
     it('open cancel message is still emitted when verbose is false', async () => {
@@ -73,7 +74,8 @@ describe('direction prompt cancel flow', () => {
         const result = await rhack('o'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
-        assert.equal(messages.at(-1), 'What a strange direction!  Never mind.');
+        assert.ok(messages.some(m => m.includes('What a strange direction!')));
+        assert.equal(messages.at(-1), 'Never mind.');
     });
 
     it('open uses C wording when no door exists in chosen direction', async () => {

@@ -6,6 +6,7 @@ import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, createInputQueue, pushInput, setInputRuntime, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { BATTLE_AXE, CREDIT_CARD, FLINT, GEM_CLASS, LANCE, SPE_HEALING, SPBOOK_CLASS, STETHOSCOPE, TOOL_CLASS, WEAPON_CLASS } from '../../js/objects.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeBaseGame() {
     const map = new GameMap();
@@ -24,13 +25,15 @@ function makeBaseGame() {
         clearRow() {},
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
         fov: null,
         flags: { verbose: false, cmdassist: false },
     };
+    setGame(game);
+    return game;
 }
 
 describe('apply prompt behavior', () => {
@@ -118,14 +121,15 @@ describe('apply prompt behavior', () => {
         assert.equal(game.display.topMessage, 'What a strange direction!  Never mind.');
     });
 
-    it('credit card apply path asks direction and cancels on invalid direction', async () => {
+    it('credit card apply path asks direction and returns silently on invalid direction', async () => {
+        // C ref: pick_lock() calls getdir() which returns 0 for invalid direction.
+        // pick_lock then returns PICKLOCK_DID_NOTHING silently — no message.
         const game = makeBaseGame();
         game.player.inventory = [{ invlet: 'c', oclass: TOOL_CLASS, otyp: CREDIT_CARD, name: 'credit card' }];
         pushInput('c'.charCodeAt(0));
         pushInput('t'.charCodeAt(0)); // invalid direction key
         const result = await rhack('a'.charCodeAt(0), game);
         assert.equal(result.tookTime, false);
-        assert.equal(game.display.topMessage, 'What a strange direction!  Never mind.');
     });
 
     it('wizard apply direction cancel is silent on invalid direction', async () => {

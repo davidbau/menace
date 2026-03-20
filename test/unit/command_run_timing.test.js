@@ -5,6 +5,7 @@ import { rhack } from '../../js/cmd.js';
 import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { CORR, ROOM } from '../../js/const.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -26,7 +27,7 @@ function makeGame() {
         renderStatus() {},
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
@@ -42,6 +43,8 @@ function makeGame() {
         commandCount: 0,
         cmdKey: 0,
     };
+    setGame(game);
+    return game;
 }
 
 function makeCornerRunGame() {
@@ -64,7 +67,7 @@ function makeCornerRunGame() {
         renderStatus() {},
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
@@ -80,31 +83,21 @@ function makeCornerRunGame() {
         commandCount: 0,
         cmdKey: 0,
     };
+    setGame(game);
+    return game;
 }
 
 describe('run timing on blocked steps', () => {
-    it('run hook advances one timed turn when force-fight blocks movement', async () => {
+    it('force-fight prefix rejects run commands with message', async () => {
+        // C ref: cmd.c:3808 — F prefix is invalid before run/rush commands.
+        // Uppercase direction keys map to do_run_* which lack CMD_gGF_PREFIX.
         const game = makeGame();
-        let runTurns = 0;
-        game.advanceRunTurn = async () => { runTurns++; };
 
         const result = await rhack('L'.charCodeAt(0), game);
 
         assert.equal(result.tookTime, false);
         assert.equal(result.moved, false);
-        assert.equal(runTurns, 1);
-        assert.equal(game.display.topMessage, 'You attack thin air.');
-    });
-
-    it('non-hook run reports the blocked timed turn in runSteps', async () => {
-        const game = makeGame();
-        delete game.advanceRunTurn;
-
-        const result = await rhack('L'.charCodeAt(0), game);
-
-        assert.equal(result.tookTime, true);
-        assert.equal(result.moved, false);
-        assert.equal(result.runSteps, 1);
+        assert.equal(game.display.topMessage, "The 'F' prefix should be followed by a movement command.");
     });
 
     it('newline command uses run-style south movement timing', async () => {

@@ -4,14 +4,16 @@ import assert from 'node:assert/strict';
 import { ROOM } from '../../js/const.js';
 import { cls, docrt_flags } from '../../js/display.js';
 
-test('cls clears all terminal rows through display.clearRow', async () => {
+test('cls clears map area rows through display.clearRow', async () => {
+    // C ref: cls() clears WIN_MAP area (rows MAP_ROW_START through STATUS_ROW_1-1),
+    // not all terminal rows. MAP_ROW_START=1, STATUS_ROW_1=22 → 21 rows.
     let rowsCleared = 0;
     const display = {
-        rows: 4,
+        rows: 24,
         clearRow: () => { rowsCleared += 1; },
     };
     await cls({ display });
-    assert.equal(rowsCleared, 4);
+    assert.equal(rowsCleared, 21);
 });
 
 test('docrt_flags repaints map cells through newsym path', async () => {
