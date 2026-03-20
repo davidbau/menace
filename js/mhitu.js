@@ -55,7 +55,7 @@ import { exercise } from './attrib_exercise.js';
 import { poisoned, acurr, adjattrib } from './attrib.js';
 import { losespells } from './spell.js';
 import { set_wounded_legs } from './do.js';
-import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed } from './potion.js';
+import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slimed, make_sick } from './potion.js';
 import { losexp } from './exper.js';
 import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
@@ -71,7 +71,7 @@ import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
-import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS } from './const.js';
+import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS, SICK_NONVOMITABLE } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
 import { nomul, losehp, saving_grace, showdamage } from './hack.js';
@@ -1861,10 +1861,8 @@ export async function diseasemu(mdat, player, display) {
         const con = acurr(player, A_CON);
         const duration = rn1(con, 20);
         if (display) await display.putstr_message('You feel very sick!');
-        // TODO: make_sick() not fully ported — mark player as diseased
-        if (player.sick !== undefined) {
-            player.sick = player.sick ? Math.floor(player.sick / 3) + 1 : duration;
-        }
+        const cause = mdat?.mname || 'a diseased attack';
+        await make_sick(player, duration, cause, true, SICK_NONVOMITABLE);
         return true;
     }
 }
