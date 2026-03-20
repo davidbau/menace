@@ -14380,3 +14380,34 @@ When a correct parity fix regresses a session:
   change requires the game loop reorder (multi<0 continuation matching C's moveloop_core
   iteration model) to be landed first. Occupation-based armor removal restored to keep
   439/442.
+
+## 2026-03-20: narrow boots-only `armoroff()` restores late `seed031` progress without reopening the broad regressions
+
+- Evidence:
+  - the live `seed031_manual_direct` seam on `main` remained the same
+    delayed takeoff/wear window, but the active removal was specifically:
+    - `You finish taking off your shoes.`
+    - then `What do you want to wear?`
+    - then the first bad pet turn at `637/638`
+- Narrow fix:
+  - keep the broad occupation-based fallback for general armor removal
+  - but route `ARM_BOOTS` single-item removal through existing
+    `armoroff(item, player, game)`
+  - leave other armor slots on the old occupation path until the generic
+    multi<0 reorder is ready
+- Why this was defensible:
+  - it targets the exact active `seed031` removal case instead of reviving the
+    reverted broad behavior
+  - it reuses the existing faithful C-shaped helper rather than introducing a
+    third timing model
+- Validation:
+  - `seed031_manual_direct` improved materially:
+    - first RNG divergence `637 -> 710`
+    - first event divergence `638 -> 710`
+  - guardrails:
+    - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+  - unchanged core manual-direct controls:
+    - `seed032_manual_direct`: unchanged
+    - `seed033_manual_direct`: unchanged
+  - `node scripts/test-unit-core.mjs`: PASS

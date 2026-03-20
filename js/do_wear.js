@@ -2229,6 +2229,10 @@ async function removeArmorOrAccessory(player, display, game, item) {
 
     if (item.owornmask & W_ARMOR) {
         const sub = objectData[item.otyp]?.oc_subtyp;
+        if (sub === ARM_BOOTS) {
+            const res = await armoroff(item, player, game);
+            return { moved: false, tookTime: !!res };
+        }
         const slot = ARMOR_SLOTS[sub];
         const offFn = SLOT_OFF[sub];
         const delay = Number(objectData[item.otyp]?.oc_delay || 0);
