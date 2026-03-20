@@ -71,7 +71,7 @@ import { Mgender, Monnam, pmname, christen_monst } from './do_name.js';
 import { makemon } from './makemon.js';
 import { resists_blnd, drain_item, destroy_items_rng_only } from './zap.js';
 import { rloc, tele_restrict, tele } from './teleport.js';
-import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS, SICK_NONVOMITABLE } from './const.js';
+import { RLOC_MSG, A_CHA, HAIR, TT_PIT, is_pit, NO_MINVENT, MM_EDOG, MM_NOMSG, PROT_FROM_SHAPE_CHANGERS, SICK_NONVOMITABLE, SICK } from './const.js';
 import { s_suffix } from './hacklib.js';
 import { done_in_by, delayed_killer } from './end.js';
 import { nomul, losehp, saving_grace, showdamage } from './hack.js';
@@ -1856,10 +1856,12 @@ export async function diseasemu(mdat, player, display) {
         if (display) await display.putstr_message('You feel a slight illness.');
         return false;
     } else {
-        // C: make_sick(Sick ? Sick/3+1 : rn1(ACURR(A_CON), 20), ...)
-        // Simplified: just apply disease status
-        const con = acurr(player, A_CON);
-        const duration = rn1(con, 20);
+        // C ref: make_sick(Sick ? Sick/3+1 : rn1(ACURR(A_CON), 20), ...)
+        // When already sick, C shortens timer WITHOUT consuming rn1.
+        const oldSick = player.getPropTimeout?.(SICK) || 0;
+        const duration = oldSick
+            ? Math.floor(oldSick / 3) + 1
+            : rn1(acurr(player, A_CON), 20);
         if (display) await display.putstr_message('You feel very sick!');
         const cause = mdat?.mname || 'a diseased attack';
         await make_sick(player, duration, cause, true, SICK_NONVOMITABLE);
