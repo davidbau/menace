@@ -6,6 +6,7 @@ import { GameMap } from '../../js/game.js';
 import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { WAND_CLASS } from '../../js/objects.js';
+import { ROOM } from '../../js/const.js';
 
 describe('engrave prompt', () => {
 
@@ -16,6 +17,11 @@ describe('engrave prompt', () => {
 
 function makeGame() {
     const map = new GameMap();
+    // Ensure player's cell has a valid floor type so u_can_engrave succeeds
+    const loc = map.at(10, 10) || {};
+    loc.typ = ROOM;
+    if (typeof map.setTyp === 'function') map.setTyp(10, 10, ROOM);
+    else if (map.levl) { if (!map.levl[10]) map.levl[10] = []; map.levl[10][10] = loc; }
     const player = new Player();
     player.initRole(11);
     player.x = 10;

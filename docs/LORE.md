@@ -14055,3 +14055,17 @@ Validation:
       - `theme15_seed986_wiz_artifact-wish_gameplay`
       - `theme35_seed2320_wiz_artifact-combat2_gameplay`
       - `seed1_special_tutorial.session.json`
+
+- 2026-03-20: mhitm_ad_* three-path sweep COMPLETE.
+  - C's mhitm_ad_* functions have three paths: uhitm (player attacks), mhitu
+    (monster attacks player), mhitm (monster-vs-monster). Each path can have
+    different RNG consumption (rn2 gates, exercise calls, destroy_items gates).
+  - JS was using a single path for all cases, consuming wrong RNG when a monster
+    attacks the player.
+  - Fixed 16/39 functions: acid, fire, cold, elec, stun, blnd, drli, were, famn,
+    sgld, slee, drin, legs, slow, ston, wrap.
+  - Remaining 23 verified: identical RNG across all paths — no fixes needed.
+  - Key patterns: mhitu fire/cold/elec have `magr->m_lev > rn2(20)` gate before
+    destroy_items; mhitu acid has `!rn2(3)` gate + exercise; mhitu stun has
+    `!rn2(4)` gate; mhitu were has `!rn2(4)` + exercise; mhitu slee uses
+    `!rn2(5)` + rnd(10) vs mhitm's rnd(10) + rnd(10).
