@@ -29,7 +29,7 @@ import {
     touch_petrifies, unsolid, resists_fire, resists_cold,
     resists_elec, resists_acid, resists_sleep, resists_ston, defended,
     nonliving, sticks, attacktype, dmgtype, is_whirly,
-    DEADMONSTER,
+    DEADMONSTER, is_elf, is_orc,
 } from './mondata.js';
 import { erode_obj } from './trap.js';
 import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_ENCH, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
@@ -695,7 +695,8 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
     const attacks = pa.attacks || [];
 
     // C ref: mhitm.c:316 — grid bugs can't attack diagonally
-    // (Skipped for simplicity — rare edge case)
+    if (pa === mons[PM_GRID_BUG] && magr.mx !== mdef.mx && magr.my !== mdef.my)
+        return M_ATTK_MISS;
 
     // Calculate armor class differential
     let tmp = find_mac(mdef) + (magr.m_lev ?? (pa.mlevel || 0));
@@ -707,8 +708,8 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
         }
     }
 
-    // C ref: mhitm.c:354 — elf vs orc bonus
-    // TODO: implement elf/orc racial bonus
+    // C ref: mhitm.c:354 — elf vs orc to-hit bonus
+    if (is_elf(pa) && is_orc(pd)) tmp++;
 
     // C ref: mhitm.c:366 — set mlstmv
     if (ctx?.turnCount) magr.mlstmv = ctx.turnCount;
