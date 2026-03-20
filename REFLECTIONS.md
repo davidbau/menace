@@ -200,10 +200,9 @@ problems, managing complexity. Learning to build things out of logic and
 patience. The craft of assembling programs was at the core of it.
 
 What is the core of it now? My students can get an AI agent to write code
-that would have taken me a week, in ten minutes. The mechanical skill of
-programming, the thing we spent decades teaching, is dissolving as a
-bottleneck. If CS was fundamentally about writing programs, then the
-field is in serious trouble.
+that would have taken me a week, in ten minutes. The mechanical skill of programming, our lifetime of practice, is
+dissolving as a bottleneck. If CS was about writing code, then the
+field is over.
 
 But my NetHack experience suggests something different. The skills that
 matter at scale are not programming skills. They are: deciding what to
