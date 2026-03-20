@@ -51,7 +51,7 @@ import { RACE_ORC, RACE_ELF, RACE_DWARF,
          W_RINGL, W_RINGR, W_ARTI, W_WEP, FROMFORM,
          CHOKING, A_LAWFUL,
          STARVING, KILLED_BY, KILLED_BY_AN,
-         BY_COOKIE, LL_CONDUCT, ECMD_TIME } from './const.js';
+         BY_COOKIE, LL_CONDUCT, ECMD_TIME, SICK_VOMITABLE } from './const.js';
 import { game as _gstate } from './gstate.js';
 import { sa_victual } from './decl.js';
 import { applyMonflee } from './mhitu.js';
@@ -62,7 +62,7 @@ import { pline, You, Your, You_feel, pline_The, impossible, livelog_printf } fro
 import { exercise } from './attrib_exercise.js';
 import { acurr, ensureAttrArrays, gainstr, poison_strdmg } from './attrib.js';
 import { nomul, end_running, near_capacity, rounddiv, losehp } from './hack.js';
-import { incr_itimeout, make_stoned } from './potion.js';
+import { incr_itimeout, make_stoned, make_sick } from './potion.js';
 import { done, setKillerName, setKillerFormat } from './end.js';
 import { outrumor } from './rumors.js';
 import { stop_occupation } from './allmain.js';
@@ -1215,7 +1215,7 @@ async function eatcorpse(player, otmp) {
         await pline(`Ulch - that ${meatType} was tainted!`);
         // C: rn1(10, 10) for sick_time
         const sickTime = rn1(10, 10);
-        // TODO: apply make_sick when sickness system is ported
+        await make_sick(player, sickTime, xname(otmp), true, SICK_VOMITABLE);
         await pline('(It must have died too long ago to be safe to eat.)');
         // C: useup(otmp) — corpse destroyed
         return { retcode: 2, reqtime: 3 };
@@ -1733,8 +1733,8 @@ async function vomit(player) {
     if (!canVomit) {
         await Your("jaw gapes convulsively.");
     } else {
-        // C: cure SICK_VOMITABLE
-        // TODO: make_sick(0L, 0, TRUE, SICK_VOMITABLE) when sickness system ported
+        // C ref: cure food poisoning when vomiting
+        await make_sick(player, 0, null, true, SICK_VOMITABLE);
         if (player.uhs >= FAINTING) {
             // C: Your("%s heaves convulsively!", body_part(STOMACH))
             await Your("stomach heaves convulsively!");

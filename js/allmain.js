@@ -19,7 +19,7 @@ import { movemon, settrack, mon_regen } from './monmove.js';
 import { savebones } from './bones.js';
 import { setGame, beginCommandExec, endCommandExec, getCommandExecState } from './gstate.js';
 import { hasEnv, getEnv, writeStderr } from './runtime_env.js';
-import { nh_timeout, do_storms } from './timeout.js';
+import { nh_timeout, do_storms, fall_asleep } from './timeout.js';
 import { pline, Norep } from './pline.js';
 import { runtimeDecideToShapeshift, makemon, makemon_appear, withMakemonPlayerOverrideAsync } from './makemon.js';
 import { M2_WERE, PM_WIZARD, mons, NUMMONS, G_NOCORPSE } from './monsters.js';
@@ -1175,8 +1175,7 @@ async function overexert_hp(game) {
     } else {
         await pline('You pass out from exertion!');
         await exercise(player, A_CON, false);
-        // fall_asleep(-10, false) — sleep timeout not fully ported
-        // TODO: wire fall_asleep when available
+        fall_asleep(-10, false);
     }
 }
 
