@@ -14268,3 +14268,54 @@ Validation:
   - `seed033_manual_direct`: unchanged
   - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
   - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+- Regression found and fixed: `theme31_seed1951` — see "Paired Bugs" entry below.
+
+## Paired Bugs: rock trap dknown + mergable gate (March 20, 2026)
+
+**Lesson: correct parity fixes can regress sessions that pass due to compensating errors.
+When this happens, don't revert — find and fix the second bug.**
+
+### The pair
+
+**Bug A (mergable dknown gate):** JS's `mergable()` was missing C's `dknown` comparison
+gate. C's `invent.c mergable()` rejects merges when `obj->dknown != otmp->dknown`.
+Adding this gate is correct parity — it prevents merging objects the player has seen
+with objects they haven't, which matters under hallucination.
+
+**Bug B (rock trap dknown):** `trapeffect_rocktrap_you()` creates a rock via
+`t_missile(ROCK, trap)` → `mksobj(ROCK, TRUE, FALSE)` which initializes `dknown=false`.
+The rock is placed at the player's position, where an existing floor rock already has
+`dknown=true` (set by `see_nearby_objects()` when the player walked onto the tile).
+With bug A fixed, `stackobj()` now refuses to merge these two rocks (dknown mismatch),
+so JS doesn't emit the `^remove` event that C does.
+
+### How they cancelled
+
+Before the mergable fix, JS merged rocks regardless of dknown differences. This
+accidentally produced the correct `^remove` event, matching C. The RNG stream stayed
+aligned. After the mergable fix, the merge was blocked, the `^remove` disappeared,
+and the event stream diverged — causing `theme31_seed1951` to fail.
+
+### The fix
+
+Set `otmp.dknown = true` before `place_object()` in `trapeffect_rocktrap_you()`. The
+player explicitly sees the rock fall on their head ("A trap door in the ceiling opens
+and a rock falls on your head!"), so knowing its description is correct. This matches
+C's behavior where both rocks have the same dknown value at merge time.
+
+### Diagnostic method
+
+1. Confirmed the regression was from the OTHER engineer's commit (not ours) by
+   checking out the old `mkobj.js` and verifying the session passed.
+2. Added temporary `console.log` in `stackobj()` to print dknown values when
+   same-type objects fail to merge: `STACKOBJ_NOMATCH otyp=471 name=rock dknown=false/true`.
+3. The `false/true` mismatch immediately identified the root cause.
+
+### General principle
+
+When a correct parity fix regresses a session:
+- The session was passing due to a **compensating error** — two bugs cancelling out.
+- The fix exposed the SECOND bug, which was previously invisible.
+- The right action is to find and fix bug B, not revert bug A.
+- Debug by examining what CHANGED between "works" and "broken" states, then trace
+  the specific value difference (in this case, dknown on the trap rock).
