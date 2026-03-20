@@ -29,15 +29,19 @@ Key observations:
 
 ### Concerns and suggestions
 
-1. **Occupation ordering: `advanceTimedTurn` before `runOccupationStep`.**
+1. **Occupation ordering needs narrower verification than first stated.**
    In `_gameLoopStep`, the occupation branch runs `advanceTimedTurn` then
-   `runOccupationStep`. But in C's `moveloop_core`, Phase D (occupation)
-   runs BEFORE Phase B (monsters) on the NEXT iteration. The current
-   ordering means monsters run, then occupation runs — but C does
-   occupation first, then returns, and monsters run at the top of the NEXT
-   iteration. This might be equivalent for RNG but the callstack order
-   differs from C. Worth verifying with a session that has occupation
-   (eating, digging).
+   `runOccupationStep`. Re-reading C [`allmain.c`]( /share/u/davidbau/git/mazesofmenace/game/nethack-c/patched/src/allmain.c )
+   shows that this broad ordering is actually the right shape for the next
+   `moveloop_core()` iteration:
+   - Phase B monster/turn-end work runs first when `context.move` is set
+   - then Phase C pre-input display work runs
+   - then Phase D executes one occupation callback and returns
+   So the branch's "timed turn first, occupation step second" is not by itself
+   a contradiction of C. The real verification target is narrower:
+   - whether `monster_nearby()` / `stop_occupation()` happen at the same owner boundary
+   - whether `runmode_delay_output()` stays attached to the same iteration
+   - whether prompt-producing occupation callbacks still preserve single-owner input semantics
 
 2. **`--More--` dismiss boundary.** The `hasPendingCommandBoundaryDismiss`
    function reads display state to decide if a --More-- needs dismissing
@@ -71,8 +75,8 @@ The branch is on the right track. The key insight — keeping continuations
 within one `_gameLoopStep` call via a `while (true)` loop — is correct and
 avoids the regression that naive per-return dispatch caused. The work is
 evidence-driven and gate-based as requested. It should be mergeable to main
-once the occupation ordering is verified and the main branch fixes are
-integrated.
+once the remaining owner-boundary questions are verified and the main-branch
+parity fixes are integrated.
 
 ## Status
 
