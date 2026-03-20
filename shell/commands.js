@@ -682,7 +682,14 @@ async function talk(args, shell) {
 
     // Run talk session
     const session = new TalkSession(shell.display, shell.getch, target, character);
-    await session.run();
+    try {
+        await session.run();
+    } catch (e) {
+        console.error('talk crash:', e);
+        shell.display.clearScreen();
+        shell.println('Segmentation fault (core dumped)');
+        return;
+    }
 
     // Restore shell display
     shell.display.clearScreen();
