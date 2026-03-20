@@ -59,7 +59,8 @@ import { make_confused, make_stunned, make_blinded, make_hallucinated, make_slim
 import { losexp } from './exper.js';
 import { morehungry } from './eat.js';
 import { stealgold, steal, stealamulet } from './steal.js';
-import { erode_obj, t_at } from './trap.js';
+import { erode_obj, acid_damage, t_at } from './trap.js';
+import { erode_armor } from './uhitm.js';
 import { xkilled, mondead } from './mon.js';
 import { flush_screen, newsym, map_invisible, canSpotMonsterForMap, mon_visible, canseemon } from './display.js';
 import { mon_explodes } from './explode.js';
@@ -2489,10 +2490,10 @@ export async function passiveum(olduasmon, mtmp, mattk, map, player) {
             tmp = 0;
         }
         if (!rn2(30)) {
-            // C ref: erode_armor(mtmp, ERODE_CORRODE) — simplified
+            erode_armor(mtmp, ERODE_CORRODE);
         }
         if (!rn2(6)) {
-            // C ref: acid_damage(MON_WEP(mtmp)) — simplified
+            acid_damage(mtmp.weapon || null);
         }
         return await assess_dmg(mtmp, tmp, map, player);
     default:
