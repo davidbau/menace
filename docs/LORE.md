@@ -14358,3 +14358,10 @@ When a correct parity fix regresses a session:
   - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
   - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
   - `node scripts/test-unit-core.mjs`: PASS
+- **REVERTED (March 20 session 27):** While the armoroff change improved seed031
+  (637→639), it regressed 14 other gameplay sessions (439→425). The full suite was not
+  run before merging. Root cause: `nomul(delay)` multi-turn path processes monster
+  movement differently than the occupation path in the current game loop. The armoroff
+  change requires the game loop reorder (multi<0 continuation matching C's moveloop_core
+  iteration model) to be landed first. Occupation-based armor removal restored to keep
+  439/442.
