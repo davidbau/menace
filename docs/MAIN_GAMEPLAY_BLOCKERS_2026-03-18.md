@@ -1583,3 +1583,34 @@ Update after camera flash parity investigation on `seed031_manual_direct`:
 - Do not revive the removed heuristic:
   - the Oracle improvement came from deleting the special-name alignment guess,
     not from refining it
+
+## 2026-03-20: tutorial direct-start must not force `A_NONE` over lawful tutorial alignment
+
+- Exact root cause:
+  - `seed033_manual_direct` still first-diverged inside tutorial special-level
+    generation.
+  - tutorial runtime metadata was already lawful, but
+    [`js/chargen.js`](/share/u/davidbau/git/mazesofmenace/game/js/chargen.js)
+    still entered tutorial with:
+    - `mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE })`
+  - that clobbered `_gstate._dungeonAlign` during tutorial generation, so the
+    early corpse-init `rndmonnum_adj()` pool stayed wrong.
+- Faithful fix:
+  - add tutorial lawful alignment metadata to
+    [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js)
+    `RUNTIME_SPECIAL_LEVEL_CANON`
+  - remove the forced tutorial `A_NONE` override in `enterTutorial()`
+- Validation:
+  - `seed033_manual_direct`
+    - RNG matched `2496 -> 4369`
+    - events matched `183 -> 1460`
+    - screens matched `36 -> 269`
+    - first RNG divergence moved `1 -> 337`
+    - first event divergence moved `2 -> 373`
+  - unchanged:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+  - still passing:
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+    - `seed1_special_tutorial.session.json`

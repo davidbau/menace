@@ -14008,58 +14008,50 @@ Validation:
     - `seed16_maps_c.session.json`
       - grids improved `4/5 -> 5/5`
       - RNG improved `10714/13212 -> 12836/12908`
-  - Remaining frontier:
-    - a later Oracle `mineralize()` gem-count seam remains:
-      JS `rnd(2)` vs C `rnd(3)`
+  - Later exact fix:
+    - Oracle special levels were entering `sp_lev.js finalize_level()` with a
+      working map that lacked `_genDnum/_genDlevel` and `flags.is_oracle_level`
+    - that made JS `mineralize()` treat Oracle as an ordinary special level
+      instead of the C Oracle exception path
+    - faithful fix: restore missing `_genDnum/_genDlevel` from
+      `finalizeContext` and set `flags.is_oracle_level` from
+      `finalizeContext.specialName` before `bound_digging()` / `mineralize()`
+  - Validation:
+    - `seed16_map.session.json`
+      - RNG improved `12836/12908 -> 12908/12908`
+      - PASS
+    - `seed16_maps_c.session.json`
+      - RNG improved `12836/12908 -> 12908/12908`
+      - PASS
 
-- 2026-03-19: Area sweeps completed in this session:
-  - **confdir**: dig.js, lock.js (handleOpen, handleClose, pick_lock) — all direction
-    prompts now call confdir() matching C's getdir() impairment path.
-  - **LEVEL_SPECIFIC_NOCORPSE**: mon.js xkilled() + corpse_chance() — tutorial/rogue
-    deathdrops suppression now matches C.
-  - **bhit features**: dothrow.js projectile loop — iron bars, web trap, rock skipping,
-    shade/mimic pass-through, sink stop, closed door stop.
-  - **Luck usage**: verified correct across fountain.js, makemon.js, pray.js, sit.js.
-    All use player.luck (=uluck) where C uses u.uluck, and Luck(player) where C uses Luck.
-  - **exercise() gaps**: uhitm.js has 9/19 C exercise calls (10 missing in uncommon paths:
-    egg splat, boomerang catch, demon summoning, monster defense). dothrow.js has 5/7
-    (missing: boomerang catch, toss_up). Low impact for current sessions.
-  - **mhitm_ad_* three-path gap**: C's mhitm_ad_acid/sgld/famn/were etc. have three
-    separate code paths: uhitm (player attacks), mhitu (monster attacks player), mhitm
-    (monster-vs-monster). Each path has different RNG calls and exercise calls. JS
-    conflates these into one path, causing wrong RNG consumption when a monster
-    attacks the player. Example: mhitm_ad_acid: C's mhitu path has `!rn2(3)` guard +
-    exercise(A_STR, FALSE), but JS uses the mhitm path with rn2(30) + rn2(6)
-    unconditionally. Fixing requires separating the three paths per function.
-    This likely affects sessions with monster combat (most sessions).
-
-- 2026-03-19: Oracle mapgen alignment removal (`af5b8ce1e`) regressed 3 sessions.
-  - The divergence is in `_dungeonAlign` during `makelevel()` for special levels.
-    JS sets `_dungeonAlign` at dungeon.js:5018 during special level generation.
-    The old code had heuristics (`oracle→A_NEUTRAL`, `tut→A_LAWFUL`, etc.); the
-    new code uses `DUNGEON_ALIGN_BY_DNUM[dnum]` which gives `A_NONE` for tutorial.
-  - C's `align_shift()` at makemon.c:1619 reads `lev->flags.align` for special
-    levels. For tutorial, `lev->flags.align = 0` (AM_NONE) from dungeon.c:588-591
-    because neither the level nor the dungeon specifies alignment in Lua.
-  - The divergence manifests as different args to `rn2` inside `rndmonst_adj`
-    during level generation (JS: `rn2(3)`, C: `rn2(5)` at index 2382).
-  - This suggests `_dungeonAlign` during generation is read from a DIFFERENT source
-    than `lev->flags.align`. Investigation needed: does `_dungeonAlign` flow through
-    a code path during `makelevel` that sets it differently from `level_align()`?
-  - Regressed: seed033, seed321, seed328, t11_s744 (439→436 passing).
-  - The old heuristic was wrong per C's data structures, but matched C's behavior
-    for these specific sessions.
-  - Oracle/medusa alignment restored from dungeon.lua via RUNTIME_SPECIAL_LEVEL_CANON
-    (df75e5085). seed321/seed328/t11_s744 still fail — divergence at deep levels
-    (Dlvl:21/25) with rn2(3) vs rn2(5) in rndmonst_adj. These levels have no
-    special alignment, suggesting the regression cascades from an earlier generation
-    difference.
-  - **Root cause identified**: `RUNTIME_SPECIAL_LEVEL_CANON` uses CANONICAL dlevel
-    positions (oracle=5, medusa=20), but C's `init_dungeons` places specials at
-    ACTUAL positions (oracle=base5+rn range5 → 5-10). At runtime, JS's
-    `runtimeSpecialLevelFor(dnum, dlevel)` fails to find the special level because
-    the actual dlevel doesn't match the canonical dlevel. C's `Is_special(&u.uz)`
-    always finds it because it uses the actual `s_level` record. The old heuristics
-    masked this by setting alignment based on level NAME during generation. Fix:
-    track actual special level positions from `init_dungeons` and use them for
-    runtime alignment lookups.
+- 2026-03-20: tutorial direct-start must not override lawful special-level
+  alignment with `A_NONE`.
+  - Exact root cause:
+    - `seed033_manual_direct` still first-diverged during tutorial special-level
+      generation even after the branch caught up with later `main` parity fixes.
+    - trace showed `makelevel()` was seeing tutorial runtime metadata with
+      `metaAlign=1`, but [`js/chargen.js`](/share/u/davidbau/git/mazesofmenace/game/js/chargen.js)
+      still called:
+      - `mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE })`
+    - that stale override clobbered `_gstate._dungeonAlign` during tutorial
+      generation, so `mkobj()` corpse init still used the wrong `rndmonnum_adj()`
+      monster pool.
+  - Faithful fix:
+    - add tutorial lawful alignment metadata to
+      [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js)
+      `RUNTIME_SPECIAL_LEVEL_CANON`
+    - remove the forced tutorial `A_NONE` override from `enterTutorial()`
+  - Validation:
+    - `seed033_manual_direct`
+      - matched RNG improved `2496 -> 4369`
+      - matched events improved `183 -> 1460`
+      - matched screens improved `36 -> 269`
+      - first RNG divergence moved from step `1` to step `337`
+      - first event divergence moved from step `2` to step `373`
+    - unchanged:
+      - `seed031_manual_direct`
+      - `seed032_manual_direct`
+    - still passing:
+      - `theme15_seed986_wiz_artifact-wish_gameplay`
+      - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+      - `seed1_special_tutorial.session.json`

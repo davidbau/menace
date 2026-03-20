@@ -322,7 +322,7 @@ export async function enterTutorial(game, opts = {}) {
     }
 
     game.lev = await runWithSplevPlayerSnapshot((game.u || game.player), async () =>
-        await mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE })
+        await mklev(1, TUTORIAL, 1)
     );
     game.levels[1] = (game.lev || game.map);
     (game.u || game.player).dungeonLevel = 1;
