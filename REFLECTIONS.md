@@ -205,7 +205,8 @@ dissolving as a bottleneck. If CS was about writing code, then the
 field is over.
 
 But my NetHack experience suggests something different. The skills that
-matter at scale are not programming skills. They are: deciding what to
+matter at scale are somehow still about programming, but they are not
+coding skills. They are: deciding what to
 build. Figuring out what to test and how to know if the tests are honest.
 Building tools that make invisible things visible. Managing coordination
 across agents. Knowing when a metric is a figleaf. Recognizing where the
