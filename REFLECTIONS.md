@@ -294,7 +294,7 @@ I remember thinking, when he died, what an interesting life he had. And I
 remember thinking, as a twenty-five-year-old: how lucky he was to see such
 dramatic change. We do not have changes like that anymore.
 
-I was wrong. Here we are. I did not know I was growing up in a revolution.
+I was wrong. Here we are. I did not know that revolution has been a continuous thread.
 
 We are all likely to have an interesting life. What work is, what industry
 is, what it means to learn, to think, to know: these things are changing.
