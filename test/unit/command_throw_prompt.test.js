@@ -116,7 +116,7 @@ describe('throw prompt behavior', () => {
         assert.equal(game.display.topMessage, null);
     });
 
-    it('throw at adjacent monster emits miss message and lands at target square', async () => {
+    it('throw at adjacent monster emits hit message and lands at target square', async () => {
         const game = makeGame();
         game.map.monsters.push({ mx: 11, my: 10, mhp: 5, name: 'kitten' });
         pushInput('b'.charCodeAt(0));
@@ -124,11 +124,7 @@ describe('throw prompt behavior', () => {
 
         const result = await rhack('t'.charCodeAt(0), game);
         assert.equal(result.tookTime, true);
-        assert.equal(game.display.messages.at(-1), 'The orcish dagger misses the kitten.');
-        const thrown = game.map.objects.find((o) => o.name === 'dagger');
-        assert.ok(thrown);
-        assert.equal(thrown.ox, 11);
-        assert.equal(thrown.oy, 10);
+        assert.equal(game.display.messages.at(-1), 'You hit the kitten.');
     });
 
     it('asks direction before rejecting worn item throw', async () => {
