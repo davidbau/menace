@@ -1059,19 +1059,39 @@ export function mhitm_ad_elec(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:2720 — acid damage handler
 // m-vs-m branch: uhitm.c:2744-2763
 export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
-    if (magr.mcan) {
-        mhm.damage = 0;
-        return;
-    }
-    if (resists_acid(mdef)) {
-        mhm.damage = 0;
-    }
-    // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage — omitted (no armor system)
-    rn2(30);
-    rn2(6);
-    // C ref: uhitm.c:2757 — exercise A_STR after acid damage (mhitu path)
-    if (mdef.attributes && mhm.damage > 0) {
-        exercise(mdef, A_STR, false);
+    if (magr.attributes) {
+        // uhitm path: player attacks monster with acid
+        // C ref: uhitm.c:2725-2727
+        if (resists_acid(mdef)) {
+            mhm.damage = 0;
+        }
+    } else if (mdef.attributes) {
+        // mhitu path: monster attacks player with acid
+        // C ref: uhitm.c:2728-2744
+        if (!magr.mcan && !rn2(3)) {
+            if (resists_acid(mdef)) {
+                // "covered in acid, but it seems harmless"
+                mhm.damage = 0;
+            } else {
+                // "covered in acid! It burns!"
+                exercise(mdef, A_STR, false);
+            }
+        } else {
+            mhm.damage = 0;
+        }
+    } else {
+        // mhitm path: monster-vs-monster acid
+        // C ref: uhitm.c:2745-2762
+        if (magr.mcan) {
+            mhm.damage = 0;
+            return;
+        }
+        if (resists_acid(mdef)) {
+            mhm.damage = 0;
+        }
+        // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage
+        rn2(30);
+        rn2(6);
     }
 }
 
