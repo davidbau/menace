@@ -238,12 +238,11 @@ The first viewpoint sees a singularity: AI is a unique and permanent
 change to the status of humans.
 The beginning of the end of the relevance of human thought and human agency.
 On this reading, the cliff I hit with NetHack is temporary. Next year the
-models will be bigger, the context windows longer, the tools better. The
-rough terrain will smooth out, then smooth out more, then disappear. Then
-every cognitive activity becomes so easy to solve that humans cannot even
-imagine how to state a difficult problem. It would be the end of wanting,
+models will be bigger, the context windows longer, the tools better.
+Every cognitive activity will become so easy that humans cannot even
+imagine how to state a difficult question. It would be the end of wanting,
 the end of thinking, the end of scarcity. And then the question of what
-human purpose is becomes very hard to answer.
+becomes of human purpose is very hard to answer.
 
 The second viewpoint sees an industrial revolution: AI is a
 technological step change, but just a big step, and not the end of all
