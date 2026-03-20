@@ -107,7 +107,32 @@ Fix any remaining mismatches.
 requires verifying each caller still gets the behavior it needs. The command
 queue and repeat recording logic is subtle.
 
-**Mitigation:** do it incrementally — move one piece at a time, test after each.
+**Mitigation:** do it on the Gate 2 branch, not main. The step boundary
+changes from nhgetch simplification interact with the game loop reorder.
+
+## First Attempt (March 20, session 27)
+
+Stripped command boundary --More-- from nhgetch, moved to _gameLoopStep.
+Result: 435/442 — 4 regressions (t04_s701, t08_s700, theme08_seed700,
+theme22_1500). The --More-- boundary inside nhgetch is **load-bearing for
+step alignment**. Moving it changes which key creates which step, causing
+both screen AND RNG divergences.
+
+The repeat recording (`cmdq_add_key(CQ_REPEAT)`) was initially removed
+but needs to stay in nhgetch — extended commands that read sub-keys (like
+#pray reading y/n) lose those keys from repeat recording otherwise.
+
+**Key finding**: nhgetch_display_raw goes through the same
+activeInputRuntime.nhgetch() as nhgetch_raw — so the replay system's
+waitForInputWait/isWaitingInput DOES detect more() blocks. The 74-vs-57
+step mismatch may have a different root cause than nhgetch_display_raw
+bypassing detection. Needs further investigation.
+
+## Revised approach
+
+Do nhgetch simplification TOGETHER with Gate 2, on the gate2-phase-b branch.
+Both changes affect step boundaries. Testing them separately causes
+regressions that cancel when combined.
 
 ## Validation
 
