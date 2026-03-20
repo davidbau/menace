@@ -1648,6 +1648,16 @@ export function level_init(opts = {}) {
             }
         }
         finish_map(map, fgTyp, bgTyp, lit, !!levelState.init.walled);
+        // C ref: mkmap.c:480-483
+        // A walled, joined mkmap level is cavernous, not maze-like.
+        if (levelState.init.walled && levelState.init.joined) {
+            levelState.flags.is_maze_lev = false;
+            levelState.flags.is_cavernous_lev = true;
+            if (map.flags) {
+                map.flags.is_maze_lev = false;
+                map.flags.is_cavernous_lev = true;
+            }
+        }
     } else {
         // Unknown style - default to solidfill behavior
         console.warn(`Level init style "${style}" using default solidfill behavior`);

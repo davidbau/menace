@@ -14548,3 +14548,48 @@ effect was missing.
   - for pickup-menu parity, “same class, then name” is not enough
   - if a menu later drives inventory letters, the processing order must match C
     `loot_classify()` semantics, not just the visible names
+
+# 2026-03-20: `LVLINIT_MINES` must clear stale `mazelevel` after `mkmap()`
+
+- Evidence in `seed031_manual_direct` after the pickup-order fix:
+  - first RNG divergence had moved to step `733`
+  - JS branched in `dog_goal()` on:
+    - `rn2(4)=2 @ dochug(monmove.js:847)`
+  - C instead went straight into:
+    - `rn2(1)=0 @ dog_move(dogmove.c:1300)`
+  - focused trace showed why:
+    - at step `542`, a dwarf tunneled into `(32,14)` in both C and JS
+    - JS `mdig_tunnel()` logged `maze=1 cavern=0 newtyp=25`, so it converted
+      the wall to `ROOM`
+    - later, at step `733`, JS still treated the hero square `(32,14)` as a
+      room, which forced the extra `dog_goal()` follow-player `rn2(4)` branch
+- Root cause:
+  - `minefill.lua` legitimately starts with `des.level_flags("mazelevel", ...)`
+  - in C, the later `mkmap()` call overrides that for joined walled cave maps:
+    - `mkmap.c`: if `walled && join`, set
+      `is_maze_lev = FALSE`, `is_cavernous_lev = TRUE`
+  - JS `sp_lev.js` inlined the `LVLINIT_MINES/ROGUE -> mkmap` pipeline but
+    never performed that post-`mkmap()` flag transition
+  - result: JS kept a stale `is_maze_lev=true` flag on generic Mines filler
+    levels, so monster digging created `ROOM` where C treated the level as
+    cavernous
+- Fix:
+  - after `finish_map(...)` in the `style === "mines" || style === "rogue"`
+    path, if `walled && joined`:
+    - set `levelState.flags.is_maze_lev = false`
+    - set `levelState.flags.is_cavernous_lev = true`
+    - mirror the same values into `map.flags`
+- Validation:
+  - `seed031_manual_direct` improved:
+    - first RNG divergence `733 -> 743`
+    - first event divergence `736 -> 743`
+  - targeted guardrails: PASS
+    - `t11_s755_w_covmax9_gp`
+    - `t11_s756_w_covmax10_gp`
+    - `theme15_seed986_wiz_artifact-wish_gameplay`
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+  - `node scripts/test-unit-core.mjs`: PASS
+- Lesson:
+  - special-level scripts may set provisional flags like `mazelevel`, but
+    procedural generators such as `mkmap()` still own the final terrain-mode
+    flags used later by digging, room checks, and pet movement
