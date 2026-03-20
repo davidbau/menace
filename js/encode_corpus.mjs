@@ -27,8 +27,11 @@ ctx.TALK_CORPUS = TALK_CORPUS;
 vm.runInNewContext(fullSrc, { ctx });
 
 // Serialize and XOR-encode (RegExp → {__re, __flags} so it survives JSON round-trip)
+// Use duck-typing instead of instanceof because vm.runInNewContext gives the
+// corpus its own RegExp class that fails the host-realm instanceof check.
+const isRegExp = v => v != null && typeof v.test === 'function' && typeof v.source === 'string';
 const json = JSON.stringify(ctx, (_, v) =>
-    v instanceof RegExp ? { __re: v.source, __flags: v.flags } : v);
+    isRegExp(v) ? { __re: v.source, __flags: v.flags } : v);
 const KEY = 0x42;
 const encoded = Buffer.from(json).map(b => b ^ KEY);
 const blob = encoded.toString('base64');
