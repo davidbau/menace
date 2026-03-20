@@ -228,7 +228,6 @@ test, harder to grade. And it raises the uncomfortable question of how many
 of the things we currently teach are really about the skin rather than the
 animal. It also raises the question of whether there will be a need for
 fewer computer scientists, or maybe more. The answers are not clear yet.
-But I think the question is the right one.
 
 ## Two viewpoints on the future
 
