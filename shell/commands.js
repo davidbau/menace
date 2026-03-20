@@ -38,6 +38,12 @@ const USER_SESSIONS = [
     { user: 'abbott',   tty: '17', minAgo: 415 },
     { user: 'corley',   tty: '18', minAgo: 156 },
     { user: 'wichman',  tty: '19', minAgo: 289 },
+    { user: 'msirota',  tty: '20', minAgo: 374 },
+    { user: 'ruddy',    tty: '21', minAgo: 61  },
+    { user: 'texeira',  tty: '22', minAgo: 512 },
+    { user: 'fraize',   tty: '23', minAgo: 143 },
+    { user: 'brown',    tty: '24', minAgo: 267 },
+    { user: 'izchak',   tty: '03', minAgo: 50421 },
 ];
 
 // Returns true if a non-Rodney session user is "currently logged in"
