@@ -770,8 +770,14 @@ export async function mattackm(magr, mdef, display, vis, map, ctx) {
             if (distmin(magr.mx, magr.my, mdef.mx, mdef.my) > 1) {
                 continue;
             }
-            // C ref: cockatrice avoidance when has weapon
-            // TODO: implement cockatrice touch avoidance
+            // C ref: mhitm.c:445 — bare-handed attacker touching cockatrice
+            if (!mwep && mattk.aatyp !== AT_WEAP
+                && touch_petrifies(pd) && !resists_ston(magr)) {
+                // Attacker turns to stone from bare-handed contact
+                magr.mhp = 0;
+                mondead(magr, map);
+                return M_ATTK_AGR_DIED;
+            }
 
             dieroll = rnd(20 + i);
             strike = (tmp > dieroll) ? 1 : 0;
