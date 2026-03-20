@@ -131,11 +131,11 @@ monsters and hundreds of objects, states, and places in the dungeon mean
 that the jump from 8,000 to 420,000 lines does not produce a proportional
 increase in complexity. It produces a qualitative shift.
 
-A single agent ported Rogue with minimal guidance in 85 minutes. Hack took
-about eight hours of focused agent time to reach initial parity, then a week
-of follow-up sessions to close coverage gaps. For NetHack I have had
-a swarm of agents running on a server for over a month, both Claude and
-Codex, and I have been spending substantial effort managing them.
+The Rogue and Hack ports were done by an individual agent working largely
+autonomously over a few hours-long sessions. For NetHack I have had a swarm
+of agents running on a server for nearly two months, both Claude and Codex.
+I have been spending substantial effort managing them, and the end is not
+yet in sight.
 
 Early on I tried the same hands-off approach that worked for Rogue. The
 agents would make progress for a while, then get stuck on a bug and spend
