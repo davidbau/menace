@@ -300,10 +300,10 @@ dramatic change. We do not have changes like that anymore.
 I was wrong. Here we are.
 
 We are all likely to have an interesting life. What work is, what industry
-is capable of doing, what it means to be educated: these things are changing.
+is, what it means to learn, to think, to know: these things are changing.
 The field I grew up in is shedding its skin. The wonders from my childhood
-are being rebuilt by machines. And the machines are good at it, remarkably
-good, until the problem gets big enough to be real.
+are being rebuilt by machines. The machines are good at it, very good,
+until the problems get large enough to be hard again.
 
 That is what I want my students to understand. Not that the machines are
 coming for their jobs: the machines are already here, and the jobs are
