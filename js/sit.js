@@ -3,6 +3,7 @@
 
 import { rn2, rnd, rn1, d, c_d } from './rng.js';
 import { losehp } from './hack.js';
+import { heal_legs } from './do.js';
 import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FOUNTAIN, ICE, DRAWBRIDGE_DOWN,
          A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
@@ -218,7 +219,7 @@ async function throne_sit_effect(player, map, display) {
             player.ucreamed = 0;
             await make_blinded(player, 0, true);
             // TODO: make_sick(0, null, FALSE, SICK_ALL) — cure sickness
-            // TODO: heal_legs(0) — cure wounded legs
+            await heal_legs(0, player);
             break;
         case 5:
             // take gold
