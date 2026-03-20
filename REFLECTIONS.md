@@ -276,7 +276,7 @@ We get a world where the zone of easy problems is bigger.
 But actually: maybe not that much bigger. Right now, the line is somewhere
 between Hack and NetHack.
 
-The economy is full of NetHacks. Healthcare, law, infrastructure, legacy
+The economy is full of "NetHacks." Healthcare, law, infrastructure, legacy
 systems, scientific research: deeply interconnected, decades of accumulated
 human decisions, hidden causal chains. The same properties that make
 NetHack hard for AI agents.
