@@ -14383,6 +14383,58 @@ When a correct parity fix regresses a session:
 
 ## 2026-03-20: narrow boots-only `armoroff()` restores late `seed031` progress without reopening the broad regressions
 
+## 2026-03-20: general `armoroff()` fix needed two hidden follow-up fixes before the branch stabilized
+
+- Branch context:
+  - after reintroducing the broad C-faithful rule that all single-item armor
+    removal should route through `do_wear.c armoroff()` semantics, the branch
+    initially reopened many coverage-session regressions
+  - the right response was not to keep narrowing by slot; it was to find the
+    masked general bugs that the faithful path exposed
+- First hidden bug:
+  - [js/do_wear.js](/share/u/davidbau/git/mazesofmenace/game/js/do_wear.js)
+    `armoroff()` was dispatching by `objectData[otyp].oc_armcat`
+  - this repo's object rows use `oc_subtyp` for armor category, so cloak/helm/
+    shield/etc. off-effects could be skipped even though `setnotworn()` still
+    cleared the slot bit
+  - concrete evidence on `t11_s755_w_covmax9_gp`:
+    - taking off a cloak of magic resistance left `ANTIMAGIC.extrinsic=1`
+    - JS then resisted a self-zap that C allowed
+- Fix:
+  - switch `armoroff()` to `objectData[otyp].oc_subtyp`
+  - centralize delayed and immediate removal through one `finishArmorOff()` path
+    that runs the correct `*_off()` helper, then `setnotworn()`, then `find_ac()`
+- Second hidden bug:
+  - several forced-removal paths were only clearing worn slots and masks, not the
+    passive hero effects granted by the worn item
+  - affected paths included:
+    - `invent.js` item consumption/useup
+    - `steal.js` theft removal
+    - `zap.js` worn-item destruction
+    - `apply.js` cream pie self-use when the blindfold stack hits zero
+- Fix:
+  - add `clearWornItemEffects(player, obj)` in
+    [js/do_wear.js](/share/u/davidbau/git/mazesofmenace/game/js/do_wear.js)
+  - route those forced-removal paths through it so they clear the same passive
+    effects as voluntary removal before unsetting the slot/mask
+- Validation on branch `armoroff-general-fix` after both follow-up fixes:
+  - `scripts/run-and-report.sh --failures` returned only the same three
+    manual-direct failures as the earlier frontier:
+    - `seed031_manual_direct`
+    - `seed032_manual_direct`
+    - `seed033_manual_direct`
+  - guardrail sessions stayed green:
+    - `t11_s755_w_covmax9_gp`: PASS
+    - `t11_s756_w_covmax10_gp`: PASS
+    - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+    - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+- General lesson:
+  - when a broad C-faithful fix reopens many sessions, assume compensating bugs
+    before abandoning the broad fix
+  - in this case, the faithful `armoroff()` path was correct; the regressions
+    came from JS-only metadata mismatch (`oc_armcat` vs `oc_subtyp`) and passive
+    effect cleanup holes in non-voluntary item removal
+
 - Evidence:
   - the live `seed031_manual_direct` seam on `main` remained the same
     delayed takeoff/wear window, but the active removal was specifically:

@@ -121,7 +121,7 @@ import {
   gloves_simple_name, boots_simple_name, shield_simple_name,
   shirt_simple_name, Is_box, vtense,
 } from './objnam.js';
-import { Ring_gone } from './do_wear.js';
+import { Ring_gone, clearWornItemEffects } from './do_wear.js';
 import { hold_another_object, prinv, buildInventoryOverlayLines, renderOverlayMenuUntilDismiss, compactInvletPromptChars } from './invent.js';
 import { findit } from './detect.js';
 import { is_db_wall, find_drawbridge, open_drawbridge, close_drawbridge, destroy_drawbridge } from './dbridge.js';
@@ -2824,7 +2824,7 @@ async function maybe_destroy_item_player(obj, dmgtyp, player, owner = null) {
     if ((obj.owornmask || 0) & W_RING) {
       await Ring_gone(obj, _gstate, player);
     } else {
-      setnotworn(player, obj);
+      clearWornItemEffects(player, obj);
     }
   }
 
