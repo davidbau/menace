@@ -26,8 +26,9 @@ ctx.TALK_CORPUS = TALK_CORPUS;
 `;
 vm.runInNewContext(fullSrc, { ctx });
 
-// Serialize and XOR-encode
-const json = JSON.stringify(ctx);
+// Serialize and XOR-encode (RegExp → {__re, __flags} so it survives JSON round-trip)
+const json = JSON.stringify(ctx, (_, v) =>
+    v instanceof RegExp ? { __re: v.source, __flags: v.flags } : v);
 const KEY = 0x42;
 const encoded = Buffer.from(json).map(b => b ^ KEY);
 const blob = encoded.toString('base64');
@@ -39,7 +40,10 @@ const out = `// js/mailcorpus.js -- XOR-encoded email corpus.
 const _k = 0x42;
 function _d(s) {
   const b = atob(s);
-  return JSON.parse(Array.from(b).map(c => String.fromCharCode(c.charCodeAt(0) ^ _k)).join(''));
+  return JSON.parse(
+    Array.from(b).map(c => String.fromCharCode(c.charCodeAt(0) ^ _k)).join(''),
+    (_, v) => (v && v.__re !== undefined) ? new RegExp(v.__re, v.__flags) : v
+  );
 }
 const _x = _d('${blob}');
 export const SEED_MESSAGES = _x.SEED_MESSAGES;
