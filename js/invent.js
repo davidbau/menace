@@ -38,6 +38,7 @@ import { mons, PM_ARCHEOLOGIST } from './monsters.js';
 import { newsym, flush_screen } from './display.js';
 import { observeObject, discoverObject, isObjectNameKnown, setOverrideID } from './o_init.js';
 import { exercise } from './attrib_exercise.js';
+import { clearWornItemEffects } from './do_wear.js';
 import { acurr, acurrstr, set_moreluck } from './attrib.js';
 import { confers_luck, touch_artifact, set_artifact_intrinsic } from './artifact.js';
 import { game as _gstate } from './gstate.js';
@@ -3162,20 +3163,7 @@ export function removeObjFromChain(head, target) {
 // Helper: safely un-wear an object
 function setnotworn(obj, player) {
     if (!player) return;
-    if (obj === player.weapon) player.weapon = null;
-    if (obj === player.armor) player.armor = null;
-    if (obj === player.shield) player.shield = null;
-    if (obj === player.helmet) player.helmet = null;
-    if (obj === player.gloves) player.gloves = null;
-    if (obj === player.boots) player.boots = null;
-    if (obj === player.cloak) player.cloak = null;
-    if (obj === player.shirt) player.shirt = null;
-    if (obj === player.amulet) player.amulet = null;
-    if (obj === player.leftRing) player.leftRing = null;
-    if (obj === player.rightRing) player.rightRing = null;
-    if (obj === player.swapWeapon) player.swapWeapon = null;
-    if (obj === player.quiver) player.quiver = null;
-    if (obj === player.blindfold) player.blindfold = null;
+    clearWornItemEffects(player, obj);
 }
 
 // Autotranslated from invent.c:390

@@ -98,7 +98,7 @@ import { break_wand } from './zap.js';
 import { wield_tool } from './wield.js';
 import { body_part } from './polyself.js';
 import { freehand, can_reach_floor } from './engrave.js';
-import { Blindf_off } from './do_wear.js';
+import { Blindf_off, clearWornItemEffects } from './do_wear.js';
 import { dropx } from './do.js';
 import { game as _gstate } from './gstate.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
@@ -899,7 +899,7 @@ async function use_cream_pie(obj, player) {
     if (obj.quan > 1) obj.quan--;
     await You("immerse your face in %s.", xname(obj));
     rnd(25); // blindinc RNG consumption
-    if (obj.quan <= 0) setnotworn(player, obj);
+    if (obj.quan <= 0) clearWornItemEffects(player, obj);
 }
 
 // cf. apply.c:3603 -- jelly_ok
