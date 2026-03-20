@@ -1745,7 +1745,6 @@ async function maybeMonsterPickStuff(mon, map, player, display, fov) {
         .filter((obj) => obj && !obj.buried)
         .reverse();
     for (const obj of pile) {
-        if (obj.otyp === ROCK) continue;
         if (!mon_would_take_item_search(mon, obj, map)) continue;
         const carryAmt = can_carry(mon, obj);
         if (carryAmt <= 0) continue;
