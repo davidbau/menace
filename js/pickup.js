@@ -42,7 +42,8 @@ import { near_capacity, max_capacity, calc_capacity } from './hack.js';
 import { create_nhwindow, destroy_nhwindow, start_menu, add_menu, end_menu, select_menu, putstr, display_nhwindow } from './windows.js';
 import { NHW_MENU, MENU_BEHAVE_STANDARD, PICK_ANY, ATR_NONE,
          LOST_THROWN, LOST_DROPPED, LOST_EXPLODING } from './const.js';
-import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2 } from './objnam.js';
+import { Is_box, Has_contents, Is_mbag, thesimpleoname, otense, Doname2,
+         cxname_singular } from './objnam.js';
 import { which_armor, extract_from_minvent } from './worn.js';
 import { autokey, pick_lock } from './lock.js';
 import { courtmon } from './mkroom.js';
@@ -1230,8 +1231,11 @@ async function handlePickup(player, map, display, game = null) {
                 const bi = inv_order.indexOf(String.fromCharCode(bc));
                 return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
             }
-            const an = String(doname(a) || '');
-            const bn = String(doname(b) || '');
+            // C ref: invent.c sortloot_cmp() uses loot_xname(), which reduces
+            // to cxname_singular(obj), so quantity/article prefixes do not
+            // perturb pickup menu letter assignment.
+            const an = String(cxname_singular(a) || '');
+            const bn = String(cxname_singular(b) || '');
             const byName = an.localeCompare(bn);
             if (byName !== 0) return byName;
             return Number(a?.o_id || 0) - Number(b?.o_id || 0);
