@@ -7,7 +7,8 @@
 // - dochug: no Conflict handling (C:870), no covetous/quest/vault guards
 // - dochug: mind_blast RNG-faithful but losehp stubbed
 // - dochug: flees_light: artifact_light limited to Sunsword + gold dragon scales
-// - m_move: no boulder-pushing by strong monsters (C:2020)
+// - m_move: no boulder-pushing to adjacent square by strong monsters (C:2020)
+//   (m_break_boulder for magic-breaking IS implemented)
 // - m_move: no vault guard movement (C:1730)
 // - m_move: covetous monster teleport-to-hero not implemented (C:1737)
 // - set_apparxy: displacement-offset details simplified
