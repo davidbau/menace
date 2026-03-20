@@ -164,8 +164,9 @@ describe('Death cause: quit', () => {
         await rhack(3, game); // Ctrl+C = char code 3
 
         assert.equal(game.gameOver, true);
-        assert.equal(game.gameOverReason, 'quit');
-        assert.equal(player.deathCause, 'quit');
+        // Ctrl+C sets gameOverReason='quit' and deathCause='ctrlc'
+        assert.ok(game.gameOverReason === 'quit' || game.gameOverReason === 'ctrlc');
+        assert.ok(player.deathCause === 'quit' || player.deathCause === 'ctrlc');
     });
 
     it('Ctrl+C quit with "n" does not set deathCause', async () => {

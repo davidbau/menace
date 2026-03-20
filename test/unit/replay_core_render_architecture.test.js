@@ -22,8 +22,8 @@ describe('replay render architecture contracts', () => {
         const replaySrc = readFileSync(replayCorePath, 'utf8');
         const mainSrc = readFileSync(allmainPath, 'utf8');
 
-        assert.match(replaySrc, /run_command\(game, ch\)/);
-        assert.match(replaySrc, /execute_repeat_command\(game\)/);
+        // replay_core drives through _gameLoopStep, not direct run_command
+        assert.match(replaySrc, /_gameLoopStep\(\)/);
         assert.doesNotMatch(replaySrc, /renderAfterCommand/);
         assert.doesNotMatch(replaySrc, /renderInputBlockedState/);
 
