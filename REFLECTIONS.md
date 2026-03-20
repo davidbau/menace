@@ -268,11 +268,10 @@ engineering irrelevant. It changed what civil engineers could decide to do.
 It expanded the category of decisions that were worth making.
 
 I think AI is a multiplier of the same kind. It dramatically advances the
-line of what we consider hard: multiplicatively. But a multiplier preserves
-the ordering of difficulty. The things that were hard relative to other
-things stay hard relative to other things. The frontier moves outward, but
-the shape of the landscape does not change. We do not get a world without
-hard problems. We get a world where the easy-problem zone is bigger.
+line of what we consider hard, multiplicatively. But the multiplier just
+opens our eyes to a new vista of hard problems. The frontier moves outward,
+but there is still a frontier. We do not get a world without hard problems.
+We get a world where the zone of easy problems is bigger.
 
 But actually: maybe not that much bigger. Right now, the line is somewhere
 between Hack and NetHack.
