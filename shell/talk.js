@@ -165,13 +165,20 @@ class RemoteEngine {
     }
 
     _pickResponse(text) {
-        // Normalize: replace any of the character's known names with "you" so
-        // patterns that match "you" also fire when the user addresses them by name.
+        // Normalize: strip the character's name when used as a vocative so that
+        // "hi jay" and "jay, what are you doing?" match the same patterns as
+        // "hi" and "what are you doing?". Also replace possessive "jay's" → "your".
         let lower = text.toLowerCase();
         for (const n of this._names) {
             const escaped = n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            lower = lower.replace(new RegExp(`\\b${escaped}\\b`, 'g'), 'you');
+            // possessive: "jay's" → "your"
+            lower = lower.replace(new RegExp(`\\b${escaped}'s\\b`, 'g'), 'your');
+            // vocative with comma: "hi, jay" or "jay, hi" → strip name + comma + space
+            lower = lower.replace(new RegExp(`(,\\s*\\b${escaped}\\b|\\b${escaped}\\b\\s*,)`, 'g'), '');
+            // bare name: "hi jay" → strip name
+            lower = lower.replace(new RegExp(`\\b${escaped}\\b`, 'g'), '');
         }
+        lower = lower.replace(/\s+/g, ' ').trim();
 
         // Feature 4: if we're waiting for a beat reply, use beat's reply list
         if (this._activeBeat) {
