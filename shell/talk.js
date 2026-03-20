@@ -1,6 +1,6 @@
 // talk.js -- BSD talk(1) simulation: split-screen real-time chat.
 // Layout: rows 0-9 remote (CLR_CYAN), row 10 divider (CLR_YELLOW),
-//         rows 11-21 local (CLR_GREEN), row 22 empty, row 23 input (CLR_WHITE).
+//         rows 11-21 local (CLR_GREEN, current input on last line), row 22 status.
 
 import { CLR_CYAN, CLR_GREEN, CLR_YELLOW, CLR_WHITE } from '../js/render.js';
 
@@ -303,9 +303,18 @@ class RemoteEngine {
         return events;
     }
 
+    // Substitute {word} with a recent user word, if any (Feature 3 echo)
+    _resolveTemplate(text) {
+        if (!text.includes('{word}')) return text;
+        const words = [...this._userWords];
+        if (words.length === 0) return text.replace(/\{word\}/g, '');
+        const w = words[Math.floor(Math.random() * words.length)];
+        return text.replace(/\{word\}/g, w);
+    }
+
     _startTyping(text) {
         this._state = 'composing';
-        for (const ev of this._buildTypingSequence(text)) {
+        for (const ev of this._buildTypingSequence(this._resolveTemplate(text))) {
             this._mux.schedule(ev, ev.offset);
         }
     }
@@ -380,6 +389,11 @@ export class TalkSession {
                 this._remoteCurrent = '';
                 this._renderRemoteHalf(engine);
             } else if (ev.type === 'remote_done') {
+                // Commit current remote line so the next message starts fresh
+                if (this._remoteCurrent.length > 0) {
+                    this._remoteLines.push(this._remoteCurrent);
+                    this._remoteCurrent = '';
+                }
                 engine.onDone();
                 this._renderRemoteHalf(engine);
             }
@@ -440,16 +454,18 @@ export class TalkSession {
 
     _renderLocalHalf() {
         const d = this._d;
-        const startIdx = Math.max(0, this._localLines.length - 11);
+        // Show committed lines + current input line inline (1982 talk style)
+        const allLines = [...this._localLines, this._localCurrent];
+        const startIdx = Math.max(0, allLines.length - 11);
         for (let row = 11; row <= 21; row++) {
             d.clearRow(row);
             const li = startIdx + (row - 11);
-            if (li < this._localLines.length)
-                d.putstr(0, row, this._localLines[li].slice(0, 80), CLR_GREEN);
+            if (li < allLines.length) {
+                d.putstr(0, row, allLines[li].slice(0, 80), CLR_GREEN);
+                // Position cursor at end of the current (last) input line
+                if (li === allLines.length - 1 && typeof d.setCursor === 'function')
+                    d.setCursor(Math.min(allLines[li].length, 79), row);
+            }
         }
-        d.clearRow(23);
-        d.putstr(0, 23, this._localCurrent.slice(0, 79), CLR_WHITE);
-        if (typeof d.setCursor === 'function')
-            d.setCursor(Math.min(this._localCurrent.length, 79), 23);
     }
 }

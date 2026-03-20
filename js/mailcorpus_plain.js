@@ -6170,6 +6170,9 @@ export const TALK_CORPUS = {
       'not my problem',
       'why are you asking me',
       'look at the source if youre curious\nits right there',
+      '{word}?\nyeah thats a thing',
+      'hm\n{word}\nlet me think about that',
+      'what do you mean by {word} specifically',
     ],
     spontaneous: [
       'hey are you playing hack right now',
@@ -6249,6 +6252,8 @@ export const TALK_CORPUS = {
       'NOTED',
       '...\nI AM STILL WATCHING',
       'YOUR WORDS DO NOT CONCERN ME',
+      '{word}.\nNOTED.',
+      'YOU SPEAK OF {word}\nIT CHANGES NOTHING',
     ],
     spontaneous: [
       '...',
@@ -6364,6 +6369,8 @@ export const TALK_CORPUS = {
       'careful down there',
       'map first, then move',
       'the cave has an answer\nyou have to know the right question',
+      '{word}\nmark that down before you move',
+      'when {word} comes up underground\nyou stop and think before you act',
     ],
     spontaneous: [
       'just thinking about the cave again',
@@ -6470,6 +6477,8 @@ export const TALK_CORPUS = {
       'start from first principles\nwhat do you actually know for certain here',
       'the answer is probably simpler than you think\nbut you have to think about it carefully',
       'what specifically is confusing you\nlet\'s take it apart',
+      'what is the precise definition of {word} you are working with',
+      'interesting\nhow does {word} behave at the boundary cases',
     ],
     spontaneous: [
       'are you taking the programming course this year',
@@ -6559,6 +6568,8 @@ export const TALK_CORPUS = {
       'interesting\nlet me think',
       'that is a real question actually',
       'i am probably not the right person but here is my take',
+      '{word} is an interesting case\nbeen thinking about it',
+      'how does {word} interact with the rest of what you said',
     ],
     spontaneous: [
       'jove is at version 4 now if you want to try it',
@@ -6645,6 +6656,8 @@ export const TALK_CORPUS = {
       'that is fine',
       'ask jay\nor walz\ndepending on what it is',
       'noted',
+      '{word}\nok\nwhat do you need',
+      '{word} is probably jay\'s department\nor walz',
     ],
     spontaneous: [
       'the meeting notes are posted if you missed today',
@@ -6728,6 +6741,8 @@ export const TALK_CORPUS = {
       'hm\nlet me think about the architecture',
       'depends on the scale',
       'what are the failure modes',
+      '{word} at scale\nthat is the hard part',
+      'how does {word} degrade under load',
     ],
     spontaneous: [
       'been thinking about the routing problem again',
@@ -6806,6 +6821,8 @@ export const TALK_CORPUS = {
       'that is a design question actually',
       'let me think about the monster angle on that',
       'ask jay if it is a code thing',
+      '{word} is a design problem\nwhat is the player\'s information state',
+      'how does {word} affect what the player decides to do',
     ],
     spontaneous: [
       'working on the mimic\nit is harder than the chameleon but more fun',
@@ -6877,6 +6894,8 @@ export const TALK_CORPUS = {
       'that is an interesting geometry question',
       'i will have to look at the code',
       'could be a generator artifact\nhappens',
+      '{word} in the level generator\nlet me think about which pass handles that',
+      'interesting\nhow does {word} interact with the region grid',
     ],
     spontaneous: [
       'the level 12 southeast bug is still there. i know.',
@@ -6945,6 +6964,8 @@ export const TALK_CORPUS = {
       'i think about it in terms of feel',
       'let me think about the player experience there',
       'good question actually',
+      '{word}\nyeah that is part of the feeling i was going for',
+      'how does {word} change what the player feels',
     ],
     spontaneous: [
       'working on something new but it is not ready to talk about',
@@ -7075,6 +7096,8 @@ export const TALK_CORPUS = {
       'what specifically is the problem',
       'i will look into it',
       'that is documented in motd',
+      '{word}\ncheck the man page for that',
+      'is {word} a system issue or a user issue',
     ],
     spontaneous: [
       'reminder: disk quota resets are not automatic\nclean up your home directories',
@@ -7145,6 +7168,8 @@ export const TALK_CORPUS = {
       'browse freely\nask if you have questions about any particular item',
       'the shop appreciates your patronage',
       'an interesting observation\ni will consider it',
+      '{word}\nwe may have something that helps with that',
+      'ah\n{word}\nthere is a philosophical dimension to that as well',
     ],
     spontaneous: [
       'the wand of striking just came back in stock\none previous owner',
@@ -7198,6 +7223,8 @@ export const TALK_CORPUS = {
       'let me think about the algorithm',
       'connectivity is usually the issue',
       'check the region boundaries',
+      '{word}\nlet me think about how that maps to the region grid',
+      'interesting\nhow does {word} affect corridor routing',
     ],
     spontaneous: [
       'working on making corridors feel less grid-like',
@@ -7245,6 +7272,8 @@ export const TALK_CORPUS = {
       'check the architecture manual',
       'that is a good question\nlet me think about the addressing modes',
       'what does the listing say',
+      '{word}\ncheck what addressing mode that uses',
+      'how does {word} look in the assembler listing',
     ],
     spontaneous: [
       'the pdp-11 manual is actually worth reading\nthe whole thing',
@@ -7298,6 +7327,8 @@ export const TALK_CORPUS = {
       'that is a reasonable take',
       'i go back and forth on that',
       'hm',
+      '{word}\nrogue handles it one way, hack another\ndifferent tradeoffs',
+      'yeah {word} is different in each of them',
     ],
     spontaneous: [
       'rogue or hack, pick one for the next hour',
@@ -7352,6 +7383,8 @@ export const TALK_CORPUS = {
       'check the permissions with ls -l',
       'minimal privilege is the answer to most security questions',
       'that depends on the trust boundary',
+      '{word}\nwhat is the attack surface there',
+      'how does {word} interact with the privilege boundary',
     ],
     spontaneous: [
       'the setuid audit is on my list',
@@ -7398,6 +7431,8 @@ export const TALK_CORPUS = {
       'check termcap',
       'try vt100 number 2 instead',
       'that might be an adm-3a problem',
+      '{word}\nwhich terminal does that show up on',
+      'does {word} happen on the adm-3a or the vt100',
     ],
     spontaneous: [
       'vt100 two is free if you need it',
@@ -7451,6 +7486,8 @@ export const TALK_CORPUS = {
       'read the kernel source\nit is not that long',
       'what does strace say',
       'check the u area',
+      '{word}\ncheck the relevant kernel struct first',
+      'how does {word} interact with the scheduler',
     ],
     spontaneous: [
       'working through the filesystem code now\ninode, directory, block cache',
@@ -7505,6 +7542,8 @@ export const TALK_CORPUS = {
       'checksum everything',
       'what baud rate are you running',
       'that is a transfer integrity question',
+      '{word}\nchecksum that before you use it',
+      'does {word} happen at 300 baud or 1200',
     ],
     spontaneous: [
       'checksum protocol is working\ntest transfer of hack source completed clean',
@@ -7559,6 +7598,8 @@ export const TALK_CORPUS = {
       'try strace',
       'what does the tokenizer produce',
       'check the exit status',
+      '{word}\nhow does the tokenizer handle that',
+      'does {word} appear in the exit status',
     ],
     spontaneous: [
       'pipes are not done yet but fork-exec is working',
