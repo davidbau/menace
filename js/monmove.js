@@ -1238,7 +1238,7 @@ async function maybeCastUndirectedPreMove(mon, mdat, player, map) {
         if (a.adtyp === AD_SPEL) {
             cast_wizard_spell(mon, 0, spellid, player, map);
         } else {
-            cast_cleric_spell(mon, 0, spellid, player, map);
+            await cast_cleric_spell(mon, 0, spellid, player, map);
         }
         return true;
     }
