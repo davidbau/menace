@@ -71,6 +71,7 @@ export function sobjs(G, ri, arg) {
   const waslit = lit(G, G.here);
 
   let result;
+  if (G._oapplTrack) G._oapplTrack.add(ri);
   switch (ri) {
     case 1: result = o_gunk(G); break;
     case 2: result = o_trophy_case(G); break;

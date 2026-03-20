@@ -903,6 +903,7 @@ function valuac(G, v) {
 // ---------------------------------------------------------------
 
 export function vappli(G, ri) {
+  if (G._vapplTrack) G._vapplTrack.add(ri);
   let odo2 = 0;
   let odi2 = 0;
   if (G.prso !== 0 && G.prso <= OMAX) odo2 = G.odesc2[G.prso - 1];
@@ -2312,7 +2313,7 @@ function v_diagnose(G) {
   const l = Math.min(4, Math.abs(j));
   rspeak(G, 473 + l);
   const wait = (30 * (-j - 1)) + G.ctick[CEVCUR - 1];
-  if (j !== 0) G.output(` You will be cured after ${wait} moves.`);
+  if (j !== 0) G.output(` You will be cured after ${String(wait).padStart(3)} moves.`);
   rspeak(G, 478 + k);
   if (G.deaths !== 0) rspeak(G, 482 + G.deaths);
   return true;

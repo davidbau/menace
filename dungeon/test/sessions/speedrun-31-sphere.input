@@ -1,0 +1,93 @@
+take mat
+n
+n
+u
+take egg
+d
+n
+n
+e
+open window
+w
+take all
+w
+move rug
+open trap door
+take lamp
+e
+u
+turn on lamp
+take all
+d
+w
+drop all but rope, lamp, egg and knife
+d
+e
+kill troll with knife
+kill troll with knife
+kill troll with knife
+n
+n
+w
+nw
+e
+e
+tie rope to railing
+climb down
+turn off lamp
+take torch
+d
+e
+s
+s
+e
+u
+take coins
+sw
+e
+s
+ne
+ODYSSEUS
+u
+give egg to thief
+d
+n
+e
+open case
+put coins in case
+open trap door
+take bottle
+d
+e
+n
+e
+se
+se
+answer "well"
+e
+take necklace
+e
+get inside bucket
+open bottle
+pour water
+get out of bucket
+e
+take all
+eat eatme cake
+e
+throw red cake
+take tin
+w
+eat blue cake
+nw
+tell robot "go east"
+e
+tell robot "push triangular button"
+tell robot "go south"
+s
+get sphere
+wait
+wait
+wait
+quit
+y

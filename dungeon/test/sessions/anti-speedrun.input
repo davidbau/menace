@@ -37,18 +37,36 @@ go north
 go north
 go east
 go north
-look
+go north
+go down
+go up
+go east
+go north
+take matches
+go north
+push blue button
+go south
+go south
+go south
+go nw
+go west
+go north
 go east
 go east
+go west
+go south
+go east
+go north
 go up
 take bell
+go east
+take candles
+go west
 go west
 go east
 go south
 go down
-look
 ring bell
-look
 wait
 wait
 wait
@@ -59,15 +77,20 @@ wait
 wait
 wait
 wait
-go up
-go north
-go north
-go up
-go east
-pray
 wait
 wait
 wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+ring bell
+turn on match
+burn candles with match
+take candles
 wait
 wait
 quit

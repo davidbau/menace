@@ -107,6 +107,7 @@ const LMPTCK = [50, 30, 20, 10, 4, 0, 154, 154, 154, 154, 155, 0]; // 12 entries
  */
 export function cevapp(G, ri) {
   if (ri === 0) return;
+  if (G._cevTrack) G._cevTrack.add(ri);
   const waslit = lit(G, G.here);
 
   switch (ri) {
@@ -638,6 +639,7 @@ export function litint(G, obj, ctrName, cev, ticks, tickln) {
  * Fortran: SUBROUTINE FIGHTD
  */
 export function fightd(G) {
+  if (G._npcTrack) G._npcTrack.add('fight');
   const ROUT_CODE = 1;
 
   // Phase 1: Update villain states
@@ -937,6 +939,7 @@ export function blow(G, h, v, rmk, hflg, out) {
  * SWORDD — Update sword glow based on nearby villains.
  */
 export function swordd(G) {
+  if (G._npcTrack) G._npcTrack.add('sword');
   if (G.oadv[SWORD - 1] !== PLAYER) {
     G.swdact = false; // dropped sword, disable demon
     return;
@@ -1146,6 +1149,7 @@ function a3_master(G) {
  * At 1800: drop junk and return.
  */
 export function thiefd(G) {
+  if (G._npcTrack) G._npcTrack.add('thief');
   let once = false;
 
   const qstill = (r) => qhere(G, STILL, r) || G.oadv[STILL - 1] === -THIEF;

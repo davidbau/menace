@@ -50,8 +50,8 @@ ODYSSEUS
 go up
 give egg to thief
 go down
-inventory
-inventory
+diagnose
+score
 wait
 walk north
 run east
@@ -364,7 +364,7 @@ run west
 go up
 describe tin
 look at white sphere
-what is bills
+look at bills
 look at trunk
 look at gold
 proceed west
@@ -545,6 +545,9 @@ run west
 proceed south
 go up
 go east
+go south
+go north
+schedule
 read paper
 go down
 push east wall
@@ -559,6 +562,7 @@ run north
 walk east
 push south wall
 take card
+examine card
 push south wall
 walk east
 walk ne
@@ -649,7 +653,7 @@ light wire with match
 run north
 walk south
 take crown
-what is crown
+look at crown
 walk north
 untie rope from hook
 board
@@ -679,5 +683,55 @@ examine newspaper
 examine stamp
 put treasure in case
 score
-quit
-y
+hello sailor
+repent
+frobozz
+yell
+win
+wait
+incant "ZORK CQCBBBCA"
+go north
+dungeon
+go north
+drop lamp
+go south
+push red button
+go north
+take lamp
+go north
+in
+raise short pole
+push red wall
+push red wall
+lower short pole
+push mahogany wall
+push mahogany wall
+push mahogany wall
+raise short pole
+push red wall
+push red wall
+push red wall
+push red wall
+push pine wall
+go north
+knock on wooden door
+answer "FOREST"
+answer "RUB"
+answer "NONE"
+go north
+go north
+go east
+go south
+go west
+go north
+go north
+turn dial to 4
+push button
+turn dial to 1
+tell master "stay"
+go south
+open cell door
+go south
+tell master "push button"
+open bronze door
+go north

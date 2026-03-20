@@ -1,0 +1,1053 @@
+{
+  "format": "zork-parity-v1",
+  "source": "fortran",
+  "seed": 31,
+  "timestamp": "2026-03-20T08:45:37.066Z",
+  "steps": [
+    {
+      "move": 0,
+      "input": "",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Welcome to Dungeon.\t\t\tThis version created 2-Dec-15.",
+        " This is an open field west of a white house with a boarded front door.",
+        " There is a small mailbox here.",
+        " A rubber mat saying \"Welcome to Dungeon!\" lies by the door."
+      ]
+    },
+    {
+      "move": 1,
+      "input": "take mat",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 2,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the north side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 3,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  One",
+        " particularly large tree with some low branches stands here."
+      ]
+    },
+    {
+      "move": 4,
+      "input": "u",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are about ten feet above the ground nestled among some large",
+        " branches.  The nearest branch above you is beyond your reach.",
+        " On the branch is a small birds nest.",
+        " In the bird's nest is a large egg encrusted with precious jewels,",
+        " apparently scavenged somewhere by a childless songbird.  The egg is",
+        " covered with fine gold inlay and ornamented in lapis lazuli and",
+        " mother-of-pearl.  Unlike most eggs, this one is hinged and has a",
+        " delicate looking clasp holding it closed.  The egg appears extremely",
+        " fragile."
+      ]
+    },
+    {
+      "move": 5,
+      "input": "take egg",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 6,
+      "input": "d",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Forest"
+      ]
+    },
+    {
+      "move": 7,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dimly lit forest, with large trees all around.  To the",
+        " east, there appears to be sunlight."
+      ]
+    },
+    {
+      "move": 8,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are facing the south side of a white house.  There is no door here,",
+        " and all the windows are barred."
+      ]
+    },
+    {
+      "move": 9,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are behind the white house.  In one corner of the house",
+        " there is a small window which is slightly ajar."
+      ]
+    },
+    {
+      "move": 10,
+      "input": "open window",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With great effort, you open the window far enough to allow entry."
+      ]
+    },
+    {
+      "move": 11,
+      "input": "w",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open.",
+        " On the table is an elongated brown sack, smelling of hot peppers.",
+        " A bottle is sitting on the table.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 12,
+      "input": "take all",
+      "parse": {},
+      "state": {},
+      "output": [
+        " brown sack:",
+        " Taken.",
+        " glass bottle:",
+        " Taken."
+      ]
+    },
+    {
+      "move": 13,
+      "input": "w",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a wooden door with strange gothic lettering, which appears to be",
+        " nailed shut.",
+        " In the center of the room is a large oriental rug.",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " A battery-powered brass lantern is on the trophy case.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 14,
+      "input": "move rug",
+      "parse": {},
+      "state": {},
+      "output": [
+        " With a great effort, the rug is moved to one side of the room.",
+        " With the rug moved, the dusty cover of a closed trap door appears."
+      ]
+    },
+    {
+      "move": 15,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 16,
+      "input": "take lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 17,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the kitchen of the white house.  A table seems to have been",
+        " used recently for the preparation of food.  A passage leads to the",
+        " west, and a dark staircase can be seen leading upward.  To the east",
+        " is a small window which is open."
+      ]
+    },
+    {
+      "move": 18,
+      "input": "u",
+      "parse": {},
+      "state": {},
+      "output": [
+        " It is pitch black.  You are likely to be eaten by a grue."
+      ]
+    },
+    {
+      "move": 19,
+      "input": "turn on lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now on.",
+        " This is the attic.  The only exit is stairs that lead down.",
+        " A large coil of rope is lying in the corner.",
+        " On a table is a nasty-looking knife.",
+        " There is a square brick here which feels like clay."
+      ]
+    },
+    {
+      "move": 20,
+      "input": "take all",
+      "parse": {},
+      "state": {},
+      "output": [
+        " rope:",
+        " Taken.",
+        " knife:",
+        " Taken.",
+        " brick:",
+        " Taken."
+      ]
+    },
+    {
+      "move": 21,
+      "input": "d",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Kitchen"
+      ]
+    },
+    {
+      "move": 22,
+      "input": "w",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Living Room",
+        " There is a trophy case here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " There is an issue of US NEWS & DUNGEON REPORT here."
+      ]
+    },
+    {
+      "move": 23,
+      "input": "drop all but rope, lamp, egg and knife",
+      "parse": {},
+      "state": {},
+      "output": [
+        " brown sack:",
+        " Dropped.",
+        " glass bottle:",
+        " Dropped.",
+        " brick:",
+        " Dropped.",
+        " welcome mat:",
+        " Dropped."
+      ]
+    },
+    {
+      "move": 24,
+      "input": "d",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dark and damp cellar with a narrow passageway leading",
+        " east, and a crawlway to the south.  To the west is the bottom of",
+        " a steep metal ramp which is unclimbable.",
+        " Above you is an open trap door.",
+        " The door crashes shut, and you hear someone barring it."
+      ]
+    },
+    {
+      "move": 25,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small room with passages off in all directions.  Bloodstains",
+        " and deep scratches (perhaps made by an axe) mar the walls.",
+        " A nasty-looking troll, brandishing a bloody axe, blocks all passages",
+        " out of the room."
+      ]
+    },
+    {
+      "move": 26,
+      "input": "kill troll with knife",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your stroke lands, but it was only the flat of the blade.",
+        " The troll's axe barely misses your ear."
+      ]
+    },
+    {
+      "move": 27,
+      "input": "kill troll with knife",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The troll is knocked out!"
+      ]
+    },
+    {
+      "move": 28,
+      "input": "kill troll with knife",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The unconscious troll cannot defend himself: he dies.",
+        " Almost as soon as the troll breathes his last, a cloud of",
+        " sinister black smoke envelops him, and when the fog lifts, the",
+        " carcass has disappeared."
+      ]
+    },
+    {
+      "move": 29,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a narrow east-west passageway.  There is a narrow stairway",
+        " leading down at the north end of the room."
+      ]
+    },
+    {
+      "move": 30,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a deep ravine at a crossing with an east-west crawlway.",
+        " Some stone steps are at the south of the ravine, and a steep",
+        " staircase descends."
+      ]
+    },
+    {
+      "move": 31,
+      "input": "w",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a crawlway with a three foot high ceiling.  Your footing is",
+        " very unsure here due to the assortment of rocks underfoot.  Passages",
+        " can be seen in the east, west, and northwest corners of the crawlway."
+      ]
+    },
+    {
+      "move": 32,
+      "input": "nw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a room which looks like an Egyptian tomb.  There is an",
+        " ascending staircase in the room as well as doors east and south.",
+        " The solid gold coffin used for the burial of Ramses II is here."
+      ]
+    },
+    {
+      "move": 33,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Rocky Crawl"
+      ]
+    },
+    {
+      "move": 34,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the periphery of a large dome, which forms the ceiling of",
+        " another room below.  Protecting you from a precipitous drop is a",
+        " wooden railing which circles the dome."
+      ]
+    },
+    {
+      "move": 35,
+      "input": "tie rope to railing",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The rope drops over the side and comes within ten feet of the floor."
+      ]
+    },
+    {
+      "move": 36,
+      "input": "climb down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large room with a prominent doorway leading to a down",
+        " staircase.  To the west is a narrow twisting tunnel, covered with",
+        " a thin layer of dust.  Above you is a large dome painted with scenes",
+        " depicting elfin hacking rites.  Up around the edge of the dome (20",
+        " feet up) is a wooden railing.  In the center of the room there is",
+        " a white marble pedestal.",
+        " A large piece of rope descends from the railing above, ending some",
+        " five feet above your head.",
+        " Sitting on the pedestal is a flaming torch, made of ivory."
+      ]
+    },
+    {
+      "move": 37,
+      "input": "turn off lamp",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The lamp is now off."
+      ]
+    },
+    {
+      "move": 38,
+      "input": "take torch",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 39,
+      "input": "d",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a north-south crawlway; a passage also goes to the east.",
+        " There is a hole above, but it provides no opportunities for climbing."
+      ]
+    },
+    {
+      "move": 40,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Troll Room"
+      ]
+    },
+    {
+      "move": 41,
+      "input": "s",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike."
+      ]
+    },
+    {
+      "move": 42,
+      "input": "s",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike."
+      ]
+    },
+    {
+      "move": 43,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike."
+      ]
+    },
+    {
+      "move": 44,
+      "input": "u",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike.",
+        " A skeleton, probably the remains of a luckless adventurer, lies here.",
+        " The deceased adventurer's useless lantern is here.",
+        " There is a set of skeleton keys here.",
+        " Beside the skeleton is a rusty knife.",
+        " An old leather bag, bulging with coins, is here."
+      ]
+    },
+    {
+      "move": 45,
+      "input": "take coins",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 46,
+      "input": "sw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike."
+      ]
+    },
+    {
+      "move": 47,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike."
+      ]
+    },
+    {
+      "move": 48,
+      "input": "s",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is part of a maze of twisty little passages, all alike."
+      ]
+    },
+    {
+      "move": 49,
+      "input": "ne",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a room with an exit on the west side, and a staircase",
+        " leading up.",
+        " A cyclops, who looks prepared to eat horses (much less mere",
+        " adventurers), blocks the staircase.  From his state of health",
+        " and the bloodstains on the walls, you gather that he is not very",
+        " friendly, though he likes people."
+      ]
+    },
+    {
+      "move": 50,
+      "input": "ODYSSEUS",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The cyclops, hearing the name of his father's deadly nemesis, flees",
+        " the room by knocking down the wall on the north side of the room."
+      ]
+    },
+    {
+      "move": 51,
+      "input": "u",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large room, whose north wall is solid granite.  A number",
+        " of discarded bags, which crumble at your touch, are scattered about",
+        " on the floor.  There is an exit down and what appears to be a newly",
+        " created passage to the east.",
+        " There is a silver chalice, intricately engraved, here.",
+        " You hear a scream of anguish as you violate the robber's hideaway.",
+        " Using passages unknown to you, he rushes to its defense.",
+        " The thief strikes at your wrist, and suddenly your grip is slippery",
+        " with blood."
+      ]
+    },
+    {
+      "move": 52,
+      "input": "give egg to thief",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The thief is taken aback by your unexpected generosity but accepts",
+        " the jewel-encrusted egg and stops to admire its beauty."
+      ]
+    },
+    {
+      "move": 53,
+      "input": "d",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Cyclops Room"
+      ]
+    },
+    {
+      "move": 54,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a long passage.  To the south is one entrance.  On the",
+        " east there is an old wooden door with a large hole in it (about",
+        " cyclops sized)."
+      ]
+    },
+    {
+      "move": 55,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the living room.  There is a door to the east.  To the west",
+        " is a cyclops-shaped hole in an old wooden door, above which is some",
+        " strange gothic lettering.",
+        " In the center of the room is a closed trap door.",
+        " A brown sack is here.",
+        " There is a trophy case here.",
+        " A clear glass bottle is here.",
+        " On hooks above the mantelpiece hangs an elvish sword of great antiquity.",
+        " There is an issue of US NEWS & DUNGEON REPORT here.",
+        " There is a square brick here which feels like clay.",
+        " There is a welcome mat here.",
+        " The glass bottle contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 56,
+      "input": "open case",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Opened."
+      ]
+    },
+    {
+      "move": 57,
+      "input": "put coins in case",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Done."
+      ]
+    },
+    {
+      "move": 58,
+      "input": "open trap door",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The door reluctantly opens to reveal a rickety staircase descending",
+        " into darkness."
+      ]
+    },
+    {
+      "move": 59,
+      "input": "take bottle",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 60,
+      "input": "d",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Cellar"
+      ]
+    },
+    {
+      "move": 61,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Troll Room"
+      ]
+    },
+    {
+      "move": 62,
+      "input": "n",
+      "parse": {},
+      "state": {},
+      "output": [
+        " East-West Passage"
+      ]
+    },
+    {
+      "move": 63,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a circular room with passages off in eight directions.",
+        " Your compass needle spins wildly, and you cannot get your bearings."
+      ]
+    },
+    {
+      "move": 64,
+      "input": "se",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Unfortunately, it is impossible to tell directions in here.",
+        " You have entered a cave with passages leading north and southeast.",
+        " There are old engravings on the walls here.",
+        " Someone carrying a large bag is casually leaning against one of the",
+        " walls here.  He does not speak, but it is clear from his aspect that",
+        " the bag will be taken only over his dead body."
+      ]
+    },
+    {
+      "move": 65,
+      "input": "se",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a room which is bare on all sides.  There is an exit down.",
+        " To the east is a great door made of stone.  Above the door, the",
+        " following words are written: \"No man shall enter this room without",
+        " solving this riddle--",
+        "  ",
+        " \tWhat is tall as a house,",
+        " \tRound as a cup,",
+        " \tAnd all the king's horses can't draw it up?\".",
+        "  ",
+        " (Reply via 'ANSWER \"answer\"'.)"
+      ]
+    },
+    {
+      "move": 66,
+      "input": "answer \"well\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is a clap of thunder, and the east door opens."
+      ]
+    },
+    {
+      "move": 67,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a former broom closet.  The exits are to the east and west.",
+        " There is a pearl necklace here with hundreds of large pearls."
+      ]
+    },
+    {
+      "move": 68,
+      "input": "take necklace",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 69,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a damp circular room, whose walls are made of brick and",
+        " mortar.  The roof of this room is not visible, but there appear to be",
+        " some etchings on the walls.  There is a passageway to the west.",
+        " There is a wooden bucket here, three feet in diameter and three feet",
+        " high."
+      ]
+    },
+    {
+      "move": 70,
+      "input": "get inside bucket",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are now in the wooden bucket."
+      ]
+    },
+    {
+      "move": 71,
+      "input": "open bottle",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Opened."
+      ]
+    },
+    {
+      "move": 72,
+      "input": "pour water",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is now a puddle in the bottom of the wooden bucket.",
+        " The bucket rises and comes to a stop.",
+        " You are at the top of the well.  Well done.  There are etchings on",
+        " the side of the well.  There is a small crack across the floor at the",
+        " entrance to a room on the east, but it can be crossed easily.",
+        " You are in the wooden bucket.",
+        " The wooden bucket contains:",
+        "   A quantity of water."
+      ]
+    },
+    {
+      "move": 73,
+      "input": "get out of bucket",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are on your own feet again."
+      ]
+    },
+    {
+      "move": 74,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a small square room, in the center of which is a large",
+        " oblong table, no doubt set for afternoon tea.  It is clear from the",
+        " objects on the table that the users were indeed mad.  In the eastern",
+        " corner of this room is a small hole no more than four inches high.",
+        " There are passageways leading away to the west and the northwest.",
+        " There is a piece of cake where with the words \"Eat-Me\" on it.",
+        " There is a piece of cake with orange icing here.",
+        " There is a piece of cake with red icing here.",
+        " There is a piece of cake with blue (ecch) icing here."
+      ]
+    },
+    {
+      "move": 75,
+      "input": "take all",
+      "parse": {},
+      "state": {},
+      "output": [
+        " piece of \"Eat-Me\" cake:",
+        " Taken.",
+        " piece of cake with orange icing:",
+        " Taken.",
+        " piece of cake with red icing:",
+        " Taken.",
+        " piece of cake with blue icing:",
+        " Taken."
+      ]
+    },
+    {
+      "move": 76,
+      "input": "eat eatme cake",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Suddenly, the room appears to have become very large."
+      ]
+    },
+    {
+      "move": 77,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large room, one half of which is depressed.  There is a",
+        " large leak in the ceiling through which brown colored goop is",
+        " falling.  The only exit from this room is to the west.",
+        " A stoppered glass flask with skull-and-crossbones markings is here.",
+        " The flask is filled with some clear liquid.",
+        " The leak has submerged the depressed area in a pool of sewage."
+      ]
+    },
+    {
+      "move": 78,
+      "input": "throw red cake",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The pool of water evaporates, revealing a tin of rare spices."
+      ]
+    },
+    {
+      "move": 79,
+      "input": "take tin",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 80,
+      "input": "w",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is an enormous room, in the center of which are four wooden",
+        " posts delineating a rectangular area, above which is what appears to",
+        " be a wooden roof.  In fact, all objects in this room appear to be",
+        " abnormally large.  To the east is a passageway.  There is a large",
+        " chasm on the west and the northwest."
+      ]
+    },
+    {
+      "move": 81,
+      "input": "eat blue cake",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The room around you seems to be getting smaller."
+      ]
+    },
+    {
+      "move": 82,
+      "input": "nw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a room with a low ceiling which is circular in shape.",
+        " There are exits to the east and southeast.",
+        " There is a robot here.",
+        " There is a green piece of paper here."
+      ]
+    },
+    {
+      "move": 83,
+      "input": "tell robot \"go east\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " \"Whirr, buzz, click!\"",
+        " Done."
+      ]
+    },
+    {
+      "move": 84,
+      "input": "e",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large room full of assorted heavy machinery.  The room",
+        " smells of burned resistors.  The room is noisy from the whirring",
+        " sounds of the machines.  Along one wall of the room are three buttons",
+        " which are, respectively, round, triangular, and square.  Naturally,",
+        " above the buttons are instructions written in EBCDIC.  A large sign",
+        " above all the buttons says in English:",
+        "  ",
+        " \t\t    DANGER: HIGH VOLTAGE",
+        "  ",
+        " There are exits to the west and the south.",
+        " There is a robot here."
+      ]
+    },
+    {
+      "move": 85,
+      "input": "tell robot \"push triangular button\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " \"Whirr, buzz, click!\"",
+        " A dull thump is heard in the distance."
+      ]
+    },
+    {
+      "move": 86,
+      "input": "tell robot \"go south\"",
+      "parse": {},
+      "state": {},
+      "output": [
+        " \"Whirr, buzz, click!\"",
+        " Done."
+      ]
+    },
+    {
+      "move": 87,
+      "input": "s",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a dingy closet adjacent to the machine room.  On one wall",
+        " is a small sticker which reads:",
+        "  ",
+        " \t\tProtected by",
+        " \t\t  FROBOZZ",
+        " \t     Magic Alarm Company",
+        " \t      (Hello, footpad!).",
+        " There is a beautiful white crystal sphere here.",
+        " There is a robot here."
+      ]
+    },
+    {
+      "move": 88,
+      "input": "get sphere",
+      "parse": {},
+      "state": {},
+      "output": [
+        " As you reach for the sphere, a steel cage falls from the ceiling",
+        " to entrap you.  To make matters worse, poisonous gas starts coming",
+        " into the room."
+      ]
+    },
+    {
+      "move": 89,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 90,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 91,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " Time passes... and you die from some obscure poisoning.",
+        " As you take your last breath, you feel relieved of your burdens.  The",
+        " feeling passes as you find yourself before the gates of Hell, where",
+        " the spirits jeer at you and deny you entry.  Your senses are disturbed.",
+        " The objects in the dungeon appear indistinct, bleached of color, even",
+        " unreal."
+      ]
+    },
+    {
+      "move": 92,
+      "input": "quit",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Your score would be+ 123 [total of 616 points], in   92 moves.",
+        " This gives you the rank of Novice Adventurer.",
+        " Do you wish to leave the game?",
+        " Ok.",
+        ""
+      ]
+    }
+  ]
+}

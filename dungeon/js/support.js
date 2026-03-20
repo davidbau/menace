@@ -971,7 +971,6 @@ export function score(G, flg) {
  * SCRUPD(n) — Update winner's score.
  */
 export function scrupd(G, n) {
-  if (n === 0) return;
   if (G.endgmf) {
     G.egscor += n;
     return;
@@ -1282,6 +1281,7 @@ export function clockd(G) {
 export function jigsup(G, desc) {
   const rlist = [KITCH, CLEAR, FORE3, FORE2, SHOUS, FORE2, KITCH, EHOUS];
 
+  if (G._npcTrack) G._npcTrack.add(`death:${desc}`);
   rspeak(G, desc);
   G.prscon = 0;
   if (G.dbgflg !== 0) return;

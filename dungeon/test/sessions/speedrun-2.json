@@ -111,7 +111,7 @@
     },
     {
       "cmd": "inventory",
-      "note": "PRNG fix #3 of 3: with take mat+bottle+inventory (3 steps here) plus inventory before wait (1 step), fixes thief PRNG (no egg theft at ODYSSEUS) + carousel→rm90 + no coin theft"
+      "note": "PRNG fix #3 of 3: with take mat+bottle+inventory (3 steps here) plus inventory before wait (1 step), fixes thief PRNG (no egg theft at ODYSSEUS) + carousel\u2192rm90 + no coin theft"
     },
     {
       "cmd": "walk south"
@@ -402,7 +402,7 @@
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Low Room PRNG fix 2/2: SE will now lead to Tea Room→Top of Well→bucket"
+      "note": "Low Room PRNG fix 2/2: SE will now lead to Tea Room\u2192Top of Well\u2192bucket"
     },
     {
       "cmd": "walk se"
@@ -826,7 +826,7 @@
     {
       "cmd": "echo",
       "boundaryAdjust": -1,
-      "note": "Echo Room reads 'echo' as part of the preceding ne move — no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1",
+      "note": "Echo Room reads 'echo' as part of the preceding ne move \u2014 no own boundary; boundaryAdjust=-1 shifts all subsequent chunk checks back by 1",
       "echoRoom": true
     },
     {
@@ -881,7 +881,7 @@
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Thief movement PRNG fix: staring at the river keeps the thief away from the rope — without this, he'd steal it"
+      "note": "Thief movement PRNG fix: staring at the river keeps the thief away from the rope \u2014 without this, he'd steal it"
     },
     {
       "cmd": "go down"
@@ -1044,7 +1044,7 @@
     {
       "cmd": "stare",
       "extra": true,
-      "note": "Thief fight PRNG fix 2/10: You hear footsteps — or maybe just the dungeon settling."
+      "note": "Thief fight PRNG fix 2/10: You hear footsteps \u2014 or maybe just the dungeon settling."
     },
     {
       "cmd": "stare",
@@ -1103,7 +1103,7 @@
     {
       "cmd": "score",
       "extra": true,
-      "note": "the thief's loot is ours — check the running tally"
+      "note": "the thief's loot is ours \u2014 check the running tally"
     },
     {
       "cmd": "take coffin"
@@ -1977,7 +1977,7 @@
     {
       "cmd": "read paper",
       "extra": true,
-      "note": "the green paper in the Lava Room is the Frobozz Magic Robot Company manual — 'Hello, master! I am a late-model robot...' (found it AFTER already using the robot)"
+      "note": "the green paper in the Lava Room is the Frobozz Magic Robot Company manual \u2014 'Hello, master! I am a late-model robot...' (found it AFTER already using the robot)"
     },
     {
       "cmd": "walk south"
@@ -2189,8 +2189,200 @@
       "expect": [
         "616 [total of 616 points]"
       ]
+    },
+    {
+      "cmd": "hello sailor",
+      "note": "easter egg: increments hs counter, no PRNG effect"
+    },
+    {
+      "cmd": "wait",
+      "note": "allow ticks to pass before incantation"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "wait"
+    },
+    {
+      "cmd": "incant \"ZORK CQCBBBCA\"",
+      "note": "trigger endgame (seed=2 encrypted spell)"
+    },
+    {
+      "cmd": "go north",
+      "note": "TSTRS(158)\u2192MRANT(159)"
+    },
+    {
+      "cmd": "go north",
+      "note": "MRANT(159)\u2192MREYE(160)"
+    },
+    {
+      "cmd": "drop lamp",
+      "note": "block beam in MREYE"
+    },
+    {
+      "cmd": "go south",
+      "note": "MREYE\u2192MRANT"
+    },
+    {
+      "cmd": "push red button",
+      "note": "open mirror: ctick[20]=7\u21926"
+    },
+    {
+      "cmd": "go north",
+      "note": "\u2192MREYE tick\u21925"
+    },
+    {
+      "cmd": "take lamp",
+      "note": "tick\u21924"
+    },
+    {
+      "cmd": "go north",
+      "note": "\u2192MRA(161) tick\u21923"
+    },
+    {
+      "cmd": "in",
+      "note": "enter INMIR(177) tick\u21922"
+    },
+    {
+      "cmd": "raise short pole",
+      "note": "poleuf=2, tick\u21921"
+    },
+    {
+      "cmd": "push red wall",
+      "note": "mdir: 270\u2192315, tick\u21920 (CEV21 fires)"
+    },
+    {
+      "cmd": "push red wall",
+      "note": "mdir: 315\u21920(N)"
+    },
+    {
+      "cmd": "lower short pole",
+      "note": "poleuf=0 into channel"
+    },
+    {
+      "cmd": "push mahogany wall",
+      "note": "mloc: MRB(162)\u2192MRC(163)"
+    },
+    {
+      "cmd": "push mahogany wall",
+      "note": "mloc: MRC(163)\u2192MRG(164)"
+    },
+    {
+      "cmd": "push mahogany wall",
+      "note": "mloc: MRG(164)\u2192MRD(165)"
+    },
+    {
+      "cmd": "raise short pole",
+      "note": "poleuf=2"
+    },
+    {
+      "cmd": "push red wall",
+      "note": "mdir: 0\u219245"
+    },
+    {
+      "cmd": "push red wall",
+      "note": "mdir: 45\u219290"
+    },
+    {
+      "cmd": "push red wall",
+      "note": "mdir: 90\u2192135"
+    },
+    {
+      "cmd": "push red wall",
+      "note": "mdir: 135\u2192180(S)"
+    },
+    {
+      "cmd": "push pine wall",
+      "note": "wdopnf=true [mloc=MRD, mdir=180: door opens]"
+    },
+    {
+      "cmd": "go north",
+      "note": "exit INMIR via wdopnf C10 \u2192 FDOOR(166)"
+    },
+    {
+      "cmd": "knock on wooden door",
+      "note": "triggers quiz: q1 (quesno=6 for seed=2)"
+    },
+    {
+      "cmd": "answer \"RUSTY KNIFE\"",
+      "note": "q1 correct \u2192 corrct=1, quesno\u21921"
+    },
+    {
+      "cmd": "answer \"FOREST\"",
+      "note": "q2 (from Altar?) correct \u2192 corrct=2, quesno\u21924"
+    },
+    {
+      "cmd": "answer \"RUB\"",
+      "note": "q3 (what to do to mirror?) correct \u2192 corrct=3 \u2192 QDOOR opens"
+    },
+    {
+      "cmd": "go north",
+      "note": "FDOOR(166)\u2192BDOOR(178) through open QDOOR"
+    },
+    {
+      "cmd": "go north",
+      "note": "BDOOR(178)\u2192SCORR(179)"
+    },
+    {
+      "cmd": "go west",
+      "note": "SCORR(179)\u2192rm180 [W exit]"
+    },
+    {
+      "cmd": "go north",
+      "note": "rm180\u2192NCORR(182)"
+    },
+    {
+      "cmd": "go north",
+      "note": "NCORR(182)\u2192PARAP(183) \u2014 master follows here"
+    },
+    {
+      "cmd": "turn dial to 4",
+      "note": "pnumb=4"
+    },
+    {
+      "cmd": "push button",
+      "note": "lcell=4 (player in PARAP, not CELL \u2192 just sets lcell=4)"
+    },
+    {
+      "cmd": "turn dial to 1",
+      "note": "pnumb=1 (must differ from lcell=4 so master push triggers movement)"
+    },
+    {
+      "cmd": "tell master \"stay\"",
+      "note": "freeze master in PARAP (ctick[CEVFOL]=0)"
+    },
+    {
+      "cmd": "go south",
+      "note": "PARAP(183)\u2192NCORR(182)"
+    },
+    {
+      "cmd": "open cell door",
+      "note": "open CDOOR(175)"
+    },
+    {
+      "cmd": "go south",
+      "note": "NCORR(182)\u2192CELL(184) \u2014 master stays in PARAP"
+    },
+    {
+      "cmd": "tell master \"push button\"",
+      "note": "master executes from PARAP; n_dialbutton checks PLAYER in CELL(yes), lcell=4(yes), pnumb=1(\u22604) \u2192 moveto(NCELL, PLAYER)"
+    },
+    {
+      "cmd": "open bronze door",
+      "note": "open ODOOR(172) in NCELL(186)"
+    },
+    {
+      "cmd": "go north",
+      "note": "NCELL(186)\u2192NIRVA(187) \u2192 room_nirva \u2192 100/100 endgame + gameOver; rank: Dungeon Master"
     }
   ],
-  "notes": "Seed 2 complete speedrun attempt (literate route with extra examinations for PRNG alignment); 616/616 in 682 moves",
+  "notes": "Seed 2 complete speedrun with endgame (616/616 main + 100/100 endgame = Dungeon Master rank); 731 moves total; endgame uses tell master to push button from Parapet while player is in Cell",
   "source": "dungeon.hints.txt"
 }

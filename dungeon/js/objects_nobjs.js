@@ -167,6 +167,7 @@ function mirpan(G, st, pnf) {
 // ---------------------------------------------------------------
 
 export function nobjs(G, ri, arg) {
+  if (G._oapplTrack) G._oapplTrack.add(ri + 31); // nobjs handles ri 1..N → global 32..N+31
   let odo2 = 0;
   let odi2 = 0;
   if (G.prso !== 0 && G.prso <= OMAX) odo2 = G.odesc2[G.prso - 1];

@@ -1,7 +1,7 @@
 {
   "format": "zork-parity-v1",
   "source": "fortran",
-  "timestamp": "2026-03-19T21:52:15.891Z",
+  "timestamp": "2026-03-20T02:30:44.178Z",
   "steps": [
     {
       "move": 0,
@@ -464,7 +464,198 @@
     },
     {
       "move": 40,
-      "input": "look",
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a deep ravine at a crossing with an east-west crawlway.",
+        " Some stone steps are at the south of the ravine, and a steep",
+        " staircase descends."
+      ]
+    },
+    {
+      "move": 41,
+      "input": "go down",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a long room on the south shore of a large reservoir.",
+        " There is a western exit, a passageway south, and a steep pathway",
+        " climbing up along the edge of a cliff."
+      ]
+    },
+    {
+      "move": 42,
+      "input": "go up",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are on the south edge of a deep canyon.  Passages lead off",
+        " to the east, south, and northwest.  You can hear the sound of",
+        " flowing water below."
+      ]
+    },
+    {
+      "move": 43,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are standing on the top of Flood Control Dam #3, which was",
+        " quite a tourist attraction in times far distant.  There are paths",
+        " to the north, south, east, and down.",
+        " The sluice gates on the dam are closed.  Behind the dam, there can",
+        " be seen a wide lake.  A small stream is formed by the runoff from",
+        " the lake.",
+        " There is a control panel here.  There is a large metal bolt on the",
+        " panel.  Above the bolt is a small green plastic bubble."
+      ]
+    },
+    {
+      "move": 44,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This room appears to have been the waiting room for groups touring",
+        " the dam.  There are exits here to the north and east marked",
+        " \"Private\", though the doors are open, and an exit to the south.",
+        " A guidebook entitled \"Flood Control Dam #3\" is on the reception desk.",
+        " There is a matchbook whose cover says \"Visit Beautiful FCD #3\" here."
+      ]
+    },
+    {
+      "move": 45,
+      "input": "take matches",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 46,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is what appears to have been the maintenance room for Flood",
+        " Control Dam #3, judging by the assortment of tool chests around the",
+        " room.  Apparently, this room has been ransacked recently, for most of",
+        " the valuable equipment is gone.  On the wall in front of you is a",
+        " panel of buttons, which are labeled in EBCDIC.  However, they are of",
+        " different colors: blue, yellow, brown, and red.  The doors to this",
+        " room are in the west and south ends.",
+        " There is an object which looks like a tube of toothpaste here.",
+        " There is a wrench here.",
+        " There is a screwdriver here."
+      ]
+    },
+    {
+      "move": 47,
+      "input": "push blue button",
+      "parse": {},
+      "state": {},
+      "output": [
+        " There is a rumbling sound, and a stream of water appears to burst",
+        " from the east wall of the room (apparently, a leak has occurred",
+        " in a pipe).",
+        " The water level is now up to your ankles."
+      ]
+    },
+    {
+      "move": 48,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Dam Lobby",
+        " A guidebook entitled \"Flood Control Dam #3\" is on the reception desk."
+      ]
+    },
+    {
+      "move": 49,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Dam"
+      ]
+    },
+    {
+      "move": 50,
+      "input": "go south",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Deep Canyon"
+      ]
+    },
+    {
+      "move": 51,
+      "input": "go nw",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Reservoir South"
+      ]
+    },
+    {
+      "move": 52,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You are standing on a path beside a gently flowing stream.  The path",
+        " travels to the north and the east.",
+        " There is a coil of thin shiny wire here."
+      ]
+    },
+    {
+      "move": 53,
+      "input": "go north",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a large room with giant icicles hanging from the walls",
+        " and ceiling.  There are passages to the north and east.",
+        " A mass of ice fills the western half of the room."
+      ]
+    },
+    {
+      "move": 54,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a room which looks like an Egyptian tomb.  There is an",
+        " ascending staircase in the room as well as doors east and south.",
+        " The solid gold coffin used for the burial of Ramses II is here."
+      ]
+    },
+    {
+      "move": 55,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is a crawlway with a three foot high ceiling.  Your footing is",
+        " very unsure here due to the assortment of rocks underfoot.  Passages",
+        " can be seen in the east, west, and northwest corners of the crawlway."
+      ]
+    },
+    {
+      "move": 56,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Deep Ravine"
+      ]
+    },
+    {
+      "move": 57,
+      "input": "go south",
       "parse": {},
       "state": {},
       "output": [
@@ -473,7 +664,7 @@
       ]
     },
     {
-      "move": 41,
+      "move": 58,
       "input": "go east",
       "parse": {},
       "state": {},
@@ -483,8 +674,8 @@
       ]
     },
     {
-      "move": 42,
-      "input": "go east",
+      "move": 59,
+      "input": "go north",
       "parse": {},
       "state": {},
       "output": [
@@ -495,7 +686,7 @@
       ]
     },
     {
-      "move": 43,
+      "move": 60,
       "input": "go up",
       "parse": {},
       "state": {},
@@ -508,7 +699,7 @@
       ]
     },
     {
-      "move": 44,
+      "move": 61,
       "input": "take bell",
       "parse": {},
       "state": {},
@@ -517,7 +708,37 @@
       ]
     },
     {
-      "move": 45,
+      "move": 62,
+      "input": "go east",
+      "parse": {},
+      "state": {},
+      "output": [
+        " This is the east end of a large temple.  In front of you is what",
+        " appears to be an altar.",
+        " On the alter is a large black book, open to page 569.",
+        " On the two ends of the altar are burning candles."
+      ]
+    },
+    {
+      "move": 63,
+      "input": "take candles",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Taken."
+      ]
+    },
+    {
+      "move": 64,
+      "input": "go west",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Temple"
+      ]
+    },
+    {
+      "move": 65,
       "input": "go west",
       "parse": {},
       "state": {},
@@ -527,7 +748,7 @@
       ]
     },
     {
-      "move": 46,
+      "move": 66,
       "input": "go east",
       "parse": {},
       "state": {},
@@ -537,17 +758,18 @@
       ]
     },
     {
-      "move": 47,
+      "move": 67,
       "input": "go south",
       "parse": {},
       "state": {},
       "output": [
         " This is a tiny cave with entrances west and north, and a dark,",
-        " forbidding staircase leading down."
+        " forbidding staircase leading down.",
+        " The cave is very windy at the moment, and your candles have blown out."
       ]
     },
     {
-      "move": 48,
+      "move": 68,
       "input": "go down",
       "parse": {},
       "state": {},
@@ -564,24 +786,7 @@
       ]
     },
     {
-      "move": 49,
-      "input": "look",
-      "parse": {},
-      "state": {},
-      "output": [
-        " You are outside a large gateway, on which is inscribed:",
-        "  ",
-        " \t\"Abandon every hope, all ye who enter here.\"",
-        "  ",
-        " The gate is open.  Through it you can see a desolation, with a pile of",
-        " mangled corpses in one corner.  Thousands of voices, lamenting some",
-        " hideous fate, can be heard.",
-        " The way through the gate is barred by evil spirits, who jeer at your",
-        " attempts to pass."
-      ]
-    },
-    {
-      "move": 50,
+      "move": 69,
       "input": "ring bell",
       "parse": {},
       "state": {},
@@ -591,195 +796,6 @@
         " wraiths, as if paralyzed, stop their jeering and slowly turn to",
         " face you.  On their ashen faces, the expression of a long-forgotten",
         " terror takes shape."
-      ]
-    },
-    {
-      "move": 51,
-      "input": "look",
-      "parse": {},
-      "state": {},
-      "output": [
-        " You are outside a large gateway, on which is inscribed:",
-        "  ",
-        " \t\"Abandon every hope, all ye who enter here.\"",
-        "  ",
-        " The gate is open.  Through it you can see a desolation, with a pile of",
-        " mangled corpses in one corner.  Thousands of voices, lamenting some",
-        " hideous fate, can be heard.",
-        " The way through the gate is barred by evil spirits, who jeer at your",
-        " attempts to pass.",
-        " On the ground is a red hot bell."
-      ]
-    },
-    {
-      "move": 52,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes...",
-        " The tension of this ceremony is broken, and the wraiths, amused but",
-        " shaken at your clumsy attempt, resume their hideous jeering."
-      ]
-    },
-    {
-      "move": 53,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 54,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 55,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 56,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes...",
-        " The bell appears to have cooled down."
-      ]
-    },
-    {
-      "move": 57,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 58,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 59,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 60,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 61,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 62,
-      "input": "go up",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a tiny cave with entrances west and north, and a dark,",
-        " forbidding staircase leading down."
-      ]
-    },
-    {
-      "move": 63,
-      "input": "go north",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Narrow Crawlway"
-      ]
-    },
-    {
-      "move": 64,
-      "input": "go north",
-      "parse": {},
-      "state": {},
-      "output": [
-        " You are standing in a small circular room with a pedestal.  A set of",
-        " stairs leads up, and passages leave to the east and west.",
-        " There is an extremely valuable (perhaps original) grail here."
-      ]
-    },
-    {
-      "move": 65,
-      "input": "go up",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Temple"
-      ]
-    },
-    {
-      "move": 66,
-      "input": "go east",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is the east end of a large temple.  In front of you is what",
-        " appears to be an altar.",
-        " On the alter is a large black book, open to page 569.",
-        " On the two ends of the altar are burning candles."
-      ]
-    },
-    {
-      "move": 67,
-      "input": "pray",
-      "parse": {},
-      "state": {},
-      "output": [
-        " This is a forest, with trees in all directions around you."
-      ]
-    },
-    {
-      "move": 68,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
-      ]
-    },
-    {
-      "move": 69,
-      "input": "wait",
-      "parse": {},
-      "state": {},
-      "output": [
-        " Time passes..."
       ]
     },
     {
@@ -797,7 +813,9 @@
       "parse": {},
       "state": {},
       "output": [
-        " Time passes..."
+        " Time passes...",
+        " The tension of this ceremony is broken, and the wraiths, amused but",
+        " shaken at your clumsy attempt, resume their hideous jeering."
       ]
     },
     {
@@ -811,11 +829,229 @@
     },
     {
       "move": 73,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 74,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 75,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " The bell appears to have cooled down."
+      ]
+    },
+    {
+      "move": 76,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 77,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 78,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 79,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 80,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 81,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 82,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 83,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 84,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 85,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 86,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 87,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 88,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 89,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 90,
+      "input": "ring bell",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Ding, dong.",
+        " The bell suddenly becomes red hot and falls to the ground.  The",
+        " wraiths, as if paralyzed, stop their jeering and slowly turn to",
+        " face you.  On their ashen faces, the expression of a long-forgotten",
+        " terror takes shape."
+      ]
+    },
+    {
+      "move": 91,
+      "input": "turn on match",
+      "parse": {},
+      "state": {},
+      "output": [
+        " One of the matches starts to burn."
+      ]
+    },
+    {
+      "move": 92,
+      "input": "burn candles with match",
+      "parse": {},
+      "state": {},
+      "output": [
+        " The candles are lit.",
+        " The flames flicker wildly and appear to dance.  The earth beneath",
+        " your feet trembles, and your legs nearly buckle beneath you.  The",
+        " spirits cower at your unearthly power.",
+        " The match has gone out."
+      ]
+    },
+    {
+      "move": 93,
+      "input": "take candles",
+      "parse": {},
+      "state": {},
+      "output": [
+        " You already have it."
+      ]
+    },
+    {
+      "move": 94,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes...",
+        " The tension of this ceremony is broken, and the wraiths, amused but",
+        " shaken at your clumsy attempt, resume their hideous jeering."
+      ]
+    },
+    {
+      "move": 95,
+      "input": "wait",
+      "parse": {},
+      "state": {},
+      "output": [
+        " Time passes..."
+      ]
+    },
+    {
+      "move": 96,
       "input": "quit",
       "parse": {},
       "state": {},
       "output": [
-        " Your score would be+  40 [total of 616 points], in   73 moves.",
+        " Your score would be+  40 [total of 616 points], in   96 moves.",
         " This gives you the rank of Amateur Adventurer.",
         " Do you wish to leave the game?",
         " Ok.",

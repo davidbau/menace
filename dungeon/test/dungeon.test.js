@@ -196,10 +196,12 @@ describe('Light mechanics', () => {
 // All sessions recorded with DUNGEON_SEED=42; JS run with seed=42.
 // ========================================================================
 
-// Normalize output lines: trim trailing whitespace, drop bare ">" prompts and
+// Normalize output lines: trim trailing whitespace, drop bare ">" prompts,
+// "--More--" pagination markers (Fortran-only; JS engine omits them), and
 // trailing empty strings (the Fortran recorder may emit a trailing '' on quit).
 function normalizeOutput(lines) {
-    const result = (lines || []).map(s => s.trimEnd()).filter(s => s !== '>');
+    const result = (lines || []).map(s => s.trimEnd())
+        .filter(s => s !== '>' && s !== ' --More--');
     while (result.length > 0 && result[result.length - 1] === '') result.pop();
     return result;
 }
@@ -245,7 +247,7 @@ async function runParitySession(inputLines, seed = 42) {
     return steps;
 }
 
-describe('Fortran parity sessions (per-step, seed=42)', () => {
+describe('Fortran parity sessions (per-step, seed=42)', { concurrency: false }, () => {
     async function checkSession(name) {
         const fortranPath = new URL(`sessions/${name}.fortran.json`, import.meta.url);
         const inputPath = new URL(`sessions/${name}.input`, import.meta.url);
@@ -295,4 +297,7 @@ describe('Fortran parity sessions (per-step, seed=42)', () => {
     it('well-bucket session matches Fortran byte-for-byte', () => checkSession('well-bucket'));
     it('speedrun-2 session matches Fortran byte-for-byte', () => checkSession('speedrun-2'));
     it('anti-speedrun session matches Fortran byte-for-byte', () => checkSession('anti-speedrun'));
+    it('speedrun-31-gnome session matches Fortran byte-for-byte', () => checkSession('speedrun-31-gnome'));
+    it('speedrun-31-sphere session matches Fortran byte-for-byte', () => checkSession('speedrun-31-sphere'));
+    it('speedrun-1-endgame session matches Fortran byte-for-byte', () => checkSession('speedrun-1-endgame'));
 });

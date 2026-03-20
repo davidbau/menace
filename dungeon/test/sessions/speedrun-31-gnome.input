@@ -1,0 +1,561 @@
+take mat
+n
+n
+u
+take egg
+d
+n
+n
+e
+open window
+w
+take all
+w
+move rug
+open trap door
+take lamp
+e
+u
+turn on lamp
+take all
+d
+w
+drop all but rope, lamp, egg and knife
+d
+e
+kill troll with knife
+kill troll with knife
+kill troll with knife
+n
+n
+w
+nw
+e
+e
+tie rope to railing
+climb down
+turn off lamp
+take torch
+d
+e
+s
+s
+e
+u
+take coins
+sw
+e
+s
+ne
+ODYSSEUS
+u
+give egg to thief
+d
+n
+e
+open case
+put coins in case
+open trap door
+take bottle
+d
+e
+n
+e
+se
+se
+answer "well"
+e
+take necklace
+e
+get inside bucket
+open bottle
+pour water
+get out of bucket
+e
+take all
+eat eatme cake
+e
+throw red cake
+take tin
+w
+eat blue cake
+nw
+tell robot "go east"
+e
+tell robot "push triangular button"
+tell robot "go south"
+s
+get sphere
+tell robot "lift cage"
+get sphere
+n
+w
+se
+w
+board
+fill bottle with water
+disembark
+w
+w
+d
+n
+open box
+take violin
+w
+w
+w
+u
+put treasure in case
+drop all
+take torch
+d
+s
+s
+take painting
+w
+nw
+w
+s
+take portrait
+n
+walk through north wall
+walk through south wall
+walk through north wall
+take bills
+walk through north wall
+drop all except torch
+w
+w
+take all
+walk through north wall
+s
+s
+n
+w
+u
+put treasure in case
+take torch and mat
+d
+e
+n
+e
+nw
+e
+n
+take all
+read matchbook
+send for free brochure
+e
+take all
+push yellow button
+w
+s
+turn bolt with wrench
+s
+s
+w
+w
+w
+u
+put treasure in case
+drop all
+take torch
+d
+e
+n
+n
+d
+n
+take trunk
+n
+take pump
+n
+take trident
+u
+n
+w
+w
+d
+u
+put trunk and trident in case
+d
+e
+n
+e
+ne
+ne
+echo
+take bar
+e
+e
+take shovel
+nw
+s
+u
+e
+d
+pump up plastic
+put all in boat
+board
+launch
+d
+d
+d
+take all
+take buoy
+w
+open buoy
+take emerald
+put buoy in boat
+disembark
+dig sand with shovel
+dig sand with shovel
+dig sand with shovel
+dig sand with shovel
+take statue
+s
+s
+wave stick
+e
+e
+take gold
+se
+u
+u
+s
+w
+n
+e
+w
+w
+put all in case
+e
+e
+s
+w
+open mailbox
+take all
+n
+e
+w
+w
+put stamp in case
+drop all
+take knife
+take torch
+w
+s
+u
+kill thief with knife
+kill thief with knife
+kill thief with knife
+kill thief with knife
+kill thief with knife
+take coffin
+d
+n
+e
+put coffin in case
+w
+s
+u
+take all
+d
+n
+e
+e
+e
+n
+n
+u
+wind canary
+d
+take bauble
+w
+e
+w
+w
+put treasure in case
+drop all
+take torch and matchbook
+d
+e
+n
+e
+e
+take grail
+u
+take bell
+e
+take all
+w
+w
+e
+s
+d
+ring bell
+take candles
+light match
+light candles with match
+read book
+drop book and candles
+e
+e
+w
+w
+u
+n
+n
+w
+w
+w
+w
+u
+put treasure in case
+drop all
+take torch and matchbook
+d
+e
+n
+e
+e
+u
+take bell
+e
+take all
+w
+w
+e
+s
+d
+ring bell
+light match
+light candles with match
+read book
+drop book and candles
+e
+e
+w
+w
+u
+n
+n
+n
+w
+w
+w
+w
+u
+put grail in case
+drop all
+take torch, lamp, sack and screwdriver
+d
+e
+n
+e
+se
+e
+touch mirror
+w
+w
+n
+nw
+open sack
+take garlic
+w
+take figurine
+e
+s
+ne
+put torch and screwdriver in basket
+turn on lamp
+n
+w
+d
+take bracelet
+u
+e
+ne
+n
+u
+s
+take rope
+ne
+d
+nw
+d
+d
+ne
+take coal
+s
+s
+drop all
+take lamp, timber and coal
+n
+u
+u
+e
+e
+s
+put coal in basket
+drop timber
+lower basket
+n
+ne
+n
+ne
+nw
+d
+d
+s
+drop all
+sw
+take all
+e
+open lid
+put coal in machine
+close lid
+turn switch with screwdriver
+open lid
+take diamond
+nw
+put all in basket
+raise basket
+ne
+take all
+n
+u
+u
+e
+e
+s
+turn off lamp
+drop all
+take torch and rope and timber
+w
+s
+drop timber
+tie rope to timber
+d
+d
+d
+e
+s
+take sphere
+n
+w
+u
+u
+u
+n
+ne
+take all
+w
+s
+d
+d
+u
+put treasure in case
+drop all
+take torch
+w
+s
+u
+e
+read paper
+d
+push east wall
+s
+sw
+push south wall
+e
+e
+push south wall
+n
+n
+e
+push south wall
+take card
+push south wall
+e
+ne
+push west wall
+push west wall
+push west wall
+push west wall
+ne
+ne
+n
+push east wall
+sw
+s
+se
+ne
+n
+push west wall
+nw
+push south wall
+push south wall
+w
+nw
+nw
+push south wall
+se
+se
+se
+ne
+push west wall
+push west wall
+sw
+push north wall
+push north wall
+push north wall
+nw
+u
+w
+d
+n
+e
+put card in case
+drop all
+take torch, lamp, guidebook, brick and matchbook
+d
+e
+n
+d
+d
+w
+take wire
+n
+throw torch
+turn on lamp
+w
+take ruby
+w
+s
+board
+open receptacle
+put guidebook in receptacle
+light match
+light guidebook with match
+wait
+wait
+land
+disembark
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+look at gnome
+wait
+score
+quit
+y

@@ -57,6 +57,7 @@ function qon(G, obj) {
 
 export function rappli(G, ri) {
   if (ri === 0) return;
+  if (G._rappliTrack) G._rappliTrack.add(ri);
 
   const handlers = [
     null,  // 0 unused
