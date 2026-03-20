@@ -2,6 +2,7 @@
 // cf. sit.c -- #sit command, throne effects, rndcurse, attrcurse
 
 import { rn2, rnd, rn1, d, c_d } from './rng.js';
+import { losehp } from './hack.js';
 import { ROOM, THRONE, SINK, ALTAR, GRAVE, STAIRS, LADDER,
          FOUNTAIN, ICE, DRAWBRIDGE_DOWN,
          A_STR, A_DEX, A_CON, A_WIS, A_INT, A_CHA,
@@ -138,7 +139,7 @@ async function special_throne_effect(effect, player, map, display) {
         {
             // RNG parity: rnd(16) or rnd(80) for damage
             const dmg = player.hasProp(ACID_RES) ? rnd(16) : rnd(80);
-            // TODO: losehp(dmg, "acidic chair", KILLED_BY_AN)
+            await losehp(dmg, "acidic chair", 0, player, _gstate?.display, _gstate);
         }
         await exercise(player, A_CON, false);
         break;
@@ -179,7 +180,7 @@ async function throne_sit_effect(player, map, display) {
                 const loss = rn1(4, 3); // rn2(4) + 3
                 await adjattrib(player, attr, -loss, 0);
                 const dmg = rnd(10);
-                // TODO: losehp(dmg, "cursed throne", KILLED_BY_AN)
+                await losehp(dmg, "cursed throne", 0, player, _gstate?.display, _gstate);
             }
             break;
         case 2:
@@ -195,7 +196,7 @@ async function throne_sit_effect(player, map, display) {
                   player.hasProp(SHOCK_RES) ? "n" : " massive");
             {
                 const dmg = player.hasProp(SHOCK_RES) ? rnd(6) : rnd(30);
-                // TODO: losehp(dmg, "electric chair", KILLED_BY_AN)
+                await losehp(dmg, "electric chair", 0, player, _gstate?.display, _gstate);
             }
             await exercise(player, A_CON, false);
             break;
@@ -434,7 +435,7 @@ export async function dosit(player, map, display) {
                     await You("sit down on a spike.  Ouch!");
                     // RNG parity: rn2(2) for half phys damage
                     const dmg = player.half_physical_damage ? rn2(2) : 1;
-                    // TODO: losehp(dmg, "sitting on an iron spike", KILLED_BY)
+                    await losehp(dmg, "sitting on an iron spike", 0, player, _gstate?.display, _gstate);
                     await exercise(player, A_STR, false);
                 } else {
                     await You("sit down in the pit.");
@@ -447,7 +448,7 @@ export async function dosit(player, map, display) {
                 await You("sit in the lava!");
                 player.utrap += rnd(4);
                 const dmg = c_d(2, 10);
-                // TODO: losehp(dmg, "sitting in lava", KILLED_BY)
+                await losehp(dmg, "sitting in lava", 0, player, _gstate?.display, _gstate);
             } else if (player.utraptype === TT_INFLOOR || player.utraptype === TT_BURIEDBALL) {
                 // TT_INFLOOR or TT_BURIEDBALL
                 await You_cant("maneuver to sit!");
@@ -481,7 +482,7 @@ export async function dosit(player, map, display) {
         await pline_The("lava burns you!");
         {
             const dmg = c_d(player.hasProp(FIRE_RES) ? 2 : 10, 10);
-            // TODO: losehp(dmg, "sitting on lava", KILLED_BY)
+            await losehp(dmg, "sitting on lava", 0, player, _gstate?.display, _gstate);
         }
     } else if (is_ice(px, py, map)) {
         await You(sit_message, "ice");
