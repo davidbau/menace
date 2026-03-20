@@ -68,6 +68,7 @@ import { experience, more_experienced, newexplevel, newuexp } from './exper.js';
 import { game as _gstate } from './gstate.js';
 import { envFlag, getEnv } from './runtime_env.js';
 import { applyMonflee, erode_armor_on_player } from './mhitu.js';
+import { fall_asleep } from './timeout.js';
 import { killed, mondead, mondied, monkilled, wakeup, setmangry, xkilled } from './mon.js';
 import { newsym, canspotmon, map_invisible } from './display.js';
 import { placeFloorObject } from './invent.js';
@@ -1217,7 +1218,7 @@ export function mhitm_ad_slee(magr, mattk, mdef, mhm) {
         // mhitu path: monster puts player to sleep
         // C ref: uhitm.c:3472-3484 — !rn2(5) gate + rnd(10) duration
         if (!rn2(5) && !mhitm_mgc_atk_negated(magr, mdef)) {
-            rnd(10); // fall_asleep duration
+            fall_asleep(-rnd(10), true);
         }
     } else {
         // mhitm path: monster-vs-monster sleep
