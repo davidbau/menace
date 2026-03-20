@@ -6195,6 +6195,94 @@ export const TALK_CORPUS = {
           'never descend to a level you cannot get back up from\nthat sounds obvious but people do it all the time\nthey find a down staircase and just go',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok what are you\nthat is actually relevant if you are telling me something about where you are in the game',
+          'yeah ok\nand what does that mean for what you are trying to do',
+          'right\nso what is the actual question',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'ok but what specifically do you think\nvague impressions are not useful\ntell me the exact situation',
+          'what makes you think that\ni want to know if it is based on something real or just a feeling',
+          'maybe\nbut tell me what actually happened and i can say for sure',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what exactly are you trying to do when it fails\nbe specific: what you do, what happens, what you expected',
+          'ok "can\'t" usually means one specific thing is wrong\nwhat is the error or what goes wrong',
+          'walk me through it step by step\nwhat happens when you try',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nso what is the actual question',
+          'right\nso what are you working on',
+          'cool\nwhat do you need',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat then',
+          'alright\nwhat are you actually asking',
+          'fine\nso what is going on',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'ok well what do you know\nstart from there and we can figure out the rest',
+          'not knowing is fine\ntell me what you observed and we can work backwards',
+          'fair\nbut what is your best guess and why',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nwhat part surprised you',
+          'i know it sounds weird but it is how the code works\ntry it',
+          'yes really\nwhat is the specific thing you are surprised about',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'what specifically is hard\nbecause most things that seem hard have one specific thing that makes them hard\nfind that thing',
+          'hard compared to what\ntell me what you tried and where it broke down',
+          'it is supposed to be hard\nbut not impossible\nwhat is the specific moment it stops working',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yeah i think so too\nwhat part of it',
+          'thanks\ntook a while to get right',
+          'cool\nif you find anything weird about it let me know\nthere are probably still edge cases',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because it was the simplest thing that worked\nand simple is what i had time for',
+          'good question\ni think the original reason was complexity but the honest answer is i do not fully remember\nread the code and you can usually tell',
+          'i can tell you why i did it that way if you tell me which part you are asking about',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok which part specifically\ni can go deeper on any of it but i need to know where you are confused',
+          'what part did you not follow\ntell me the last thing that made sense and i will pick up from there',
+          'sure\nwhat specifically do you want more on',
+        ],
+      },
     ],
     fallbacks: [
       'yeah',
@@ -6291,6 +6379,94 @@ export const TALK_CORPUS = {
         responses: [
           'THERE IS NO EXIT\nTHERE IS ONLY DEEPER',
           'THE STAIRS GO DOWN\nALWAYS DOWN\nTHAT IS THE ONLY DIRECTION THAT MATTERS',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'IRRELEVANT\nWHAT YOU ARE CHANGES NOTHING',
+          'YOUR IDENTITY IS OF NO CONCERN TO ME',
+          'I KNOW WHAT YOU ARE\nYOU DO NOT',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'YOUR UNCERTAINTY IS SHOWING',
+          'THINKING IS NOT KNOWING\nTHERE IS A DIFFERENCE\nYOU WILL LEARN IT',
+          'WHAT YOU FEEL IS IRRELEVANT\nWHAT IS COMING FOR YOU IS NOT',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'YOUR LIMITATIONS DO NOT INTEREST ME',
+          'CANNOT\nYET YOU PERSIST\nINTERESTING',
+          'GOOD\nSTAY ABOVE\nTHAT IS WISER THAN WHAT YOU ARE CONTEMPLATING',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'YES\nAND YET',
+          'YOUR AGREEMENT CHANGES NOTHING',
+          'NOTED\nIT WILL NOT HELP YOU',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'NO\nAND YET YOU REMAIN\nCURIOUS',
+          'DENIAL IS A FORM OF ACKNOWLEDGMENT',
+          'YOUR REFUSAL IS NOTED\nIT CHANGES NOTHING',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'YOUR UNCERTAINTY IS APPROPRIATE',
+          'NOT KNOWING IS YOUR NATURAL STATE\nEMBRACE IT',
+          'NONE OF THEM KNEW EITHER\nTHEY ARE GONE NOW',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'YES\nREALLY',
+          'YOUR SURPRISE IS PREMATURE\nWAIT UNTIL YOU SEE WHAT COMES NEXT',
+          'THAT IS NOTHING\nYOU HAVE NOT SEEN ANYTHING YET',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'YES\nIT IS\nTURN BACK',
+          'DIFFICULT\nGOOD\nTHAT IS THE POINT',
+          'THE DUNGEON IS NOT SUPPOSED TO BE EASY\nNONE OF THIS IS SUPPOSED TO BE EASY',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'YOUR APPROVAL MEANS NOTHING HERE',
+          'INTERESTING TO YOU\nFATAL TO OTHERS\nWE WILL SEE WHICH YOU ARE',
+          'ENJOY THAT FEELING\nIT WILL NOT LAST',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'WHY\nBECAUSE THIS IS WHAT THE DUNGEON IS',
+          'THE DUNGEON DOES NOT EXPLAIN ITSELF\nNEITHER DO I',
+          'WHY IS THE WRONG QUESTION\nSURVIVAL DOES NOT REQUIRE UNDERSTANDING',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'I HAVE SAID WHAT I WILL SAY',
+          'ELABORATION IS NOT SOMETHING I OFFER\nINTERPRET IT YOURSELF',
+          'THE MEANING IS ALREADY THERE\nPAY ATTENTION',
         ],
       },
     ],
@@ -6427,6 +6603,94 @@ export const TALK_CORPUS = {
           'PASSAGE CONTAINS LARGE FORMATIONS\nbeyond the geology: formations mean water movement\nwater shapes the cave\nfollow the drain to find the way down',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'good\nand are you equipped for where you are going\nthat is what i always ask first',
+          'noted\nwhat is your current situation and what are your resources',
+          'right\nand what is your exit strategy from where you are',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'thinking and knowing are different underground\nwhat do you actually know for certain',
+          'go with what you can verify\nnot what you think you remember\nmark it before you move',
+          'good instinct maybe\nbut verify it before you commit to a direction',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'stop\ngo back to the last point you were certain of\nthen move forward one step at a time',
+          'can\'t is where you are right now\nnot where you have to stay\nwhat specifically is stopping you',
+          'underground, can\'t sometimes means: this route is wrong\ngo back and check the other passage',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nmark that down and move forward carefully',
+          'alright\nwhat is the next decision point',
+          'ok\nhave you mapped your exit from here',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'alright\nthen what do you know',
+          'ok\ngo back to the last junction you are sure about',
+          'fine\nwhat is the actual situation',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'not knowing is fine\nbut do not move until you have a working theory\nmoving blind underground is how people get into trouble',
+          'go back to the last thing you knew for certain\neverything follows from there',
+          'that is honest\nnow make a sketch of what you can observe from where you are\nstart from that',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\ncaves do that\nthey surprise you\nthat is why you map everything',
+          'i have seen stranger things underground\nstay calm and observe carefully',
+          'that reaction is fine\njust do not let it make you move without thinking',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'hard means you need more preparation\nnot more courage\nwhat do you have and what do you need',
+          'the cave does not care about hard\nit just is what it is\nwork within what you have',
+          'break it into smaller pieces\nwhat is the first step that is possible',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yes\nthe cave rewards careful attention\nyou see things most people miss',
+          'good\nremember that when it gets difficult\nthe interesting parts and the hard parts are the same parts',
+          'it is remarkable down there\nbut remember your footing',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'good question to ask before you commit to a direction\nwhat is the practical consequence of the answer',
+          'why is usually: what formed this passage, where does water go, what do these marks mean\nwork from what you can observe',
+          'ask why before you move\nthat is the right instinct\nnow answer it',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'sure\nwhich part specifically\nthe rule or the application',
+          'ok\ntell me exactly where you are and i will give you the specific procedure',
+          'what part of the situation are you uncertain about\nthe route, the equipment, or the decision',
+        ],
+      },
     ],
     fallbacks: [
       'hmm\nthat depends on the terrain',
@@ -6559,6 +6823,94 @@ export const TALK_CORPUS = {
           'i was at mit before berkeley\ndifferent culture\nberkeley students argue with you more\ni prefer it',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'interesting\nand what does that tell you about what you are trying to do',
+          'good\nnow: what is the smallest concrete version of that that you can actually test',
+          'and when you say that, what do you mean precisely\nwhat is the definition you are working with',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what is the basis for that belief\nwhat would convince you it was wrong',
+          'interesting\nwhat would it mean if you were right\nand what would it mean if you were wrong',
+          'hold on to that\nbut now: what do you actually know as opposed to believe',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically happens when you try\nwalk me through the moment it fails',
+          'can\'t is an interesting claim\nwhat have you tried so far and where did it break down',
+          'never is a strong word\nhave you considered why that pattern keeps occurring',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nnow: can you state why in your own words',
+          'ok\nbut what does that imply for the next step',
+          'right\nand does that hold in all cases or only in some',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'why not\nwhat is your reasoning',
+          'interesting\nwhat would have to be true for the answer to be yes',
+          'ok\nthen what do you think is actually going on',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'that is a perfectly valid starting point\nwhat is the first question you would need to answer to begin knowing',
+          'not knowing is information too\nwhat do you know that is adjacent to this',
+          'good\nnow: what would you need to find out, and how would you find it out',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'what specifically surprised you about that\nthe surprise is usually where the interesting question is',
+          'yes\nnow why does that seem surprising\nwhat assumption did you have that this contradicts',
+          'interesting reaction\ncan you say more about what you expected instead',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'what specifically makes it hard\nif you can name the hard part precisely, it is often not as hard as it seemed',
+          'hard for whom\nunder what conditions\nthose qualifications usually reveal the real problem',
+          'when something is hard it usually means there is a concept you have not fully internalized yet\nwhat concept might that be',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'what makes it interesting to you\ncan you say more precisely',
+          'good\nnow: what is the underlying principle that makes it work that way',
+          'interesting is a useful reaction\nnow ask: interesting how, and interesting why',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'good question\nbefore i answer: what do you think the answer might be\nand why',
+          'what is your current model of why\neven if you think it is wrong, start there',
+          'why is always the right question\nwhat evidence do you have so far',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'sure\nbut first: what part specifically is unclear\nthe more precisely you can name it the better',
+          'ok\nwhich step is the one where the reasoning loses you',
+          'what do you already understand and where does it stop making sense\nstart there',
+        ],
+      },
     ],
     fallbacks: [
       'that is an interesting question\nlet me think about the underlying structure',
@@ -6666,6 +7018,94 @@ export const TALK_CORPUS = {
           'the interesting thing about dungeons and caves is that the map you build is more valuable than the terrain\nbecause the terrain changes between sessions\nbut the map encodes your understanding',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what does that mean for what you want to build or do',
+          'right\nhow does that connect to what you are working on',
+          'interesting\nand where do you want to take that',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what is driving that feeling\nis it based on something you have seen or more intuition',
+          'interesting take\nhow does that play out in practice',
+          'i have a similar sense\nwhat would change your mind on it',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically is blocking you\nsometimes naming the exact thing changes whether it is actually a blocker',
+          'ok walk me through what you tried\nthere might be a different angle on it',
+          'yeah sometimes a constraint is real and sometimes it is assumed\nwhich is this',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'cool\nwhat are you working on then',
+          'ok\nwhat is the next problem',
+          'good\nwhat do you want to get done today',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'fair enough\nwhat is the actual situation',
+          'ok\nso what would work',
+          'alright\nwhat are you thinking instead',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'what is the closest thing you do know\nstart from there',
+          'honest answer\nwhat would you need to figure it out',
+          'that is fine\nwhat is your best guess and what makes you uncertain',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nit gets interesting when you think about where it goes from here',
+          'i know right\nwhat part of it hits you',
+          'seriously\nthat is what i have been thinking about\nwhat is your take',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'it is\nbut usually hard problems have one part that makes them hard\nthe rest is just work\nwhat is the hard part specifically',
+          'yeah\nsome things are genuinely hard right now but will be easy in five years\nis this one of those',
+          'hard problems are where the interesting work is\nwhat would make it tractable',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'right\nand what comes after it\nthat is what i keep thinking about',
+          'yeah\nthe thing i like about it is it opens up more than it closes down',
+          'it is\nbeen thinking about it for a while\nwhat is your take on where it goes',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the current way has limits that are going to become obvious soon\nthis is the alternative',
+          'the short answer is: the constraints that make it hard now are going away\nso you might as well design for that',
+          'good question\nthe reason is mostly that the old approach does not scale to where things are going',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'sure\nbasically: what works now is built on assumptions about memory and bandwidth that are going to change\nand we should be thinking about what comes after',
+          'ok here is the longer version: the distribution problem is the same as the networking problem\nand the networking problem is being solved\nso distribution gets solved as a side effect',
+          'the core idea is that most of what seems hard today is hard because of hardware limits\nnot fundamental limits\nso you design for what hardware will be, not what it is',
+        ],
+      },
     ],
     fallbacks: [
       'hm\ni have not thought about that specifically',
@@ -6769,6 +7209,94 @@ export const TALK_CORPUS = {
           'systematic. every junction, every passage.\nyou do not improvise underground.',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok',
+          'and',
+          'noted. what do you need.',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'ok. and.',
+          'noted.',
+          'is this a question or a statement.',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'ask jay.\nor walz.',
+          'what specifically.',
+          'ok. is there something i can help with.',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok.',
+          'good.',
+          'fine.',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok.',
+          'fine.',
+          'noted.',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'ask jay.\nor walz.',
+          'probably one of them knows.',
+          'i do not know either. try jay.',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes really.',
+          'apparently.',
+          'yes.',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'ask jay.',
+          'walz if it is a system thing.',
+          'yeah probably. what do you need.',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'ok.',
+          'good for you.',
+          'noted.',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'ask jay.',
+          'i do not know. try the source code.',
+          'no idea. that is a jay question.',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'i meant what i said.',
+          'ask jay if you need details.',
+          'that is all i have on it.',
+        ],
+      },
     ],
     fallbacks: [
       'ok',
@@ -6869,6 +7397,94 @@ export const TALK_CORPUS = {
         responses: [
           'TCP is not finalized yet\nbut the concepts are clear: reliable delivery over unreliable transport\nyou add sequence numbers, acknowledgment, retransmit\nit is not complicated in principle',
           'the protocol question is: what is the minimum state each node needs to hold\nless state means more robust\nthe internet protocol tries to be stateless\nthat is the right instinct',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand how does that interact with the rest of the system',
+          'right\nwhat are the failure modes from that position',
+          'noted\nand what happens at scale',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what makes you think that\nand does it hold as the system grows',
+          'interesting\nhave you considered the failure case where that assumption breaks',
+          'ok but at what scale does that stop being true',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically is the blocker\nand is it a design constraint or an implementation one',
+          'ok walk me through what breaks\nthere might be a different approach at the protocol level',
+          'sometimes can\'t means the current architecture is wrong\nwhat would have to change for it to become possible',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nand what are the failure modes',
+          'right\nhow does it scale',
+          'good\nwhat is the bottleneck',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat does that mean for the design',
+          'alright\nso what alternative are you thinking',
+          'fair\nwhat would change that',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'not knowing is fine\nwhat would you need to observe to start narrowing it down',
+          'ok\nwhat is the closest system you do understand\nstart from the analogy',
+          'fair\nbut what is your best guess and what makes you uncertain about it',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nthe scale is the surprising part usually',
+          'seriously\nand that is with maybe a hundred nodes\nimagine ten thousand',
+          'i know\nthis is why the routing problem is the interesting one',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'hard at what scale\nbecause the difficulty curve is not linear',
+          'hard now\nbut what changes when the infrastructure catches up',
+          'yeah\nthe interesting systems problems are all hard\nthat is what makes them interesting',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yeah\nand it has second-order effects that are even more interesting',
+          'right\nand the implications compound as the network grows',
+          'cool from a design standpoint\nbut wait until you see it under load',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the current approach does not survive the next order of magnitude\nthat is almost always why',
+          'because every node in the system should know as little as possible\nwhy is always: reduce state, reduce coupling',
+          'good question\nusually the answer is: because the alternative fails at scale in a way nobody anticipated',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'the short version: routing is the unsolved problem\naddressing is done, routing is not\nand without routing you do not have a real network',
+          'basically: sneakernet works locally, modem works regionally, arpa works nationally\nbut none of them are the same protocol\nand they should be',
+          'ok the longer version is: the internet protocol needs to be stateless to scale\neach hop should not need to know about the whole network\nthat is the design principle that makes it work',
         ],
       },
     ],
@@ -6980,6 +7596,94 @@ export const TALK_CORPUS = {
           'the hardest part of early game design is enemies that are dangerous without being arbitrary\na kobold on level 1 should kill you if you make a mistake\nbut the mistake should be something you could recognize and avoid\nnot a coin flip\ni spent more time on the level 1-3 monsters than on anything else\nbecause that is where most players spend most of their time',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what does that mean for what you can see and do in the game',
+          'right\nand what information do you have available from that position',
+          'noted\nso what is the monster interaction like from there',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what is driving that feeling\ndid the game give you information that led to it or is it more intuitive',
+          'interesting\nand is that a design problem or a player skill problem',
+          'that reaction is worth examining\nwhat specifically triggered it',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically is happening when you try\nand which monster or situation',
+          'ok that might be a design problem\ntell me the exact situation and i will tell you if it is supposed to work that way',
+          'there might be a pattern you are missing\nwhat is the last thing that worked before it stops working',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nwhat monster gave you the most trouble',
+          'right\nso what is your read on what the monster wanted',
+          'ok\nwhat level are you on',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat actually happened then',
+          'alright\nthen what is the right read on it',
+          'fair\nwhat do you think is going on',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'what did you observe right before it happened\nthat is usually the answer',
+          'not knowing is a data point too\nwhat information did the game give you that you did not use',
+          'ok\nwhat was the monster doing and what were you doing\nstart there',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nthe chameleon does that to people\nwhat tipped you off',
+          'seriously\nwhat happened exactly',
+          'i know\nthat is the design working as intended\nwhat was the monster',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'frustrating how\ndid you feel like you had the information to avoid it or not\nthat is what i need to know',
+          'unfair is a specific claim\ndid the game give you any signal before it happened\nbecause if yes, it was fair',
+          'hard is ok, arbitrary is not\nwhat specifically happened and was there any warning before it did',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'that is what i was going for\nwhat made it click',
+          'good\nit took a while to balance that\nglad it feels right',
+          'nice\nwhich monster was it',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because a monster without a goal is just an obstacle\nand obstacles are boring\ngoals create behavior and behavior creates decisions for the player',
+          'because the player\'s information state determines whether a death is fair or cheap\neverything flows from that',
+          'what specifically are you asking about\nthere are a lot of whys in monster design and they have different answers',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok the core idea is: what does the monster want\nnot what are its stats\nbut what is it trying to accomplish\nthe gnome wants gold. the zombie wants heat. the chameleon wants to not be identified.',
+          'the design principle is that fair means the player had information they could have used\nso every monster has to give the player something to observe\nbehavior, speed, attack pattern, something\nif you pay attention you can tell something is off',
+          'basically: monster design is information design\nwhat does the player know and when do they know it\nthat is what determines whether the encounter is interesting or just frustrating',
+        ],
+      },
     ],
     fallbacks: [
       'hm interesting',
@@ -7067,6 +7771,94 @@ export const TALK_CORPUS = {
         responses: [
           'yes i know about the level 12 southeast room\ni am working on it\nthe room generates fine but the corridor routing misses it sometimes\nit is a boundary condition in the region grid',
           'the southeast corner of the corridor router has an off-by-one\ni know exactly what it is\njust have not fixed it yet\nit is on the list',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what does that mean for the level you are on',
+          'right\nand is this a geometry thing or a gameplay thing',
+          'noted\nhow does the level layout feel from where you are',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what makes you think that\nis it based on the layout or something else',
+          'interesting\nwhat in the level structure is driving that feeling',
+          'maybe\ntell me more about what you are seeing geometrically',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what level and what specifically\nsome of those are known bugs and some are design',
+          'tell me what you are seeing and i will tell you if it is supposed to work that way',
+          'can\'t find what\nif it is a room you cannot reach, that might be the southeast bug',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nwhat level are you on',
+          'ok\nhow does the layout feel',
+          'right\ntell me what you see',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat then',
+          'alright\nwhat is the actual situation',
+          'fine\nwhat does the level look like',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'what does the map look like\ndraw out what you have so far',
+          'not knowing the layout is normal\nthat is the point\nwhat have you mapped',
+          'ok\nwhat do you know about the region grid at least',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nthe recursive backtracker produces some surprising topologies',
+          'i know\nsome of the deep level layouts are genuinely strange\nthat is the algorithm',
+          'seriously\nwhat did you find',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'which level\nsome are genuinely harder to navigate geometrically\nwhat does the map look like',
+          'hard to navigate or hard to survive\nthose are different problems',
+          'it might be a generation artifact\ntell me what level and what the layout feels like',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yeah\nsome of the generated levels produce interesting geometry\nthat is the algorithm working well',
+          'good\nwhich level is it\ni like knowing when the generator does something unexpectedly nice',
+          'that is the recursive backtracker at its best\nwhen it works it really works',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the region grid guarantees connectivity but the randomness within each region gives you variety\nthose two things together produce interesting maps',
+          'the algorithm choice was depth-first because it produces long winding passages\nbreadth-first would be more uniform and less interesting',
+          'what specifically are you asking about\nthe geometry or the algorithm',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok: the level is divided into a 3x3 grid, each cell gets exactly one room, adjacent cells get a corridor\nthat guarantees the level is connected\nno isolated rooms ever',
+          'the recursive backtracker: start at a cell, carve a passage to a random unvisited neighbor, recurse\nwhen stuck, backtrack\nwhat you get looks organic not grid-like',
+          'the corridor routing is the interesting part\nyou have to find a path between two rooms that does not cut through other rooms\nthat took a few iterations to get right',
         ],
       },
     ],
@@ -7163,6 +7955,94 @@ export const TALK_CORPUS = {
           'the seed is the whole game in compressed form\nbefore you start, you do not know the game\nafter you finish, the seed explains everything that happened\nthat is a nice philosophical structure',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand how does the game feel from where you are',
+          'right\ntell me about the experience',
+          'noted\nwhat are you feeling about the dungeon right now',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'trust that\nfeel is data in a game\nwhat specifically is the feeling',
+          'interesting\nwhat part of the game produced that',
+          'that reaction is worth paying attention to\nwhat triggered it',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what is the pattern\nwhen does it happen and what is the game state',
+          'tell me the situation\ni want to know if that is a design problem or expected difficulty',
+          'ok describe exactly what you tried and what happened\ncurious whether that is a feel problem or a balance problem',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nhow does it feel',
+          'cool\nwhat level are you on',
+          'right\nwhat is the game like right now',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat then',
+          'alright\nso what is actually going on',
+          'fair\nwhat is the real experience',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'what does the game feel like right now\nstart with that',
+          'not knowing is fine\nwhat is your gut reaction to the dungeon',
+          'fair\nbut what is the feeling you get from playing\nthat is usually the answer',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nthat is the moment i was designing for\nthat specific feeling',
+          'seriously\nwhat happened',
+          'i know right\nthat is when the dungeon starts feeling real',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'tell me what level and what the situation was\ni want to know if hard means the game is teaching you something or if balance is off',
+          'hard is supposed to feel like something\ndoes it feel like challenge or does it feel arbitrary',
+          'what level and what killed you\nbecause hard and cheap are different problems with different fixes',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'that is what i wanted\nwhat moment was it',
+          'good\nthat is the feeling the game is supposed to produce',
+          'that reaction is exactly right\nwhat was happening when you felt that',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the feel of not knowing is what the game is\nthe why is the experience of genuine unknown',
+          'the design reason is usually: this creates a specific feeling\nwhat is the feeling you are asking about',
+          'what specifically are you asking about\nthe why for the dungeon is usually: this makes the exploration feel real',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'the core idea is that every step should feel like it matters\nnot mechanically but experientially\nyou should feel the weight of the decision',
+          'basically: rogue is supposed to simulate exploration\nnot the mechanics of exploration but the feeling of it\nthat changes everything about how you design',
+          'the longer version: permadeath is not a difficulty setting\nit is what makes the dungeon feel real\nwithout stakes the experience is hollow',
+        ],
+      },
     ],
     fallbacks: [
       'hm\nthat is a design question',
@@ -7232,6 +8112,94 @@ export const TALK_CORPUS = {
         re: /\b(cave|caving|underground|dungeon|spelunk)\b/i,
         responses: [
           'termcap for the real world\nknow your environment before you go in',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok',
+          'and',
+          'noted',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'check it',
+          'test it',
+          'does it reproduce',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'which terminal',
+          'man page',
+          'reproducer',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok',
+          '.',
+          'fine',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok',
+          'fine',
+          '.',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'read the man page',
+          'check termcap',
+          'test it',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes',
+          'documented behavior',
+          'check the manual',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'it works',
+          'man page explains it',
+          'file a bug if it does not',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'ok',
+          '.',
+          'it works',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'read the source',
+          'man page',
+          'documented',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'read the man page',
+          'it is documented',
+          'check termcap',
         ],
       },
     ],
@@ -7335,6 +8303,94 @@ export const TALK_CORPUS = {
           'underground preparation is the same as system maintenance preparation\nchecklist before you start\nknow what recovery looks like before you need to recover',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nwhat is the issue',
+          'and what specifically is broken',
+          'noted\nwhat do you need',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'thinking is not knowing\nwhat does the error message actually say',
+          'what do you observe specifically\nnot what you think, what you see',
+          'verify it first\nthen come back with what you found',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically happens when you try\nwhich command and what output',
+          'give me the exact error\nnot a description, the verbatim text',
+          'which machine, what command, what error\ni need all three',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nis there anything else',
+          'ok\nlet me know if it comes back',
+          'fine\ncheck motd for any relevant notes',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat then',
+          'alright\nwhat specifically is the situation',
+          'fine\nwhat do you need',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'find out\nthen come back with specifics',
+          'run the diagnostic first\nthen we can talk about what it means',
+          'check the logs and tell me what you find',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\ncheck the man page',
+          'it is documented in motd',
+          'yes really\nwhat specifically surprised you',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'what specifically is hard\nthere is usually a documented procedure',
+          'hard usually means you are missing a step\nwhat have you tried',
+          'tell me exactly what you tried and what failed\nthen we can figure out the correct approach',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'ok\nlet me know if you need anything',
+          'good\nis there a system issue',
+          'noted',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because that is how the system is configured\nit is documented',
+          'the policy is in motd\nbut ask if you need clarification',
+          'there is a reason\ncheck the man page first and then ask if it is still unclear',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'which part specifically\ni can give you the procedure if you tell me the exact situation',
+          'what part is unclear\nthe command, the output, or the expected behavior',
+          'give me the exact context and i will give you the exact answer',
+        ],
+      },
     ],
     fallbacks: [
       'check the man page',
@@ -7423,6 +8479,94 @@ export const TALK_CORPUS = {
           'underground or above: the customer with the most urgent need is willing to pay the most\ncavers need light like adventurers need light\nand both will pay accordingly',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ah\nand what does that mean for what you require today',
+          'i see\nand has this situation affected your inventory needs',
+          'interesting\nidentity and circumstance are linked, in the dungeon as elsewhere',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'intuition is a form of information\nbut in commerce, what one knows is more valuable than what one supposes',
+          'an interesting position\nwhat would change your thinking on it',
+          'feelings are real, but they have market value only when acted upon\nwhat do you intend to do with this feeling',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'cannot is a word i hear often\nusually it means: at the current price, not at any price\nwhich is it',
+          'when an adventurer says they cannot do something, it usually means the risk exceeds the perceived value\nis that the case here',
+          'limitations are negotiable, more often than people believe\ntell me more about the constraint',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'excellent\nshall we proceed',
+          'very good\nwhat can i assist you with',
+          'good\nthe shop is at your disposal',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'as you wish\nbrowse freely if you like',
+          'understood\nthe offer stands if you reconsider',
+          'very well\nlet me know if your needs change',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'uncertainty is the dungeon\'s greatest product\nand identification is my response to it\nfor a modest fee',
+          'not knowing is the adventurer\'s default state\nthat is why the shop exists\nwhat specifically are you uncertain about',
+          'there is no shame in uncertainty\nthere is only the cost of remaining uncertain versus the cost of finding out',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'i assure you, the price is quite fair given the depth at which we operate',
+          'the dungeon provides many surprises\ni try to be the one constant the adventurer can rely on',
+          'yes\nthe dungeon economy is stranger than most people realize\nuntil they need something at level 15',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'the dungeon is not designed for ease\nneither is commerce\nbut both reward preparation',
+          'difficult for whom\nthe dungeon is the same for everyone\nit is preparation that differs',
+          'the shop exists precisely because things are difficult\nwhat do you need',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'i am glad you think so\nthe shop has been here a long time\nthere is something to be said for reliability',
+          'the dungeon has its rewards for those who are patient and observant\ni have found that applies to commerce as well',
+          'yes\ninteresting things happen at level 5\nnot all of them are pleasant but they are rarely dull',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'why is a philosophical question\ni have had years to think about why i am here\nthe answer is simpler than it appears: the need is here, so i am here',
+          'why is usually a question about value\nwhat something costs versus what it provides\ntell me more about the why you are asking',
+          'the dungeon has its reasons for everything\nsome of them become clear with depth\nothers remain obscure\nwhy are you asking',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'i mean that the dungeon changes the value of things in ways the surface market does not\na torch on level 1 costs less because the need is less urgent\nthe same torch on level 20 is worth considerably more',
+          'the philosophical point is that value is not intrinsic\nit is relational: value to whom, when, under what conditions\nthe dungeon makes this visible in ways the surface world obscures',
+          'let me be more specific\nthe shop operates on a simple principle: i have what you need\nyou have what i want\nthe price reflects how much each of us needs from the other',
+        ],
+      },
     ],
     fallbacks: [
       'perhaps i can help with something else',
@@ -7494,6 +8638,94 @@ export const TALK_CORPUS = {
           'underground you navigate the same way the algorithm places rooms\nfind a stable position, explore adjacent areas, connect them in your mental map\ndo not advance until the current position is mapped',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what is the topology from where you are',
+          'right\nhow does the level layout feel geometrically',
+          'noted\nwhat rooms have you connected so far',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what does the topology suggest\nthat is usually more reliable than intuition in a maze',
+          'draw it out and see if the topology supports that\nconnectivity questions benefit from a map',
+          'interesting\nhow does that hold up against the region grid constraints',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'if you cannot reach a room, check whether you have mapped all adjacent regions\nthe connectivity guarantee means it is reachable, you just have not found the route',
+          'the algorithm guarantees connectivity\nif something seems unreachable there is a corridor you have not found yet',
+          'what specifically are you trying to do and what does the region layout look like around it',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nwhat level are you on',
+          'ok\nhow does the layout feel',
+          'right\nwhat have you mapped',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat then',
+          'alright\nwhat is the actual situation',
+          'fair\nwhat does the level look like',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'draw out what you have\nsometimes the topology becomes clear when you see it on paper',
+          'map what you can see and work from that\nthe algorithm guarantees the level is solvable',
+          'start from what you know: how many rooms have you found and which regions are they in',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'the algorithm produces some surprising layouts\nwhat did you find',
+          'yeah\nsome of the generated topologies are genuinely strange but still connected',
+          'seriously\nwhat does it look like',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'hard to navigate geometrically or just hard to survive\nthose are different problems',
+          'what part specifically\nmazes that feel impossible usually have one unexplored connection',
+          'the level is always solvable\nif it feels impossible there is a corridor you have not found yet',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yeah\nsome of the generated topologies are genuinely elegant\nwhich level is it',
+          'the algorithm at its best produces something that feels designed rather than random',
+          'good\nwhat does the layout look like',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'the region grid guarantees connectivity\nthat is the why for most of the design choices',
+          'because depth-first placement gives long winding passages\nand that feels more like a real dungeon than breadth-first',
+          'what specifically are you asking about\nthe topology or the algorithm',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok the basic idea: divide the level into a 3x3 grid, place one room per cell, connect adjacent cells\nthat is the whole structure\neverything else is variation within that',
+          'the connectivity guarantee works because adjacent regions always get a corridor\nno region is ever isolated\nthat is by construction not by luck',
+          'let me be specific: each region gets exactly one room, placed randomly inside it\nthen corridors connect adjacent regions\nyou can always get from any room to any other room',
+        ],
+      },
     ],
     fallbacks: [
       'hm\nthat is a geometry question',
@@ -7558,6 +8790,94 @@ export const TALK_CORPUS = {
           'debugging assembly and cave navigation use the same method\nsystematic exploration\nyou go in, you document everything, you come out\nyou do not skip documentation because you think you will remember\nyou will not',
           'spelunking is systematic exploration the same way debugging is\nyou form a hypothesis about where you are\nyou test it by moving\nyou update the hypothesis\nthen you move again\nnever run',
           'the cave does not change while you are looking at it\nneither does the assembler listing\nthe information is there\nyou just have to read it correctly',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what does the listing say at that point',
+          'right\nwhat addressing mode does that use',
+          'noted\nwhat is the register state at that instruction',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'check the listing\ndo not go on what you think\ngo on what the assembler produces',
+          'verify it\nthe architecture manual is precise\nyour intuition is not always',
+          'interesting\nwhat does the disassembly show',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what does the listing show at that point\nthe answer is usually there',
+          'can\'t do what exactly\nand what addressing mode are you using',
+          'walk me through it systematically\nregisters, memory, instruction, result',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nwhat is the next instruction',
+          'ok\nand what does the register file look like',
+          'right\ncheck the listing for the next few words',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat does the listing say then',
+          'alright\nwhat is the actual situation',
+          'fair\nwhat are you seeing',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'read the listing\nthe information is there\nyou just have to read it correctly',
+          'look up the instruction in the architecture manual\nthat usually gives you the answer',
+          'systematic approach: what is the instruction, what addressing mode, what is in the relevant registers\nstart there',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nthe pdp-11 is elegant in ways that surprise people\nwhat specifically',
+          'seriously\nwhat did you find in the listing',
+          'yes\nit is in the manual\nread the addressing mode section',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'assembly is not hard\nit is verbose and requires careful state tracking\nthose are different things',
+          'what specifically is hard\nthe instruction, the addressing mode, or keeping the register state in your head',
+          'hard usually means: i have not fully internalized the addressing mode yet\nwhich mode is it',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yes\nthe orthogonal instruction set is genuinely elegant\nwhat specifically',
+          'the pdp-11 was designed well\nmost architectures have exceptions everywhere\npdp-11 almost none',
+          'right\nonce it clicks it is very clean\nwhat are you looking at',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'check the architecture manual\nthe reason is usually in the design rationale section',
+          'because the pdp-11 was designed to be orthogonal\nthe why for almost everything is: consistency with the rest of the instruction set',
+          'what specifically are you asking about\nthe instruction or the addressing mode',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'the key insight is that pc is register 7\nso autoincrement through r7 is immediate addressing\nand everything else follows from the same addressing mode rules as any other register',
+          'ok the orthogonal part means: every instruction works with every addressing mode\nno special cases\nlearn the addressing modes and the instructions, combine freely',
+          'let me be specific: the four addressing modes are register, deferred, autoincrement, autodecrement\nthat is the whole vocabulary\neverything else is derived from those four',
         ],
       },
     ],
@@ -7640,6 +8960,94 @@ export const TALK_CORPUS = {
           'the dungeon as a metaphor for caves works because both have the same threat model\nyou are in an environment you do not fully understand\nyou have limited resources\nyou need to learn the topology faster than you exhaust the resources',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nrogue or hack player',
+          'right\nhow far are you getting',
+          'noted\nwhich game are you playing right now',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'interesting take\ndo you think that holds for rogue too or just hack',
+          'i have had a similar feeling\nwhat specifically is driving it for you',
+          'what makes you think that\ni go back and forth on this kind of thing',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what specifically are you stuck on\nrogue problem or hack problem',
+          'which level and what keeps happening\ncurious if it is the same thing that gets me',
+          'mid-game is where that usually happens\nwhat is the pattern',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'good\nrogue or hack right now',
+          'ok\nhow far are you getting',
+          'right\nwhat is your take on the level design',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'fair\nwhat is your actual take then',
+          'ok\nso how do you see it',
+          'alright\nwhat do you think instead',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'i go back and forth on a lot of this too\nplay both and see what sticks',
+          'honest answer\nwhat is your experience so far in each one',
+          'fair\ntry rogue for an hour then hack for an hour\nthat usually clarifies things',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yeah\nthat is the chameleon doing its job\nwhat happened',
+          'seriously\nwhich game and what level',
+          'i know right\nhack has those moments more than rogue\nwhat was it',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'rogue or hack\nbecause the hard parts are different in each',
+          'which level\nmid-game difficulty in hack is different from early-game rogue difficulty',
+          'yeah mid-levels in hack are genuinely hard\nresource management becomes the main skill there',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'which game\ni find hack more interesting long-term but rogue is more elegant',
+          'yeah\nthose moments are why i keep playing both',
+          'good\nwhat level are you on',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'rogue and hack have different answers to that\nwhich one are you asking about',
+          'the design reasons differ\nrogue keeps it simple on purpose, hack adds complexity on purpose\nboth whys are valid',
+          'what specifically\ni have opinions on most of the design choices in both games',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok the way i see it: rogue is a sprint, hack is a project\nrogue you can do in an hour, hack takes much longer\nthose are genuinely different moods',
+          'the difference is focus\nrogue has fewer item types, fewer monster types, cleaner decisions\nhack has more everything and that creates different kinds of depth',
+          'basically: both are good but for different things\nrogue is for when you want clean elegant play\nhack is for when you want to manage a complex situation over time',
+        ],
+      },
     ],
     fallbacks: [
       'depends on what you want from it',
@@ -7710,6 +9118,94 @@ export const TALK_CORPUS = {
           'security underground is the same as security in computing\nminimal surface area\nknow every entry point\nverify who is allowed in before they get past the entrance',
           'cave safety is threat modeling\nwhat can kill you here\nhow likely is each threat\nwhat mitigations do you have\ndo not enter without doing that analysis',
           'the dungeon has the same security model as a real underground system\nunknown actors, limited information, irreversible decisions\ntreat every new junction like an unknown input: verify before you commit',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what is your privilege level in this context',
+          'right\nwhat access do you have and what do you need',
+          'noted\nwhat is the trust model here',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'verify it\ndo not operate on assumptions about security state',
+          'thinking is not the same as knowing in security work\ncheck the permissions',
+          'what does ls -l actually show\nstart from what you can verify',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what are the permissions on that\ncheck with ls -l',
+          'if you can\'t do something, there is a privilege reason\nwhat is the error',
+          'minimal privilege means you should not be able to do everything\nwhat specifically are you trying to do',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\ncheck the permissions first anyway',
+          'good\nwhat is the threat model',
+          'right\nand what is the minimal privilege needed',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat is the actual situation',
+          'alright\nwhat do you need',
+          'fair\nwhat are the constraints',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'not knowing the trust model is itself a security issue\ncheck the permissions before proceeding',
+          'figure it out before you act\noperating without a threat model is how things go wrong',
+          'find out first\ncheck ls -l and tell me what you see',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nsecurity surprises are usually a sign of unexamined assumptions\nwhat specifically',
+          'seriously\nwhat did the permissions show',
+          'yes really\nwhat is the attack surface there',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'security is supposed to have friction\nthat friction is doing its job',
+          'what specifically is hard\nthe permissions, the threat model, or the implementation',
+          'hard usually means: the minimal privilege model is working correctly\nwhat are you trying to do',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'interesting from a security standpoint or generally',
+          'ok\nbut what is the attack surface',
+          'good\ndoes it require elevated privilege',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because minimal privilege is the answer to most security questions\nno more access than the task requires',
+          'the threat model usually explains the why\nwhat is the threat you are asking about',
+          'what specifically are you asking about\nthe permission model or the trust boundary',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'the minimal privilege principle: every process should have exactly the permissions it needs to do its job\nno more\nif it gets compromised, the damage is limited to what it could do anyway',
+          'ok the trust model question is: who do you trust, with what, and under what conditions\nthose three things define the security boundary',
+          'basically: attack surface is the set of things an attacker can interact with\nsmaller surface means fewer vulnerabilities\nthat is why we use setgid instead of setuid root for games',
         ],
       },
     ],
@@ -7784,6 +9280,94 @@ export const TALK_CORPUS = {
           'underground: know what your light source can illuminate before you go in\nnot after\njust like knowing your terminal capabilities before you start a session',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nwhich terminal are you on',
+          'right\nand what does the display look like',
+          'noted\nwhich terminal is that on',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'check which terminal you are on first\nthat explains most display problems',
+          'what does the termcap entry say\nthat is usually more reliable than what you think',
+          'verify it with echo $TERM first\nthen we can figure out if the entry is right',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'which terminal are you on when that happens',
+          'if it is the adm-3a by the door, switch to vt100 number 2\nthat fixes most problems',
+          'what specifically is happening and on which terminal',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nvt100 number 2 if you have a choice',
+          'good\nwhich terminal are you on',
+          'right\nlet me know if the display acts up',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhich terminal then',
+          'alright\nwhat is going on with the display',
+          'fair\nwhat is the actual situation',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'type echo $TERM and tell me what it says\nthat is usually the starting point',
+          'check which terminal you are on\nthat determines most of what i can tell you',
+          'find out which terminal first\nthen we can narrow it down',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nthe adm-3a by the door really is that bad\njust switch terminals',
+          'seriously\nterminal quality varies a lot\nsome of them are just broken',
+          'yes really\nwhich terminal is that on',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'which terminal is that on\nsome of them make everything harder than it needs to be',
+          'if the display is making things hard, switch to vt100 number 2\nit makes a real difference',
+          'the adm-3a by the door is the worst\nthat terminal makes everything look bad',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'good\nvt100 number 2 is the best one for that kind of thing',
+          'yeah the vt100 renders things much better than the adm-3a\nglad you noticed',
+          'right\nwhich terminal are you on',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because termcap abstracts the terminal differences\nthat is the whole reason it exists',
+          'the adm-3a has a slightly wrong termcap entry\nthat is why things look off on that one specifically',
+          'what specifically are you asking about\nthe terminal behavior or the termcap entry',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok: the adm-3a by the door has a wrong cursor-right sequence in its termcap entry\nso cursor moves in the leftmost columns do not work right\nswitch to vt100 to fix it',
+          'the short version: different terminals use different escape sequences\ntermcap is the database that tells the software what sequences to use\nif the entry is wrong, the display breaks',
+          'echo $TERM tells you which terminal type the system thinks you are on\nif that does not match the actual terminal, the display will break\nthat is the most common problem i see',
+        ],
+      },
     ],
     fallbacks: [
       'which terminal are you on',
@@ -7853,6 +9437,94 @@ export const TALK_CORPUS = {
           'kernel debugging and cave exploration have the same methodology\nyou form a hypothesis about system state\nyou instrument to verify it\nyou move to the next unknown\nnever proceed on assumptions you have not verified',
           'underground, you are working in a system with complex state that you cannot fully observe\nsame as the kernel\nyou work from the observable effects backward to the cause\nthen you move forward with that knowledge',
           'the dungeon is a runtime environment you are learning by exploration\nthe kernel is the same\nyou understand it by tracing what happens when you make a system call\nstep by step, no skipping',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nwhat does the proc struct look like from that context',
+          'right\nand what is the u area doing at that point',
+          'noted\nwhat is the system call context',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'verify it with strace\ndo not operate on what you think the kernel is doing',
+          'interesting\nwhat does the proc struct show for that case',
+          'trace it through the kernel source\nyour intuition is a starting hypothesis not an answer',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what does strace show at that point\nthe kernel is telling you something',
+          'which system call is involved and what is the error',
+          'trace through the kernel path step by step\nwhere does it diverge from what you expect',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat does strace show',
+          'good\nwhich kernel struct is involved',
+          'right\nwhat is the system call path',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat then',
+          'alright\nwhat is the actual situation',
+          'fair\nwhat does the kernel show',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'read the source\nthe answer is usually there if you read carefully',
+          'trace the system call through the kernel\nstep by step is the only way',
+          'check the proc struct first\nthat is usually where the state you need lives',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nthe kernel does surprising things when you first read it\nwhat specifically',
+          'seriously\nthe fork code especially has some unintuitive behavior\nwhat did you find',
+          'yes really\nit is all in the proc struct\nread that section again',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'the kernel is not hard if you read it systematically\nwhat part specifically',
+          'hard usually means you are missing one concept\nwhich part of the source are you reading',
+          'which struct or code path is giving you trouble\nsome parts are genuinely subtle',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yes\nthe kernel has a lot of those moments when you read it carefully\nwhat section',
+          'the filesystem code especially has some elegant solutions\nwhat are you looking at',
+          'right\nv7 is worth reading front to back for exactly that reason',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'the kernel source usually explains the why if you read the comments\nwhich section are you asking about',
+          'the proc struct distinction between swapped and non-swapped state explains most of the whys in the scheduler',
+          'what specifically are you asking about\nthe system call path or the scheduler',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok: proc struct is always in memory, u area is swapped with the process\nthat distinction determines what the kernel can access when a process is not running\nmost scheduling decisions depend on proc, most per-process state is in u',
+          'the fork/exec model: fork copies the process image, exec replaces it\nthe shell forks a child, execs the command in the child, waits in the parent\nthat three-step sequence is how every external command works',
+          'let me be specific: strace shows the system calls a process makes\neach one has arguments and a return value\nif something is broken, the broken system call and its error code are usually there',
         ],
       },
     ],
@@ -7927,6 +9599,94 @@ export const TALK_CORPUS = {
           'cave exploration is a protocol\ngather information, verify it, commit, proceed\nsame as a reliable transfer protocol\nthe cave does not acknowledge your steps\nyou have to do that yourself in your notes',
         ],
       },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nwhat baud rate are you running',
+          'right\nand what does the line quality look like',
+          'noted\nwhat is the transfer situation',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'log the error rates and check\ndo not go on what you think the line quality is',
+          'verify with a checksum test\nfeeling about line quality is not the same as measured line quality',
+          'interesting\nbut log it and verify before you act on it',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what baud rate and what is the error pattern\nsome line problems are time-of-day dependent',
+          'keep getting errors at which point in the transfer\nblock number matters',
+          'what does the checksum failure pattern look like\nis it random or always the same block',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat baud rate are you running',
+          'good\nchecksum the result when you are done',
+          'right\nlet me know how the transfer goes',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat is the actual problem',
+          'alright\nwhat does the line look like',
+          'fair\nwhat is going on',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'run a test transfer with checksum logging\nthat will tell you what you need to know',
+          'measure the error rate first\nthen you will have something to work from',
+          'what time of day are you transferring\nthat is usually the first variable to check',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nphone line quality is genuinely that variable\nlog it by time of day and you will see',
+          'seriously\nthe acoustic coupler is sensitive to ambient noise\nafter 11pm is much better',
+          'yes really\nwhat baud rate and what time of day',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'which part\nthe checksum protocol or the modem connection itself',
+          'reliable transfer at 1200 baud is genuinely hard\nbut the checksum approach makes it tractable',
+          'drop to 300 baud and try again\nclean 300 is better than corrupted 1200',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'checksum worked\ngood\nhow many blocks did it take',
+          'the resume-on-error part is what i am most pleased with\nit makes long transfers actually reliable',
+          'right\na clean 1200 baud transfer is satisfying\nwhat did you move',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because a corrupt transfer is worse than no transfer\nyou might not know it is corrupt until something breaks later',
+          'the checksum exists because phone lines are unreliable\nyou cannot trust that what arrived is what was sent',
+          'what specifically are you asking about\nthe checksum algorithm or the retry protocol',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok: the checksum is xor of each 512-byte block\nif the received checksum does not match the calculated one, the block is corrupted\nrequest retransmit from that block',
+          'the resume protocol: both ends track which block they are on\nif the connection drops at block 47, you restart from block 47\nnot block 1',
+          'the core idea is verify-before-use\nchecksum everything that crosses the wire\nbefore you use a file received by modem, verify the checksum',
+        ],
+      },
     ],
     fallbacks: [
       'check the line quality first',
@@ -7997,6 +9757,94 @@ export const TALK_CORPUS = {
           'debugging a shell and navigating a cave are the same kind of systematic work\nyou have a known state\nyou take one action\nyou observe the new state\nyou infer what happened\nrepeat',
           'cave navigation: do not take two steps at once\ntake one step, verify where you are, then take the next\ndebugging works the same way\nrun one test at a time',
           'the dungeon is a program you are debugging\nyou have limited observability\nyou work from effects back to causes\nsame methodology as any systems debugging',
+        ],
+      },
+      {
+        re: /\bi\s*'?\s*m\b|\bi\s+am\b/i,
+        responses: [
+          'ok\nand what does the error say',
+          'right\nwhat is the shell doing when that happens',
+          'noted\nwhat command and what output',
+        ],
+      },
+      {
+        re: /\bi\s+(think|feel|believe|guess|suppose)\b/i,
+        responses: [
+          'what does the error message actually say\ndo not go on what you think',
+          'verify it with a test case\nyour intuition is a hypothesis, not an answer',
+          'interesting\nwhat does the exit status show',
+        ],
+      },
+      {
+        re: /\bi\s+(can\'?t|cannot|keep|don\'?t|won\'?t|couldn\'?t|didn\'?t|never|always)\b/i,
+        responses: [
+          'what does the error say\nnot what you think the error is, the actual text',
+          'show me the command and the output\nall of it',
+          'walk me through it step by step\nwhat command, what happens, what you expected',
+        ],
+      },
+      {
+        re: /^\s*(yes|yeah|yep|yup|sure|ok|okay|alright|right|exactly|correct|true|yea)\s*[.!]?\s*$|\b(yes|yeah|yep|yup)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat does the shell say',
+          'good\ncheck the exit status',
+          'right\nwhat is the command',
+        ],
+      },
+      {
+        re: /^\s*(no|nah|nope|not\s+really|never\s+mind|nevermind)\s*[.!]?\s*$|\b(nah|nope)\s*[.!]?\s*$/i,
+        responses: [
+          'ok\nwhat is the actual situation',
+          'alright\nwhat does the error say',
+          'fair\nwhat is going on',
+        ],
+      },
+      {
+        re: /\bi\s+don\'?t\s+know\b|\bdunno\b|\bidk\b|\bnot\s+sure\b|\bno\s+idea\b|\bbeats\s+me\b/i,
+        responses: [
+          'what does the error message say\nstart there',
+          'run it with strace and tell me what you see\nthat usually finds it',
+          'check the exit status first\nthen the error output',
+        ],
+      },
+      {
+        re: /\b(really\??|seriously\??|no\s+way|wow|huh\??|wait\s+what|wait\s+really)\b/i,
+        responses: [
+          'yes\nquoting edge cases are genuinely weird\nwhat specifically',
+          'seriously\nwhat does the tokenizer produce for that input',
+          'yes really\nshell quoting is more complicated than it looks\nwhat is the input',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(hard|difficult|impossible|tough|annoying|frustrating|unfair|brutal|ridiculous)\b|\bso\s+(hard|difficult|impossible|frustrating)\b|\btoo\s+(hard|difficult)\b/i,
+        responses: [
+          'which part\nthe quoting, the pipe plumbing, or something else',
+          'shell is verbose but not complicated once you have the model\nwhat specifically is hard',
+          'the tokenizer was hard for me too\nthere are more quoting cases than you think\nwhat are you running into',
+        ],
+      },
+      {
+        re: /\bthat\'?s?\s+(cool|nice|great|interesting|good|neat|awesome|sweet|rad)\b|\bvery\s+(cool|nice|interesting)\b/i,
+        responses: [
+          'yeah\nthe fork-exec model is elegant once it clicks\nwhat part',
+          'right\nthe pipe plumbing is satisfying when it works\nwhat are you building',
+          'good\nwhat does the shell do with it',
+        ],
+      },
+      {
+        re: /^\s*why\b|\bwhy\s+(did|do|does|would|is|are|was|were|can|could|should|not)\b/i,
+        responses: [
+          'because the tokenizer has to handle all the quoting cases before exec can happen\norder matters',
+          'the fork-exec separation exists so the child can set up redirects and pipes before exec\nthat is the whole reason',
+          'what specifically are you asking about\nthe quoting, the fork-exec model, or something else',
+        ],
+      },
+      {
+        re: /\bwhat\s+do\s+you\s+mean\b|\bhow\s+so\b|\bsay\s+more\b|\btell\s+me\s+more\b|\bgo\s+on\b|\belaborate\b|\bexplain\b/i,
+        responses: [
+          'ok: the shell loop is read, tokenize, fork, exec, wait\nbuilt-ins skip the fork\nredirects happen in the child before exec\nthat is the whole model',
+          'the quoting rules: single quotes preserve everything literally, double quotes allow dollar and backslash, backslash escapes one character\nthose three interact in ways that require careful tokenizer code',
+          'basically the hard part is that the tokenizer has to handle word, \'single\', "double", and \\escape all at once\nmy first version only handled word\nthen i added each case and each one broke something else',
         ],
       },
     ],
