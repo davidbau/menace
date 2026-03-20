@@ -14134,3 +14134,31 @@ Validation:
   - `seed032_manual_direct`: unchanged
   - `seed033_manual_direct`: unchanged
   - `node --test test/unit/windows_nhwindow.test.js`: PASS
+
+# 2026-03-20: Pickup menu ordering must use `cxname_singular()` like C `sortloot()`
+
+- Evidence: after the `PICK_ANY` alias fix, `seed031_manual_direct` still
+  diverged at step `580`. JS pet pickup chose floor object `23` (crossbow bolt)
+  while C chose `88` (crossbow). Object traces showed the real cause was
+  earlier: JS removed the crossbow from floor square `62,14` during the hero's
+  pickup menu confirm step, so it was no longer available for the later pet
+  turn.
+- Root cause: [js/pickup.js](/share/u/davidbau/git/mazesofmenace/game/js/pickup.js)
+  was sorting multi-object pickup menus by `doname(obj)`, so quantity/article
+  prefixes (`"2 darts"`, `"4 crossbow bolts"`, `"a crossbow"`) changed menu
+  letter assignment. The recorded `c` selection therefore hit the wrong item.
+- C anchor:
+  - `invent.c sortloot_cmp()` sorts loot menus by `loot_xname(obj)`.
+  - `invent.c loot_xname()` strips ordering-irrelevant prefixes, then reduces to
+    `cxname_singular(obj)`.
+- Fix: keep the existing class grouping by `inv_order`, but switch the
+  within-class sort key from `doname(obj)` to `cxname_singular(obj)`, with the
+  existing stable fallback by object id.
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `572/572` to `580/580`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+  - `seed032_manual_direct`: unchanged
+  - `seed033_manual_direct`: unchanged
+  - `node --test test/unit/loot_messages.test.js test/unit/pickup_types_messages.test.js`: PASS
