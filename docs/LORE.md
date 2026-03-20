@@ -14230,3 +14230,41 @@ Validation:
   - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
   - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
   - `node --test test/unit/pickup_compare_discovery_message.test.js test/unit/windows_nhwindow.test.js`: PASS
+
+# 2026-03-20: `addinv()` stack merges must respect C's hallucination-aware knowledge gates
+
+- Evidence: on `main`, `seed031_manual_direct` still drifted before the pet-AI
+  seam. Focused `addinv` tracing localized the earliest concrete letter drift
+  to container takeout at step `147`:
+  - JS merged a looted food ration into existing stack `b`
+  - the live state at that exact merge was `Blind=0`, `Hallucination=1`
+  - the incoming ration had `known/bknown/rknown = 0/0/0` while the existing
+    stack had `1/1/1`
+- C anchor:
+  - `pickup.c out_container()` does `otmp = addinv(obj); pickup_prinv(otmp, ...)`
+  - `invent.c mergable()` rejects merges when:
+    - `how_lost` mismatches a non-`LOST_NONE` carried stack
+    - `dknown` differs
+    - `bknown`, `rknown`, or `known` differ while `Blind || Hallucination`
+    - reviver corpses would merge
+- Root cause:
+  [js/mkobj.js](/share/u/davidbau/git/mazesofmenace/game/js/mkobj.js)
+  `mergable()` was still using a simplified predicate, so
+  [js/player.js](/share/u/davidbau/git/mazesofmenace/game/js/player.js)
+  `addToInventory()` collapsed stacks that C would keep separate during
+  hallucination. That advanced later invlets by one and cascaded into the
+  dwarf-pile / dog-inventory seam.
+- Fix:
+  - make `Player.addToInventory()` use canonical `mkobj.mergable()`
+  - extend `mkobj.mergable()` with the C-relevant carried-stack gates:
+    - `how_lost`
+    - `dknown`
+    - hallucination/blindness-aware `bknown` / `rknown` / `known`
+    - reviver-corpse guard
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `635/630` to `637/638`
+  - `seed032_manual_direct`: unchanged
+  - `seed033_manual_direct`: unchanged
+  - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS

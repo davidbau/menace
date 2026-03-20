@@ -35,11 +35,12 @@ import {
     M2_DWARF, S_KOBOLD, S_ORC, S_GIANT, S_HUMAN, S_KOP, S_GNOME, S_HUMANOID,
     PM_SCORPIUS, PM_SCORPION, PM_KILLER_BEE, PM_QUEEN_BEE,
     PM_GARGOYLE, PM_WINGED_GARGOYLE,
-    PM_SAMURAI
+    PM_SAMURAI, PM_CLERIC
 } from './monsters.js';
 import { TIMER_KIND, TIMER_FUNC, TAINT_AGE, W_WEP, ICE, MAX_OIL_IN_FLASK,
-         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED, OBJ_DELETED } from './const.js';
-import { lays_eggs, monsndx, DEADMONSTER, mhis } from './mondata.js';
+         OBJ_FREE, OBJ_FLOOR, OBJ_CONTAINED, OBJ_INVENT, OBJ_MINVENT, OBJ_MIGRATING, OBJ_BURIED, OBJ_DELETED,
+         LOST_NONE, LOST_EXPLODING } from './const.js';
+import { lays_eggs, monsndx, DEADMONSTER, mhis, is_reviver } from './mondata.js';
 import { start_timer, stop_timer, attach_egg_hatch_timeout } from './timeout.js';
 import { level_difficulty } from './dungeon.js';
 import { rnd_class, safe_typename, makeplural, obj_typename, simpleonames } from './objnam.js';
@@ -94,6 +95,13 @@ export function place_object(obj, x, y, map) {
 // IMPORTANT: Do NOT add a mergable() implementation to invent.js.
 //            See stackobj.js for a full explanation of the dependency issue.
 export function mergable(otmp, obj) {
+    const player = _gstate?.u ?? _gstate?.player;
+    const blind = !!(player?.Blind || player?.blind);
+    const hallucinating = !!(player?.Hallucination || player?.hallucinating);
+    const roleIsCleric = player?.roleMnum === PM_CLERIC;
+    const objHowLost = Number.isInteger(obj?.how_lost) ? obj.how_lost : LOST_NONE;
+    const otmpHowLost = Number.isInteger(otmp?.how_lost) ? otmp.how_lost : LOST_NONE;
+
     if (obj === otmp) return false;
     if (obj.otyp !== otmp.otyp) return false;
     if (obj.nomerge || otmp.nomerge) return false;
@@ -104,6 +112,10 @@ export function mergable(otmp, obj) {
     if (obj.oclass === COIN_CLASS) return true;
 
     if (!!obj.cursed !== !!otmp.cursed || !!obj.blessed !== !!otmp.blessed)
+        return false;
+    if (objHowLost === LOST_EXPLODING || otmpHowLost === LOST_EXPLODING)
+        return false;
+    if (otmpHowLost !== LOST_NONE && objHowLost !== otmpHowLost)
         return false;
 
     // Globs always merge (beyond bless/curse check)
@@ -121,12 +133,18 @@ export function mergable(otmp, obj) {
         if (!!obj.orotten !== !!otmp.orotten) return false;
     }
 
+    // C ref: invent.c mergable() preserves distinct stacks when hallucination
+    // or blindness makes knowledge differences player-visible.
+    if (!!obj.dknown !== !!otmp.dknown) return false;
+    if (!!obj.bknown !== !!otmp.bknown && !roleIsCleric && (blind || hallucinating))
+        return false;
     if ((obj.oeroded ?? 0) !== (otmp.oeroded ?? 0)) return false;
     if ((obj.oeroded2 ?? 0) !== (otmp.oeroded2 ?? 0)) return false;
     if (!!obj.greased !== !!otmp.greased) return false;
 
     if (erosion_matters(obj)) {
         if (!!obj.oerodeproof !== !!otmp.oerodeproof) return false;
+        if (!!obj.rknown !== !!otmp.rknown && (blind || hallucinating)) return false;
     }
 
     if (obj.otyp === CORPSE || obj.otyp === EGG || obj.otyp === TIN) {
@@ -135,6 +153,10 @@ export function mergable(otmp, obj) {
 
     // Hatching eggs don't merge
     if (obj.otyp === EGG && (obj.timed || otmp.timed)) return false;
+    if (obj.otyp === CORPSE && Number.isInteger(otmp?.corpsenm)
+        && otmp.corpsenm >= 0 && mons[otmp.corpsenm] && is_reviver(mons[otmp.corpsenm])) {
+        return false;
+    }
 
     // Burning oil never merges
     if (obj.otyp === POT_OIL && obj.lamplit) return false;
@@ -152,6 +174,8 @@ export function mergable(otmp, obj) {
     // Artifacts must match
     if ((obj.oartifact || 0) !== (otmp.oartifact || 0)) return false;
 
+    if (!!obj.known !== !!otmp.known && (blind || hallucinating))
+        return false;
     if (!!obj.opoisoned !== !!otmp.opoisoned) return false;
 
     return true;

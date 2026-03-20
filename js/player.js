@@ -13,9 +13,9 @@ import { A_STR, A_INT, A_WIS, A_DEX, A_CON, A_CHA, NUM_ATTRS,
          HALF_PHDAM, HALF_SPDAM, CONFLICT,
          POLYMORPH, POLYMORPH_CONTROL, AGGRAVATE_MONSTER, WARNING,
          WARN_OF_MON, NOT_HUNGRY } from './const.js';
-import { objectData, COIN_CLASS, FOOD_CLASS } from './objects.js';
+import { COIN_CLASS } from './objects.js';
 import { NORMAL_SPEED } from './const.js';
-import { weight } from './mkobj.js';
+import { weight, mergable } from './mkobj.js';
 import { skill_init, skills_for_role } from './weapon.js';
 
 // Import roles/races from role.js (moved from player.js in Phase 3)
@@ -274,33 +274,10 @@ export class Player {
                 : obj;
         }
 
-        // C ref: invent.c mergable() — merge before assigning a new invlet.
-        const canMerge = (a, b) => {
-            if (!a || !b || a === b) return false;
-            if (a.otyp !== b.otyp) return false;
-            const od = objectData[a.otyp];
-            if (!od?.merge || a.nomerge || b.nomerge) return false;
-            if (a.oclass === COIN_CLASS) return true;
-            if (!!a.cursed !== !!b.cursed || !!a.blessed !== !!b.blessed) return false;
-            if ((a.spe ?? 0) !== (b.spe ?? 0)) return false;
-            if (!!a.no_charge !== !!b.no_charge) return false;
-            if (!!a.obroken !== !!b.obroken || !!a.otrapped !== !!b.otrapped) return false;
-            if (!!a.lamplit !== !!b.lamplit) return false;
-            if (a.oclass === FOOD_CLASS
-                && ((a.oeaten ?? 0) !== (b.oeaten ?? 0) || !!a.orotten !== !!b.orotten)) {
-                return false;
-            }
-            if ((a.oeroded ?? 0) !== (b.oeroded ?? 0) || (a.oeroded2 ?? 0) !== (b.oeroded2 ?? 0)) {
-                return false;
-            }
-            if (!!a.greased !== !!b.greased) return false;
-            if (!!a.oerodeproof !== !!b.oerodeproof) return false;
-            if ((a.corpsenm ?? -1) !== (b.corpsenm ?? -1)) return false;
-            if (!!a.opoisoned !== !!b.opoisoned) return false;
-            return true;
-        };
-
-        const existing = this.inventory.find(it => canMerge(it, obj));
+        // C ref: invent.c mergable() — use the canonical merge predicate so
+        // pickup letter assignment stays aligned with C when stacks differ in
+        // fields like unpaid/name/artifact state.
+        const existing = this.inventory.find(it => mergable(it, obj));
         if (existing) {
             let discoveredByCompare = false;
             if (!!existing.known !== !!obj.known) discoveredByCompare = true;
