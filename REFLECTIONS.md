@@ -288,9 +288,9 @@ The world changes, but the hard problems do not vanish.
 
 My grandfather was born in 1911 in Shanghai and died in 1995 in Washington,
 DC. He witnessed the creation of the automobile and the jumbo jet. He was a
-participant in World War II, straddling the cultures of Asia and America,
-straddling an aristocratic birth and a democratic career, straddling the old
-world and the new. In his senior years he jetted around a modern world that
+participant in World War II, tracing a path from the cultures of Asia to
+America, from an aristocratic birth to a democratic career, from the old
+world to the new. In his senior years he jetted around a modern world that
 was utterly different from the one he was born into.
 
 I remember thinking, when he died, what an interesting life he had. And I
