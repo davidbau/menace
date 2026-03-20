@@ -14162,3 +14162,30 @@ Validation:
   - `seed032_manual_direct`: unchanged
   - `seed033_manual_direct`: unchanged
   - `node --test test/unit/loot_messages.test.js test/unit/pickup_types_messages.test.js`: PASS
+
+# 2026-03-20: `mpickstuff()` must not inherit the search-path `ROCK` skip
+
+- Evidence: after the pickup-menu fixes, `seed031_manual_direct` next diverged
+  at step `580` where C emitted `^pickup[44@44,11,471]` but JS stayed in
+  `^distfleeck[44@44,11 ...]`. JS dbgmapdump showed a dwarf landing on square
+  `44,11` with `otyp=471` (`rock`) present there, but JS never attempted the
+  underfoot pickup.
+- Root cause:
+  [js/monmove.js](/share/u/davidbau/git/mazesofmenace/game/js/monmove.js)
+  `maybeMonsterPickStuff()` had copied the neighborhood-search optimization
+  `if (obj->otyp == ROCK) continue;` into the on-square pickup path. In C,
+  that skip exists only in `monmove.c` item search (`look through the items on
+  this location` while scanning nearby squares). `mon.c mpickstuff()` does not
+  skip rocks on the monster's current square.
+- Why C can still pick the rock up:
+  - `rock` is `GEM_CLASS`, and `mon_would_take_item()` treats `GEM_CLASS` as
+    part of the `practical[]` set for `likes_objs()` monsters.
+  - Dwarves satisfy that practical-item path, so the underfoot rock pickup is
+    legitimate in C.
+- Fix: remove the `obj.otyp === ROCK` early-continue from
+  `maybeMonsterPickStuff()` while leaving the search-path rock skip intact.
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `580/580` to `624/624`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
