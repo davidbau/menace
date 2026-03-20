@@ -82,7 +82,7 @@ import { flooreffects } from './do.js';
 import { hurtle } from './dothrow.js';
 import { thitmonst, hero_breaks, breaks, breaktest } from './dothrow.js';
 import { scatter } from './explode.js';
-import { sobj_at, delobj } from './invent.js';
+import { sobj_at, delobj, currency } from './invent.js';
 import { snuff_candle } from './apply.js';
 import { bhit } from './zap.js';
 import { dealloc_obj, obj_extract_self, mkgold, mksobj_at, rnd_treefruit_at } from './mkobj.js';
@@ -218,10 +218,7 @@ async function singular(obj, fn, ...args) {
     return result;
 }
 
-// currency — "zorkmid" or "zorkmids"
-function currency(amount) {
-    return amount === 1 ? "zorkmid" : "zorkmids";
-}
+// currency imported from invent.js
 
 // mhis imported from mondata.js
 
