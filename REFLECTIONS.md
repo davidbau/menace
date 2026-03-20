@@ -296,11 +296,13 @@ dramatic change. We do not have changes like that anymore.
 
 I was wrong. Here we are. I did not know that revolution has been a continuous thread.
 
-We are all likely to have an interesting life. What work is, what industry
-is, what it means to learn, to think, to know: these things are changing.
-The field I grew up in is shedding its skin. The wonders from my childhood
-are being rebuilt by machines. The machines are good at it, very good,
-until the problems get large enough to be hard again.
+We are all likely to have an interesting life. Graduate school, a career
+in software, a pivot to teaching; now I run a lab at the center of the
+latest revolution. What work is, what industry is, what it means to learn,
+to think, to know: these things are changing. The field I grew up in is
+shedding its skin. The wonders from my childhood are being rebuilt by
+machines. The machines are good at it, very good, until the problems get
+large enough to be hard again.
 
 That is what I want my students to understand. Not that the machines are
 coming for their jobs: the machines are already here, and the jobs are
