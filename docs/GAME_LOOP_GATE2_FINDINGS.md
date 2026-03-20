@@ -311,3 +311,43 @@ ways:
 
 1. it encodes exact C-backed owner rules,
 2. it no longer makes parity worse than `main` on the async-sensitive set.
+
+## Post-Mainline Sync: Back To The Manual-Direct Trio
+
+After `origin/main` advanced beyond `af5b8ce1e`, `game-loop-reorder` was
+temporarily carrying three extra gameplay failures that were not caused by the
+owner-loop restructure itself:
+
+- `t11_s744_w_covmax2_gp.session.json`
+- `seed321_archeologist_wizard_gameplay.session.json`
+- `seed328_ranger_wizard_gameplay.session.json`
+
+Exact cause:
+
+- the branch was missing later mainline `js/dungeon.js` fixes that:
+  - add Oracle/Medusa `align` metadata to `RUNTIME_SPECIAL_LEVEL_CANON`
+  - propagate that `align` metadata into `_runtimeSpecialLevelMap`
+- without those commits, runtime `level_align()` returned `A_NONE` on those
+  special levels, reopening the old `rndmonnum_adj()` / `rndmonst_adj()`
+  monster-selection drift
+
+Exact branch fix:
+
+- cherry-picked:
+  - `df75e5085` `fix: add oracle/medusa alignment to RUNTIME_SPECIAL_LEVEL_CANON`
+  - `f1d4ad1b8` `fix: propagate special level alignment to runtime map (439/442 restored)`
+
+Validation on `game-loop-reorder`:
+
+- [`t11_s744_w_covmax2_gp.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/monster-generation/t11_s744_w_covmax2_gp.session.json ): PASS
+- [`seed321_archeologist_wizard_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed321_archeologist_wizard_gameplay.session.json ): PASS
+- [`seed328_ranger_wizard_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed328_ranger_wizard_gameplay.session.json ): PASS
+- [`seed033_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed033_manual_direct.session.json ): unchanged still failing
+
+Branch state after this sync:
+
+- the extra post-`af5b8ce1e` failures are gone
+- remaining failures are again the long-standing manual-direct trio:
+  - `seed031_manual_direct`
+  - `seed032_manual_direct`
+  - `seed033_manual_direct`
