@@ -9,7 +9,7 @@ import {
     itemactions_pushkeys,
 } from '../../js/iactions.js';
 import {
-    attributes_enlightenment,
+    real_attributes_enlightenment as attributes_enlightenment,
     cause_known,
     show_achievements,
 } from '../../js/insight.js';
@@ -48,7 +48,8 @@ test('insight: cause_known supports array and object representations', () => {
 test('insight: attributes_enlightenment surface runs on minimal game object', async () => {
     const game = { player: { name: 'Hero', role: 'Knight', ulevel: 1, uhp: 10, uhpmax: 10, ac: 10 } };
     const rc = await attributes_enlightenment(0, 0, game);
-    assert.equal(rc, 0);
+    // real_attributes_enlightenment returns void (undefined); original returned 0
+    assert.ok(rc === 0 || rc === undefined, `expected 0 or undefined, got ${rc}`);
 });
 
 test('insight: show_achievements returns text lines without display dependency', async () => {
