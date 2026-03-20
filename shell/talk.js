@@ -93,7 +93,8 @@ class EventMux {
 class RemoteEngine {
     constructor(mux, character, name) {
         this._mux = mux;
-        this._name = name || null;
+        // names: from character.names array, plus the username itself
+        this._names = (character.names || []).concat(name ? [name] : []);
         this._wpm = character.wpm || 60;
         this._typoRate = character.typoRate || 0.04;
         this._thinkMs = character.thinkMs || [800, 2000];
@@ -164,11 +165,11 @@ class RemoteEngine {
     }
 
     _pickResponse(text) {
-        // Normalize: replace the character's own name with "you" so patterns
-        // that match "you" also fire when the user addresses them by name.
+        // Normalize: replace any of the character's known names with "you" so
+        // patterns that match "you" also fire when the user addresses them by name.
         let lower = text.toLowerCase();
-        if (this._name) {
-            const escaped = this._name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        for (const n of this._names) {
+            const escaped = n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             lower = lower.replace(new RegExp(`\\b${escaped}\\b`, 'g'), 'you');
         }
 
