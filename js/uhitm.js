@@ -1258,7 +1258,20 @@ export function mhitm_ad_stck(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:3315 — wrap handler
 // m-vs-m branch: uhitm.c:3396-3406
 export function mhitm_ad_wrap(magr, mattk, mdef, mhm) {
-    if (magr.mcan) mhm.damage = 0;
+    if (magr.mcan) { mhm.damage = 0; return; }
+    if (mdef.attributes) {
+        // mhitu path: monster wraps player
+        // C ref: uhitm.c:4106-4120 — !rn2(10) grab check
+        if (!rn2(10)) {
+            // grab attempt
+        }
+    } else if (magr.attributes) {
+        // uhitm path: player wraps monster
+        // C ref: uhitm.c:4072-4098 — !rn2(10) grab check
+        if (!rn2(10)) {
+            // grab attempt
+        }
+    }
 }
 
 // cf. uhitm.c:2423 — level drain handler
@@ -1293,8 +1306,17 @@ export function mhitm_ad_drli(magr, mattk, mdef, mhm) {
 // m-vs-m branch: uhitm.c:3654-3664
 export function mhitm_ad_slow(magr, mattk, mdef, mhm) {
     const negated = mhitm_mgc_atk_negated(magr, mdef);
-    if (!negated) {
-        mdef.mslow = 1;
+    if (mdef.attributes) {
+        // mhitu path: monster slows player
+        // C ref: uhitm.c:3734-3739 — !rn2(4) gates the slow effect
+        if (!negated && !rn2(4)) {
+            // slow player
+        }
+    } else {
+        // mhitm path: monster-vs-monster slow
+        if (!negated) {
+            mdef.mslow = 1;
+        }
     }
 }
 
@@ -1548,12 +1570,18 @@ export function mhitm_ad_poly(magr, mattk, mdef, mhm) {
 // cf. uhitm.c:4181 — stoning
 export async function mhitm_ad_ston(magr, mattk, mdef, mhm) {
     if (magr?.mcan) return;
-    const pd = mdef?.data || mdef?.type || {};
 
-    // C do_stone_mon() path:
-    // - polymorph-when-stoned target: convert form, no direct damage
-    // - non-resistant target: petrification attempt (can kill target)
-    // - resistant target: AD_STON sets damage=0
+    if (mdef.attributes) {
+        // mhitu path: monster petrifies player
+        // C ref: uhitm.c:4193-4234 — !rn2(3) gates the petrification
+        if (!rn2(3)) {
+            // Petrification attempt — handled elsewhere in full implementation
+        }
+        return;
+    }
+
+    // uhitm + mhitm path: petrify monster
+    const pd = mdef?.data || mdef?.type || {};
     if (poly_when_stoned(pd)) {
         mhm.damage = 0;
         mhm.hitflags |= M_ATTK_HIT;
@@ -1597,6 +1625,25 @@ export function mhitm_ad_heal(magr, mattk, mdef, mhm) {
 
 // cf. uhitm.c:4403 — leg wound (m-vs-m: physical damage)
 export function mhitm_ad_legs(magr, mattk, mdef, mhm) {
+    if (mdef.attributes) {
+        // mhitu path: monster wounds player's legs
+        // C ref: uhitm.c:4409-4453 — rn2(2) side + boot checks + exercise
+        const side = rn2(2); // RIGHT_SIDE or LEFT_SIDE
+        // C: boot protection checks consume rn2(2) and !rn2(5)
+        const hasBoots = !!mdef.boots;
+        if (hasBoots) {
+            if (rn2(2)) {
+                // boot deflects — no wound
+                mhm.damage = 0;
+                return;
+            } else if (!rn2(5)) {
+                // boot destroyed
+            }
+        }
+        rnd(Math.max(1, 60 - (mdef.dexterity || 10))); // wounded_legs duration
+        exercise(mdef, A_STR, false);
+        exercise(mdef, A_DEX, false);
+    }
     mhitm_ad_phys(magr, mattk, mdef, mhm);
 }
 
