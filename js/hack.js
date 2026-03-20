@@ -1358,7 +1358,11 @@ export async function domove_core(dir, player, map, display, game) {
             await losehp(Math.max(0, pitDmg), trap.ttyp === SPIKED_PIT
                 ? "a pit of spikes" : "a pit", KILLED_BY_AN, player, display, game);
             if (trap.ttyp === SPIKED_PIT) {
-                rn2(6); // C ref: 1-in-6 poison-spike branch gate.
+                if (!rn2(6)) {
+                    // C ref: trap.c trapeffect_spiked_pit — 1-in-6 poison from spikes
+                    await poisoned(player, "spikes", A_STR,
+                        "fall onto a set of sharp iron spikes", 8, false);
+                }
                 // C ref: trap.c trapeffect_pit() emits both lines when falling
                 // into a spiked pit: first "fall into a pit", then "land on spikes".
                 await display.putstr_message('You fall into a pit!');

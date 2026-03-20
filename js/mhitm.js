@@ -31,7 +31,8 @@ import {
     nonliving, sticks, attacktype, dmgtype, is_whirly,
     DEADMONSTER, is_elf, is_orc,
 } from './mondata.js';
-import { erode_obj } from './trap.js';
+import { erode_obj, acid_damage } from './trap.js';
+import { erode_armor } from './uhitm.js';
 import { mons, AT_NONE, AT_CLAW, AT_KICK, AT_BITE, AT_TUCH, AT_BUTT, AT_STNG, AT_HUGS, AT_TENT, AT_WEAP, AT_GAZE, AT_ENGL, AT_EXPL, AT_BREA, AT_SPIT, AT_BOOM, G_NOCORPSE, AD_PHYS, AD_ACID, AD_BLND, AD_STUN, AD_PLYS, AD_COLD, AD_FIRE, AD_ELEC, AD_WRAP, AD_STCK, AD_DGST, AD_ENCH, AD_RUST, AD_CORR, AD_SLEE, MZ_HUGE, PM_GRID_BUG, PM_STEAM_VORTEX, PM_FLOATING_EYE } from './monsters.js';
 import { corpse_chance, zombie_maker, zombie_form } from './mon.js';
 import { mkcorpstat, xname } from './mkobj.js';
@@ -329,8 +330,8 @@ export async function passivemm(magr, mdef, mhitb, mdead, mwep, map, display, vi
             const defName = monCombatName(mdef, ctx?.defVisible, { player: ctx?.player || null });
             await display.putstr_message(`${agrName} is splashed by ${defName}'s acid!`);
         }
-        rn2(30); // erode_armor chance
-        rn2(6);  // acid_damage chance
+        if (!rn2(30)) erode_armor(magr, ERODE_CORRODE);
+        if (!rn2(6)) acid_damage(magr.weapon || null);
         // Apply acid damage and return
         if (tmp > 0) {
             magr.mhp -= tmp;
