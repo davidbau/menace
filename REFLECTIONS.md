@@ -182,7 +182,7 @@ they appeared.
 
 This is a pattern worth remembering. It is easy to build systems that look like
 they work. It is hard to build systems that actually work. The gap between
-the two is where the real difficulty lives, and AI does not make that gap
+the two is where the difficulty lives, and AI does not make that gap
 disappear. If anything, by making it easy to produce vast quantities of
 plausible-looking output, AI makes the gap more dangerous.
 
