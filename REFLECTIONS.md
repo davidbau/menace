@@ -1,6 +1,6 @@
 # Does Computer Science Still Exist?
 
-As I write this, [Hack](https://mazesofmenace.net/hack/), the 1982 game from my childhood, has just been fully ported to JavaScript by an AI agent. I handed the agent the old PDP code and a plan and told it to go. I checked in once to ask why it was taking so long. It replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
+As I write this, [Hack](https://mazesofmenace.net/hack/), the text-based dungeon crawler from my childhood, has just been fully ported to JavaScript by an AI agent. I handed the agent the old PDP code and a plan and told it to go. I checked in once to ask why it was taking so long. It replied: it was working, and that thirteen of twenty-three test sessions were already passing parity. It continued its coding process without interruption all night, and eventually expanded its work to 202 passing tests, achieving near 100% coverage with verified parity to the original.
 
 While I slept it was doing real work: debugging, reasoning, fixing genuine bugs. Not instant. But almost entirely on its own.
 
