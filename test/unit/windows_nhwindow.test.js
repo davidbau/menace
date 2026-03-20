@@ -364,6 +364,20 @@ describe('nhwindow infrastructure (windows.js)', () => {
             assert.equal(result.length, 2);
         });
 
+        it('@ selects all items', async () => {
+            init_nhwindows(null, null, null);
+            const win = create_nhwindow(NHW_MENU);
+            start_menu(win, MENU_BEHAVE_STANDARD);
+            add_menu(win, null, 'alpha', 'a'.charCodeAt(0), 0, ATR_NONE, 0, 'Option A', 0);
+            add_menu(win, null, 'bravo', 'b'.charCodeAt(0), 0, ATR_NONE, 0, 'Option B', 0);
+            end_menu(win, 'Pick any:');
+            pushInput('@'.charCodeAt(0)); // repo tty sessions use @ as select-all alias
+            pushInput(13);               // confirm
+            const result = await select_menu(win, PICK_ANY);
+            assert.ok(Array.isArray(result));
+            assert.equal(result.length, 2);
+        });
+
         it('- deselects all items', async () => {
             init_nhwindows(null, null, null);
             const win = create_nhwindow(NHW_MENU);
