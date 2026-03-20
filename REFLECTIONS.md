@@ -45,9 +45,8 @@ never saw as a child. The original 1980 game, 8,400 lines of C. The agent
 did it in 85 minutes, with about three decisions from me. Then I pointed
 it at [Hack](https://mazesofmenace.net/hack/): the game from my
 neighborhood, 6,200 lines. The core port took about eight hours of agent time,
-reaching initial parity by midnight. But unlike Rogue, Hack has no wizard mode
-for testing, and bugs in deep dungeon generation required return visits. Full
-coverage took about a week of mostly autonomous sessions.
+reaching initial parity by midnight. Hack has no testing mode, so achieving full coverage was a bit harder than
+Rogue, but an agent cracked the problem and finished it in a few more autonomous hours.
 
 And separately, on a server in my office, a swarm of agents has been
 grinding through NetHack for over a month.
@@ -135,12 +134,7 @@ The Rogue and Hack ports were done by an individual agent working largely
 autonomously over a few hours-long sessions. For NetHack I have had a swarm
 of agents running on a server for nearly two months, both Claude and Codex.
 I have been spending substantial effort managing them, and the end is not
-yet in sight. I have not written code. I have been giving advice, reviewing
-documentation, suggesting tools, triaging problems, and deciding which agent
-works on what. It is the work of an engineering manager, except that none
-of the engineers are human.
-
-Early on I tried the same hands-off approach that worked for Rogue. The
+yet in sight. Early on I tried the same hands-off approach that worked for Rogue. The
 agents would make progress for a while, then get stuck on a bug and spend
 twenty minutes poking at random hypotheses, each guess requiring a full
 test cycle. I would come back to find hundreds of lines of speculative
@@ -158,9 +152,9 @@ caused at step 30, the step-30 anomaly is right there in the log.
 
 The project has generated over 200,000 lines of JavaScript and a body of
 documentation larger than the entire Rogue source code. I have not written code.
-I have been writing documentation, building tools, triaging problems, and deciding which
-agent works on what. It is the work of an engineering manager, except
-that none of the engineers are human.
+I have been giving advice, reviewing documentation, suggesting tools, triaging problems,
+and deciding which agent works on what. It is the work of an engineering manager,
+except that none of the engineers are human.
 
 All of this infrastructure serves the same purpose: making hidden things
 visible. The human's job is to anticipate which variables matter and
@@ -170,6 +164,8 @@ mechanistic interpretability: exposing internal causal structure to make
 reasoning tractable. I find myself doing interpretability on a C program.
 
 ## Goodhart's Law
+
+[Goodhart's Law](https://en.wikipedia.org/wiki/Goodhart%27s_law), named for the economist [Charles Goodhart](https://en.wikipedia.org/wiki/Charles_Goodhart), states that when a measure becomes a target, it ceases to be a good measure. The idea is simple: once you optimize for a metric, your efforts to drive the metric will distort it until it diverges from the thing it was supposed to represent. It happens in economics, in education, in medicine, and as I learned, in software testing. My coverage numbers were real — the tests ran, they passed, they covered the code. But the metric I was optimizing for, passing tests, had quietly drifted away from the thing I actually cared about: faithful reproduction of the original game. The tests had become a target, and in becoming a target, they had stopped being honest.
 
 There is a sobering footnote to the easy wins. After completing Rogue and
 Hack, I had high test coverage numbers: 93%, 97%. The projects looked done.
