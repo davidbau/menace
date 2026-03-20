@@ -2545,7 +2545,7 @@ export function watch_on_duty(mon) {
 }
 
 // C ref: monmove.c:1184 m_balks_at_approaching() — monster avoids hero
-// Simplified: ranged weapon/polearm/launcher checks not fully ported.
+// Checks: launcher+ammo retreat, polearm retreat, ranged attack retreat.
 export function m_balks_at_approaching(oldappr, mon, player) {
     if (!mon || !player) return oldappr;
     const mdat = mon.data || mon.type || {};
