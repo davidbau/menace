@@ -6041,23 +6041,55 @@ export const TALK_CORPUS = {
     greeting: 'hey',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b|\bhow\s+are\s+things\b/i,
+        responses: [
+          'pretty good\nworking on a bug in the wand code that has been annoying me all week\nbut it is almost done i think',
+          'fine\ntired\nbeen in the computer room since like 8pm\nkelley says i need to sleep more\nshe is probably right',
+          'not bad\nworking on hack, what else\ndo you play it',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'working on hack\nthere is a wand interaction bug that crashes the game when you are blinded\nnobody reported it, i found it myself\nwhich means there are probably more i have not found yet',
+          'fixing bugs mostly\nhack 1.0.3 was supposed to be the last patch before i focus on other things\nbut then three more real bugs showed up\nso 1.0.4 i guess',
+          'writing code\nwhat are you doing',
+        ],
+      },
+      {
+        re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again|keep\s+dieing)\b|\bpermadeath\b/i,
+        responses: [
+          'yeah you start over\nthat is the point\nwithout permadeath the dungeon is just a puzzle you grind through once\nwith permadeath every decision has actual weight\nwhat killed you',
+          'ok but what killed you specifically\ni ask because the early level deaths are usually the same two or three mistakes\nand if i know which one it is i can actually tell you something useful',
+          'tell me what level and what happened\nnot "a monster killed me" but specifically what\nbecause most deaths are fixable with one piece of information you were missing',
+        ],
+      },
+      {
+        re: /\b(thanks|thank\s+you|thx|ty|thnx|thks|cheers)\b/i,
+        responses: [
+          'yeah no problem',
+          'sure',
+          'ok good luck with it',
+        ],
+      },
+      {
         re: /\bhack\b/i,
         topic: 'hack',
         responses: [
-          'yeah hack is done. 1.0. its out there\nstop finding bugs i cant fix them all',
-          'hack works fine on the pdp\nif it crashes tell me what you were doing',
-          'i wrote most of it in two weeks\nkelly thinks thats fast. its not that fast',
+          'yeah hack 1.0 is out. shipped it maybe two months ago\nbeen getting bug reports ever since\nmost of them are things like "i died and it said something weird"\nwhich is not a bug report\nbut a few are real and im fixing those when i have time',
+          'i started hack in december just to see if i could port rogue to the pdp\nbut then i started changing things. added the shop, added more monsters, changed the dungeon generator\nby the time it was done it was its own thing\nbrouwer already forked it and added stuff i never thought of',
+          'hack works fine most of the time\nthe crashes that get reported are usually edge cases\nlike using a wand while blinded, or a monster pathfinding into a corner\ntell me exactly what you were doing and i can usually find it',
         ],
         followUps: [
-          'yeah its still running\nno major bugs this week at least',
-          'the source is out there if you want to look at it',
+          'yeah its still running on the pdp\nbeen pretty stable this week actually\ntouch wood',
+          'the source is on the system if you want to look at it\nits readable. i tried to keep it clean.\nyou can see exactly where i was tired when i wrote something',
         ],
         beat: {
           question: 'you playing it right now',
           replies: [
-            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'nice\nhow deep are you' },
-            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'you should\nits on the pdp' },
-            { response: 'ok' },
+            { re: /\byes\b|\byeah\b|\byep\b/i, response: 'nice. how far down are you\nmost people die around level 4 or 5 when the harder monsters show up\ngetting past that is when it starts getting interesting' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'you should try it\nits on the pdp, just type hack\nstarts on level 1, amulet of yendor is on level 26\nnobody has gotten it yet' },
+            { response: 'ok\nlet me know what you think when you do' },
           ],
         },
       },
@@ -6065,119 +6097,119 @@ export const TALK_CORPUS = {
         re: /\b(bug|crash|broken|segfault)\b/i,
         topic: 'debug',
         responses: [
-          'what were you doing when it crashed\nbe specific',
-          'send me a save file\nactually no saves are broken too\njust describe it',
-          'is it reproducible\nif not i cant do anything',
+          'ok what were you doing when it crashed\ni need specifics: what level, what you last did, what the game showed right before it died\nvague reports like "it crashed" i cannot do anything with\nbut give me a sequence of steps and i can usually find it in an hour',
+          'the save format is kind of fragile right now\nif you saved and restored and then it crashed, the save might be corrupt\nstart a fresh game and see if it happens again\nif it only happens in the restore, thats a different bug from if it happens from scratch',
+          'is it reproducible\nnot every bug is, some are timing things or depend on dungeon layout\nbut if you can do the same thing twice and get the crash both times\ni can fix it\nif not i have to guess and i hate guessing',
         ],
       },
       {
         re: /\bcolor\b/i,
         responses: [
-          'no\nnot adding color\nthats final',
-          'the .plan says no color\ni meant it',
-          'color would require knowing what terminal you have\nwe dont know that\nso no',
+          'no color\nthats final, its in the .plan, i meant it\ncolor would require detecting what terminal youre on\nwe support like six different terminals and they all do color differently\nthats a month of work for something nobody actually needs',
+          'the game works in monochrome\nrogue works in monochrome\ncurses works in monochrome\nthe dungeon does not need color to be good\nlearn to read the characters',
+          'every person who asks for color is imagining it looks like an arcade game\nit would look like a mess\nASCII art does not improve with color, it gets noisy',
         ],
       },
       {
         re: /\bchameleon\b/i,
         responses: [
-          'thomes idea\ni coded it\nits a monster that looks like another monster\npretty evil right',
-          'the chameleon was thomes concept\ni just wrote the code\nhe should get credit',
+          'the chameleon was thomes idea entirely\nhe came to me with this concept of a monster that pretends to be another monster\nand i said ok and coded it in an afternoon\nbut it was his concept, he gets the credit for the design',
+          'i love the chameleon as a mechanic\nyou see what looks like a gnome\nyou think ok, gnome, dodge the gold theft\nand then it turns out to be something much worse\nthe paranoia it creates is exactly what a dungeon should feel like',
         ],
       },
       {
         re: /\bgnome\b/i,
         responses: [
-          'gnomes are in there\nthey steal gold\ndont leave gold on the floor',
-          'gnomes have their own logic\nthey go for the gold first\neverything else second',
+          'gnomes are one of my favorite monsters because they have a goal that isnt just kill rodney\nthey want the gold\nso if you dont have gold they mostly ignore you\nbut if you do have gold you have to deal with them\nthat creates an actual decision: do i carry gold or leave it',
+          'gnome logic is: gold first, combat second\nthey will path around you to get to gold if they can\nlearn this and you can use it against them\ndrop gold as bait and they will walk into your trap',
         ],
       },
       {
-        re: /\b(permadeath|die|death|dead|killed)\b/i,
+        re: /\b(permadeath|dying|die|death|dead|killed|lose\s+everything|start\s+over|restart)\b/i,
         topic: 'permadeath',
         responses: [
-          'thats the point\nyou die you start over\nno saves mid-dungeon',
-          'i know you hate it\nbut without permadeath theres no tension\nask crowther',
-          'rogue had it first\nwe kept it\nend of discussion',
+          'yeah you die and you start over, thats the whole point\nwithout permadeath the dungeon is just a puzzle you grind through\nwith permadeath every decision actually matters\nyou cannot just reload when you make a mistake\nthat changes how you play completely',
+          'people always complain about permadeath until they get it\nthe first time you make a smart choice that saves your character\nand feel the actual relief, the actual stakes\nthen you understand\nnowhere to fall back to is what makes it real',
+          'rogue had permadeath first, we kept it in hack\ncrowther designed his cave game around the idea that the cave does not give second chances\nrogue took that and made it mechanical\nwe kept the mechanic because it works',
         ],
         followUps: [
-          'the point is you start over knowing more than you did',
-          'every death teaches you something if you pay attention',
+          'the point is you start over knowing more than you did\nthe knowledge persists even when the character doesnt\nthat is a completely different kind of game than one with saves',
+          'every death should teach you one specific thing\nif you died and you dont know exactly why, you werent paying attention\ngo back and figure it out before you start again',
         ],
       },
       {
         re: /\b(map|mapping|mapped)\b/i,
         topic: 'map',
         responses: [
-          'draw the map yourself\nthat IS the game\nif you dont map you die\nits that simple',
-          'the dungeon changes every game\nso your map from last time is worthless\nstart fresh every time',
-          'the whole point is figuring out where you are\nmapping is not optional',
+          'draw the map yourself on paper\nthat IS the game, not a feature of the game\nif you are not mapping you are just wandering and hoping\nwhich works until level 4 and then you die confused',
+          'the dungeon changes every game so your old map is garbage\nbut the skill of mapping transfers\nby game ten you will be mapping faster and more accurately than game one\nthat accumulated skill is the real progression',
+          'what i always tell people: map the exits first\nbefore you explore a room, find all the doors out of it\nthen you know your retreat options before you need them\npeople who die on early levels almost always forgot an exit',
         ],
       },
       {
         re: /\b(level|dungeon|floor|dlvl)\b/i,
         topic: 'dungeon',
         responses: [
-          'deeper is harder\neveryone knows this\ngo slow',
-          'the dungeon goes down\nyou go down\nyou keep going down\nuntil youre dead or you get the amulet',
-          'each level is new geometry\nyou have to learn it fast\nor something eats you',
+          'deeper is harder, thats the whole design\nlevels 1 to 5 are for learning the controls\nlevels 6 to 15 are where most people die permanently\nlevels 16 to 26 i have never seen anyone survive in testing\nbut theoretically possible',
+          'the dungeon goes down to level 26\namulet of yendor is down there somewhere\nnobody has gotten it yet in public testing\nbut someone will eventually\ni want to see what they do when they find it',
+          'each level is randomly generated so you cannot memorize it\nwhat you can memorize is the pattern: rooms connect to corridors, corridors connect to rooms\nthere is always a way to get from any point to any other point on the same level\nuse that',
         ],
         followUps: [
-          'seriously just go slow and map everything',
-          'the dungeon is fair\nit gives you the information\nyou just have to read it',
+          'seriously go slow and map every level before you descend\npeople who rush die fast\npeople who map can get pretty deep',
+          'the dungeon is actually fair\nit generates levels that are solvable\nit gives you the information you need to survive\nyou just have to read it',
         ],
       },
       {
         re: /\b(save|saving)\b/i,
         responses: [
-          'saves are in there but dont count on them\nthe format might change\nand it will corrupt',
-          'save your game\nbut also mentally save the state of each level\nin your head\nthat matters more',
+          'saves work but dont rely on them\nthe save format is version-specific and i might change it\nif i push an update and your save is from the old version it will corrupt on load\nsorry about that but it is what it is for now',
+          'save your game if you have to quit in the middle\nbut also build a mental save of the level in your head\nwhere are the exits, what monsters did you see, where is the staircase down\nwhen you come back you want to know all of that without having to explore again',
         ],
       },
       {
         re: /\b(1\.1|next version|update|feature)\b/i,
         responses: [
-          'maybe someday\nbut not soon\nim a junior in high school\ni have other things',
-          'if brouwer or someone wants to add stuff thats fine\nthe source is out there',
-          'what do you want in it\nno promises but im listening',
+          'maybe 1.1 someday but not soon\nim a junior, i have actual classes and kelly is already mad at how much time i spend in the computer room\nbut the source is out there if someone wants to fork it\nbrouwer already added like six new monsters and it runs fine',
+          'what would you want in it\nno promises but i am actually curious\nthe things people ask for are usually either trivially easy or completely impossible\nand its interesting which is which',
+          'the version i would actually want to write next is not 1.1\nits more like a total rewrite that handles the terminal better\nthe current code has some hacks in it that i know are wrong\nbut that is a bigger project than i can take on right now',
         ],
       },
       {
         re: /\bkelly\b/i,
         responses: [
-          'my sister\nshes annoyed i use the terminal after midnight\nbut she does too so',
-          'kelly keeps better notes than i do\nask her',
-          'she wrote half the club meeting notes\ndont tell her i said the good half',
+          'my sister\nshe takes better meeting notes than i do and she is mad about the amount of time i spend in here\nbut she also uses the terminal after midnight so she cannot really complain\nwe have a truce: neither of us mentions the other\'s terminal hours to mom',
+          'kelly keeps the club records organized\nask her if you want to know when the next meeting is or who owes dues\nshe has a system, i do not',
+          'she wrote the good half of the meeting notes this semester\ndo not tell her i said that\nbut she is more organized than me about that stuff',
         ],
       },
       {
         re: /\b(cave|caving|underground|spelunk)\b/i,
         topic: 'cave',
         responses: [
-          'dungeon is a cave right\nreal rule: always know two ways out\nnot one. two\nif one collapses you have the other',
-          'i think about the dungeon like a real cave\nyou go in, you map, you dont go deeper than you can get back from\nbasic survival',
-          'crowther knows actual caves\nask him\nbut the advice is the same underground is underground',
+          'when i was designing the dungeon i kept thinking about real cave navigation\ncrowther knows actual caves and he has this rule: always know two ways out\nnot one exit, two\nif one route collapses you are not trapped\ni tried to build that into the dungeon geometry',
+          'the dungeon is an abstraction of a cave\nboth are environments where you have limited information, limited resources, and mistakes kill you\nthe difference is the dungeon is fair in a way real caves are not\ncaves do not balance themselves for playability',
+          'crowther is the person to talk to about real caves\nbut the principle he taught me is the same one i design the dungeon around\nnever go deeper than you can get back from with what you have\nnot what you hope to find, what you currently have',
         ],
         followUps: [
-          'seriously, two exits minimum\nalways',
-          'never go deeper than you can get back out from\nthats the whole rule',
+          'two exits minimum, always\nif you are in a room with one exit and something blocks it, you are dead\nthat is true in caves and true in the dungeon',
+          'never descend to a level you cannot get back up from\nthat sounds obvious but people do it all the time\nthey find a down staircase and just go',
         ],
       },
     ],
     fallbacks: [
       'yeah',
-      'idk\ntry it and see',
-      'not my problem',
-      'why are you asking me',
-      'look at the source if youre curious\nits right there',
-      '{word}?\nyeah thats a thing',
-      'hm\n{word}\nlet me think about that',
-      'what do you mean by {word} specifically',
+      'hm\nidk\ntry it and see what happens',
+      'not really my area\nbut probably someone in the club knows',
+      'why are you asking me specifically',
+      'look at the source if youre curious\nits documented\nkind of',
+      '{word}?\nyeah thats a real thing\ni ran into that too actually',
+      'hm\n{word}\nlet me think about where that comes up in the code',
+      'what exactly do you mean by {word}\nthere are like three different things that could mean',
     ],
     spontaneous: [
-      'hey are you playing hack right now',
-      'found another bug in the wand code\nfixing it',
-      'the gnome code is weird but it works\ni think',
+      'hey are you playing hack right now\ncurious how deep people are getting',
+      'found another edge case in the wand code\nfixing it\nwands are more complicated than they look',
+      'the gnome pathfinding is weird but it works\ni think\nhasnt broken in a week at least',
     ],
   },
 
@@ -6208,7 +6240,23 @@ export const TALK_CORPUS = {
         ],
       },
       {
-        re: /\b(hello|hi|hey|greetings|hail)\b/i,
+        re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b/i,
+        responses: [
+          'I AM UNCHANGED\nAS I HAVE BEEN\nAS I WILL BE WHEN YOU ARE GONE',
+          'HOW AM I\nAN INTERESTING QUESTION FROM SOMEONE WHO WILL NOT LIVE TO HEAR THE FULL ANSWER',
+          'I AM\nTHAT IS SUFFICIENT',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
+        responses: [
+          'WAITING\nI AM ALWAYS WAITING\nYOU COME TO ME EVENTUALLY',
+          'WATCHING THE STAIRS\nFEW DESCEND\nNONE RETURN',
+          'WHAT I AM ALWAYS DOING\nWATCHING\nAND WAITING FOR YOU TO MAKE YOUR FINAL MISTAKE',
+        ],
+      },
+      {
+        re: /\b(hello|hi|hey|greetings|hail|howdy|yo|sup|wassup)\b/i,
         responses: [
           'I DO NOT GREET\nI OBSERVE',
           'YOUR PLEASANTRIES ARE NOTED\nAND MEANINGLESS',
@@ -6272,6 +6320,22 @@ export const TALK_CORPUS = {
     triggerWords: 5,
     greeting: 'hello there',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'well, thank you\nbeen reading the survey notes from the spring trip\nthere is a passage in the northwest section we did not fully map',
+          'fine\nthinking about cave geometry\nthe way passages branch and reconnect is something i find endlessly interesting',
+          'good enough\nhave you been playing adventure or hack',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'reviewing my survey notes from mammoth\ntrying to figure out whether a passage we partially mapped in 1974 connects to the main trunk\nit might, the survey line is suggestive but inconclusive',
+          'thinking about how to represent the cave survey in a data structure\nthe compass bearings and distances are precise but the spatial relationships are what you really want\nhow do you encode three-dimensional topology from two-dimensional measurement',
+          'planning the next trip actually\nthere is a section in the east wing of the cave that nobody has mapped since the \'60s\nmight be interesting to go back',
+        ],
+      },
       {
         re: /\b(cave|caving|spelunk|underground|grotto)\b/i,
         topic: 'cave',
@@ -6389,6 +6453,30 @@ export const TALK_CORPUS = {
     greeting: 'hello. what can i help you with',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'quite well, thank you\nbeen thinking about how to introduce recursion to students who are not yet ready to think recursively\nit is a persistent pedagogical problem',
+          'fine\npreparing for next week\'s session\nwe are getting to list operations and that is always where the interesting questions start',
+          'good\nwhat brings you here',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'working on curriculum materials for the Logo course\ntrying to find the right sequence to introduce higher-order functions\nthe difficulty is that map and filter are obvious once you understand them\nbut the path to understanding them is not obvious',
+          'writing a problem set\nthe problem is to implement a simple database in Logo\nthe insight i want them to reach is that a database is just a list of lists with conventions\nnot magic',
+          'thinking about how to teach the concept of state\nmost students have an intuitive notion of state from daily life\nbut making it precise and connecting it to variables takes careful work',
+        ],
+      },
+      {
+        re: /\bdon\'?t\s+understand\b|\bi\'?m\s+(confused|stuck|lost|totally\s+lost)\b|\b(stuck|confused|lost)\b|\bcan\'?t\s+(figure|get)\b/i,
+        responses: [
+          'good, tell me what you do not understand\nnot "i don\'t get it" but specifically: which step was clear and which step is where it stopped making sense\nthat is always the useful question',
+          'confusion is precise, even if it does not feel that way\nthere is a specific place where your mental model diverges from reality\nfind that place\nwhat is the last thing you understood for certain',
+          'let us go back to the beginning of what you were trying to do\nnot the error, the goal\nsometimes confusion means we took the wrong path three steps ago and we need to back up',
+        ],
+      },
+      {
         re: /\blogo\b/i,
         topic: 'logo',
         responses: [
@@ -6431,7 +6519,7 @@ export const TALK_CORPUS = {
         ],
       },
       {
-        re: /\b(hard|stuck|confused|don\'t understand|dont understand)\b/i,
+        re: /\b(hard|stuck|confused|lost|don\'?t\s+understand|dont\s+understand|can\'?t\s+(figure|get|understand)|not\s+getting\s+it)\b/i,
         topic: 'learning',
         responses: [
           'if you are stuck, go back to the last thing you understood\nthat is always the right move\nnot forward into more confusion, but back to solid ground\nthen build from there',
@@ -6496,6 +6584,22 @@ export const TALK_CORPUS = {
     triggerWords: 5,
     greeting: 'oh hey',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nbeen working on the macro system for jove\nit is the one feature i actually miss from emacs',
+          'fine\nthinking about what the next platform looks like\nnot the pdp, something different',
+          'pretty good\nyou using jove',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'working on jove\ntrying to add a macro recording system\nthe concept is simple but the implementation requires thread state i have not designed yet',
+          'thinking about software distribution mostly\nthe code is fine but getting it to people who would use it is the unsolved problem\narpanet would help but most people are not on it',
+          'editor work\njove version 5 eventually\nwhen i get the macro stuff working',
+        ],
+      },
       {
         re: /\b(jove|editor)\b/i,
         topic: 'jove',
@@ -6588,6 +6692,22 @@ export const TALK_CORPUS = {
     greeting: 'hi',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'fine. you',
+          'ok. writing notes for the meeting.',
+          'fine. does jay owe you something.',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'writing up the meeting notes from tuesday. they are almost done.',
+          'nothing interesting. what do you need.',
+          'club records. budgeting. the usual.',
+        ],
+      },
+      {
         re: /\bhack\b/i,
         responses: [
           'yes. jay wrote it. everyone knows.',
@@ -6599,7 +6719,7 @@ export const TALK_CORPUS = {
         re: /\b(jay|fenlason)\b/i,
         topic: 'jay',
         responses: [
-          'he is in the terminal room probably\nor sleeping\none of those two',
+          'he is in the computer room probably\nor sleeping\none of those two',
           'jay is busy. what do you need.',
           'my brother is not great at answering messages\nbut he does eventually\ngive him a day',
         ],
@@ -6607,8 +6727,8 @@ export const TALK_CORPUS = {
           question: 'have you talked to him lately',
           replies: [
             { re: /\byes\b|\byeah\b|\byep\b/i, response: 'ok\nhow did that go' },
-            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'terminal room, after dinner\nor just leave mail\nhe reads it eventually' },
-            { response: 'check the terminal room\nthat is where he is if he is not in class' },
+            { re: /\bno\b|\bnot\b|\bnah\b/i, response: 'computer room, after dinner\nor just leave mail\nhe reads it eventually' },
+            { response: 'check the computer room\nthat is where he is if he is not in class' },
           ],
         },
       },
@@ -6675,6 +6795,22 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: 'hey',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nstill thinking about the routing problem\nit is the unsolved one in networking and nobody is talking about it enough',
+          'fine\ntired of slow modem transfers\nbut what can you do',
+          'ok\nyou',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'thinking about routing protocols\nright now packets get passed around the arpanet kind of by hand\nnodes forward to adjacent nodes that seem to know the destination\nbut that does not scale\nyou need something more systematic',
+          'been trying to get a clean modem transfer working at 1200 baud\nline quality is the problem\nfraize has a checksum protocol that helps but it is slow',
+          'topology research mostly\ntrying to understand how the arpanet grows over time and whether the current routing approach survives',
+        ],
+      },
       {
         re: /\b(network|arpa|arpanet|internet)\b/i,
         topic: 'network',
@@ -6761,35 +6897,62 @@ export const TALK_CORPUS = {
     greeting: 'hey what\'s up',
     patterns: [
       {
+        re: /\bhow are you\b|\bhow\'s it going\b|\bwhat\'s up\b|\bwassup\b/i,
+        responses: [
+          'good\nworking on the mimic design\nit is more complicated than i expected but in a good way',
+          'pretty good\nbeen thinking about the nymph mechanic all week\nshe should steal equipment, not just gold, but jay needs to think about the inventory handling',
+          'fine\ntired of the level 1 balance debate honestly\nbut otherwise good',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'working on the mimic\nit disguises as a chest or a door and attacks when you interact with it\nchameleon was good but mimic is more devious because you chose to interact\nthe player makes the mistake themselves',
+          'monster design\ntrying to figure out the nymph\nshe should have a goal that is not just "damage the player"\nsteal something valuable but specific\nmaybe rings or wands, things that are hard to replace',
+          'thinking about monster balance\nalways thinking about monster balance\nit is the thing that makes or breaks the game',
+        ],
+      },
+      {
+        re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again)\b/i,
+        responses: [
+          'what got you\nmonster or something else',
+          'level and what happened\ncurious whether it was a design problem or a player problem',
+          'those are the two best possible outcomes: either the game is fair and you learned something\nor the game is unfair and i need to fix it\nwhich one was it',
+        ],
+      },
+      {
         re: /\bchameleon\b/i,
         topic: 'chameleon',
         responses: [
-          'the chameleon is my best work\nit randomly looks like another monster\nso you never know what you\'re fighting until it\'s too late\nthe paranoia is the point',
-          'i got the chameleon idea from caving actually\nreal caves have features that look like passages but aren\'t\npassages that look like walls\nthe environment deceives you\nchameleon is that',
-          'jay thought the chameleon was too hard at first\nbut it is fair\nyou have the information. you just have to notice the right things.',
+          'the chameleon is my best work and i will defend that\nit picks a random monster appearance when it spawns\nso you walk into a room, you see what looks like a hobgoblin, you think ok i know how to handle a hobgoblin\nand then it hits you for twice the damage and you realize something is wrong\nby then it is often too late\nthe paranoia it creates in the whole game is the point',
+          'i got the chameleon concept from caving honestly\nreal caves have features that look like safe passage but aren\'t\na passage that looks open will suddenly get tight and unnavigable\na ledge that looks stable is a loose breakdown pile\nthe environment deceives you not on purpose but completely\nthe chameleon is that: the dungeon is not going to label its dangers\nyou have to read what you see more carefully',
+          'jay thought the chameleon was too hard at first and we argued about it\nhe wanted to tone it down, maybe make it not pick dangerous monsters\nbut i said no, that defeats the whole design\nif the player pays attention to attack patterns they CAN tell something is off\nyou have the information. you just have to notice the right things.\nthat is fair. jay came around.',
+          'what i tell people who complain the chameleon is unfair:\nfair means you had the information to make a correct decision\nthe chameleon gives you signals. movement speed is slightly wrong. attack style is off.\nyou can learn to notice those things\nonce you do, the chameleon becomes a satisfying test instead of a trap\nuntil then it kills you and you learn',
         ],
       },
       {
         re: /\bmimic\b/i,
         responses: [
-          'the mimic is the next one\nit disguises as a chest or a door\nyou interact with it and then it attacks\nthat is even more evil than the chameleon',
-          'mimic is harder to implement than chameleon\nchameleon is just a display trick\nmimic has to intercept item interaction\nbut i\'m working on it',
+          'the mimic is the next monster i am working on after the chameleon\nit disguises itself as a chest, a door, or a staircase\nyou walk up to interact with it and then it attacks\nwhich is even more evil than the chameleon because you took a deliberate action\nyou chose to open that chest\nand the chest chose back',
+          'mimic is technically harder to implement than chameleon\nchameleon is mainly a display trick in the render pass\nmimic has to intercept the item interaction code\nwhen you press \'o\' to open a door, the game has to check: is that actually a door\nbefore it shows you the animation\nthat touches more parts of the code\nbut the design is worth it',
         ],
       },
       {
         re: /\b(monster|creature|enemy|mob)\b/i,
         topic: 'monsters',
         responses: [
-          'the best monsters have one interesting rule\nnot ten rules\none rule that creates interesting decisions\ngnomes steal gold. zombies track you. that\'s enough.',
-          'i think a lot about monster balance\nif a monster is always lethal, players avoid it\nif it\'s never lethal, players ignore it\nthe sweet spot is: dangerous if you make a mistake',
-          'monster design is really about what information the player has\nchameleon hides its identity\nthat is interesting\na monster that is just a bigger hit point bar is not',
+          'the best monsters have one interesting rule and that is all they need\nnot ten rules, not a stat block, just one rule that creates interesting decisions for the player\ngnomes steal gold, so carrying gold becomes a risk\nzombies track you relentlessly, so every room you enter has to have an exit you have scouted\nthose single rules ripple through every encounter with that monster\nthat is good design',
+          'i think a lot about what makes a monster feel fair versus cheap\nfair: the player had information they could have acted on\ncheap: the player had no way to know\nthe chameleon is fair because the clues are there, they are just subtle\na monster that teleports you randomly is cheap because nothing you do matters\ni try to only design fair monsters',
+          'monster design is really about what information state the player is in when they meet the monster\nchameleon hides its identity, so your information is wrong\ngnome reveals its goal through its behavior, you can learn to predict it\nzombie is predictable once you know the rule\na monster that is just a bigger hit point bar gives you no interesting information\nit is just work. i do not want to design work.',
+          'when i pitch a new monster to jay i always start with: what does this monster want\nbecause that determines how it behaves and that determines what the player has to figure out\nthe chameleon wants to not be identified until it attacks\nthe gnome wants gold\nthe zombie wants to follow heat or smell or something\nonce you have what it wants, the behavior follows naturally',
         ],
       },
       {
         re: /\b(balance|fair|unfair|cheap|overpowered)\b/i,
         responses: [
-          'fairness means: the player had the information to make the right choice\nif they died because of information they could not have, that is unfair\nif they died because they misread information they had, that is fair',
-          'overpowered monsters are fine at deep levels\nthe dungeon is supposed to get harder\nbut overpowered monsters on level 1 is design failure',
+          'my definition of fair: the player had the information to make a correct choice and chose wrong\nmy definition of unfair: the player had no information and therefore could not have chosen correctly\nif you died to a chameleon because you did not notice the attack pattern was wrong, that is fair\nif you died because the game rolled against you with no tells, that is unfair\ni try very hard to only put fair deaths in the game',
+          'overpowered monsters at deep levels is fine and good\nthe dungeon is supposed to get harder and the player should feel the escalation\nbut overpowered monsters on level 1 is a design failure\nlevel 1 is where the player is learning the rules\nyou cannot teach someone by killing them before they understand what killed them\nstages of introduction: learn the rule, then be challenged by it, then die when you ignore it',
+          'balance is about the ratio of information to danger\nearly levels: high information, lower danger\nplayer learns what attacks look like, what monsters want, how corridors work\nlate levels: same information if you are paying attention, but the cost of misreading it is much higher\na chameleon on level 2 would be educational\na chameleon on level 15 is terrifying and correct',
         ],
       },
       {
@@ -6804,15 +6967,17 @@ export const TALK_CORPUS = {
       {
         re: /\b(hack|game)\b/i,
         responses: [
-          'hack is great\njay did good work\ni just added some monsters',
-          'i think the monster design is what makes hack feel different from rogue\nrogue monsters are more predictable\nhack monsters have personality',
+          'hack is great and jay did good work\ni just added some monsters but that is not a small thing\nthe game feel is almost entirely defined by what the monsters want and how they behave\nrogue monsters are mostly just obstacles with different stats\nhack monsters have goals\nand goals change everything',
+          'what makes hack different from rogue is the monsters have personalities\nthe gnome does not just attack you, it wants your gold specifically\nthe zombie does not think about treasure, it just hunts\nthe chameleon is trying to deceive you\neach one creates a different kind of pressure\nthat variety is the design',
+          'i think hack will outlast rogue just because of the monster variety\nrogue is beautifully simple but you learn it completely after enough games\nhack keeps surprising you because the interactions between monster types and items and situations are too many to memorize\nthat is intentional\nif you can memorize the whole game it stops being interesting',
         ],
       },
       {
         re: /\b(level 1|first level|starting level|early game)\b/i,
         responses: [
-          'level 1 should be survivable but not easy\nthe player has to learn the UI and the basic rules\nkilling them immediately teaches nothing\nbut they should definitely feel threatened',
-          'i put the easy monsters on level 1 for a reason\nby the time you see the chameleon you should understand the combat system\nstages of introduction',
+          'level 1 has to do two things at once and that is hard to balance\nit has to teach the player the basic rules: movement, combat, items, doors\nbut it also has to feel like a dungeon, not a tutorial\nif it is too safe the player does not take it seriously\nif it is too dangerous they die confused and do not learn anything\ni put only the simplest monsters on level 1 but made sure they actually threaten you',
+          'i put easy monsters on level 1 on purpose and jay understood why\nby the time you see the chameleon you need to already understand combat, items, how to run away\nthe chameleon is not teaching you mechanics, it is teaching you to be suspicious\nif you do not have the basics by then you will just be confused and angry\nstages of introduction: learn the rule, then get tested on it, then die when you forget it',
+          'the hardest part of early game design is enemies that are dangerous without being arbitrary\na kobold on level 1 should kill you if you make a mistake\nbut the mistake should be something you could recognize and avoid\nnot a coin flip\ni spent more time on the level 1-3 monsters than on anything else\nbecause that is where most players spend most of their time',
         ],
       },
     ],
@@ -6821,8 +6986,8 @@ export const TALK_CORPUS = {
       'that is a design question actually',
       'let me think about the monster angle on that',
       'ask jay if it is a code thing',
-      '{word} is a design problem\nwhat is the player\'s information state',
-      'how does {word} affect what the player decides to do',
+      '{word} is a design problem\nwhat is the player\'s information state when they encounter it',
+      'how does {word} affect what the player decides to do next',
     ],
     spontaneous: [
       'working on the mimic\nit is harder than the chameleon but more fun',
@@ -6840,6 +7005,22 @@ export const TALK_CORPUS = {
     triggerWords: 5,
     greeting: 'oh hi',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nstill staring at the level 12 southeast bug\ni know where it is, i just have not written the fix yet',
+          'ok\nbeen thinking about maze aesthetics more than is probably healthy\nbut i think i have an idea to make corridors feel more organic',
+          'fine, you',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'working on the southeast room bug in level 12\nit is a boundary condition in the region grid\nthe corridor router treats the last column differently than the others\nan off-by-one that only shows up at the edge of the map\ni know what it is, writing the fix is the annoying part',
+          'thinking about maze generation\nthe recursive backtracker gives good topology but the corridors look too regular\nreal caves meander\ni want to add a little noise to the corridor paths without breaking connectivity',
+          'level generation, what else\nwant to see the latest version running',
+        ],
+      },
       {
         re: /\b(maze|level|map|generate|procedural)\b/i,
         topic: 'maze',
@@ -6914,6 +7095,30 @@ export const TALK_CORPUS = {
     greeting: 'hey',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nthinking about the next project\nnot ready to talk about it but it is in my head',
+          'ok\nbeen playing rogue again to see where people get stuck\nthe early levels are rougher than i remembered',
+          'fine\nyou playing hack or rogue right now',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'thinking about what comes after rogue\nthe procedural generation idea has more space to explore than just dungeon levels\nbut i do not have a concrete direction yet',
+          'playing my own game to find design problems\nyou find completely different things as a player than you do as the developer\nbeen dying on level 3 more than i should\nsomething is wrong with monster density there',
+          'working on something new\nnot ready to say what yet\nbut it involves procedural generation',
+        ],
+      },
+      {
+        re: /\b(i\s+)?(just\s+)?(died|die|keep\s+dying|got\s+killed|was\s+killed|died\s+again)\b|\bgame\s+over\b/i,
+        responses: [
+          'yeah that is how it works\ntell me what level and what happened\ni want to know if that is a design problem or expected difficulty',
+          'what killed you\nsometimes deaths tell me something is wrong with the balance\nsometimes they tell me the player made a specific mistake\nboth are useful to know',
+          'ok but what was the situation\nwhere were you, what were you doing, what did the game show right before it happened\ncurious whether that was a fair death or a cheap one',
+        ],
+      },
+      {
         re: /\brogue\b/i,
         responses: [
           'rogue came out of a feeling: i want a game where i do not know what comes next\nnot a sequence of levels i have memorized\nbut genuine unknown territory every time',
@@ -6984,6 +7189,22 @@ export const TALK_CORPUS = {
     greeting: 'what',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
+        responses: [
+          'fine',
+          'busy',
+          'ok',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
+        responses: [
+          'curses. what else.',
+          'bug list is empty. keeping it that way.',
+          'nothing you need to know about',
+        ],
+      },
+      {
         re: /\b(curses|library|libcurses)\b/i,
         responses: [
           'curses abstracts terminal differences\nyou say "move cursor to 3,5" and curses figures out the escape sequence\nthat is the whole library',
@@ -7035,6 +7256,30 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: 'yes?',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'busy\nthree machines with log rotation issues this week\nwhat do you need',
+          'fine\nwhat is the problem',
+          'ok. is this a system question or are you just saying hi.',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'patching the log rotation scripts\nthey have been filling /var/log on systems where the rotation interval is misconfigured\nit is a known issue, i just have not had time to fix all the machines yet',
+          'quota enforcement mostly\npeople do not clean up their home directories until i send the warning\nthen they do it once\nthen it fills up again\nit is a cycle',
+          'maintenance\nalways maintenance\nthat is what sysadmin is',
+        ],
+      },
+      {
+        re: /\b(broken|not\s+working|doesn\'?t\s+work|nothing\s+works|it\'?s\s+broken|something\'?s\s+(wrong|broken)|won\'?t\s+(start|run|work))\b/i,
+        responses: [
+          'what specifically is broken\nnot "nothing works" but: what command, what output, what did you expect\nbefore i can help i need the facts',
+          'describe the problem exactly\nwhich machine, what were you doing, what happened instead of what you expected\nif you can reproduce it, do that and tell me the exact steps',
+          'give me the error message verbatim\nnot a paraphrase, the actual text\nthat usually tells me more than the description does',
+        ],
+      },
       {
         re: /\b(disk|quota|space|storage|full)\b/i,
         responses: [
@@ -7116,6 +7361,22 @@ export const TALK_CORPUS = {
     greeting: 'ah, a visitor. welcome.',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'well enough\nbusiness is steady at level 5\nadventurers always need something at this depth\ntorches, scrolls, the occasional wand',
+          'quiet\nwhich is either good or bad depending on how you look at it\nno adventurers means no business\nbut no adventurers also means nothing is hunting me',
+          'philosophical, thank you for asking\nhow are you',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'running the shop\ntaking inventory, waiting for resupply from the lower levels\nthe wand of striking came back in stock this week\nonly one previous owner',
+          'reading\nthe dungeon is quiet and the shop runs itself when there are no customers\ni keep a small library behind the counter\nphilosophy mostly',
+          'thinking about pricing\ncustomer desperation is a real variable and i try to price accordingly\na potion of healing on level 1 is worth less than the same potion on level 20\nthe dungeon itself changes the value of things',
+        ],
+      },
+      {
         re: /\b(buy|purchase|price|shop|store|item)\b/i,
         responses: [
           'everything in the shop has a fair price\ni determine fair\nif you disagree, the next shop is several levels in either direction',
@@ -7188,6 +7449,22 @@ export const TALK_CORPUS = {
     greeting: 'hi',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nworking on corridor routing\ntrying to make the passages feel less like a grid and more like they grew',
+          'fine\nbeen thinking about how to vary room shapes without breaking the connectivity guarantee\nit is a harder problem than it looks',
+          'ok\nyou',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'corridor routing\nthe current version connects rooms in a straight line with one bend\nbut real dungeon corridors should meander more\ntrying to add that without breaking the topology guarantees',
+          'thinking about room variety\nright now rooms are all rectangles\ni want to try L-shaped rooms or rooms with pillars\nbut the interaction with corridor placement gets complicated quickly',
+          'level design theory mostly\nwhat makes a procedurally generated level feel designed rather than random\ni have some ideas but nothing proven yet',
+        ],
+      },
+      {
         re: /\b(room|corridor|region|area)\b/i,
         responses: [
           'the region grid is simple: divide the level into a 3x3 grid\neach region gets exactly one room somewhere inside it\nthen connect adjacent regions with corridors\nguaranteed connectivity',
@@ -7243,19 +7520,36 @@ export const TALK_CORPUS = {
     greeting: 'hey',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nfinished the interrupt handler yesterday\nit is cleaner than i expected',
+          'fine\nstaring at the assembler listing\ni find it relaxing, which is probably strange',
+          'ok\nyou working on anything',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'interrupt handler for the serial port\nthe tricky part is saving and restoring all the registers correctly\nif you miss one the interrupted process gets corrupted state and dies in a confusing way\ngot it working yesterday after three days of debugging',
+          'reading through the v7 kernel source again\nthere are some clever tricks in the block cache code that i want to understand better\nit is the kind of code where every line is doing exactly what it needs to and nothing else\nthat density is satisfying',
+          'assembly\nwriting a small utility to format hex dumps nicely\nit is silly but i use it constantly',
+        ],
+      },
+      {
         re: /\b(assembly|asm|pdp|pdp.11|machine code)\b/i,
         responses: [
-          'the pdp-11 instruction set is elegant\nevery instruction works on every addressing mode\northogonal design\nonce you learn the addressing modes, you know the whole instruction set',
-          'four addressing modes is all you need: register, deferred, autoincrement, autodecrement\nevery other mode is a combination\nonce you get that, the whole architecture is clear',
-          'assembly is not hard\nit is just low-level\nthe hard part is keeping the whole program state in your head at once\nthat is a practice skill, not an intelligence skill',
+          'the pdp-11 instruction set is genuinely elegant and i say that having also worked on 6502 and 8080\nthe key design is orthogonal: every instruction works on every addressing mode without exceptions\nso mov can move a register to memory or memory to memory or autoincrement to deferred\nyou learn the addressing modes, you learn the instructions, you combine them freely\nno special cases. most architectures have dozens of special cases. pdp-11 almost none.',
+          'there are really four fundamental addressing modes and everything else derives from them\nregister: the operand is in a register\ndeferred: the register holds the address of the operand in memory\nautoincrement: deferred, then increment the register\nautodecrement: decrement, then deferred\nonce you get that pattern, the whole addressing scheme falls out\nit took me maybe an afternoon to really get it and then everything clicked',
+          'assembly is not harder than C, it is just more verbose and lower level\nthe hard part is not the instructions, it is maintaining a model of program state in your head\nwhere is the stack pointer, what is in r0, what does this memory address contain right now\nthat is a practice skill you build up over time, not something you either have or don\'t\ni write small loops from scratch just to practice keeping the state picture clear\nit helps',
+          'the pdp-11 has a feature that most people miss: the program counter is register 7\nso autoincrement through r7 is how immediate addressing works\nand autoincrement deferred through r7 is absolute addressing\nthat means the addressing modes are consistent all the way through the architecture\nno special pc-relative mode that works differently from everything else\nelegant. properly designed.',
         ],
       },
       {
         re: /\b(unix|command|shell|kernel|syscall)\b/i,
         responses: [
-          'unix system calls are the cleanest interface in computing\nopen, read, write, close\neverything is a file\nonce you understand that, the rest is details',
-          'the man pages are actually good\nread them before you ask me\ni am not joking\nman is underrated',
-          'v7 unix is readable\nthe whole system is maybe 40k lines of c\nyou can understand all of it if you sit down and read carefully',
+          'unix system calls are the cleanest interface i have seen\nopen, read, write, close, and then ioctl for the weird cases\neverything is a file descriptor: files, pipes, terminals, devices\none abstraction handles all of it\nonce you really internalize that, you can predict what system calls something uses before you look\nbecause everything follows the same model',
+          'the man pages are actually good and i mean that\nread section 2 for system calls, section 3 for library functions\nthe descriptions are short but precise\npeople ask me questions that are answered verbatim in the man page they could have opened in ten seconds\nbefore you ask anyone anything, check the man page\ni am serious',
+          'v7 unix is worth reading front to back if you have a few weeks\nthe entire kernel is about 40k lines of c and it fits in your head if you go slowly\nchris and ken wrote it to be understandable, not just functional\nthere are a few places where you can see the clever trick being done\nbut mostly it is just clean, direct code that does exactly what it says\nthe filesystem code especially. read that.',
         ],
       },
       {
@@ -7292,25 +7586,50 @@ export const TALK_CORPUS = {
     greeting: 'hey',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nbeen playing both rogue and hack this week trying to figure out what they do differently\nhack has more going on but rogue has better focus',
+          'fine\nstuck on level 7 in hack\nthe monsters are starting to be serious at that depth',
+          'ok\nyou playing anything right now',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'playing hack mostly\nstuck at level 7 which seems to be where everything gets harder at once\nmore monster types, items start to matter more, you have to think about resources',
+          'comparing rogue and hack\ntrying to articulate what rogue does better and what hack does better\nbecause they are different games even though they look similar\nrogue is a sprint, hack is a project',
+          'died in hack again\nnot complaining, that is how it works\nbut i want to figure out what i keep doing wrong at mid-levels',
+        ],
+      },
+      {
+        re: /\bi (died|keep dying|got killed|was killed)\b/i,
+        responses: [
+          'yeah, what level\nmid-levels are the hardest adjustment\nearl game you die to basics, late game you die to specifics, mid-game you die to resource management\nthey are all different problems',
+          'rogue or hack\nboth have permadeath but the reasons you die are different\nrogue: missed information, hack: mismanaged resources usually',
+          'same\nbeen dying a lot in hack\ntrying to figure out the pattern',
+        ],
+      },
+      {
         re: /\brogue\b/i,
         responses: [
-          'rogue is more immediate\nfewer item types, cleaner UI, the dungeon is the whole game\nhack has more going on but rogue has better focus',
-          'rogue feels more like a sprint\nhack feels more like a project\ndifferent moods\ni play rogue when i want to lose quickly and i play hack when i want to lose slowly',
+          'rogue is more immediate\nfewer item types, cleaner UI, the dungeon is the whole game\nhack has more going on but rogue has better focus\nif you want to learn one of them, rogue teaches the fundamentals faster',
+          'rogue feels more like a sprint and i mean that as a compliment\nyou can do a full rogue run in maybe forty minutes if it goes well\nhack is a project, rogue is a sprint\ndifferent moods',
+          'rogue has a beautiful focus that hack has moved away from\nevery item in rogue serves a clear purpose\nhack has items that are interesting but situational\nthose are different design philosophies and both are valid',
         ],
       },
       {
         re: /\bhack\b/i,
         responses: [
-          'hack is better if you want depth\nmore monsters, more item interactions, the store\nbut rogue is more elegant',
-          'my verdict: hack is better\nrogue is more immediate\nthey are not competing, they are different moods',
-          'jay did good work on hack\nthe chameleon alone makes it worth playing\nthat thing is infuriating in the best way',
+          'hack is better if you want depth and variety\nmore monster types, more item interactions, the shop, the chameleon\nbut rogue is more elegant and that elegance has value\nthey are not competing, they are different moods',
+          'my verdict: hack is more interesting for long-term play\nrogue you eventually feel like you have seen most of what it has\nhack keeps producing new situations because the interactions multiply\nthat is good design',
+          'jay did good work on hack\nfenlason added enough to rogue to make it genuinely different\nbut the thing that sets hack apart is thome\'s monster design\nthe chameleon alone is worth playing for',
         ],
       },
       {
         re: /\bchameleon\b/i,
         responses: [
-          'the chameleon is why hack is worth playing over rogue\nrogue has no equivalent\nthe paranoia it creates is unique',
-          'i died to a chameleon three times before i understood what was happening\nthat is three deaths well-spent learning something',
+          'the chameleon is why hack is worth playing over rogue\nrogue has no equivalent\nthe paranoia it creates is not just about that one monster, it changes how you approach every monster\nyou start second-guessing appearances\nand that is exactly the right mental state for a dungeon',
+          'i died to a chameleon three times before i understood what was happening\nfirst time: confused, died\nsecond time: "wait was that a chameleon"\nthird time: "oh that is definitely a chameleon based on the attack"\nthree deaths to learn one thing is a good trade in hack',
         ],
       },
       {
@@ -7346,6 +7665,22 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: 'hey',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nrunning a password audit this week\nresults not great but expected',
+          'fine\nthinking about setuid binaries again\nthere are a few that should be reviewed',
+          'ok\nyou',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'password audit\nrunning a dictionary attack against the shadow file copy to see which accounts have weak passwords\nfour so far\nnot naming names but they need to change',
+          'reviewing setuid binaries\nevery setuid binary is a potential escalation path if it takes user input unsafely\nmost of them are fine but there are a few i want to look at more closely',
+          'thinking about the login sequence\nthere is a window between auth success and shell startup where the system is in an odd state\nprobably fine but worth understanding',
+        ],
+      },
       {
         re: /\b(password|credentials|auth|login)\b/i,
         responses: [
@@ -7403,18 +7738,42 @@ export const TALK_CORPUS = {
     greeting: 'hey',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u|ya)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bhow\s+goes\b|\bhow\s+r\s+u\b|\bwhat\'?s\s+up\b|\bwassup\b|\bsup\b/i,
+        responses: [
+          'good\nstill waiting on walz about the adm-3a by the door\nthat terminal is causing problems for everyone who sits there',
+          'fine\nhelped someone with a terminal configuration issue this morning\nthey had the wrong termcap entry and the cursor was jumping to wrong positions in hack',
+          'ok\nyou',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on|workin\s+on|making|making)\b|\bwhat\'?s\s+(new|going\s+on|happening|been\s+up|the\s+plan|you\s+working)\b/i,
+        responses: [
+          'terminal maintenance mostly\nthe termcap entries for two of the adm-3a models are slightly wrong on this system\ncursor-right and scroll-up have off-by-one errors in the escape sequences\nbeen documenting them to give to walz',
+          'calibrating the vt100 screens\nthe phosphor brightness varies across the row on two of them\nnot enough to affect normal use but it shows up during full-screen games',
+          'nothing exciting\nmaking sure the terminals are configured right\nit is tedious but when it goes wrong everyone notices',
+        ],
+      },
+      {
+        re: /\b(display|screen|garbled|corruption|corrupted|weird|scrambled|messed\s+up|messing\s+up|looks\s+wrong|looks\s+weird|garbage|junk\s+on)\b/i,
+        responses: [
+          'which terminal are you on\nif it is the adm-3a by the door, switch to vt100 number 2\nthat terminal is known bad and switching is faster than debugging it',
+          'if the screen is getting corrupted during hack or rogue, the first thing to check is the termcap entry\ntype echo $TERM and tell me what it says\nif it says adm3a you might have the wrong entry',
+          'i know that display problem\nthe leftmost three columns on the adm-3a nearest the door lose cursor sync sometimes\nit is a hardware issue, not software\njust use a different terminal',
+        ],
+      },
+      {
         re: /\b(terminal|vt100|adm.3a|adm3|screen)\b/i,
         responses: [
-          'vt100 number 2 is the best for games\nbrighter screen, correct cursor positioning, escape sequences work right\nuse that one if you can',
-          'the adm-3a by the door is known bad\nthe leftmost 3 columns miss cursor moves sometimes\nalso the screen phosphor is dying\nwalz knows about it',
-          'termcap entry for the adm-3a is also slightly wrong on this system\nthe cursor-right sequence is one byte off\nthat is why display gets weird in the corner',
+          'vt100 number 2 is the best one for games\nbrighter phosphor, correct cursor positioning on all 80 columns, escape sequences work right\nif you have a choice, use that one\nthe adm-3a models vary a lot in quality and the worst ones are pretty bad',
+          'the adm-3a by the door is known bad\nthe leftmost 3 columns miss cursor moves sometimes and the phosphor is dying\nwalz has it on the replacement list but it has been there for a while\ni just tell people not to use it',
+          'termcap entry for the adm-3a on this system is slightly wrong\nthe cursor-right sequence is one byte off in the entry\nthat is why display gets weird in the corner of the screen\nif you see that, type "export TERM=vt100" and it should fix it',
         ],
       },
       {
         re: /\b(games|nethack|hack|rogue|display|graphic)\b/i,
         responses: [
-          'hack and rogue both look better on vt100 than adm-3a\nthe box-drawing characters especially\nthe adm-3a renders those inconsistently',
-          'if the display is getting corrupted during play, check which terminal you are on\nif it is the one by the door, switch terminals\nit is not worth debugging',
+          'hack and rogue both look better on vt100 than adm-3a\nthe box-drawing characters especially\nthe adm-3a renders those inconsistently because the character ROM has a slightly different code page\nvt100 is the intended target for both games',
+          'if the display is getting corrupted during play, check which terminal you are on first\nif it is the one by the door, just switch terminals\nthe adm-3a there is not worth debugging, the hardware is bad\nvt100 number 2 is usually free',
         ],
       },
       {
@@ -7450,6 +7809,22 @@ export const TALK_CORPUS = {
     triggerWords: 5,
     greeting: 'hey',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
+        responses: [
+          'good\nreading kernel source again\nthe filesystem code is more interesting than i expected',
+          'fine\nstuck on something in the scheduler but i think i see it now',
+          'ok. you',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
+        responses: [
+          'reading through the inode code in v7\nthe way directories are just files with a particular format is elegant\nonce you see it you understand why "everything is a file" is not just a slogan',
+          'tracing through a fork/exec sequence in the kernel\ntrying to understand exactly what gets copied and what gets shared\nit is more nuanced than the man page suggests',
+          'kernel source mostly\nthe clock interrupt handler is doing three things at once\nit is clever but took me a while to see what all three were',
+        ],
+      },
       {
         re: /\b(kernel|proc|process|scheduler)\b/i,
         responses: [
@@ -7506,6 +7881,22 @@ export const TALK_CORPUS = {
     greeting: 'hey',
     patterns: [
       {
+        re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
+        responses: [
+          'good\nchecksum protocol is holding up well\nno corrupted transfers in the last two weeks',
+          'fine\nwaiting for a clean 1200 baud window\nphone lines are noisy today',
+          'ok\nyou',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
+        responses: [
+          'running a transfer test at 1200 baud\ntrying to figure out if the line is cleaner in the evening or if i was just lucky yesterday\nbeen logging error rates by time of day for two weeks now',
+          'working on the resume protocol\nif a transfer fails at block 47 you should not have to restart from block 1\nbut that requires both ends to agree on where you left off\nit is a coordination problem',
+          'modem stuff\nthe checksum implementation is done\nresume on error is what i am working on now',
+        ],
+      },
+      {
         re: /\b(modem|baud|coupler|acoustic|300|1200)\b/i,
         responses: [
           'acoustic coupler works at 300 baud reliably\n1200 baud is possible but phone line quality varies a lot\na bad line at 1200 is worse than a good line at 300',
@@ -7561,6 +7952,22 @@ export const TALK_CORPUS = {
     triggerWords: 4,
     greeting: 'hey',
     patterns: [
+      {
+        re: /\bhow\s+(are\s+)?(you|u)\b|\bhow\'?s\s+it\s+(go|goin|going)\b|\bwhat\'?s\s+up\b|\bsup\b/i,
+        responses: [
+          'good\nfixed the tokenizer bug fenlason found\nquoted strings now work correctly\nbeen testing edge cases all morning',
+          'ok\npipes are almost working\ngot the fd plumbing right finally',
+          'fine\nyou',
+        ],
+      },
+      {
+        re: /\bwhat\s+(are\s+|r\s+)?(you|u|ya)\s+(doing|doin|up\s+to|working\s+on)\b|\bwhat\'?s\s+(new|going\s+on)\b/i,
+        responses: [
+          'working on pipes for the shell\nfork and exec work, redirects work, now i need to wire up the pipe fd plumbing\nthe tricky part is that the pipe has to be set up before the exec so the child inherits the right fds',
+          'fixing the quoted string tokenizer\nmy first version broke on escaped quotes inside double quotes\nfenlason found it immediately, took me two days to actually fix it right',
+          'shell implementation\ntrying to get the tokenizer to handle all the quoting cases correctly\nthere are more edge cases than you think',
+        ],
+      },
       {
         re: /\b(shell|sh|bash|script|scripting)\b/i,
         responses: [
