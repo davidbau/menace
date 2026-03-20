@@ -2295,6 +2295,9 @@ async function trapeffect_rocktrap_you(trap, trflags, player, game, map) {
     feeltrap(trap);
     const dmg = c_d(2, 6);
     const otmp = t_missile(ROCK, trap);
+    // C: player sees the rock land, so dknown=1 (matches existing floor objects
+    // whose dknown was set by see_nearby_objects when player walked onto tile).
+    otmp.dknown = true;
     place_object(otmp, player.x, player.y, map);
     await pline('A trap door in the ceiling opens and a rock falls on your head!');
     // C: helmet check, passes_rocks check — simplified
