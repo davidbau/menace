@@ -1325,6 +1325,13 @@ export async function deferred_goto(player, game) {
     if (dest !== player.dungeonLevel) {
         if (player.dfr_pre_msg)
             await pline(player.dfr_pre_msg);
+        // C ref: teleport.c level_tele() schedules goto_level() for
+        // end-of-turn deferred_goto(). By then moveloop has advanced to the
+        // command's move context, so align_shift() refreshes against the
+        // destination u.uz before mklev()-time monster weighting.
+        if (game) {
+            game._alignShiftMoves = Number.NaN;
+        }
         // In C this calls goto_level(); in JS we use changeLevel()
         await game.changeLevel(dest, 'teleport');
         // C ref: do.c deferred_goto() prints dfr_post_msg after goto_level()
@@ -1746,7 +1753,33 @@ export async function changeLevel(game, depth, transitionDir = null, opts = {}) 
     } else if (targetDnum === currentDnum && game.levels[depth]) {
         game.lev = game.levels[depth];
     } else {
-        game.lev = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
+        // C ref: do.c:1674-1699 goto_level() assigns u.uz = newlevel before mklev().
+        // Level-sensitive generation (for example makemon.c align_shift()) should
+        // consult the destination level through live u.uz semantics, not via an
+        // injected target-level override on the map being built.
+        const player = (game.u || game.player);
+        const prevDnum = game.dnum;
+        const prevUseLiveUzForMklevAlign = game._useLiveUzForMklevAlign;
+        const prevMklevAlignLevelRef = game._mklevAlignLevelRef;
+        game._useLiveUzForMklevAlign = true;
+        game._mklevAlignLevelRef = { dnum: targetDnum, dlevel: depth };
+        // C ref: makemon.c align_shift() refreshes on move changes. Timed
+        // stair/branch travel crosses a move boundary before mklev(), while
+        // plain changeLevel(..., 'teleport') is also used by headless map
+        // replay and should not force a refresh by itself.
+        if (transitionDir && transitionDir !== 'teleport') {
+            game._alignShiftMoves = Number.NaN;
+        }
+        try {
+            game.lev = opts.makeLevel ? await opts.makeLevel(depth) : await mklev(depth);
+        } catch (err) {
+            game.dnum = prevDnum;
+            game._useLiveUzForMklevAlign = prevUseLiveUzForMklevAlign;
+            game._mklevAlignLevelRef = prevMklevAlignLevelRef;
+            throw err;
+        }
+        game._useLiveUzForMklevAlign = prevUseLiveUzForMklevAlign;
+        game._mklevAlignLevelRef = prevMklevAlignLevelRef;
         game.levels[depth] = (game.lev || game.map);
         game.levelsByBranch[branchCacheKey] = (game.lev || game.map);
     }

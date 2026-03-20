@@ -431,23 +431,17 @@ export function uncommon(mndx) {
 
 // ALIGNWEIGHT imported from const.js
 
-// C ref: makemon.c align_shift()
-// Note: C's align_shift uses induced_align(80) which consumes RNG and is
-// cached in a static variable. The JS version reads _dungeonAlign directly
-// without RNG consumption. A broader special-level override was tried and
-// disproved by the exact C init_level() alignment code.
+// C ref: makemon.c:1609-1619 align_shift().
+// C refreshes the cached special-level pointer on move changes, including
+// during mklev(); it keys from live u.uz rather than target mklev metadata.
 function align_shift(ptr) {
-    if (_gstate && !_gstate._inMklev) {
+    if (_gstate) {
         const liveMoves = Number.isInteger(_gstate.moves) ? _gstate.moves : 0;
         if (_gstate._alignShiftMoves !== liveMoves) {
-            const levelRef = (Number.isInteger(_gstate.lev?._genDnum) && Number.isInteger(_gstate.lev?._genDlevel))
-                ? _gstate.lev
-                : (Number.isInteger(_gstate.map?._genDnum) && Number.isInteger(_gstate.map?._genDlevel))
-                    ? _gstate.map
-                    : (_gstate.player?.uz || _gstate.u?.uz || null);
-            _gstate._dungeonAlign = level_align(
-                levelRef
-            );
+            const levelRef = _gstate._useLiveUzForMklevAlign
+                ? (_gstate._mklevAlignLevelRef || _gstate.u?.uz || _gstate.player?.uz || null)
+                : (_gstate.u?.uz || _gstate.player?.uz || null);
+            _gstate._dungeonAlign = level_align(levelRef);
             _gstate._alignShiftMoves = liveMoves;
         }
     }

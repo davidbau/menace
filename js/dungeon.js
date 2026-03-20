@@ -682,6 +682,9 @@ export function getRuntimeSpecialLevelMeta(levOrMap) {
     if (!special) return null;
     return {
         ...special,
+        // Runtime placement metadata carries alignment/town overrides from
+        // dungeon.lua placement (for example Oracle/Medusa actual depths).
+        align: Number.isInteger(mapped.align) ? mapped.align : special.align,
         runtimeDnum: dnum,
         runtimeDlevel: dlevel,
         town: !!mapped.town,
@@ -689,12 +692,11 @@ export function getRuntimeSpecialLevelMeta(levOrMap) {
 }
 
 export function level_align(levOrMap) {
-    const { dnum } = _coerceLevelArg(levOrMap);
+    const { dnum, dlevel } = _coerceLevelArg(levOrMap);
     const special = getRuntimeSpecialLevelMeta(levOrMap);
-    if (special) {
-        return Number.isInteger(special.align) ? special.align : A_NONE;
-    }
-    return DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE;
+    return special
+        ? (Number.isInteger(special.align) ? special.align : A_NONE)
+        : (DUNGEON_ALIGN_BY_DNUM[dnum] ?? A_NONE);
 }
 
 function resolveUbirthday(seed) {
@@ -5021,11 +5023,12 @@ export async function makelevel(depth, dnum, dlevel, opts = {}) {
             const useDnum = Number.isInteger(specialDnum) ? specialDnum : dnum;
             const useDlevel = Number.isInteger(specialDlevel) ? specialDlevel : dlevel;
             const specialName = typeof special.name === 'string' ? special.name : '';
-            // C ref: dungeon.c:588-591 + makemon.c:1619 — during special level
-            // generation, align_shift reads lev->flags.align. For levels with
-            // explicit alignment in dungeon.lua (oracle=neutral, medusa=chaotic),
-            // this overrides the dungeon alignment. Read from RUNTIME_SPECIAL_LEVEL_CANON.
-            if (_gstate) {
+            // C ref: makemon.c:1609-1619 align_shift() caches Is_special(&u.uz)
+            // on move changes. For changeLevel()-driven generation, JS can use
+            // live destination u.uz semantics instead of injecting target
+            // special alignment. Direct startup/tutorial mklev() still relies
+            // on the generation-time special-level override path.
+            if (_gstate && !_gstate._useLiveUzForMklevAlign) {
                 const specialMeta = runtimeSpecialLevelFor(useDnum, useDlevel);
                 const levelAlign = specialMeta && Number.isInteger(specialMeta.align)
                     ? specialMeta.align : undefined;
