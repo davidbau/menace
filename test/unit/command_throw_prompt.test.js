@@ -7,6 +7,7 @@ import { Player } from '../../js/player.js';
 import { clearInputQueue, pushInput, setThrowOnEmptyInput, getInputQueueLength } from '../../js/input.js';
 import { ROOM } from '../../js/const.js';
 import { ARMOR_CLASS, COIN_CLASS, FLINT, GEM_CLASS, ORCISH_DAGGER, POTION_CLASS, WEAPON_CLASS } from '../../js/objects.js';
+import { setGame } from '../../js/gstate.js';
 
 function makeGame() {
     const map = new GameMap();
@@ -33,13 +34,15 @@ function makeGame() {
         },
     };
 
-    return {
+    const game = {
         player,
         map,
         display,
         fov: null,
         flags: { verbose: false },
     };
+    setGame(game);
+    return game;
 }
 
 describe('throw prompt behavior', () => {
