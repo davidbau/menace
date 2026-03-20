@@ -1213,12 +1213,22 @@ export function mhitm_ad_blnd(magr, mattk, mdef, mhm) {
 //        && sleep_monst(mdef, rnd(10), -1))
 // rnd(10) is consumed as argument before sleep_monst checks resists_sleep
 export function mhitm_ad_slee(magr, mattk, mdef, mhm) {
-    if (!mdef.msleeping) {
-        const amt = rnd(10); // C: argument to first sleep_monst
-        if (!resists_sleep(mdef) && mdef.mcanmove !== false) {
-            mdef.mcanmove = false;
-            mdef.mfrozen = Math.min((mdef.mfrozen || 0) + amt, 127);
-            rnd(10); // C: argument to second sleep_monst (consumed, result unused)
+    if (mdef.attributes) {
+        // mhitu path: monster puts player to sleep
+        // C ref: uhitm.c:3472-3484 — !rn2(5) gate + rnd(10) duration
+        if (!rn2(5) && !mhitm_mgc_atk_negated(magr, mdef)) {
+            rnd(10); // fall_asleep duration
+        }
+    } else {
+        // mhitm path: monster-vs-monster sleep
+        // C ref: uhitm.c:3486-3500 — two rnd(10) calls via sleep_monst
+        if (!mdef.msleeping) {
+            const amt = rnd(10);
+            if (!resists_sleep(mdef) && mdef.mcanmove !== false) {
+                mdef.mcanmove = false;
+                mdef.mfrozen = Math.min((mdef.mfrozen || 0) + amt, 127);
+                rnd(10); // second sleep_monst call
+            }
         }
     }
 }
@@ -1309,11 +1319,29 @@ export function mhitm_ad_dren(magr, mattk, mdef, mhm) {
 export function mhitm_ad_drin(magr, mattk, mdef, mhm) {
     const pd = mdef.data || mdef.type || {};
     if (!pd.mflags1 || (pd.mflags1 & M1_NOHEAD)) {
-        // Can't drain brain from headless monster
         mhm.damage = 0;
         return;
     }
-    // C ref: intelligence drain — reduces m_lev and mhpmax
+    if (mdef.attributes) {
+        // mhitu path: mind flayer attacks player
+        // C ref: uhitm.c:3218-3243 — uarmh && rn2(8) helmet protection
+        if (mdef.helmet && rn2(8)) {
+            // Helmet blocks the attack
+            mhm.damage = 0;
+            return;
+        }
+        // C: eat_brains handles the rest (exercise, Int drain)
+        // eat_brains RNG is complex; for now keep damage semantics
+    } else if (magr.attributes) {
+        // uhitm path: player attacks monster with brain drain
+        // C ref: uhitm.c:3196-3209 — helmet check with rn2(8)
+        const helmet = mdef.helmet || mdef.armh || null;
+        if (helmet && rn2(8)) {
+            mhm.damage = 0;
+            return;
+        }
+    }
+    // All paths: intelligence drain
     const mlev = mdef.m_lev || 0;
     if (mlev > 0) {
         if (mdef.m_lev !== undefined) mdef.m_lev--;
