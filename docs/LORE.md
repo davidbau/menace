@@ -14055,3 +14055,33 @@ Validation:
       - `theme15_seed986_wiz_artifact-wish_gameplay`
       - `theme35_seed2320_wiz_artifact-combat2_gameplay`
       - `seed1_special_tutorial.session.json`
+# 2026-03-20: mklev alignment authority split for changeLevel-driven generation
+
+- Evidence:
+  - `seed16_map` / `seed16_maps_c` regressed when runtime special-level
+    alignment metadata was fed directly into `makelevel()` monster weighting.
+  - `seed321_archeologist_wizard_gameplay` needed Medusa runtime alignment to
+    reach `align_shift()` during deferred wizard levelport generation.
+  - Broadly mutating live `player.uz` before every `mklev()` fixed those, but
+    regressed `seed031_manual_direct` because `sp_lev` `induced_align()` then
+    started seeing destination-branch alignment too early.
+- C anchor:
+  - `makemon.c:1609-1619` `align_shift()` refreshes cached special-level state
+    on move changes and keys from live `u.uz`.
+  - `teleport.c level_tele()` schedules `goto_level()` for end-of-turn
+    `deferred_goto()`, so deferred level changes naturally refresh at the next
+    move context.
+  - `sp_lev.c sp_amask_to_amask()` / `dungeon.c induced_align()` still read the
+    ordinary current-level authority path.
+- JS rule:
+  - do not pre-mutate live `player.uz` globally before `mklev()`
+  - instead, for `changeLevel()` generation only, pass a mklev-only target
+    level reference to `align_shift()` via `_mklevAlignLevelRef`
+  - keep direct startup/tutorial `mklev()` and `sp_lev` random alignment on the
+    existing current-level path unless separately proven otherwise
+- Result:
+  - `seed16_map`: PASS
+  - `seed16_maps_c`: PASS
+  - `seed321_archeologist_wizard_gameplay`: PASS
+  - `seed031_manual_direct` returns to its prior `525/526` frontier instead of
+    regressing to the bad step-467 special-level seam.
