@@ -62,12 +62,12 @@ test('mhitm_ad_famn zeroes damage only for non-eaters', () => {
     assert.equal(mhm2.damage, 6);
 });
 
-test('mhitm_ad_rust kills iron golem target and marks defender death', () => {
+test('mhitm_ad_rust kills iron golem target and marks defender death', async () => {
     const magr = { mcan: false, data: {} };
     const mdef = { data: mons[PM_IRON_GOLEM], mhp: 15, dead: false };
     const mhm = { damage: 4, hitflags: 0, done: false };
 
-    mhitm_ad_rust(magr, {}, mdef, mhm);
+    await mhitm_ad_rust(magr, {}, mdef, mhm);
     assert.equal(mhm.done, true);
     assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
 });
@@ -83,32 +83,32 @@ test('mhitm_ad_corr erodes m-vs-m branch and zeroes base damage', () => {
     assert.equal((mdef.mstrategy & 0x20000000) !== 0, false);
 });
 
-test('mhitm_ad_dcay kills rot-vulnerable golem and marks defender death', () => {
+test('mhitm_ad_dcay kills rot-vulnerable golem and marks defender death', async () => {
     const magr = { mcan: false, data: {} };
     const mdef = { data: mons[PM_WOOD_GOLEM], mhp: 12, dead: false };
     const mhm = { damage: 3, hitflags: 0, done: false };
 
-    mhitm_ad_dcay(magr, {}, mdef, mhm);
+    await mhitm_ad_dcay(magr, {}, mdef, mhm);
     assert.equal(mhm.done, true);
     assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
 });
 
-test('mhitm_ad_ston kills non-stone-resistant defender and marks defender death', () => {
+test('mhitm_ad_ston kills non-stone-resistant defender and marks defender death', async () => {
     const magr = { mcan: false, data: {} };
     const mdef = { data: {}, mhp: 12, dead: false };
     const mhm = { damage: 5, hitflags: 0, done: false };
 
-    mhitm_ad_ston(magr, {}, mdef, mhm);
+    await mhitm_ad_ston(magr, {}, mdef, mhm);
     assert.equal(mhm.done, true);
     assert.equal((mhm.hitflags & M_ATTK_DEF_DIED) !== 0, true);
 });
 
-test('mhitm_ad_ston keeps resistant defender alive and zeroes damage', () => {
+test('mhitm_ad_ston keeps resistant defender alive and zeroes damage', async () => {
     const magr = { mcan: false, data: {} };
     const mdef = { data: mons[PM_STONE_GOLEM], mhp: 22, dead: false };
     const mhm = { damage: 5, hitflags: 0, done: false };
 
-    mhitm_ad_ston(magr, {}, mdef, mhm);
+    await mhitm_ad_ston(magr, {}, mdef, mhm);
     assert.equal(mhm.done, false);
     assert.equal(mhm.damage, 0);
 });
