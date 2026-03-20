@@ -80,7 +80,7 @@ import { destroy_items_rng_only, resist } from './zap.js';
 import { findgold } from './steal.js';
 import { make_stunned, make_stoned } from './potion.js';
 import {
-    erode_obj, erode_obj_player, mselftouch,
+    erode_obj, erode_obj_player, mselftouch, acid_damage,
 } from './trap.js';
 import { tmp_at, nh_delay_output } from './animation.js';
 import { DISP_ALWAYS, DISP_END, NATTK, M_AP_NOTHING, M_AP_MONSTER, MIM_REVEAL, STONED } from './const.js';
@@ -1128,9 +1128,9 @@ export function mhitm_ad_acid(magr, mattk, mdef, mhm) {
         if (resists_acid(mdef)) {
             mhm.damage = 0;
         }
-        // C ref: !rn2(30) erode_armor, !rn2(6) acid_damage
-        rn2(30);
-        rn2(6);
+        // C ref: uhitm.c mhitm_ad_acid — erode defender's armor and weapon
+        if (!rn2(30)) erode_armor(mdef, ERODE_CORRODE);
+        if (!rn2(6)) acid_damage(mdef.weapon || null);
     }
 }
 
