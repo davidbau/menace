@@ -89,7 +89,7 @@ test('#untrap on current square with no trap uses C no-trap wording', async () =
     assert.equal(game.display.messages.at(-1), 'You know of no traps there.');
 });
 
-test('#name object-type path rejects non-callable inventory item with C wording', { skip: '#name menu now uses fullscreen rendering requiring additional navigation keys' }, async () => {
+test('#name object-type path rejects non-callable inventory item with C wording', async () => {
     clearInputQueue();
     const game = makeGame();
     game.player.inventory = [
@@ -103,16 +103,16 @@ test('#name object-type path rejects non-callable inventory item with C wording'
 
     for (const ch of 'name') pushInput(ch.charCodeAt(0));
     pushInput('\n'.charCodeAt(0));
-    pushInput('o'.charCodeAt(0));
-    pushInput('h'.charCodeAt(0));
-    pushInput('h'.charCodeAt(0));
-    pushInput('a'.charCodeAt(0));
+    pushInput('o'.charCodeAt(0));  // select "name object type"
+    pushInput('h'.charCodeAt(0));  // invalid invlet → "You don't have that object."
+    pushInput(' '.charCodeAt(0));  // dismiss --More-- after error
+    pushInput('a'.charCodeAt(0));  // select spear (known, not callable) → "silly thing to call"
 
     const result = await rhack('#'.charCodeAt(0), game);
 
     assert.equal(result.tookTime, false);
-    assert.ok(game.display.messages.includes('                                What do you want to name?'));
-    assert.ok(game.display.messages.includes('What do you want to call? [eg or ?*] '));
+    assert.ok(game.display.messages.some(m => m.includes('What do you want to call?')));
+    assert.ok(game.display.messages.some(m => m.includes("You don't have that object.")));
     assert.equal(game.display.topMessage, 'That is a silly thing to call.');
 });
 
