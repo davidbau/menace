@@ -23,7 +23,7 @@ import { COLNO, ROWNO, STONE, CORR, SDOOR, SCORR, STAIRS, FOUNTAIN, SINK, THRONE
          DO_MOVE, TEST_MOVE, TEST_TRAV, TEST_TRAP,
          TRAVP_TRAVEL, TRAVP_GUESS, TRAVP_VALID,
          LOST_THROWN, LOST_DROPPED, LOST_STOLEN, LOST_EXPLODING } from './const.js';
-import { SQKY_BOARD, SLP_GAS_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP_TRAP,
+import { SQKY_BOARD, SLP_GAS_TRAP, RUST_TRAP, FIRE_TRAP, PIT, SPIKED_PIT, ANTI_MAGIC, TELEP_TRAP,
          ARROW_TRAP, DART_TRAP, ROCKTRAP, FORCETRAP } from './const.js';
 import { defsyms, trap_to_defsym } from './symbols.js';
 import { PASSES_WALLS, M_AP_FURNITURE, M_AP_OBJECT } from './const.js';
@@ -60,7 +60,7 @@ import { look_here, dfeature_at, sobj_at } from './invent.js';
 import { show_invalid_direction_cmdassist_help } from './pickup.js';
 import { maybe_unhide_at } from './mon.js';
 import { tele_trap, domagicportal } from './teleport.js';
-import { trapeffect_bear_trap_you, trapeffect_web_you, dotrap } from './trap.js';
+import { trapeffect_bear_trap_you, trapeffect_rust_trap_you, trapeffect_web_you, dotrap } from './trap.js';
 import { TT_PIT, TT_WEB, TT_LAVA, TT_BEARTRAP, xdir, ydir, N_DIRS, KILLED_BY, KILLED_BY_AN, LEFT_SIDE, RIGHT_SIDE,
          WT_WEIGHTCAP_STRCON, WT_WEIGHTCAP_SPARE, MAX_CARR_CAP, WT_HUMAN, WT_WOUNDEDLEG_REDUCT,
          SHARED, SHARED_PLUS } from './const.js';
@@ -1318,6 +1318,13 @@ export async function domove_core(dir, player, map, display, game) {
             await display.putstr_message('A cloud of gas puts you to sleep!');
             // Keep duration for future full sleep handling without changing turn loop yet.
             player.sleepTrapTurns = Math.max(player.sleepTrapTurns || 0, duration);
+        }
+        // C ref: trap.c:1581 trapeffect_rust_trap() still runs after the generic
+        // seen-trap / levitation / escape gates above. Without this explicit
+        // branch, JS silently stepped onto rust traps and skipped the rn2(5)
+        // water-target roll that C performs before monster movement.
+        else if (trap.ttyp === RUST_TRAP) {
+            await trapeffect_rust_trap_you(trap, 0, player, game, map);
         }
         // C ref: trap.c dofiretrap() for hero path (non-resistant baseline)
         else if (trap.ttyp === FIRE_TRAP) {

@@ -38,6 +38,21 @@ For the full narratives of how these lessons were discovered, see the
   `next_ident()` call.
   - If JS splits first, `next_ident()` drifts before the real multishot RNG.
 - Thrown-kill ownership has a subtle but important rule:
+
+## 2026-03-20 - stepped rust traps must actually fire in `domove()`
+
+- `hack.js applySteppedTrap()` had inlined only a subset of `dotrap()` hero
+  effects.
+- That was enough to handle arrows, pits, webs, teleport, and similar cases,
+  but it accidentally skipped `RUST_TRAP` entirely.
+- C `trap.c trapeffect_rust_trap()` always rolls `rn2(5)` when the hero steps
+  onto the trap after the generic seen-trap escape gates.
+- In `seed031_manual_direct`, that missing `rn2(5)` happened immediately before
+  the pet `dog_goal()` scan, so one skipped rust-trap roll cascaded into the
+  later pet RNG divergence.
+- Fix the core trap path, not replay ownership:
+  - add the missing `RUST_TRAP` branch to `applySteppedTrap()`
+  - keep it after the generic `dotrap()`-style prelude, matching C ordering
   - C `thitmonst()` does not directly own `xkilled()`
   - the missile can still mulch or land after the kill
   - so a JS shortcut that resolves the kill inside `thitmonst()` must not also

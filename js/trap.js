@@ -2408,7 +2408,7 @@ async function trapeffect_slp_gas_trap_you(trap, trflags, player, game, map) {
 }
 
 // C ref: trap.c:1580 trapeffect_rust_trap — player branch
-async function trapeffect_rust_trap_you(trap, trflags, player, game, map) {
+export async function trapeffect_rust_trap_you(trap, trflags, player, game, map) {
     seetrap(trap);
     // C: switch(rn2(5)) hits different body parts with water damage
     switch (rn2(5)) {
