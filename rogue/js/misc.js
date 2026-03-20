@@ -8,7 +8,7 @@ import { rnd } from './rng.js';
 import { mvwinch, wmove, waddch, mvwaddch, winat, mvaddch, getCwyx } from './curses.js';
 import {
   SECRETDOOR, DOOR, FLOOR, PASSAGE, TRAP, STAIRS, PLAYER, AMULET,
-  LINES, COLS, ISBLIND, ISDARK, ISFOUND,
+  LINES, COLS, ISBLIND, ISDARK, ISFOUND, ISHASTE,
   LEFT, RIGHT, R_SEARCH, R_TELEPORT, GOLD, WEAPON, ARMOR, POTION,
   SCROLL, RING, STICK, FOOD,
 } from './const.js';
@@ -400,5 +400,4 @@ export async function add_haste(potion) {
   }
 }
 
-const ISHASTE = 0x80;
 const AFTER = 2;
