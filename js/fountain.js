@@ -649,8 +649,7 @@ export async function drinksink(player, map, display, fov) {
         if (player.hasProp(FIRE_RES)) {
             await pline("It seems quite tasty.");
         } else {
-            // losehp(rnd(6), "sipping boiling water", KILLED_BY)
-            rnd(6); // RNG consumed for damage
+            await losehp(rnd(6), "sipping boiling water", 0, player, display, _gstate);
         }
         break;
     case 3: {

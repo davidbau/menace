@@ -691,10 +691,11 @@ export async function retouch_object(obj, loseit, player) {
              obj.owornmask ? ' anymore' : '');
     if (ag) {
       const tmp = rnd(10);
-      // losehp would go here
+      await losehp(tmp, 'contact with silver', KILLED_BY, player, _gstate?.display, _gstate);
     }
     if (bane) {
-      rnd(10); // consume RNG for bane damage
+      const tmp = rnd(10);
+      await losehp(tmp, obj.oname || 'an artifact', KILLED_BY, player, _gstate?.display, _gstate);
     }
   }
 
