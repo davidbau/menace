@@ -398,3 +398,49 @@ Conclusion:
 - this batch is safe branch catch-up, not a new branch-specific theory
 - `seed031` / `seed032` remain the same
 - `seed033` remains a real tutorial-generation parity problem on the branch
+
+## Tutorial chargen must not force `dungeonAlignOverride: A_NONE`
+
+Exact root cause:
+
+- `seed033_manual_direct` still failed immediately during tutorial special-level
+  generation even after the branch was caught up with `main`.
+- direct trace on the branch showed:
+  - tutorial runtime metadata was present
+  - `makelevel()` saw tutorial `metaAlign=1`
+  - but `_gstate._dungeonAlign` was still seeded to `-128` because
+    [`chargen.js`]( /share/u/davidbau/git/mazesofmenace/game/js/chargen.js )
+    was calling:
+    - `mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE })`
+- that old tutorial-start override clobbered the lawful tutorial alignment
+  before `mkobj()` corpse initialization hit `rndmonnum_adj()`.
+
+Exact branch fix:
+
+- add tutorial lawful alignment metadata to
+  [`RUNTIME_SPECIAL_LEVEL_CANON`]( /share/u/davidbau/git/mazesofmenace/game/js/dungeon.js )
+- remove the forced tutorial `A_NONE` override from
+  [`enterTutorial()`]( /share/u/davidbau/git/mazesofmenace/game/js/chargen.js )
+
+Validation:
+
+- [`seed033_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed033_manual_direct.session.json )
+  - improved from immediate step-`1` generation drift to:
+    - first RNG divergence: step `337`
+    - first event divergence: step `373`
+  - matched RNG: `2496 -> 4369`
+  - matched events: `183 -> 1460`
+  - matched screens: `36 -> 269`
+- unchanged guardrails:
+  - [`seed031_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed031_manual_direct.session.json )
+  - [`seed032_manual_direct.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/seed032_manual_direct.session.json )
+- still green:
+  - [`theme15_seed986_wiz_artifact-wish_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/artifact-use/theme15_seed986_wiz_artifact-wish_gameplay.session.json )
+  - [`theme35_seed2320_wiz_artifact-combat2_gameplay.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/sessions/coverage/round8-scrolls-potions/theme35_seed2320_wiz_artifact-combat2_gameplay.session.json )
+  - [`seed1_special_tutorial.session.json`]( /share/u/davidbau/git/mazesofmenace/game/test/comparison/maps/seed1_special_tutorial.session.json )
+
+Conclusion:
+
+- this was not a branch-only game-loop bug
+- it was a stale tutorial-start heuristic overriding the now-correct special
+  level alignment metadata

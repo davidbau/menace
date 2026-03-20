@@ -659,8 +659,8 @@ const RUNTIME_SPECIAL_LEVEL_CANON = new Map([
         { index: 2, canonDlevel: 3 }, // tower3
     ]],
     [TUTORIAL, [
-        { index: 0, canonDlevel: 1 }, // tut-1
-        { index: 1, canonDlevel: 2 }, // tut-2
+        { index: 0, canonDlevel: 1, align: A_LAWFUL }, // tut-1
+        { index: 1, canonDlevel: 2, align: A_LAWFUL }, // tut-2
     ]],
     [QUEST, [
         { index: 0, canonDlevel: 1 }, // x-strt

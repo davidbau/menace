@@ -14023,3 +14023,35 @@ Validation:
     - `seed16_maps_c.session.json`
       - RNG improved `12836/12908 -> 12908/12908`
       - PASS
+
+- 2026-03-20: tutorial direct-start must not override lawful special-level
+  alignment with `A_NONE`.
+  - Exact root cause:
+    - `seed033_manual_direct` still first-diverged during tutorial special-level
+      generation even after the branch caught up with later `main` parity fixes.
+    - trace showed `makelevel()` was seeing tutorial runtime metadata with
+      `metaAlign=1`, but [`js/chargen.js`](/share/u/davidbau/git/mazesofmenace/game/js/chargen.js)
+      still called:
+      - `mklev(1, TUTORIAL, 1, { dungeonAlignOverride: A_NONE })`
+    - that stale override clobbered `_gstate._dungeonAlign` during tutorial
+      generation, so `mkobj()` corpse init still used the wrong `rndmonnum_adj()`
+      monster pool.
+  - Faithful fix:
+    - add tutorial lawful alignment metadata to
+      [`js/dungeon.js`](/share/u/davidbau/git/mazesofmenace/game/js/dungeon.js)
+      `RUNTIME_SPECIAL_LEVEL_CANON`
+    - remove the forced tutorial `A_NONE` override from `enterTutorial()`
+  - Validation:
+    - `seed033_manual_direct`
+      - matched RNG improved `2496 -> 4369`
+      - matched events improved `183 -> 1460`
+      - matched screens improved `36 -> 269`
+      - first RNG divergence moved from step `1` to step `337`
+      - first event divergence moved from step `2` to step `373`
+    - unchanged:
+      - `seed031_manual_direct`
+      - `seed032_manual_direct`
+    - still passing:
+      - `theme15_seed986_wiz_artifact-wish_gameplay`
+      - `theme35_seed2320_wiz_artifact-combat2_gameplay`
+      - `seed1_special_tutorial.session.json`
