@@ -312,14 +312,15 @@ speed. Judgment remains essential. The work of deciding what matters, of seeing 
 hidden, of knowing when your own metrics are lying to you: this is the
 work that remains, and it is the work worth learning.
 
-I plan to finish the NetHack project and gather the technical details to
-share at some point in the future. There will be something to learn
-from what AI-assisted coding on a 420,000-line codebase actually looks like,
-the tools, the failures, and the specific lessons. Here is what I
-think: the revolution is real. But it has been continuous, an adventure
-I have seen evolving since I was eleven years old. I do not know exactly
-what computer science
-is becoming. But, from what I can see: computer science is far from over.
+This project — reconstructing old software has sharpened my sense of what
+the new tools can and cannot do. I plan to finish the NetHack project and
+gather the technical details to share at some point in the future. There
+will be something to learn from what AI-assisted coding on a 420,000-line
+codebase actually looks like, the tools, the failures, and the specific
+lessons. Here is what I think: the revolution is real. But it has been
+continuous, an adventure I have seen evolving since I was eleven years old.
+I do not know exactly what computer science is becoming. But, from what I
+can see: computer science is far from over.
 
 ---
 
