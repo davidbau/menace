@@ -308,8 +308,8 @@ until the problems get large enough to be hard again.
 That is what I want my students to understand. Not that the machines are
 coming for their jobs: the machines are already here, and the jobs are
 already different. What I want them to understand is that the hard part
-has always been the hard part. Complexity does not yield to speed. Judgment
-does not automate. The work of deciding what matters, of seeing what is
+has always been hard, and will still be hard. Complexity does not yield to
+speed. Judgment remains essential. The work of deciding what matters, of seeing what is
 hidden, of knowing when your own metrics are lying to you: this is the
 work that remains, and it is the work worth learning.
 
