@@ -2511,8 +2511,8 @@ export async function zapyourself(obj, player, ordinary = true, map = null) {
     // C ref: zap.c:2738-2739 — unconditional destroy_item for self-zap
     destroy_item(WAND_CLASS, AD_ELEC, player);
     destroy_item(RING_CLASS, AD_ELEC, player);
-    // C: flashburn(rnd(100), TRUE)
-    rnd(100); // flashburn duration — RNG consumed unconditionally
+    // C ref: zap.c wand of lightning backfire — flashburn(rnd(100), TRUE)
+    await flashburn(rnd(100), true, player);
     break;
   }
   case WAN_FIRE: {
