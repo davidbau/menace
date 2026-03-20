@@ -79,7 +79,12 @@
       color: var(--color-accent-dark);
       text-decoration: none;
       font-weight: 500;
-      transition: color var(--transition-fast);
+      opacity: 0;
+      transition: color var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    #nav:hover a {
+      opacity: 1;
     }
 
     #nav a:hover {
