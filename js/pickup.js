@@ -1207,21 +1207,23 @@ async function handlePickup(player, map, display, game = null) {
         return { moved: false, tookTime: false };
     }
 
-    // Pick up gold first if present
+    // C ref: pickup.c query_objlist() only bypasses the pickup menu via
+    // AUTOSELECT_SINGLE when exactly one eligible floor object exists.
+    // Mixed piles with gold still enter "Pick up what?", with the first gold
+    // stack using '$' as its selector.
     const gold = objs.find(o => o.oclass === COIN_CLASS);
-    if (gold) {
+    if (gold && objs.length === 1) {
         player.addToInventory(gold);
         map.removeObject(gold);
         await display.putstr_message(formatGoldPickupMessage(gold, player));
         return { moved: false, tookTime: true };
     }
 
-    const nonGoldObjs = objs.filter((o) => o.oclass !== COIN_CLASS);
     // C-faithful command boundary: ',' on a multi-object pile enters a
     // selector flow (same command) where letter keys are not global commands.
-    if (nonGoldObjs.length > 1) {
+    if (objs.length > 1) {
         const inv_order = game?.flags?.inv_order || '';
-        const choiceObjs = [...nonGoldObjs].sort((a, b) => {
+        const choiceObjs = [...objs].sort((a, b) => {
             // C-like pickup menu ordering: group by class per inv_order, then by name.
             const ac = Number(a?.oclass || 0);
             const bc = Number(b?.oclass || 0);
@@ -1243,6 +1245,7 @@ async function handlePickup(player, map, display, game = null) {
         const win = create_nhwindow(NHW_MENU);
         start_menu(win, MENU_BEHAVE_STANDARD);
         let lastClass = null;
+        let assignedGoldSelector = false;
         for (const obj of choiceObjs) {
             const cls = Number(obj?.oclass || 0);
             if (cls !== lastClass) {
@@ -1250,8 +1253,11 @@ async function handlePickup(player, map, display, game = null) {
                 add_menu(win, null, null, 0, 0, ATR_NONE, 0, classSymbolLabel(sym), 0);
                 lastClass = cls;
             }
-            // Use auto-assigned selector letters so C-like a/b/c keys work.
-            add_menu(win, null, obj, 0, 0, ATR_NONE, 0, doname(obj), 0);
+            const selector = (!assignedGoldSelector && obj?.oclass === COIN_CLASS) ? '$'.charCodeAt(0) : 0;
+            if (selector) assignedGoldSelector = true;
+            // C ref: pickup.c query_objlist() assigns '$' to the first gold
+            // entry, otherwise lets the menu backend auto-assign letters.
+            add_menu(win, null, obj, selector, 0, ATR_NONE, 0, doname(obj), 0);
         }
         end_menu(win, 'Pick up what?');
         const picks = await select_menu(win, PICK_ANY);
@@ -1274,11 +1280,15 @@ async function handlePickup(player, map, display, game = null) {
             map.removeObject(obj);
             // C ref: invent.c:1142 — mark as just picked up for 'P' drop category
             if (addResult?.item) addResult.item.pickup_prev = 1;
-            await pline(
-                "%s - %s.",
-                addResult?.item?.invlet || obj.invlet || '-',
-                doname(addResult?.item || obj, player)
-            );
+            if (obj.oclass === COIN_CLASS) {
+                await pline("%s", formatGoldPickupMessage(obj, player));
+            } else {
+                await pline(
+                    "%s - %s.",
+                    addResult?.item?.invlet || obj.invlet || '-',
+                    doname(addResult?.item || obj, player)
+                );
+            }
         }
         return { moved: false, tookTime: true };
     }

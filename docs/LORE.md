@@ -14189,3 +14189,44 @@ Validation:
     `580/580` to `624/624`
   - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
   - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+
+# 2026-03-20: Mixed floor piles with gold must still use `Pick up what?`
+
+- Evidence: after the underfoot-rock fix, `seed031_manual_direct` still
+  diverged at step `624`. Replay-owner tracing showed the later floor pile flow
+  was wrong in JS:
+  - fixture keys at turn `517` are `:, space, ,, b c d e f $ Enter`
+  - C stays inside `Pick up what?` through that whole sequence
+  - JS consumed `,` as an immediate pickup, then interpreted the later
+    `b/c/d/e/f/$` keys as global commands
+- Root cause:
+  [js/pickup.js](/share/u/davidbau/git/mazesofmenace/game/js/pickup.js)
+  was returning early whenever any `COIN_CLASS` object was present on the
+  square. That is not C-faithful for mixed piles. In C, `pickup.c`
+  `query_objlist("Pick up what?", ...)` is only bypassed by
+  `AUTOSELECT_SINGLE` when exactly one eligible object exists.
+- C anchor:
+  - `pickup.c:760..775` sends menu-style pickup through
+    `query_objlist("Pick up what?", ...)`
+  - `pickup.c:1072` only autoselects when `n == 1`
+  - `pickup.c:1135` gives the first gold entry the selector `'$'`
+- Fix:
+  - only auto-pick gold when it is the sole floor object
+  - for mixed piles, build the pickup menu over the full object list,
+    including gold
+  - assign `'$'` to the first gold entry and let other entries keep the normal
+    auto-assigned letters
+  - when gold is selected from that menu, emit the normal
+    `formatGoldPickupMessage(...)` text instead of treating it like a generic
+    inventory-letter item line
+  - add a focused unit test in
+    [test/unit/pickup_compare_discovery_message.test.js](/share/u/davidbau/git/mazesofmenace/game/test/unit/pickup_compare_discovery_message.test.js)
+    covering mixed gold+item floor piles
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence
+    `624/624` to `635/630`
+  - `seed032_manual_direct`: unchanged
+  - `seed033_manual_direct`: unchanged
+  - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+  - `node --test test/unit/pickup_compare_discovery_message.test.js test/unit/windows_nhwindow.test.js`: PASS
