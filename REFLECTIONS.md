@@ -190,9 +190,9 @@ It is metaprogramming all the way down.
 
 ## The question for my students
 
-I am a university computer science professor, or at least, that is what it
-says on the door. But when I stand in front of a classroom now, I honestly
-wonder what the field is that I need to be teaching.
+I am a computer science professor; at least it says that on the door. But
+when I stand in front of a classroom now, I honestly wonder what field I
+need to be teaching.
 
 When I was a student, CS was about writing programs. Algorithms, data
 structures, systems, languages. You learned to think computationally:
