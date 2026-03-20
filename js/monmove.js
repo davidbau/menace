@@ -28,7 +28,7 @@ import { COLNO, ROWNO, IS_WALL, IS_DOOR, IS_ROOM,
          MTSZ, SQSRCHRADIUS, FARAWAY, BOLT_LIM, OBJ_FLOOR, PIT, SPIKED_PIT } from './const.js';
 import { rn2, rn1, rnd, d, c_d, pushRngLogEntry } from './rng.js';
 import { M_ATTK_HIT, M_ATTK_DEF_DIED, M_ATTK_AGR_DIED, STRAT_ARRIVE } from './const.js';
-import { NORMAL_SPEED } from './const.js';
+import { NORMAL_SPEED, P_POLEARMS, P_LANCE } from './const.js';
 import { wipe_engr_at } from './engrave.js';
 import { mattacku, mdamageu, ranged_attk_available, gazemu } from './mhitu.js';
 import { m_has_launcher_and_ammo } from './mthrowu.js';
@@ -2562,7 +2562,14 @@ export function m_balks_at_approaching(oldappr, mon, player) {
     if (m_has_launcher_and_ammo(mon)) return -1;
 
     // C ref: monmove.c:1203-1205 — polearm in range → retreat
-    // INCOMPLETE: is_pole() check not yet implemented (requires P_POLEARMS/P_LANCE skill check)
+    const mwep = mon.weapon || null;
+    if (mwep && mwep.oclass === WEAPON_CLASS) {
+        const skill = objectData[mwep.otyp]?.oc_skill || 0;
+        if (skill >= P_POLEARMS && skill <= P_LANCE
+            && dist2(mon.mx, mon.my, ux, uy) <= 5) {
+            return -1;
+        }
+    }
 
     // C ref: monmove.c:1218-1221 — ranged attack with low HP or unused spec
     const hasRanged = ranged_attk_available(mon);
