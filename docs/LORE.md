@@ -14319,3 +14319,42 @@ When a correct parity fix regresses a session:
 - The right action is to find and fix bug B, not revert bug A.
 - Debug by examining what CHANGED between "works" and "broken" states, then trace
   the specific value difference (in this case, dknown on the trap rock).
+
+# 2026-03-20: `T` armor removal must reuse `armoroff()` timing, not a JS-only occupation
+
+- Evidence: on `main`, after the hallucination-aware inventory merge fix,
+  `seed031_manual_direct` still first diverged at RNG/event `637/638` in the
+  pet turn:
+  - JS: `^dog_invent_decision[32@59,14 ud=9 ...]`
+  - C:  `^dog_invent_decision[32@59,14 ud=17 ...]`
+- Focused trace around the preceding command handoff showed the active JS
+  command sequence was still armor takeoff/wear:
+  - resume `handleTakeOff(...)`
+  - top line `You finish taking off your ...`
+  - then `handleWear(...)`
+  - then the first bad dog turn
+- C anchor:
+  - `do_wear.c armor_or_accessory_off()` delegates armor removal to
+    `armoroff(obj)`
+  - `do_wear.c armoroff()` uses `nomul(delay)` + `ga.afternmv` +
+    `gn.nomovemsg`
+  - it does not implement delayed single-item armor takeoff as an occupation;
+    `take_off()` occupation logic is for `A` / `#takeoffall`
+- Root cause:
+  [js/do_wear.js](/share/u/davidbau/git/mazesofmenace/game/js/do_wear.js)
+  had two separate timing models for armor removal:
+  - faithful `armoroff()` already existed and matched C's `nomul + afternmv`
+  - but `removeArmorOrAccessory()` still used a JS-only `occupation` path when
+    `delay > 1`
+  This shifted the takeoff/wear boundary and left JS running the next pet turn
+  with the hero still on the earlier pre-state.
+- Fix:
+  - route `removeArmorOrAccessory()` armor removals through existing
+    `armoroff(item, player, game)`
+  - keep accessory removal on the direct path
+- Validation:
+  - `seed031_manual_direct` improved from first RNG/event divergence `637/638`
+    to `639/640`
+  - `theme15_seed986_wiz_artifact-wish_gameplay`: PASS
+  - `theme35_seed2320_wiz_artifact-combat2_gameplay`: PASS
+  - `node scripts/test-unit-core.mjs`: PASS
